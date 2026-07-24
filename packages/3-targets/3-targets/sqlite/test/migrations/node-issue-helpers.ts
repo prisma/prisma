@@ -119,10 +119,12 @@ export function index(
   overrides: { readonly name?: string; readonly unique?: boolean } = {},
 ): SqlIndexIR {
   return new SqlIndexIR({
+    name: overrides.name ?? `idx_${columns.join('_')}`,
+    prefix: undefined,
     columns,
+    where: undefined,
     unique: overrides.unique ?? false,
     partial: false,
-    name: overrides.name,
     type: undefined,
     options: undefined,
     annotations: undefined,

@@ -181,7 +181,7 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
         // instead of silently passing on the unchanged table.
         expect(plannedOperationIds).toContain('recreateTable.User');
 
-        const indexCols = schema.tables['User']!.indexes.map((i) => [...i.columns]);
+        const indexCols = schema.tables['User']!.indexes.map((i) => [...(i.columns ?? [])]);
         expect(indexCols).toContainEqual(['email']);
         expect(indexCols).toContainEqual(['name', 'email']);
 
@@ -190,8 +190,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
             `SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'User' AND name NOT LIKE 'sqlite_%'`,
           )
         ).rows.map((r) => r.name);
-        expect(indexNames).toContain('idx_users_email');
-        expect(indexNames).toContain('idx_users_name_email');
+        expect(indexNames).toContain('idx_users_email_46df9cad');
+        expect(indexNames).toContain('idx_users_name_email_0a1c9ab4');
 
         const rows = await driver.query<{ id: number; email: string; name: string | null }>(
           'SELECT id, email, name FROM "User" WHERE id = ?',

@@ -226,7 +226,9 @@
               "indexes": [
                 {
                   "columns": ["userId"],
-                  "name": "post_userId_idx"
+                  "name": "post_userId_idx_a489d58a",
+                  "prefix": "post_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -306,7 +308,7 @@
         "id": "public"
       }
     },
-    "storageHash": "523267d0a150439385f76cedf7b4ec7516e5d59d1b19c9165e44f62ba8d0924a",
+    "storageHash": "d2b2185d3f182c9abacb3ceff6f43ef881047429f38040a0b1a8baf4c04c78f6",
     "types": {
       "Embedding": {
         "codecId": "pg/vector@1",

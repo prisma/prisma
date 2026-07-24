@@ -10,6 +10,7 @@ import {
   mapNodeIssueToCall,
   planIssues as planNodeIssues,
 } from '../../src/core/migrations/issue-planner';
+import { RenameIndexCall } from '../../src/core/migrations/op-factory-call';
 import { PostgresSchema } from '../../src/core/postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
@@ -141,7 +142,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
           },
         ],
         uniques: [{ columns: ['slug'] }],
-        indexes: [{ columns: ['slug'] }],
+        indexes: [{ name: 'post_slug_idx', columns: ['slug'], unique: false }],
       },
     });
     const factoryNames = planFor(contract, emptyRoot()).map((c) => c.factoryName);
@@ -429,10 +430,12 @@ describe('planNodeIssues — dependency-graph ordering', () => {
         ],
         indexes: [
           {
+            name: 'account_legacy_idx',
+            prefix: undefined,
             columns: ['legacy'],
+            where: undefined,
             unique: false,
             partial: false,
-            name: 'account_legacy_idx',
             type: undefined,
             options: undefined,
             annotations: undefined,
@@ -531,5 +534,51 @@ describe('coalesceSubtreeIssues', () => {
     // Only the table-level not-found survives.
     expect(coalesced).toHaveLength(1);
     expect(coalesced[0]?.path).toEqual(['database', 'public', 'user']);
+  });
+});
+
+describe('operation-class gating of a RenameIndexCall', () => {
+  it('a policy-disallowed rename surfaces an indexIncompatible conflict at the index location, labeled with the rename', () => {
+    const contract = makeContract({ user: userTable });
+    const { issues } = buildPostgresPlanDiff({
+      contract,
+      actualSchema: emptyRoot(),
+      frameworkComponents: [],
+    });
+    const coalesced = coalesceSubtreeIssues(issues);
+    const renameCall = new RenameIndexCall(
+      'public',
+      'user',
+      'old_email_idx',
+      'user_email_idx_46df9cad',
+    );
+    const renameEmittingStrategy = (strategyIssues: readonly SchemaDiffIssue[]) =>
+      ({ kind: 'match', issues: strategyIssues, calls: [renameCall] }) as const;
+
+    const result = planNodeIssues({
+      issues: coalesced,
+      toContract: contract,
+      fromContract: null,
+      schemaName: 'public',
+      codecHooks: new Map(),
+      storageTypes: contract.storage.types ?? {},
+      policy: { allowedOperationClasses: ['additive'] },
+      strategies: [renameEmittingStrategy],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('expected conflicts');
+    const conflicts = result.failure;
+    const renameConflict = conflicts.find((c) => c.summary.includes('Rename index'));
+    expect(renameConflict).toMatchObject({
+      kind: 'indexIncompatible',
+      summary:
+        'Operation "Rename index "old_email_idx" to "user_email_idx_46df9cad" on "user"" requires class "widening", but policy allows only: additive',
+      location: {
+        entityKind: 'table',
+        entityName: 'user',
+        index: 'user_email_idx_46df9cad',
+      },
+    });
   });
 });

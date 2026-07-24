@@ -96,7 +96,7 @@ Managed nodes still compare structured attributes so out-of-band structured drif
 - **Rename pairing, two phases** (widening-class, per `(schema, table)`, deterministic by sorted names):
   1. *Hash pairing* — missing and extra whose wire names share a hash under different prefixes → `ALTER INDEX … RENAME TO` (ADR 234's rename detection, now for indexes).
   2. *Content pairing* — a remaining missing **managed** node and a remaining extra of any name shape that are content-equal (structured attributes strict, bodies byte-equal) → rename. This is the exact→managed transition and the pre-1.0 upgrade path. It pairs only when the body text is byte-identical, so "switch the name mode" and "rewrite the body" must be separate migrations — done together they degrade to create+drop.
-- Under an additive-only policy both phases are skipped and pairing degrades to the additive half (create now, old object survives until a widening plan), matching the existing RLS rename degradation.
+- Under an additive-only policy both phases are skipped and pairing degrades to the additive half: the new name is created now, and — because the rename precheck requires its target absent — the old object can then only leave via a destructive-allowed drop, never a later rename. A rename happens only when a widening-allowed plan is the *first* convergence. Matches the existing RLS rename degradation.
 
 ## Adoption and inference
 

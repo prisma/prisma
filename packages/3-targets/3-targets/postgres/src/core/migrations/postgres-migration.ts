@@ -34,6 +34,7 @@ import {
   DropPostgresRlsPolicyCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
+  RenameIndexCall,
   RenamePostgresRlsPolicyCall,
   SetDefaultCall,
   SetNotNullCall,
@@ -392,20 +393,37 @@ export abstract class PostgresMigration<
     );
   }
 
-  protected createIndex(options: {
-    readonly schema: string;
-    readonly table: string;
-    readonly index: string;
-    readonly columns: readonly string[];
-    readonly extras?: CreateIndexExtras;
-  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+  protected createIndex(
+    options: {
+      readonly schema: string;
+      readonly table: string;
+      readonly index: string;
+      readonly extras?: CreateIndexExtras;
+    } & (
+      | { readonly columns: readonly string[]; readonly expression?: never }
+      | { readonly expression: string; readonly columns?: never }
+    ),
+  ): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new CreateIndexCall(
       options.schema,
       options.table,
       options.index,
-      options.columns,
+      options.columns !== undefined
+        ? { columns: options.columns }
+        : { expression: options.expression },
       options.extras,
     ).toOp(this.controlAdapterFor('createIndex'));
+  }
+
+  protected renameIndex(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly from: string;
+    readonly to: string;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new RenameIndexCall(options.schema, options.table, options.from, options.to).toOp(
+      this.controlAdapterFor('renameIndex'),
+    );
   }
 
   protected dropIndex(options: {

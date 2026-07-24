@@ -39,7 +39,7 @@ describe('family instance schemaVerify - basic', () => {
             FOREIGN KEY ("userId") REFERENCES "user"(id)
           )
         `);
-        await client.query('CREATE INDEX "post_userId_idx" ON "post"("userId")');
+        await client.query('CREATE INDEX "post_userId_idx_a489d58a" ON "post"("userId")');
       });
     }, timeouts.spinUpPpgDev);
 

@@ -23,9 +23,9 @@ export function buildSchemaLookupMap(schema: SqlSchemaIR): ReadonlyMap<string, S
 
 function buildSchemaTableLookup(table: SqlSchemaIR['tables'][string]): SchemaTableLookup {
   const uniqueKeys = new Set(table.uniques.map((u) => u.columns.join(',')));
-  const indexKeys = new Set(table.indexes.map((i) => i.columns.join(',')));
+  const indexKeys = new Set(table.indexes.map((i) => (i.columns ?? []).join(',')));
   const uniqueIndexKeys = new Set(
-    table.indexes.filter((i) => i.unique).map((i) => i.columns.join(',')),
+    table.indexes.filter((i) => i.unique).map((i) => (i.columns ?? []).join(',')),
   );
   const fkKeys = new Set<string>();
   for (const fk of table.foreignKeys) {

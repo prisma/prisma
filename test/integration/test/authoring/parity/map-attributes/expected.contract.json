@@ -137,7 +137,10 @@
               ],
               "indexes": [
                 {
-                  "columns": ["team_ref"]
+                  "columns": ["team_ref"],
+                  "name": "team_member_team_ref_idx_a6fcaafa",
+                  "prefix": "team_member_team_ref_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -154,7 +157,7 @@
         "id": "public"
       }
     },
-    "storageHash": "53113c5a5629969aa4d993fb2a6c554ee3d619d6a9c93a4af75b40c8e92dc0f0"
+    "storageHash": "79956063a45496197760e927b15dc94e848a753280a630e0660c7c95362ea07f"
   },
   "capabilities": {
     "postgres": {

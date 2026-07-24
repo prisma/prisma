@@ -297,13 +297,17 @@
                   "columns": [
                     "classId"
                   ],
-                  "name": "studentClass_classId_idx"
+                  "name": "studentClass_classId_idx_0089e5e7",
+                  "prefix": "studentClass_classId_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "studentId"
                   ],
-                  "name": "studentClass_studentId_idx"
+                  "name": "studentClass_studentId_idx_bf255322",
+                  "prefix": "studentClass_studentId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -319,7 +323,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "82be1821ae56669ece5324d1aaa9e3726e0443c6aff38557ef99392d8dfa26ce"
+    "storageHash": "2ebb8ca3c6d32567ff7c919da7d188d625966316d3415832cdb5862161968080"
   },
   "execution": {
     "executionHash": "4369450a09245c0a51fc504658e282787722359f0066f6aa63720307499f6b7d",

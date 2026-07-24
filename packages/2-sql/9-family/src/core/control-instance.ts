@@ -41,7 +41,6 @@ import type {
   LowererContext,
   SqlExecuteRequest,
 } from '@prisma-next/sql-relational-core/ast';
-import { defaultIndexName } from '@prisma-next/sql-schema-ir/naming';
 import type { SqlSchemaIRNode, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
@@ -1112,7 +1111,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
           }
 
           for (const index of table.indexes) {
-            const name = index.name ?? defaultIndexName(tableName, index.columns);
+            const name = index.name;
             const label = index.unique ? `unique index ${name}` : `index ${name}`;
             children.push(
               new SchemaTreeNode({

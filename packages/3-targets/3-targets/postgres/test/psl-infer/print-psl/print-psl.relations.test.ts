@@ -35,10 +35,12 @@ describe('printPsl', () => {
           uniques: [],
           indexes: [
             {
+              name: 'post_user_id_idx',
+              prefix: undefined,
               columns: ['user_id'],
+              where: undefined,
               unique: false,
               partial: false,
-              name: undefined,
               type: undefined,
               options: undefined,
               annotations: undefined,
@@ -67,7 +69,7 @@ describe('printPsl', () => {
         userId Int    @map("user_id")
         user   User   @relation(fields: [userId], references: [id])
 
-        @@index([userId])
+        @@index([userId], map: "post_user_id_idx")
         @@map("post")
       }
       "

@@ -23,9 +23,9 @@ Machine-readable versions of these lists live in `scripts/generate-contract.ts` 
 
 **Indexes:**
 
-- The reference's 8 partial unique indexes (`WHERE`-predicated, on `auth.users` token columns, `auth.mfa_factors`, `storage.buckets_analytics`) are not declared — the inferrer never promotes an index-level unique into `@@unique`, and a predicate-less declaration would misdeclare.
+- Partial (`WHERE`-predicated) indexes are not declared at all — no authoring surface carries the predicate yet, and now that introspection captures `WHERE` at full fidelity a predicate-less declaration would fail the exact-mode body compare (name-identified indexes). That omits the reference's 8 partial unique indexes (`auth.users` token columns, `auth.mfa_factors`, `storage.buckets_analytics`) and its partial non-unique `auth.oauth_*` indexes. Expression indexes are omitted on the same grounds.
 - `auth.one_time_tokens`' two `USING hash` indexes are declared (`@@index(..., type: "hash")`) — the postgres target registers `hash` as a built-in index type (TML-3037).
-- 16 foreign keys whose source columns have **no live backing index** are declared with `@relation(..., index: false)` — real Supabase does not index those FK columns, and the default FK-derived index expectation would otherwise fail verify. (This PSL argument and the inferrer support for it shipped with this contract.)
+- 17 foreign keys whose source columns have **no declarable live backing index** are declared with `@relation(..., index: false)` — 16 where real Supabase does not index those FK columns at all, plus `auth.oauth_consents.client_id`, whose only live backing index is partial and therefore undeclared. The default FK-derived index expectation would otherwise fail verify. (This PSL argument and the inferrer support for it shipped with this contract.)
 
 **Generated columns** (`auth.users.confirmed_at`, `auth.identities.email`): declared as ordinary columns. Introspection reports them identically on the authored and live sides, so verify is clean; the contract does not record the generation expression.
 

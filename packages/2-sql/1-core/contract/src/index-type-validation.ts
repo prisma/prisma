@@ -13,7 +13,7 @@ export function validateIndexTypes(
       for (const index of table.indexes) {
         if (index.type === undefined && index.options !== undefined) {
           throw new ContractValidationError(
-            `Namespace "${namespaceId}" table "${tableName}" index on columns [${index.columns.join(', ')}] has options without a type`,
+            `Namespace "${namespaceId}" table "${tableName}" index "${index.name}" has options without a type`,
             'storage',
           );
         }
@@ -21,7 +21,7 @@ export function validateIndexTypes(
         const entry = indexTypeRegistry.get(index.type);
         if (entry === undefined) {
           throw new ContractValidationError(
-            `Namespace "${namespaceId}" table "${tableName}" index on columns [${index.columns.join(', ')}] uses unregistered index type "${index.type}"`,
+            `Namespace "${namespaceId}" table "${tableName}" index "${index.name}" uses unregistered index type "${index.type}"`,
             'storage',
           );
         }
@@ -29,7 +29,7 @@ export function validateIndexTypes(
         const result = entry.options(optionsValue);
         if (result instanceof type.errors) {
           throw new ContractValidationError(
-            `Namespace "${namespaceId}" table "${tableName}" index on columns [${index.columns.join(', ')}] has invalid options for type "${index.type}": ${result.summary}`,
+            `Namespace "${namespaceId}" table "${tableName}" index "${index.name}" has invalid options for type "${index.type}": ${result.summary}`,
             'storage',
           );
         }

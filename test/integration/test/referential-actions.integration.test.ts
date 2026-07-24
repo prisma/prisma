@@ -208,7 +208,7 @@ describe('referential actions integration', () => {
               FOREIGN KEY ("userId") REFERENCES "user"(id) ON DELETE CASCADE ON UPDATE RESTRICT
             )
           `);
-          await client.query('CREATE INDEX "post_userId_idx" ON "post"("userId")');
+          await client.query('CREATE INDEX "post_userId_idx_a489d58a" ON "post"("userId")');
         });
       }, timeouts.spinUpPpgDev);
 
@@ -306,7 +306,7 @@ describe('referential actions integration', () => {
               FOREIGN KEY ("userId") REFERENCES "user"(id) ON DELETE SET NULL ON UPDATE CASCADE
             )
           `);
-          await client.query('CREATE INDEX "post_userId_idx" ON "post"("userId")');
+          await client.query('CREATE INDEX "post_userId_idx_a489d58a" ON "post"("userId")');
         });
       }, timeouts.spinUpPpgDev);
 
@@ -479,7 +479,7 @@ describe('referential actions integration', () => {
               FOREIGN KEY ("userId") REFERENCES "user"(id) ON DELETE CASCADE
             )
           `);
-          await client.query('CREATE INDEX "post_userId_idx" ON "post"("userId")');
+          await client.query('CREATE INDEX "post_userId_idx_a489d58a" ON "post"("userId")');
         });
       }, timeouts.spinUpPpgDev);
 

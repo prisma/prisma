@@ -1,1 +1,1 @@
-export { errorPostgresMigrationStackMissing } from '../core/errors';
+export { errorPostgresMigrationStackMissing, postgresError } from '../core/errors';

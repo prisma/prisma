@@ -595,29 +595,50 @@ function generateTableLiteralType(table: StorageTable): string {
 
   if (table.primaryKey) {
     const pkCols = table.primaryKey.columns.map((c) => serializeValue(c)).join(', ');
-    const pkName = table.primaryKey.name
-      ? `; readonly name: ${serializeValue(table.primaryKey.name)}`
-      : '';
-    tableParts.push(`primaryKey: { readonly columns: readonly [${pkCols}]${pkName} }`);
+    const pkParts = [`readonly columns: readonly [${pkCols}]`];
+    if (table.primaryKey.name) {
+      pkParts.push(`readonly name: ${serializeValue(table.primaryKey.name)}`);
+    }
+    tableParts.push(`primaryKey: { ${pkParts.join('; ')} }`);
   }
 
   const uniques = table.uniques
     .map((u) => {
       const cols = u.columns.map((c: string) => serializeValue(c)).join(', ');
-      const name = u.name ? `; readonly name: ${serializeValue(u.name)}` : '';
-      return `{ readonly columns: readonly [${cols}]${name} }`;
+      const parts = [`readonly columns: readonly [${cols}]`];
+      if (u.name) {
+        parts.push(`readonly name: ${serializeValue(u.name)}`);
+      }
+      return `{ ${parts.join('; ')} }`;
     })
     .join(', ');
   tableParts.push(`uniques: readonly [${uniques}]`);
 
   const indexes = table.indexes
     .map((i) => {
-      const cols = i.columns.map((c: string) => serializeValue(c)).join(', ');
-      const name = i.name !== undefined ? `; readonly name: ${serializeValue(i.name)}` : '';
-      const indexType = i.type !== undefined ? `; readonly type: ${serializeValue(i.type)}` : '';
-      const indexOptions =
-        i.options !== undefined ? `; readonly options: ${serializeValue(i.options)}` : '';
-      return `{ readonly columns: readonly [${cols}]${name}${indexType}${indexOptions} }`;
+      const parts = [`readonly name: ${serializeValue(i.name)}`];
+      if (i.prefix !== undefined) {
+        parts.push(`readonly prefix: ${serializeValue(i.prefix)}`);
+      }
+      if (i.columns !== undefined) {
+        parts.push(
+          `readonly columns: readonly [${i.columns.map((c: string) => serializeValue(c)).join(', ')}]`,
+        );
+      }
+      if (i.expression !== undefined) {
+        parts.push(`readonly expression: ${serializeValue(i.expression)}`);
+      }
+      if (i.where !== undefined) {
+        parts.push(`readonly where: ${serializeValue(i.where)}`);
+      }
+      parts.push(`readonly unique: ${i.unique}`);
+      if (i.type !== undefined) {
+        parts.push(`readonly type: ${serializeValue(i.type)}`);
+      }
+      if (i.options !== undefined) {
+        parts.push(`readonly options: ${serializeValue(i.options)}`);
+      }
+      return `{ ${parts.join('; ')} }`;
     })
     .join(', ');
   tableParts.push(`indexes: readonly [${indexes}]`);
@@ -626,10 +647,13 @@ function generateTableLiteralType(table: StorageTable): string {
     .map((fk) => {
       const srcCols = fk.source.columns.map((c: string) => serializeValue(c)).join(', ');
       const tgtCols = fk.target.columns.map((c: string) => serializeValue(c)).join(', ');
-      const name = fk.name ? `; readonly name: ${serializeValue(fk.name)}` : '';
       const srcRef = `{ readonly namespaceId: ${serializeNamespaceId(String(fk.source.namespaceId))}; readonly tableName: ${serializeValue(fk.source.tableName)}; readonly columns: readonly [${srcCols}] }`;
       const tgtRef = `{ readonly namespaceId: ${serializeNamespaceId(String(fk.target.namespaceId))}; readonly tableName: ${serializeValue(fk.target.tableName)}; readonly columns: readonly [${tgtCols}] }`;
-      return `{ readonly source: ${srcRef}; readonly target: ${tgtRef}${name} }`;
+      const parts = [`readonly source: ${srcRef}`, `readonly target: ${tgtRef}`];
+      if (fk.name) {
+        parts.push(`readonly name: ${serializeValue(fk.name)}`);
+      }
+      return `{ ${parts.join('; ')} }`;
     })
     .join(', ');
   tableParts.push(`foreignKeys: readonly [${fks}]`);

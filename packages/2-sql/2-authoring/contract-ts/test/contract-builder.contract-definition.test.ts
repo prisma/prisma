@@ -164,7 +164,12 @@ describe('shared contract definition lowering', () => {
       },
     ]);
     expect(unboundTables(contract.storage)['blog_post']?.indexes).toEqual([
-      { columns: ['author_id'], name: 'blog_post_author_id_idx' },
+      {
+        name: 'blog_post_author_id_idx_f3862461',
+        prefix: 'blog_post_author_id_idx',
+        columns: ['author_id'],
+        unique: false,
+      },
     ]);
     expect(models['User']?.relations['posts']).toEqual({
       to: crossRef('Post', 'public'),

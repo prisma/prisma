@@ -73,17 +73,31 @@ describe('SQL contract factories', () => {
   });
 
   describe('index', () => {
-    it('creates an Index with columns', () => {
-      const idx = index('email');
+    it('creates an exact-named Index with columns', () => {
+      const idx = index('user_email_idx', ['email']);
       expect(idx).toEqual({
+        name: 'user_email_idx',
         columns: ['email'],
+        unique: false,
       });
     });
 
     it('creates composite index', () => {
-      const idx = index('userId', 'createdAt');
+      const idx = index('user_userId_createdAt_idx', ['userId', 'createdAt']);
       expect(idx).toEqual({
+        name: 'user_userId_createdAt_idx',
         columns: ['userId', 'createdAt'],
+        unique: false,
+      });
+    });
+
+    it('creates a managed index when a prefix is given', () => {
+      const idx = index('user_email_idx_deadbeef', ['email'], { prefix: 'user_email_idx' });
+      expect(idx).toEqual({
+        name: 'user_email_idx_deadbeef',
+        prefix: 'user_email_idx',
+        columns: ['email'],
+        unique: false,
       });
     });
   });
@@ -219,9 +233,11 @@ describe('SQL contract factories', () => {
           id: col('int4', 'pg/int4@1'),
           email: col('text', 'pg/text@1'),
         },
-        { indexes: [index('email')] },
+        { indexes: [index('user_email_idx', ['email'])] },
       );
-      expect(userTable.indexes).toEqual([{ columns: ['email'] }]);
+      expect(userTable.indexes).toEqual([
+        { name: 'user_email_idx', columns: ['email'], unique: false },
+      ]);
     });
 
     it('creates table with foreign keys', () => {
@@ -250,13 +266,15 @@ describe('SQL contract factories', () => {
         {
           pk: pk('id'),
           uniques: [unique('title')],
-          indexes: [index('userId')],
+          indexes: [index('post_userId_idx', ['userId'])],
           fks: [fk('post', ['userId'], 'user', ['id'])],
         },
       );
       expect(postTable.primaryKey).toEqual({ columns: ['id'] });
       expect(postTable.uniques).toEqual([{ columns: ['title'] }]);
-      expect(postTable.indexes).toEqual([{ columns: ['userId'] }]);
+      expect(postTable.indexes).toEqual([
+        { name: 'post_userId_idx', columns: ['userId'], unique: false },
+      ]);
       expect(postTable.foreignKeys).toEqual([
         {
           source: { namespaceId: UNBOUND_NAMESPACE_ID, tableName: 'post', columns: ['userId'] },

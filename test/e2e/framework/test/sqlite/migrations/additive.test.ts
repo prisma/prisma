@@ -174,7 +174,7 @@ describe('SQLite Migration E2E - From empty schema', () => {
         }),
       },
       async ({ schema }) => {
-        const cols = schema.tables['Event']!.indexes.map((i) => [...i.columns]);
+        const cols = schema.tables['Event']!.indexes.map((i) => [...(i.columns ?? [])]);
         expect(cols).toContainEqual(['date']);
         expect(cols).toContainEqual(['name', 'date']);
       },
@@ -270,7 +270,9 @@ describe('SQLite Migration E2E - Schema evolution', () => {
         }),
       },
       async ({ schema }) => {
-        expect(schema.tables['User']!.indexes.map((i) => [...i.columns])).toContainEqual(['email']);
+        expect(schema.tables['User']!.indexes.map((i) => [...(i.columns ?? [])])).toContainEqual([
+          'email',
+        ]);
       },
     );
   });

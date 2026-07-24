@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'97c7799cc488574078c8a889edf9f3f654b2a1ecd4e776cc3890ff0caa7dab5a'>;
+  StorageHashBase<'5ee4271de58d510d3800d53a22d1b252e0733525c9411c46d35663d24e129881'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -145,10 +145,17 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'downVote_commentId_idx_b5a4f615';
+                  readonly prefix: 'downVote_commentId_idx';
                   readonly columns: readonly ['commentId'];
-                  readonly name: 'downVote_commentId_idx';
+                  readonly unique: false;
                 },
-                { readonly columns: readonly ['userId']; readonly name: 'downVote_userId_idx' },
+                {
+                  readonly name: 'downVote_userId_idx_a489d58a';
+                  readonly prefix: 'downVote_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {
@@ -193,8 +200,18 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['commentId', 'userId'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['commentId']; readonly name: 'upVote_commentId_idx' },
-                { readonly columns: readonly ['userId']; readonly name: 'upVote_userId_idx' },
+                {
+                  readonly name: 'upVote_commentId_idx_b5a4f615';
+                  readonly prefix: 'upVote_commentId_idx';
+                  readonly columns: readonly ['commentId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'upVote_userId_idx_a489d58a';
+                  readonly prefix: 'upVote_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {

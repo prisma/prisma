@@ -362,7 +362,9 @@
                   "columns": [
                     "userId"
                   ],
-                  "name": "post_userId_idx"
+                  "name": "post_userId_idx_a489d58a",
+                  "prefix": "post_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -432,13 +434,17 @@
                   "columns": [
                     "postId"
                   ],
-                  "name": "post_tag_postId_idx"
+                  "name": "post_tag_postId_idx_a7a72715",
+                  "prefix": "post_tag_postId_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "tagId"
                   ],
-                  "name": "post_tag_tagId_idx"
+                  "name": "post_tag_tagId_idx_86854244",
+                  "prefix": "post_tag_tagId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -519,7 +525,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "04b3a9cb3000ee2016c516801119e7d24bf3d1d4f6febc3619735117fb4e39d9"
+    "storageHash": "03af121bccff43a3131e0b5487222248a11924a2d96b6d7d87c13005e69f75f2"
   },
   "execution": {
     "executionHash": "5b8ea41bd78c098dbe7227970a920650aa10992f11357c2664703742248ffc95",

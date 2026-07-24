@@ -209,7 +209,9 @@
                   "columns": [
                     "userId"
                   ],
-                  "name": "post_userId_idx"
+                  "name": "post_userId_idx_a489d58a",
+                  "prefix": "post_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -259,7 +261,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "61bac289a512c5bb02a296f8aad6b62de18cae017ff28a768d738dd9e86f9210"
+    "storageHash": "9a618563701307bbbcb79ebc0cfd568d2593677968d5f24498bdb18d43083ca6"
   },
   "execution": {
     "executionHash": "1ff963fbab83b7266b283d62c8b49c9850cb57c65ea29fe44077380cee559199",

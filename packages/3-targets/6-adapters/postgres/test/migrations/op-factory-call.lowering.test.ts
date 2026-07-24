@@ -93,7 +93,7 @@ describe('renderOps', () => {
         onUpdate: 'cascade',
       }),
       new DropConstraintCall('public', 'user', 'user_email_key'),
-      new CreateIndexCall('public', 'user', 'user_email_idx', ['email']),
+      new CreateIndexCall('public', 'user', 'user_email_idx', { columns: ['email'] }),
       new DropIndexCall('public', 'user', 'stale_idx'),
       new RawSqlCall(liftedOp),
       new CreateExtensionCall('citext'),

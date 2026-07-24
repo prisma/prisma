@@ -384,7 +384,14 @@ describe('sql-target-family-hook', () => {
             },
             primaryKey: { columns: ['id'] },
             uniques: [],
-            indexes: [{ columns: ['email'] }],
+            indexes: [
+              {
+                name: 'user_email_idx_46df9cad',
+                prefix: 'user_email_idx',
+                columns: ['email'],
+                unique: false,
+              },
+            ],
             foreignKeys: [],
           },
         },
@@ -392,8 +399,42 @@ describe('sql-target-family-hook', () => {
     });
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
-    expect(types).toContain('indexes: readonly');
-    expect(types).toContain("readonly columns: readonly ['email']");
+    expect(types).toContain(
+      "indexes: readonly [{ readonly name: 'user_email_idx_46df9cad'; readonly prefix: 'user_email_idx'; readonly columns: readonly ['email']; readonly unique: false }]",
+    );
+  });
+
+  it('generates contract types with an expression index in storage', () => {
+    const ir = createContract({
+      targetFamily: 'sql',
+      target: 'test-db',
+      storage: {
+        tables: {
+          user: {
+            columns: {
+              id: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
+              email: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+            },
+            primaryKey: { columns: ['id'] },
+            uniques: [],
+            indexes: [
+              {
+                name: 'users_email_eq',
+                expression: 'lower(email)',
+                where: 'deleted_at IS NULL',
+                unique: true,
+              },
+            ],
+            foreignKeys: [],
+          },
+        },
+      },
+    });
+
+    const types = generateContractDts(ir, sqlEmission, [], testHashes);
+    expect(types).toContain(
+      "indexes: readonly [{ readonly name: 'users_email_eq'; readonly expression: 'lower(email)'; readonly where: 'deleted_at IS NULL'; readonly unique: true }]",
+    );
   });
 
   it('generates contract types with indexes with names in storage', () => {
@@ -409,7 +450,7 @@ describe('sql-target-family-hook', () => {
             },
             primaryKey: { columns: ['id'] },
             uniques: [],
-            indexes: [{ columns: ['email'], name: 'idx_email' }],
+            indexes: [{ columns: ['email'], name: 'idx_email', unique: false }],
             foreignKeys: [],
           },
         },
@@ -417,8 +458,9 @@ describe('sql-target-family-hook', () => {
     });
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
-    expect(types).toContain('indexes: readonly');
-    expect(types).toContain("readonly name: 'idx_email'");
+    expect(types).toContain(
+      "indexes: readonly [{ readonly name: 'idx_email'; readonly columns: readonly ['email']; readonly unique: false }]",
+    );
   });
 
   it('generates contract types with foreignKeys in storage', () => {

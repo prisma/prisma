@@ -32,6 +32,7 @@ Expression (functional) indexes (`CREATE INDEX … USING btree (eql_v3.eq_term(e
 
 ## State at handoff
 
-- Shaping artifacts written and pushed on a draft PR (branch `project/functional-indexes-shaping`). Nothing implemented yet.
+- Shaping artifacts written and pushed on a draft PR (branch `project/functional-indexes-shaping`).
 - Slice-0 status confirmed and the substrate correction (two-node shape, above) folded into spec/plan/ADR on 2026-07-23.
-- Next action: write the slice-1 spec (`indexes-are-name-identified`) per plan.md's boundary list and run the build loop.
+- **Slice 1 built and in review** (2026-07-24): branch `slice/indexes-are-name-identified`, stacked on the shaping branch — five dispatches all reviewer-SATISFIED, full verification set green, 0.16-to-0.17 upgrade entries recorded for both audiences. Slice spec/plan under `specs/`/`plans/`.
+- Next action: land the shaping PR, then the slice-1 PR; slice 2 (`expression-index-authoring`) follows per plan.md.

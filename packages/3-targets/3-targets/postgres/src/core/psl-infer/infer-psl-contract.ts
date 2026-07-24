@@ -748,8 +748,15 @@ function buildModel(
   }
 
   for (const index of table.indexes) {
+    // Expression indexes (no column tuple) and partial indexes (a where
+    // predicate) are not emitted yet — no authoring surface can carry their
+    // bodies, so adopting them name-only would fail its own verify (the
+    // exact-mode body compare). Their inference lands when the authoring
+    // surfaces for those bodies exist.
+    if (index.columns === undefined || index.where !== undefined) continue;
     if (!index.unique) {
-      const indexFieldNames = index.columns.map((columnName) =>
+      const columns = index.columns;
+      const indexFieldNames = columns.map((columnName) =>
         resolveColumnFieldName(fieldNamesByTable, table.name, columnName),
       );
       modelAttributes.push(

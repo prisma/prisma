@@ -124,10 +124,12 @@ describe('PostgresTableSchemaNode', () => {
       uniques: [{ columns: ['user_id', 'status'] }],
       indexes: [
         {
+          name: 'orders_status_idx',
+          prefix: undefined,
           columns: ['status'],
+          where: undefined,
           unique: false,
           partial: false,
-          name: undefined,
           type: undefined,
           options: undefined,
           annotations: undefined,
@@ -147,7 +149,7 @@ describe('PostgresTableSchemaNode', () => {
       'primary-key',
       'foreign-key:user_id->.users(id)',
       'unique:user_id,status',
-      'index:status',
+      'index:orders_status_idx',
       'check:chk_status',
       basePolicy.id,
     ]);

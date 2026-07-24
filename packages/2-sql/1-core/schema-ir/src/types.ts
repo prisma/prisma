@@ -33,7 +33,10 @@ export {
   type SqlForeignKeyIRInput,
   type SqlReferentialAction,
 } from './ir/sql-foreign-key-ir';
-export { SqlIndexIR, type SqlIndexIRInput } from './ir/sql-index-ir';
+export {
+  SqlIndexIR,
+  type SqlIndexIRInput,
+} from './ir/sql-index-ir';
 export { SqlSchemaIR, type SqlSchemaIRInput } from './ir/sql-schema-ir';
 export { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './ir/sql-schema-ir-node';
 export { SqlTableIR, type SqlTableIRInput } from './ir/sql-table-ir';

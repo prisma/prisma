@@ -1,4 +1,4 @@
-import { defaultIndexName } from '@prisma-next/sql-schema-ir/naming';
+import { lowerAuthoredIndex } from './index-naming';
 import type { ForeignKeyInput, ReferentialAction } from './ir/foreign-key';
 import type { ForeignKeyReferenceInput } from './ir/foreign-key-reference';
 import type { PrimaryKeyInput } from './ir/primary-key';
@@ -6,7 +6,7 @@ import type { IndexInput } from './ir/sql-index';
 import type { UniqueConstraintInput } from './ir/unique-constraint';
 
 export type BackingIndexCandidates = {
-  readonly indexes: readonly { readonly columns: readonly string[] }[];
+  readonly indexes: readonly { readonly columns?: readonly string[] }[];
   readonly uniques: readonly { readonly columns: readonly string[] }[];
   readonly primaryKey?: { readonly columns: readonly string[] } | undefined;
 };
@@ -24,7 +24,9 @@ export type BackingIndexCandidates = {
  */
 export function backingIndexColumnKeys(table: BackingIndexCandidates): readonly string[] {
   return [
-    ...table.indexes.map((index) => index.columns.join(',')),
+    ...table.indexes.flatMap((index) =>
+      index.columns !== undefined ? [index.columns.join(',')] : [],
+    ),
     ...table.uniques.map((unique) => unique.columns.join(',')),
     ...(table.primaryKey ? [table.primaryKey.columns.join(',')] : []),
   ];
@@ -66,10 +68,10 @@ export interface MaterializedTableConstraints {
  * Lowers a table's authored foreign keys into the discrete entities
  * `contract.json` persists: a `constraint: false` FK contributes no
  * `foreignKeys[]` entry, and an `index: true` FK whose columns aren't already
- * backed by a declared index/unique/primary-key contributes a named
- * `indexes[]` entry (`defaultIndexName`). Declared indexes always survive
- * unchanged; a second FK sharing already-synthesized backing columns does not
- * mint a duplicate index.
+ * backed by a declared index/unique/primary-key contributes a managed
+ * `indexes[]` entry (default prefix + content-hash wire name). Declared
+ * indexes always survive unchanged; a second FK sharing already-synthesized
+ * backing columns does not mint a duplicate index.
  */
 export function materializeForeignKeysAndIndexes(
   tableName: string,
@@ -91,10 +93,15 @@ export function materializeForeignKeysAndIndexes(
     if (index !== false) {
       const key = reference.source.columns.join(',');
       if (!satisfiedIndexColumns.has(key)) {
-        synthesizedIndexes.push({
-          columns: reference.source.columns,
-          name: defaultIndexName(tableName, reference.source.columns),
-        });
+        synthesizedIndexes.push(
+          lowerAuthoredIndex(tableName, {
+            columns: reference.source.columns,
+            map: undefined,
+            name: undefined,
+            type: undefined,
+            options: undefined,
+          }),
+        );
         satisfiedIndexColumns.add(key);
       }
     }

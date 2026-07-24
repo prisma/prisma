@@ -143,7 +143,7 @@ describe('SQLite migration planner', () => {
           email: makeColumn({ nativeType: 'text', nullable: false }),
         },
         primaryKey: { columns: ['id'] },
-        indexes: [{ columns: ['email'], name: 'idx_users_email' }],
+        indexes: [{ columns: ['email'], name: 'idx_users_email', unique: false }],
       }),
     });
 

@@ -1078,7 +1078,7 @@ describe('SQL contract validators', () => {
             },
             {
               pk: { columns: ['id'], name: 'user_pkey' },
-              indexes: [{ columns: ['id'], name: 'user_pkey' }],
+              indexes: [{ columns: ['id'], name: 'user_pkey', unique: false }],
             },
           ),
         }),
@@ -1101,7 +1101,7 @@ describe('SQL contract validators', () => {
             },
             {
               uniques: [unique('email'), unique('email')],
-              indexes: [index('email'), index('email')],
+              indexes: [index('user_email_idx1', ['email']), index('user_email_idx2', ['email'])],
             },
           ),
         }),
@@ -1124,7 +1124,7 @@ describe('SQL contract validators', () => {
             {
               pk: pk('id', 'id'),
               uniques: [unique('email', 'email')],
-              indexes: [index('email', 'email')],
+              indexes: [index('user_email_idx', ['email', 'email'])],
             },
           ),
         }),
@@ -1170,8 +1170,111 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                { columns: ['email'], type: 'gin', options: { a: '1', b: '2' } },
-                { columns: ['email'], type: 'gin', options: { b: '2', a: '1' } },
+                {
+                  name: 'user_email_gin1',
+                  columns: ['email'],
+                  unique: false,
+                  type: 'gin',
+                  options: { a: '1', b: '2' },
+                },
+                {
+                  name: 'user_email_gin2',
+                  columns: ['email'],
+                  unique: false,
+                  type: 'gin',
+                  options: { b: '2', a: '1' },
+                },
+              ],
+            },
+          ),
+        }),
+      }).storage;
+
+      const errors = validateStorageSemantics(s);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('duplicate index definition');
+    });
+
+    it('a unique index and a plain index on the same column tuple are not duplicates (twins)', () => {
+      const s = createContract<SqlStorage>({
+        storage: unboundTables({
+          user: table(
+            {
+              id: col('int4', 'pg/int4@1'),
+              email: col('text', 'pg/text@1'),
+            },
+            {
+              indexes: [
+                { name: 'user_email_unique_idx', columns: ['email'], unique: true },
+                { name: 'user_email_plain_idx', columns: ['email'], unique: false },
+              ],
+            },
+          ),
+        }),
+      }).storage;
+
+      expect(validateStorageSemantics(s)).toHaveLength(0);
+    });
+
+    it('two expression indexes with different bodies are not duplicates', () => {
+      const s = createContract<SqlStorage>({
+        storage: unboundTables({
+          user: table(
+            {
+              id: col('int4', 'pg/int4@1'),
+              email: col('text', 'pg/text@1'),
+            },
+            {
+              indexes: [
+                { name: 'user_email_lower', expression: 'lower(email)', unique: false },
+                { name: 'user_email_upper', expression: 'upper(email)', unique: false },
+              ],
+            },
+          ),
+        }),
+      }).storage;
+
+      expect(validateStorageSemantics(s)).toHaveLength(0);
+    });
+
+    it('two same-column indexes with different where predicates are not duplicates', () => {
+      const s = createContract<SqlStorage>({
+        storage: unboundTables({
+          user: table(
+            {
+              id: col('int4', 'pg/int4@1'),
+              email: col('text', 'pg/text@1'),
+            },
+            {
+              indexes: [
+                {
+                  name: 'user_email_active',
+                  columns: ['email'],
+                  where: 'deleted_at IS NULL',
+                  unique: false,
+                },
+                { name: 'user_email_all', columns: ['email'], unique: false },
+              ],
+            },
+          ),
+        }),
+      }).storage;
+
+      expect(validateStorageSemantics(s)).toHaveLength(0);
+    });
+
+    it('detects duplicate expression index definitions with identical bodies', () => {
+      const s = createContract<SqlStorage>({
+        storage: unboundTables({
+          user: table(
+            {
+              id: col('int4', 'pg/int4@1'),
+              email: col('text', 'pg/text@1'),
+            },
+            {
+              indexes: [
+                { name: 'user_email_lower1', expression: 'lower(email)', unique: false },
+                { name: 'user_email_lower2', expression: 'lower(email)', unique: false },
               ],
             },
           ),
@@ -1255,7 +1358,7 @@ describe('SQL contract validators', () => {
               role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
             },
             uniques: [],
-            indexes: [{ columns: ['id'], name: 'shared_name' }],
+            indexes: [{ columns: ['id'], name: 'shared_name', unique: false }],
             foreignKeys: [],
             checks: [
               new CheckConstraint({
@@ -1542,5 +1645,52 @@ describe('SQL contract validators', () => {
       expect(kinds.has('table')).toBe(true);
       expect(kinds.has('valueSet')).toBe(true);
     });
+  });
+});
+
+describe('validateSqlContractFully — pre-name-identity index shape', () => {
+  // Pinned because the 0.16-to-0.17 upgrade instructions quote these
+  // substrings: a consumer loading a 0.16-emitted contract must be able to
+  // grep the documented text out of the real error.
+  it('rejects a 0.16-shaped index entry naming the missing name and unique fields', () => {
+    const contract: unknown = {
+      target: 'postgres',
+      targetFamily: 'sql',
+      profileHash: 'e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0',
+      storage: {
+        storageHash: 'e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0',
+        namespaces: {
+          public: {
+            id: 'public',
+            kind: 'postgres-schema',
+            entries: {
+              table: {
+                user: {
+                  columns: {
+                    id: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
+                    email: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+                  },
+                  primaryKey: { columns: ['id'] },
+                  uniques: [],
+                  indexes: [{ columns: ['email'] }],
+                  foreignKeys: [],
+                },
+              },
+            },
+          },
+        },
+      },
+      domain: { namespaces: { __unbound__: { models: {} } } },
+      roots: {},
+      capabilities: {},
+      extensions: {},
+      meta: {},
+    };
+
+    const validate = () =>
+      validateSqlContractFully(contract as Parameters<typeof validateSqlContractFully>[0]);
+    expect(validate).toThrow('Contract structural validation failed');
+    expect(validate).toThrow('indexes[0].name must be a string (was missing)');
+    expect(validate).toThrow('indexes[0].unique must be boolean (was missing)');
   });
 });

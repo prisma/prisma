@@ -31,6 +31,7 @@ import type {
   SqlExecuteRequest,
 } from '@prisma-next/sql-relational-core/ast';
 import { isDdlNode } from '@prisma-next/sql-relational-core/ast';
+import { parseWireName } from '@prisma-next/sql-schema-ir/naming';
 import type {
   PrimaryKeyInput,
   SqlCheckConstraintIRInput,
@@ -49,21 +50,24 @@ import type {
   AddColumnAction,
   AlterTableActionVisitor,
   DropDefaultAction,
+  PostgresAlterIndexRename,
   PostgresAlterPolicyRename,
   PostgresAlterTable,
+  PostgresCreateIndex,
   PostgresCreatePolicy,
   PostgresCreateSchema,
   PostgresCreateTable,
   PostgresCreateType,
   PostgresDdlNode,
   PostgresDisableRowLevelSecurity,
+  PostgresDropIndex,
   PostgresDropPolicy,
   PostgresDropType,
   RlsPolicyOperation,
 } from '@prisma-next/target-postgres/ddl';
 import { parsePostgresDefault } from '@prisma-next/target-postgres/default-normalizer';
+import { postgresError } from '@prisma-next/target-postgres/errors';
 import { normalizeSchemaNativeType } from '@prisma-next/target-postgres/native-type-normalizer';
-import { parseRlsPolicyWireName } from '@prisma-next/target-postgres/rls-canonicalize';
 import { escapeLiteral, quoteIdentifier } from '@prisma-next/target-postgres/sql-utils';
 import {
   PostgresDatabaseSchemaNode,
@@ -870,8 +874,9 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       tablename: string;
       indexname: string;
       indisunique: boolean;
-      indpartial: boolean;
+      where_predicate: string | null;
       attname: string | null;
+      element_def: string | null;
       index_position: number;
       amname: string | null;
       reloptions: string[] | null;
@@ -885,12 +890,24 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       // the table order — verification compares against the contract
       // with order-sensitive equality and reports a spurious
       // `index_mismatch`.
+      //
+      // `element_def` is the per-position element text as Postgres reprints
+      // it (`pg_get_indexdef` with pretty-printing); an expression element
+      // has attnum 0 so its `attname` is null and the element text is the
+      // only faithful capture. A mixed index (columns + expressions) carries
+      // the WHOLE element list as one opaque string, so the reprint must
+      // fire for every position of an expression-carrying index — the CASE
+      // bounds the per-element catalog reconstruction to those indexes,
+      // which keeps pure-column schemas free of the reprint cost.
+      // `where_predicate` is the reprinted partial-index predicate, null
+      // for total indexes.
       `SELECT
            i.tablename,
            i.indexname,
            ix.indisunique,
-           ix.indpred IS NOT NULL AS indpartial,
+           pg_get_expr(ix.indpred, ix.indrelid) AS where_predicate,
            a.attname,
+           CASE WHEN 0 = ANY(ix.indkey::int[]) THEN pg_get_indexdef(ix.indexrelid, k.ord::int, true) END AS element_def,
            k.ord AS index_position,
            am.amname,
            ic.reloptions
@@ -1128,39 +1145,24 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         dependsOn: postgresColumnDependsOn(schema, tableName, uq.columns),
       }));
 
-      // Process indexes
+      // Process indexes — keyed by catalog-unique index name, so two same-
+      // tuple siblings (a unique index beside a redundant plain index) and
+      // expression indexes all enter the tree at full fidelity.
       const indexesMap = new Map<
         string,
         {
-          columns: string[];
           name: string;
+          elements: { attname: string | null; elementDef: string | null }[];
           unique: boolean;
-          partial: boolean;
+          where: string | null;
           type: string | undefined;
           options: Record<string, string> | undefined;
         }
       >();
-      // An index with an expression key (e.g. `lower(email)`) reports that
-      // key's row with `attname = null` (Postgres attribute numbers are
-      // <= 0 for expressions, which the LEFT JOIN above can't resolve to a
-      // real column). Every row for that index name is skipped below
-      // rather than only the expression row, so the index never enters
-      // `indexesMap` with a collapsed, misleading column list — a
-      // two-column expression index silently reduced to its one real
-      // column can coincide with an unrelated real single-column index,
-      // and the schema differ's diff-tree node id is derived from the
-      // column tuple (`sql-index/index:<columns>`), so two indexes
-      // colliding on that tuple abort the diff with "duplicate id among
-      // siblings" instead of a normal drift report.
-      const indexNamesWithExpressionKey = new Set<string>();
       for (const idxRow of indexesByTable.get(tableName) ?? []) {
-        if (!idxRow.attname) {
-          indexNamesWithExpressionKey.add(idxRow.indexname);
-          continue;
-        }
         const existing = indexesMap.get(idxRow.indexname);
         if (existing) {
-          existing.columns.push(idxRow.attname);
+          existing.elements.push({ attname: idxRow.attname, elementDef: idxRow.element_def });
         } else {
           // Drop btree (the Postgres default) so a contract index without an
           // explicit type matches a default-method introspected index without
@@ -1168,52 +1170,46 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           const indexType = idxRow.amname && idxRow.amname !== 'btree' ? idxRow.amname : undefined;
           const indexOptions = parsePgReloptions(idxRow.reloptions, idxRow.indexname);
           indexesMap.set(idxRow.indexname, {
-            columns: [idxRow.attname],
             name: idxRow.indexname,
+            elements: [{ attname: idxRow.attname, elementDef: idxRow.element_def }],
             unique: idxRow.indisunique,
-            partial: idxRow.indpartial,
+            where: idxRow.where_predicate,
             type: indexType,
             options: indexOptions,
           });
         }
       }
-      // Two real indexes can legitimately share the exact same column tuple
-      // on one table (e.g. a unique index and a redundant plain index) —
-      // valid in Postgres, but the schema differ's diff-tree node id for an
-      // index is the column tuple alone (`SqlIndexIR#id`, deliberately —
-      // see its doc comment), so two same-tuple siblings from one
-      // introspection abort the diff with "duplicate id among siblings"
-      // rather than a normal drift report. Keep only one per column tuple:
-      // the unique one when there is a unique/non-unique pair (a unique
-      // index is a strict superset of what a plain index on the same
-      // columns would add), otherwise the first by name for determinism.
-      const survivingIndexes = Array.from(indexesMap.values()).filter(
-        (idx) => !indexNamesWithExpressionKey.has(idx.name),
-      );
-      const bestByColumnTuple = new Map<string, (typeof survivingIndexes)[number]>();
-      for (const idx of survivingIndexes) {
-        const tupleKey = idx.columns.join(',');
-        const existing = bestByColumnTuple.get(tupleKey);
-        if (
-          !existing ||
-          (idx.unique && !existing.unique) ||
-          (idx.unique === existing.unique && idx.name < existing.name)
-        ) {
-          bestByColumnTuple.set(tupleKey, idx);
-        }
-      }
-      const indexes: readonly SqlIndexIRInput[] = Array.from(bestByColumnTuple.values()).map(
-        (idx) => ({
-          columns: Object.freeze([...idx.columns]),
+      const indexes: readonly SqlIndexIRInput[] = Array.from(indexesMap.values()).map((idx) => {
+        // An expression element has attnum 0, which the attribute LEFT JOIN
+        // cannot resolve — its attname is null. Any such element makes the
+        // whole index an expression node: the entire element list (real
+        // columns included) is carried as one opaque reprinted string.
+        const isExpression = idx.elements.some((el) => el.attname === null);
+        const columnNames = idx.elements.flatMap((el) => (el.attname !== null ? [el.attname] : []));
+        const base = {
           name: idx.name,
+          // Rename-pass grouping only, like policy introspection: undefined
+          // when the live name does not follow the wire-name shape.
+          prefix: parseWireName(idx.name)?.prefix,
+          where: idx.where ?? undefined,
           unique: idx.unique,
-          partial: idx.partial,
+          partial: idx.where !== null,
           type: idx.type,
           options: idx.options,
           annotations: undefined,
-          dependsOn: postgresColumnDependsOn(schema, tableName, idx.columns),
-        }),
-      );
+          // Expression indexes stamp chains to every column of the table —
+          // the opaque expression is never parsed, so the deterministic
+          // over-approximation keeps drops ordered.
+          dependsOn: postgresColumnDependsOn(
+            schema,
+            tableName,
+            isExpression ? Object.keys(columns) : columnNames,
+          ),
+        };
+        return isExpression
+          ? { ...base, expression: idx.elements.map((el) => el.elementDef ?? '').join(', ') }
+          : { ...base, columns: Object.freeze([...columnNames]) };
+      });
 
       // Process check constraints — parse each predicate into column + value set.
       // Only the two shapes emitted by this slice are recognised; free-form
@@ -1283,7 +1279,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         ...new Set(parsePgNameArray(row.roles).map((r) => r.toLowerCase())),
       ].sort();
       const permissive = row.permissive.toUpperCase() === 'PERMISSIVE';
-      const prefix = parseRlsPolicyWireName(row.policyname)?.prefix ?? row.policyname;
+      const prefix = parseWireName(row.policyname)?.prefix ?? row.policyname;
       const policy = new PostgresPolicySchemaNode({
         name: row.policyname,
         prefix,
@@ -2010,6 +2006,65 @@ function pgRenderAlterPolicyRename(node: PostgresAlterPolicyRename): SqlExecuteR
   };
 }
 
+/**
+ * Renders one index reloption value: strings single-quote-escaped, finite
+ * numbers verbatim, booleans in the `on`/`off` catalog spelling (the
+ * canonical form the wire hash and the option equality commit to).
+ */
+function pgRenderIndexOptionValue(key: string, value: unknown): string {
+  if (typeof value === 'string') return `'${escapeLiteral(value)}'`;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === 'boolean') return value ? 'on' : 'off';
+  throw postgresError(
+    'CONTRACT.INDEX_INVALID',
+    `Index option "${key}" must be a string, finite number, or boolean; got ${typeof value}`,
+    { meta: { key, valueType: typeof value } },
+  );
+}
+
+/** Qualifies an object name; an absent schema renders it unqualified (unbound namespace). */
+function pgQualify(schema: string | undefined, name: string): string {
+  return schema === undefined
+    ? quoteIdentifier(name)
+    : `${quoteIdentifier(schema)}.${quoteIdentifier(name)}`;
+}
+
+function pgRenderCreateIndex(node: PostgresCreateIndex): SqlExecuteRequest {
+  const elementList =
+    'columns' in node.elements
+      ? node.elements.columns.map(quoteIdentifier).join(', ')
+      : node.elements.expression;
+  const unique = node.unique ? 'UNIQUE ' : '';
+  const using = node.type !== undefined ? ` USING ${quoteIdentifier(node.type)}` : '';
+  const withClause =
+    node.options !== undefined && Object.keys(node.options).length > 0
+      ? ` WITH (${Object.entries(node.options)
+          .map(
+            ([key, value]) => `${quoteIdentifier(key)} = ${pgRenderIndexOptionValue(key, value)}`,
+          )
+          .join(', ')})`
+      : '';
+  const whereClause = node.where !== undefined ? ` WHERE (${node.where})` : '';
+  return {
+    sql: `CREATE ${unique}INDEX ${quoteIdentifier(node.name)} ON ${pgQualify(node.schema, node.table)}${using} (${elementList})${withClause}${whereClause}`,
+    params: [],
+  };
+}
+
+function pgRenderDropIndex(node: PostgresDropIndex): SqlExecuteRequest {
+  return {
+    sql: `DROP INDEX ${pgQualify(node.schema, node.name)}`,
+    params: [],
+  };
+}
+
+function pgRenderAlterIndexRename(node: PostgresAlterIndexRename): SqlExecuteRequest {
+  return {
+    sql: `ALTER INDEX ${pgQualify(node.schema, node.from)} RENAME TO ${quoteIdentifier(node.to)}`,
+    params: [],
+  };
+}
+
 function pgRenderDisableRowLevelSecurity(node: PostgresDisableRowLevelSecurity): SqlExecuteRequest {
   const tableRef = `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`;
   return {
@@ -2032,6 +2087,10 @@ async function pgRenderDdlExecuteRequest(
     dropPolicy: (node: PostgresDropPolicy) => Promise.resolve(pgRenderDropPolicy(node)),
     alterPolicyRename: (node: PostgresAlterPolicyRename) =>
       Promise.resolve(pgRenderAlterPolicyRename(node)),
+    createIndex: (node: PostgresCreateIndex) => Promise.resolve(pgRenderCreateIndex(node)),
+    dropIndex: (node: PostgresDropIndex) => Promise.resolve(pgRenderDropIndex(node)),
+    alterIndexRename: (node: PostgresAlterIndexRename) =>
+      Promise.resolve(pgRenderAlterIndexRename(node)),
     disableRowLevelSecurity: (node: PostgresDisableRowLevelSecurity) =>
       Promise.resolve(pgRenderDisableRowLevelSecurity(node)),
   };

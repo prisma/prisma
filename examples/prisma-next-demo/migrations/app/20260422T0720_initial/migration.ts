@@ -9,8 +9,8 @@ import {
   rawSql,
   unique,
 } from '@prisma-next/target-postgres/migration';
-import type { Contract as End } from '../../snapshots/6174be7a847a05e291afa27baf77c68cde5bcd2280326a28479b98bc778ec11d/contract';
-import endContract from '../../snapshots/6174be7a847a05e291afa27baf77c68cde5bcd2280326a28479b98bc778ec11d/contract.json' with {
+import type { Contract as End } from '../../snapshots/6b917abed96371efb256becf8314e8bc72e91e7b4fc7dded7744b0e466580be4/contract';
+import endContract from '../../snapshots/6b917abed96371efb256becf8314e8bc72e91e7b4fc7dded7744b0e466580be4/contract.json' with {
   type: 'json',
 };
 
@@ -145,7 +145,7 @@ export default class M extends Migration<never, End> {
       this.createIndex({
         schema: 'public',
         table: 'post',
-        index: 'post_userId_idx',
+        index: 'post_userId_idx_a489d58a',
         columns: ['userId'],
       }),
       this.addForeignKey({
@@ -160,7 +160,7 @@ export default class M extends Migration<never, End> {
       this.createIndex({
         schema: 'public',
         table: 'task',
-        index: 'task_userId_idx',
+        index: 'task_userId_idx_a489d58a',
         columns: ['userId'],
       }),
       this.addForeignKey({
@@ -186,13 +186,13 @@ export default class M extends Migration<never, End> {
       this.createIndex({
         schema: 'public',
         table: 'post_tag',
-        index: 'post_tag_postId_idx',
+        index: 'post_tag_postId_idx_a7a72715',
         columns: ['postId'],
       }),
       this.createIndex({
         schema: 'public',
         table: 'post_tag',
-        index: 'post_tag_tagId_idx',
+        index: 'post_tag_tagId_idx_86854244',
         columns: ['tagId'],
       }),
       this.addForeignKey({

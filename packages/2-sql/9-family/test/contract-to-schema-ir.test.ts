@@ -543,7 +543,7 @@ describe('contractToSchemaIR', () => {
                 columns: {
                   email: col({ nativeType: 'text' }),
                 },
-                indexes: [{ columns: ['email'], name: 'T_email_idx' }],
+                indexes: [{ columns: ['email'], name: 'T_email_idx', unique: false }],
               }),
             },
           },
@@ -554,8 +554,10 @@ describe('contractToSchemaIR', () => {
     const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
     expect(result.tables['T']!.indexes).toEqual([
       new SqlIndexIR({
-        columns: ['email'],
         name: 'T_email_idx',
+        prefix: undefined,
+        columns: ['email'],
+        where: undefined,
         unique: false,
         partial: false,
         type: undefined,
@@ -563,6 +565,95 @@ describe('contractToSchemaIR', () => {
         annotations: undefined,
         dependsOn: undefined,
       }),
+    ]);
+  });
+
+  it('passes unique, prefix, and where through and derives partial from where', () => {
+    const storage = new SqlStorage({
+      storageHash: 'test' as StorageHashBase<string>,
+      namespaces: {
+        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
+          id: UNBOUND_NAMESPACE_ID,
+          entries: {
+            table: {
+              T: table({
+                columns: {
+                  email: col({ nativeType: 'text' }),
+                },
+                indexes: [
+                  {
+                    name: 'T_email_idx_deadbeef',
+                    prefix: 'T_email_idx',
+                    columns: ['email'],
+                    where: 'email IS NOT NULL',
+                    unique: true,
+                  },
+                ],
+              }),
+            },
+          },
+        }),
+      },
+    });
+
+    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const idx = result.tables['T']!.indexes[0]!;
+    expect(idx).toEqual(
+      new SqlIndexIR({
+        name: 'T_email_idx_deadbeef',
+        prefix: 'T_email_idx',
+        columns: ['email'],
+        where: 'email IS NOT NULL',
+        unique: true,
+        partial: true,
+        type: undefined,
+        options: undefined,
+        annotations: undefined,
+        dependsOn: undefined,
+      }),
+    );
+    expect(idx.partial).toBe(true);
+  });
+
+  it('derives an expression index with dependsOn chains to every column of its table', () => {
+    const storage = new SqlStorage({
+      storageHash: 'test' as StorageHashBase<string>,
+      namespaces: {
+        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
+          id: UNBOUND_NAMESPACE_ID,
+          entries: {
+            table: {
+              T: table({
+                columns: {
+                  id: col({ nativeType: 'text' }),
+                  email: col({ nativeType: 'text' }),
+                },
+                indexes: [{ name: 'T_email_eq', expression: 'lower(email)', unique: false }],
+              }),
+            },
+          },
+        }),
+      },
+    });
+
+    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const idx = result.tables['T']!.indexes[0]!;
+    expect(idx.expression).toBe('lower(email)');
+    expect(idx.columns).toBeUndefined();
+    expect(idx.partial).toBe(false);
+    // Deterministic over-approximation: the opaque expression is never
+    // parsed, so the chains cover every column of the table.
+    expect(idx.dependsOn).toEqual([
+      [
+        { nodeKind: 'sql-schema', id: 'database' },
+        { nodeKind: 'sql-table', id: 'T' },
+        { nodeKind: 'sql-column', id: 'column:id' },
+      ],
+      [
+        { nodeKind: 'sql-schema', id: 'database' },
+        { nodeKind: 'sql-table', id: 'T' },
+        { nodeKind: 'sql-column', id: 'column:email' },
+      ],
     ]);
   });
 
@@ -641,7 +732,9 @@ describe('contractToSchemaIR', () => {
                   workflowId: col({ nativeType: 'text' }),
                   teamId: col({ nativeType: 'text' }),
                 },
-                indexes: [{ columns: ['workflowId'], name: 'WorkflowState_workflowId_idx' }],
+                indexes: [
+                  { columns: ['workflowId'], name: 'WorkflowState_workflowId_idx', unique: false },
+                ],
                 foreignKeys: [
                   {
                     source: {
@@ -677,10 +770,12 @@ describe('contractToSchemaIR', () => {
     ]);
     expect(result.tables['WorkflowState']!.indexes).toEqual([
       new SqlIndexIR({
+        name: 'WorkflowState_workflowId_idx',
+        prefix: undefined,
         columns: ['workflowId'],
+        where: undefined,
         unique: false,
         partial: false,
-        name: 'WorkflowState_workflowId_idx',
         type: undefined,
         options: undefined,
         annotations: undefined,
@@ -976,7 +1071,7 @@ describe('contractToSchemaIR — FK referenced-namespace identity', () => {
                 columns: { id: col({ nativeType: 'text' }), slug: col({ nativeType: 'text' }) },
                 primaryKey: { columns: ['id'] },
                 uniques: [{ columns: ['slug'] }],
-                indexes: [{ columns: ['slug'] }],
+                indexes: [{ name: 'Widget_slug_idx', columns: ['slug'], unique: false }],
               }),
             },
           },

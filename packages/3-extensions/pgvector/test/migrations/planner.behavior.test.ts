@@ -592,7 +592,7 @@ function createTestContract(
       },
       primaryKey: { columns: ['id'] },
       uniques: [{ columns: ['email'] }],
-      indexes: [{ columns: ['email'] }],
+      indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false }],
       foreignKeys: [],
     },
     post: {
@@ -606,7 +606,7 @@ function createTestContract(
       // FK1: the backing index for the default (`index: true`) FK below is a
       // discrete, named entity materialized at contract emit — declared here
       // directly rather than relying on planner-time synthesis.
-      indexes: [{ columns: ['userId'], name: 'post_userId_idx' }],
+      indexes: [{ columns: ['userId'], name: 'post_userId_idx', unique: false }],
       foreignKeys: [
         {
           source: {
@@ -664,8 +664,10 @@ function buildUserTableSchema(): PostgresTableSchemaNode {
     foreignKeys: [],
     indexes: [
       {
-        columns: ['email'],
         name: 'user_email_idx',
+        prefix: undefined,
+        columns: ['email'],
+        where: undefined,
         unique: false,
         partial: false,
         type: undefined,
@@ -847,8 +849,10 @@ function buildPostTableSchema(): PostgresTableSchemaNode {
     ],
     indexes: [
       {
-        columns: ['userId'],
         name: 'post_userId_idx',
+        prefix: undefined,
+        columns: ['userId'],
+        where: undefined,
         unique: false,
         partial: false,
         type: undefined,

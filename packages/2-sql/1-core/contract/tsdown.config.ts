@@ -5,6 +5,7 @@ export default defineConfig({
     'src/exports/contract-view.ts',
     'src/exports/entity-kinds.ts',
     'src/exports/foreign-key-materialization.ts',
+    'src/exports/index-naming.ts',
     'src/exports/referential-action-sql.ts',
     'src/exports/resolve-storage-table.ts',
     'src/exports/types.ts',

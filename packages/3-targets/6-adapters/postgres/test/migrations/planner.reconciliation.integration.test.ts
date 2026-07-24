@@ -329,7 +329,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['name'], name: 'item_name_idx' }],
+          indexes: [{ columns: ['name'], name: 'item_name_idx', unique: false }],
           foreignKeys: [],
         },
       },
@@ -408,7 +408,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['parent_id'], name: 'child_parent_id_idx' }],
+          indexes: [{ columns: ['parent_id'], name: 'child_parent_id_idx', unique: false }],
           foreignKeys: [
             {
               source: {
@@ -740,7 +740,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['parent_id'], name: 'child_parent_id_idx' }],
+          indexes: [{ columns: ['parent_id'], name: 'child_parent_id_idx', unique: false }],
           foreignKeys: [
             {
               source: {
@@ -801,7 +801,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['extra'], name: 'item_extra_idx' }],
+          indexes: [{ columns: ['extra'], name: 'item_extra_idx', unique: false }],
           foreignKeys: [],
         },
       },
@@ -896,7 +896,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['value'], name: 'item_value_idx' }],
+          indexes: [{ columns: ['value'], name: 'item_value_idx', unique: false }],
           foreignKeys: [],
         },
       },
@@ -914,7 +914,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['value'], name: 'item_value_idx' }],
+          indexes: [{ columns: ['value'], name: 'item_value_idx', unique: false }],
           foreignKeys: [],
         },
       },
@@ -1218,7 +1218,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['parent_id'], name: 'child1_parent_id_idx' }],
+          indexes: [{ columns: ['parent_id'], name: 'child1_parent_id_idx', unique: false }],
           foreignKeys: [
             {
               source: {
@@ -1242,7 +1242,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['parent_id'], name: 'child2_parent_id_idx' }],
+          indexes: [{ columns: ['parent_id'], name: 'child2_parent_id_idx', unique: false }],
           foreignKeys: [
             {
               source: {
@@ -1281,7 +1281,7 @@ describe.sequential('PostgresMigrationPlanner - reconciliation integration', () 
           },
           primaryKey: { columns: ['id'] },
           uniques: [],
-          indexes: [{ columns: ['parent_id'], name: 'child2_parent_id_idx' }],
+          indexes: [{ columns: ['parent_id'], name: 'child2_parent_id_idx', unique: false }],
           foreignKeys: [
             {
               source: {

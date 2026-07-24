@@ -112,7 +112,7 @@ withTempDir(({ createTempDir }) => {
               `SELECT indexname FROM pg_indexes
                WHERE schemaname = 'public' AND tablename = 'post'`,
             );
-            expect(idxRows.rows.map((r) => r.indexname)).toContain('post_userId_idx');
+            expect(idxRows.rows.map((r) => r.indexname)).toContain('post_userId_idx_a489d58a');
           });
         });
       },

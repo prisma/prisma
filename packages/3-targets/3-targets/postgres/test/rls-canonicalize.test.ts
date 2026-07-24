@@ -1,60 +1,7 @@
 import { createHash } from 'node:crypto';
+import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
-import { computeContentHash, normalizePredicate } from '../src/core/rls/canonicalize';
-
-describe('normalizePredicate', () => {
-  describe('whitespace collapse', () => {
-    it('collapses multiple spaces to one', () => {
-      expect(normalizePredicate('a  =  b')).toBe('a = b');
-    });
-
-    it('collapses tabs to a space', () => {
-      expect(normalizePredicate('a\t=\tb')).toBe('a = b');
-    });
-
-    it('collapses newlines to a space', () => {
-      expect(normalizePredicate('a\n=\nb')).toBe('a = b');
-    });
-
-    it('collapses mixed whitespace variants', () => {
-      expect(normalizePredicate('a \t\n =\n\t b')).toBe('a = b');
-    });
-
-    it('trims leading and trailing whitespace', () => {
-      expect(normalizePredicate('  a = b  ')).toBe('a = b');
-    });
-  });
-
-  describe('minimal normalization preserves the authored form', () => {
-    // Normalization stabilizes only whitespace. The content hash addresses the
-    // authored predicate; we never recompute it from an introspected body, so
-    // case, parens, comments, and casts are kept verbatim (collapsing them would
-    // risk hashing two distinct predicates onto one wire name).
-    it('preserves keyword case', () => {
-      expect(normalizePredicate('user_id IS NULL')).toBe('user_id IS NULL');
-    });
-
-    it('preserves enclosing parens', () => {
-      expect(normalizePredicate('(a = b)')).toBe('(a = b)');
-    });
-
-    it('preserves SQL comments verbatim (after whitespace collapse)', () => {
-      expect(normalizePredicate('a = b -- comment')).toBe('a = b -- comment');
-    });
-
-    it('preserves casts and their aliases', () => {
-      expect(normalizePredicate('x::integer')).toBe('x::integer');
-    });
-  });
-
-  describe('determinism across whitespace-equivalent forms', () => {
-    it('whitespace variants are equivalent', () => {
-      const a = normalizePredicate('user_id  =  auth.uid()');
-      const b = normalizePredicate('user_id = auth.uid()');
-      expect(a).toBe(b);
-    });
-  });
-});
+import { computeContentHash } from '../src/core/rls/canonicalize';
 
 describe('computeContentHash', () => {
   const base = {
@@ -176,7 +123,7 @@ describe('computeContentHash', () => {
         permissive: true,
       };
       const hash = computeContentHash(parts);
-      const canonical = normalizePredicate('user_id = auth.uid()');
+      const canonical = normalizeSqlBody('user_id = auth.uid()');
       const tuple = JSON.stringify([canonical, '', ['authenticated'], 'select', 'permissive']);
       const expected = createHash('sha256').update(tuple).digest('hex').slice(0, 8);
       expect(hash).toBe(expected);

@@ -3721,6 +3721,9 @@ importers:
       '@prisma-next/sql-contract-emitter':
         specifier: workspace:0.16.0
         version: link:../../2-sql/3-tooling/emitter
+      '@prisma-next/sql-schema-ir':
+        specifier: workspace:0.16.0
+        version: link:../../2-sql/1-core/schema-ir
       '@prisma-next/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils

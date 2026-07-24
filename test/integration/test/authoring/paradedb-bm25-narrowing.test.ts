@@ -42,7 +42,8 @@ describe('paradedb bm25 narrowing in TS authoring DSL', () => {
     expect(indexes).toHaveLength(1);
     expect(indexes[0]).toMatchObject({
       columns: ['body'],
-      name: 'doc_body_bm25_idx',
+      name: 'doc_body_bm25_idx_a755c485',
+      prefix: 'doc_body_bm25_idx',
       type: 'bm25',
       options: { key_field: 'id' },
     });

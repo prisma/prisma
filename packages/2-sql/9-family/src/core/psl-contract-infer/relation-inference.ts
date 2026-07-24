@@ -124,7 +124,7 @@ function detectOneToOne(fk: SqlForeignKeyIR, table: SqlTableIR): boolean {
   }
 
   for (const index of table.indexes) {
-    if (!index.unique || index.partial) {
+    if (!index.unique || index.partial || index.columns === undefined) {
       continue;
     }
     const indexCols = [...index.columns].sort();
@@ -180,7 +180,19 @@ export function buildChildRelationField(
   const onDelete = fk.onDelete && fk.onDelete !== DEFAULT_ON_DELETE ? fk.onDelete : undefined;
   const onUpdate = fk.onUpdate && fk.onUpdate !== DEFAULT_ON_UPDATE ? fk.onUpdate : undefined;
   const index =
-    hostTable && !isBackedByColumnKeys(fk.columns, backingIndexColumnKeys(hostTable))
+    hostTable &&
+    !isBackedByColumnKeys(
+      fk.columns,
+      // Only indexes the inferrer actually emits can back the FK in the
+      // emitted contract: partial indexes (and expression indexes, which
+      // carry no column tuple) are not emitted yet, so
+      // they must not suppress the explicit `index: false`.
+      backingIndexColumnKeys({
+        indexes: hostTable.indexes.filter((i) => i.where === undefined),
+        uniques: hostTable.uniques,
+        primaryKey: hostTable.primaryKey,
+      }),
+    )
       ? false
       : undefined;
 

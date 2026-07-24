@@ -322,13 +322,17 @@
                   "columns": [
                     "brandId"
                   ],
-                  "name": "categoryBrand_brandId_idx"
+                  "name": "categoryBrand_brandId_idx_02e95397",
+                  "prefix": "categoryBrand_brandId_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "categoryId"
                   ],
-                  "name": "categoryBrand_categoryId_idx"
+                  "name": "categoryBrand_categoryId_idx_15c304f2",
+                  "prefix": "categoryBrand_categoryId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -345,7 +349,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "ef51969b5c65b2e7ae7c97bd8634c0c93d961119566e7a174208ef02146a54de"
+    "storageHash": "3fa7764bff1563eb5fcda9e7ff4552b46d7964770e36b716c6543125a01575c6"
   },
   "capabilities": {
     "postgres": {

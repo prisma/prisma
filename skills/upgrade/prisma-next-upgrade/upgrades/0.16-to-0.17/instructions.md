@@ -262,6 +262,35 @@ changes:
       contains:
         - "SqlEscapeError"
 
+  - id: indexes-are-name-identified
+    summary: |
+      Secondary indexes are name-identified from 0.17. Every index entry in the emitted
+      `contract.json` / `contract.d.ts` now carries `name` (the full physical name) and
+      `unique`, plus `prefix` when the name is toolchain-managed; `columns` became optional
+      (an index carries either `columns` or an opaque `expression` — never both). Contracts
+      emitted by 0.16 fail validation on load (the error message contains "indexes[0].name
+      must be a string (was missing)"), and storage hashes move for every contract that
+      declares indexes — re-emit with `prisma-next contract emit`. Physical names change for managed indexes: an unnamed
+      PSL `@@index([a, b])` / TS `constraints.index([a, b])` and every FK-backing index now
+      CREATE as `<default-prefix>_<8hex>` content-hash wire names (e.g.
+      `user_email_idx_46df9cad`), and a TS `constraints.index([...], { name: "x" })` name is
+      now a managed prefix — the physical name becomes `x_<8hex>`. PSL
+      `@@index([...], map: "x")` is now an exact physical name whose identity is verified
+      against the live catalog. Existing databases converge without rebuilds: after
+      re-emitting, the first plan that allows the `widening` class (`db update`, or
+      `migration plan` + `migrate`) is `ALTER INDEX … RENAME TO` ops only — renames happen
+      only when a widening plan runs FIRST. Under an additive-only policy the rename pairing
+      does not run: the new wire-named index is created beside the old one, and once both
+      exist a later plan can no longer pair them — the old index is removed only by a
+      destructive-allowed plan dropping it. Update any code or tests that hard-code the old
+      physical index names.
+    detection:
+      glob: "**/*.{prisma,ts,json}"
+      contains:
+        - "@@index"
+        - "constraints.index"
+        - '"indexes":'
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — User upgrade instructions
@@ -324,3 +353,48 @@ or `InternalError` for invariants). These are internal throw sites: the errors
 are still `Error` instances with unchanged message text, so application code
 that catches them by message or by `instanceof Error` is unaffected. No action
 required beyond the migration contract-snapshot layout change above.
+
+## `indexes-are-name-identified`
+
+Secondary indexes are **name-identified**: the contract stores every index's full physical name, and schema verification and migration planning pair indexes by that name instead of by column tuple.
+
+### What changed in the emitted contract
+
+Each entry in a table's `indexes` array in `contract.json` / `contract.d.ts` now always carries:
+
+- `name` — the full physical name of the index in the database.
+- `unique` — always present (`false` for everything authored today).
+- `prefix` — present when the name is toolchain-managed: the physical name is then `<prefix>_<8hex>`, where the suffix is a content hash of the index definition.
+- `columns` — now optional; an index carries either `columns` or an opaque `expression` string, never both. (Expression and partial indexes are representable in the contract from 0.17; authoring surfaces for them arrive in a later release.)
+
+A contract emitted by 0.16 fails validation when a 0.17 toolchain loads it — a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)` — and the storage hash moves for every contract that declares indexes. Re-emit:
+
+```bash
+prisma-next contract emit
+```
+
+### What changed about physical index names
+
+| Authoring input | 0.16 physical name | 0.17 physical name |
+| --- | --- | --- |
+| PSL `@@index([a, b])` / TS `constraints.index([cols.a, cols.b])` (unnamed) | `<table>_<a>_<b>_idx` | `<table>_<a>_<b>_idx_<8hex>` (managed) |
+| FK-backing index (derived from a relation) | `<table>_<col>_idx` | `<table>_<col>_idx_<8hex>` (managed) |
+| TS `constraints.index([...], { name: "x" })` | `x` | `x_<8hex>` — the name is now a managed *prefix* |
+| PSL `@@index([...], map: "x")` | `x` | `x` — an exact physical name, now verified against the live catalog |
+
+The `<8hex>` suffix is a content hash over the index definition (element list, predicate, uniqueness, access method, options), so an unchanged definition always produces the same name.
+
+### Converging an existing database
+
+No index is rebuilt. After re-emitting the contract, the first plan that allows the `widening` operation class converges the live names with `ALTER INDEX … RENAME TO` ops only:
+
+- `prisma-next db update` (its default policy includes widening), or
+- `prisma-next migration plan --name converge-index-names` followed by `prisma-next migrate`.
+
+Inspect the plan before applying — for a schema whose only drift is the index naming, it contains nothing but renames.
+
+Under an **additive-only** policy (e.g. `db init`'s class set) the rename pairing is skipped: the plan creates the new wire-named index beside the old one. Once both indexes exist, a later widening plan has nothing left to pair — the new name is already present, and the rename op's own precheck requires its target name to be absent — so after the additive create the old index is removed **only** by a destructive-allowed plan dropping it. A rename happens only when a widening-allowed plan is the *first* convergence, before any create. This degradation is deliberate — an additive-only run never emits an op class it is not allowed to execute; if you want renames instead of create-then-drop, run the widening plan first.
+
+### Hard-coded names
+
+If application code, tests, or operational scripts hard-code physical index names (e.g. `user_email_idx`), read the new names from the regenerated `contract.json` — managed names now carry the hash suffix. PSL schemas that must keep a byte-exact legacy name can pin it with `@@index([...], map: "<exact name>")`.

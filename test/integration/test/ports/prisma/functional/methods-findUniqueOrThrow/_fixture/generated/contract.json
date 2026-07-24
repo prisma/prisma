@@ -171,7 +171,9 @@
                   "columns": [
                     "authorId"
                   ],
-                  "name": "post_authorId_idx"
+                  "name": "post_authorId_idx_e47547ed",
+                  "prefix": "post_authorId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -215,7 +217,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a86bdb0d1778f9b9ef30c9ae6c6e679862d78e2a7f7877806bc091a2e34a42c9"
+    "storageHash": "fbd996b9802f85da791d211a9f158809660446f77e7f4a783271c7a25667b024"
   },
   "execution": {
     "executionHash": "12a1460155d0d555a24cffe4056bf68f34ebeeddef72dacf04da57763e6b6504",

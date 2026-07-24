@@ -105,11 +105,13 @@
                     "category",
                     "rating"
                   ],
-                  "name": "item_bm25_idx",
+                  "name": "item_bm25_idx_3b626832",
                   "options": {
                     "key_field": "id"
                   },
-                  "type": "bm25"
+                  "prefix": "item_bm25_idx",
+                  "type": "bm25",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -125,7 +127,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "d4ed464dc0417ae8bf0804cc91de00350770239e3b8d71003b6cc8fec3419485"
+    "storageHash": "8d204ab104c2847e81171aec3b889a753913a71f6a85d506f8ce5df0aa606aa3"
   },
   "capabilities": {
     "postgres": {

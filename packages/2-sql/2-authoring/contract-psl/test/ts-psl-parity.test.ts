@@ -109,6 +109,11 @@ const int4Column = {
   nativeType: 'int4',
 } as const satisfies ColumnTypeDescriptor;
 
+const textColumn = {
+  codecId: 'sql/text@1',
+  nativeType: 'text',
+} as const satisfies ColumnTypeDescriptor;
+
 const bareSqlFamilyPack = {
   kind: 'family',
   id: 'sql',
@@ -472,6 +477,64 @@ model Post {
       target: { namespaceId: 'auth', tableName: 'user' },
     });
     expect(tsFks).toEqual(pslFks);
+  });
+
+  it('PSL and TS lower the same unnamed index to identical managed IR (wire names pinned)', () => {
+    const pslDocument = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id Int @id
+  email String @map("email")
+  @@index([email])
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+
+    const pslContract = interpretPslDocumentToSqlContract({
+      ...pslDocument,
+      target: portablePostgresTargetPack,
+      scalarColumnDescriptors,
+      composedExtensionContracts: new Map(),
+      controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+      authoringContributions,
+      createNamespace: createTestSqlNamespace,
+      capabilities: { sql: { scalarList: true } },
+    });
+
+    expect(pslContract.ok).toBe(true);
+    if (!pslContract.ok) return;
+
+    const tsContract = defineContract({
+      family: sqlFamilyPack,
+      target: portablePostgresTargetPack,
+      models: {
+        User: model('User', {
+          fields: {
+            id: field.column(int4Column).id(),
+            email: field.column(textColumn),
+          },
+        }).sql(({ cols, constraints }) => ({
+          table: 'user',
+          indexes: [constraints.index([cols.email])],
+        })),
+      },
+      createNamespace: createTestSqlNamespace,
+    });
+
+    const pslStorage = pslContract.value.storage as unknown as SqlStorage;
+    const tsStorage = tsContract.storage as unknown as SqlStorage;
+    const pslIndexes = pslStorage.namespaces['public']?.entries.table?.['user']?.indexes;
+    const tsIndexes = tsStorage.namespaces['public']?.entries.table?.['user']?.indexes;
+
+    expect(pslIndexes).toEqual([
+      {
+        name: 'user_email_idx_46df9cad',
+        prefix: 'user_email_idx',
+        columns: ['email'],
+        unique: false,
+      },
+    ]);
+    expect(tsIndexes).toEqual(pslIndexes);
   });
 
   // `temporal.updatedAt()` is a convenience spelling of

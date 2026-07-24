@@ -291,7 +291,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   });
 
   it('CreateIndexCall / DropIndexCall emit this.X({...}) and contribute no imports', () => {
-    const ci = new CreateIndexCall('public', 'user', 'user_email_idx', ['email']);
+    const ci = new CreateIndexCall('public', 'user', 'user_email_idx', { columns: ['email'] });
     expect(ci.renderTypeScript()).toBe(
       'this.createIndex({ schema: "public", table: "user", index: "user_email_idx", columns: ["email"] })',
     );
@@ -305,10 +305,16 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   });
 
   it('CreateIndexCall renders extras when they are provided', () => {
-    const ci = new CreateIndexCall('public', 'doc', 'doc_body_idx', ['body'], {
-      type: 'gin',
-      options: { fastupdate: false },
-    });
+    const ci = new CreateIndexCall(
+      'public',
+      'doc',
+      'doc_body_idx',
+      { columns: ['body'] },
+      {
+        type: 'gin',
+        options: { fastupdate: false },
+      },
+    );
     expect(ci.renderTypeScript()).toBe(
       'this.createIndex({ schema: "public", table: "doc", index: "doc_body_idx", columns: ["body"], extras: { type: "gin", options: { fastupdate: false } } })',
     );
@@ -362,7 +368,7 @@ describe('renderCallsToTypeScript', () => {
       new CreateTableCall('public', 'user', [col('id', 'text', { notNull: true })]),
       new DropTableCall('public', 'old_user'),
       new AddColumnCall('public', 'user', col('email', 'text')),
-      new CreateIndexCall('public', 'user', 'user_email_idx', ['email']),
+      new CreateIndexCall('public', 'user', 'user_email_idx', { columns: ['email'] }),
     ];
 
     const source = renderCallsToTypeScript(calls, META);

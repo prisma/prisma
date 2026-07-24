@@ -24,11 +24,12 @@ import type {
 import { issueOutcome } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import { parseWireName } from '@prisma-next/sql-schema-ir/naming';
 import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import { SqlIndexIR } from '@prisma-next/sql-schema-ir/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { PostgresRlsPolicy } from '../postgres-rls-policy';
-import { parseRlsPolicyWireName } from '../rls/wire-name';
 import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordinate';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
@@ -46,6 +47,7 @@ import type { PostgresOpFactoryCall } from './op-factory-call';
 import {
   CreatePostgresRlsPolicyCall,
   DropPostgresRlsPolicyCall,
+  RenameIndexCall,
   RenamePostgresRlsPolicyCall,
 } from './op-factory-call';
 import { TypeScriptRenderablePostgresMigration } from './planner-produced-postgres-migration';
@@ -236,6 +238,18 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     });
     const schemaIssues = [...namespaceIssues, ...gated];
 
+    // Index rename post-pass (the policy pass's structure, generalized): a
+    // `not-found` and a `not-expected` index that are one rename collapse
+    // into a single widening `ALTER INDEX … RENAME TO` before the per-issue
+    // mapping turns them into create + drop. Consumed issues never reach
+    // `planIssues`; the rename calls go through the same call-side
+    // control-policy partition the policy ops use.
+    const indexRenames = this.pairIndexRenames(options, schemaIssues);
+    const plannableIssues =
+      indexRenames.consumed.size === 0
+        ? schemaIssues
+        : schemaIssues.filter((issue) => !indexRenames.consumed.has(issue));
+
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
     const storageTypes = options.contract.storage.types ?? {};
     // The strategy layer reads the live schema by bare table name for existence
@@ -253,7 +267,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     // user-visible message survives even when the planner would have failed
     // to model the subject's live shape.
     const issuePartition = partitionIssuesByControlPolicy({
-      issues: schemaIssues,
+      issues: plannableIssues,
       contract: options.contract,
       resolveControlPolicySubject: (issue) =>
         resolvePostgresNodeIssueControlPolicySubject(issue, options.contract),
@@ -281,6 +295,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     if (!result.ok) {
       return plannerFailure(result.failure);
     }
+
+    const indexRenamePartition = partitionCallsByControlPolicy({
+      calls: indexRenames.calls,
+      contract: options.contract,
+      resolveControlPolicySubject: (call) =>
+        resolvePostgresCallControlPolicySubject(call, options.contract),
+      resolveFactoryName: (call) => call.factoryName,
+    });
 
     const schemaDiffCalls = this.planPostgresSchemaDiff(options, policyDiffIssues);
     const schemaDiffPartition = partitionCallsByControlPolicy({
@@ -314,9 +336,15 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         resolvePostgresCallControlPolicySubject(call, options.contract),
       resolveFactoryName: (call) => call.factoryName,
     });
-    const calls = [...result.value.calls, ...schemaDiffPartition.kept, ...fieldEventPartition.kept];
+    const calls = [
+      ...result.value.calls,
+      ...indexRenamePartition.kept,
+      ...schemaDiffPartition.kept,
+      ...fieldEventPartition.kept,
+    ];
     const warnings: SqlPlannerConflict[] = [
       ...issuePartition.suppressions,
+      ...indexRenamePartition.suppressions,
       ...schemaDiffPartition.suppressions,
       ...fieldEventPartition.suppressions,
     ].map((record) => renderPostgresSuppression(record, options.contract));
@@ -335,6 +363,128 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       ),
       ...(warnings.length > 0 ? { warnings: Object.freeze(warnings) } : {}),
     });
+  }
+
+  /**
+   * Rename post-pass for indexes, per `(schema, table)`, widening-only,
+   * deterministic by sorted names — the same structure as the policy pass
+   * below (which stays untouched: policies pair by hash only).
+   *
+   * Phase 1 — hash pairing: extras whose live names parse as wire names,
+   * grouped by `(schema, table, hash)`; missing nodes iterated in sorted-name
+   * order consume the sorted-name-first candidate — a prefix-only rename.
+   *
+   * Phase 2 — content pairing: the remaining managed-missing nodes
+   * (`prefix` defined) against the remaining extras of any name shape,
+   * paired iff content-equal (columns ordered-strict both-defined-or-
+   * both-undefined, `unique`/`type` strict, `options` loose, bodies
+   * byte-equal) — exact→managed adoption convergence.
+   *
+   * Leftovers proceed as create/drop exactly as before; without the
+   * widening allowance the pass is skipped and pairing degrades to the
+   * additive half, like the policy pass.
+   */
+  private pairIndexRenames(
+    options: PlannerOptionsWithComponents,
+    issues: readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
+  ): {
+    readonly calls: readonly RenameIndexCall[];
+    readonly consumed: ReadonlySet<SchemaDiffIssue<SqlSchemaDiffNode>>;
+  } {
+    const consumed = new Set<SchemaDiffIssue<SqlSchemaDiffNode>>();
+    const calls: RenameIndexCall[] = [];
+    if (!options.policy.allowedOperationClasses.includes('widening')) {
+      return { calls, consumed };
+    }
+
+    interface IndexFinding {
+      readonly issue: SchemaDiffIssue<SqlSchemaDiffNode>;
+      readonly node: SqlIndexIR;
+      readonly ddlSchema: string;
+      readonly tableName: string;
+    }
+    const missing: IndexFinding[] = [];
+    const extra: IndexFinding[] = [];
+    for (const issue of issues) {
+      const node = issueNode(issue);
+      if (node === undefined || !SqlIndexIR.is(node)) continue;
+      const ddlSchema = issue.path[1];
+      const tableName = issue.path[2];
+      if (ddlSchema === undefined || tableName === undefined) continue;
+      if (issueOutcome(issue) === 'not-found') {
+        missing.push({ issue, node, ddlSchema, tableName });
+      } else if (issueOutcome(issue) === 'not-expected') {
+        extra.push({ issue, node, ddlSchema, tableName });
+      }
+    }
+    if (missing.length === 0 || extra.length === 0) {
+      return { calls, consumed };
+    }
+
+    const byName = (a: IndexFinding, b: IndexFinding): number =>
+      a.node.name < b.node.name ? -1 : a.node.name > b.node.name ? 1 : 0;
+    // DDL emission must stay unqualified for the unbound namespace, exactly
+    // like the per-issue mapping's `emissionSchemaName`.
+    const emissionSchema = (ddlSchema: string): string =>
+      resolveNamespaceIdForDdlSchema(options.contract, ddlSchema) === UNBOUND_NAMESPACE_ID
+        ? UNBOUND_NAMESPACE_ID
+        : ddlSchema;
+    const pairingKey = (finding: IndexFinding, hash: string): string =>
+      JSON.stringify([finding.ddlSchema, finding.tableName, hash]);
+    const rename = (missingFinding: IndexFinding, candidate: IndexFinding): void => {
+      consumed.add(missingFinding.issue);
+      consumed.add(candidate.issue);
+      calls.push(
+        new RenameIndexCall(
+          emissionSchema(missingFinding.ddlSchema),
+          missingFinding.tableName,
+          candidate.node.name,
+          missingFinding.node.name,
+        ),
+      );
+    };
+
+    const sortedMissing = [...missing].sort(byName);
+
+    const extrasByHash = new Map<string, IndexFinding[]>();
+    for (const finding of extra) {
+      const parsed = parseWireName(finding.node.name);
+      if (parsed === undefined) continue;
+      const key = pairingKey(finding, parsed.hash);
+      const group = extrasByHash.get(key) ?? [];
+      group.push(finding);
+      extrasByHash.set(key, group);
+    }
+    for (const group of extrasByHash.values()) {
+      group.sort(byName);
+    }
+    for (const missingFinding of sortedMissing) {
+      const parsed = parseWireName(missingFinding.node.name);
+      if (parsed === undefined) continue;
+      const candidate = extrasByHash.get(pairingKey(missingFinding, parsed.hash))?.shift();
+      if (candidate === undefined) continue;
+      rename(missingFinding, candidate);
+    }
+
+    const sortedExtras = [...extra].sort(byName);
+    for (const missingFinding of sortedMissing) {
+      if (consumed.has(missingFinding.issue)) continue;
+      if (missingFinding.node.prefix === undefined) continue;
+      const candidate = sortedExtras.find(
+        (extraFinding) =>
+          !consumed.has(extraFinding.issue) &&
+          extraFinding.ddlSchema === missingFinding.ddlSchema &&
+          extraFinding.tableName === missingFinding.tableName &&
+          missingFinding.node.contentEquals(extraFinding.node, {
+            columnPresence: 'matching',
+            bodies: 'verbatim',
+          }),
+      );
+      if (candidate === undefined) continue;
+      rename(missingFinding, candidate);
+    }
+
+    return { calls, consumed };
   }
 
   /**
@@ -412,7 +562,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     if (allowsWidening) {
       const extrasByGroup = new Map<string, PolicyFinding[]>();
       for (const finding of extra) {
-        const parsed = parseRlsPolicyWireName(finding.node.name);
+        const parsed = parseWireName(finding.node.name);
         if (parsed === undefined) continue;
         const key = pairingKey(finding, parsed.hash);
         const group = extrasByGroup.get(key) ?? [];
@@ -427,7 +577,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         a.node.name < b.node.name ? -1 : a.node.name > b.node.name ? 1 : 0,
       );
       for (const missingFinding of sortedMissing) {
-        const parsed = parseRlsPolicyWireName(missingFinding.node.name);
+        const parsed = parseWireName(missingFinding.node.name);
         if (parsed === undefined) continue;
         const candidates = extrasByGroup.get(pairingKey(missingFinding, parsed.hash));
         const candidate = candidates?.shift();

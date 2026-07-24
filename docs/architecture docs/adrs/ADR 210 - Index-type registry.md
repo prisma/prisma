@@ -164,7 +164,7 @@ Two consequences are worth naming:
 
 ## Index identity and migration semantics
 
-The schema verifier treats `(columns, type, options)` as the identity of an index. A contract index whose `type` differs from the live database's index — or whose `options` differ — is a real mismatch and is reported as one. Option comparison is *loose* (string-coerced both sides) to absorb the fact that `pg_class.reloptions` stores values as text regardless of the original literal type, so a contract `fillfactor: 70` matches a Postgres `'70'`.
+The schema differ pairs indexes by their full physical name (name-identified — see the index extension noted in [ADR 234](ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md); at this ADR's writing the pairing key was the column tuple). A paired index's `unique`, `columns`, `type`, and `options` are then compared as attributes: a contract index whose `type` differs from the live database's index — or whose `options` differ — is a real mismatch and is reported as one. Option comparison is *loose* (string-coerced both sides) to absorb the fact that `pg_class.reloptions` stores values as text regardless of the original literal type, so a contract `fillfactor: 70` matches a Postgres `'70'`.
 
 Any change to `columns`, `type`, or `options` is rendered by the migration planner as `DROP INDEX` followed by `CREATE INDEX`. Postgres has no `ALTER INDEX … SET METHOD` for changing the index method, and option changes are inconsistent across `WITH` keys, so `ALTER` is the wrong primitive for these fields uniformly. The DROP+CREATE shape is a property of how Postgres handles index method and storage-parameter changes, not a choice this design imposes.
 

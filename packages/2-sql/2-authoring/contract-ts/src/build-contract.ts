@@ -36,6 +36,7 @@ import {
   type ForeignKeyAuthoringInput,
   materializeForeignKeysAndIndexes,
 } from '@prisma-next/sql-contract/foreign-key-materialization';
+import { lowerAuthoredIndex } from '@prisma-next/sql-contract/index-naming';
 import { validateIndexTypes } from '@prisma-next/sql-contract/index-type-validation';
 import {
   createIndexTypeRegistry,
@@ -919,12 +920,15 @@ export function buildSqlContractFromDefinition(
         columns: u.columns,
         ...ifDefined('name', u.name),
       }));
-      const declaredIndexes = (semanticModel.indexes ?? []).map((i) => ({
-        columns: i.columns,
-        ...ifDefined('name', i.name),
-        ...ifDefined('type', i.type),
-        ...ifDefined('options', i.options),
-      }));
+      const declaredIndexes = (semanticModel.indexes ?? []).map((i) =>
+        lowerAuthoredIndex(tableName, {
+          columns: i.columns,
+          map: i.map,
+          name: i.name,
+          type: i.type,
+          options: i.options,
+        }),
+      );
       const primaryKey = semanticModel.id
         ? { columns: semanticModel.id.columns, ...ifDefined('name', semanticModel.id.name) }
         : undefined;

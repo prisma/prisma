@@ -281,13 +281,17 @@
                   "columns": [
                     "userId"
                   ],
-                  "name": "usersOnWorkspaces_userId_idx"
+                  "name": "usersOnWorkspaces_userId_idx_a489d58a",
+                  "prefix": "usersOnWorkspaces_userId_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "workspaceId"
                   ],
-                  "name": "usersOnWorkspaces_workspaceId_idx"
+                  "name": "usersOnWorkspaces_workspaceId_idx_ba65f874",
+                  "prefix": "usersOnWorkspaces_workspaceId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -326,7 +330,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3cb46c5a197d6fe75121fceb91da79b9f068d0e8a4ee68deb5a671e3a36ac2bc"
+    "storageHash": "7ddb96a48d1e088f364d40b8940f1ce2c2ac5584cfab47e36955fffc55b7701a"
   },
   "execution": {
     "executionHash": "76e8de6943b39610db17f90049c224ca08d76d6e43ced947a1f53a97ad6c8a58",

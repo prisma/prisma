@@ -244,7 +244,9 @@
                   "columns": [
                     "userId"
                   ],
-                  "name": "postOneToMany_userId_idx"
+                  "name": "postOneToMany_userId_idx_a489d58a",
+                  "prefix": "postOneToMany_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -345,7 +347,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7a6bb1546dd56457dbb2213f678d35266a531172b5c0893a4de93691029af8df"
+    "storageHash": "a48c772b9f2a78c1367b59b1622a00e0c9992dfc4b70852277b796fc22510f2b"
   },
   "capabilities": {
     "postgres": {

@@ -170,7 +170,14 @@ describe('contract DSL authoring surface', () => {
     });
     expect(storageTables['blog_post']).toMatchObject({
       primaryKey: { columns: ['id'], name: 'blog_post_pkey' },
-      indexes: [{ columns: ['user_id'], name: 'blog_post_user_id_idx' }],
+      indexes: [
+        {
+          name: 'blog_post_user_id_idx_6c952402',
+          prefix: 'blog_post_user_id_idx',
+          columns: ['user_id'],
+          unique: false,
+        },
+      ],
     });
 
     const appUserColumns = storageTables['app_user']?.columns;
@@ -395,7 +402,7 @@ describe('contract DSL authoring surface', () => {
   it('rejects duplicate named storage objects in the refined sql overlay', () => {
     const User = model('User', {
       fields: {
-        id: field.column(textColumn).id({ name: 'app_user_pkey' }),
+        id: field.column(textColumn).id({ name: 'app_user_pkey_e8a52337' }),
       },
     }).sql(({ cols, constraints }) => ({
       table: 'app_user',

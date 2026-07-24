@@ -26,6 +26,24 @@ describe('sqlContractCanonicalizationHooks.shouldPreserveEmpty', () => {
     ).toBe(true);
   });
 
+  it('preserves an index unique: false flag', () => {
+    // `unique` is a required boolean on every index entry; without this veto
+    // the default-omission walk drops `unique: false` and the emitted
+    // contract fails IndexSchema validation on the next read.
+    expect(
+      sqlContractCanonicalizationHooks.shouldPreserveEmpty([
+        'storage',
+        'namespaces',
+        'unbound',
+        'entries',
+        'table',
+        'task',
+        'indexes',
+        'unique',
+      ]),
+    ).toBe(true);
+  });
+
   it('does not preserve arbitrary domain-side values', () => {
     expect(
       sqlContractCanonicalizationHooks.shouldPreserveEmpty([

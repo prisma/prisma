@@ -408,7 +408,14 @@ model Member {
     const memberTable = unboundTables(storage)['member'];
     const fks = memberTable?.foreignKeys ?? [];
     expect(fks[0]).not.toHaveProperty('index');
-    expect(memberTable?.indexes).toEqual([{ columns: ['teamId'], name: 'member_teamId_idx' }]);
+    expect(memberTable?.indexes).toEqual([
+      {
+        name: 'member_teamId_idx_f2b72ab3',
+        prefix: 'member_teamId_idx',
+        columns: ['teamId'],
+        unique: false,
+      },
+    ]);
   });
 
   it('opts a relation foreign key out of its backing index via index: false', () => {

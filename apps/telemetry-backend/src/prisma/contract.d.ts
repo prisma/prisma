@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'949770bf32a6fbe327a0e6f3a530cd2b5826ca3f350d9587581f72908dd65d45'>;
+  StorageHashBase<'7291093cc59a8f9401652a170628b4208ea9c0048b179543f6af8a37afa51595'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -228,7 +228,14 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [{ readonly columns: readonly ['ingestedAt'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'telemetry_event_ingestedAt_idx_272db6ba';
+                  readonly prefix: 'telemetry_event_ingestedAt_idx';
+                  readonly columns: readonly ['ingestedAt'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
           };

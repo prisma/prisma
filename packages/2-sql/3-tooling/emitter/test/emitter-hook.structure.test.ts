@@ -386,7 +386,7 @@ describe('sql-target-family-hook', () => {
             },
             primaryKey: { columns: ['id'] },
             uniques: [],
-            indexes: [{ columns: ['nonexistent'] }],
+            indexes: [{ name: 'user_nonexistent_idx', columns: ['nonexistent'], unique: false }],
             foreignKeys: [],
           },
         },
@@ -942,7 +942,7 @@ describe('sql-target-family-hook', () => {
             },
             primaryKey: { columns: ['id'] },
             uniques: [{ columns: ['email'] }],
-            indexes: [{ columns: ['email'] }],
+            indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false }],
             foreignKeys: [],
           },
           post: {
@@ -953,7 +953,7 @@ describe('sql-target-family-hook', () => {
             },
             primaryKey: { columns: ['id'] },
             uniques: [],
-            indexes: [{ columns: ['userId'] }],
+            indexes: [{ name: 'post_userId_idx', columns: ['userId'], unique: false }],
             foreignKeys: [
               {
                 source: {

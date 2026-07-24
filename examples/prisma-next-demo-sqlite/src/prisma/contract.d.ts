@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'04b3a9cb3000ee2016c516801119e7d24bf3d1d4f6febc3619735117fb4e39d9'>;
+  StorageHashBase<'03af121bccff43a3131e0b5487222248a11924a2d96b6d7d87c13005e69f75f2'>;
 export type ExecutionHash =
   ExecutionHashBase<'5b8ea41bd78c098dbe7227970a920650aa10992f11357c2664703742248ffc95'>;
 export type ProfileHash =
@@ -171,7 +171,12 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['userId']; readonly name: 'post_userId_idx' },
+                {
+                  readonly name: 'post_userId_idx_a489d58a';
+                  readonly prefix: 'post_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {
@@ -210,8 +215,18 @@ type ContractBase = Omit<
               };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['postId']; readonly name: 'post_tag_postId_idx' },
-                { readonly columns: readonly ['tagId']; readonly name: 'post_tag_tagId_idx' },
+                {
+                  readonly name: 'post_tag_postId_idx_a7a72715';
+                  readonly prefix: 'post_tag_postId_idx';
+                  readonly columns: readonly ['postId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'post_tag_tagId_idx_86854244';
+                  readonly prefix: 'post_tag_tagId_idx';
+                  readonly columns: readonly ['tagId'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {

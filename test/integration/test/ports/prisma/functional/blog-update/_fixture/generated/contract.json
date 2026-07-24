@@ -424,7 +424,9 @@
                   "columns": [
                     "author"
                   ],
-                  "name": "post_author_idx"
+                  "name": "post_author_idx_d6f5b826",
+                  "prefix": "post_author_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -564,7 +566,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "4f701d629ab5b668308d1f8b525bf6cccd71884f0309539c777307f873eda200"
+    "storageHash": "a131b70f4be9dd34a2929692b0d6495c100fb5872588c43c6c1ee63b35ac509d"
   },
   "execution": {
     "executionHash": "54a19cfb0c93a01fb8d48fcef9d26e8daf39f579575f6dc55c2914f6d01c5c09",

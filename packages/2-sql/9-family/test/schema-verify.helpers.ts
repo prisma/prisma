@@ -18,7 +18,7 @@ import {
   StorageTable,
   type StorageTableInput,
 } from '@prisma-next/sql-contract/types';
-import type { SqlReferentialAction } from '@prisma-next/sql-schema-ir/types';
+import type { SqlIndexIRInput, SqlReferentialAction } from '@prisma-next/sql-schema-ir/types';
 import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { ifDefined } from '@prisma-next/utils/defined';
@@ -92,8 +92,12 @@ export function createContractTable(
     }>;
     uniques?: ReadonlyArray<{ columns: readonly string[]; name?: string }>;
     indexes?: ReadonlyArray<{
-      columns: readonly string[];
-      name?: string;
+      name: string;
+      prefix?: string;
+      columns?: readonly string[];
+      expression?: string;
+      where?: string;
+      unique: boolean;
       type?: string;
       options?: Record<string, unknown>;
     }>;
@@ -146,10 +150,13 @@ export function createSchemaTable(
     }>;
     uniques?: ReadonlyArray<{ columns: readonly string[]; name?: string }>;
     indexes?: ReadonlyArray<{
-      columns: readonly string[];
+      name: string;
+      prefix?: string;
+      columns?: readonly string[];
+      expression?: string;
+      where?: string;
       unique: boolean;
       partial?: boolean;
-      name?: string;
       type?: string;
       options?: Record<string, unknown>;
     }>;
@@ -170,16 +177,22 @@ export function createSchemaTable(
     ),
     foreignKeys: options?.foreignKeys ?? [],
     uniques: options?.uniques ?? [],
-    indexes: (options?.indexes ?? []).map((idx) => ({
-      columns: idx.columns,
-      unique: idx.unique,
-      partial: idx.partial ?? false,
-      name: idx.name,
-      type: idx.type,
-      options: idx.options,
-      annotations: undefined,
-      dependsOn: undefined,
-    })),
+    indexes: (options?.indexes ?? []).map(
+      (idx) =>
+        ({
+          name: idx.name,
+          prefix: idx.prefix,
+          columns: idx.columns,
+          expression: idx.expression,
+          where: idx.where,
+          unique: idx.unique,
+          partial: idx.partial ?? false,
+          type: idx.type,
+          options: idx.options,
+          annotations: undefined,
+          dependsOn: undefined,
+        }) as SqlIndexIRInput,
+    ),
     ...ifDefined('primaryKey', options?.primaryKey),
   });
 }

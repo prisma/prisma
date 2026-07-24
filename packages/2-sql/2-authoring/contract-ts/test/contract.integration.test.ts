@@ -55,7 +55,7 @@ describe('SqlContractSerializer', () => {
         User: {
           ...unboundTables(validContractInput.storage as unknown as SqlStorage)['User'],
           primaryKey: { columns: ['id'], name: 'user_pkey' },
-          indexes: [{ columns: ['id'], name: 'user_pkey' }],
+          indexes: [{ columns: ['id'], name: 'user_pkey', unique: false }],
         },
       }),
     };

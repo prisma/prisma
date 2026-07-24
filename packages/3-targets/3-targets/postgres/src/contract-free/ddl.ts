@@ -2,14 +2,18 @@ import type { DdlColumn, DdlTableConstraint } from '@prisma-next/sql-relational-
 import {
   AddColumnAction,
   type AnyAlterTableAction,
+  type DdlIndexElements,
   DropDefaultAction,
+  PostgresAlterIndexRename,
   PostgresAlterPolicyRename,
   PostgresAlterTable,
+  PostgresCreateIndex,
   PostgresCreatePolicy,
   PostgresCreateSchema,
   PostgresCreateTable,
   PostgresCreateType,
   PostgresDisableRowLevelSecurity,
+  PostgresDropIndex,
   PostgresDropPolicy,
   PostgresDropType,
   type RlsPolicyOperation,
@@ -147,6 +151,49 @@ export function alterPolicyRename(options: {
   readonly newName: string;
 }): PostgresAlterPolicyRename {
   return new PostgresAlterPolicyRename(options);
+}
+
+/**
+ * Build a Postgres `CREATE [UNIQUE] INDEX` DDL node. Identifiers (`schema`,
+ * `table`, `name`, column elements, `type`, option keys) are quoted by the
+ * renderer; the `expression` element list and the `where` predicate are
+ * inserted verbatim (opaque SQL). An absent `schema` renders the object
+ * names unqualified (the unbound namespace).
+ */
+export function createIndex(options: {
+  readonly schema: string | undefined;
+  readonly table: string;
+  readonly name: string;
+  readonly unique: boolean;
+  readonly elements: DdlIndexElements;
+  readonly type: string | undefined;
+  readonly options: Record<string, unknown> | undefined;
+  readonly where: string | undefined;
+}): PostgresCreateIndex {
+  return new PostgresCreateIndex(options);
+}
+
+/**
+ * Build a Postgres `DROP INDEX` DDL node. The index name (and optional
+ * schema) are quoted by the renderer.
+ */
+export function dropIndex(options: {
+  readonly schema: string | undefined;
+  readonly name: string;
+}): PostgresDropIndex {
+  return new PostgresDropIndex(options);
+}
+
+/**
+ * Build a Postgres `ALTER INDEX … RENAME TO` DDL node. Identifiers are
+ * quoted by the renderer.
+ */
+export function alterIndexRename(options: {
+  readonly schema: string | undefined;
+  readonly from: string;
+  readonly to: string;
+}): PostgresAlterIndexRename {
+  return new PostgresAlterIndexRename(options);
 }
 
 /**

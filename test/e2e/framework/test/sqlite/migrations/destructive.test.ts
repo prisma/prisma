@@ -81,7 +81,7 @@ describe('SQLite Migration E2E - Destructive operations', () => {
         policy: DESTRUCTIVE,
       },
       async ({ schema }) => {
-        const cols = schema.tables['User']!.indexes.map((i) => [...i.columns]);
+        const cols = schema.tables['User']!.indexes.map((i) => [...(i.columns ?? [])]);
         expect(cols).toContainEqual(['name']);
         expect(cols).not.toContainEqual(['email']);
       },

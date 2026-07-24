@@ -17,10 +17,8 @@
  */
 
 import { extensionModel } from '@prisma-next/sql-contract-ts/contract-builder';
-import {
-  computeContentHash,
-  formatRlsPolicyWireName,
-} from '@prisma-next/target-postgres/rls-canonicalize';
+import { formatWireName } from '@prisma-next/sql-schema-ir/naming';
+import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
 import type { PostgresSchema } from '@prisma-next/target-postgres/types';
 import {
@@ -124,7 +122,7 @@ describe('entities lowering: every helper lands in entries with PSL-matching key
     expect(policy).toBeInstanceOf(PostgresRlsPolicy);
     expect(JSON.parse(JSON.stringify(policy))).toEqual({
       kind: 'policy',
-      name: formatRlsPolicyWireName('p_read', expectedHash),
+      name: formatWireName('p_read', expectedHash),
       prefix: 'p_read',
       tableName: 'profile',
       namespaceId: 'public',
@@ -172,7 +170,7 @@ describe('entities lowering: every helper lands in entries with PSL-matching key
       permissive: true,
     });
     expect(ns().policy['p_write_using_only']?.name).toBe(
-      formatRlsPolicyWireName('p_write_using_only', expectedHash),
+      formatWireName('p_write_using_only', expectedHash),
     );
   });
 

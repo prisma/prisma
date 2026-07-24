@@ -31,7 +31,7 @@ describe('generateContractDts — FK literal (FK1)', () => {
             },
             primaryKey: { columns: ['id'] },
             uniques: [],
-            indexes: [{ columns: ['userId'], name: 'post_userId_idx' }],
+            indexes: [{ columns: ['userId'], name: 'post_userId_idx', unique: false }],
             foreignKeys: [
               {
                 source: { namespaceId: '__unbound__', tableName: 'post', columns: ['userId'] },
@@ -48,7 +48,7 @@ describe('generateContractDts — FK literal (FK1)', () => {
     expect(types).toContain("readonly tableName: 'post'; readonly columns: readonly ['userId']");
     expect(types).toContain("readonly tableName: 'user'; readonly columns: readonly ['id']");
     expect(types).toContain(
-      "indexes: readonly [{ readonly columns: readonly ['userId']; readonly name: 'post_userId_idx' }]",
+      "indexes: readonly [{ readonly name: 'post_userId_idx'; readonly columns: readonly ['userId']; readonly unique: false }]",
     );
 
     // No leftover `constraint`/`index` fields anywhere near a foreign key.

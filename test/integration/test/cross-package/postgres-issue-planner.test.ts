@@ -413,7 +413,15 @@ describe('planIssues', () => {
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
-              indexes: [{ columns: ['body'], type: 'gin', options: { fastupdate: false } }],
+              indexes: [
+                {
+                  name: 'doc_body_gin_idx',
+                  columns: ['body'],
+                  unique: false,
+                  type: 'gin',
+                  options: { fastupdate: false },
+                },
+              ],
               foreignKeys: [],
             },
           },
@@ -448,6 +456,7 @@ describe('planIssues', () => {
                 {
                   columns: ['body'],
                   name: 'doc_body_bm25_idx',
+                  unique: false,
                   type: 'bm25',
                   options: { key_field: 'id' },
                 },
@@ -482,7 +491,7 @@ describe('planIssues', () => {
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
-              indexes: [{ columns: ['body'] }],
+              indexes: [{ name: 'doc_body_idx', columns: ['body'], unique: false }],
               foreignKeys: [],
             },
           },

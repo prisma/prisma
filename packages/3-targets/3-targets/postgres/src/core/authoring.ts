@@ -22,6 +22,11 @@ import type {
   ResolvedPslModelRefs,
 } from '@prisma-next/sql-contract/entity-handle-lowering-hook';
 import type { SqlValueSetDerivingEntityTypeOutput } from '@prisma-next/sql-contract/value-set-derivation-hook';
+import {
+  assertWireNamePrefixLength,
+  formatWireName,
+  normalizeSqlBody,
+} from '@prisma-next/sql-schema-ir/naming';
 import { assertDefined } from '@prisma-next/utils/assertions';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
@@ -37,12 +42,7 @@ import {
   PostgresRlsPolicySchema,
   PostgresRoleSchema,
 } from './postgres-validators';
-import {
-  computeContentHash,
-  normalizePredicate,
-  POLICY_OPERATION_PREDICATES,
-} from './rls/canonicalize';
-import { formatRlsPolicyWireName } from './rls/wire-name';
+import { computeContentHash, POLICY_OPERATION_PREDICATES } from './rls/canonicalize';
 
 /**
  * `pg.enum(<ref>)` registers as an ordinary type constructor whose sole
@@ -154,10 +154,10 @@ function buildRlsPolicyEntity(input: {
   readonly withCheck?: string;
 }): PostgresRlsPolicy {
   const wireHash = computeContentHash({
-    ...ifDefined('using', input.using !== undefined ? normalizePredicate(input.using) : undefined),
+    ...ifDefined('using', input.using !== undefined ? normalizeSqlBody(input.using) : undefined),
     ...ifDefined(
       'withCheck',
-      input.withCheck !== undefined ? normalizePredicate(input.withCheck) : undefined,
+      input.withCheck !== undefined ? normalizeSqlBody(input.withCheck) : undefined,
     ),
     roles: input.roles,
     operation: input.operation,
@@ -165,7 +165,7 @@ function buildRlsPolicyEntity(input: {
   });
 
   return new PostgresRlsPolicy({
-    name: formatRlsPolicyWireName(input.prefix, wireHash),
+    name: formatWireName(input.prefix, wireHash),
     prefix: input.prefix,
     tableName: input.tableName,
     namespaceId: input.namespaceId,
@@ -684,12 +684,6 @@ export const postgresAuthoringFieldPresets = {
   },
 } as const satisfies AuthoringFieldNamespace;
 
-/**
- * Postgres identifiers cap at 63 characters and the wire name appends a
- * 9-character `_<8hex>` suffix, so the authored prefix is bounded at 54.
- */
-const RLS_POLICY_PREFIX_MAX_LENGTH = 54;
-
 interface RlsRoleHandleShape {
   readonly entityKind: 'role';
   readonly name: string;
@@ -824,13 +818,7 @@ export function postgresLowerEntityHandles(
 
   for (const { handle: policy, refs } of policies) {
     const prefix = policy.name;
-    if (prefix.length > RLS_POLICY_PREFIX_MAX_LENGTH) {
-      throw postgresError(
-        'CONTRACT.POLICY_INVALID',
-        `defineContract: policy prefix "${prefix}" exceeds the ${RLS_POLICY_PREFIX_MAX_LENGTH}-character maximum (Postgres identifiers cap at 63 characters and the wire name appends a 9-character hash suffix).`,
-        { meta: { prefix, reason: 'prefix-too-long' } },
-      );
-    }
+    assertWireNamePrefixLength(prefix, 'defineContract: policy prefix');
     const coordinate = requireLocalTarget(refs, `policy "${prefix}"`);
     if (!enablements.has(coordinateKey(coordinate))) {
       const target = refs['target'];

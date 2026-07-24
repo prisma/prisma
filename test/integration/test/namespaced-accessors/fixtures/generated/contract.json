@@ -209,7 +209,9 @@
                   "columns": [
                     "user_id"
                   ],
-                  "name": "profile_user_id_idx"
+                  "name": "profile_user_id_idx_6c952402",
+                  "prefix": "profile_user_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -247,7 +249,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b57e1bfeca03fd2c5c11f6ea5bafcd1e0b9962d7217b6880c99b8d65de592712"
+    "storageHash": "a03ff0d0a7fe9bf4376afc72c5b7bbca8fbfc9ec5383cf1778d309d5f10106b2"
   },
   "capabilities": {
     "postgres": {

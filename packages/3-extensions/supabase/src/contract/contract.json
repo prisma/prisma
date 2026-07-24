@@ -4817,7 +4817,8 @@
                   "columns": [
                     "instance_id"
                   ],
-                  "name": "audit_logs_instance_id_idx"
+                  "name": "audit_logs_instance_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -5004,25 +5005,29 @@
                   "columns": [
                     "created_at"
                   ],
-                  "name": "custom_oauth_providers_created_at_idx"
+                  "name": "custom_oauth_providers_created_at_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "enabled"
                   ],
-                  "name": "custom_oauth_providers_enabled_idx"
+                  "name": "custom_oauth_providers_enabled_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "identifier"
                   ],
-                  "name": "custom_oauth_providers_identifier_idx"
+                  "name": "custom_oauth_providers_identifier_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "provider_type"
                   ],
-                  "name": "custom_oauth_providers_provider_type_idx"
+                  "name": "custom_oauth_providers_provider_type_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -5151,20 +5156,23 @@
                   "columns": [
                     "created_at"
                   ],
-                  "name": "flow_state_created_at_idx"
+                  "name": "flow_state_created_at_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "auth_code"
                   ],
-                  "name": "idx_auth_code"
+                  "name": "idx_auth_code",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "user_id",
                     "authentication_method"
                   ],
-                  "name": "idx_user_id_auth_method"
+                  "name": "idx_user_id_auth_method",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -5254,13 +5262,15 @@
                   "columns": [
                     "email"
                   ],
-                  "name": "identities_email_idx"
+                  "name": "identities_email_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "user_id"
                   ],
-                  "name": "identities_user_id_idx"
+                  "name": "identities_user_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -5452,7 +5462,8 @@
                   "columns": [
                     "created_at"
                   ],
-                  "name": "mfa_challenge_created_at_idx"
+                  "name": "mfa_challenge_created_at_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -5578,13 +5589,15 @@
                     "user_id",
                     "created_at"
                   ],
-                  "name": "factor_id_created_at_idx"
+                  "name": "factor_id_created_at_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "user_id"
                   ],
-                  "name": "mfa_factors_user_id_idx"
+                  "name": "mfa_factors_user_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -5774,14 +5787,7 @@
                   }
                 }
               ],
-              "indexes": [
-                {
-                  "columns": [
-                    "expires_at"
-                  ],
-                  "name": "oauth_auth_pending_exp_idx"
-                }
-              ],
+              "indexes": [],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -5833,7 +5839,8 @@
                   "columns": [
                     "created_at"
                   ],
-                  "name": "idx_oauth_client_states_created_at"
+                  "name": "idx_oauth_client_states_created_at",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -5949,7 +5956,8 @@
                   "columns": [
                     "deleted_at"
                   ],
-                  "name": "oauth_clients_deleted_at_idx"
+                  "name": "oauth_clients_deleted_at_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -6041,23 +6049,11 @@
               "indexes": [
                 {
                   "columns": [
-                    "client_id"
-                  ],
-                  "name": "oauth_consents_active_client_idx"
-                },
-                {
-                  "columns": [
-                    "user_id",
-                    "client_id"
-                  ],
-                  "name": "oauth_consents_active_user_client_idx"
-                },
-                {
-                  "columns": [
                     "user_id",
                     "granted_at"
                   ],
-                  "name": "oauth_consents_user_order_idx"
+                  "name": "oauth_consents_user_order_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -6161,14 +6157,16 @@
                     "relates_to"
                   ],
                   "name": "one_time_tokens_relates_to_hash_idx",
-                  "type": "hash"
+                  "type": "hash",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "token_hash"
                   ],
                   "name": "one_time_tokens_token_hash_hash_idx",
-                  "type": "hash"
+                  "type": "hash",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -6261,33 +6259,38 @@
                   "columns": [
                     "instance_id"
                   ],
-                  "name": "refresh_tokens_instance_id_idx"
+                  "name": "refresh_tokens_instance_id_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "instance_id",
                     "user_id"
                   ],
-                  "name": "refresh_tokens_instance_id_user_id_idx"
+                  "name": "refresh_tokens_instance_id_user_id_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "parent"
                   ],
-                  "name": "refresh_tokens_parent_idx"
+                  "name": "refresh_tokens_parent_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "session_id",
                     "revoked"
                   ],
-                  "name": "refresh_tokens_session_id_revoked_idx"
+                  "name": "refresh_tokens_session_id_revoked_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "updated_at"
                   ],
-                  "name": "refresh_tokens_updated_at_idx"
+                  "name": "refresh_tokens_updated_at_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -6380,7 +6383,8 @@
                   "columns": [
                     "sso_provider_id"
                   ],
-                  "name": "saml_providers_sso_provider_id_idx"
+                  "name": "saml_providers_sso_provider_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -6487,19 +6491,22 @@
                   "columns": [
                     "created_at"
                   ],
-                  "name": "saml_relay_states_created_at_idx"
+                  "name": "saml_relay_states_created_at_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "for_email"
                   ],
-                  "name": "saml_relay_states_for_email_idx"
+                  "name": "saml_relay_states_for_email_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "sso_provider_id"
                   ],
-                  "name": "saml_relay_states_sso_provider_id_idx"
+                  "name": "saml_relay_states_sso_provider_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -6665,26 +6672,30 @@
                   "columns": [
                     "not_after"
                   ],
-                  "name": "sessions_not_after_idx"
+                  "name": "sessions_not_after_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "oauth_client_id"
                   ],
-                  "name": "sessions_oauth_client_id_idx"
+                  "name": "sessions_oauth_client_id_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "user_id"
                   ],
-                  "name": "sessions_user_id_idx"
+                  "name": "sessions_user_id_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "user_id",
                     "created_at"
                   ],
-                  "name": "user_id_created_at_idx"
+                  "name": "user_id_created_at_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -6750,7 +6761,8 @@
                   "columns": [
                     "sso_provider_id"
                   ],
-                  "name": "sso_domains_sso_provider_id_idx"
+                  "name": "sso_domains_sso_provider_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -6796,7 +6808,8 @@
                   "columns": [
                     "resource_id"
                   ],
-                  "name": "sso_providers_resource_id_pattern_idx"
+                  "name": "sso_providers_resource_id_pattern_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -7033,13 +7046,15 @@
                   "columns": [
                     "instance_id"
                   ],
-                  "name": "users_instance_id_idx"
+                  "name": "users_instance_id_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "is_anonymous"
                   ],
-                  "name": "users_is_anonymous_idx"
+                  "name": "users_is_anonymous_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -7125,13 +7140,15 @@
                   "columns": [
                     "expires_at"
                   ],
-                  "name": "webauthn_challenges_expires_at_idx"
+                  "name": "webauthn_challenges_expires_at_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "user_id"
                   ],
-                  "name": "webauthn_challenges_user_id_idx"
+                  "name": "webauthn_challenges_user_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -7279,7 +7296,8 @@
                   "columns": [
                     "user_id"
                   ],
-                  "name": "webauthn_credentials_user_id_idx"
+                  "name": "webauthn_credentials_user_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -8015,9 +8033,18 @@
               "indexes": [
                 {
                   "columns": [
+                    "bucket_id",
                     "name"
                   ],
-                  "name": "name_prefix_search"
+                  "name": "idx_objects_bucket_id_name",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "name"
+                  ],
+                  "name": "name_prefix_search",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -8115,7 +8142,8 @@
                     "key",
                     "created_at"
                   ],
-                  "name": "idx_multipart_uploads_list"
+                  "name": "idx_multipart_uploads_list",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -8342,7 +8370,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "0b5d129bbcf843e1f4489ec0b36ac4e09b6b208fe48f5dc141a98eb8fc4ae154",
+    "storageHash": "575237c8f346d182719b83fe1b29b4e1634fd130be638bc8e78472a6139bdaef",
     "types": {
       "CreatedAt": {
         "codecId": "pg/timestamp@1",

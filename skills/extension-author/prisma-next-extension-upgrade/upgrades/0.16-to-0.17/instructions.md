@@ -260,6 +260,58 @@ changes:
       contains:
         - "SqlEscapeError"
 
+  - id: rls-wire-name-helpers-moved-to-sql-schema-ir-naming
+    summary: |
+      The RLS wire-name helpers moved out of the target-postgres RLS surface into the
+      family-shared naming module, with generalized names — the wire-name scheme now serves
+      indexes as well as policies. Deleted from
+      `@prisma-next/target-postgres/rls-canonicalize`: `formatRlsPolicyWireName`,
+      `parseRlsPolicyWireName`, `normalizePredicate`, and the `RlsPolicyWireName` type. Import
+      the replacements from `@prisma-next/sql-schema-ir/naming` instead: `formatWireName`,
+      `parseWireName`, `normalizeSqlBody`, and `WireName`. Behavior is byte-identical (same
+      `<prefix>_<8hex>` format, same all-prefix-on-no-parse contract, same trim +
+      whitespace-collapse normalizer). `@prisma-next/target-postgres/rls-canonicalize` still
+      exports the RLS-specific surface: `computeContentHash`, `ContentHashParts`,
+      `POLICY_OPERATION_PREDICATES`, `RlsPolicyOperation`. The naming module also gains
+      `computeIndexContentHash`, `WIRE_NAME_PREFIX_MAX_LENGTH`, and
+      `assertWireNamePrefixLength` for packs that construct index wire names.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - "formatRlsPolicyWireName"
+        - "parseRlsPolicyWireName"
+        - "normalizePredicate"
+        - "RlsPolicyWireName"
+      anyMatch: true
+  - id: sql-index-entities-are-name-identified
+    summary: |
+      SQL index entities are name-identified from 0.17, at both layers an extension touches.
+      Contract IR (`Index` from `@prisma-next/sql-contract/types`): `name` (full physical
+      name) and `unique` are required, `prefix` marks a managed wire name (`name` must parse
+      back to `prefix` + 8-hex suffix), and `columns` became optional — exactly one of
+      `columns` / `expression` must be set; the constructor and `IndexSchema` validation
+      throw on the old shape, so any pack code or test fixture building `indexes: [{ columns:
+      [...] }]` must add a real `name` and `unique`. The `index(...)` factory from
+      `@prisma-next/sql-contract/factories` is now `index(name, columns, opts?)`. Schema IR
+      (`SqlIndexIR` from `@prisma-next/sql-schema-ir/types`): the input requires `name` plus
+      explicit `prefix` / `expression` / `where` keys, the diff-tree id is `index:<name>`
+      (tuple-derived ids are gone — assertions on `index:<col,col>` ids must switch to the
+      name), and `isEqualTo` is mode-selected: both modes compare `unique`/`type` strict,
+      `options` loose, `columns` ordered-strict when both sides carry them; an exact-named
+      node (no `prefix`) additionally byte-compares `expression`/`where`; a managed node
+      never compares bodies. Construction sites must supply the real physical name — never a
+      placeholder. Re-emit your pack's committed contract space (`build:contract-space` /
+      `contract:generate`); storage hashes move for every contract that declares indexes, and
+      managed index physical names gain the `_<8hex>` content-hash suffix (see the user-skill
+      `indexes-are-name-identified` entry for the database-convergence flow — the first
+      widening plan is renames-only).
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - "SqlIndexIR"
+        - "indexes: ["
+        - "indexes:["
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions
@@ -318,3 +370,38 @@ Relational JSON container AST construction now requires an explicit value-projec
 `FunctionSource.of(fn, args, alias)` now groups alias state so returned-column aliases cannot exist without a table alias. Replace a string third argument such as `FunctionSource.of(fn, args, 'rows')` with `FunctionSource.of(fn, args, { alias: 'rows' })`; when returned-column names are required, pass `{ alias: 'rows', columnAliases: ['value', 'ordinality'] }`. Calls that omit the alias remain unchanged.
 
 When an extension forwards an existing `ProjectionItem` through a derived-table or row-number wrapper, preserve its known codec in the reconstructed projection: use `ProjectionItem.of(item.alias, ColumnRef.of(wrapperAlias, item.alias), item.codec)`. Leave the codec undefined only for computed or otherwise unknown projected results. After applying the applicable edits, run the extension's typecheck and tests; update AST-shape fixtures to assert the explicit wrapper nodes and preserved codec metadata.
+## `rls-wire-name-helpers-moved-to-sql-schema-ir-naming`
+
+The wire-name mechanics are family-shared from 0.17 (they now serve secondary indexes as well as RLS policies), so the helpers moved from the target-postgres RLS module to `@prisma-next/sql-schema-ir/naming` under generalized names. Apply the mechanical rename:
+
+| 0.16 (`@prisma-next/target-postgres/rls-canonicalize`) | 0.17 (`@prisma-next/sql-schema-ir/naming`) |
+| --- | --- |
+| `formatRlsPolicyWireName(prefix, hash)` | `formatWireName(prefix, hash)` |
+| `parseRlsPolicyWireName(name)` | `parseWireName(name)` |
+| `normalizePredicate(sql)` | `normalizeSqlBody(sql)` |
+| `RlsPolicyWireName` (type) | `WireName` (type) |
+
+Behavior is byte-identical — same `<prefix>_<8hex>` format and parse pattern, same treat-as-all-prefix contract for names that do not parse, same minimal trim-and-collapse normalizer (still a stability commitment: any change would re-suffix every wire name). `@prisma-next/target-postgres/rls-canonicalize` keeps the RLS-specific exports (`computeContentHash`, `ContentHashParts`, `POLICY_OPERATION_PREDICATES`, `RlsPolicyOperation`); there are no re-export shims for the moved names. The naming module additionally exposes `computeIndexContentHash`, `WIRE_NAME_PREFIX_MAX_LENGTH` (54), and `assertWireNamePrefixLength` — the index-side siblings of the RLS hash assembly.
+
+## `sql-index-entities-are-name-identified`
+
+Indexes are name-identified end to end. Two SPI layers change shape; take them in order.
+
+### Contract IR: `Index` / `IndexSchema`
+
+An index entity (`Index` from `@prisma-next/sql-contract/types`; the `indexes: []` array in a `StorageTable`) now requires:
+
+- `name: string` — the full physical name, always present.
+- `unique: boolean` — always present.
+- `prefix?: string` — present iff the name is managed; the constructor enforces that `name` parses back to `prefix` + an 8-hex suffix.
+- `columns?` xor `expression?` — exactly one must be set; `where?` carries a partial-index predicate. All body strings are opaque SQL, never parsed or escaped.
+
+Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. Contract-space fixtures or pack code that load `indexes: [{ columns: ['email'] }]` through validation fail with a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)`; constructing the entity directly throws `Index: every index carries a full physical name…`. Add the real physical name and `unique: false`. The `index(...)` convenience factory from `@prisma-next/sql-contract/factories` changed signature accordingly: `index(name, columns, opts?)` (opts: `prefix`, `unique`, `type`, `options`). Packs that lower authored index inputs themselves can reuse `lowerAuthoredIndex` from `@prisma-next/sql-contract/index-naming` — it implements the managed/exact naming rules (default prefix, `name:`-as-prefix, `map:`-as-exact) including the 54-character prefix cap.
+
+### Schema IR: `SqlIndexIR`
+
+`SqlIndexIRInput` requires `name` and adds explicit `prefix` / `expression` / `where` keys (the package's every-field-required convention: state absence with `undefined`, never by omission), and `columns` became `readonly string[] | undefined` (xor `expression`). The node's diff-tree `id` is now `index:<name>` — the old tuple-derived `index:<col,col>` ids are gone, so any test asserting child ids or diff paths must use the physical name. `isEqualTo` is mode-selected by the receiver: both modes compare `unique` strict, `type` strict, `options` loosely (`String()`-coerced), and `columns` ordered-strict when both sides carry them; an exact-named receiver (`prefix === undefined`) additionally byte-compares `expression ?? ''` and `where ?? ''`; a managed receiver never compares bodies. Introspection now captures expression and partial indexes at full fidelity and preserves same-tuple twin indexes — packs must not assume one index per column tuple.
+
+### Committed contract spaces
+
+Re-emit your pack's contract space with the upgraded toolchain (`build:contract-space`, or your generator script à la `contract:generate`): every contract that declares indexes gets the new entry shape and a new storage hash, and managed index physical names gain the `_<8hex>` content-hash suffix. Databases your pack maintains (acceptance harnesses, reference instances) converge via a renames-only widening plan — see the user-skill `indexes-are-name-identified` entry for that flow. Live indexes your contract cannot yet express faithfully (partial or expression indexes, before their authoring surfaces land) should stay undeclared — under an `external` control policy extras are tolerated, while a body-less declaration now fails the exact-mode body compare.

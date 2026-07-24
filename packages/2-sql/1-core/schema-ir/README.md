@@ -54,6 +54,8 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 3. **Shared Plane**: This package is in the **shared plane**, meaning it can be safely imported by both migration-plane (verification, migration planning) and runtime-plane code.
 
+4. **Name-identified indexes**: `SqlIndexIR` is identified by its full physical name (its diff-tree `id` is the name, so same-column-tuple siblings and expression indexes are representable). Managed indexes carry a `prefix` plus a content-hash wire name; the shared naming helpers (`formatWireName`, `parseWireName`, `normalizeSqlBody`, `computeIndexContentHash`) live in `@prisma-next/sql-schema-ir/naming`.
+
 ## Usage
 
 ### Basic Usage

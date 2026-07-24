@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'005f8fef96c2623ec111d37b09905aa9667a00b16fe36654eca2da3b9f6ffeae'>;
+  StorageHashBase<'52671d7c644449f371c3c81119e6e8aea9508b376760c849a5571c5efc00da21'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -161,8 +161,18 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['user_id', 'tag_id'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['user_id']; readonly name: 'user_tags_user_id_idx' },
-                { readonly columns: readonly ['tag_id']; readonly name: 'user_tags_tag_id_idx' },
+                {
+                  readonly name: 'user_tags_user_id_idx_6c952402';
+                  readonly prefix: 'user_tags_user_id_idx';
+                  readonly columns: readonly ['user_id'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'user_tags_tag_id_idx_94b47830';
+                  readonly prefix: 'user_tags_tag_id_idx';
+                  readonly columns: readonly ['tag_id'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {

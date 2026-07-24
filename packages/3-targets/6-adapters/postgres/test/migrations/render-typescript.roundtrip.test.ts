@@ -30,6 +30,7 @@ import {
   DropTableCall,
   EnableRowLevelSecurityCall,
   RawSqlCall,
+  RenameIndexCall,
   RenamePostgresRlsPolicyCall,
 } from '@prisma-next/target-postgres/op-factory-call';
 import { TypeScriptRenderablePostgresMigration } from '@prisma-next/target-postgres/planner-produced-postgres-migration';
@@ -176,7 +177,15 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         [primaryKey(['id'])],
       ),
       new AddColumnCall('public', 'user', col('nickname', 'text')),
-      new CreateIndexCall('public', 'user', 'user_email_idx', ['email']),
+      new CreateIndexCall('public', 'user', 'user_email_idx', { columns: ['email'] }),
+      new CreateIndexCall(
+        'public',
+        'user',
+        'user_email_eq',
+        { expression: 'lower(email)' },
+        { unique: true, where: 'nickname IS NOT NULL' },
+      ),
+      new RenameIndexCall('public', 'user', 'user_email_idx', 'user_email_lookup_ab12cd34'),
       new EnableRowLevelSecurityCall('public', 'user'),
       new CreatePostgresRlsPolicyCall(
         'public',

@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'59f0a637dfc885a07dcb54ba5c99e2926ba5ae286bb961bd9f040dd8aaf3ee89'>;
+  StorageHashBase<'449bb8a2c1e992c55e0187d41993dca65d42a9cfca0dd8c3fa1dc58560f31dfa'>;
 export type ExecutionHash =
   ExecutionHashBase<'d5124fa06e1417dd4575e0b5a868a0216ec0ed912c7b5f652225db35e038dee4'>;
 export type ProfileHash =
@@ -314,7 +314,12 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['userId']; readonly name: 'post_userId_idx' },
+                {
+                  readonly name: 'post_userId_idx_a489d58a';
+                  readonly prefix: 'post_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {
@@ -377,7 +382,12 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['userId']; readonly name: 'task_userId_idx' },
+                {
+                  readonly name: 'task_userId_idx_a489d58a';
+                  readonly prefix: 'task_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {

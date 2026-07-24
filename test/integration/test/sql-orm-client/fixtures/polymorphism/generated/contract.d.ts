@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'0193e375ed6ed4c06485baa995a26f13a514d939e80506a8edb07d518a9fd0bc'>;
+  StorageHashBase<'ea5a7a82d2517faa41ea5d93e27a33bf33d008a7f0f8db17199bad8c14fc24f0'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -342,8 +342,10 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'features_feature_assignee_person_id_idx_7fcd7a77';
+                  readonly prefix: 'features_feature_assignee_person_id_idx';
                   readonly columns: readonly ['feature_assignee_person_id'];
-                  readonly name: 'features_feature_assignee_person_id_idx';
+                  readonly unique: false;
                 },
               ];
               foreignKeys: readonly [
@@ -443,8 +445,10 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'task_comments_task_id_idx_5d5ac774';
+                  readonly prefix: 'task_comments_task_id_idx';
                   readonly columns: readonly ['task_id'];
-                  readonly name: 'task_comments_task_id_idx';
+                  readonly unique: false;
                 },
               ];
               foreignKeys: readonly [
@@ -508,12 +512,16 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'tasks_project_id_idx_6ad92603';
+                  readonly prefix: 'tasks_project_id_idx';
                   readonly columns: readonly ['project_id'];
-                  readonly name: 'tasks_project_id_idx';
+                  readonly unique: false;
                 },
                 {
+                  readonly name: 'tasks_reporter_id_idx_3eeed9a0';
+                  readonly prefix: 'tasks_reporter_id_idx';
                   readonly columns: readonly ['reporter_id'];
-                  readonly name: 'tasks_reporter_id_idx';
+                  readonly unique: false;
                 },
               ];
               foreignKeys: readonly [
@@ -568,7 +576,12 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['owner_id']; readonly name: 'tickets_owner_id_idx' },
+                {
+                  readonly name: 'tickets_owner_id_idx_ade9f347';
+                  readonly prefix: 'tickets_owner_id_idx';
+                  readonly columns: readonly ['owner_id'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {
@@ -631,8 +644,10 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'users_account_id_idx_3b48271c';
+                  readonly prefix: 'users_account_id_idx';
                   readonly columns: readonly ['account_id'];
-                  readonly name: 'users_account_id_idx';
+                  readonly unique: false;
                 },
               ];
               foreignKeys: readonly [

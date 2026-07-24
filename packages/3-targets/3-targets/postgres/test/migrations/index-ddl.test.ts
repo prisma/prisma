@@ -1,94 +1,136 @@
+/**
+ * Index op factories lower structured DDL nodes — the ops carry
+ * `PostgresCreateIndex` / `PostgresAlterIndexRename` / `PostgresDropIndex`
+ * through the lowerer instead of hand-concatenated SQL (the byte-level
+ * rendering is asserted beside the renderer in the adapter package).
+ */
 import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { createIndex } from '../../src/core/migrations/operations/indexes';
+import {
+  PostgresAlterIndexRename,
+  PostgresCreateIndex,
+  PostgresDropIndex,
+} from '../../src/core/ddl/nodes';
+import { createIndex, dropIndex, renameIndex } from '../../src/core/migrations/operations/indexes';
 
-function stubLowerer(): ExecuteRequestLowerer {
-  return {
-    lower: () => Object.freeze({ sql: 'STUB', params: Object.freeze([]) }),
-    lowerToExecuteRequest: async () =>
-      Object.freeze({ sql: 'SELECT true', params: Object.freeze([]) }),
+function recordingLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
+  const received: unknown[] = [];
+  const lowerer: ExecuteRequestLowerer = {
+    lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
+    lowerToExecuteRequest: async (ast) => {
+      received.push(ast);
+      return Object.freeze({
+        sql: `LOWERED ${received.length}`,
+        params: Object.freeze([`p${received.length}`]),
+      });
+    },
   };
+  return { lowerer, received };
 }
 
-async function executeSql(op: ReturnType<typeof createIndex>): Promise<string> {
-  const resolved = await op;
-  const stmt = resolved.execute[0];
-  if (!stmt) throw new Error('createIndex op has no execute step');
-  return stmt.sql;
-}
-
-describe('createIndex DDL emission', () => {
-  it('emits a plain CREATE INDEX when no extras are supplied', async () => {
-    const op = createIndex('public', 'user', 'user_email_idx', ['email'], stubLowerer());
-    expect(await executeSql(op)).toBe('CREATE INDEX "user_email_idx" ON "public"."user" ("email")');
+describe('createIndex lowers a PostgresCreateIndex node', () => {
+  it('carries schema, table, name, and column elements', async () => {
+    const { lowerer, received } = recordingLowerer();
+    await createIndex('public', 'user', 'user_email_idx', { columns: ['email'] }, lowerer);
+    const node = received.find((n) => n instanceof PostgresCreateIndex) as PostgresCreateIndex;
+    expect(node).toBeDefined();
+    expect(node.schema).toBe('public');
+    expect(node.table).toBe('user');
+    expect(node.name).toBe('user_email_idx');
+    expect(node.unique).toBe(false);
+    expect(node.elements).toEqual({ columns: ['email'] });
+    expect(node.type).toBeUndefined();
+    expect(node.options).toBeUndefined();
+    expect(node.where).toBeUndefined();
   });
 
-  it('emits USING <method> when type is supplied', async () => {
-    const op = createIndex('public', 'doc', 'doc_body_idx', ['body'], stubLowerer(), {
-      type: 'gin',
-    });
-    expect(await executeSql(op)).toBe(
-      'CREATE INDEX "doc_body_idx" ON "public"."doc" USING "gin" ("body")',
+  it('carries unique, type, options, where, and an expression element list verbatim', async () => {
+    const { lowerer, received } = recordingLowerer();
+    await createIndex(
+      'public',
+      'doc',
+      'doc_email_eq',
+      { expression: 'lower(email), id' },
+      lowerer,
+      {
+        unique: true,
+        type: 'btree',
+        options: { fillfactor: 70 },
+        where: 'deleted_at IS NULL',
+      },
     );
+    const node = received.find((n) => n instanceof PostgresCreateIndex) as PostgresCreateIndex;
+    expect(node.unique).toBe(true);
+    expect(node.type).toBe('btree');
+    expect(node.options).toEqual({ fillfactor: 70 });
+    expect(node.where).toBe('deleted_at IS NULL');
+    expect(node.elements).toEqual({ expression: 'lower(email), id' });
   });
 
-  it('emits WITH (...) when options are supplied', async () => {
-    const op = createIndex('public', 'doc', 'doc_body_idx', ['body'], stubLowerer(), {
-      type: 'gin',
-      options: { fastupdate: false },
-    });
-    expect(await executeSql(op)).toBe(
-      'CREATE INDEX "doc_body_idx" ON "public"."doc" USING "gin" ("body") WITH ("fastupdate" = false)',
+  it('lowers the unbound namespace as an absent schema (unqualified DDL)', async () => {
+    const { lowerer, received } = recordingLowerer();
+    await createIndex(
+      UNBOUND_NAMESPACE_ID,
+      'user',
+      'user_email_idx',
+      { columns: ['email'] },
+      lowerer,
     );
+    const node = received.find((n) => n instanceof PostgresCreateIndex) as PostgresCreateIndex;
+    expect(node.schema).toBeUndefined();
   });
 
-  it('omits WITH when options is an empty object', async () => {
-    const op = createIndex('public', 'doc', 'doc_body_idx', ['body'], stubLowerer(), {
-      type: 'gin',
-      options: {},
-    });
-    expect(await executeSql(op)).toBe(
-      'CREATE INDEX "doc_body_idx" ON "public"."doc" USING "gin" ("body")',
+  it('shapes the op: additive class, checks around the lowered execute', async () => {
+    const { lowerer } = recordingLowerer();
+    const op = await createIndex(
+      'public',
+      'user',
+      'user_email_idx',
+      { columns: ['email'] },
+      lowerer,
     );
+    expect(op.id).toBe('index.user.user_email_idx');
+    expect(op.operationClass).toBe('additive');
+    expect(op.precheck).toHaveLength(1);
+    expect(op.execute).toHaveLength(1);
+    expect(op.postcheck).toHaveLength(1);
   });
+});
 
-  it('renders number, boolean, and string option leaves correctly', async () => {
-    const op = createIndex('public', 'doc', 'doc_body_idx', ['body'], stubLowerer(), {
-      type: 'demo',
-      options: { fillfactor: 70, fastupdate: false, pdb_locale: 'en-US' },
-    });
-    expect(await executeSql(op)).toBe(
-      `CREATE INDEX "doc_body_idx" ON "public"."doc" USING "demo" ("body") WITH ("fillfactor" = 70, "fastupdate" = false, "pdb_locale" = 'en-US')`,
+describe('renameIndex lowers a PostgresAlterIndexRename node', () => {
+  it('carries schema, from, and to; the op is widening', async () => {
+    const { lowerer, received } = recordingLowerer();
+    const op = await renameIndex(
+      'public',
+      'user',
+      'old_email_idx',
+      'user_email_idx_46df9cad',
+      lowerer,
     );
+    const node = received.find(
+      (n) => n instanceof PostgresAlterIndexRename,
+    ) as PostgresAlterIndexRename;
+    expect(node).toBeDefined();
+    expect(node.schema).toBe('public');
+    expect(node.from).toBe('old_email_idx');
+    expect(node.to).toBe('user_email_idx_46df9cad');
+    expect(op.operationClass).toBe('widening');
+    expect(op.id).toBe('index.public.user.old_email_idx.rename');
+    expect(op.precheck).toHaveLength(2);
+    expect(op.postcheck).toHaveLength(1);
   });
+});
 
-  it('escapes single quotes in string option values', async () => {
-    const op = createIndex('public', 'doc', 'doc_body_idx', ['body'], stubLowerer(), {
-      type: 'demo',
-      options: { needle: "with'quote" },
-    });
-    expect(await executeSql(op)).toContain(`"needle" = 'with''quote'`);
-  });
-
-  it('rejects null option values as CONTRACT.INDEX_INVALID', async () => {
-    await expect(
-      createIndex('public', 'doc', 'doc_body_idx', ['body'], stubLowerer(), {
-        type: 'demo',
-        options: { weird: null },
-      }),
-    ).rejects.toMatchObject({
-      code: 'CONTRACT.INDEX_INVALID',
-      message: 'Index option "weird" must be a string, finite number, or boolean; got object',
-      meta: { key: 'weird', valueType: 'object' },
-    });
-  });
-
-  it('rejects non-finite numeric option values', async () => {
-    await expect(
-      createIndex('public', 'doc', 'doc_body_idx', ['body'], stubLowerer(), {
-        type: 'demo',
-        options: { weird: Number.NaN },
-      }),
-    ).rejects.toThrow(/Index option/);
+describe('dropIndex lowers a PostgresDropIndex node', () => {
+  it('carries schema and name; the op is destructive', async () => {
+    const { lowerer, received } = recordingLowerer();
+    const op = await dropIndex('public', 'user', 'user_email_idx', lowerer);
+    const node = received.find((n) => n instanceof PostgresDropIndex) as PostgresDropIndex;
+    expect(node).toBeDefined();
+    expect(node.schema).toBe('public');
+    expect(node.name).toBe('user_email_idx');
+    expect(op.operationClass).toBe('destructive');
+    expect(op.id).toBe('dropIndex.user.user_email_idx');
   });
 });

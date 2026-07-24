@@ -1,11 +1,9 @@
 import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import { issueOutcome } from '@prisma-next/framework-components/control';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
 import { buildPostgresPlanDiff } from '@prisma-next/target-postgres/diff-database-schema';
-import {
-  computeContentHash,
-  normalizePredicate,
-} from '@prisma-next/target-postgres/rls-canonicalize';
+import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
@@ -24,7 +22,7 @@ const TABLE_NAME = 'items';
 const USING = '(owner_id = current_user_id())';
 const PREFIX = 'read_own';
 const HASH = computeContentHash({
-  using: normalizePredicate(USING),
+  using: normalizeSqlBody(USING),
   roles: ['app_user'],
   operation: 'select',
   permissive: true,

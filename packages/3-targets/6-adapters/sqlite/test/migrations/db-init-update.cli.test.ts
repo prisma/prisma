@@ -474,7 +474,7 @@ describe('db init / db update aggregate pipeline (CLI) - sqlite', {
                   },
                   primaryKey: { columns: ['id'] },
                   uniques: [{ columns: ['email'] }],
-                  indexes: [{ columns: ['email'] }],
+                  indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false }],
                   foreignKeys: [],
                 },
               },

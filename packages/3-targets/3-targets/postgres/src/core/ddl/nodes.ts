@@ -73,6 +73,9 @@ export interface PostgresDdlVisitor<R> {
   createPolicy(node: PostgresCreatePolicy): R;
   dropPolicy(node: PostgresDropPolicy): R;
   alterPolicyRename(node: PostgresAlterPolicyRename): R;
+  createIndex(node: PostgresCreateIndex): R;
+  dropIndex(node: PostgresDropIndex): R;
+  alterIndexRename(node: PostgresAlterIndexRename): R;
   disableRowLevelSecurity(node: PostgresDisableRowLevelSecurity): R;
 }
 
@@ -284,6 +287,104 @@ export class PostgresAlterPolicyRename extends PostgresDdlNode {
   }
 }
 
+/**
+ * The element list between the parens of CREATE INDEX: either a column
+ * tuple (each identifier quoted by the renderer) or one opaque expression
+ * string covering the entire list, inserted verbatim — the same opaque-SQL
+ * stance as RLS policy predicates (ADR 234).
+ */
+export type DdlIndexElements =
+  | { readonly columns: readonly string[] }
+  | { readonly expression: string };
+
+export class PostgresCreateIndex extends PostgresDdlNode {
+  readonly kind = 'create-index' as const;
+  /** Absent ⇔ unqualified (the unbound namespace — `search_path` decides). */
+  readonly schema: string | undefined;
+  readonly table: string;
+  readonly name: string;
+  readonly unique: boolean;
+  readonly elements: DdlIndexElements;
+  readonly type: string | undefined;
+  readonly options: Record<string, unknown> | undefined;
+  /**
+   * Partial-index predicate (WHERE body, without the keyword). Inserted
+   * verbatim, never quoted or escaped.
+   */
+  readonly where: string | undefined;
+
+  constructor(options: {
+    readonly schema: string | undefined;
+    readonly table: string;
+    readonly name: string;
+    readonly unique: boolean;
+    readonly elements: DdlIndexElements;
+    readonly type: string | undefined;
+    readonly options: Record<string, unknown> | undefined;
+    readonly where: string | undefined;
+  }) {
+    super();
+    this.schema = options.schema;
+    this.table = options.table;
+    this.name = options.name;
+    this.unique = options.unique;
+    this.elements =
+      'columns' in options.elements
+        ? { columns: Object.freeze([...options.elements.columns]) }
+        : { expression: options.elements.expression };
+    this.type = options.type;
+    this.options = options.options;
+    this.where = options.where;
+    this.freeze();
+  }
+
+  override accept<R>(visitor: PostgresDdlVisitor<R>): R {
+    return visitor.createIndex(this);
+  }
+}
+
+export class PostgresDropIndex extends PostgresDdlNode {
+  readonly kind = 'drop-index' as const;
+  /** Absent ⇔ unqualified (the unbound namespace). */
+  readonly schema: string | undefined;
+  readonly name: string;
+
+  constructor(options: { readonly schema: string | undefined; readonly name: string }) {
+    super();
+    this.schema = options.schema;
+    this.name = options.name;
+    this.freeze();
+  }
+
+  override accept<R>(visitor: PostgresDdlVisitor<R>): R {
+    return visitor.dropIndex(this);
+  }
+}
+
+export class PostgresAlterIndexRename extends PostgresDdlNode {
+  readonly kind = 'alter-index-rename' as const;
+  /** Absent ⇔ unqualified (the unbound namespace). */
+  readonly schema: string | undefined;
+  readonly from: string;
+  readonly to: string;
+
+  constructor(options: {
+    readonly schema: string | undefined;
+    readonly from: string;
+    readonly to: string;
+  }) {
+    super();
+    this.schema = options.schema;
+    this.from = options.from;
+    this.to = options.to;
+    this.freeze();
+  }
+
+  override accept<R>(visitor: PostgresDdlVisitor<R>): R {
+    return visitor.alterIndexRename(this);
+  }
+}
+
 export class PostgresDisableRowLevelSecurity extends PostgresDdlNode {
   readonly kind = 'disable-row-level-security' as const;
   readonly schema: string;
@@ -310,4 +411,7 @@ export type AnyPostgresDdlNode =
   | PostgresCreatePolicy
   | PostgresDropPolicy
   | PostgresAlterPolicyRename
+  | PostgresCreateIndex
+  | PostgresDropIndex
+  | PostgresAlterIndexRename
   | PostgresDisableRowLevelSecurity;

@@ -210,7 +210,7 @@ describe('contractToSchemaIR → planner round-trip', () => {
           },
           primaryKey: { columns: ['id'] },
           uniques: [{ columns: ['email'] }],
-          indexes: [{ columns: ['name'] }],
+          indexes: [{ name: 'user_name_idx', columns: ['name'], unique: false }],
           foreignKeys: [],
         },
       }),
@@ -522,7 +522,7 @@ describe('planner — additive scenarios', () => {
           },
           primaryKey: { columns: ['id'] },
           uniques: [{ columns: ['slug'] }],
-          indexes: [{ columns: ['title'] }],
+          indexes: [{ name: 'post_title_idx', columns: ['title'], unique: false }],
         }),
       }),
     };

@@ -15,10 +15,12 @@ describe('flat tree diffability (SqlSchemaIR / SqlTableIR)', () => {
     uniques: [{ columns: ['email'] }],
     indexes: [
       {
+        name: 'users_email_idx',
+        prefix: undefined,
         columns: ['email'],
+        where: undefined,
         unique: false,
         partial: false,
-        name: undefined,
         type: undefined,
         options: undefined,
         annotations: undefined,
@@ -42,7 +44,7 @@ describe('flat tree diffability (SqlSchemaIR / SqlTableIR)', () => {
       'primary-key',
       'foreign-key:org_id->.orgs(id)',
       'unique:email',
-      'index:email',
+      'index:users_email_idx',
       'check:chk',
     ]);
   });

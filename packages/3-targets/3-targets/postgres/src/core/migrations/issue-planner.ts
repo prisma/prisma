@@ -30,7 +30,6 @@ import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import type { SqlStorage, StorageTypeInstance } from '@prisma-next/sql-contract/types';
 import type { DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
 import * as contractFree from '@prisma-next/sql-relational-core/contract-free';
-import { defaultIndexName } from '@prisma-next/sql-schema-ir/naming';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnDefaultIR,
@@ -200,6 +199,7 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
     case 'addUnique':
       return 'unique';
     case 'createIndex':
+    case 'renameIndex':
       return 'index';
     case 'addForeignKey':
       return 'foreignKey';
@@ -248,6 +248,7 @@ function conflictKindForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['k
     case 'dropConstraint':
       return 'foreignKeyConflict';
     case 'createIndex':
+    case 'renameIndex':
     case 'dropIndex':
       return 'indexIncompatible';
     default:
@@ -263,6 +264,7 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
     tableName?: string;
     columnName?: string;
     indexName?: string;
+    newIndexName?: string;
     constraintName?: string;
     typeName?: string;
   };
@@ -281,7 +283,10 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
     location.entityName = anyCall.typeName;
   }
   if (anyCall.columnName) location.column = anyCall.columnName;
+  // A rename call carries old/new index names; the new name is the index's
+  // contract-side identity, so it is the conflict location.
   if (anyCall.indexName) location.index = anyCall.indexName;
+  else if (anyCall.newIndexName) location.index = anyCall.newIndexName;
   if (anyCall.constraintName) location.constraint = anyCall.constraintName;
   return Object.keys(location).length > 0 ? (location as SqlPlannerConflictLocation) : undefined;
 }
@@ -476,11 +481,7 @@ function buildCreateTableCallsFromNode(
     ),
   ];
   for (const index of table.indexes) {
-    const indexName = index.name ?? defaultIndexName(table.name, index.columns);
-    const extras: { type?: string; options?: Record<string, unknown> } = {};
-    if (index.type !== undefined) extras.type = index.type;
-    if (index.options !== undefined) extras.options = index.options;
-    calls.push(new CreateIndexCall(schemaName, table.name, indexName, [...index.columns], extras));
+    calls.push(createIndexCallFromNode(index, schemaName, table.name));
   }
   for (const fk of table.foreignKeys) {
     calls.push(new AddForeignKeyCall(schemaName, table.name, fkSpecFromNode(fk, table.name)));
@@ -808,6 +809,37 @@ function mapUniqueNodeIssue(
   return notOk(nodeConflict('indexIncompatible', issue.path.join('/')));
 }
 
+/**
+ * The CreateIndexCall for a name-identified index node: the node's own name
+ * verbatim, its element list (column tuple or opaque expression), and the
+ * unique/type/options/where attributes carried through.
+ */
+export function createIndexCallFromNode(
+  index: SqlIndexIR,
+  schemaName: string,
+  tableName: string,
+): CreateIndexCall {
+  const extras: {
+    type?: string;
+    options?: Record<string, unknown>;
+    where?: string;
+    unique?: boolean;
+  } = {};
+  if (index.type !== undefined) extras.type = index.type;
+  if (index.options !== undefined) extras.options = index.options;
+  if (index.where !== undefined) extras.where = index.where;
+  if (index.unique) extras.unique = true;
+  return new CreateIndexCall(
+    schemaName,
+    tableName,
+    index.name,
+    index.columns !== undefined
+      ? { columns: [...index.columns] }
+      : { expression: index.expression ?? '' },
+    extras,
+  );
+}
+
 function mapIndexNodeIssue(
   issue: SchemaDiffIssue,
   schemaName: string,
@@ -818,19 +850,14 @@ function mapIndexNodeIssue(
       SqlIndexIR,
       'a not-found index issue always carries the expected index node'
     >(issue.expected);
-    const indexName = index.name ?? defaultIndexName(tableName, index.columns);
-    const extras: { type?: string; options?: Record<string, unknown> } = {};
-    if (index.type !== undefined) extras.type = index.type;
-    if (index.options !== undefined) extras.options = index.options;
-    return ok([new CreateIndexCall(schemaName, tableName, indexName, [...index.columns], extras)]);
+    return ok([createIndexCallFromNode(index, schemaName, tableName)]);
   }
   if (issueOutcome(issue) === 'not-expected') {
     const index = blindCast<
       SqlIndexIR,
       'a not-expected index issue always carries the actual index node'
     >(issue.actual);
-    const indexName = index.name ?? defaultIndexName(tableName, index.columns);
-    return ok([new DropIndexCall(schemaName, tableName, indexName)]);
+    return ok([new DropIndexCall(schemaName, tableName, index.name)]);
   }
   return notOk(nodeConflict('indexIncompatible', issue.path.join('/')));
 }

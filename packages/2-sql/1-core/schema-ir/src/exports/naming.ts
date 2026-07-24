@@ -1,3 +1,12 @@
-export function defaultIndexName(tableName: string, columns: readonly string[]): string {
-  return `${tableName}_${columns.join('_')}_idx`;
-}
+export {
+  assertWireNamePrefixLength,
+  computeIndexContentHash,
+  defaultIndexName,
+  formatWireName,
+  type IndexContentHashParts,
+  normalizeIndexOptionValue,
+  normalizeSqlBody,
+  parseWireName,
+  WIRE_NAME_PREFIX_MAX_LENGTH,
+  type WireName,
+} from '../naming';

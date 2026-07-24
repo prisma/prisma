@@ -531,7 +531,7 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
 
     const seenIndexDefinitions = new Set<string>();
     for (const index of table.indexes) {
-      const duplicateColumn = findDuplicateValue(index.columns);
+      const duplicateColumn = findDuplicateValue(index.columns ?? []);
       if (duplicateColumn !== undefined) {
         errors.push(
           `Namespace "${namespaceId}" table "${tableName}": index contains duplicate column "${duplicateColumn}"`,
@@ -539,13 +539,16 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
       }
 
       const signature = JSON.stringify({
-        columns: index.columns,
+        columns: index.columns ?? null,
+        expression: index.expression ?? null,
+        where: index.where ?? null,
+        unique: index.unique,
         type: index.type ?? null,
         options: sortOptions(index.options),
       });
       if (seenIndexDefinitions.has(signature)) {
         errors.push(
-          `Namespace "${namespaceId}" table "${tableName}": duplicate index definition on columns [${index.columns.join(', ')}]`,
+          `Namespace "${namespaceId}" table "${tableName}": duplicate index definition on columns [${(index.columns ?? []).join(', ')}]`,
         );
         continue;
       }
@@ -707,7 +710,7 @@ export function validateSqlStorageConsistency(contract: Contract<SqlStorage>): v
     }
 
     for (const index of table.indexes) {
-      for (const colName of index.columns) {
+      for (const colName of index.columns ?? []) {
         if (!columnNames.has(colName)) {
           throw new ContractValidationError(
             `Namespace "${namespaceId}" table "${tableName}" index references non-existent column "${colName}"`,

@@ -26,6 +26,7 @@ export {
   DropTableCall,
   EnableRowLevelSecurityCall,
   RawSqlCall,
+  RenameIndexCall,
   RenamePostgresRlsPolicyCall,
   SetDefaultCall,
   SetNotNullCall,

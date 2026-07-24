@@ -216,9 +216,11 @@ describe('contract builder normalization', () => {
     const indexes = unboundTables(contract.storage)['items']!.indexes;
     expect(indexes).toHaveLength(1);
     expect(indexes[0]).toEqual({
+      name: 'search_idx_da5afa32',
+      prefix: 'search_idx',
       columns: ['description'],
+      unique: false,
       type: 'bm25',
-      name: 'search_idx',
       options: { key_field: 'id' },
     });
   });

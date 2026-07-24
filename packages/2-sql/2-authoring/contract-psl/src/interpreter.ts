@@ -998,7 +998,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       indexNodes.push({
         columns: columnNames,
-        ...ifDefined('name', parsed.map),
+        ...ifDefined('map', parsed.map),
         ...ifDefined('type', parsed.type),
         ...ifDefined('options', parsed.options),
       });

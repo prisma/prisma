@@ -134,7 +134,9 @@
               "indexes": [
                 {
                   "columns": ["userId"],
-                  "name": "post_userId_idx"
+                  "name": "post_userId_idx_a489d58a",
+                  "prefix": "post_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -162,7 +164,7 @@
         "id": "public"
       }
     },
-    "storageHash": "56438e019d4d80afbe4cb3811a880d064225c5e045014ed96e4da1f191e0be30"
+    "storageHash": "144d67e29abb2d894fd71d0b2c212075f38ddf1f6cdbf093f553742e9a8ea6f6"
   },
   "capabilities": {
     "postgres": {

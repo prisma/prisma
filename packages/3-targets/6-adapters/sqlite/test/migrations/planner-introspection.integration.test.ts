@@ -116,7 +116,7 @@ describe('SQLite planner + introspection round-trip', () => {
             }),
           },
           primaryKey: { columns: ['id'] },
-          indexes: [{ columns: ['email'], name: 'idx_users_email' }],
+          indexes: [{ columns: ['email'], name: 'idx_users_email', unique: false }],
         }),
       });
 

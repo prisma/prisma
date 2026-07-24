@@ -226,7 +226,10 @@
               ],
               "indexes": [
                 {
-                  "columns": ["userId"]
+                  "columns": ["userId"],
+                  "name": "post_userId_idx_a489d58a",
+                  "prefix": "post_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -324,7 +327,7 @@
         "id": "public"
       }
     },
-    "storageHash": "545ad29339497413b3b7158d1b5e5c7e17e42f9d5d6059202d00f179551b97a0",
+    "storageHash": "cf5145e9a1de641f00c0dc2eed38b3d5317e9cc34cdb250552494b1ecec2cda8",
     "types": {
       "Email": {
         "codecId": "pg/text@1",

@@ -125,7 +125,12 @@ describe('contract definition constraint support', () => {
     });
 
     expect(unboundTables(contract.storage)['user']!.indexes).toHaveLength(1);
-    expect(unboundTables(contract.storage)['user']!.indexes[0]).toEqual({ columns: ['email'] });
+    expect(unboundTables(contract.storage)['user']!.indexes[0]).toEqual({
+      name: 'user_email_idx_46df9cad',
+      prefix: 'user_email_idx',
+      columns: ['email'],
+      unique: false,
+    });
   });
 
   it('emits indexes with names in the contract', () => {
@@ -145,8 +150,10 @@ describe('contract definition constraint support', () => {
 
     expect(unboundTables(contract.storage)['user']!.indexes).toHaveLength(1);
     expect(unboundTables(contract.storage)['user']!.indexes[0]).toEqual({
+      name: 'user_email_idx_46df9cad',
+      prefix: 'user_email_idx',
       columns: ['email'],
-      name: 'user_email_idx',
+      unique: false,
     });
   });
 
@@ -219,7 +226,7 @@ describe('contract definition constraint support', () => {
         models: {
           User: model('User', {
             fields: {
-              id: field.column(int4Column).id({ name: 'user_pkey' }),
+              id: field.column(int4Column).id({ name: 'user_pkey_e8a52337' }),
             },
           }).sql(({ cols, constraints }) => ({
             table: 'user',
@@ -234,7 +241,7 @@ describe('contract definition constraint support', () => {
         models: {
           User: model('User', {
             fields: {
-              id: field.column(int4Column).id({ name: 'user_pkey' }),
+              id: field.column(int4Column).id({ name: 'user_pkey_e8a52337' }),
             },
           }).sql(({ cols, constraints }) => ({
             table: 'user',
@@ -341,7 +348,14 @@ describe('contract definition constraint support', () => {
           target: { namespaceId: 'public', tableName: 'user', columns: ['id'] },
         },
       ]);
-      expect(post.indexes).toEqual([{ columns: ['userId'], name: 'post_userId_idx' }]);
+      expect(post.indexes).toEqual([
+        {
+          name: 'post_userId_idx_a489d58a',
+          prefix: 'post_userId_idx',
+          columns: ['userId'],
+          unique: false,
+        },
+      ]);
     });
 
     it('index=false emits the FK constraint entry and no backing index', () => {
@@ -370,7 +384,14 @@ describe('contract definition constraint support', () => {
 
       const post = unboundTables(contract.storage)['post']!;
       expect(post.foreignKeys).toEqual([]);
-      expect(post.indexes).toEqual([{ columns: ['userId'], name: 'post_userId_idx' }]);
+      expect(post.indexes).toEqual([
+        {
+          name: 'post_userId_idx_a489d58a',
+          prefix: 'post_userId_idx',
+          columns: ['userId'],
+          unique: false,
+        },
+      ]);
     });
 
     it('constraint=false and index=false emits neither a foreignKeys entry nor an index', () => {
@@ -421,7 +442,14 @@ describe('contract definition constraint support', () => {
 
       const post = unboundTables(contract.storage)['post']!;
       expect(post.foreignKeys).toEqual([]);
-      expect(post.indexes).toEqual([{ columns: ['userId'], name: 'post_userId_idx' }]);
+      expect(post.indexes).toEqual([
+        {
+          name: 'post_userId_idx_a489d58a',
+          prefix: 'post_userId_idx',
+          columns: ['userId'],
+          unique: false,
+        },
+      ]);
     });
 
     it('per-FK override takes precedence over foreignKeyDefaults', () => {
@@ -461,7 +489,14 @@ describe('contract definition constraint support', () => {
       });
 
       const post = unboundTables(contract.storage)['post']!;
-      expect(post.indexes).toEqual([{ columns: ['userId'] }]);
+      expect(post.indexes).toEqual([
+        {
+          name: 'post_userId_idx_a489d58a',
+          prefix: 'post_userId_idx',
+          columns: ['userId'],
+          unique: false,
+        },
+      ]);
       expect(post.foreignKeys).toEqual([
         {
           source: { namespaceId: 'public', tableName: 'post', columns: ['userId'] },
@@ -527,7 +562,14 @@ describe('contract definition constraint support', () => {
           target: { namespaceId: 'public', tableName: 'target_b', columns: ['id'] },
         },
       ]);
-      expect(link.indexes).toEqual([{ columns: ['sourceId'], name: 'link_sourceId_idx' }]);
+      expect(link.indexes).toEqual([
+        {
+          name: 'link_sourceId_idx_d92a2571',
+          prefix: 'link_sourceId_idx',
+          columns: ['sourceId'],
+          unique: false,
+        },
+      ]);
     });
   });
 

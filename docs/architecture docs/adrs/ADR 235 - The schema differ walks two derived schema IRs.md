@@ -124,7 +124,7 @@ One guarantee falls out of this and the differ relies on it: a node is only ever
 The diff feeds the **planner** — `plan(start, end)`: two schema IRs in, the ordered list of migration operations out. The planner's needs are the reason the diff keeps its structure instead of flattening:
 
 - It sequences operations by how nodes depend on one another: a table before the policies attached to it.
-- It folds a paired drop-and-create of one logical object into a single rename — for a content-addressed node, a not-found/not-expected pair whose wire names share a hash suffix under different prefixes becomes one `ALTER POLICY … RENAME TO` ([ADR 234](ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md)).
+- It folds a paired drop-and-create of one logical object into a single rename — for a content-addressed node, a not-found/not-expected pair whose wire names share a hash suffix under different prefixes becomes one `ALTER POLICY … RENAME TO` ([ADR 234](ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md)). Name-identified indexes take the same pass into `ALTER INDEX … RENAME TO`, with a second content-pairing phase that converges an exact-named live index onto a managed contract name.
 - It lets a change to a parent stand in for changes to its children.
 
 Each of those is a relationship between nodes. The walk keeps those relationships in its output — every issue carries its path, and the nodes it hands back are the IR nodes with their references intact — so the planner reads each one straight from the diff.
@@ -135,7 +135,7 @@ Each of those is a relationship between nodes. The walk keeps those relationship
 - **A node** implements `id`, `nodeKind`, `isEqualTo()`, and `children()` in the package that defines it. A target-only node — an RLS policy, a role — implements them in the target package, the one place its type is named.
 - **A derivation** builds one side's IR, populating every node that side carries in canonical form. A target's two derivations live with the target, written directly — not registered through a shared surface.
 
-For a **content-addressed** node — an RLS policy — `id` settles equality on its own: the wire name encodes the body, so two policies that pair by id are equal by construction. `isEqualTo` carries the nodes whose id does not capture their whole content.
+For a **content-addressed** node — an RLS policy — `id` settles equality on its own: the wire name encodes the body, so two policies that pair by id are equal by construction. `isEqualTo` carries the nodes whose id does not capture their whole content. Indexes are name-identified too (`SqlIndexIR`'s id is its full physical name), but their `isEqualTo` still compares structural attributes — and, for exact-named indexes, the opaque `expression`/`where` bodies byte-for-byte.
 
 ## Consequences
 

@@ -984,8 +984,10 @@ describe('PostgresControlAdapter', () => {
 
       expect(tablesOf(result)['user']?.indexes).toEqual([
         new SqlIndexIR({
-          columns: ['name'],
           name: 'user_name_idx',
+          prefix: undefined,
+          columns: ['name'],
+          where: undefined,
           unique: false,
           partial: false,
           type: undefined,
@@ -1058,8 +1060,10 @@ describe('PostgresControlAdapter', () => {
 
       expect(tablesOf(result)['user']?.indexes).toEqual([
         new SqlIndexIR({
-          columns: ['email', 'tenant_id'],
           name: 'user_email_tenant_idx',
+          prefix: undefined,
+          columns: ['email', 'tenant_id'],
+          where: undefined,
           unique: false,
           partial: false,
           type: undefined,
@@ -1070,7 +1074,7 @@ describe('PostgresControlAdapter', () => {
       ]);
     });
 
-    it('excludes an index entirely when any key has a null attname (expression key)', async () => {
+    it('captures an index with a null-attname key as an expression node (whole element list)', async () => {
       const adapter = new PostgresControlAdapter(createPostgresBuiltinCodecLookup());
       const mockDriver: SqlControlDriverInstance<'postgres'> = {
         familyId: 'sql',
@@ -1120,14 +1124,18 @@ describe('PostgresControlAdapter', () => {
                   tablename: 'user',
                   indexname: 'user_idx',
                   indisunique: false,
+                  where_predicate: '(id > 0)',
                   attname: null,
+                  element_def: 'lower(email)',
                   index_position: 1,
                 },
                 {
                   tablename: 'user',
                   indexname: 'user_idx',
                   indisunique: false,
+                  where_predicate: '(id > 0)',
                   attname: 'id',
+                  element_def: 'id',
                   index_position: 2,
                 },
               ] as unknown as Row[],
@@ -1148,17 +1156,28 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      // A key with `attname: null` means an expression key Postgres reports
-      // with an unresolvable attribute number. Keeping the index with just
-      // its real-column keys would silently misrepresent a multi-column
-      // expression index as a shorter plain-column one, which can collide
-      // with an unrelated real index on that shorter column list — the
-      // whole index is excluded instead (see PostgresControlAdapter's
-      // `introspectSchema` index-processing comment).
-      expect(tablesOf(result)['user']?.indexes).toHaveLength(0);
+      // A key with `attname: null` is an expression element (attnum 0). The
+      // whole index becomes an expression node: the entire element list —
+      // real columns included — is carried as one opaque string of the
+      // per-position `pg_get_indexdef` reprints, and `columns` is absent.
+      // The partial-index predicate rides along as `where`.
+      expect(tablesOf(result)['user']?.indexes).toEqual([
+        new SqlIndexIR({
+          name: 'user_idx',
+          prefix: undefined,
+          expression: 'lower(email), id',
+          where: '(id > 0)',
+          unique: false,
+          partial: true,
+          type: undefined,
+          options: undefined,
+          annotations: undefined,
+          dependsOn: undefined,
+        }),
+      ]);
     });
 
-    it('keeps only the unique index when a unique and a plain index share one column tuple', async () => {
+    it('preserves both siblings when a unique and a plain index share one column tuple', async () => {
       const adapter = new PostgresControlAdapter(createPostgresBuiltinCodecLookup());
       const mockDriver: SqlControlDriverInstance<'postgres'> = {
         familyId: 'sql',
@@ -1247,19 +1266,24 @@ describe('PostgresControlAdapter', () => {
       const result = await adapter.introspect(mockDriver);
 
       // Postgres permits a unique index and a plain index coexisting on the
-      // identical column list; the schema differ's diff-tree node id for an
-      // index is the column tuple alone, so keeping both would produce two
-      // same-tree siblings with the same id ("duplicate id among siblings").
-      // The unique one wins (it is a strict superset of what the plain one
-      // would add).
+      // identical column list. Index nodes are name-identified (catalog
+      // names are unique per schema), so both enter the tree as distinct
+      // siblings — no dedup.
       const indexes = tablesOf(result)['user']?.indexes;
-      expect(indexes).toHaveLength(1);
-      expect(indexes?.[0]).toEqual(
-        expect.objectContaining({
-          name: 'user_email_unique_idx',
-          unique: true,
-          columns: ['email'],
-        }),
+      expect(indexes).toHaveLength(2);
+      expect(indexes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: 'user_email_unique_idx',
+            unique: true,
+            columns: ['email'],
+          }),
+          expect.objectContaining({
+            name: 'user_email_plain_idx',
+            unique: false,
+            columns: ['email'],
+          }),
+        ]),
       );
     });
 

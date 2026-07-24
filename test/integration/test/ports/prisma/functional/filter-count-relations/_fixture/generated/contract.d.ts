@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'0edbe02d75b07227bd9f421fccb4974e38c52fa07f004f672c929758a855397c'>;
+  StorageHashBase<'ac2895118ce7e58cf5a63effdddc73111608f075b7624922b48dfa9c24ca2122'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -199,7 +199,12 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['authorId']; readonly name: 'post_authorId_idx' },
+                {
+                  readonly name: 'post_authorId_idx_e47547ed';
+                  readonly prefix: 'post_authorId_idx';
+                  readonly columns: readonly ['authorId'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {
@@ -264,8 +269,18 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['userId', 'groupId'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['userId']; readonly name: 'userGroup_userId_idx' },
-                { readonly columns: readonly ['groupId']; readonly name: 'userGroup_groupId_idx' },
+                {
+                  readonly name: 'userGroup_userId_idx_a489d58a';
+                  readonly prefix: 'userGroup_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'userGroup_groupId_idx_e2fb5578';
+                  readonly prefix: 'userGroup_groupId_idx';
+                  readonly columns: readonly ['groupId'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {

@@ -11,6 +11,10 @@ const preserveEmptyPatterns = [
   ['storage', 'namespaces', '*', 'entries', 'table'],
   ['storage', 'namespaces', '*', 'entries', 'table', '*'],
   ['storage', 'namespaces', '*', 'entries', 'table', '*', ['uniques', 'indexes', 'foreignKeys']],
+  // An index's `unique` flag is a required boolean: `unique: false` must
+  // survive the default-omission walk or the emitted contract fails its own
+  // IndexSchema validation on the next read.
+  ['storage', 'namespaces', '*', 'entries', 'table', '*', 'indexes', 'unique'],
   // A column default's literal payload is data, not shape — `{ kind:
   // 'literal', value: false }` (or `value: []`) must survive the
   // default-omission walk or the emitted contract fails its own

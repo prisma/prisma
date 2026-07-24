@@ -64,6 +64,8 @@ describe('PostgresMigrationPlanner - unique constraints vs indexes (structural n
               foreignKeys: [],
               indexes: (table.indexes ?? []).map((i) => ({
                 ...i,
+                prefix: undefined,
+                where: undefined,
                 partial: false,
                 type: undefined,
                 options: undefined,
@@ -130,7 +132,7 @@ describe('PostgresMigrationPlanner - unique constraints vs indexes (structural n
         },
         primaryKey: { columns: ['id'] },
         uniques: [],
-        indexes: [{ columns: ['email'] }],
+        indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false }],
         foreignKeys: [],
       },
     });
@@ -154,7 +156,7 @@ describe('PostgresMigrationPlanner - unique constraints vs indexes (structural n
         },
         primaryKey: { columns: ['id'] },
         uniques: [],
-        indexes: [{ columns: ['email'] }],
+        indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false }],
         foreignKeys: [],
       },
     });
@@ -170,7 +172,7 @@ describe('PostgresMigrationPlanner - unique constraints vs indexes (structural n
     ]);
   });
 
-  it('emits no operations when only constraint/index names differ', async () => {
+  it('a unique-constraint name difference emits nothing; an index name difference plans the contract index (additive half — rename pairing is a widening pass)', async () => {
     const contract = createTestContract({
       user: {
         columns: {
@@ -179,7 +181,7 @@ describe('PostgresMigrationPlanner - unique constraints vs indexes (structural n
         },
         primaryKey: { columns: ['id'], name: 'user_pk' },
         uniques: [{ columns: ['email'], name: 'user_email_unique' }],
-        indexes: [{ columns: ['email'], name: 'user_email_index' }],
+        indexes: [{ columns: ['email'], name: 'user_email_index', unique: false }],
         foreignKeys: [],
       },
     });
@@ -192,7 +194,14 @@ describe('PostgresMigrationPlanner - unique constraints vs indexes (structural n
 
     expect(result.kind).toBe('success');
     if (result.kind !== 'success') throw new Error('expected planner success');
-    expect(await Promise.all(result.plan.operations)).toHaveLength(0);
+    // Uniques stay tuple-identified: the constraint name difference pairs and
+    // emits nothing. Indexes are name-identified: the differently-named
+    // contract index is missing, so its CREATE is planned (the live index's
+    // DROP is not additive; a widening rename pass converges the pair).
+    const ops = await Promise.all(result.plan.operations);
+    expect(ops.map((op) => ({ id: op.id, operationClass: op.operationClass }))).toEqual([
+      { id: 'index.user.user_email_index', operationClass: 'additive' },
+    ]);
   });
 });
 

@@ -374,36 +374,37 @@
     ]
   },
   {
-    "id": "index.post.post_userId_idx",
-    "label": "Create index \"post_userId_idx\" on \"post\"",
+    "id": "index.post.post_userId_idx_a489d58a",
+    "label": "Create index \"post_userId_idx_a489d58a\" on \"post\"",
     "operationClass": "additive",
     "target": {
       "id": "postgres",
       "details": {
         "schema": "public",
         "objectType": "index",
-        "name": "post_userId_idx",
+        "name": "post_userId_idx_a489d58a",
         "table": "post"
       }
     },
     "precheck": [
       {
-        "description": "ensure index \"post_userId_idx\" does not exist",
+        "description": "ensure index \"post_userId_idx_a489d58a\" does not exist",
         "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
-        "params": ["\"public\".\"post_userId_idx\""]
+        "params": ["\"public\".\"post_userId_idx_a489d58a\""]
       }
     ],
     "execute": [
       {
-        "description": "create index \"post_userId_idx\"",
-        "sql": "CREATE INDEX \"post_userId_idx\" ON \"public\".\"post\" (\"userId\")"
+        "description": "create index \"post_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"post_userId_idx_a489d58a\" ON \"public\".\"post\" (\"userId\")",
+        "params": []
       }
     ],
     "postcheck": [
       {
-        "description": "verify index \"post_userId_idx\" exists",
+        "description": "verify index \"post_userId_idx_a489d58a\" exists",
         "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
-        "params": ["\"public\".\"post_userId_idx\""]
+        "params": ["\"public\".\"post_userId_idx_a489d58a\""]
       }
     ]
   },
@@ -442,36 +443,37 @@
     ]
   },
   {
-    "id": "index.task.task_userId_idx",
-    "label": "Create index \"task_userId_idx\" on \"task\"",
+    "id": "index.task.task_userId_idx_a489d58a",
+    "label": "Create index \"task_userId_idx_a489d58a\" on \"task\"",
     "operationClass": "additive",
     "target": {
       "id": "postgres",
       "details": {
         "schema": "public",
         "objectType": "index",
-        "name": "task_userId_idx",
+        "name": "task_userId_idx_a489d58a",
         "table": "task"
       }
     },
     "precheck": [
       {
-        "description": "ensure index \"task_userId_idx\" does not exist",
+        "description": "ensure index \"task_userId_idx_a489d58a\" does not exist",
         "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
-        "params": ["\"public\".\"task_userId_idx\""]
+        "params": ["\"public\".\"task_userId_idx_a489d58a\""]
       }
     ],
     "execute": [
       {
-        "description": "create index \"task_userId_idx\"",
-        "sql": "CREATE INDEX \"task_userId_idx\" ON \"public\".\"task\" (\"userId\")"
+        "description": "create index \"task_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"task_userId_idx_a489d58a\" ON \"public\".\"task\" (\"userId\")",
+        "params": []
       }
     ],
     "postcheck": [
       {
-        "description": "verify index \"task_userId_idx\" exists",
+        "description": "verify index \"task_userId_idx_a489d58a\" exists",
         "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
-        "params": ["\"public\".\"task_userId_idx\""]
+        "params": ["\"public\".\"task_userId_idx_a489d58a\""]
       }
     ]
   },
@@ -544,70 +546,72 @@
     ]
   },
   {
-    "id": "index.post_tag.post_tag_postId_idx",
-    "label": "Create index \"post_tag_postId_idx\" on \"post_tag\"",
+    "id": "index.post_tag.post_tag_postId_idx_a7a72715",
+    "label": "Create index \"post_tag_postId_idx_a7a72715\" on \"post_tag\"",
     "operationClass": "additive",
     "target": {
       "id": "postgres",
       "details": {
         "schema": "public",
         "objectType": "index",
-        "name": "post_tag_postId_idx",
+        "name": "post_tag_postId_idx_a7a72715",
         "table": "post_tag"
       }
     },
     "precheck": [
       {
-        "description": "ensure index \"post_tag_postId_idx\" does not exist",
+        "description": "ensure index \"post_tag_postId_idx_a7a72715\" does not exist",
         "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
-        "params": ["\"public\".\"post_tag_postId_idx\""]
+        "params": ["\"public\".\"post_tag_postId_idx_a7a72715\""]
       }
     ],
     "execute": [
       {
-        "description": "create index \"post_tag_postId_idx\"",
-        "sql": "CREATE INDEX \"post_tag_postId_idx\" ON \"public\".\"post_tag\" (\"postId\")"
+        "description": "create index \"post_tag_postId_idx_a7a72715\"",
+        "sql": "CREATE INDEX \"post_tag_postId_idx_a7a72715\" ON \"public\".\"post_tag\" (\"postId\")",
+        "params": []
       }
     ],
     "postcheck": [
       {
-        "description": "verify index \"post_tag_postId_idx\" exists",
+        "description": "verify index \"post_tag_postId_idx_a7a72715\" exists",
         "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
-        "params": ["\"public\".\"post_tag_postId_idx\""]
+        "params": ["\"public\".\"post_tag_postId_idx_a7a72715\""]
       }
     ]
   },
   {
-    "id": "index.post_tag.post_tag_tagId_idx",
-    "label": "Create index \"post_tag_tagId_idx\" on \"post_tag\"",
+    "id": "index.post_tag.post_tag_tagId_idx_86854244",
+    "label": "Create index \"post_tag_tagId_idx_86854244\" on \"post_tag\"",
     "operationClass": "additive",
     "target": {
       "id": "postgres",
       "details": {
         "schema": "public",
         "objectType": "index",
-        "name": "post_tag_tagId_idx",
+        "name": "post_tag_tagId_idx_86854244",
         "table": "post_tag"
       }
     },
     "precheck": [
       {
-        "description": "ensure index \"post_tag_tagId_idx\" does not exist",
+        "description": "ensure index \"post_tag_tagId_idx_86854244\" does not exist",
         "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
-        "params": ["\"public\".\"post_tag_tagId_idx\""]
+        "params": ["\"public\".\"post_tag_tagId_idx_86854244\""]
       }
     ],
     "execute": [
       {
-        "description": "create index \"post_tag_tagId_idx\"",
-        "sql": "CREATE INDEX \"post_tag_tagId_idx\" ON \"public\".\"post_tag\" (\"tagId\")"
+        "description": "create index \"post_tag_tagId_idx_86854244\"",
+        "sql": "CREATE INDEX \"post_tag_tagId_idx_86854244\" ON \"public\".\"post_tag\" (\"tagId\")",
+        "params": []
       }
     ],
     "postcheck": [
       {
-        "description": "verify index \"post_tag_tagId_idx\" exists",
+        "description": "verify index \"post_tag_tagId_idx_86854244\" exists",
         "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
-        "params": ["\"public\".\"post_tag_tagId_idx\""]
+        "params": ["\"public\".\"post_tag_tagId_idx_86854244\""]
       }
     ]
   },

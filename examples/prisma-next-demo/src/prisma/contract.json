@@ -810,7 +810,9 @@
                   "columns": [
                     "userId"
                   ],
-                  "name": "post_userId_idx"
+                  "name": "post_userId_idx_a489d58a",
+                  "prefix": "post_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -874,13 +876,17 @@
                   "columns": [
                     "postId"
                   ],
-                  "name": "post_tag_postId_idx"
+                  "name": "post_tag_postId_idx_a7a72715",
+                  "prefix": "post_tag_postId_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "tagId"
                   ],
-                  "name": "post_tag_tagId_idx"
+                  "name": "post_tag_tagId_idx_86854244",
+                  "prefix": "post_tag_tagId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -991,7 +997,9 @@
                   "columns": [
                     "userId"
                   ],
-                  "name": "task_userId_idx"
+                  "name": "task_userId_idx_a489d58a",
+                  "prefix": "task_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -1089,7 +1097,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "6174be7a847a05e291afa27baf77c68cde5bcd2280326a28479b98bc778ec11d",
+    "storageHash": "6b917abed96371efb256becf8314e8bc72e91e7b4fc7dded7744b0e466580be4",
     "types": {
       "Embedding1536": {
         "codecId": "pg/vector@1",

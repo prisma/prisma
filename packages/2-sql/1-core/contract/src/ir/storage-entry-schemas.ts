@@ -75,8 +75,12 @@ const UniqueConstraintSchema = type.declare<UniqueConstraintInput>().type({
 });
 
 export const IndexSchema = type({
-  columns: type.string.array().readonly(),
-  'name?': 'string',
+  name: 'string',
+  'prefix?': 'string',
+  'columns?': type.string.array().readonly(),
+  'expression?': 'string',
+  'where?': 'string',
+  unique: 'boolean',
   'type?': 'string',
   'options?': 'Record<string, unknown>',
 });

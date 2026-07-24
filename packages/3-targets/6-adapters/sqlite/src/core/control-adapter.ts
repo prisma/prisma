@@ -613,8 +613,10 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
           });
         } else if (idx.origin === 'c') {
           indexes.push({
-            columns: Object.freeze([...idxColumns]) as readonly string[],
             name: idx.name,
+            prefix: undefined,
+            columns: Object.freeze([...idxColumns]) as readonly string[],
+            where: undefined,
             unique: idx.unique === 1,
             partial: idx.partial === 1,
             type: undefined,

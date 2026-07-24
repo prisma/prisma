@@ -79,6 +79,8 @@ Future constructs like check and exclusion constraints may extend the scheme.
   - `user_email_gin_idx` and `user_email_btree_idx` when two methods exist
 - The method tag participates in the shorten rule's hash input to keep determinism
 
+> **Since name-identified indexes** (the functional-indexes work): a secondary index's deterministic name is the managed wire-name *prefix*, not the final physical name — the lowering appends a content-hash suffix per [ADR 234](ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md) (e.g. `user_email_idx_46df9cad`). Constraint names (primary keys, uniques, foreign keys) keep using the deterministic name unhashed.
+
 ### User-provided names
 
 - If a user provides an explicit name in the source, preserve it verbatim after validation

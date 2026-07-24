@@ -1,7 +1,5 @@
-import {
-  computeContentHash,
-  normalizePredicate,
-} from '@prisma-next/target-postgres/rls-canonicalize';
+import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
+import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
   PostgresDatabaseSchemaNode,
   PostgresPolicySchemaNode,
@@ -47,7 +45,7 @@ describe.sequential('RLS introspection', () => {
     await driver!.query('ALTER TABLE posts ENABLE ROW LEVEL SECURITY');
 
     const expectedHash = computeContentHash({
-      using: normalizePredicate('user_id = 1'),
+      using: normalizeSqlBody('user_id = 1'),
       roles: ['public'],
       operation: 'select',
       permissive: true,

@@ -49,6 +49,8 @@ The identity switch, done entirely beneath the authoring surface (existing `@@in
 ### 4 — `infer-round-trip`
 
 - D8 in full: index managed re-detection (recompute-and-match), `map:` fallback, policy block emission (head sanitization + dedup, `@@map` always, verbatim bodies), `@@rls` emission.
+- Slice-1 carry-over (dispatch-3 review): the authoring-time duplicate-content index guard (`validateStorageSemantics`) rejects byte-identical twins under different names. Legal in Postgres, so a database carrying them must still be signable — key the guard by name for exact-mode indexes (or equivalent) when infer starts emitting them.
+- Slice-1 carry-over: infer currently skips expression-carrying AND `where`-carrying index nodes (self-consistency — no authoring surface could hold the bodies); both skip sites are comment-marked for this slice. The Supabase reference contract re-adopts its partial indexes here.
 - DoD-2 sign-the-database e2e, DoD-3 transition e2e, DoD-4 upgrade e2e; scenario A coverage completes the A–J matrix (DoD-5 sweep test list checked off here).
 - Release-notes draft for the breaking change + upgrade instructions (per the `record-upgrade-instructions` skill).
 

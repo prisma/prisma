@@ -330,6 +330,10 @@ Aggregate contract validation failed: structural validation of the contract JSON
 
 The generic control-plane failure code (`errorRuntime`) used when a CLI operation fails without a more specific code: database connection failures in control drivers, failure to resolve the contract source, contract-source read/write failures during `format`, a resolved hash missing from the migration graph, and similar. Message and fix text vary per site. Meta: varies per site.
 
+### CONTRACT.WIRE_NAME_PREFIX_TOO_LONG
+
+An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds the 54-character maximum — Postgres identifiers cap at 63 characters and the wire name appends a 9-character `_<8hex>` content-hash suffix. Raised at contract lowering. Meta: `prefix`, `maxLength`.
+
 ## PSL
 
 ### PSL.PARSE_FAILED

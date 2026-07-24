@@ -74,7 +74,13 @@ import {
   dropConstraint,
 } from './operations/constraints';
 import { createExtension } from './operations/dependencies';
-import { createIndex, dropIndex } from './operations/indexes';
+import {
+  type CreateIndexElements,
+  type CreateIndexExtras,
+  createIndex,
+  dropIndex,
+  renameIndex,
+} from './operations/indexes';
 import { createNativeEnumType, dropNativeEnumType } from './operations/native-enum-types';
 import {
   createRlsPolicy,
@@ -1137,27 +1143,35 @@ export class CreateIndexCall extends PostgresOpFactoryCallNode {
   readonly schemaName: string;
   readonly tableName: string;
   readonly indexName: string;
-  readonly columns: readonly string[];
+  /** Column tuple when the index is column-based; absent for expression indexes. */
+  readonly columns: readonly string[] | undefined;
+  /** Opaque whole element list when the index is expression-based. */
+  readonly expression: string | undefined;
   // Named indexType (not typeName): `locationForCall` in issue-planner.ts reads
   // a call's `typeName` as a CREATE TYPE target location, which an index is not.
   readonly indexType: string | undefined;
   readonly options: Record<string, unknown> | undefined;
+  readonly where: string | undefined;
+  readonly unique: boolean;
   readonly label: string;
 
   constructor(
     schemaName: string,
     tableName: string,
     indexName: string,
-    columns: readonly string[],
-    extras?: { readonly type?: string; readonly options?: Record<string, unknown> },
+    elements: CreateIndexElements,
+    extras?: CreateIndexExtras,
   ) {
     super();
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.indexName = indexName;
-    this.columns = columns;
+    this.columns = 'columns' in elements ? elements.columns : undefined;
+    this.expression = 'expression' in elements ? elements.expression : undefined;
     this.indexType = extras?.type;
     this.options = extras?.options;
+    this.where = extras?.where;
+    this.unique = extras?.unique === true;
     this.label = `Create index "${indexName}" on "${tableName}"`;
     this.freeze();
   }
@@ -1170,14 +1184,23 @@ export class CreateIndexCall extends PostgresOpFactoryCallNode {
         { meta: { factory: 'CreateIndexCall' } },
       );
     }
-    const extras: { type?: string; options?: Record<string, unknown> } = {};
+    const extras: {
+      type?: string;
+      options?: Record<string, unknown>;
+      where?: string;
+      unique?: boolean;
+    } = {};
     if (this.indexType !== undefined) extras.type = this.indexType;
     if (this.options !== undefined) extras.options = this.options;
+    if (this.where !== undefined) extras.where = this.where;
+    if (this.unique) extras.unique = true;
     return createIndex(
       this.schemaName,
       this.tableName,
       this.indexName,
-      this.columns,
+      this.columns !== undefined
+        ? { columns: this.columns }
+        : { expression: this.expression ?? '' },
       lowerer,
       extras,
     );
@@ -1190,14 +1213,81 @@ export class CreateIndexCall extends PostgresOpFactoryCallNode {
     }
     opts.push(`table: ${jsonToTsSource(this.tableName)}`);
     opts.push(`index: ${jsonToTsSource(this.indexName)}`);
-    opts.push(`columns: ${jsonToTsSource(this.columns)}`);
-    if (this.indexType !== undefined || this.options !== undefined) {
+    if (this.columns !== undefined) {
+      opts.push(`columns: ${jsonToTsSource(this.columns)}`);
+    } else {
+      opts.push(`expression: ${jsonToTsSource(this.expression ?? '')}`);
+    }
+    if (
+      this.indexType !== undefined ||
+      this.options !== undefined ||
+      this.where !== undefined ||
+      this.unique
+    ) {
       const extrasParts: string[] = [];
       if (this.indexType !== undefined) extrasParts.push(`type: ${jsonToTsSource(this.indexType)}`);
       if (this.options !== undefined) extrasParts.push(`options: ${jsonToTsSource(this.options)}`);
+      if (this.where !== undefined) extrasParts.push(`where: ${jsonToTsSource(this.where)}`);
+      if (this.unique) extrasParts.push('unique: true');
       opts.push(`extras: { ${extrasParts.join(', ')} }`);
     }
     return `this.createIndex({ ${opts.join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+export class RenameIndexCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'renameIndex' as const;
+  // `widening` is chosen so the rename plans under every allowance set except
+  // additive-only init — a rename is neither additive-creation nor
+  // destructive, and the class vocabulary has no neutral middle class. It is
+  // NOT that a rename widens anything; this is the accepted typology tradeoff.
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly tableName: string;
+  readonly oldIndexName: string;
+  readonly newIndexName: string;
+  readonly label: string;
+
+  constructor(schemaName: string, tableName: string, oldIndexName: string, newIndexName: string) {
+    super();
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.oldIndexName = oldIndexName;
+    this.newIndexName = newIndexName;
+    this.label = `Rename index "${oldIndexName}" to "${newIndexName}" on "${tableName}"`;
+    this.freeze();
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    if (lowerer === undefined) {
+      throw postgresError(
+        'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
+        `RenameIndexCall.toOp: a lowerer is required on the Postgres planner path (index "${this.oldIndexName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
+        { meta: { factory: 'RenameIndexCall' } },
+      );
+    }
+    return renameIndex(
+      this.schemaName,
+      this.tableName,
+      this.oldIndexName,
+      this.newIndexName,
+      lowerer,
+    );
+  }
+
+  renderTypeScript(): string {
+    const opts: string[] = [];
+    if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
+      opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
+    }
+    opts.push(`table: ${jsonToTsSource(this.tableName)}`);
+    opts.push(`from: ${jsonToTsSource(this.oldIndexName)}`);
+    opts.push(`to: ${jsonToTsSource(this.newIndexName)}`);
+    return `this.renameIndex({ ${opts.join(', ')} })`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -1824,6 +1914,7 @@ export type PostgresOpFactoryCall =
   | AddCheckConstraintCall
   | DropCheckConstraintCall
   | CreateIndexCall
+  | RenameIndexCall
   | DropIndexCall
   | DropConstraintCall
   | RawSqlCall

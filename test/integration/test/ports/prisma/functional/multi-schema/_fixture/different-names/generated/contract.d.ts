@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'36247987f1b3aaddf151e651bb9dc59173d5277654e5b4f471484a57302e8af4'>;
+  StorageHashBase<'aede3a2efea99253a03bdaa4679ec79f5000d06f8a853ed6f0c08f2f891aa479'>;
 export type ExecutionHash =
   ExecutionHashBase<'93d4cdbed7d12477181192591395a625e6fbb11798673314b52f926dbd2741ce'>;
 export type ProfileHash =
@@ -175,8 +175,10 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'some_table_post_authorId_idx_e47547ed';
+                  readonly prefix: 'some_table_post_authorId_idx';
                   readonly columns: readonly ['authorId'];
-                  readonly name: 'some_table_post_authorId_idx';
+                  readonly unique: false;
                 },
               ];
               foreignKeys: readonly [

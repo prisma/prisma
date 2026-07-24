@@ -383,13 +383,17 @@
                   "columns": [
                     "commentId"
                   ],
-                  "name": "downVote_commentId_idx"
+                  "name": "downVote_commentId_idx_b5a4f615",
+                  "prefix": "downVote_commentId_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "userId"
                   ],
-                  "name": "downVote_userId_idx"
+                  "name": "downVote_userId_idx_a489d58a",
+                  "prefix": "downVote_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -452,13 +456,17 @@
                   "columns": [
                     "commentId"
                   ],
-                  "name": "upVote_commentId_idx"
+                  "name": "upVote_commentId_idx_b5a4f615",
+                  "prefix": "upVote_commentId_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "userId"
                   ],
-                  "name": "upVote_userId_idx"
+                  "name": "upVote_userId_idx_a489d58a",
+                  "prefix": "upVote_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -492,7 +500,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "97c7799cc488574078c8a889edf9f3f654b2a1ecd4e776cc3890ff0caa7dab5a"
+    "storageHash": "5ee4271de58d510d3800d53a22d1b252e0733525c9411c46d35663d24e129881"
   },
   "capabilities": {
     "postgres": {

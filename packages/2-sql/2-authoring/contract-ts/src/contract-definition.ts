@@ -57,6 +57,9 @@ export interface UniqueConstraintNode {
 
 export interface IndexNode {
   readonly columns: readonly string[];
+  /** Exact physical name (PSL `map:`) — adopted verbatim, no wire hash. */
+  readonly map?: string;
+  /** Managed wire-name prefix (TS `name:`) — lowers to `<name>_<8hex>`. */
   readonly name?: string;
   readonly type?: string;
   readonly options?: Record<string, unknown>;

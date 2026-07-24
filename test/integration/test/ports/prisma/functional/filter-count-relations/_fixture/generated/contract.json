@@ -386,7 +386,9 @@
                   "columns": [
                     "authorId"
                   ],
-                  "name": "post_authorId_idx"
+                  "name": "post_authorId_idx_e47547ed",
+                  "prefix": "post_authorId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -484,13 +486,17 @@
                   "columns": [
                     "groupId"
                   ],
-                  "name": "userGroup_groupId_idx"
+                  "name": "userGroup_groupId_idx_e2fb5578",
+                  "prefix": "userGroup_groupId_idx",
+                  "unique": false
                 },
                 {
                   "columns": [
                     "userId"
                   ],
-                  "name": "userGroup_userId_idx"
+                  "name": "userGroup_userId_idx_a489d58a",
+                  "prefix": "userGroup_userId_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -507,7 +513,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "0edbe02d75b07227bd9f421fccb4974e38c52fa07f004f672c929758a855397c"
+    "storageHash": "ac2895118ce7e58cf5a63effdddc73111608f075b7624922b48dfa9c24ca2122"
   },
   "capabilities": {
     "postgres": {

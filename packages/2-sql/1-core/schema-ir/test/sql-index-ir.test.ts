@@ -2,158 +2,265 @@ import { describe, expect, it } from 'vitest';
 
 import { SqlIndexIR, type SqlIndexIRInput } from '../src/ir/sql-index-ir';
 
-function index(
-  input: Pick<SqlIndexIRInput, 'columns' | 'unique' | 'partial'> & Partial<SqlIndexIRInput>,
-): SqlIndexIR {
-  return new SqlIndexIR({
-    name: undefined,
+type LooseIndexInput = Pick<SqlIndexIRInput, 'name' | 'unique' | 'partial'> & {
+  readonly prefix?: string;
+  readonly columns?: readonly string[];
+  readonly expression?: string;
+  readonly where?: string;
+  readonly type?: string;
+  readonly options?: Record<string, unknown>;
+  readonly annotations?: SqlIndexIRInput['annotations'];
+  readonly dependsOn?: SqlIndexIRInput['dependsOn'];
+};
+
+function index(input: LooseIndexInput): SqlIndexIR {
+  const filled = {
+    prefix: undefined,
+    columns: input.columns !== undefined || input.expression !== undefined ? undefined : ['email'],
+    expression: undefined,
+    where: undefined,
     type: undefined,
     options: undefined,
     annotations: undefined,
     dependsOn: undefined,
     ...input,
-  });
+  };
+  return new SqlIndexIR(filled as SqlIndexIRInput);
 }
 
+function managed(input: Partial<LooseIndexInput> & Pick<SqlIndexIRInput, 'name'>): SqlIndexIR {
+  return index({ unique: false, partial: false, prefix: 'user_email_idx', ...input });
+}
+
+function exact(input: Partial<LooseIndexInput> & Pick<SqlIndexIRInput, 'name'>): SqlIndexIR {
+  return index({ unique: false, partial: false, ...input });
+}
+
+const NAME = 'user_email_idx_46df9cad';
+
 describe('SqlIndexIR', () => {
-  it('id is derived from the column tuple, not name', () => {
-    const idx = index({
-      columns: ['email'],
+  it('id is the name (name identity), kind-prefixed against sibling collisions', () => {
+    const idx = exact({ name: 'idx_users_email', columns: ['email'] });
+    expect(idx.id).toBe('index:idx_users_email');
+  });
+
+  it('two same-tuple indexes with different names have distinct ids (twins are representable)', () => {
+    const a = exact({ name: 'user_email_key', columns: ['email'], unique: true });
+    const b = exact({ name: 'user_email_plain_idx', columns: ['email'] });
+    expect(a.id).not.toBe(b.id);
+  });
+
+  it('rejects both columns and expression, and neither', () => {
+    expect(() =>
+      index({
+        name: 'x',
+        unique: false,
+        partial: false,
+        columns: ['email'],
+        expression: 'lower(email)',
+      }),
+    ).toThrow(/exactly one of columns or expression/);
+    const neither = {
+      name: 'x',
+      prefix: undefined,
+      where: undefined,
       unique: false,
       partial: false,
-      name: 'idx_users_email',
-    });
-    expect(idx.id).toBe('index:email');
-  });
-
-  it('two unnamed indexes on the same columns share the same id', () => {
-    const a = index({ columns: ['tenant_id'], unique: false, partial: false });
-    const b = index({ columns: ['tenant_id'], unique: false, partial: false });
-    expect(a.id).toBe(b.id);
-  });
-
-  it('nodeKind is the index kind', () => {
-    const idx = index({ columns: ['email'], unique: false, partial: false });
-    expect(idx.nodeKind).toBe('sql-index');
-  });
-
-  it('children is empty (an index is a leaf)', () => {
-    const idx = index({ columns: ['email'], unique: false, partial: false });
-    expect(idx.children()).toEqual([]);
-  });
-
-  it('explicitly-undefined optional values leave the properties absent, not present-as-undefined', () => {
-    const idx = new SqlIndexIR({
-      columns: ['email'],
-      unique: false,
-      partial: false,
-      name: undefined,
       type: undefined,
       options: undefined,
       annotations: undefined,
       dependsOn: undefined,
-    });
-    for (const key of ['name', 'type', 'options', 'annotations', 'dependsOn']) {
+    };
+    expect(() => new SqlIndexIR(neither as SqlIndexIRInput)).toThrow(
+      /exactly one of columns or expression/,
+    );
+  });
+
+  it('nodeKind is the index kind and children is empty', () => {
+    const idx = exact({ name: 'x', columns: ['email'] });
+    expect(idx.nodeKind).toBe('sql-index');
+    expect(idx.children()).toEqual([]);
+  });
+
+  it('explicitly-undefined optional values leave the properties absent, not present-as-undefined', () => {
+    const idx = exact({ name: 'user_email_idx', columns: ['email'] });
+    for (const key of [
+      'prefix',
+      'expression',
+      'where',
+      'type',
+      'options',
+      'annotations',
+      'dependsOn',
+    ]) {
       expect(Object.hasOwn(idx, key)).toBe(false);
     }
-    expect(Object.keys(idx).sort()).toEqual(['columns', 'nodeKind', 'unique']);
+    expect(Object.keys(idx).sort()).toEqual(['columns', 'name', 'nodeKind', 'unique']);
     expect(JSON.parse(JSON.stringify(idx))).toEqual({
       nodeKind: 'sql-index',
+      name: 'user_email_idx',
       columns: ['email'],
       unique: false,
     });
   });
 
-  describe('isEqualTo', () => {
-    it('true when unique/type/options all match', () => {
-      const a = index({ columns: ['email'], unique: true, partial: false, type: 'btree' });
-      const b = index({ columns: ['email'], unique: true, partial: false, type: 'btree' });
+  describe('contentEquals — the single node-owned relation', () => {
+    it("a boolean option value equals its catalog reprint ('on'/'off')", () => {
+      const authored = managed({ name: NAME, columns: ['email'], options: { fastupdate: true } });
+      const reprint = exact({ name: NAME, columns: ['email'], options: { fastupdate: 'on' } });
+      expect(authored.isEqualTo(reprint)).toBe(true);
+
+      const authoredOff = managed({
+        name: NAME,
+        columns: ['email'],
+        options: { fastupdate: false },
+      });
+      const reprintOff = exact({ name: NAME, columns: ['email'], options: { fastupdate: 'off' } });
+      expect(authoredOff.isEqualTo(reprintOff)).toBe(true);
+      expect(authoredOff.isEqualTo(reprint)).toBe(false);
+    });
+
+    it("an authored type 'btree' equals a normalized-away type through the comparison seam", () => {
+      const authored = managed({ name: NAME, columns: ['email'], type: 'btree' });
+      const live = exact({ name: NAME, columns: ['email'] });
+      expect(authored.isEqualTo(live)).toBe(true);
+      expect(live.isEqualTo(authored)).toBe(true);
+    });
+
+    it("columnPresence 'matching' refuses a column node against an expression node", () => {
+      const columnsNode = managed({ name: NAME, columns: ['email'] });
+      const expressionNode = exact({ name: 'legacy_expr', expression: 'lower(email)' });
+      expect(
+        columnsNode.contentEquals(expressionNode, {
+          columnPresence: 'matching',
+          bodies: 'verbatim',
+        }),
+      ).toBe(false);
+      // The differ's rule skips the tuple when either side is an expression.
+      expect(
+        columnsNode.contentEquals(expressionNode, {
+          columnPresence: 'when-both-defined',
+          bodies: 'ignored',
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('isEqualTo — both modes (structural attributes)', () => {
+    it('true when unique/type/options/columns all match', () => {
+      const a = managed({ name: NAME, columns: ['email'], unique: true, type: 'gin' });
+      const b = exact({ name: NAME, columns: ['email'], unique: true, type: 'gin' });
       expect(a.isEqualTo(b)).toBe(true);
     });
 
-    it('a unique index and a non-unique index are not equal (symmetric — neither direction satisfies)', () => {
-      const uniqueIdx = index({ columns: ['email'], unique: true, partial: false });
-      const plainIdx = index({ columns: ['email'], unique: false, partial: false });
+    it('a unique index and a non-unique index are not equal (symmetric)', () => {
+      const uniqueIdx = managed({ name: NAME, columns: ['email'], unique: true });
+      const plainIdx = exact({ name: NAME, columns: ['email'] });
       expect(uniqueIdx.isEqualTo(plainIdx)).toBe(false);
       expect(plainIdx.isEqualTo(uniqueIdx)).toBe(false);
     });
 
-    it('false when type differs', () => {
-      const a = index({
-        columns: ['email'],
-        unique: false,
-        partial: false,
-        type: 'btree',
-      });
-      const b = index({ columns: ['email'], unique: false, partial: false, type: 'gin' });
+    it('false when type differs (managed side detects drift)', () => {
+      const a = managed({ name: NAME, columns: ['email'], type: 'btree' });
+      const b = exact({ name: NAME, columns: ['email'], type: 'gin' });
       expect(a.isEqualTo(b)).toBe(false);
     });
 
-    it('false when options differ', () => {
-      const a = index({
-        columns: ['email'],
-        unique: false,
-        partial: false,
-        options: { fillfactor: 90 },
-      });
-      const b = index({
-        columns: ['email'],
-        unique: false,
-        partial: false,
-        options: { fillfactor: 70 },
-      });
-      expect(a.isEqualTo(b)).toBe(false);
-    });
+    it('false when options differ; loose String() coercion still applies', () => {
+      const drifted = managed({ name: NAME, columns: ['email'], options: { fillfactor: 90 } });
+      const live = exact({ name: NAME, columns: ['email'], options: { fillfactor: '70' } });
+      expect(drifted.isEqualTo(live)).toBe(false);
 
-    it('options compare loosely: typed contract value matches introspected string value', () => {
-      const contractSide = index({
-        columns: ['email'],
-        unique: false,
-        partial: false,
-        options: { fillfactor: 70, fastupdate: true },
-      });
-      const introspectedSide = index({
-        columns: ['email'],
-        unique: false,
-        partial: false,
-        options: { fillfactor: '70', fastupdate: 'true' },
-      });
-      expect(contractSide.isEqualTo(introspectedSide)).toBe(true);
+      const typed = managed({ name: NAME, columns: ['email'], options: { fillfactor: 70 } });
+      const stringly = exact({ name: NAME, columns: ['email'], options: { fillfactor: '70' } });
+      expect(typed.isEqualTo(stringly)).toBe(true);
     });
 
     it('absent options and empty options compare equal', () => {
-      const a = index({ columns: ['email'], unique: false, partial: false });
-      const b = index({ columns: ['email'], unique: false, partial: false, options: {} });
+      const a = managed({ name: NAME, columns: ['email'] });
+      const b = exact({ name: NAME, columns: ['email'], options: {} });
       expect(a.isEqualTo(b)).toBe(true);
     });
 
-    it('false when option keys differ', () => {
-      const a = index({
+    it('columns compare ordered-strict when both sides carry them', () => {
+      const ab = managed({ name: NAME, columns: ['a', 'b'] });
+      const ba = exact({ name: NAME, columns: ['b', 'a'] });
+      const abAgain = exact({ name: NAME, columns: ['a', 'b'] });
+      expect(ab.isEqualTo(ba)).toBe(false);
+      expect(ab.isEqualTo(abAgain)).toBe(true);
+    });
+
+    it('columns are skipped when either side is an expression node', () => {
+      const managedColumns = managed({ name: NAME, columns: ['email'] });
+      const liveExpression = exact({ name: NAME, expression: 'lower(email)' });
+      expect(managedColumns.isEqualTo(liveExpression)).toBe(true);
+    });
+  });
+
+  describe('isEqualTo — managed mode never compares bodies', () => {
+    it('expression and where drift is invisible to a managed expected node', () => {
+      const expected = managed({ name: NAME, expression: 'lower(email)', where: 'x > 1' });
+      const actual = exact({ name: NAME, expression: 'upper(email)', where: 'x > 2' });
+      expect(expected.isEqualTo(actual)).toBe(true);
+    });
+  });
+
+  describe('isEqualTo — exact mode compares bodies byte-for-byte', () => {
+    it('fires on expression reprint drift', () => {
+      const expected = exact({ name: 'users_email_eq', expression: 'lower(email)' });
+      const actual = exact({ name: 'users_email_eq', expression: 'lower((email)::text)' });
+      expect(expected.isEqualTo(actual)).toBe(false);
+    });
+
+    it('fires on where drift', () => {
+      const expected = exact({
+        name: 'users_active_idx',
         columns: ['email'],
-        unique: false,
-        partial: false,
-        options: { fillfactor: 70 },
+        where: '(deleted_at IS NULL)',
       });
-      const b = index({
+      const actual = exact({
+        name: 'users_active_idx',
         columns: ['email'],
-        unique: false,
-        partial: false,
-        options: { fastupdate: 70 },
+        where: '(archived_at IS NULL)',
       });
-      expect(a.isEqualTo(b)).toBe(false);
+      expect(expected.isEqualTo(actual)).toBe(false);
+    });
+
+    it('no normalization: whitespace variants of the same body are unequal', () => {
+      const expected = exact({ name: 'users_email_eq', expression: 'lower(email)' });
+      const actual = exact({ name: 'users_email_eq', expression: 'lower( email )' });
+      expect(expected.isEqualTo(actual)).toBe(false);
+    });
+
+    it('absent bodies equal empty bodies (fields-only exact indexes stay equal)', () => {
+      const expected = exact({ name: 'users_email_idx', columns: ['email'] });
+      const actual = exact({ name: 'users_email_idx', columns: ['email'], where: '' });
+      expect(expected.isEqualTo(actual)).toBe(true);
+    });
+
+    it('matching bodies are equal', () => {
+      const expected = exact({
+        name: 'users_email_eq',
+        expression: 'lower(email)',
+        where: '(deleted_at IS NULL)',
+      });
+      const actual = exact({
+        name: 'users_email_eq',
+        expression: 'lower(email)',
+        where: '(deleted_at IS NULL)',
+      });
+      expect(expected.isEqualTo(actual)).toBe(true);
     });
   });
 
   describe('partial', () => {
     it('is readable, non-enumerable, and ignored by isEqualTo', () => {
-      const partialIdx = index({ columns: ['email'], unique: true, partial: true });
-      const totalIdx = index({ columns: ['email'], unique: true, partial: false });
+      const partialIdx = managed({ name: NAME, columns: ['email'], unique: true, partial: true });
+      const totalIdx = exact({ name: NAME, columns: ['email'], unique: true });
       expect(partialIdx.partial).toBe(true);
       expect(totalIdx.partial).toBe(false);
       expect(Object.keys(partialIdx)).not.toContain('partial');
-      expect(Object.keys(totalIdx)).not.toContain('partial');
       expect(JSON.parse(JSON.stringify(partialIdx))).not.toHaveProperty('partial');
-      expect(JSON.parse(JSON.stringify(totalIdx))).not.toHaveProperty('partial');
       expect(partialIdx.isEqualTo(totalIdx)).toBe(true);
       expect(totalIdx.isEqualTo(partialIdx)).toBe(true);
     });
@@ -169,13 +276,8 @@ describe('SqlIndexIR', () => {
     ];
 
     it('is readable, non-enumerable, and ignored by isEqualTo', () => {
-      const withDeps = index({
-        columns: ['email'],
-        unique: false,
-        partial: false,
-        dependsOn,
-      });
-      const without = index({ columns: ['email'], unique: false, partial: false });
+      const withDeps = managed({ name: NAME, columns: ['email'], dependsOn });
+      const without = exact({ name: NAME, columns: ['email'] });
       expect(withDeps.dependsOn).toEqual(dependsOn);
       expect(without.dependsOn).toBeUndefined();
       expect(Object.keys(withDeps)).not.toContain('dependsOn');

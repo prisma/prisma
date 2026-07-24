@@ -35,7 +35,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'6dab54a392d7ed9e3ad614c49817092426b5cbca2087836b8fc3bfa78bc821dd'>;
+  StorageHashBase<'707429801bd7d6f3636f064492563b743c80e12fe44636f5519554b5fb9b3b59'>;
 export type ExecutionHash =
   ExecutionHashBase<'8fc1f2214ea8abb8d650648f7b286159ba8e7ff3daf808591e38ed139ac3dcf9'>;
 export type ProfileHash =
@@ -359,7 +359,12 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['post_id']; readonly name: 'comments_post_id_idx' },
+                {
+                  readonly name: 'comments_post_id_idx_865a6df2';
+                  readonly prefix: 'comments_post_id_idx';
+                  readonly columns: readonly ['post_id'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {
@@ -408,7 +413,12 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
-                { readonly columns: readonly ['user_id']; readonly name: 'posts_user_id_idx' },
+                {
+                  readonly name: 'posts_user_id_idx_6c952402';
+                  readonly prefix: 'posts_user_id_idx';
+                  readonly columns: readonly ['user_id'];
+                  readonly unique: false;
+                },
               ];
               foreignKeys: readonly [
                 {
@@ -638,8 +648,10 @@ type ContractBase = Omit<
               uniques: readonly [{ readonly columns: readonly ['email'] }];
               indexes: readonly [
                 {
+                  readonly name: 'users_invited_by_id_idx_80b34397';
+                  readonly prefix: 'users_invited_by_id_idx';
                   readonly columns: readonly ['invited_by_id'];
-                  readonly name: 'users_invited_by_id_idx';
+                  readonly unique: false;
                 },
               ];
               foreignKeys: readonly [

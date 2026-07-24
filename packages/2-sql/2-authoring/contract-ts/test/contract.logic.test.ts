@@ -30,7 +30,7 @@ describe('SqlContractSerializer logic validation', () => {
         },
         primaryKey: { columns: ['id'] },
         uniques: [{ columns: ['email'] }],
-        indexes: [{ columns: ['name'] }],
+        indexes: [{ name: 'user_name_idx', columns: ['name'], unique: false }],
         foreignKeys: [],
       },
       Post: {
@@ -127,7 +127,7 @@ describe('SqlContractSerializer logic validation', () => {
       storage: sqlStorageFixture({
         User: {
           ...unboundTables(validContractInput.storage as unknown as SqlStorage)['User'],
-          indexes: [{ columns: ['nonExistent'] }],
+          indexes: [{ name: 'user_nonExistent_idx', columns: ['nonExistent'], unique: false }],
           uniques: [],
           foreignKeys: [],
         },

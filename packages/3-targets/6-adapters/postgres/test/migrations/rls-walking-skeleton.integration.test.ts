@@ -2,10 +2,8 @@ import { type Contract, coreHash, profileHash } from '@prisma-next/contract/type
 import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import {
-  computeContentHash,
-  normalizePredicate,
-} from '@prisma-next/target-postgres/rls-canonicalize';
+import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
+import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
   PostgresRlsEnablement,
   PostgresRlsPolicy,
@@ -35,7 +33,7 @@ const POLICY_PREFIX = 'profile_read_own';
 const POLICY_USING = "owner_id = current_setting('app.uid')::int";
 
 const POLICY_HASH = computeContentHash({
-  using: normalizePredicate(POLICY_USING),
+  using: normalizeSqlBody(POLICY_USING),
   roles: ['app_user'],
   operation: 'select',
   permissive: true,

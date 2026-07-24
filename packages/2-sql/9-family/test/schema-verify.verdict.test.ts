@@ -472,7 +472,7 @@ describe('differ verdict — foreign keys', () => {
           // derived here by `contractToSchemaIR`, so the fixture carries it
           // explicitly, matching what `buildSqlContractFromDefinition` would
           // have produced.
-          indexes: [{ columns: ['user_id'], name: 'post_user_id_idx' }],
+          indexes: [{ columns: ['user_id'], name: 'post_user_id_idx', unique: false }],
         },
       ),
     });
@@ -615,7 +615,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const contract = createTestContract({
       user: createContractTable(
         { email: { nativeType: 'text', nullable: false } },
-        { indexes: [{ columns: ['email'] }] },
+        { indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false }] },
       ),
     });
     const schema = createTestSchemaIR({
@@ -636,7 +636,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const contract = createTestContract({
       user: createContractTable(
         { email: { nativeType: 'text', nullable: false } },
-        { indexes: [{ columns: ['email'], type: 'gin' }] },
+        { indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false, type: 'gin' }] },
       ),
     });
     const schema = createTestSchemaIR({
@@ -658,7 +658,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
       user: createSchemaTable(
         'user',
         { email: { nativeType: 'text', nullable: false } },
-        { indexes: [{ columns: ['email'], unique: true }] },
+        { indexes: [{ name: 'user_email_key_idx', columns: ['email'], unique: true }] },
       ),
     });
     const { strict, lenient } = runBothModes({ contract, schema });
@@ -675,7 +675,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
       user: createSchemaTable(
         'user',
         { email: { nativeType: 'text', nullable: false } },
-        { indexes: [{ columns: ['email'], unique: false }] },
+        { indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false }] },
       ),
     });
     const runs = runBothModes({ contract, schema });
@@ -715,14 +715,32 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const contract = createTestContract({
       user: createContractTable(
         { email: { nativeType: 'text', nullable: false } },
-        { indexes: [{ columns: ['email'], options: { fillfactor: 70 } }] },
+        {
+          indexes: [
+            {
+              name: 'user_email_idx',
+              columns: ['email'],
+              unique: false,
+              options: { fillfactor: 70 },
+            },
+          ],
+        },
       ),
     });
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
         { email: { nativeType: 'text', nullable: false } },
-        { indexes: [{ columns: ['email'], unique: false, options: { fillfactor: '70' } }] },
+        {
+          indexes: [
+            {
+              name: 'user_email_idx',
+              columns: ['email'],
+              unique: false,
+              options: { fillfactor: '70' },
+            },
+          ],
+        },
       ),
     });
     const { strict } = runBothModes({ contract, schema });
@@ -894,7 +912,7 @@ describe('differ verdict — control policies', () => {
       user: createSchemaTable(
         'user',
         { id: { nativeType: 'int4', nullable: false } },
-        { indexes: [{ columns: ['id'], unique: false }] },
+        { indexes: [{ name: 'user_id_idx', columns: ['id'], unique: false }] },
       ),
     });
     const indexRuns = runBothModes({ contract, schema: extraIndex });

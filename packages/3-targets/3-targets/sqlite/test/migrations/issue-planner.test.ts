@@ -138,16 +138,16 @@ describe('mapNodeIssueToCall — index', () => {
     ]);
   });
 
-  it('falls back to the default index name when the node carries none', () => {
-    const idx = index(['userId']);
+  it('uses the node-carried name verbatim, never a table-derived default', () => {
+    const idx = index(['userId'], { name: 'custom_userId_idx' });
     const result = mapNodeIssueToCall(
-      issue({ path: ['database', 'post', 'index:userId'], expected: idx }),
+      issue({ path: ['database', 'post', 'index:custom_userId_idx'], expected: idx }),
       emptyCtx,
     );
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
     expect(result.value).toEqual([
-      expect.objectContaining({ factoryName: 'createIndex', indexName: 'post_userId_idx' }),
+      expect.objectContaining({ factoryName: 'createIndex', indexName: 'custom_userId_idx' }),
     ]);
   });
 
