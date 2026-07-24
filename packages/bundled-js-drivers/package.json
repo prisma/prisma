@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@libsql/client": "0.8.1",
-    "@neondatabase/serverless": "0.10.2",
+    "@neondatabase/serverless": "1.1.0",
     "@planetscale/database": "1.19.0",
     "@types/pg": "8.11.11",
     "pg": "8.14.1"

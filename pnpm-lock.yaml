@@ -295,7 +295,7 @@ importers:
     dependencies:
       '@neondatabase/serverless':
         specifier: '>0.6.0 <2'
-        version: 0.10.2
+        version: 1.1.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -367,8 +367,8 @@ importers:
         specifier: 0.8.1
         version: 0.8.1
       '@neondatabase/serverless':
-        specifier: 0.10.2
-        version: 0.10.2
+        specifier: 1.1.0
+        version: 1.1.0
       '@planetscale/database':
         specifier: 1.19.0
         version: 1.19.0
@@ -416,8 +416,8 @@ importers:
         specifier: 0.8.1
         version: 0.8.1
       '@neondatabase/serverless':
-        specifier: 0.10.2
-        version: 0.10.2
+        specifier: 1.1.0
+        version: 1.1.0
       '@planetscale/database':
         specifier: 1.19.0
         version: 1.19.0
@@ -676,8 +676,8 @@ importers:
         specifier: 0.8.1
         version: 0.8.1
       '@neondatabase/serverless':
-        specifier: 0.10.2
-        version: 0.10.2
+        specifier: 1.1.0
+        version: 1.1.0
       '@opentelemetry/api':
         specifier: 1.9.0
         version: 1.9.0
@@ -3605,8 +3605,9 @@ packages:
   '@neon-rs/load@0.0.4':
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
 
-  '@neondatabase/serverless@0.10.2':
-    resolution: {integrity: sha512-XaIMQ9fXDPWLiShfsg+YJQvmMMIyVQB7J3jnirckyoDxN7YIATyzXBThpUeFJqBUkbFJQ0e5PCxXTpK2rG4WbQ==}
+  '@neondatabase/serverless@1.1.0':
+    resolution: {integrity: sha512-r3ZZhRjEcfEdKIZnoB1RusNgvHuaBRqfCzV4Gi+5A9yUX0S4HTws/ASWqt13wL4y4I+0rqsWGdA2w7EQXHi3+Q==}
+    engines: {node: '>=19.0.0'}
 
   '@noble/hashes@2.2.0':
     resolution: {integrity: sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg==}
@@ -4480,9 +4481,6 @@ packages:
 
   '@types/pg@8.11.11':
     resolution: {integrity: sha512-kGT1qKM8wJQ5qlawUrEkXgvMSXoV213KfMGXcwfDwUIfUHXqXYXOfS1nE1LINRJVVVx5wCm70XnFlMHaIcQAfw==}
-
-  '@types/pg@8.11.6':
-    resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
 
   '@types/pg@8.20.0':
     resolution: {integrity: sha512-bEPFOaMAHTEP1EzpvHTbmwR8UsFyHSKsRisLIHVMXnpNefSbGA1bD6CVy+qKjGSqmZqNqBDV2azOBo8TgkcVow==}
@@ -7584,9 +7582,6 @@ packages:
   pg-protocol@1.10.3:
     resolution: {integrity: sha512-6DIBgBQaTKDJyxnXaLiLR8wBpQQcGWuAESkRBX/t6OwA8YsqP+iVSiond2EDy6Y/dsGk8rh/jtax3js5NeV7JQ==}
 
-  pg-protocol@1.6.1:
-    resolution: {integrity: sha512-jPIlvgoD63hrEuihvIg+tJhoGjUsLPn6poJY9N5CnlPd91c2T18T/9zBtLxZSb1EhYxBRoZJtzScCaWlYLtktg==}
-
   pg-protocol@1.7.1:
     resolution: {integrity: sha512-gjTHWGYWsEgy9MsY0Gp6ZJxV24IjDqdpTW7Eh0x+WfJLFsm/TJx1MzL6T0D88mBvkpxotCQ6TwW6N+Kko7lhgQ==}
 
@@ -10596,9 +10591,7 @@ snapshots:
 
   '@neon-rs/load@0.0.4': {}
 
-  '@neondatabase/serverless@0.10.2':
-    dependencies:
-      '@types/pg': 8.11.6
+  '@neondatabase/serverless@1.1.0': {}
 
   '@noble/hashes@2.2.0': {}
 
@@ -11424,12 +11417,6 @@ snapshots:
     dependencies:
       '@types/node': 25.5.0
       pg-protocol: 1.7.1
-      pg-types: 4.0.2
-
-  '@types/pg@8.11.6':
-    dependencies:
-      '@types/node': 20.19.37
-      pg-protocol: 1.6.1
       pg-types: 4.0.2
 
   '@types/pg@8.20.0':
@@ -15098,8 +15085,6 @@ snapshots:
       pg: 8.14.1
 
   pg-protocol@1.10.3: {}
-
-  pg-protocol@1.6.1: {}
 
   pg-protocol@1.7.1: {}
 
