@@ -11,7 +11,7 @@
  *   3. `asServiceRole()` returns both profiles — BYPASSRLS skips all policies.
  *   4. The recording middleware captures only typed ORM queries, never `set_config` calls
  *      (proving `set_config` runs below the user middleware chain).
- *   5. An expired JWT → `InvalidJwtError`.
+ *   5. An expired JWT → a structured error with code `SUPABASE.JWT_INVALID`.
  *   6. `profile_owner_write`'s WITH CHECK rejects reassigning a row to another owner.
  */
 
@@ -28,10 +28,11 @@ import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces'
 import type { SqlMiddleware } from '@prisma-next/sql-runtime';
 import postgres from '@prisma-next/target-postgres/control';
 import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { SignJWT } from 'jose';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import supabasePack from '../src/exports/pack';
-import { InvalidJwtError, supabase } from '../src/exports/runtime';
+import { supabase } from '../src/exports/runtime';
 import type { Contract } from './fixtures/example-app/contract';
 import contractJson from './fixtures/example-app/contract.json' with { type: 'json' };
 import { createDb, fixtureJwt } from './fixtures/example-app/db';
@@ -298,7 +299,7 @@ describe('RLS — role-bound Supabase runtime acceptance', () => {
   );
 
   it(
-    'asUser rejects an expired JWT with InvalidJwtError',
+    'asUser rejects an expired JWT with SUPABASE.JWT_INVALID',
     async () => {
       const { connectionString } = database;
 
@@ -315,7 +316,9 @@ describe('RLS — role-bound Supabase runtime acceptance', () => {
           fixtureJwt,
           '-1s',
         );
-        await expect(db.asUser(expiredJwt)).rejects.toThrow(InvalidJwtError);
+        await expect(db.asUser(expiredJwt)).rejects.toSatisfy(
+          (e: unknown) => isStructuredError(e) && e.code === 'SUPABASE.JWT_INVALID',
+        );
       } finally {
         await db.close();
       }

@@ -1347,6 +1347,9 @@ importers:
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
+      '@prisma-next/utils':
+        specifier: workspace:0.16.0
+        version: link:../../packages/1-framework/0-foundation/utils
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.4
@@ -3316,6 +3319,9 @@ importers:
       '@prisma-next/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
+      '@prisma-next/utils':
+        specifier: workspace:0.16.0
+        version: link:../../1-framework/0-foundation/utils
       tsdown:
         specifier: 'catalog:'
         version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
@@ -3465,6 +3471,9 @@ importers:
       '@prisma-next/sql-runtime':
         specifier: workspace:0.16.0
         version: link:../../2-sql/5-runtime
+      '@prisma-next/utils':
+        specifier: workspace:0.16.0
+        version: link:../../1-framework/0-foundation/utils
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -3535,6 +3544,9 @@ importers:
       '@prisma-next/sql-schema-ir':
         specifier: workspace:0.16.0
         version: link:../../2-sql/1-core/schema-ir
+      '@prisma-next/utils':
+        specifier: workspace:0.16.0
+        version: link:../../1-framework/0-foundation/utils
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
@@ -3611,6 +3623,9 @@ importers:
       '@prisma-next/sql-schema-ir':
         specifier: workspace:0.16.0
         version: link:../../2-sql/1-core/schema-ir
+      '@prisma-next/utils':
+        specifier: workspace:0.16.0
+        version: link:../../1-framework/0-foundation/utils
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0

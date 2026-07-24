@@ -46,6 +46,7 @@ import type { ExtractCodecTypes } from '@prisma-next/sql-relational-core/ast';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { POSTGIS_GEOMETRY_CODEC_ID } from './constants';
+import { postgisError } from './errors';
 import { decodeEWKBHex, encodeEWKBHex, encodeEWKT } from './ewkb';
 import type { Geometry } from './geojson';
 
@@ -79,16 +80,22 @@ const allowedGeometryTypes = new Set([
 
 function assertGeometry(value: unknown): asserts value is Geometry {
   if (!value || typeof value !== 'object') {
-    throw new Error('Geometry value must be a GeoJSON-shaped object');
+    throw postgisError('RUNTIME.ENCODE_FAILED', 'Geometry value must be a GeoJSON-shaped object', {
+      meta: { codecId: POSTGIS_GEOMETRY_CODEC_ID },
+    });
   }
   const type = (value as { type?: unknown }).type;
   if (typeof type !== 'string' || !allowedGeometryTypes.has(type)) {
-    throw new Error(
+    throw postgisError(
+      'RUNTIME.ENCODE_FAILED',
       `Geometry value: unsupported type "${String(type)}" (expected Point, LineString, Polygon, MultiPoint, MultiLineString, or MultiPolygon)`,
+      { meta: { codecId: POSTGIS_GEOMETRY_CODEC_ID } },
     );
   }
   if (!Array.isArray((value as { coordinates?: unknown }).coordinates)) {
-    throw new Error('Geometry value: "coordinates" must be an array');
+    throw postgisError('RUNTIME.ENCODE_FAILED', 'Geometry value: "coordinates" must be an array', {
+      meta: { codecId: POSTGIS_GEOMETRY_CODEC_ID },
+    });
   }
 }
 
@@ -109,7 +116,9 @@ export class PostgisGeometryCodec extends CodecImpl<
 
   async decode(wire: string, _ctx: CodecCallContext): Promise<Geometry> {
     if (typeof wire !== 'string') {
-      throw new Error('Geometry wire value must be a string');
+      throw postgisError('RUNTIME.DECODE_FAILED', 'Geometry wire value must be a string', {
+        meta: { codecId: POSTGIS_GEOMETRY_CODEC_ID },
+      });
     }
     return decodeEWKBHex(wire);
   }
@@ -121,7 +130,11 @@ export class PostgisGeometryCodec extends CodecImpl<
 
   decodeJson(json: JsonValue): Geometry {
     if (typeof json !== 'string') {
-      throw new Error('Geometry database JSON value must be a HEXEWKB string');
+      throw postgisError(
+        'RUNTIME.DECODE_FAILED',
+        'Geometry database JSON value must be a HEXEWKB string',
+        { meta: { codecId: POSTGIS_GEOMETRY_CODEC_ID } },
+      );
     }
     return decodeEWKBHex(json);
   }
@@ -168,12 +181,19 @@ export const postgisGeometryDescriptor = new PostgisGeometryDescriptor();
  * (`geometry(Geometry,${srid})`) at emit/verify time from `nativeType`
  * + `typeParams`.
  *
- * @throws {RangeError} If `srid` is not a non-negative integer.
+ * @throws If `srid` is not a non-negative integer
+ * (structured `CONTRACT.ARGUMENT_INVALID`).
  */
 export const pgGeometryColumn = <S extends number>(options: { readonly srid: S }) => {
   const { srid } = options;
   if (!Number.isInteger(srid) || srid < 0) {
-    throw new RangeError(`postgis: srid must be a non-negative integer, got ${srid}`);
+    throw postgisError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `postgis: srid must be a non-negative integer, got ${srid}`,
+      {
+        meta: { helperPath: 'pgGeometryColumn', expected: 'non-negative integer', received: srid },
+      },
+    );
   }
   return column(
     postgisGeometryDescriptor.factory({ srid }),

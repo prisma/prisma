@@ -9,6 +9,7 @@
  * silently dropping data.
  */
 
+import { postgisError } from './errors';
 import type {
   Geometry,
   GeometryLineString,
@@ -36,13 +37,19 @@ const HEX_PAIR_RE = /^[0-9a-fA-F]{2}$/;
 
 function hexToBytes(hex: string): Uint8Array {
   if (hex.length % 2 !== 0) {
-    throw new Error('Geometry wire value: odd-length hex string');
+    throw postgisError('RUNTIME.DECODE_FAILED', 'Geometry wire value: odd-length hex string', {
+      meta: { wirePreview: hex.slice(0, 32) },
+    });
   }
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < bytes.length; i++) {
     const pair = hex.slice(i * 2, i * 2 + 2);
     if (!HEX_PAIR_RE.test(pair)) {
-      throw new Error(`Geometry wire value: invalid hex byte at offset ${i * 2}`);
+      throw postgisError(
+        'RUNTIME.DECODE_FAILED',
+        `Geometry wire value: invalid hex byte at offset ${i * 2}`,
+        { meta: { wirePreview: hex.slice(0, 32) } },
+      );
     }
     bytes[i] = Number.parseInt(pair, 16);
   }
@@ -59,7 +66,8 @@ class Reader {
 
   private requireBytes(needed: number): void {
     if (this.offset + needed > this.view.byteLength) {
-      throw new Error(
+      throw postgisError(
+        'RUNTIME.DECODE_FAILED',
         `Geometry wire value: unexpected end of buffer (need ${needed} bytes at offset ${this.offset}, ${this.view.byteLength - this.offset} available)`,
       );
     }
@@ -131,12 +139,18 @@ type Header = {
 function readHeader(reader: Reader): Header {
   const byteOrder = reader.readUint8();
   if (byteOrder !== 0 && byteOrder !== 1) {
-    throw new Error(`Geometry wire value: invalid byte order ${byteOrder}`);
+    throw postgisError(
+      'RUNTIME.DECODE_FAILED',
+      `Geometry wire value: invalid byte order ${byteOrder}`,
+    );
   }
   const littleEndian = byteOrder === 1;
   const typeCode = reader.readUint32(littleEndian);
   if ((typeCode & FLAG_Z) !== 0 || (typeCode & FLAG_M) !== 0) {
-    throw new Error('Geometry wire value: Z/M coordinates are not supported');
+    throw postgisError(
+      'RUNTIME.DECODE_FAILED',
+      'Geometry wire value: Z/M coordinates are not supported',
+    );
   }
   const geomType = typeCode & TYPE_MASK;
   if ((typeCode & FLAG_SRID) !== 0) {
@@ -192,7 +206,10 @@ function readSubGeometry(reader: Reader): Geometry {
     case TYPE_POLYGON:
       return readPolygon(reader, header);
     default:
-      throw new Error(`Geometry wire value: unsupported sub-type ${header.geomType}`);
+      throw postgisError(
+        'RUNTIME.DECODE_FAILED',
+        `Geometry wire value: unsupported sub-type ${header.geomType}`,
+      );
   }
 }
 
@@ -202,7 +219,10 @@ function readMultiPoint(reader: Reader, header: Header): GeometryMultiPoint {
   for (let i = 0; i < n; i++) {
     const sub = readSubGeometry(reader);
     if (sub.type !== 'Point') {
-      throw new Error('Geometry wire value: MultiPoint contains non-Point sub-geometry');
+      throw postgisError(
+        'RUNTIME.DECODE_FAILED',
+        'Geometry wire value: MultiPoint contains non-Point sub-geometry',
+      );
     }
     coords.push(sub.coordinates);
   }
@@ -217,7 +237,10 @@ function readMultiLineString(reader: Reader, header: Header): GeometryMultiLineS
   for (let i = 0; i < n; i++) {
     const sub = readSubGeometry(reader);
     if (sub.type !== 'LineString') {
-      throw new Error('Geometry wire value: MultiLineString contains non-LineString sub-geometry');
+      throw postgisError(
+        'RUNTIME.DECODE_FAILED',
+        'Geometry wire value: MultiLineString contains non-LineString sub-geometry',
+      );
     }
     lines.push(sub.coordinates);
   }
@@ -232,7 +255,10 @@ function readMultiPolygon(reader: Reader, header: Header): GeometryMultiPolygon 
   for (let i = 0; i < n; i++) {
     const sub = readSubGeometry(reader);
     if (sub.type !== 'Polygon') {
-      throw new Error('Geometry wire value: MultiPolygon contains non-Polygon sub-geometry');
+      throw postgisError(
+        'RUNTIME.DECODE_FAILED',
+        'Geometry wire value: MultiPolygon contains non-Polygon sub-geometry',
+      );
     }
     polys.push(sub.coordinates);
   }
@@ -246,8 +272,10 @@ export function decodeEWKBHex(hex: string): Geometry {
   const header = readHeader(reader);
   const geometry = readGeometryBody(reader, header);
   if (reader.hasRemaining()) {
-    throw new Error(
+    throw postgisError(
+      'RUNTIME.DECODE_FAILED',
       `Geometry wire value: trailing data after geometry (${reader.remainingBytes()} bytes)`,
+      { meta: { wirePreview: hex.slice(0, 32) } },
     );
   }
   return geometry;
@@ -269,7 +297,10 @@ function writeHeader(writer: Writer, geomType: number, srid?: number): void {
 
 function writePosition(writer: Writer, position: Position): void {
   if (!Number.isFinite(position[0]) || !Number.isFinite(position[1])) {
-    throw new Error('Geometry encode: coordinates must be finite numbers');
+    throw postgisError(
+      'RUNTIME.ENCODE_FAILED',
+      'Geometry encode: coordinates must be finite numbers',
+    );
   }
   writer.writeFloat64(position[0]);
   writer.writeFloat64(position[1]);
@@ -345,7 +376,10 @@ function readGeometryBody(reader: Reader, header: Header): Geometry {
     case TYPE_MULTIPOLYGON:
       return readMultiPolygon(reader, header);
     default:
-      throw new Error(`Geometry wire value: unsupported geometry type ${header.geomType}`);
+      throw postgisError(
+        'RUNTIME.DECODE_FAILED',
+        `Geometry wire value: unsupported geometry type ${header.geomType}`,
+      );
   }
 }
 
@@ -378,7 +412,10 @@ export function encodeEWKT(value: Geometry): string {
 
 function formatPosition(p: Position): string {
   if (!Number.isFinite(p[0]) || !Number.isFinite(p[1])) {
-    throw new Error('Geometry encode: coordinates must be finite numbers');
+    throw postgisError(
+      'RUNTIME.ENCODE_FAILED',
+      'Geometry encode: coordinates must be finite numbers',
+    );
   }
   return `${p[0]} ${p[1]}`;
 }

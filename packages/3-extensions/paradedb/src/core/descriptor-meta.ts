@@ -3,6 +3,7 @@ import { buildOperation, toExpr } from '@prisma-next/sql-relational-core/express
 import { paradedbIndexTypes } from '../types/index-types';
 import type { QueryOperationTypes } from '../types/operation-types';
 import { PARADEDB_EXTENSION_ID } from './constants';
+import { paradeDbError } from './errors';
 import { ParadeDbProximityChain } from './proximity-chain';
 
 type CodecTypesBase = Record<string, { readonly input: unknown; readonly output: unknown }>;
@@ -112,8 +113,10 @@ export function paradedbQueryOperations<CT extends CodecTypesBase>(): QueryOpera
       self: { codecId: TEXT },
       impl: (self, distance) => {
         if (!Number.isInteger(distance) || distance < 0 || distance > 2) {
-          throw new Error(
+          throw paradeDbError(
+            'PARADEDB.ARGUMENT_INVALID',
             `paradeDbFuzzy: distance must be an integer in [0, 2]; got ${String(distance)}`,
+            { meta: { helper: 'paradeDbFuzzy', argument: 'distance', received: distance } },
           );
         }
         return buildOperation({
@@ -133,8 +136,10 @@ export function paradedbQueryOperations<CT extends CodecTypesBase>(): QueryOpera
       self: { codecId: TEXT },
       impl: (self, weight) => {
         if (!Number.isInteger(weight) || weight < -2048 || weight > 2048) {
-          throw new Error(
+          throw paradeDbError(
+            'PARADEDB.ARGUMENT_INVALID',
             `paradeDbBoost: boost must be an integer in [-2048, 2048]; got ${String(weight)}`,
+            { meta: { helper: 'paradeDbBoost', argument: 'weight', received: weight } },
           );
         }
         return buildOperation({
@@ -153,7 +158,11 @@ export function paradedbQueryOperations<CT extends CodecTypesBase>(): QueryOpera
       self: { codecId: TEXT },
       impl: (self, value) => {
         if (!Number.isInteger(value)) {
-          throw new Error(`paradeDbConst: value must be an integer; got ${String(value)}`);
+          throw paradeDbError(
+            'PARADEDB.ARGUMENT_INVALID',
+            `paradeDbConst: value must be an integer; got ${String(value)}`,
+            { meta: { helper: 'paradeDbConst', argument: 'value', received: value } },
+          );
         }
         return buildOperation({
           method: 'paradeDbConst',
@@ -171,7 +180,11 @@ export function paradedbQueryOperations<CT extends CodecTypesBase>(): QueryOpera
       self: { codecId: TEXT },
       impl: (self, slop) => {
         if (!Number.isInteger(slop) || slop < 0) {
-          throw new Error(`paradeDbSlop: slop must be a non-negative integer; got ${String(slop)}`);
+          throw paradeDbError(
+            'PARADEDB.ARGUMENT_INVALID',
+            `paradeDbSlop: slop must be a non-negative integer; got ${String(slop)}`,
+            { meta: { helper: 'paradeDbSlop', argument: 'slop', received: slop } },
+          );
         }
         return buildOperation({
           method: 'paradeDbSlop',

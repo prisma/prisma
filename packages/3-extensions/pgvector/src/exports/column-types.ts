@@ -4,6 +4,7 @@
 
 import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
 import { VECTOR_CODEC_ID, VECTOR_MAX_DIM } from '../core/constants';
+import { pgVectorError } from '../core/errors';
 
 /**
  * Factory for creating dimensioned vector column descriptors.
@@ -15,14 +16,23 @@ import { VECTOR_CODEC_ID, VECTOR_MAX_DIM } from '../core/constants';
  * ```
  * @param length - The dimension of the vector (e.g., 1536 for OpenAI embeddings)
  * @returns A column type descriptor with `typeParams.length` set
- * @throws {RangeError} If length is not an integer in the range [1, VECTOR_MAX_DIM]
+ * @throws `CONTRACT.ARGUMENT_INVALID` if length is not an integer in the range [1, VECTOR_MAX_DIM]
  */
 export function vector<N extends number>(
   length: N,
 ): ColumnTypeDescriptor & { readonly typeParams: { readonly length: N } } {
   if (!Number.isInteger(length) || length < 1 || length > VECTOR_MAX_DIM) {
-    throw new RangeError(
+    throw pgVectorError(
+      'CONTRACT.ARGUMENT_INVALID',
       `pgvector: dimension must be an integer in [1, ${VECTOR_MAX_DIM}], got ${length}`,
+      {
+        fix: `Pass an integer dimension between 1 and ${VECTOR_MAX_DIM}, e.g. vector(1536).`,
+        meta: {
+          helperPath: 'vector',
+          expected: `an integer in [1, ${VECTOR_MAX_DIM}]`,
+          received: length,
+        },
+      },
     );
   }
   return {

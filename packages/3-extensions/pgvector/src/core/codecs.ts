@@ -25,6 +25,9 @@ import type { ExtractCodecTypes } from '@prisma-next/sql-relational-core/ast';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { VECTOR_CODEC_ID, VECTOR_MAX_DIM } from './constants';
+import { pgVectorError } from './errors';
+
+type VectorConversionCode = 'RUNTIME.ENCODE_FAILED' | 'RUNTIME.DECODE_FAILED';
 
 type VectorParams = { readonly length: number };
 
@@ -45,7 +48,14 @@ const PG_VECTOR_META = { db: { sql: { postgres: { nativeType: 'vector' } } } } a
 
 function parseVector(value: string): number[] {
   if (!value.startsWith('[') || !value.endsWith(']')) {
-    throw new Error(`Invalid vector format: expected "[...]", got "${value}"`);
+    throw pgVectorError(
+      'RUNTIME.DECODE_FAILED',
+      `Invalid vector format: expected "[...]", got "${value}"`,
+      {
+        why: 'The database returned a vector value that is not in the PostgreSQL "[x,y,z]" text format.',
+        meta: { codecId: VECTOR_CODEC_ID, wirePreview: value },
+      },
+    );
   }
   const content = value.slice(1, -1).trim();
   return content === ''
@@ -53,7 +63,14 @@ function parseVector(value: string): number[] {
     : content.split(',').map((entry) => {
         const number = Number.parseFloat(entry.trim());
         if (Number.isNaN(number)) {
-          throw new Error(`Invalid vector value: "${entry}" is not a number`);
+          throw pgVectorError(
+            'RUNTIME.DECODE_FAILED',
+            `Invalid vector value: "${entry}" is not a number`,
+            {
+              why: 'A vector entry returned by the database could not be parsed as a number.',
+              meta: { codecId: VECTOR_CODEC_ID, wirePreview: value },
+            },
+          );
         }
         return number;
       });
@@ -72,48 +89,60 @@ export class PgVectorCodec extends CodecImpl<
     this.length = length;
   }
 
-  assertVector(value: unknown): asserts value is number[] {
+  assertVector(value: unknown, code: VectorConversionCode): asserts value is number[] {
+    const meta = { codecId: VECTOR_CODEC_ID, expectedLength: this.length };
     if (!Array.isArray(value)) {
-      throw new Error('Vector value must be an array of numbers');
+      throw pgVectorError(code, 'Vector value must be an array of numbers', { meta });
     }
     for (const element of value) {
       if (typeof element !== 'number') {
-        throw new Error('Vector value must contain only numbers');
+        throw pgVectorError(code, 'Vector value must contain only numbers', { meta });
       }
       if (!Number.isFinite(element)) {
-        throw new Error('Vector value must contain only finite numbers');
+        throw pgVectorError(code, 'Vector value must contain only finite numbers', { meta });
       }
     }
     if (value.length !== this.length) {
-      throw new Error(`Vector length mismatch: expected ${this.length}, got ${value.length}`);
+      throw pgVectorError(
+        code,
+        `Vector length mismatch: expected ${this.length}, got ${value.length}`,
+        {
+          why: `This column is declared as vector(${this.length}); every value must have exactly that many dimensions.`,
+          meta: { ...meta, receivedLength: value.length },
+        },
+      );
     }
   }
 
   async encode(value: number[], _ctx: CodecCallContext): Promise<string> {
-    this.assertVector(value);
+    this.assertVector(value, 'RUNTIME.ENCODE_FAILED');
     return `[${value.join(',')}]`;
   }
 
   async decode(wire: string, _ctx: CodecCallContext): Promise<number[]> {
     if (typeof wire !== 'string') {
-      throw new Error('Vector wire value must be a string');
+      throw pgVectorError('RUNTIME.DECODE_FAILED', 'Vector wire value must be a string', {
+        meta: { codecId: VECTOR_CODEC_ID },
+      });
     }
     const value = parseVector(wire);
-    this.assertVector(value);
+    this.assertVector(value, 'RUNTIME.DECODE_FAILED');
     return value;
   }
 
   encodeJson(value: number[]): JsonValue {
-    this.assertVector(value);
+    this.assertVector(value, 'RUNTIME.ENCODE_FAILED');
     return `[${value.join(',')}]`;
   }
 
   decodeJson(json: JsonValue): number[] {
     if (typeof json !== 'string') {
-      throw new Error('Vector database JSON value must be a string');
+      throw pgVectorError('RUNTIME.DECODE_FAILED', 'Vector database JSON value must be a string', {
+        meta: { codecId: VECTOR_CODEC_ID },
+      });
     }
     const value = parseVector(json);
-    this.assertVector(value);
+    this.assertVector(value, 'RUNTIME.DECODE_FAILED');
     return value;
   }
 }

@@ -8,6 +8,7 @@
 
 import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
 import { POSTGIS_GEOMETRY_CODEC_ID } from '../core/constants';
+import { postgisError } from '../core/errors';
 
 export const geometryColumn = {
   codecId: POSTGIS_GEOMETRY_CODEC_ID,
@@ -21,14 +22,19 @@ export const geometryColumn = {
  *   .column('location', { type: geometry({ srid: 4326 }), nullable: false })
  *   // Produces: nativeType: 'geometry', typeParams: { srid: 4326 }
  *
- * @throws {RangeError} If `srid` is not a non-negative integer.
+ * @throws If `srid` is not a non-negative integer
+ * (structured `CONTRACT.ARGUMENT_INVALID`).
  */
 export function geometry<S extends number>(options: {
   readonly srid: S;
 }): ColumnTypeDescriptor & { readonly typeParams: { readonly srid: S } } {
   const { srid } = options;
   if (!Number.isInteger(srid) || srid < 0) {
-    throw new RangeError(`postgis: srid must be a non-negative integer, got ${srid}`);
+    throw postgisError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `postgis: srid must be a non-negative integer, got ${srid}`,
+      { meta: { helperPath: 'geometry', expected: 'non-negative integer', received: srid } },
+    );
   }
   return {
     codecId: POSTGIS_GEOMETRY_CODEC_ID,

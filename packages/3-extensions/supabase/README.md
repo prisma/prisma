@@ -83,7 +83,7 @@ Bind each request to the role that should run it. `asUser` is async (it verifies
 
 ```ts
 // A signed-in user — RLS scopes rows to auth.uid().
-const userDb = await db.asUser(jwt); // throws InvalidJwtError on a bad token
+const userDb = await db.asUser(jwt); // rejects with code SUPABASE.JWT_INVALID on a bad token
 const mine = await userDb.orm.public.Profile.select('id', 'username').all().toArray();
 
 // The anon role — sees only what anon RLS policies permit.
@@ -105,7 +105,19 @@ const users = await admin.supabase
 - **`jwksUrl`** — the project's JWKS endpoint (`https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json`). **Current Supabase projects sign ES256 with asymmetric keys — this is the default choice.**
 - **`jwtSecret`** — the symmetric HS256 secret, for legacy projects only. `supabase status` prints a `JWT_SECRET` even on ES256 projects; its presence does not mean the project uses it.
 
-Supplying both, or neither, throws `SupabaseConfigError`. A malformed / expired / mis-signed token throws `InvalidJwtError` with a typed `reason` — including an algorithm/key-source mismatch (an ES256 token against a `jwtSecret` client, or an HS256 token against a `jwksUrl` client) with a message naming the fix.
+Supplying both, or neither, throws a structured error with code `SUPABASE.CONFIG_INVALID`. A malformed / expired / mis-signed token throws one with code `SUPABASE.JWT_INVALID` and the underlying reason in `meta.reason` — including an algorithm/key-source mismatch (an ES256 token against a `jwtSecret` client, or an HS256 token against a `jwksUrl` client) with a message naming the fix. Match these errors on their code, never a class:
+
+```ts
+import { isStructuredError } from '@prisma-next/utils/structured-error';
+
+try {
+  await db.asUser(jwt);
+} catch (e) {
+  if (isStructuredError(e) && e.code === 'SUPABASE.JWT_INVALID') {
+    // e.message, e.meta?.reason
+  }
+}
+```
 
 ### Admin reads of `auth.*` / `storage.*`
 

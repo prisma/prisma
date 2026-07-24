@@ -1,4 +1,6 @@
+import { InternalError } from '@prisma-next/utils/internal-error';
 import type { Client, Pool } from 'pg';
+import { postgresError } from '../errors';
 
 export const isPgPool = (pg: Pool | Client): pg is Pool =>
   'totalCount' in pg && 'idleCount' in pg && 'waitingCount' in pg;
@@ -37,18 +39,26 @@ type PostgresBindingFields = {
 function validatePostgresUrl(url: string): string {
   const trimmed = url.trim();
   if (trimmed.length === 0) {
-    throw new Error('Postgres URL must be a non-empty string');
+    throw postgresError('RUNTIME.BINDING_INVALID', 'Postgres URL must be a non-empty string', {
+      meta: { extension: 'postgres', reason: 'empty url' },
+    });
   }
 
   let parsed: URL;
   try {
     parsed = new URL(trimmed);
   } catch {
-    throw new Error('Postgres URL must be a valid URL');
+    throw postgresError('RUNTIME.BINDING_INVALID', 'Postgres URL must be a valid URL', {
+      meta: { extension: 'postgres', reason: 'unparseable url' },
+    });
   }
 
   if (parsed.protocol !== 'postgres:' && parsed.protocol !== 'postgresql:') {
-    throw new Error('Postgres URL must use postgres:// or postgresql://');
+    throw postgresError(
+      'RUNTIME.BINDING_INVALID',
+      'Postgres URL must use postgres:// or postgresql://',
+      { meta: { extension: 'postgres', reason: 'wrong scheme', received: parsed.protocol } },
+    );
   }
 
   return trimmed;
@@ -61,7 +71,14 @@ export function resolvePostgresBinding(options: PostgresBindingInput): PostgresB
     Number(options.pg !== undefined);
 
   if (providedCount !== 1) {
-    throw new Error('Provide one binding input: binding, url, or pg');
+    throw postgresError(
+      'RUNTIME.BINDING_INVALID',
+      'Provide one binding input: binding, url, or pg',
+      {
+        fix: 'Pass exactly one of `binding`, `url`, or `pg`.',
+        meta: { extension: 'postgres', reason: 'zero or multiple binding inputs' },
+      },
+    );
   }
 
   if (options.binding !== undefined) {
@@ -74,7 +91,7 @@ export function resolvePostgresBinding(options: PostgresBindingInput): PostgresB
 
   const pgBinding = options.pg;
   if (pgBinding === undefined) {
-    throw new Error('Invariant violation: expected pg binding after validation');
+    throw new InternalError('Invariant violation: expected pg binding after validation');
   }
 
   if (isPgPool(pgBinding)) {
@@ -85,8 +102,13 @@ export function resolvePostgresBinding(options: PostgresBindingInput): PostgresB
     return { kind: 'pgClient', client: pgBinding };
   }
 
-  throw new Error(
+  throw postgresError(
+    'RUNTIME.BINDING_INVALID',
     'Unable to determine pg binding type from pg input; use binding with explicit kind',
+    {
+      fix: 'Pass `binding: { kind: "pgPool", pool }` or `binding: { kind: "pgClient", client }` instead of `pg`.',
+      meta: { extension: 'postgres', reason: 'unrecognizable pg object' },
+    },
   );
 }
 

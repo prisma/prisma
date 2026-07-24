@@ -1,4 +1,6 @@
+import { InternalError } from '@prisma-next/utils/internal-error';
 import type { MongoClient as MongoDriverClient } from 'mongodb';
+import { mongoError } from './mongo-errors';
 
 export type MongoBinding =
   | { readonly kind: 'url'; readonly url: string; readonly dbName: string }
@@ -49,18 +51,18 @@ type MongoBindingFields = {
 function validateMongoUrl(url: string): URL {
   const trimmed = url.trim();
   if (trimmed.length === 0) {
-    throw new Error('Mongo URL must be a non-empty string');
+    throw mongoError('RUNTIME.BINDING_INVALID', 'Mongo URL must be a non-empty string');
   }
 
   let parsed: URL;
   try {
     parsed = new URL(trimmed);
   } catch {
-    throw new Error('Mongo URL must be a valid URL');
+    throw mongoError('RUNTIME.BINDING_INVALID', 'Mongo URL must be a valid URL');
   }
 
   if (parsed.protocol !== 'mongodb:' && parsed.protocol !== 'mongodb+srv:') {
-    throw new Error('Mongo URL must use mongodb:// or mongodb+srv://');
+    throw mongoError('RUNTIME.BINDING_INVALID', 'Mongo URL must use mongodb:// or mongodb+srv://');
   }
 
   return parsed;
@@ -85,7 +87,11 @@ export function resolveMongoBinding(options: MongoBindingInput): MongoBinding {
     Number(options.mongoClient !== undefined);
 
   if (providedCount !== 1) {
-    throw new Error('Provide one binding input: binding, url, uri+dbName, or mongoClient+dbName');
+    throw mongoError(
+      'RUNTIME.BINDING_INVALID',
+      'Provide one binding input: binding, url, uri+dbName, or mongoClient+dbName',
+      { meta: { received: providedCount } },
+    );
   }
 
   if (options.binding !== undefined) {
@@ -100,7 +106,10 @@ export function resolveMongoBinding(options: MongoBindingInput): MongoBinding {
     // `{ uri, dbName }` and `{ mongoClient, dbName }` paths, where an
     // empty trimmed dbName is already a fast failure.
     if (options.dbName !== undefined && options.dbName.trim().length === 0) {
-      throw new Error('Mongo binding via { url, dbName } requires a non-empty dbName');
+      throw mongoError(
+        'RUNTIME.BINDING_INVALID',
+        'Mongo binding via { url, dbName } requires a non-empty dbName',
+      );
     }
     const explicitDbName = options.dbName?.trim();
     const dbName =
@@ -108,7 +117,8 @@ export function resolveMongoBinding(options: MongoBindingInput): MongoBinding {
         ? explicitDbName
         : extractDbNameFromUrl(parsed);
     if (dbName === undefined || dbName.length === 0) {
-      throw new Error(
+      throw mongoError(
+        'RUNTIME.BINDING_INVALID',
         'Mongo URL must include a database name in its path (e.g. mongodb://host:27017/mydb), or pass dbName explicitly',
       );
     }
@@ -119,18 +129,24 @@ export function resolveMongoBinding(options: MongoBindingInput): MongoBinding {
     validateMongoUrl(options.uri);
     const dbName = options.dbName?.trim();
     if (dbName === undefined || dbName.length === 0) {
-      throw new Error('Mongo binding via { uri, dbName } requires a non-empty dbName');
+      throw mongoError(
+        'RUNTIME.BINDING_INVALID',
+        'Mongo binding via { uri, dbName } requires a non-empty dbName',
+      );
     }
     return { kind: 'url', url: options.uri.trim(), dbName };
   }
 
   const mongoClient = options.mongoClient;
   if (mongoClient === undefined) {
-    throw new Error('Invariant violation: expected mongo binding after validation');
+    throw new InternalError('Invariant violation: expected mongo binding after validation');
   }
   const dbName = options.dbName?.trim();
   if (dbName === undefined || dbName.length === 0) {
-    throw new Error('Mongo binding via { mongoClient, dbName } requires a non-empty dbName');
+    throw mongoError(
+      'RUNTIME.BINDING_INVALID',
+      'Mongo binding via { mongoClient, dbName } requires a non-empty dbName',
+    );
   }
   return { kind: 'mongoClient', client: mongoClient, dbName };
 }
@@ -151,7 +167,11 @@ export function resolveOptionalMongoBinding(options: MongoBindingFields): MongoB
   // `options as MongoBindingInput` cast hid drift between `MongoBindingFields`
   // (any combination of optional inputs) and `MongoBindingInput` (exactly one).
   if (providedCount !== 1) {
-    throw new Error('Provide one binding input: binding, url, uri+dbName, or mongoClient+dbName');
+    throw mongoError(
+      'RUNTIME.BINDING_INVALID',
+      'Provide one binding input: binding, url, uri+dbName, or mongoClient+dbName',
+      { meta: { received: providedCount } },
+    );
   }
   if (options.binding !== undefined) {
     return resolveMongoBinding({ binding: options.binding });
@@ -177,5 +197,5 @@ export function resolveOptionalMongoBinding(options: MongoBindingFields): MongoB
   // `return undefined` here would silently mask a future
   // `MongoBindingFields` extension that adds a fifth input, so we
   // surface it as an invariant rather than a missing binding.
-  throw new Error('Invariant violation: expected one mongo binding branch');
+  throw new InternalError('Invariant violation: expected one mongo binding branch');
 }

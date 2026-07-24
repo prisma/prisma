@@ -48,6 +48,7 @@ export type ArktypeJsonTypeParams = {
 
 type ArktypeSchemaLike = ((value: unknown) => unknown) & {
   readonly expression: string;
+  readonly json?: unknown;
 };
 
 function isArktypeSchemaLike(value: unknown): value is ArktypeSchemaLike {
@@ -69,10 +70,24 @@ function validateSchema<TInferred>(schema: ArktypeSchemaLike, value: unknown): T
 }
 
 function serializeWire<TInferred>(value: TInferred): string {
-  const wire: string | undefined = JSON.stringify(value);
+  let wire: string | undefined;
+  try {
+    wire = JSON.stringify(value);
+  } catch (error) {
+    throw Object.assign(
+      runtimeError(
+        'RUNTIME.ENCODE_FAILED',
+        `arktype-json value could not be serialized to JSON (codecId: ${ARKTYPE_JSON_CODEC_ID})`,
+        { codecId: ARKTYPE_JSON_CODEC_ID },
+      ),
+      { cause: error },
+    );
+  }
   if (typeof wire !== 'string') {
-    throw new Error(
+    throw runtimeError(
+      'RUNTIME.ENCODE_FAILED',
       `arktype-json value is not representable as JSON (codecId: ${ARKTYPE_JSON_CODEC_ID})`,
+      { codecId: ARKTYPE_JSON_CODEC_ID },
     );
   }
   return wire;
@@ -229,21 +244,27 @@ export const arktypeJsonDescriptor = new ArktypeJsonDescriptor();
  *
  * Eager serialization at this call site captures `expression` (for the emit-path renderer) and `jsonIr` (for runtime rehydration via the descriptor's factory).
  *
- * @throws {Error} if the schema doesn't expose `expression` and `json` fields (i.e. is not an arktype `Type`). Validates the schema shape at the call site so configuration errors surface during contract authoring, not at runtime.
+ * @throws `CONTRACT.ARGUMENT_INVALID` if the schema doesn't expose `expression` and `json` fields (i.e. is not an arktype `Type`). Validates the schema shape at the call site so configuration errors surface during contract authoring, not at runtime.
  */
 export function arktypeJsonColumn<S extends Type<unknown>>(
   schema: S,
 ): ColumnSpec<ArktypeJsonCodecClass<S['infer']>, ArktypeJsonTypeParams> {
   if (!isArktypeSchemaLike(schema)) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
       typeof schema !== 'function'
         ? 'arktypeJsonColumn(schema) expects a callable arktype Type.'
         : 'arktypeJsonColumn(schema) expects an arktype Type (missing `expression: string`).',
+      { helperPath: 'arktypeJsonColumn', expected: 'arktype Type', received: typeof schema },
     );
   }
-  const jsonIr: unknown = (schema as { readonly json?: unknown }).json;
+  const jsonIr: unknown = schema.json;
   if (jsonIr === null || typeof jsonIr !== 'object') {
-    throw new Error('arktypeJsonColumn(schema) expects an arktype Type (missing `json` IR).');
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
+      'arktypeJsonColumn(schema) expects an arktype Type (missing `json` IR).',
+      { helperPath: 'arktypeJsonColumn', expected: 'arktype Type', received: typeof jsonIr },
+    );
   }
   const params: ArktypeJsonTypeParams = { expression: schema.expression, jsonIr };
   return column(

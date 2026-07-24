@@ -16,12 +16,12 @@ describe('postgis geojson constructors', () => {
     });
 
     it('rejects NaN coordinates', () => {
-      expect(() => point(Number.NaN, 0)).toThrow(RangeError);
+      expect(() => point(Number.NaN, 0)).toThrow('finite');
       expect(() => point(0, Number.NaN)).toThrow('finite');
     });
 
     it('rejects Infinity coordinates', () => {
-      expect(() => point(Number.POSITIVE_INFINITY, 0)).toThrow(RangeError);
+      expect(() => point(Number.POSITIVE_INFINITY, 0)).toThrow('finite');
       expect(() => point(0, Number.NEGATIVE_INFINITY)).toThrow('finite');
     });
   });
@@ -92,7 +92,7 @@ describe('postgis geojson constructors', () => {
           [1, 1],
           [0, 0],
         ]),
-      ).toThrow(RangeError);
+      ).toThrow('finite');
     });
 
     it('rejects Infinity coordinates', () => {
@@ -134,12 +134,12 @@ describe('postgis geojson constructors', () => {
     });
 
     it('rejects NaN coordinates', () => {
-      expect(() => bboxPolygon([Number.NaN, 0, 10, 10])).toThrow(RangeError);
+      expect(() => bboxPolygon([Number.NaN, 0, 10, 10])).toThrow('finite');
       expect(() => bboxPolygon([0, 0, 10, Number.NaN])).toThrow('finite');
     });
 
     it('rejects Infinity coordinates', () => {
-      expect(() => bboxPolygon([Number.NEGATIVE_INFINITY, 0, 10, 10])).toThrow(RangeError);
+      expect(() => bboxPolygon([Number.NEGATIVE_INFINITY, 0, 10, 10])).toThrow('finite');
       expect(() => bboxPolygon([0, 0, Number.POSITIVE_INFINITY, 10])).toThrow('finite');
     });
   });

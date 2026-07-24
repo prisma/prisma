@@ -25,8 +25,9 @@ vi.mock('pg', () => {
   return { Pool, Client };
 });
 
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { Pool } from 'pg';
-import supabase, { InvalidJwtError, SupabaseConfigError } from '../src/runtime/supabase';
+import supabase from '../src/runtime/supabase';
 
 function stubPlan(): SqlQueryPlan {
   return {
@@ -91,24 +92,38 @@ beforeEach(() => {
 });
 
 describe('supabase() factory — config validation', () => {
-  it('rejects with SupabaseConfigError when both jwtSecret and jwksUrl provided', async () => {
-    await expect(
-      supabase({
-        contract,
-        url: 'postgres://localhost/db',
-        jwtSecret: fixtureJwt,
-        jwksUrl: 'https://example.com/.well-known/jwks.json',
-      } as unknown as Parameters<typeof supabase<typeof contract>>[0]),
-    ).rejects.toThrow(SupabaseConfigError);
+  it('rejects with SUPABASE.CONFIG_INVALID when both jwtSecret and jwksUrl provided', async () => {
+    const failure = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+      jwtSecret: fixtureJwt,
+      jwksUrl: 'https://example.com/.well-known/jwks.json',
+    } as unknown as Parameters<typeof supabase<typeof contract>>[0]).then(
+      () => undefined,
+      (err: unknown) => err,
+    );
+
+    expect(isStructuredError(failure)).toBe(true);
+    expect(failure).toMatchObject({
+      code: 'SUPABASE.CONFIG_INVALID',
+      message: 'Provide either jwtSecret or jwksUrl, not both',
+    });
   });
 
-  it('rejects with SupabaseConfigError when neither jwtSecret nor jwksUrl provided', async () => {
-    await expect(
-      supabase({
-        contract,
-        url: 'postgres://localhost/db',
-      } as unknown as Parameters<typeof supabase<typeof contract>>[0]),
-    ).rejects.toThrow(SupabaseConfigError);
+  it('rejects with SUPABASE.CONFIG_INVALID when neither jwtSecret nor jwksUrl provided', async () => {
+    const failure = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+    } as unknown as Parameters<typeof supabase<typeof contract>>[0]).then(
+      () => undefined,
+      (err: unknown) => err,
+    );
+
+    expect(isStructuredError(failure)).toBe(true);
+    expect(failure).toMatchObject({
+      code: 'SUPABASE.CONFIG_INVALID',
+      message: 'Either jwtSecret or jwksUrl is required',
+    });
   });
 });
 
@@ -129,7 +144,7 @@ describe('supabase() factory — asUser', () => {
     await db.close();
   });
 
-  it('rejects with InvalidJwtError for a JWT signed with the wrong secret', async () => {
+  it('rejects with SUPABASE.JWT_INVALID for a JWT signed with the wrong secret', async () => {
     const jwt = await makeJwt(
       { sub: 'user-1', role: 'authenticated' },
       'wrong-secret-that-is-long-enough',
@@ -140,13 +155,18 @@ describe('supabase() factory — asUser', () => {
       jwtSecret: fixtureJwt,
     });
 
-    await expect(db.asUser(jwt)).rejects.toThrow(InvalidJwtError);
+    const failure = await db.asUser(jwt).then(
+      () => undefined,
+      (err: unknown) => err,
+    );
+    expect(isStructuredError(failure)).toBe(true);
+    expect(failure).toMatchObject({ code: 'SUPABASE.JWT_INVALID' });
     // No pg activity — pool.connect never called
     expect(poolConnectSpy()).not.toHaveBeenCalled();
     await db.close();
   });
 
-  it('rejects with InvalidJwtError for an expired JWT', async () => {
+  it('rejects with SUPABASE.JWT_INVALID for an expired JWT', async () => {
     const jwt = await makeJwt({ sub: 'user-1', role: 'authenticated' }, fixtureJwt, '-1s');
     const db = await supabase({
       contract,
@@ -154,7 +174,7 @@ describe('supabase() factory — asUser', () => {
       jwtSecret: fixtureJwt,
     });
 
-    await expect(db.asUser(jwt)).rejects.toThrow(InvalidJwtError);
+    await expect(db.asUser(jwt)).rejects.toMatchObject({ code: 'SUPABASE.JWT_INVALID' });
     expect(poolConnectSpy()).not.toHaveBeenCalled();
     await db.close();
   });
@@ -177,7 +197,7 @@ describe('supabase() factory — asUser', () => {
       () => undefined,
       (err: unknown) => err,
     );
-    expect(failure).toBeInstanceOf(InvalidJwtError);
+    expect(isStructuredError(failure) && failure.code === 'SUPABASE.JWT_INVALID').toBe(true);
     const message = failure instanceof Error ? failure.message : '';
     expect(message).toContain('ES256');
     expect(message).toContain('jwtSecret');
@@ -202,7 +222,7 @@ describe('supabase() factory — asUser', () => {
       () => undefined,
       (err: unknown) => err,
     );
-    expect(failure).toBeInstanceOf(InvalidJwtError);
+    expect(isStructuredError(failure) && failure.code === 'SUPABASE.JWT_INVALID').toBe(true);
     const message = failure instanceof Error ? failure.message : '';
     expect(message).toContain('HS256');
     expect(message).toContain('jwksUrl');

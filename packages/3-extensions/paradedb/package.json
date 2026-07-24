@@ -25,6 +25,7 @@
     "@prisma-next/sql-operations": "workspace:0.16.0",
     "@prisma-next/sql-relational-core": "workspace:0.16.0",
     "@prisma-next/sql-runtime": "workspace:0.16.0",
+    "@prisma-next/utils": "workspace:0.16.0",
     "arktype": "^2.2.2"
   },
   "devDependencies": {

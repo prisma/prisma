@@ -2,6 +2,7 @@ import type { ScalarFieldBuilder } from '@prisma-next/sql-contract-ts/contract-b
 import { POLICY_OPERATION_PREDICATES } from '@prisma-next/target-postgres/rls-canonicalize';
 import type { RlsPolicyOperation } from '@prisma-next/target-postgres/types';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { postgresError } from '../errors';
 
 /**
  * Structural shape of the model handles the RLS helpers accept: any named
@@ -92,7 +93,10 @@ export type RlsUsingWithCheckPolicyDescriptor =
 
 function assertNonEmptyName(helper: string, name: string): void {
   if (name.trim().length === 0) {
-    throw new Error(`${helper}: name must be a non-empty string.`);
+    throw postgresError('CONTRACT.POLICY_INVALID', `${helper}: name must be a non-empty string.`, {
+      fix: 'Pass a non-empty policy name.',
+      meta: { policyName: name, reason: 'empty name' },
+    });
   }
 }
 
@@ -127,15 +131,25 @@ function buildPolicyHandle<Operation extends RlsPolicyOperation>(
         ? '`using` only'
         : '`withCheck` only';
   const rejectPredicate = (predicate: 'using' | 'withCheck'): never => {
-    throw new Error(
+    throw postgresError(
+      'CONTRACT.POLICY_INVALID',
       `${helper}: policy "${descriptor.name}" does not take a \`${predicate}\` predicate; the ${operation.toUpperCase()} operation uses ${supported}.`,
+      {
+        fix: `Use only the predicates the ${operation.toUpperCase()} operation supports: ${supported}.`,
+        meta: { policyName: descriptor.name, reason: `unsupported \`${predicate}\` predicate` },
+      },
     );
   };
   if (descriptor.using !== undefined && !support.using) rejectPredicate('using');
   if (descriptor.withCheck !== undefined && !support.withCheck) rejectPredicate('withCheck');
   if (descriptor.using === undefined && descriptor.withCheck === undefined) {
-    throw new Error(
+    throw postgresError(
+      'CONTRACT.POLICY_INVALID',
       `${helper}: policy "${descriptor.name}" requires at least one predicate; the ${operation.toUpperCase()} operation uses ${supported}.`,
+      {
+        fix: `Provide at least one predicate: ${supported}.`,
+        meta: { policyName: descriptor.name, reason: 'no predicate given' },
+      },
     );
   }
 

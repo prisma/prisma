@@ -31,6 +31,7 @@
     "@prisma-next/migration-tools": "workspace:0.16.0",
     "@prisma-next/sql-contract-psl": "workspace:0.16.0",
     "@prisma-next/test-utils": "workspace:0.16.0",
+    "@prisma-next/utils": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

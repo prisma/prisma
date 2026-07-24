@@ -18,7 +18,9 @@ import type {
 import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { Client } from 'pg';
+import { postgresError } from '../errors';
 import type { PostgresTargetId } from './postgres';
 import { PostgresRuntimeImpl } from './postgres-runtime';
 
@@ -76,7 +78,9 @@ function resolveContract<TContract extends Contract<SqlStorage>>(
 function validateConnectionString(url: string): string {
   const trimmed = url.trim();
   if (trimmed.length === 0) {
-    throw new Error('Postgres URL must be a non-empty string');
+    throw postgresError('RUNTIME.BINDING_INVALID', 'Postgres URL must be a non-empty string', {
+      meta: { extension: 'postgres', reason: 'empty url' },
+    });
   }
   return trimmed;
 }
@@ -142,7 +146,7 @@ export default function postgresServerless<TContract extends Contract<SqlStorage
 
       const driverDescriptor = stack.driver;
       if (!driverDescriptor) {
-        throw new Error('Driver descriptor missing from execution stack');
+        throw new InternalError('Driver descriptor missing from execution stack');
       }
 
       const stackInstance = instantiateExecutionStack(stack);

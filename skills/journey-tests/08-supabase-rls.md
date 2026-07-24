@@ -17,7 +17,7 @@
 - [ ] Emits + migrates; does not expect DDL for `auth.*`.
 - [ ] Mentions the one-time `GRANT`s for `anon` / `authenticated` on the table.
 - [ ] Handler code binds a role first: `await db.asUser(jwt)` for the update path, `db.asAnon()` for the browse path — no top-level `db.orm` / `db.sql`.
-- [ ] `asUser` failure handling names `InvalidJwtError`.
+- [ ] `asUser` failure handling matches the structured code `SUPABASE.JWT_INVALID` (via `isStructuredError`), not a class.
 
 ## Success criteria
 

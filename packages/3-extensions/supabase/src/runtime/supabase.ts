@@ -34,6 +34,7 @@ import {
 import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { createRemoteJWKSet, decodeProtectedHeader, type JWTVerifyResult, jwtVerify } from 'jose';
 import type { Client } from 'pg';
 import { Pool } from 'pg';
@@ -41,25 +42,13 @@ import extensionContractJson from '../contract/contract.json' with { type: 'json
 import { isSupabaseRole, SUPABASE_JWT_ROLE_CLAIM, SupabaseRole } from '../contract/roles';
 import { supabaseRuntimeDescriptor } from './descriptor';
 import type { SupabaseExtensionContract } from './ext-contract-type';
+import { supabaseError } from './supabase-errors';
 import type { SupabaseRoleBinding, SupabaseRuntime } from './supabase-runtime';
 import { SupabaseRuntimeImpl } from './supabase-runtime';
 
 export type SupabaseTargetId = 'postgres';
 
 type OrmClient<TContract extends Contract<SqlStorage>> = ReturnType<typeof orm<TContract>>;
-
-export class SupabaseConfigError extends Error {
-  override readonly name = 'SupabaseConfigError';
-}
-
-export class InvalidJwtError extends Error {
-  override readonly name = 'InvalidJwtError';
-  readonly reason: string;
-  constructor(reason: string) {
-    super(`Invalid JWT: ${reason}`);
-    this.reason = reason;
-  }
-}
 
 type KeyMaterial =
   | { readonly kind: 'secret'; readonly key: Uint8Array }
@@ -188,10 +177,13 @@ function resolveKeyMaterial<TContract extends Contract<SqlStorage>>(
   const jwksUrl = 'jwksUrl' in options ? options.jwksUrl : undefined;
 
   if (jwtSecret !== undefined && jwksUrl !== undefined) {
-    throw new SupabaseConfigError('Provide either jwtSecret or jwksUrl, not both');
-  }
-  if (jwtSecret === undefined && jwksUrl === undefined) {
-    throw new SupabaseConfigError('Either jwtSecret or jwksUrl is required');
+    throw supabaseError(
+      'SUPABASE.CONFIG_INVALID',
+      'Provide either jwtSecret or jwksUrl, not both',
+      {
+        meta: { reason: 'both jwtSecret and jwksUrl provided' },
+      },
+    );
   }
 
   if (jwtSecret !== undefined) {
@@ -202,7 +194,9 @@ function resolveKeyMaterial<TContract extends Contract<SqlStorage>>(
     return { kind: 'jwks', keyset: createRemoteJWKSet(new URL(jwksUrl)) };
   }
 
-  throw new SupabaseConfigError('Either jwtSecret or jwksUrl is required');
+  throw supabaseError('SUPABASE.CONFIG_INVALID', 'Either jwtSecret or jwksUrl is required', {
+    meta: { reason: 'neither jwtSecret nor jwksUrl provided' },
+  });
 }
 
 /**
@@ -312,7 +306,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
   const stackInstance = instantiateExecutionStack(stack);
   const driverDescriptor = stack.driver;
   if (!driverDescriptor) {
-    throw new Error('Driver descriptor missing from execution stack');
+    throw new InternalError('Driver descriptor missing from execution stack');
   }
   const driver = driverDescriptor.create({ cursor: { disabled: true } });
 
@@ -331,7 +325,9 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
   async function verifyJwt(jwt: string): Promise<JWTVerifyResult> {
     const mismatch = algKeyMismatchReason(jwt, keyMaterial.kind);
     if (mismatch !== undefined) {
-      throw new InvalidJwtError(mismatch);
+      throw supabaseError('SUPABASE.JWT_INVALID', `Invalid JWT: ${mismatch}`, {
+        meta: { reason: mismatch },
+      });
     }
     try {
       if (keyMaterial.kind === 'secret') {
@@ -340,7 +336,10 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
       return await jwtVerify(jwt, keyMaterial.keyset);
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
-      throw new InvalidJwtError(reason);
+      throw supabaseError('SUPABASE.JWT_INVALID', `Invalid JWT: ${reason}`, {
+        meta: { reason },
+        cause: err,
+      });
     }
   }
 

@@ -23,6 +23,9 @@ Namespaces:
 | `PLAN` | Query plan constraints |
 | `BUDGET` | Query budget violations |
 | `LINT` | Query lint findings |
+| `PARADEDB` | ParadeDB extension: search-function arguments |
+| `POSTGIS` | PostGIS extension: geometry construction and validation |
+| `SUPABASE` | Supabase extension: config wiring and JWT handling |
 
 ## CONFIG
 
@@ -460,6 +463,14 @@ A lowered SQL AST is structurally invalid at render time: a subquery projecting 
 
 The authored SQL AST uses a feature this target cannot render — currently DEFAULT as a value in INSERT … VALUES on SQLite. Meta: `node`.
 
+### RUNTIME.BINDING_INVALID
+
+A target facade client (`@prisma-next/postgres`, `@prisma-next/sqlite`, `@prisma-next/mongo`) received a connection binding whose shape is wrong for the target — malformed connection string, unsupported binding kind, or missing required fields. Raised at `connect(...)` / client construction. Meta: `received`, `reason`.
+
+### RUNTIME.BINDING_MISSING
+
+A target facade client was asked to connect with no binding at all (no connection string, no environment fallback). Meta: `expected`.
+
 ### RUNTIME.CODEC_DESCRIPTOR_MISSING
 
 A column (or AST-carried CodecRef) references a `codecId` for which no runtime component registered a codec descriptor — usually the extension pack that owns the codec is missing from the runtime stack. Surfaces at SQL context construction during the contract codec walk, or lazily when the AST codec resolver materializes a codec at query time. Meta: `codecId`; on the column path also `table`, `column`.
@@ -588,11 +599,11 @@ A parameterized codec's `paramsSchema` rejected the `typeParams` carried by a co
 
 ### DRIVER.ALREADY_CONNECTED
 
-Calling `connect(binding)` on a Postgres or SQLite driver that is already connected. Close the driver with `close()` before reconnecting with a new binding. Meta: `bindingKind`.
+Calling `connect(binding)` on a driver — or `connect()` on a target facade client (Postgres, SQLite, Mongo) — that is already connected. Close with `close()` before reconnecting with a new binding. Meta: `bindingKind`.
 
 ### DRIVER.NOT_CONNECTED
 
-Using a Postgres or SQLite driver before `connect(binding)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating an execute result.
+Using a driver or a target facade client before `connect(...)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating an execute result.
 
 ## MIGRATION
 
@@ -977,3 +988,25 @@ The `lints` middleware found a query that selects all columns — via the builde
 ### LINT.UPDATE_WITHOUT_WHERE
 
 The `lints` middleware found an UPDATE plan with no WHERE clause and blocks execution to prevent an accidental full-table update. Default severity is error (throws); configurable to warn. Meta: `table`.
+
+## PARADEDB
+
+### PARADEDB.ARGUMENT_INVALID
+
+A ParadeDB search-function helper received an invalid argument — a malformed query object, an out-of-range numeric option, or an option combination the function does not accept. Raised while authoring/lowering the search expression. Meta: `helper`, `argument`, `received`.
+
+## POSTGIS
+
+### POSTGIS.GEOMETRY_INVALID
+
+A PostGIS geometry constructor (`point`, `polygon`, `bboxPolygon`, …) received invalid input: non-finite coordinates, a ring that is not closed, too few points, or a malformed bounding box. Raised at construction time, before the value reaches the database. Meta: `constructor`, `received`, `reason`.
+
+## SUPABASE
+
+### SUPABASE.CONFIG_INVALID
+
+The Supabase extension's runtime configuration is invalid — missing or contradictory connection/auth settings (formerly the `SupabaseConfigError` class, removed at 0.17). Meta: `reason`.
+
+### SUPABASE.JWT_INVALID
+
+A JWT handed to the Supabase runtime failed validation — malformed token, missing claims, or signature/JWKS mismatch (formerly the `InvalidJwtError` class, removed at 0.17). Meta: `reason`.

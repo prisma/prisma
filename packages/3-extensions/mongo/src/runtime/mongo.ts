@@ -18,6 +18,7 @@ import {
   resolveMongoBinding,
   resolveOptionalMongoBinding,
 } from './binding';
+import { mongoError } from './mongo-errors';
 
 export type MongoTargetId = 'mongo';
 
@@ -146,14 +147,15 @@ export default function mongo<
 
   const getRuntime = (): Promise<MongoRuntime> => {
     if (closed) {
-      return Promise.reject(new Error('Mongo client is closed'));
+      return Promise.reject(mongoError('DRIVER.NOT_CONNECTED', 'Mongo client is closed'));
     }
     if (runtimePromise !== undefined) {
       return runtimePromise;
     }
     if (binding === undefined) {
       return Promise.reject(
-        new Error(
+        mongoError(
+          'RUNTIME.BINDING_MISSING',
           'Mongo binding not configured. Pass url/uri+dbName/mongoClient+dbName/binding to mongo(...) or call db.connect({ ... }).',
         ),
       );
@@ -191,16 +193,17 @@ export default function mongo<
 
     async connect(bindingInput?: MongoBindingInput): Promise<MongoRuntime> {
       if (closed) {
-        throw new Error('Mongo client is closed');
+        throw mongoError('DRIVER.NOT_CONNECTED', 'Mongo client is closed');
       }
       if (runtimePromise !== undefined) {
-        throw new Error('Mongo client already connected');
+        throw mongoError('DRIVER.ALREADY_CONNECTED', 'Mongo client already connected');
       }
       if (bindingInput !== undefined) {
         binding = resolveMongoBinding(bindingInput);
       }
       if (binding === undefined) {
-        throw new Error(
+        throw mongoError(
+          'RUNTIME.BINDING_MISSING',
           'Mongo binding not configured. Pass url/uri+dbName/mongoClient+dbName/binding to mongo(...) or call db.connect({ ... }).',
         );
       }

@@ -29,7 +29,9 @@ import {
 } from '@prisma-next/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { type Client, Pool } from 'pg';
+import { postgresError } from '../errors';
 import { buildPostgresStaticContext } from '../static/postgres-static';
 import {
   type PostgresBinding,
@@ -193,7 +195,7 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
 
   const connectDriver = async (resolvedBinding: PostgresBinding): Promise<void> => {
     if (driverConnected) return;
-    if (!runtimeDriver) throw new Error('Postgres runtime driver missing');
+    if (!runtimeDriver) throw new InternalError('Postgres runtime driver missing');
     if (connectPromise) return connectPromise;
     const runtimeBinding = toRuntimeBinding(resolvedBinding, options);
     if (resolvedBinding.kind === 'url' && runtimeBinding.kind === 'pgPool') {
@@ -221,7 +223,11 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
 
   const getRuntime = (): Runtime => {
     if (closed) {
-      throw new Error('Postgres client is closed');
+      throw postgresError('DRIVER.NOT_CONNECTED', 'Postgres client is closed', {
+        why: 'close() was called on this client.',
+        fix: 'Create a new postgres(...) client.',
+        meta: { extension: 'postgres' },
+      });
     }
 
     if (backgroundConnectError !== undefined) {
@@ -235,7 +241,7 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     const stackInstance = instantiateExecutionStack(stack);
     const driverDescriptor = stack.driver;
     if (!driverDescriptor) {
-      throw new Error('Driver descriptor missing from execution stack');
+      throw new InternalError('Driver descriptor missing from execution stack');
     }
 
     const driver = driverDescriptor.create({
@@ -281,11 +287,18 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
 
     async connect(bindingInput) {
       if (closed) {
-        throw new Error('Postgres client is closed');
+        throw postgresError('DRIVER.NOT_CONNECTED', 'Postgres client is closed', {
+          why: 'close() was called on this client.',
+          fix: 'Create a new postgres(...) client.',
+          meta: { extension: 'postgres' },
+        });
       }
 
       if (driverConnected || connectPromise) {
-        throw new Error('Postgres client already connected');
+        throw postgresError('DRIVER.ALREADY_CONNECTED', 'Postgres client already connected', {
+          fix: 'Call connect() at most once per client.',
+          meta: { extension: 'postgres' },
+        });
       }
 
       if (bindingInput !== undefined) {
@@ -293,8 +306,10 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
       }
 
       if (binding === undefined) {
-        throw new Error(
+        throw postgresError(
+          'RUNTIME.BINDING_MISSING',
           'Postgres binding not configured. Pass url/pg/binding to postgres(...) or call db.connect({ ... }).',
+          { meta: { extension: 'postgres' } },
         );
       }
 

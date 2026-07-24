@@ -11,6 +11,7 @@
 
 import type { CodecInstanceContext } from '@prisma-next/framework-components/codec';
 import type { SqlCodecCallContext } from '@prisma-next/sql-relational-core/ast';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
@@ -251,5 +252,99 @@ describe('arktypeJsonDescriptor.factory(params)', () => {
   it('accepts matching typeParams.expression without complaint', () => {
     const col = arktypeJsonColumn(productSchema);
     expect(() => arktypeJsonDescriptor.factory(col.typeParams)).not.toThrow();
+  });
+});
+
+describe('structured error codes', () => {
+  it('encode of a non-JSON-representable value raises RUNTIME.ENCODE_FAILED', async () => {
+    const codec = arktypeJsonColumn(type('object')).codecFactory(SYNTH_CTX);
+
+    const error = await codec.encode(undefined as never, CALL_CTX).then(
+      () => {
+        throw new Error('expected encode to reject');
+      },
+      (err: unknown) => err,
+    );
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.ENCODE_FAILED',
+      message: `arktype-json value is not representable as JSON (codecId: ${ARKTYPE_JSON_CODEC_ID})`,
+      details: { codecId: ARKTYPE_JSON_CODEC_ID },
+    });
+  });
+
+  it('encode of a value JSON.stringify throws on raises RUNTIME.ENCODE_FAILED', async () => {
+    const codec = arktypeJsonColumn(type('object')).codecFactory(SYNTH_CTX);
+
+    const error = await codec.encode({ big: 1n } as never, CALL_CTX).then(
+      () => {
+        throw new Error('expected encode to reject');
+      },
+      (err: unknown) => err,
+    );
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.ENCODE_FAILED',
+      message: `arktype-json value could not be serialized to JSON (codecId: ${ARKTYPE_JSON_CODEC_ID})`,
+      details: { codecId: ARKTYPE_JSON_CODEC_ID },
+      cause: expect.any(TypeError),
+    });
+  });
+
+  it('encodeJson of a non-JSON-representable value raises RUNTIME.ENCODE_FAILED', () => {
+    const codec = arktypeJsonColumn(type('object')).codecFactory(SYNTH_CTX);
+
+    let error: unknown;
+    try {
+      codec.encodeJson(undefined as never);
+    } catch (err) {
+      error = err;
+    }
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({ code: 'RUNTIME.ENCODE_FAILED' });
+  });
+
+  it('arktypeJsonColumn with a non-callable schema raises CONTRACT.ARGUMENT_INVALID', () => {
+    let error: unknown;
+    try {
+      arktypeJsonColumn({} as never);
+    } catch (err) {
+      error = err;
+    }
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: 'arktypeJsonColumn(schema) expects a callable arktype Type.',
+      details: { helperPath: 'arktypeJsonColumn', received: 'object' },
+    });
+  });
+
+  it('arktypeJsonColumn with a callable lacking `expression` raises CONTRACT.ARGUMENT_INVALID', () => {
+    let error: unknown;
+    try {
+      arktypeJsonColumn((() => undefined) as never);
+    } catch (err) {
+      error = err;
+    }
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: 'arktypeJsonColumn(schema) expects an arktype Type (missing `expression: string`).',
+    });
+  });
+
+  it('arktypeJsonColumn with a schema lacking `json` IR raises CONTRACT.ARGUMENT_INVALID', () => {
+    const fake = Object.assign(() => undefined, { expression: 'object' });
+    let error: unknown;
+    try {
+      arktypeJsonColumn(fake as never);
+    } catch (err) {
+      error = err;
+    }
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: 'arktypeJsonColumn(schema) expects an arktype Type (missing `json` IR).',
+    });
   });
 });

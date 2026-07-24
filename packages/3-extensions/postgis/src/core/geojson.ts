@@ -6,6 +6,8 @@
  * value shapes; the public type re-export lives in `exports/geojson.ts`.
  */
 
+import { postgisError } from './errors';
+
 export type Position = readonly [number, number];
 
 export type GeometryPoint = {
@@ -60,7 +62,9 @@ export type Geometry =
  */
 export function point(longitude: number, latitude: number, srid?: number): GeometryPoint {
   if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
-    throw new RangeError('point: coordinates must be finite numbers');
+    throw postgisError('POSTGIS.GEOMETRY_INVALID', 'point: coordinates must be finite numbers', {
+      meta: { helper: 'point', reason: 'non-finite coordinates' },
+    });
   }
   return srid !== undefined
     ? { type: 'Point', coordinates: [longitude, latitude], srid }
@@ -73,22 +77,36 @@ export function point(longitude: number, latitude: number, srid?: number): Geome
  */
 export function polygon(ring: ReadonlyArray<Position>, srid?: number): GeometryPolygon {
   if (ring.length < 3) {
-    throw new Error('polygon: ring must contain at least 3 positions');
+    throw postgisError(
+      'POSTGIS.GEOMETRY_INVALID',
+      'polygon: ring must contain at least 3 positions',
+      { meta: { helper: 'polygon', reason: 'ring under 3 positions' } },
+    );
   }
   const first = ring[0];
   const last = ring[ring.length - 1];
   if (!first || !last) {
-    throw new Error('polygon: ring positions cannot be undefined');
+    throw postgisError('POSTGIS.GEOMETRY_INVALID', 'polygon: ring positions cannot be undefined', {
+      meta: { helper: 'polygon', reason: 'undefined ring position' },
+    });
   }
   for (const position of ring) {
     if (!Number.isFinite(position[0]) || !Number.isFinite(position[1])) {
-      throw new RangeError('polygon: coordinates must be finite numbers');
+      throw postgisError(
+        'POSTGIS.GEOMETRY_INVALID',
+        'polygon: coordinates must be finite numbers',
+        { meta: { helper: 'polygon', reason: 'non-finite coordinates' } },
+      );
     }
   }
   const closed = first[0] === last[0] && first[1] === last[1] ? ring : [...ring, first];
   const distinct = new Set(closed.slice(0, -1).map(([x, y]) => `${x},${y}`));
   if (distinct.size < 3) {
-    throw new Error('polygon: ring must contain at least 3 distinct positions');
+    throw postgisError(
+      'POSTGIS.GEOMETRY_INVALID',
+      'polygon: ring must contain at least 3 distinct positions',
+      { meta: { helper: 'polygon', reason: 'ring under 3 distinct positions' } },
+    );
   }
   return srid !== undefined
     ? { type: 'Polygon', coordinates: [closed], srid }
@@ -111,11 +129,17 @@ export function bboxPolygon(
     !Number.isFinite(maxX) ||
     !Number.isFinite(maxY)
   ) {
-    throw new RangeError('bboxPolygon: coordinates must be finite numbers');
+    throw postgisError(
+      'POSTGIS.GEOMETRY_INVALID',
+      'bboxPolygon: coordinates must be finite numbers',
+      { meta: { helper: 'bboxPolygon', reason: 'non-finite coordinates' } },
+    );
   }
   if (minX > maxX || minY > maxY) {
-    throw new Error(
+    throw postgisError(
+      'POSTGIS.GEOMETRY_INVALID',
       `bboxPolygon: inverted bbox [${minX}, ${minY}, ${maxX}, ${maxY}] (expected minX <= maxX and minY <= maxY)`,
+      { meta: { helper: 'bboxPolygon', reason: 'inverted bbox' } },
     );
   }
   return polygon(

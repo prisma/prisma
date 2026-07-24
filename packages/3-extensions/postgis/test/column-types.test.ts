@@ -30,12 +30,12 @@ describe('postgis column-types', () => {
       });
     });
 
-    it('throws RangeError for non-integer SRID', () => {
-      expect(() => geometry({ srid: 1.5 })).toThrowError(RangeError);
+    it('rejects a non-integer SRID', () => {
+      expect(() => geometry({ srid: 1.5 })).toThrow('srid must be a non-negative integer');
     });
 
-    it('throws RangeError for negative SRID', () => {
-      expect(() => geometry({ srid: -1 })).toThrowError(RangeError);
+    it('rejects a negative SRID', () => {
+      expect(() => geometry({ srid: -1 })).toThrow('srid must be a non-negative integer');
     });
   });
 });

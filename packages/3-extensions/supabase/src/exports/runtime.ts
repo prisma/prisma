@@ -13,7 +13,7 @@ export type {
   SupabaseOptionsWithContractJson,
   SupabaseTargetId,
 } from '../runtime/supabase';
-export { default as supabase, InvalidJwtError, SupabaseConfigError } from '../runtime/supabase';
+export { default as supabase } from '../runtime/supabase';
 export type {
   RoleSession,
   SupabaseRoleBinding,

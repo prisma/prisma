@@ -2,6 +2,8 @@ import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/cod
 import { PG_ENUM_CODEC_ID } from '@prisma-next/target-postgres/codec-ids';
 import { pgEnumDescriptor } from '@prisma-next/target-postgres/codecs';
 import { PostgresNativeEnum } from '@prisma-next/target-postgres/types';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import { postgresError } from '../errors';
 
 /**
  * Handle returned by {@link nativeEnum}. Mirrors PSL's two distinct strings for
@@ -39,7 +41,14 @@ function buildNativeEnumHandle<
   Members extends readonly [string, ...string[]],
 >(name: Name, typeName: TypeName, members: Members): NativeEnumHandle<Name, TypeName, Members> {
   if (typeName.trim().length === 0) {
-    throw new Error(`nativeEnum("${name}"): the Postgres type name must be a non-empty string.`);
+    throw postgresError(
+      'CONTRACT.ENUM_INVALID',
+      `nativeEnum("${name}"): the Postgres type name must be a non-empty string.`,
+      {
+        fix: 'Pass a non-empty Postgres type name to .map(typeName).',
+        meta: { enumName: name, reason: 'empty type name' },
+      },
+    );
   }
   return {
     entityKind: 'native_enum',
@@ -82,17 +91,33 @@ export function nativeEnum<
   const Members extends readonly [string, ...string[]],
 >(name: Name, ...members: Members): NativeEnumHandle<Name, Name, Members> {
   if (name.trim().length === 0) {
-    throw new Error('nativeEnum(): name must be a non-empty string.');
+    throw postgresError('CONTRACT.ENUM_INVALID', 'nativeEnum(): name must be a non-empty string.', {
+      fix: 'Pass a non-empty entity name as the first argument to nativeEnum().',
+      meta: { enumName: name, reason: 'empty name' },
+    });
   }
   if (members.length === 0) {
-    throw new Error(`nativeEnum("${name}"): must have at least one member.`);
+    throw postgresError(
+      'CONTRACT.ENUM_INVALID',
+      `nativeEnum("${name}"): must have at least one member.`,
+      {
+        why: 'Postgres rejects CREATE TYPE ... AS ENUM () with no labels.',
+        fix: 'Declare at least one member value after the name.',
+        meta: { enumName: name, reason: 'zero members' },
+      },
+    );
   }
 
   const seenValues = new Set<string>();
   for (const value of members) {
     if (seenValues.has(value)) {
-      throw new Error(
+      throw postgresError(
+        'CONTRACT.ENUM_INVALID',
         `nativeEnum("${name}"): duplicate member value "${value}". Member values must be unique.`,
+        {
+          fix: 'Remove the duplicate member value.',
+          meta: { enumName: name, member: value, reason: 'duplicate member value' },
+        },
       );
     }
     seenValues.add(value);
@@ -134,7 +159,7 @@ function pgEnumColumn<
 >(handle: NativeEnumHandle<Name, TypeName, Members>): PgEnumColumnDescriptor<Members> {
   const resolved = pgEnumDescriptor.columnFromEntity(handle.entity);
   if (resolved === undefined) {
-    throw new Error(
+    throw new InternalError(
       `pg.enum("${handle.name}"): handle.entity is not a PostgresNativeEnum. This is an authoring-surface bug — nativeEnum() must always produce one.`,
     );
   }

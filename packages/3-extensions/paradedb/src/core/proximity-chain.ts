@@ -4,6 +4,8 @@ import {
   OperationExpr,
 } from '@prisma-next/sql-relational-core/ast';
 import { type Expression, toExpr } from '@prisma-next/sql-relational-core/expression';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import { paradeDbError } from './errors';
 
 const TEXT = 'pg/text@1' as const;
 const TEXT_REF = { codecId: TEXT } as const;
@@ -40,8 +42,12 @@ export class ParadeDbProximityChain
     options?: ProximityWithinOptions,
   ): ParadeDbProximityChain {
     if (!Number.isInteger(distance) || distance < 0) {
-      throw new Error(
+      throw paradeDbError(
+        'PARADEDB.ARGUMENT_INVALID',
         `paradeDbProximity.within: distance must be a non-negative integer; got ${String(distance)}`,
+        {
+          meta: { helper: 'paradeDbProximity.within', argument: 'distance', received: distance },
+        },
       );
     }
     return new ParadeDbProximityChain(this.start, [
@@ -52,8 +58,13 @@ export class ParadeDbProximityChain
 
   buildAst(): AnyExpression {
     if (this.steps.length === 0) {
-      throw new Error(
+      throw paradeDbError(
+        'PARADEDB.ARGUMENT_INVALID',
         'paradeDbProximity: chain must have at least one .within(distance, term) step',
+        {
+          fix: 'Chain at least one .within(distance, term) call before using the proximity expression.',
+          meta: { helper: 'paradeDbProximity', argument: 'steps' },
+        },
       );
     }
     const args: AnyExpression[] = [toExpr(this.start, TEXT_REF)];
@@ -67,7 +78,7 @@ export class ParadeDbProximityChain
     template += ')';
     const [self, ...rest] = args;
     if (!self) {
-      throw new Error('paradeDbProximity: invariant violation — empty args');
+      throw new InternalError('paradeDbProximity: invariant violation — empty args');
     }
     return new OperationExpr({
       method: 'paradeDbProximity',

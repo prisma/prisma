@@ -185,12 +185,12 @@ describe('postgis codecs', () => {
       expect(spec.typeParams).toEqual({ srid: 4326 });
     });
 
-    it('throws RangeError on non-integer srid', () => {
-      expect(() => pgGeometryColumn({ srid: 1.5 })).toThrow(RangeError);
+    it('rejects a non-integer srid', () => {
+      expect(() => pgGeometryColumn({ srid: 1.5 })).toThrow('srid must be a non-negative integer');
     });
 
-    it('throws RangeError on negative srid', () => {
-      expect(() => pgGeometryColumn({ srid: -1 })).toThrow(RangeError);
+    it('rejects a negative srid', () => {
+      expect(() => pgGeometryColumn({ srid: -1 })).toThrow('srid must be a non-negative integer');
     });
   });
 

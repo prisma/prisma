@@ -19,12 +19,13 @@ import postgresAdapter from '@prisma-next/adapter-postgres/control';
 import { createControlClient } from '@prisma-next/cli/control-api';
 import postgresDriver from '@prisma-next/driver-postgres/control';
 import supabasePack from '@prisma-next/extension-supabase/pack';
-import { InvalidJwtError, supabase } from '@prisma-next/extension-supabase/runtime';
+import { supabase } from '@prisma-next/extension-supabase/runtime';
 import sql from '@prisma-next/family-sql/control';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
 import type { SqlMiddleware } from '@prisma-next/sql-runtime';
 import postgres from '@prisma-next/target-postgres/control';
 import { timeouts, withClient } from '@prisma-next/test-utils';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { SignJWT } from 'jose';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -275,7 +276,7 @@ describe.skipIf(!process.env['DATABASE_URL'] || !process.env['SUPABASE_JWT_SECRE
     );
 
     it(
-      'asUser rejects an expired JWT with InvalidJwtError',
+      'asUser rejects an expired JWT with SUPABASE.JWT_INVALID',
       async () => {
         await runDbInit(connectionString, migrationsDir);
 
@@ -287,7 +288,9 @@ describe.skipIf(!process.env['DATABASE_URL'] || !process.env['SUPABASE_JWT_SECRE
             jwtSecret,
             '-1s',
           );
-          await expect(db.asUser(expiredJwt)).rejects.toThrow(InvalidJwtError);
+          await expect(db.asUser(expiredJwt)).rejects.toSatisfy(
+            (e: unknown) => isStructuredError(e) && e.code === 'SUPABASE.JWT_INVALID',
+          );
         } finally {
           await db.close();
         }

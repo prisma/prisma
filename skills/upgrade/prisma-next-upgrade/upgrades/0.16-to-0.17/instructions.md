@@ -261,6 +261,23 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       contains:
         - "SqlEscapeError"
+  - id: supabase-error-classes-removed
+    summary: |
+      The `SupabaseConfigError` and `InvalidJwtError` classes are deleted from
+      `@prisma-next/extension-supabase/runtime`. The same failures now throw
+      structured envelopes with codes `SUPABASE.CONFIG_INVALID` and
+      `SUPABASE.JWT_INVALID`. Replace `error instanceof SupabaseConfigError` with
+      `isStructuredError(error) && error.code === 'SUPABASE.CONFIG_INVALID'` and
+      `error instanceof InvalidJwtError` with
+      `isStructuredError(error) && error.code === 'SUPABASE.JWT_INVALID'`
+      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message
+      text is unchanged.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+      contains:
+        - "SupabaseConfigError"
+        - "InvalidJwtError"
+      anyMatch: true
 
   - id: indexes-are-name-identified
     summary: |

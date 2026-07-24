@@ -34,6 +34,8 @@ import sqliteTarget, {
 import { assertDefined } from '@prisma-next/utils/assertions';
 import { blindCast, castAs } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import { sqliteError } from '../errors';
 import { buildSqliteStaticContext, type SqliteStaticContext } from '../static/sqlite-static';
 import { resolveOptionalSqliteBinding, resolveSqliteBinding } from './binding';
 import { SqliteRuntimeImpl } from './sqlite-runtime';
@@ -167,7 +169,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
 
   const connectDriver = async (resolvedBinding: SqliteBinding): Promise<void> => {
     if (driverConnected) return;
-    if (!runtimeDriver) throw new Error('SQLite runtime driver missing');
+    if (!runtimeDriver) throw new InternalError('SQLite runtime driver missing');
     if (connectPromise) return connectPromise;
     connectPromise = runtimeDriver
       .connect(resolvedBinding)
@@ -184,7 +186,9 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
 
   const getRuntime = (): Runtime => {
     if (closed) {
-      throw new Error('SQLite client is closed');
+      throw sqliteError('DRIVER.NOT_CONNECTED', 'SQLite client is closed', {
+        meta: { extension: 'sqlite' },
+      });
     }
 
     if (backgroundConnectError !== undefined) {
@@ -198,7 +202,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     const stackInstance = instantiateExecutionStack(stack);
     const driverDescriptor = stack.driver;
     if (!driverDescriptor) {
-      throw new Error('Driver descriptor missing from execution stack');
+      throw new InternalError('Driver descriptor missing from execution stack');
     }
 
     const driver = driverDescriptor.create();
@@ -243,11 +247,15 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     stack,
     async connect(bindingInput) {
       if (closed) {
-        throw new Error('SQLite client is closed');
+        throw sqliteError('DRIVER.NOT_CONNECTED', 'SQLite client is closed', {
+          meta: { extension: 'sqlite' },
+        });
       }
 
       if (driverConnected || connectPromise) {
-        throw new Error('SQLite client already connected');
+        throw sqliteError('DRIVER.ALREADY_CONNECTED', 'SQLite client already connected', {
+          meta: { extension: 'sqlite' },
+        });
       }
 
       backgroundConnectError = undefined;
@@ -257,8 +265,10 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
       }
 
       if (binding === undefined) {
-        throw new Error(
+        throw sqliteError(
+          'RUNTIME.BINDING_MISSING',
           'SQLite binding not configured. Pass path to sqlite(...) or call db.connect({ path }).',
+          { meta: { extension: 'sqlite' } },
         );
       }
 
