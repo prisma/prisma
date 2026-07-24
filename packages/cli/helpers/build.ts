@@ -6,6 +6,7 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
+import { writeCliTypesStub } from './write-cli-types-stub'
 
 /**
  * Manages the extra actions that are needed for the CLI to work
@@ -44,6 +45,7 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       await fs.promises.copyFile(prismaSchemaEngineWasmFile, './build/schema_engine_bg.wasm')
 
       await copyClientWasmRuntime()
+      await writeCliTypesStub()
 
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 
