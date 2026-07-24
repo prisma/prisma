@@ -40,6 +40,13 @@ testMatrix.setupTestSuite(
       `
       expect(result[0].times).toEqual([new Date('1970-01-01T08:30:00.000Z')])
     })
+
+    test('timetz[] preserves per-element NULLs alongside values', async () => {
+      const result = await prisma.$queryRaw<{ times: (Date | null)[] }[]>`
+        SELECT ARRAY[NULL, '12:00:00+00'::timetz] AS times
+      `
+      expect(result[0].times).toEqual([null, new Date('1970-01-01T12:00:00.000Z')])
+    })
   },
   {
     ...defaultTestSuiteOptions,
