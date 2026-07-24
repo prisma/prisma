@@ -9,6 +9,7 @@ import {
   formatms,
   getCommandWithExecutor,
   getConfig,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   link,
@@ -147,6 +148,8 @@ Set composite types introspection depth to 2 levels
     if (!schemaContext) {
       throw new NoSchemaFoundError()
     }
+
+    getSchemaDatasourceProvider(schemaContext)
 
     const firstDatasource = schemaContext.primaryDatasource
     const schema = schemaContext.schemaFiles
