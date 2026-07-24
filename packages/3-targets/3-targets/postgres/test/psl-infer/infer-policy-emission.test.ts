@@ -30,14 +30,15 @@ interface PolicyFixture {
 function policyNode(fixture: PolicyFixture): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
     name: fixture.name,
-    ...(fixture.prefix !== undefined ? { prefix: fixture.prefix } : {}),
+    prefix: fixture.prefix,
     tableName: 'profile',
     namespaceId: 'public',
     operation: fixture.operation ?? 'select',
     roles: [...(fixture.roles ?? ['app_user'])],
-    ...(fixture.using !== undefined ? { using: fixture.using } : {}),
-    ...(fixture.withCheck !== undefined ? { withCheck: fixture.withCheck } : {}),
+    using: fixture.using,
+    withCheck: fixture.withCheck,
     permissive: fixture.permissive ?? true,
+    dependsOn: undefined,
   });
 }
 
