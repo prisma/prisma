@@ -993,9 +993,11 @@ function buildModelConstraintAttribute(
  * recompute mismatches and it re-infers as `map:` — still a clean round
  * trip, just exact rather than managed (no special case).
  *
- * `options:` emits only alongside `type:` — the PSL surface requires the
- * pair, and a default-method index carrying reloptions has no authorable
- * spelling yet (verify then names the drift honestly, as before).
+ * `options:` always emits with a `type:` beside it (the pair the PSL surface
+ * requires): a default-method index carrying reloptions (type normalized
+ * away by introspection) emits an explicit `type: "btree"` — the expected
+ * node's constructor normalizes btree back to undefined, so verify compares
+ * clean.
  */
 function buildIndexAttribute(
   index: SqlIndexIR,
@@ -1029,14 +1031,15 @@ function buildIndexAttribute(
   if (index.unique) {
     args.push(namedArg('unique', 'true'));
   }
-  if (index.type !== undefined) {
-    args.push(namedArg('type', `"${escapePslString(index.type)}"`));
-    if (index.options !== undefined && Object.keys(index.options).length > 0) {
-      const entries = Object.entries(index.options)
-        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-        .map(([key, value]) => `${key}: "${escapePslString(String(value))}"`);
-      args.push(namedArg('options', `{ ${entries.join(', ')} }`));
-    }
+  const hasOptions = index.options !== undefined && Object.keys(index.options).length > 0;
+  if (index.type !== undefined || hasOptions) {
+    args.push(namedArg('type', `"${escapePslString(index.type ?? 'btree')}"`));
+  }
+  if (hasOptions) {
+    const entries = Object.entries(index.options ?? {})
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([key, value]) => `${key}: "${escapePslString(String(value))}"`);
+    args.push(namedArg('options', `{ ${entries.join(', ')} }`));
   }
   return buildAttribute('model', 'index', args);
 }

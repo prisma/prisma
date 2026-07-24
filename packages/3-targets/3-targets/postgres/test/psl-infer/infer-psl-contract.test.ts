@@ -436,6 +436,21 @@ describe('inferPostgresPslContract', () => {
       );
     });
 
+    it("a default-method index with reloptions emits an explicit type: 'btree' with options:", () => {
+      // Introspection normalizes btree away, but PSL requires options: to be
+      // paired with type: — the explicit spelling round-trips clean because
+      // the expected node's constructor normalizes btree back to undefined.
+      const psl = pslWithIndex({
+        name: 'users_email_ff_idx',
+        columns: ['email'],
+        unique: false,
+        options: { fillfactor: '70' },
+      });
+      expect(psl).toContain(
+        '@@index([email], map: "users_email_ff_idx", type: "btree", options: { fillfactor: "70" })',
+      );
+    });
+
     it('type: and options: emit as introspected when both are present', () => {
       const psl = pslWithIndex({
         name: 'users_email_hash',
