@@ -508,12 +508,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * ROW LEVEL SECURITY` derive from the table's marker-driven `rlsEnabled`
    * attribute diff on the relational side.
    *
-   * Rename post-pass: a `not-found` and a `not-expected` policy on the SAME
-   * table whose wire-name content hashes match but prefixes differ are one
-   * prefix-only rename, collapsed into a single non-destructive
-   * `RenamePostgresRlsPolicyCall`. Multi-candidate hash groups pair
-   * deterministically by sorted wire name; leftovers proceed as
-   * create/drop. Unparseable wire names never pair.
+   * Rename post-pass, two phases (the index pass's structure): phase 1
+   * pairs a `not-found` and a `not-expected` policy on the SAME table whose
+   * wire-name content hashes match but prefixes differ (prefix-only rename);
+   * phase 2 pairs remaining managed-missing policies against remaining
+   * extras of any name shape by verbatim content (`policyContentEqual` —
+   * exact→managed adoption). Multi-candidate groups pair deterministically
+   * by sorted name; leftovers proceed as create/drop; an exact-named
+   * missing policy never content-pairs.
    *
    * The pairing runs only when the policy allows `widening` (rename's
    * class). Without it (db-init's additive-only set), pairing degrades
@@ -613,6 +615,39 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         if (candidate === undefined) continue;
         // Same name would never surface as missing+extra (the differ pairs by
         // name), so a matched candidate always differs in prefix only.
+        renamedExtras.add(candidate);
+        renamedMissing.add(missingFinding);
+        calls.push(
+          new RenamePostgresRlsPolicyCall(
+            missingFinding.schemaForTable,
+            missingFinding.node.tableName,
+            candidate.node.name,
+            missingFinding.node.name,
+          ),
+        );
+      }
+
+      // Phase 2 — content pairing (exact→managed convergence, D7 policy
+      // half): a remaining managed-missing policy pairs with a remaining
+      // extra of ANY name shape when the content matches verbatim
+      // (`policyContentEqual` — not the normalized hash tuple). This is how
+      // replacing `@@map` with the plain head converges as one
+      // `ALTER POLICY … RENAME`. Deterministic like the index pass: missing
+      // already iterates sorted by name, candidates consume sorted by name.
+      const sortedExtras = [...extra].sort((a, b) =>
+        a.node.name < b.node.name ? -1 : a.node.name > b.node.name ? 1 : 0,
+      );
+      for (const missingFinding of sortedMissing) {
+        if (renamedMissing.has(missingFinding)) continue;
+        if (missingFinding.node.prefix === undefined) continue;
+        const candidate = sortedExtras.find(
+          (extraFinding) =>
+            !renamedExtras.has(extraFinding) &&
+            extraFinding.schemaForTable === missingFinding.schemaForTable &&
+            extraFinding.node.tableName === missingFinding.node.tableName &&
+            policyContentEqual(missingFinding.node, extraFinding.node),
+        );
+        if (candidate === undefined) continue;
         renamedExtras.add(candidate);
         renamedMissing.add(missingFinding);
         calls.push(
@@ -785,4 +820,20 @@ function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRls
     ...ifDefined('withCheck', node.withCheck),
     permissive: node.permissive,
   });
+}
+
+/**
+ * Content equality for the policy rename phase 2: `operation` and
+ * `permissive` strict, `roles` compared sorted, `using`/`withCheck` VERBATIM
+ * byte-for-byte with absent ≡ empty — the same relation the exact-mode
+ * `isEqualTo` uses, deliberately NOT the normalized wire-hash tuple.
+ */
+function policyContentEqual(a: PostgresPolicySchemaNode, b: PostgresPolicySchemaNode): boolean {
+  return (
+    a.operation === b.operation &&
+    a.permissive === b.permissive &&
+    isArrayEqual([...a.roles].sort(), [...b.roles].sort()) &&
+    (a.using ?? '') === (b.using ?? '') &&
+    (a.withCheck ?? '') === (b.withCheck ?? '')
+  );
 }
