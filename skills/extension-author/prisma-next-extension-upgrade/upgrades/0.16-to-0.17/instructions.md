@@ -470,6 +470,27 @@ changes:
         - "codecs: () =>"
         - "SqlRuntimeExtensionDescriptor"
       anyMatch: true
+  - id: contract-infer-emits-full-fidelity
+    summary: |
+      `contract infer` emits every non-constraint index (expression, partial `where:`,
+      unique, `type:`/`options:`) and the RLS surface (`@@rls` natively, every policy as a
+      `policy_<operation>` block with `@@map` and verbatim reprinted bodies, `permissive =
+      false` for RESTRICTIVE rows). A pack whose contract-space generator runs infer (the
+      supabase pattern) sees ADDITIVE movement on its next regeneration: previously omitted
+      partial/expression/unique indexes adopt as exact `map:` entries, and `@@rls` no longer
+      needs an out-of-band appender — delete any `applyRlsEnablement`-style post-processing
+      and regenerate through the checked-in generator; re-emit moves the storage hash. The
+      duplicate-index validation keys exact-mode entries by name, so a reference database's
+      content-identical twin indexes now validate. An index whose live name is wire-shaped
+      and whose hash recomputes re-infers as managed `name:` (real third-party names are not
+      wire-shaped, so adopted contracts stay `map:`).
+    detection:
+      glob: "**/*.{ts,mts,cts,prisma}"
+      contains:
+        - "inferPslContract"
+        - "contract infer"
+        - "@@rls"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions

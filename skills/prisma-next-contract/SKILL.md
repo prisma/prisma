@@ -354,6 +354,8 @@ pnpm prisma-next contract infer --db $DATABASE_URL --output ./src/prisma/contrac
 pnpm prisma-next contract emit
 ```
 
+Infer captures indexes at full fidelity — expression, partial (`where:`), unique non-constraint, `type:`/`options:` — adopting each under `map:` with the live name, except that a name shaped like a managed wire name whose hash recomputes from the content re-detects as managed and emits `name:` with the prefix. RLS surfaces too: `@@rls` on RLS-enabled models, and every policy as a `policy_<operation>` block with `@@map("<live name>")`, verbatim predicate reprints, and `permissive = false` for RESTRICTIVE rows (a policy whose role name can't be spelled as a PSL identifier is skipped with a comment note). Replacing an adopted `map:` with the plain managed spelling later converges via a single rename migration.
+
 ## Common Pitfalls
 
 1. **Forgetting to re-emit after an edit.** `contract.json` and `contract.d.ts` go stale; downstream typecheck and `migration plan` see the old shape. Re-emit, or install the Vite plugin (`prisma-next-build`).
