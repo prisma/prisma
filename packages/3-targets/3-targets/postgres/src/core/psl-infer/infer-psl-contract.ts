@@ -38,7 +38,8 @@ import {
   UNSPECIFIED_PSL_NAMESPACE_ID,
 } from '@prisma-next/framework-components/psl-ast';
 import type { SqlModelStorage } from '@prisma-next/sql-contract/types';
-import type { SqlColumnIR, SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/types';
+import { computeIndexContentHash, parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import type { SqlColumnIR, SqlForeignKeyIR, SqlIndexIR } from '@prisma-next/sql-schema-ir/types';
 import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
@@ -713,21 +714,10 @@ function buildModel(
   }
 
   for (const index of table.indexes) {
-    // Expression indexes (no column tuple) and partial indexes (a where
-    // predicate) are not emitted yet — no authoring surface can carry their
-    // bodies, so adopting them name-only would fail its own verify (the
-    // exact-mode body compare). Their inference lands when the authoring
-    // surfaces for those bodies exist.
-    if (index.columns === undefined || index.where !== undefined) continue;
-    if (!index.unique) {
-      const columns = index.columns;
-      const indexFieldNames = columns.map((columnName) =>
-        resolveColumnFieldName(fieldNamesByTable, table.name, columnName),
-      );
-      modelAttributes.push(
-        buildModelConstraintAttribute('index', indexFieldNames, index.name, index.type),
-      );
-    }
+    const indexFieldNames = index.columns?.map((columnName) =>
+      resolveColumnFieldName(fieldNamesByTable, table.name, columnName),
+    );
+    modelAttributes.push(buildIndexAttribute(index, indexFieldNames));
   }
 
   if (mapName) {
@@ -981,28 +971,74 @@ function buildRelationField(
   };
 }
 
-/**
- * `indexType` carries a non-default index access method (e.g. `hash`) —
- * `SqlIndexIR`'s constructor drops `btree` (the default) to `undefined`,
- * so this only ever fires for a real
- * non-default index, matching the same `@@index(type: "...")` argument
- * `contract-to-schema-ir.ts` reads back into the FK-backing-index
- * expectation `db verify` checks against the live database.
- */
 function buildModelConstraintAttribute(
-  name: 'id' | 'unique' | 'index',
+  name: 'id' | 'unique',
   fields: readonly string[],
   constraintName?: string,
-  indexType?: string,
 ): PslModelAttribute {
   const args: PslAttributeArgument[] = [positionalArg(`[${fields.join(', ')}]`)];
   if (constraintName !== undefined) {
     args.push(namedArg('map', `"${escapePslString(constraintName)}"`));
   }
-  if (indexType !== undefined) {
-    args.push(namedArg('type', `"${escapePslString(indexType)}"`));
-  }
   return buildAttribute('model', name, args);
+}
+
+/**
+ * Emits one `@@index` attribute at full fidelity. Identity is re-detected:
+ * when the live name parses as a wire name AND its hash recomputes from the
+ * introspected content, the index is managed and emits `name: "<prefix>"`;
+ * otherwise it adopts exactly with `map: "<live name>"` and the content
+ * verbatim. Known benign edge: an index authored `type: "btree"` hashed
+ * `'btree'` into its suffix but introspects type-normalized, so the
+ * recompute mismatches and it re-infers as `map:` — still a clean round
+ * trip, just exact rather than managed (no special case).
+ *
+ * `options:` emits only alongside `type:` — the PSL surface requires the
+ * pair, and a default-method index carrying reloptions has no authorable
+ * spelling yet (verify then names the drift honestly, as before).
+ */
+function buildIndexAttribute(
+  index: SqlIndexIR,
+  fieldNames: readonly string[] | undefined,
+): PslModelAttribute {
+  const args: PslAttributeArgument[] = [];
+  if (fieldNames !== undefined) {
+    args.push(positionalArg(`[${fieldNames.join(', ')}]`));
+  } else {
+    args.push(namedArg('expression', `"${escapePslString(index.expression ?? '')}"`));
+  }
+
+  const parsed = parseWireName(index.name);
+  const recomputed = computeIndexContentHash({
+    ...(index.columns !== undefined ? { columns: index.columns } : {}),
+    ...(index.expression !== undefined ? { expression: index.expression } : {}),
+    ...(index.where !== undefined ? { where: index.where } : {}),
+    unique: index.unique,
+    ...(index.type !== undefined ? { type: index.type } : {}),
+    ...(index.options !== undefined ? { options: index.options } : {}),
+  });
+  if (parsed !== undefined && parsed.hash === recomputed) {
+    args.push(namedArg('name', `"${escapePslString(parsed.prefix)}"`));
+  } else {
+    args.push(namedArg('map', `"${escapePslString(index.name)}"`));
+  }
+
+  if (index.where !== undefined) {
+    args.push(namedArg('where', `"${escapePslString(index.where)}"`));
+  }
+  if (index.unique) {
+    args.push(namedArg('unique', 'true'));
+  }
+  if (index.type !== undefined) {
+    args.push(namedArg('type', `"${escapePslString(index.type)}"`));
+    if (index.options !== undefined && Object.keys(index.options).length > 0) {
+      const entries = Object.entries(index.options)
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([key, value]) => `${key}: "${escapePslString(String(value))}"`);
+      args.push(namedArg('options', `{ ${entries.join(', ')} }`));
+    }
+  }
+  return buildAttribute('model', 'index', args);
 }
 
 function buildSimpleConstraintFieldAttribute(
