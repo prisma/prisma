@@ -1,3 +1,5 @@
+import type { PreserveEmptyPredicate } from '@prisma-next/contract/hashing';
+import { createPreserveEmptyPredicate } from '@prisma-next/contract/hashing-utils';
 import type { Contract } from '@prisma-next/contract/types';
 import {
   SqlContractSerializerBase,
@@ -14,6 +16,7 @@ import {
   type Namespace,
   UNBOUND_NAMESPACE_ID,
 } from '@prisma-next/framework-components/ir';
+import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
 import type { SqlNamespaceInput, SqlStorage } from '@prisma-next/sql-contract/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import type { JsonObject } from '@prisma-next/utils/json';
@@ -72,7 +75,19 @@ function collectStorageTypesHydrators(
   return registry;
 }
 
+// A policy's `permissive` is a required boolean: `permissive: false` (a
+// RESTRICTIVE policy) must survive the canonicalization default-omission
+// walk or the emitted contract fails its own PostgresRlsPolicySchema
+// validation on the next read — the same class of preservation the SQL
+// family declares for an index's `unique: false`.
+const preservePolicyPermissive = createPreserveEmptyPredicate([
+  ['storage', 'namespaces', '*', 'entries', 'policy', '*', 'permissive'],
+]);
+
 export class PostgresContractSerializer extends SqlContractSerializerBase<Contract<SqlStorage>> {
+  override shouldPreserveEmpty: PreserveEmptyPredicate = (path) =>
+    preservePolicyPermissive(path) || sqlContractCanonicalizationHooks.shouldPreserveEmpty(path);
+
   constructor(extraPackEntityKinds: readonly AnyEntityKindDescriptor[] = []) {
     const storageTypesHydrators = collectStorageTypesHydrators(postgresAuthoringEntityTypes);
     super(storageTypesHydrators, [
