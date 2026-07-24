@@ -98,6 +98,7 @@ function mapDriverError(error: DatabaseError): MappedError {
         user: error.message.split(' ').pop()?.split('"').at(1),
       }
     case '40001':
+    case '40P01':
       return {
         kind: 'TransactionWriteConflict',
       }
