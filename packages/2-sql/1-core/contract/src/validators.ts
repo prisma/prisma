@@ -577,6 +577,19 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
         );
       }
 
+      // Exact-mode entries (no prefix) are identified by NAME: two
+      // content-identical indexes under different physical names are legal
+      // twins a signed database may carry, so they skip the content key.
+      // Name collisions are already rejected by the named-object check
+      // above. Managed entries keep the content key — two managed twins
+      // would share the content hash and therefore collide on the wire name
+      // anyway, so the content key is equivalent to a name key there, and it
+      // additionally rejects same-content different-prefix pairs (which
+      // could never both converge).
+      if (index.prefix === undefined) {
+        continue;
+      }
+
       const signature = JSON.stringify({
         columns: index.columns ?? null,
         expression: index.expression ?? null,
