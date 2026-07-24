@@ -35,3 +35,4 @@ minimumReleaseAgeExclude:
   - '@prisma/prisma-schema-wasm@7.10.0-1.6d040c802892de6d56c7e0061b7a10b3e6a0c7a0'
   - '@prisma/query-compiler-wasm@7.10.0-1.6d040c802892de6d56c7e0061b7a10b3e6a0c7a0'
   - '@prisma/schema-engine-wasm@7.10.0-1.6d040c802892de6d56c7e0061b7a10b3e6a0c7a0'
+  - '@prisma/dev@0.24.16'
