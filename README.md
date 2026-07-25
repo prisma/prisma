@@ -1,3 +1,5 @@
+[![MCP Toplist](https://mcptoplist.com/badge/glama%2Fprisma.svg)](https://mcptoplist.com/server/glama%2Fprisma)
+
 ![Prisma](https://i.imgur.com/h6UIYTu.png)
 
 <div align="center">
