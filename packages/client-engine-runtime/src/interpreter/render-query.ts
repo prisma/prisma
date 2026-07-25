@@ -11,9 +11,20 @@ import {
   type QueryPlanDbQuery,
 } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
-import { appendToArray, assertNever, DeepReadonly } from '../utils'
+import { assertNever, DeepReadonly } from '../utils'
 import { GeneratorRegistrySnapshot } from './generators'
 import { ScopeBindings } from './scope'
+
+const EMPTY_ARGS = Object.freeze([]) as unknown as unknown[]
+const EMPTY_ARG_TYPES = Object.freeze([]) as unknown as ArgType[]
+
+type FlatTemplateSqlRendering = {
+  sql: string
+  paramCount: number
+  argTypes: ArgType[]
+}
+
+const flatTemplateSqlCache = new WeakMap<DeepReadonly<QueryPlanDbQuery>, FlatTemplateSqlRendering | null>()
 
 export function renderQuery(
   dbQuery: DeepReadonly<QueryPlanDbQuery>,
@@ -21,12 +32,58 @@ export function renderQuery(
   generators: GeneratorRegistrySnapshot,
   maxChunkSize?: number,
 ): DeepReadonly<SqlQuery>[] {
-  const args = dbQuery.args.map((arg) => evaluateArg(arg, scope, generators))
+  if (dbQuery.type === 'templateSql' && dbQuery.args.length === 0) {
+    const fragment = dbQuery.fragments.length === 1 ? dbQuery.fragments[0] : undefined
+    if (fragment?.type === 'stringChunk') {
+      return [
+        {
+          sql: fragment.chunk,
+          args: EMPTY_ARGS,
+          argTypes: EMPTY_ARG_TYPES,
+        },
+      ]
+    }
+  }
 
   switch (dbQuery.type) {
-    case 'rawSql':
+    case 'rawSql': {
+      const args = evaluateArgs(dbQuery.args, scope, generators)
       return [renderRawSql(dbQuery.sql, args, dbQuery.argTypes)]
+    }
+
     case 'templateSql': {
+      const flatRendering = getFlatTemplateSqlRendering(dbQuery)
+      if (flatRendering !== undefined) {
+        if (maxChunkSize !== undefined && flatRendering.paramCount > maxChunkSize) {
+          throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
+        }
+
+        if (flatRendering.paramCount === 0) {
+          return [
+            {
+              sql: flatRendering.sql,
+              args: EMPTY_ARGS,
+              argTypes: EMPTY_ARG_TYPES,
+            },
+          ]
+        }
+
+        const args = evaluateArgs(dbQuery.args, scope, generators)
+        if (flatRendering.paramCount > args.length) {
+          throw new Error(`Malformed query template. Fragments attempt to read over ${args.length} parameters.`)
+        }
+        const queryArgs = flatRendering.paramCount === args.length ? args : args.slice(0, flatRendering.paramCount)
+
+        return [
+          {
+            sql: flatRendering.sql,
+            args: queryArgs,
+            argTypes: flatRendering.argTypes,
+          },
+        ]
+      }
+
+      const args = evaluateArgs(dbQuery.args, scope, generators)
       const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
       return chunks.map((params) => {
         const rendered = renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes)
@@ -36,9 +93,72 @@ export function renderQuery(
         return rendered
       })
     }
+
     default:
       assertNever(dbQuery['type'], `Invalid query type`)
   }
+}
+
+function getFlatTemplateSqlRendering(dbQuery: DeepReadonly<QueryPlanDbQuery>): FlatTemplateSqlRendering | undefined {
+  const cached = flatTemplateSqlCache.get(dbQuery)
+  if (cached !== undefined) {
+    return cached ?? undefined
+  }
+
+  if (dbQuery.type !== 'templateSql') {
+    flatTemplateSqlCache.set(dbQuery, null)
+    return undefined
+  }
+
+  let sql = ''
+  let placeholderNumber = 1
+  let paramCount = 0
+
+  for (const fragment of dbQuery.fragments) {
+    switch (fragment.type) {
+      case 'stringChunk':
+        sql += fragment.chunk
+        break
+
+      case 'parameter':
+        sql += formatPlaceholder(dbQuery.placeholderFormat, placeholderNumber++)
+        paramCount++
+        break
+
+      case 'parameterTuple':
+      case 'parameterTupleList':
+        flatTemplateSqlCache.set(dbQuery, null)
+        return undefined
+
+      default:
+        assertNever(fragment, 'Invalid fragment type')
+    }
+  }
+
+  const rendering: FlatTemplateSqlRendering = {
+    sql,
+    paramCount,
+    argTypes:
+      paramCount === dbQuery.argTypes.length
+        ? (dbQuery.argTypes as ArgType[])
+        : copyArgTypes(dbQuery.argTypes, paramCount),
+  }
+  flatTemplateSqlCache.set(dbQuery, rendering)
+  return rendering
+}
+
+function evaluateArgs(
+  args: readonly unknown[],
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): unknown[] {
+  const result = new Array<unknown>(args.length)
+
+  for (let i = 0; i < args.length; i++) {
+    result[i] = evaluateArg(args[i], scope, generators)
+  }
+
+  return result
 }
 
 export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): unknown {
@@ -78,6 +198,14 @@ export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: Gene
   return arg
 }
 
+function copyArgTypes(argTypes: DeepReadonly<DynamicArgType[]>, length: number): ArgType[] {
+  const result = new Array<ArgType>(length)
+  for (let i = 0; i < length; i++) {
+    result[i] = argTypes[i] as ArgType
+  }
+  return result
+}
+
 function renderTemplateSql(
   fragments: DeepReadonly<Fragment[]>,
   placeholderFormat: PlaceholderFormat,
@@ -85,34 +213,82 @@ function renderTemplateSql(
   argTypes: DeepReadonly<DynamicArgType[]>,
 ): SqlQuery {
   let sql = ''
-  const ctx = { placeholderNumber: 1 }
+  let placeholderNumber = 1
+  let paramIndex = 0
   const flattenedParams: unknown[] = []
   const flattenedArgTypes: ArgType[] = []
 
-  for (const fragment of pairFragmentsWithParams(fragments, params, argTypes)) {
-    sql += renderFragment(fragment, placeholderFormat, ctx)
-    if (fragment.type === 'stringChunk') {
-      continue
-    }
-    const fragmentParams = Array.from(flattenedFragmentParams(fragment))
-    const added = fragmentParams.length
-    appendToArray(flattenedParams, fragmentParams)
+  for (const fragment of fragments) {
+    switch (fragment.type) {
+      case 'stringChunk': {
+        sql += fragment.chunk
+        break
+      }
 
-    if (fragment.argType.arity === 'tuple') {
-      if (added % fragment.argType.elements.length !== 0) {
-        throw new Error(
-          `Malformed query template. Expected the number of parameters to match the tuple arity, but got ${added} parameters for a tuple of arity ${fragment.argType.elements.length}.`,
-        )
+      case 'parameter': {
+        if (paramIndex >= params.length) {
+          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+        }
+
+        sql += formatPlaceholder(placeholderFormat, placeholderNumber++)
+        flattenedParams.push(params[paramIndex])
+        appendArgTypes(flattenedArgTypes, argTypes[paramIndex], 1)
+        paramIndex++
+        break
       }
-      // If we have a tuple, we just expand its elements repeatedly.
-      for (let i = 0; i < added / fragment.argType.elements.length; i++) {
-        flattenedArgTypes.push(...fragment.argType.elements)
+
+      case 'parameterTuple': {
+        if (paramIndex >= params.length) {
+          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+        }
+
+        const value = params[paramIndex]
+        const tuple = Array.isArray(value) ? value : [value]
+        sql += renderTuplePlaceholders(fragment, tuple.length, placeholderFormat, placeholderNumber)
+        placeholderNumber += tuple.length
+        pushAll(flattenedParams, tuple)
+        appendArgTypes(flattenedArgTypes, argTypes[paramIndex], tuple.length)
+        paramIndex++
+        break
       }
-    } else {
-      // If we have a non-tuple, we just expand the single type repeatedly.
-      for (let i = 0; i < added; i++) {
-        flattenedArgTypes.push(fragment.argType)
+
+      case 'parameterTupleList': {
+        if (paramIndex >= params.length) {
+          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+        }
+
+        const value = params[paramIndex]
+        if (!Array.isArray(value)) {
+          throw new Error(`Malformed query template. Tuple list expected.`)
+        }
+        if (value.length === 0) {
+          throw new Error(`Malformed query template. Tuple list cannot be empty.`)
+        }
+
+        let added = 0
+        for (let tupleIndex = 0; tupleIndex < value.length; tupleIndex++) {
+          const tuple = value[tupleIndex]
+          if (!Array.isArray(tuple)) {
+            throw new Error(`Malformed query template. Tuple expected.`)
+          }
+
+          if (tupleIndex > 0) {
+            sql += fragment.groupSeparator
+          }
+
+          sql += renderTuplePlaceholders(fragment, tuple.length, placeholderFormat, placeholderNumber)
+          placeholderNumber += tuple.length
+          pushAll(flattenedParams, tuple)
+          added += tuple.length
+        }
+
+        appendArgTypes(flattenedArgTypes, argTypes[paramIndex], added)
+        paramIndex++
+        break
       }
+
+      default:
+        assertNever(fragment, 'Invalid fragment type')
     }
   }
 
@@ -123,45 +299,62 @@ function renderTemplateSql(
   }
 }
 
-function renderFragment<Type extends DeepReadonly<DynamicArgType> | undefined>(
-  fragment: FragmentWithParams<Type>,
+function renderTuplePlaceholders(
+  fragment: Extract<Fragment, { type: 'parameterTuple' | 'parameterTupleList' }>,
+  length: number,
   placeholderFormat: PlaceholderFormat,
-  ctx: { placeholderNumber: number },
+  placeholderNumber: number,
 ): string {
-  const fragmentType = fragment.type
-  switch (fragmentType) {
-    case 'parameter':
-      return formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
+  if (length === 0) {
+    return fragment.type === 'parameterTuple' ? '(NULL)' : `${fragment.itemPrefix}${fragment.itemSuffix}`
+  }
 
-    case 'stringChunk':
-      return fragment.chunk
+  let result = ''
+  if (fragment.type === 'parameterTuple') {
+    for (let i = 0; i < length; i++) {
+      if (i > 0) {
+        result += fragment.itemSeparator
+      }
+      result += fragment.itemPrefix
+      result += formatPlaceholder(placeholderFormat, placeholderNumber++)
+      result += fragment.itemSuffix
+    }
+    return `(${result})`
+  }
 
-    case 'parameterTuple': {
-      const placeholders =
-        fragment.value.length == 0
-          ? 'NULL'
-          : fragment.value
-              .map(() => {
-                const item = formatPlaceholder(placeholderFormat, ctx.placeholderNumber++)
-                return `${fragment.itemPrefix}${item}${fragment.itemSuffix}`
-              })
-              .join(fragment.itemSeparator)
-      return `(${placeholders})`
+  result += fragment.itemPrefix
+  for (let i = 0; i < length; i++) {
+    if (i > 0) {
+      result += fragment.itemSeparator
+    }
+    result += formatPlaceholder(placeholderFormat, placeholderNumber++)
+  }
+  result += fragment.itemSuffix
+
+  return result
+}
+
+function appendArgTypes(flattenedArgTypes: ArgType[], argType: DeepReadonly<DynamicArgType>, added: number): void {
+  if (argType.arity === 'tuple') {
+    if (added % argType.elements.length !== 0) {
+      throw new Error(
+        `Malformed query template. Expected the number of parameters to match the tuple arity, but got ${added} parameters for a tuple of arity ${argType.elements.length}.`,
+      )
     }
 
-    case 'parameterTupleList': {
-      return fragment.value
-        .map((tuple) => {
-          const elements = tuple
-            .map(() => formatPlaceholder(placeholderFormat, ctx.placeholderNumber++))
-            .join(fragment.itemSeparator)
-          return `${fragment.itemPrefix}${elements}${fragment.itemSuffix}`
-        })
-        .join(fragment.groupSeparator)
+    for (let i = 0; i < added / argType.elements.length; i++) {
+      pushAll(flattenedArgTypes, argType.elements)
     }
+  } else {
+    for (let i = 0; i < added; i++) {
+      flattenedArgTypes.push(argType)
+    }
+  }
+}
 
-    default:
-      assertNever(fragmentType, 'Invalid fragment type')
+function pushAll<T>(target: T[], values: readonly T[]): void {
+  for (let i = 0; i < values.length; i++) {
+    target.push(values[i])
   }
 }
 
@@ -169,15 +362,11 @@ function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumb
   return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
 }
 
-function renderRawSql(
-  sql: string,
-  args: readonly unknown[],
-  argTypes: DeepReadonly<ArgType[]>,
-): DeepReadonly<SqlQuery> {
+function renderRawSql(sql: string, params: unknown[], argTypes: DeepReadonly<DynamicArgType[]>): SqlQuery {
   return {
     sql,
-    args,
-    argTypes,
+    args: params,
+    argTypes: argTypes as ArgType[],
   }
 }
 
@@ -185,118 +374,59 @@ function doesRequireEvaluation(param: unknown): param is PrismaValuePlaceholder 
   return isPrismaValuePlaceholder(param) || isPrismaValueGenerator(param)
 }
 
-type FragmentWithParams<Type extends DeepReadonly<DynamicArgType> | undefined = undefined> = Fragment &
-  (
-    | { type: 'stringChunk' }
-    | { type: 'parameter'; value: unknown; argType: Type }
-    | { type: 'parameterTuple'; value: unknown[]; argType: Type }
-    | { type: 'parameterTupleList'; value: unknown[][]; argType: Type }
-  )
-
-function* pairFragmentsWithParams<Types>(
-  fragments: DeepReadonly<Fragment[]>,
-  params: unknown[],
-  argTypes: Types,
-): Generator<
-  FragmentWithParams<Types extends DeepReadonly<DynamicArgType[]> ? DeepReadonly<DynamicArgType> : undefined>
-> {
-  let index = 0
-
-  for (const fragment of fragments) {
-    switch (fragment.type) {
-      case 'parameter': {
-        if (index >= params.length) {
-          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
-        }
-
-        yield { ...fragment, value: params[index], argType: argTypes?.[index] }
-        index++
-        break
-      }
-
-      case 'stringChunk': {
-        yield fragment
-        break
-      }
-
-      case 'parameterTuple': {
-        if (index >= params.length) {
-          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
-        }
-
-        const value = params[index]
-        yield { ...fragment, value: Array.isArray(value) ? value : [value], argType: argTypes?.[index] }
-        index++
-        break
-      }
-
-      case 'parameterTupleList': {
-        if (index >= params.length) {
-          throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
-        }
-
-        const value = params[index]
-        if (!Array.isArray(value)) {
-          throw new Error(`Malformed query template. Tuple list expected.`)
-        }
-        if (value.length === 0) {
-          throw new Error(`Malformed query template. Tuple list cannot be empty.`)
-        }
-        for (const tuple of value) {
-          if (!Array.isArray(tuple)) {
-            throw new Error(`Malformed query template. Tuple expected.`)
-          }
-        }
-
-        yield { ...fragment, value, argType: argTypes?.[index] }
-        index++
-        break
-      }
-    }
-  }
-}
-
-function* flattenedFragmentParams<Type extends DeepReadonly<DynamicArgType> | undefined>(
-  fragment: FragmentWithParams<Type>,
-): Generator<unknown, undefined, undefined> {
-  switch (fragment.type) {
-    case 'parameter':
-      yield fragment.value
-      break
-    case 'stringChunk':
-      break
-    case 'parameterTuple':
-      yield* fragment.value
-      break
-    case 'parameterTupleList':
-      for (const tuple of fragment.value) {
-        yield* tuple
-      }
-      break
-  }
-}
-
 function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], maxChunkSize?: number): unknown[][] {
+  if (maxChunkSize === undefined) {
+    return [params]
+  }
+
   // Find out the total number of parameters once flattened and what the maximum number of
   // parameters in a single fragment is.
   let totalParamCount = 0
   let maxParamsPerFragment = 0
-  for (const fragment of pairFragmentsWithParams(fragments, params, undefined)) {
+  let paramIndex = 0
+  for (const fragment of fragments) {
     let paramSize = 0
-    for (const _ of flattenedFragmentParams(fragment)) {
-      void _
-      paramSize++
+    switch (fragment.type) {
+      case 'parameter': {
+        getParam(params, paramIndex++)
+        paramSize = 1
+        break
+      }
+
+      case 'stringChunk': {
+        break
+      }
+
+      case 'parameterTuple': {
+        paramSize = getTupleParam(params, paramIndex++).length
+        break
+      }
+
+      case 'parameterTupleList': {
+        paramSize = countTupleListParams(getTupleListParam(params, paramIndex++))
+        break
+      }
+
+      default:
+        assertNever(fragment, 'Invalid fragment type')
     }
+
     maxParamsPerFragment = Math.max(maxParamsPerFragment, paramSize)
     totalParamCount += paramSize
   }
 
+  if (totalParamCount <= maxChunkSize) {
+    return [params]
+  }
+
   let chunkedParams: unknown[][] = [[]]
-  for (const fragment of pairFragmentsWithParams(fragments, params, undefined)) {
+  paramIndex = 0
+  for (const fragment of fragments) {
     switch (fragment.type) {
       case 'parameter': {
-        for (const params of chunkedParams) {
-          params.push(fragment.value)
+        const param = getParam(params, paramIndex++)
+        for (const chunkedParam of chunkedParams) {
+          chunkedParam.push(param)
         }
         break
       }
@@ -306,7 +436,8 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
       }
 
       case 'parameterTuple': {
-        const thisParamCount = fragment.value.length
+        const tuple = getTupleParam(params, paramIndex++)
+        const thisParamCount = tuple.length
         let chunks: unknown[][] = []
 
         if (
@@ -321,23 +452,24 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
           totalParamCount - thisParamCount < maxChunkSize
         ) {
           const availableSize = maxChunkSize - (totalParamCount - thisParamCount)
-          chunks = chunkArray(fragment.value, availableSize)
+          chunks = chunkArray(tuple, availableSize)
         } else {
-          chunks = [fragment.value]
+          chunks = [tuple]
         }
 
-        chunkedParams = chunkedParams.flatMap((params) => chunks.map((chunk) => [...params, chunk]))
+        chunkedParams = appendChunkVariants(chunkedParams, chunks)
         break
       }
 
       case 'parameterTupleList': {
-        const thisParamCount = fragment.value.reduce((acc, tuple) => acc + tuple.length, 0)
+        const tupleList = getTupleListParam(params, paramIndex++)
+        const thisParamCount = countTupleListParams(tupleList)
 
         const completeChunks: unknown[][][] = []
         let currentChunk: unknown[][] = []
         let currentChunkParamCount = 0
 
-        for (const tuple of fragment.value) {
+        for (const tuple of tupleList) {
           if (
             maxChunkSize &&
             // Have we split the parameters into chunks already?
@@ -361,13 +493,72 @@ function chunkParams(fragments: DeepReadonly<Fragment[]>, params: unknown[], max
           completeChunks.push(currentChunk)
         }
 
-        chunkedParams = chunkedParams.flatMap((params) => completeChunks.map((chunk) => [...params, chunk]))
+        chunkedParams = appendChunkVariants(chunkedParams, completeChunks)
         break
       }
+
+      default:
+        assertNever(fragment, 'Invalid fragment type')
     }
   }
 
   return chunkedParams
+}
+
+function getParam(params: unknown[], index: number): unknown {
+  if (index >= params.length) {
+    throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+  }
+  return params[index]
+}
+
+function getTupleParam(params: unknown[], index: number): unknown[] {
+  const value = getParam(params, index)
+  return Array.isArray(value) ? value : [value]
+}
+
+function getTupleListParam(params: unknown[], index: number): unknown[][] {
+  const value = getParam(params, index)
+  if (!Array.isArray(value)) {
+    throw new Error(`Malformed query template. Tuple list expected.`)
+  }
+  if (value.length === 0) {
+    throw new Error(`Malformed query template. Tuple list cannot be empty.`)
+  }
+  for (let i = 0; i < value.length; i++) {
+    if (!Array.isArray(value[i])) {
+      throw new Error(`Malformed query template. Tuple expected.`)
+    }
+  }
+  return value
+}
+
+function countTupleListParams(tupleList: unknown[][]): number {
+  let count = 0
+  for (let i = 0; i < tupleList.length; i++) {
+    count += tupleList[i].length
+  }
+  return count
+}
+
+function appendChunkVariants(chunkedParams: unknown[][], chunks: unknown[][]): unknown[][] {
+  if (chunks.length === 1) {
+    const chunk = chunks[0]
+    for (let i = 0; i < chunkedParams.length; i++) {
+      chunkedParams[i].push(chunk)
+    }
+    return chunkedParams
+  }
+
+  const result = new Array<unknown[]>(chunkedParams.length * chunks.length)
+  let resultIndex = 0
+  for (let paramsIndex = 0; paramsIndex < chunkedParams.length; paramsIndex++) {
+    const params = chunkedParams[paramsIndex]
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      result[resultIndex++] = [...params, chunks[chunkIndex]]
+    }
+  }
+  return result
 }
 
 function chunkArray<T>(array: T[], chunkSize: number): T[][] {

@@ -1,4 +1,5 @@
 import { Decimal } from '@prisma/client-runtime-utils'
+import type { SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import { FieldScalarType, FieldType, ResultNode } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
@@ -15,6 +16,35 @@ export class DataMapperError extends UserFacingError {
 
 // Optimization: Cache field entries to avoid repeated Object.entries() allocations per row
 const fieldEntriesCache = new WeakMap<Record<string, ResultNode>, [string, ResultNode][]>()
+const columnIndexesCache = new WeakMap<string[], Record<string, number>>()
+const resultSetFieldMappingsCache = new WeakMap<
+  Record<string, ResultNode>,
+  WeakMap<string[], ResultSetFieldMapping[]>
+>()
+const resultSetFieldMappingsByShapeCache = new WeakMap<
+  Record<string, ResultNode>,
+  Map<string, ResultSetFieldMapping[]>
+>()
+
+type ResultSetFieldMapping =
+  | {
+      type: 'field'
+      name: string
+      dbName: string
+      columnIndex: number
+      fieldType: FieldType
+    }
+  | {
+      type: 'rowObject'
+      name: string
+      fields: ResultSetFieldMapping[]
+    }
+  | {
+      type: 'valueObject'
+      name: string
+      columnIndex: number
+      node: Extract<ResultNode, { type: 'object' }>
+    }
 
 function getFieldEntries(fields: Record<string, ResultNode>): [string, ResultNode][] {
   let entries = fieldEntriesCache.get(fields)
@@ -42,6 +72,26 @@ export function applyDataMap(data: Value, structure: ResultNode, enums: Record<s
     default:
       assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
   }
+}
+
+export function applyDataMapToResultSet(
+  resultSet: SqlResultSet,
+  structure: Extract<ResultNode, { type: 'object' }>,
+  enums: Record<string, Record<string, string>>,
+): PrismaObject[] {
+  const rows = resultSet.rows
+  if (rows.length === 0) {
+    return []
+  }
+
+  const fieldMappings = getResultSetFieldMappings(structure.fields, resultSet.columnNames)
+  const result = new Array<PrismaObject>(rows.length)
+
+  for (let i = 0; i < rows.length; i++) {
+    result[i] = mapResultSetRow(rows[i], fieldMappings, enums)
+  }
+
+  return result
 }
 
 function mapArrayOrObject(
@@ -129,6 +179,166 @@ function mapObject(
     }
   }
   return result
+}
+
+function mapResultSetRow(
+  row: unknown[],
+  fieldMappings: ResultSetFieldMapping[],
+  enums: Record<string, Record<string, string>>,
+): PrismaObject {
+  const result = {}
+  for (const mapping of fieldMappings) {
+    switch (mapping.type) {
+      case 'field': {
+        result[mapping.name] = mapField(row[mapping.columnIndex], mapping.dbName, mapping.fieldType, enums)
+        break
+      }
+
+      case 'rowObject': {
+        result[mapping.name] = mapResultSetRow(row, mapping.fields, enums)
+        break
+      }
+
+      case 'valueObject': {
+        const node = mapping.node
+        result[mapping.name] = mapArrayOrObject(row[mapping.columnIndex] as Value, node.fields, enums, node.skipNulls)
+        break
+      }
+
+      default:
+        assertNever(mapping, `DataMapper: Invalid result set field mapping type`)
+    }
+  }
+  return result
+}
+
+function getResultSetFieldMappings(fields: Record<string, ResultNode>, columnNames: string[]): ResultSetFieldMapping[] {
+  let fieldMappingsByColumnNames = resultSetFieldMappingsCache.get(fields)
+  if (fieldMappingsByColumnNames === undefined) {
+    fieldMappingsByColumnNames = new WeakMap<string[], ResultSetFieldMapping[]>()
+    resultSetFieldMappingsCache.set(fields, fieldMappingsByColumnNames)
+  }
+
+  const fieldMappings = fieldMappingsByColumnNames.get(columnNames)
+  if (fieldMappings !== undefined) {
+    return fieldMappings
+  }
+
+  return getResultSetFieldMappingsForColumnNamesMiss(fields, columnNames, fieldMappingsByColumnNames)
+}
+
+function getResultSetFieldMappingsForColumnNamesMiss(
+  fields: Record<string, ResultNode>,
+  columnNames: string[],
+  fieldMappingsByColumnNames: WeakMap<string[], ResultSetFieldMapping[]>,
+): ResultSetFieldMapping[] {
+  let fieldMappingsByColumnShape = resultSetFieldMappingsByShapeCache.get(fields)
+  if (fieldMappingsByColumnShape === undefined) {
+    fieldMappingsByColumnShape = new Map<string, ResultSetFieldMapping[]>()
+    resultSetFieldMappingsByShapeCache.set(fields, fieldMappingsByColumnShape)
+  }
+
+  const columnShape = getColumnShape(columnNames)
+  let newFieldMappings = fieldMappingsByColumnShape.get(columnShape)
+  if (newFieldMappings === undefined) {
+    newFieldMappings = buildResultSetFieldMappings(fields, getColumnIndexes(columnNames))
+    fieldMappingsByColumnShape.set(columnShape, newFieldMappings)
+  }
+  fieldMappingsByColumnNames.set(columnNames, newFieldMappings)
+  return newFieldMappings
+}
+
+function getColumnShape(columnNames: string[]): string {
+  let shape = `${columnNames.length}`
+  for (let i = 0; i < columnNames.length; i++) {
+    const name = columnNames[i]
+    shape += `:${name.length}:${name}`
+  }
+  return shape
+}
+
+function buildResultSetFieldMappings(
+  fields: Record<string, ResultNode>,
+  columnIndexes: Record<string, number>,
+): ResultSetFieldMapping[] {
+  const fieldEntries = getFieldEntries(fields)
+  const result = new Array<ResultSetFieldMapping>(fieldEntries.length)
+
+  for (let i = 0; i < fieldEntries.length; i++) {
+    const [name, node] = fieldEntries[i]
+    switch (node.type) {
+      case 'affectedRows': {
+        throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
+      }
+
+      case 'object': {
+        const { serializedName } = node
+        if (serializedName === null) {
+          result[i] = {
+            type: 'rowObject',
+            name,
+            fields: buildResultSetFieldMappings(node.fields, columnIndexes),
+          }
+          break
+        }
+
+        const columnIndex = columnIndexes[serializedName]
+        if (columnIndex === undefined) {
+          throw new DataMapperError(
+            `Missing data field (Object): '${name}'; ` +
+              `node: ${JSON.stringify(node)}; columns: ${JSON.stringify(Object.keys(columnIndexes))}`,
+          )
+        }
+
+        result[i] = {
+          type: 'valueObject',
+          name,
+          columnIndex,
+          node,
+        }
+        break
+      }
+
+      case 'field': {
+        const { dbName } = node
+        const columnIndex = columnIndexes[dbName]
+        if (columnIndex === undefined) {
+          throw new DataMapperError(
+            `Missing data field (Value): '${dbName}'; ` +
+              `node: ${JSON.stringify(node)}; columns: ${JSON.stringify(Object.keys(columnIndexes))}`,
+          )
+        }
+
+        result[i] = {
+          type: 'field',
+          name,
+          dbName,
+          columnIndex,
+          fieldType: node.fieldType,
+        }
+        break
+      }
+
+      default:
+        assertNever(node, `DataMapper: Invalid data mapping node type: '${(node as ResultNode).type}'`)
+    }
+  }
+
+  return result
+}
+
+function getColumnIndexes(columnNames: string[]): Record<string, number> {
+  const cached = columnIndexesCache.get(columnNames)
+  if (cached !== undefined) {
+    return cached
+  }
+
+  const columnIndexes = Object.create(null) as Record<string, number>
+  for (let i = 0; i < columnNames.length; i++) {
+    columnIndexes[columnNames[i]] = i
+  }
+  columnIndexesCache.set(columnNames, columnIndexes)
+  return columnIndexes
 }
 
 function mapField(
