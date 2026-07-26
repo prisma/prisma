@@ -1126,6 +1126,25 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return !!this._engineConfig.previewFeatures?.includes(feature)
     }
 
+    /**
+     * The datamodel the client was generated from, in its runtime
+     * representation: models with their fields' kind, type, list and
+     * required flags. A read-only reflection surface for tools that
+     * need model metadata at runtime, see
+     * https://github.com/prisma/prisma/issues/19392
+     */
+    get $datamodel(): RuntimeDataModel {
+      return this._runtimeDataModel
+    }
+
+    /**
+     * The datasource provider the client was generated for
+     * (e.g. "postgresql", "mysql", "sqlite").
+     */
+    get $provider(): string {
+      return this._activeProvider
+    }
+
     $extends = $extends
   }
 

@@ -1,4 +1,4 @@
-import { FluentOperation, NonModelOperation, Operation } from '@prisma/client-common'
+import { FluentOperation, NonModelOperation, Operation, RuntimeDataModel } from '@prisma/client-common'
 import { Sql } from '@prisma/client-runtime-utils'
 
 import { RequiredExtensionArgs as UserArgs } from './ExtensionArgs'
@@ -303,6 +303,18 @@ export type DynamicClientExtensionThisBuiltin<
   ): Promise<R>
   $disconnect(): Promise<void>
   $connect(): Promise<void>
+
+  /**
+   * The datamodel the client was generated from, in its runtime representation:
+   * models with their fields' kind, type, list and required flags. A read-only
+   * reflection surface for tools that need model metadata at runtime.
+   */
+  readonly $datamodel: RuntimeDataModel
+
+  /**
+   * The datasource provider the client was generated for (e.g. "postgresql").
+   */
+  readonly $provider: string
 }
 
 /** $extends, defineExtension */

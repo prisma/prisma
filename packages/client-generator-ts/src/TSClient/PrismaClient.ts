@@ -297,6 +297,18 @@ export interface PrismaClient<
    */
   $disconnect(): runtime.Types.Utils.JsPromise<void>;
 
+  /**
+   * The datamodel the client was generated from, in its runtime representation:
+   * models with their fields' kind, type, list and required flags. A read-only
+   * reflection surface for tools that need model metadata at runtime.
+   */
+  readonly $datamodel: runtime.RuntimeDataModel;
+
+  /**
+   * The datasource provider the client was generated for (e.g. "postgresql").
+   */
+  readonly $provider: string;
+
 ${[
   executeRawDefinition(this.context),
   queryRawDefinition(this.context),
