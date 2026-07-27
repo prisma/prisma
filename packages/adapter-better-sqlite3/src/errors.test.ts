@@ -68,6 +68,12 @@ describe('convertDriverError', () => {
 
   it('should rethrow errors that do not come from the driver', () => {
     const error = new Error('boom')
-    expect(() => convertDriverError(error)).toThrow(error)
+    let thrown: unknown
+    try {
+      convertDriverError(error)
+    } catch (e) {
+      thrown = e
+    }
+    expect(thrown).toBe(error)
   })
 })
