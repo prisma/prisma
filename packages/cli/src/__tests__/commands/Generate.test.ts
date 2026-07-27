@@ -376,8 +376,11 @@ it('should work with a custom generator', async () => {
     throw new Error(data.stderr + data.stdout)
   }
 
+  // Output written by the generator process itself, forwarded through the CLI's stdout.
+  expect(data.stdout).toContain(`minimal generator: generate`)
+  // The generator's `prettyName`, as reported by the CLI once generation finished.
   expect(data.stdout).toContain(`I am a minimal generator`)
-}, 75_000) // timeout
+})
 
 describe('prisma-client-ts validation', () => {
   it('should throw errors for an unknown compilerBuild', async () => {
