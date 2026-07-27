@@ -1,0 +1,13 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/15177 (SQL providers; mongo opted-out).
+//
+// Upstream schema (postgres):
+//   model Customer { userId String @id @default(cuid()) @map("user id"); test Boolean? }
+//
+// The field is named `userId` in the model but maps to column `user id` (with
+// a space) in the database.
+
+model Customer {
+  userId String   @id @map("user id")
+  test   Boolean?
+}

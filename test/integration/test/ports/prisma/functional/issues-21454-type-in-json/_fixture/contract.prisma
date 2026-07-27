@@ -1,0 +1,15 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/21454-$type-in-json (postgres matrix entry).
+//
+// Upstream schema (idForProvider(postgresql) = "String @id @default(cuid())"):
+//
+//   model Test {
+//     id   String @id @default(cuid())
+//     json Json
+//   }
+//
+// Subject: JSON values containing a `$type` key are stored and read back verbatim.
+model Test {
+  id   String @id @default(cuid(2))
+  json Json
+}

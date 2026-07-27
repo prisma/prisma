@@ -1,0 +1,34 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/17030-args-type-conflict
+// (postgres matrix entry).
+//
+// Upstream schema:
+//   model Character {
+//     id   String          @id
+//     info CharacterInfo[]
+//   }
+//   model CharacterInfo {
+//     entryId       String    @id
+//     entryLanguage String
+//     characterId   String
+//     details       Character @relation(fields: [characterId], references: [id])
+//     @@unique([entryLanguage, characterId])
+//   }
+//
+// Issue: Prisma codegen produced an args type named `CharacterInfoEntryLanguageCharacterIdCompoundUniqueInput`
+// that conflicted with the args type for `include`. prisma-next uses structural
+// types and has no such codegen conflict.
+
+model Character {
+  id   String          @id
+  info CharacterInfo[]
+}
+
+model CharacterInfo {
+  entryId       String    @id
+  entryLanguage String
+  characterId   String
+  details       Character @relation(fields: [characterId], references: [id])
+
+  @@unique([entryLanguage, characterId])
+}

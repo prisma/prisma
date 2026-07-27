@@ -1,0 +1,19 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/TML-1664-unknown-enum-value-read-error (postgres only).
+//
+// Upstream schema (postgres):
+//   model User { id String @id; status Status }
+//   enum Status { ACTIVE INACTIVE }
+//
+// prisma-next: native PG ENUM uses native_enum block + pg.enum() column type.
+// The test adds an unknown value to the DB enum after schema push and then reads it.
+
+native_enum Status {
+  ACTIVE   = "ACTIVE"
+  INACTIVE = "INACTIVE"
+}
+
+model User {
+  id     String         @id
+  status pg.enum(Status)
+}

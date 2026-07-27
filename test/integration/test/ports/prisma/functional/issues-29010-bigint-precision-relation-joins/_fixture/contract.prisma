@@ -1,0 +1,29 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/29010-bigint-precision-relation-joins
+// (postgres matrix entry; mysql/cockroachdb/postgres only — we port postgres).
+//
+// Upstream schema (postgres branch):
+//   model User {
+//     id    BigInt  @id
+//     name  String
+//     posts Post[]
+//   }
+//   model Post {
+//     id       BigInt  @id
+//     title    String
+//     authorId BigInt
+//     author   User    @relation(fields: [authorId], references: [id])
+//   }
+
+model User {
+  id    BigInt  @id
+  name  String
+  posts Post[]
+}
+
+model Post {
+  id       BigInt  @id
+  title    String
+  authorId BigInt
+  author   User    @relation(fields: [authorId], references: [id])
+}
