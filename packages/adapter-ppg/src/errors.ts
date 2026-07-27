@@ -41,13 +41,12 @@ function mapDriverError(error: DatabaseError): MappedError {
       }
     }
     case '23502': {
-      const fields = error.details.detail
-        ?.match(/Key \(([^)]+)\)/)
-        ?.at(1)
-        ?.split(', ')
+      // Unlike 23505 above, a 23502 `detail` holds "Failing row contains (...)" rather
+      // than the parseable "Key (...)" list. PostgreSQL reports the offending column
+      // in `error.details.column` instead.
       return {
         kind: 'NullConstraintViolation',
-        constraint: fields !== undefined ? { fields } : undefined,
+        constraint: error.details.column !== undefined ? { fields: [error.details.column] } : undefined,
       }
     }
     case '23503': {

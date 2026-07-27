@@ -95,9 +95,9 @@ function mapDriverError(error: DatabaseError): MappedError {
       }
     }
     case '23502': {
-      // PostgreSQL sets `error.column` to the violating column for NOT NULL errors.
-      // The `error.detail` field contains "Failing row contains (...)", not the
-      // "Key (...)" format used by unique-violation (23505), so it cannot be parsed.
+      // Unlike 23505 above, a 23502 `detail` holds "Failing row contains (...)" rather
+      // than the parseable "Key (...)" list. PostgreSQL reports the offending column
+      // in `error.column` instead.
       return {
         kind: 'NullConstraintViolation',
         constraint: error.column !== undefined ? { fields: [error.column] } : undefined,

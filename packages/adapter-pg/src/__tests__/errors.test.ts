@@ -64,9 +64,6 @@ describe('convertDriverError', () => {
   })
 
   it('should handle NullConstraintViolation (23502) using error.column', () => {
-    // PostgreSQL sets `error.column` for NOT NULL violations. Its `error.detail`
-    // holds "Failing row contains (...)" rather than the "Key (...)" format of
-    // unique-violation (23505) errors, so it cannot be parsed for the field name.
     const error = {
       code: '23502',
       message: 'null value in column "foo" of relation "User" violates not-null constraint',

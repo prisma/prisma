@@ -13,7 +13,7 @@ export default testMatrix.setupSchema(({ provider }) => {
 
     model Article {
       id    ${idForProvider(provider)}
-      title String
+      title String?
     }
   `
 })
