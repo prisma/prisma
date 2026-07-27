@@ -47,7 +47,7 @@ import {
 } from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
 import { postgresError } from '../errors';
-import type { PostgresRlsPolicy, PostgresRlsPolicyInput } from '../postgres-rls-policy';
+import type { PostgresRlsPolicy, PostgresRlsPolicyMigrationInput } from '../postgres-rls-policy';
 import {
   escapeLiteral,
   quoteIdentifier,
@@ -1721,10 +1721,11 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
 
   renderTypeScript(): string {
     const p = this.policy;
-    const input = blindCast<
-      PostgresRlsPolicyInput,
-      'ifDefined keeps absent keys out of the rendered TypeScript source'
-    >({
+    // Typed as the migration API's own optional-key parameter shape so the
+    // rendered literal (absent keys omitted) is the shape `createRlsPolicy`
+    // accepts — a drift between the two is a compile error here, not in the
+    // user's generated migration.
+    const input: PostgresRlsPolicyMigrationInput = {
       name: p.name,
       ...ifDefined('prefix', p.prefix),
       tableName: p.tableName,
@@ -1734,7 +1735,7 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
       ...ifDefined('using', p.using),
       ...ifDefined('withCheck', p.withCheck),
       permissive: p.permissive,
-    });
+    };
     return `this.createRlsPolicy({ schema: ${jsonToTsSource(this.schemaName)}, table: ${jsonToTsSource(this.tableName)}, policy: ${jsonToTsSource(input)} })`;
   }
 

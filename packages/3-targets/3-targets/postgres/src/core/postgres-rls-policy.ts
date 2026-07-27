@@ -5,6 +5,26 @@ import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
+/**
+ * The optional-key policy shape accepted by the migration authoring API
+ * (`Migration#createRlsPolicy`) and emitted by the migration renderer.
+ * Machine-rendered literals omit absent keys, so absence-legal fields are
+ * optional here; the constructor-facing {@link PostgresRlsPolicyInput}
+ * keeps them as required keys typed `| undefined`.
+ */
+export interface PostgresRlsPolicyMigrationInput {
+  readonly name: string;
+  /** See {@link PostgresRlsPolicyInput.prefix}: present ⇔ managed. */
+  readonly prefix?: string;
+  readonly tableName: string;
+  readonly namespaceId: string;
+  readonly operation: RlsPolicyOperation;
+  readonly roles: readonly string[];
+  readonly using?: string;
+  readonly withCheck?: string;
+  readonly permissive: boolean;
+}
+
 export interface PostgresRlsPolicyInput {
   /**
    * Full physical name. Stored as-is; hashing is not this class's job.

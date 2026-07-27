@@ -8,7 +8,7 @@ import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
 import { errorPostgresMigrationStackMissing } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
-import { PostgresRlsPolicy, type PostgresRlsPolicyInput } from '../postgres-rls-policy';
+import { PostgresRlsPolicy, type PostgresRlsPolicyMigrationInput } from '../postgres-rls-policy';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
@@ -466,12 +466,23 @@ export abstract class PostgresMigration<
   protected createRlsPolicy(options: {
     readonly schema: string;
     readonly table: string;
-    readonly policy: PostgresRlsPolicyInput;
+    readonly policy: PostgresRlsPolicyMigrationInput;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    const p = options.policy;
     return new CreatePostgresRlsPolicyCall(
       options.schema,
       options.table,
-      new PostgresRlsPolicy(options.policy),
+      new PostgresRlsPolicy({
+        name: p.name,
+        prefix: p.prefix,
+        tableName: p.tableName,
+        namespaceId: p.namespaceId,
+        operation: p.operation,
+        roles: p.roles,
+        using: p.using,
+        withCheck: p.withCheck,
+        permissive: p.permissive,
+      }),
     ).toOp(this.controlAdapterFor('createRlsPolicy'));
   }
 
