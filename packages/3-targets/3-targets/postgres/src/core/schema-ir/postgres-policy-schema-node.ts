@@ -109,6 +109,10 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
       'every diff-tree node the differ pairs is a SqlSchemaIRNode; the guard rejects non-policy kinds'
     >(other);
     PostgresPolicySchemaNode.assert(node);
+    // Managed short-circuits to id equality — deliberately a different shape
+    // from SqlIndexIR.isEqualTo (which calls contentEquals in both modes):
+    // the policy hash tuple is total over the fields contentEquals compares,
+    // so a managed policy's name equality already implies content equality.
     if (this.prefix !== undefined) {
       return this.id === node.id;
     }
@@ -119,15 +123,16 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
    * The single policy content-equality relation — the exact-mode
    * {@link isEqualTo} and the planner's rename content-pairing both call
    * this rather than growing a parallel relation: `operation` and
-   * `permissive` strict, `roles` compared sorted, `using`/`withCheck`
-   * VERBATIM byte-for-byte with absent ≡ empty — deliberately NOT the
-   * normalized wire-hash tuple.
+   * `permissive` strict, `roles` compared deduplicated-and-sorted (the same
+   * set semantics as the wire-hash tuple, so the two never disagree),
+   * `using`/`withCheck` VERBATIM byte-for-byte with absent ≡ empty —
+   * deliberately NOT the normalized wire-hash bodies.
    */
   contentEquals(other: PostgresPolicySchemaNode): boolean {
     return (
       this.operation === other.operation &&
       this.permissive === other.permissive &&
-      isArrayEqual([...this.roles].sort(), [...other.roles].sort()) &&
+      isArrayEqual([...new Set(this.roles)].sort(), [...new Set(other.roles)].sort()) &&
       (this.using ?? '') === (other.using ?? '') &&
       (this.withCheck ?? '') === (other.withCheck ?? '')
     );

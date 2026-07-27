@@ -138,6 +138,15 @@ describe('PostgresPolicySchemaNode', () => {
       expect(a.isEqualTo(differentSet)).toBe(false);
     });
 
+    it('roles compare as a set — a duplicated role name is equal, matching the hash tuple', () => {
+      const a = new PostgresPolicySchemaNode({ ...exactInput, roles: ['a_role'] });
+      const duplicated = new PostgresPolicySchemaNode({
+        ...exactInput,
+        roles: ['a_role', 'a_role'],
+      });
+      expect(a.isEqualTo(duplicated)).toBe(true);
+    });
+
     it('using compares verbatim byte-for-byte — whitespace variants are unequal', () => {
       const a = new PostgresPolicySchemaNode({ ...exactInput, using: '(user_id = 1)' });
       const drifted = new PostgresPolicySchemaNode({ ...exactInput, using: '(user_id = 2)' });

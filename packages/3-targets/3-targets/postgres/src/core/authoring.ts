@@ -227,9 +227,10 @@ function lowerRlsPolicyFromBlock(
   const mapAttr = block.blockAttributes.find((a) => a.name === 'map');
   if (mapAttr) {
     const rawArg = mapAttr.args[0]?.value;
-    const isQuoted =
-      rawArg !== undefined && rawArg.startsWith('"') && rawArg.endsWith('"') && rawArg.length >= 2;
-    const exactName = isQuoted ? unwrapQuotedString(rawArg) : undefined;
+    const exactName =
+      rawArg?.startsWith('"') && rawArg.endsWith('"') && rawArg.length >= 2
+        ? unwrapQuotedString(rawArg)
+        : undefined;
     if (exactName === undefined || exactName === '') {
       ctx.diagnostics?.push({
         code: 'PSL_POLICY_INVALID_MAP',
