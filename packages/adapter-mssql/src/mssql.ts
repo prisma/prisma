@@ -222,7 +222,11 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
       this.#options?.onPoolError?.(err)
     })
 
-    await pool.connect()
+    try {
+      await pool.connect()
+    } catch (e) {
+      throw new DriverAdapterError(convertDriverError(e))
+    }
     return new PrismaMssqlAdapter(pool, this.#options)
   }
 }
