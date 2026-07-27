@@ -42,6 +42,10 @@ export const contract = defineContract()
 
 Pack refs are pure JSON-friendly objects that make TypeScript contract authoring work in both emit and no-emit workflows without requiring separate manifest files.
 
+## Codec descriptor authoring
+
+SQLite-bound codecs use the public `SqliteCodecDescriptor` protocol, `sqliteCodec(...)` adapter, and `defineSqliteCodecs(...)` tuple helper exported from `@prisma-next/target-sqlite/codec-descriptor`. See the [codec authoring guide](../../../../docs/reference/codec-authoring-guide.md#target-owned-sql-codec-descriptors) for subclassing, generic adaptation, stack contribution, structural validation, SQLite's scalar-only contract, and the current renderer transition.
+
 ## Architecture
 
 This package provides a runtime entry point for the SQLite target. All declarative fields (version, capabilities) are defined directly on the descriptor. The `./pack` entry point provides a pure pack ref for contract authoring.

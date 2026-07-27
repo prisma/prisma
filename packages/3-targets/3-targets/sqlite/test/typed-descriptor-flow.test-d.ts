@@ -2,10 +2,11 @@
  * Constructive type tests for the sqlite per-target descriptor record layer (TML-2357). Mirrors the postgres test (`packages/3-targets/3-targets/postgres/test/typed-descriptor-flow.test-d.ts`).
  */
 
-import type { AnyCodecDescriptor, CodecTrait } from '@prisma-next/framework-components/codec';
+import type { CodecTrait } from '@prisma-next/framework-components/codec';
 import { expectTypeOf, test } from 'vitest';
+import type { AnySqliteCodecDescriptor } from '../src/core/codec-descriptor';
 import {
-  codecDescriptors,
+  type codecDescriptors,
   type SqliteDatetimeDescriptor,
   type SqliteIntegerDescriptor,
   sqliteDatetimeDescriptor,
@@ -13,12 +14,8 @@ import {
 } from '../src/core/codecs';
 import type { CodecTypes } from '../src/exports/codec-types';
 
-test('codecDescriptors narrows to readonly AnyCodecDescriptor[]', () => {
-  expectTypeOf(codecDescriptors).toEqualTypeOf<readonly AnyCodecDescriptor[]>();
-});
-
-test('list entries extend AnyCodecDescriptor', () => {
-  expectTypeOf<(typeof codecDescriptors)[number]>().toExtend<AnyCodecDescriptor>();
+test('canonical list entries extend AnySqliteCodecDescriptor', () => {
+  expectTypeOf<(typeof codecDescriptors)[number]>().toExtend<AnySqliteCodecDescriptor>();
 });
 
 test('sqliteIntegerDescriptor.traits is a readonly literal tuple, not widened', () => {

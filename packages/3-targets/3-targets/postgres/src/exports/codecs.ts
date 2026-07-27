@@ -55,4 +55,7 @@ export {
   pgVarbitColumn,
   pgVarcharColumn,
 } from '../core/codecs';
-export { postgresCodecRegistry } from '../core/registry';
+export {
+  postgresCodecDescriptorRegistry,
+  postgresCodecRegistry,
+} from '../core/registry';

@@ -58,6 +58,7 @@
     "packs"
   ],
   "exports": {
+    "./codec-descriptor": "./dist/codec-descriptor.mjs",
     "./codec-ids": "./dist/codec-ids.mjs",
     "./codec-types": "./dist/codec-types.mjs",
     "./codecs": "./dist/codecs.mjs",

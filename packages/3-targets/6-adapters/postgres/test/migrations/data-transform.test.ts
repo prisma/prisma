@@ -2,14 +2,16 @@ import type { Contract } from '@prisma-next/contract/types';
 import { CliStructuredError } from '@prisma-next/errors/control';
 import { placeholder } from '@prisma-next/errors/migration';
 import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
-import type { Codec, CodecRegistry } from '@prisma-next/framework-components/codec';
-import { emptyCodecLookup } from '@prisma-next/framework-components/codec';
+import type { AnyCodecDescriptor, Codec } from '@prisma-next/framework-components/codec';
+import { voidParamsSchema } from '@prisma-next/framework-components/codec';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { ContractCodecRegistry } from '@prisma-next/sql-relational-core/ast';
+import type { ContractCodecRegistry, ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import { postgresCodec } from '@prisma-next/target-postgres/codec-descriptor';
 import { pgTable } from '@prisma-next/target-postgres/contract-free';
 import { dataTransform } from '@prisma-next/target-postgres/data-transform';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createPostgresCodecRegistryWithBuiltins } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';
 import { encodeControlQueryParams } from '../../src/core/control-codecs';
 
@@ -222,14 +224,19 @@ const transformingCodec: Codec = {
   decodeJson: (v) => v as never,
 };
 
-const transformingLookup: CodecRegistry = {
-  ...emptyCodecLookup,
-  get: (id) => (id === TEST_CODEC_ID ? transformingCodec : undefined),
-  forCodecRef: () => {
-    throw new Error('not used in this test');
-  },
-  forColumn: () => undefined,
+const transformingCodecDescriptor: AnyCodecDescriptor = {
+  codecId: TEST_CODEC_ID,
+  traits: [],
+  targetTypes: ['text'],
+  paramsSchema: voidParamsSchema,
+  isParameterized: false,
+  factory: () => () => transformingCodec,
 };
+const transformingDescriptor = postgresCodec(transformingCodecDescriptor, {
+  nativeType: () => 'text',
+  jsonProjection: (expression: ProjectionExpr) => expression,
+});
+const transformingCodecRegistry = createPostgresCodecRegistryWithBuiltins([transformingDescriptor]);
 
 const testRegistry: ContractCodecRegistry = {
   forColumn: () => undefined,
@@ -246,7 +253,7 @@ const testTable = pgTable(
   },
 );
 
-const testAdapter = new PostgresControlAdapter(transformingLookup);
+const testAdapter = new PostgresControlAdapter(transformingCodecRegistry);
 
 describe('dataTransform — codec-encoded params via lowerToExecuteRequest', () => {
   it('execute step params carry the codec-encoded wire value (not raw JS value)', async () => {

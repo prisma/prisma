@@ -12,9 +12,9 @@
  *      hands back for `geometry` columns. We parse it into a
  *      GeoJSON-shaped object so callers see structured data, not
  *      opaque hex.
- * 2. `PostgisGeometryDescriptor` extends {@link CodecDescriptorImpl}
+ * 2. `PostgisGeometryDescriptor` extends {@link PostgresCodecDescriptor}
  *    with the codec id, traits, target types, params schema
- *    (`{ srid: number }`, validated as a non-negative integer), and
+ *    (`{ srid?: number }`, preserving unparameterized geometry while validating supplied SRIDs), explicit target behavior, and
  *    the emit-path `renderOutputType` producing `Geometry<${srid}>` /
  *    `Geometry` when no SRID is supplied.
  * 3. `pgGeometryColumn({ srid })` per-codec column helper invoking
@@ -35,14 +35,17 @@ import type { JsonValue } from '@prisma-next/contract/types';
 import {
   type AnyCodecDescriptor,
   type CodecCallContext,
-  CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
   type ColumnHelperFor,
   type ColumnHelperForStrict,
   column,
 } from '@prisma-next/framework-components/codec';
-import type { ExtractCodecTypes } from '@prisma-next/sql-relational-core/ast';
+import type { ExtractCodecTypes, ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
+import {
+  definePostgresCodecs,
+  PostgresCodecDescriptor,
+} from '@prisma-next/target-postgres/codec-descriptor';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { POSTGIS_GEOMETRY_CODEC_ID } from './constants';
@@ -50,12 +53,15 @@ import { postgisError } from './errors';
 import { decodeEWKBHex, encodeEWKBHex, encodeEWKT } from './ewkb';
 import type { Geometry } from './geojson';
 
-type GeometryParams = { readonly srid: number };
+type GeometryParams = { readonly srid?: number };
 
 const geometryParamsSchema = arktype({
-  srid: 'number',
+  'srid?': 'number',
 }).narrow((params, ctx) => {
   const { srid } = params;
+  if (srid === undefined) {
+    return true;
+  }
   if (!Number.isInteger(srid)) {
     return ctx.mustBe('an integer');
   }
@@ -140,27 +146,29 @@ export class PostgisGeometryCodec extends CodecImpl<
   }
 }
 
-export class PostgisGeometryDescriptor extends CodecDescriptorImpl<GeometryParams> {
+export class PostgisGeometryDescriptor extends PostgresCodecDescriptor<GeometryParams> {
+  protected override nativeType(): string {
+    return POSTGIS_GEOMETRY_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = POSTGIS_GEOMETRY_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['geometry'] as const;
   override readonly meta = POSTGIS_GEOMETRY_META;
   override readonly paramsSchema: StandardSchemaV1<GeometryParams> = geometryParamsSchema;
   override renderOutputType(params: GeometryParams): string {
-    const srid = (params as GeometryParams | undefined)?.srid;
+    const { srid } = params;
     if (srid === undefined) return 'Geometry';
     return `Geometry<${srid}>`;
   }
   /**
-   * The runtime calls `factory(undefined)(ctx)` to materialize a
-   * representative codec for parameterised descriptors that ship a
-   * no-params column variant (here, `geometryColumn` vs `geometry({ srid })`).
-   * The runtime cast widens `params` to `unknown`, so guarding with an
-   * optional read keeps the typed call site (`factory({ srid })`)
-   * strict while still producing an SRID-agnostic codec for
-   * representative use. Encode/decode for an unparameterised column
-   * runs through this representative; the wire format already carries
-   * SRID inside the EWKT/EWKB payload, so it's dimension-independent.
+   * Runtime materialization uses an empty parameter object for the
+   * existing unparameterized `geometryColumn` variant and `{ srid }` for
+   * constrained columns. Both resolve to the same SRID-agnostic codec:
+   * the wire format already carries SRID inside the EWKT/EWKB payload,
+   * so codec behavior is parameter-independent.
    */
   override factory(_params: GeometryParams): (ctx: CodecInstanceContext) => PostgisGeometryCodec {
     return () => new PostgisGeometryCodec(this);
@@ -212,4 +220,4 @@ const codecDescriptorMap = {
 
 export type CodecTypes = ExtractCodecTypes<typeof codecDescriptorMap>;
 
-export const codecDescriptors: readonly AnyCodecDescriptor[] = Object.values(codecDescriptorMap);
+export const codecDescriptors = definePostgresCodecs(Object.values(codecDescriptorMap));

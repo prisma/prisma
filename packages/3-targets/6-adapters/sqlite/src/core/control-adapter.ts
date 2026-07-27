@@ -2,7 +2,7 @@ import type { ContractMarkerRecord, LedgerEntryRecord } from '@prisma-next/contr
 import { parseMarkerRowSafely, withMarkerReadErrorHandling } from '@prisma-next/errors/execution';
 import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
 import { parseContractMarkerRow } from '@prisma-next/family-sql/verify';
-import type { CodecLookup, CodecRegistry } from '@prisma-next/framework-components/codec';
+import type { CodecLookup } from '@prisma-next/framework-components/codec';
 import { APP_SPACE_ID, type SchemaNodeRef } from '@prisma-next/framework-components/control';
 import { ledgerOriginFromStored } from '@prisma-next/migration-tools/ledger-origin';
 import { REFERENTIAL_ACTION_SQL } from '@prisma-next/sql-contract/referential-action-sql';
@@ -59,7 +59,7 @@ import {
   NOW,
   sqliteCatalog,
 } from './marker-ledger';
-import type { SqliteContract } from './types';
+import type { SqliteCodecRegistry, SqliteContract } from './types';
 
 const SQLITE_MARKER_TABLE = '_prisma_marker';
 const SQLITE_LEDGER_TABLE = '_prisma_ledger';
@@ -120,9 +120,9 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'sqlite' as const;
 
-  private readonly codecRegistry: CodecRegistry;
+  private readonly codecRegistry: SqliteCodecRegistry;
 
-  constructor(codecRegistry: CodecRegistry) {
+  constructor(codecRegistry: SqliteCodecRegistry) {
     this.codecRegistry = codecRegistry;
   }
 

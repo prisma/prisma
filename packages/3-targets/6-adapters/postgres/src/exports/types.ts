@@ -6,6 +6,7 @@ export type {
   OrderClause,
   ParamRef,
   PostgresAdapterOptions,
+  PostgresCodecRegistry,
   PostgresContract,
   PostgresLoweredStatement,
   SelectAst,

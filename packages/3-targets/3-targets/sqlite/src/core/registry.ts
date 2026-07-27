@@ -1,5 +1,6 @@
 import { buildCodecDescriptorRegistry } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
 import type { CodecDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
+import { buildSqliteCodecDescriptorRegistry } from './codec-descriptor';
 import { codecDescriptors } from './codecs';
 
 /**
@@ -9,3 +10,5 @@ import { codecDescriptors } from './codecs';
  */
 export const sqliteCodecRegistry: CodecDescriptorRegistry =
   buildCodecDescriptorRegistry(codecDescriptors);
+
+export const sqliteCodecDescriptorRegistry = buildSqliteCodecDescriptorRegistry(codecDescriptors);

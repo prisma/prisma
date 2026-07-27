@@ -10,7 +10,7 @@ import {
 } from '@prisma-next/errors/execution';
 import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
 import { parseContractMarkerRow } from '@prisma-next/family-sql/verify';
-import type { CodecLookup, CodecRegistry } from '@prisma-next/framework-components/codec';
+import type { CodecLookup } from '@prisma-next/framework-components/codec';
 import { APP_SPACE_ID, type SchemaNodeRef } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { ledgerOriginFromStored } from '@prisma-next/migration-tools/ledger-origin';
@@ -93,7 +93,7 @@ import {
   NOW,
 } from './marker-ledger';
 import { renderLoweredSql } from './sql-renderer';
-import type { PostgresContract } from './types';
+import type { PostgresCodecRegistry, PostgresContract } from './types';
 
 const POSTGRES_MARKER_TABLE = 'prisma_contract.marker';
 const POSTGRES_LEDGER_TABLE = 'prisma_contract.ledger';
@@ -116,11 +116,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'postgres' as const;
 
-  private readonly codecRegistry: CodecRegistry;
-
-  constructor(codecRegistry: CodecRegistry) {
-    this.codecRegistry = codecRegistry;
-  }
+  constructor(private readonly codecRegistry: PostgresCodecRegistry) {}
 
   /**
    * Target-specific normalizer for raw Postgres default expressions.

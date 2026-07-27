@@ -2,17 +2,18 @@
  * Constructive type tests for the postgres per-target descriptor record layer.
  *
  * Coverage:
- * - the internal descriptor list (`codecDescriptors`) narrows to `readonly AnyCodecDescriptor[]`, so heterogeneous descriptor storage works without per-codec branching;
+ * - every entry in the internal descriptor list (`codecDescriptors`) satisfies the PostgreSQL target protocol while retaining its concrete type;
  * - trait literals survive on each descriptor class — {@link DescriptorCodecTraits} reads `traits` directly off the descriptor, so the literal tuple shape (`readonly ['equality', 'order', 'numeric']`) is preserved rather than widened to `readonly CodecTrait[]`;
  * - the resolved `CodecTypes` projection contains the codec-id keys consumers reference at the no-emit authoring chain.
  *
  * Negative coverage (`// @ts-expect-error`) proves that a regression in trait preservation or a missing codec id breaks the test compile.
  */
 
-import type { AnyCodecDescriptor, CodecTrait } from '@prisma-next/framework-components/codec';
+import type { CodecTrait } from '@prisma-next/framework-components/codec';
 import { expectTypeOf, test } from 'vitest';
+import type { AnyPostgresCodecDescriptor } from '../src/core/codec-descriptor';
 import {
-  codecDescriptors,
+  type codecDescriptors,
   type PgInt4Descriptor,
   type PgNumericDescriptor,
   pgInt4Descriptor,
@@ -20,12 +21,8 @@ import {
 } from '../src/core/codecs';
 import type { CodecTypes } from '../src/exports/codec-types';
 
-test('codecDescriptors narrows to readonly AnyCodecDescriptor[]', () => {
-  expectTypeOf(codecDescriptors).toEqualTypeOf<readonly AnyCodecDescriptor[]>();
-});
-
-test('list entries extend AnyCodecDescriptor', () => {
-  expectTypeOf<(typeof codecDescriptors)[number]>().toExtend<AnyCodecDescriptor>();
+test('canonical list entries extend AnyPostgresCodecDescriptor', () => {
+  expectTypeOf<(typeof codecDescriptors)[number]>().toExtend<AnyPostgresCodecDescriptor>();
 });
 
 test('pgInt4Descriptor.traits is a readonly literal tuple, not widened', () => {

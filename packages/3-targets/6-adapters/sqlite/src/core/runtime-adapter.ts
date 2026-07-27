@@ -4,12 +4,13 @@ import type { RuntimeAdapterInstance } from '@prisma-next/framework-components/e
 import { builtinGeneratorIds } from '@prisma-next/ids';
 import { generateId } from '@prisma-next/ids/runtime';
 import type { SqlRuntimeAdapterDescriptor } from '@prisma-next/sql-runtime';
-import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
-import { createSqliteAdapter, sqliteRawCodecInferer } from './adapter';
+import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
+import { createSqliteAdapterWithCodecRegistry, sqliteRawCodecInferer } from './adapter';
+import { assembleSqliteCodecRegistry } from './codec-lookup';
 import { sqliteAdapterDescriptorMeta } from './descriptor-meta';
 
 export type SqliteRuntimeAdapterInstance = RuntimeAdapterInstance<'sql', 'sqlite'> &
-  ReturnType<typeof createSqliteAdapter>;
+  ReturnType<typeof createSqliteAdapterWithCodecRegistry>;
 
 function createSqliteMutationDefaultGenerators() {
   return [
@@ -30,11 +31,12 @@ const sqliteRuntimeAdapterDescriptor: SqlRuntimeAdapterDescriptor<
   SqliteRuntimeAdapterInstance
 > = {
   ...sqliteAdapterDescriptorMeta,
-  codecs: () => Array.from(sqliteCodecRegistry.values()),
+  codecs: () => Array.from(sqliteCodecDescriptorRegistry.values()),
   mutationDefaultGenerators: createSqliteMutationDefaultGenerators,
   rawCodecInferer: sqliteRawCodecInferer,
-  create(_stack): SqliteRuntimeAdapterInstance {
-    return createSqliteAdapter();
+  create(stack): SqliteRuntimeAdapterInstance {
+    const codecRegistry = assembleSqliteCodecRegistry(stack.target, stack.extensions);
+    return createSqliteAdapterWithCodecRegistry(codecRegistry);
   },
 };
 

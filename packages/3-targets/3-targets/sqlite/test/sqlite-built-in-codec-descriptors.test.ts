@@ -1,0 +1,175 @@
+import type {
+  AnyCodecDescriptor,
+  CodecInstanceContext,
+  CodecRef,
+} from '@prisma-next/framework-components/codec';
+import {
+  ColumnRef,
+  sqlCharDescriptor,
+  sqlFloatDescriptor,
+  sqlIntDescriptor,
+  sqlVarcharDescriptor,
+} from '@prisma-next/sql-relational-core/ast';
+import { ifDefined } from '@prisma-next/utils/defined';
+import { describe, expect, it } from 'vitest';
+import type { AnySqliteCodecDescriptor } from '../src/core/codec-descriptor';
+import {
+  codecDescriptors,
+  sqliteBigintDescriptor,
+  sqliteBlobDescriptor,
+  sqliteDatetimeDescriptor,
+  sqliteIntegerDescriptor,
+  sqliteJsonDescriptor,
+  sqliteRealDescriptor,
+  sqliteSqlCharDescriptor,
+  sqliteSqlFloatDescriptor,
+  sqliteSqlIntDescriptor,
+  sqliteSqlVarcharDescriptor,
+  sqliteTextDescriptor,
+} from '../src/core/codecs';
+import { sqliteCodecDescriptorRegistry, sqliteCodecRegistry } from '../src/core/registry';
+
+const EXPECTED_CODEC_IDS = [
+  'sql/char@1',
+  'sql/varchar@1',
+  'sql/int@1',
+  'sql/float@1',
+  'sqlite/text@1',
+  'sqlite/integer@1',
+  'sqlite/real@1',
+  'sqlite/blob@1',
+  'sqlite/datetime@1',
+  'sqlite/json@1',
+  'sqlite/bigint@1',
+] as const;
+
+const refFor = (
+  descriptor: AnySqliteCodecDescriptor,
+  typeParams?: CodecRef['typeParams'],
+): CodecRef => ({
+  codecId: descriptor.codecId,
+  ...ifDefined('typeParams', typeParams),
+});
+
+const codecContext: CodecInstanceContext = { name: 'test' };
+
+describe('SQLite built-in codec descriptors', () => {
+  it('keeps the complete canonical order with only target descriptors', () => {
+    expect(codecDescriptors.map((descriptor) => descriptor.codecId)).toEqual(EXPECTED_CODEC_IDS);
+    expect(
+      codecDescriptors.every((descriptor) => descriptor.descriptorKind === 'sqlite-codec'),
+    ).toBe(true);
+
+    for (const rawDescriptor of [
+      sqlCharDescriptor,
+      sqlVarcharDescriptor,
+      sqlIntDescriptor,
+      sqlFloatDescriptor,
+    ]) {
+      expect(codecDescriptors).not.toContain(rawDescriptor);
+    }
+  });
+
+  it('adapts every generic SQL descriptor with identity projection and scalar-only semantics', () => {
+    const expression = ColumnRef.of('records', 'value');
+    const cases: ReadonlyArray<{
+      descriptor: AnySqliteCodecDescriptor;
+      rawDescriptor: AnyCodecDescriptor;
+      typeParams?: CodecRef['typeParams'];
+    }> = [
+      {
+        descriptor: sqliteSqlCharDescriptor,
+        rawDescriptor: sqlCharDescriptor,
+        typeParams: { length: 12 },
+      },
+      {
+        descriptor: sqliteSqlVarcharDescriptor,
+        rawDescriptor: sqlVarcharDescriptor,
+        typeParams: { length: 120 },
+      },
+      { descriptor: sqliteSqlIntDescriptor, rawDescriptor: sqlIntDescriptor },
+      { descriptor: sqliteSqlFloatDescriptor, rawDescriptor: sqlFloatDescriptor },
+    ];
+
+    for (const { descriptor, rawDescriptor, typeParams } of cases) {
+      expect(descriptor.codecId).toBe(rawDescriptor.codecId);
+      expect(descriptor.paramsSchema).toBe(rawDescriptor.paramsSchema);
+      expect(descriptor.projectJson(expression, refFor(descriptor, typeParams))).toBe(expression);
+    }
+
+    expect(() =>
+      sqliteSqlIntDescriptor.projectJson(expression, {
+        codecId: sqliteSqlIntDescriptor.codecId,
+        many: true,
+      }),
+    ).toThrow(/do not support stored scalar arrays/);
+  });
+
+  it('gives every native descriptor an explicit identity projection', () => {
+    const expression = ColumnRef.of('records', 'value');
+    const descriptors = [
+      sqliteTextDescriptor,
+      sqliteIntegerDescriptor,
+      sqliteRealDescriptor,
+      sqliteBlobDescriptor,
+      sqliteDatetimeDescriptor,
+      sqliteJsonDescriptor,
+      sqliteBigintDescriptor,
+    ];
+
+    for (const descriptor of descriptors) {
+      expect(descriptor.projectJson(expression, refFor(descriptor))).toBe(expression);
+    }
+  });
+
+  it('keeps authored registries complete while preserving the control metadata filter boundary', () => {
+    expect(Object.isFrozen(sqliteCodecDescriptorRegistry)).toBe(true);
+    expect([...sqliteCodecDescriptorRegistry.values()]).toEqual(codecDescriptors);
+
+    for (const descriptor of codecDescriptors) {
+      expect(sqliteCodecDescriptorRegistry.descriptorFor(descriptor.codecId)).toBe(descriptor);
+      expect(sqliteCodecRegistry.descriptorFor(descriptor.codecId)).toBe(descriptor);
+    }
+
+    const filteredControlDescriptors = codecDescriptors.filter(
+      (descriptor) => descriptor.renderOutputType === undefined,
+    );
+    expect(filteredControlDescriptors.map((descriptor) => descriptor.codecId)).toEqual(
+      EXPECTED_CODEC_IDS.filter(
+        (codecId) =>
+          codecId !== sqlCharDescriptor.codecId && codecId !== sqlVarcharDescriptor.codecId,
+      ),
+    );
+    expect(sqliteCodecDescriptorRegistry.descriptorFor(sqlCharDescriptor.codecId)).toBe(
+      sqliteSqlCharDescriptor,
+    );
+    expect(sqliteCodecDescriptorRegistry.descriptorFor(sqlVarcharDescriptor.codecId)).toBe(
+      sqliteSqlVarcharDescriptor,
+    );
+  });
+
+  it('preserves current BLOB, bigint, real, datetime, and structured JSON behavior', () => {
+    const blobCodec = sqliteBlobDescriptor.factory()(codecContext);
+    expect(blobCodec.encodeJson(new Uint8Array([1, 2, 3]))).toBe('AQID');
+    expect(blobCodec.decodeJson('AQID')).toEqual(new Uint8Array([1, 2, 3]));
+
+    const bigintCodec = sqliteBigintDescriptor.factory()(codecContext);
+    expect(bigintCodec.encodeJson(42n)).toBe(42);
+    expect(bigintCodec.decodeJson(42)).toBe(42n);
+    expect(() => bigintCodec.encodeJson(9_007_199_254_740_992n)).toThrow(/safe integer/);
+
+    const realCodec = sqliteRealDescriptor.factory()(codecContext);
+    expect(realCodec.encodeJson(1.25)).toBe(1.25);
+    expect(realCodec.decodeJson(1.25)).toBe(1.25);
+
+    const datetimeCodec = sqliteDatetimeDescriptor.factory()(codecContext);
+    const date = new Date('2026-07-23T12:34:56.789Z');
+    expect(datetimeCodec.encodeJson(date)).toBe('2026-07-23T12:34:56.789Z');
+    expect(datetimeCodec.decodeJson('2026-07-23T12:34:56.789Z')).toEqual(date);
+
+    const jsonCodec = sqliteJsonDescriptor.factory()(codecContext);
+    const value = { nested: ['value', 1, true, null] };
+    expect(jsonCodec.encodeJson(value)).toEqual(value);
+    expect(jsonCodec.decodeJson(value)).toEqual(value);
+  });
+});

@@ -1,4 +1,3 @@
-import { extractCodecLookup } from '@prisma-next/framework-components/control';
 import { SQL_CHAR_CODEC_ID } from '@prisma-next/sql-relational-core/ast';
 import { col, lit } from '@prisma-next/sql-relational-core/contract-free';
 import {
@@ -10,7 +9,6 @@ import { SqliteCreateTable } from '@prisma-next/target-sqlite/ddl';
 import { describe, expect, it } from 'vitest';
 import { createSqliteBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../src/core/control-adapter';
-import { sqliteAdapterDescriptorMeta } from '../src/core/descriptor-meta';
 import type { SqliteContract } from '../src/core/types';
 
 const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
@@ -76,14 +74,9 @@ describe('indexExistsAst lowering — sqlite_master index verification checks', 
   });
 });
 
-// The adapter descriptor carries only non-emitting codec descriptors (those where
-// renderOutputType === undefined). This simulates the production stack: the control
-// adapter is built from the stack's codecLookup, which is derived from
-// sqliteAdapterDescriptorMeta, not the full sqliteCodecRegistry.
-const productionLookup = extractCodecLookup([sqliteAdapterDescriptorMeta]);
-const productionAdapter = new SqliteControlAdapter(productionLookup);
+const productionAdapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
 
-describe('verification checks lowering — production-filtered codec lookup', () => {
+describe('verification checks lowering — complete codec registry', () => {
   it('columnExistsAst lowers with sqlite/text@1 params without CODEC_DESCRIPTOR_MISSING', async () => {
     const ast = columnExistsAst('users', 'email').columnPresent();
     const result = await productionAdapter.lowerToExecuteRequest(ast, ctx);
@@ -101,8 +94,8 @@ describe('verification checks lowering — production-filtered codec lookup', ()
       ],
     });
     const result = await productionAdapter.lowerToExecuteRequest(ast, ctx);
-    // sql/char@1 is excluded from the production lookup; DDL lowering falls
-    // through to raw-literal encoding without throwing.
+    // Authored char descriptors remain available to control lowering even though
+    // emission metadata intentionally filters their named output types.
     expect(result.sql).toContain(`"code" TEXT DEFAULT 'AB'`);
     expect(result.params).toEqual([]);
   });

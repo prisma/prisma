@@ -43,9 +43,14 @@ import type { SqliteDdlNode } from '@prisma-next/target-sqlite/ddl';
 import { escapeLiteral, quoteIdentifier } from '@prisma-next/target-sqlite/sql-utils';
 import { assertNever, InternalError } from '@prisma-next/utils/internal-error';
 import { structuredError } from '@prisma-next/utils/structured-error';
-import { createSqliteBuiltinCodecLookup } from './codec-lookup';
+import { createSqliteCodecRegistryWithBuiltins } from './codec-lookup';
 import { SqliteControlAdapter } from './control-adapter';
-import type { SqliteAdapterOptions, SqliteContract, SqliteLoweredStatement } from './types';
+import type {
+  SqliteAdapterOptions,
+  SqliteCodecRegistry,
+  SqliteContract,
+  SqliteLoweredStatement,
+} from './types';
 
 function nodeKind(value: unknown): string {
   if (
@@ -80,11 +85,10 @@ class SqliteAdapterImpl implements Adapter<AnyQueryAst, SqliteContract, SqliteLo
 
   readonly profile: AdapterProfile<'sqlite'>;
 
-  constructor(options?: SqliteAdapterOptions) {
-    const codecLookup = createSqliteBuiltinCodecLookup();
-    const controlAdapter = new SqliteControlAdapter(codecLookup);
+  constructor(codecRegistry: SqliteCodecRegistry, profileId?: string) {
+    const controlAdapter = new SqliteControlAdapter(codecRegistry);
     this.profile = Object.freeze({
-      id: options?.profileId ?? 'sqlite/default@1',
+      id: profileId ?? 'sqlite/default@1',
       target: 'sqlite',
       capabilities: defaultCapabilities,
       readMarker: (queryable: SqlQueryable) =>
@@ -771,5 +775,10 @@ function renderReturning(returning: ReadonlyArray<ProjectionItem> | undefined): 
 }
 
 export function createSqliteAdapter(options?: SqliteAdapterOptions) {
-  return Object.freeze(new SqliteAdapterImpl(options));
+  const codecRegistry = createSqliteCodecRegistryWithBuiltins(options?.codecDescriptors);
+  return Object.freeze(new SqliteAdapterImpl(codecRegistry, options?.profileId));
+}
+
+export function createSqliteAdapterWithCodecRegistry(codecRegistry: SqliteCodecRegistry) {
+  return Object.freeze(new SqliteAdapterImpl(codecRegistry));
 }

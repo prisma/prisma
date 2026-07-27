@@ -3,12 +3,13 @@
  */
 
 import type { AnyCodecDescriptor, CodecTrait } from '@prisma-next/framework-components/codec';
+import type { AnyPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
 import { expectTypeOf, test } from 'vitest';
 import { codecDescriptors, type PgVectorDescriptor, pgVectorDescriptor } from '../src/core/codecs';
 import type { CodecTypes } from '../src/exports/codec-types';
 
-test('codecDescriptors narrows to readonly AnyCodecDescriptor[]', () => {
-  expectTypeOf(codecDescriptors).toEqualTypeOf<readonly AnyCodecDescriptor[]>();
+test('codecDescriptors narrows to PostgreSQL target descriptors', () => {
+  expectTypeOf(codecDescriptors).toExtend<readonly AnyPostgresCodecDescriptor[]>();
 });
 
 test('list entries extend AnyCodecDescriptor', () => {

@@ -61,7 +61,12 @@ describe('Operation lowering', () => {
     return new OperationExpr({
       method: 'cosineDistance',
       self: ColumnRef.of('user', 'vector'),
-      args: [ParamRef.of([1, 2, 3], { name: 'other', codec: { codecId: 'pg/vector@1' } })],
+      args: [
+        ParamRef.of([1, 2, 3], {
+          name: 'other',
+          codec: { codecId: 'pg/vector@1', typeParams: { length: 3 } },
+        }),
+      ],
       returns: { codecId: 'core/float8', nullable: false },
       lowering: {
         targetFamily: 'sql',
@@ -88,7 +93,10 @@ describe('Operation lowering', () => {
       self: ColumnRef.of('user', 'vector'),
       args: [
         ColumnRef.of('user', 'otherVector'),
-        ParamRef.of([1, 2, 3], { name: 'param', codec: { codecId: 'pg/vector@1' } }),
+        ParamRef.of([1, 2, 3], {
+          name: 'param',
+          codec: { codecId: 'pg/vector@1', typeParams: { length: 3 } },
+        }),
         LiteralExpr.of(42),
       ],
       returns: { codecId: 'core/float8', nullable: false },

@@ -5,12 +5,6 @@
  */
 
 import type { ExtractCodecTypes } from '@prisma-next/sql-relational-core/ast';
-import {
-  sqlCharDescriptor,
-  sqlFloatDescriptor,
-  sqlIntDescriptor,
-  sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
 import type { JsonValue } from '../core/codec-helpers';
 import {
   sqliteBigintDescriptor,
@@ -19,14 +13,18 @@ import {
   sqliteIntegerDescriptor,
   sqliteJsonDescriptor,
   sqliteRealDescriptor,
+  sqliteSqlCharDescriptor,
+  sqliteSqlFloatDescriptor,
+  sqliteSqlIntDescriptor,
+  sqliteSqlVarcharDescriptor,
   sqliteTextDescriptor,
 } from '../core/codecs';
 
 const codecDescriptorMap = {
-  char: sqlCharDescriptor,
-  varchar: sqlVarcharDescriptor,
-  int: sqlIntDescriptor,
-  float: sqlFloatDescriptor,
+  char: sqliteSqlCharDescriptor,
+  varchar: sqliteSqlVarcharDescriptor,
+  int: sqliteSqlIntDescriptor,
+  float: sqliteSqlFloatDescriptor,
   text: sqliteTextDescriptor,
   integer: sqliteIntegerDescriptor,
   real: sqliteRealDescriptor,

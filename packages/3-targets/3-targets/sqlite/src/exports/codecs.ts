@@ -17,4 +17,4 @@ export {
   sqliteRealColumn,
   sqliteTextColumn,
 } from '../core/codecs';
-export { sqliteCodecRegistry } from '../core/registry';
+export { sqliteCodecDescriptorRegistry, sqliteCodecRegistry } from '../core/registry';

@@ -33,7 +33,7 @@ describe('pgvector operations', () => {
     expect(operations).toBeDefined();
     expect(Object.keys(operations).sort()).toEqual(['cosineDistance', 'cosineSimilarity']);
 
-    const vectorCodec: CodecRef = { codecId: 'pg/vector@1' };
+    const vectorCodec: CodecRef = { codecId: 'pg/vector@1', typeParams: { length: 2 } };
     const cosineDistanceOp = operations['cosineDistance'];
     expect(cosineDistanceOp).toBeDefined();
     const distExpr = cosineDistanceOp?.impl(

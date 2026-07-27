@@ -1,5 +1,6 @@
 import type { SqlControlAdapterDescriptor } from '@prisma-next/family-sql/control';
 import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
+import { assembleSqliteCodecRegistry } from '../core/codec-lookup';
 import { SqliteControlAdapter } from '../core/control-adapter';
 import {
   createSqliteDefaultFunctionRegistry,
@@ -16,7 +17,8 @@ const sqliteAdapterDescriptor: SqlControlAdapterDescriptor<'sqlite'> = {
     generatorDescriptors: createSqliteMutationDefaultGeneratorDescriptors(),
   },
   create(stack): SqlControlAdapter<'sqlite'> {
-    return new SqliteControlAdapter(stack.codecLookup);
+    const codecRegistry = assembleSqliteCodecRegistry(stack.target, stack.extensions);
+    return new SqliteControlAdapter(codecRegistry);
   },
 };
 
@@ -30,7 +32,10 @@ export default sqliteAdapterDescriptor;
 export { parseSqliteDefault } from '@prisma-next/target-sqlite/default-normalizer';
 export { normalizeSqliteNativeType } from '@prisma-next/target-sqlite/native-type-normalizer';
 export { escapeLiteral, quoteIdentifier } from '@prisma-next/target-sqlite/sql-utils';
-export { createSqliteBuiltinCodecLookup } from '../core/codec-lookup';
+export {
+  createSqliteBuiltinCodecLookup,
+  createSqliteCodecRegistryWithBuiltins,
+} from '../core/codec-lookup';
 // `SqlControlAdapterDescriptor` is declared in two places in the codebase
 // (`family-sql/control-adapter` and `family-sql/migrations/types`); the
 // migrations-side declaration narrows `create()`'s return type to the base

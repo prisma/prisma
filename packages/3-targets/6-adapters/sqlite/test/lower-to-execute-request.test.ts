@@ -1,25 +1,22 @@
-import type {
-  Codec,
-  CodecDescriptor,
-  CodecRegistry,
-} from '@prisma-next/framework-components/codec';
-import {
-  CodecDescriptorImpl,
-  emptyCodecLookup,
-  voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
-import { extractCodecLookup } from '@prisma-next/framework-components/control';
+import type { Codec } from '@prisma-next/framework-components/codec';
+import { CodecDescriptorImpl, voidParamsSchema } from '@prisma-next/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage, type StorageTableInput } from '@prisma-next/sql-contract/types';
 import type { ContractCodecRegistry } from '@prisma-next/sql-relational-core/ast';
 import { col, fn, lit } from '@prisma-next/sql-relational-core/contract-free';
-import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
+import {
+  type AnySqliteCodecDescriptor,
+  sqliteCodec,
+} from '@prisma-next/target-sqlite/codec-descriptor';
 import { jsonText, sqliteTable, text } from '@prisma-next/target-sqlite/contract-free';
 import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
 import { SqliteCreateTable } from '@prisma-next/target-sqlite/ddl';
 import { createContract } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
-import { createSqliteBuiltinCodecLookup } from '../src/core/codec-lookup';
+import {
+  createSqliteBuiltinCodecLookup,
+  createSqliteCodecRegistryWithBuiltins,
+} from '../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../src/core/control-adapter';
 import { encodeControlQueryParams } from '../src/core/control-codecs';
 import type { SqliteContract } from '../src/core/types';
@@ -38,14 +35,18 @@ const transformingCodec = {
   decode: async (wire: unknown) => wire,
 } as unknown as Codec;
 
-const transformingLookup: CodecRegistry = {
-  ...emptyCodecLookup,
-  get: (id) => (id === 'test/transform@1' ? transformingCodec : undefined),
-  forCodecRef: () => {
-    throw new Error('not used in DDL tests');
-  },
-  forColumn: () => undefined,
+const transformingDescriptor: AnySqliteCodecDescriptor = {
+  descriptorKind: 'sqlite-codec',
+  codecId: 'test/transform@1',
+  traits: [],
+  targetTypes: ['TEXT'],
+  paramsSchema: voidParamsSchema,
+  isParameterized: false,
+  factory: () => () => transformingCodec,
+  projectJson: (expression) => expression,
 };
+
+const transformingLookup = createSqliteCodecRegistryWithBuiltins([transformingDescriptor]);
 
 describe('SqliteControlAdapter.lowerToExecuteRequest — DDL literal defaults', () => {
   it('inlines a string default with single-quoting (no cast suffix)', async () => {
@@ -288,7 +289,9 @@ class ExtTransformDescriptor extends CodecDescriptorImpl<void> {
   }
 }
 
-const extTransformDescriptor = new ExtTransformDescriptor();
+const extTransformDescriptor = sqliteCodec(new ExtTransformDescriptor(), {
+  jsonProjection: (expression) => expression,
+});
 
 function buildExtContractAndTable() {
   const tableColumns: StorageTableInput['columns'] = {
@@ -323,13 +326,7 @@ function buildExtContractAndTable() {
 }
 
 describe('SqliteControlAdapter.lowerToExecuteRequest — extension codec end-to-end', () => {
-  const extDescriptors = [
-    ...Array.from(sqliteCodecRegistry.values()),
-    extTransformDescriptor as unknown as CodecDescriptor<unknown>,
-  ];
-  const extCodecLookup = extractCodecLookup([
-    { id: 'ext-test-codecs', types: { codecTypes: { codecDescriptors: extDescriptors } } },
-  ]);
+  const extCodecLookup = createSqliteCodecRegistryWithBuiltins([extTransformDescriptor]);
 
   it('encodes a query param through an extension codec when the adapter receives the descriptor', async () => {
     const { contract, table } = buildExtContractAndTable();
