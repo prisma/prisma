@@ -1507,3 +1507,108 @@ describe('interpretPslDocumentToSqlContract list-field constructs', () => {
     });
   });
 });
+
+describe('@@index parameter matrix diagnostics', () => {
+  function indexDiagnosticsFor(schema: string) {
+    const document = symbolTableInputFromParseArgs({ schema, sourceId: 'schema.prisma' });
+    const result = interpretPslDocumentToSqlContract({
+      ...baseInput,
+      ...document,
+      controlMutationDefaults: builtinControlMutationDefaults,
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('expected diagnostics');
+    return result.failure.diagnostics;
+  }
+
+  it('fields plus expression draws PSL_INDEX_FIELDS_XOR_EXPRESSION, span-anchored at the attribute', () => {
+    const schema = `model Doc {
+  id Int @id
+  body String
+  @@index([body], expression: "lower(body)", name: "doc_body_lower")
+}`;
+    const diagnostics = indexDiagnosticsFor(schema);
+    const diagnostic = diagnostics.find((d) => d.code === 'PSL_INDEX_FIELDS_XOR_EXPRESSION');
+    expect(diagnostic).toMatchObject({
+      code: 'PSL_INDEX_FIELDS_XOR_EXPRESSION',
+      message: '`@@index` requires exactly one of a fields list or an `expression` argument',
+    });
+    const span = diagnostic?.span;
+    expect(span).toBeDefined();
+    expect(schema.slice(span?.start.offset ?? 0)).toMatch(/^@@index/);
+  });
+
+  it('neither fields nor expression draws PSL_INDEX_FIELDS_XOR_EXPRESSION', () => {
+    const diagnostics = indexDiagnosticsFor(`model Doc {
+  id Int @id
+  body String
+  @@index(name: "doc_lookup")
+}`);
+    expect(diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'PSL_INDEX_FIELDS_XOR_EXPRESSION',
+          message: '`@@index` requires exactly one of a fields list or an `expression` argument',
+        }),
+      ]),
+    );
+  });
+
+  it('an expression without name or map draws PSL_INDEX_EXPRESSION_REQUIRES_NAME at the attribute', () => {
+    const schema = `model Doc {
+  id Int @id
+  body String
+  @@index(expression: "lower(body)")
+}`;
+    const diagnostics = indexDiagnosticsFor(schema);
+    const diagnostic = diagnostics.find((d) => d.code === 'PSL_INDEX_EXPRESSION_REQUIRES_NAME');
+    expect(diagnostic).toMatchObject({
+      code: 'PSL_INDEX_EXPRESSION_REQUIRES_NAME',
+      message:
+        '`@@index` with an `expression` argument requires a `name` or `map` argument (a default name cannot be derived from an expression)',
+    });
+    expect(schema.slice(diagnostic?.span?.start.offset ?? 0)).toMatch(/^@@index/);
+  });
+
+  it('name plus map draws PSL_INDEX_NAME_XOR_MAP at the attribute', () => {
+    const schema = `model Doc {
+  id Int @id
+  body String
+  @@index([body], name: "doc_body_idx", map: "doc_body_exact")
+}`;
+    const diagnostics = indexDiagnosticsFor(schema);
+    const diagnostic = diagnostics.find((d) => d.code === 'PSL_INDEX_NAME_XOR_MAP');
+    expect(diagnostic).toMatchObject({
+      code: 'PSL_INDEX_NAME_XOR_MAP',
+      message: '`@@index` takes at most one of `name` and `map`',
+    });
+    expect(schema.slice(diagnostic?.span?.start.offset ?? 0)).toMatch(/^@@index/);
+  });
+
+  it('two offending @@index attributes each anchor at their own span', () => {
+    const schema = `model Doc {
+  id Int @id
+  body String
+  @@index(expression: "lower(body)")
+  @@index([body], name: "doc_body_idx", map: "doc_body_exact")
+}`;
+    const diagnostics = indexDiagnosticsFor(schema);
+    const first = diagnostics.find((d) => d.code === 'PSL_INDEX_EXPRESSION_REQUIRES_NAME');
+    const second = diagnostics.find((d) => d.code === 'PSL_INDEX_NAME_XOR_MAP');
+    expect(first?.span).toBeDefined();
+    expect(second?.span).toBeDefined();
+    expect(first?.span?.start.offset).toBe(schema.indexOf('@@index'));
+    expect(second?.span?.start.offset).toBe(schema.lastIndexOf('@@index'));
+  });
+
+  it('the existing options-requires-type refine still fires', () => {
+    expectDiagnosticForSchema(
+      `model Doc {
+  id Int @id
+  body String
+  @@index([body], options: { key_field: "id" })
+}`,
+      { code: 'PSL_INVALID_ATTRIBUTE_SYNTAX' },
+    );
+  });
+});

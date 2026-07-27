@@ -213,7 +213,7 @@ export const contractFixtures = {
     JOURNEY_FIXTURES_DIR,
     'contract-nullable-name-required.ts',
   ),
-  'contract-expression-indexes': join(JOURNEY_FIXTURES_DIR, 'contract-expression-indexes.ts'),
+  'contract-expression-authored': join(JOURNEY_FIXTURES_DIR, 'contract-expression-authored.ts'),
 } as const;
 
 export type ContractVariant = keyof typeof contractFixtures;
@@ -223,6 +223,15 @@ export const pslContractFixtures = {
   'contract-additive': join(JOURNEY_FIXTURES_DIR, 'contract-additive.prisma'),
   'contract-composite-pk': join(JOURNEY_FIXTURES_DIR, 'contract-composite-pk.prisma'),
   'contract-index-upgrade': join(JOURNEY_FIXTURES_DIR, 'contract-index-upgrade.prisma'),
+  'contract-expression-authored': join(JOURNEY_FIXTURES_DIR, 'contract-expression-authored.prisma'),
+  'contract-expression-authored-renamed': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-expression-authored-renamed.prisma',
+  ),
+  'contract-expression-authored-editedbody': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-expression-authored-editedbody.prisma',
+  ),
 } as const;
 
 export type PslContractVariant = keyof typeof pslContractFixtures;

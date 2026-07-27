@@ -137,7 +137,7 @@ export function interpretAttribute<Out>(
     'The engine builds the output object structurally from the spec; TypeScript cannot relate the dynamically-keyed record to the spec-inferred output type.'
   >(bound.value);
   if (spec.refine !== undefined) {
-    const refineDiagnostics = spec.refine(value, ctx);
+    const refineDiagnostics = spec.refine(value, ctx, attrNode);
     if (refineDiagnostics.length > 0) {
       return notOk<readonly PslDiagnostic[]>(refineDiagnostics);
     }

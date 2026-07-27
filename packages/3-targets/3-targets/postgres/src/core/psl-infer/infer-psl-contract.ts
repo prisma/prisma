@@ -983,8 +983,8 @@ function buildRelationField(
 
 /**
  * `indexType` carries a non-default index access method (e.g. `hash`) —
- * introspection already drops `btree` (the Postgres default) to `undefined`
- * (see the postgres control adapter), so this only ever fires for a real
+ * `SqlIndexIR`'s constructor drops `btree` (the default) to `undefined`,
+ * so this only ever fires for a real
  * non-default index, matching the same `@@index(type: "...")` argument
  * `contract-to-schema-ir.ts` reads back into the FK-backing-index
  * expectation `db verify` checks against the live database.

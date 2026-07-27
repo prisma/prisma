@@ -32,8 +32,9 @@ export type SqlIndexElements =
 
 /**
  * Every non-element field is a required key. Values that may legitimately
- * be absent (an exact-named index's prefix, a default-method type) are
- * typed `| undefined` instead of optional, so each construction site
+ * be absent (an exact-named index's prefix, the btree→undefined type
+ * normalization) are typed `| undefined` instead of optional, so each
+ * construction site
  * states the absence explicitly rather than omitting the key silently.
  * Undefined values still produce an instance without the property.
  */
@@ -132,7 +133,8 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
     if (input.columns !== undefined) this.columns = input.columns;
     if (input.expression !== undefined) this.expression = input.expression;
     if (input.where !== undefined) this.where = input.where;
-    if (input.type !== undefined) this.type = input.type;
+    const normalizedType = normalizeIndexType(input.type);
+    if (normalizedType !== undefined) this.type = normalizedType;
     if (input.options !== undefined) this.options = input.options;
     if (input.annotations !== undefined) this.annotations = input.annotations;
     defineNonEnumerable(this, 'dependsOn', input.dependsOn);
@@ -221,12 +223,17 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
 }
 
 /**
- * Comparison-side normalization seam: the default access method (`btree` in
- * every supported SQL target) compares as absent, so an authored
- * `type: "btree"` and a default-method introspected index (whose type the
- * adapter or constructor normalized away) are equal. Applied by
- * {@link SqlIndexIR.contentEquals} only — the wire-name hash keeps the
- * authored spelling.
+ * The btree-default normalization seam: the default access method (`btree`
+ * in every supported SQL target) normalizes to absent. Applied at
+ * construction — every derivation path (contract tree, introspection, flat
+ * family tree) builds through the class, so both compare sides are
+ * symmetric by definition — and again inside
+ * {@link SqlIndexIR.contentEquals} so the relation holds for any input.
+ * The contract JSON and the wire-name content hash keep the authored
+ * spelling: `@@index([a], type: "btree")` and `@@index([a])` are distinct
+ * wire names — but content-equal after normalization, so a spelling change
+ * between them converges as a rename via the planner's phase-2 content
+ * pairing (the hashes differ, so phase-1 never pairs them).
  */
 function normalizeIndexType(type: string | undefined): string | undefined {
   return type === 'btree' ? undefined : type;

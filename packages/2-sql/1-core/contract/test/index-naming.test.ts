@@ -1,0 +1,308 @@
+import { computeIndexContentHash } from '@prisma-next/sql-schema-ir/naming';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  type AuthoredIndexInput,
+  type ExactNameBodyWarning,
+  flushExactNameBodyWarnings,
+  lowerAuthoredIndex as lowerAuthoredIndexStrict,
+} from '../src/index-naming';
+
+type LooseAuthoredIndexInput = {
+  readonly columns?: readonly string[];
+  readonly expression?: string;
+  readonly where?: string;
+  readonly unique?: boolean;
+  readonly map?: string;
+  readonly name?: string;
+  readonly type?: string;
+  readonly options?: Record<string, unknown>;
+};
+
+function lowerAuthoredIndex(
+  tableName: string,
+  authored: LooseAuthoredIndexInput,
+  warnings?: { push(warning: ExactNameBodyWarning): void },
+) {
+  return lowerAuthoredIndexStrict(tableName, authored as AuthoredIndexInput, warnings);
+}
+
+function captureWarnings(run: () => void) {
+  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  try {
+    run();
+    return emitWarning.mock.calls.map(([message, options]) => ({
+      message: String(message),
+      options,
+    }));
+  } finally {
+    emitWarning.mockRestore();
+  }
+}
+
+describe('lowerAuthoredIndex — matrix threading', () => {
+  it('fields-only wire names are unchanged (regression pin)', () => {
+    expect(lowerAuthoredIndex('user', { columns: ['email'] })).toEqual({
+      name: 'user_email_idx_46df9cad',
+      prefix: 'user_email_idx',
+      columns: ['email'],
+      unique: false,
+    });
+  });
+
+  it('threads an expression into the carried node and the hash tuple', () => {
+    const lowered = lowerAuthoredIndex('user', {
+      expression: 'lower(email)',
+      name: 'users_email_eq',
+    });
+    expect(lowered).toEqual({
+      name: 'users_email_eq_17273133',
+      prefix: 'users_email_eq',
+      expression: 'lower(email)',
+      unique: false,
+    });
+    // Cross-check against the naming module's own hash.
+    const hash = computeIndexContentHash({ expression: 'lower(email)', unique: false });
+    expect(lowered.name).toBe(`users_email_eq_${hash}`);
+  });
+
+  it('threads where into the carried node and the hash tuple', () => {
+    const lowered = lowerAuthoredIndex('user', {
+      columns: ['email'],
+      where: '(deleted_at IS NULL)',
+    });
+    expect(lowered).toEqual({
+      name: 'user_email_idx_77bde254',
+      prefix: 'user_email_idx',
+      columns: ['email'],
+      where: '(deleted_at IS NULL)',
+      unique: false,
+    });
+    const hash = computeIndexContentHash({
+      columns: ['email'],
+      where: '(deleted_at IS NULL)',
+      unique: false,
+    });
+    expect(lowered.name).toBe(`user_email_idx_${hash}`);
+  });
+
+  it('threads unique into the carried node and the hash tuple', () => {
+    const lowered = lowerAuthoredIndex('user', { columns: ['email'], unique: true });
+    expect(lowered).toEqual({
+      name: 'user_email_idx_34912d96',
+      prefix: 'user_email_idx',
+      columns: ['email'],
+      unique: true,
+    });
+    const hash = computeIndexContentHash({ columns: ['email'], unique: true });
+    expect(lowered.name).toBe(`user_email_idx_${hash}`);
+  });
+
+  it('threads the full matrix (expression + where + unique + type) under an exact map name', () => {
+    const lowered = captureAndReturn(() =>
+      lowerAuthoredIndex('user', {
+        expression: 'eql_v3.eq_term(email)',
+        where: '(deleted_at IS NULL)',
+        unique: true,
+        type: 'btree',
+        map: 'users_email_eq',
+      }),
+    );
+    expect(lowered).toEqual({
+      name: 'users_email_eq',
+      expression: 'eql_v3.eq_term(email)',
+      where: '(deleted_at IS NULL)',
+      unique: true,
+      type: 'btree',
+    });
+  });
+
+  it('the managed full matrix hashes over every tuple slot', () => {
+    const lowered = lowerAuthoredIndex('user', {
+      expression: 'eql_v3.eq_term(email)',
+      where: '(deleted_at IS NULL)',
+      unique: true,
+      type: 'btree',
+      name: 'users_email_eq',
+    });
+    expect(lowered.name).toBe('users_email_eq_2b38ed5c');
+    expect(lowered.prefix).toBe('users_email_eq');
+  });
+});
+
+function captureAndReturn<T>(run: () => T): T {
+  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  try {
+    return run();
+  } finally {
+    emitWarning.mockRestore();
+  }
+}
+
+describe('lowerAuthoredIndex — cross-field guards', () => {
+  it('rejects both columns and expression with a user-facing error', () => {
+    let caught: unknown;
+    try {
+      lowerAuthoredIndex('user', {
+        columns: ['email'],
+        expression: 'lower(email)',
+        name: 'users_email_eq',
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: expect.stringContaining('exactly one'),
+    });
+    expect(String((caught as Error).message)).toContain('user');
+  });
+
+  it('rejects neither columns nor expression', () => {
+    expect(() => lowerAuthoredIndex('user', { name: 'users_email_eq' })).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ARGUMENT_INVALID',
+        message: expect.stringContaining('exactly one'),
+      }),
+    );
+  });
+
+  it('rejects an expression without a name or map', () => {
+    let caught: unknown;
+    try {
+      lowerAuthoredIndex('user', { expression: 'lower(email)' });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: expect.stringContaining('expression index requires an explicit name'),
+    });
+  });
+
+  it('rejects map combined with name as a user-facing error (no longer internal)', () => {
+    let caught: unknown;
+    try {
+      lowerAuthoredIndex('user', {
+        columns: ['email'],
+        map: 'users_email_exact',
+        name: 'users_email_idx',
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: expect.stringContaining('map and name are mutually exclusive'),
+    });
+  });
+});
+
+describe('lowerAuthoredIndex — exact-name body warning collection', () => {
+  it('pushes into a provided collector instead of emitting', () => {
+    const collected: ExactNameBodyWarning[] = [];
+    const warnings = captureWarnings(() => {
+      lowerAuthoredIndex(
+        'user',
+        { expression: 'lower(email)', map: 'users_email_eq' },
+        { push: (w) => collected.push(w) },
+      );
+    });
+    expect(warnings).toEqual([]);
+    expect(collected).toEqual([{ subject: 'index', exactName: 'users_email_eq' }]);
+  });
+
+  it('a fields-only map pushes nothing into the collector', () => {
+    const collected: ExactNameBodyWarning[] = [];
+    lowerAuthoredIndex(
+      'user',
+      { columns: ['email'], map: 'users_email_exact' },
+      { push: (w) => collected.push(w) },
+    );
+    expect(collected).toEqual([]);
+  });
+});
+
+describe('flushExactNameBodyWarnings — threshold batching', () => {
+  const item = (name: string): ExactNameBodyWarning => ({ subject: 'index', exactName: name });
+
+  it('flushes nothing for an empty collection', () => {
+    expect(captureWarnings(() => flushExactNameBodyWarnings([]))).toEqual([]);
+  });
+
+  it('emits one warning per item up to the threshold, each naming its index', () => {
+    const warnings = captureWarnings(() =>
+      flushExactNameBodyWarnings([item('idx_a'), item('idx_b')]),
+    );
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]?.message).toContain('index "idx_a" uses map: with a SQL body.');
+    expect(warnings[1]?.message).toContain('index "idx_b" uses map: with a SQL body.');
+    expect(warnings[0]?.options).toEqual({ code: 'PN_EXACT_NAME_BODY_COMPARISON' });
+  });
+
+  it('exactly the threshold count (5) still emits per-item warnings', () => {
+    const items = ['a', 'b', 'c', 'd', 'e'].map((n) => item(`idx_${n}`));
+    const warnings = captureWarnings(() => flushExactNameBodyWarnings(items));
+    expect(warnings).toHaveLength(5);
+    for (const [i, entry] of items.entries()) {
+      expect(warnings[i]?.message).toContain(
+        `index "${entry.exactName}" uses map: with a SQL body.`,
+      );
+    }
+  });
+
+  it('emits one summary with the name list above the threshold', () => {
+    const items = ['a', 'b', 'c', 'd', 'e', 'f'].map((n) => item(`idx_${n}`));
+    const warnings = captureWarnings(() => flushExactNameBodyWarnings(items));
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]?.message).toContain('6 objects use map: with a SQL body.');
+    for (const entry of items) {
+      expect(warnings[0]?.message).toContain(`  - index "${entry.exactName}"`);
+    }
+    expect(warnings[0]?.options).toEqual({ code: 'PN_EXACT_NAME_BODY_COMPARISON' });
+  });
+});
+
+describe('lowerAuthoredIndex — exact-name body warning', () => {
+  const expectedMessage =
+    'index "users_email_eq" uses map: with a SQL body. Drift detection compares the authored ' +
+    "SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the " +
+    'text was captured by contract infer. For hand-authored definitions, use name: and let ' +
+    'Prisma Next manage the physical name; to migrate an adopted object to managed naming, ' +
+    'replace map: with name: (keeping the body text unchanged) and apply the resulting rename ' +
+    'migration.';
+
+  it('fires for map + expression with the pinned wording and code', () => {
+    const warnings = captureWarnings(() => {
+      lowerAuthoredIndex('user', { expression: 'lower(email)', map: 'users_email_eq' });
+    });
+    expect(warnings).toEqual([
+      { message: expectedMessage, options: { code: 'PN_EXACT_NAME_BODY_COMPARISON' } },
+    ]);
+  });
+
+  it('fires for map + where', () => {
+    const warnings = captureWarnings(() => {
+      lowerAuthoredIndex('user', {
+        columns: ['email'],
+        where: '(deleted_at IS NULL)',
+        map: 'users_email_eq',
+      });
+    });
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]?.options).toEqual({ code: 'PN_EXACT_NAME_BODY_COMPARISON' });
+  });
+
+  it('stays silent for a fields-only map', () => {
+    const warnings = captureWarnings(() => {
+      lowerAuthoredIndex('user', { columns: ['email'], map: 'users_email_exact' });
+    });
+    expect(warnings).toEqual([]);
+  });
+
+  it('stays silent for a managed (name:) body', () => {
+    const warnings = captureWarnings(() => {
+      lowerAuthoredIndex('user', { expression: 'lower(email)', name: 'users_email_eq' });
+    });
+    expect(warnings).toEqual([]);
+  });
+});

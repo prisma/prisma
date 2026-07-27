@@ -4,6 +4,7 @@ import type { Simplify, UnionToIntersection } from '@prisma-next/utils/types';
 import type { SourceFile } from '../source-file';
 import type { FieldSymbol, ModelSymbol } from '../symbol-table';
 import type { ExpressionAst } from '../syntax/ast/expressions';
+import type { AstNode } from '../syntax/ast-helpers';
 
 export type AttributeLevel = 'field' | 'model' | 'block';
 
@@ -43,7 +44,16 @@ export interface AttributeSpec<Out> {
   readonly name: string;
   readonly positional: readonly PositionalParam[];
   readonly named: Readonly<Record<string, Param<unknown>>>;
-  readonly refine?: (parsed: Out, ctx: InterpretCtx) => readonly PslDiagnostic[];
+  /**
+   * Cross-argument validation after all arguments parse. `attributeNode` is
+   * the attribute's own AST node so refines can span-anchor their
+   * diagnostics at the attribute rather than the enclosing model.
+   */
+  readonly refine?: (
+    parsed: Out,
+    ctx: InterpretCtx,
+    attributeNode: AstNode,
+  ) => readonly PslDiagnostic[];
 }
 
 export type OutOf<P> = P extends ArgType<infer T> ? T : never;

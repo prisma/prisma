@@ -402,7 +402,9 @@ Each entry in a table's `indexes` array in `contract.json` / `contract.d.ts` now
 - `name` — the full physical name of the index in the database.
 - `unique` — always present (`false` for everything authored today).
 - `prefix` — present when the name is toolchain-managed: the physical name is then `<prefix>_<8hex>`, where the suffix is a content hash of the index definition.
-- `columns` — now optional; an index carries either `columns` or an opaque `expression` string, never both. (Expression and partial indexes are representable in the contract from 0.17; authoring surfaces for them arrive in a later release.)
+- `columns` — now optional; an index carries either `columns` or an opaque `expression` string, never both.
+
+Newly available in 0.17 (additive — no migration needed): both authoring surfaces accept the full index parameter matrix. PSL `@@index` and TS `constraints.index` take `expression:` (instead of a fields list; requires `name:` or `map:`), `where:` (partial-index predicate), `unique:`, `type:`/`options:` (target-registered access method), and `name:` xor `map:`. Combining `map:` with a SQL body emits the `PN_EXACT_NAME_BODY_COMPARISON` warning at build time — drift detection byte-compares hand-authored text against Postgres's reprint, so prefer `name:` unless the text was captured by `contract infer`. SQLite contracts reject `expression:`/`where:` with `CONTRACT.ARGUMENT_INVALID` (the target does not support them).
 
 A contract emitted by 0.16 fails validation when a 0.17 toolchain loads it — a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)` — and the storage hash moves for every contract that declares indexes. Re-emit:
 

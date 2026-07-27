@@ -94,9 +94,37 @@ export class SqliteUnboundDatabase extends SqliteDatabase {
   }
 }
 
+/**
+ * The SQLite target's rejection of expression and partial indexes: the
+ * family-shared authoring surfaces parse `expression:`/`where:` for every
+ * SQL target, but SQLite neither renders nor introspects them (project
+ * non-goal) — a contract carrying one must fail loudly at lowering instead
+ * of silently producing an unverifiable index. Target-owned so no family
+ * code branches on the target.
+ */
+function rejectSqlBodyIndexes(input: SqlNamespaceInput): void {
+  const tables = input.entries['table'];
+  if (tables === undefined) return;
+  for (const [tableName, table] of Object.entries(tables)) {
+    const indexes = blindCast<
+      { readonly indexes?: readonly { name?: string; expression?: string; where?: string }[] },
+      'namespace table entries are StorageTable/StorageTableInput shapes; only the index list is read here'
+    >(table).indexes;
+    for (const index of indexes ?? []) {
+      if (index.expression !== undefined || index.where !== undefined) {
+        throw sqliteError(
+          'CONTRACT.ARGUMENT_INVALID',
+          `SQLite does not support expression or partial indexes: index "${index.name ?? '<unnamed>'}" on table "${tableName}" declares ${index.expression !== undefined ? 'an expression' : 'a where predicate'}. Use a fields-only index, or author this index against a Postgres target.`,
+        );
+      }
+    }
+  }
+}
+
 export function buildSqliteNamespace(
   input: SqlNamespaceInput,
 ): SqliteDatabase | SqliteUnboundDatabase {
+  rejectSqlBodyIndexes(input);
   if (input.id !== UNBOUND_NAMESPACE_ID) {
     throw sqliteError(
       'CONTRACT.NAMESPACE_INVALID',

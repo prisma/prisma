@@ -1164,10 +1164,9 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         if (existing) {
           existing.elements.push({ attname: idxRow.attname, elementDef: idxRow.element_def });
         } else {
-          // Drop btree (the Postgres default) so a contract index without an
-          // explicit type matches a default-method introspected index without
-          // forcing DROP+CREATE on every plan.
-          const indexType = idxRow.amname && idxRow.amname !== 'btree' ? idxRow.amname : undefined;
+          // SqlIndexIR's constructor normalizes the btree default to absent
+          // for both derivation paths.
+          const indexType = idxRow.amname ?? undefined;
           const indexOptions = parsePgReloptions(idxRow.reloptions, idxRow.indexname);
           indexesMap.set(idxRow.indexname, {
             name: idxRow.indexname,

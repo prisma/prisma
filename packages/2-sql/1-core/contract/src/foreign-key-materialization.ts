@@ -96,6 +96,8 @@ export function materializeForeignKeysAndIndexes(
         synthesizedIndexes.push(
           lowerAuthoredIndex(tableName, {
             columns: reference.source.columns,
+            where: undefined,
+            unique: undefined,
             map: undefined,
             name: undefined,
             type: undefined,

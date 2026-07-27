@@ -194,6 +194,20 @@ const Membership = model('Membership', {
   .sql({ table: 'membership' });
 ```
 
+### Indexes
+
+`constraints.index` (inside model `.sql(...)` under `indexes: [...]`) has two forms:
+
+```typescript
+constraints.index([cols.email], { unique: true, where: '(archived_at IS NULL)', name: 'users_email_active' })
+constraints.index({ expression: 'eql_v3.eq_term(email)', name: 'users_email_eq' })
+```
+
+- **Fields form** — `constraints.index(cols | [cols...], options?)`. Options: `unique?`, `where?` (partial-index predicate, WHERE body without the keyword), `name?` xor `map?`, and — when the target pack registers index types — `type?` paired with its `options?` (e.g. `type: 'hash', options: {}`). The pack-typed arm requires the `options` key at compile time; PSL accepts `type:` without `options:` (absent validates as `{}`) — both lower to the same IR.
+- **Expression form** — `constraints.index({ expression, ...options })`. The expression is the whole CREATE INDEX element list as one opaque string; `name` or `map` is required (no default name can be derived from an expression). Same remaining options as the fields form.
+
+`name:` declares a **managed** index: the physical name is `<name>_<8-hex content hash>`, and renames plan as `ALTER INDEX … RENAME`. `map:` adopts an **exact** physical name verbatim (no hash) — intended for objects captured by `contract infer`. Combining `map:` with a SQL body (`expression`/`where`) emits the `PN_EXACT_NAME_BODY_COMPARISON` warning at build time: drift detection byte-compares the authored text against Postgres's reprinted form, which is only reliable for infer-captured text. Prefer `name:` for hand-authored bodies.
+
 ### Helper Notes
 
 - Structural helpers: `field.column(...)`, `field.generated(...)`, `field.namedType(...)`, plus `model(...)` and `rel.*`
