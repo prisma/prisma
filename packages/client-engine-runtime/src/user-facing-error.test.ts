@@ -188,3 +188,60 @@ test('rethrowAsUserFacing still wraps specifically-mapped kinds with their dedic
     expect(userFacing.message).toBe('Unique constraint failed on the fields: (`email`)')
   }
 })
+
+test.each([
+  {
+    label: 'P2002 with fields sets meta.target to the field names',
+    cause: { kind: 'UniqueConstraintViolation', constraint: { fields: ['email'] } },
+    expectedCode: 'P2002',
+    expectedMeta: { target: ['email'] },
+  },
+  {
+    label: 'P2002 with only an index sets meta.target to the index name',
+    cause: { kind: 'UniqueConstraintViolation', constraint: { index: 'User_email_key' } },
+    expectedCode: 'P2002',
+    expectedMeta: { target: 'User_email_key' },
+  },
+  {
+    label: 'P2002 without constraint details sets meta.target to null',
+    cause: { kind: 'UniqueConstraintViolation' },
+    expectedCode: 'P2002',
+    expectedMeta: { target: null },
+  },
+  {
+    label: 'P2003 with fields sets meta.constraint to the field names',
+    cause: { kind: 'ForeignKeyConstraintViolation', constraint: { fields: ['authorId'] } },
+    expectedCode: 'P2003',
+    expectedMeta: { constraint: ['authorId'] },
+  },
+  {
+    label: 'P2003 with only an index sets meta.constraint to the index name',
+    cause: { kind: 'ForeignKeyConstraintViolation', constraint: { index: 'Post_authorId_fkey' } },
+    expectedCode: 'P2003',
+    expectedMeta: { constraint: 'Post_authorId_fkey' },
+  },
+  {
+    label: 'P2003 with a foreign key constraint sets meta.constraint to null',
+    cause: { kind: 'ForeignKeyConstraintViolation', constraint: { foreignKey: {} } },
+    expectedCode: 'P2003',
+    expectedMeta: { constraint: null },
+  },
+  {
+    label: 'P2011 with fields sets meta.constraint to the field names',
+    cause: { kind: 'NullConstraintViolation', constraint: { fields: ['email'] } },
+    expectedCode: 'P2011',
+    expectedMeta: { constraint: ['email'] },
+  },
+])('rethrowAsUserFacing constraint meta: $label', ({ cause, expectedCode, expectedMeta }) => {
+  const error = makeDriverAdapterError(cause)
+
+  try {
+    rethrowAsUserFacing(error)
+    throw new Error('expected rethrowAsUserFacing to throw')
+  } catch (e) {
+    expect(e).toBeInstanceOf(UserFacingError)
+    const userFacing = e as UserFacingError
+    expect(userFacing.code).toBe(expectedCode)
+    expect(userFacing.meta).toEqual({ driverAdapterError: error, ...expectedMeta })
+  }
+})

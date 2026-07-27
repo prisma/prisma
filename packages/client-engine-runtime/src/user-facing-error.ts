@@ -2,6 +2,8 @@ import { DriverAdapterError, isDriverAdapterError } from '@prisma/driver-adapter
 
 import { assertNever, safeJsonStringify } from './utils'
 
+type Constraint = { fields: string[] } | { index: string } | { foreignKey: {} }
+
 export class UserFacingError extends Error {
   name = 'UserFacingError'
   code: string
@@ -34,7 +36,7 @@ export function rethrowAsUserFacing(error: any): never {
   const code = getErrorCode(error)
   const message = renderErrorMessage(error)
   if (code !== undefined && message !== undefined) {
-    throw new UserFacingError(message, code, { driverAdapterError: error })
+    throw new UserFacingError(message, code, getErrorMeta(error))
   }
 
   // No specific mapping exists for this error kind. For database-specific
@@ -181,6 +183,50 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
   }
 }
 
+/**
+ * Builds the `meta` object for a mapped driver adapter error. In addition to
+ * the raw `driverAdapterError`, it populates the documented meta fields for
+ * constraint violations (`target` for P2002, `constraint` for P2003/P2011),
+ * mirroring the corresponding user-facing errors in prisma-engines
+ * (`UniqueKeyViolation`, `ForeignKeyViolation`, `NullConstraintViolation`).
+ */
+function getErrorMeta(err: DriverAdapterError): Record<string, unknown> {
+  const meta: Record<string, unknown> = {
+    driverAdapterError: err,
+  }
+
+  switch (err.cause.kind) {
+    case 'UniqueConstraintViolation':
+      meta.target = constraintToMetaField(err.cause.constraint)
+      break
+    case 'ForeignKeyConstraintViolation':
+    case 'RestrictViolation':
+    case 'NullConstraintViolation':
+      meta.constraint = constraintToMetaField(err.cause.constraint)
+      break
+  }
+
+  return meta
+}
+
+/**
+ * Converts a constraint description to its representation in the `meta`
+ * object: the list of field names when the fields are known, the index name
+ * when only the index is known, and `null` otherwise. This matches the
+ * untagged serialization of the `DatabaseConstraint` enum in prisma-engines.
+ */
+function constraintToMetaField(constraint?: Constraint): string[] | string | null {
+  if (constraint !== undefined) {
+    if ('fields' in constraint) {
+      return constraint.fields
+    }
+    if ('index' in constraint) {
+      return constraint.index
+    }
+  }
+  return null
+}
+
 function renderErrorMessage(err: DriverAdapterError): string | undefined {
   switch (err.cause.kind) {
     case 'AuthenticationFailed': {
@@ -260,7 +306,7 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
   }
 }
 
-function renderConstraint(constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }): string {
+function renderConstraint(constraint?: Constraint): string {
   if (constraint && 'fields' in constraint) {
     return `fields: (${constraint.fields.map((field) => `\`${field}\``).join(', ')})`
   } else if (constraint && 'index' in constraint) {
