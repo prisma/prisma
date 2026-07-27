@@ -237,9 +237,9 @@ ${bold(red('All data will be lost.'))}
           process.exit(130)
         }
 
-        aiAgentConfirmationCheckpoint()
-
         try {
+          aiAgentConfirmationCheckpoint()
+
           await migrate.push({
             force: true,
           })

@@ -2,6 +2,7 @@ import path from 'path'
 import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'
+import { Migrate } from '../Migrate'
 import { agentMatchers } from '../utils/ai-safety'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
@@ -202,12 +203,14 @@ describe('push', () => {
   it('interactive confirmation triggers the AI safety checkpoint', async () => {
     ctx.fixture('existing-db-warnings')
     process.env.CLAUDECODE = '1'
+    const push = jest.spyOn(Migrate.prototype, 'push')
 
     prompt.inject(['y'])
 
     const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
 
     await expect(result).rejects.toThrow('invoked by Claude Code')
+    expect(push).not.toHaveBeenCalledWith({ force: true })
   })
 
   it('unexecutable - drop allowed (--force-reset)', async () => {
