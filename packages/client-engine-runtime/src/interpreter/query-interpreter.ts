@@ -1,5 +1,5 @@
 import { Debug } from '@prisma/debug'
-import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
+import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 import { klona } from 'klona'
 
@@ -54,11 +54,6 @@ type QueryRuntimeContext = {
   scope: Record<string, unknown>
   generators: GeneratorRegistrySnapshot
   sqlCommenter?: QueryInterpreterSqlCommenter
-  /**
-   * True when `queryable` is already a transaction — either because the whole plan runs
-   * inside an interactive transaction, or because we are inside a `transaction` plan node.
-   */
-  insideTransaction: boolean
 }
 
 export type QueryInterpreterSqlCommenter = {
@@ -109,11 +104,7 @@ export class QueryInterpreter {
 
   async run(queryPlan: DeepReadonly<QueryPlanNode>, options: QueryRuntimeOptions): Promise<unknown> {
     const generators = this.#generators.snapshot()
-    const context: QueryRuntimeContext = {
-      ...options,
-      generators,
-      insideTransaction: !options.transactionManager.enabled,
-    }
+    const context: QueryRuntimeContext = { ...options, generators }
 
     const purified = purifyQueryPlan(queryPlan, (node) => this.interpretNode(node, context))?.catch((e) =>
       rethrowAsUserFacing(e),
@@ -182,12 +173,12 @@ export class QueryInterpreter {
       case 'execute': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
 
-        return this.#withChunkTransaction(queries.length, context, async (queryable) => {
+        return this.#withChunkTransaction(queries.length, context, async (context) => {
           let sum = 0
           for (const query of queries) {
             const commentedQuery = applyComments(query, context.sqlCommenter)
-            sum += await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
-              queryable
+            sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
+              context.queryable
                 .executeRaw(cloneObject(commentedQuery))
                 .catch((err) =>
                   node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
@@ -202,12 +193,12 @@ export class QueryInterpreter {
       case 'query': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
 
-        return this.#withChunkTransaction(queries.length, context, async (queryable) => {
+        return this.#withChunkTransaction(queries.length, context, async (context) => {
           let results: SqlResultSet | undefined
           for (const query of queries) {
             const commentedQuery = applyComments(query, context.sqlCommenter)
-            const result = await this.#withQuerySpanAndEvent(commentedQuery, queryable, () =>
-              queryable
+            const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
+              context.queryable
                 .queryRaw(cloneObject(commentedQuery))
                 .catch((err) =>
                   node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
@@ -275,13 +266,7 @@ export class QueryInterpreter {
       }
 
       case 'transaction': {
-        if (!context.transactionManager.enabled) {
-          return this.interpretNode(node.args, context)
-        }
-
-        return this.#withInternalTransaction(context.transactionManager.manager, (transaction) =>
-          this.interpretNode(node.args, { ...context, queryable: transaction, insideTransaction: true }),
-        )
+        return this.#withInternalTransaction(context, (context) => this.interpretNode(node.args, context))
       }
 
       case 'dataMap': {
@@ -516,32 +501,46 @@ export class QueryInterpreter {
   }
 
   /**
-   * Runs the statements of a `query` or `execute` node via `fn`, wrapping them in a new
+   * Runs the statements of a `query` or `execute` node via `fn`, wrapping them in a
    * transaction when a chunkable statement was split into multiple queries at render time,
    * so that a partially applied write cannot be observed or left behind if a later chunk
-   * fails. A single statement is atomic on its own, and when the plan is already executing
-   * inside a transaction the chunks are covered by it, so no transaction is started in
-   * either of those cases.
+   * fails. A single statement is atomic on its own, so it runs on the current context.
    */
   #withChunkTransaction<T>(
     statementCount: number,
     context: QueryRuntimeContext,
-    fn: (queryable: SqlQueryable) => Promise<T>,
+    fn: (context: QueryRuntimeContext) => Promise<T>,
   ): Promise<T> {
-    if (statementCount <= 1 || context.insideTransaction || !context.transactionManager.enabled) {
-      return fn(context.queryable)
+    if (statementCount <= 1) {
+      return fn(context)
     }
-    return this.#withInternalTransaction(context.transactionManager.manager, fn)
+    return this.#withInternalTransaction(context, fn)
   }
 
+  /**
+   * Runs `fn` with a context whose queryable is guaranteed to be a transaction, starting a
+   * new internal transaction and committing or rolling it back around the call.
+   *
+   * A disabled transaction manager means the queryable already is a transaction: executors
+   * pass `{ enabled: false }` when the plan runs inside an interactive transaction, and the
+   * context handed to `fn` carries it for the duration of an internal transaction. In that
+   * case `fn` runs on the current context, since the statements it issues are already
+   * covered by the surrounding transaction.
+   */
   async #withInternalTransaction<T>(
-    transactionManager: TransactionManager,
-    fn: (transaction: Transaction) => Promise<T>,
+    context: QueryRuntimeContext,
+    fn: (context: QueryRuntimeContext) => Promise<T>,
   ): Promise<T> {
+    if (!context.transactionManager.enabled) {
+      return fn(context)
+    }
+
+    const transactionManager = context.transactionManager.manager
     const transactionInfo = await transactionManager.startInternalTransaction()
     const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
+
     try {
-      const result = await fn(transaction)
+      const result = await fn({ ...context, queryable: transaction, transactionManager: { enabled: false } })
       await transactionManager.commitTransaction(transactionInfo.id)
       return result
     } catch (e) {
