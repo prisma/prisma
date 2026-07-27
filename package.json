@@ -69,8 +69,8 @@
     "check:error-reference": "node scripts/list-error-codes.mjs --verify docs/reference/error-reference.md"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.3",
-    "@cursor/sdk": "^1.0.23",
+    "@biomejs/biome": "2.5.4",
+    "@cursor/sdk": "^1.0.24",
     "@prisma-next/framework-components": "workspace:0.16.0",
     "@prisma-next/migration-tools": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
@@ -82,8 +82,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
     "pathe": "^2.0.3",
-    "pkg-pr-new": "0.0.78",
-    "skills": "^1.5.15",
+    "pkg-pr-new": "0.0.79",
+    "skills": "^1.5.19",
     "tslib": "^2.8.1",
     "tsx": "catalog:",
     "turbo": "^2.10.2",

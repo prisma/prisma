@@ -28,7 +28,7 @@
     "evlog": "^2.20.0"
   },
   "devDependencies": {
-    "@prisma/compute-sdk": "^0.34.0",
+    "@prisma/compute-sdk": "^0.36.0",
     "@prisma/management-api-sdk": "^1.47.0",
     "@prisma-next/adapter-postgres": "workspace:0.16.0",
     "@prisma-next/cli": "workspace:0.16.0",
