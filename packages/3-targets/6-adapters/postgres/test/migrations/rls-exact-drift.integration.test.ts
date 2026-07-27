@@ -207,8 +207,9 @@ describe.sequential('out-of-band body drift on an exact-named policy', () => {
     if (result.kind !== 'failure') return;
     expect(result.conflicts).toContainEqual(
       expect.objectContaining({
-        kind: 'missingButNonAdditive',
+        kind: 'policyIncompatible',
         summary: expect.stringContaining(EXACT_NAME),
+        location: expect.objectContaining({ policy: EXACT_NAME }),
       }),
     );
   });

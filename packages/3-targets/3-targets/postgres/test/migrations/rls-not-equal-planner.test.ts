@@ -49,7 +49,10 @@ function exactPolicy(using: string): PostgresRlsPolicy {
   });
 }
 
-function buildContract(policy: PostgresRlsPolicy): Contract<SqlStorage> {
+function buildContract(
+  policy: PostgresRlsPolicy,
+  tableControl?: 'managed' | 'tolerated' | 'external' | 'observed',
+): Contract<SqlStorage> {
   const schema = new PostgresSchema({
     id: 'public',
     entries: {
@@ -63,6 +66,7 @@ function buildContract(policy: PostgresRlsPolicy): Contract<SqlStorage> {
           foreignKeys: [],
           uniques: [],
           indexes: [],
+          ...(tableControl !== undefined ? { control: tableControl } : {}),
         }),
       },
       policy: { [policy.name]: policy },
@@ -87,7 +91,10 @@ function buildContract(policy: PostgresRlsPolicy): Contract<SqlStorage> {
   };
 }
 
-function actualSchema(livePolicy: PostgresRlsPolicy): PostgresDatabaseSchemaNode {
+function actualSchema(
+  livePolicy: PostgresRlsPolicy,
+  options?: { readonly extraColumn?: boolean },
+): PostgresDatabaseSchemaNode {
   return new PostgresDatabaseSchemaNode({
     namespaces: {
       public: new PostgresNamespaceSchemaNode({
@@ -98,6 +105,9 @@ function actualSchema(livePolicy: PostgresRlsPolicy): PostgresDatabaseSchemaNode
             columns: {
               id: { name: 'id', nativeType: 'int4', nullable: false },
               tenant_id: { name: 'tenant_id', nativeType: 'int4', nullable: false },
+              ...(options?.extraColumn
+                ? { stale: { name: 'stale', nativeType: 'int4', nullable: true } }
+                : {}),
             },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],
@@ -160,7 +170,7 @@ describe('not-equal policy issue (exact-mode content drift)', () => {
     ]);
   });
 
-  it('fails with the disallowed-call conflict when destructive is not allowed', () => {
+  it('fails with the policy-incompatible conflict, naming the policy structurally, when destructive is not allowed', () => {
     const contract = buildContract(exactPolicy('(tenant_id = 1)'));
     const schema = actualSchema(exactPolicy('(tenant_id = 2)'));
 
@@ -169,8 +179,13 @@ describe('not-equal policy issue (exact-mode content drift)', () => {
     if (result.kind !== 'failure') return;
     expect(result.conflicts).toContainEqual(
       expect.objectContaining({
-        kind: 'missingButNonAdditive',
+        kind: 'policyIncompatible',
         summary: expect.stringContaining(EXACT_NAME),
+        location: expect.objectContaining({
+          entityKind: 'table',
+          entityName: TABLE_NAME,
+          policy: EXACT_NAME,
+        }),
       }),
     );
   });
@@ -180,6 +195,74 @@ describe('not-equal policy issue (exact-mode content drift)', () => {
     const schema = actualSchema(exactPolicy('(tenant_id = 1)'));
 
     const result = plan(contract, schema, ALL_CLASSES_POLICY);
+    expect(result.kind).toBe('success');
+    if (result.kind !== 'success') return;
+    const ops = await Promise.all(result.plan.operations);
+    expect(ops.map((op) => op.id)).toEqual([]);
+  });
+
+  it('composes the policy conflict with relational conflicts in one failure', () => {
+    const contract = buildContract(exactPolicy('(tenant_id = 1)'));
+    const schema = actualSchema(exactPolicy('(tenant_id = 2)'), { extraColumn: true });
+
+    const result = plan(contract, schema, NO_DESTRUCTIVE_POLICY);
+    expect(result.kind).toBe('failure');
+    if (result.kind !== 'failure') return;
+    expect(result.conflicts).toContainEqual(
+      expect.objectContaining({ summary: expect.stringContaining('stale') }),
+    );
+    expect(result.conflicts).toContainEqual(
+      expect.objectContaining({
+        kind: 'policyIncompatible',
+        summary: expect.stringContaining(EXACT_NAME),
+      }),
+    );
+  });
+});
+
+describe('not-equal policy under non-managed control policies', () => {
+  it.each([
+    'external',
+    'observed',
+  ] as const)('drift on an %s table never fails the plan — zero policy DDL, one suppression warning', async (control) => {
+    const contract = buildContract(exactPolicy('(tenant_id = 1)'), control);
+    const schema = actualSchema(exactPolicy('(tenant_id = 2)'));
+
+    const result = plan(contract, schema, ALL_CLASSES_POLICY);
+    expect(result.kind).toBe('success');
+    if (result.kind !== 'success') return;
+    const ops = await Promise.all(result.plan.operations);
+    expect(ops.map((op) => op.id)).toEqual([]);
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        kind: 'controlPolicySuppressedCall',
+        summary: expect.stringContaining(`'${control}'`),
+      }),
+    );
+  });
+
+  it('under tolerated the replacement pair is suppressed as one unit — no orphaned CREATE', async () => {
+    const contract = buildContract(exactPolicy('(tenant_id = 1)'), 'tolerated');
+    const schema = actualSchema(exactPolicy('(tenant_id = 2)'));
+
+    const result = plan(contract, schema, ALL_CLASSES_POLICY);
+    expect(result.kind).toBe('success');
+    if (result.kind !== 'success') return;
+    const ops = await Promise.all(result.plan.operations);
+    expect(ops.map((op) => op.id)).toEqual([]);
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        kind: 'controlPolicySuppressedCall',
+        summary: expect.stringContaining("'tolerated'"),
+      }),
+    );
+  });
+
+  it('tolerated drift without the destructive allowance is still a suppression, not a conflict', async () => {
+    const contract = buildContract(exactPolicy('(tenant_id = 1)'), 'tolerated');
+    const schema = actualSchema(exactPolicy('(tenant_id = 2)'));
+
+    const result = plan(contract, schema, NO_DESTRUCTIVE_POLICY);
     expect(result.kind).toBe('success');
     if (result.kind !== 'success') return;
     const ops = await Promise.all(result.plan.operations);

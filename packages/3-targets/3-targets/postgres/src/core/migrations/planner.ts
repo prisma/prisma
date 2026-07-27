@@ -4,8 +4,10 @@ import type {
   SqlMigrationPlannerPlanOptions,
   SqlPlannerConflict,
   SqlPlannerFailureResult,
+  SuppressionRecord,
 } from '@prisma-next/family-sql/control';
 import {
+  controlPolicyForCall,
   extractCodecControlHooks,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
@@ -298,8 +300,11 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       strategies: postgresPlannerStrategies,
     });
 
-    if (!result.ok) {
-      return plannerFailure(result.failure);
+    // Relational conflicts and policy-drift conflicts compose into ONE
+    // failure so the user sees the complete set in a single round.
+    const schemaDiff = this.planPostgresSchemaDiff(options, policyDiffIssues);
+    if (!result.ok || schemaDiff.conflicts.length > 0) {
+      return plannerFailure([...(result.ok ? [] : result.failure), ...schemaDiff.conflicts]);
     }
 
     const indexRenamePartition = partitionCallsByControlPolicy({
@@ -310,10 +315,6 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       resolveFactoryName: (call) => call.factoryName,
     });
 
-    const schemaDiff = this.planPostgresSchemaDiff(options, policyDiffIssues);
-    if (schemaDiff.conflicts.length > 0) {
-      return plannerFailure(schemaDiff.conflicts);
-    }
     const schemaDiffPartition = partitionCallsByControlPolicy({
       calls: schemaDiff.calls,
       contract: options.contract,
@@ -354,6 +355,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     const warnings: SqlPlannerConflict[] = [
       ...issuePartition.suppressions,
       ...indexRenamePartition.suppressions,
+      ...schemaDiff.suppressions,
       ...schemaDiffPartition.suppressions,
       ...fieldEventPartition.suppressions,
     ].map((record) => renderPostgresSuppression(record, options.contract));
@@ -530,6 +532,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
   ): {
     readonly calls: readonly PostgresOpFactoryCall[];
     readonly conflicts: readonly SqlPlannerConflict[];
+    readonly suppressions: readonly SuppressionRecord[];
   } {
     const allowsDestructive = options.policy.allowedOperationClasses.includes('destructive');
     const allowsWidening = options.policy.allowedOperationClasses.includes('widening');
@@ -585,6 +588,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
 
     const calls: PostgresOpFactoryCall[] = [];
     const conflicts: SqlPlannerConflict[] = [];
+    const suppressions: SuppressionRecord[] = [];
     const renamedExtras = new Set<PolicyFinding>();
     const renamedMissing = new Set<PolicyFinding>();
     const pairingKey = (finding: PolicyFinding, hash: string): string =>
@@ -665,12 +669,32 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     // must precede the create (CREATE POLICY collides on the live name) and
     // is destructive-class, so without that allowance the whole replacement
     // surfaces as a disallowed-call conflict instead of a half-applied plan.
+    //
+    // The pair is graded through the table's control policy as ONE unit
+    // BEFORE it becomes calls or a conflict: the two calls share the drifted
+    // policy's physical name, so per-call partitioning could suppress the
+    // drop and keep the create (which then fails apply on its own
+    // "does not exist" precheck). Any non-managed control (external,
+    // observed, tolerated) suppresses the whole replacement — drift on an
+    // object the plan does not manage is reported, never repaired — and a
+    // drifted policy on such a table must not fail the plan either.
     for (const finding of changed) {
       const drop = new DropPostgresRlsPolicyCall(
         finding.schemaForTable,
         finding.node.tableName,
         finding.node.name,
       );
+      const subject = resolvePostgresCallControlPolicySubject(drop, options.contract);
+      const controlPolicy = controlPolicyForCall(subject, options.contract.defaultControlPolicy);
+      if (controlPolicy !== 'managed') {
+        suppressions.push({
+          subject,
+          policy: controlPolicy,
+          factoryName: undefined,
+          createsNewObject: false,
+        });
+        continue;
+      }
       if (!allowsDestructive) {
         conflicts.push(conflictForDisallowedCall(drop, options.policy.allowedOperationClasses));
         continue;
@@ -708,7 +732,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       }
     }
 
-    return { calls, conflicts };
+    return { calls, conflicts, suppressions };
   }
 
   private ensureAdditivePolicy(policy: MigrationOperationPolicy) {
