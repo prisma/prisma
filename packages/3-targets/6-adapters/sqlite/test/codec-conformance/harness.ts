@@ -172,11 +172,11 @@ export async function runSqliteCodecProjection(
     };
   }
 
-  const parsed: unknown = JSON.parse(rawJson);
-  if (typeof parsed !== 'object' || parsed === null || !(DOCUMENT_KEY in parsed)) {
+  const document: { readonly [key: string]: JsonValue } = JSON.parse(rawJson);
+  const projected = document[DOCUMENT_KEY];
+  if (projected === undefined) {
     throw new Error(`Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`);
   }
-  const projected: JsonValue = Reflect.get(parsed, DOCUMENT_KEY);
 
   let expected: JsonValue;
   try {
