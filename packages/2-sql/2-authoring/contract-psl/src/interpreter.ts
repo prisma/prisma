@@ -21,6 +21,7 @@ import type {
   AuthoringModelAttributeDescriptorNamespace,
   AuthoringModelAttributeLoweringOutput,
   AuthoringPslBlockDescriptorNamespace,
+  AuthoringWarning,
   PslExtensionBlock,
 } from '@prisma-next/framework-components/authoring';
 import {
@@ -56,8 +57,6 @@ import {
   type SymbolTable,
 } from '@prisma-next/psl-parser';
 import type { SourceFile } from '@prisma-next/psl-parser/syntax';
-import type { ExactNameBodyWarning } from '@prisma-next/sql-contract/index-naming';
-import { isExactNameBodyWarningEntry } from '@prisma-next/sql-contract/index-naming';
 import type {
   SqlModelStorage,
   SqlNamespaceBase,
@@ -2152,11 +2151,10 @@ export function interpretPslDocumentToSqlContract(
   // threaded into `collectResolvedFields` below.
   const entityTypesByDiscriminator = buildEntityTypesByDiscriminator(input.authoringContributions);
   const modelAttributesByName = buildModelAttributesByName(input.authoringContributions);
-  // D9 exact-name-body warnings pushed by entity factories (e.g. an `@@map`
-  // policy). Collected here because the factories run ahead of
-  // `buildSqlContractFromDefinition`, then handed to the build via the
-  // definition so its one per-build flush covers indexes and policies.
-  const exactNameWarnings: ExactNameBodyWarning[] = [];
+  // Warnings pushed by entity factories run ahead of
+  // `buildSqlContractFromDefinition`; handed to the build via the definition
+  // so its one per-build flush covers the whole build.
+  const authoringWarnings: AuthoringWarning[] = [];
   const extensionEntityContext: AuthoringEntityContext = {
     family: input.target.familyId,
     target: input.target.targetId,
@@ -2170,13 +2168,7 @@ export function interpretPslDocumentToSqlContract(
         );
       },
     },
-    warnings: {
-      push: (w) => {
-        if (isExactNameBodyWarningEntry(w)) {
-          exactNameWarnings.push({ subject: w.subject, exactName: w.exactName });
-        }
-      },
-    },
+    warnings: authoringWarnings,
   };
   // Diagnostics-free resolution of every model's declared storage name,
   // feeding the extension-block pass's model-ref conversion (a block's
@@ -2542,7 +2534,7 @@ export function interpretPslDocumentToSqlContract(
   const contract = buildSqlContractFromDefinition(
     {
       target: input.target,
-      ...(exactNameWarnings.length > 0 ? { exactNameBodyWarnings: exactNameWarnings } : {}),
+      warnings: authoringWarnings.length > 0 ? authoringWarnings : undefined,
       ...ifDefined(
         'extensions',
         buildComposedExtensionPackRefs(

@@ -83,6 +83,7 @@ const profile: ModelNode = {
 
 describe('same bare table name across namespaces with a cross-namespace FK', () => {
   const contract = buildSqlContractFromDefinition({
+    warnings: undefined,
     target: postgresTargetPack,
     namespaces: ['public', 'auth'],
     createNamespace: createTestSqlNamespace,
@@ -140,6 +141,7 @@ describe('same bare table name across non-Postgres default and explicit namespac
   };
 
   const contract = buildSqlContractFromDefinition({
+    warnings: undefined,
     target: sqliteTargetPack,
     namespaces: ['public'],
     models: [unboundUser, publicUserWithSameTable],

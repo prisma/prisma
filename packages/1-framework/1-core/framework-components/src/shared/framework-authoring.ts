@@ -186,14 +186,65 @@ export interface AuthoringDiagnosticSink {
 }
 
 /**
+ * A non-fatal advisory minted at authoring time. Fully formed at the push
+ * site — the transport and the flush never learn family or target
+ * vocabulary; {@link flushAuthoringWarnings} groups on `code` alone.
+ */
+export interface AuthoringWarning {
+  /** Stable machine code; the flush batches warnings sharing it. */
+  readonly code: string;
+  /** Full text emitted when the warning is itemized (group at or below the batch threshold). */
+  readonly message: string;
+  /** Short subject label listed under a batched group summary (e.g. `policy "…"`). */
+  readonly item: string;
+  /**
+   * Group summary text. An over-threshold group renders as
+   * `"<count> <guidance>"` above the item lines, so this starts with the
+   * plural noun phrase (e.g. `objects use map: with a SQL body. …`).
+   */
+  readonly guidance: string;
+}
+
+/**
  * A write-only sink for non-fatal authoring-time warnings a factory may
- * emit. Entries are `{ code, message }`-shaped; a consumer may push richer
- * structurally-compatible objects and the accumulating layer may narrow them
- * back — the framework layer deliberately knows neither the codes nor the
- * concrete shapes.
+ * emit. Entries travel verbatim to a single per-build flush — no
+ * narrowing, no per-kind fields; a plain `AuthoringWarning[]` satisfies
+ * this structurally.
  */
 export interface AuthoringWarningSink {
-  push(w: { readonly code: string; readonly message: string }): void;
+  push(w: AuthoringWarning): void;
+}
+
+const AUTHORING_WARNING_BATCH_THRESHOLD = 5;
+
+/**
+ * Emits collected authoring warnings once per build, grouped by `code`:
+ * a group at or below the threshold itemizes every `message`; above it,
+ * one summary — `"<count> <guidance>"` followed by the `item` lines — so
+ * a build with many hits of one kind does not wall-of-text, and warnings
+ * of different codes never batch into each other's summary.
+ */
+export function flushAuthoringWarnings(warnings: readonly AuthoringWarning[]): void {
+  const groups = new Map<string, AuthoringWarning[]>();
+  for (const warning of warnings) {
+    const group = groups.get(warning.code) ?? [];
+    group.push(warning);
+    groups.set(warning.code, group);
+  }
+  for (const [code, group] of groups) {
+    if (group.length <= AUTHORING_WARNING_BATCH_THRESHOLD) {
+      for (const warning of group) {
+        process.emitWarning(warning.message, { code });
+      }
+      continue;
+    }
+    const first = group[0];
+    if (first === undefined) continue;
+    process.emitWarning(
+      `${group.length} ${first.guidance}\n${group.map((w) => `  - ${w.item}`).join('\n')}`,
+      { code },
+    );
+  }
 }
 
 export interface AuthoringEntityContext {

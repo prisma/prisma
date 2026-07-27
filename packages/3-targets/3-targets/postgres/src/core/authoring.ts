@@ -21,7 +21,7 @@ import type {
   ResolvedEntityHandleRef,
   ResolvedPslModelRefs,
 } from '@prisma-next/sql-contract/entity-handle-lowering-hook';
-import { exactNameBodyWarningEntry } from '@prisma-next/sql-contract/index-naming';
+import { exactNameBodyWarning } from '@prisma-next/sql-contract/index-naming';
 import type { SqlValueSetDerivingEntityTypeOutput } from '@prisma-next/sql-contract/value-set-derivation-hook';
 import {
   assertWireNamePrefixLength,
@@ -239,7 +239,7 @@ function lowerRlsPolicyFromBlock(
       });
       return undefined;
     }
-    ctx.warnings?.push(exactNameBodyWarningEntry({ subject: 'policy', exactName }));
+    ctx.warnings?.push(exactNameBodyWarning('policy', exactName));
     return new PostgresRlsPolicy({
       name: exactName,
       prefix: undefined,
