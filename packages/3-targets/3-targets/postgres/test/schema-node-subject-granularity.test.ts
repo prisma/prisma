@@ -10,6 +10,7 @@ import {
   postgresDiffSubjectGranularity,
   postgresNodeGranularity,
 } from '../src/core/schema-ir/schema-node-kinds';
+import { testNaming } from './fixtures/test-naming';
 
 /**
  * The subject granularity a Postgres diff node's issues carry is resolved
@@ -80,8 +81,7 @@ describe('Postgres schema nodes carry no role/granularity of their own', () => {
     [
       'PostgresPolicySchemaNode',
       new PostgresPolicySchemaNode({
-        name: 'read_own_a1b2c3d4',
-        prefix: 'read_own',
+        naming: testNaming('read_own_a1b2c3d4', 'read_own'),
         tableName: 'profiles',
         namespaceId: 'public',
         operation: 'select',

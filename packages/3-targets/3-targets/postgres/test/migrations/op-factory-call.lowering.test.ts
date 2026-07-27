@@ -42,6 +42,7 @@ import {
   SetNotNullCall,
 } from '../../src/core/migrations/op-factory-call';
 import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
+import { testNaming } from '../fixtures/test-naming';
 
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
@@ -913,8 +914,7 @@ describe('DisableRowLevelSecurityCall', () => {
 
 function makePolicy(): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name: 'post_owner_a1b2c3d4',
-    prefix: 'post_owner',
+    naming: testNaming('post_owner_a1b2c3d4', 'post_owner'),
     tableName: 'post',
     namespaceId: 'public',
     operation: 'select',
@@ -980,8 +980,7 @@ describe('CreatePostgresRlsPolicyCall', () => {
       'public',
       'post',
       new PostgresRlsPolicy({
-        name: 'Tenant members can read',
-        prefix: undefined,
+        naming: testNaming('Tenant members can read', undefined),
         tableName: 'post',
         namespaceId: 'public',
         operation: 'select',

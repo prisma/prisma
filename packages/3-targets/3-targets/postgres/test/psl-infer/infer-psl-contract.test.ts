@@ -8,6 +8,7 @@ import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-con
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { testNaming } from '../fixtures/test-naming';
 import { inferPslAstFromFlat as sqlSchemaIrToPslAst } from './fixtures';
 
 function ir(partial: Partial<SqlSchemaIRInput> & Pick<SqlSchemaIRInput, 'tables'>): SqlSchemaIR {
@@ -258,8 +259,7 @@ describe('inferPostgresPslContract', () => {
           uniques: [],
           indexes: [
             {
-              name: 'post_user_id_idx',
-              prefix: undefined,
+              naming: { kind: 'exact', name: 'post_user_id_idx' },
               columns: ['user_id'],
               where: undefined,
               unique: false,
@@ -327,8 +327,7 @@ describe('inferPostgresPslContract', () => {
             uniques: [],
             indexes: [
               {
-                name: index.name,
-                prefix: index.prefix,
+                naming: testNaming(index.name, index.prefix),
                 columns: index.columns,
                 expression: index.expression,
                 where: index.where,

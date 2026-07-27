@@ -554,8 +554,7 @@ describe('contractToSchemaIR', () => {
     const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
     expect(result.tables['T']!.indexes).toEqual([
       new SqlIndexIR({
-        name: 'T_email_idx',
-        prefix: undefined,
+        naming: { kind: 'exact', name: 'T_email_idx' },
         columns: ['email'],
         where: undefined,
         unique: false,
@@ -600,8 +599,7 @@ describe('contractToSchemaIR', () => {
     const idx = result.tables['T']!.indexes[0]!;
     expect(idx).toEqual(
       new SqlIndexIR({
-        name: 'T_email_idx_deadbeef',
-        prefix: 'T_email_idx',
+        naming: { kind: 'managed', prefix: 'T_email_idx', hash: 'deadbeef' },
         columns: ['email'],
         where: 'email IS NOT NULL',
         unique: true,
@@ -770,8 +768,7 @@ describe('contractToSchemaIR', () => {
     ]);
     expect(result.tables['WorkflowState']!.indexes).toEqual([
       new SqlIndexIR({
-        name: 'WorkflowState_workflowId_idx',
-        prefix: undefined,
+        naming: { kind: 'exact', name: 'WorkflowState_workflowId_idx' },
         columns: ['workflowId'],
         where: undefined,
         unique: false,

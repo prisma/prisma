@@ -4,6 +4,7 @@ import {
   ForeignKey,
   type ForeignKeyOptions,
   Index,
+  indexInputFromSerialized,
   PrimaryKey,
   type SqlModelFieldStorage,
   type SqlModelStorage,
@@ -45,15 +46,16 @@ export function index(
     readonly options?: Record<string, unknown>;
   },
 ): Index {
-  return new Index({
-    name,
-    prefix: opts?.prefix,
-    columns,
-    where: undefined,
-    unique: opts?.unique ?? false,
-    type: opts?.type,
-    options: opts?.options,
-  });
+  return new Index(
+    indexInputFromSerialized({
+      name,
+      ...(opts?.prefix !== undefined ? { prefix: opts.prefix } : {}),
+      columns,
+      unique: opts?.unique ?? false,
+      ...(opts?.type !== undefined ? { type: opts.type } : {}),
+      ...(opts?.options !== undefined ? { options: opts.options } : {}),
+    }),
+  );
 }
 
 export function fk(

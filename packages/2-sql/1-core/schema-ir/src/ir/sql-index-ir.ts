@@ -3,7 +3,7 @@ import { freezeNode } from '@prisma-next/framework-components/ir';
 import { isArrayEqual } from '@prisma-next/utils/array-equal';
 import { blindCast } from '@prisma-next/utils/casts';
 import { InternalError } from '@prisma-next/utils/internal-error';
-import { normalizeIndexOptionValue } from '../naming';
+import { normalizeIndexOptionValue, physicalNameOf, type SqlObjectNaming } from '../naming';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
 import type { SqlAnnotations } from './sql-column-ir';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './sql-schema-ir-node';
@@ -31,16 +31,14 @@ export type SqlIndexElements =
     };
 
 export type SqlIndexIRInput = SqlIndexElements & {
-  /** Full physical name — the node's identity. */
-  readonly name: string;
   /**
-   * The managed-mode name prefix — its PRESENCE is the naming-mode
-   * discriminator (there is no stored enum). Present ⇔ managed: the
-   * toolchain owns the physical name and `name === formatWireName(prefix,
-   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
-   * physical name whose identity the author owns entirely.
+   * Naming-mode union — the node's identity: `managed` derives the flat
+   * `name` as `formatWireName(prefix, hash)`; `exact` adopts `name`
+   * verbatim. A mismatched name/prefix pair is unconstructable; producers
+   * holding flat data reconstruct the union via `namingFromFlat` /
+   * `parseWireName`.
    */
-  readonly prefix: string | undefined;
+  readonly naming: SqlObjectNaming;
   /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
   readonly where: string | undefined;
   readonly unique: boolean;
@@ -114,14 +112,15 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
 
   constructor(input: SqlIndexIRInput) {
     super();
+    const name = physicalNameOf(input.naming);
     if ((input.columns === undefined) === (input.expression === undefined)) {
       throw new InternalError(
-        `SqlIndexIR "${input.name}": exactly one of columns or expression must be set.`,
+        `SqlIndexIR "${name}": exactly one of columns or expression must be set.`,
       );
     }
-    this.name = input.name;
+    this.name = name;
     this.unique = input.unique;
-    if (input.prefix !== undefined) this.prefix = input.prefix;
+    if (input.naming.kind === 'managed') this.prefix = input.naming.prefix;
     if (input.columns !== undefined) this.columns = input.columns;
     if (input.expression !== undefined) this.expression = input.expression;
     if (input.where !== undefined) this.where = input.where;

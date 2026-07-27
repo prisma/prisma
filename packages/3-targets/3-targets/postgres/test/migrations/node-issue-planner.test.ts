@@ -15,6 +15,7 @@ import { PostgresSchema } from '../../src/core/postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { testNaming } from '../fixtures/test-naming';
 
 /**
  * Direct coverage for the node-based Postgres planner (the one-differ path):
@@ -430,8 +431,7 @@ describe('planNodeIssues — dependency-graph ordering', () => {
         ],
         indexes: [
           {
-            name: 'account_legacy_idx',
-            prefix: undefined,
+            naming: testNaming('account_legacy_idx', undefined),
             columns: ['legacy'],
             where: undefined,
             unique: false,

@@ -2,7 +2,7 @@ import { type Contract, coreHash, profileHash } from '@prisma-next/contract/type
 import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
+import { namingFromFlat, normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
 import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
   PostgresRlsEnablement,
@@ -24,6 +24,12 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
+function namingOrThrow(name: string, prefix: string | undefined) {
+  const naming = namingFromFlat(name, prefix);
+  if (naming === undefined) throw new Error(`bad flat naming: ${name} / ${prefix}`);
+  return naming;
+}
+
 // ============================================================================
 // Contract construction (foundation IR path)
 // ============================================================================
@@ -44,8 +50,7 @@ function buildRlsWalkingSkeletonContract(): Contract<SqlStorage> {
   const role = new PostgresRole({ name: 'app_user', namespaceId: 'public' });
 
   const policy = new PostgresRlsPolicy({
-    name: POLICY_WIRE_NAME,
-    prefix: POLICY_PREFIX,
+    naming: namingOrThrow(POLICY_WIRE_NAME, POLICY_PREFIX),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',

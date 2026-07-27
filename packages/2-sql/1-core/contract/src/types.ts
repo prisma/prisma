@@ -21,7 +21,12 @@ export {
   type ForeignKeyReferenceInput,
 } from './ir/foreign-key-reference';
 export { PrimaryKey, type PrimaryKeyInput } from './ir/primary-key';
-export { Index, type IndexInput } from './ir/sql-index';
+export {
+  Index,
+  type IndexInput,
+  indexInputFromSerialized,
+  type SerializedIndex,
+} from './ir/sql-index';
 export { SqlNode } from './ir/sql-node';
 export {
   isMaterializedSqlNamespace,

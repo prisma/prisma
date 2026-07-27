@@ -139,8 +139,7 @@ namespace public {
     const wireName = `${prefix}_${wireHash}`;
 
     const policy = new PostgresRlsPolicy({
-      name: wireName,
-      prefix,
+      naming: { kind: 'managed', prefix, hash: wireHash },
       tableName,
       namespaceId,
       operation: 'select',

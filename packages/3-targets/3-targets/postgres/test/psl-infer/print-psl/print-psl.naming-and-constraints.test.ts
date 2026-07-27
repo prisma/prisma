@@ -1,6 +1,7 @@
 import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
 import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
+import { testNaming } from '../../fixtures/test-naming';
 import { printPslFromFlat as printPslFromSql } from '../fixtures';
 
 describe('printPsl', () => {
@@ -195,8 +196,7 @@ describe('printPsl', () => {
           uniques: [{ columns: ['type', 'code'] }],
           indexes: [
             {
-              name: 'record_category_idx',
-              prefix: undefined,
+              naming: testNaming('record_category_idx', undefined),
               columns: ['category', 'type'],
               where: undefined,
               unique: false,
@@ -244,8 +244,7 @@ describe('printPsl', () => {
           uniques: [],
           indexes: [
             {
-              name: 'record_category_type_idx',
-              prefix: undefined,
+              naming: testNaming('record_category_type_idx', undefined),
               columns: ['category', 'type'],
               where: undefined,
               unique: false,
@@ -290,8 +289,7 @@ describe('printPsl', () => {
           uniques: [],
           indexes: [
             {
-              name: 'record_token_hash_idx',
-              prefix: undefined,
+              naming: testNaming('record_token_hash_idx', undefined),
               columns: ['token'],
               where: undefined,
               unique: false,

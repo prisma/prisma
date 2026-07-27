@@ -16,6 +16,7 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { testNaming } from '../fixtures/test-naming';
 
 interface PolicyFixture {
   readonly name: string;
@@ -29,8 +30,7 @@ interface PolicyFixture {
 
 function policyNode(fixture: PolicyFixture): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    name: fixture.name,
-    prefix: fixture.prefix,
+    naming: testNaming(fixture.name, fixture.prefix),
     tableName: 'profile',
     namespaceId: 'public',
     operation: fixture.operation ?? 'select',

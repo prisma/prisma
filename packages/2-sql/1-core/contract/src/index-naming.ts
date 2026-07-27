@@ -7,7 +7,6 @@ import {
   assertWireNamePrefixLength,
   computeIndexContentHash,
   defaultIndexName,
-  formatWireName,
 } from '@prisma-next/sql-schema-ir/naming';
 import { contractError } from './contract-errors';
 import type { IndexInput } from './ir/sql-index';
@@ -129,8 +128,7 @@ export function lowerAuthoredIndex(
       }
     }
     const carried = {
-      name: authored.map,
-      prefix: undefined,
+      naming: { kind: 'exact' as const, name: authored.map },
       where: authored.where,
       unique,
       type: authored.type,
@@ -152,8 +150,7 @@ export function lowerAuthoredIndex(
     ...(authored.options !== undefined && { options: authored.options }),
   });
   const carried = {
-    name: formatWireName(prefix, hash),
-    prefix,
+    naming: { kind: 'managed' as const, prefix, hash },
     where: authored.where,
     unique,
     type: authored.type,

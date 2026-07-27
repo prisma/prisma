@@ -10,6 +10,7 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { postgresDiffSubjectGranularity } from '../../src/core/schema-ir/schema-node-kinds';
+import { testNaming } from '../fixtures/test-naming';
 
 /**
  * Table-less contract namespaces (e.g. an enums-only schema) are invisible
@@ -155,8 +156,7 @@ describe('verdict: table-less contract namespaces (Postgres tree)', () => {
 
   it('a live RLS policy on a stray table in the enums-only owned schema fails both pipelines', () => {
     const strayPolicy = new PostgresPolicySchemaNode({
-      name: 'sneaky_read_a1b2c3d4',
-      prefix: 'sneaky_read',
+      naming: testNaming('sneaky_read_a1b2c3d4', 'sneaky_read'),
       tableName: 'audit_log',
       namespaceId: 'enums',
       operation: 'select',

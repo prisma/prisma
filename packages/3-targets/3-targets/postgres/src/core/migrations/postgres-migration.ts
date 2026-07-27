@@ -8,7 +8,11 @@ import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
 import { errorPostgresMigrationStackMissing } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
-import { PostgresRlsPolicy, type PostgresRlsPolicyMigrationInput } from '../postgres-rls-policy';
+import {
+  PostgresRlsPolicy,
+  type PostgresRlsPolicyMigrationInput,
+  rlsPolicyInputFromFlat,
+} from '../postgres-rls-policy';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
@@ -468,19 +472,15 @@ export abstract class PostgresMigration<
     readonly table: string;
     readonly policy: PostgresRlsPolicyMigrationInput;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    // The migration input is the flat spelling of the constructor input
-    // (optional keys for absence-legal fields), so defaults-then-spread is
-    // the whole adaptation: omitted keys land as explicit undefined, and a
-    // new field flows through without a hand-written copy.
+    // The migration input is the derived flat spelling; the fromFlat
+    // conversion validates the name/prefix pair and builds the naming
+    // union. Safety for new fields comes from the required-key `| undefined`
+    // convention on the constructor input: a copy omitted from
+    // rlsPolicyInputFromFlat is a compile error, not a silent drop.
     return new CreatePostgresRlsPolicyCall(
       options.schema,
       options.table,
-      new PostgresRlsPolicy({
-        prefix: undefined,
-        using: undefined,
-        withCheck: undefined,
-        ...options.policy,
-      }),
+      new PostgresRlsPolicy(rlsPolicyInputFromFlat(options.policy)),
     ).toOp(this.controlAdapterFor('createRlsPolicy'));
   }
 

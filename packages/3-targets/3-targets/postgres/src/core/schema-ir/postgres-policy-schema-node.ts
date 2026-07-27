@@ -1,24 +1,21 @@
 import type { DiffableNode, SchemaNodeRef } from '@prisma-next/framework-components/control';
 import { freezeNode } from '@prisma-next/framework-components/ir';
-import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import { physicalNameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
 import { isArrayEqual } from '@prisma-next/utils/array-equal';
 import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
 import type { RlsPolicyOperation } from '../postgres-rls-policy';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 
 export interface PostgresPolicySchemaNodeInput {
-  /** Full physical name — the node's identity. */
-  readonly name: string;
   /**
-   * The managed-mode name prefix — its PRESENCE is the naming-mode
-   * discriminator (there is no stored enum). Present ⇔ managed: the
-   * toolchain owns the physical name and `name === formatWireName(prefix,
-   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
-   * physical name whose identity the author owns entirely.
+   * Naming-mode union — the node's identity: `managed` derives the flat
+   * `name` as `formatWireName(prefix, hash)`; `exact` adopts `name`
+   * verbatim. A mismatched name/prefix pair is unconstructable; producers
+   * holding flat data reconstruct the union via `namingFromFlat` /
+   * `parseWireName`.
    */
-  readonly prefix: string | undefined;
+  readonly naming: SqlObjectNaming;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). */
@@ -74,16 +71,8 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
 
   constructor(input: PostgresPolicySchemaNodeInput) {
     super();
-    if (input.prefix !== undefined) {
-      const parsed = parseWireName(input.name);
-      if (parsed === undefined || parsed.prefix !== input.prefix) {
-        throw new InternalError(
-          `PostgresPolicySchemaNode "${input.name}": prefix "${input.prefix}" does not match the wire name (expected "${formatWireName(input.prefix, '<8hex>')}").`,
-        );
-      }
-    }
-    this.name = input.name;
-    if (input.prefix !== undefined) this.prefix = input.prefix;
+    this.name = physicalNameOf(input.naming);
+    if (input.naming.kind === 'managed') this.prefix = input.naming.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;

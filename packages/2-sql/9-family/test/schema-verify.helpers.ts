@@ -18,12 +18,19 @@ import {
   StorageTable,
   type StorageTableInput,
 } from '@prisma-next/sql-contract/types';
+import { namingFromFlat } from '@prisma-next/sql-schema-ir/naming';
 import type { SqlIndexIRInput, SqlReferentialAction } from '@prisma-next/sql-schema-ir/types';
 import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import type { CodecControlHooks, ExpandNativeTypeInput } from '../src/core/migrations/types';
+
+function namingOrThrow(name: string, prefix: string | undefined) {
+  const naming = namingFromFlat(name, prefix);
+  if (naming === undefined) throw new Error(`bad flat naming: ${name} / ${prefix}`);
+  return naming;
+}
 
 /**
  * Creates a minimal valid contract for testing.
@@ -180,8 +187,7 @@ export function createSchemaTable(
     indexes: (options?.indexes ?? []).map(
       (idx) =>
         ({
-          name: idx.name,
-          prefix: idx.prefix,
+          naming: namingOrThrow(idx.name, idx.prefix),
           columns: idx.columns,
           expression: idx.expression,
           where: idx.where,

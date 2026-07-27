@@ -6,10 +6,47 @@ export function defaultIndexName(tableName: string, columns: readonly string[]):
 }
 
 export interface WireName {
+  /** A parsed wire name IS the managed arm of {@link SqlObjectNaming}. */
+  readonly kind: 'managed';
   /** The user-supplied part before the `_<8hex>` suffix. */
   readonly prefix: string;
   /** The 8-lowercase-hex content-hash suffix. */
   readonly hash: string;
+}
+
+/**
+ * How a wire-named object (index, RLS policy) is named — the constructor
+ * input for every name-identified IR class. `managed`: the toolchain owns
+ * the physical name, derived as `formatWireName(prefix, hash)`; `exact`:
+ * `name` is an adopted verbatim physical name the author owns entirely.
+ *
+ * The union is input-only. Storage and JSON stay flat (`name` + optional
+ * `prefix`); a mismatched name/prefix pair is unconstructable from the
+ * union, so only flat-data load boundaries ({@link namingFromFlat}) still
+ * validate the pair.
+ */
+export type SqlObjectNaming = { readonly kind: 'exact'; readonly name: string } | WireName;
+
+/** Derives the flat physical name the union describes. */
+export function physicalNameOf(naming: SqlObjectNaming): string {
+  return naming.kind === 'managed' ? formatWireName(naming.prefix, naming.hash) : naming.name;
+}
+
+/**
+ * Reconstructs the naming union from flat data (`name` + optional
+ * `prefix`) at a load boundary — deserialized JSON and other flat inputs
+ * are the one place a mismatched pair is still representable. Returns
+ * `undefined` when a declared prefix does not parse back out of the name;
+ * the caller raises its own validation error.
+ */
+export function namingFromFlat(
+  name: string,
+  prefix: string | undefined,
+): SqlObjectNaming | undefined {
+  if (prefix === undefined) return { kind: 'exact', name };
+  const parsed = parseWireName(name);
+  if (parsed === undefined || parsed.prefix !== prefix) return undefined;
+  return parsed;
 }
 
 const WIRE_NAME_PATTERN = /^(.+)_([0-9a-f]{8})$/;
@@ -36,7 +73,7 @@ export function parseWireName(name: string): WireName | undefined {
   const prefix = match?.[1];
   const hash = match?.[2];
   if (prefix === undefined || hash === undefined) return undefined;
-  return { prefix, hash };
+  return { kind: 'managed', prefix, hash };
 }
 
 /**

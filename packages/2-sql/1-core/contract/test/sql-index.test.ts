@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { Index, type IndexInput } from '../src/ir/sql-index';
+import {
+  Index,
+  type IndexInput,
+  indexInputFromSerialized,
+  type SerializedIndex,
+} from '../src/ir/sql-index';
 
-/** Fills the required-but-undefined keys so tests state only what they vary. */
+/**
+ * Routes flat data through the serialized-load boundary — the place the
+ * name/prefix pair is validated now that the constructor takes the union.
+ */
 function input(partial: {
   readonly name: string;
   readonly prefix?: string;
@@ -12,7 +20,7 @@ function input(partial: {
   readonly type?: string;
   readonly options?: Record<string, unknown>;
 }): IndexInput {
-  return partial as IndexInput;
+  return indexInputFromSerialized(partial as SerializedIndex);
 }
 
 describe('Index', () => {
@@ -75,28 +83,36 @@ describe('Index', () => {
     it('rejects both columns and expression', () => {
       expect(
         () =>
-          new Index(
-            input({
-              name: 'users_email_eq',
-              columns: ['email'],
-              expression: 'lower(email)',
-              unique: false,
-            }),
-          ),
+          new Index({
+            naming: { kind: 'exact', name: 'users_email_eq' },
+            columns: ['email'],
+            expression: 'lower(email)',
+            where: undefined,
+            unique: false,
+            type: undefined,
+            options: undefined,
+          } as never),
       ).toThrow(/exactly one of columns or expression/);
     });
 
     it('rejects neither columns nor expression', () => {
-      expect(() => new Index(input({ name: 'users_email_eq', unique: false }))).toThrow(
-        /exactly one of columns or expression/,
-      );
+      expect(
+        () =>
+          new Index({
+            naming: { kind: 'exact', name: 'users_email_eq' },
+            where: undefined,
+            unique: false,
+            type: undefined,
+            options: undefined,
+          } as never),
+      ).toThrow(/exactly one of columns or expression/);
     });
   });
 
   describe('name is always the full physical name', () => {
     it('rejects a missing name at runtime (unvalidated JSON input)', () => {
       const raw: unknown = { columns: ['email'], unique: false };
-      expect(() => new Index(raw as never)).toThrow(/full physical name/);
+      expect(() => new Index(indexInputFromSerialized(raw as never))).toThrow(/full physical name/);
     });
   });
 

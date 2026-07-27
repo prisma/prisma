@@ -245,8 +245,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'p_ab12cd34',
-          prefix: 'p',
+          naming: { kind: 'managed', prefix: 'p', hash: 'ab12cd34' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -321,8 +320,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'tenant_read_f8d5e783',
-          prefix: 'tenant_read',
+          naming: { kind: 'managed', prefix: 'tenant_read', hash: 'f8d5e783' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -336,8 +334,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'Tenant members can read',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'Tenant members can read' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -370,8 +367,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
           'public',
           'user',
           new PostgresRlsPolicy({
-            name: 'Tenant members can read',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'Tenant members can read' },
             tableName: 'user',
             namespaceId: 'public',
             operation: 'select',

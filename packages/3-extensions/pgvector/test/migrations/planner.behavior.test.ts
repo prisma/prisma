@@ -664,8 +664,7 @@ function buildUserTableSchema(): PostgresTableSchemaNode {
     foreignKeys: [],
     indexes: [
       {
-        name: 'user_email_idx',
-        prefix: undefined,
+        naming: { kind: 'exact', name: 'user_email_idx' },
         columns: ['email'],
         where: undefined,
         unique: false,
@@ -849,8 +848,7 @@ function buildPostTableSchema(): PostgresTableSchemaNode {
     ],
     indexes: [
       {
-        name: 'post_userId_idx',
-        prefix: undefined,
+        naming: { kind: 'exact', name: 'post_userId_idx' },
         columns: ['userId'],
         where: undefined,
         unique: false,

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-
 import { SqlIndexIR, type SqlIndexIRInput } from '../src/ir/sql-index-ir';
+import { namingFromFlat } from '../src/naming';
 
-type LooseIndexInput = Pick<SqlIndexIRInput, 'name' | 'unique' | 'partial'> & {
+type LooseIndexInput = Pick<SqlIndexIRInput, 'unique' | 'partial'> & {
+  readonly name: string;
   readonly prefix?: string;
   readonly columns?: readonly string[];
   readonly expression?: string;
@@ -14,8 +15,9 @@ type LooseIndexInput = Pick<SqlIndexIRInput, 'name' | 'unique' | 'partial'> & {
 };
 
 function index(input: LooseIndexInput): SqlIndexIR {
+  const naming = namingFromFlat(input.name, input.prefix);
+  if (naming === undefined) throw new Error(`bad flat naming: ${input.name} / ${input.prefix}`);
   const filled = {
-    prefix: undefined,
     columns: input.columns !== undefined || input.expression !== undefined ? undefined : ['email'],
     expression: undefined,
     where: undefined,
@@ -24,15 +26,17 @@ function index(input: LooseIndexInput): SqlIndexIR {
     annotations: undefined,
     dependsOn: undefined,
     ...input,
+    naming,
   };
-  return new SqlIndexIR(filled as SqlIndexIRInput);
+  const { name: _name, prefix: _prefix, ...rest } = filled;
+  return new SqlIndexIR(rest as SqlIndexIRInput);
 }
 
-function managed(input: Partial<LooseIndexInput> & Pick<SqlIndexIRInput, 'name'>): SqlIndexIR {
+function managed(input: Partial<LooseIndexInput> & { readonly name: string }): SqlIndexIR {
   return index({ unique: false, partial: false, prefix: 'user_email_idx', ...input });
 }
 
-function exact(input: Partial<LooseIndexInput> & Pick<SqlIndexIRInput, 'name'>): SqlIndexIR {
+function exact(input: Partial<LooseIndexInput> & { readonly name: string }): SqlIndexIR {
   return index({ unique: false, partial: false, ...input });
 }
 
@@ -61,8 +65,7 @@ describe('SqlIndexIR', () => {
       }),
     ).toThrow(/exactly one of columns or expression/);
     const neither = {
-      name: 'x',
-      prefix: undefined,
+      naming: { kind: 'exact', name: 'x' },
       where: undefined,
       unique: false,
       partial: false,

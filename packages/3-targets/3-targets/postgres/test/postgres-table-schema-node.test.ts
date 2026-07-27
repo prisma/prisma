@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { PostgresPolicySchemaNode } from '../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../src/core/schema-ir/postgres-table-schema-node';
+import { testNaming } from './fixtures/test-naming';
 
 const basePolicy = new PostgresPolicySchemaNode({
-  name: 'read_own_a1b2c3d4',
-  prefix: 'read_own',
+  naming: testNaming('read_own_a1b2c3d4', 'read_own'),
   tableName: 'profiles',
   namespaceId: 'public',
   operation: 'select' as const,
@@ -126,8 +126,7 @@ describe('PostgresTableSchemaNode', () => {
       uniques: [{ columns: ['user_id', 'status'] }],
       indexes: [
         {
-          name: 'orders_status_idx',
-          prefix: undefined,
+          naming: testNaming('orders_status_idx', undefined),
           columns: ['status'],
           where: undefined,
           unique: false,

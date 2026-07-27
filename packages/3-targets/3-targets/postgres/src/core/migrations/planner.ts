@@ -32,7 +32,7 @@ import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
 import { SqlIndexIR } from '@prisma-next/sql-schema-ir/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
-import { PostgresRlsPolicy } from '../postgres-rls-policy';
+import { PostgresRlsPolicy, rlsPolicyInputFromFlat } from '../postgres-rls-policy';
 import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordinate';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
@@ -900,15 +900,17 @@ function gradePolicyReplacement(
  * pre-resolution coordinate, so a lookup would change the migration output.
  */
 function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRlsPolicy {
-  return new PostgresRlsPolicy({
-    name: node.name,
-    prefix: node.prefix,
-    tableName: node.tableName,
-    namespaceId: node.namespaceId,
-    operation: node.operation,
-    roles: [...node.roles],
-    using: node.using,
-    withCheck: node.withCheck,
-    permissive: node.permissive,
-  });
+  return new PostgresRlsPolicy(
+    rlsPolicyInputFromFlat({
+      name: node.name,
+      ...ifDefined('prefix', node.prefix),
+      tableName: node.tableName,
+      namespaceId: node.namespaceId,
+      operation: node.operation,
+      roles: [...node.roles],
+      ...ifDefined('using', node.using),
+      ...ifDefined('withCheck', node.withCheck),
+      permissive: node.permissive,
+    }),
+  );
 }

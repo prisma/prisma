@@ -5,10 +5,10 @@ import { PostgresPolicySchemaNode } from '../src/core/schema-ir/postgres-policy-
 import { PostgresRoleSchemaNode } from '../src/core/schema-ir/postgres-role-schema-node';
 import { PostgresTableSchemaNode } from '../src/core/schema-ir/postgres-table-schema-node';
 import type { SqlSchemaDiffNode } from '../src/core/schema-ir/schema-node-kinds';
+import { testNaming } from './fixtures/test-naming';
 
 const policy = new PostgresPolicySchemaNode({
-  name: 'read_own_a1b2c3d4',
-  prefix: 'read_own',
+  naming: testNaming('read_own_a1b2c3d4', 'read_own'),
   tableName: 'profiles',
   namespaceId: 'public',
   operation: 'select' as const,

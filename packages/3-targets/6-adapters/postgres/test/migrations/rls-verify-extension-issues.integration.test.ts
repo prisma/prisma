@@ -3,7 +3,7 @@ import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
 import { APP_SPACE_ID, issueOutcome } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
+import { namingFromFlat, normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
 import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
   PostgresRlsEnablement,
@@ -27,6 +27,12 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
+function namingOrThrow(name: string, prefix: string | undefined) {
+  const naming = namingFromFlat(name, prefix);
+  if (naming === undefined) throw new Error(`bad flat naming: ${name} / ${prefix}`);
+  return naming;
+}
+
 const TABLE_NAME = 'profiles';
 const POLICY_USING = '(id = user_id)';
 const POLICY_PREFIX = 'read_own_profiles';
@@ -38,8 +44,7 @@ const POLICY_HASH = computeContentHash({
 });
 
 const policy = new PostgresRlsPolicy({
-  name: `${POLICY_PREFIX}_${POLICY_HASH}`,
-  prefix: POLICY_PREFIX,
+  naming: namingOrThrow(`${POLICY_PREFIX}_${POLICY_HASH}`, POLICY_PREFIX),
   tableName: TABLE_NAME,
   namespaceId: 'public',
   operation: 'select',

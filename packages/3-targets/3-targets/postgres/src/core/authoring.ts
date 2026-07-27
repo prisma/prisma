@@ -24,11 +24,7 @@ import type {
 } from '@prisma-next/sql-contract/entity-handle-lowering-hook';
 import { exactNameBodyWarning } from '@prisma-next/sql-contract/index-naming';
 import type { SqlValueSetDerivingEntityTypeOutput } from '@prisma-next/sql-contract/value-set-derivation-hook';
-import {
-  assertWireNamePrefixLength,
-  formatWireName,
-  normalizeSqlBody,
-} from '@prisma-next/sql-schema-ir/naming';
+import { assertWireNamePrefixLength, normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
 import { assertDefined } from '@prisma-next/utils/assertions';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
@@ -188,8 +184,7 @@ function buildRlsPolicyEntity(input: {
   });
 
   return new PostgresRlsPolicy({
-    name: formatWireName(input.prefix, wireHash),
-    prefix: input.prefix,
+    naming: { kind: 'managed', prefix: input.prefix, hash: wireHash },
     tableName: input.tableName,
     namespaceId: input.namespaceId,
     operation: input.operation,
@@ -276,8 +271,7 @@ function lowerRlsPolicyFromBlock(
     }
     ctx.warnings?.push(exactNameBodyWarning('policy', exactName));
     return new PostgresRlsPolicy({
-      name: exactName,
-      prefix: undefined,
+      naming: { kind: 'exact', name: exactName },
       tableName,
       namespaceId: block.namespaceId,
       operation,

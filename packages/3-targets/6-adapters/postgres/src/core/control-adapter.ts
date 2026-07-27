@@ -1182,10 +1182,10 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         const isExpression = idx.elements.some((el) => el.attname === null);
         const columnNames = idx.elements.flatMap((el) => (el.attname !== null ? [el.attname] : []));
         const base = {
-          name: idx.name,
-          // Rename-pass grouping only, like policy introspection: undefined
-          // when the live name does not follow the wire-name shape.
-          prefix: parseWireName(idx.name)?.prefix,
+          // Rename-pass grouping only: managed when the live name follows
+          // the wire-name shape (a parsed wire name IS the managed arm),
+          // exact otherwise.
+          naming: parseWireName(idx.name) ?? { kind: 'exact' as const, name: idx.name },
           where: idx.where ?? undefined,
           unique: idx.unique,
           partial: idx.where !== null,
@@ -1274,13 +1274,12 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         ...new Set(parsePgNameArray(row.roles).map((r) => r.toLowerCase())),
       ].sort();
       const permissive = row.permissive.toUpperCase() === 'PERMISSIVE';
-      // Rename-pass grouping only, like index introspection: undefined when
-      // the live name does not follow the wire-name shape. Contract infer
-      // derives a `?? policyname` fallback, but as the SOURCE HEAD
-      // identifier of the emitted policy block — never as this prefix.
+      // Rename-pass grouping only, like index introspection: managed when
+      // the live name follows the wire-name shape, exact otherwise. Contract
+      // infer derives a `?? policyname` fallback, but as the SOURCE HEAD
+      // identifier of the emitted policy block — never as a managed prefix.
       const policy = new PostgresPolicySchemaNode({
-        name: row.policyname,
-        prefix: parseWireName(row.policyname)?.prefix,
+        naming: parseWireName(row.policyname) ?? { kind: 'exact' as const, name: row.policyname },
         tableName: row.tablename,
         namespaceId: row.schemaname,
         operation,

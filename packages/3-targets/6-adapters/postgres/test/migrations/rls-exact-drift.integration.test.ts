@@ -11,6 +11,7 @@
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import { APP_SPACE_ID, issueOutcome } from '@prisma-next/framework-components/control';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
+import { namingFromFlat } from '@prisma-next/sql-schema-ir/naming';
 import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
 import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
@@ -30,6 +31,12 @@ import {
   resetDatabase,
   testTimeout,
 } from './fixtures/runner-fixtures';
+
+function namingOrThrow(name: string, prefix: string | undefined) {
+  const naming = namingFromFlat(name, prefix);
+  if (naming === undefined) throw new Error(`bad flat naming: ${name} / ${prefix}`);
+  return naming;
+}
 
 const EXACT_NAME = 'Tenant members can read';
 const BODY = '(tenant_id = 1)';
@@ -70,8 +77,7 @@ function buildContract(policyName: string, prefix?: string): Contract<SqlStorage
             },
             policy: {
               [policyName]: new PostgresRlsPolicy({
-                name: policyName,
-                prefix,
+                naming: namingOrThrow(policyName, prefix),
                 tableName: 'user',
                 namespaceId: 'public',
                 operation: 'select',

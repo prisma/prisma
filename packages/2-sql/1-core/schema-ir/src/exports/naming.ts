@@ -4,9 +4,12 @@ export {
   defaultIndexName,
   formatWireName,
   type IndexContentHashParts,
+  namingFromFlat,
   normalizeIndexOptionValue,
   normalizeSqlBody,
   parseWireName,
+  physicalNameOf,
+  type SqlObjectNaming,
   WIRE_NAME_PREFIX_MAX_LENGTH,
   type WireName,
 } from '../naming';

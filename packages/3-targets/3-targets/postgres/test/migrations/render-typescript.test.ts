@@ -48,6 +48,7 @@ import {
 import { renderCallsToTypeScript } from '../../src/core/migrations/render-typescript';
 import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
 import * as migrationFacade from '../../src/exports/migration';
+import { testNaming } from '../fixtures/test-naming';
 
 const SNAPSHOTS_IMPORT_PATH = '../../snapshots';
 const FROM_HASH = 'a'.repeat(64);
@@ -155,8 +156,7 @@ describe('renderCallsToTypeScript (postgres)', () => {
 
 describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
   const policy = new PostgresRlsPolicy({
-    name: 'p_ab12cd34',
-    prefix: 'p',
+    naming: testNaming('p_ab12cd34', 'p'),
     tableName: 'note',
     namespaceId: 'public',
     operation: 'select',

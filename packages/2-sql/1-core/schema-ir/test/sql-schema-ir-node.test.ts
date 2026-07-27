@@ -33,8 +33,7 @@ describe('SqlSchemaIRNode discriminants', () => {
     [
       'SqlIndexIR',
       new SqlIndexIR({
-        name: 'users_email_idx',
-        prefix: undefined,
+        naming: { kind: 'exact', name: 'users_email_idx' },
         columns: ['email'],
         where: undefined,
         unique: false,
@@ -75,8 +74,7 @@ describe('SqlSchemaIRNode discriminants', () => {
     [
       'SqlIndexIR',
       new SqlIndexIR({
-        name: 'users_email_idx',
-        prefix: undefined,
+        naming: { kind: 'exact', name: 'users_email_idx' },
         columns: ['email'],
         where: undefined,
         unique: false,
@@ -148,8 +146,7 @@ describe('relationalNodeGranularity map (granularity is off the node)', () => {
     [
       'SqlIndexIR',
       new SqlIndexIR({
-        name: 'users_email_idx',
-        prefix: undefined,
+        naming: { kind: 'exact', name: 'users_email_idx' },
         columns: ['email'],
         where: undefined,
         unique: false,

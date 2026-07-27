@@ -1,7 +1,12 @@
 import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { freezeNode } from '@prisma-next/framework-components/ir';
 import { SqlNode } from '@prisma-next/sql-contract/types';
-import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import {
+  formatWireName,
+  namingFromFlat,
+  physicalNameOf,
+  type SqlObjectNaming,
+} from '@prisma-next/sql-schema-ir/naming';
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
@@ -21,24 +26,29 @@ type FlatSpelling<T> = { [K in keyof T as undefined extends T[K] ? never : K]: T
  * (`Migration#createRlsPolicy`) and emitted by the migration renderer.
  * Machine-rendered literals omit absent keys (`prefix` for an exact
  * policy, `withCheck` for a SELECT policy); derived from
- * {@link PostgresRlsPolicyInput}, so a new field appears here — and flows
- * through `createRlsPolicy`'s spread — without a second hand-written list.
+ * {@link PostgresRlsPolicyInput}, so a new field appears here without a
+ * second hand-written list — and the required-key `| undefined` convention
+ * on the constructor input makes an omitted copy in
+ * {@link rlsPolicyInputFromFlat} a compile error.
  */
-export type PostgresRlsPolicyMigrationInput = FlatSpelling<PostgresRlsPolicyInput>;
+export type PostgresRlsPolicyMigrationInput = FlatSpelling<
+  Omit<PostgresRlsPolicyInput, 'naming'> & {
+    /** Full physical name. */
+    readonly name: string;
+    /** Present ⇔ managed (the name is `<prefix>_<8hex>`); absent ⇔ exact-named. */
+    readonly prefix: string | undefined;
+  }
+>;
 
 export interface PostgresRlsPolicyInput {
   /**
-   * Full physical name. Stored as-is; hashing is not this class's job.
+   * Naming-mode union: `managed` derives the flat `name` as
+   * `formatWireName(prefix, hash)`; `exact` adopts `name` verbatim. A
+   * mismatched name/prefix pair is unconstructable from the union; flat
+   * data (contract JSON, the migration API's literal) converts through
+   * {@link rlsPolicyInputFromFlat}, which validates the pair.
    */
-  readonly name: string;
-  /**
-   * The managed-mode name prefix — its PRESENCE is the naming-mode
-   * discriminator (there is no stored enum). Present ⇔ managed: the
-   * toolchain owns the physical name and `name === formatWireName(prefix,
-   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
-   * physical name whose identity the author owns entirely.
-   */
-  readonly prefix: string | undefined;
+  readonly naming: SqlObjectNaming;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). Policies are schema-scoped. */
@@ -81,17 +91,8 @@ export class PostgresRlsPolicy extends SqlNode {
 
   constructor(input: PostgresRlsPolicyInput) {
     super();
-    if (input.prefix !== undefined) {
-      const parsed = parseWireName(input.name);
-      if (parsed === undefined || parsed.prefix !== input.prefix) {
-        throw new ContractValidationError(
-          `Policy "${input.name}": prefix "${input.prefix}" does not match the wire name (expected "${formatWireName(input.prefix, '<8hex>')}").`,
-          'storage',
-        );
-      }
-    }
-    this.name = input.name;
-    if (input.prefix !== undefined) this.prefix = input.prefix;
+    this.name = physicalNameOf(input.naming);
+    if (input.naming.kind === 'managed') this.prefix = input.naming.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;
@@ -101,4 +102,33 @@ export class PostgresRlsPolicy extends SqlNode {
     this.permissive = input.permissive;
     freezeNode(this);
   }
+}
+
+/**
+ * Converts the flat policy shape (contract JSON via the entity-kind
+ * descriptor, the migration API's rendered literal, node/entity rebuilds)
+ * into the union-shaped constructor input — the boundary where a declared
+ * prefix can still disagree with the name, so the pair is validated here.
+ * The derived flat keys accept both omission and explicit `undefined`.
+ */
+export function rlsPolicyInputFromFlat(
+  flat: PostgresRlsPolicyMigrationInput,
+): PostgresRlsPolicyInput {
+  const naming = namingFromFlat(flat.name, flat.prefix);
+  if (naming === undefined) {
+    throw new ContractValidationError(
+      `Policy "${flat.name}": prefix "${flat.prefix}" does not match the wire name (expected "${formatWireName(flat.prefix ?? '', '<8hex>')}").`,
+      'storage',
+    );
+  }
+  return {
+    naming,
+    tableName: flat.tableName,
+    namespaceId: flat.namespaceId,
+    operation: flat.operation,
+    roles: flat.roles,
+    using: flat.using,
+    withCheck: flat.withCheck,
+    permissive: flat.permissive,
+  };
 }

@@ -25,6 +25,7 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { testNaming } from '../fixtures/test-naming';
 
 const TABLE_NAME = 'profiles';
 const stubLowerer: ExecuteRequestLowerer = {
@@ -40,8 +41,7 @@ const ADDITIVE_ONLY_POLICY = { allowedOperationClasses: ['additive'] as const };
 
 function contractPolicy(name: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    naming: testNaming(name, name.replace(/_[0-9a-f]{8}$/, '')),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
@@ -127,8 +127,7 @@ function actualSchema(options: {
             policies: (options.policies ?? []).map(
               (policy) =>
                 new PostgresPolicySchemaNode({
-                  name: policy.name,
-                  prefix: policy.prefix,
+                  naming: testNaming(policy.name, policy.prefix),
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,

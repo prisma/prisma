@@ -25,6 +25,7 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { testNaming } from '../fixtures/test-naming';
 
 const TABLE_NAME = 'profiles';
 const stubLowerer: ExecuteRequestLowerer = {
@@ -41,8 +42,7 @@ const ADDITIVE_ONLY_POLICY = { allowedOperationClasses: ['additive'] as const };
 function policyNamed(name: string, overrides?: { readonly using?: string }): PostgresRlsPolicy {
   const prefix = /_[0-9a-f]{8}$/.test(name) ? name.replace(/_[0-9a-f]{8}$/, '') : undefined;
   return new PostgresRlsPolicy({
-    name,
-    prefix,
+    naming: testNaming(name, prefix),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
@@ -119,8 +119,7 @@ function actualSchema(policies: readonly PostgresRlsPolicy[]): PostgresDatabaseS
             policies: policies.map(
               (policy) =>
                 new PostgresPolicySchemaNode({
-                  name: policy.name,
-                  prefix: policy.prefix,
+                  naming: testNaming(policy.name, policy.prefix),
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,
@@ -276,7 +275,7 @@ describe('multi-candidate hash groups', () => {
 describe('content pairing (exact→managed convergence)', () => {
   function exactPolicy(name: string, overrides?: { readonly using?: string }): PostgresRlsPolicy {
     return new PostgresRlsPolicy({
-      name,
+      naming: { kind: 'exact', name },
       tableName: TABLE_NAME,
       namespaceId: 'public',
       operation: 'select',
@@ -284,7 +283,6 @@ describe('content pairing (exact→managed convergence)', () => {
       using: overrides?.using ?? '(auth.uid() = user_id)',
       withCheck: undefined,
       permissive: true,
-      prefix: undefined,
     });
   }
 

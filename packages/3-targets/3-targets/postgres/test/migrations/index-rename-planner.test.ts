@@ -13,8 +13,12 @@ import { type Contract, coreHash, profileHash } from '@prisma-next/contract/type
 import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
 import type { MigrationOperationClass } from '@prisma-next/framework-components/control';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import type { IndexInput } from '@prisma-next/sql-contract/types';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import type { SerializedIndex } from '@prisma-next/sql-contract/types';
+import {
+  indexInputFromSerialized,
+  SqlStorage,
+  StorageTable,
+} from '@prisma-next/sql-contract/types';
 import type { SqlIndexIRInput } from '@prisma-next/sql-schema-ir/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -23,6 +27,7 @@ import { PostgresSchema } from '../../src/core/postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { testNaming } from '../fixtures/test-naming';
 
 const TABLE_NAME = 'items';
 const stubLowerer: ExecuteRequestLowerer = {
@@ -48,7 +53,9 @@ type LooseIndexInput = {
 };
 
 function buildContract(looseIndexes: readonly LooseIndexInput[]): Contract<SqlStorage> {
-  const indexes = looseIndexes.map((i) => ({ unique: false, ...i }) as IndexInput);
+  const indexes = looseIndexes.map((i) =>
+    indexInputFromSerialized({ unique: false, ...i } as SerializedIndex),
+  );
   const schema = new PostgresSchema({
     id: 'public',
     entries: {
@@ -104,8 +111,7 @@ function actualSchema(indexes: readonly LiveIndex[]): PostgresDatabaseSchemaNode
             indexes: indexes.map(
               (idx) =>
                 ({
-                  name: idx.name,
-                  prefix: idx.prefix,
+                  naming: testNaming(idx.name, idx.prefix),
                   columns: idx.columns ?? (idx.expression !== undefined ? undefined : ['email']),
                   expression: idx.expression,
                   where: idx.where,

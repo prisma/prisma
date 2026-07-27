@@ -22,6 +22,7 @@ describe('formatWireName', () => {
       ['users_email_idx', '01234567'],
     ] as const) {
       expect(parseWireName(formatWireName(prefix, hash))).toEqual({
+        kind: 'managed',
         prefix,
         hash,
       });
@@ -32,6 +33,7 @@ describe('formatWireName', () => {
 describe('parseWireName', () => {
   it('splits a wire name into prefix and hash', () => {
     expect(parseWireName('p_read_ab12cd34')).toEqual({
+      kind: 'managed',
       prefix: 'p_read',
       hash: 'ab12cd34',
     });
@@ -39,6 +41,7 @@ describe('parseWireName', () => {
 
   it('keeps underscores inside the prefix (only the final segment is the hash)', () => {
     expect(parseWireName('read_own_profiles_deadbeef')).toEqual({
+      kind: 'managed',
       prefix: 'read_own_profiles',
       hash: 'deadbeef',
     });

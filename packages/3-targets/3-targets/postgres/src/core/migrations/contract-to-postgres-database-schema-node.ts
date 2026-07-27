@@ -2,6 +2,7 @@ import type { ContractToSchemaIROptions } from '@prisma-next/family-sql/control'
 import { contractNamespaceToSchemaIR } from '@prisma-next/family-sql/control';
 import type { SchemaNodeRef } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { namingFromFlat, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
 import {
   PrimaryKey,
   RelationalSchemaNodeKind,
@@ -10,6 +11,7 @@ import {
   SqlUniqueIR,
 } from '@prisma-next/sql-schema-ir/types';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { postgresError } from '../errors';
 import type { PostgresRlsPolicy } from '../postgres-rls-policy';
 import type { PostgresContract } from '../postgres-schema';
@@ -57,10 +59,21 @@ function columnDependsOn(
   ]);
 }
 
+/**
+ * Reconstructs the naming union from an already-validated node/entity's flat
+ * fields; a mismatch is producer-corrupt state, never live data.
+ */
+function trustedNaming(name: string, prefix: string | undefined): SqlObjectNaming {
+  const naming = namingFromFlat(name, prefix);
+  if (naming === undefined) {
+    throw new InternalError(`"${name}": prefix "${prefix}" does not match the wire name.`);
+  }
+  return naming;
+}
+
 function toPolicyNode(policy: PostgresRlsPolicy, namespaceId: string): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    name: policy.name,
-    prefix: policy.prefix,
+    naming: trustedNaming(policy.name, policy.prefix),
     tableName: policy.tableName,
     namespaceId,
     operation: policy.operation,
@@ -195,8 +208,7 @@ export function contractToPostgresDatabaseSchemaNode(
       );
       const indexes = sqlTable.indexes.map((i) => {
         const base = {
-          name: i.name,
-          prefix: i.prefix,
+          naming: trustedNaming(i.name, i.prefix),
           where: i.where,
           unique: i.unique,
           partial: i.partial,
