@@ -5,12 +5,6 @@ import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
-/**
- * Every field is a required key. Values that may legitimately be absent
- * (an exact-named policy's prefix, a missing predicate) are typed
- * `| undefined` instead of optional, so each construction site states the
- * absence explicitly rather than omitting the key silently.
- */
 export interface PostgresRlsPolicyInput {
   /**
    * Full physical name. Stored as-is; hashing is not this class's job.

@@ -8,12 +8,6 @@ import { InternalError } from '@prisma-next/utils/internal-error';
 import type { RlsPolicyOperation } from '../postgres-rls-policy';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 
-/**
- * Every field is a required key. Values that may legitimately be absent
- * (an exact-named policy's prefix, a missing predicate) are typed
- * `| undefined` instead of optional, so each construction site states the
- * absence explicitly rather than omitting the key silently.
- */
 export interface PostgresPolicySchemaNodeInput {
   /** Full physical name — the node's identity. */
   readonly name: string;

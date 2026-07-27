@@ -1,6 +1,6 @@
 /**
- * Scenario F, policy edition: out-of-band `ALTER POLICY` changing the body
- * under the same EXACT name is drift — verify reports `not-equal`; a
+ * Out-of-band `ALTER POLICY` changing the body under the same EXACT name
+ * is drift — verify reports `not-equal`; a
  * destructive-allowed plan replaces the policy (drop before create under the
  * same name); without the destructive allowance the plan fails with the
  * disallowed-call conflict naming the policy. The contrast case: the same
@@ -105,7 +105,7 @@ async function createLivePolicy(driver: PostgresControlDriver, name: string): Pr
   );
 }
 
-describe.sequential('scenario F — out-of-band body drift on an exact-named policy', () => {
+describe.sequential('out-of-band body drift on an exact-named policy', () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 

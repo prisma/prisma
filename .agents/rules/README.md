@@ -109,6 +109,7 @@ Rules below are listed by bare filename; the canonical file is `.agents/rules/<n
 - `arktype-usage.mdc` — Arktype usage guidelines
 - `use-pathe-for-paths.mdc` — Prefer `pathe` over `node:path` in TypeScript files
 - `use-if-defined.mdc` — Use the `ifDefined` helper for conditional object properties
+- `required-key-undefined-fields.mdc` — Internal input types use required keys typed `| undefined`, not optional keys
 - `type-extraction-from-contract.mdc` — Extracting types from contracts
 - `object-hasown.mdc` — Use `Object.hasOwn()` instead of `hasOwnProperty()`
 - `prefer-assertions-over-defensive-checks.mdc` — Prefer assertions over defensive checks (avoid schema validation redundancy)

@@ -237,8 +237,6 @@ function lowerRlsPolicyFromBlock(
       });
       return undefined;
     }
-    // Every policy has a SQL body, so every `@@map` policy gets the
-    // exact-name body-comparison warning (batched once per build).
     ctx.warnings?.push(exactNameBodyWarningEntry({ subject: 'policy', exactName }));
     return new PostgresRlsPolicy({
       name: exactName,

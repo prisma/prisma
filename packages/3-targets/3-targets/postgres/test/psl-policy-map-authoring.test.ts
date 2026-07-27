@@ -4,8 +4,8 @@
  * length cap (an exact name is a verbatim physical name, same stance as
  * index `map:`). The block-head identifier stays the source-level logical
  * key — head-keyed duplicate checking is byte-unchanged — and every `@@map`
- * policy pushes a D9 warning into the same per-build batch as indexes (one
- * flush covering both).
+ * policy pushes an exact-name body-comparison warning into the same
+ * per-build batch as indexes (one flush covering both).
  */
 
 import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
@@ -238,7 +238,7 @@ policy_select p_read {
   });
 });
 
-describe('D9 warning for @@map policies — shared per-build batch with indexes', () => {
+describe('exact-name body-comparison warning for @@map policies — shared per-build batch with indexes', () => {
   const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
   afterEach(() => {
     emitWarning.mockClear();

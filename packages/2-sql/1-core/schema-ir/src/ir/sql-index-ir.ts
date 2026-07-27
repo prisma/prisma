@@ -30,14 +30,6 @@ export type SqlIndexElements =
       readonly expression: string;
     };
 
-/**
- * Every non-element field is a required key. Values that may legitimately
- * be absent (an exact-named index's prefix, the btree→undefined type
- * normalization) are typed `| undefined` instead of optional, so each
- * construction site
- * states the absence explicitly rather than omitting the key silently.
- * Undefined values still produce an instance without the property.
- */
 export type SqlIndexIRInput = SqlIndexElements & {
   /** Full physical name — the node's identity. */
   readonly name: string;

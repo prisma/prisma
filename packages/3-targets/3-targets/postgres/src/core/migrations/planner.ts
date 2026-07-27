@@ -627,8 +627,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         );
       }
 
-      // Phase 2 — content pairing (exact→managed convergence, D7 policy
-      // half): a remaining managed-missing policy pairs with a remaining
+      // Phase 2 — content pairing (exact→managed convergence): a
+      // remaining managed-missing policy pairs with a remaining
       // extra of ANY name shape when the content matches verbatim
       // (the node-owned `contentEquals` — not the normalized hash tuple). This is how
       // replacing `@@map` with the plain head converges as one
