@@ -29,3 +29,6 @@ overrides:
 peerDependencyRules:
   allowedVersions:
     '@octokit/core': '>=3'
+
+minimumReleaseAgeExclude:
+  - '@prisma/dev@0.24.17'
