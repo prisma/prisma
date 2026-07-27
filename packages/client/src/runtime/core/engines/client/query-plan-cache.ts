@@ -36,7 +36,7 @@ export class QueryPlanCache {
 
     // Evict oldest if at capacity
     if (this.#singleCache.size >= this.#maxSize) {
-      const firstKey = this.#singleCache.keys().next().value
+      const firstKey = this.#singleCache.keys().next().value as string | undefined
       if (firstKey !== undefined) {
         this.#singleCache.delete(firstKey)
       }
@@ -74,7 +74,7 @@ export class QueryPlanCache {
 
     // Evict oldest if at capacity
     while (this.#batchCacheTotalQueries > this.#maxSize) {
-      const firstKey = this.#batchCache.keys().next().value
+      const firstKey = this.#batchCache.keys().next().value as string | undefined
       if (firstKey !== undefined) {
         const evicted = this.#batchCache.get(firstKey)!
         this.#batchCacheTotalQueries -= this.#getBatchQueryCount(evicted)
