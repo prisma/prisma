@@ -1,5 +1,5 @@
 /**
- * Policy and `@@rls` emission (D8 policy half): every introspected policy
+ * Policy and `@@rls` emission from introspection: every introspected policy
  * emits a `policy_<operation>` block with `@@map` ALWAYS (a body reprint
  * never re-hashes reliably, so every adopted policy is exact), sanitized
  * disambiguated heads, verbatim bodies, roles as-is, and `permissive =
