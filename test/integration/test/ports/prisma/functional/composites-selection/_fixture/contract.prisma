@@ -1,0 +1,44 @@
+// Port of prisma/prisma@a6d0155 packages/client/tests/functional/composites/selection
+// prisma/_schema.ts (mongodb matrix entry).
+//
+// Upstream schema:
+//   model User {
+//     id      String  @id @default(auto()) @map("_id") @db.ObjectId
+//     profile Profile
+//   }
+//   type Profile {
+//     name          Name
+//     alternateName Name?
+//     url           String
+//     favoriteThings Thing[]
+//   }
+//   type Name {
+//     firstName String
+//     lastName  String
+//   }
+//   type Thing {
+//     name String
+//   }
+//
+// MongoDB PSL `type` blocks become value objects in the contract.
+
+type Name {
+  firstName String
+  lastName  String
+}
+
+type Thing {
+  name String
+}
+
+type Profile {
+  name          Name
+  alternateName Name?
+  url           String
+  favoriteThings Thing[]
+}
+
+model User {
+  id      ObjectId @id @map("_id")
+  profile Profile
+}
