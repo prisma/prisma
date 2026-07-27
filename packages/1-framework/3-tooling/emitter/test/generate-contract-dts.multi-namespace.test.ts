@@ -1,4 +1,4 @@
-import { DomainNamespaceResolutionError } from '@prisma-next/contract/types';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { generateContractDts } from '../src/generate-contract-dts';
 import { createMockSpi } from './mock-spi';
@@ -89,13 +89,21 @@ describe('generateContractDts domain namespace handling', () => {
     expect(roleLabelCount).toBe(3);
   });
 
-  it('throws when the domain has no namespaces', () => {
+  it('throws CONTRACT.NAMESPACE_INVALID when the domain has no namespaces', () => {
     const contract = {
       ...createTestContract(),
       domain: { namespaces: {} },
     };
-    expect(() => generateContractDts(contract, mockSqlHook, [], HASHES)).toThrow(
-      new DomainNamespaceResolutionError('domain has no namespaces'),
-    );
+    let thrown: unknown;
+    try {
+      generateContractDts(contract, mockSqlHook, [], HASHES);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({
+      code: 'CONTRACT.NAMESPACE_INVALID',
+      message: 'domain has no namespaces',
+    });
   });
 });

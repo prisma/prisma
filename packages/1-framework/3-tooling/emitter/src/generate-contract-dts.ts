@@ -4,7 +4,6 @@ import type {
   ContractModelBase,
   ContractValueObject,
 } from '@prisma-next/contract/types';
-import { DomainNamespaceResolutionError } from '@prisma-next/contract/types';
 import type { CodecLookup } from '@prisma-next/framework-components/codec';
 import type {
   EmissionSpi,
@@ -12,6 +11,7 @@ import type {
   TypesImportSpec,
 } from '@prisma-next/framework-components/emission';
 import { blindCast } from '@prisma-next/utils/casts';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import {
   deduplicateImports,
   generateCodecTypeIntersection,
@@ -26,6 +26,7 @@ import {
   serializeObjectKey,
   serializeValue,
 } from './domain-type-generation';
+import { emitterError } from './emitter-errors';
 
 function generateEnumBlockType(enums: Record<string, ContractEnum>): string {
   const entries = Object.entries(enums).map(([name, entry]) => {
@@ -72,13 +73,15 @@ export function generateContractDts(
 
   const namespaceEntries = Object.entries(contract.domain.namespaces);
   if (namespaceEntries.length === 0) {
-    throw new DomainNamespaceResolutionError('domain has no namespaces');
+    throw emitterError('CONTRACT.NAMESPACE_INVALID', 'domain has no namespaces', {
+      meta: { reason: 'no-domain-namespaces' },
+    });
   }
 
   // Validate all namespace entries are present.
   for (const [nsId, ns] of namespaceEntries) {
     if (ns === undefined) {
-      throw new Error(`domain namespace "${nsId}" is not present on the contract`);
+      throw new InternalError(`domain namespace "${nsId}" is not present on the contract`);
     }
   }
 

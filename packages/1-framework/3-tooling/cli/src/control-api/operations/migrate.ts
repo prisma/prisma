@@ -24,6 +24,7 @@ import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
 import { errorNoInvariantPath } from '@prisma-next/migration-tools/errors';
 import { findPathWithDecision } from '@prisma-next/migration-tools/migration-graph';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { notOk, ok } from '@prisma-next/utils/result';
 import {
   type BuildAggregateInputs,
@@ -247,7 +248,7 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       .map((spaceId) => {
         const entry = perSpacePlans.get(spaceId) ?? atHeadResolutions.get(spaceId);
         if (entry === undefined) {
-          throw new Error(`Unreachable: missing per-space plan for "${spaceId}"`);
+          throw new InternalError(`Unreachable: missing per-space plan for "${spaceId}"`);
         }
         return { spaceId, entry };
       });
@@ -306,7 +307,7 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       }
       const entry = atHeadResolutions.get(spaceId);
       if (entry === undefined) {
-        throw new Error(`Unreachable: missing per-space plan for "${spaceId}"`);
+        throw new InternalError(`Unreachable: missing per-space plan for "${spaceId}"`);
       }
       return { spaceId, entry };
     });

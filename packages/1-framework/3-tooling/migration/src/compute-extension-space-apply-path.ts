@@ -1,3 +1,4 @@
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { EMPTY_CONTRACT_HASH } from './constants';
 import { readMigrationsDir } from './io';
 import { findPathWithDecision, reconstructGraph } from './migration-graph';
@@ -133,7 +134,7 @@ export async function computeExtensionSpaceApplyPath(
       // Path edges always come from the same `packages` array, so this
       // is only reachable when the graph is internally inconsistent —
       // surface it loudly rather than silently truncating the path.
-      throw new Error(
+      throw new InternalError(
         `Migration package missing for edge ${edge.migrationHash} in space "${spaceId}"`,
       );
     }

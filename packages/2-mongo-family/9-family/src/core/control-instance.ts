@@ -28,6 +28,8 @@ import type { MongoContract } from '@prisma-next/mongo-contract';
 import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/canonicalization-hooks';
 import type { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import type { MongoControlAdapter, MongoControlAdapterDescriptor } from './control-adapter';
 import type { MongoControlExtensionDescriptor } from './control-types';
 import { MongoContractSerializer } from './ir/mongo-contract-serializer';
@@ -152,7 +154,7 @@ export function createMongoFamilyInstance(controlStack: ControlStack): MongoCont
   const adapter = controlStack.adapter as MongoControlAdapterDescriptor<'mongo'> | undefined;
   const getControlAdapter = (): MongoControlAdapter<'mongo'> => {
     if (!adapter) {
-      throw new Error('Mongo family requires an adapter descriptor in ControlStack');
+      throw new InternalError('Mongo family requires an adapter descriptor in ControlStack');
     }
     return adapter.create(controlStack as ControlStack<'mongo', 'mongo'>);
   };
@@ -174,7 +176,8 @@ export function createMongoFamilyInstance(controlStack: ControlStack): MongoCont
     driver: ControlDriverInstance<'mongo', string>,
   ): ControlDriverInstance<'mongo', 'mongo'> {
     if (!isMongoTargetDriver(driver)) {
-      throw new Error(
+      throw structuredError(
+        'CONTRACT.TARGET_MISMATCH',
         `Expected Mongo control driver with targetId 'mongo', got '${driver.targetId}'`,
       );
     }
@@ -322,7 +325,10 @@ export function createMongoFamilyInstance(controlStack: ControlStack): MongoCont
             },
           );
           if (!updated) {
-            throw new Error('CAS conflict: marker was modified by another process during sign');
+            throw structuredError(
+              'MIGRATION.MARKER_CAS_FAILURE',
+              'CAS conflict: marker was modified by another process during sign',
+            );
           }
           markerUpdated = true;
         }

@@ -1,6 +1,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { timeouts } from '@prisma-next/test-utils';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { loadContractFromTs } from '../src/load-ts-contract';
 
@@ -205,6 +206,83 @@ describe('loadContractFromTs', () => {
       // The actual error would occur if an exception is thrown that's not an Error instance
       // This is a defensive check that's hard to test directly
       await expect(loadContractFromTs(contractPath)).resolves.toBeDefined();
+    },
+    timeouts.typeScriptCompilation,
+  );
+});
+
+describe('loadContractFromTs structured error codes', () => {
+  async function capture(path: string, options?: { allowlist?: string[] }): Promise<unknown> {
+    try {
+      await loadContractFromTs(path, options);
+    } catch (error) {
+      return error;
+    }
+    throw new Error('expected loadContractFromTs to reject');
+  }
+
+  it(
+    'raises CLI.FILE_NOT_FOUND for a missing contract file',
+    async () => {
+      const error = await capture(join(fixturesDir, 'does-not-exist.ts'));
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({ code: 'CLI.FILE_NOT_FOUND' });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'raises CONTRACT.SOURCE_IMPORT_DISALLOWED for imports outside the allowlist',
+    async () => {
+      const error = await capture(join(fixturesDir, 'disallowed-import.ts'));
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({ code: 'CONTRACT.SOURCE_IMPORT_DISALLOWED' });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'raises CONTRACT.MODULE_EXPORT_MISSING for a module without a contract export',
+    async () => {
+      const error = await capture(join(fixturesDir, 'empty-module.ts'));
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({ code: 'CONTRACT.MODULE_EXPORT_MISSING' });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'raises CONTRACT.EXPORT_INVALID for circular references',
+    async () => {
+      const error = await capture(join(fixturesDir, 'circular-reference.ts'));
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({
+        code: 'CONTRACT.EXPORT_INVALID',
+        meta: { reason: 'circular' },
+      });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'raises CONTRACT.EXPORT_INVALID for a function in the export',
+    async () => {
+      const error = await capture(join(fixturesDir, 'function-in-object.ts'));
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({ code: 'CONTRACT.EXPORT_INVALID' });
+    },
+    timeouts.typeScriptCompilation,
+  );
+
+  it(
+    'raises CONTRACT.SOURCE_LOAD_FAILED when module evaluation throws a non-Error',
+    async () => {
+      const error = await capture(join(fixturesDir, 'throws-non-error.ts'));
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({
+        code: 'CONTRACT.SOURCE_LOAD_FAILED',
+        meta: { stage: 'import' },
+      });
     },
     timeouts.typeScriptCompilation,
   );

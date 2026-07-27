@@ -20,6 +20,7 @@
     "@prisma-next/framework-components": "workspace:0.16.0",
     "@prisma-next/mongo-contract": "workspace:0.16.0",
     "@prisma-next/mongo-value": "workspace:0.16.0",
+    "@prisma-next/utils": "workspace:0.16.0",
     "mongodb": "catalog:"
   },
   "devDependencies": {

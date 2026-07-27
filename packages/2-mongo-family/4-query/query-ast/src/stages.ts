@@ -1,6 +1,7 @@
 import type { MongoAggAccumulator, MongoAggExpr } from './aggregation-expressions';
 import { MongoAstNode } from './ast-node';
 import type { MongoFilterExpr } from './filter-expressions';
+import { ormError } from './orm-errors';
 import type {
   MongoAggExprRewriter,
   MongoStageRewriterContext,
@@ -140,7 +141,7 @@ export class MongoLimitStage extends MongoStageNode {
   constructor(limit: number) {
     super();
     if (!Number.isInteger(limit) || limit < 0) {
-      throw new RangeError('limit must be a non-negative integer');
+      throw ormError('ORM.ARGUMENT_INVALID', 'limit must be a non-negative integer');
     }
     this.limit = limit;
     this.freeze();
@@ -162,7 +163,7 @@ export class MongoSkipStage extends MongoStageNode {
   constructor(skip: number) {
     super();
     if (!Number.isInteger(skip) || skip < 0) {
-      throw new RangeError('skip must be a non-negative integer');
+      throw ormError('ORM.ARGUMENT_INVALID', 'skip must be a non-negative integer');
     }
     this.skip = skip;
     this.freeze();
@@ -199,15 +200,19 @@ export class MongoLookupStage extends MongoStageNode {
     const hasForeignField = options.foreignField !== undefined;
     const hasPipeline = !!options.pipeline;
     if (hasLocalField !== hasForeignField) {
-      throw new Error('MongoLookupStage requires both localField and foreignField together');
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
+        'MongoLookupStage requires both localField and foreignField together',
+      );
     }
     if (!hasLocalField && !hasPipeline) {
-      throw new Error(
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
         'MongoLookupStage requires either equality fields (localField/foreignField) or a pipeline',
       );
     }
     if (options.let_ && !hasPipeline) {
-      throw new Error('MongoLookupStage let_ requires a pipeline');
+      throw ormError('ORM.ARGUMENT_INVALID', 'MongoLookupStage let_ requires a pipeline');
     }
     this.from = options.from;
     this.localField = options.localField;
@@ -385,7 +390,7 @@ export class MongoSampleStage extends MongoStageNode {
   constructor(size: number) {
     super();
     if (!Number.isInteger(size) || size < 0) {
-      throw new RangeError('size must be a non-negative integer');
+      throw ormError('ORM.ARGUMENT_INVALID', 'size must be a non-negative integer');
     }
     this.size = size;
     this.freeze();
@@ -482,7 +487,7 @@ export class MongoBucketStage extends MongoStageNode {
   }) {
     super();
     if (options.boundaries.length < 2) {
-      throw new RangeError('boundaries must contain at least 2 values');
+      throw ormError('ORM.ARGUMENT_INVALID', 'boundaries must contain at least 2 values');
     }
     this.groupBy = options.groupBy;
     this.boundaries = Object.freeze([...options.boundaries]);
@@ -525,7 +530,7 @@ export class MongoBucketAutoStage extends MongoStageNode {
   }) {
     super();
     if (!Number.isInteger(options.buckets) || options.buckets < 1) {
-      throw new RangeError('buckets must be a positive integer');
+      throw ormError('ORM.ARGUMENT_INVALID', 'buckets must be a positive integer');
     }
     this.groupBy = options.groupBy;
     this.buckets = options.buckets;
@@ -965,10 +970,10 @@ export class MongoVectorSearchStage extends MongoStageNode {
   }) {
     super();
     if (!Number.isInteger(options.limit) || options.limit < 1) {
-      throw new RangeError('limit must be a positive integer');
+      throw ormError('ORM.ARGUMENT_INVALID', 'limit must be a positive integer');
     }
     if (!Number.isInteger(options.numCandidates) || options.numCandidates < options.limit) {
-      throw new RangeError('numCandidates must be an integer >= limit');
+      throw ormError('ORM.ARGUMENT_INVALID', 'numCandidates must be an integer >= limit');
     }
     this.index = options.index;
     this.path = options.path;

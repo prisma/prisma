@@ -1,5 +1,6 @@
 import type { MongoContract } from '@prisma-next/mongo-contract';
 import type { JsonObject } from '@prisma-next/utils/json';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { MongoContractSerializerBase } from '../src/core/ir/mongo-contract-serializer-base';
 import { mongoContractJson } from './mongo-contract-json-fixture';
@@ -38,6 +39,20 @@ describe('MongoContractSerializerBase', () => {
       const json = { ...makeValidContractJson(), targetFamily: 'sql' };
 
       expect(() => serializer.deserializeContract(json)).toThrow();
+    });
+
+    it('structural rejection raises CONTRACT.VALIDATION_FAILED', () => {
+      const serializer = new RecordingSerializer();
+      const json = { ...makeValidContractJson(), targetFamily: 'sql' };
+
+      try {
+        serializer.deserializeContract(json);
+        expect.fail('expected throw');
+      } catch (e) {
+        expect(isStructuredError(e)).toBe(true);
+        if (!isStructuredError(e)) return;
+        expect(e.code).toBe('CONTRACT.VALIDATION_FAILED');
+      }
     });
 
     it('rejects when a model references a collection that does not exist in storage', () => {

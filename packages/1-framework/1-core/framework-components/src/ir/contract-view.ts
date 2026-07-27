@@ -1,4 +1,5 @@
 import { blindCast } from '@prisma-next/utils/casts';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { UNBOUND_NAMESPACE_ID } from './namespace';
 import type { Storage } from './storage';
 
@@ -104,7 +105,9 @@ export function buildSingleNamespaceView<TView>(
 ): TView {
   const defaultNs = storage.namespaces[UNBOUND_NAMESPACE_ID];
   if (defaultNs === undefined) {
-    throw new Error(`ContractView: contract has no default namespace (${UNBOUND_NAMESPACE_ID})`);
+    throw new InternalError(
+      `ContractView: contract has no default namespace (${UNBOUND_NAMESPACE_ID})`,
+    );
   }
   const entries = blindCast<
     Record<string, unknown>,

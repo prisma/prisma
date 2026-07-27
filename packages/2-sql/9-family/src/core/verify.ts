@@ -1,5 +1,6 @@
 import type { ContractMarkerRecord } from '@prisma-next/contract/types';
 import { type } from 'arktype';
+import { sqlFamilyError } from './errors';
 
 const MetaSchema = type({ '[string]': 'unknown' });
 
@@ -80,7 +81,15 @@ export function parseContractMarkerRow(row: unknown): ContractMarkerRecord {
   const result = ContractMarkerRowSchema(row);
   if (result instanceof type.errors) {
     const messages = result.map((p: { message: string }) => p.message).join('; ');
-    throw new Error(`Invalid contract marker row: ${messages}`);
+    throw sqlFamilyError(
+      'CONTRACT.MARKER_ROW_CORRUPT',
+      `Invalid contract marker row: ${messages}`,
+      {
+        why: 'The contract marker row read from the database does not match the expected marker shape.',
+        fix: 'Re-sign the database with `prisma-next db sign`, or repair the marker table.',
+        meta: { issues: messages },
+      },
+    );
   }
 
   const updatedAt = result.updated_at

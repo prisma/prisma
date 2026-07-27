@@ -1,6 +1,7 @@
 import type { Contract, StorageNamespace } from '@prisma-next/contract/types';
 import type { SchemaEntityCoordinate } from '@prisma-next/framework-components/control';
 import { coordinateKey, elementCoordinates } from '@prisma-next/framework-components/ir';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { join } from 'pathe';
 import {
   contractSnapshotDir,
@@ -157,7 +158,7 @@ async function resolveGraphNodeContractAt(args: {
  */
 export function requireHeadRef(space: AggregateContractSpace): ContractSpaceHeadRecord {
   if (space.headRef === null) {
-    throw new Error(
+    throw new InternalError(
       `Contract space "${space.spaceId}" has no head ref; the integrity gate must refuse a missing head ref before planning or verifying.`,
     );
   }

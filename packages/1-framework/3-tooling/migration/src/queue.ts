@@ -7,6 +7,8 @@
  * reclaim memory for already-shifted items, so it is not suitable for
  * long-lived queues with many push/shift cycles.
  */
+import { InternalError } from '@prisma-next/utils/internal-error';
+
 export class Queue<T> {
   private readonly items: T[];
   private head = 0;
@@ -25,7 +27,7 @@ export class Queue<T> {
    */
   shift(): T {
     if (this.head >= this.items.length) {
-      throw new Error('Queue.shift called on empty queue');
+      throw new InternalError('Queue.shift called on empty queue');
     }
     // biome-ignore lint/style/noNonNullAssertion: bounds-checked on the line above
     return this.items[this.head++]!;

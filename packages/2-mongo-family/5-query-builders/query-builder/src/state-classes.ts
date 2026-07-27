@@ -31,8 +31,11 @@ import {
   UpdateOneCommand,
 } from '@prisma-next/mongo-query-ast/execution';
 import type { MongoValue } from '@prisma-next/mongo-value';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { PipelineChain } from './builder';
+import { contractError } from './contract-errors';
 import { createFieldAccessor, type FieldAccessor } from './field-accessor';
+import { ormError } from './orm-errors';
 import type { ModelNestedShape, NestedDocShape } from './resolve-path';
 import type { ModelToDocShape, ResolveRow } from './types';
 import { resolveUpdaterResult, type UpdaterResult } from './update-ops';
@@ -196,7 +199,7 @@ export class CollectionHandle<
     documents: ReadonlyArray<Record<string, MongoValue>>,
   ): MongoQueryPlan<InsertManyResult, InsertManyCommand> {
     if (documents.length === 0) {
-      throw new Error('insertMany() requires at least one document.');
+      throw ormError('ORM.MUTATION_DATA_MISSING', 'insertMany() requires at least one document.');
     }
     const command = new InsertManyCommand(this.#ctx.collection, documents);
     return {
@@ -338,11 +341,11 @@ export class FilteredCollection<
     filters: ReadonlyArray<MongoFilterExpr>,
   ) {
     if (filters.length === 0) {
-      throw new Error('FilteredCollection requires at least one accumulated filter');
+      throw new InternalError('FilteredCollection requires at least one accumulated filter');
     }
     const first = filters[0];
     if (first === undefined) {
-      throw new Error('FilteredCollection: unreachable empty-filters branch');
+      throw new InternalError('FilteredCollection: unreachable empty-filters branch');
     }
     const leading = filters.length === 1 ? first : foldAnd(filters);
     super(ctx.contract, {
@@ -420,7 +423,7 @@ export class FilteredCollection<
   #foldedFilter(): MongoFilterExpr {
     const first = this.#filters[0];
     if (first === undefined) {
-      throw new Error('FilteredCollection: invariant violated — empty filter accumulator');
+      throw new InternalError('FilteredCollection: invariant violated — empty filter accumulator');
     }
     return this.#filters.length === 1 ? first : foldAnd(this.#filters);
   }
@@ -640,17 +643,21 @@ export function createCollectionHandle<
   const modelName = c.roots[rootName]?.model;
   if (!modelName) {
     const validRoots = Object.keys(c.roots).join(', ');
-    throw new Error(`Unknown root: "${rootName}". Valid roots: ${validRoots}`);
+    throw ormError('ORM.MODEL_UNKNOWN', `Unknown root: "${rootName}". Valid roots: ${validRoots}`);
   }
   const model = domainModelsAtDefaultNamespace(c.domain)[modelName] as
     | MongoModelDefinition
     | undefined;
   if (!model) {
-    throw new Error(`Unknown model: "${modelName}" referenced by root "${rootName}".`);
+    throw contractError(
+      'CONTRACT.MODEL_UNKNOWN',
+      `Unknown model: "${modelName}" referenced by root "${rootName}".`,
+    );
   }
   const collectionName = model.storage.collection ?? rootName;
   if (!c.storage?.storageHash) {
-    throw new Error(
+    throw contractError(
+      'CONTRACT.VALIDATION_FAILED',
       'Contract is missing storage.storageHash. Pass a validated contract to mongoQuery().',
     );
   }

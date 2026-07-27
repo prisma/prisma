@@ -1,3 +1,5 @@
+import { InternalError } from '@prisma-next/utils/internal-error';
+
 /**
  * A root-anchored chain of `(nodeKind, id)` steps identifying a node in a
  * schema tree — the same vocabulary the differ pairs siblings with. Used by
@@ -52,7 +54,7 @@ export function issueOutcome(issue: SchemaDiffIssue): ExpectationFailureReason {
   if (hasExpected && hasActual) return 'not-equal';
   if (hasExpected) return 'not-found';
   if (hasActual) return 'not-expected';
-  throw new Error(
+  throw new InternalError(
     `issueOutcome: issue at "${issue.path.join('/')}" carries neither an expected nor an actual node`,
   );
 }
@@ -95,7 +97,9 @@ function siblingKey(node: DiffableNode): string {
 function insertNode(map: Map<string, DiffableNode>, node: DiffableNode): void {
   const key = siblingKey(node);
   if (map.has(key)) {
-    throw new Error(`diffSchemas: duplicate id among siblings: ${node.nodeKind}/${node.id}`);
+    throw new InternalError(
+      `diffSchemas: duplicate id among siblings: ${node.nodeKind}/${node.id}`,
+    );
   }
   map.set(key, node);
 }

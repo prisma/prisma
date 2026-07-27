@@ -1,3 +1,4 @@
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { parseContractMarkerRow } from '../src/core/verify';
 
@@ -155,6 +156,27 @@ describe('marker parser', () => {
 
     // Validation should fail and return empty object
     expect(result.meta).toEqual({});
+  });
+
+  it('raises CONTRACT.MARKER_ROW_CORRUPT for an invalid row', () => {
+    const row = {
+      core_hash: 123,
+      profile_hash: 'def456',
+    };
+
+    const error = (() => {
+      try {
+        parseContractMarkerRow(row);
+        return undefined;
+      } catch (err) {
+        return err;
+      }
+    })();
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.MARKER_ROW_CORRUPT',
+      message: expect.stringContaining('Invalid contract marker row'),
+    });
   });
 
   it('throws error for invalid row structure', () => {

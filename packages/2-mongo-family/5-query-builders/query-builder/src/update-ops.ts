@@ -3,6 +3,8 @@ import type {
   MongoUpdateSpec,
 } from '@prisma-next/mongo-query-ast/execution';
 import type { MongoValue } from '@prisma-next/mongo-value';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import { ormError } from './orm-errors';
 
 /**
  * Per-field update operations produced by `Expression`'s update methods
@@ -132,7 +134,8 @@ export function foldUpdateOps(ops: ReadonlyArray<TypedUpdateOp>): MongoUpdateSpe
   const claim = (op: string, path: string): void => {
     const k = `${op}::${path}`;
     if (seen.has(k)) {
-      throw new Error(
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
         `Update spec collision: ${op} on '${path}' was specified more than once. Combine the operations into a single call site.`,
       );
     }
@@ -197,7 +200,8 @@ export type UpdaterResult = ReadonlyArray<TypedUpdateOp> | ReadonlyArray<MongoUp
  */
 export function resolveUpdaterResult(items: ReadonlyArray<UpdaterItem>): MongoUpdateSpec {
   if (items.length === 0) {
-    throw new Error(
+    throw ormError(
+      'ORM.MUTATION_DATA_MISSING',
       'Updater returned no operations. Return at least one update from the callback (e.g. `[f.amount.set(0)]`).',
     );
   }
@@ -207,7 +211,7 @@ export function resolveUpdaterResult(items: ReadonlyArray<UpdaterItem>): MongoUp
 
   const first = items[0];
   if (first === undefined) {
-    throw new Error('Unreachable: items.length > 0 but first is undefined');
+    throw new InternalError('Unreachable: items.length > 0 but first is undefined');
   }
   const firstIsOp = isOp(first);
 
@@ -215,7 +219,8 @@ export function resolveUpdaterResult(items: ReadonlyArray<UpdaterItem>): MongoUp
     const item = items[i];
     if (item === undefined) continue;
     if (isOp(item) !== firstIsOp) {
-      throw new Error(
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
         'Cannot mix TypedUpdateOp values and pipeline stages in a single updater. ' +
           'Use either `[f.amount.set(0)]` (operator form) or `[f.stage.set({...})]` (pipeline form), not both.',
       );

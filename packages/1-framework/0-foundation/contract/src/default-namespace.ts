@@ -1,4 +1,4 @@
-import { DomainNamespaceResolutionError } from './contract-validation-error';
+import { contractError } from './contract-errors';
 
 /**
  * Reserved sentinel domain namespace id for the late-bound application-domain
@@ -24,12 +24,16 @@ export function soleDomainNamespaceId(domain: {
 }): string {
   const [soleNamespaceId, ...rest] = Object.keys(domain.namespaces);
   if (soleNamespaceId === undefined) {
-    throw new DomainNamespaceResolutionError('domain has no namespaces');
+    throw contractError('CONTRACT.NAMESPACE_INVALID', 'domain has no namespaces', {
+      meta: { reason: 'no-domain-namespaces' },
+    });
   }
   if (rest.length > 0) {
     const all = [soleNamespaceId, ...rest];
-    throw new DomainNamespaceResolutionError(
+    throw contractError(
+      'CONTRACT.NAMESPACE_INVALID',
       `bare-name resolution requires exactly one domain namespace, found ${all.length} (${all.join(', ')}); select a namespace explicitly`,
+      { meta: { reason: 'multiple-domain-namespaces', namespaceIds: all } },
     );
   }
   return soleNamespaceId;

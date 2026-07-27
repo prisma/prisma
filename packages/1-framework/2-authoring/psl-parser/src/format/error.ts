@@ -3,7 +3,7 @@ import { structuredError } from '@prisma-next/utils/structured-error';
 
 export type PslCode = `PSL.${PslSubcode}`;
 
-type PslSubcode = 'PARSE_FAILED';
+type PslSubcode = 'FORMAT_OPTION_INVALID' | 'PARSE_FAILED';
 
 export function pslError(
   code: PslCode,

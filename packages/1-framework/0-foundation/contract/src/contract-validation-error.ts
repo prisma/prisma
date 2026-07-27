@@ -10,10 +10,3 @@ export class ContractValidationError extends Error {
     this.phase = phase;
   }
 }
-
-export class DomainNamespaceResolutionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'DomainNamespaceResolutionError';
-  }
-}

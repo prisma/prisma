@@ -15,6 +15,7 @@ import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/
 import { composeMongoEntityKinds } from '@prisma-next/mongo-contract/entity-kinds';
 import { blindCast } from '@prisma-next/utils/casts';
 import type { JsonObject } from '@prisma-next/utils/json';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import { type as arktypeType, type Type } from 'arktype';
 
 /**
@@ -95,7 +96,10 @@ export abstract class MongoContractSerializerBase<TContract>
     const schema = this.contractSchema ?? MongoContractSchema;
     const parsed = schema(json);
     if (parsed instanceof arktypeType.errors) {
-      throw new Error(`Contract structural validation failed: ${parsed.summary}`);
+      throw structuredError(
+        'CONTRACT.VALIDATION_FAILED',
+        `Contract structural validation failed: ${parsed.summary}`,
+      );
     }
 
     // arktype's `infer`d type for `MongoContractSchema` is structurally

@@ -7,6 +7,7 @@ import type {
 } from '@prisma-next/mongo-contract';
 import type { AnyMongoCommand, MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
 import { blindCast } from '@prisma-next/utils/casts';
+import { contractError } from './contract-errors';
 import { asMongoContract, type CollectionHandle, createCollectionHandle } from './state-classes';
 
 /**
@@ -44,7 +45,8 @@ export function mongoQuery<
       const c = asMongoContract(contract);
       const storageHash = c.storage?.storageHash;
       if (!storageHash) {
-        throw new Error(
+        throw contractError(
+          'CONTRACT.VALIDATION_FAILED',
           'Contract is missing storage.storageHash. Pass a validated contract to mongoQuery().',
         );
       }

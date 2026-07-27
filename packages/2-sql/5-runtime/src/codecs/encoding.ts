@@ -1,6 +1,5 @@
 import {
   checkAborted,
-  isRuntimeError,
   raceAgainstAbort,
   runtimeError,
 } from '@prisma-next/framework-components/runtime';
@@ -13,6 +12,7 @@ import {
   type SqlCodecCallContext,
 } from '@prisma-next/sql-relational-core/ast';
 import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 
 export interface ParamMetadata {
   readonly codec: CodecRef | undefined;
@@ -69,7 +69,7 @@ function wrapEncodeFailure(
 }
 
 /**
- * Encodes a single parameter through its codec. Always awaits codec.encode so a Promise can never leak into the driver, even if a sync-authored codec is lifted to async by the codec factory. Failures are wrapped in `RUNTIME.ENCODE_FAILED` with `{ label, codec, paramIndex }` and the original error attached on `cause`.
+ * Encodes a single parameter through its codec. Always awaits codec.encode so a Promise can never leak into the driver, even if a sync-authored codec is lifted to async by the codec factory. Structured envelopes thrown by the codec body (anything passing `isStructuredError`) pass through unchanged; all other failures are wrapped in `RUNTIME.ENCODE_FAILED` with `{ label, codec, paramIndex }` and the original error attached on `cause`.
  *
  * `ctx` is forwarded verbatim to `codec.encode` so codec authors who opt into the `(value, ctx)` arity see the same `SqlCodecCallContext` the runtime built for the surrounding `runtime.execute()` call. The ctx is always present; its `signal` field may be `undefined`. Encode call sites do not populate `ctx.column` — encode-time column context is the middleware's domain.
  */
@@ -127,7 +127,7 @@ async function encodeParamValue(
       try {
         encoded.push(await codec.encode(elem, ctx));
       } catch (error) {
-        if (isRuntimeError(error)) throw error;
+        if (isStructuredError(error)) throw error;
         wrapEncodeFailure(error, metadata, paramIndex, codec.id);
       }
     }
@@ -137,14 +137,16 @@ async function encodeParamValue(
   try {
     return await codec.encode(value, ctx);
   } catch (error) {
-    // Any `runtimeError`-built envelope is stable by construction — let
-    // it pass through unchanged. This covers codec-authored
+    // Any structured envelope (dotted `code` per `isStructuredError`) is
+    // stable by construction — let it pass through unchanged. This covers
+    // every `runtimeError`-built envelope, plain `structuredError`
+    // envelopes from extension codecs (e.g. a codec-authored
+    // `RUNTIME.ENCODE_FAILED` — no double wrap), codec-authored
     // `RUNTIME.JSON_SCHEMA_VALIDATION_FAILED` (per-library JSON-with-
-    // schema codecs validate inside `encode` per ADR 208 § Case J),
-    // codec-authored `RUNTIME.ENCODE_FAILED` (no double wrap), and any
-    // future stable code thrown from a codec body. Symmetric with the
+    // schema codecs validate inside `encode` per ADR 208 § Case J), and
+    // any future stable code thrown from a codec body. Symmetric with the
     // decode-side guard.
-    if (isRuntimeError(error)) throw error;
+    if (isStructuredError(error)) throw error;
     wrapEncodeFailure(error, metadata, paramIndex, codec.id);
   }
 }
@@ -156,7 +158,7 @@ async function encodeParamValue(
  *
  * - **Already-aborted at entry** short-circuits with `RUNTIME.ABORTED` (`{ phase: 'encode' }`) before any `codec.encode` call is made — codecs can pin this with a per-call counter that stays at zero.
  * - **Mid-flight abort** races the per-param `Promise.all` against `abortable(ctx.signal)`. The runtime returns `RUNTIME.ABORTED` promptly even if codec bodies ignore the signal; the in-flight bodies are abandoned and run to completion in the background (cooperative cancellation, see ADR 204).
- * - Existing `RUNTIME.ENCODE_FAILED` envelopes that surface from a codec body before the runtime observes the abort pass through unchanged (no double wrap).
+ * - Existing structured envelopes (any dotted-code error passing `isStructuredError`, e.g. `RUNTIME.ENCODE_FAILED`) that surface from a codec body before the runtime observes the abort pass through unchanged (no double wrap).
  */
 export async function encodeParams(
   plan: SqlExecutionPlan,

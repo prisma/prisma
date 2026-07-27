@@ -228,11 +228,11 @@ describe('MongoSampleStage', () => {
   });
 
   it('rejects negative values', () => {
-    expect(() => new MongoSampleStage(-1)).toThrow(RangeError);
+    expect(() => new MongoSampleStage(-1)).toThrow('size must be a non-negative integer');
   });
 
   it('rejects non-integer values', () => {
-    expect(() => new MongoSampleStage(1.5)).toThrow(RangeError);
+    expect(() => new MongoSampleStage(1.5)).toThrow('size must be a non-negative integer');
   });
 
   it('is frozen', () => {
@@ -389,7 +389,7 @@ describe('MongoBucketStage', () => {
           groupBy: MongoAggFieldRef.of('price'),
           boundaries: [0],
         }),
-    ).toThrow(RangeError);
+    ).toThrow('boundaries must contain at least 2 values');
   });
 });
 
@@ -448,21 +448,21 @@ describe('MongoBucketAutoStage', () => {
           groupBy: MongoAggFieldRef.of('price'),
           buckets: 0,
         }),
-    ).toThrow(RangeError);
+    ).toThrow('buckets must be a positive integer');
     expect(
       () =>
         new MongoBucketAutoStage({
           groupBy: MongoAggFieldRef.of('price'),
           buckets: -1,
         }),
-    ).toThrow(RangeError);
+    ).toThrow('buckets must be a positive integer');
     expect(
       () =>
         new MongoBucketAutoStage({
           groupBy: MongoAggFieldRef.of('price'),
           buckets: 2.5,
         }),
-    ).toThrow(RangeError);
+    ).toThrow('buckets must be a positive integer');
   });
 });
 
@@ -839,7 +839,7 @@ describe('MongoVectorSearchStage', () => {
           numCandidates: 10,
           limit: 0,
         }),
-    ).toThrow(RangeError);
+    ).toThrow('limit must be a positive integer');
   });
 
   it('throws if numCandidates < limit', () => {
@@ -852,7 +852,7 @@ describe('MongoVectorSearchStage', () => {
           numCandidates: 3,
           limit: 5,
         }),
-    ).toThrow(RangeError);
+    ).toThrow('numCandidates must be an integer >= limit');
   });
 });
 

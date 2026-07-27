@@ -30,6 +30,7 @@ import type {
   StorageValueSet,
 } from '@prisma-next/sql-contract/types';
 import { blindCast } from '@prisma-next/utils/casts';
+import { sqlEmitterError, sqlEmitterValidationError } from './errors';
 
 function serializeTypeParamsLiteral(params: Record<string, unknown> | undefined): string {
   if (!params || Object.keys(params).length === 0) {
@@ -61,13 +62,17 @@ export const sqlEmission = {
           const col = colUnknown as { codecId?: string };
           const codecId = col.codecId;
           if (!codecId) {
-            throw new Error(`Column "${colName}" in table "${tableName}" is missing codecId`);
+            throw sqlEmitterValidationError(
+              `Column "${colName}" in table "${tableName}" is missing codecId`,
+              { table: tableName, column: colName },
+            );
           }
 
           const match = codecId.match(typeIdRegex);
           if (!match?.[1]) {
-            throw new Error(
+            throw sqlEmitterValidationError(
               `Column "${colName}" in table "${tableName}" has invalid codec ID format "${codecId}". Expected format: ns/name@version`,
+              { table: tableName, column: colName, codecId },
             );
           }
         }
@@ -77,12 +82,15 @@ export const sqlEmission = {
 
   validateStructure(contract: Contract): void {
     if (contract.targetFamily !== 'sql') {
-      throw new Error(`Expected targetFamily "sql", got "${contract.targetFamily}"`);
+      throw sqlEmitterValidationError(
+        `Expected targetFamily "sql", got "${contract.targetFamily}"`,
+        { targetFamily: contract.targetFamily },
+      );
     }
 
     const storage = contract.storage as unknown as SqlStorage | undefined;
     if (!storage?.namespaces) {
-      throw new Error('SQL contract must have storage.namespaces');
+      throw sqlEmitterValidationError('SQL contract must have storage.namespaces', {});
     }
 
     const tableNamesSeenAcrossNamespaces = new Map<string, string>();
@@ -90,8 +98,14 @@ export const sqlEmission = {
       for (const tableName of Object.keys(ns.entries.table ?? {})) {
         const existingNs = tableNamesSeenAcrossNamespaces.get(tableName);
         if (existingNs !== undefined && existingNs !== nsId) {
-          throw new Error(
+          throw sqlEmitterError(
+            'CONTRACT.NAME_DUPLICATE',
             `Duplicate table name "${tableName}" in namespaces "${existingNs}" and "${nsId}"`,
+            {
+              why: 'Two SQL namespaces declare a table with the same name, which is ambiguous for emission.',
+              fix: 'Rename one of the tables so every table name is unique across namespaces.',
+              meta: { table: tableName, namespaces: [existingNs, nsId] },
+            },
           );
         }
         tableNamesSeenAcrossNamespaces.set(tableName, nsId);
@@ -110,14 +124,24 @@ export const sqlEmission = {
       for (const [modelName, model] of Object.entries(models)) {
         const qualifiedName = `${namespaceId}:${modelName}`;
         if (!model.storage?.table) {
-          throw new Error(`Model "${qualifiedName}" is missing storage.table`);
+          throw sqlEmitterValidationError(`Model "${qualifiedName}" is missing storage.table`, {
+            model: qualifiedName,
+          });
         }
         if (!model.storage.namespaceId) {
-          throw new Error(`Model "${qualifiedName}" is missing storage.namespaceId`);
+          throw sqlEmitterValidationError(
+            `Model "${qualifiedName}" is missing storage.namespaceId`,
+            { model: qualifiedName },
+          );
         }
         if (model.storage.namespaceId !== namespaceId) {
-          throw new Error(
+          throw sqlEmitterValidationError(
             `Model "${qualifiedName}" storage.namespaceId "${model.storage.namespaceId}" does not match domain namespace "${namespaceId}"`,
+            {
+              model: qualifiedName,
+              storageNamespaceId: model.storage.namespaceId,
+              domainNamespaceId: namespaceId,
+            },
           );
         }
 
@@ -128,33 +152,39 @@ export const sqlEmission = {
           entityName: tableName,
         });
         if (!table) {
-          throw new Error(
+          throw sqlEmitterValidationError(
             `Model "${qualifiedName}" references non-existent table "${namespaceId}.${tableName}"`,
+            { model: qualifiedName, table: `${namespaceId}.${tableName}` },
           );
         }
         const columnNames = new Set(Object.keys(table.columns));
         const storageFields = model.storage.fields;
         if (!storageFields || Object.keys(storageFields).length === 0) {
-          throw new Error(`Model "${qualifiedName}" is missing storage.fields`);
+          throw sqlEmitterValidationError(`Model "${qualifiedName}" is missing storage.fields`, {
+            model: qualifiedName,
+          });
         }
 
         for (const [fieldName, field] of Object.entries(storageFields)) {
           if (!field.column) {
-            throw new Error(
+            throw sqlEmitterValidationError(
               `Model "${qualifiedName}" field "${fieldName}" is missing column property`,
+              { model: qualifiedName, field: fieldName },
             );
           }
 
           if (!columnNames.has(field.column)) {
-            throw new Error(
+            throw sqlEmitterValidationError(
               `Model "${qualifiedName}" field "${fieldName}" references non-existent column "${field.column}" in table "${tableName}"`,
+              { model: qualifiedName, field: fieldName, column: field.column, table: tableName },
             );
           }
         }
 
         if (!model.relations || typeof model.relations !== 'object') {
-          throw new Error(
+          throw sqlEmitterValidationError(
             `Model "${qualifiedName}" is missing required field "relations" (must be an object)`,
+            { model: qualifiedName },
           );
         }
       }
@@ -165,26 +195,30 @@ export const sqlEmission = {
         const columnNames = new Set(Object.keys(table.columns));
 
         if (!Array.isArray(table.uniques)) {
-          throw new Error(
+          throw sqlEmitterValidationError(
             `Table "${tableName}" is missing required field "uniques" (must be an array)`,
+            { table: tableName },
           );
         }
         if (!Array.isArray(table.indexes)) {
-          throw new Error(
+          throw sqlEmitterValidationError(
             `Table "${tableName}" is missing required field "indexes" (must be an array)`,
+            { table: tableName },
           );
         }
         if (!Array.isArray(table.foreignKeys)) {
-          throw new Error(
+          throw sqlEmitterValidationError(
             `Table "${tableName}" is missing required field "foreignKeys" (must be an array)`,
+            { table: tableName },
           );
         }
 
         if (table.primaryKey) {
           for (const colName of table.primaryKey.columns) {
             if (!columnNames.has(colName)) {
-              throw new Error(
+              throw sqlEmitterValidationError(
                 `Table "${tableName}" primaryKey references non-existent column "${colName}"`,
+                { table: tableName, column: colName },
               );
             }
           }
@@ -193,8 +227,9 @@ export const sqlEmission = {
         for (const unique of table.uniques) {
           for (const colName of unique.columns) {
             if (!columnNames.has(colName)) {
-              throw new Error(
+              throw sqlEmitterValidationError(
                 `Table "${tableName}" unique constraint references non-existent column "${colName}"`,
+                { table: tableName, column: colName },
               );
             }
           }
@@ -203,8 +238,9 @@ export const sqlEmission = {
         for (const index of table.indexes) {
           for (const colName of index.columns) {
             if (!columnNames.has(colName)) {
-              throw new Error(
+              throw sqlEmitterValidationError(
                 `Table "${tableName}" index references non-existent column "${colName}"`,
+                { table: tableName, column: colName },
               );
             }
           }
@@ -213,8 +249,9 @@ export const sqlEmission = {
         for (const fk of table.foreignKeys) {
           for (const colName of fk.source.columns) {
             if (!columnNames.has(colName)) {
-              throw new Error(
+              throw sqlEmitterValidationError(
                 `Table "${tableName}" foreignKey references non-existent column "${colName}"`,
+                { table: tableName, column: colName },
               );
             }
           }
@@ -225,23 +262,34 @@ export const sqlEmission = {
             entityName: fk.target.tableName,
           });
           if (!referencedTable) {
-            throw new Error(
+            throw sqlEmitterValidationError(
               `Table "${tableName}" foreignKey references non-existent table "${fk.target.tableName}" in namespace "${fk.target.namespaceId}"`,
+              {
+                table: tableName,
+                targetTable: fk.target.tableName,
+                targetNamespace: fk.target.namespaceId,
+              },
             );
           }
 
           const referencedColumnNames = new Set(Object.keys(referencedTable.columns));
           for (const colName of fk.target.columns) {
             if (!referencedColumnNames.has(colName)) {
-              throw new Error(
+              throw sqlEmitterValidationError(
                 `Table "${tableName}" foreignKey references non-existent column "${colName}" in table "${fk.target.tableName}"`,
+                { table: tableName, column: colName, targetTable: fk.target.tableName },
               );
             }
           }
 
           if (fk.source.columns.length !== fk.target.columns.length) {
-            throw new Error(
+            throw sqlEmitterValidationError(
               `Table "${tableName}" foreignKey column count (${fk.source.columns.length}) does not match referenced column count (${fk.target.columns.length})`,
+              {
+                table: tableName,
+                sourceColumnCount: fk.source.columns.length,
+                targetColumnCount: fk.target.columns.length,
+              },
             );
           }
         }
@@ -521,8 +569,14 @@ function generateDocumentScopedStorageTypesType(types: SqlStorage['types']): str
       typeof codecInstanceShape.codecId !== 'string' ||
       typeof codecInstanceShape.nativeType !== 'string'
     ) {
-      throw new Error(
+      throw sqlEmitterError(
+        'CONTRACT.TYPE_UNKNOWN',
         `Unknown storage type kind for "${typeName}" in document-scoped storage.types; expected a codec-instance triple.`,
+        {
+          why: 'A storage.types entry is not a codec-instance triple, so its column type cannot be emitted.',
+          fix: 'Regenerate the contract from its authoring source; storage.types entries must carry codecId and nativeType.',
+          meta: { type: typeName },
+        },
       );
     }
     const codecId = serializeValue(codecInstanceShape.codecId);
@@ -561,8 +615,14 @@ function namespaceSerializedKind(ns: Namespace): string {
   if (typeof kind === 'string') {
     return `readonly kind: ${serializeValue(kind)}`;
   }
-  throw new Error(
+  throw sqlEmitterError(
+    'CONTRACT.NAMESPACE_INVALID',
     `Namespace '${ns.id}' has no string kind — all namespaces must be target concretions with a defined kind property.`,
+    {
+      why: 'The namespace is not a target concretion, so the emitter cannot serialize its kind.',
+      fix: 'Regenerate the contract with a target pack that materializes every namespace as a target concretion.',
+      meta: { namespace: ns.id },
+    },
   );
 }
 

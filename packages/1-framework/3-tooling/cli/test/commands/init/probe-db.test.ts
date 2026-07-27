@@ -1,3 +1,4 @@
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
 import { applyProbeOutcome } from '../../../src/commands/init/init';
 import {
@@ -57,6 +58,17 @@ describe('parsePostgresVersion (FR8.3)', () => {
 
   it('throws on a row that does not start with PostgreSQL', () => {
     expect(() => parsePostgresVersion('NotPostgres 1.0')).toThrow(/Could not parse/);
+  });
+
+  it('raises CLI.INIT_PROBE_FAILED on an unparseable version row', () => {
+    let thrown: unknown;
+    try {
+      parsePostgresVersion('NotPostgres 1.0');
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({ code: 'CLI.INIT_PROBE_FAILED' });
   });
 });
 

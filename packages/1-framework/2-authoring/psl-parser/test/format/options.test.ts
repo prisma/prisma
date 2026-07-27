@@ -25,8 +25,18 @@ describe('format indent option', () => {
     );
   });
 
-  it('rejects a zero indent', () => {
-    expect(() => format('model User {\nid Int\n}', { indent: 0 })).toThrow();
+  it('rejects a zero indent with PSL.FORMAT_OPTION_INVALID', () => {
+    let thrown: unknown;
+    try {
+      format('model User {\nid Int\n}', { indent: 0 });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({
+      code: 'PSL.FORMAT_OPTION_INVALID',
+      meta: { option: 'indent', received: '0' },
+    });
   });
 
   it('rejects a negative indent', () => {
@@ -54,9 +64,19 @@ describe('format newline option', () => {
     expect(out).toEqual('model User {\r\n  id Int\r\n}\r\n');
   });
 
-  it('rejects an unknown newline value', () => {
+  it('rejects an unknown newline value with PSL.FORMAT_OPTION_INVALID', () => {
     const options: FormatOptions = JSON.parse('{"newline":"CR"}');
-    expect(() => format('model User {\nid Int\n}', options)).toThrow();
+    let thrown: unknown;
+    try {
+      format('model User {\nid Int\n}', options);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({
+      code: 'PSL.FORMAT_OPTION_INVALID',
+      meta: { option: 'newline', received: 'CR' },
+    });
   });
 });
 

@@ -2,6 +2,7 @@ import type { Contract } from '@prisma-next/contract/types';
 import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { timeouts } from '@prisma-next/test-utils';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import type { EmitStackInput } from '../src/exports';
 import { getEmittedArtifactPaths } from '../src/exports';
@@ -33,10 +34,18 @@ describe('emitter', () => {
     });
   });
 
-  it('rejects non-json output paths when deriving artifact paths', () => {
-    expect(() => getEmittedArtifactPaths('/abs/contract.ts')).toThrow(
-      'Contract output path must end with .json',
-    );
+  it('rejects non-json output paths with CONFIG.VALIDATION_FAILED when deriving artifact paths', () => {
+    let thrown: unknown;
+    try {
+      getEmittedArtifactPaths('/abs/contract.ts');
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({
+      code: 'CONFIG.VALIDATION_FAILED',
+      message: 'Contract output path must end with .json',
+    });
   });
 
   it(

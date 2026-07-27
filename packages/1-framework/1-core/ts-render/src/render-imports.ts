@@ -1,3 +1,4 @@
+import { contractError } from './contract-errors';
 import type { ImportRequirement } from './ts-expression';
 
 /**
@@ -115,9 +116,11 @@ function mergeAttributes(req: ImportRequirement, group: ModuleImportGroup): void
     return;
   }
   if (!attributesEqual(group.attributes, incoming)) {
-    throw new Error(
+    throw contractError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
       `Conflicting import attributes for module "${req.moduleSpecifier}": ` +
         `${stringifyAttributes(group.attributes)} vs ${stringifyAttributes(incoming)}.`,
+      { meta: { moduleSpecifier: req.moduleSpecifier } },
     );
   }
 }

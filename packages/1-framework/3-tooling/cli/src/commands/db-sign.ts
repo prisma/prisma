@@ -8,10 +8,10 @@ import { readContractSnapshotJson } from '@prisma-next/migration-tools/contract-
 import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
 import { parseContractRef } from '@prisma-next/migration-tools/ref-resolution';
 import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { Command } from 'commander';
 import { relative, resolve } from 'pathe';
 import { createControlClient } from '../control-api/client';
-import { ContractValidationError } from '../control-api/errors';
 import {
   CliStructuredError,
   errorContractValidationFailed,
@@ -233,7 +233,7 @@ async function executeDbSignCommand(
       return notOk(error);
     }
 
-    if (error instanceof ContractValidationError) {
+    if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
       return notOk(
         errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
           where: { path: contractPathAbsolute },

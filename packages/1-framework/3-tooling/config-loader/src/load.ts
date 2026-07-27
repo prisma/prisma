@@ -1,21 +1,22 @@
 import { access } from 'node:fs/promises';
 import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { ConfigValidationError, validateConfig } from '@prisma-next/config/config-validation';
+import { validateConfig } from '@prisma-next/config/config-validation';
 import { getEmittedArtifactPaths } from '@prisma-next/emitter';
 import {
+  CliStructuredError,
   errorConfigFileNotFound,
   errorConfigValidation,
   errorUnexpected,
 } from '@prisma-next/errors/control';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { isStructuredError, structuredError } from '@prisma-next/utils/structured-error';
 import { dirname, join, resolve } from 'pathe';
-import { ConfigFileNotFoundError } from './errors';
 import { finalizeConfig } from './finalize-config';
 
 const CONFIG_FILENAME = 'prisma-next.config.ts';
 
 function throwValidation(field: string, why: string): never {
-  throw new ConfigValidationError(field, why);
+  throw structuredError('CONFIG.VALIDATION_FAILED', why, { why, meta: { field } });
 }
 
 function validateNoOutputsAreInputs(
@@ -83,13 +84,13 @@ async function discoverAndFinalizeConfig(configPath?: string): Promise<PrismaNex
   });
 
   if (resolvedConfigPath && result.configFile !== resolvedConfigPath) {
-    throw new ConfigFileNotFoundError(resolvedConfigPath);
+    throw errorConfigFileNotFound(resolvedConfigPath);
   }
 
   if (!result.config || Object.keys(result.config).length === 0) {
     /* v8 ignore next -- @preserve */
     const displayPath = result.configFile || resolvedConfigPath || configPath;
-    throw new ConfigFileNotFoundError(displayPath);
+    throw errorConfigFileNotFound(displayPath);
   }
 
   validateConfig(result.config);
@@ -107,14 +108,15 @@ function hasStringCode(error: Error): error is Error & { readonly code: string }
 
 // Exported for direct unit coverage; not part of the public surface.
 export function toStructuredConfigError(error: unknown, configPath?: string): Error {
-  if (error instanceof ConfigValidationError) {
-    return errorConfigValidation(error.field, {
-      why: error.why,
+  if (
+    isStructuredError(error) &&
+    error.code === 'CONFIG.VALIDATION_FAILED' &&
+    !(error instanceof CliStructuredError)
+  ) {
+    const field = typeof error.meta?.['field'] === 'string' ? error.meta['field'] : 'config';
+    return errorConfigValidation(field, {
+      why: error.why ?? error.message,
     });
-  }
-
-  if (error instanceof ConfigFileNotFoundError) {
-    return errorConfigFileNotFound(error.configPath);
   }
 
   if (error instanceof Error && hasStringCode(error)) {
@@ -156,9 +158,7 @@ export async function loadConfig(configPath?: string): Promise<PrismaNextConfig>
 export async function loadConfigForFile(filePath: string): Promise<PrismaNextConfig> {
   const configPath = await findNearestConfigPathForFile(filePath);
   if (configPath === undefined) {
-    throw toStructuredConfigError(
-      new ConfigFileNotFoundError(join(dirname(resolve(process.cwd(), filePath)), CONFIG_FILENAME)),
-    );
+    throw errorConfigFileNotFound(join(dirname(resolve(process.cwd(), filePath)), CONFIG_FILENAME));
   }
   return loadConfig(configPath);
 }

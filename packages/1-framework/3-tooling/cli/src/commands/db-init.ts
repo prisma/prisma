@@ -1,8 +1,9 @@
 import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { assertNever } from '@prisma-next/utils/internal-error';
 import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { Command } from 'commander';
-import { ContractValidationError } from '../control-api/errors';
 import type { DbInitFailure } from '../control-api/types';
 import {
   CliStructuredError,
@@ -109,7 +110,7 @@ function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
 
   // Exhaustive check - TypeScript will error if a new code is added but not handled
   const exhaustive: never = failure.code;
-  throw new Error(`Unhandled DbInitFailure code: ${exhaustive}`);
+  return assertNever(exhaustive, `Unhandled DbInitFailure code: ${String(exhaustive)}`);
 }
 
 /**
@@ -236,7 +237,7 @@ async function executeDbInitCommand(
       return notOk(error);
     }
 
-    if (error instanceof ContractValidationError) {
+    if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
       return notOk(
         errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
           where: { path: contractPathAbsolute },

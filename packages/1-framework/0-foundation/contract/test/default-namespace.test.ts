@@ -1,6 +1,15 @@
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
-import { DomainNamespaceResolutionError } from '../src/contract-validation-error';
 import { soleDomainNamespaceId, UNBOUND_DOMAIN_NAMESPACE_ID } from '../src/default-namespace';
+
+function capture(run: () => unknown): unknown {
+  try {
+    run();
+  } catch (error) {
+    return error;
+  }
+  return expect.unreachable('expected the call to throw');
+}
 
 describe('UNBOUND_DOMAIN_NAMESPACE_ID', () => {
   it('is the late-bound domain sentinel', () => {
@@ -9,17 +18,22 @@ describe('UNBOUND_DOMAIN_NAMESPACE_ID', () => {
 });
 
 describe('soleDomainNamespaceId', () => {
-  it('throws when the domain declares no namespaces', () => {
-    expect(() => soleDomainNamespaceId({ namespaces: {} })).toThrow(DomainNamespaceResolutionError);
+  it('throws CONTRACT.NAMESPACE_INVALID when the domain declares no namespaces', () => {
+    const error = capture(() => soleDomainNamespaceId({ namespaces: {} }));
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.NAMESPACE_INVALID',
+      message: 'domain has no namespaces',
+    });
   });
 
   it('returns the namespace when exactly one is declared', () => {
     expect(soleDomainNamespaceId({ namespaces: { auth: {} } })).toBe('auth');
   });
 
-  it('throws when more than one namespace is declared rather than guessing', () => {
-    expect(() => soleDomainNamespaceId({ namespaces: { auth: {}, public: {} } })).toThrow(
-      DomainNamespaceResolutionError,
-    );
+  it('throws CONTRACT.NAMESPACE_INVALID when more than one namespace is declared rather than guessing', () => {
+    const error = capture(() => soleDomainNamespaceId({ namespaces: { auth: {}, public: {} } }));
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({ code: 'CONTRACT.NAMESPACE_INVALID' });
   });
 });

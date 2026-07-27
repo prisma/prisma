@@ -11,6 +11,7 @@ import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { createSqlFamilyInstance } from '../src/core/control-instance';
@@ -249,6 +250,31 @@ describe('cross-space FK reverse-reference rejection', () => {
     expect(msg).toMatch(/ext-a/);
     expect(msg).toMatch(/ext-b/);
     expect(msg).toMatch(/reverse|direction|dependency/i);
+  });
+
+  it('raises CONTRACT.FOREIGN_KEY_INVALID for a reverse-reference FK', () => {
+    const extA = buildExtensionWithCrossSpaceFK({
+      id: 'ext-a',
+      targetSpaceId: 'ext-b',
+    });
+    const extB = buildExtension({
+      id: 'ext-b',
+      tables: { users: { id: { codecId: 'pg/int4@1', nativeType: 'integer', nullable: false } } },
+      extensions: { 'ext-a': {} },
+    });
+    const error = (() => {
+      try {
+        createSqlFamilyInstance(makeStack([extA, extB]));
+        return undefined;
+      } catch (err) {
+        return err;
+      }
+    })();
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.FOREIGN_KEY_INVALID',
+      meta: { extensionId: 'ext-a', targetSpaceId: 'ext-b' },
+    });
   });
 
   it('accepts an extension with a local FK (no spaceId)', () => {

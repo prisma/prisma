@@ -309,6 +309,25 @@ changes:
         - "constraints.index"
         - '"indexes":'
       anyMatch: true
+  - id: framework-error-classes-removed
+    summary: |
+      Three exported framework error classes are deleted: `ConfigFileNotFoundError`
+      (from `@prisma-next/config-loader`), `ConfigValidationError` (from
+      `@prisma-next/config/config-validation`), and `DomainNamespaceResolutionError`
+      (from `@prisma-next/contract/types`). The same failures now throw structured
+      envelopes with codes `CONFIG.FILE_NOT_FOUND`, `CONFIG.VALIDATION_FAILED`, and
+      `CONTRACT.NAMESPACE_INVALID` respectively. Replace each
+      `error instanceof <Class>` with
+      `isStructuredError(error) && error.code === '<CODE>'`
+      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message
+      text is unchanged.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+      contains:
+        - "ConfigFileNotFoundError"
+        - "ConfigValidationError"
+        - "DomainNamespaceResolutionError"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — User upgrade instructions

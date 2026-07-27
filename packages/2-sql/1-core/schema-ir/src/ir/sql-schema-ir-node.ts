@@ -1,4 +1,5 @@
 import { IRNodeBase } from '@prisma-next/framework-components/ir';
+import { InternalError } from '@prisma-next/utils/internal-error';
 
 /**
  * SQL Schema IR node base. Carries the family-level
@@ -57,7 +58,9 @@ export function assertNode<T extends SqlSchemaIRNode>(
   predicate: (node: SqlSchemaIRNode) => node is T,
 ): asserts node is T {
   if (node === undefined || !predicate(node)) {
-    throw new Error(`Expected a ${className} but got nodeKind=${node?.nodeKind ?? 'undefined'}`);
+    throw new InternalError(
+      `Expected a ${className} but got nodeKind=${node?.nodeKind ?? 'undefined'}`,
+    );
   }
 }
 

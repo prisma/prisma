@@ -1,3 +1,4 @@
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { MongoAggFieldRef, MongoAggOperator } from '../src/aggregation-expressions';
 import type { MongoFilterExpr } from '../src/filter-expressions';
@@ -64,6 +65,17 @@ describe('MongoAndExpr', () => {
 
   it('rejects empty expression array', () => {
     expect(() => MongoAndExpr.of([])).toThrow('$and requires at least one expression');
+  });
+
+  it('raises ORM.ARGUMENT_INVALID for an empty expression array', () => {
+    let caught: unknown;
+    try {
+      MongoAndExpr.of([]);
+    } catch (error) {
+      caught = error;
+    }
+    expect(isStructuredError(caught)).toBe(true);
+    expect(isStructuredError(caught) && caught.code).toBe('ORM.ARGUMENT_INVALID');
   });
 
   it('is frozen after construction', () => {

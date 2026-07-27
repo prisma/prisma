@@ -28,6 +28,8 @@ import {
 } from '@prisma-next/sql-schema-ir/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import { sqlFamilyError } from '../errors';
 
 /**
  * Target-specific callback that expands a column's base `nativeType` and optional
@@ -187,8 +189,14 @@ function resolveColumnTypeMetadata(
   }
   const referenced = storageTypes[column.typeRef];
   if (!referenced) {
-    throw new Error(
+    throw sqlFamilyError(
+      'CONTRACT.TYPE_UNKNOWN',
       `Column references storage type "${column.typeRef}" but it is not defined in storage.types.`,
+      {
+        why: 'The column typeRef does not resolve to any entry in the contract storage.types map.',
+        fix: 'Regenerate the contract from its authoring source; do not hand-edit contract JSON.',
+        meta: { typeRef: column.typeRef },
+      },
     );
   }
   if (isStorageTypeInstance(referenced)) {
@@ -198,7 +206,7 @@ function resolveColumnTypeMetadata(
       typeParams: referenced.typeParams,
     };
   }
-  throw new Error(
+  throw new InternalError(
     `Storage type "${column.typeRef}" has an unknown polymorphic kind; expected a codec-typed StorageTypeInstance.`,
   );
 }
@@ -224,14 +232,26 @@ export function resolveValueSetValues(
 ): readonly string[] {
   const ns = storage.namespaces[ref.namespaceId];
   if (!ns) {
-    throw new Error(
+    throw sqlFamilyError(
+      'CONTRACT.NAMESPACE_UNKNOWN',
       `resolveValueSetValues: namespace "${ref.namespaceId}" not found in storage (${contextLabel})`,
+      {
+        why: 'A value-set reference names a namespace the contract storage does not declare.',
+        fix: 'Regenerate the contract from its authoring source; do not hand-edit contract JSON.',
+        meta: { namespaceId: ref.namespaceId, context: contextLabel },
+      },
     );
   }
   const valueSet = ns.entries.valueSet?.[ref.entityName];
   if (!valueSet) {
-    throw new Error(
+    throw sqlFamilyError(
+      'CONTRACT.ENUM_UNKNOWN',
       `resolveValueSetValues: value-set "${ref.entityName}" not found in namespace "${ref.namespaceId}" (${contextLabel})`,
+      {
+        why: 'A value-set reference names an entry its namespace does not declare.',
+        fix: 'Regenerate the contract from its authoring source; do not hand-edit contract JSON.',
+        meta: { valueSet: ref.entityName, namespaceId: ref.namespaceId, context: contextLabel },
+      },
     );
   }
   // Only TEXT enums ship a CHECK-constraint round-trip in this slice. A
@@ -239,8 +259,14 @@ export function resolveValueSetValues(
   // is future work; fail loudly rather than emit a wrong numeric-as-text check.
   const values = valueSet.values;
   if (!allStrings(values)) {
-    throw new Error(
+    throw sqlFamilyError(
+      'CONTRACT.ENUM_INVALID',
       `resolveValueSetValues: value-set "${ref.entityName}" in namespace "${ref.namespaceId}" has a non-string value; numeric-enum CHECK constraints are not yet supported (${contextLabel})`,
+      {
+        why: 'Only string value-sets can be rendered as CHECK constraints; this value-set carries a non-string value.',
+        fix: 'Use string enum values, or drop the CHECK-constrained enum until numeric enums are supported.',
+        meta: { valueSet: ref.entityName, namespaceId: ref.namespaceId, context: contextLabel },
+      },
     );
   }
   return values;
@@ -524,7 +550,15 @@ export function contractNamespaceToSchemaIR(
   options: ContractToSchemaIROptions,
 ): SqlSchemaIR {
   if (options.annotationNamespace.length === 0) {
-    throw new Error('annotationNamespace must be a non-empty string');
+    throw sqlFamilyError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
+      'annotationNamespace must be a non-empty string',
+      {
+        why: 'The calling target pack passed an empty annotationNamespace to the contract-to-schema-IR projection.',
+        fix: 'Fix the target pack to pass its non-empty annotation namespace (e.g. "pg").',
+        meta: { option: 'annotationNamespace' },
+      },
+    );
   }
   const namespace = storage.namespaces[namespaceId];
   if (!namespace) {
@@ -552,7 +586,15 @@ export function contractToSchemaIR(
   options: ContractToSchemaIROptions,
 ): SqlSchemaIR {
   if (options.annotationNamespace.length === 0) {
-    throw new Error('annotationNamespace must be a non-empty string');
+    throw sqlFamilyError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
+      'annotationNamespace must be a non-empty string',
+      {
+        why: 'The calling target pack passed an empty annotationNamespace to the contract-to-schema-IR projection.',
+        fix: 'Fix the target pack to pass its non-empty annotation namespace (e.g. "pg").',
+        meta: { option: 'annotationNamespace' },
+      },
+    );
   }
 
   if (!contract) {
@@ -567,8 +609,14 @@ export function contractToSchemaIR(
       StorageTable.assert(tableDefRaw, `namespaces.${ns.id}.entries.table.${tableName}`);
       const tableDef = tableDefRaw;
       if (tables[tableName] !== undefined) {
-        throw new Error(
+        throw sqlFamilyError(
+          'CONTRACT.TABLE_AMBIGUOUS',
           `contractToSchemaIR: duplicate SQL table name "${tableName}" across namespaces (ambiguous for flat SqlSchemaIR.tables).`,
+          {
+            why: 'Two namespaces declare a table with the same name, which is ambiguous for the flat schema-IR table map.',
+            fix: 'Rename one of the tables so every table name is unique across namespaces.',
+            meta: { table: tableName },
+          },
         );
       }
       tables[tableName] = convertTable(

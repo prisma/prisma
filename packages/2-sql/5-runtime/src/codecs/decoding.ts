@@ -1,6 +1,5 @@
 import {
   checkAborted,
-  isRuntimeError,
   raceAgainstAbort,
   runtimeError,
 } from '@prisma-next/framework-components/runtime';
@@ -11,6 +10,7 @@ import type {
   ProjectionItem,
   SqlCodecCallContext,
 } from '@prisma-next/sql-relational-core/ast';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 
 type ColumnRef = { table: string; column: string };
 
@@ -216,7 +216,7 @@ async function decodeField(
       try {
         decoded.push(await codec.decode(elem, cellCtx));
       } catch (error) {
-        if (isRuntimeError(error)) throw error;
+        if (isStructuredError(error)) throw error;
         wrapDecodeFailure(error, alias, ref, codec, elem);
       }
     }
@@ -226,7 +226,13 @@ async function decodeField(
   try {
     return await codec.decode(wireValue, cellCtx);
   } catch (error) {
-    if (isRuntimeError(error)) {
+    // Any structured envelope (dotted `code` per `isStructuredError`) is
+    // stable by construction — let it pass through unchanged. This covers
+    // every `runtimeError`-built envelope and plain `structuredError`
+    // envelopes from extension codecs (e.g. a codec-authored
+    // `RUNTIME.DECODE_FAILED` — no double wrap). Symmetric with the
+    // encode-side guard.
+    if (isStructuredError(error)) {
       throw error;
     }
     wrapDecodeFailure(error, alias, ref, codec, wireValue);
@@ -234,13 +240,13 @@ async function decodeField(
 }
 
 /**
- * Decodes a row by dispatching all per-cell codec calls concurrently via `Promise.all`. Each cell follows the single-armed `decodeField` path. Failures are wrapped in `RUNTIME.DECODE_FAILED` with `{ table, column, codec }` (or `{ alias, codec }` when no column ref is resolvable) and the original error attached on `cause`.
+ * Decodes a row by dispatching all per-cell codec calls concurrently via `Promise.all`. Each cell follows the single-armed `decodeField` path. Structured envelopes thrown by codec bodies (anything passing `isStructuredError`) pass through unchanged; all other failures are wrapped in `RUNTIME.DECODE_FAILED` with `{ table, column, codec }` (or `{ alias, codec }` when no column ref is resolvable) and the original error attached on `cause`.
  *
  * When `rowCtx.signal` is provided:
  *
  * - **Already-aborted at entry** short-circuits with `RUNTIME.ABORTED` (`{ phase: 'decode' }`) before any `codec.decode` call is made.
  * - **Mid-flight aborts** race the per-cell `Promise.all` against the signal so the runtime returns promptly even when codec bodies ignore it. In-flight bodies that ignore the signal complete in the background (cooperative cancellation).
- * - Existing `RUNTIME.DECODE_FAILED` envelopes from codec bodies pass through unchanged (no double wrap).
+ * - Existing structured envelopes (any dotted-code error passing `isStructuredError`, e.g. `RUNTIME.DECODE_FAILED`) from codec bodies pass through unchanged (no double wrap).
  */
 export async function decodeRow(
   row: Record<string, unknown>,

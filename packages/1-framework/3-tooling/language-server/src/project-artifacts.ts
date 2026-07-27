@@ -1,5 +1,6 @@
 import { buildSymbolTable, type SymbolTable } from '@prisma-next/psl-parser';
 import type { DocumentAst, SourceFile } from '@prisma-next/psl-parser/syntax';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import type { ProjectInterpretation } from './config-resolution';
 import { type LspDiagnostic, mapInterpreterDiagnostics } from './diagnostic-mapping';
 import { computeDocumentDiagnostics, type DocumentDiagnostics } from './document-diagnostics';
@@ -133,7 +134,7 @@ export function createProjectArtifacts(options: ProjectArtifactsOptions): Projec
       // The server's lifecycle makes this unreachable: it drops a project
       // once its last open input closes. Throwing loudly beats serving a
       // fabricated empty symbolTable that would mask the broken invariant.
-      throw new Error(
+      throw new InternalError(
         'invariant violated: project has no open configured input — the server must drop such projects',
       );
     },

@@ -1,3 +1,5 @@
+import { contractError } from './contract-errors';
+
 export interface ParamSpec {
   readonly codecId?: string;
   readonly traits?: readonly string[];
@@ -37,16 +39,28 @@ export function createOperationRegistry<
   return {
     register(name: string, descriptor: OperationDescriptor<T>) {
       if (name in operations) {
-        throw new Error(`Operation "${name}" is already registered`);
+        throw contractError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
+          `Operation "${name}" is already registered`,
+          { meta: { operation: name } },
+        );
       }
       if (descriptor.self) {
         const hasCodecId = descriptor.self.codecId !== undefined;
         const hasTraits = descriptor.self.traits !== undefined && descriptor.self.traits.length > 0;
         if (!hasCodecId && !hasTraits) {
-          throw new Error(`Operation "${name}" self has neither codecId nor traits`);
+          throw contractError(
+            'CONTRACT.PACK_CONTRIBUTION_INVALID',
+            `Operation "${name}" self has neither codecId nor traits`,
+            { meta: { operation: name } },
+          );
         }
         if (hasCodecId && hasTraits) {
-          throw new Error(`Operation "${name}" self has both codecId and traits`);
+          throw contractError(
+            'CONTRACT.PACK_CONTRIBUTION_INVALID',
+            `Operation "${name}" self has both codecId and traits`,
+            { meta: { operation: name } },
+          );
         }
       }
       operations[name] = descriptor;

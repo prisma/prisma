@@ -1,5 +1,6 @@
 import { mongoCodec, newMongoCodecRegistry } from '@prisma-next/mongo-codec';
 import { MongoParamRef } from '@prisma-next/mongo-value';
+import { isStructuredError, structuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { resolveValue } from '../src/resolve-value';
 
@@ -270,6 +271,43 @@ describe('resolveValue', () => {
       const err = rejection as RuntimeErrorShape;
       expect(err.code).toBe('RUNTIME.ENCODE_FAILED');
       expect(err.message).toBe('original');
+    });
+
+    it('passes any structured envelope through unchanged instead of re-wrapping', async () => {
+      const envelope = structuredError('EXT.CODEC_BROKEN', 'codec-owned envelope');
+      const innerCodec = mongoCodec({
+        typeId: 'test/structured@1',
+        decode: (w: string) => w,
+        encode: async (_v: string) => {
+          throw envelope;
+        },
+      });
+      const registry = newMongoCodecRegistry();
+      registry.register(innerCodec);
+
+      const ref = new MongoParamRef('x', { codecId: 'test/structured@1' });
+      const rejection = await resolveValue(ref, registry, noCtx).catch((e: unknown) => e);
+      expect(rejection).toBe(envelope);
+      expect(isStructuredError(rejection)).toBe(true);
+    });
+
+    it('wraps a plain codec failure in RUNTIME.ENCODE_FAILED', async () => {
+      const innerCodec = mongoCodec({
+        typeId: 'test/plain-failure@1',
+        decode: (w: string) => w,
+        encode: async (_v: string) => {
+          throw new Error('plain failure');
+        },
+      });
+      const registry = newMongoCodecRegistry();
+      registry.register(innerCodec);
+
+      const ref = new MongoParamRef('x', { codecId: 'test/plain-failure@1' });
+      const rejection = await resolveValue(ref, registry, noCtx).catch((e: unknown) => e);
+      expect(isStructuredError(rejection)).toBe(true);
+      const err = rejection as RuntimeErrorShape;
+      expect(err.code).toBe('RUNTIME.ENCODE_FAILED');
+      expect((err.cause as Error).message).toBe('plain failure');
     });
   });
 });

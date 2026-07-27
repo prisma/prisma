@@ -1,4 +1,4 @@
-import { DomainNamespaceResolutionError } from './contract-validation-error';
+import { contractError } from './contract-errors';
 import { soleDomainNamespaceId } from './default-namespace';
 import type { ApplicationDomain } from './domain-envelope';
 import type { ContractModelBase, ContractValueObject } from './domain-types';
@@ -14,8 +14,10 @@ export function domainModelsAtDefaultNamespace(
   const namespaceId = soleDomainNamespaceId(domain);
   const domainNamespace = domain.namespaces[namespaceId];
   if (domainNamespace === undefined) {
-    throw new DomainNamespaceResolutionError(
+    throw contractError(
+      'CONTRACT.NAMESPACE_INVALID',
       `domain namespace "${namespaceId}" is not present on the contract`,
+      { meta: { reason: 'domain-namespace-missing', namespaceId } },
     );
   }
   return domainNamespace.models;

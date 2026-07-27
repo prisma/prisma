@@ -8,6 +8,7 @@ import type { MongoCodecRegistry } from '@prisma-next/mongo-codec';
 import type { Document, MongoValue } from '@prisma-next/mongo-value';
 import { MongoParamRef } from '@prisma-next/mongo-value';
 import { blindCast } from '@prisma-next/utils/casts';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 
 /**
  * Resolves a `MongoValue` (which may contain `MongoParamRef` leaves) into the
@@ -20,8 +21,9 @@ import { blindCast } from '@prisma-next/utils/casts';
  *
  * Codec encode failures are wrapped in a `RUNTIME.ENCODE_FAILED` envelope
  * (mirroring SQL's `wrapEncodeFailure` shape) with `{ label, codec }` details
- * and the original error attached on `cause`. An already-wrapped envelope is
- * re-thrown verbatim so nested resolvers don't double-wrap.
+ * and the original error attached on `cause`. A structured envelope (any error
+ * with a dotted `code`, per `isStructuredError`) is re-thrown verbatim so
+ * codec-raised envelopes and nested resolvers don't get double-wrapped.
  *
  * `ctx: CodecCallContext` is forwarded verbatim to every
  * `codec.encode(value, ctx)` call. The same `ctx` reference is also passed
@@ -152,16 +154,8 @@ function paramRefLabel(ref: MongoParamRef, codecId: string): string {
   return ref.name ?? codecId;
 }
 
-function isErrorWithCode(error: unknown): error is Error & { code: unknown } {
-  return error instanceof Error && 'code' in error;
-}
-
-function isAlreadyEncodeFailure(error: unknown): boolean {
-  return isErrorWithCode(error) && error.code === 'RUNTIME.ENCODE_FAILED';
-}
-
 function wrapEncodeFailure(error: unknown, ref: MongoParamRef, codecId: string): never {
-  if (isAlreadyEncodeFailure(error)) {
+  if (isStructuredError(error)) {
     throw error;
   }
   const label = paramRefLabel(ref, codecId);

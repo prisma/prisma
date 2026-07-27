@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import type { Contract } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { createSqlContract } from '@prisma-next/test-utils';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadContractSpaceAggregate } from '../../src/aggregate/loader';
@@ -173,6 +174,25 @@ describe('loadContractSpaceAggregate', () => {
       expect(violationsOfKind(violations, 'headRefMissing').map((v) => v.spaceId)).toContain(
         'backed',
       );
+    });
+
+    it('contract() throws MIGRATION.CHECK_HEAD_REF_MISSING for a space with no head ref', async () => {
+      await writePackage('backed', '20260101T0000_init', { from: null, to: 'b1' });
+
+      const aggregate = await load();
+      const space = aggregate.space('backed');
+      let thrown: unknown;
+      try {
+        space?.contract();
+      } catch (error) {
+        thrown = error;
+      }
+      expect(isStructuredError(thrown)).toBe(true);
+      expect(thrown).toMatchObject({
+        code: 'MIGRATION.CHECK_HEAD_REF_MISSING',
+        message:
+          'Contract space "backed" has no head ref; its contract cannot be resolved from the snapshot store without one.',
+      });
     });
 
     it('reports headRefNotInGraph for a migration-backed space whose head hash is not in graph', async () => {

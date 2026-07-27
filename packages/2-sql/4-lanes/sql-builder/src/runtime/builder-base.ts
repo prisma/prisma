@@ -22,6 +22,7 @@ import type {
   MutationDefaultsOptions,
 } from '@prisma-next/sql-relational-core/query-lane-context';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import type {
   AggregateFunctions,
   Expression,
@@ -276,7 +277,11 @@ export function assertCapability(
   for (const [ns, keys] of Object.entries(required)) {
     for (const key of Object.keys(keys)) {
       if (!ctx.capabilities[ns]?.[key]) {
-        throw new Error(`${methodName}() requires capability ${ns}.${key}`);
+        throw structuredError(
+          'ORM.CAPABILITY_MISSING',
+          `${methodName}() requires capability ${ns}.${key}`,
+          { meta: { method: methodName, capability: `${ns}.${key}` } },
+        );
       }
     }
   }
@@ -295,7 +300,10 @@ export function resolveSelectArgs(
   if (typeof args[0] === 'string' && (args.length === 1 || typeof args[1] !== 'function')) {
     for (const colName of args as string[]) {
       const field = scope.topLevel[colName];
-      if (!field) throw new Error(`Column "${colName}" not found in scope`);
+      if (!field)
+        throw structuredError('ORM.COLUMN_UNKNOWN', `Column "${colName}" not found in scope`, {
+          meta: { column: colName },
+        });
       projections.push(ProjectionItem.of(colName, IdentifierRef.of(colName), field.codec));
       newRowFields[colName] = field;
     }
@@ -331,7 +339,7 @@ export function resolveSelectArgs(
     return { projections, newRowFields };
   }
 
-  throw new Error('Invalid .select() arguments');
+  throw structuredError('ORM.ARGUMENT_INVALID', 'Invalid .select() arguments');
 }
 
 export function resolveOrderBy(
@@ -347,7 +355,13 @@ export function resolveOrderBy(
   if (typeof arg === 'string') {
     const combined = orderByScopeOf(scope, rowFields);
     if (!(arg in combined.topLevel))
-      throw new Error(`Column "${arg}" not found in scope for orderBy`);
+      throw structuredError(
+        'ORM.COLUMN_UNKNOWN',
+        `Column "${arg}" not found in scope for orderBy`,
+        {
+          meta: { column: arg },
+        },
+      );
     const expr = IdentifierRef.of(arg);
     return dir === 'asc' ? OrderByItem.asc(expr) : OrderByItem.desc(expr);
   }
@@ -361,7 +375,7 @@ export function resolveOrderBy(
     return dir === 'asc' ? OrderByItem.asc(result.buildAst()) : OrderByItem.desc(result.buildAst());
   }
 
-  throw new Error('Invalid orderBy argument');
+  throw structuredError('ORM.ARGUMENT_INVALID', 'Invalid orderBy argument');
 }
 
 export function resolveGroupBy(
@@ -374,7 +388,11 @@ export function resolveGroupBy(
     const combined = orderByScopeOf(scope, rowFields);
     return (args as string[]).map((colName) => {
       if (!(colName in combined.topLevel))
-        throw new Error(`Column "${colName}" not found in scope for groupBy`);
+        throw structuredError(
+          'ORM.COLUMN_UNKNOWN',
+          `Column "${colName}" not found in scope for groupBy`,
+          { meta: { column: colName } },
+        );
       return IdentifierRef.of(colName);
     });
   }
@@ -386,7 +404,7 @@ export function resolveGroupBy(
     return [result.buildAst()];
   }
 
-  throw new Error('Invalid groupBy arguments');
+  throw structuredError('ORM.ARGUMENT_INVALID', 'Invalid groupBy arguments');
 }
 
 export function resolveDistinctOn(
@@ -404,7 +422,11 @@ export function resolveDistinctOn(
   const combined = orderByScopeOf(scope, rowFields);
   return (args as string[]).map((colName) => {
     if (!(colName in combined.topLevel))
-      throw new Error(`Column "${colName}" not found in scope for distinctOn`);
+      throw structuredError(
+        'ORM.COLUMN_UNKNOWN',
+        `Column "${colName}" not found in scope for distinctOn`,
+        { meta: { column: colName } },
+      );
     return IdentifierRef.of(colName);
   });
 }

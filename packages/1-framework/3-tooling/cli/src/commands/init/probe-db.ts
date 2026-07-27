@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import { CliStructuredError } from '@prisma-next/errors/control';
 import { join } from 'pathe';
 import type { TargetId } from './templates/code-templates';
 
@@ -248,7 +249,10 @@ interface PgClient {
 export function parsePostgresVersion(versionString: string): string {
   const match = versionString.match(/PostgreSQL\s+(\d+(?:\.\d+)?)/i);
   if (match === null || match[1] === undefined) {
-    throw new Error(`Could not parse PostgreSQL version from \`${versionString}\``);
+    throw new CliStructuredError(
+      'CLI.INIT_PROBE_FAILED',
+      `Could not parse PostgreSQL version from \`${versionString}\``,
+    );
   }
   return match[1];
 }
@@ -275,7 +279,10 @@ async function defaultProbeMongo(
     const buildInfo = await client.db().admin().command({ buildInfo: 1 });
     const versionString = String(buildInfo.version ?? '');
     if (versionString.length === 0) {
-      throw new Error('buildInfo did not include a `version` field');
+      throw new CliStructuredError(
+        'CLI.INIT_PROBE_FAILED',
+        'buildInfo did not include a `version` field',
+      );
     }
     return { serverVersion: versionString };
   } finally {

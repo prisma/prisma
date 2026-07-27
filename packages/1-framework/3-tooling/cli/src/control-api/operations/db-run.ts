@@ -24,6 +24,7 @@ import {
 } from '@prisma-next/migration-tools/aggregate';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { notOk, ok } from '@prisma-next/utils/result';
 import { CliStructuredError } from '../../utils/cli-errors';
 import {
@@ -200,7 +201,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // `destination` is the storage hash users see in CLI output.
   const appResolution = orderedResolutions.find((r) => r.spaceId === aggregate.app.spaceId);
   if (!appResolution) {
-    throw new Error(
+    throw new InternalError(
       'Aggregate planner returned no plan for the app space — the planner is supposed to always emit one.',
     );
   }

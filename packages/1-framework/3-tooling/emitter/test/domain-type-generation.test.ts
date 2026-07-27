@@ -7,6 +7,7 @@ import { crossRef } from '@prisma-next/contract/types';
 import type { Codec, CodecLookup } from '@prisma-next/framework-components/codec';
 import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
 import { blindCast } from '@prisma-next/utils/casts';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
 import {
   deduplicateImports,
@@ -355,16 +356,22 @@ describe('generateModelRelationsType', () => {
     expect(result).toBe('Record<string, never>');
   });
 
-  it('throws when relation has on but missing localFields/targetFields', () => {
-    expect(() =>
+  it('throws CONTRACT.RELATION_INVALID when relation has on but missing localFields/targetFields', () => {
+    let thrown: unknown;
+    try {
       generateModelRelationsType({
         author: {
           to: 'User',
           cardinality: 'N:1',
           on: { parentCols: ['userId'], childCols: ['id'] },
         },
-      }),
-    ).toThrow('missing localFields or targetFields');
+      });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({ code: 'CONTRACT.RELATION_INVALID' });
+    expect((thrown as Error).message).toContain('missing localFields or targetFields');
   });
 
   it('emits never for a cross-space relation (Option B non-navigable)', () => {

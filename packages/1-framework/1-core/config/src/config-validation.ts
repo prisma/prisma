@@ -1,8 +1,9 @@
+import { configError } from './config-errors';
 import type { PrismaNextConfig } from './config-types';
-import { ConfigValidationError } from './errors';
 
 function throwValidation(field: string, why?: string): never {
-  throw new ConfigValidationError(field, why);
+  const message = why ?? `Config must have a "${field}" field`;
+  throw configError('CONFIG.VALIDATION_FAILED', message, { why: message, meta: { field } });
 }
 
 function validateContractConfig(contract: Record<string, unknown>): void {
@@ -54,7 +55,7 @@ function validateContractConfig(contract: Record<string, unknown>): void {
  * This is pure validation logic with no file I/O or CLI awareness.
  *
  * @param config - Config object to validate
- * @throws ConfigValidationError if config structure is invalid
+ * @throws a `CONFIG.VALIDATION_FAILED` structured error if config structure is invalid
  */
 export function validateConfig(config: unknown): asserts config is PrismaNextConfig {
   if (!config || typeof config !== 'object') {

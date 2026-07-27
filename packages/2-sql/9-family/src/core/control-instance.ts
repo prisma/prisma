@@ -44,6 +44,8 @@ import type {
 import type { SqlSchemaIRNode, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import type { StructuredError } from '@prisma-next/utils/structured-error';
 import type { SqlControlAdapter } from './control-adapter';
 import type {
   SqlControlTargetDescriptor,
@@ -54,6 +56,7 @@ import {
   classifyDiffSubjectGranularity,
   verifySqlSchemaByDiff,
 } from './diff/schema-verify';
+import { sqlFamilyError } from './errors';
 import { SqlContractSerializer } from './ir/sql-contract-serializer';
 import type { SqlSchemaDiffFn } from './migrations/schema-differ';
 import type {
@@ -62,6 +65,18 @@ import type {
 } from './migrations/types';
 import { sqlOperationsToPreview } from './operation-preview';
 import { collectSupportedCodecTypeIds } from './verify';
+
+function missingDescriptorOperationError(targetId: string, operation: string): StructuredError {
+  return sqlFamilyError(
+    'CONTRACT.PACK_CONTRIBUTION_INVALID',
+    `SQL target "${targetId}" is missing the required ${operation} descriptor operation`,
+    {
+      why: `The target descriptor does not contribute the ${operation} operation the SQL family requires for this call.`,
+      fix: `Use a target package whose control descriptor implements ${operation}.`,
+      meta: { targetId, operation },
+    },
+  );
+}
 
 function extractCodecTypeIdsFromContract(contract: unknown): readonly string[] {
   const typeIds = new Set<string>();
@@ -475,8 +490,14 @@ export function assertNoCrossSpaceFkReverseReferences(
             // Check if targetSpaceId depends on ext.id (directly or transitively)
             const targetDeps = dependsOnMap.get(targetSpaceId);
             if (targetDeps?.has(ext.id)) {
-              throw new Error(
+              throw sqlFamilyError(
+                'CONTRACT.FOREIGN_KEY_INVALID',
                 `Cross-space FK reverse-reference detected: extension "${ext.id}" has a cross-space FK targeting space "${targetSpaceId}", but "${targetSpaceId}" depends on "${ext.id}". Cross-space FKs must follow the dependency direction (a space can only reference spaces it depends on, not spaces that depend on it).`,
+                {
+                  why: 'The foreign key points against the contract-space dependency direction.',
+                  fix: 'Move the foreign key to the depending space, or restructure the extension dependencies so the referencing space depends on the referenced one.',
+                  meta: { extensionId: ext.id, targetSpaceId },
+                },
               );
             }
           }
@@ -490,7 +511,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
   stack: ControlStack<'sql', TTargetId>,
 ): SqlFamilyInstance {
   if (!stack.adapter) {
-    throw new Error('SQL family requires an adapter descriptor in ControlStack');
+    throw new InternalError('SQL family requires an adapter descriptor in ControlStack');
   }
 
   const target = stack.target as unknown as TargetDescriptor<'sql', TTargetId> &
@@ -758,14 +779,10 @@ export function createSqlFamilyInstance<TTargetId extends string>(
     }): VerifyDatabaseSchemaResult {
       const contract = deserializeWithTargetSerializer(options.contract) as Contract<SqlStorage>;
       if (!diffSchema) {
-        throw new Error(
-          `SQL target "${target.targetId}" is missing the required diffSchema descriptor operation`,
-        );
+        throw missingDescriptorOperationError(target.targetId, 'diffSchema');
       }
       if (!targetGranularityOf) {
-        throw new Error(
-          `SQL target "${target.targetId}" is missing the required classifySubjectGranularity descriptor operation`,
-        );
+        throw missingDescriptorOperationError(target.targetId, 'classifySubjectGranularity');
       }
       // THE VERDICT: the target's full-tree node diff, graded by the
       // family's post-diff filters (strict gating + control-policy
@@ -792,9 +809,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
      */
     classifySubjectGranularity(issue: SchemaDiffIssue): DiffSubjectGranularity | undefined {
       if (!targetGranularityOf) {
-        throw new Error(
-          `SQL target "${target.targetId}" is missing the required classifySubjectGranularity descriptor operation`,
-        );
+        throw missingDescriptorOperationError(target.targetId, 'classifySubjectGranularity');
       }
       return classifyDiffSubjectGranularity(issue, targetGranularityOf);
     },
@@ -807,9 +822,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
      */
     classifyEntityKind(issue: SchemaDiffIssue): string | undefined {
       if (!targetEntityKindOf) {
-        throw new Error(
-          `SQL target "${target.targetId}" is missing the required classifyEntityKind descriptor operation`,
-        );
+        throw missingDescriptorOperationError(target.targetId, 'classifyEntityKind');
       }
       return classifyDiffEntityKind(issue, targetEntityKindOf);
     },
@@ -872,7 +885,15 @@ export function createSqlFamilyInstance<TTargetId extends string>(
             },
           );
           if (!updated) {
-            throw new Error('CAS conflict: marker was modified by another process during sign');
+            throw sqlFamilyError(
+              'MIGRATION.MARKER_CAS_FAILURE',
+              'CAS conflict: marker was modified by another process during sign',
+              {
+                why: 'Another process updated the contract marker between the read and the compare-and-swap write.',
+                fix: 'Re-run the sign command; if it keeps failing, make sure only one migration process runs at a time.',
+                meta: { space: APP_SPACE_ID },
+              },
+            );
           }
           markerUpdated = true;
         }
@@ -983,8 +1004,14 @@ export function createSqlFamilyInstance<TTargetId extends string>(
 
     inferPslContract(schemaIR: SqlSchemaIRNode): PslDocumentAst {
       if (!targetInferPslContract) {
-        throw new Error(
+        throw sqlFamilyError(
+          'CONTRACT.INFER_UNSUPPORTED',
           `Target "${target.targetId}" does not support contract infer (no inferPslContract on its descriptor).`,
+          {
+            why: 'The target descriptor does not provide the inferPslContract hook, so a PSL contract cannot be inferred from the database schema.',
+            fix: 'Use a target package that supports contract infer, or author the contract instead of inferring it.',
+            meta: { targetId: target.targetId },
+          },
         );
       }
       return targetInferPslContract(schemaIR, describedContracts);

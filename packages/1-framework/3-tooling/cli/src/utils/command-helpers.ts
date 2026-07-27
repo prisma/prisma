@@ -8,7 +8,7 @@ import { APP_SPACE_ID, spaceMigrationDirectory } from '@prisma-next/migration-to
 import { ifDefined } from '@prisma-next/utils/defined';
 import type { Command } from 'commander';
 import { relative, resolve } from 'pathe';
-import { errorRuntime } from './cli-errors';
+import { CliStructuredError, errorRuntime } from './cli-errors';
 import { formatCommandHelp } from './formatters/help';
 import type { CommonCommandOptions } from './global-flags';
 import { parseGlobalFlags } from './global-flags';
@@ -263,21 +263,31 @@ export async function readContractEnvelope(config: {
   const storageHash = storage?.['storageHash'];
 
   if (typeof storageHash !== 'string') {
-    throw new Error(
+    throw new CliStructuredError(
+      'CONTRACT.VALIDATION_FAILED',
       `Contract at ${relative(process.cwd(), contractPath)} is missing a valid storage.storageHash. Run \`prisma-next contract emit\` to regenerate.`,
+      { where: { path: contractPath } },
     );
   }
   if (typeof schemaVersion !== 'string') {
-    throw new Error(
+    throw new CliStructuredError(
+      'CONTRACT.VALIDATION_FAILED',
       `Contract at ${relative(process.cwd(), contractPath)} is missing schemaVersion.`,
+      { where: { path: contractPath } },
     );
   }
   if (typeof target !== 'string') {
-    throw new Error(`Contract at ${relative(process.cwd(), contractPath)} is missing target.`);
+    throw new CliStructuredError(
+      'CONTRACT.VALIDATION_FAILED',
+      `Contract at ${relative(process.cwd(), contractPath)} is missing target.`,
+      { where: { path: contractPath } },
+    );
   }
   if (typeof targetFamily !== 'string') {
-    throw new Error(
+    throw new CliStructuredError(
+      'CONTRACT.VALIDATION_FAILED',
       `Contract at ${relative(process.cwd(), contractPath)} is missing targetFamily.`,
+      { where: { path: contractPath } },
     );
   }
 

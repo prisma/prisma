@@ -18,6 +18,7 @@ import {
 import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
 import type { MutationDefaultsOp } from '@prisma-next/sql-relational-core/query-lane-context';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import type { Expression, ExpressionBuilder } from '../expression';
 import type { ResolveRow } from '../resolve';
 import type { QueryContext, Scope, ScopeField } from '../scope';
@@ -205,7 +206,10 @@ export class InsertQueryImpl<
       const newRowFields: Record<string, ScopeField> = {};
       for (const col of columns) {
         const field = this.#scope.topLevel[col];
-        if (!field) throw new Error(`Column "${col}" not found in scope`);
+        if (!field)
+          throw structuredError('ORM.COLUMN_UNKNOWN', `Column "${col}" not found in scope`, {
+            meta: { column: col },
+          });
         newRowFields[col] = field;
       }
       return new InsertQueryImpl(
@@ -250,7 +254,10 @@ export class InsertQueryImpl<
 
   build(): SqlQueryPlan<ResolveRow<RowType, QC['codecTypes'], QC['resolvedColumnOutputTypes']>> {
     if (this.#rows.length === 0) {
-      throw new Error('insert() called with an empty row array — at least one row is required');
+      throw structuredError(
+        'ORM.MUTATION_DATA_MISSING',
+        'insert() called with an empty row array — at least one row is required',
+      );
     }
 
     const paramRows = this.#rows.map((rowValues) =>
@@ -341,7 +348,10 @@ export class UpdateQueryImpl<
       const newRowFields: Record<string, ScopeField> = {};
       for (const col of columns) {
         const field = this.#scope.topLevel[col];
-        if (!field) throw new Error(`Column "${col}" not found in scope`);
+        if (!field)
+          throw structuredError('ORM.COLUMN_UNKNOWN', `Column "${col}" not found in scope`, {
+            meta: { column: col },
+          });
         newRowFields[col] = field;
       }
       return new UpdateQueryImpl(
@@ -453,7 +463,10 @@ export class DeleteQueryImpl<
       const newRowFields: Record<string, ScopeField> = {};
       for (const col of columns) {
         const field = this.#scope.topLevel[col];
-        if (!field) throw new Error(`Column "${col}" not found in scope`);
+        if (!field)
+          throw structuredError('ORM.COLUMN_UNKNOWN', `Column "${col}" not found in scope`, {
+            meta: { column: col },
+          });
         newRowFields[col] = field;
       }
       return new DeleteQueryImpl(

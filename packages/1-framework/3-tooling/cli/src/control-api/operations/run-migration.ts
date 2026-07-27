@@ -12,6 +12,7 @@ import type {
 } from '@prisma-next/framework-components/control';
 import type { ContractSpaceAggregate, PerSpacePlan } from '@prisma-next/migration-tools/aggregate';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { notOk, ok, type Result } from '@prisma-next/utils/result';
 import type { OnControlProgress, PerSpaceExecutionEntry } from '../types';
 
@@ -243,7 +244,7 @@ export function collectOrdered(
   return applyOrder.map((spaceId) => {
     const entry = perSpace.get(spaceId);
     if (!entry) {
-      throw new Error(`planner output missing per-space plan for "${spaceId}"`);
+      throw new InternalError(`planner output missing per-space plan for "${spaceId}"`);
     }
     return { spaceId, entry };
   });

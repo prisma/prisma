@@ -10,10 +10,10 @@ import {
 } from '@prisma-next/framework-components/control';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { Command } from 'commander';
 import { relative, resolve } from 'pathe';
 import { createControlClient } from '../control-api/client';
-import { ContractValidationError } from '../control-api/errors';
 import {
   CliStructuredError,
   errorContractValidationFailed,
@@ -275,7 +275,7 @@ async function resolveVerifySetup(
   try {
     contractJson = familyInstance.deserializeContract(JSON.parse(contractJsonContent) as unknown);
   } catch (error) {
-    if (error instanceof ContractValidationError) {
+    if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
       return notOk(
         errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
           where: { path: contractPathAbsolute },
@@ -330,7 +330,7 @@ function wrapVerifyError(
   if (CliStructuredError.is(error)) {
     return notOk(error);
   }
-  if (error instanceof ContractValidationError) {
+  if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
     return notOk(
       errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
         where: { path: contractPathAbsolute },
