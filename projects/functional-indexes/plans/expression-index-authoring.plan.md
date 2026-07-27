@@ -14,9 +14,9 @@
 
 **Outcome:** PSL `@@index` accepts the matrix with optional `fields`, the three span-anchored diagnostics exist with their exact codes (via the contributed-code seam: `leafDiagnostic` optional code param, family-neutral widening of `PslDiagnostic.code`, codes defined in `contract-psl`), and the interpreter threads the fields; TS `constraints.index` gains the expression overload + `map`/`where`/`unique` options and `contract-lowering` threads them; SQLite target rejects expression/where at lowering with a clear error; PSL/TS parity test pins identical IR for matrix inputs; `@@unique`/`constraints.unique` byte-unchanged. Stop-condition: the framework type change spreading beyond `psl-ast.ts` + `diagnostic.ts`, or `lint:framework-vocabulary` red.
 
-**Builds on:** dispatch 1's lowering. **Hands to:** the ciphers index authorable on both surfaces.
+**Builds on:** dispatch 1's lowering. **Hands to:** the Cipherstash index authorable on both surfaces.
 
-### 3 — Scenario rows + ciphers e2e + docs
+### 3 — Scenario rows + Cipherstash e2e + docs
 
 **Outcome:** DoD-1 e2e rewritten to PSL + TS authored fixtures (factory fixture deleted); scenario-row tests B, D, E, G, H green as named in the spec; authoring docs updated; upgrade-skill entries for the new surface recorded; full gate green including the four late-discovered commands.
 

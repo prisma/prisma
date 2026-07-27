@@ -15,7 +15,7 @@ Each slice is named for what a developer can **rely on** when it merges. Slice n
 | # | Slice | Delivers | Depends on | Status |
 | --- | --- | --- | --- | --- |
 | 1 | `indexes-are-name-identified` | Every index node (declared and FK-backing, unique indexes included; unique *constraints* stay tuple-identified — spec D5) is name-identified with managed wire names; introspection is full-fidelity (expression/partial capture, skip+dedup hacks deleted); planner renders expression DDL; both rename-pairing phases work; existing databases converge via renames (scenario I). No new authoring surface yet. | 0 | ⬜ |
-| 2 | `expression-index-authoring` | Ciphers can author their index: `@@index` expression/where/unique/name/map matrix in PSL + TS with exact diagnostics and the D9 warning; DoD-1 e2e green (scenarios B, D, E, G, H, J). | 1 | ⬜ |
+| 2 | `expression-index-authoring` | Cipherstash can author their index: `@@index` expression/where/unique/name/map matrix in PSL + TS with exact diagnostics and the D9 warning; DoD-1 e2e green (scenarios B, D, E, G, H, J). | 1 | ⬜ |
 | 3 | `rls-exact-names` | Policies adoptable: `@@map` on policy blocks, optional `prefix`, exact-policy content comparison, policy content-pairing rename (scenarios C, F for policies). TS policy authoring does not exist; its `map` lands with that future work (spec § Dependencies). | 1 | ⬜ |
 | 4 | `infer-round-trip` | `contract infer` emits policies, `@@rls`, and full-fidelity indexes with managed re-detection; sign-the-database e2e (DoD-2), transition e2e (DoD-3), upgrade e2e (DoD-4) all green. | 2, 3 | ⬜ |
 
@@ -36,7 +36,7 @@ The identity switch, done entirely beneath the authoring surface (existing `@@in
 
 - D3 for `@@index`/`constraints.index`: parameter matrix, three PSL diagnostics, TS overloads with lowering-time enforcement, PSL/TS parity test (`@@unique`/`constraints.unique` unchanged — spec D3).
 - D9 warning with the exact spec wording.
-- DoD-1 ciphers e2e (PSL and TS variants); scenario-row tests B, D, E, G, H.
+- DoD-1 Cipherstash e2e (PSL and TS variants); scenario-row tests B, D, E, G, H.
 
 ### 3 — `rls-exact-names`
 
