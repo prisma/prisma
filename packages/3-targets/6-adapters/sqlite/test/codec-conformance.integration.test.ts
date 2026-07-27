@@ -7,14 +7,20 @@
  * entry behind in the work list.
  */
 
-import { DatabaseSync } from 'node:sqlite';
+import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { sqliteConformanceCases } from './codec-conformance/cases';
 import type { ConformanceConnection } from './codec-conformance/harness';
 import { runSqliteCodecProjection } from './codec-conformance/harness';
 
-type SqliteParam = Parameters<ReturnType<DatabaseSync['prepare']>['all']>[number];
+/** Widens a codec wire value to what `node:sqlite` binds as a positional parameter. */
+function toSqliteParam(wire: unknown): SQLInputValue {
+  if (wire === null) return null;
+  if (typeof wire === 'number' || typeof wire === 'bigint' || typeof wire === 'string') return wire;
+  if (wire instanceof Uint8Array) return wire;
+  throw new Error(`No SQLite parameter binding for a wire value of type ${typeof wire}.`);
+}
 
 describe.sequential('SQLite codec JSON-projection conformance', () => {
   let database: DatabaseSync | undefined;
@@ -24,7 +30,7 @@ describe.sequential('SQLite codec JSON-projection conformance', () => {
     database = new DatabaseSync(':memory:');
     connection = {
       query: async (sql, params) =>
-        database!.prepare(sql).all(...((params ?? []) as readonly SqliteParam[])),
+        database!.prepare(sql).all(...(params ?? []).map(toSqliteParam)),
     };
   });
 
