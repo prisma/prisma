@@ -227,11 +227,13 @@ function lowerRlsPolicyFromBlock(
   const mapAttr = block.blockAttributes.find((a) => a.name === 'map');
   if (mapAttr) {
     const rawArg = mapAttr.args[0]?.value;
-    const exactName = rawArg !== undefined ? unwrapQuotedString(rawArg) : undefined;
-    if (exactName === undefined) {
+    const isQuoted =
+      rawArg !== undefined && rawArg.startsWith('"') && rawArg.endsWith('"') && rawArg.length >= 2;
+    const exactName = isQuoted ? unwrapQuotedString(rawArg) : undefined;
+    if (exactName === undefined || exactName === '') {
       ctx.diagnostics?.push({
         code: 'PSL_POLICY_INVALID_MAP',
-        message: `\`${block.keyword}\` policy "${block.name}" @@map attribute must have a quoted policy-name argument`,
+        message: `\`${block.keyword}\` policy "${block.name}" @@map attribute must have a quoted, non-empty policy-name argument`,
         sourceId: ctx.sourceId ?? 'unknown',
         span: mapAttr.span,
       });

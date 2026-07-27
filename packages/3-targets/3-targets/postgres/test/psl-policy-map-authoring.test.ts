@@ -209,7 +209,53 @@ policy_select p_read {
       expect.objectContaining({
         code: 'PSL_POLICY_INVALID_MAP',
         message:
-          '`policy_select` policy "p_read" @@map attribute must have a quoted policy-name argument',
+          '`policy_select` policy "p_read" @@map attribute must have a quoted, non-empty policy-name argument',
+        span: expect.anything(),
+      }),
+    );
+  });
+
+  it('an unquoted @@map(foo) argument is PSL_POLICY_INVALID_MAP and the policy is skipped', () => {
+    const result = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target = profile
+    roles  = [app_user]
+    using  = "owner_id = 1"
+    @@map(foo)
+  }
+`),
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'PSL_POLICY_INVALID_MAP',
+        message:
+          '`policy_select` policy "p_read" @@map attribute must have a quoted, non-empty policy-name argument',
+        span: expect.anything(),
+      }),
+    );
+  });
+
+  it('an empty @@map("") argument is PSL_POLICY_INVALID_MAP — an empty string is not a legal physical name', () => {
+    const result = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target = profile
+    roles  = [app_user]
+    using  = "owner_id = 1"
+    @@map("")
+  }
+`),
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'PSL_POLICY_INVALID_MAP',
+        message:
+          '`policy_select` policy "p_read" @@map attribute must have a quoted, non-empty policy-name argument',
         span: expect.anything(),
       }),
     );
