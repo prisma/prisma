@@ -1,3 +1,4 @@
+import { Debug } from '@prisma/debug'
 import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 import type { SqlCommenterPlugin, SqlCommenterQueryInfo } from '@prisma/sqlcommenter'
 import { klona } from 'klona'
@@ -26,6 +27,8 @@ import { evaluateArg, renderQuery } from './render-query'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeRawSql, serializeSql } from './serialize-sql'
 import { doesSatisfyRule, performValidation } from './validation'
+
+const debug = Debug('prisma:client:queryInterpreter')
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
@@ -170,46 +173,50 @@ export class QueryInterpreter {
       case 'execute': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
 
-        let sum = 0
-        for (const query of queries) {
-          const commentedQuery = applyComments(query, context.sqlCommenter)
-          sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
-              .executeRaw(cloneObject(commentedQuery))
-              .catch((err) =>
-                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
-              ),
-          )
-        }
+        return this.#withChunkTransaction(queries.length, context, async (context) => {
+          let sum = 0
+          for (const query of queries) {
+            const commentedQuery = applyComments(query, context.sqlCommenter)
+            sum += await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
+              context.queryable
+                .executeRaw(cloneObject(commentedQuery))
+                .catch((err) =>
+                  node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
+                ),
+            )
+          }
 
-        return { value: sum }
+          return { value: sum }
+        })
       }
 
       case 'query': {
         const queries = renderQuery(node.args, context.scope, context.generators, this.#maxChunkSize())
 
-        let results: SqlResultSet | undefined
-        for (const query of queries) {
-          const commentedQuery = applyComments(query, context.sqlCommenter)
-          const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
-            context.queryable
-              .queryRaw(cloneObject(commentedQuery))
-              .catch((err) =>
-                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
-              ),
-          )
-          if (results === undefined) {
-            results = result
-          } else {
-            appendToArray(results.rows, result.rows)
-            results.lastInsertId = result.lastInsertId
+        return this.#withChunkTransaction(queries.length, context, async (context) => {
+          let results: SqlResultSet | undefined
+          for (const query of queries) {
+            const commentedQuery = applyComments(query, context.sqlCommenter)
+            const result = await this.#withQuerySpanAndEvent(commentedQuery, context.queryable, () =>
+              context.queryable
+                .queryRaw(cloneObject(commentedQuery))
+                .catch((err) =>
+                  node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
+                ),
+            )
+            if (results === undefined) {
+              results = result
+            } else {
+              appendToArray(results.rows, result.rows)
+              results.lastInsertId = result.lastInsertId
+            }
           }
-        }
 
-        return {
-          value: node.args.type === 'rawSql' ? this.#rawSerializer(results!) : this.#serializer(results!),
-          lastInsertId: results?.lastInsertId,
-        }
+          return {
+            value: node.args.type === 'rawSql' ? this.#rawSerializer(results!) : this.#serializer(results!),
+            lastInsertId: results?.lastInsertId,
+          }
+        })
       }
 
       case 'reverse': {
@@ -259,21 +266,7 @@ export class QueryInterpreter {
       }
 
       case 'transaction': {
-        if (!context.transactionManager.enabled) {
-          return this.interpretNode(node.args, context)
-        }
-
-        const transactionManager = context.transactionManager.manager
-        const transactionInfo = await transactionManager.startInternalTransaction()
-        const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
-        try {
-          const value = await this.interpretNode(node.args, { ...context, queryable: transaction })
-          await transactionManager.commitTransaction(transactionInfo.id)
-          return value
-        } catch (e) {
-          await transactionManager.rollbackTransaction(transactionInfo.id)
-          throw e
-        }
+        return this.#withInternalTransaction(context, (context) => this.interpretNode(node.args, context))
       }
 
       case 'dataMap': {
@@ -504,6 +497,60 @@ export class QueryInterpreter {
 
       default:
         assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
+    }
+  }
+
+  /**
+   * Runs the statements of a `query` or `execute` node via `fn`, wrapping them in a
+   * transaction when a chunkable statement was split into multiple queries at render time,
+   * so that a partially applied write cannot be observed or left behind if a later chunk
+   * fails. A single statement is atomic on its own, so it runs on the current context.
+   */
+  #withChunkTransaction<T>(
+    statementCount: number,
+    context: QueryRuntimeContext,
+    fn: (context: QueryRuntimeContext) => Promise<T>,
+  ): Promise<T> {
+    if (statementCount <= 1) {
+      return fn(context)
+    }
+    return this.#withInternalTransaction(context, fn)
+  }
+
+  /**
+   * Runs `fn` with a context whose queryable is guaranteed to be a transaction, starting a
+   * new internal transaction and committing or rolling it back around the call.
+   *
+   * A disabled transaction manager means the queryable already is a transaction: executors
+   * pass `{ enabled: false }` when the plan runs inside an interactive transaction, and the
+   * context handed to `fn` carries it for the duration of an internal transaction. In that
+   * case `fn` runs on the current context, since the statements it issues are already
+   * covered by the surrounding transaction.
+   */
+  async #withInternalTransaction<T>(
+    context: QueryRuntimeContext,
+    fn: (context: QueryRuntimeContext) => Promise<T>,
+  ): Promise<T> {
+    if (!context.transactionManager.enabled) {
+      return fn(context)
+    }
+
+    const transactionManager = context.transactionManager.manager
+    const transactionInfo = await transactionManager.startInternalTransaction()
+    const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
+
+    try {
+      const result = await fn({ ...context, queryable: transaction, transactionManager: { enabled: false } })
+      await transactionManager.commitTransaction(transactionInfo.id)
+      return result
+    } catch (e) {
+      try {
+        await transactionManager.rollbackTransaction(transactionInfo.id)
+      } catch (rollbackError) {
+        // Rethrow the error that caused the rollback rather than the rollback failure itself.
+        debug('failed to roll back an internal transaction', rollbackError)
+      }
+      throw e
     }
   }
 
