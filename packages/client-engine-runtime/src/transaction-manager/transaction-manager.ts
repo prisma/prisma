@@ -461,22 +461,33 @@ export class TransactionManager {
   #startTransactionTimeout(transactionId: string, timeout: number | undefined): NodeJS.Timeout | undefined {
     const timeoutStartedAt = Date.now()
     const timer = createTimeoutIfDefined(async () => {
-      debug('Transaction timed out.', { transactionId, timeoutStartedAt, timeout })
+      // The timer callback's returned promise is not awaited by anyone, so any rejection from
+      // the rollback chain below (e.g. the adapter failing to send ROLLBACK on a connection the
+      // database already killed) would otherwise surface as an unhandled rejection and crash the
+      // process — outside the user's try/catch around $transaction. By the time the timeout fires
+      // the transaction is over by definition and the user can no longer act on it, so we swallow
+      // the failure here after logging it. Subsequent queries on the same transaction handle still
+      // reject cleanly via the expired-transaction path.
+      try {
+        debug('Transaction timed out.', { transactionId, timeoutStartedAt, timeout })
 
-      const tx = this.transactions.get(transactionId)
-      if (!tx) {
-        this.#debugTransactionAlreadyClosedOnTimeout(transactionId)
-        return
-      }
-
-      await this.#runSerialized(tx, async () => {
-        const current = this.transactions.get(transactionId)
-        if (current && ['running', 'waiting'].includes(current.status)) {
-          await this.#closeTransaction(current, 'timed_out')
-        } else {
+        const tx = this.transactions.get(transactionId)
+        if (!tx) {
           this.#debugTransactionAlreadyClosedOnTimeout(transactionId)
+          return
         }
-      })
+
+        await this.#runSerialized(tx, async () => {
+          const current = this.transactions.get(transactionId)
+          if (current && ['running', 'waiting'].includes(current.status)) {
+            await this.#closeTransaction(current, 'timed_out')
+          } else {
+            this.#debugTransactionAlreadyClosedOnTimeout(transactionId)
+          }
+        })
+      } catch (error) {
+        debug('Error while closing timed-out transaction.', { transactionId, error })
+      }
     }, timeout)
 
     timer?.unref?.()

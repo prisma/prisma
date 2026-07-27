@@ -1,9 +1,16 @@
-import { execaCommand } from 'execa'
+import path from 'node:path'
 
 import { DbSeed } from '../commands/DbSeed'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
+
+// `node --loader ts-node/esm` resolves the loader, and TypeScript resolves
+// ambient types, relative to the directory the seed command runs in. Link the
+// copies this repository already pins into the fixture: Node follows a link to
+// its real path before looking up a package's own dependencies, so ts-node
+// finds TypeScript in the store as usual.
+const packageDir = (name: string) => path.dirname(require.resolve(`${name}/package.json`))
 
 describe('seed', () => {
   describe('from prisma.config.ts', () => {
@@ -109,9 +116,8 @@ describe('seed', () => {
 
     it('seed.ts - ESM', async () => {
       ctx.fixture('seed-from-prisma-config/seed-sqlite-ts-esm')
-
-      // Needs ts-node to be installed
-      await execaCommand('npm i')
+      ctx.fs.symlink(packageDir('ts-node'), path.join(ctx.fs.cwd(), 'node_modules', 'ts-node'))
+      ctx.fs.symlink(packageDir('@types/node'), path.join(ctx.fs.cwd(), 'node_modules', '@types', 'node'))
 
       const result = DbSeed.new().parse([], await ctx.config())
       await expect(result).resolves.toContain(`The seed command has been executed.`)
@@ -120,9 +126,7 @@ describe('seed', () => {
         "
       `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-
-      // "high" number since `npm install` can sometimes be very slow
-    }, 60_000)
+    })
 
     it('seed.sh', async () => {
       ctx.fixture('seed-from-prisma-config/seed-sqlite-sh')
