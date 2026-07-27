@@ -3,6 +3,24 @@
 **Slice spec:** [`spec.md`](./spec.md)
 **Linear:** [TML-3100](https://linear.app/prisma-company/issue/TML-3100/target-json-projection-implementations-and-conformance-harness)
 
+## Validation gate
+
+Every dispatch in this slice runs this gate; all commands must pass before the dispatch is done. Operator-confirmed 2026-07-27.
+
+```bash
+pnpm typecheck
+pnpm lint:deps
+pnpm test --filter @prisma-next/target-postgres \
+          --filter @prisma-next/target-sqlite \
+          --filter @prisma-next/adapter-postgres \
+          --filter @prisma-next/adapter-sqlite
+pnpm fixtures:check
+# AC-9 invariant: no production render path reaches projectJson()
+grep -rn 'projectJson' packages/*/*/*/src/ | grep -v codec-descriptor
+```
+
+`fixtures:check` and the `projectJson` grep are the gate's load-bearing half: they protect this slice's central invariant that nothing observable changes. The workspace-wide suite is deliberately excluded — its PostgreSQL integration tests fail under parallel contention and would put false red in front of every dispatch; the slice-DoD gate at PR-open runs it once, with failures re-checked in isolation before being believed.
+
 ## Shape
 
 Test-first, then judgment-before-fan-out. Dispatch 1 builds the oracle that every later dispatch is measured against. Dispatches 2, 3 and 6 make the format judgments in one canonical location each; dispatches 4, 5 and 7 fan the resolved idioms out mechanically. This ordering is the calibration's remedy for "mechanical fan-out + design judgment in one dispatch" — the judgment sites stay small enough for a reviewer to actually see.
