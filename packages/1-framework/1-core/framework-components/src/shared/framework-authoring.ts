@@ -195,12 +195,12 @@ export interface AuthoringWarning {
   readonly code: string;
   /** Full text emitted when the warning is itemized (group at or below the batch threshold). */
   readonly message: string;
-  /** Short subject label listed under a batched group summary (e.g. `policy "…"`). */
+  /** Short subject label listed under a batched group summary (e.g. `object "…"`). */
   readonly item: string;
   /**
    * Group summary text. An over-threshold group renders as
    * `"<count> <guidance>"` above the item lines, so this starts with the
-   * plural noun phrase (e.g. `objects use map: with a SQL body. …`).
+   * plural noun phrase (e.g. `objects use <feature>. <remediation>`).
    */
   readonly guidance: string;
 }
