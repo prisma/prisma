@@ -55,7 +55,7 @@ Notice three things that the rest of this document builds up. The argument value
 
 That same spec is what the language server reads. Because `onDelete` is declared as `oneOf(identifier('NoAction'), ...)`, the editor enumerates the alternatives' pinned values; because `fields` is declared as `list(fieldRef('self'))`, the editor knows each entry names a field of the model and can resolve it to a definition or find its other uses — none of which the interpreter's hand-written validation could ever expose.
 
-The design covers the full spectrum of the current attribute syntax with one exception, `@db.*` native types, which are not attributes on fields or models at all (see [Out of scope](#out-of-scope-db-native-types)).
+The design covers the full spectrum of the current field-, model-, and generic-block-level attribute syntax.
 
 ---
 
@@ -217,9 +217,9 @@ PSL's expression grammar supports native array and object literals recursively, 
 
 The benefit is uniform: a native literal is parsed by the PSL parser, so it carries real spans and diagnostics and supports editor completion, where a quoted-string-encoded list or map is opaque to all of that.
 
-## Out of scope: `@db.*` native types
+## Removed storage-type attribute channel
 
-`@db.*` (`@db.Uuid`, `@db.VarChar(255)`, …) is **not** an attribute on a field or a model, and so is outside this design. It is an attribute on a **named-type declaration**: an author writes `type Slug = String @db.VarChar(191)` and references `Slug` from a field. The named-type resolver handles `@db.*` through a dedicated path gated on `allowDbNativeType`, producing a storage descriptor (codec id, native type, type parameters) that fields inherit by type reference. Named-type-declaration attributes are a separate authoring surface from the field/model/block attributes this ADR specifies; a declarative spec for that surface is possible but is not addressed here.
+The former `@db.*` named-type attribute channel is removed. Storage types are authored only through type-position constructors: `@db.Uuid` becomes `Uuid`, and `@db.VarChar(191)` becomes `VarChar(191)`. Remaining source that uses the removed spelling receives an actionable diagnostic directing that rewrite. Because storage selection is no longer an attribute surface, this declarative attribute design needs no named-type exception. [ADR 241](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md) records the unified constructor channel.
 
 ---
 

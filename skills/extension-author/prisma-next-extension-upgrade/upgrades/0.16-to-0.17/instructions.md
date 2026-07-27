@@ -173,7 +173,7 @@ changes:
       anyMatch: true
   - id: postgres-native-types-move-to-type-position
     summary: |
-      PostgreSQL native storage types are now authored directly in PSL type position instead of with `@db.*` attributes. Rewrite `BaseType @db.Type` as `Type` and `BaseType @db.Type(args)` as `Type(args)` in extension schemas and test fixtures, then re-run contract emission. The supported translations are `@db.Char` → `Char`, `@db.VarChar` → `VarChar`, `@db.Numeric` → `Numeric`, `@db.Uuid` → `Uuid`, `@db.Inet` → `Inet`, `@db.SmallInt` → `SmallInt`, `@db.Real` → `Real`, `@db.Timestamp` → `Timestamp`, `@db.Timestamptz` → `Timestamptz`, `@db.Date` → `Date`, `@db.Time` → `Time`, and `@db.Timetz` → `Timetz`; preserve constructor arguments. Rewrite the old native-json spelling `Json @db.Json` as bare `Json`. This source migration preserves codec ids, native types, and supplied type parameters. Separately, apply the `postgres-json-rebound-to-native-json` entry below to old bare `Json` fields that meant jsonb storage.
+      PostgreSQL native storage types are authored directly in PSL type position, and the legacy `@db.*` attribute channel is removed. Rewrite `BaseType @db.Type` as `Type` and `BaseType @db.Type(args)` as `Type(args)` in extension schemas and test fixtures, then re-run contract emission. Any remaining `@db.X(args)` fails with `@db.X(args) is no longer supported; use X(args) in type position`, preserving the constructor name and arguments in the suggested replacement. The supported translations are `@db.Char` → `Char`, `@db.VarChar` → `VarChar`, `@db.Numeric` → `Numeric`, `@db.Uuid` → `Uuid`, `@db.Inet` → `Inet`, `@db.SmallInt` → `SmallInt`, `@db.Real` → `Real`, `@db.Timestamp` → `Timestamp`, `@db.Timestamptz` → `Timestamptz`, `@db.Date` → `Date`, `@db.Time` → `Time`, and `@db.Timetz` → `Timetz`; preserve constructor arguments. Rewrite the old native-json spelling `Json @db.Json` as bare `Json`. This source migration preserves native types and supplied type parameters. It also preserves codec ids except for `@db.Date` → `Date`, which rebinds `pg/timestamptz@1` to `pg/date@1`, changes the contract storage hash, and requires re-emission plus re-signing; see the `postgres-date-rebound-to-pg-date` entry below. Separately, apply the `postgres-json-rebound-to-native-json` entry below to old bare `Json` fields that meant jsonb storage.
     detection:
       glob: "**/*.prisma"
       contains:
@@ -189,10 +189,7 @@ changes:
       (e.g. over `collectScalarTypeConstructors(stack.authoringContributions.type)` or
       `stack.scalarTypes`) now expect `Json -> { codecId: 'pg/json@1', nativeType: 'json' }`
       plus the new `Jsonb -> { codecId: 'pg/jsonb@1', nativeType: 'jsonb' }` entry. PSL
-      value-object storage columns still emit jsonb (the interpreter now prefers the target's
-      `Jsonb` scalar and falls back to `Json`). The legacy `@db.Json` attribute path
-      (`NATIVE_TYPE_SPECS`) is unchanged, as are sqlite/mongo `Json` bindings and the TS
-      builder surface (`field.json()`, `jsonbColumn`).
+      value-object storage columns still emit jsonb (the interpreter now prefers the target's `Jsonb` scalar and falls back to `Json`). The removed `@db.Json` spelling must be rewritten from `Json @db.Json` to bare `Json`; any remaining use fails with migration guidance to use `Json` in type position. SQLite and Mongo `Json` bindings and the TS builder surface (`field.json()`, `jsonbColumn`) are unchanged.
     detection:
       glob: "**/*.{prisma,ts,mts,cts}"
       contains:
@@ -231,17 +228,7 @@ changes:
       anyMatch: true
   - id: postgres-date-rebound-to-pg-date
     summary: |
-      On the postgres target, PSL `date` columns re-bind from `pg/timestamptz@1` to the
-      dedicated `pg/date@1` codec on both spellings: the legacy `DateTime @db.Date` attribute
-      path (`NATIVE_TYPE_SPECS` in `@prisma-next/sql-contract-psl`) and the bare `Date` type
-      constructor (`postgresNativeAuthoringTypes` in `@prisma-next/adapter-postgres`). The
-      stored native type is unchanged (`date`). Extension assertions that pin the `Date`
-      constructor's derived binding — e.g. over
-      `collectScalarTypeConstructors(stack.authoringContributions.type)` or parity fixtures
-      interpreting `@db.Date` — now expect `Date -> { codecId: 'pg/date@1', nativeType: 'date' }`.
-      Extension test schemas and fixtures with `@db.Date` / `Date` columns produce a different
-      codec ref and contract storage hash on re-emit; regenerate committed contract artefacts
-      and update pinned hash or codec-ref literals. Runtime fixtures change shape too:
+      On the postgres target, the bare `Date` type constructor (`postgresNativeAuthoringTypes` in `@prisma-next/adapter-postgres`) re-binds from `pg/timestamptz@1` to the dedicated `pg/date@1` codec. Rewrite the removed `DateTime @db.Date` spelling as `Date`; leaving it unchanged now fails with migration guidance to use `Date` in type position. The stored native type is unchanged (`date`). Extension assertions over `collectScalarTypeConstructors(stack.authoringContributions.type)` now expect `Date -> { codecId: 'pg/date@1', nativeType: 'date' }`. Extension test schemas and fixtures with date columns produce a different codec ref and contract storage hash on re-emit; regenerate committed contract artefacts and update pinned hash or codec-ref literals. Runtime fixtures change shape too:
       `pg/date@1` canonicalizes the JS value as a `Date` at UTC midnight
       (`new Date(Date.UTC(y, m, d))`) instead of passing through the driver's local-midnight
       `Date`, and its JSON form is the bare `YYYY-MM-DD` string, so relation `.include()`

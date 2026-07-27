@@ -31,7 +31,6 @@ import type {
   FieldSymbol,
   ModelSymbol,
   PslSpan,
-  ResolvedAttribute,
   ResolvedTypeConstructorCall,
 } from '@prisma-next/psl-parser';
 import type { SourceFile } from '@prisma-next/psl-parser/syntax';
@@ -39,12 +38,7 @@ import type { SourceFile } from '@prisma-next/psl-parser/syntax';
 import { InternalError } from '@prisma-next/utils/internal-error';
 import { contractError } from './contract-errors';
 import { lowerDefaultFunctionWithRegistry } from './default-function-registry';
-import {
-  getPositionalArguments,
-  parseOptionalNumericArguments,
-  parseOptionalSingleIntegerArgument,
-  pushInvalidAttributeArgument,
-} from './psl-attribute-parsing';
+
 import { mapPslHelperArgs } from './psl-authoring-arguments';
 import {
   buildDefaultSpec,
@@ -695,190 +689,6 @@ export function resolveFieldTypeDescriptor(input: {
     return { ok: false, alreadyReported: false };
   }
   return { ok: true, descriptor };
-}
-
-/**
- * Declarative specification for @db.* native type attributes.
- *
- * Argument kinds:
- * - `noArgs`: No arguments accepted; `codecId: null` means inherit from baseDescriptor.
- * - `optionalLength`: Zero or one positional integer (minimum 1), stored as `{ length }`.
- * - `optionalPrecision`: Zero or one positional integer (minimum 0), stored as `{ precision }`.
- * - `optionalNumeric`: Zero, one, or two positional integers (precision + scale).
- */
-export type NativeTypeSpec =
-  | {
-      readonly args: 'noArgs';
-      readonly baseType: string;
-      readonly codecId: string | null;
-      readonly nativeType: string;
-    }
-  | {
-      readonly args: 'optionalLength';
-      readonly baseType: string;
-      readonly codecId: string;
-      readonly nativeType: string;
-    }
-  | {
-      readonly args: 'optionalPrecision';
-      readonly baseType: string;
-      readonly codecId: string;
-      readonly nativeType: string;
-    }
-  | {
-      readonly args: 'optionalNumeric';
-      readonly baseType: string;
-      readonly codecId: string;
-      readonly nativeType: string;
-    };
-
-export const NATIVE_TYPE_SPECS: Readonly<Record<string, NativeTypeSpec>> = {
-  'db.VarChar': {
-    args: 'optionalLength',
-    baseType: 'String',
-    codecId: 'sql/varchar@1',
-    nativeType: 'character varying',
-  },
-  'db.Char': {
-    args: 'optionalLength',
-    baseType: 'String',
-    codecId: 'sql/char@1',
-    nativeType: 'character',
-  },
-  'db.Uuid': { args: 'noArgs', baseType: 'String', codecId: 'pg/uuid@1', nativeType: 'uuid' },
-  'db.Inet': { args: 'noArgs', baseType: 'String', codecId: 'pg/inet@1', nativeType: 'inet' },
-  'db.SmallInt': { args: 'noArgs', baseType: 'Int', codecId: 'pg/int2@1', nativeType: 'int2' },
-  'db.Real': { args: 'noArgs', baseType: 'Float', codecId: 'pg/float4@1', nativeType: 'float4' },
-  'db.Numeric': {
-    args: 'optionalNumeric',
-    baseType: 'Decimal',
-    codecId: 'pg/numeric@1',
-    nativeType: 'numeric',
-  },
-  'db.Timestamp': {
-    args: 'optionalPrecision',
-    baseType: 'DateTime',
-    codecId: 'pg/timestamp@1',
-    nativeType: 'timestamp',
-  },
-  'db.Timestamptz': {
-    args: 'optionalPrecision',
-    baseType: 'DateTime',
-    codecId: 'pg/timestamptz@1',
-    nativeType: 'timestamptz',
-  },
-  'db.Date': { args: 'noArgs', baseType: 'DateTime', codecId: 'pg/date@1', nativeType: 'date' },
-  'db.Time': {
-    args: 'optionalPrecision',
-    baseType: 'DateTime',
-    codecId: 'pg/time@1',
-    nativeType: 'time',
-  },
-  'db.Timetz': {
-    args: 'optionalPrecision',
-    baseType: 'DateTime',
-    codecId: 'pg/timetz@1',
-    nativeType: 'timetz',
-  },
-  'db.Json': { args: 'noArgs', baseType: 'Json', codecId: 'pg/json@1', nativeType: 'json' },
-};
-
-export function resolveDbNativeTypeAttribute(input: {
-  readonly attribute: ResolvedAttribute;
-  readonly baseType: string;
-  readonly baseDescriptor: ColumnDescriptor;
-  readonly diagnostics: ContractSourceDiagnostic[];
-  readonly sourceId: string;
-  readonly entityLabel: string;
-}): ColumnDescriptor | undefined {
-  const spec = NATIVE_TYPE_SPECS[input.attribute.name];
-  if (!spec) {
-    input.diagnostics.push({
-      code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
-      message: `${input.entityLabel} uses unsupported attribute "@${input.attribute.name}"`,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-    });
-    return undefined;
-  }
-
-  if (input.baseType !== spec.baseType) {
-    return pushInvalidAttributeArgument({
-      diagnostics: input.diagnostics,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-      message: `${input.entityLabel} uses @${input.attribute.name} on unsupported base type "${input.baseType}". Expected "${spec.baseType}".`,
-    });
-  }
-
-  switch (spec.args) {
-    case 'noArgs': {
-      if (getPositionalArguments(input.attribute).length > 0 || input.attribute.args.length > 0) {
-        return pushInvalidAttributeArgument({
-          diagnostics: input.diagnostics,
-          sourceId: input.sourceId,
-          span: input.attribute.span,
-          message: `${input.entityLabel} @${input.attribute.name} does not accept arguments.`,
-        });
-      }
-      return {
-        codecId: spec.codecId ?? input.baseDescriptor.codecId,
-        nativeType: spec.nativeType,
-      };
-    }
-    case 'optionalLength': {
-      const length = parseOptionalSingleIntegerArgument({
-        attribute: input.attribute,
-        diagnostics: input.diagnostics,
-        sourceId: input.sourceId,
-        entityLabel: input.entityLabel,
-        minimum: 1,
-        valueLabel: 'positive integer length',
-      });
-      if (length === undefined) {
-        return undefined;
-      }
-      return {
-        codecId: spec.codecId,
-        nativeType: spec.nativeType,
-        ...(length === null ? {} : { typeParams: { length } }),
-      };
-    }
-    case 'optionalPrecision': {
-      const precision = parseOptionalSingleIntegerArgument({
-        attribute: input.attribute,
-        diagnostics: input.diagnostics,
-        sourceId: input.sourceId,
-        entityLabel: input.entityLabel,
-        minimum: 0,
-        valueLabel: 'non-negative integer precision',
-      });
-      if (precision === undefined) {
-        return undefined;
-      }
-      return {
-        codecId: spec.codecId,
-        nativeType: spec.nativeType,
-        ...(precision === null ? {} : { typeParams: { precision } }),
-      };
-    }
-    case 'optionalNumeric': {
-      const numeric = parseOptionalNumericArguments({
-        attribute: input.attribute,
-        diagnostics: input.diagnostics,
-        sourceId: input.sourceId,
-        entityLabel: input.entityLabel,
-      });
-      if (numeric === undefined) {
-        return undefined;
-      }
-      return {
-        codecId: spec.codecId,
-        nativeType: spec.nativeType,
-        ...(numeric === null ? {} : { typeParams: numeric }),
-      };
-    }
-  }
 }
 
 export function lowerDefaultForField(input: {

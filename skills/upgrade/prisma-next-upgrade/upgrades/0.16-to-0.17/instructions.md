@@ -182,7 +182,7 @@ changes:
       anyMatch: true
   - id: postgres-native-types-move-to-type-position
     summary: |
-      PostgreSQL native storage types are now authored directly in PSL type position instead of with `@db.*` attributes. Rewrite `BaseType @db.Type` as `Type` and `BaseType @db.Type(args)` as `Type(args)` in both `types {}` aliases and model fields, then re-run `prisma-next contract emit`. The supported translations are `@db.Char` → `Char`, `@db.VarChar` → `VarChar`, `@db.Numeric` → `Numeric`, `@db.Uuid` → `Uuid`, `@db.Inet` → `Inet`, `@db.SmallInt` → `SmallInt`, `@db.Real` → `Real`, `@db.Timestamp` → `Timestamp`, `@db.Timestamptz` → `Timestamptz`, `@db.Date` → `Date`, `@db.Time` → `Time`, and `@db.Timetz` → `Timetz`; preserve constructor arguments. Rewrite the old native-json spelling `Json @db.Json` as bare `Json`. This source migration preserves codec ids, native types, and supplied type parameters. Separately, apply the `postgres-json-rebound-to-native-json` entry below to old bare `Json` fields that meant jsonb storage.
+      PostgreSQL native storage types are authored directly in PSL type position, and the legacy `@db.*` attribute channel is removed. Rewrite `BaseType @db.Type` as `Type` and `BaseType @db.Type(args)` as `Type(args)` in both `types {}` aliases and model fields, then re-run `prisma-next contract emit`. Any remaining `@db.X(args)` fails with `@db.X(args) is no longer supported; use X(args) in type position`, preserving the constructor name and arguments in the suggested replacement. The supported translations are `@db.Char` → `Char`, `@db.VarChar` → `VarChar`, `@db.Numeric` → `Numeric`, `@db.Uuid` → `Uuid`, `@db.Inet` → `Inet`, `@db.SmallInt` → `SmallInt`, `@db.Real` → `Real`, `@db.Timestamp` → `Timestamp`, `@db.Timestamptz` → `Timestamptz`, `@db.Date` → `Date`, `@db.Time` → `Time`, and `@db.Timetz` → `Timetz`; preserve constructor arguments. Rewrite the old native-json spelling `Json @db.Json` as bare `Json`. This source migration preserves native types and supplied type parameters. It also preserves codec ids except for `@db.Date` → `Date`, which rebinds `pg/timestamptz@1` to `pg/date@1`, changes the contract storage hash, and requires re-emission plus re-signing; see the `postgres-date-rebound-to-pg-date` entry below. Separately, apply the `postgres-json-rebound-to-native-json` entry below to old bare `Json` fields that meant jsonb storage.
     detection:
       glob: "**/*.prisma"
       contains:
@@ -197,9 +197,7 @@ changes:
       `prisma-next contract emit`; with `Jsonb` the emitted `contract.json` is byte-identical
       to the pre-0.16 output. A field left as `Json` now emits a native `json` column and a
       new storage hash, which against an existing jsonb database is a schema change. The
-      legacy `@db.Json` attribute path is unchanged (`Json @db.Json` still yields
-      `pg/json@1` / `json`), and sqlite/mongo `Json` bindings are untouched. The TS builder
-      surface (`field.json()`, `jsonbColumn`) is unchanged and stays jsonb.
+      removed `@db.Json` spelling must be rewritten from `Json @db.Json` to bare `Json`; any remaining use fails with migration guidance to use `Json` in type position. SQLite and Mongo `Json` bindings are untouched. The TS builder surface (`field.json()`, `jsonbColumn`) is unchanged and stays jsonb.
     detection:
       glob: "**/*.prisma"
       contains:
@@ -235,12 +233,7 @@ changes:
       anyMatch: true
   - id: postgres-date-rebound-to-pg-date
     summary: |
-      On the postgres target, PSL `date` columns — `DateTime @db.Date` and the bare `Date`
-      type constructor — re-bind from `pg/timestamptz@1` to the dedicated `pg/date@1` codec.
-      The stored native type is unchanged (`date`), so no schema migration is needed, but a
-      re-emit changes the column's codec ref and therefore the contract's storage hash: run
-      `prisma-next contract emit`, then re-sign any signed database against the regenerated
-      contract (`prisma-next db sign`) — verify reports a hash mismatch until you do.
+      On the postgres target, the bare `Date` type constructor re-binds from `pg/timestamptz@1` to the dedicated `pg/date@1` codec. Rewrite the removed `DateTime @db.Date` spelling as `Date`; leaving it unchanged now fails with migration guidance to use `Date` in type position. The stored native type is unchanged (`date`), so no schema migration is needed, but a re-emit changes the column's codec ref and therefore the contract's storage hash: run `prisma-next contract emit`, then re-sign any signed database against the regenerated contract (`prisma-next db sign`) — verify reports a hash mismatch until you do.
       Contracts emitted before the upgrade keep working (`pg/timestamptz@1` still exists).
       Runtime behavior changes on re-emit: date columns decode as a `Date` at UTC midnight
       (previously the driver's local-midnight `Date` passed through, so the instant depended
