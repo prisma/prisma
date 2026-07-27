@@ -52,14 +52,7 @@ testMatrix.setupTestSuite(
     ...defaultTestSuiteOptions,
     skipDefaultClientInstance: false,
     optOut: {
-      from: [
-        Providers.COCKROACHDB,
-        Providers.SQLSERVER,
-        Providers.MONGODB,
-        Providers.SQLITE,
-        Providers.MYSQL,
-        Providers.MARIADB,
-      ],
+      from: [Providers.COCKROACHDB, Providers.SQLSERVER, Providers.MONGODB, Providers.SQLITE, Providers.MYSQL],
       reason: 'timetz[] is a PostgreSQL-only type',
     },
     skipDriverAdapter: {
