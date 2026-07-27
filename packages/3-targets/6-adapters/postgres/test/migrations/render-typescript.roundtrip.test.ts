@@ -145,6 +145,60 @@ const META = {
   to: '1'.repeat(64),
 } as const;
 
+const tscPath = join(repoRoot, 'node_modules/.bin/tsc');
+
+/**
+ * Writes a rendered migration plus the tsconfig and contract-type fixtures
+ * the typecheck tests need. The facade import is pointed at the live
+ * workspace source (an absolute path specifier; bare workspace imports
+ * inside the sources then resolve from their own package directories), so
+ * tsc checks the rendered text against the real `createRlsPolicy`
+ * signature. The execution fixtures' minimal `Contract` type does not
+ * satisfy the `Migration` base's `Contract<SqlStorage>` constraint, so the
+ * snapshot contract types come from the same dist types the migration
+ * source graph resolves its own bare imports to.
+ */
+async function writeTypecheckDir(dir: string, renderedSource: string): Promise<void> {
+  const tsSource = renderedSource.replace(
+    "'@prisma-next/postgres/migration'",
+    `'${resolve(targetPostgresRoot, 'src/exports/migration.ts')}'`,
+  );
+  await writeFile(join(dir, 'migration.ts'), tsSource);
+  const contractDistTypes = resolve(
+    repoRoot,
+    'packages/1-framework/0-foundation/contract/dist/types.mjs',
+  );
+  const sqlContractDistTypes = resolve(repoRoot, 'packages/2-sql/1-core/contract/dist/types.mjs');
+  const realContractType = `export type Contract = import('${contractDistTypes}').Contract<\n  import('${sqlContractDistTypes}').SqlStorage\n>;\n`;
+  for (const hash of [META.to, META.from]) {
+    await writeFile(
+      join(dir, SNAPSHOTS_IMPORT_PATH, storageHashHex(hash), 'contract.ts'),
+      realContractType,
+    );
+  }
+  await writeFile(
+    join(dir, 'tsconfig.json'),
+    JSON.stringify({
+      compilerOptions: {
+        target: 'ES2022',
+        module: 'preserve',
+        moduleResolution: 'bundler',
+        lib: ['ES2022'],
+        strict: true,
+        exactOptionalPropertyTypes: true,
+        noUncheckedIndexedAccess: true,
+        skipLibCheck: true,
+        noEmit: true,
+        allowImportingTsExtensions: true,
+        resolveJsonModule: true,
+        typeRoots: [join(repoRoot, 'node_modules/@types')],
+        types: ['node'],
+      },
+      include: ['migration.ts'],
+    }),
+  );
+}
+
 describe('TypeScriptRenderablePostgresMigration round-trip', () => {
   let tmpDir: string;
 
@@ -302,58 +356,53 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       testAdapter,
     );
 
-    // Point the facade import at the live workspace source (an absolute path
-    // specifier; bare workspace imports inside the sources then resolve from
-    // their own package directories) so tsc checks the rendered text against
-    // the real `createRlsPolicy` signature.
-    const tsSource = migration
-      .renderTypeScript()
-      .replace(
-        "'@prisma-next/postgres/migration'",
-        `'${resolve(targetPostgresRoot, 'src/exports/migration.ts')}'`,
-      );
-    await writeFile(join(tmpDir, 'migration.ts'), tsSource);
-    // The execution fixtures' minimal `Contract` type does not satisfy the
-    // `Migration` base's `Contract<SqlStorage>` constraint; the typecheck
-    // needs the real one, taken from the same dist types the migration
-    // source graph resolves its own bare imports to.
-    const contractDistTypes = resolve(
-      repoRoot,
-      'packages/1-framework/0-foundation/contract/dist/types.mjs',
-    );
-    const sqlContractDistTypes = resolve(repoRoot, 'packages/2-sql/1-core/contract/dist/types.mjs');
-    const realContractType = `export type Contract = import('${contractDistTypes}').Contract<\n  import('${sqlContractDistTypes}').SqlStorage\n>;\n`;
-    for (const hash of [META.to, META.from]) {
-      await writeFile(
-        join(tmpDir, SNAPSHOTS_IMPORT_PATH, storageHashHex(hash), 'contract.ts'),
-        realContractType,
-      );
-    }
-    await writeFile(
-      join(tmpDir, 'tsconfig.json'),
-      JSON.stringify({
-        compilerOptions: {
-          target: 'ES2022',
-          module: 'preserve',
-          moduleResolution: 'bundler',
-          lib: ['ES2022'],
-          strict: true,
-          exactOptionalPropertyTypes: true,
-          noUncheckedIndexedAccess: true,
-          skipLibCheck: true,
-          noEmit: true,
-          allowImportingTsExtensions: true,
-          resolveJsonModule: true,
-          typeRoots: [join(repoRoot, 'node_modules/@types')],
-          types: ['node'],
-        },
-        include: ['migration.ts'],
-      }),
-    );
-
-    const tscPath = join(repoRoot, 'node_modules/.bin/tsc');
+    await writeTypecheckDir(tmpDir, migration.renderTypeScript());
     // Non-zero exit (a type error in the rendered source) rejects.
     await execFileAsync(tscPath, ['--project', tmpDir]);
+  });
+
+  it('the typecheck catches a rendered literal missing a required key (negative control)', {
+    timeout: timeouts.typeScriptCompilation,
+  }, async () => {
+    const migration = new TypeScriptRenderablePostgresMigration(
+      [
+        new CreatePostgresRlsPolicyCall(
+          'public',
+          'user',
+          new PostgresRlsPolicy({
+            name: 'Tenant members can read',
+            prefix: undefined,
+            tableName: 'user',
+            namespaceId: 'public',
+            operation: 'select',
+            roles: ['app_user'],
+            using: '(tenant_id = 1)',
+            withCheck: undefined,
+            permissive: true,
+          }),
+        ),
+      ],
+      META,
+      APP_SPACE_ID,
+      SNAPSHOTS_IMPORT_PATH,
+      testAdapter,
+    );
+
+    // Delete the policy's required `name` key from the rendered source — the
+    // compile must fail (TS2741 missing-property), proving the green run of
+    // the sibling test is a real typecheck and not a vacuous pass.
+    const brokenSource = migration
+      .renderTypeScript()
+      .replace('  name: "Tenant members can read",\n', '');
+    expect(brokenSource).not.toContain('Tenant members can read');
+    await writeTypecheckDir(tmpDir, brokenSource);
+
+    const failure = await execFileAsync(tscPath, ['--project', tmpDir]).then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+    expect(failure).toBeDefined();
+    expect(String((failure as { stdout?: string }).stdout)).toContain('TS2741');
   });
 
   it('preserves RawSqlCall ops byte-for-byte through the render → execute round-trip', {

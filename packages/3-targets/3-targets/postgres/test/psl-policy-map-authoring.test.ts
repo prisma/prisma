@@ -290,7 +290,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
     emitWarning.mockClear();
   });
 
-  function d9Calls() {
+  function exactNameWarningCalls() {
     return emitWarning.mock.calls.filter(
       ([, options]) =>
         (options as { code?: string } | undefined)?.code === 'PN_EXACT_NAME_BODY_COMPARISON',
@@ -308,7 +308,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
   }
 `),
     );
-    const calls = d9Calls();
+    const calls = exactNameWarningCalls();
     expect(calls).toHaveLength(1);
     expect(calls[0]?.[0]).toContain('policy "Tenant members can read" uses map: with a SQL body.');
   });
@@ -337,7 +337,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
         indexAttributes,
       ),
     );
-    const calls = d9Calls();
+    const calls = exactNameWarningCalls();
     expect(calls).toHaveLength(1);
     const message = String(calls[0]?.[0]);
     expect(message).toContain('6 objects use map: with a SQL body.');
