@@ -1,0 +1,36 @@
+// Port of prisma/prisma@a6d0155 packages/client/tests/functional/composites/list
+// prisma/_schema.ts (mongodb matrix entry).
+//
+// Upstream schema:
+//   model CommentRequiredList {
+//     id       String   @id @default(auto()) @map("_id") @db.ObjectId
+//     country  String?
+//     contents CommentContent[]
+//   }
+//   type CommentContent {
+//     text    String
+//     upvotes CommentContentUpvotes[]
+//   }
+//   type CommentContentUpvotes {
+//     vote   Boolean
+//     userId String
+//   }
+//
+// MongoDB PSL `type` blocks become value objects in the contract.
+
+type CommentContentUpvotes {
+  vote   Boolean
+  userId String
+}
+
+type CommentContent {
+  text    String
+  upvotes CommentContentUpvotes[]
+}
+
+model CommentRequiredList {
+  id       ObjectId @id @map("_id")
+  country  String?
+  contents CommentContent[]
+  @@map("comment_required_list")
+}

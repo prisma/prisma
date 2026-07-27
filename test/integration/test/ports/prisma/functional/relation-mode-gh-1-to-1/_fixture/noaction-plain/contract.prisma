@@ -1,0 +1,20 @@
+model UserOneToOne {
+  id              String @id
+  profile         ProfileOneToOne?
+  profileOptional ProfileOptionalOneToOne?
+  enabled         Boolean?
+}
+
+model ProfileOneToOne {
+  id      String            @id
+  user    UserOneToOne      @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  userId  String            @unique
+  enabled Boolean?
+}
+
+model ProfileOptionalOneToOne {
+  id      String            @id
+  user    UserOneToOne?     @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  userId  String?           @unique
+  enabled Boolean?
+}

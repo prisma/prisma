@@ -10,10 +10,10 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/5952-decimal-batch/tests.ts
 
-- [ ] `findUnique decimal with Promise.all` — Decimal values survive batch-compaction of concurrent findUnique via Promise.all [providers: sql]
-- [ ] `findUnique decimal with $transaction([...])` — Decimal values survive findUnique batched inside array `$transaction` [providers: sql]
-- [ ] `findFirst decimal with Promise.all` — Decimal values survive batched findFirst via Promise.all [providers: sql]
-- [ ] `findFirst decimal with $transaction([...])` — Decimal values survive findFirst batched inside array `$transaction` [providers: sql]
+- [x] `findUnique decimal with Promise.all` — Decimal values survive batch-compaction of concurrent findUnique via Promise.all [providers: sql] → ports/prisma/functional/issues-5952-decimal-batch/issues-5952-decimal-batch.test.ts
+- [x] `findUnique decimal with $transaction([...])` — Decimal values survive findUnique batched inside array `$transaction` [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-5952-decimal-batch/issues-5952-decimal-batch.md)
+- [x] `findFirst decimal with Promise.all` — Decimal values survive batched findFirst via Promise.all [providers: sql] → ports/prisma/functional/issues-5952-decimal-batch/issues-5952-decimal-batch.test.ts
+- [x] `findFirst decimal with $transaction([...])` — Decimal values survive findFirst batched inside array `$transaction` [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-5952-decimal-batch/issues-5952-decimal-batch.md)
 
 ### packages/client/tests/functional/issues/6578/tests.ts
 
@@ -51,9 +51,9 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/11740-transaction-stored-query/tests.ts
 
-- [ ] `stored query triggered twice should fail but not exit process` — reusing a stored query promise twice in a batch `$transaction` rejects without crashing the process [providers: all]
-- [ ] `stored query trigger .requestTransaction twice should fail` — calling `.requestTransaction` twice on a stored query rejects [providers: all]
-- [ ] `no multiple resolves should happen` — reusing a stored query in a batch does not trigger Node `multipleResolves` [providers: all]
+- [x] `stored query triggered twice should fail but not exit process` — reusing a stored query promise twice in a batch `$transaction` rejects without crashing the process [providers: all] → non-ported (ports/prisma/non-ported/functional/issues-11740-transaction-stored-query/issues-11740-transaction-stored-query.md)
+- [x] `stored query trigger .requestTransaction twice should fail` — calling `.requestTransaction` twice on a stored query rejects [providers: all] → non-ported (ports/prisma/non-ported/functional/issues-11740-transaction-stored-query/issues-11740-transaction-stored-query.md)
+- [x] `no multiple resolves should happen` — reusing a stored query in a batch does not trigger Node `multipleResolves` [providers: all] → non-ported (ports/prisma/non-ported/functional/issues-11740-transaction-stored-query/issues-11740-transaction-stored-query.md)
 
 ### packages/client/tests/functional/issues/11789-sqlite-with-wal-or-connection_limit/tests.ts
 
@@ -94,15 +94,15 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/12862-errors-are-obfuscated-by-interactive-transactions/tests.ts
 
-- [ ] `should propagate the correct error when a method fails` — a failing method surfaces the underlying error, not an obfuscated one [providers: postgres]
-- [ ] `should propagate the correct error when a method fails inside an transaction` — error propagated correctly inside a batch transaction [providers: postgres]
-- [ ] `should propagate the correct error when a method fails inside an interactive transaction` — error propagated correctly inside an interactive transaction [providers: postgres]
+- [x] `should propagate the correct error when a method fails` — a failing method surfaces the underlying error, not an obfuscated one [providers: postgres] → non-ported (ports/prisma/non-ported/functional/issues-12862-errors-are-obfuscated-by-interactive-transactions/issues-12862-errors-are-obfuscated-by-interactive-transactions.md)
+- [x] `should propagate the correct error when a method fails inside an transaction` — error propagated correctly inside a batch transaction [providers: postgres] → non-ported (ports/prisma/non-ported/functional/issues-12862-errors-are-obfuscated-by-interactive-transactions/issues-12862-errors-are-obfuscated-by-interactive-transactions.md)
+- [x] `should propagate the correct error when a method fails inside an interactive transaction` — error propagated correctly inside an interactive transaction [providers: postgres] → non-ported (ports/prisma/non-ported/functional/issues-12862-errors-are-obfuscated-by-interactive-transactions/issues-12862-errors-are-obfuscated-by-interactive-transactions.md)
 
 ### packages/client/tests/functional/issues/13089/tests.ts
 
-- [ ] `should return records when using a `$` in the search string` — `$` in a filter string returns records (mongo) [providers: mongodb]
-- [ ] `should update records when using a `$` in the search string` — `$` in an update filter string updates records [providers: mongodb]
-- [ ] `should delete records when using a `$` in the search string` — `$` in a delete filter string deletes records [providers: mongodb]
+- [x] `should return records when using a `$` in the search string` — `$` in a filter string returns records (mongo) [providers: mongodb] → ports/prisma/functional/issues-13089-dollar-in-search/issues-13089-dollar-in-search.test.ts
+- [x] `should update records when using a `$` in the search string` — `$` in an update filter string updates records [providers: mongodb] → ports/prisma/functional/issues-13089-dollar-in-search/issues-13089-dollar-in-search.test.ts
+- [x] `should delete records when using a `$` in the search string` — `$` in a delete filter string deletes records [providers: mongodb] → ports/prisma/functional/issues-13089-dollar-in-search/issues-13089-dollar-in-search.test.ts
 
 ### packages/client/tests/functional/issues/13097-group-by-enum/tests.ts
 
@@ -148,10 +148,10 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/14954-date-batch/tests.ts
 
-- [ ] `findUnique date with Promise.all` — Date values survive batch-compaction of concurrent findUnique via Promise.all [providers: all]
-- [ ] `findUnique date with $transaction([...])` — Date values survive findUnique batched inside array `$transaction` [providers: all]
-- [ ] `findFirst date with Promise.all` — Date values survive batched findFirst via Promise.all [providers: all]
-- [ ] `findFirst date with $transaction([...])` — Date values survive findFirst batched inside array `$transaction` [providers: all]
+- [x] `findUnique date with Promise.all` — Date values survive batch-compaction of concurrent findUnique via Promise.all [providers: all] → ports/prisma/functional/issues-14954-date-batch/issues-14954-date-batch.test.ts
+- [x] `findUnique date with $transaction([...])` — Date values survive findUnique batched inside array `$transaction` [providers: all] → non-ported (ports/prisma/non-ported/functional/issues-14954-date-batch/issues-14954-date-batch.md)
+- [x] `findFirst date with Promise.all` — Date values survive batched findFirst via Promise.all [providers: all] → ports/prisma/functional/issues-14954-date-batch/issues-14954-date-batch.test.ts
+- [x] `findFirst date with $transaction([...])` — Date values survive findFirst batched inside array `$transaction` [providers: all] → non-ported (ports/prisma/non-ported/functional/issues-14954-date-batch/issues-14954-date-batch.md)
 
 ### packages/client/tests/functional/issues/15044/tests.ts
 
@@ -212,8 +212,8 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/18276-batch-order/tests.ts
 
-- [ ] `executes batch queries in the right order when using extensions + middleware` — batched queries preserve order with query extensions and middleware [providers: sql]
-- [ ] `executes batch in right order when using delayed middleware` — batched queries preserve order with a delayed middleware [providers: sql]
+- [x] `executes batch queries in the right order when using extensions + middleware` — batched queries preserve order with query extensions and middleware [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-18276-batch-order/issues-18276-batch-order.md)
+- [x] `executes batch in right order when using delayed middleware` — batched queries preserve order with a delayed middleware [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-18276-batch-order/issues-18276-batch-order.md)
 
 ### packages/client/tests/functional/issues/18292-inspect-loop/test.ts
 
@@ -258,11 +258,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/20724/tests.ts
 
-- [ ] `unique constraint violation > modelName is returned on error.meta > should return modelName on error.meta when performing prisma.model.create` — unique-violation error exposes modelName in meta for model.create [providers: sql]
-- [ ] `unique constraint violation > modelName is returned on error.meta > should return modelName on error.meta when performing prisma$transaction with the client` — unique-violation error exposes modelName in meta inside `$transaction` [providers: sql]
-- [ ] `unique constraint violation > modelName is not returned on error.meta > should not return modelName when performing queryRaw` — raw query unique-violation error has no modelName in meta [providers: sql]
-- [ ] `unique constraint violation > modelName is not returned on error.meta > should not return modelName when performing executeRaw` — raw executeRaw unique-violation error has no modelName in meta [providers: sql]
-- [ ] `unique constraint violation > modelName is not returned on error.meta > should not return modelName when performing transactions with raw queries` — raw-query transaction unique-violation error has no modelName in meta [providers: sql]
+- [x] `unique constraint violation > modelName is returned on error.meta > should return modelName on error.meta when performing prisma.model.create` — unique-violation error exposes modelName in meta for model.create [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-20724/issues-20724.md)
+- [x] `unique constraint violation > modelName is returned on error.meta > should return modelName on error.meta when performing prisma$transaction with the client` — unique-violation error exposes modelName in meta inside `$transaction` [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-20724/issues-20724.md)
+- [x] `unique constraint violation > modelName is not returned on error.meta > should not return modelName when performing queryRaw` — raw query unique-violation error has no modelName in meta [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-20724/issues-20724.md)
+- [x] `unique constraint violation > modelName is not returned on error.meta > should not return modelName when performing executeRaw` — raw executeRaw unique-violation error has no modelName in meta [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-20724/issues-20724.md)
+- [x] `unique constraint violation > modelName is not returned on error.meta > should not return modelName when performing transactions with raw queries` — raw-query transaction unique-violation error has no modelName in meta [providers: sql] → non-ported (ports/prisma/non-ported/functional/issues-20724/issues-20724.md)
 
 ### packages/client/tests/functional/issues/21136-extensions-mocking-library/tests.ts
 
@@ -294,9 +294,9 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/21631-batching-in-transaction/tests.ts
 
-- [ ] `Transactions and batching (query compacting) shouldn't interfere with result sets > 2 independent `findUnique`s` — query compacting keeps result sets correct for 2 independent findUniques [providers: all]
-- [ ] `Transactions and batching (query compacting) shouldn't interfere with result sets > 2 concurrent `findUnique`s` — query compacting keeps result sets correct for 2 concurrent findUniques [providers: all]
-- [ ] `Transactions and batching (query compacting) shouldn't interfere with result sets > 2 `findUnique`s in a $transaction` — query compacting keeps result sets correct for 2 findUniques in a `$transaction` [providers: all]
+- [x] `Transactions and batching (query compacting) shouldn't interfere with result sets > 2 independent `findUnique`s` — query compacting keeps result sets correct for 2 independent findUniques [providers: all] → ports/prisma/functional/issues-21631-batching-in-transaction/issues-21631-batching-in-transaction.test.ts
+- [x] `Transactions and batching (query compacting) shouldn't interfere with result sets > 2 concurrent `findUnique`s` — query compacting keeps result sets correct for 2 concurrent findUniques [providers: all] → ports/prisma/functional/issues-21631-batching-in-transaction/issues-21631-batching-in-transaction.test.ts
+- [x] `Transactions and batching (query compacting) shouldn't interfere with result sets > 2 `findUnique`s in a $transaction` — query compacting keeps result sets correct for 2 findUniques in a `$transaction` [providers: all] → non-ported (ports/prisma/non-ported/functional/issues-21631-batching-in-transaction/issues-21631-batching-in-transaction.md)
 
 ### packages/client/tests/functional/issues/21807-citext-neon/tests.ts
 
@@ -385,9 +385,9 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/29174-jsonb-parameter-regression/tests.ts
 
-- [ ] `correctly deserializes Date objects in JSON fields` — Date objects inside JSON fields deserialize correctly [providers: all exclude:sqlserver]
-- [ ] `correctly deserializes Date array objects in JSON fields` — arrays of Date objects inside JSON fields deserialize correctly [providers: all exclude:sqlserver]
-- [ ] `correctly deserializes Date objects in JSON fields with $type` — Date objects with `$type` wrapper inside JSON fields deserialize correctly [providers: all exclude:sqlserver]
+- [x] `correctly deserializes Date objects in JSON fields` — Date objects inside JSON fields deserialize correctly [providers: all exclude:sqlserver] → ports/prisma/functional/issues-29174-jsonb-parameter-regression/issues-29174-jsonb-parameter-regression.test.ts
+- [x] `correctly deserializes Date array objects in JSON fields` — arrays of Date objects inside JSON fields deserialize correctly [providers: all exclude:sqlserver] → ports/prisma/functional/issues-29174-jsonb-parameter-regression/issues-29174-jsonb-parameter-regression.test.ts
+- [x] `correctly deserializes Date objects in JSON fields with $type` — Date objects with `$type` wrapper inside JSON fields deserialize correctly [providers: all exclude:sqlserver] → ports/prisma/functional/issues-29174-jsonb-parameter-regression/issues-29174-jsonb-parameter-regression.test.ts
 
 ### packages/client/tests/functional/issues/29176-cursor-parameter-regression/tests.ts
 
@@ -408,10 +408,10 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/29267-uint8array-in-json/tests.ts
 
-- [ ] `serializes Uint8Array nested in object as base64` — Uint8Array nested in an object inside a JSON field serializes as base64 [providers: all exclude:sqlserver]
-- [ ] `serializes Uint8Array nested in array as base64` — Uint8Array nested in an array inside a JSON field serializes as base64 [providers: all exclude:sqlserver]
-- [ ] `serializes Uint8Array directly as base64` — a top-level Uint8Array JSON value serializes as base64 [providers: all exclude:sqlserver]
-- [ ] `serializes deeply nested Uint8Array as base64` — deeply nested Uint8Array inside a JSON field serializes as base64 [providers: all exclude:sqlserver]
+- [x] `serializes Uint8Array nested in object as base64` — Uint8Array nested in an object inside a JSON field serializes as base64 [providers: all exclude:sqlserver] → test.fails: ports/prisma/functional/issues-29267-uint8array-in-json/issues-29267-uint8array-in-json.test.ts
+- [x] `serializes Uint8Array nested in array as base64` — Uint8Array nested in an array inside a JSON field serializes as base64 [providers: all exclude:sqlserver] → test.fails: ports/prisma/functional/issues-29267-uint8array-in-json/issues-29267-uint8array-in-json.test.ts
+- [x] `serializes Uint8Array directly as base64` — a top-level Uint8Array JSON value serializes as base64 [providers: all exclude:sqlserver] → test.fails: ports/prisma/functional/issues-29267-uint8array-in-json/issues-29267-uint8array-in-json.test.ts
+- [x] `serializes deeply nested Uint8Array as base64` — deeply nested Uint8Array inside a JSON field serializes as base64 [providers: all exclude:sqlserver] → test.fails: ports/prisma/functional/issues-29267-uint8array-in-json/issues-29267-uint8array-in-json.test.ts
 
 ### packages/client/tests/functional/issues/29309-datetime-cursor/tests.ts
 

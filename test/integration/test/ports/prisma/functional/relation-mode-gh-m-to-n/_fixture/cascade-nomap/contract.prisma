@@ -1,0 +1,27 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/relationMode-in-separate-gh-action
+// _schema_m_to_n.ts (manyToManySQLExplicit branch, isSchemaUsingMap=false).
+// Variant: cascade-nomap
+// relationMode=foreignKeys: relations use real DB foreign keys with the
+// matching @relation onDelete/onUpdate actions.
+
+model PostManyToMany {
+  id          String                        @id
+  categories  CategoriesOnPostsManyToMany[]
+  published   Boolean?
+}
+
+model CategoryManyToMany {
+  id          String                        @id
+  posts       CategoriesOnPostsManyToMany[]
+  published   Boolean?
+}
+
+model CategoriesOnPostsManyToMany {
+  post        PostManyToMany     @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  postId      String
+  category    CategoryManyToMany @relation(fields: [categoryId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  categoryId  String
+
+  @@id([postId, categoryId])
+}

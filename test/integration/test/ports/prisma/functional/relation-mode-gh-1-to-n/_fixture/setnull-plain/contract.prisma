@@ -1,0 +1,18 @@
+model UserOneToMany {
+  id            String @id
+  posts         PostOneToMany[]
+  postOptionals PostOptionalOneToMany[]
+  enabled       Boolean?
+}
+
+model PostOneToMany {
+  id       String        @id
+  author   UserOneToMany @relation(fields: [authorId], references: [id])
+  authorId String
+}
+
+model PostOptionalOneToMany {
+  id       String         @id
+  author   UserOneToMany? @relation(fields: [authorId], references: [id], onUpdate: SetNull, onDelete: SetNull)
+  authorId String?
+}
