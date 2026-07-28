@@ -37,15 +37,31 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
   { codecId: 'sqlite/text@1', label: 'text', value: 'hello', storageType: 'TEXT' },
   { codecId: 'sqlite/integer@1', label: 'integer', value: 42, storageType: 'INTEGER' },
   { codecId: 'sqlite/real@1', label: 'finite float', value: 1.5, storageType: 'REAL' },
+  // hex() never wraps, so a blob's boundary is not length but case: a value whose
+  // hex is all digits cannot tell uppercase from lowercase.
   {
     codecId: 'sqlite/blob@1',
-    label: 'byte string',
-    value: new Uint8Array([0, 1, 255]),
+    label: 'byte string whose hex is all digits',
+    value: new Uint8Array([0x01, 0x23, 0x45]),
     storageType: 'BLOB',
-    notYetCanonical: {
-      kind: 'execution',
-      reason: 'SQLite JSON rejects a BLOB, so the identity projection cannot execute at all',
-    },
+  },
+  {
+    codecId: 'sqlite/blob@1',
+    label: 'byte string whose hex needs letters',
+    value: new Uint8Array([0x0a, 0xbc, 0xde, 0xff]),
+    storageType: 'BLOB',
+  },
+  {
+    codecId: 'sqlite/blob@1',
+    label: 'byte string past any plausible wrap width',
+    value: Uint8Array.from({ length: 200 }, (_, index) => (index * 7) % 256),
+    storageType: 'BLOB',
+  },
+  {
+    codecId: 'sqlite/blob@1',
+    label: 'empty byte string',
+    value: new Uint8Array(),
+    storageType: 'BLOB',
   },
   {
     codecId: 'sqlite/datetime@1',
@@ -75,10 +91,35 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
     label: 'integer beyond double precision',
     value: 9007199254740993n,
     storageType: 'INTEGER',
-    notYetCanonical: {
-      kind: 'encode-json-rejects',
-      reason:
-        'the canonical JSON is a number, so a value outside the safe-integer range has no representation',
-    },
+  },
+  {
+    codecId: 'sqlite/bigint@1',
+    label: 'int64 lower bound',
+    value: -9223372036854775808n,
+    storageType: 'INTEGER',
+  },
+  {
+    codecId: 'sqlite/bigint@1',
+    label: 'int64 upper bound',
+    value: 9223372036854775807n,
+    storageType: 'INTEGER',
+  },
+  {
+    codecId: 'sqlite/text@1',
+    label: 'text needing JSON escaping',
+    value: 'quote " backslash \\ newline \n',
+    storageType: 'TEXT',
+  },
+  {
+    codecId: 'sqlite/text@1',
+    label: 'text beyond the basic plane',
+    value: 'a\u{1F600}b',
+    storageType: 'TEXT',
+  },
+  {
+    codecId: 'sqlite/real@1',
+    label: 'float not exactly representable',
+    value: 0.1,
+    storageType: 'REAL',
   },
 ];

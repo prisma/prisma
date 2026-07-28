@@ -4,7 +4,9 @@ import type {
   CodecRef,
 } from '@prisma-next/framework-components/codec';
 import {
+  CastExpr,
   ColumnRef,
+  FunctionCallExpr,
   sqlCharDescriptor,
   sqlFloatDescriptor,
   sqlIntDescriptor,
@@ -105,21 +107,32 @@ describe('SQLite built-in codec descriptors', () => {
     ).toThrow(/do not support stored scalar arrays/);
   });
 
-  it('gives every native descriptor an explicit identity projection', () => {
+  it("projects identity where SQLite's own JSON conversion is already canonical", () => {
     const expression = ColumnRef.of('records', 'value');
     const descriptors = [
       sqliteTextDescriptor,
       sqliteIntegerDescriptor,
       sqliteRealDescriptor,
-      sqliteBlobDescriptor,
       sqliteDatetimeDescriptor,
       sqliteJsonDescriptor,
-      sqliteBigintDescriptor,
     ];
 
     for (const descriptor of descriptors) {
       expect(descriptor.projectJson(expression, refFor(descriptor))).toBe(expression);
     }
+  });
+
+  it('replaces the native conversion where it cannot carry the value', () => {
+    const expression = ColumnRef.of('records', 'value');
+
+    // SQLite's JSON functions reject a BLOB argument outright.
+    expect(sqliteBlobDescriptor.projectJson(expression, refFor(sqliteBlobDescriptor))).toEqual(
+      FunctionCallExpr.of('hex', [expression]),
+    );
+    // An INTEGER reaching JSON as a number does not survive the int64 range.
+    expect(sqliteBigintDescriptor.projectJson(expression, refFor(sqliteBigintDescriptor))).toEqual(
+      CastExpr.as(expression, 'TEXT'),
+    );
   });
 
   it('keeps authored registries complete while preserving the control metadata filter boundary', () => {
@@ -150,13 +163,14 @@ describe('SQLite built-in codec descriptors', () => {
 
   it('preserves current BLOB, bigint, real, datetime, and structured JSON behavior', () => {
     const blobCodec = sqliteBlobDescriptor.factory()(codecContext);
-    expect(blobCodec.encodeJson(new Uint8Array([1, 2, 3]))).toBe('AQID');
-    expect(blobCodec.decodeJson('AQID')).toEqual(new Uint8Array([1, 2, 3]));
+    expect(blobCodec.encodeJson(new Uint8Array([0x0a, 0xbc]))).toBe('0ABC');
+    expect(blobCodec.decodeJson('0ABC')).toEqual(new Uint8Array([0x0a, 0xbc]));
+    expect(() => blobCodec.decodeJson('0abc')).toThrow(/uppercase hexadecimal/);
 
     const bigintCodec = sqliteBigintDescriptor.factory()(codecContext);
-    expect(bigintCodec.encodeJson(42n)).toBe(42);
-    expect(bigintCodec.decodeJson(42)).toBe(42n);
-    expect(() => bigintCodec.encodeJson(9_007_199_254_740_992n)).toThrow(/safe integer/);
+    expect(bigintCodec.encodeJson(42n)).toBe('42');
+    expect(bigintCodec.decodeJson('42')).toBe(42n);
+    expect(bigintCodec.encodeJson(9_007_199_254_740_993n)).toBe('9007199254740993');
 
     const realCodec = sqliteRealDescriptor.factory()(codecContext);
     expect(realCodec.encodeJson(1.25)).toBe(1.25);

@@ -425,9 +425,9 @@ describe('SQLite adapter codec registry composition', () => {
     const json = registry.get(SQLITE_JSON_CODEC_ID);
     const document = { nested: ['value', 1, true, null] };
 
-    expect(blob?.encodeJson(new Uint8Array([1, 2, 3]))).toBe('AQID');
-    expect(bigint?.encodeJson(42n)).toBe(42);
-    expect(() => bigint?.encodeJson(9007199254740993n)).toThrow(/safe integer/);
+    expect(blob?.encodeJson(new Uint8Array([0x0a, 0xbc]))).toBe('0ABC');
+    expect(bigint?.encodeJson(42n)).toBe('42');
+    expect(bigint?.encodeJson(9007199254740993n)).toBe('9007199254740993');
     expect(json?.encodeJson(document)).toEqual(document);
   });
 });
