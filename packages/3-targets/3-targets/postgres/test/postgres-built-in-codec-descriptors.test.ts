@@ -253,8 +253,14 @@ describe('PostgreSQL built-in codec descriptors', () => {
       if (jsonProjection === 'decimal-text') {
         expect(descriptor.projectJson(expression, ref)).toEqual(CastExpr.as(expression, 'text'));
       } else if (jsonProjection === 'base64') {
+        // The line breaks RFC 2045 base64 carries are stripped inside the
+        // projection, so the encode call is wrapped rather than bare.
         expect(descriptor.projectJson(expression, ref)).toEqual(
-          FunctionCallExpr.of('encode', [expression, LiteralExpr.of('base64')]),
+          FunctionCallExpr.of('translate', [
+            FunctionCallExpr.of('encode', [expression, LiteralExpr.of('base64')]),
+            FunctionCallExpr.of('chr', [LiteralExpr.of(10)]),
+            LiteralExpr.of(''),
+          ]),
         );
       } else if (jsonProjection === 'iso-duration') {
         // The assembled duration is large; that it is not the bare expression,

@@ -170,9 +170,19 @@ const decimalTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =
  * PostgreSQL's own JSON conversion of a `bytea` emits its `\x`-prefixed hex
  * output form, so the base64 encoding has to replace that conversion rather
  * than post-process it.
+ *
+ * `encode` emits RFC 2045 base64, which carries a line break every 76
+ * characters — so any value over 56 bytes arrives wrapped. The breaks are
+ * removed here, because the canonical form is unwrapped base64 and
+ * `decodeJson` rejects anything else. `chr(10)` rather than a newline literal
+ * keeps the rendered SQL on one line.
  */
 const base64JsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
-  FunctionCallExpr.of('encode', [expression, LiteralExpr.of('base64')]);
+  FunctionCallExpr.of('translate', [
+    FunctionCallExpr.of('encode', [expression, LiteralExpr.of('base64')]),
+    FunctionCallExpr.of('chr', [LiteralExpr.of(10)]),
+    LiteralExpr.of(''),
+  ]);
 
 /**
  * Projects a `timestamptz` as a UTC ISO-8601 string that no session setting can

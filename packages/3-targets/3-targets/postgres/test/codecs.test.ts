@@ -456,6 +456,12 @@ describe('adapter-postgres codecs', () => {
       expect(await intervalCodec.decode('P13M', {})).toBe('P1Y1M');
     });
 
+    it('rejects a text wire value that is not an ISO-8601 duration', async () => {
+      await expect(intervalCodec.decode('1 day', {})).rejects.toThrow(
+        'pg/interval@1 value must be an ISO-8601 duration, got 1 day',
+      );
+    });
+
     it('reads the driver component object as a duration', async () => {
       const decoded = await intervalCodec.decode({ hours: 2, minutes: 30 }, {});
       expect(decoded).toBe('PT2H30M');
