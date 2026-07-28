@@ -109,6 +109,36 @@ Inserted mid-slice (operator decision, 2026-07-28) after dispatch 3 raised inter
 - **Hands to:** Extension parity with built-ins, resolving the slice spec's open question 2.
 - **Focus:** The three in-repo extension codec surfaces. It changes no built-in descriptor and adds no extension dependency beyond what slice 2 established.
 
+### Dispatch 7a: Extension-loading in `createDevDatabase`
+
+Split from dispatch 7 (operator decision, 2026-07-28) after its reconnaissance found no extension package has any live-database test at all — zero files under `pgvector/test`, `postgis/test` or `arktype-json/test` call `createDevDatabase`, and every `CREATE EXTENSION` reference is a migration definition or DDL-string assertion, never executed.
+
+- **Outcome:** `createDevDatabase` in `test/utils/src/exports/index.ts` can load extension bundles, so an extension's conformance can run against a database that actually has the extension installed. `@prisma/dev` already exposes an `extensions: Record<string, URL>` option and ships `vector.tar.gz`, so this is enablement rather than invention.
+- **Builds on:** Nothing in this slice; it is infrastructure.
+- **Hands to:** Dispatches 7b and 7c, neither of which can have real-database conformance without it.
+- **Focus:** The shared test-utils surface only. Four packages' suites depend on `createDevDatabase`, so the change must be additive — an existing caller passing no extensions must behave exactly as now.
+
+### Dispatch 7b: arktype-json canonical projection
+
+- **Outcome:** `arktype/json@1` states its projection as a tested claim with real-database conformance. Reconnaissance suggests it conforms today — native type `jsonb`, identity projection, and a jsonb column already embeds as a document — so this is likely a tested claim plus boundary cases rather than a representation move.
+- **Builds on:** Dispatch 7a's enablement, if `jsonb` being a core type does not make it unnecessary.
+- **Focus:** One extension. It carries the parameter-schema history slice 2 recorded around unparameterized refs; worth not rushing.
+
+### Dispatch 7c: pgvector canonical numeric array
+
+- **Outcome:** `pg/vector@1` is canonical as a **JSON numeric array** on both sides. `encodeJson` currently returns the *string* `"[1,2,3]"`, so both sides move; the vector's text form is already valid JSON, so the projection is plausibly `col::text::json`. Real-database conformance via dispatch 7a's enablement.
+- **Builds on:** Dispatch 7a.
+- **Focus:** pgvector alone. The inherited `jsonArrayProjection` is **not** rebuilt — its guarantees are dispatch 8's.
+
+### PostGIS — deferred to its own ticket, outside this project
+
+Operator decision, 2026-07-28. Blocked on two independent things, neither of which this slice can resolve:
+
+1. **An undecided format.** The application value is already GeoJSON-shaped, but `encodeJson` flattens it to a HEXEWKB string — so the JSON does not carry the shape the application has, which is the numeric-to-number defect in another guise. Document semantics is therefore correct. But GeoJSON has no SRID, the application type has `srid?` optional, and PostGIS stores `0` for unset — so a canonical GeoJSON document must decide whether `srid` is always present, omitted when zero, or omitted when absent, and `{type,coordinates}` versus `{type,coordinates,srid:0}` must then round-trip distinctly. `ST_AsGeoJSON` emits neither. A format decision, not a repair.
+2. **No database that can host it.** PGlite ships no PostGIS bundle (`@prisma/dev` and PGlite both ship `vector.tar.gz` and no postgis), so `createDevDatabase` cannot host a `geometry` column at all. Conformance needs a real PostgreSQL with PostGIS installed.
+
+**Consequence the operator accepted knowingly:** slice 4's hard cut will advertise canonical lossless JSON with `pg/geometry@1` exempt — the same shape of hole rejected for `pg/interval@1` in dispatch 3a, accepted here because the blockers are infrastructure and an open format question rather than effort. Slice 4 must state the exemption rather than inherit it silently.
+
 ### Dispatch 8: Array-lift conformance across element codecs
 
 - **Outcome:** The inherited PostgreSQL array lift is proven against real element projections: null array, empty array, null elements, element order, and single evaluation of the source each hold for a representative spread of element codecs, including a canonical-text element (numeric) and a document element.
