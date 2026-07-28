@@ -15,9 +15,12 @@ pnpm test --filter @prisma-next/target-postgres \
           --filter @prisma-next/adapter-postgres \
           --filter @prisma-next/adapter-sqlite
 pnpm fixtures:check
+pnpm check:upgrade-coverage
 # AC-9 invariant: no production render path reaches projectJson()
 grep -rn 'projectJson' packages/*/*/*/src/ | grep -v codec-descriptor
 ```
+
+**`check:upgrade-coverage` was added late (2026-07-28), and its omission was an orchestrator error.** It was missing from the gate I authored, so eight dispatches ran green without it once being run — and it fails on this branch. That is not incidental: this slice makes real breaking changes (`pg/int8@1` `number → bigint`, `pg/interval@1`'s wire decode, `pg/vector@1`'s JSON methods string → array, plus JSON-form moves on `pg/numeric@1`, `pg/bytea@1`, `sqlite/bigint@1`, `sqlite/blob@1`), and downstream consumers face the same edits the slice made in-repo. A gate that is not run cannot fail, which is the whole lesson of this slice applied to its own process.
 
 The `projectJson` grep is the gate's load-bearing half: it protects the slice boundary that no database-produced JSON path changes here. `fixtures:check` is **not** a no-op in this slice — moving a codec's `encodeJson` changes contract-serialized defaults, so a dispatch that changes a canonical form must regenerate and commit the affected fixtures, then re-run until clean. Any fixture movement not attributable to a codec whose canonical form changed in that dispatch is incidental drift and halts.
 
