@@ -205,3 +205,18 @@ describe('sql-target-family-hook', () => {
     expect(() => sqlEmission.validateTypes(ir, {})).not.toThrow();
   });
 });
+
+describe('default-literal typing', () => {
+  it('resolves a literal default through the codec JSON channel, not its application type', () => {
+    const aliases = sqlEmission.getFamilyTypeAliases?.();
+
+    expect(aliases).toContain("CodecTypes[CodecId]['json']");
+    expect(aliases).not.toContain("? CodecTypes[CodecId]['output']");
+  });
+
+  it('keeps the emitted literal when the codec JSON channel admits it', () => {
+    const aliases = sqlEmission.getFamilyTypeAliases?.();
+
+    expect(aliases).toContain("Encoded extends CodecTypes[CodecId]['json']");
+  });
+});

@@ -25,9 +25,11 @@ export type ProfileHash =
 export type CodecTypes = SqliteTypes;
 export type LaneCodecTypes = CodecTypes;
 export type QueryOperationTypes = Record<string, never>;
-type DefaultLiteralValue<CodecId extends string, _Encoded> = CodecId extends keyof CodecTypes
-  ? CodecTypes[CodecId]['output']
-  : _Encoded;
+type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyof CodecTypes
+  ? Encoded extends CodecTypes[CodecId]['json']
+    ? Encoded
+    : CodecTypes[CodecId]['json']
+  : Encoded;
 
 export type FieldOutputTypes = {
   readonly __unbound__: {
