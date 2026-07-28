@@ -1,4 +1,4 @@
-name: npm - manage dist tag
+name: v7 - npm - manage dist tag
 run-name: npm - manage dist tag / ${{ github.event.inputs.tagAction}} ${{ github.event.inputs.tagName}} (on ${{ github.event.inputs.targetVersion}})
 
 on:

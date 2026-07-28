@@ -1,4 +1,4 @@
-name: Update Engines Version
+name: v7 - Update Engines Version
 run-name: Update Engines on npm ${{ inputs.npmDistTag }} ${{ inputs.version }}
 
 on:

@@ -1,4 +1,4 @@
-name: Daily Test
+name: v7 - Daily Test
 
 on:
   workflow_dispatch:

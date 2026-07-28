@@ -1,4 +1,4 @@
-name: npm - release
+name: v7 - npm - release
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for all files
-      # (test.yml, benchmark.yml, release.yml, bundle-size.yml, ci-aux-files.yml)
+      # (test.yml, benchmark.yml, v7-release.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       - '*.bench.ts'
       - 'LICENSE'

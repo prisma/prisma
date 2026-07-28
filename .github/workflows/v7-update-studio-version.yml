@@ -1,4 +1,4 @@
-name: Update Studio Version
+name: v7 - Update Studio Version
 run-name: Update Studio - version ${{ inputs.version }}
 
 on:
