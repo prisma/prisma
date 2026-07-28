@@ -154,6 +154,27 @@ export type DescriptorCodecInput<D> =
     : never;
 
 /**
+ * Resolve the JSON type for a descriptor `D` — what the codec's `encodeJson`
+ * produces, and therefore what a `contract.json` holds for a value of this
+ * codec.
+ *
+ * This is a distinct channel from {@link DescriptorCodecInput} because the two
+ * diverge: `pg/int8@1` carries `bigint` application values whose canonical JSON
+ * is a decimal string, and a `contract.json` holds the string. Reading the
+ * application type where the JSON type is meant produces a contract type that
+ * describes a value the file cannot contain.
+ *
+ * The type is read off the codec's declared `encodeJson` return, so a codec that
+ * narrows that return (`encodeJson(value: bigint): string`) publishes its JSON
+ * type without a new type parameter, and one that does not stays at the
+ * `JsonValue` the base signature promises.
+ */
+export type DescriptorCodecJson<D> =
+  DescriptorResolvedCodec<D> extends BaseCodec<string, readonly CodecTrait[], unknown, unknown>
+    ? ReturnType<DescriptorResolvedCodec<D>['encodeJson']>
+    : never;
+
+/**
  * Resolve the trait union for a descriptor `D`.
  *
  * Reads `traits` directly off the descriptor — concrete descriptor classes declare `override readonly traits = [...] as const`, which preserves the literal trait tuple at the descriptor type. Reading from the resolved codec instance (`CodecImpl<…, TTraits, …>`) would lose the literal because `Codec` carries `TTraits` only on its optional phantom slot (`readonly __codecTraits?: TTraits`); codecs extending `CodecImpl`
@@ -178,6 +199,7 @@ export type ExtractCodecTypes<
   readonly [K in keyof ScalarNames as DescriptorCodecId<ScalarNames[K]>]: {
     readonly input: DescriptorCodecInput<ScalarNames[K]>;
     readonly output: DescriptorCodecInput<ScalarNames[K]>;
+    readonly json: DescriptorCodecJson<ScalarNames[K]>;
     readonly traits: DescriptorCodecTraits<ScalarNames[K]>;
   };
 };

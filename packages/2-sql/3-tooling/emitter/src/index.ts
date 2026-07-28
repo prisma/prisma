@@ -439,10 +439,17 @@ export const sqlEmission = {
     return [
       'export type LaneCodecTypes = CodecTypes;',
       `export type QueryOperationTypes = ${queryOperationTypes};`,
-      'type DefaultLiteralValue<CodecId extends string, _Encoded> =',
+      // A literal default is stored in `contract.json`, so it is typed by the
+      // codec's JSON channel rather than its application type — the two diverge
+      // wherever a codec's canonical JSON differs from the value it hands the
+      // application. The emitted literal is kept whenever that channel admits
+      // it, so a default stays as precise as the file it came from.
+      'type DefaultLiteralValue<CodecId extends string, Encoded> =',
       '  CodecId extends keyof CodecTypes',
-      "    ? CodecTypes[CodecId]['output']",
-      '    : _Encoded;',
+      "    ? Encoded extends CodecTypes[CodecId]['json']",
+      '      ? Encoded',
+      "      : CodecTypes[CodecId]['json']",
+      '    : Encoded;',
     ].join('\n');
   },
 
