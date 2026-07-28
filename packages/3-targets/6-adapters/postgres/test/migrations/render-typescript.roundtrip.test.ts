@@ -389,7 +389,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     );
 
     // Delete the policy's required `name` key from the rendered source — the
-    // compile must fail (TS2741 missing-property), proving the green run of
+    // compile must fail on the missing property, proving the green run of
     // the sibling test is a real typecheck and not a vacuous pass.
     const brokenSource = migration
       .renderTypeScript()
@@ -402,7 +402,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       (error: unknown) => error,
     );
     expect(failure).toBeDefined();
-    expect(String((failure as { stdout?: string }).stdout)).toContain('TS2741');
+    expect(String((failure as { stdout?: string }).stdout)).toContain("Property 'name' is missing");
   });
 
   it('preserves RawSqlCall ops byte-for-byte through the render → execute round-trip', {
