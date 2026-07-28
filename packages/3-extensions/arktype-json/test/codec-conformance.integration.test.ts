@@ -13,6 +13,7 @@
  */
 
 import type { JsonValue } from '@prisma-next/contract/types';
+import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
 import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
 import { type } from 'arktype';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -21,7 +22,6 @@ import type {
   PostgresCodecConformanceCase,
 } from '../../../3-targets/6-adapters/postgres/test/codec-conformance/harness';
 import { runPostgresCodecProjection } from '../../../3-targets/6-adapters/postgres/test/codec-conformance/harness';
-import postgresControlDriverDescriptor from '../../../3-targets/7-drivers/postgres/src/exports/control';
 import { arktypeJsonColumn, arktypeJsonDescriptor } from '../src/core/arktype-json-codec';
 
 function schemaCase(
