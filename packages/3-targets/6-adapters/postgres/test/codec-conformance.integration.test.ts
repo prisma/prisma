@@ -52,8 +52,8 @@ describe.sequential('PostgreSQL codec JSON-projection conformance', () => {
   for (const conformanceCase of postgresConformanceCases) {
     const expectation =
       conformanceCase.notYetCanonical === undefined
-        ? 'projects canonical JSON'
-        : 'has no canonical projection yet';
+        ? 'agrees with encodeJson and round-trips through decodeJson'
+        : 'still disagrees with encodeJson or decodeJson';
 
     it(`${conformanceCase.codecId} (${conformanceCase.label}) ${expectation}`, {
       timeout: timeouts.spinUpPpgDev,

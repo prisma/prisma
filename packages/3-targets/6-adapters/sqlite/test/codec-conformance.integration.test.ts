@@ -58,8 +58,8 @@ describe.sequential('SQLite codec JSON-projection conformance', () => {
   for (const conformanceCase of sqliteConformanceCases) {
     const expectation =
       conformanceCase.notYetCanonical === undefined
-        ? 'projects canonical JSON'
-        : 'has no canonical projection yet';
+        ? 'agrees with encodeJson and round-trips through decodeJson'
+        : 'still disagrees with encodeJson or decodeJson';
 
     it(`${conformanceCase.codecId} (${conformanceCase.label}) ${expectation}`, async () => {
       const outcome = await runSqliteCodecProjection(connection!, conformanceCase);
