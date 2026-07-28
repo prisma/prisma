@@ -28,15 +28,19 @@ const INSTALL_VECTOR = ['CREATE EXTENSION IF NOT EXISTS vector'] as const;
 function vectorCase(
   label: string,
   value: number[],
-  length: number = value.length,
+  options: { readonly length?: number; readonly floatDigits?: 1 | 3 } = {},
 ): PostgresCodecConformanceCase {
+  const setupSql =
+    options.floatDigits === undefined
+      ? INSTALL_VECTOR
+      : [...INSTALL_VECTOR, `SET extra_float_digits = ${options.floatDigits}`];
   return {
     codecId: 'pg/vector@1',
     descriptor: pgVectorDescriptor,
     label,
     value,
-    typeParams: { length },
-    setupSql: INSTALL_VECTOR,
+    typeParams: { length: options.length ?? value.length },
+    setupSql,
   };
 }
 
@@ -62,6 +66,21 @@ const cases: readonly PostgresCodecConformanceCase[] = [
     'many dimensions',
     Array.from({ length: 1536 }, (_, index) => index / 2048),
   ),
+  // `extra_float_digits` decides how many digits a float prints. At its default
+  // of 1 the projection prints the exact float64 a `real` denotes; at 0 or below
+  // it truncates. These pin the canonical form at the floor and above it.
+  //
+  // The value discriminates and a simpler one would not: 0.1 prints identically
+  // at every setting. Note it differs from `pg/float4@1`'s case for the same
+  // property — this projection widens each element to float8 before printing, so
+  // the value is the exact float64 of the float4, where a bare float4 column
+  // prints its own shortest decimal instead.
+  vectorCase('full precision at the float-digits floor', [Math.fround(1 / 3)], {
+    floatDigits: 1,
+  }),
+  vectorCase('full precision above the float-digits floor', [Math.fround(1 / 3)], {
+    floatDigits: 3,
+  }),
 ];
 
 describe.sequential('pgvector codec JSON-projection conformance', () => {

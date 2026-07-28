@@ -35,6 +35,17 @@ const ENUM_TYPE = 'codec_conformance_mood';
  * case that passes under it renders from the stored value alone rather than
  * inheriting whatever the connected session happens to be set to.
  */
+/**
+ * `extra_float_digits` decides how many digits PostgreSQL prints for a float.
+ * At its default of 1 (PostgreSQL 12 and later) it prints the shortest decimal
+ * that round-trips; at 0 or below it reverts to a fixed count and truncates.
+ * The float codecs' canonical form holds at 1 and above, which these sessions
+ * pin so the claim does not rest on the server's default being right.
+ */
+const floatDigitsSession = (digits: 1 | 3): readonly string[] => [
+  `SET extra_float_digits = ${digits}`,
+];
+
 const HOSTILE_TEMPORAL_SESSION: readonly string[] = [
   "SET TimeZone = 'Asia/Kolkata'",
   "SET DateStyle = 'German, DMY'",
@@ -76,6 +87,54 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
   { codecId: 'pg/int8@1', label: 'int8 lower bound', value: -9223372036854775808n },
   { codecId: 'pg/float4@1', label: 'finite float', value: 1.5 },
   { codecId: 'pg/float8@1', label: 'finite float', value: 1.5 },
+  // These values are chosen to discriminate between `extra_float_digits`
+  // settings, and a simpler one would pin nothing: 0.1 prints as `0.1` at every
+  // setting, so a case built on it cannot tell them apart. Each width needs its
+  // own value, because each projection prints a different thing:
+  //
+  //   float8  prints the shortest float8 decimal, so the value is 1/3 itself
+  //   float4  prints the shortest *float4* decimal, so the value is the float64
+  //           that decimal reads back as — not `Math.fround(1/3)`, which is a
+  //           different number that would not survive the printing
+  //
+  // At `extra_float_digits = 0` these print 15 and 6 significant digits
+  // respectively, and neither round-trips.
+  {
+    codecId: 'pg/float8@1',
+    label: 'full precision at the float-digits floor',
+    value: 1 / 3,
+    setupSql: floatDigitsSession(1),
+  },
+  {
+    codecId: 'pg/float8@1',
+    label: 'full precision above the float-digits floor',
+    value: 1 / 3,
+    setupSql: floatDigitsSession(3),
+  },
+  {
+    codecId: 'pg/float4@1',
+    label: 'full precision at the float-digits floor',
+    value: 0.33333334,
+    setupSql: floatDigitsSession(1),
+  },
+  {
+    codecId: 'pg/float4@1',
+    label: 'full precision above the float-digits floor',
+    value: 0.33333334,
+    setupSql: floatDigitsSession(3),
+  },
+  {
+    codecId: 'pg/float@1',
+    label: 'full precision at the float-digits floor',
+    value: 1 / 3,
+    setupSql: floatDigitsSession(1),
+  },
+  {
+    codecId: 'pg/float@1',
+    label: 'full precision above the float-digits floor',
+    value: 1 / 3,
+    setupSql: floatDigitsSession(3),
+  },
   { codecId: 'pg/numeric@1', label: 'representable decimal', value: '1.5' },
   { codecId: 'pg/numeric@1', label: 'integer beyond double precision', value: '9007199254740993' },
   {
