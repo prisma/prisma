@@ -13,6 +13,7 @@
  * dependency instead of somewhere downstream.
  */
 
+import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
 import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type {
@@ -20,7 +21,6 @@ import type {
   PostgresCodecConformanceCase,
 } from '../../../3-targets/6-adapters/postgres/test/codec-conformance/harness';
 import { runPostgresCodecProjection } from '../../../3-targets/6-adapters/postgres/test/codec-conformance/harness';
-import postgresControlDriverDescriptor from '../../../3-targets/7-drivers/postgres/src/exports/control';
 import { pgVectorDescriptor } from '../src/core/codecs';
 
 const INSTALL_VECTOR = ['CREATE EXTENSION IF NOT EXISTS vector'] as const;
