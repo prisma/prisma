@@ -61,7 +61,11 @@ An internal, database-backed harness takes a descriptor, a set of representative
 
 The harness is internal to this slice. Slice 5 promotes its case-runner API into the public dev-only `@prisma-next/postgres-codec-testkit` / `@prisma-next/sqlite-codec-testkit` packages; shaping it here with that promotion in mind is deliberate, but the package boundary is not this slice's problem.
 
-**What the harness's green does not prove.** It exercises a projection inside a flat JSON object over a base table. Derived-table nesting — which slice 4 introduces when it wires renderers, and which is the whole reason SQLite needs retagging — is out of its reach by construction. Slice 4 must bring its own evidence for the nested case and must not read this slice's green as covering it.
+**What the harness's green does not prove.** Three limits, each structural rather than a gap to be closed by more cases:
+
+1. **Nesting.** It exercises a projection inside a flat JSON object over a base table. Derived-table nesting — which slice 4 introduces when it wires renderers, and which is the whole reason SQLite needs retagging — is out of reach by construction. Slice 4 must bring its own evidence and must not read this slice's green as covering it.
+2. **Boundaries it was not given.** The oracle is exactly as good as its case values. Dispatch 3 shipped a base64 projection that broke for any value over 57 bytes while the suite stayed green, because the only case was 3 bytes. Green means "the values we chose round-trip", never "the representation is sound". Case *values* deserve at least as much review attention as the mechanism.
+3. **Anything only a database-written value can exhibit.** The harness is value-first: it encodes an application value, stores it, projects it back. A defect that appears only in values the database itself produces cannot arise — the clearest instance being microsecond-precision temporals, since PostgreSQL stores microseconds while a JavaScript `Date` holds milliseconds, so a microsecond-bearing value cannot be constructed application-side at all. This is the same blind spot as the recorded `toDriverParam` write-side finding, seen from the other end.
 
 ## Coherence rationale
 
