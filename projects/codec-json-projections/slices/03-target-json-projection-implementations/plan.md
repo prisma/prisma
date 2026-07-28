@@ -113,10 +113,16 @@ Inserted mid-slice (operator decision, 2026-07-28) after dispatch 3 raised inter
 
 Split from dispatch 7 (operator decision, 2026-07-28) after its reconnaissance found no extension package has any live-database test at all — zero files under `pgvector/test`, `postgis/test` or `arktype-json/test` call `createDevDatabase`, and every `CREATE EXTENSION` reference is a migration definition or DDL-string assertion, never executed.
 
-- **Outcome:** `createDevDatabase` in `test/utils/src/exports/index.ts` can load extension bundles, so an extension's conformance can run against a database that actually has the extension installed. `@prisma/dev` already exposes an `extensions: Record<string, URL>` option and ships `vector.tar.gz`, so this is enablement rather than invention.
-- **Builds on:** Nothing in this slice; it is infrastructure.
-- **Hands to:** Dispatches 7b and 7c, neither of which can have real-database conformance without it.
-- **Focus:** The shared test-utils surface only. Four packages' suites depend on `createDevDatabase`, so the change must be additive — an existing caller passing no extensions must behave exactly as now.
+**Outcome: no change required. The capability already exists.** Probed rather than assumed: a `createDevDatabase()` database created with **no options at all** already has 32 extensions available, `vector` at 0.8.1 among them, and `CREATE EXTENSION IF NOT EXISTS vector` succeeds. So 7b and 7c were never blocked.
+
+Two corrections this dispatch produced:
+
+- **`ServerOptions` has no `extensions` field.** The `extensions: Record<string, URL>` reported in dispatch 7 is on `PGliteRuntimeAssets` — an internal runtime-assets shape consumed by `copyPrismaDevRuntimeAssets` — not a server option. Building the option would therefore have meant threading into a field that does not exist, on a shared surface four packages depend on, with no consumer needing it. Declined on the F10 asymmetry: speculative API on a shared surface is the `isJsonRetag` mistake with a wider blast radius.
+- **`postgis` is confirmed absent from all 32**, which corroborates the TML-3105 deferral from the running database rather than from an inspection of shipped files.
+
+Bonus evidence for 7c: `(('[1,2,3]'::vector)::text)::json` yields a genuine JSON numeric array — pgvector's canonical form per the design notes — so the projection shape has evidence behind it before the dispatch starts. And `citext`, `hstore`, `ltree`, `uuid-ossp` and `pg_trgm` are all available too, so any future extension codec over those types is similarly unblocked.
+
+The no-op property was proved by construction: there is no diff, so every existing caller's startup path, timing and failure modes are unchanged by fact rather than by argument. The validation gate was deliberately not run — an empty diff gives it nothing to discriminate, and a full run under dev-server contention would produce noise attributable to nothing.
 
 ### Dispatch 7b: arktype-json canonical projection
 
