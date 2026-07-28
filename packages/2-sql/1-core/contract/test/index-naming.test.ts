@@ -300,6 +300,20 @@ describe('lowerAuthoredIndex — exact-name body warning', () => {
     ]);
   });
 
+  it('the policy subject carries policy remediation — drop @@map, the block head names the policy', () => {
+    const warning = exactNameBodyWarning('policy', 'Tenant members can read');
+    expect(warning.message).toBe(
+      'policy "Tenant members can read" uses map: with a SQL body. Drift detection compares ' +
+        "the authored SQL text byte-for-byte against Postgres's reprinted form, which is only " +
+        'reliable when the text was captured by contract infer. For hand-authored definitions, ' +
+        "drop @@map and let the policy block's head name the policy; to migrate an adopted " +
+        'policy to managed naming, remove @@map (keeping the body text unchanged) and apply ' +
+        'the resulting rename migration.',
+    );
+    expect(warning.message).not.toContain('name:');
+    expect(warning.guidance).not.toContain('name:');
+  });
+
   it('fires for map + where', () => {
     const warnings = captureWarnings(() => {
       lowerAuthoredIndex('user', {

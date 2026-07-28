@@ -36,8 +36,20 @@ export type AuthoredIndexInput = AuthoredIndexElements & {
   readonly options: Record<string, unknown> | undefined;
 };
 
-const EXACT_NAME_BODY_GUIDANCE =
-  "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer. For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.";
+const EXACT_NAME_BODY_PREAMBLE =
+  "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer.";
+
+/**
+ * Per-subject remediation: an index moves to managed naming via `name:`;
+ * a policy has no such parameter — dropping `@@map` makes the block's head
+ * the managed prefix.
+ */
+const EXACT_NAME_BODY_REMEDIATION = {
+  index:
+    'For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
+  policy:
+    "For hand-authored definitions, drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
+} as const;
 
 const EXACT_NAME_BODY_WARNING_CODE = 'PN_EXACT_NAME_BODY_COMPARISON';
 
@@ -45,18 +57,20 @@ const EXACT_NAME_BODY_WARNING_CODE = 'PN_EXACT_NAME_BODY_COMPARISON';
  * Mints the exact-name body-comparison warning for a `map:`-named object
  * carrying a hand-authorable SQL body — fully formed, so the transport and
  * the flush stay generic. `subject` is `index` here and `policy` where
- * policies mint the same warning.
+ * policies mint the same warning; the remediation half of the guidance is
+ * subject-specific.
  */
 export function exactNameBodyWarning(
   subject: 'index' | 'policy',
   exactName: string,
 ): AuthoringWarning {
   const item = `${subject} "${exactName}"`;
+  const guidance = `${EXACT_NAME_BODY_PREAMBLE} ${EXACT_NAME_BODY_REMEDIATION[subject]}`;
   return {
     code: EXACT_NAME_BODY_WARNING_CODE,
-    message: `${item} uses map: with a SQL body. ${EXACT_NAME_BODY_GUIDANCE}`,
+    message: `${item} uses map: with a SQL body. ${guidance}`,
     item,
-    guidance: `objects use map: with a SQL body. ${EXACT_NAME_BODY_GUIDANCE}`,
+    guidance: `objects use map: with a SQL body. ${guidance}`,
   };
 }
 

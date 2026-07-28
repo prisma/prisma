@@ -310,7 +310,12 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
     );
     const calls = exactNameWarningCalls();
     expect(calls).toHaveLength(1);
-    expect(calls[0]?.[0]).toContain('policy "Tenant members can read" uses map: with a SQL body.');
+    const message = String(calls[0]?.[0]);
+    expect(message).toContain('policy "Tenant members can read" uses map: with a SQL body.');
+    expect(message).toContain(
+      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map",
+    );
+    expect(message).not.toContain('name:');
   });
 
   it('over-threshold mixed index + policy warnings collapse into ONE summary flush', () => {
