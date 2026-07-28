@@ -199,6 +199,10 @@ export async function runPostgresCodecProjection(
   const params = validateCodecTypeParams(descriptor, ref);
   const codec = descriptor.factory(params)({ name: VALUE_COLUMN });
 
+  // Each case starts from default session state, so a case that sets `TimeZone`
+  // or another GUC in `setupSql` to prove session independence cannot change
+  // what a later case measures.
+  await connection.query('RESET ALL');
   await connection.query(`DROP TABLE IF EXISTS "${STORAGE_TABLE}"`);
   for (const statement of conformanceCase.setupSql ?? []) {
     await connection.query(statement);

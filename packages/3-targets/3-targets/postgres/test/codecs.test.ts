@@ -150,6 +150,13 @@ describe('adapter-postgres codecs', () => {
       expect(await timestampCodec.encode(date, {})).toBe(date);
       expect(await timestampCodec.decode(date, {})).toBe(date);
     });
+
+    it('uses the zone-less ISO form a timestamp column holds', () => {
+      const codec = codecForScalar('sql-timestamp');
+      const date = new Date('2024-01-15T10:30:00.000Z');
+      expect(codec.encodeJson(date)).toBe('2024-01-15T10:30:00.000');
+      expect(codec.decodeJson('2024-01-15T10:30:00.000')).toEqual(date);
+    });
   });
 
   describe('timestamptz codec', () => {
@@ -398,27 +405,26 @@ describe('adapter-postgres codecs', () => {
       expect(Array.from(decoded)).toEqual([0x01, 0x02, 0x03]);
     });
 
-    it('decodes Postgres JSON bytea hex text', () => {
-      expect(byteaCodec.decodeJson('\\x0102feff')).toEqual(
-        new Uint8Array([0x01, 0x02, 0xfe, 0xff]),
+    it('uses base64 for JSON in both directions', () => {
+      const bytes = new Uint8Array([0x01, 0x02, 0xfe, 0xff]);
+      expect(byteaCodec.encodeJson(bytes)).toBe('AQL+/w==');
+      expect(byteaCodec.decodeJson('AQL+/w==')).toEqual(bytes);
+      expect(byteaCodec.encodeJson(new Uint8Array())).toBe('');
+      expect(byteaCodec.decodeJson('')).toEqual(new Uint8Array());
+    });
+
+    it('rejects JSON that is not base64 text', () => {
+      expect(() => byteaCodec.decodeJson(42)).toThrow(
+        'pg/bytea@1 database JSON value must be a base64 string',
+      );
+      expect(() => byteaCodec.decodeJson('not base64!')).toThrow(
+        'pg/bytea@1 database JSON value must be a base64 string',
       );
     });
 
-    it('rejects malformed Postgres JSON bytea hex text', () => {
-      expect(() => byteaCodec.decodeJson('0102')).toThrow(
-        'Expected Postgres bytea hex text to start with "\\x"',
-      );
-      expect(() => byteaCodec.decodeJson('\\x123')).toThrow(
-        'Invalid Postgres bytea hex text length: 3',
-      );
-      expect(() => byteaCodec.decodeJson('\\x01zz')).toThrow(
-        'Invalid Postgres bytea hex pair "zz" at offset 2',
-      );
-    });
-
-    it('encodes Uint8Array to Postgres JSON bytea hex text', () => {
+    it('encodes Uint8Array to base64 text', () => {
       const input = new Uint8Array([0x68, 0x65, 0x6c, 0x6c, 0x6f]);
-      expect(byteaCodec.encodeJson(input)).toBe('\\x68656c6c6f');
+      expect(byteaCodec.encodeJson(input)).toBe('aGVsbG8=');
     });
 
     it('round-trips through encodeJson / decodeJson', () => {
@@ -430,7 +436,7 @@ describe('adapter-postgres codecs', () => {
 
     it('throws on non-string input to decodeJson', () => {
       expect(() => byteaCodec.decodeJson(42)).toThrow(
-        'Expected Postgres bytea hex text to start with "\\x"',
+        'pg/bytea@1 database JSON value must be a base64 string',
       );
     });
   });

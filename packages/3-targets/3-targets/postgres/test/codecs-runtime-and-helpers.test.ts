@@ -183,7 +183,7 @@ describe('pg/bytea@1 codec runtime (direct instantiation)', () => {
   it('round-trips a payload through encodeJson / decodeJson', () => {
     const input = new Uint8Array([0xca, 0xfe]);
     const json = codec.encodeJson(input);
-    expect(json).toBe('\\xcafe');
+    expect(json).toBe('yv4=');
     expect(Array.from(codec.decodeJson(json))).toEqual([0xca, 0xfe]);
   });
 });

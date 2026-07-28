@@ -226,40 +226,20 @@ export const pgIntervalDecode = (wire: string | Record<string, unknown>): string
   return JSON.stringify(wire);
 };
 
+const BASE64_TEXT = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
 export const pgByteaEncodeJson = (value: Uint8Array): JsonValue =>
-  `\\x${Buffer.from(value).toString('hex')}`;
+  Buffer.from(value).toString('base64');
 
 export const pgByteaDecodeJson = (value: JsonValue): Uint8Array => {
-  if (typeof value !== 'string' || !value.startsWith('\\x')) {
+  if (typeof value !== 'string' || !BASE64_TEXT.test(value)) {
     throw postgresError(
       'RUNTIME.DECODE_FAILED',
-      `Expected Postgres bytea hex text to start with "\\x"`,
+      'pg/bytea@1 database JSON value must be a base64 string',
       { meta: { codecId: 'pg/bytea@1' } },
     );
   }
-
-  const hex = value.slice(2);
-  if (hex.length % 2 !== 0) {
-    throw postgresError(
-      'RUNTIME.DECODE_FAILED',
-      `Invalid Postgres bytea hex text length: ${hex.length}`,
-      { meta: { codecId: 'pg/bytea@1', received: hex.length } },
-    );
-  }
-
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let offset = 0; offset < hex.length; offset += 2) {
-    const pair = hex.slice(offset, offset + 2);
-    if (!/^[0-9a-fA-F]{2}$/.test(pair)) {
-      throw postgresError(
-        'RUNTIME.DECODE_FAILED',
-        `Invalid Postgres bytea hex pair "${pair}" at offset ${offset}`,
-        { meta: { codecId: 'pg/bytea@1', received: pair } },
-      );
-    }
-    bytes[offset / 2] = Number.parseInt(pair, 16);
-  }
-  return bytes;
+  return new Uint8Array(Buffer.from(value, 'base64'));
 };
 
 export const pgJsonEncode = (value: string | JsonValue): string => JSON.stringify(value);
