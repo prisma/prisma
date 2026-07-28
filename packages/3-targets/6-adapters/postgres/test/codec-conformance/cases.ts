@@ -2,10 +2,23 @@
  * Representative application values for every built-in PostgreSQL codec
  * descriptor, exercised against a real database by the conformance suite.
  *
- * `notYetCanonical` marks the cases whose projection does not yet realize the
- * codec's canonical JSON. That set is the outstanding work: each entry names
- * the gap that remains open, and the suite asserts it really is still open, so
- * closing one without updating this file turns the suite red.
+ * `notYetCanonical` marks a case whose projection disagrees with the codec's
+ * **current** `encodeJson` / `decodeJson` — the projection will not execute, or
+ * the parsed value differs from what `encodeJson` produces, or the value does
+ * not survive the round trip back. The suite asserts a marked case still fails
+ * and still fails the recorded way, so a projection cannot be brought into
+ * agreement without updating this file.
+ *
+ * This file therefore does not enumerate every codec whose JSON is not yet
+ * canonical. Both conformance conditions are stated against the codec's own two
+ * methods, so a codec whose `encodeJson` is itself not canonical conforms here:
+ * its projection faithfully realizes a representation that is simply not the one
+ * the codec ends up with. `pg/bytea@1` (PostgreSQL hex, where the canonical form
+ * is base64), `pg/int8@1` (a JavaScript number, where the canonical form is
+ * decimal text) and the PostgreSQL temporals are all in that position — they
+ * conform today and transit through a failing state as their canonical form
+ * lands. Which codecs still owe a canonical form is tracked by the plan, not by
+ * this file.
  */
 
 import type { PostgresCodecConformanceCase } from './harness';
@@ -22,8 +35,11 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     codecId: 'sql/timestamp@1',
     label: 'instant',
     value: new Date('2026-01-02T03:04:05.678Z'),
-    notYetCanonical:
-      'the identity projection renders a timestamp without the trailing Z that encodeJson emits',
+    notYetCanonical: {
+      kind: 'mismatch',
+      reason:
+        'the identity projection renders a timestamp without the trailing Z that encodeJson emits',
+    },
   },
   { codecId: 'pg/text@1', label: 'text', value: 'hello' },
   {
@@ -50,15 +66,21 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     codecId: 'pg/numeric@1',
     label: 'integer beyond double precision',
     value: '9007199254740993',
-    notYetCanonical:
-      'numeric reaches JSON as a number, so the value is rounded to the nearest double before anything can read it',
+    notYetCanonical: {
+      kind: 'lossy-round-trip',
+      reason:
+        'numeric reaches JSON as a number, so the value is rounded to the nearest double before anything can read it',
+    },
   },
   {
     codecId: 'pg/numeric@1',
     label: 'twenty fractional digits',
     value: '1234567890.12345678901234567890',
-    notYetCanonical:
-      'numeric reaches JSON as a number, so the fractional digits beyond double precision are lost',
+    notYetCanonical: {
+      kind: 'lossy-round-trip',
+      reason:
+        'numeric reaches JSON as a number, so the fractional digits beyond double precision are lost',
+    },
   },
   { codecId: 'pg/bool@1', label: 'true', value: true },
   { codecId: 'pg/bit@1', label: 'single bit', value: '1' },
@@ -88,6 +110,3 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
   { codecId: 'pg/inet@1', label: 'ipv4 address', value: '192.168.0.1' },
   { codecId: 'pg/text-array@1', label: 'string array', value: ['a', 'b'] },
 ];
-
-export const postgresNotYetCanonicalCases: readonly PostgresCodecConformanceCase[] =
-  postgresConformanceCases.filter((entry) => entry.notYetCanonical !== undefined);

@@ -2,9 +2,15 @@
  * Runs the codec JSON-projection conformance harness against a live PostgreSQL
  * for every built-in codec descriptor.
  *
- * A case with no `notYetCanonical` reason must conform; a case carrying one
- * must still fail, so a projection that becomes canonical cannot leave a stale
- * entry behind in the work list.
+ * An unmarked case must conform — its projection must agree with the codec's
+ * `encodeJson` and survive the round trip back through `decodeJson`. A marked
+ * case must still fail, and fail with the kind it records, so neither the marker
+ * nor its recorded kind can rot as projections change.
+ *
+ * Conformance is measured against the codec's **current** methods, so a green
+ * run does not claim every codec's JSON is already canonical: a codec whose
+ * `encodeJson` is not yet canonical conforms here and is tracked by the plan.
+ * See `codec-conformance/cases.ts`.
  */
 
 import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
@@ -55,9 +61,9 @@ describe.sequential('PostgreSQL codec JSON-projection conformance', () => {
       const outcome = await runPostgresCodecProjection(connection!, conformanceCase);
 
       if (conformanceCase.notYetCanonical === undefined) {
-        expect(outcome.mismatch ?? 'conforms').toBe('conforms');
+        expect(outcome.failure?.detail ?? 'conforms').toBe('conforms');
       } else {
-        expect(outcome.conforms).toBe(false);
+        expect(outcome.failure?.kind).toBe(conformanceCase.notYetCanonical.kind);
       }
     });
   }

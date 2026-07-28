@@ -2,10 +2,21 @@
  * Representative application values for every built-in SQLite codec descriptor,
  * exercised against a real database by the conformance suite.
  *
- * `notYetCanonical` marks the cases whose projection does not yet realize the
- * codec's canonical JSON. That set is the outstanding work: each entry names
- * the gap that remains open, and the suite asserts it really is still open, so
- * closing one without updating this file turns the suite red.
+ * `notYetCanonical` marks a case whose projection disagrees with the codec's
+ * **current** `encodeJson` / `decodeJson` — the projection will not execute, or
+ * the parsed value differs from what `encodeJson` produces, or the value does
+ * not survive the round trip back. The suite asserts a marked case still fails
+ * and still fails the recorded way, so a projection cannot be brought into
+ * agreement without updating this file.
+ *
+ * This file therefore does not enumerate every codec whose JSON is not yet
+ * canonical. Both conformance conditions are stated against the codec's own two
+ * methods, so a codec whose `encodeJson` is itself not canonical conforms here:
+ * its projection faithfully realizes a representation that is simply not the one
+ * the codec ends up with. `sqlite/bigint@1` within the safe-integer range is in
+ * exactly that position — it conforms today, and transits through a failing
+ * state once decimal text becomes its canonical form. Which codecs still owe a
+ * canonical form is tracked by the plan, not by this file.
  */
 
 import type { SqliteCodecConformanceCase } from './harness';
@@ -23,7 +34,10 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
     label: 'byte string',
     value: new Uint8Array([0, 1, 255]),
     storageType: 'BLOB',
-    notYetCanonical: 'SQLite JSON rejects a BLOB, so the identity projection cannot execute at all',
+    notYetCanonical: {
+      kind: 'execution',
+      reason: 'SQLite JSON rejects a BLOB, so the identity projection cannot execute at all',
+    },
   },
   {
     codecId: 'sqlite/datetime@1',
@@ -36,8 +50,11 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
     label: 'document',
     value: { a: 1, b: ['x'] },
     storageType: 'TEXT',
-    notYetCanonical:
-      'a document stored as text arrives as a JSON string, not a JSON document, until the projection retags it',
+    notYetCanonical: {
+      kind: 'mismatch',
+      reason:
+        'a document stored as text arrives as a JSON string, not a JSON document, until the projection retags it',
+    },
   },
   {
     codecId: 'sqlite/bigint@1',
@@ -50,10 +67,10 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
     label: 'integer beyond double precision',
     value: 9007199254740993n,
     storageType: 'INTEGER',
-    notYetCanonical:
-      'the canonical JSON is a number, so a value outside the safe-integer range has no representation',
+    notYetCanonical: {
+      kind: 'encode-json-rejects',
+      reason:
+        'the canonical JSON is a number, so a value outside the safe-integer range has no representation',
+    },
   },
 ];
-
-export const sqliteNotYetCanonicalCases: readonly SqliteCodecConformanceCase[] =
-  sqliteConformanceCases.filter((entry) => entry.notYetCanonical !== undefined);
