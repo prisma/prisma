@@ -85,6 +85,8 @@ One outcome: every target descriptor states its canonical JSON as SQL, and a dat
 
 **Out:** renderer wiring and any `projectJson()` call from a production path; ORM projection planning; `CodecMeta` / `meta` / `metaFor` removal; public testkit packages; aggregate descriptors; any change to a database-produced JSON path. All belong to slice 4 or 5.
 
+**Also out, by operator decision (2026-07-28): `pg/geometry@1` (PostGIS).** It is blocked on an undecided canonical format — GeoJSON has no SRID, the application type has `srid?` optional, PostGIS stores `0` for unset, and `{type,coordinates}` versus `{type,coordinates,srid:0}` must round-trip distinctly — and on infrastructure, since PGlite ships no PostGIS bundle and so `createDevDatabase` cannot host a `geometry` column. It has its own ticket outside this project. **Slice 4 must state this exemption explicitly rather than inherit it silently:** its hard cut will advertise canonical lossless JSON while one in-repo extension codec remains non-canonical.
+
 ## Pre-investigated edge cases
 
 | Edge case | Disposition | Notes |
