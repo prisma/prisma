@@ -518,7 +518,20 @@
     <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Take over the <code>prisma</code> package name — carefully</span><span class="pill open">Open</span></summary>
       <div class="body">
-        <p>The <code>prisma</code> package becomes Prisma 8's command-line tool, published under a pre-release tag so <code>npm install prisma</code> keeps giving people Prisma 7 until 8.0.0 final. The three per-database packages users import get new names: <code>@prisma/postgres</code>, <code>@prisma/sqlite</code>, <code>@prisma/mongo</code> (checked for collisions against the many <code>@prisma/*</code> names Prisma 7 already publishes). Only those four packages rename — the ~60 internal packages that arrive automatically as dependencies keep their <code>@prisma-next/*</code> names and are explicitly not part of the supported surface. The v8 tool installs a single command, <code>prisma-next</code> — deliberately <em>not</em> <code>prisma</code>, so in a project that has both versions installed, <code>prisma</code> always unambiguously means Prisma 7, on every package manager. (Whether v8 ever claims the bare <code>prisma</code> command is deferred; adding a command later breaks nothing.) The old <code>prisma-next</code> package gets a deprecation notice pointing at its new home.</p>
+        <p>The <code>prisma</code> package becomes Prisma 8's command-line tool, published under a pre-release tag so <code>npm install prisma</code> keeps giving people Prisma 7 until 8.0.0 final. The three per-database packages users import get new names: <code>@prisma/postgres</code>, <code>@prisma/sqlite</code>, <code>@prisma/mongo</code> (checked for collisions against the many <code>@prisma/*</code> names Prisma 7 already publishes). Only those four packages rename — the ~60 internal packages that arrive automatically as dependencies keep their <code>@prisma-next/*</code> names and are explicitly not part of the supported surface. <em>(The package naming here is superseded by the namespace restructure below — facades are now spelled like <code>@prisma/orm-postgres</code>, and the internal packages do move.)</em> The v8 tool installs a single command, <code>prisma-next</code> — deliberately <em>not</em> <code>prisma</code>, so in a project that has both versions installed, <code>prisma</code> always unambiguously means Prisma 7, on every package manager. (Whether v8 ever claims the bare <code>prisma</code> command is deferred; adding a command later breaks nothing.) The old <code>prisma-next</code> package gets a deprecation notice pointing at its new home.</p>
+      </div>
+    </details>
+
+    <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Restructure the npm package namespaces</span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p>The package-naming plan is revised; four pieces of work:</p>
+        <ul>
+          <li><strong>A new <code>@prisma-orm</code> npm namespace</strong> hosts everything that is internal today — the ~60 implementation packages published under <code>@prisma-next/*</code> move there wholesale, and stay explicitly outside the supported surface.</li>
+          <li><strong>A small number of user-facing facade packages</strong> are established under <code>@prisma/*</code> — e.g. <code>@prisma/orm-postgres</code> — and those facades are the only supported import surface.</li>
+          <li><strong>OIDC trusted publishing for every new package</strong>: CI publishes both namespaces without long-lived npm tokens, configured per package as part of the pipeline rewiring above.</li>
+          <li><strong>Every <code>@prisma-next/*</code> package is deprecated</strong> on npm with a notice pointing at its successor.</li>
+        </ul>
       </div>
     </details>
 

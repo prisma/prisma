@@ -201,7 +201,18 @@ prisma/prisma's release automation currently exists to publish Prisma 7. After t
 
 <details><summary>⬜ <b>Take over the `prisma` package name — carefully</b></summary>
 
-The `prisma` package becomes Prisma 8's command-line tool, published under a pre-release tag so `npm install prisma` keeps giving people Prisma 7 until 8.0.0 final. The three per-database packages users import get new names: `@prisma/postgres`, `@prisma/sqlite`, `@prisma/mongo` (checked for collisions against the many `@prisma/*` names Prisma 7 already publishes). Only those four packages rename — the ~60 internal packages that arrive automatically as dependencies keep their `@prisma-next/*` names and are explicitly not part of the supported surface. The v8 tool installs a single command, `prisma-next` — deliberately *not* `prisma`, so in a project that has both versions installed, `prisma` always unambiguously means Prisma 7, on every package manager. (Whether v8 ever claims the bare `prisma` command is deferred; adding a command later breaks nothing.) The old `prisma-next` package gets a deprecation notice pointing at its new home.
+The `prisma` package becomes Prisma 8's command-line tool, published under a pre-release tag so `npm install prisma` keeps giving people Prisma 7 until 8.0.0 final. The three per-database packages users import get new names: `@prisma/postgres`, `@prisma/sqlite`, `@prisma/mongo` (checked for collisions against the many `@prisma/*` names Prisma 7 already publishes). Only those four packages rename — the ~60 internal packages that arrive automatically as dependencies keep their `@prisma-next/*` names and are explicitly not part of the supported surface. *(The package naming here is superseded by the namespace restructure below — facades are now spelled like `@prisma/orm-postgres`, and the internal packages do move.)* The v8 tool installs a single command, `prisma-next` — deliberately *not* `prisma`, so in a project that has both versions installed, `prisma` always unambiguously means Prisma 7, on every package manager. (Whether v8 ever claims the bare `prisma` command is deferred; adding a command later breaks nothing.) The old `prisma-next` package gets a deprecation notice pointing at its new home.
+</details>
+
+<details><summary>⬜ <b>Restructure the npm package namespaces</b></summary>
+
+The package-naming plan is revised; four pieces of work:
+
+- **A new `@prisma-orm` npm namespace** hosts everything that is internal today — the ~60 implementation packages published under `@prisma-next/*` move there wholesale, and stay explicitly outside the supported surface.
+- **A small number of user-facing facade packages** are established under `@prisma/*` — e.g. `@prisma/orm-postgres` — and those facades are the only supported import surface.
+- **OIDC trusted publishing for every new package**: CI publishes both namespaces without long-lived npm tokens, configured per package as part of the pipeline rewiring above.
+- **Every `@prisma-next/*` package is deprecated** on npm with a notice pointing at its successor.
+
 </details>
 
 <details><summary>⬜ <b>Decide the fate of every open v7 issue and pull request</b></summary>
