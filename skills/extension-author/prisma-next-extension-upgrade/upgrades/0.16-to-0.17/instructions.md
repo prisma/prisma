@@ -464,4 +464,4 @@ After the migration, run the extension package's typecheck, lint, and tests. Ver
 
 ## Incidental lint-config bumps
 
-Biome `$schema` version alignment in `packages/3-extensions/` (dependabot `dev-deps` group, PR #1058) carries no extension-author-facing behaviour change and requires no upgrade action.
+Biome `$schema` version alignment in `packages/3-extensions/` (dependabot `dev-deps` group, PR #1058) requires no Prisma Next-specific upgrade action by extension authors.
