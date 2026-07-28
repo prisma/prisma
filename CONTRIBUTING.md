@@ -33,8 +33,8 @@ Optional, only needed for specific test suites:
 ## Setup
 
 ```bash
-git clone https://github.com/prisma/prisma-next.git
-cd prisma-next
+git clone https://github.com/prisma/prisma.git
+cd prisma
 
 corepack enable                      # if you haven't already
 pnpm install --frozen-lockfile
