@@ -9,7 +9,6 @@ export type {
   SqliteTextDescriptor,
 } from '../core/codecs';
 export {
-  isJsonRetag,
   jsonDocumentRetag,
   sqliteBigintColumn,
   sqliteBlobColumn,

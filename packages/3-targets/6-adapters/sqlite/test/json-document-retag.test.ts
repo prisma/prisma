@@ -24,7 +24,6 @@ import {
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
 import {
-  isJsonRetag,
   jsonDocumentRetag,
   sqliteCodecDescriptorRegistry,
 } from '@prisma-next/target-sqlite/codecs';
@@ -63,11 +62,19 @@ describe('SQLite JSON-document retag', () => {
     );
   });
 
-  it('recognises its own output and nothing else', () => {
-    expect(isJsonRetag(jsonDocumentRetag(column))).toBe(true);
-    expect(isJsonRetag(column)).toBe(false);
-    expect(isJsonRetag(FunctionCallExpr.of('json_object', [column]))).toBe(false);
-    expect(isJsonRetag(FunctionCallExpr.of('json', [column, column]))).toBe(false);
+  it('leaves its own output alone and wraps everything else', () => {
+    const retagged = jsonDocumentRetag(column);
+    expect(jsonDocumentRetag(retagged)).toBe(retagged);
+
+    // A different JSON function, and a `json` call of the wrong arity, are not
+    // retags: each has to be wrapped rather than mistaken for one.
+    for (const other of [
+      column,
+      FunctionCallExpr.of('json_object', [column]),
+      FunctionCallExpr.of('json', [column, column]),
+    ]) {
+      expect(jsonDocumentRetag(other)).toEqual(FunctionCallExpr.of('json', [other]));
+    }
   });
 
   it('renders as json() inside the enclosing JSON constructor', () => {
