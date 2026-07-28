@@ -385,6 +385,72 @@ changes:
         - "policy_update"
         - "policy_delete"
         - "policy_all"
+  - id: codec-json-projections-must-agree-with-encode-json
+    summary: |
+      A target codec descriptor's `jsonProjection` hook is now live rather than a placeholder:
+      it states, as SQL, the canonical JSON of the codec it belongs to, and the two sides are
+      required to agree — the parsed projection must equal `encodeJson(value)`, and
+      `decodeJson` of that must return the application value. If your extension contributes a
+      PostgreSQL or SQLite codec descriptor whose `jsonProjection` still returns its argument
+      unchanged, check that the target's own JSON conversion really is your canonical form; if
+      it is not, the projection has to replace that conversion rather than post-process it.
+      Where a cast is needed it belongs *inside* the projected expression, so it applies before
+      the JSON constructor sees the value — a cast applied to the constructor's result is too
+      late, because the value has already been converted. `encodeJson` / `decodeJson` move with
+      the projection, in the same change.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - "jsonProjection"
+        - "PostgresCodecDescriptor"
+        - "SqliteCodecDescriptor"
+      anyMatch: true
+  - id: pgvector-json-form-is-a-numeric-array
+    summary: |
+      `pg/vector@1` encodes to and decodes from a JSON numeric array — `[1,2,3]` — where it used
+      the string `"[1,2,3]"`. `decodeJson` rejects the string form, because reading a vector's
+      text back at double width lands on a different number: a vector's elements are `real`, and
+      its text form prints the shortest decimal that round-trips *as a real*. If your extension
+      consumes `pg/vector@1` values out of a contract, or models a codec on it, switch to the
+      array form. Note the element type: an application value must be exactly representable as a
+      32-bit float to round-trip at all.
+    detection:
+      glob: "**/*.{ts,tsx,json}"
+      contains:
+        - "pg/vector@1"
+      anyMatch: true
+  - id: default-literal-value-resolves-through-the-codec-json-channel
+    summary: |
+      `ExtractCodecTypes` gains a `json` channel beside `input` and `output`, read off a codec's
+      declared `encodeJson` return type, and the emitted `DefaultLiteralValue` helper resolves a
+      contract's literal default through that channel rather than through the codec's application
+      type. A literal default lives in `contract.json`, so it is typed by what the file holds and
+      not by what the application receives — the two diverge for any codec whose canonical JSON
+      differs from its application value. Re-run your contract-space build
+      (`pnpm build:contract-space`, or `prisma-next contract emit`) to regenerate every
+      `contract.d.ts`; the alias definition changes in each. A codec that narrows its
+      `encodeJson` return type publishes its JSON type through the new channel; one that does not
+      keeps the `JsonValue` the base signature promises.
+    detection:
+      glob: "**/*.{ts,d.ts}"
+      contains:
+        - "DefaultLiteralValue"
+        - "ExtractCodecTypes"
+      anyMatch: true
+  - id: pg-int8-application-values-are-bigint
+    summary: |
+      `pg/int8@1` carries `bigint` application values where it carried `number`, and its JSON
+      form is decimal text. Extension code that reads an `int8` column, resolves an aggregate to
+      that codec, or hand-writes an `int8` literal default must move to `bigint` and to the
+      decimal-string JSON spelling. `parsePostgresDefault` changes with it: an introspected
+      `int8` default now reads as decimal text across the whole signed 64-bit range, where it
+      previously returned a `number` for a safe integer and a string only past 2^53 — if your
+      extension compares introspected defaults against contract defaults, that split is gone.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - "pg/int8@1"
+        - "parsePostgresDefault"
       anyMatch: true
 ---
 
@@ -499,3 +565,27 @@ After the migration, run the extension package's typecheck, lint, and tests. Ver
 ## Incidental lint-config bumps
 
 Biome `$schema` version alignment in `packages/3-extensions/` (dependabot `dev-deps` group, PR #1058) requires no Prisma Next-specific upgrade action by extension authors.
+
+## `codec-json-projections-must-agree-with-encode-json`
+
+Slice-2 shipped `jsonProjection` as a typed hook that every descriptor implemented as `return expression`. Those hooks now carry real SQL, and a descriptor's two sides are held to agreeing with each other.
+
+The ordering is the part worth internalising, because it is the same in all three shapes it has taken:
+
+- a numeric cast to `text` sits inside the projected expression, so it applies before the JSON constructor can render the value as a JSON number;
+- a base64 encoding *replaces* the target's own conversion rather than post-processing it, because the target would otherwise have already emitted its hex form;
+- a widening of a narrow float to a wider one happens before any text rendering, because the printing is what discards precision.
+
+In each case a transformation applied to the constructor's output would be too late. If you are authoring a projection, ask what the target does to the value if you do nothing, and whether that is recoverable.
+
+Two properties are worth testing against a real database rather than reasoned about, because both turned out to be contingent: whether your form survives a value at the edge of its representation, and whether it depends on a session setting your consumers may not share.
+
+## `pgvector-json-form-is-a-numeric-array`
+
+The route matters as much as the destination here. Casting a vector's text form to `json` produces an array of numbers and looks correct — but the text prints the shortest decimal that round-trips as a `real`, so reading it at double width yields a different number than the application holds. Widening each element to `float8` before building the array keeps the exact value the `real` denotes.
+
+## `default-literal-value-resolves-through-the-codec-json-channel`
+
+Before this change the emitted type said a literal default had the codec's *application* type. That was true only while the two coincided. For a codec whose application value is a `bigint` and whose canonical JSON is a decimal string, it described a `bigint` sitting in a file that holds `"0"` — which surfaced as an assignability failure rather than as a wrong-but-quiet type.
+
+Regenerating is sufficient; no hand edits to a `contract.d.ts` are needed.

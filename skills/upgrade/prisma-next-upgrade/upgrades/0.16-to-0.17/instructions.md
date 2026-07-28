@@ -328,6 +328,88 @@ changes:
         - "ConfigValidationError"
         - "DomainNamespaceResolutionError"
       anyMatch: true
+  - id: pg-int8-application-values-are-bigint
+    summary: |
+      `pg/int8@1` carries `bigint` application values where it carried `number`. A JS `number`
+      cannot represent the whole signed 64-bit range, so any value past 2^53 was already being
+      silently rounded. Every read of an `int8` column now yields a `bigint`, and every value
+      compared against one must be a `bigint` literal. `count()` is the widest instance: it
+      resolves to `pg/int8@1`, so a counted column's row type is `bigint` and a `having`
+      comparison reads `fns.gt(fns.count(), 5n)`. Update row-type annotations, comparison
+      literals, and any arithmetic that mixes a counted value with a `number` — TypeScript will
+      not implicitly convert between the two, so `pnpm typecheck` locates every site.
+      A contract's `int8` literal defaults are also emitted as decimal strings rather than JSON
+      numbers; re-emit to pick that up.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "fns.count("
+        - "pg/int8@1"
+        - "int8Column"
+      anyMatch: true
+  - id: pg-interval-values-are-iso-8601-durations
+    summary: |
+      Reading a `pg/interval@1` column returns an ISO-8601 duration string — `P1M`, `P30D`,
+      `P1Y2M3DT4H5M6S`, `PT0S` for zero — where it returned a `JSON.stringify` of the driver's
+      component object such as `{"days":1}`. Writing accepts the same spelling. An interval
+      carries months, days and microseconds independently, so `P1M` and `P30D` remain distinct
+      and neither converts to the other. Replace any parsing of the old object-shaped string,
+      and replace interval literals written in PostgreSQL's own syntax (`'1 day'`) with the
+      ISO-8601 form (`'P1D'`); a value that is not a valid duration is now rejected rather than
+      passed through.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "pg/interval@1"
+        - "intervalColumn"
+      anyMatch: true
+  - id: codec-json-forms-are-canonical
+    summary: |
+      Several codecs' JSON representation changed so a value survives the round trip through a
+      contract. `pg/numeric@1` and `sqlite/bigint@1` are decimal text where they were JSON
+      numbers — `9007199254740993` reached JSON as `…992` before, and arbitrary-precision
+      decimals lost their tail. `pg/bytea@1` is base64 where it was PostgreSQL's `\x`-prefixed
+      hex. `sqlite/blob@1` is uppercase hexadecimal where it was base64. `sqlite/bigint@1`
+      additionally accepts values it previously refused outright: half of SQLite's INTEGER range
+      had no JSON representation at all. Run `prisma-next contract emit` to regenerate
+      `contract.json` / `contract.d.ts`; any literal default on one of these codecs changes
+      spelling, and with it the `storageHash`. Code that reads such a default out of a contract,
+      or that hand-writes one, must use the new form.
+    detection:
+      glob: "**/contract.{json,d.ts}"
+      contains:
+        - "pg/numeric@1"
+        - "pg/bytea@1"
+        - "sqlite/bigint@1"
+        - "sqlite/blob@1"
+      anyMatch: true
+  - id: float-json-requires-extra-float-digits-at-least-one
+    summary: |
+      The canonical JSON of `pg/float4@1`, `pg/float8@1`, `pg/float@1` and `pg/vector@1` holds
+      only where the PostgreSQL session's `extra_float_digits` is 1 or above. That is the default
+      from PostgreSQL 12 onward, so most deployments already satisfy it — but a connection that
+      sets the GUC to 0 or below reverts to a fixed digit count and truncates: `1/3` reads back
+      as `0.333333333333333` rather than `0.3333333333333333`, and the value no longer
+      round-trips. Check any connection string, pool `options`, server config or proxy that sets
+      `extra_float_digits` and remove settings of 0 or below.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs,json,toml,yaml,yml,env}"
+      contains:
+        - "extra_float_digits"
+      anyMatch: true
+  - id: sqlite-real-rejects-non-finite-values
+    summary: |
+      `sqlite/real@1` rejects infinities and `NaN` on both the encode and decode sides. JSON has
+      no spelling for either, and SQLite renders an infinity as `9.0e+999`, which reads back as
+      `Infinity` rather than failing — so a non-finite value used to pass through and corrupt the
+      value silently. Guard any computation that can produce a non-finite float before writing it
+      to a `REAL` column, or store it in a column whose codec admits it.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "sqlite/real@1"
+        - "realColumn"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — User upgrade instructions
@@ -449,3 +531,29 @@ Routine runtime dependency bumps in `examples/` (dependabot `runtime-deps` group
 ## Incidental example dependency bumps (react-router 8)
 
 The `react-router-demo` example moves its `react-router`, `@react-router/dev`, `@react-router/node`, and `@react-router/serve` dependencies from 7.x to 8.x. This is an example-local framework upgrade and requires no Prisma Next-specific upgrade action; the Prisma Next surfaces the example uses are unchanged.
+
+## `pg-int8-application-values-are-bigint`
+
+An `int8` is a signed 64-bit integer; a JS `number` holds integers exactly only to 2^53. The codec previously handed you a `number`, so anything larger was already wrong by the time your code saw it. It now hands you a `bigint`.
+
+TypeScript does not implicitly convert between `number` and `bigint`, so `pnpm typecheck` finds every affected site. Three shapes recur:
+
+- **Row-type annotations.** A counted column is `bigint`: `SqlQueryPlan<{ name: string; postCount: bigint }>`.
+- **Comparison literals.** `fns.gt(fns.count(), 5)` becomes `fns.gt(fns.count(), 5n)`.
+- **Values read from a driver.** A raw `pg` query returns an `int8` as a decimal *string*; convert with `BigInt(row.id)` rather than annotating it `number`.
+
+Arithmetic mixing the two throws at runtime rather than coercing, so a site that typechecks after a cast is worth reading again.
+
+## `pg-interval-values-are-iso-8601-durations`
+
+The application value of `pg/interval@1` is now defined, where before it was whatever the driver happened to hand over. It is an ISO-8601 duration string, spelled as PostgreSQL spells one under `IntervalStyle = 'iso_8601'`: zero components omitted, `T` present only when a time component is, each component carrying its own sign, and `PT0S` for a zero interval.
+
+Any accepted duration is normalised to that spelling, so `P13M` is carried as `P1Y1M`. Text that is not a valid duration — including PostgreSQL's own `'1 day'` — is rejected rather than passed through.
+
+This is the one change in this release that alters what a *query* returns rather than only what a contract holds.
+
+## `codec-json-forms-are-canonical`
+
+The rule these follow is that a value written through a codec and read back must be the same value. Where a codec's JSON form could not carry its own range, the form changed rather than the range being quietly clipped.
+
+Re-emit first (`prisma-next contract emit`), then reconcile any code that reads or writes one of these forms directly. Literal defaults are where this most often surfaces: an `int8` default of `0` is now `"0"` in `contract.json`, and the `storageHash` moves with it.
