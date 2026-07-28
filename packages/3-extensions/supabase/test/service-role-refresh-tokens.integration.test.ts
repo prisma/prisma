@@ -62,13 +62,14 @@ describe('service_role reads auth.refresh_tokens via the .supabase secondary roo
       });
 
       const token = `refresh-token-${crypto.randomUUID()}`;
-      let tokenId = 0;
+      let tokenId = 0n;
       await withClient(connectionString, async (pg) => {
-        const result = await pg.query<{ id: number }>(
+        // `refresh_tokens.id` is an int8, which `pg` returns as a decimal string.
+        const result = await pg.query<{ id: string }>(
           'INSERT INTO auth.refresh_tokens (token, revoked) VALUES ($1, false) RETURNING id',
           [token],
         );
-        tokenId = result.rows[0]?.id ?? 0;
+        tokenId = BigInt(result.rows[0]?.id ?? 0);
       });
 
       const appContract = buildAppContract();

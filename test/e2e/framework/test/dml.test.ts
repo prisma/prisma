@@ -189,7 +189,7 @@ describe('DML E2E Tests - UUIDv7 client-generated IDs', { timeout: 30000 }, () =
       expect(row!.score).toBe(0);
       expect(row!.rating).toBeCloseTo(3.14);
       expect(row!.active).toBe(true);
-      expect(row!.big_count).toBe('9007199254740991');
+      expect(row!.big_count).toBe(9007199254740991n);
       expect(row!.metadata).toEqual({ key: 'default' });
       expect(row!.tags).toEqual(['alpha', 'beta']);
     });

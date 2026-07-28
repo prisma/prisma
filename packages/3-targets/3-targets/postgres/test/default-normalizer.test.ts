@@ -255,8 +255,8 @@ describe('parsePostgresDefault numeric literals', () => {
     expect(parsePostgresDefault(hugeDigits)).toBeUndefined();
   });
 
-  it('keeps a bigint-typed safe integer as a number', () => {
-    expect(parsePostgresDefault('123', 'bigint')).toEqual({ kind: 'literal', value: 123 });
+  it('reads a bigint-typed integer as decimal text', () => {
+    expect(parsePostgresDefault('123', 'bigint')).toEqual({ kind: 'literal', value: '123' });
   });
 
   it('keeps a bigint-typed unsafe integer as a string', () => {
@@ -318,8 +318,8 @@ describe('parsePostgresDefault string literals', () => {
     });
   });
 
-  it('coerces a bigint-typed numeric string to a number when safe', () => {
-    expect(parsePostgresDefault("'123'", 'bigint')).toEqual({ kind: 'literal', value: 123 });
+  it('reads a quoted bigint-typed numeral as decimal text', () => {
+    expect(parsePostgresDefault("'123'", 'bigint')).toEqual({ kind: 'literal', value: '123' });
   });
 
   it('keeps a bigint-typed unsafe numeric string as a string', () => {
