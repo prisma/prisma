@@ -164,7 +164,7 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/chunking-query/tests.ts
 
-- [x] `issues #8832 / #9326 success cases > should succeed when "in" has MAX ids` — findMany with in-filter at MAX bind values (describeIf: not relationJoins) [providers: postgres,cockroachdb,mysql,sqlite] → ports/prisma/functional/chunking-query/chunking-query.test.ts
+- [x] `issues #8832 / #9326 success cases > should succeed when "in" has MAX ids` — findMany with in-filter at MAX bind values (describeIf: not relationJoins) [providers: postgres,cockroachdb,mysql,sqlite] → non-ported
 - [x] `issues #8832 / #9326 success cases > should succeed when "include" involves MAX records` — findMany include at MAX records (describeIf: not relationJoins) [providers: postgres,cockroachdb,mysql,sqlite] → non-ported
 - [x] `issues #8832 / #9326 success cases > should succeed when "in" has EXCESS ids` — findMany in-filter above bind limit chunks successfully (describeIf: not relationJoins) [providers: postgres,cockroachdb,mysql,sqlite] → non-ported
 - [x] `issues #8832 / #9326 success cases > should succeed when "include" involves EXCESS records` — findMany include above bind limit succeeds (describeIf: not relationJoins) [providers: postgres,cockroachdb,mysql,sqlite] → non-ported

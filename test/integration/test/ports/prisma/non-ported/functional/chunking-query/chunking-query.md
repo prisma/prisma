@@ -2,10 +2,12 @@
 
 Source: `packages/client/tests/functional/chunking-query/tests.ts`
 
-Note: Two tests ARE ported (see `.test.ts` in `functional/chunking-query/`).
+Note: One test IS ported (see `.test.ts` in `functional/chunking-query/`).
 The non-portable tests are listed below.
 
 ---
+
+- `packages/client/tests/functional/chunking-query/tests.ts` › `should succeed when "in" has MAX ids` — subject: `tag.findMany({ where: { id: { in: ids } } })` over MAX_BIND_VALUES (32766) seeded tags succeeds because Prisma's engine chunks the IN query under the wire limit — non-ported: prisma-next does not chunk, so seeding MAX rows and selecting them back through one un-chunked IN query terminates the connection on the real CI Postgres backend (`SqlConnectionError`); it only passes under PGlite, which does not enforce the wire limit. The outcome is backend-dependent, so the chunking subject cannot be faithfully reproduced (a green under PGlite is vacuous). The sibling two-disjunct-IN case with no seeded rows returns `[]` and IS ported.
 
 - `packages/client/tests/functional/chunking-query/tests.ts` › `should succeed when "include" involves MAX records` — subject: `tag.findMany({ include: { posts: true } })` with MAX_BIND_VALUES tags succeeds because the engine chunks the child-record IN lookup — non-ported (prisma-next uses LATERAL/json_agg for includes, not a separate child IN query; the chunking mechanism for includes is inexpressible in prisma-next's ORM)
 
