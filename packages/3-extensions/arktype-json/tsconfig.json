@@ -1,7 +1,7 @@
 {
   "extends": ["@prisma-next/tsconfig/base"],
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "../..",
     "outDir": "dist"
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],

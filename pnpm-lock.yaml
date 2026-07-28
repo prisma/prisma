@@ -3321,6 +3321,9 @@ importers:
         specifier: ~2.2.2
         version: 2.2.3
     devDependencies:
+      '@prisma-next/adapter-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../3-targets/6-adapters/postgres
       '@prisma-next/sql-contract':
         specifier: workspace:0.16.0
         version: link:../../2-sql/1-core/contract
