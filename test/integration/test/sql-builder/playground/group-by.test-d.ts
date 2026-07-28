@@ -10,7 +10,7 @@ test('basic groupBy with count', () => {
     .groupBy('name')
     .build();
 
-  expectTypeOf(postsPerUser).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: number }>>();
+  expectTypeOf(postsPerUser).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: bigint }>>();
 });
 
 test('groupBy with select alias', () => {
@@ -20,7 +20,7 @@ test('groupBy with select alias', () => {
     .groupBy('author')
     .build();
 
-  expectTypeOf(byAlias).toEqualTypeOf<SqlQueryPlan<{ author: string; total: number }>>();
+  expectTypeOf(byAlias).toEqualTypeOf<SqlQueryPlan<{ author: string; total: bigint }>>();
 });
 
 test('HAVING with aggregate expression', () => {
@@ -29,10 +29,10 @@ test('HAVING with aggregate expression', () => {
     .select('name')
     .select('postCount', (f, fns) => fns.count(f.posts.id))
     .groupBy('name')
-    .having((_f, fns) => fns.gt(fns.count(), 5))
+    .having((_f, fns) => fns.gt(fns.count(), 5n))
     .build();
 
-  expectTypeOf(activeAuthors).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: number }>>();
+  expectTypeOf(activeAuthors).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: bigint }>>();
 });
 
 test('HAVING referencing a select alias', () => {
@@ -41,10 +41,10 @@ test('HAVING referencing a select alias', () => {
     .select('name')
     .select('postCount', (_f, fns) => fns.count())
     .groupBy('name')
-    .having((f, fns) => fns.gt(f.postCount, 5))
+    .having((f, fns) => fns.gt(f.postCount, 5n))
     .build();
 
-  expectTypeOf(havingAlias).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: number }>>();
+  expectTypeOf(havingAlias).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: bigint }>>();
 });
 
 test('chained groupBy', () => {
@@ -57,7 +57,7 @@ test('chained groupBy', () => {
     .build();
 
   expectTypeOf(multiGroup).toEqualTypeOf<
-    SqlQueryPlan<{ name: string; title: string; cnt: number }>
+    SqlQueryPlan<{ name: string; title: string; cnt: bigint }>
   >();
 });
 
@@ -68,7 +68,7 @@ test('groupBy with expression', () => {
     .groupBy((f) => f.email)
     .build();
 
-  expectTypeOf(byExpr).toEqualTypeOf<SqlQueryPlan<{ email: string; userCount: number }>>();
+  expectTypeOf(byExpr).toEqualTypeOf<SqlQueryPlan<{ email: string; userCount: bigint }>>();
 });
 
 test('ORDER BY aggregate on grouped query', () => {
@@ -81,7 +81,7 @@ test('ORDER BY aggregate on grouped query', () => {
     .limit(10)
     .build();
 
-  expectTypeOf(orderedGroup).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: number }>>();
+  expectTypeOf(orderedGroup).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: bigint }>>();
 });
 
 test('grouped subquery as join source', () => {
@@ -97,7 +97,7 @@ test('grouped subquery as join source', () => {
     .select((f) => ({ name: f.users.name, postCount: f.pc.postCount }))
     .build();
 
-  expectTypeOf(withCounts).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: number }>>();
+  expectTypeOf(withCounts).toEqualTypeOf<SqlQueryPlan<{ name: string; postCount: bigint }>>();
 });
 
 test('sum/avg/min/max aggregate functions', () => {
@@ -125,7 +125,7 @@ test('aggregates in select are allowed (fns.count available)', () => {
     .select('cnt', (_f, fns) => fns.count())
     .build();
 
-  expectTypeOf(selectAgg).toEqualTypeOf<SqlQueryPlan<{ name: string; cnt: number }>>();
+  expectTypeOf(selectAgg).toEqualTypeOf<SqlQueryPlan<{ name: string; cnt: bigint }>>();
 });
 
 test('aggregates in WHERE — type error', () => {

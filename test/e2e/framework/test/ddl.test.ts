@@ -40,7 +40,7 @@ describe('DDL E2E Tests', { timeout: 30000 }, () => {
 
         CREATE TABLE "public"."literal_defaults" (
           "active" bool DEFAULT true NOT NULL,
-          "big_count" int8 DEFAULT 9007199254740991 NOT NULL,
+          "big_count" int8 DEFAULT '9007199254740991'::int8 NOT NULL,
           "id" SERIAL NOT NULL,
           "label" text DEFAULT 'draft' NOT NULL,
           "metadata" jsonb DEFAULT '{"key":"default"}'::jsonb NOT NULL,

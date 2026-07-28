@@ -57,7 +57,7 @@ test('distinct() on a grouped query', () => {
     .distinct()
     .build();
 
-  expectTypeOf(distinctGrouped).toEqualTypeOf<SqlQueryPlan<{ name: string; cnt: number }>>();
+  expectTypeOf(distinctGrouped).toEqualTypeOf<SqlQueryPlan<{ name: string; cnt: bigint }>>();
 });
 
 test('distinctOn on a grouped query', () => {
@@ -71,7 +71,7 @@ test('distinctOn on a grouped query', () => {
     .build();
 
   expectTypeOf(distinctOnGrouped).toEqualTypeOf<
-    SqlQueryPlan<{ name: string; postCount: number }>
+    SqlQueryPlan<{ name: string; postCount: bigint }>
   >();
 });
 
