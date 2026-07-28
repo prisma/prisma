@@ -89,6 +89,14 @@ Three facts shape the plan:
 - **Hands to:** The slice-DoD's completeness claim — every projection, scalar and array, is database-proven.
 - **Focus:** Conformance evidence for the lift. It does not modify `jsonArrayProjection`; if a guarantee fails, that is a finding for discussion, not a silent fix here.
 
+## Open items
+
+Routed from D1 review; not findings, and not the implementer's to chase unprompted.
+
+- **D2 must add a beyond-2^53 `pg/int8@1` case.** The oracle currently has only a conforming `int8` case at `9007199254740991`; nothing exhibits the loss. `pg/int8@1`'s declared application type is `number`, so the failing value is not expressible at the case level until D2 moves the application type. Without that case AC-2's `int8` half has no evidence.
+- **D3 must settle a write-side timezone question.** The PostgreSQL harness pre-stringifies a `Date` wire value to UTC ISO before binding, which is *not* what `pg` does in production — it serializes a `Date` at the local offset, so for `pg/timestamp@1` the stored wall clock differs. D3's non-UTC-session case should establish whether that normalization is correct or whether it conceals a write-side timezone dependency.
+- **Harness duplication is a slice-5 decision, not a slice-3 one.** The two harnesses are ~85% identical and both reach `renderLoweredSql` through a relative `../../src/core/...` import that is in neither adapter's public exports. Defensible if they become two packages; worth deciding when slice 5 promotes them. Not to be refactored here.
+
 ## Hand-off linearity
 
 Dispatch 1 is the root: every later dispatch builds on its oracle, not merely on its immediate predecessor. The non-linear edges worth flagging to brief assembly:
