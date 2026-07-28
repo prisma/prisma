@@ -2,12 +2,28 @@ import path from 'path'
 import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'
+import { Migrate } from '../Migrate'
+import { agentMatchers } from '../utils/ai-safety'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import { describeMatrix, mongodbOnly, postgresOnly } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
+
+const agentEnvVars = [
+  ...new Set(agentMatchers.flatMap((matcher) => matcher.envVars)),
+  'PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION',
+]
+
+beforeEach(() => {
+  // Pushing data loss changes goes through the AI safety checkpoint, and the
+  // tests themselves may be running under an AI agent, so the inherited
+  // markers must be cleared before each test.
+  for (const name of agentEnvVars) {
+    delete process.env[name]
+  }
+})
 
 describe('push', () => {
   // A test that requires docker (e.g, because it relies on extensions being installed)
@@ -182,6 +198,19 @@ describe('push', () => {
     const result = DbPush.new().parse([flag], await ctx.config(), ctx.configDir())
 
     await expect(result).rejects.toThrow('invoked by Claude Code')
+  })
+
+  it('interactive confirmation triggers the AI safety checkpoint', async () => {
+    ctx.fixture('existing-db-warnings')
+    process.env.CLAUDECODE = '1'
+    const push = jest.spyOn(Migrate.prototype, 'push')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse([], await ctx.config(), ctx.configDir())
+
+    await expect(result).rejects.toThrow('invoked by Claude Code')
+    expect(push).not.toHaveBeenCalledWith({ force: true })
   })
 
   it('unexecutable - drop allowed (--force-reset)', async () => {

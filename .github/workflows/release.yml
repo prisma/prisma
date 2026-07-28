@@ -3,7 +3,7 @@ name: npm - release
 on:
   push:
     branches:
-      - main
+      - v7
       - 'integration/*'
       - '*.*.x'
     paths-ignore:
