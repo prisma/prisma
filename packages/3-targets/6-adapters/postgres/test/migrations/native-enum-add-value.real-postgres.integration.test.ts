@@ -197,7 +197,7 @@ const TEST_DB = 'prisma_next_native_enum_add_value_realdb';
 
 function testDatabaseUrl(): string {
   const u = new URL(MAINTENANCE_URL);
-  u.pathname = '/' + TEST_DB;
+  u.pathname = `/${TEST_DB}`;
   return u.toString();
 }
 
