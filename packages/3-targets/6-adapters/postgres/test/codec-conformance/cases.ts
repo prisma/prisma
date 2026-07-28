@@ -124,17 +124,26 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     value: '03:04:05+00',
     setupSql: HOSTILE_TEMPORAL_SESSION,
   },
-  { codecId: 'pg/interval@1', label: 'day interval', value: '1 day' },
+  // A month has no fixed length, so P1M and P30D must stay distinct rather than
+  // collapsing through a common epoch.
+  { codecId: 'pg/interval@1', label: 'one month', value: 'P1M' },
+  { codecId: 'pg/interval@1', label: 'thirty days', value: 'P30D' },
+  { codecId: 'pg/interval@1', label: 'every component', value: 'P1Y2M3DT4H5M6S' },
+  { codecId: 'pg/interval@1', label: 'fractional seconds', value: 'PT1.234567S' },
+  { codecId: 'pg/interval@1', label: 'mixed signs', value: 'P1M-1D' },
+  { codecId: 'pg/interval@1', label: 'wholly negative', value: 'P-1M-1DT-1.25S' },
+  { codecId: 'pg/interval@1', label: 'zero', value: 'PT0S' },
   {
     codecId: 'pg/interval@1',
-    label: 'day interval under a hostile session',
-    value: '1 day',
+    label: 'every component under a hostile session',
+    value: 'P1Y2M3DT4H5M6S',
     setupSql: HOSTILE_TEMPORAL_SESSION,
-    notYetCanonical: {
-      kind: 'mismatch',
-      reason:
-        "an interval is rendered in the session's IntervalStyle, and the codec carries an opaque string whose own syntax is undecided, so there is no form for a projection to pin it to yet",
-    },
+  },
+  {
+    codecId: 'pg/interval@1',
+    label: 'mixed signs under a hostile session',
+    value: 'P1M-1D',
+    setupSql: HOSTILE_TEMPORAL_SESSION,
   },
   { codecId: 'pg/json@1', label: 'document', value: { a: 1, b: ['x'] } },
   { codecId: 'pg/jsonb@1', label: 'document', value: { a: 1, b: ['x'] } },

@@ -221,9 +221,128 @@ export const pgDateDecodeJson = (json: JsonValue): Date => {
   return date;
 };
 
+/**
+ * A PostgreSQL interval is three independent fields — months, days and
+ * microseconds — not a single duration. `1 month` and `30 days` are different
+ * intervals because a month has no fixed length, so the three fields are
+ * carried separately and never collapsed into one another.
+ */
+interface IntervalFields {
+  readonly months: number;
+  readonly days: number;
+  readonly micros: bigint;
+}
+
+const ISO_DURATION =
+  /^P(?!$)(-?\d+Y)?(-?\d+M)?(-?\d+D)?(?:T(?!$)(-?\d+H)?(-?\d+M)?(-?\d+(?:\.\d+)?S)?)?$/;
+
+const MICROS_PER_SECOND = 1_000_000n;
+
+const intervalFieldsOf = (text: string): IntervalFields => {
+  const match = ISO_DURATION.exec(text);
+  if (match === null) {
+    throw postgresError(
+      'RUNTIME.DECODE_FAILED',
+      `pg/interval@1 value must be an ISO-8601 duration, got ${text}`,
+      { meta: { codecId: 'pg/interval@1', received: text } },
+    );
+  }
+  const [, years, months, days, hours, minutes, seconds] = match;
+  const wholeNumber = (part: string | undefined): number =>
+    part === undefined ? 0 : Number(part.slice(0, -1));
+  const secondsText = seconds === undefined ? '0' : seconds.slice(0, -1);
+  const negative = secondsText.startsWith('-');
+  const [whole = '0', fraction = ''] = secondsText.replace('-', '').split('.');
+  const magnitude =
+    BigInt(whole) * MICROS_PER_SECOND + BigInt(fraction.padEnd(6, '0').slice(0, 6) || '0');
+
+  return {
+    months: wholeNumber(years) * 12 + wholeNumber(months),
+    days: wholeNumber(days),
+    micros:
+      BigInt(wholeNumber(hours)) * 3_600n * MICROS_PER_SECOND +
+      BigInt(wholeNumber(minutes)) * 60n * MICROS_PER_SECOND +
+      (negative ? -magnitude : magnitude),
+  };
+};
+
+const secondsText = (micros: bigint): string => {
+  const sign = micros < 0n ? '-' : '';
+  const magnitude = micros < 0n ? -micros : micros;
+  const whole = (magnitude / MICROS_PER_SECOND) % 60n;
+  const fraction = magnitude % MICROS_PER_SECOND;
+  const fractionText =
+    fraction === 0n ? '' : `.${fraction.toString().padStart(6, '0').replace(/0+$/, '')}`;
+  return `${sign}${whole}${fractionText}`;
+};
+
+/**
+ * Renders {@link IntervalFields} the way PostgreSQL spells an interval under
+ * `IntervalStyle = 'iso_8601'`: zero components omitted, `T` present only when a
+ * time component is, each component carrying its own sign, and an all-zero
+ * interval written `PT0S`.
+ */
+const formatIsoDuration = ({ months, days, micros }: IntervalFields): string => {
+  const years = Math.trunc(months / 12);
+  const restMonths = months % 12;
+  const sign = micros < 0n ? '-' : '';
+  const magnitude = micros < 0n ? -micros : micros;
+  const hours = magnitude / (3_600n * MICROS_PER_SECOND);
+  const minutes = (magnitude / (60n * MICROS_PER_SECOND)) % 60n;
+  const hasSeconds = magnitude % (60n * MICROS_PER_SECOND) !== 0n;
+
+  const parts = [
+    years === 0 ? '' : `${years}Y`,
+    restMonths === 0 ? '' : `${restMonths}M`,
+    days === 0 ? '' : `${days}D`,
+  ];
+  const time = [
+    hours === 0n ? '' : `${sign}${hours}H`,
+    minutes === 0n ? '' : `${sign}${minutes}M`,
+    hasSeconds ? `${secondsText(micros)}S` : '',
+  ].join('');
+
+  const rendered = `P${parts.join('')}${time === '' ? '' : `T${time}`}`;
+  return rendered === 'P' ? 'PT0S' : rendered;
+};
+
+/** Normalises any accepted ISO-8601 duration to the canonical spelling. */
+export const pgIntervalCanonical = (text: string): string =>
+  formatIsoDuration(intervalFieldsOf(text));
+
+export const pgIntervalEncodeJson = (value: string): JsonValue => pgIntervalCanonical(value);
+
+export const pgIntervalDecodeJson = (json: JsonValue): string => {
+  if (typeof json !== 'string') {
+    throw postgresError(
+      'RUNTIME.DECODE_FAILED',
+      'pg/interval@1 database JSON value must be an ISO-8601 duration string',
+      { meta: { codecId: 'pg/interval@1', received: typeof json } },
+    );
+  }
+  return pgIntervalCanonical(json);
+};
+
+/**
+ * Reads the driver's wire value. `pg` parses an interval into a component
+ * object; a text wire value is already an ISO-8601 duration because that is what
+ * the codec writes.
+ */
 export const pgIntervalDecode = (wire: string | Record<string, unknown>): string => {
-  if (typeof wire === 'string') return wire;
-  return JSON.stringify(wire);
+  if (typeof wire === 'string') return pgIntervalCanonical(wire);
+  const part = (name: string): number => {
+    const raw = wire[name];
+    return typeof raw === 'number' ? raw : 0;
+  };
+  const seconds = part('seconds') + part('milliseconds') / 1_000;
+  return formatIsoDuration({
+    months: part('years') * 12 + part('months'),
+    days: part('days'),
+    micros:
+      BigInt(part('hours')) * 3_600n * MICROS_PER_SECOND +
+      BigInt(part('minutes')) * 60n * MICROS_PER_SECOND +
+      BigInt(Math.round(seconds * 1_000_000)),
+  });
 };
 
 const BASE64_TEXT = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;

@@ -364,15 +364,15 @@ describe('codecs-class', () => {
     });
 
     it('encodes string verbatim', async () => {
-      expect(await codec.encode('1 day', callCtx)).toBe('1 day');
+      expect(await codec.encode('P1D', callCtx)).toBe('P1D');
     });
 
-    it('decodes string verbatim', async () => {
-      expect(await codec.decode('1 day', callCtx)).toBe('1 day');
+    it('normalises a text wire value to the canonical duration', async () => {
+      expect(await codec.decode('P0Y1M', callCtx)).toBe('P1M');
     });
 
-    it('decodes object form to JSON string', async () => {
-      expect(await codec.decode({ days: 1 } as unknown as string, callCtx)).toBe('{"days":1}');
+    it('reads the driver component object as a duration', async () => {
+      expect(await codec.decode({ days: 1 } as unknown as string, callCtx)).toBe('P1D');
     });
   });
 
