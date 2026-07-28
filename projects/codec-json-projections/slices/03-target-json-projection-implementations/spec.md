@@ -4,7 +4,7 @@ _Parent project: `projects/codec-json-projections/`. Outcome: every target-owned
 
 ## At a glance
 
-The 27 PostgreSQL and 7 SQLite built-in descriptors that slice 2 gave behavior-preserving identity `jsonProjection` hooks get their real canonical projections — `numeric`/`int8` as decimal text, `bytea` as base64, temporals as session-independent ISO, SQLite bigint as decimal text, SQLite BLOB as hexadecimal — together with the in-repo extension descriptors, the SQLite JSON-document retagging mechanism, and a database-backed harness that proves each projection's parsed result equals `codec.encodeJson`. Production renderers still never call `projectJson()`, so nothing observable changes.
+The 33 PostgreSQL and 11 SQLite built-in descriptors that slice 2 gave behavior-preserving identity `jsonProjection` hooks get their real canonical projections — `numeric`/`int8` as decimal text, `bytea` as base64, temporals as session-independent ISO, SQLite bigint as decimal text, SQLite BLOB as hexadecimal — together with the in-repo extension descriptors, the SQLite JSON-document retagging mechanism, and a database-backed harness that proves each projection round-trips losslessly. Each affected codec's `encodeJson` / `decodeJson` moves to the same canonical form in the same dispatch, so contract-serialized defaults change and fixtures regenerate. **No database-produced JSON path changes**: production renderers still never call `projectJson()`.
 
 ## Chosen design
 
@@ -16,16 +16,21 @@ The 27 PostgreSQL and 7 SQLite built-in descriptors that slice 2 gave behavior-p
 slice 3 (this)                          slice 4 (hard cut)
 ──────────────                          ──────────────────
 jsonProjection() returns real SQL       renderers call projectJson()
-harness proves it == encodeJson         ORM planning emits projection nodes
-                                        CodecMeta / meta / metaFor removed
-observable output: UNCHANGED            contracts + fixtures regenerated
+encodeJson / decodeJson go canonical    ORM planning emits projection nodes
+harness proves the round trip           CodecMeta / meta / metaFor removed
+contract defaults + fixtures move       database-produced JSON goes canonical
+database-produced JSON: UNCHANGED
 ```
 
-Each slice then carries one outcome. This slice answers "what is each codec's canonical JSON, in SQL?"; slice 4 answers "when does the database start producing it?".
+Each slice then carries one outcome. This slice answers "what *is* each codec's canonical JSON?" — on both the application and the SQL side. Slice 4 answers "when does the database start producing it?".
+
+**Why `encodeJson` moves here.** Dispatch 1 established that `encodeJson` is not already canonical for the codecs that matter: `pg/numeric@1.encodeJson` is `Number(value)`, so `9007199254740993` becomes `…992` on the application side exactly as it does on the database side. `pg/bytea@1` emits PostgreSQL hex rather than base64; `sqlite/bigint@1` rejects unsafe integers outright. A projection cannot be canonical while the method defining canonical form is not, so the two move together, per codec, in one dispatch.
+
+**The intermediate state this accepts.** Between this slice merging and slice 4 merging, a contract-serialized default is a canonical decimal string while a query result for the same column is still a JavaScript number. That inconsistency is deliberate and operator-accepted (2026-07-27). It is bounded: it touches serialized defaults and value sets, never a query path, and slice 4 closes it. The project constraint that no merged state may advertise canonical lossless JSON *while a database-produced JSON path still emits the old representation* is preserved, because this slice changes no database-produced path.
 
 ### Per-descriptor projections
 
-Each identity hook is replaced by the AST composition that yields the codec's canonical representation. The governing rule is that the projection's parsed JSON must equal `codec.encodeJson(applicationValue)` exactly — `encodeJson` is the specification, the projection is its SQL realization.
+Each identity hook is replaced by the AST composition that yields the codec's canonical representation, and the codec's `encodeJson` / `decodeJson` move to that same representation in the same dispatch. Two conditions govern, and the harness asserts both: the projection's parsed JSON equals `codec.encodeJson(applicationValue)`, **and** `codec.decodeJson(parsed)` returns the original application value. The second condition is load-bearing — without it an oracle is blind to a format that loses precision identically on both sides, which is exactly how `pg/numeric@1` reads today.
 
 | Codec family | Canonical JSON | Projection shape |
 | --- | --- | --- |
@@ -59,9 +64,9 @@ One outcome: every target descriptor states its canonical JSON as SQL, and a dat
 
 ## Scope
 
-**In:** `jsonProjection` implementations for all PostgreSQL and SQLite built-in descriptors; in-repo extension descriptors (pgvector, PostGIS, arktype-json); the SQLite document retagging mechanism; the database-backed conformance harness including the numeric precision regression; conformance cases for the inherited array lift.
+**In:** `jsonProjection` implementations for all PostgreSQL and SQLite built-in descriptors; the matching `encodeJson` / `decodeJson` canonical forms for each affected codec; in-repo extension descriptors (pgvector, PostGIS, arktype-json); the SQLite document retagging mechanism; the database-backed conformance harness including the numeric precision regression; conformance cases for the inherited array lift; regeneration of contracts and fixtures that move because a codec's serialized representation changed.
 
-**Out:** renderer wiring and any `projectJson()` call from a production path; ORM projection planning; `CodecMeta` / `meta` / `metaFor` removal; contract or fixture regeneration; public testkit packages; aggregate descriptors; any observable output change. All belong to slice 4 or 5.
+**Out:** renderer wiring and any `projectJson()` call from a production path; ORM projection planning; `CodecMeta` / `meta` / `metaFor` removal; public testkit packages; aggregate descriptors; any change to a database-produced JSON path. All belong to slice 4 or 5.
 
 ## Pre-investigated edge cases
 
@@ -73,8 +78,9 @@ One outcome: every target descriptor states its canonical JSON as SQL, and a dat
 
 ## Slice-specific done conditions
 
-- [ ] Every built-in and in-repo extension descriptor's projection is exercised by a real database case asserting parsed JSON equals `codec.encodeJson`, and a grep confirms no descriptor retains an untested identity `jsonProjection`.
-- [ ] No production render path calls `projectJson()`; emitted SQL, generated contracts, and fixtures are byte-identical to the predecessor branch.
+- [ ] Every built-in and in-repo extension descriptor's projection is exercised by a real database case asserting both conformance conditions, and no descriptor retains an untested identity `jsonProjection`. The harness fails if a registered descriptor has no case, so the set cannot drift.
+- [ ] No production render path calls `projectJson()`, and rendered SQL for existing queries is byte-identical to the predecessor branch.
+- [ ] Contracts and fixtures that move because a codec's serialized representation changed are regenerated and committed, and a second `pnpm fixtures:check` is clean. Every such move is attributable to a codec whose canonical form changed in this slice — no incidental drift.
 
 ## Open Questions
 
