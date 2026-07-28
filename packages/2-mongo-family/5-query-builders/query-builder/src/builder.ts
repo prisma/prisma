@@ -58,6 +58,7 @@ import {
 } from '@prisma-next/mongo-query-ast/execution';
 import { castAs } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { createFieldAccessor, type Expression, type FieldAccessor } from './field-accessor';
 import {
   createLookupFrom,
@@ -66,6 +67,7 @@ import {
   type LookupResult,
 } from './lookup-builder';
 import type { FindAndModifyEnabled, LeadingMatch, UpdateEnabled } from './markers';
+import { ormError } from './orm-errors';
 import { computePipelineResultShape } from './pipeline-result-shape';
 import type { ModelArrayField, NestedDocShape } from './resolve-path';
 import { contractModelToMongoResultShape } from './result-shape';
@@ -406,10 +408,14 @@ export class PipelineChain<
     const accumulators: Record<string, MongoAggAccumulator> = {};
     for (const [key, typed] of Object.entries(rest)) {
       if (typed === null) {
-        throw new Error(`group() field "${key}" must not be null. Only _id can be null.`);
+        throw ormError(
+          'ORM.ARGUMENT_INVALID',
+          `group() field "${key}" must not be null. Only _id can be null.`,
+        );
       }
       if (typed.node.kind !== 'accumulator') {
-        throw new Error(
+        throw ormError(
+          'ORM.ARGUMENT_INVALID',
           `group() field "${key}" must use an accumulator (e.g. acc.sum(), acc.count()). Got "${typed.node.kind}" expression.`,
         );
       }
@@ -707,7 +713,8 @@ export class PipelineChain<
     updaterFn?: (fields: FieldAccessor<Shape, N>) => UpdaterResult,
   ): MongoQueryPlan<UpdateResult, UpdateManyCommand> {
     if (updaterFn !== undefined) {
-      throw new Error(
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
         'updateMany() on a PipelineChain expects no arguments — the chain itself is the update pipeline. ' +
           'To update with an operator callback, call .updateMany(fn) on a FilteredCollection (i.e. after .match()).',
       );
@@ -728,7 +735,8 @@ export class PipelineChain<
     updaterFn?: (fields: FieldAccessor<Shape, N>) => UpdaterResult,
   ): MongoQueryPlan<UpdateResult, UpdateOneCommand> {
     if (updaterFn !== undefined) {
-      throw new Error(
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
         'updateOne() on a PipelineChain expects no arguments — the chain itself is the update pipeline. ' +
           'To update with an operator callback, call .updateOne(fn) on a FilteredCollection (i.e. after .match()).',
       );
@@ -882,7 +890,8 @@ function deconstructFindAndModifyChain(
   for (const stage of stages) {
     if (stage instanceof MongoMatchStage) {
       if (seenNonMatch) {
-        throw new Error(
+        throw ormError(
+          'ORM.ARGUMENT_INVALID',
           'findOneAndUpdate/findOneAndDelete requires the canonical $match+ -> $sort? shape, ' +
             'but a $match stage was found after a $sort. Re-order the chain so every .match() ' +
             'call precedes the .sort() call.',
@@ -891,7 +900,8 @@ function deconstructFindAndModifyChain(
       matchFilters.push(stage.filter);
     } else if (stage instanceof MongoSortStage) {
       if (sort !== undefined) {
-        throw new Error(
+        throw ormError(
+          'ORM.ARGUMENT_INVALID',
           'findOneAndUpdate/findOneAndDelete accepts at most one $sort stage; drop the extra ' +
             '.sort() call or combine the keys into a single sort spec.',
         );
@@ -899,13 +909,15 @@ function deconstructFindAndModifyChain(
       sort = { ...stage.sort };
       seenNonMatch = true;
     } else if (stage instanceof MongoSkipStage) {
-      throw new Error(
+      throw ormError(
+        'ORM.OPERATION_UNSUPPORTED',
         'findOneAndUpdate/findOneAndDelete does not support .skip() — MongoDB findAndModify ' +
           'has no skip slot. Remove the .skip() call, or use .aggregate()/.build() if the ' +
           'chain needs skip semantics.',
       );
     } else {
-      throw new Error(
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
         'findOneAndUpdate/findOneAndDelete requires the canonical $match+ -> $sort? shape, ' +
           `but encountered a '${stage.constructor.name}' stage. ` +
           'This is likely a bug — the type system should have prevented this chain.',
@@ -914,11 +926,14 @@ function deconstructFindAndModifyChain(
   }
 
   if (matchFilters.length === 0) {
-    throw new Error('findOneAndUpdate/findOneAndDelete requires at least one .match() call.');
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
+      'findOneAndUpdate/findOneAndDelete requires at least one .match() call.',
+    );
   }
   const first = matchFilters[0];
   if (first === undefined) {
-    throw new Error('Unreachable: matchFilters.length > 0 but first is undefined');
+    throw new InternalError('Unreachable: matchFilters.length > 0 but first is undefined');
   }
   const filter: MongoFilterExpr = matchFilters.length === 1 ? first : MongoAndExpr.of(matchFilters);
 
@@ -946,12 +961,16 @@ function deconstructUpdateChain(stages: ReadonlyArray<MongoPipelineStage>): Deco
   }
 
   if (matchFilters.length === 0) {
-    throw new Error('No-arg updateMany/updateOne requires at least one .match() call.');
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
+      'No-arg updateMany/updateOne requires at least one .match() call.',
+    );
   }
 
   const remaining = stages.slice(boundary);
   if (remaining.length === 0) {
-    throw new Error(
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
       'No-arg updateMany/updateOne requires at least one pipeline-update stage ' +
         '(e.g. .addFields(), .project(), .replaceRoot()) after the .match() stages.',
     );
@@ -966,7 +985,8 @@ function deconstructUpdateChain(stages: ReadonlyArray<MongoPipelineStage>): Deco
     ) {
       updatePipeline.push(stage);
     } else {
-      throw new Error(
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
         `No-arg updateMany/updateOne: encountered non-update stage '${stage.constructor.name}' ` +
           'after the leading $match stages. Only $addFields/$set, $project/$unset, ' +
           'and $replaceRoot/$replaceWith stages are valid in an update pipeline.',
@@ -976,7 +996,7 @@ function deconstructUpdateChain(stages: ReadonlyArray<MongoPipelineStage>): Deco
 
   const first = matchFilters[0];
   if (first === undefined) {
-    throw new Error('Unreachable: matchFilters.length > 0 but first is undefined');
+    throw new InternalError('Unreachable: matchFilters.length > 0 but first is undefined');
   }
   const filter: MongoFilterExpr = matchFilters.length === 1 ? first : MongoAndExpr.of(matchFilters);
 

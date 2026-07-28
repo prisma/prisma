@@ -1,5 +1,6 @@
 import { buildCodecDescriptorRegistry } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
 import type { CodecDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
+import { buildPostgresCodecDescriptorRegistry } from './codec-descriptor';
 import { codecDescriptors } from './codecs';
 
 /**
@@ -9,3 +10,6 @@ import { codecDescriptors } from './codecs';
  */
 export const postgresCodecRegistry: CodecDescriptorRegistry =
   buildCodecDescriptorRegistry(codecDescriptors);
+
+export const postgresCodecDescriptorRegistry =
+  buildPostgresCodecDescriptorRegistry(codecDescriptors);

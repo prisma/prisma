@@ -1,3 +1,4 @@
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   createOperationRegistry,
@@ -39,13 +40,21 @@ describe('OperationRegistry', () => {
     expect(Object.keys(entries)).toEqual(['cosineDistance', 'l2Distance']);
   });
 
-  it('throws on duplicate method name', () => {
+  it('throws CONTRACT.PACK_CONTRIBUTION_INVALID on duplicate method name', () => {
     const registry = createOperationRegistry();
     registry.register('cosineDistance', descriptor());
 
-    expect(() => registry.register('cosineDistance', descriptor())).toThrow(
-      'Operation "cosineDistance" is already registered',
-    );
+    let thrown: unknown;
+    try {
+      registry.register('cosineDistance', descriptor());
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({
+      code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+      message: 'Operation "cosineDistance" is already registered',
+    });
   });
 
   it('throws when self has neither codecId nor traits', () => {

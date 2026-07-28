@@ -1,6 +1,7 @@
 import type { ColumnDefaultLiteralInputValue } from '@prisma-next/contract/types';
 import { isColumnDefaultLiteralInputValue } from '@prisma-next/contract/types';
 import type { ReferentialAction } from '@prisma-next/sql-contract/types';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import type { CodecRef } from './codec-types';
 import type { AnyParamRef } from './types';
 
@@ -38,7 +39,7 @@ export class LiteralColumnDefault extends DdlColumnDefault {
   constructor(value: ColumnDefaultLiteralInputValue) {
     super();
     if (!isColumnDefaultLiteralInputValue(value)) {
-      throw new Error('Invalid column default literal value');
+      throw structuredError('CONTRACT.DEFAULT_INVALID', 'Invalid column default literal value');
     }
     this.value = value;
     this.freeze();

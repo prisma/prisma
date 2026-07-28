@@ -11,6 +11,7 @@
  */
 
 import { blindCast } from './casts';
+import { InternalError } from './internal-error';
 
 /**
  * Represents a successful result containing a value.
@@ -60,7 +61,7 @@ class ResultImpl<T, F> {
 
   get value(): T {
     if (!this.ok) {
-      throw new Error('Cannot access value on NotOk result');
+      throw new InternalError('Cannot access value on NotOk result');
     }
     // biome-ignore lint/style/noNonNullAssertion: must be present if ok is true
     return this._value!;
@@ -68,7 +69,7 @@ class ResultImpl<T, F> {
 
   get failure(): F {
     if (this.ok) {
-      throw new Error('Cannot access failure on Ok result');
+      throw new InternalError('Cannot access failure on Ok result');
     }
     // biome-ignore lint/style/noNonNullAssertion: must be present if ok is false
     return this._failure!;
@@ -100,7 +101,7 @@ class ResultImpl<T, F> {
    */
   assertOk(this: Result<T, F>): T {
     if (!this.ok) {
-      throw new Error('Expected Ok result but got NotOk');
+      throw new InternalError('Expected Ok result but got NotOk');
     }
     return this.value;
   }
@@ -111,7 +112,7 @@ class ResultImpl<T, F> {
    */
   assertNotOk(this: Result<T, F>): F {
     if (this.ok) {
-      throw new Error('Expected NotOk result but got Ok');
+      throw new InternalError('Expected NotOk result but got Ok');
     }
     return this.failure;
   }

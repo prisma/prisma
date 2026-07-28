@@ -100,6 +100,50 @@ export function errorInvalidManifest(filePath: string, reason: string): Migratio
   });
 }
 
+export function errorDescribeMissingEndContract(): MigrationToolsError {
+  return new MigrationToolsError(
+    'MIGRATION.DESCRIBE_INVALID',
+    'Migration.describe(): provide endContractJson or override describe() — a migration needs a destination contract hash.',
+    {
+      why: 'Migration.describe() was called on a migration that carries no endContractJson and does not override describe(), so no destination contract hash can be derived.',
+      fix: 'Set endContractJson on the migration, or override describe() to return the { from, to } metadata explicitly.',
+      details: { reason: 'missing-end-contract' },
+    },
+  );
+}
+
+export function errorDescribeInvalidMetadata(summary: string): MigrationToolsError {
+  return new MigrationToolsError(
+    'MIGRATION.DESCRIBE_INVALID',
+    `describe() returned invalid metadata: ${summary}`,
+    {
+      why: `The migration's describe() returned metadata that failed schema validation: ${summary}.`,
+      fix: 'Ensure describe() returns { from: string | null, to: string } with valid contract hashes.',
+      details: { reason: 'invalid-metadata', summary },
+    },
+  );
+}
+
+export function errorOperationsNotArray(): MigrationToolsError {
+  return new MigrationToolsError('MIGRATION.PLAN_NOT_ARRAY', 'operations must be an array', {
+    why: "The migration instance's `operations` getter returned a non-array value.",
+    fix: 'Ensure the `operations` getter returns an array of migration operations.',
+    details: {},
+  });
+}
+
+export function errorSpaceHeadRefMissing(spaceId: string): MigrationToolsError {
+  return new MigrationToolsError(
+    'MIGRATION.CHECK_HEAD_REF_MISSING',
+    `Contract space "${spaceId}" has no head ref; its contract cannot be resolved from the snapshot store without one.`,
+    {
+      why: `Contract space "${spaceId}" declares no refs/head.json, so there is no hash to resolve its contract against the snapshot store.`,
+      fix: "Re-emit the contract-space migrations and head-ref artifacts (the extension's contract-space build), or restore refs/head.json from version control.",
+      details: { spaceId },
+    },
+  );
+}
+
 export function errorInvalidOperationEntry(index: number, reason: string): MigrationToolsError {
   return new MigrationToolsError(
     'MIGRATION.INVALID_OPERATION_ENTRY',

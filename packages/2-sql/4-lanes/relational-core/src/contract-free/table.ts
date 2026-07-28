@@ -1,5 +1,6 @@
 import type { ParamSpec } from '@prisma-next/operations';
 import { blindCast } from '@prisma-next/utils/casts';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import {
   AggregateExpr,
   AndExpr,
@@ -218,7 +219,10 @@ export class CfExprSelectQuery {
 
   build(): SelectAst {
     if (this.joinItems.length > 0 && this.src === undefined) {
-      throw new Error('CfExprSelectQuery: cannot add a JOIN without a FROM clause');
+      throw structuredError(
+        'ORM.ARGUMENT_INVALID',
+        'CfExprSelectQuery: cannot add a JOIN without a FROM clause',
+      );
     }
     const base =
       this.src !== undefined

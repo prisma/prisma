@@ -5,6 +5,7 @@ import {
 } from '@prisma-next/framework-components/runtime';
 import { isQueryAst, type SelectAst } from '@prisma-next/sql-relational-core/ast';
 import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+import { assertNever } from '@prisma-next/utils/internal-error';
 import type { SqlMiddleware, SqlMiddlewareContext } from './sql-middleware';
 
 export interface BudgetsOptions {
@@ -36,7 +37,8 @@ function primaryTableFromAst(ast: SelectAst): string | undefined {
       return ast.from.fn;
     // v8 ignore next 4
     default:
-      throw new Error(
+      return assertNever(
+        ast.from,
         `Unsupported source kind: ${(ast.from satisfies never as { kind: string }).kind}`,
       );
   }

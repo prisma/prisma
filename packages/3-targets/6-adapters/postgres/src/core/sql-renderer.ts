@@ -1,5 +1,5 @@
 import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+import type { CodecRef } from '@prisma-next/framework-components/codec';
 import { runtimeError } from '@prisma-next/framework-components/runtime';
 import {
   type AggregateExpr,
@@ -37,6 +37,7 @@ import {
   type UpdateAst,
   type WindowFuncExpr,
 } from '@prisma-next/sql-relational-core/ast';
+import type { PostgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codec-descriptor';
 import { isPgEnumParams } from '@prisma-next/target-postgres/codecs';
 import {
   escapeLiteral,
@@ -49,11 +50,11 @@ import { adapterError } from './adapter-errors';
 import type { PostgresContract } from './types';
 
 /**
- * Postgres native types whose unknown-OID parameter inference is reliable in arbitrary expression positions. Parameters bound to a codec whose `meta.db.sql.postgres.nativeType` falls in this set are emitted as plain `$N`; everything else (including `json`, `jsonb`, extension types like `vector`, and unknown user types) is emitted as `$N::<nativeType>` so the planner picks an unambiguous overload.
+ * Postgres native types whose unknown-OID parameter inference is reliable in arbitrary expression positions. Parameters bound to a descriptor whose `nativeTypeFor` result falls in this set are emitted as plain `$N`; everything else (including `json`, `jsonb`, extension types like `vector`, and unknown user types) is emitted as `$N::<nativeType>` so the planner picks an unambiguous overload.
  *
  * `json` / `jsonb` are intentionally excluded despite being Postgres builtins: their operator overloads make context inference unreliable in expression positions (e.g. `$1 -> 'key'` is ambiguous between the two).
  *
- * Spellings match the on-disk `meta.db.sql.postgres.nativeType` values in `@prisma-next/target-postgres`'s codec definitions, not the `udt_name` abbreviations that ADR 205 used as illustrative shorthand. The lookup-based cast policy compares against these strings directly.
+ * Spellings match the target descriptors' `nativeTypeFor` results, not the `udt_name` abbreviations that ADR 205 used as illustrative shorthand. The registry-based cast policy compares against these strings directly.
  */
 const POSTGRES_INFERRABLE_NATIVE_TYPES: ReadonlySet<string> = new Set([
   // Numeric
@@ -84,23 +85,19 @@ const POSTGRES_INFERRABLE_NATIVE_TYPES: ReadonlySet<string> = new Set([
 function renderTypedParam(
   index: number,
   codecId: string | undefined,
-  codecLookup: CodecLookup,
+  codecDescriptorRegistry: PostgresCodecDescriptorRegistry,
   many?: boolean,
   typeParams?: JsonValue,
 ): string {
   if (codecId === undefined) {
     return `$${index}`;
   }
-  const meta = codecLookup.metaFor(codecId, typeParams);
-  const isRegistered =
-    codecLookup.get(codecId) !== undefined ||
-    meta !== undefined ||
-    codecLookup.targetTypesFor(codecId) !== undefined;
-  if (!isRegistered) {
+  const descriptor = codecDescriptorRegistry.descriptorFor(codecId);
+  if (descriptor === undefined) {
     throw adapterError(
       'RUNTIME.PARAM_REF_MISSING_CODEC',
       `Postgres lowering: ParamRef carries codecId "${codecId}" but the ` +
-        'assembled codec lookup has no entry for it. This usually indicates ' +
+        'validated PostgreSQL codec registry has no entry for it. This usually indicates ' +
         'a missing extension pack in the runtime stack — register the pack ' +
         'that contributes this codec (e.g. `extensions: [pgvectorRuntime]`), ' +
         'or use the codec directly from `@prisma-next/target-postgres/codecs` ' +
@@ -108,40 +105,20 @@ function renderTypedParam(
       { meta: { codecId } },
     );
   }
-  // `typeParams` above already resolved a parameterized codec's per-instance
-  // meta (e.g. a native enum's type name) ahead of its static fallback.
-  //
-  // The framework `CodecLookup.metaFor` returns the family-agnostic
-  // `CodecMeta`, whose `db` is `Record<string, unknown>`. The SQL family
-  // populates a narrower shape with `db.sql.<dialect>.nativeType: string`, so
-  // navigate that path defensively and string-check the leaf.
-  const dbRecord = meta?.db;
-  const sqlBlock = isRecord(dbRecord) ? dbRecord['sql'] : undefined;
-  const dialectBlock = isRecord(sqlBlock) ? sqlBlock['postgres'] : undefined;
-  const nativeType = isRecord(dialectBlock) ? dialectBlock['nativeType'] : undefined;
-  if (typeof nativeType === 'string') {
-    const arraySuffix = many ? '[]' : '';
-    // A `typeParams.typeName` marks a named database type (e.g. a native
-    // enum): cast to its quoted, schema-qualified identifier so Postgres does
-    // not case-fold it (`$1::HoldType` would resolve as `holdtype`). Mirrors
-    // the DDL-side policy in `buildColumnTypeSql`. Builtin spellings
-    // (`double precision`, `jsonb`, …) stay verbatim — quoting them would
-    // turn them into (nonexistent) user-type lookups.
-    if (isPgEnumParams(typeParams)) {
-      return `$${index}::${quoteQualifiedName(nativeType)}${arraySuffix}`;
-    }
-    if (!POSTGRES_INFERRABLE_NATIVE_TYPES.has(nativeType)) {
-      return `$${index}::${nativeType}${arraySuffix}`;
-    }
-    if (many) {
-      return `$${index}::${nativeType}${arraySuffix}`;
-    }
+  const ref: CodecRef = {
+    codecId,
+    ...ifDefined('many', many),
+    ...ifDefined('typeParams', typeParams),
+  };
+  const nativeType = descriptor.nativeTypeFor(ref);
+  const arraySuffix = many ? '[]' : '';
+  if (isPgEnumParams(typeParams)) {
+    return `$${index}::${quoteQualifiedName(nativeType)}${arraySuffix}`;
+  }
+  if (!POSTGRES_INFERRABLE_NATIVE_TYPES.has(nativeType) || many) {
+    return `$${index}::${nativeType}${arraySuffix}`;
   }
   return `$${index}`;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }
 
 function unreachableKind(value: never): string {
@@ -158,11 +135,11 @@ function unreachableKind(value: never): string {
 }
 
 /**
- * Per-render carrier threaded through every helper. Bundles the param-index map (for `$N` numbering) and the assembled-stack `codecLookup` (for cast policy at the `renderTypedParam` chokepoint). Carrying both on a single value keeps helper signatures stable.
+ * Per-render carrier threaded through every helper. Bundles the param-index map (for `$N` numbering) and the assembled-stack target descriptor registry (for cast policy at the `renderTypedParam` chokepoint). Carrying both on a single value keeps helper signatures stable.
  */
 interface ParamIndexMap {
   readonly indexMap: Map<AnyParamRef, number>;
-  readonly codecLookup: CodecLookup;
+  readonly codecDescriptorRegistry: PostgresCodecDescriptorRegistry;
 }
 
 /**
@@ -173,7 +150,7 @@ interface ParamIndexMap {
 export function renderLoweredSql(
   ast: AnyQueryAst,
   contract: PostgresContract,
-  codecLookup: CodecLookup,
+  codecDescriptorRegistry: PostgresCodecDescriptorRegistry,
 ): { readonly sql: string; readonly params: readonly LoweredParam[] } {
   const orderedRefs = collectOrderedParamRefs(ast);
   const indexMap = new Map<AnyParamRef, number>();
@@ -183,7 +160,7 @@ export function renderLoweredSql(
       ? { kind: 'bind', name: ref.name }
       : { kind: 'literal', value: ref.value };
   });
-  const pim: ParamIndexMap = { indexMap, codecLookup };
+  const pim: ParamIndexMap = { indexMap, codecDescriptorRegistry };
 
   const node = ast;
   let sql: string;
@@ -841,7 +818,7 @@ function renderParamRef(ref: AnyParamRef, pim: ParamIndexMap): string {
     return renderTypedParam(
       index,
       ref.codec.codecId,
-      pim.codecLookup,
+      pim.codecDescriptorRegistry,
       ref.codec.many,
       ref.codec.typeParams,
     );
@@ -858,7 +835,7 @@ function renderParamRef(ref: AnyParamRef, pim: ParamIndexMap): string {
   return renderTypedParam(
     index,
     ref.codec.codecId,
-    pim.codecLookup,
+    pim.codecDescriptorRegistry,
     ref.codec.many,
     ref.codec.typeParams,
   );

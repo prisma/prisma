@@ -173,7 +173,7 @@ changes:
       anyMatch: true
   - id: postgres-native-types-move-to-type-position
     summary: |
-      PostgreSQL native storage types are now authored directly in PSL type position instead of with `@db.*` attributes. Rewrite `BaseType @db.Type` as `Type` and `BaseType @db.Type(args)` as `Type(args)` in extension schemas and test fixtures, then re-run contract emission. The supported translations are `@db.Char` → `Char`, `@db.VarChar` → `VarChar`, `@db.Numeric` → `Numeric`, `@db.Uuid` → `Uuid`, `@db.Inet` → `Inet`, `@db.SmallInt` → `SmallInt`, `@db.Real` → `Real`, `@db.Timestamp` → `Timestamp`, `@db.Timestamptz` → `Timestamptz`, `@db.Date` → `Date`, `@db.Time` → `Time`, and `@db.Timetz` → `Timetz`; preserve constructor arguments. Rewrite the old native-json spelling `Json @db.Json` as bare `Json`. This source migration preserves codec ids, native types, and supplied type parameters. Separately, apply the `postgres-json-rebound-to-native-json` entry below to old bare `Json` fields that meant jsonb storage.
+      PostgreSQL native storage types are authored directly in PSL type position, and the legacy `@db.*` attribute channel is removed. Rewrite `BaseType @db.Type` as `Type` and `BaseType @db.Type(args)` as `Type(args)` in extension schemas and test fixtures, then re-run contract emission. Any remaining `@db.X(args)` fails with `@db.X(args) is no longer supported; use X(args) in type position`, preserving the constructor name and arguments in the suggested replacement. The supported translations are `@db.Char` → `Char`, `@db.VarChar` → `VarChar`, `@db.Numeric` → `Numeric`, `@db.Uuid` → `Uuid`, `@db.Inet` → `Inet`, `@db.SmallInt` → `SmallInt`, `@db.Real` → `Real`, `@db.Timestamp` → `Timestamp`, `@db.Timestamptz` → `Timestamptz`, `@db.Date` → `Date`, `@db.Time` → `Time`, and `@db.Timetz` → `Timetz`; preserve constructor arguments. Rewrite the old native-json spelling `Json @db.Json` as bare `Json`. This source migration preserves native types and supplied type parameters. It also preserves codec ids except for `@db.Date` → `Date`, which rebinds `pg/timestamptz@1` to `pg/date@1`, changes the contract storage hash, and requires re-emission plus re-signing; see the `postgres-date-rebound-to-pg-date` entry below. Separately, apply the `postgres-json-rebound-to-native-json` entry below to old bare `Json` fields that meant jsonb storage.
     detection:
       glob: "**/*.prisma"
       contains:
@@ -189,10 +189,7 @@ changes:
       (e.g. over `collectScalarTypeConstructors(stack.authoringContributions.type)` or
       `stack.scalarTypes`) now expect `Json -> { codecId: 'pg/json@1', nativeType: 'json' }`
       plus the new `Jsonb -> { codecId: 'pg/jsonb@1', nativeType: 'jsonb' }` entry. PSL
-      value-object storage columns still emit jsonb (the interpreter now prefers the target's
-      `Jsonb` scalar and falls back to `Json`). The legacy `@db.Json` attribute path
-      (`NATIVE_TYPE_SPECS`) is unchanged, as are sqlite/mongo `Json` bindings and the TS
-      builder surface (`field.json()`, `jsonbColumn`).
+      value-object storage columns still emit jsonb (the interpreter now prefers the target's `Jsonb` scalar and falls back to `Json`). The removed `@db.Json` spelling must be rewritten from `Json @db.Json` to bare `Json`; any remaining use fails with migration guidance to use `Json` in type position. SQLite and Mongo `Json` bindings and the TS builder surface (`field.json()`, `jsonbColumn`) are unchanged.
     detection:
       glob: "**/*.{prisma,ts,mts,cts}"
       contains:
@@ -231,17 +228,7 @@ changes:
       anyMatch: true
   - id: postgres-date-rebound-to-pg-date
     summary: |
-      On the postgres target, PSL `date` columns re-bind from `pg/timestamptz@1` to the
-      dedicated `pg/date@1` codec on both spellings: the legacy `DateTime @db.Date` attribute
-      path (`NATIVE_TYPE_SPECS` in `@prisma-next/sql-contract-psl`) and the bare `Date` type
-      constructor (`postgresNativeAuthoringTypes` in `@prisma-next/adapter-postgres`). The
-      stored native type is unchanged (`date`). Extension assertions that pin the `Date`
-      constructor's derived binding — e.g. over
-      `collectScalarTypeConstructors(stack.authoringContributions.type)` or parity fixtures
-      interpreting `@db.Date` — now expect `Date -> { codecId: 'pg/date@1', nativeType: 'date' }`.
-      Extension test schemas and fixtures with `@db.Date` / `Date` columns produce a different
-      codec ref and contract storage hash on re-emit; regenerate committed contract artefacts
-      and update pinned hash or codec-ref literals. Runtime fixtures change shape too:
+      On the postgres target, the bare `Date` type constructor (`postgresNativeAuthoringTypes` in `@prisma-next/adapter-postgres`) re-binds from `pg/timestamptz@1` to the dedicated `pg/date@1` codec. Rewrite the removed `DateTime @db.Date` spelling as `Date`; leaving it unchanged now fails with migration guidance to use `Date` in type position. The stored native type is unchanged (`date`). Extension assertions over `collectScalarTypeConstructors(stack.authoringContributions.type)` now expect `Date -> { codecId: 'pg/date@1', nativeType: 'date' }`. Extension test schemas and fixtures with date columns produce a different codec ref and contract storage hash on re-emit; regenerate committed contract artefacts and update pinned hash or codec-ref literals. Runtime fixtures change shape too:
       `pg/date@1` canonicalizes the JS value as a `Date` at UTC midnight
       (`new Date(Date.UTC(y, m, d))`) instead of passing through the driver's local-midnight
       `Date`, and its JSON form is the bare `YYYY-MM-DD` string, so relation `.include()`
@@ -337,6 +324,34 @@ changes:
         - "indexes: ["
         - "indexes:["
       anyMatch: true
+  - id: framework-error-classes-removed
+    summary: |
+      Three exported framework error classes are deleted: `ConfigFileNotFoundError`
+      (from `@prisma-next/config-loader`), `ConfigValidationError` (from
+      `@prisma-next/config/config-validation`), and `DomainNamespaceResolutionError`
+      (from `@prisma-next/contract/types`). The same failures now throw structured
+      envelopes with codes `CONFIG.FILE_NOT_FOUND`, `CONFIG.VALIDATION_FAILED`, and
+      `CONTRACT.NAMESPACE_INVALID` respectively. Replace each
+      `error instanceof <Class>` with
+      `isStructuredError(error) && error.code === '<CODE>'`
+      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message
+      text is unchanged.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+      contains:
+        - "ConfigFileNotFoundError"
+        - "ConfigValidationError"
+        - "DomainNamespaceResolutionError"
+      anyMatch: true
+  - id: postgres-extension-codecs-require-target-descriptors
+    summary: Migrate PostgreSQL-bound extension codecs to the target-owned descriptor protocol and contribute one target-typed descriptor set through runtime and control stacks.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - "extends CodecDescriptorImpl"
+        - "CodecDescriptorImpl<"
+        - "readonly AnyCodecDescriptor[]"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions
@@ -429,4 +444,20 @@ Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. 
 
 ### Committed contract spaces
 
-Re-emit your pack's contract space with the upgraded toolchain (`build:contract-space`, or your generator script à la `contract:generate`): every contract that declares indexes gets the new entry shape and a new storage hash, and managed index physical names gain the `_<8hex>` content-hash suffix. Databases your pack maintains (acceptance harnesses, reference instances) converge via a renames-only widening plan — see the user-skill `indexes-are-name-identified` entry for that flow. Live indexes your contract cannot yet express faithfully (partial or expression indexes, before their authoring surfaces land) should stay undeclared — under an `external` control policy extras are tolerated, while a body-less declaration now fails the exact-mode body compare.
+Re-emit your pack's contract space with the upgraded toolchain (`build:contract-space`, or your generator script à la `contract:generate`): every contract that declares indexes gets the new entry shape and a new storage hash, and managed index physical names gain the `_<8hex>` content-hash suffix. Databases your pack maintains (acceptance harnesses, reference instances) converge via a renames-only widening plan — see the user-skill `indexes-are-name-identified` entry for that flow. Expression and partial indexes are authorable from 0.17 (PSL `@@index(expression:/where:/unique:/type:/name: xor map:)`, TS `constraints.index` with the same matrix); declare them with `name:` for managed wire names, or `map:` for infer-captured exact names — hand-authoring a body under `map:` warns (`PN_EXACT_NAME_BODY_COMPARISON`) because drift detection byte-compares the authored text against Postgres's reprint. Live indexes you choose not to declare stay tolerated under an `external` control policy.
+
+## `postgres-extension-codecs-require-target-descriptors`
+
+For every codec descriptor contributed by a PostgreSQL extension, add `@prisma-next/target-postgres` at the same 0.17 version as the extension's other `@prisma-next/*` packages under `dependencies`. Do not leave it only in `devDependencies`: production descriptor modules and runtime/control stack metadata import and expose this protocol. Import the target API from the lean `@prisma-next/target-postgres/codec-descriptor` subpath, and import `ProjectionExpr` from `@prisma-next/sql-relational-core/ast`.
+
+Change a PostgreSQL-bound descriptor that extends `CodecDescriptorImpl<P>` to extend `PostgresCodecDescriptor<P>`. Keep its codec id, traits, target types, `paramsSchema`, factory, output renderer, transitional `meta` / `metaFor`, and column helpers unchanged. Add `protected override nativeType(params: P): string` returning the same trusted PostgreSQL native type spelling the extension already uses, and add `protected override jsonProjection(expression: ProjectionExpr, params: P): ProjectionExpr`. Use `return expression` for the 0.17 behavior-preserving migration unless the extension already has an equivalent AST projection to preserve; production JSON renderers do not invoke `projectJson()` in this transition, so do not use this migration to change SQL output, wire encoding, `encodeJson`, or `decodeJson`.
+
+When the extension contributes a reusable target-neutral SQL descriptor instead of owning its descriptor class, keep the generic descriptor unchanged and wrap it with `postgresCodec(genericDescriptor, { nativeType, jsonProjection })`. Supply the same current native type and behavior-preserving scalar projection as above. The wrapper preserves the generic descriptor's codec id, parameter schema, factory, renderers, target types, and metadata while adding the PostgreSQL protocol.
+
+Replace broad exported descriptor arrays such as `readonly AnyCodecDescriptor[]` with `definePostgresCodecs([...])`. Use the resulting canonical target-typed set in both runtime and control `types.codecTypes.codecDescriptors`, and return that same set from runtime `codecs()` when the runtime extension SPI requires it. Do not construct independently maintained generic and PostgreSQL descriptor collections. Update exact-type tests that expected `readonly AnyCodecDescriptor[]` to accept `readonly AnyPostgresCodecDescriptor[]`; ordinary descriptors still satisfy `AnyCodecDescriptor` individually.
+
+Review every `CodecRef` construction for a parameterized descriptor, including parameter refs, contract/storage fixtures, and test-created refs. Supply `typeParams` with every field required by the target descriptor `paramsSchema`; for example, a `pg/vector@1` ref for a three-element vector must include `typeParams: { length: 3 }`. Do not make a required descriptor parameter optional merely to preserve an invalid unparameterized ref.
+
+When a parameterized descriptor intentionally supports an unparameterized column or contract reference, make its parameter type and Standard Schema accept the empty validated parameter object used during representative materialization. Express only genuinely absent fields as optional and preserve the existing unparameterized factory behavior; do not add a hidden default or change the codec encoded representation.
+
+After the migration, run the extension package's typecheck, lint, and tests. Verify its public codec ids, factories, column helpers, rendered types, SQL/wire behavior, `encodeJson` / `decodeJson`, runtime/control descriptor membership, and emitted contract behavior are unchanged apart from the descriptor types becoming PostgreSQL-specific.

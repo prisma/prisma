@@ -6,6 +6,7 @@ import {
 } from '@prisma-next/sql-relational-core/ast';
 import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { assertNever } from '@prisma-next/utils/internal-error';
 import { evaluateRawGuardrails } from '../guardrails/raw';
 import type { SqlMiddleware, SqlMiddlewareContext } from './sql-middleware';
 
@@ -37,7 +38,8 @@ function getFromSourceTableDetail(source: AnyFromSource): string | undefined {
       return source.fn;
     // v8 ignore next 4
     default:
-      throw new Error(
+      return assertNever(
+        source,
         `Unsupported source kind: ${(source satisfies never as { kind: string }).kind}`,
       );
   }
@@ -103,7 +105,7 @@ function evaluateAstLints(ast: AnyQueryAst): LintFinding[] {
 
     // v8 ignore next 2
     default:
-      throw new Error(`Unsupported AST kind: ${(ast satisfies never as { kind: string }).kind}`);
+      assertNever(ast, `Unsupported AST kind: ${(ast satisfies never as { kind: string }).kind}`);
   }
 
   return findings;

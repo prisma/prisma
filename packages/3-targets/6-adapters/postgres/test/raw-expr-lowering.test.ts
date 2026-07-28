@@ -1,4 +1,3 @@
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
 import {
   ColumnRef,
   LiteralExpr,
@@ -8,29 +7,12 @@ import {
   SelectAst,
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
+import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { renderLoweredSql } from '../src/core/sql-renderer';
 import type { PostgresContract } from '../src/core/types';
-
-// Minimal codec lookup that registers pg/int4@1 as inferrable (nativeType 'integer' is
-// in the inferrable set) so the Postgres renderer emits plain $N without a cast.
-const testLookup: CodecLookup = {
-  get: () => undefined,
-  targetTypesFor: (id) => (id === 'pg/int4@1' ? ['int4'] : undefined),
-  metaFor: (id) =>
-    id === 'pg/int4@1' ? { db: { sql: { postgres: { nativeType: 'integer' } } } } : undefined,
-  renderOutputTypeFor: () => undefined,
-};
-
-// Lookup with no registered codecs — used for tests that contain no ParamRef elements.
-const emptyLookup: CodecLookup = {
-  get: () => undefined,
-  targetTypesFor: () => undefined,
-  metaFor: () => undefined,
-  renderOutputTypeFor: () => undefined,
-};
 
 const contract = new SqlContractSerializer().deserializeContract({
   target: 'postgres',
@@ -78,7 +60,7 @@ describe('RawExpr postgres lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract, emptyLookup);
+    const lowered = renderLoweredSql(ast, contract, postgresCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('now()');
     expect(lowered.params).toHaveLength(0);
@@ -92,7 +74,7 @@ describe('RawExpr postgres lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract, testLookup);
+    const lowered = renderLoweredSql(ast, contract, postgresCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('score > $1');
     expect(lowered.params).toHaveLength(1);
@@ -108,7 +90,7 @@ describe('RawExpr postgres lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract, testLookup);
+    const lowered = renderLoweredSql(ast, contract, postgresCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('id BETWEEN $1 AND $2');
     expect(lowered.params).toHaveLength(2);
@@ -125,7 +107,7 @@ describe('RawExpr postgres lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract, testLookup);
+    const lowered = renderLoweredSql(ast, contract, postgresCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('$1$2');
     expect(lowered.params).toHaveLength(2);
@@ -139,7 +121,7 @@ describe('RawExpr postgres lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract, emptyLookup);
+    const lowered = renderLoweredSql(ast, contract, postgresCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('LENGTH("user"."id") > 0');
   });
@@ -152,7 +134,7 @@ describe('RawExpr postgres lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract, emptyLookup);
+    const lowered = renderLoweredSql(ast, contract, postgresCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain("status = 'active'");
     expect(lowered.params).toHaveLength(0);

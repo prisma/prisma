@@ -1,4 +1,5 @@
 import type { DiffSubjectGranularity } from '@prisma-next/framework-components/control';
+import { InternalError } from '@prisma-next/utils/internal-error';
 
 /**
  * The `nodeKind` discriminant for each relational schema-diff leaf node.
@@ -58,7 +59,9 @@ function isRelationalSchemaNodeKind(nodeKind: string): nodeKind is RelationalSch
  */
 export function relationalNodeGranularity(nodeKind: string): DiffSubjectGranularity {
   if (!isRelationalSchemaNodeKind(nodeKind)) {
-    throw new Error(`relationalNodeGranularity: unrecognized relational node kind "${nodeKind}"`);
+    throw new InternalError(
+      `relationalNodeGranularity: unrecognized relational node kind "${nodeKind}"`,
+    );
   }
   return RELATIONAL_NODE_GRANULARITY[nodeKind];
 }

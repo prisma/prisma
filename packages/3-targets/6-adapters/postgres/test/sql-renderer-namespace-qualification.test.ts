@@ -1,5 +1,4 @@
 import type { StorageHashBase } from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
 import {
   BinaryExpr,
@@ -10,6 +9,7 @@ import {
   SelectAst,
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
+import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
 import { PostgresSchema } from '@prisma-next/target-postgres/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -24,13 +24,6 @@ const userTableInput = {
   uniques: [],
   indexes: [],
   foreignKeys: [],
-};
-
-const emptyLookup: CodecLookup = {
-  get: () => undefined,
-  targetTypesFor: () => undefined,
-  metaFor: () => undefined,
-  renderOutputTypeFor: () => undefined,
 };
 
 const publicContract = {
@@ -60,14 +53,14 @@ describe('renderLoweredSql namespace qualification', () => {
     const selectSql = renderLoweredSql(
       SelectAst.from(user).withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))]),
       publicContract,
-      emptyLookup,
+      postgresCodecDescriptorRegistry,
     ).sql;
     expect(selectSql).toBe('SELECT "user"."id" AS "id" FROM "public"."user"');
 
     const deleteSql = renderLoweredSql(
       DeleteAst.from(user).withWhere(BinaryExpr.eq(ColumnRef.of('user', 'id'), LiteralExpr.of(1))),
       publicContract,
-      emptyLookup,
+      postgresCodecDescriptorRegistry,
     ).sql;
     expect(deleteSql).toContain('DELETE FROM "public"."user"');
   });

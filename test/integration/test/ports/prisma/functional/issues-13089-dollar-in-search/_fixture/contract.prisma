@@ -1,0 +1,16 @@
+// Faithful translation of prisma/prisma functional suite `issues/13089`
+// (mongodb-only matrix entry):
+//
+//   model users {
+//     id        String @id @map("_id") @default(auto()) @db.ObjectId
+//     firstName String @unique
+//   }
+//
+// In prisma-next mongo PSL the ObjectId primary key is `id ObjectId @id @map("_id")`.
+
+// use prisma-next
+
+model users {
+  id        ObjectId @id @map("_id")
+  firstName String   @unique
+}

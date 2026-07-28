@@ -1,4 +1,5 @@
 import { hydrateNamespaceEntities } from '@prisma-next/framework-components/ir';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   collectionEntityKind,
@@ -53,6 +54,22 @@ describe('composeMongoEntityKinds', () => {
       construct: (v: unknown) => v,
     };
     expect(() => composeMongoEntityKinds([collide])).toThrow(/duplicate entity kind/);
+  });
+
+  it('duplicate entity kind raises CONTRACT.PACK_CONTRIBUTION_INVALID', () => {
+    const collide = {
+      kind: 'collection',
+      schema: collectionEntityKind.schema,
+      construct: (v: unknown) => v,
+    };
+    try {
+      composeMongoEntityKinds([collide]);
+      expect.fail('expected throw');
+    } catch (e) {
+      expect(isStructuredError(e)).toBe(true);
+      if (!isStructuredError(e)) return;
+      expect(e.code).toBe('CONTRACT.PACK_CONTRIBUTION_INVALID');
+    }
   });
 });
 

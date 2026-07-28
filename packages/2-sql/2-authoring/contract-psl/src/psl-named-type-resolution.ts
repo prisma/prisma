@@ -1,13 +1,13 @@
 import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
 import type { AuthoringContributions } from '@prisma-next/framework-components/authoring';
-import type { NamedTypeSymbol, ResolvedAttribute } from '@prisma-next/psl-parser';
+import type { NamedTypeSymbol } from '@prisma-next/psl-parser';
 import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
+import { formatDbAttributeMigrationMessage } from './psl-attribute-parsing';
 import {
   type ColumnDescriptor,
   checkUncomposedNamespace,
   instantiatePslTypeConstructor,
   reportUncomposedNamespace,
-  resolveDbNativeTypeAttribute,
   resolvePslTypeConstructorDescriptor,
   toNamedTypeFieldDescriptor,
 } from './psl-column-resolution';
@@ -30,31 +30,20 @@ function validateNamedTypeAttributes(input: {
   readonly diagnostics: ContractSourceDiagnostic[];
   readonly composedExtensions: ReadonlySet<string>;
   readonly authoringContributions: AuthoringContributions | undefined;
-  readonly allowDbNativeType: boolean;
   readonly familyId: string;
   readonly targetId: string;
-}): {
-  readonly dbNativeTypeAttribute: ResolvedAttribute | undefined;
-  readonly hasUnsupportedNamedTypeAttribute: boolean;
-} {
-  const dbNativeTypeAttributes = input.allowDbNativeType
-    ? input.declaration.attributes.filter((attribute) => attribute.name.startsWith('db.'))
-    : [];
-  const [dbNativeTypeAttribute, ...extraDbNativeTypeAttributes] = dbNativeTypeAttributes;
+}): boolean {
   let hasUnsupportedNamedTypeAttribute = false;
 
-  for (const extra of extraDbNativeTypeAttributes) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-      message: `Named type "${input.declaration.name}" can declare at most one @db.* attribute`,
-      sourceId: input.sourceId,
-      span: extra.span,
-    });
-    hasUnsupportedNamedTypeAttribute = true;
-  }
-
   for (const attribute of input.declaration.attributes) {
-    if (input.allowDbNativeType && attribute.name.startsWith('db.')) {
+    if (attribute.name.startsWith('db.')) {
+      input.diagnostics.push({
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_ATTRIBUTE',
+        message: formatDbAttributeMigrationMessage(attribute),
+        sourceId: input.sourceId,
+        span: attribute.span,
+      });
+      hasUnsupportedNamedTypeAttribute = true;
       continue;
     }
 
@@ -84,7 +73,7 @@ function validateNamedTypeAttributes(input: {
     hasUnsupportedNamedTypeAttribute = true;
   }
 
-  return { dbNativeTypeAttribute, hasUnsupportedNamedTypeAttribute };
+  return hasUnsupportedNamedTypeAttribute;
 }
 
 export function resolveNamedTypeDeclarations(input: ResolveNamedTypeDeclarationsInput): {
@@ -107,13 +96,12 @@ export function resolveNamedTypeDeclarations(input: ResolveNamedTypeDeclarations
         continue;
       }
 
-      const { hasUnsupportedNamedTypeAttribute } = validateNamedTypeAttributes({
+      const hasUnsupportedNamedTypeAttribute = validateNamedTypeAttributes({
         declaration,
         sourceId: input.sourceId,
         diagnostics: input.diagnostics,
         composedExtensions: input.composedExtensions,
         authoringContributions: input.authoringContributions,
-        allowDbNativeType: false,
         familyId: input.familyId,
         targetId: input.targetId,
       });
@@ -187,47 +175,16 @@ export function resolveNamedTypeDeclarations(input: ResolveNamedTypeDeclarations
       continue;
     }
 
-    const { dbNativeTypeAttribute, hasUnsupportedNamedTypeAttribute } = validateNamedTypeAttributes(
-      {
-        declaration,
-        sourceId: input.sourceId,
-        diagnostics: input.diagnostics,
-        composedExtensions: input.composedExtensions,
-        authoringContributions: input.authoringContributions,
-        allowDbNativeType: true,
-        familyId: input.familyId,
-        targetId: input.targetId,
-      },
-    );
+    const hasUnsupportedNamedTypeAttribute = validateNamedTypeAttributes({
+      declaration,
+      sourceId: input.sourceId,
+      diagnostics: input.diagnostics,
+      composedExtensions: input.composedExtensions,
+      authoringContributions: input.authoringContributions,
+      familyId: input.familyId,
+      targetId: input.targetId,
+    });
     if (hasUnsupportedNamedTypeAttribute) {
-      continue;
-    }
-
-    if (dbNativeTypeAttribute) {
-      const descriptor = resolveDbNativeTypeAttribute({
-        attribute: dbNativeTypeAttribute,
-        baseType,
-        baseDescriptor,
-        diagnostics: input.diagnostics,
-        sourceId: input.sourceId,
-        entityLabel: `Named type "${declaration.name}"`,
-      });
-      if (!descriptor) {
-        continue;
-      }
-      namedTypeDescriptors.set(
-        declaration.name,
-        toNamedTypeFieldDescriptor(declaration.name, descriptor),
-      );
-      storageTypeEntries.push([
-        declaration.name,
-        {
-          kind: 'codec-instance',
-          codecId: descriptor.codecId,
-          nativeType: descriptor.nativeType,
-          typeParams: descriptor.typeParams ?? {},
-        },
-      ]);
       continue;
     }
 

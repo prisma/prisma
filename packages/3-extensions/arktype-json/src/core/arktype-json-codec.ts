@@ -13,9 +13,7 @@
 
 import type { JsonValue } from '@prisma-next/contract/types';
 import {
-  type AnyCodecDescriptor,
   type CodecCallContext,
-  CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
   type ColumnHelperFor,
@@ -23,6 +21,11 @@ import {
   column,
 } from '@prisma-next/framework-components/codec';
 import { isRuntimeError, runtimeError } from '@prisma-next/framework-components/runtime';
+import type { ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
+import {
+  definePostgresCodecs,
+  PostgresCodecDescriptor,
+} from '@prisma-next/target-postgres/codec-descriptor';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { ArkErrors, ark, type Type, type } from 'arktype';
 
@@ -208,7 +211,13 @@ const arktypeJsonParamsSchema = type({
 
 const ARKTYPE_JSON_META = { db: { sql: { postgres: { nativeType: 'jsonb' } } } } as const;
 
-export class ArktypeJsonDescriptor extends CodecDescriptorImpl<ArktypeJsonTypeParams> {
+export class ArktypeJsonDescriptor extends PostgresCodecDescriptor<ArktypeJsonTypeParams> {
+  protected override nativeType(): string {
+    return ARKTYPE_JSON_NATIVE_TYPE;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = ARKTYPE_JSON_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = [ARKTYPE_JSON_NATIVE_TYPE] as const;
@@ -284,4 +293,4 @@ arktypeJsonColumn satisfies ColumnHelperFor<ArktypeJsonDescriptor>;
  */
 export type ArktypeJsonCodec<TInferred> = ArktypeJsonCodecClass<TInferred>;
 
-export const codecDescriptors: readonly AnyCodecDescriptor[] = [arktypeJsonDescriptor];
+export const codecDescriptors = definePostgresCodecs([arktypeJsonDescriptor]);

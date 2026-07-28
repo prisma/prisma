@@ -1,3 +1,4 @@
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { renderImports } from '../src/render-imports';
 
@@ -125,8 +126,9 @@ describe('renderImports', () => {
     expect(out).toBe("import x from 'm';");
   });
 
-  it('throws when two requirements for the same module disagree on attributes', () => {
-    expect(() =>
+  it('throws CONTRACT.PACK_CONTRIBUTION_INVALID when two requirements for the same module disagree on attributes', () => {
+    let thrown: unknown;
+    try {
       renderImports([
         {
           moduleSpecifier: 'm',
@@ -138,8 +140,13 @@ describe('renderImports', () => {
           symbol: 'b',
           attributes: { type: 'text' },
         },
-      ]),
-    ).toThrow(/Conflicting import attributes/);
+      ]);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({ code: 'CONTRACT.PACK_CONTRIBUTION_INVALID' });
+    expect((thrown as Error).message).toMatch(/Conflicting import attributes/);
   });
 
   it('treats a missing attributes map as distinct from an empty one for conflict purposes', () => {

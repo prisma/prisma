@@ -1,1 +1,6 @@
-export type { SqliteContract, SqliteLoweredStatement } from '../core/types';
+export type {
+  SqliteAdapterOptions,
+  SqliteCodecRegistry,
+  SqliteContract,
+  SqliteLoweredStatement,
+} from '../core/types';

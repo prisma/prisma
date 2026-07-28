@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { join } from 'pathe';
 
 export function renderTemplate(
@@ -12,7 +13,7 @@ export function renderTemplate(
   for (const key of variableNames) {
     const value = vars[key];
     if (value === undefined) {
-      throw new Error(`Template variable '${key}' is not defined`);
+      throw new InternalError(`Template variable '${key}' is not defined`);
     }
     result = result.replaceAll(`{{${key}}}`, value);
   }

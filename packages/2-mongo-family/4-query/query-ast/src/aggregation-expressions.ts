@@ -1,4 +1,5 @@
 import { MongoAstNode } from './ast-node';
+import { ormError } from './orm-errors';
 import type { MongoAggExprRewriter, MongoAggExprVisitor } from './visitors';
 
 export type AggRecordArgs = Readonly<Record<string, MongoAggExpr | ReadonlyArray<MongoAggExpr>>>;
@@ -47,7 +48,7 @@ export class MongoAggFieldRef extends MongoAggExprNode {
   constructor(path: string) {
     super();
     if (!path) {
-      throw new Error('Field path must not be empty');
+      throw ormError('ORM.ARGUMENT_INVALID', 'Field path must not be empty');
     }
     this.path = path;
     this.freeze();

@@ -9,6 +9,7 @@ import {
 } from '@prisma-next/contract/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import type { Type } from 'arktype';
 import type { CodecLookup } from './codec-types';
 import type { AuthoringOption } from './option-descriptor';
@@ -726,7 +727,8 @@ export function mergeAuthoringNamespaces(
       (segment) => segment === '__proto__' || segment === 'constructor' || segment === 'prototype',
     );
     if (blockedSegment) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Invalid authoring ${label} helper "${currentPath.join('.')}". Helper path segments must not use "${blockedSegment}".`,
       );
     }
@@ -755,13 +757,15 @@ export function mergeAuthoringNamespaces(
     const sourceIsLeaf = isWellFormedDescriptor(sourceValue, descriptorKind);
 
     if (existingIsLeaf || sourceIsLeaf) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Duplicate authoring ${label} helper "${currentPath.join('.')}". Helper names must be unique across composed packs.`,
       );
     }
 
     if (!isCopyableNamespaceObject(existingValue) || !isCopyableNamespaceObject(sourceValue)) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Invalid authoring ${label} helper "${currentPath.join('.')}". Expected a sub-namespace object or a recognized descriptor; received a malformed value.`,
       );
     }
@@ -949,7 +953,8 @@ function collectDescriptorEntries<D extends { readonly discriminator: string }>(
       // right `kind` while missing the rest of the descriptor shape. Reject
       // that here so a half-built contribution can't pass validation.
       if (!isWellFormedDescriptor(value, descriptorKind)) {
-        throw new Error(
+        throw runtimeError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
           `Malformed authoring ${label} contribution at "${currentPath.join('.')}". The value carries descriptor keys (kind/keyword/discriminator) but does not satisfy the ${label} descriptor shape. Fix the contribution so it is a complete descriptor, or remove the stray keys if it was meant to be a sub-namespace.`,
         );
       }
@@ -983,7 +988,8 @@ function collectDescriptorEntries<D extends { readonly discriminator: string }>(
         const hasKeyword = typeof record['keyword'] === 'string';
         const hasDiscriminator = typeof record['discriminator'] === 'string';
         if (hasKind || (hasKeyword && hasDiscriminator)) {
-          throw new Error(
+          throw runtimeError(
+            'CONTRACT.PACK_CONTRIBUTION_INVALID',
             `Malformed authoring ${label} contribution at "${currentPath.join('.')}". The value carries descriptor keys (kind/keyword/discriminator) but does not satisfy the ${label} descriptor shape. Fix the contribution so it is a complete descriptor, or remove the stray keys if it was meant to be a sub-namespace.`,
           );
         }
@@ -1037,7 +1043,8 @@ function collectPslBlockDescriptorEntries(
       // `isAuthoringPslBlockDescriptor` narrows on `kind` alone; reject a
       // `kind: 'pslBlock'` value that is missing the rest of the shape.
       if (!isWellFormedDescriptor(value, 'pslBlock')) {
-        throw new Error(
+        throw runtimeError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
           `Malformed authoring pslBlock contribution at "${currentPath.join('.')}". The value carries descriptor keys (kind/keyword/discriminator) but does not satisfy the pslBlock descriptor shape. Fix the contribution so it is a complete descriptor, or remove the stray keys if it was meant to be a sub-namespace.`,
         );
       }
@@ -1057,7 +1064,8 @@ function collectPslBlockDescriptorEntries(
       const hasKeyword = typeof record['keyword'] === 'string';
       const hasDiscriminator = typeof record['discriminator'] === 'string';
       if (hasKind || (hasKeyword && hasDiscriminator)) {
-        throw new Error(
+        throw runtimeError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
           `Malformed authoring pslBlock contribution at "${currentPath.join('.')}". The value carries descriptor keys (kind/keyword/discriminator) but does not satisfy the pslBlock descriptor shape. Fix the contribution so it is a complete descriptor, or remove the stray keys if it was meant to be a sub-namespace.`,
         );
       }
@@ -1101,7 +1109,8 @@ function assertPslBlocksHaveFactories(
 
   for (const block of blockEntries) {
     if (!entityDiscriminators.has(block.discriminator)) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Incomplete extension contribution: pslBlock helper "${block.path}" registers discriminator "${block.discriminator}" but no entityType contribution shares that discriminator. An extension-contributed PSL block requires a matching entityType factory so the parsed AST node can lower to an IR class instance; add an entityType helper with discriminator "${block.discriminator}".`,
       );
     }
@@ -1119,7 +1128,8 @@ function collectModelAttributeEntries(
       // `isAuthoringModelAttributeDescriptor` narrows on `kind` alone; reject a
       // `kind: 'modelAttribute'` value that is missing the rest of the shape.
       if (!isWellFormedDescriptor(value, 'modelAttribute')) {
-        throw new Error(
+        throw runtimeError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
           `Malformed authoring modelAttribute contribution at "${currentPath.join('.')}". The value carries descriptor keys (kind/attribute) but does not satisfy the modelAttribute descriptor shape. Fix the contribution so it is a complete descriptor, or remove the stray keys if it was meant to be a sub-namespace.`,
         );
       }
@@ -1137,7 +1147,8 @@ function collectModelAttributeEntries(
       // the only malformed case a sub-namespace walk can hit.
       const hasAttribute = typeof record['attribute'] === 'string';
       if (hasAttribute && 'spec' in record) {
-        throw new Error(
+        throw runtimeError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
           `Malformed authoring modelAttribute contribution at "${currentPath.join('.')}". The value carries descriptor keys (kind/attribute) but does not satisfy the modelAttribute descriptor shape. Fix the contribution so it is a complete descriptor, or remove the stray keys if it was meant to be a sub-namespace.`,
         );
       }
@@ -1159,7 +1170,8 @@ function assertUniqueModelAttributeNames(entries: readonly DescriptorEntry[]): v
   for (const { path, discriminator: attribute } of entries) {
     const existing = seen.get(attribute);
     if (existing !== undefined) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Duplicate modelAttribute "${attribute}" registered at both "${existing}" and "${path}". Each modelAttribute contribution must claim a unique attribute name.`,
       );
     }
@@ -1192,14 +1204,16 @@ export function assertNoCrossRegistryCollisions(
     'Register each path in only one of authoringContributions.field / authoringContributions.type / authoringContributions.entityTypes.';
   for (const fieldPath of fieldPaths) {
     if (typePaths.has(fieldPath)) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Ambiguous authoring registry path "${fieldPath}". The same path is registered as both a type constructor and a field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
       );
     }
   }
   for (const entityPath of entityPaths) {
     if (typePaths.has(entityPath) || fieldPaths.has(entityPath)) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Ambiguous authoring registry path "${entityPath}". The same path is registered as an entity contribution AND as a type constructor or field preset; PSL resolution would be ambiguous. ${ambiguityHint}`,
       );
     }
@@ -1268,20 +1282,23 @@ function validateSelectRefsAgainstArgs(
     const position = `#${select.index + 1}`;
     let descriptor: AuthoringArgumentDescriptor | undefined = args?.[select.index];
     if (descriptor === undefined) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Authoring ${label} helper "${helperPath}" select template references argument ${position}, but the helper declares no argument at that position.`,
       );
     }
     for (const segment of select.path ?? []) {
       descriptor = descriptor.kind === 'object' ? descriptor.properties[segment] : undefined;
       if (descriptor === undefined) {
-        throw new Error(
+        throw runtimeError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
           `Authoring ${label} helper "${helperPath}" select template references argument ${position} at path "${(select.path ?? []).join('.')}", which does not resolve to a declared argument property.`,
         );
       }
     }
     if (descriptor.kind !== 'option') {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Authoring ${label} helper "${helperPath}" select template references argument ${position}, which is kind "${descriptor.kind}"; select requires an option argument.`,
       );
     }
@@ -1289,14 +1306,16 @@ function validateSelectRefsAgainstArgs(
     const argumentLabel = descriptor.name !== undefined ? `"${descriptor.name}"` : position;
     const missing = descriptor.values.filter((value) => !Object.hasOwn(select.cases, value));
     if (missing.length > 0) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Authoring ${label} helper "${helperPath}" option argument ${argumentLabel} allows [${descriptor.values.join(', ')}] but the select template has no case for: ${missing.join(', ')}.`,
       );
     }
     const values = descriptor.values;
     const unreachable = Object.keys(select.cases).filter((key) => !values.includes(key));
     if (unreachable.length > 0) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Authoring ${label} helper "${helperPath}" select template has case(s) not allowed by option argument ${argumentLabel}: ${unreachable.join(', ')}. Allowed values: [${values.join(', ')}].`,
       );
     }
@@ -1364,7 +1383,7 @@ export function resolveAuthoringTemplateValue(
       return undefined;
     }
     if (typeof value !== 'string' || !Object.hasOwn(template.cases, value)) {
-      throw new Error(`Authoring template select has no case for value "${String(value)}"`);
+      throw new InternalError(`Authoring template select has no case for value "${String(value)}"`);
     }
     return resolveAuthoringTemplateValue(template.cases[value], args);
   }
@@ -1393,30 +1412,45 @@ function validateAuthoringArgument(
     if (descriptor.optional) {
       return;
     }
-    throw new Error(`Missing required authoring helper argument at ${path}`);
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `Missing required authoring helper argument at ${path}`,
+    );
   }
 
   if (descriptor.kind === 'string') {
     if (typeof value !== 'string') {
-      throw new Error(`Authoring helper argument at ${path} must be a string`);
+      throw runtimeError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `Authoring helper argument at ${path} must be a string`,
+      );
     }
     return;
   }
 
   if (descriptor.kind === 'boolean') {
     if (typeof value !== 'boolean') {
-      throw new Error(`Authoring helper argument at ${path} must be a boolean`);
+      throw runtimeError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `Authoring helper argument at ${path} must be a boolean`,
+      );
     }
     return;
   }
 
   if (descriptor.kind === 'stringArray') {
     if (!Array.isArray(value)) {
-      throw new Error(`Authoring helper argument at ${path} must be an array of strings`);
+      throw runtimeError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `Authoring helper argument at ${path} must be an array of strings`,
+      );
     }
     for (const entry of value) {
       if (typeof entry !== 'string') {
-        throw new Error(`Authoring helper argument at ${path} must be an array of strings`);
+        throw runtimeError(
+          'CONTRACT.ARGUMENT_INVALID',
+          `Authoring helper argument at ${path} must be an array of strings`,
+        );
       }
     }
     return;
@@ -1424,7 +1458,10 @@ function validateAuthoringArgument(
 
   if (descriptor.kind === 'object') {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      throw new Error(`Authoring helper argument at ${path} must be an object`);
+      throw runtimeError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `Authoring helper argument at ${path} must be an object`,
+      );
     }
 
     const input = value as Record<string, unknown>;
@@ -1432,7 +1469,10 @@ function validateAuthoringArgument(
 
     for (const key of Object.keys(input)) {
       if (!expectedKeys.has(key)) {
-        throw new Error(`Authoring helper argument at ${path} contains unknown property "${key}"`);
+        throw runtimeError(
+          'CONTRACT.ARGUMENT_INVALID',
+          `Authoring helper argument at ${path} contains unknown property "${key}"`,
+        );
       }
     }
 
@@ -1445,7 +1485,8 @@ function validateAuthoringArgument(
 
   if (descriptor.kind === 'option') {
     if (typeof value !== 'string' || !descriptor.values.includes(value)) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.ARGUMENT_INVALID',
         `Authoring helper argument at ${path} must be one of: ${descriptor.values.join(', ')}`,
       );
     }
@@ -1453,19 +1494,27 @@ function validateAuthoringArgument(
   }
 
   if (typeof value !== 'number' || Number.isNaN(value)) {
-    throw new Error(`Authoring helper argument at ${path} must be a number`);
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `Authoring helper argument at ${path} must be a number`,
+    );
   }
 
   if (descriptor.integer && !Number.isInteger(value)) {
-    throw new Error(`Authoring helper argument at ${path} must be an integer`);
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `Authoring helper argument at ${path} must be an integer`,
+    );
   }
   if (descriptor.minimum !== undefined && value < descriptor.minimum) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
       `Authoring helper argument at ${path} must be >= ${descriptor.minimum}, received ${value}`,
     );
   }
   if (descriptor.maximum !== undefined && value > descriptor.maximum) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
       `Authoring helper argument at ${path} must be <= ${descriptor.maximum}, received ${value}`,
     );
   }
@@ -1482,7 +1531,8 @@ export function validateAuthoringHelperArguments(
     0,
   );
   if (args.length < minimumArgs || args.length > expected.length) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
       `${helperPath} expects ${minimumArgs === expected.length ? expected.length : `${minimumArgs}-${expected.length}`} argument(s), received ${args.length}`,
     );
   }
@@ -1502,7 +1552,8 @@ function resolveAuthoringStorageTypeTemplate(
 } {
   const nativeType = template.nativeType;
   if (nativeType === undefined) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
       `Authoring output template for codec "${template.codecId}" declares no nativeType; only entity-ref constructors may omit it`,
     );
   }
@@ -1511,7 +1562,8 @@ function resolveAuthoringStorageTypeTemplate(
       ? undefined
       : resolveAuthoringTemplateValue(template.typeParams, args);
   if (typeParams !== undefined && !isAuthoringTemplateRecord(typeParams)) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
       `Resolved authoring typeParams must be an object for codec "${template.codecId}", received ${String(typeParams)}`,
     );
   }
@@ -1532,10 +1584,14 @@ function resolveAuthoringColumnDefaultTemplate(
   if (template.kind === 'literal') {
     const value = resolveAuthoringTemplateValue(template.value, args);
     if (value === undefined) {
-      throw new Error('Resolved authoring literal default must not be undefined');
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        'Resolved authoring literal default must not be undefined',
+      );
     }
     if (!isColumnDefaultLiteralInputValue(value)) {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `Resolved authoring literal default must be a JSON-serializable value or Date, received ${String(value)}`,
       );
     }
@@ -1547,7 +1603,8 @@ function resolveAuthoringColumnDefaultTemplate(
 
   const expression = resolveAuthoringTemplateValue(template.expression, args);
   if (expression === undefined || (typeof expression === 'object' && expression !== null)) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
       `Resolved authoring function default expression must resolve to a primitive, received ${String(expression)}`,
     );
   }
@@ -1567,7 +1624,8 @@ function resolveExecutionMutationDefaultPhase(
     return undefined;
   }
   if (!isExecutionMutationDefaultValue(value)) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
       `Authoring preset executionDefaults.${phase} did not resolve to a valid generator descriptor (kind: 'generator', id: string).`,
     );
   }

@@ -6,6 +6,7 @@ import type {
   RootModelName,
 } from '@prisma-next/mongo-contract';
 import { createFieldAccessor, type FieldAccessor, type LeafExpression } from './field-accessor';
+import { ormError } from './orm-errors';
 import type { ModelNestedShape } from './resolve-path';
 import type { DocField, DocShape, ModelToDocShape } from './types';
 
@@ -146,7 +147,10 @@ export function createLookupFrom<
     const modelName = contract.roots[rootName]?.model;
     if (!modelName) {
       const validRoots = Object.keys(contract.roots).join(', ');
-      throw new Error(`lookup() unknown root: "${rootName}". Valid roots: ${validRoots}`);
+      throw ormError(
+        'ORM.MODEL_UNKNOWN',
+        `lookup() unknown root: "${rootName}". Valid roots: ${validRoots}`,
+      );
     }
     const model = domainModelsAtDefaultNamespace(contract.domain)[modelName] as
       | MongoModelDefinition
@@ -239,7 +243,8 @@ function assertLeafExpression(
   side: 'local' | 'foreign',
 ): asserts value is LeafExpression<DocField> {
   if (!value || typeof value._path !== 'string' || value._path.length === 0) {
-    throw new Error(
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
       `lookup().on() ${side} side must return a leaf field reference (e.g. \`${side}.<field>\`). ` +
         'Aggregation expressions and computed values are not supported.',
     );
@@ -263,7 +268,8 @@ export function extractLookupResult(
   readonly modelName: string;
 } {
   if (result?._brand !== 'mongo-query-builder/lookup-result@1') {
-    throw new Error(
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
       'lookup() callback must return the result of `from(name).on(cb).as(name)`. ' +
         'Returning a hand-rolled options object is not supported.',
     );

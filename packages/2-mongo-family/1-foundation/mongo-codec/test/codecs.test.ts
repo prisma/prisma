@@ -1,4 +1,5 @@
 import type { JsonValue } from '@prisma-next/contract/types';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { newMongoCodecRegistry } from '../src/codec-registry';
 import { type MongoCodec, mongoCodec } from '../src/codecs';
@@ -91,6 +92,19 @@ describe('MongoCodecRegistry', () => {
     expect(() => registry.register(makeCodec('test/dup@1'))).toThrow(
       "Codec with ID 'test/dup@1' is already registered",
     );
+  });
+
+  it('duplicate registration raises RUNTIME.DUPLICATE_CODEC', () => {
+    const registry = newMongoCodecRegistry();
+    registry.register(makeCodec('test/dup@1'));
+    try {
+      registry.register(makeCodec('test/dup@1'));
+      expect.fail('expected throw');
+    } catch (e) {
+      expect(isStructuredError(e)).toBe(true);
+      if (!isStructuredError(e)) return;
+      expect(e.code).toBe('RUNTIME.DUPLICATE_CODEC');
+    }
   });
 
   it('iterates over registered codecs', () => {

@@ -18,6 +18,7 @@ import {
   type MongoUpdatePipelineStage,
 } from '@prisma-next/mongo-query-ast/execution';
 import type { MongoValue } from '@prisma-next/mongo-value';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { createFieldAccessor, type FieldAccessor } from '../field-accessor';
 import type { DocShape } from '../types';
 import { resolveUpdaterResult, type UpdaterResult } from '../update-ops';
@@ -30,7 +31,7 @@ import { resolveUpdaterResult, type UpdaterResult } from '../update-ops';
 function foldFilters(filters: ReadonlyArray<MongoFilterExpr>): MongoFilterExpr {
   const first = filters[0];
   if (first === undefined) {
-    throw new Error('foldFilters: invariant violated — empty filter list');
+    throw new InternalError('foldFilters: invariant violated — empty filter list');
   }
   return filters.length === 1 ? first : MongoAndExpr.of(filters);
 }
@@ -88,7 +89,7 @@ export class FilteredBuilder<Shape extends DocShape> {
 
   constructor(collection: string, filters: ReadonlyArray<MongoFilterExpr>) {
     if (filters.length === 0) {
-      throw new Error('FilteredBuilder requires at least one filter');
+      throw new InternalError('FilteredBuilder requires at least one filter');
     }
     this.#collection = collection;
     this.#filters = filters;

@@ -1,4 +1,5 @@
 import type { PslDiagnostic } from '@prisma-next/framework-components/psl-ast';
+import type { AstNode } from '../syntax/ast-helpers';
 import type { AttributeOut, AttributeSpec, InterpretCtx, Param, PositionalParam } from './types';
 
 interface FieldAttributeConfig<
@@ -10,6 +11,7 @@ interface FieldAttributeConfig<
   readonly refine?: (
     parsed: AttributeOut<Pos, Named>,
     ctx: InterpretCtx,
+    attributeNode: AstNode,
   ) => readonly PslDiagnostic[];
 }
 

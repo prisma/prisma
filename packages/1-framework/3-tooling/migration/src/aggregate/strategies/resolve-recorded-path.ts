@@ -1,4 +1,5 @@
 import type { MigrationPlan } from '@prisma-next/framework-components/control';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { EMPTY_CONTRACT_HASH } from '../../constants';
 import { findPathWithDecision } from '../../migration-graph';
 import type { MigrationOps, OnDiskMigrationPackage } from '../../package';
@@ -79,7 +80,7 @@ export function resolveRecordedPath(input: ResolveRecordedPathInputs): ResolveRe
   for (const edge of outcome.decision.selectedPath) {
     const pkg = packagesByMigrationHash.get(edge.migrationHash);
     if (!pkg) {
-      throw new Error(
+      throw new InternalError(
         `Migration package missing for edge ${edge.migrationHash} in space "${space.spaceId}". The hydrated migration graph and packagesByMigrationHash map are out of sync — this should be unreachable; report.`,
       );
     }

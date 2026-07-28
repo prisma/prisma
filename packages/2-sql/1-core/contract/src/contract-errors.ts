@@ -3,7 +3,11 @@ import { structuredError } from '@prisma-next/utils/structured-error';
 
 type ContractCode = `CONTRACT.${ContractSubcode}`;
 
-type ContractSubcode = 'PACK_CONTRIBUTION_INVALID' | 'TABLE_AMBIGUOUS' | 'VALIDATION_FAILED';
+type ContractSubcode =
+  | 'ARGUMENT_INVALID'
+  | 'PACK_CONTRIBUTION_INVALID'
+  | 'TABLE_AMBIGUOUS'
+  | 'VALIDATION_FAILED';
 
 export function contractError(
   code: ContractCode,

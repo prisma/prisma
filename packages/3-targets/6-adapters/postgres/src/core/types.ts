@@ -16,19 +16,21 @@ import type {
   SelectAst,
   UpdateAst,
 } from '@prisma-next/sql-relational-core/ast';
+import type {
+  AnyPostgresCodecDescriptor,
+  PostgresCodecDescriptorRegistry,
+} from '@prisma-next/target-postgres/codec-descriptor';
+
+export type PostgresCodecRegistry = CodecRegistry & PostgresCodecDescriptorRegistry;
 
 export interface PostgresAdapterOptions {
   readonly profileId?: string;
   /**
-   * Codec lookup used by the SQL renderer to resolve per-codec metadata at
-   * lower-time. Defaults to a Postgres-builtins-only lookup when omitted —
-   * see {@link createPostgresBuiltinCodecLookup} in `./codec-lookup`.
-   *
-   * Stack-aware callers (`SqlRuntimeAdapterDescriptor.create(stack)` /
-   * `SqlControlAdapterDescriptor.create(stack)`) supply the assembled stack
-   * lookup so extension codecs are visible to the renderer.
+   * Custom PostgreSQL codec descriptors contributed alongside the built-ins.
+   * The complete descriptor set is validated at construction and becomes the
+   * single source for both codec materialization and target-specific lowering.
    */
-  readonly codecLookup?: CodecRegistry;
+  readonly codecDescriptors?: readonly AnyPostgresCodecDescriptor[];
 }
 
 export type { PostgresContract } from '@prisma-next/target-postgres/types';

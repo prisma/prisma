@@ -9,14 +9,6 @@
 
 import type { ExtractCodecTypes } from '@prisma-next/sql-relational-core/ast';
 import {
-  sqlCharDescriptor,
-  sqlFloatDescriptor,
-  sqlIntDescriptor,
-  sqlTextDescriptor,
-  sqlTimestampDescriptor,
-  sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
-import {
   pgBitDescriptor,
   pgBoolDescriptor,
   pgByteaDescriptor,
@@ -43,15 +35,21 @@ import {
   pgUuidDescriptor,
   pgVarbitDescriptor,
   pgVarcharDescriptor,
+  postgresSqlCharDescriptor,
+  postgresSqlFloatDescriptor,
+  postgresSqlIntDescriptor,
+  postgresSqlTextDescriptor,
+  postgresSqlTimestampDescriptor,
+  postgresSqlVarcharDescriptor,
 } from './codecs';
 
 export const codecDescriptorMap = {
-  char: sqlCharDescriptor,
-  varchar: sqlVarcharDescriptor,
-  int: sqlIntDescriptor,
-  float: sqlFloatDescriptor,
-  'sql-text': sqlTextDescriptor,
-  'sql-timestamp': sqlTimestampDescriptor,
+  char: postgresSqlCharDescriptor,
+  varchar: postgresSqlVarcharDescriptor,
+  int: postgresSqlIntDescriptor,
+  float: postgresSqlFloatDescriptor,
+  'sql-text': postgresSqlTextDescriptor,
+  'sql-timestamp': postgresSqlTimestampDescriptor,
   text: pgTextDescriptor,
   enum: pgEnumDescriptor,
   character: pgCharDescriptor,

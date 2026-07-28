@@ -5,9 +5,14 @@ import type { InterpretCtx } from '../types';
 
 export const ATTRIBUTE_DIAGNOSTIC_CODE: PslDiagnosticCode = 'PSL_INVALID_ATTRIBUTE_SYNTAX';
 
-export function leafDiagnostic(ctx: InterpretCtx, node: AstNode, message: string): PslDiagnostic {
+export function leafDiagnostic(
+  ctx: InterpretCtx,
+  node: AstNode,
+  message: string,
+  code: PslDiagnostic['code'] = ATTRIBUTE_DIAGNOSTIC_CODE,
+): PslDiagnostic {
   return {
-    code: ATTRIBUTE_DIAGNOSTIC_CODE,
+    code,
     message,
     sourceId: ctx.sourceId,
     span: nodePslSpan(node.syntax, ctx.sourceFile),

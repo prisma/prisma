@@ -5,9 +5,11 @@ import type {
   FamilyPackRef,
   TargetPackRef,
 } from '@prisma-next/framework-components/components';
+import { defineIndexTypes } from '@prisma-next/sql-contract/index-types';
 import type { ForeignKey, SqlStorage } from '@prisma-next/sql-contract/types';
 import { defineContract, field, model, rel } from '@prisma-next/sql-contract-ts/contract-builder';
 import { countSemanticLines } from '@prisma-next/test-utils/semantic-lines';
+import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';
@@ -477,6 +479,249 @@ model Post {
       target: { namespaceId: 'auth', tableName: 'user' },
     });
     expect(tsFks).toEqual(pslFks);
+  });
+
+  it('PSL and TS lower the same expression index to identical managed IR (wire name pinned)', () => {
+    const pslDocument = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id    Int    @id
+  email String
+  @@index(expression: "lower(email)", name: "users_email_eq")
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+    const pslContract = interpretPslDocumentToSqlContract({
+      ...pslDocument,
+      target: portablePostgresTargetPack,
+      scalarColumnDescriptors,
+      composedExtensionContracts: new Map(),
+      controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+      authoringContributions,
+      createNamespace: createTestSqlNamespace,
+      capabilities: { sql: { scalarList: true } },
+    });
+    expect(pslContract.ok).toBe(true);
+    if (!pslContract.ok) return;
+
+    const tsContract = defineContract({
+      family: sqlFamilyPack,
+      target: portablePostgresTargetPack,
+      models: {
+        User: model('User', {
+          fields: {
+            id: field.column(int4Column).id(),
+            email: field.column(textColumn),
+          },
+        }).sql(({ constraints }) => ({
+          table: 'user',
+          indexes: [constraints.index({ expression: 'lower(email)', name: 'users_email_eq' })],
+        })),
+      },
+      createNamespace: createTestSqlNamespace,
+    });
+
+    const pslIndexes = (pslContract.value.storage as unknown as SqlStorage).namespaces['public']
+      ?.entries.table?.['user']?.indexes;
+    const tsIndexes = (tsContract.storage as unknown as SqlStorage).namespaces['public']?.entries
+      .table?.['user']?.indexes;
+    expect(pslIndexes).toEqual([
+      {
+        name: 'users_email_eq_17273133',
+        prefix: 'users_email_eq',
+        expression: 'lower(email)',
+        unique: false,
+      },
+    ]);
+    expect(tsIndexes).toEqual(pslIndexes);
+  });
+
+  it('PSL and TS lower the full matrix (expression+where+unique+type) to identical IR', () => {
+    const indexTypesPack = {
+      kind: 'extension',
+      id: 'parity-index-types',
+      familyId: 'sql',
+      targetId: 'postgres',
+      version: '0.0.1',
+      indexTypes: defineIndexTypes().add('bm25', { options: type('object') }),
+    } as const;
+
+    const pslDocument = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id    Int    @id
+  email String
+  @@index(expression: "eql_v3.eq_term(email)", where: "(deleted_at IS NULL)", unique: true, name: "users_email_eq", type: "bm25", options: {})
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+    const pslContract = interpretPslDocumentToSqlContract({
+      ...pslDocument,
+      target: portablePostgresTargetPack,
+      scalarColumnDescriptors,
+      composedExtensions: [indexTypesPack.id],
+      composedExtensionPackRefs: [indexTypesPack],
+      composedExtensionContracts: new Map(),
+      controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+      authoringContributions,
+      createNamespace: createTestSqlNamespace,
+      capabilities: { sql: { scalarList: true } },
+    });
+    expect(pslContract.ok).toBe(true);
+    if (!pslContract.ok) return;
+
+    const tsContract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: portablePostgresTargetPack,
+        extensions: { indexTypes: indexTypesPack },
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ model: helperModel, field: helperField }) => ({
+        models: {
+          User: helperModel('User', {
+            fields: {
+              id: helperField.column(int4Column).id(),
+              email: helperField.column(textColumn),
+            },
+          }).sql(({ constraints }) => ({
+            table: 'user',
+            indexes: [
+              constraints.index({
+                expression: 'eql_v3.eq_term(email)',
+                where: '(deleted_at IS NULL)',
+                unique: true,
+                name: 'users_email_eq',
+                type: 'bm25',
+                options: {},
+              }),
+            ],
+          })),
+        },
+      }),
+    );
+
+    const pslIndexes = (pslContract.value.storage as unknown as SqlStorage).namespaces['public']
+      ?.entries.table?.['user']?.indexes;
+    const tsIndexes = (tsContract.storage as unknown as SqlStorage).namespaces['public']?.entries
+      .table?.['user']?.indexes;
+    expect(pslIndexes).toEqual([
+      {
+        name: 'users_email_eq_afd32a8f',
+        prefix: 'users_email_eq',
+        expression: 'eql_v3.eq_term(email)',
+        where: '(deleted_at IS NULL)',
+        unique: true,
+        type: 'bm25',
+        options: {},
+      },
+    ]);
+    expect(tsIndexes).toEqual(pslIndexes);
+  });
+
+  it('PSL map: and TS map: lower the same exact fields index', () => {
+    const pslDocument = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id    Int    @id
+  email String
+  @@index([email], map: "users_email_adopted")
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+    const pslContract = interpretPslDocumentToSqlContract({
+      ...pslDocument,
+      target: portablePostgresTargetPack,
+      scalarColumnDescriptors,
+      composedExtensionContracts: new Map(),
+      controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+      authoringContributions,
+      createNamespace: createTestSqlNamespace,
+      capabilities: { sql: { scalarList: true } },
+    });
+    expect(pslContract.ok).toBe(true);
+    if (!pslContract.ok) return;
+
+    const tsContract = defineContract({
+      family: sqlFamilyPack,
+      target: portablePostgresTargetPack,
+      models: {
+        User: model('User', {
+          fields: {
+            id: field.column(int4Column).id(),
+            email: field.column(textColumn),
+          },
+        }).sql(({ cols, constraints }) => ({
+          table: 'user',
+          indexes: [constraints.index([cols.email], { map: 'users_email_adopted' })],
+        })),
+      },
+      createNamespace: createTestSqlNamespace,
+    });
+
+    const pslIndexes = (pslContract.value.storage as unknown as SqlStorage).namespaces['public']
+      ?.entries.table?.['user']?.indexes;
+    const tsIndexes = (tsContract.storage as unknown as SqlStorage).namespaces['public']?.entries
+      .table?.['user']?.indexes;
+    expect(pslIndexes).toEqual([
+      { name: 'users_email_adopted', columns: ['email'], unique: false },
+    ]);
+    expect(tsIndexes).toEqual(pslIndexes);
+  });
+
+  it('PSL name: and TS name: lower the same managed fields index (wire name pinned)', () => {
+    const pslDocument = symbolTableInputFromParseArgs({
+      schema: `model User {
+  id    Int    @id
+  email String
+  @@index([email], name: "user_email_lookup")
+}
+`,
+      sourceId: 'schema.prisma',
+    });
+    const pslContract = interpretPslDocumentToSqlContract({
+      ...pslDocument,
+      target: portablePostgresTargetPack,
+      scalarColumnDescriptors,
+      composedExtensionContracts: new Map(),
+      controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
+      authoringContributions,
+      createNamespace: createTestSqlNamespace,
+      capabilities: { sql: { scalarList: true } },
+    });
+    expect(pslContract.ok).toBe(true);
+    if (!pslContract.ok) return;
+
+    const tsContract = defineContract({
+      family: sqlFamilyPack,
+      target: portablePostgresTargetPack,
+      models: {
+        User: model('User', {
+          fields: {
+            id: field.column(int4Column).id(),
+            email: field.column(textColumn),
+          },
+        }).sql(({ cols, constraints }) => ({
+          table: 'user',
+          indexes: [constraints.index([cols.email], { name: 'user_email_lookup' })],
+        })),
+      },
+      createNamespace: createTestSqlNamespace,
+    });
+
+    const pslIndexes = (pslContract.value.storage as unknown as SqlStorage).namespaces['public']
+      ?.entries.table?.['user']?.indexes;
+    const tsIndexes = (tsContract.storage as unknown as SqlStorage).namespaces['public']?.entries
+      .table?.['user']?.indexes;
+    expect(pslIndexes).toEqual([
+      {
+        name: 'user_email_lookup_46df9cad',
+        prefix: 'user_email_lookup',
+        columns: ['email'],
+        unique: false,
+      },
+    ]);
+    expect(tsIndexes).toEqual(pslIndexes);
   });
 
   it('PSL and TS lower the same unnamed index to identical managed IR (wire names pinned)', () => {

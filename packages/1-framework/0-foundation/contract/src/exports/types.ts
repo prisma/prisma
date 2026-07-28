@@ -3,7 +3,6 @@ export type {
   ContractExecutionSection,
   ContractValueObjectDefinitions,
 } from '../contract-types';
-export { DomainNamespaceResolutionError } from '../contract-validation-error';
 export type { ControlPolicy } from '../control-policy';
 export { effectiveControlPolicy } from '../control-policy';
 export type { CrossReference } from '../cross-reference';

@@ -1,3 +1,4 @@
+import { structuredError } from '@prisma-next/utils/structured-error';
 import type { MongoCodec } from './codecs';
 
 export interface MongoCodecRegistry {
@@ -18,7 +19,10 @@ export function newMongoCodecRegistry(): MongoCodecRegistry {
     has: (id) => byId.has(id),
     register: (codec) => {
       if (byId.has(codec.id)) {
-        throw new Error(`Codec with ID '${codec.id}' is already registered`);
+        throw structuredError(
+          'RUNTIME.DUPLICATE_CODEC',
+          `Codec with ID '${codec.id}' is already registered`,
+        );
       }
       byId.set(codec.id, codec);
     },

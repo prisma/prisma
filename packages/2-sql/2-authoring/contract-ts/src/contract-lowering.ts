@@ -810,12 +810,26 @@ function resolveModelNode(
     columns: mapFieldNamesToColumnNames(spec.modelName, unique.fields, spec.fieldToColumn),
     ...(unique.name ? { name: unique.name } : {}),
   })) satisfies readonly UniqueConstraintNode[];
-  const indexes = (spec.sqlSpec?.indexes ?? []).map((index) => ({
-    columns: mapFieldNamesToColumnNames(spec.modelName, index.fields, spec.fieldToColumn),
-    ...ifDefined('name', index.name),
-    ...ifDefined('type', index.type),
-    ...ifDefined('options', index.options),
-  })) satisfies readonly IndexNode[];
+  const indexes = (spec.sqlSpec?.indexes ?? []).map((index): IndexNode => {
+    const carried = {
+      where: index.where,
+      unique: index.unique,
+      name: index.name,
+      map: index.map,
+      type: index.type,
+      options: index.options,
+    };
+    return index.expression !== undefined
+      ? { ...carried, expression: index.expression }
+      : {
+          ...carried,
+          columns: mapFieldNamesToColumnNames(
+            spec.modelName,
+            index.fields ?? [],
+            spec.fieldToColumn,
+          ),
+        };
+  });
   const foreignKeys = resolveForeignKeyNodes(spec, allSpecs, extensions);
   const relations = Object.entries(spec.relations).map(([relationName, relationBuilder]) =>
     resolveRelationNode(relationName, relationBuilder.build(), spec, allSpecs, extensions),

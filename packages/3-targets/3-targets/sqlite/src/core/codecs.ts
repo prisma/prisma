@@ -3,7 +3,7 @@
  *
  * Each codec ships as three artifacts:
  *
- * 1. A `SqliteXCodec` class extending {@link CodecImpl} that wraps the encode/decode/encodeJson/decodeJson conversions inline. SQLite's runtime conversions are simple enough that there is no shared helper module; the class bodies are the single source of truth. 2. A `SqliteXDescriptor` class extending {@link CodecDescriptorImpl} declaring the codec id, traits, target types, and params schema. SQLite codecs do not carry
+ * 1. A `SqliteXCodec` class extending {@link CodecImpl} that wraps the encode/decode/encodeJson/decodeJson conversions inline. SQLite's runtime conversions are simple enough that there is no shared helper module; the class bodies are the single source of truth. 2. A `SqliteXDescriptor` class extending {@link SqliteCodecDescriptor} declaring the codec id, traits, target types, params schema, and current scalar JSON projection. SQLite codecs do not carry
  * `meta` (no per-target native-type meta today) and are all non-parameterized. 3. A per-codec column helper (`sqliteXColumn`) that calls `descriptor.factory()` directly and packages the result into a {@link ColumnSpec} via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor` + `ColumnHelperForStrict` (every SQLite codec's resolved type is well-defined).
  *
  * After TML-2357 this is the canonical source of SQLite codec metadata and runtime behaviour — the legacy `mkCodec` / `defineCodec` carriers (and the parallel `byScalar` / `codecDescriptorDefinitions` collection exports) retired with the deletion sweep.
@@ -13,9 +13,7 @@
 
 import type { JsonValue } from '@prisma-next/contract/types';
 import {
-  type AnyCodecDescriptor,
   type CodecCallContext,
-  CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
   type ColumnHelperFor,
@@ -24,11 +22,13 @@ import {
   voidParamsSchema,
 } from '@prisma-next/framework-components/codec';
 import {
+  type ProjectionExpr,
   sqlCharDescriptor,
   sqlFloatDescriptor,
   sqlIntDescriptor,
   sqlVarcharDescriptor,
 } from '@prisma-next/sql-relational-core/ast';
+import { defineSqliteCodecs, SqliteCodecDescriptor, sqliteCodec } from './codec-descriptor';
 import {
   SQLITE_BIGINT_CODEC_ID,
   SQLITE_BLOB_CODEC_ID,
@@ -39,6 +39,24 @@ import {
   SQLITE_TEXT_CODEC_ID,
 } from './codec-ids';
 import { sqliteError } from './errors';
+
+const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
+
+export const sqliteSqlCharDescriptor = sqliteCodec(sqlCharDescriptor, {
+  jsonProjection: identityJsonProjection,
+});
+
+export const sqliteSqlVarcharDescriptor = sqliteCodec(sqlVarcharDescriptor, {
+  jsonProjection: identityJsonProjection,
+});
+
+export const sqliteSqlIntDescriptor = sqliteCodec(sqlIntDescriptor, {
+  jsonProjection: identityJsonProjection,
+});
+
+export const sqliteSqlFloatDescriptor = sqliteCodec(sqlFloatDescriptor, {
+  jsonProjection: identityJsonProjection,
+});
 
 export class SqliteTextCodec extends CodecImpl<
   typeof SQLITE_TEXT_CODEC_ID,
@@ -60,7 +78,10 @@ export class SqliteTextCodec extends CodecImpl<
   }
 }
 
-export class SqliteTextDescriptor extends CodecDescriptorImpl<void> {
+export class SqliteTextDescriptor extends SqliteCodecDescriptor<void> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = SQLITE_TEXT_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly targetTypes = ['text'] as const;
@@ -98,7 +119,10 @@ export class SqliteIntegerCodec extends CodecImpl<
   }
 }
 
-export class SqliteIntegerDescriptor extends CodecDescriptorImpl<void> {
+export class SqliteIntegerDescriptor extends SqliteCodecDescriptor<void> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = SQLITE_INTEGER_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['integer'] as const;
@@ -136,7 +160,10 @@ export class SqliteRealCodec extends CodecImpl<
   }
 }
 
-export class SqliteRealDescriptor extends CodecDescriptorImpl<void> {
+export class SqliteRealDescriptor extends SqliteCodecDescriptor<void> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = SQLITE_REAL_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['real'] as const;
@@ -183,7 +210,10 @@ export class SqliteBlobCodec extends CodecImpl<
   }
 }
 
-export class SqliteBlobDescriptor extends CodecDescriptorImpl<void> {
+export class SqliteBlobDescriptor extends SqliteCodecDescriptor<void> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = SQLITE_BLOB_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['blob'] as const;
@@ -240,7 +270,10 @@ export class SqliteDatetimeCodec extends CodecImpl<
   }
 }
 
-export class SqliteDatetimeDescriptor extends CodecDescriptorImpl<void> {
+export class SqliteDatetimeDescriptor extends SqliteCodecDescriptor<void> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = SQLITE_DATETIME_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['text'] as const;
@@ -278,7 +311,10 @@ export class SqliteJsonCodec extends CodecImpl<
   }
 }
 
-export class SqliteJsonDescriptor extends CodecDescriptorImpl<void> {
+export class SqliteJsonDescriptor extends SqliteCodecDescriptor<void> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = SQLITE_JSON_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['text'] as const;
@@ -338,7 +374,10 @@ export class SqliteBigintCodec extends CodecImpl<
   }
 }
 
-export class SqliteBigintDescriptor extends CodecDescriptorImpl<void> {
+export class SqliteBigintDescriptor extends SqliteCodecDescriptor<void> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = SQLITE_BIGINT_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['integer'] as const;
@@ -356,11 +395,11 @@ export const sqliteBigintColumn = () =>
 sqliteBigintColumn satisfies ColumnHelperFor<SqliteBigintDescriptor>;
 sqliteBigintColumn satisfies ColumnHelperForStrict<SqliteBigintDescriptor>;
 
-export const codecDescriptors: readonly AnyCodecDescriptor[] = [
-  sqlCharDescriptor,
-  sqlVarcharDescriptor,
-  sqlIntDescriptor,
-  sqlFloatDescriptor,
+export const codecDescriptors = defineSqliteCodecs([
+  sqliteSqlCharDescriptor,
+  sqliteSqlVarcharDescriptor,
+  sqliteSqlIntDescriptor,
+  sqliteSqlFloatDescriptor,
   sqliteTextDescriptor,
   sqliteIntegerDescriptor,
   sqliteRealDescriptor,
@@ -368,4 +407,4 @@ export const codecDescriptors: readonly AnyCodecDescriptor[] = [
   sqliteDatetimeDescriptor,
   sqliteJsonDescriptor,
   sqliteBigintDescriptor,
-];
+]);

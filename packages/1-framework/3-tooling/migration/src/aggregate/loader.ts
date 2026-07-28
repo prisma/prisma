@@ -1,6 +1,6 @@
 import type { Contract } from '@prisma-next/contract/types';
 import { readContractSnapshotJson } from '../contract-snapshot-store';
-import { MigrationToolsError } from '../errors';
+import { errorSpaceHeadRefMissing, MigrationToolsError } from '../errors';
 import { readMigrationsDir } from '../io';
 import {
   type ContractSpaceHeadRef,
@@ -209,9 +209,7 @@ async function readRawContractDeferred(
 ): Promise<() => unknown> {
   if (headRef === null) {
     return () => {
-      throw new Error(
-        `Contract space "${spaceId}" has no head ref; its contract cannot be resolved from the snapshot store without one.`,
-      );
+      throw errorSpaceHeadRefMissing(spaceId);
     };
   }
   try {

@@ -4,6 +4,7 @@ import type {
   LedgerEntryRecord,
 } from '@prisma-next/contract/types';
 import { emit as emitContractArtifacts } from '@prisma-next/emitter';
+import { CliStructuredError } from '@prisma-next/errors/control';
 import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
 import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
 import type {
@@ -27,13 +28,13 @@ import {
   hasSchemaView,
 } from '@prisma-next/framework-components/control';
 import type { PslDocumentAst } from '@prisma-next/framework-components/psl-ast';
-
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { notOk, ok } from '@prisma-next/utils/result';
+import { structuredError } from '@prisma-next/utils/structured-error';
 
 import { assertFrameworkComponentsCompatible } from '../utils/framework-components';
 import { enrichContract } from './contract-enrichment';
-import { ContractValidationError } from './errors';
 import { executeDbInit } from './operations/db-init';
 import { executeDbUpdate } from './operations/db-update';
 import { type ExecuteDbVerifyResult, executeDbVerify } from './operations/db-verify';
@@ -128,20 +129,25 @@ class ControlClientImpl implements ControlClient {
     this.init();
 
     if (this.driver) {
-      throw new Error('Already connected. Call close() before reconnecting.');
+      throw new CliStructuredError(
+        'DRIVER.ALREADY_CONNECTED',
+        'Already connected. Call close() before reconnecting.',
+      );
     }
 
     // Resolve connection: argument > default from options
     const resolvedConnection = connection ?? this.defaultConnection;
     if (resolvedConnection === undefined) {
-      throw new Error(
+      throw new CliStructuredError(
+        'CONFIG.DB_CONNECTION_REQUIRED',
         'No connection provided. Pass a connection to connect() or provide a default connection when creating the client.',
       );
     }
 
     // Check for driver descriptor
     if (!this.stack?.driver) {
-      throw new Error(
+      throw new CliStructuredError(
+        'CONFIG.DRIVER_REQUIRED',
         'Driver is not configured. Pass a driver descriptor when creating the control client to enable database operations.',
       );
     }
@@ -167,7 +173,8 @@ class ControlClientImpl implements ControlClient {
   private buildControlAdapter(): ControlAdapterInstance<string, string> {
     this.init();
     if (!this.stack?.adapter) {
-      throw new Error(
+      throw new CliStructuredError(
+        'MIGRATION.TARGET_UNSUPPORTED',
         `Target "${this.options.target.targetId}" requires an adapter for migrations`,
       );
     }
@@ -188,7 +195,10 @@ class ControlClientImpl implements ControlClient {
     }
 
     if (!this.driver || !this.familyInstance || !this.frameworkComponents) {
-      throw new Error('Not connected. Call connect(connection) first.');
+      throw new CliStructuredError(
+        'DRIVER.NOT_CONNECTED',
+        'Not connected. Call connect(connection) first.',
+      );
     }
     return {
       driver: this.driver,
@@ -229,7 +239,7 @@ class ControlClientImpl implements ControlClient {
       contract = familyInstance.deserializeContract(options.contract);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new ContractValidationError(message, error);
+      throw structuredError('CONTRACT.VALIDATION_FAILED', message, { cause: error });
     }
 
     // Emit verify span
@@ -282,7 +292,7 @@ class ControlClientImpl implements ControlClient {
       contract = familyInstance.deserializeContract(options.contract);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new ContractValidationError(message, error);
+      throw structuredError('CONTRACT.VALIDATION_FAILED', message, { cause: error });
     }
 
     // Emit schemaVerify span
@@ -336,7 +346,7 @@ class ControlClientImpl implements ControlClient {
       contract = familyInstance.deserializeContract(options.contract);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new ContractValidationError(message, error);
+      throw structuredError('CONTRACT.VALIDATION_FAILED', message, { cause: error });
     }
 
     // Emit sign span
@@ -381,7 +391,10 @@ class ControlClientImpl implements ControlClient {
     const { driver, familyInstance, frameworkComponents } = await this.ensureConnected();
 
     if (!hasMigrations(this.options.target)) {
-      throw new Error(`Target "${this.options.target.targetId}" does not support migrations`);
+      throw new CliStructuredError(
+        'MIGRATION.TARGET_UNSUPPORTED',
+        `Target "${this.options.target.targetId}" does not support migrations`,
+      );
     }
 
     const adapter = this.buildControlAdapter();
@@ -391,7 +404,7 @@ class ControlClientImpl implements ControlClient {
       contract = familyInstance.deserializeContract(options.contract);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new ContractValidationError(message, error);
+      throw structuredError('CONTRACT.VALIDATION_FAILED', message, { cause: error });
     }
 
     return executeDbInit({
@@ -415,7 +428,10 @@ class ControlClientImpl implements ControlClient {
     const { driver, familyInstance, frameworkComponents } = await this.ensureConnected();
 
     if (!hasMigrations(this.options.target)) {
-      throw new Error(`Target "${this.options.target.targetId}" does not support migrations`);
+      throw new CliStructuredError(
+        'MIGRATION.TARGET_UNSUPPORTED',
+        `Target "${this.options.target.targetId}" does not support migrations`,
+      );
     }
 
     const adapter = this.buildControlAdapter();
@@ -425,7 +441,7 @@ class ControlClientImpl implements ControlClient {
       contract = familyInstance.deserializeContract(options.contract);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new ContractValidationError(message, error);
+      throw structuredError('CONTRACT.VALIDATION_FAILED', message, { cause: error });
     }
 
     return executeDbUpdate({
@@ -490,7 +506,10 @@ class ControlClientImpl implements ControlClient {
     const { driver, familyInstance, frameworkComponents } = await this.ensureConnected();
 
     if (!hasMigrations(this.options.target)) {
-      throw new Error(`Target "${this.options.target.targetId}" does not support migrations`);
+      throw new CliStructuredError(
+        'MIGRATION.TARGET_UNSUPPORTED',
+        `Target "${this.options.target.targetId}" does not support migrations`,
+      );
     }
 
     let contract: Contract;
@@ -498,7 +517,7 @@ class ControlClientImpl implements ControlClient {
       contract = familyInstance.deserializeContract(options.contract);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new ContractValidationError(message, error);
+      throw structuredError('CONTRACT.VALIDATION_FAILED', message, { cause: error });
     }
 
     return executeMigrate({
@@ -593,7 +612,7 @@ class ControlClientImpl implements ControlClient {
     this.init();
 
     if (!this.familyInstance) {
-      throw new Error('Family instance was not initialized. This is a bug.');
+      throw new InternalError('Family instance was not initialized. This is a bug.');
     }
 
     let contractRaw: unknown;

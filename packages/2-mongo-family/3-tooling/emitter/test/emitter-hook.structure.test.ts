@@ -1,6 +1,7 @@
 import type { Contract, ContractModelBase } from '@prisma-next/contract/types';
 import { crossRef } from '@prisma-next/contract/types';
 import { blindCast } from '@prisma-next/utils/casts';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { mongoEmission } from '../src/index';
 import {
@@ -30,6 +31,38 @@ describe('mongoEmission.validateStructure', () => {
     expect(() => mongoEmission.validateStructure(contract)).toThrow(
       'Expected targetFamily "mongo"',
     );
+  });
+
+  it('structural validation failure raises CONTRACT.VALIDATION_FAILED', () => {
+    const contract = createMongoContract({ targetFamily: 'sql' });
+    try {
+      mongoEmission.validateStructure(contract);
+      expect.fail('expected throw');
+    } catch (e) {
+      expect(isStructuredError(e)).toBe(true);
+      if (!isStructuredError(e)) return;
+      expect(e.code).toBe('CONTRACT.VALIDATION_FAILED');
+    }
+  });
+
+  it('duplicate collection name across namespaces raises CONTRACT.NAME_DUPLICATE', () => {
+    const contract = createMongoContract({
+      storage: blindCast<Contract['storage'], 'test storage with a duplicate collection name'>({
+        storageHash: 'test',
+        namespaces: {
+          a: { id: 'a', kind: 'mongo-namespace', entries: { collection: { users: {} } } },
+          b: { id: 'b', kind: 'mongo-namespace', entries: { collection: { users: {} } } },
+        },
+      }),
+    });
+    try {
+      mongoEmission.validateStructure(contract);
+      expect.fail('expected throw');
+    } catch (e) {
+      expect(isStructuredError(e)).toBe(true);
+      if (!isStructuredError(e)) return;
+      expect(e.code).toBe('CONTRACT.NAME_DUPLICATE');
+    }
   });
 
   it('throws for missing storage.namespaces', () => {

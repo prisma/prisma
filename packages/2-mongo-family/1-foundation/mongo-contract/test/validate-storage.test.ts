@@ -6,6 +6,7 @@ import {
 } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { applicationDomainOf } from '@prisma-next/test-utils';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 
 function crossRef(model: string, namespace: string = UNBOUND_DOMAIN_NAMESPACE_ID) {
@@ -93,6 +94,41 @@ describe('validateMongoStorage()', () => {
         },
       });
       expect(() => validateMongoStorage(contract)).toThrow(/embed.*Tag.*must not.*collection/i);
+    });
+
+    it('validation failure raises CONTRACT.VALIDATION_FAILED', () => {
+      const contract = makeMinimalContract({
+        models: {
+          Item: {
+            fields: {
+              _id: { type: { kind: 'scalar', codecId: 'mongo/objectId@1' }, nullable: false },
+            },
+            storage: {
+              collection: 'items',
+              relations: { tags: { field: 'tags' } },
+            },
+            relations: {
+              tags: { to: crossRef('Tag'), cardinality: '1:N' as const },
+            },
+          },
+          Tag: {
+            fields: {
+              name: { type: { kind: 'scalar', codecId: 'mongo/string@1' }, nullable: false },
+            },
+            storage: { collection: 'tags' },
+            relations: {},
+            owner: 'Item',
+          },
+        },
+      });
+      try {
+        validateMongoStorage(contract);
+        expect.fail('expected throw');
+      } catch (e) {
+        expect(isStructuredError(e)).toBe(true);
+        if (!isStructuredError(e)) return;
+        expect(e.code).toBe('CONTRACT.VALIDATION_FAILED');
+      }
     });
 
     it('rejects embed target owned by a different model', () => {

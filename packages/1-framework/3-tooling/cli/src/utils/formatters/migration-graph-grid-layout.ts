@@ -7,6 +7,7 @@
  */
 
 import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import {
   type Cell,
   type CellLine,
@@ -1124,7 +1125,7 @@ function assertSingleOwner(row: CellsRow, isFocus: boolean): void {
       if (isFocus) {
         const roles = new Set(top.map((cl) => cl.line.role));
         if (roles.size > 1) {
-          throw new Error(
+          throw new InternalError(
             'migration-graph layout: single-owner invariant violated — two differently-roled lines share the top plane in one cell',
           );
         }

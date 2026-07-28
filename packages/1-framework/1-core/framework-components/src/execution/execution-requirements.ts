@@ -1,4 +1,5 @@
 import { checkContractComponentRequirements } from '../shared/framework-components';
+import { runtimeError } from '../shared/runtime-error';
 import type {
   RuntimeAdapterDescriptor,
   RuntimeExtensionDescriptor,
@@ -34,13 +35,15 @@ export function assertRuntimeContractRequirementsSatisfied<
   });
 
   if (result.targetMismatch) {
-    throw new Error(
+    throw runtimeError(
+      'CONTRACT.TARGET_MISMATCH',
       `Contract target '${result.targetMismatch.actual}' does not match runtime target descriptor '${result.targetMismatch.expected}'.`,
     );
   }
 
   for (const packId of result.missingExtensionPackIds) {
-    throw new Error(
+    throw runtimeError(
+      'RUNTIME.MISSING_EXTENSION_PACK',
       `Contract requires extension pack '${packId}', but runtime descriptors do not provide a matching component.`,
     );
   }

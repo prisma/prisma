@@ -1,5 +1,5 @@
 import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { type ContractInput, defineContract, field, model, rel } from '../src/contract-builder';
 import { columnDescriptor } from './helpers/column-descriptor';
@@ -177,5 +177,164 @@ describe('index naming at TS lowering', () => {
         },
       }),
     ).toThrow(new RegExp(`"${longName}" exceeds the 54-character maximum`));
+  });
+});
+
+describe('constraints.index — full matrix', () => {
+  it('the expression overload lowers a managed expression index', () => {
+    const contract = defineTestContract({
+      models: {
+        User: model('User', {
+          fields: {
+            id: field.column(int4Column).id(),
+            email: field.column(textColumn),
+          },
+        }).sql(({ constraints }) => ({
+          table: 'user',
+          indexes: [constraints.index({ expression: 'lower(email)', name: 'users_email_eq' })],
+        })),
+      },
+    });
+
+    expect(unboundTables(contract.storage)['user']!.indexes).toEqual([
+      {
+        name: 'users_email_eq_17273133',
+        prefix: 'users_email_eq',
+        expression: 'lower(email)',
+        unique: false,
+      },
+    ]);
+  });
+
+  it('where and unique thread through the fields overload', () => {
+    const contract = defineTestContract({
+      models: {
+        User: model('User', {
+          fields: {
+            id: field.column(int4Column).id(),
+            email: field.column(textColumn),
+          },
+        }).sql(({ cols, constraints }) => ({
+          table: 'user',
+          indexes: [
+            constraints.index([cols.email], {
+              where: '(deleted_at IS NULL)',
+              unique: true,
+              name: 'users_email_active',
+            }),
+          ],
+        })),
+      },
+    });
+
+    const index = unboundTables(contract.storage)['user']!.indexes[0];
+    expect(index).toMatchObject({
+      prefix: 'users_email_active',
+      columns: ['email'],
+      where: '(deleted_at IS NULL)',
+      unique: true,
+    });
+  });
+
+  it('the fields overload accepts map for an exact physical name', () => {
+    const contract = defineTestContract({
+      models: {
+        User: model('User', {
+          fields: {
+            id: field.column(int4Column).id(),
+            email: field.column(textColumn),
+          },
+        }).sql(({ cols, constraints }) => ({
+          table: 'user',
+          indexes: [constraints.index([cols.email], { map: 'users_email_adopted' })],
+        })),
+      },
+    });
+
+    expect(unboundTables(contract.storage)['user']!.indexes).toEqual([
+      { name: 'users_email_adopted', columns: ['email'], unique: false },
+    ]);
+  });
+
+  it('map with an expression lowers exact and draws the exact-name body warning', () => {
+    const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+    try {
+      const contract = defineTestContract({
+        models: {
+          User: model('User', {
+            fields: {
+              id: field.column(int4Column).id(),
+              email: field.column(textColumn),
+            },
+          }).sql(({ constraints }) => ({
+            table: 'user',
+            indexes: [
+              constraints.index({ expression: 'lower(email)', map: 'users_email_adopted' }),
+            ],
+          })),
+        },
+      });
+      expect(unboundTables(contract.storage)['user']!.indexes).toEqual([
+        { name: 'users_email_adopted', expression: 'lower(email)', unique: false },
+      ]);
+      expect(emitWarning).toHaveBeenCalledTimes(1);
+      expect(String(emitWarning.mock.calls[0]?.[0])).toContain(
+        'index "users_email_adopted" uses map: with a SQL body.',
+      );
+    } finally {
+      emitWarning.mockRestore();
+    }
+  });
+
+  it('an expression without name or map is rejected by the shared guard', () => {
+    let caught: unknown;
+    try {
+      defineTestContract({
+        models: {
+          User: model('User', {
+            fields: {
+              id: field.column(int4Column).id(),
+              email: field.column(textColumn),
+            },
+          }).sql(({ constraints }) => ({
+            table: 'user',
+            indexes: [constraints.index({ expression: 'lower(email)' })],
+          })),
+        },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: expect.stringContaining('expression index requires an explicit name'),
+    });
+  });
+
+  it('name combined with map is rejected by the shared guard', () => {
+    let caught: unknown;
+    try {
+      defineTestContract({
+        models: {
+          User: model('User', {
+            fields: {
+              id: field.column(int4Column).id(),
+              email: field.column(textColumn),
+            },
+          }).sql(({ cols, constraints }) => ({
+            table: 'user',
+            indexes: [
+              constraints.index([cols.email], { name: 'users_email_idx', map: 'users_email' }),
+            ],
+          })),
+        },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: expect.stringContaining('map and name are mutually exclusive'),
+    });
   });
 });

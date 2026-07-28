@@ -1,5 +1,6 @@
 export type { AuthoringPslBlockDescriptorNamespace } from '../shared/framework-authoring';
 export type {
+  ContributedPslDiagnosticCode,
   PslBlockParam,
   PslBlockParamList,
   PslBlockParamOption,
@@ -22,10 +23,25 @@ export type {
 import { blindCast } from '@prisma-next/utils/casts';
 import type { CodecLookup } from '../shared/codec-types';
 import type { AuthoringPslBlockDescriptorNamespace } from '../shared/framework-authoring';
-import type { PslDiagnosticCode, PslExtensionBlock, PslSpan } from '../shared/psl-extension-block';
+import type {
+  ContributedPslDiagnosticCode,
+  PslDiagnosticCode,
+  PslExtensionBlock,
+  PslSpan,
+} from '../shared/psl-extension-block';
 
 export interface PslDiagnostic {
-  readonly code: PslDiagnosticCode;
+  /**
+   * The closed {@link PslDiagnosticCode} set exists for IDE completion and
+   * as documentation of the framework's own codes; the
+   * {@link ContributedPslDiagnosticCode} pattern arm is the seam for
+   * package-contributed codes, minted where the domain vocabulary lives
+   * (e.g. contract-psl). The two arms are extensionally equal — every
+   * framework code matches the pattern — and nothing switches
+   * exhaustively over the union, deliberately: consumers treat the code
+   * as an opaque identifier.
+   */
+  readonly code: PslDiagnosticCode | ContributedPslDiagnosticCode;
   readonly message: string;
   readonly sourceId: string;
   readonly span: PslSpan;

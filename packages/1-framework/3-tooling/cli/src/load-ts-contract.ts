@@ -2,12 +2,38 @@ import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import type { Contract } from '@prisma-next/contract/types';
+import { CliStructuredError } from '@prisma-next/errors/control';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
 import { join, resolve as resolvePath } from 'pathe';
 
 export interface LoadTsContractOptions {
   readonly allowlist?: ReadonlyArray<string>;
+}
+
+type ContractSourceErrorCode =
+  | 'CONTRACT.EXPORT_INVALID'
+  | 'CONTRACT.SOURCE_LOAD_FAILED'
+  | 'CONTRACT.SOURCE_IMPORT_DISALLOWED';
+
+function contractSourceError(
+  code: ContractSourceErrorCode,
+  message: string,
+  options?: {
+    readonly meta?: Record<string, unknown>;
+    readonly cause?: unknown;
+  },
+): CliStructuredError {
+  const error = new CliStructuredError(
+    code,
+    message,
+    options?.meta !== undefined ? { meta: options.meta } : undefined,
+  );
+  if (options?.cause !== undefined) {
+    error.cause = options.cause;
+  }
+  return error;
 }
 
 const DEFAULT_ALLOWLIST = ['@prisma-next/*', 'node:crypto'];
@@ -31,7 +57,7 @@ function isAllowedImport(importPath: string, allowlist: ReadonlyArray<string>): 
   return false;
 }
 
-function validatePurity(value: unknown): void {
+function validatePurity(value: unknown, entryPath: string): void {
   if (typeof value !== 'object' || value === null) {
     return;
   }
@@ -44,7 +70,11 @@ function validatePurity(value: unknown): void {
     }
 
     if (path.has(value)) {
-      throw new Error('Contract export contains circular references');
+      throw contractSourceError(
+        'CONTRACT.EXPORT_INVALID',
+        'Contract export contains circular references',
+        { meta: { path: entryPath, reason: 'circular' } },
+      );
     }
     path.add(value);
 
@@ -52,10 +82,18 @@ function validatePurity(value: unknown): void {
       for (const key in value) {
         const descriptor = Object.getOwnPropertyDescriptor(value, key);
         if (descriptor && (descriptor.get || descriptor.set)) {
-          throw new Error(`Contract export contains getter/setter at key "${key}"`);
+          throw contractSourceError(
+            'CONTRACT.EXPORT_INVALID',
+            `Contract export contains getter/setter at key "${key}"`,
+            { meta: { path: entryPath, reason: 'getter', key } },
+          );
         }
         if (descriptor && typeof descriptor.value === 'function') {
-          throw new Error(`Contract export contains function at key "${key}"`);
+          throw contractSourceError(
+            'CONTRACT.EXPORT_INVALID',
+            `Contract export contains function at key "${key}"`,
+            { meta: { path: entryPath, reason: 'function', key } },
+          );
         }
         check((value as Record<string, unknown>)[key]);
       }
@@ -72,9 +110,17 @@ function validatePurity(value: unknown): void {
       if (error.message.includes('getter') || error.message.includes('circular')) {
         throw error;
       }
-      throw new Error(`Contract export is not JSON-serializable: ${error.message}`);
+      throw contractSourceError(
+        'CONTRACT.EXPORT_INVALID',
+        `Contract export is not JSON-serializable: ${error.message}`,
+        { meta: { path: entryPath, reason: 'not-json-serializable' }, cause: error },
+      );
     }
-    throw new Error('Contract export is not JSON-serializable');
+    throw contractSourceError(
+      'CONTRACT.EXPORT_INVALID',
+      'Contract export is not JSON-serializable',
+      { meta: { path: entryPath, reason: 'not-json-serializable' } },
+    );
   }
 }
 
@@ -129,7 +175,8 @@ function createImportAllowlistPlugin(
  * @param entryPath - Path to the TypeScript contract file
  * @param options - Optional configuration (import allowlist)
  * @returns The contract as Contract (should already be normalized)
- * @throws Error if the contract cannot be loaded or is not JSON-serializable
+ * @throws structured errors: `CLI.FILE_NOT_FOUND`, `CONTRACT.SOURCE_LOAD_FAILED`,
+ *   `CONTRACT.SOURCE_IMPORT_DISALLOWED`, `CONTRACT.MODULE_EXPORT_MISSING`, `CONTRACT.EXPORT_INVALID`
  */
 export async function loadContractFromTs(
   entryPath: string,
@@ -138,7 +185,9 @@ export async function loadContractFromTs(
   const allowlist = options?.allowlist ?? DEFAULT_ALLOWLIST;
 
   if (!existsSync(entryPath)) {
-    throw new Error(`Contract file not found: ${entryPath}`);
+    throw new CliStructuredError('CLI.FILE_NOT_FOUND', `Contract file not found: ${entryPath}`, {
+      where: { path: entryPath },
+    });
   }
 
   const tempFile = join(
@@ -169,22 +218,28 @@ export async function loadContractFromTs(
 
     if (result.errors.length > 0) {
       const errorMessages = result.errors.map((e: { text: string }) => e.text).join('\n');
-      throw new Error(`Failed to bundle contract file: ${errorMessages}`);
+      throw contractSourceError(
+        'CONTRACT.SOURCE_LOAD_FAILED',
+        `Failed to bundle contract file: ${errorMessages}`,
+        { meta: { path: entryPath, stage: 'bundle' } },
+      );
     }
 
     if (!result.outputFiles || result.outputFiles.length === 0) {
-      throw new Error('No output files generated from bundling');
+      throw new InternalError('No output files generated from bundling');
     }
 
     if (disallowedFromEntry.size > 0) {
-      throw new Error(
+      throw contractSourceError(
+        'CONTRACT.SOURCE_IMPORT_DISALLOWED',
         `Disallowed imports detected. Only imports matching the allowlist are permitted:\n  Allowlist: ${allowlist.join(', ')}\n  Disallowed imports: ${[...disallowedFromEntry].join(', ')}`,
+        { meta: { allowlist: [...allowlist], disallowed: [...disallowedFromEntry] } },
       );
     }
 
     const bundleContent = result.outputFiles[0]?.text;
     if (bundleContent === undefined) {
-      throw new Error('Bundle content is undefined');
+      throw new InternalError('Bundle content is undefined');
     }
     writeFileSync(tempFile, bundleContent, 'utf-8');
 
@@ -201,16 +256,22 @@ export async function loadContractFromTs(
     } else if (module.contract !== undefined) {
       contract = module.contract;
     } else {
-      throw new Error(
+      throw new CliStructuredError(
+        'CONTRACT.MODULE_EXPORT_MISSING',
         `Contract file must export a contract as default export or named export 'contract'. Found exports: ${Object.keys(module as Record<string, unknown>).join(', ') || 'none'}`,
+        { where: { path: entryPath } },
       );
     }
 
     if (typeof contract !== 'object' || contract === null) {
-      throw new Error(`Contract export must be an object, got ${typeof contract}`);
+      throw contractSourceError(
+        'CONTRACT.EXPORT_INVALID',
+        `Contract export must be an object, got ${typeof contract}`,
+        { meta: { path: entryPath, reason: 'not-object' } },
+      );
     }
 
-    validatePurity(contract);
+    validatePurity(contract, entryPath);
 
     // Blind cast: the loaded module was authored by user code
     // (typically via `defineContract` / a contract builder) and
@@ -233,6 +294,10 @@ export async function loadContractFromTs(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error(`Failed to load contract from ${entryPath}: ${String(error)}`);
+    throw contractSourceError(
+      'CONTRACT.SOURCE_LOAD_FAILED',
+      `Failed to load contract from ${entryPath}: ${String(error)}`,
+      { meta: { path: entryPath, stage: 'import' }, cause: error },
+    );
   }
 }

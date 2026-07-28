@@ -1,5 +1,6 @@
 import type { CodecDescriptor, CodecRef } from '@prisma-next/framework-components/codec';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import type { AnyCodecDescriptor } from './ast/codec-types';
 import { codecRefForStorageColumn } from './codec-ref-for-column';
 import type { CodecDescriptorRegistry } from './query-lane-context';
@@ -24,9 +25,11 @@ export function buildCodecDescriptorRegistry(
 
   for (const descriptor of allDescriptors) {
     if (byId.has(descriptor.codecId)) {
-      throw new Error(
+      throw structuredError(
+        'RUNTIME.DUPLICATE_CODEC',
         `Duplicate codec descriptor id: '${descriptor.codecId}' — registered twice during registry construction. ` +
           'Each codecId must be contributed by exactly one component (target / adapter / extension pack).',
+        { meta: { codecId: descriptor.codecId } },
       );
     }
     const widened = descriptor as unknown as AnyDescriptor;

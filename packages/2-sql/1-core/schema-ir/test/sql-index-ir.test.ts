@@ -104,6 +104,25 @@ describe('SqlIndexIR', () => {
     });
   });
 
+  describe('btree normalization at construction', () => {
+    it("normalizes type 'btree' to absent (both derivation paths construct here)", () => {
+      const authored = managed({ name: NAME, columns: ['email'], type: 'btree' });
+      expect(authored.type).toBeUndefined();
+      expect(Object.hasOwn(authored, 'type')).toBe(false);
+    });
+
+    it('keeps non-default types', () => {
+      const hashTyped = managed({ name: NAME, columns: ['email'], type: 'hash' });
+      expect(hashTyped.type).toBe('hash');
+    });
+
+    it("two 'btree' nodes are equal", () => {
+      const a = managed({ name: NAME, columns: ['email'], type: 'btree' });
+      const b = exact({ name: NAME, columns: ['email'], type: 'btree' });
+      expect(a.isEqualTo(b)).toBe(true);
+    });
+  });
+
   describe('contentEquals — the single node-owned relation', () => {
     it("a boolean option value equals its catalog reprint ('on'/'off')", () => {
       const authored = managed({ name: NAME, columns: ['email'], options: { fastupdate: true } });
@@ -120,7 +139,7 @@ describe('SqlIndexIR', () => {
       expect(authoredOff.isEqualTo(reprint)).toBe(false);
     });
 
-    it("an authored type 'btree' equals a normalized-away type through the comparison seam", () => {
+    it("an authored type 'btree' equals a normalized-away type through the seam", () => {
       const authored = managed({ name: NAME, columns: ['email'], type: 'btree' });
       const live = exact({ name: NAME, columns: ['email'] });
       expect(authored.isEqualTo(live)).toBe(true);

@@ -1,3 +1,5 @@
+import { emitterError } from './emitter-errors';
+
 const JSON_EXTENSION = '.json';
 
 export interface EmittedArtifactPaths {
@@ -7,7 +9,9 @@ export interface EmittedArtifactPaths {
 
 export function getEmittedArtifactPaths(outputJsonPath: string): EmittedArtifactPaths {
   if (!outputJsonPath.endsWith(JSON_EXTENSION)) {
-    throw new Error('Contract output path must end with .json');
+    throw emitterError('CONFIG.VALIDATION_FAILED', 'Contract output path must end with .json', {
+      meta: { field: 'contract.output', outputJsonPath },
+    });
   }
 
   return {

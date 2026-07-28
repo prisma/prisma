@@ -106,6 +106,12 @@ describe('defineContract runtime guards', () => {
       error: 'extension pack "vector-search" targets "atlas" but contract target is "mongo".',
       code: 'CONTRACT.PACK_TARGET_MISMATCH',
     },
+    {
+      name: 'a non-object contract definition',
+      run: () => defineContract(null as never),
+      error: 'defineContract expects a contract definition object.',
+      code: 'CONTRACT.ARGUMENT_INVALID',
+    },
   ])('rejects $name', ({ run, error, code }) => {
     expect(run).toThrow(error);
     expect(run).toThrow(expect.objectContaining({ code }));

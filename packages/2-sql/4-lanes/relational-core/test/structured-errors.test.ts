@@ -1,0 +1,89 @@
+import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { describe, expect, it } from 'vitest';
+import type { AnyCodecDescriptor } from '../src/ast/codec-types';
+import { buildCodecDescriptorRegistry } from '../src/codec-descriptor-registry';
+import {
+  AggregateExpr,
+  LiteralColumnDefault,
+  sqlCharRenderOutputType,
+  sqlTimestampDecodeJson,
+} from '../src/exports/ast';
+
+const stub = (codecId: string, targetTypes: readonly string[]): AnyCodecDescriptor =>
+  ({
+    codecId,
+    traits: [],
+    targetTypes,
+    isParameterized: false,
+    paramsSchema: undefined,
+    factory: () => () => ({ id: codecId }) as never,
+  }) as unknown as AnyCodecDescriptor;
+
+function capture(fn: () => unknown): unknown {
+  try {
+    fn();
+  } catch (error) {
+    return error;
+  }
+  throw new Error('expected the call to throw');
+}
+
+describe('relational-core structured error codes', () => {
+  it('duplicate codec descriptor id raises RUNTIME.DUPLICATE_CODEC', () => {
+    const error = capture(() =>
+      buildCodecDescriptorRegistry([stub('lib/dup@1', ['ta']), stub('lib/dup@1', ['tb'])]),
+    );
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.DUPLICATE_CODEC',
+      meta: { codecId: 'lib/dup@1' },
+    });
+  });
+
+  it('aggregate function without expression raises ORM.ARGUMENT_INVALID', () => {
+    const error = capture(() => new AggregateExpr('sum'));
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'ORM.ARGUMENT_INVALID',
+      message: 'Aggregate function "sum" requires an expression',
+      meta: { fn: 'sum' },
+    });
+  });
+
+  it('non-integer length typeParams raises RUNTIME.TYPE_PARAMS_INVALID', () => {
+    const error = capture(() => sqlCharRenderOutputType({ length: 1.5 }));
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.TYPE_PARAMS_INVALID',
+      meta: { codec: 'sql/char@1', param: 'length', received: '1.5' },
+    });
+  });
+
+  it('non-string timestamp database JSON raises RUNTIME.DECODE_FAILED', () => {
+    const error = capture(() => sqlTimestampDecodeJson(42));
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      message: 'Expected ISO date string for sql/timestamp@1, got number',
+      meta: { codec: 'sql/timestamp@1' },
+    });
+  });
+
+  it('unparseable timestamp database JSON raises RUNTIME.DECODE_FAILED', () => {
+    const error = capture(() => sqlTimestampDecodeJson('not-a-date'));
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      message: 'Invalid ISO date string for sql/timestamp@1: not-a-date',
+    });
+  });
+
+  it('invalid column default literal raises CONTRACT.DEFAULT_INVALID', () => {
+    const error = capture(() => new LiteralColumnDefault(Symbol('x') as unknown as string));
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.DEFAULT_INVALID',
+      message: 'Invalid column default literal value',
+    });
+  });
+});

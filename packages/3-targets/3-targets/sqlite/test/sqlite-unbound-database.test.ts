@@ -191,3 +191,61 @@ describe('SqliteUnboundDatabase — entries open dictionary', () => {
     expect(Object.keys(SqliteUnboundDatabase.instance)).not.toContain('table');
   });
 });
+
+describe('sqliteCreateNamespace — expression/partial index rejection', () => {
+  function tableWithIndex(index: Record<string, unknown>) {
+    return {
+      id: UNBOUND_NAMESPACE_ID,
+      entries: {
+        table: {
+          user: new StorageTable({
+            columns: {
+              id: { nativeType: 'integer', codecId: 'sqlite/integer@1', nullable: false },
+              email: { nativeType: 'text', codecId: 'sqlite/text@1', nullable: false },
+            },
+            primaryKey: { columns: ['id'] },
+            uniques: [],
+            indexes: [index as never],
+            foreignKeys: [],
+          }),
+        },
+      },
+    };
+  }
+
+  it('rejects an expression index with a clear not-supported error', () => {
+    let caught: unknown;
+    try {
+      sqliteCreateNamespace(
+        tableWithIndex({ name: 'users_email_eq', expression: 'lower(email)', unique: false }),
+      );
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: expect.stringContaining('SQLite does not support expression or partial indexes'),
+    });
+    expect(String((caught as Error).message)).toContain('users_email_eq');
+  });
+
+  it('rejects a partial (where) index with the same error', () => {
+    expect(() =>
+      sqliteCreateNamespace(
+        tableWithIndex({
+          name: 'users_email_active',
+          columns: ['email'],
+          where: 'deleted_at IS NULL',
+          unique: false,
+        }),
+      ),
+    ).toThrow('SQLite does not support expression or partial indexes');
+  });
+
+  it('accepts fields-only indexes unchanged', () => {
+    const namespace = sqliteCreateNamespace(
+      tableWithIndex({ name: 'users_email_idx', columns: ['email'], unique: false }),
+    );
+    expect(namespace.id).toBe(UNBOUND_NAMESPACE_ID);
+  });
+});

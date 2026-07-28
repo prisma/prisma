@@ -23,8 +23,24 @@ import type {
   UpdateOneResult,
   UpdateOneWireCommand,
 } from '@prisma-next/mongo-wire';
+import { assertNever } from '@prisma-next/utils/internal-error';
 import { type Db, MongoClient } from 'mongodb';
 import { DRIVER_INFO } from './core/driver-info';
+
+/* v8 ignore start */
+function unreachableKind(value: never): string {
+  const candidate: unknown = value;
+  if (
+    typeof candidate === 'object' &&
+    candidate !== null &&
+    'kind' in candidate &&
+    typeof candidate.kind === 'string'
+  ) {
+    return candidate.kind;
+  }
+  return 'unknown';
+}
+/* v8 ignore stop */
 
 export class MongoDriverImpl implements MongoDriver {
   protected readonly db: Db;
@@ -66,10 +82,11 @@ export class MongoDriverImpl implements MongoDriver {
       case 'aggregate':
         return this.executeAggregateCommand<Row>(wireCommand);
       // v8 ignore next 4
-      default: {
-        const _exhaustive: never = wireCommand;
-        throw new Error(`Unknown wire command kind: ${(_exhaustive as { kind: string }).kind}`);
-      }
+      default:
+        return assertNever(
+          wireCommand,
+          `Unknown wire command kind: ${unreachableKind(wireCommand)}`,
+        );
     }
   }
 
@@ -86,10 +103,11 @@ export class MongoDriverImpl implements MongoDriver {
       case 'collMod':
         return this.executeCollModCommand(wireCommand);
       // v8 ignore next 4
-      default: {
-        const _exhaustive: never = wireCommand;
-        throw new Error(`Unknown DDL wire command kind: ${(_exhaustive as { kind: string }).kind}`);
-      }
+      default:
+        return assertNever(
+          wireCommand,
+          `Unknown DDL wire command kind: ${unreachableKind(wireCommand)}`,
+        );
     }
   }
 

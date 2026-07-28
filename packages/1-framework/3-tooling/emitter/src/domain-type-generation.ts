@@ -10,6 +10,7 @@ import type { CodecLookup } from '@prisma-next/framework-components/codec';
 import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
 import { type ImportRequirement, renderImports } from '@prisma-next/ts-render';
 import { blindCast } from '@prisma-next/utils/casts';
+import { emitterError } from './emitter-errors';
 import { isSafeTypeExpression } from './type-expression-safety';
 
 export function serializeValue(value: unknown): string {
@@ -138,8 +139,10 @@ export function generateModelRelationsType(relations: Record<string, unknown>): 
 
     const on = relObj['on'] as { localFields?: string[]; targetFields?: string[] } | undefined;
     if (on && (!on.localFields || !on.targetFields)) {
-      throw new Error(
+      throw emitterError(
+        'CONTRACT.RELATION_INVALID',
         `Relation "${relName}" has an "on" block but is missing localFields or targetFields`,
+        { meta: { relation: relName } },
       );
     }
     if (on?.localFields && on.targetFields) {

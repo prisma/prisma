@@ -159,6 +159,10 @@ flowchart TD
 
 ## Usage
 
+### Custom codec descriptors
+
+`createPostgresAdapter({ codecDescriptors })` accepts PostgreSQL-target descriptors and appends them to the built-ins before constructing one structurally validated registry. Stack-based runtime and control construction consume the same descriptors from `types.codecTypes.codecDescriptors`. See the [target-owned SQL codec descriptor guide](../../../../docs/reference/codec-authoring-guide.md#target-owned-sql-codec-descriptors); do not inject separate generic and PostgreSQL lookups.
+
 ### Runtime
 
 ```typescript

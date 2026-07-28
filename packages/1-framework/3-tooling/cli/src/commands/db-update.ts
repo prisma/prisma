@@ -5,10 +5,11 @@ import {
 import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
 import { parseContractRef } from '@prisma-next/migration-tools/ref-resolution';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { assertNever } from '@prisma-next/utils/internal-error';
 import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { Command } from 'commander';
 import { join } from 'pathe';
-import { ContractValidationError } from '../control-api/errors';
 import type { DbUpdateFailure } from '../control-api/types';
 import {
   CliStructuredError,
@@ -92,7 +93,7 @@ function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError {
   }
 
   const exhaustive: never = failure.code;
-  throw new Error(`Unhandled DbUpdateFailure code: ${exhaustive}`);
+  return assertNever(exhaustive, `Unhandled DbUpdateFailure code: ${String(exhaustive)}`);
 }
 
 /**
@@ -262,7 +263,7 @@ async function executeDbUpdateCommand(
       return notOk(error);
     }
 
-    if (error instanceof ContractValidationError) {
+    if (isStructuredError(error) && error.code === 'CONTRACT.VALIDATION_FAILED') {
       return notOk(
         errorContractValidationFailed(`Contract validation failed: ${error.message}`, {
           where: { path: contractPathAbsolute },

@@ -1,6 +1,7 @@
 import type { MongoValue } from '@prisma-next/mongo-value';
 import type { MongoAggExpr } from './aggregation-expressions';
 import { MongoAstNode } from './ast-node';
+import { ormError } from './orm-errors';
 import type { MongoFilterRewriter, MongoFilterVisitor } from './visitors';
 
 const FILTER_EXPR_BRAND = '__prismaNextMongoFilter__';
@@ -103,7 +104,7 @@ export class MongoAndExpr extends MongoFilterExpression {
   constructor(exprs: ReadonlyArray<MongoFilterExpr>) {
     super();
     if (exprs.length === 0) {
-      throw new Error('$and requires at least one expression');
+      throw ormError('ORM.ARGUMENT_INVALID', '$and requires at least one expression');
     }
     this.exprs = Object.freeze([...exprs]);
     this.freeze();
@@ -130,7 +131,7 @@ export class MongoOrExpr extends MongoFilterExpression {
   constructor(exprs: ReadonlyArray<MongoFilterExpr>) {
     super();
     if (exprs.length === 0) {
-      throw new Error('$or requires at least one expression');
+      throw ormError('ORM.ARGUMENT_INVALID', '$or requires at least one expression');
     }
     this.exprs = Object.freeze([...exprs]);
     this.freeze();

@@ -55,15 +55,30 @@ export interface UniqueConstraintNode {
   readonly name?: string;
 }
 
-export interface IndexNode {
-  readonly columns: readonly string[];
-  /** Exact physical name (PSL `map:`) — adopted verbatim, no wire hash. */
-  readonly map?: string;
-  /** Managed wire-name prefix (TS `name:`) — lowers to `<name>_<8hex>`. */
-  readonly name?: string;
-  readonly type?: string;
-  readonly options?: Record<string, unknown>;
-}
+/** A definition-tree index's element structure — column tuple xor expression. */
+export type IndexNodeElements =
+  | {
+      /** Column tuple. */
+      readonly columns: readonly string[];
+      readonly expression?: never;
+    }
+  | {
+      readonly columns?: never;
+      /** Opaque SQL: the entire element list of CREATE INDEX — never parsed. */
+      readonly expression: string;
+    };
+
+export type IndexNode = IndexNodeElements & {
+  /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
+  readonly where: string | undefined;
+  readonly unique: boolean | undefined;
+  /** Exact physical name (`map:`) — adopted verbatim, no wire hash. */
+  readonly map: string | undefined;
+  /** Managed wire-name prefix (`name:`) — lowers to `<name>_<8hex>`. */
+  readonly name: string | undefined;
+  readonly type: string | undefined;
+  readonly options: Record<string, unknown> | undefined;
+};
 
 export interface ForeignKeyNode {
   readonly columns: readonly string[];

@@ -160,7 +160,7 @@ const normalizedTypeParams =
   typeParams !== undefined && Object.keys(typeParams).length === 0 ? undefined : typeParams;
 ```
 
-Object-template resolution drops `undefined` values, so `temporal.timestamp()`'s template `{ precision: { kind: 'arg', index: 0 } }` resolves to `{}` when no precision is supplied. Absent and `{}` are equivalent to every consumer that reads them, but they are not equal to a byte comparison — and a contract that carried `{}` would differ from the `@db.Timestamp` spelling that produces the same column.
+Object-template resolution drops `undefined` values, so `temporal.timestamp()`'s template `{ precision: { kind: 'arg', index: 0 } }` resolves to `{}` when no precision is supplied. Absent and `{}` are equivalent to every consumer that reads them, but they are not equal to a byte comparison — and a contract that carried `{}` would differ from the bare `Timestamp` type constructor that produces the same column.
 
 ### The two rules carry each other
 
@@ -244,7 +244,7 @@ An argument object with **required** properties is not weak, and relies on the o
 
 Three facts about the wider system make the presets safe without any adapter or runtime involvement:
 
-- `{ precision }` typeParams on the postgres timestamp codecs flow through DDL rendering; the `@db.Timestamp(3)` spelling produces the same contract shape and exercises the same path.
+- `{ precision }` typeParams on the postgres timestamp codecs flow through DDL rendering; the `Timestamp(3)` type-position constructor produces the same contract shape and exercises the same path.
 - A parameterized codec with absent `typeParams` is probed with `{}` in [sql-context.ts](../../../packages/2-sql/5-runtime/src/sql-context.ts), and `undefined` is normalized to `{}` in resolve-codec — so omitting `typeParams` entirely is equivalent to every consumer that reads it.
 - The `timestampNow` generator — control descriptor, runtime generator, adapter lowering — is target-agnostic and serves both the postgres and sqlite presets.
 
@@ -260,7 +260,7 @@ Three facts about the wider system make the presets safe without any adapter or 
 
 **A variant-selecting argument** (`temporal.timestamp(withTimezone: true)`). Rejected: it makes an argument change the field's codec. Keeping "one preset per codec, arguments change field properties" means the codec is always readable from the spelling.
 
-**Composing `@db.*` native-type attributes with a behavioral preset.** The two mechanisms do not compose — a preset owns the whole column descriptor — and unifying them is a larger question than this decision. `@db.*` is unchanged.
+**Composing a type-position constructor with a behavioral preset.** The two mechanisms do not compose because a preset owns the whole column descriptor. Use a constructor such as `Timestamp(3)` when only storage shape is needed; use `temporal.timestamp(3, …)` when the field also needs preset behavior.
 
 **Deriving the convenience presets structurally from the full form.** `temporal.updatedAt()` could be the full-form descriptor with its arguments pre-bound — one construction, equivalence by identity, no parity test needed. Rejected: partial argument binding is a new framework concept on descriptors, and it could only ever cover `updatedAt` — `createdAt` is a storage default, which the per-codec presets deliberately cannot express, so it stays separately authored regardless. Removing one preset's worth of drift risk did not justify the new seam; the equivalence is enforced by the named tests instead.
 

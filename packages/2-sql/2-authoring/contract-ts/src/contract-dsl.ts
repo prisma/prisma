@@ -770,19 +770,38 @@ type ConstraintOptions<Name extends string | undefined = string | undefined> = {
 
 export type IndexTypeMap = Record<string, { readonly options: unknown }>;
 
+type IndexOptionsBase<Name extends string | undefined> = {
+  readonly name?: Name;
+  /** Exact physical name — adopted verbatim, no wire hash. Xor `name`. */
+  readonly map?: string;
+  /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
+  readonly where?: string;
+  readonly unique?: boolean;
+};
+
 type IndexInput<
   Name extends string | undefined,
   IndexTypes extends IndexTypeMap,
 > = keyof IndexTypes extends never
-  ? ConstraintOptions<Name>
+  ? IndexOptionsBase<Name>
   :
-      | (ConstraintOptions<Name> & { readonly type?: never; readonly options?: never })
+      | (IndexOptionsBase<Name> & { readonly type?: never; readonly options?: never })
       | {
-          readonly [K in keyof IndexTypes & string]: ConstraintOptions<Name> & {
+          readonly [K in keyof IndexTypes & string]: IndexOptionsBase<Name> & {
             readonly type: K;
             readonly options: IndexTypes[K]['options'];
           };
         }[keyof IndexTypes & string];
+
+/**
+ * The expression overload's input: the whole CREATE INDEX element list as
+ * one opaque string. `name` or `map` is required — enforced at lowering
+ * with the same diagnostics as PSL.
+ */
+type ExpressionIndexInput<
+  Name extends string | undefined,
+  IndexTypes extends IndexTypeMap,
+> = IndexInput<Name, IndexTypes> & { readonly expression: string };
 
 type ForeignKeyOptions<Name extends string | undefined = string | undefined> =
   ConstraintOptions<Name> & {
@@ -811,13 +830,28 @@ export type UniqueConstraint<FieldNames extends readonly string[] = readonly str
   readonly name?: string;
 };
 
+/** An authored index constraint's element structure — field tuple xor expression. */
+export type IndexConstraintElements<FieldNames extends readonly string[] = readonly string[]> =
+  | {
+      /** Field-name tuple. */
+      readonly fields: FieldNames;
+      readonly expression?: never;
+    }
+  | {
+      readonly fields?: never;
+      /** Opaque SQL: the entire CREATE INDEX element list — never parsed. */
+      readonly expression: string;
+    };
+
 export type IndexConstraint<
   FieldNames extends readonly string[] = readonly string[],
   Name extends string | undefined = string | undefined,
-> = {
+> = IndexConstraintElements<FieldNames> & {
   readonly kind: 'index';
-  readonly fields: FieldNames;
+  readonly where?: string;
+  readonly unique?: boolean;
   readonly name?: Name;
+  readonly map?: string;
   readonly type?: string;
   readonly options?: Record<string, unknown>;
 };
@@ -979,23 +1013,55 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
     fields: { readonly [K in keyof FieldNames]: ColumnRef<FieldNames[K] & string> },
     options?: IndexInput<Name, IndexTypes>,
   ): IndexConstraint<FieldNames, Name>;
+  function index<Name extends string | undefined = undefined>(
+    options: ExpressionIndexInput<Name, IndexTypes>,
+  ): IndexConstraint<never, Name>;
   function index(
-    fields: readonly ColumnRef[],
+    fieldsOrOptions:
+      | ColumnRef
+      | readonly ColumnRef[]
+      | {
+          readonly expression: string;
+          readonly name?: string;
+          readonly map?: string;
+          readonly where?: string;
+          readonly unique?: boolean;
+          readonly type?: string;
+          readonly options?: unknown;
+        },
     options?: {
       readonly name?: string;
+      readonly map?: string;
+      readonly where?: string;
+      readonly unique?: boolean;
       readonly type?: string;
       readonly options?: unknown;
     },
   ): IndexConstraint {
-    return {
-      kind: 'index',
-      fields: normalizeFieldRefInput(fields),
-      ...(options?.name !== undefined ? { name: options.name } : {}),
-      ...(options?.type !== undefined ? { type: options.type } : {}),
-      ...(options?.options !== undefined
-        ? { options: options.options as Record<string, unknown> }
+    const isExpressionForm =
+      !Array.isArray(fieldsOrOptions) &&
+      typeof fieldsOrOptions === 'object' &&
+      'expression' in fieldsOrOptions;
+    const opts = isExpressionForm ? fieldsOrOptions : options;
+    const carried = {
+      kind: 'index' as const,
+      ...(opts?.name !== undefined ? { name: opts.name } : {}),
+      ...(opts?.map !== undefined ? { map: opts.map } : {}),
+      ...(opts?.where !== undefined ? { where: opts.where } : {}),
+      ...(opts?.unique !== undefined ? { unique: opts.unique } : {}),
+      ...(opts?.type !== undefined ? { type: opts.type } : {}),
+      ...(opts?.options !== undefined
+        ? {
+            options: blindCast<
+              Record<string, unknown>,
+              'the public overloads type options as the pack-declared options object; the loose implementation signature erases it to unknown'
+            >(opts.options),
+          }
         : {}),
     };
+    return isExpressionForm
+      ? { ...carried, expression: fieldsOrOptions.expression }
+      : { ...carried, fields: normalizeFieldRefInput(fieldsOrOptions) };
   }
 
   function foreignKey<
@@ -1089,13 +1155,15 @@ type AttributeContext<Fields extends Record<string, ScalarFieldBuilder>> = {
   readonly constraints: Pick<ConstraintsDsl, 'id' | 'unique'>;
 };
 
-type PackAwareIndex<IndexTypes extends IndexTypeMap> = <
-  FieldNames extends readonly string[],
-  Name extends string | undefined = undefined,
->(
-  fields: { readonly [K in keyof FieldNames]: ColumnRef<FieldNames[K] & string> },
-  options?: IndexInput<Name, IndexTypes>,
-) => IndexConstraint<FieldNames, Name>;
+type PackAwareIndex<IndexTypes extends IndexTypeMap> = {
+  <FieldNames extends readonly string[], Name extends string | undefined = undefined>(
+    fields: { readonly [K in keyof FieldNames]: ColumnRef<FieldNames[K] & string> },
+    options?: IndexInput<Name, IndexTypes>,
+  ): IndexConstraint<FieldNames, Name>;
+  <Name extends string | undefined = undefined>(
+    options: ExpressionIndexInput<Name, IndexTypes>,
+  ): IndexConstraint<never, Name>;
+};
 
 type PackAwareSqlConstraints<IndexTypes extends IndexTypeMap> = {
   readonly foreignKey: ConstraintsDsl['foreignKey'];

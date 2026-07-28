@@ -4,6 +4,7 @@ import { structuredError } from '@prisma-next/utils/structured-error';
 export type ContractCode = `CONTRACT.${ContractSubcode}`;
 
 type ContractSubcode =
+  | 'ARGUMENT_INVALID'
   | 'COLLECTION_INVALID'
   | 'ENUM_INVALID'
   | 'ENUM_UNKNOWN'

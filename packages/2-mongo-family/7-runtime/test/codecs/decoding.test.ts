@@ -5,6 +5,7 @@ import {
   newMongoCodecRegistry,
 } from '@prisma-next/mongo-codec';
 import type { MongoFieldShape, MongoResultShape } from '@prisma-next/mongo-query-ast/execution';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import { ObjectId } from 'mongodb';
 import { describe, expect, it, vi } from 'vitest';
 import { decodeMongoRow } from '../../src/codecs/decoding';
@@ -436,6 +437,58 @@ describe('decodeMongoRow', () => {
       ).toBeLessThanOrEqual(100);
       expect(e.cause).toBeInstanceOf(Error);
       expect((e.cause as Error).message).toBe('inner');
+    }
+  });
+
+  it('passes a structured RUNTIME.DECODE_FAILED envelope from a codec through unchanged', async () => {
+    const envelope = structuredError('RUNTIME.DECODE_FAILED', 'codec-owned decode envelope');
+    const registry = newMongoCodecRegistry();
+    registry.register(
+      mongoCodec({
+        typeId: 'structured@1',
+        encode: (v: string) => v,
+        decode: () => {
+          throw envelope;
+        },
+      }),
+    );
+    const shape: MongoResultShape = {
+      kind: 'document',
+      fields: {
+        f: { kind: 'leaf', codecId: 'structured@1', nullable: false },
+      },
+    };
+    try {
+      await decodeMongoRow({ f: 'wire' }, shape, registry, 'items');
+      expect.fail('expected throw');
+    } catch (e) {
+      expect(e).toBe(envelope);
+    }
+  });
+
+  it('passes any structured envelope from a codec through without wrapping', async () => {
+    const envelope = structuredError('EXT.CODEC_BROKEN', 'extension codec envelope');
+    const registry = newMongoCodecRegistry();
+    registry.register(
+      mongoCodec({
+        typeId: 'structured-ext@1',
+        encode: (v: string) => v,
+        decode: () => {
+          throw envelope;
+        },
+      }),
+    );
+    const shape: MongoResultShape = {
+      kind: 'document',
+      fields: {
+        f: { kind: 'leaf', codecId: 'structured-ext@1', nullable: false },
+      },
+    };
+    try {
+      await decodeMongoRow({ f: 'wire' }, shape, registry, 'items');
+      expect.fail('expected throw');
+    } catch (e) {
+      expect(e).toBe(envelope);
     }
   });
 

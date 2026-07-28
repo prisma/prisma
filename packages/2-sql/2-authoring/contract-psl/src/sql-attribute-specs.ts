@@ -1,6 +1,10 @@
 import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
 import type { ControlMutationDefaultRegistry } from '@prisma-next/framework-components/control';
 import type {
+  ContributedPslDiagnosticCode,
+  PslDiagnostic,
+} from '@prisma-next/framework-components/psl-ast';
+import type {
   ArgType,
   AttributeSpec,
   FieldSymbol,
@@ -195,19 +199,67 @@ export const uniqueModelSpec = modelAttribute('unique', {
   named: { map: optional(str()) },
 });
 
+// `@@index` cross-argument diagnostic codes — contributed by this package
+// through the family-neutral `ContributedPslDiagnosticCode` seam; the
+// framework union stays free of index vocabulary.
+export const PSL_INDEX_FIELDS_XOR_EXPRESSION: ContributedPslDiagnosticCode =
+  'PSL_INDEX_FIELDS_XOR_EXPRESSION';
+export const PSL_INDEX_EXPRESSION_REQUIRES_NAME: ContributedPslDiagnosticCode =
+  'PSL_INDEX_EXPRESSION_REQUIRES_NAME';
+export const PSL_INDEX_NAME_XOR_MAP: ContributedPslDiagnosticCode = 'PSL_INDEX_NAME_XOR_MAP';
+
 export const indexModelSpec = modelAttribute('index', {
-  positional: [{ key: 'fields', type: list(fieldRef('self'), { nonEmpty: true, unique: true }) }],
-  named: { map: optional(str()), type: optional(str()), options: optional(record(str())) },
-  refine: (value, ctx) =>
-    value.options !== undefined && value.type === undefined
-      ? [
-          leafDiagnostic(
-            ctx,
-            ctx.selfModel.node,
-            '`@@index` options argument requires a type argument',
-          ),
-        ]
-      : [],
+  positional: [
+    { key: 'fields', type: optional(list(fieldRef('self'), { nonEmpty: true, unique: true })) },
+  ],
+  named: {
+    expression: optional(str()),
+    where: optional(str()),
+    unique: optional(bool()),
+    name: optional(str()),
+    map: optional(str()),
+    type: optional(str()),
+    options: optional(record(str())),
+  },
+  refine: (value, ctx, attributeNode) => {
+    const diagnostics: PslDiagnostic[] = [];
+    if ((value.fields === undefined) === (value.expression === undefined)) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@index` requires exactly one of a fields list or an `expression` argument',
+          PSL_INDEX_FIELDS_XOR_EXPRESSION,
+        ),
+      );
+    }
+    if (value.expression !== undefined && value.name === undefined && value.map === undefined) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@index` with an `expression` argument requires a `name` or `map` argument (a default name cannot be derived from an expression)',
+          PSL_INDEX_EXPRESSION_REQUIRES_NAME,
+        ),
+      );
+    }
+    if (value.name !== undefined && value.map !== undefined) {
+      diagnostics.push(
+        leafDiagnostic(
+          ctx,
+          attributeNode,
+          '`@@index` takes at most one of `name` and `map`',
+          PSL_INDEX_NAME_XOR_MAP,
+        ),
+      );
+    }
+    if (value.options !== undefined && value.type === undefined) {
+      diagnostics.push(
+        leafDiagnostic(ctx, attributeNode, '`@@index` options argument requires a type argument'),
+      );
+    }
+    return diagnostics;
+  },
 });
 
 export const controlModelSpec = modelAttribute('control', {

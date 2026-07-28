@@ -71,6 +71,21 @@ Supported timestamp authoring surface:
 - The Prisma-flavored `@updatedAt` attribute is not supported; references produce `PSL_UNSUPPORTED_FIELD_ATTRIBUTE` with a migration hint pointing at `temporal.updatedAt()`. The hint is suppressed when the field already declares any `temporal.*` preset.
 - `@createdAt` is not supported as a PSL alias.
 
+`@@index` parameter surface:
+
+```prisma
+@@index([email], where: "(archived_at IS NULL)", name: "users_email_active")
+@@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq")
+@@index(expression: "lower(email)", unique: true, name: "users_email_lower_key")
+@@index([email], type: "hash", name: "users_email_hash")
+```
+
+- Exactly one of a fields list or `expression:` (the whole CREATE INDEX element list as one opaque string); violating this raises `PSL_INDEX_FIELDS_XOR_EXPRESSION`.
+- `expression:` requires `name:` or `map:` (`PSL_INDEX_EXPRESSION_REQUIRES_NAME` — no default name can be derived from an expression); at most one of `name:`/`map:` (`PSL_INDEX_NAME_XOR_MAP`).
+- `name:` declares a managed index — the physical name is `<name>_<8-hex content hash>` and renames plan as `ALTER INDEX … RENAME`. `map:` adopts an exact physical name verbatim, intended for objects captured by `contract infer`.
+- `where:` is a partial-index predicate (WHERE body, without the keyword); `unique:` a boolean; `type:` plus `options:` select a target-registered index access method (e.g. `type: "hash"`). Unlike the TS builder (whose pack-typed arm requires the `options` key at compile time), PSL accepts `type:` without `options:` — absent options validate as `{}` and lower to the same IR.
+- `map:` combined with a SQL body (`expression:`/`where:`) emits the `PN_EXACT_NAME_BODY_COMPARISON` warning: drift detection byte-compares the authored text against Postgres's reprinted form, which is only reliable for infer-captured text — prefer `name:` for hand-authored bodies.
+
 Model-level control policy:
 
 - `@@control(<policy>)` lowers to the storage table's `control` field. The argument is one positional lowercase literal: `managed`, `tolerated`, `external`, or `observed`. Omit `@@control` to leave per-table control unset (the framework default applies at runtime).

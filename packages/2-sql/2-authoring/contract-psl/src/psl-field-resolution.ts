@@ -17,7 +17,11 @@ import type { EnumTypeHandle } from '@prisma-next/sql-contract-ts/contract-build
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { InternalError } from '@prisma-next/utils/internal-error';
-import { getAttribute, lowerFirst } from './psl-attribute-parsing';
+import {
+  formatDbAttributeMigrationMessage,
+  getAttribute,
+  lowerFirst,
+} from './psl-attribute-parsing';
 import type { ColumnDescriptor, FieldPresetContributions } from './psl-column-resolution';
 import {
   checkUncomposedNamespace,
@@ -217,6 +221,16 @@ function validateFieldAttributes(input: {
 }): void {
   for (const attribute of input.field.attributes) {
     if (BUILTIN_FIELD_ATTRIBUTE_NAMES.has(attribute.name)) {
+      continue;
+    }
+
+    if (attribute.name.startsWith('db.')) {
+      input.diagnostics.push({
+        code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
+        message: formatDbAttributeMigrationMessage(attribute),
+        sourceId: input.sourceId,
+        span: attribute.span,
+      });
       continue;
     }
 

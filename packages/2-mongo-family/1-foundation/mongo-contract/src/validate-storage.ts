@@ -1,3 +1,4 @@
+import { structuredError } from '@prisma-next/utils/structured-error';
 import type { MongoContract, MongoModelDefinition } from './contract-types';
 
 function formatCrossRef(crossRef: { readonly namespace: string; readonly model: string }): string {
@@ -84,6 +85,9 @@ export function validateMongoStorage(contract: MongoContract): void {
   }
 
   if (errors.length > 0) {
-    throw new Error(`Contract storage validation failed:\n- ${errors.join('\n- ')}`);
+    throw structuredError(
+      'CONTRACT.VALIDATION_FAILED',
+      `Contract storage validation failed:\n- ${errors.join('\n- ')}`,
+    );
   }
 }

@@ -2,6 +2,7 @@ import type { ParamSpec } from '@prisma-next/operations';
 import type { SqlLoweringSpec } from '@prisma-next/sql-operations';
 
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { structuredError } from '@prisma-next/utils/structured-error';
 import { type CodecRef, frozenCodecRef } from './codec-types';
 import type { AnyJsonValueProjection } from './json-value-projection';
@@ -326,7 +327,7 @@ abstract class Expression extends AstNode implements ExpressionSource {
   }
 
   baseColumnRef(): ColumnRef {
-    throw new Error(`${this.constructor.name} does not expose a base column reference`);
+    throw new InternalError(`${this.constructor.name} does not expose a base column reference`);
   }
 
   #asAnyExpression(): AnyExpression {
@@ -774,7 +775,11 @@ export class AggregateExpr extends Expression {
   constructor(fn: AggregateFn, expr?: AnyExpression) {
     super();
     if (fn !== 'count' && expr === undefined) {
-      throw new Error(`Aggregate function "${fn}" requires an expression`);
+      throw structuredError(
+        'ORM.ARGUMENT_INVALID',
+        `Aggregate function "${fn}" requires an expression`,
+        { meta: { fn } },
+      );
     }
     this.fn = fn;
     this.expr = expr;
@@ -2122,7 +2127,7 @@ export class RawSqlExpr extends QueryAst {
   constructor(fragments: readonly string[], args: readonly AnyExpression[]) {
     super();
     if (fragments.length !== args.length + 1) {
-      throw new Error(
+      throw new InternalError(
         `RawSqlExpr: fragments.length must equal args.length + 1 (got fragments=${fragments.length}, args=${args.length})`,
       );
     }

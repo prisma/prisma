@@ -12,13 +12,13 @@ Here is the canonical case. An app references `auth.users`, a table owned by the
 
 ```prisma
 types {
-  Uuid = String @db.Uuid
+  AuthUserId = Uuid
 }
 
 namespace public {
   model Profile {
-    id     String @id @default(uuid())
-    userId Uuid   @unique
+    id     String     @id @default(uuid())
+    userId AuthUserId @unique
     user   supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   }
 }
@@ -125,7 +125,7 @@ This is deliberate. The relationship's value today is the database constraint �
 ## Consequences
 
 - **The carrier is additive.** Contracts with no cross-space references are unaffected, and their serialized form does not change.
-- **Native-type matching is the author's responsibility.** The branded column reference carries a space id, not a storage type. When a cross-space FK targets a column with a non-default native type — `auth.users.id` is `uuid` — the author must match that type on the source column, which is why the grounding example declares `types { Uuid = String @db.Uuid }` and types `userId` as `Uuid`. Postgres rejects mismatched FK column types at apply time; the framework does not coerce.
+- **Native-type matching is the author's responsibility.** The branded column reference carries a space id, not a storage type. When a cross-space FK targets a column with a non-default native type — `auth.users.id` is `uuid` — the author must match that type on the source column, which is why the grounding example declares `types { AuthUserId = Uuid }` and types `userId` as `AuthUserId`. Postgres rejects mismatched FK column types at apply time; the framework does not coerce.
 - **`extensions` carries two meanings at once** (imports and load-order dependency). This is acceptable while every app that imports a space also depends on it, but it leaves no way to depend on a space for ordering without importing its models.
 - **Relations are non-navigable.** Declaring a relation the ORM cannot traverse is a partial capability: the constraint and migration work, the query surface does not. This matches how the target tables are used in practice but is a seam that a future cross-space query model will need to fill.
 

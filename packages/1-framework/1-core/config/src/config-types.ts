@@ -7,6 +7,7 @@ import type {
   ControlTargetDescriptor,
 } from '@prisma-next/framework-components/control';
 import { type } from 'arktype';
+import { configError } from './config-errors';
 import type { ContractSourceProvider } from './contract-source-types';
 
 /**
@@ -173,7 +174,7 @@ export function defineConfig<TFamilyId extends string = string, TTargetId extend
   const validated = PrismaNextConfigSchema(config);
   if (validated instanceof type.errors) {
     const messages = validated.map((p: { message: string }) => p.message).join('; ');
-    throw new Error(`Config validation failed: ${messages}`);
+    throw configError('CONFIG.VALIDATION_FAILED', `Config validation failed: ${messages}`);
   }
 
   // Normalize contract config if present

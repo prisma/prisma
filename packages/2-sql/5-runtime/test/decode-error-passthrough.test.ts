@@ -7,6 +7,7 @@ import {
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
 import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { buildDecodeContext, decodeRow } from '../src/codecs/decoding';
 import { defineTestCodec } from './test-codec';
@@ -75,6 +76,58 @@ describe('decodeRow — runtime-envelope passthrough', () => {
       decodeRow(
         { value: 'wire' },
         buildDecodeContext(buildPlan().ast, buildTestContractCodecs(registry)),
+        {},
+      ),
+    ).rejects.toBe(original);
+  });
+
+  it('rethrows a plain structuredError DECODE_FAILED envelope without wrapping', async () => {
+    const original = structuredError('RUNTIME.DECODE_FAILED', 'extension codec failure', {
+      meta: { codec: 'test/passthrough@1', detail: 'codec-specific' },
+    });
+    const registry = [
+      defineTestCodec({
+        typeId: 'test/passthrough@1',
+        targetTypes: ['text'],
+        encode: (v: string) => v,
+        decode: () => {
+          throw original;
+        },
+      }),
+    ];
+
+    await expect(
+      decodeRow(
+        { value: 'wire' },
+        buildDecodeContext(buildPlan().ast, buildTestContractCodecs(registry)),
+        {},
+      ),
+    ).rejects.toBe(original);
+  });
+
+  it('rethrows a plain structuredError envelope from a many-element decode without wrapping', async () => {
+    const original = structuredError('RUNTIME.DECODE_FAILED', 'element decode failure');
+    const ast = SelectAst.from(TableSource.named('users')).withProjection([
+      ProjectionItem.of('value', ColumnRef.of('users', 'value'), {
+        codecId: 'test/passthrough@1',
+        many: true,
+      }),
+    ]);
+    const registry = [
+      defineTestCodec({
+        typeId: 'test/passthrough@1',
+        targetTypes: ['text'],
+        encode: (v: string) => v,
+        decode: () => {
+          throw original;
+        },
+      }),
+    ];
+
+    await expect(
+      decodeRow(
+        { value: ['wire'] },
+        buildDecodeContext(ast, buildTestContractCodecs(registry)),
         {},
       ),
     ).rejects.toBe(original);

@@ -1,6 +1,7 @@
 import type { CodecCallContext } from '@prisma-next/framework-components/codec';
 import { runtimeError } from '@prisma-next/framework-components/runtime';
 import type { MongoFieldShape, MongoResultShape } from '@prisma-next/mongo-query-ast/execution';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import type { MongoCodecLookup } from '../mongo-execution-stack';
 
 const WIRE_PREVIEW_LIMIT = 100;
@@ -14,6 +15,11 @@ function previewWireValue(wireValue: unknown): string {
   return String(wireValue).substring(0, WIRE_PREVIEW_LIMIT);
 }
 
+/**
+ * Structured envelopes (any error with a dotted `code`, per `isStructuredError`)
+ * thrown by a codec body pass through unchanged; everything else is wrapped in
+ * a `RUNTIME.DECODE_FAILED` envelope with the original error on `cause`.
+ */
 function wrapDecodeFailure(
   error: unknown,
   collection: string,
@@ -21,6 +27,9 @@ function wrapDecodeFailure(
   codecId: string,
   wireValue: unknown,
 ): never {
+  if (isStructuredError(error)) {
+    throw error;
+  }
   const message = error instanceof Error ? error.message : String(error);
   const wrapped = runtimeError(
     'RUNTIME.DECODE_FAILED',

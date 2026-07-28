@@ -4,6 +4,7 @@ export default defineConfig({
   entry: [
     'src/exports/codec-ids.ts',
     'src/exports/codec-types.ts',
+    'src/exports/codec-descriptor.ts',
     'src/exports/codecs.ts',
     'src/exports/control.ts',
     'src/exports/contract-free.ts',

@@ -21,6 +21,7 @@
     "@prisma-next/framework-components": "workspace:0.16.0",
     "@prisma-next/sql-relational-core": "workspace:0.16.0",
     "@prisma-next/sql-runtime": "workspace:0.16.0",
+    "@prisma-next/target-postgres": "workspace:0.16.0",
     "@standard-schema/spec": "^1.1.0",
     "arktype": "~2.2.2"
   },

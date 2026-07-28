@@ -29,6 +29,7 @@ import {
 import type { CollationOptions } from '@prisma-next/mongo-value/mongodb-types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 
 export interface CanonicalizedSchemas {
   readonly live: MongoSchemaIR;
@@ -144,7 +145,7 @@ function sortTextKeys(
     const next = sortedText[textIdx++];
     /* v8 ignore next 3 -- @preserve invariant guard: textIdx is always < sortedText.length here because we only consume sortedText for text-direction entries and sortedText is built from the same filter. */
     if (next === undefined) {
-      throw new Error('sortTextKeys: text-key counts mismatched');
+      throw new InternalError('sortTextKeys: text-key counts mismatched');
     }
     return next;
   });

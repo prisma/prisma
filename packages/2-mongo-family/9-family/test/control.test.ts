@@ -6,11 +6,30 @@ import {
   MongoSchemaIR,
   MongoSchemaValidator,
 } from '@prisma-next/mongo-schema-ir';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
+import type {
+  MongoControlAdapter,
+  MongoControlAdapterDescriptor,
+} from '../src/core/control-adapter';
 import { mongoFamilyDescriptor } from '../src/core/control-descriptor';
 import { createMongoFamilyInstance } from '../src/core/control-instance';
 import mongoFamilyPack from '../src/exports/pack';
+import { mongoContractJson } from './mongo-contract-json-fixture';
 import { stubMongoTargetDescriptor } from './test-target-descriptor';
+
+function stubAdapterDescriptor(
+  adapter: Partial<MongoControlAdapter<'mongo'>>,
+): MongoControlAdapterDescriptor<'mongo'> {
+  return {
+    kind: 'adapter',
+    id: 'mongo-adapter-stub',
+    familyId: 'mongo',
+    targetId: 'mongo',
+    version: '0.0.1',
+    create: () => adapter,
+  } as MongoControlAdapterDescriptor<'mongo'>;
+}
 
 function createMinimalControlStack() {
   return createControlStack({
@@ -102,6 +121,52 @@ describe('createMongoFamilyInstance', () => {
   it('implements SchemaViewCapable', () => {
     const instance = createMongoFamilyInstance(createMinimalControlStack());
     expect(hasSchemaView(instance)).toBe(true);
+  });
+
+  it('readMarker() with a non-mongo driver raises CONTRACT.TARGET_MISMATCH', async () => {
+    const stack = createControlStack({
+      family: mongoFamilyDescriptor,
+      target: stubMongoTargetDescriptor,
+      adapter: stubAdapterDescriptor({}),
+    });
+    const instance = createMongoFamilyInstance(stack);
+    const driver = { targetId: 'postgres' } as Parameters<typeof instance.readMarker>[0]['driver'];
+    try {
+      await instance.readMarker({ driver, space: 'app' });
+      expect.fail('expected throw');
+    } catch (e) {
+      expect(isStructuredError(e)).toBe(true);
+      if (!isStructuredError(e)) return;
+      expect(e.code).toBe('CONTRACT.TARGET_MISMATCH');
+      expect(e.message).toBe("Expected Mongo control driver with targetId 'mongo', got 'postgres'");
+    }
+  });
+
+  it('sign() raises MIGRATION.MARKER_CAS_FAILURE when the marker CAS update fails', async () => {
+    const adapter = {
+      readMarker: async () => ({ storageHash: 'stale', profileHash: 'stale' }),
+      updateMarker: async () => false,
+    } as unknown as MongoControlAdapter<'mongo'>;
+    const stack = createControlStack({
+      family: mongoFamilyDescriptor,
+      target: stubMongoTargetDescriptor,
+      adapter: stubAdapterDescriptor(adapter),
+    });
+    const instance = createMongoFamilyInstance(stack);
+    const driver = { targetId: 'mongo' } as Parameters<typeof instance.sign>[0]['driver'];
+    try {
+      await instance.sign({
+        driver,
+        contract: mongoContractJson({}),
+        contractPath: '/test',
+      });
+      expect.fail('expected throw');
+    } catch (e) {
+      expect(isStructuredError(e)).toBe(true);
+      if (!isStructuredError(e)) return;
+      expect(e.code).toBe('MIGRATION.MARKER_CAS_FAILURE');
+      expect(e.message).toBe('CAS conflict: marker was modified by another process during sign');
+    }
   });
 });
 

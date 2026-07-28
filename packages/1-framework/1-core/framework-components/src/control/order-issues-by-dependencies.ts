@@ -1,3 +1,4 @@
+import { InternalError } from '@prisma-next/utils/internal-error';
 import type { DiffableNode, SchemaDiffIssue } from './schema-diff';
 
 const PATH_DELIMITER = ' ';
@@ -146,7 +147,7 @@ export function orderIssuesByDependencies<TNode extends DiffableNode = DiffableN
     const unresolved = nodes
       .filter((node) => !placed.has(node))
       .map((node) => node.issue.path.join('/'));
-    throw new Error(
+    throw new InternalError(
       `orderIssuesByDependencies: dependency cycle among schema-diff issues (unresolved: ${unresolved.join(', ')})`,
     );
   }

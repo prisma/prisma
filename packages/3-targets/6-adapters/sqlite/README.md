@@ -142,6 +142,10 @@ flowchart TD
 - [ADR 030 -- Result decoding & codecs registry](../../../../docs/architecture%20docs/adrs/ADR%20030%20-%20Result%20decoding%20&%20codecs%20registry.md)
 - [ADR 065 -- Adapter capability schema & negotiation v1](../../../../docs/architecture%20docs/adrs/ADR%20065%20-%20Adapter%20capability%20schema%20&%20negotiation%20v1.md)
 
+## Custom codec descriptors
+
+`createSqliteAdapter({ codecDescriptors })` accepts SQLite-target descriptors and appends them to the built-ins before constructing one structurally validated registry. Stack-based runtime and control construction consume the same descriptors from `types.codecTypes.codecDescriptors`. See the [target-owned SQL codec descriptor guide](../../../../docs/reference/codec-authoring-guide.md#target-owned-sql-codec-descriptors); do not inject separate generic and SQLite lookups.
+
 ## Capabilities
 
 The adapter declares the following SQLite capabilities:

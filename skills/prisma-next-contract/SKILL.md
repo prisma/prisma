@@ -102,6 +102,15 @@ model Post {
 
 Then run `pnpm prisma-next contract emit` (or rely on the Vite plugin — see `prisma-next-build`). Specify cascade behaviour explicitly with `onDelete` / `onUpdate`; the default is `Restrict`.
 
+`@@index` also accepts `expression:` (instead of a fields list), `where:` (partial-index predicate), `unique:`, `type:`/`options:` (target-registered access method), and `name:` xor `map:`:
+
+```prisma
+@@index(expression: "lower(email)", name: "users_email_lower")
+@@index([authorId], where: "(archived_at IS NULL)", name: "posts_author_active")
+```
+
+`name:` declares a managed index (physical name `<name>_<8-hex hash>`, renames plan as `ALTER INDEX … RENAME`); `map:` adopts an exact physical name verbatim (for infer-captured objects — combining it with a SQL body warns, because drift detection byte-compares the authored text against Postgres's reprint). An `expression:` requires `name:` or `map:`. The TS builder mirrors this via `constraints.index([cols.x], {...})` / `constraints.index({ expression, ... })` — see `packages/2-sql/2-authoring/contract-ts/README.md`.
+
 PSL alias surface for repeated types lives in a top-level `types {}` block:
 
 ```prisma
@@ -278,18 +287,18 @@ Canonical worked example: `examples/supabase/src/contract.prisma`.
 
 ## Workflow — Cross-contract foreign keys
 
-The concept: a relation field can reference a model in another contract space using the `<space>:<namespace>.<Model>` form. The contract also supports top-level named-type aliases in a `types { }` block (with native-type attributes like `@db.Uuid`).
+The concept: a relation field can reference a model in another contract space using the `<space>:<namespace>.<Model>` form. The contract also supports top-level named-type aliases in a `types {}` block, backed by the same bare type-position constructors used by fields. The `@db.X(args)` channel is removed: rewrite `@db.X` as `X` and `@db.X(args)` as `X(args)`; remaining uses fail with an actionable diagnostic naming the replacement.
 
 ```prisma
 types {
-  Uuid = String @db.Uuid
+  AuthUserId = Uuid
 }
 
 namespace public {
   model Profile {
-    id       String @id @default(uuid())
+    id       String     @id @default(uuid())
     username String
-    userId   Uuid   @unique
+    userId   AuthUserId @unique
     user     supabase:auth.AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
     @@map("profile")
   }

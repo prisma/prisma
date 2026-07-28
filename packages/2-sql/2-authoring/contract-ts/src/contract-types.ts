@@ -21,10 +21,17 @@ import type { UnionToIntersection } from './authoring-type-utils';
 import type { AttributeStageIdFieldNames, FieldStateOf, ScalarFieldBuilder } from './contract-dsl';
 import type { EnumTypeHandle } from './enum-type';
 
+export type PublicCodecTypes<CodecTypes extends Record<string, { readonly output: unknown }>> = {
+  readonly [CodecId in keyof CodecTypes]: Pick<
+    CodecTypes[CodecId],
+    Extract<keyof CodecTypes[CodecId], 'input' | 'output' | 'traits'>
+  >;
+};
+
 export type ExtractCodecTypesFromPack<P> = P extends {
-  __codecTypes?: infer C extends Record<string, { output: unknown }>;
+  __codecTypes?: infer C extends Record<string, { readonly output: unknown }>;
 }
-  ? C
+  ? PublicCodecTypes<C>
   : Record<string, never>;
 
 export type MergeExtensionCodecTypes<Packs extends Record<string, unknown>> = UnionToIntersection<

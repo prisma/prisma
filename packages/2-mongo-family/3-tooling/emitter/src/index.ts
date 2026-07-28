@@ -9,6 +9,16 @@ import type { ValidationContext } from '@prisma-next/framework-components/emissi
 import type { Namespace } from '@prisma-next/framework-components/ir';
 import type { MongoCollection, MongoStorage } from '@prisma-next/mongo-contract';
 import { blindCast } from '@prisma-next/utils/casts';
+import type { StructuredError } from '@prisma-next/utils/structured-error';
+import { structuredError } from '@prisma-next/utils/structured-error';
+
+function validationError(message: string, model?: string): StructuredError {
+  return structuredError(
+    'CONTRACT.VALIDATION_FAILED',
+    message,
+    model === undefined ? undefined : { meta: { model } },
+  );
+}
 
 const MONGO_NAMESPACE_KIND_FALLBACK = 'mongo-namespace' as const;
 
@@ -26,7 +36,8 @@ function assertUniqueMongoCollectionNames(storage: MongoStorage): void {
     for (const coll of Object.keys(ns.entries.collection ?? {})) {
       const existing = seen.get(coll);
       if (existing !== undefined && existing !== namespaceId) {
-        throw new Error(
+        throw structuredError(
+          'CONTRACT.NAME_DUPLICATE',
           `Duplicate collection name "${coll}" in namespaces "${existing}" and "${namespaceId}"`,
         );
       }
@@ -107,14 +118,16 @@ export const mongoEmission = {
           for (const scalarType of scalarTypes) {
             const { codecId } = scalarType;
             if (!codecId) {
-              throw new Error(
+              throw validationError(
                 `Field "${fieldName}" on model "${qualifiedName}" is missing codecId`,
+                qualifiedName,
               );
             }
             const match = codecId.match(typeIdRegex);
             if (!match?.[1]) {
-              throw new Error(
+              throw validationError(
                 `Field "${fieldName}" on model "${qualifiedName}" has invalid codec ID format "${codecId}". Expected format: ns/name@version`,
+                qualifiedName,
               );
             }
           }
@@ -125,12 +138,12 @@ export const mongoEmission = {
 
   validateStructure(contract: Contract): void {
     if (contract.targetFamily !== 'mongo') {
-      throw new Error(`Expected targetFamily "mongo", got "${contract.targetFamily}"`);
+      throw validationError(`Expected targetFamily "mongo", got "${contract.targetFamily}"`);
     }
 
     const storage = contract.storage as MongoStorage | undefined;
     if (!storage?.namespaces || typeof storage.namespaces !== 'object') {
-      throw new Error('Mongo contract must have storage.namespaces');
+      throw validationError('Mongo contract must have storage.namespaces');
     }
 
     assertUniqueMongoCollectionNames(storage);
@@ -149,16 +162,21 @@ export const mongoEmission = {
       for (const [modelName, model] of Object.entries(models)) {
         const qualifiedName = `${namespaceId}:${modelName}`;
         if (!model.fields || typeof model.fields !== 'object') {
-          throw new Error(`Model "${qualifiedName}" is missing required field "fields"`);
+          throw validationError(
+            `Model "${qualifiedName}" is missing required field "fields"`,
+            qualifiedName,
+          );
         }
         if (!model.relations || typeof model.relations !== 'object') {
-          throw new Error(
+          throw validationError(
             `Model "${qualifiedName}" is missing required field "relations" (must be an object)`,
+            qualifiedName,
           );
         }
         if (!model.storage || typeof model.storage !== 'object') {
-          throw new Error(
+          throw validationError(
             `Model "${qualifiedName}" is missing required field "storage" (must be an object)`,
+            qualifiedName,
           );
         }
 
@@ -167,19 +185,22 @@ export const mongoEmission = {
 
         if (model.owner) {
           if (collection) {
-            throw new Error(
+            throw validationError(
               `Owned model "${qualifiedName}" must not have storage.collection (embedded models are stored within their owner)`,
+              qualifiedName,
             );
           }
           if (!models[model.owner]) {
-            throw new Error(
+            throw validationError(
               `Model "${qualifiedName}" declares owner "${model.owner}" which does not exist in models`,
+              qualifiedName,
             );
           }
         } else if (collection) {
           if (!collectionNames.has(collection)) {
-            throw new Error(
+            throw validationError(
               `Model "${qualifiedName}" references collection "${collection}" which is not in storage.namespaces[..].entries.collection`,
+              qualifiedName,
             );
           }
         }
@@ -187,15 +208,17 @@ export const mongoEmission = {
         if (model.base) {
           const baseModel = models[model.base.model];
           if (!baseModel) {
-            throw new Error(
+            throw validationError(
               `Model "${qualifiedName}" declares base "${model.base.namespace}:${model.base.model}" which does not exist in models`,
+              qualifiedName,
             );
           }
           const variantCollection = collection;
           const baseCollection = baseModel.storage['collection'] as string | undefined;
           if (variantCollection !== baseCollection) {
-            throw new Error(
+            throw validationError(
               `Variant "${qualifiedName}" must share its base's collection ("${baseCollection ?? '(none)'}"), but has "${variantCollection ?? '(none)'}"`,
+              qualifiedName,
             );
           }
         }
@@ -204,8 +227,9 @@ export const mongoEmission = {
         if (storageRelations) {
           for (const relName of Object.keys(storageRelations)) {
             if (!model.relations[relName]) {
-              throw new Error(
+              throw validationError(
                 `Model "${qualifiedName}" has storage.relations.${relName} but no matching domain-level relation`,
+                qualifiedName,
               );
             }
           }
@@ -218,8 +242,9 @@ export const mongoEmission = {
           if (targetModelName) {
             const targetModel = models[targetModelName];
             if (targetModel?.owner === modelName && !storageRelations?.[relName]) {
-              throw new Error(
+              throw validationError(
                 `Model "${qualifiedName}" has embed relation "${relName}" to owned model "${targetModelName}" but no matching storage.relations entry`,
+                qualifiedName,
               );
             }
           }

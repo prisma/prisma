@@ -4,10 +4,10 @@ import type {
   ControlFamilyInstance,
 } from '@prisma-next/framework-components/control';
 import { ok } from '@prisma-next/utils/result';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
 import { defineConfig, type PrismaNextConfig } from '../src/config-types';
 import { validateConfig } from '../src/config-validation';
-import { ConfigValidationError } from '../src/errors';
 
 const mockHook = {
   id: 'sql',
@@ -140,8 +140,8 @@ function expectFieldError(config: unknown, field: string) {
     validateConfig(config);
     throw new Error('expected validateConfig to throw');
   } catch (error) {
-    expect(error).toBeInstanceOf(ConfigValidationError);
-    expect((error as ConfigValidationError).field).toBe(field);
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({ code: 'CONFIG.VALIDATION_FAILED', meta: { field } });
   }
 }
 
@@ -315,9 +315,12 @@ describe('validateConfig', () => {
       validateConfig(createValidRawConfig({ extensionPacks: [] }));
       throw new Error('expected validateConfig to throw');
     } catch (error) {
-      expect(error).toBeInstanceOf(ConfigValidationError);
-      expect((error as ConfigValidationError).field).toBe('extensionPacks');
-      expect((error as ConfigValidationError).message).toContain('rename it to Config.extensions');
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({
+        code: 'CONFIG.VALIDATION_FAILED',
+        meta: { field: 'extensionPacks' },
+      });
+      expect((error as Error).message).toContain('rename it to Config.extensions');
     }
   });
 
@@ -482,19 +485,35 @@ describe('validateConfig', () => {
   });
 });
 
-describe('ConfigValidationError', () => {
+describe('CONFIG.VALIDATION_FAILED structured error', () => {
   it('uses default message when why is omitted', () => {
-    const error = new ConfigValidationError('family');
-    expect(error.field).toBe('family');
-    expect(error.why).toBe('Config must have a "family" field');
-    expect(error.message).toBe('Config must have a "family" field');
+    try {
+      validateConfig({ target: {}, adapter: {} });
+      throw new Error('expected validateConfig to throw');
+    } catch (error) {
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({
+        code: 'CONFIG.VALIDATION_FAILED',
+        message: 'Config must have a "family" field',
+        why: 'Config must have a "family" field',
+        meta: { field: 'family' },
+      });
+    }
   });
 
-  it('uses explicit why when provided', () => {
-    const error = new ConfigValidationError('family', 'Custom reason');
-    expect(error.field).toBe('family');
-    expect(error.why).toBe('Custom reason');
-    expect(error.message).toBe('Custom reason');
+  it('carries the explicit why as message when provided', () => {
+    try {
+      validateConfig('invalid');
+      throw new Error('expected validateConfig to throw');
+    } catch (error) {
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({
+        code: 'CONFIG.VALIDATION_FAILED',
+        message: 'Config must be an object',
+        why: 'Config must be an object',
+        meta: { field: 'object' },
+      });
+    }
   });
 });
 
@@ -554,7 +573,14 @@ describe('defineConfig', () => {
 
   it('throws for invalid top-level shape', () => {
     const invalidConfig = { family: null } as unknown as PrismaNextConfig;
-    expect(() => defineConfig(invalidConfig)).toThrow('Config validation failed');
+    try {
+      defineConfig(invalidConfig);
+      throw new Error('expected defineConfig to throw');
+    } catch (error) {
+      expect(isStructuredError(error)).toBe(true);
+      expect(error).toMatchObject({ code: 'CONFIG.VALIDATION_FAILED' });
+      expect((error as Error).message).toContain('Config validation failed');
+    }
   });
 
   it('validates family create is function', () => {

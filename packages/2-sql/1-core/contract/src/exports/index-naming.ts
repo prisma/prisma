@@ -1,1 +1,6 @@
-export { type AuthoredIndexInput, lowerAuthoredIndex } from '../index-naming';
+export {
+  type AuthoredIndexInput,
+  type ExactNameBodyWarning,
+  flushExactNameBodyWarnings,
+  lowerAuthoredIndex,
+} from '../index-naming';

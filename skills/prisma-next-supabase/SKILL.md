@@ -71,10 +71,6 @@ export default defineConfig({
 The concept: your models live in your namespaces (`public`); Supabase's live in the pack's (`auth`, `storage`). A relation field typed `supabase:auth.AuthUser` is a **cross-space FK** — the planner emits `REFERENCES "auth"."users"("id")`, and the target table is verified, never migrated. RLS policies are top-level `policy_<operation>` blocks in the same namespace as their target model, and the target model must opt in with `@@rls`. Mirror `examples/supabase/src/contract.prisma`:
 
 ```prisma
-types {
-  Uuid = String @db.Uuid
-}
-
 namespace public {
   model Profile {
     id       Uuid   @id @default(uuid())
@@ -109,6 +105,8 @@ namespace public {
   }
 }
 ```
+
+The `Uuid` constructor selects native UUID storage in type position. The legacy `@db.Uuid` spelling is removed; rewrite any `String @db.Uuid` alias or field as `Uuid` before emitting.
 
 The pieces:
 

@@ -16,7 +16,7 @@ Namespaces:
 | `CLI` | Command-line argument and invocation errors |
 | `CONTRACT` | Contract authoring, emission, validation, and the contract↔database relationship (markers, schema verification) |
 | `PSL` | The PSL source text itself (parse/format) |
-| `ORM` | ORM client API misuse |
+| `ORM` | ORM client and query-builder DSL API misuse |
 | `RUNTIME` | Query execution and runtime wiring |
 | `DRIVER` | Database driver connection and protocol failures |
 | `MIGRATION` | Migration authoring, planning, checking, and execution |
@@ -151,7 +151,7 @@ The migration-file CLI (`prisma-next-migration`) received a flag it does not rec
 
 ### CONTRACT.ARGUMENT_INVALID
 
-A builder or helper on the contract-authoring surface is called with a bad argument: a composed authoring helper receives too many arguments or a malformed trailing options object, `field.sql({ id })` / `field.sql({ unique })` is used without a matching inline `.id(...)` / `.unique(...)` declaration, `model("Name", ...)` is called without a model definition, or a nanoid ID generator is given a size outside 2–255. Raised while authoring/building the contract, before emit. Meta: `helperPath`, `expected`, `received`.
+A builder or helper on the contract-authoring surface is called with a bad argument: a composed authoring helper receives too many arguments or a malformed trailing options object, `field.sql({ id })` / `field.sql({ unique })` is used without a matching inline `.id(...)` / `.unique(...)` declaration, `model("Name", ...)` is called without a model definition, a nanoid ID generator is given a size outside 2–255, or an authored index combines its cross-field parameters invalidly (fields and an expression together or neither, an expression without `name:`/`map:`, or `map:` combined with `name:`). Also raised when a contract targets SQLite and declares an expression or partial index — SQLite's namespace construction rejects `expression:`/`where:` because the target does not support them. Raised while authoring/building the contract, before emit. Meta: varies per site.
 
 ### CONTRACT.CODEC_DESCRIPTOR_MISSING
 
@@ -175,7 +175,7 @@ An entity attached to the contract declares a framework-managed namespace entry 
 
 ### CONTRACT.ENTITY_KIND_UNKNOWN
 
-An entity handle passed to the contract has an `entityKind` that no composed pack registers, so the builder cannot lower it. Raised during SQL contract lowering. Meta: `entityKind`.
+An entity handle passed to the contract has an `entityKind` that no composed pack registers, so the builder cannot lower it — or contract entries carry a kind no composed pack recognizes when the framework hydrates entities from an emitted contract. Raised during SQL contract lowering and entity hydration. Meta: `entityKind`.
 
 ### CONTRACT.ENUM_CODEC_NOT_IN_PACK_STACK
 
@@ -188,6 +188,10 @@ An enum declaration is malformed: it has no members, a duplicate member name or 
 ### CONTRACT.ENUM_UNKNOWN
 
 A Mongo field references an enum that is not declared in `defineContract({ enums })`. Raised by the Mongo contract builder. Meta: `modelName`, `fieldName`, `enumName`.
+
+### CONTRACT.EXPORT_INVALID
+
+The TS contract module's export is not a plain JSON-serializable contract object: a non-object export, circular references, getters, or function-valued properties. Raised by the CLI while loading a TypeScript contract source. Meta: `path`, `reason`, `key`.
 
 ### CONTRACT.FIELD_UNKNOWN
 
@@ -305,6 +309,14 @@ A role entity is declared more than once in the entities list, or a role name is
 
 Schema verification found that the live database schema does not satisfy the contract — missing/extra/mismatched tables, columns, or other elements. Produced by `verify`-family CLI operations; the full verification result rides in meta. Fix path: `prisma-next db update` or adjust the contract. Meta: `verificationResult`, `issues`.
 
+### CONTRACT.SOURCE_IMPORT_DISALLOWED
+
+The TypeScript contract module imports something outside the contract-source import allowlist; contract sources must stay pure so they can be bundled and evaluated deterministically. Raised by the CLI while loading a TS contract source. Meta: `allowlist`, `disallowed`.
+
+### CONTRACT.SOURCE_LOAD_FAILED
+
+Bundling or evaluating the TypeScript contract module failed (esbuild bundle error, or the module threw on import). Raised by the CLI while loading a TS contract source; the underlying failure is attached as `cause`. Meta: `path`, `stage` (`bundle` or `import`).
+
 ### CONTRACT.TABLE_AMBIGUOUS
 
 A storage table name resolves in more than one namespace of the contract and needs namespace qualification to disambiguate. Raised whenever a bare table name is resolved against contract storage (authoring and runtime paths). Meta: `tableName`, `candidates`.
@@ -339,6 +351,10 @@ An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds th
 
 ## PSL
 
+### PSL.FORMAT_OPTION_INVALID
+
+`resolveFormatOptions` was given an invalid formatting option — a non-positive/non-integer `indent` or an unrecognized `newline` value. Raised before any PSL source is read. Meta: `option`, `received`.
+
 ### PSL.PARSE_FAILED
 
 `format()` was asked to format PSL source that has parse errors; formatting refuses to run on an unparseable document. The message carries the first diagnostic and a count of the rest; the CLI `format` command wraps this into a structured failure telling the user to fix the parse errors. Meta: `diagnostics`.
@@ -355,15 +371,15 @@ An `aggregate()` or `groupBy().aggregate()` selector is not a valid aggregation 
 
 ### ORM.ARGUMENT_INVALID
 
-A method argument on the ORM client is malformed or missing a required part: a `null` where-arg, `upsert()` without conflict columns or without a create value for a conflict column, or a custom collection registered as an instance / against a nonexistent model in `orm({ collections })`. Meta: `method`, `argument`, `model`, `column`, `key`.
+A method argument on the ORM client — or on the `sql()` / Mongo query-builder DSLs — is malformed or missing a required part: a `null` where-arg, `upsert()` without conflict columns or without a create value for a conflict column, a custom collection registered as an instance / against a nonexistent model in `orm({ collections })`, invalid builder argument shapes, `$and`/`$or` with no expressions, non-integer limit/skip, or malformed lookup/group/update specs. Meta: `method`, `argument`, `model`, `column`, `key`.
 
 ### ORM.CAPABILITY_MISSING
 
-The requested operation requires a contract capability the contract does not declare — currently the `returning` capability needed for mutations that read back the affected row. Meta: `capability`, `action`.
+The requested operation requires a contract capability the contract does not declare — currently the `returning` capability needed for mutations that read back the affected row. Raised by the ORM client and the `sql()` builder. Meta: `capability`, `action`.
 
 ### ORM.COLUMN_UNKNOWN
 
-A mutation payload or where-expression references a column that does not exist on the resolved table. Thrown while compiling the query plan or binding the where clause. Meta: `namespaceId`, `tableName`, `column`.
+A mutation payload or where-expression references a column that does not exist on the resolved table. Thrown while compiling the query plan or binding the where clause — by the ORM client and by the `sql()` builder DSL. Meta: `namespaceId`, `tableName`, `column`.
 
 ### ORM.CURSOR_VALUE_MISSING
 
@@ -599,11 +615,11 @@ A parameterized codec's `paramsSchema` rejected the `typeParams` carried by a co
 
 ### DRIVER.ALREADY_CONNECTED
 
-Calling `connect(binding)` on a driver — or `connect()` on a target facade client (Postgres, SQLite, Mongo) — that is already connected. Close with `close()` before reconnecting with a new binding. Meta: `bindingKind`.
+Calling `connect(binding)` on a driver — or `connect()` on a target facade client (Postgres, SQLite, Mongo) or the CLI control client — that is already connected. Close with `close()` before reconnecting with a new binding. Meta: `bindingKind`.
 
 ### DRIVER.NOT_CONNECTED
 
-Using a driver or a target facade client before `connect(...)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating an execute result.
+Using a driver, a target facade client, or the CLI control client before `connect(...)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating an execute result.
 
 ## MIGRATION
 
@@ -718,6 +734,10 @@ A migration object's `endContract`/`startContract` accessor was read, but the in
 ### MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH
 
 At migration authoring/emit time, a `dataTransform(endContract, …)` produced a query plan whose storage hash does not match the contract passed to `dataTransform` — the query builder was configured with a different contract reference than the migration itself. Make both use the same imported `endContract`. Meta: `dataTransformName`, `expected`, `actual`.
+
+### MIGRATION.DESCRIBE_INVALID
+
+A migration author class's `describe()` result is unusable: it carries neither an `endContractJson` nor an override, or the returned metadata fails validation. Raised while loading/describing an authored migration. Meta: `reason`.
 
 ### MIGRATION.DESCRIPTOR_HEAD_HASH_MISMATCH
 

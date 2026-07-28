@@ -3,8 +3,7 @@
  *
  * Each codec ships as three artifacts:
  *
- * 1. A `PgXCodec` class extending {@link CodecImpl} that wraps the module-level encode/decode/encodeJson/decodeJson constants exported from `codec-helpers.ts` (the single source of truth for non-trivial runtime conversions; trivial identity passthroughs are inlined). 2. A `PgXDescriptor` class extending {@link CodecDescriptorImpl} declaring the codec id, traits, target types, params schema, meta, and (where applicable)
- * the emit-path `renderOutputType`. 3. A per-codec column helper (`pgXColumn`) that calls `descriptor.factory(...)` directly and packages the result into a framework `ColumnSpec` via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor` (and `ColumnHelperForStrict` where the resolved codec type is well-defined).
+ * 1. A `PgXCodec` class extending {@link CodecImpl} that wraps the module-level encode/decode/encodeJson/decodeJson constants exported from `codec-helpers.ts` (the single source of truth for non-trivial runtime conversions; trivial identity passthroughs are inlined). 2. A `PgXDescriptor` class extending {@link PostgresCodecDescriptor} declaring the codec id, traits, target types, params schema, meta, native type, current scalar JSON projection, and (where applicable) the emit-path `renderOutputType`. 3. A per-codec column helper (`pgXColumn`) that calls `descriptor.factory(...)` directly and packages the result into a framework `ColumnSpec` via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor` (and `ColumnHelperForStrict` where the resolved codec type is well-defined).
  *
  * After TML-2357 this is the canonical source of Postgres codec metadata and runtime behaviour — the legacy `mkCodec` / `defineCodec` carriers (and the parallel `byScalar`/`codecDescriptorDefinitions`/ `codecDescriptorList` collection exports) retired with the deletion sweep.
  *
@@ -14,9 +13,7 @@
 
 import type { JsonValue } from '@prisma-next/contract/types';
 import {
-  type AnyCodecDescriptor,
   type CodecCallContext,
-  CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
   type CodecMeta,
@@ -28,6 +25,7 @@ import {
 } from '@prisma-next/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import {
+  type ProjectionExpr,
   SqlCharCodec,
   SqlFloatCodec,
   SqlIntCodec,
@@ -42,6 +40,7 @@ import {
 import { blindCast } from '@prisma-next/utils/casts';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
+import { definePostgresCodecs, PostgresCodecDescriptor, postgresCodec } from './codec-descriptor';
 import {
   pgByteaDecodeJson,
   pgByteaEncodeJson,
@@ -138,6 +137,38 @@ const PG_INTERVAL_META = { db: { sql: { postgres: { nativeType: 'interval' } } }
 const PG_JSON_META = { db: { sql: { postgres: { nativeType: 'json' } } } } as const;
 const PG_JSONB_META = { db: { sql: { postgres: { nativeType: 'jsonb' } } } } as const;
 
+const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
+
+export const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
+  nativeType: () => 'character',
+  jsonProjection: identityJsonProjection,
+});
+
+export const postgresSqlVarcharDescriptor = postgresCodec(sqlVarcharDescriptor, {
+  nativeType: () => 'character varying',
+  jsonProjection: identityJsonProjection,
+});
+
+export const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
+  nativeType: () => 'int4',
+  jsonProjection: identityJsonProjection,
+});
+
+export const postgresSqlFloatDescriptor = postgresCodec(sqlFloatDescriptor, {
+  nativeType: () => 'float8',
+  jsonProjection: identityJsonProjection,
+});
+
+export const postgresSqlTextDescriptor = postgresCodec(sqlTextDescriptor, {
+  nativeType: () => 'text',
+  jsonProjection: identityJsonProjection,
+});
+
+export const postgresSqlTimestampDescriptor = postgresCodec(sqlTimestampDescriptor, {
+  nativeType: () => 'timestamp',
+  jsonProjection: identityJsonProjection,
+});
+
 export class PgTextCodec extends CodecImpl<
   typeof PG_TEXT_CODEC_ID,
   readonly ['equality', 'order', 'textual'],
@@ -158,7 +189,13 @@ export class PgTextCodec extends CodecImpl<
   }
 }
 
-export class PgTextDescriptor extends CodecDescriptorImpl<void> {
+export class PgTextDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_TEXT_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_TEXT_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly targetTypes = ['text'] as const;
@@ -239,7 +276,13 @@ const pgEnumParamsSchema = arktype({
   typeName: 'string',
 }) satisfies StandardSchemaV1<PgEnumParams>;
 
-export class PgEnumDescriptor extends CodecDescriptorImpl<PgEnumParams> {
+export class PgEnumDescriptor extends PostgresCodecDescriptor<PgEnumParams> {
+  protected override nativeType(params: PgEnumParams): string {
+    return params.typeName;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_ENUM_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly targetTypes = ['text'] as const;
@@ -353,7 +396,13 @@ export class PgTextArrayCodec extends CodecImpl<
   }
 }
 
-export class PgTextArrayDescriptor extends CodecDescriptorImpl<void> {
+export class PgTextArrayDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_TEXT_ARRAY_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_TEXT_ARRAY_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['text[]'] as const;
@@ -386,7 +435,13 @@ export class PgInt4Codec extends CodecImpl<
   }
 }
 
-export class PgInt4Descriptor extends CodecDescriptorImpl<void> {
+export class PgInt4Descriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_INT4_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_INT4_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['int4'] as const;
@@ -428,7 +483,13 @@ export class PgInt2Codec extends CodecImpl<
   }
 }
 
-export class PgInt2Descriptor extends CodecDescriptorImpl<void> {
+export class PgInt2Descriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_INT2_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_INT2_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['int2'] as const;
@@ -470,7 +531,13 @@ export class PgInt8Codec extends CodecImpl<
   }
 }
 
-export class PgInt8Descriptor extends CodecDescriptorImpl<void> {
+export class PgInt8Descriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_INT8_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_INT8_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['int8'] as const;
@@ -512,7 +579,13 @@ export class PgFloat4Codec extends CodecImpl<
   }
 }
 
-export class PgFloat4Descriptor extends CodecDescriptorImpl<void> {
+export class PgFloat4Descriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_FLOAT4_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_FLOAT4_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['float4'] as const;
@@ -554,7 +627,13 @@ export class PgFloat8Codec extends CodecImpl<
   }
 }
 
-export class PgFloat8Descriptor extends CodecDescriptorImpl<void> {
+export class PgFloat8Descriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_FLOAT8_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_FLOAT8_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['float8'] as const;
@@ -596,7 +675,13 @@ export class PgBoolCodec extends CodecImpl<
   }
 }
 
-export class PgBoolDescriptor extends CodecDescriptorImpl<void> {
+export class PgBoolDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_BOOL_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_BOOL_CODEC_ID;
   override readonly traits = ['equality', 'boolean'] as const;
   override readonly targetTypes = ['bool'] as const;
@@ -653,7 +738,13 @@ export class PgNumericCodec extends CodecImpl<
   }
 }
 
-export class PgNumericDescriptor extends CodecDescriptorImpl<NumericParams> {
+export class PgNumericDescriptor extends PostgresCodecDescriptor<NumericParams> {
+  protected override nativeType(): string {
+    return PG_NUMERIC_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_NUMERIC_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly targetTypes = ['numeric', 'decimal'] as const;
@@ -701,7 +792,13 @@ export class PgDateCodec extends CodecImpl<
   }
 }
 
-export class PgDateDescriptor extends CodecDescriptorImpl<void> {
+export class PgDateDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_DATE_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_DATE_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['date'] as const;
@@ -740,7 +837,13 @@ export class PgTimestampCodec extends CodecImpl<
   }
 }
 
-export class PgTimestampDescriptor extends CodecDescriptorImpl<PrecisionParams> {
+export class PgTimestampDescriptor extends PostgresCodecDescriptor<PrecisionParams> {
+  protected override nativeType(): string {
+    return PG_TIMESTAMP_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_TIMESTAMP_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['timestamp'] as const;
@@ -783,7 +886,13 @@ export class PgTimestamptzCodec extends CodecImpl<
   }
 }
 
-export class PgTimestamptzDescriptor extends CodecDescriptorImpl<PrecisionParams> {
+export class PgTimestamptzDescriptor extends PostgresCodecDescriptor<PrecisionParams> {
+  protected override nativeType(): string {
+    return PG_TIMESTAMPTZ_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_TIMESTAMPTZ_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['timestamptz'] as const;
@@ -831,7 +940,13 @@ export class PgTimeCodec extends CodecImpl<
   }
 }
 
-export class PgTimeDescriptor extends CodecDescriptorImpl<PrecisionParams> {
+export class PgTimeDescriptor extends PostgresCodecDescriptor<PrecisionParams> {
+  protected override nativeType(): string {
+    return PG_TIME_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_TIME_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['time'] as const;
@@ -874,7 +989,13 @@ export class PgTimetzCodec extends CodecImpl<
   }
 }
 
-export class PgTimetzDescriptor extends CodecDescriptorImpl<PrecisionParams> {
+export class PgTimetzDescriptor extends PostgresCodecDescriptor<PrecisionParams> {
+  protected override nativeType(): string {
+    return PG_TIMETZ_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_TIMETZ_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['timetz'] as const;
@@ -917,7 +1038,13 @@ export class PgBitCodec extends CodecImpl<
   }
 }
 
-export class PgBitDescriptor extends CodecDescriptorImpl<LengthParams> {
+export class PgBitDescriptor extends PostgresCodecDescriptor<LengthParams> {
+  protected override nativeType(): string {
+    return PG_BIT_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_BIT_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['bit'] as const;
@@ -959,7 +1086,13 @@ export class PgVarbitCodec extends CodecImpl<
   }
 }
 
-export class PgVarbitDescriptor extends CodecDescriptorImpl<LengthParams> {
+export class PgVarbitDescriptor extends PostgresCodecDescriptor<LengthParams> {
+  protected override nativeType(): string {
+    return PG_VARBIT_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_VARBIT_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['bit varying'] as const;
@@ -1004,7 +1137,13 @@ export class PgByteaCodec extends CodecImpl<
   }
 }
 
-export class PgByteaDescriptor extends CodecDescriptorImpl<void> {
+export class PgByteaDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_BYTEA_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_BYTEA_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['bytea'] as const;
@@ -1045,7 +1184,13 @@ export class PgUuidCodec extends CodecImpl<
   }
 }
 
-export class PgUuidDescriptor extends CodecDescriptorImpl<void> {
+export class PgUuidDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_UUID_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_UUID_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['uuid'] as const;
@@ -1086,7 +1231,13 @@ export class PgInetCodec extends CodecImpl<
   }
 }
 
-export class PgInetDescriptor extends CodecDescriptorImpl<void> {
+export class PgInetDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_INET_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_INET_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['inet'] as const;
@@ -1125,7 +1276,13 @@ export class PgIntervalCodec extends CodecImpl<
   }
 }
 
-export class PgIntervalDescriptor extends CodecDescriptorImpl<PrecisionParams> {
+export class PgIntervalDescriptor extends PostgresCodecDescriptor<PrecisionParams> {
+  protected override nativeType(): string {
+    return PG_INTERVAL_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_INTERVAL_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly targetTypes = ['interval'] as const;
@@ -1168,7 +1325,13 @@ export class PgJsonCodec extends CodecImpl<
   }
 }
 
-export class PgJsonDescriptor extends CodecDescriptorImpl<void> {
+export class PgJsonDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_JSON_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_JSON_CODEC_ID;
   override readonly traits = [] as const;
   override readonly targetTypes = ['json'] as const;
@@ -1207,7 +1370,13 @@ export class PgJsonbCodec extends CodecImpl<
   }
 }
 
-export class PgJsonbDescriptor extends CodecDescriptorImpl<void> {
+export class PgJsonbDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_JSONB_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_JSONB_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['jsonb'] as const;
@@ -1235,7 +1404,13 @@ const PG_VARCHAR_META = {
 const PG_INT_META = { db: { sql: { postgres: { nativeType: 'integer' } } } } as const;
 const PG_FLOAT_META = { db: { sql: { postgres: { nativeType: 'double precision' } } } } as const;
 
-export class PgCharDescriptor extends CodecDescriptorImpl<LengthParams> {
+export class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
+  protected override nativeType(): string {
+    return PG_CHAR_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_CHAR_CODEC_ID;
   override readonly targetTypes = ['character'] as const;
   override readonly meta = PG_CHAR_META;
@@ -1259,7 +1434,13 @@ export const pgCharColumn = (params: LengthParams = {}) =>
 
 pgCharColumn satisfies ColumnHelperFor<PgCharDescriptor>;
 
-export class PgVarcharDescriptor extends CodecDescriptorImpl<LengthParams> {
+export class PgVarcharDescriptor extends PostgresCodecDescriptor<LengthParams> {
+  protected override nativeType(): string {
+    return PG_VARCHAR_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_VARCHAR_CODEC_ID;
   override readonly targetTypes = ['character varying'] as const;
   override readonly meta = PG_VARCHAR_META;
@@ -1288,7 +1469,13 @@ export const pgVarcharColumn = (params: LengthParams = {}) =>
 
 pgVarcharColumn satisfies ColumnHelperFor<PgVarcharDescriptor>;
 
-export class PgIntDescriptor extends CodecDescriptorImpl<void> {
+export class PgIntDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_INT_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_INT_CODEC_ID;
   override readonly targetTypes = ['int4'] as const;
   override readonly meta = PG_INT_META;
@@ -1309,7 +1496,13 @@ export const pgIntColumn = () =>
 
 pgIntColumn satisfies ColumnHelperFor<PgIntDescriptor>;
 
-export class PgFloatDescriptor extends CodecDescriptorImpl<void> {
+export class PgFloatDescriptor extends PostgresCodecDescriptor<void> {
+  protected override nativeType(): string {
+    return PG_FLOAT_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = PG_FLOAT_CODEC_ID;
   override readonly targetTypes = ['float8'] as const;
   override readonly meta = PG_FLOAT_META;
@@ -1332,13 +1525,13 @@ pgFloatColumn satisfies ColumnHelperFor<PgFloatDescriptor>;
 
 // `ExtractCodecTypes` to derive `CodecTypes`. ---------------------------------------------------------------------------
 
-export const codecDescriptors: readonly AnyCodecDescriptor[] = [
-  sqlCharDescriptor,
-  sqlVarcharDescriptor,
-  sqlIntDescriptor,
-  sqlFloatDescriptor,
-  sqlTextDescriptor,
-  sqlTimestampDescriptor,
+export const codecDescriptors = definePostgresCodecs([
+  postgresSqlCharDescriptor,
+  postgresSqlVarcharDescriptor,
+  postgresSqlIntDescriptor,
+  postgresSqlFloatDescriptor,
+  postgresSqlTextDescriptor,
+  postgresSqlTimestampDescriptor,
   pgTextDescriptor,
   pgEnumDescriptor,
   pgCharDescriptor,
@@ -1367,4 +1560,4 @@ export const codecDescriptors: readonly AnyCodecDescriptor[] = [
   pgJsonDescriptor,
   pgJsonbDescriptor,
   pgTextArrayDescriptor,
-];
+]);

@@ -1,5 +1,4 @@
-import type { Codec, CodecRegistry } from '@prisma-next/framework-components/codec';
-import { emptyCodecLookup } from '@prisma-next/framework-components/codec';
+import type { Codec } from '@prisma-next/framework-components/codec';
 import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
 import {
   CheckExpressionConstraint,
@@ -20,7 +19,7 @@ import { createSqliteAdapter, sqliteRawCodecInferer } from '../src/core/adapter'
 import { createSqliteBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../src/core/control-adapter';
 import { decodeSqliteMarkerRow } from '../src/core/marker-ledger';
-import type { SqliteContract } from '../src/core/types';
+import type { SqliteCodecRegistry, SqliteContract } from '../src/core/types';
 
 const contract = {} as SqliteContract;
 const runtimeAdapter = createSqliteAdapter();
@@ -131,8 +130,8 @@ describe('structured error codes', () => {
       encode: async () => Symbol('wire'),
       decode: async (wire: unknown) => wire,
     } as unknown as Codec;
-    const lookup: CodecRegistry = {
-      ...emptyCodecLookup,
+    const lookup: SqliteCodecRegistry = {
+      ...createSqliteBuiltinCodecLookup(),
       get: (id) => (id === 'test/symbol@1' ? symbolCodec : undefined),
       forCodecRef: () => {
         throw new Error('not used in DDL tests');

@@ -5,6 +5,7 @@
  */
 
 import type { JsonValue } from '@prisma-next/contract/types';
+import { structuredError } from '@prisma-next/utils/structured-error';
 
 export const SQL_CHAR_CODEC_ID = 'sql/char@1' as const;
 export const SQL_VARCHAR_CODEC_ID = 'sql/varchar@1' as const;
@@ -19,8 +20,10 @@ export const sqlCharRenderOutputType = (typeParams: { readonly length?: number }
   const length = typeParams.length;
   if (length === undefined) return undefined;
   if (typeof length !== 'number' || !Number.isFinite(length) || !Number.isInteger(length)) {
-    throw new Error(
+    throw structuredError(
+      'RUNTIME.TYPE_PARAMS_INVALID',
       `renderOutputType: expected integer "length" in typeParams for Char, got ${String(length)}`,
+      { meta: { codec: SQL_CHAR_CODEC_ID, param: 'length', received: String(length) } },
     );
   }
   return `Char<${length}>`;
@@ -32,8 +35,10 @@ export const sqlVarcharRenderOutputType = (typeParams: { readonly length?: numbe
   const length = typeParams.length;
   if (length === undefined) return undefined;
   if (typeof length !== 'number' || !Number.isFinite(length) || !Number.isInteger(length)) {
-    throw new Error(
+    throw structuredError(
+      'RUNTIME.TYPE_PARAMS_INVALID',
       `renderOutputType: expected integer "length" in typeParams for Varchar, got ${String(length)}`,
+      { meta: { codec: SQL_VARCHAR_CODEC_ID, param: 'length', received: String(length) } },
     );
   }
   return `Varchar<${length}>`;
@@ -53,11 +58,19 @@ export const sqlTimestampDecode = (wire: Date): Date => wire;
 export const sqlTimestampEncodeJson = (value: Date): JsonValue => value.toISOString();
 export const sqlTimestampDecodeJson = (json: JsonValue): Date => {
   if (typeof json !== 'string') {
-    throw new Error(`Expected ISO date string for sql/timestamp@1, got ${typeof json}`);
+    throw structuredError(
+      'RUNTIME.DECODE_FAILED',
+      `Expected ISO date string for sql/timestamp@1, got ${typeof json}`,
+      { meta: { codec: SQL_TIMESTAMP_CODEC_ID } },
+    );
   }
   const date = new Date(json);
   if (Number.isNaN(date.getTime())) {
-    throw new Error(`Invalid ISO date string for sql/timestamp@1: ${json}`);
+    throw structuredError(
+      'RUNTIME.DECODE_FAILED',
+      `Invalid ISO date string for sql/timestamp@1: ${json}`,
+      { meta: { codec: SQL_TIMESTAMP_CODEC_ID } },
+    );
   }
   return date;
 };
@@ -71,8 +84,10 @@ export const sqlTimestampRenderOutputType = (typeParams: { readonly precision?: 
     !Number.isFinite(precision) ||
     !Number.isInteger(precision)
   ) {
-    throw new Error(
+    throw structuredError(
+      'RUNTIME.TYPE_PARAMS_INVALID',
       `renderOutputType: expected integer "precision" in typeParams for Timestamp, got ${String(precision)}`,
+      { meta: { codec: SQL_TIMESTAMP_CODEC_ID, param: 'precision', received: String(precision) } },
     );
   }
   return `Timestamp<${precision}>`;

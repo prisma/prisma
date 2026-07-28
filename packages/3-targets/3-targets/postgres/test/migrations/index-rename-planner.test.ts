@@ -209,6 +209,27 @@ describe('phase 1 — hash pairing (prefix-only rename)', () => {
     ]);
   });
 
+  it('a body edit under the same name plans only the create under an additive-only policy', async () => {
+    const contract = buildContract([
+      {
+        name: 'items_email_eq_11111111',
+        prefix: 'items_email_eq',
+        expression: 'eql_v3.eq_term(lower(email))',
+        unique: false,
+      },
+    ]);
+    const schema = actualSchema([
+      {
+        name: 'items_email_eq_00000000',
+        prefix: 'items_email_eq',
+        expression: 'eql_v3.eq_term(email)',
+      },
+    ]);
+
+    const opIds = await planOpIds(contract, schema, ADDITIVE_ONLY_POLICY);
+    expect(opIds).toEqual([`index.${TABLE_NAME}.items_email_eq_11111111`]);
+  });
+
   it('multi-candidate groups pair deterministically by sorted name', async () => {
     const contract = buildContract([
       managedIndex('a_new', 'ab12cd34'),
@@ -278,6 +299,16 @@ describe('phase 2 — content pairing (exact→managed convergence)', () => {
       `dropIndex.${TABLE_NAME}.legacy_email_expr`,
       `index.${TABLE_NAME}.items_email_eq_ab12cd34`,
     ]);
+  });
+
+  it("an authored 'btree' index content-pairs with a typeless live index", async () => {
+    const contract = buildContract([
+      managedIndex('items_email_idx', 'ab12cd34', { type: 'btree' }),
+    ]);
+    const schema = actualSchema([{ name: 'legacy_email_idx', columns: ['email'] }]);
+
+    const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
+    expect(opIds).toEqual([`index.public.${TABLE_NAME}.legacy_email_idx.rename`]);
   });
 
   it('an exact-named missing index never content-pairs (managed only)', async () => {

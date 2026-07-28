@@ -984,24 +984,37 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       if (parsed === undefined) {
         continue;
       }
-      const columnNames = mapFieldNamesToColumns({
-        modelName: model.name,
-        fieldNames: parsed.fields,
-        mapping,
-        sourceId,
-        diagnostics,
-        span: modelAttribute.span,
-        entityLabel: attributeLabel,
-      });
-      if (!columnNames) {
-        continue;
+      let columnNames: readonly string[] | undefined;
+      if (parsed.fields !== undefined) {
+        const mapped = mapFieldNamesToColumns({
+          modelName: model.name,
+          fieldNames: parsed.fields,
+          mapping,
+          sourceId,
+          diagnostics,
+          span: modelAttribute.span,
+          entityLabel: attributeLabel,
+        });
+        if (!mapped) {
+          continue;
+        }
+        columnNames = mapped;
       }
-      indexNodes.push({
-        columns: columnNames,
-        ...ifDefined('map', parsed.map),
-        ...ifDefined('type', parsed.type),
-        ...ifDefined('options', parsed.options),
-      });
+      indexNodes.push(
+        // The interpreter's own diagnostics pre-empt the neither/both
+        // element cases; the cast defers final enforcement to
+        // lowerAuthoredIndex's runtime guard.
+        blindCast<IndexNode, 'columns-xor-expression enforced by lowerAuthoredIndex'>({
+          ...ifDefined('columns', columnNames),
+          ...ifDefined('expression', parsed.expression),
+          where: parsed.where,
+          unique: parsed.unique,
+          name: parsed.name,
+          map: parsed.map,
+          type: parsed.type,
+          options: parsed.options,
+        }),
+      );
       continue;
     }
     const contributedModelAttribute = input.modelAttributesByName.get(modelAttribute.name);

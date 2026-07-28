@@ -2,6 +2,7 @@ import type {
   AnyEntityKindDescriptor,
   EntityKindDescriptor,
 } from '@prisma-next/framework-components/ir';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import { StorageCollectionSchema, StorageValueSetSchema } from './contract-schema';
 import { MongoCollection, type MongoCollectionInput } from './ir/mongo-collection';
 import { MongoValueSet, type MongoValueSetInput } from './ir/mongo-value-set';
@@ -34,7 +35,8 @@ export function composeMongoEntityKinds(
   ]);
   for (const descriptor of packKinds) {
     if (kinds.has(descriptor.kind)) {
-      throw new Error(
+      throw structuredError(
+        'CONTRACT.PACK_CONTRIBUTION_INVALID',
         `composeMongoEntityKinds: duplicate entity kind "${descriptor.kind}" — each kind may be registered only once`,
       );
     }

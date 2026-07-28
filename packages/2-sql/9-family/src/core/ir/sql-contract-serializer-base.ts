@@ -24,6 +24,7 @@ import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
 import type { JsonObject, JsonValue } from '@prisma-next/utils/json';
 import { type Type, type } from 'arktype';
+import { sqlFamilyError } from '../errors';
 
 const NamespaceRawSchema = type({
   id: 'string',
@@ -144,8 +145,14 @@ export abstract class SqlContractSerializerBase<TContract extends Contract<SqlSt
       Object.entries(namespaces).map(([nsId, namespaceEntryRaw]) => {
         const namespaceHydrated = this.hydrateSqlNamespaceEntry(nsId, namespaceEntryRaw);
         if (!isMaterializedSqlNamespace(namespaceHydrated)) {
-          throw new Error(
+          throw sqlFamilyError(
+            'CONTRACT.PACK_CONTRIBUTION_INVALID',
             `Target serializer bug: hydrateSqlNamespaceEntry for namespace "${nsId}" returned a non-NamespaceBase value. Override hydrateSqlNamespaceEntry to produce a target namespace concretion.`,
+            {
+              why: 'The target contract serializer hydrated a namespace into a value that is not a materialized namespace concretion.',
+              fix: 'Fix the target package: its hydrateSqlNamespaceEntry override must return a target namespace concretion.',
+              meta: { namespaceId: nsId },
+            },
           );
         }
         return [nsId, namespaceHydrated];

@@ -113,6 +113,10 @@ export const contract = defineContract({
 
 Pack refs are pure JSON-friendly objects that make TypeScript contract authoring work in both emit and no-emit workflows without requiring separate manifest files.
 
+## Codec descriptor authoring
+
+PostgreSQL-bound codecs use the public `PostgresCodecDescriptor` protocol, `postgresCodec(...)` adapter, and `definePostgresCodecs(...)` tuple helper exported from `@prisma-next/target-postgres/codec-descriptor`. See the [codec authoring guide](../../../../docs/reference/codec-authoring-guide.md#target-owned-sql-codec-descriptors) for subclassing, generic adaptation, stack contribution, validation, array projection, and the current renderer transition.
+
 ## Architecture
 
 This package provides both control and runtime entry points for the Postgres target. All declarative fields (version, capabilities, types, operations) are defined directly on the descriptor, so the published entry points never touch the filesystem. The `./pack` entry point provides a pure pack ref for contract authoring. The runtime entry point will provide target-specific runtime functionality in the future.

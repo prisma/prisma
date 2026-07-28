@@ -1,4 +1,5 @@
 import type { VerifyDatabaseSchemaResult } from '@prisma-next/framework-components/control';
+import { InternalError } from '@prisma-next/utils/internal-error';
 
 /**
  * The combined per-space contract-satisfaction result plus the standalone
@@ -42,7 +43,7 @@ export function combineVerifyResults(
 ): CombinedVerifyResult {
   const appResult = perSpace.get(appSpaceId) ?? perSpace.values().next().value;
   if (appResult === undefined) {
-    throw new Error(
+    throw new InternalError(
       'Aggregate verifier returned no per-space verify results — this is a wiring bug.',
     );
   }

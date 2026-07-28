@@ -7,7 +7,13 @@ import type {
   MigrationPlanOperation,
 } from '@prisma-next/framework-components/control';
 import { type } from 'arktype';
-import { errorInvalidOperationEntry, errorMigrationContractViewMissing } from './errors';
+import {
+  errorDescribeInvalidMetadata,
+  errorDescribeMissingEndContract,
+  errorInvalidOperationEntry,
+  errorMigrationContractViewMissing,
+  errorOperationsNotArray,
+} from './errors';
 import { computeMigrationHash } from './hash';
 import { deriveProvidedInvariants } from './invariants';
 import type { MigrationMetadata } from './metadata';
@@ -118,9 +124,7 @@ export abstract class Migration<
   describe(): MigrationMeta {
     const end = this.endContractJson;
     if (end === undefined) {
-      throw new Error(
-        'Migration.describe(): provide endContractJson or override describe() — a migration needs a destination contract hash.',
-      );
+      throw errorDescribeMissingEndContract();
     }
     return {
       from: this.startContractJson?.storage.storageHash ?? null,
@@ -263,7 +267,7 @@ export async function buildMigrationArtifacts(
 ): Promise<MigrationArtifacts> {
   const rawOps = instance.operations;
   if (!Array.isArray(rawOps)) {
-    throw new Error('operations must be an array');
+    throw errorOperationsNotArray();
   }
   const ops = await Promise.all(rawOps);
 
@@ -277,7 +281,7 @@ export async function buildMigrationArtifacts(
   const rawMeta: unknown = instance.describe();
   const parsed = MigrationMetaSchema(rawMeta);
   if (parsed instanceof type.errors) {
-    throw new Error(`describe() returned invalid metadata: ${parsed.summary}`);
+    throw errorDescribeInvalidMetadata(parsed.summary);
   }
 
   const metadata = buildAttestedMetadata(parsed, ops, existing);

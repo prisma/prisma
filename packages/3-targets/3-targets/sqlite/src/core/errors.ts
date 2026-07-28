@@ -3,6 +3,7 @@ import type { StructuredError, StructuredErrorOptions } from '@prisma-next/utils
 import { structuredError } from '@prisma-next/utils/structured-error';
 
 export type SqliteTargetErrorCode =
+  | 'CONTRACT.ARGUMENT_INVALID'
   | 'CONTRACT.CONSTRAINT_INVALID'
   | 'CONTRACT.DEFAULT_INVALID'
   | 'CONTRACT.IDENTIFIER_INVALID'

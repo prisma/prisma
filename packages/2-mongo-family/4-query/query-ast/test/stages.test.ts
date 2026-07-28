@@ -113,11 +113,11 @@ describe('MongoLimitStage', () => {
   });
 
   it('rejects negative values', () => {
-    expect(() => new MongoLimitStage(-1)).toThrow(RangeError);
+    expect(() => new MongoLimitStage(-1)).toThrow('limit must be a non-negative integer');
   });
 
   it('rejects non-integer values', () => {
-    expect(() => new MongoLimitStage(1.5)).toThrow(RangeError);
+    expect(() => new MongoLimitStage(1.5)).toThrow('limit must be a non-negative integer');
   });
 
   it('is frozen', () => {
@@ -142,11 +142,11 @@ describe('MongoSkipStage', () => {
   });
 
   it('rejects negative values', () => {
-    expect(() => new MongoSkipStage(-1)).toThrow(RangeError);
+    expect(() => new MongoSkipStage(-1)).toThrow('skip must be a non-negative integer');
   });
 
   it('rejects non-integer values', () => {
-    expect(() => new MongoSkipStage(2.5)).toThrow(RangeError);
+    expect(() => new MongoSkipStage(2.5)).toThrow('skip must be a non-negative integer');
   });
 
   it('is frozen', () => {

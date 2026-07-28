@@ -2149,7 +2149,8 @@ export function defineContract(
   >,
 ) {
   if (!isContractScaffold(definition)) {
-    throw new TypeError(
+    throw contractError(
+      'CONTRACT.ARGUMENT_INVALID',
       'defineContract expects a contract definition object. Define your contract with defineContract({ family, target, models, ... }).',
     );
   }

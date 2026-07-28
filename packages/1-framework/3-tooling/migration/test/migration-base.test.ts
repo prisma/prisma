@@ -1,4 +1,5 @@
 import type { ControlStack } from '@prisma-next/framework-components/control';
+import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import type { MigrationMetadata } from '../src/metadata';
 import { buildMigrationArtifacts, Migration } from '../src/migration-base';
@@ -108,14 +109,22 @@ describe('Migration', () => {
       expect(m.origin).toEqual({ storageHash: 'starthash' });
     });
 
-    it('throws a clear error when neither endContractJson nor a describe() override is present', async () => {
+    it('throws MIGRATION.DESCRIBE_INVALID when neither endContractJson nor a describe() override is present', async () => {
       class M extends Migration {
         readonly targetId = 'test';
         override get operations() {
           return [];
         }
       }
-      expect(() => new M().describe()).toThrow(/endContractJson or override describe\(\)/);
+      let thrown: unknown;
+      try {
+        new M().describe();
+      } catch (error) {
+        thrown = error;
+      }
+      expect(isStructuredError(thrown)).toBe(true);
+      expect(thrown).toMatchObject({ code: 'MIGRATION.DESCRIBE_INVALID' });
+      expect((thrown as Error).message).toMatch(/endContractJson or override describe\(\)/);
     });
 
     it('a describe() override still wins over the derived default', async () => {
@@ -247,10 +256,39 @@ describe('buildMigrationArtifacts', () => {
     expect(metadata.migrationHash).toMatch(/^[a-f0-9]{64}$/);
   });
 
-  it('throws when operations is not an array', async () => {
-    await expect(buildMigrationArtifacts(makeMigration('not an array'), null)).rejects.toThrow(
-      /operations/,
+  it('throws MIGRATION.PLAN_NOT_ARRAY when operations is not an array', async () => {
+    const thrown = await buildMigrationArtifacts(makeMigration('not an array'), null).then(
+      () => {
+        throw new Error('expected buildMigrationArtifacts to reject');
+      },
+      (error: unknown) => error,
     );
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({
+      code: 'MIGRATION.PLAN_NOT_ARRAY',
+      message: 'operations must be an array',
+    });
+  });
+
+  it('throws MIGRATION.DESCRIBE_INVALID when describe() returns invalid metadata', async () => {
+    class M extends Migration {
+      readonly targetId = 'test';
+      override get operations(): readonly [] {
+        return [];
+      }
+      override describe() {
+        return { from: 42, to: 'def' } as unknown as ReturnType<Migration['describe']>;
+      }
+    }
+    const thrown = await buildMigrationArtifacts(new M(), null).then(
+      () => {
+        throw new Error('expected buildMigrationArtifacts to reject');
+      },
+      (error: unknown) => error,
+    );
+    expect(isStructuredError(thrown)).toBe(true);
+    expect(thrown).toMatchObject({ code: 'MIGRATION.DESCRIBE_INVALID' });
+    expect((thrown as Error).message).toMatch(/describe\(\) returned invalid metadata/);
   });
 
   it('throws MIGRATION.INVALID_OPERATION_ENTRY when an entry is missing id', async () => {

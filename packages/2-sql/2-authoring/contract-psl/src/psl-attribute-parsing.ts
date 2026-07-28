@@ -17,6 +17,20 @@ export function getAttribute(
   return attributes?.find((attribute) => attribute.name === name);
 }
 
+export function formatDbAttributeMigrationMessage(attribute: ResolvedAttribute): string {
+  const renderedArguments = attribute.args
+    .map((argument) =>
+      argument.kind === 'named' && argument.name !== undefined
+        ? `${argument.name}: ${argument.value}`
+        : argument.value,
+    )
+    .join(', ');
+  const argumentList = attribute.args.length === 0 ? '' : `(${renderedArguments})`;
+  const constructorName = attribute.name.slice('db.'.length);
+
+  return `@${attribute.name}${argumentList} is no longer supported; use ${constructorName}${argumentList} in type position`;
+}
+
 export function getNamedArgument(attribute: ResolvedAttribute, name: string): string | undefined {
   const entry = attribute.args.find((arg) => arg.kind === 'named' && arg.name === name);
   if (entry?.kind !== 'named') {
@@ -48,125 +62,6 @@ export function unquoteStringLiteral(value: string): string {
     return trimmed;
   }
   return match[2] ?? '';
-}
-
-export function getPositionalArguments(attribute: ResolvedAttribute): readonly string[] {
-  return attribute.args
-    .filter((arg) => arg.kind === 'positional')
-    .map((arg) => (arg.kind === 'positional' ? arg.value : ''));
-}
-
-export function pushInvalidAttributeArgument(input: {
-  readonly diagnostics: ContractSourceDiagnostic[];
-  readonly sourceId: string;
-  readonly span: PslSpan;
-  readonly message: string;
-}): undefined {
-  input.diagnostics.push({
-    code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-    message: input.message,
-    sourceId: input.sourceId,
-    span: input.span,
-  });
-  return undefined;
-}
-
-export function parseOptionalSingleIntegerArgument(input: {
-  readonly attribute: ResolvedAttribute;
-  readonly diagnostics: ContractSourceDiagnostic[];
-  readonly sourceId: string;
-  readonly entityLabel: string;
-  readonly minimum: number;
-  readonly valueLabel: string;
-}): number | null | undefined {
-  if (input.attribute.args.some((arg) => arg.kind === 'named')) {
-    return pushInvalidAttributeArgument({
-      diagnostics: input.diagnostics,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-      message: `${input.entityLabel} @${input.attribute.name} accepts zero or one positional integer argument.`,
-    });
-  }
-
-  const positionalArguments = getPositionalArguments(input.attribute);
-  if (positionalArguments.length > 1) {
-    return pushInvalidAttributeArgument({
-      diagnostics: input.diagnostics,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-      message: `${input.entityLabel} @${input.attribute.name} accepts zero or one positional integer argument.`,
-    });
-  }
-  if (positionalArguments.length === 0) {
-    return null;
-  }
-
-  const parsed = Number(unquoteStringLiteral(positionalArguments[0] ?? ''));
-  if (!Number.isInteger(parsed) || parsed < input.minimum) {
-    return pushInvalidAttributeArgument({
-      diagnostics: input.diagnostics,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-      message: `${input.entityLabel} @${input.attribute.name} requires a ${input.valueLabel}.`,
-    });
-  }
-
-  return parsed;
-}
-
-export function parseOptionalNumericArguments(input: {
-  readonly attribute: ResolvedAttribute;
-  readonly diagnostics: ContractSourceDiagnostic[];
-  readonly sourceId: string;
-  readonly entityLabel: string;
-}): { precision: number; scale?: number } | null | undefined {
-  if (input.attribute.args.some((arg) => arg.kind === 'named')) {
-    return pushInvalidAttributeArgument({
-      diagnostics: input.diagnostics,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-      message: `${input.entityLabel} @${input.attribute.name} accepts zero, one, or two positional integer arguments.`,
-    });
-  }
-
-  const positionalArguments = getPositionalArguments(input.attribute);
-  if (positionalArguments.length > 2) {
-    return pushInvalidAttributeArgument({
-      diagnostics: input.diagnostics,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-      message: `${input.entityLabel} @${input.attribute.name} accepts zero, one, or two positional integer arguments.`,
-    });
-  }
-  if (positionalArguments.length === 0) {
-    return null;
-  }
-
-  const precision = Number(unquoteStringLiteral(positionalArguments[0] ?? ''));
-  if (!Number.isInteger(precision) || precision < 1) {
-    return pushInvalidAttributeArgument({
-      diagnostics: input.diagnostics,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-      message: `${input.entityLabel} @${input.attribute.name} requires a positive integer precision.`,
-    });
-  }
-
-  if (positionalArguments.length === 1) {
-    return { precision };
-  }
-
-  const scale = Number(unquoteStringLiteral(positionalArguments[1] ?? ''));
-  if (!Number.isInteger(scale) || scale < 0) {
-    return pushInvalidAttributeArgument({
-      diagnostics: input.diagnostics,
-      sourceId: input.sourceId,
-      span: input.attribute.span,
-      message: `${input.entityLabel} @${input.attribute.name} requires a non-negative integer scale.`,
-    });
-  }
-
-  return { precision, scale };
 }
 
 export function mapFieldNamesToColumns(input: {

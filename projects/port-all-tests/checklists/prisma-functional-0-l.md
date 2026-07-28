@@ -176,67 +176,67 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/composites/list/aggregate.ts
 
-- [ ] `simple` — aggregate with _count and orderBy by contents _count returns { _count: 1 } [providers: mongodb-only]
+- [x] `simple` — aggregate with _count and orderBy by contents _count returns { _count: 1 } [providers: mongodb-only] → non-ported
 
 ### packages/client/tests/functional/composites/list/count.ts
 
-- [ ] `simple` — count with orderBy by contents _count returns 1 [providers: mongodb-only]
+- [x] `simple` — count with orderBy by contents _count returns 1 [providers: mongodb-only] → non-ported
 
 ### packages/client/tests/functional/composites/list/create.ts
 
-- [ ] `set` — create with contents set as list returns snapshot [providers: mongodb-only]
-- [ ] `set shorthand` — create with contents shorthand (no set) returns snapshot [providers: mongodb-only]
-- [x] `set null` — create with contents.set null rejects with `set` must not be null [providers: mongodb-only] → test.fails: ports/prisma/functional/composites-object-create/composites-object-create.test.ts
-- [x] `set null shorthand` — create with contents null rejects with `contents` must not be null [providers: mongodb-only] → test.fails: ports/prisma/functional/composites-object-create/composites-object-create.test.ts
-- [ ] `set nested list` — create with nested upvotes list returns snapshot [providers: mongodb-only]
+- [x] `set` — create with contents set as list returns snapshot [providers: mongodb-only] → test/ports/prisma/functional/composites-list-create/composites-list-create.test.ts
+- [x] `set shorthand` — create with contents shorthand (no set) returns snapshot [providers: mongodb-only] → test/ports/prisma/functional/composites-list-create/composites-list-create.test.ts
+- [x] `set null` — create with contents.set null rejects with `set` must not be null [providers: mongodb-only] → test.fails: test/ports/prisma/functional/composites-list-create/composites-list-create.test.ts
+- [x] `set null shorthand` — create with contents null rejects with `contents` must not be null [providers: mongodb-only] → test.fails: test/ports/prisma/functional/composites-list-create/composites-list-create.test.ts
+- [x] `set nested list` — create with nested upvotes list returns snapshot [providers: mongodb-only] → test/ports/prisma/functional/composites-list-create/composites-list-create.test.ts
 
 ### packages/client/tests/functional/composites/list/createMany.ts
 
-- [ ] `set` — createMany with contents set returns { count: 1 } [providers: mongodb-only]
-- [ ] `set shorthand` — createMany with contents shorthand returns { count: 1 } [providers: mongodb-only]
-- [ ] `set null` — createMany with contents.set null rejects with `set` must not be null [providers: mongodb-only]
-- [ ] `set null shorthand` — createMany with contents null rejects with `contents` must not be null [providers: mongodb-only]
-- [ ] `set nested list` — createMany with nested upvotes list returns { count: 1 } [providers: mongodb-only]
+- [x] `set` — createMany with contents set returns { count: 1 } [providers: mongodb-only] → test/ports/prisma/functional/composites-list-createMany/composites-list-createMany.test.ts
+- [x] `set shorthand` — createMany with contents shorthand returns { count: 1 } [providers: mongodb-only] → test/ports/prisma/functional/composites-list-createMany/composites-list-createMany.test.ts
+- [x] `set null` — createMany with contents.set null rejects with `set` must not be null [providers: mongodb-only] → test.fails: test/ports/prisma/functional/composites-list-createMany/composites-list-createMany.test.ts
+- [x] `set null shorthand` — createMany with contents null rejects with `contents` must not be null [providers: mongodb-only] → test.fails: test/ports/prisma/functional/composites-list-createMany/composites-list-createMany.test.ts
+- [x] `set nested list` — createMany with nested upvotes list returns { count: 1 } [providers: mongodb-only] → test/ports/prisma/functional/composites-list-createMany/composites-list-createMany.test.ts
 
 ### packages/client/tests/functional/composites/list/delete.ts
 
-- [ ] `delete` — delete by id then count is 0 [providers: mongodb-only]
+- [x] `delete` — delete by id then count is 0 [providers: mongodb-only] → test/ports/prisma/functional/composites-list-delete/composites-list-delete.test.ts
 
 ### packages/client/tests/functional/composites/list/deleteMany.ts
 
-- [ ] `delete` — deleteMany by id then count is 0 [providers: mongodb-only]
+- [x] `delete` — deleteMany by id then count is 0 [providers: mongodb-only] → test/ports/prisma/functional/composites-list-deleteMany/composites-list-deleteMany.test.ts
 
 ### packages/client/tests/functional/composites/list/findFirst.ts
 
-- [ ] `simple` — findFirst by id returns full snapshot [providers: mongodb-only]
-- [ ] `select` — findFirst with nested select of contents.text [providers: mongodb-only]
-- [ ] `orderBy` — findFirst with orderBy by contents _count [providers: mongodb-only]
+- [x] `simple` — findFirst by id returns full snapshot [providers: mongodb-only] → test/ports/prisma/functional/composites-list-findFirst/composites-list-findFirst.test.ts
+- [x] `select` — findFirst with nested select of contents.text [providers: mongodb-only] → non-ported
+- [x] `orderBy` — findFirst with orderBy by contents _count [providers: mongodb-only] → non-ported
 
 ### packages/client/tests/functional/composites/list/findMany.ts
 
-- [ ] `simple` — findMany by id returns one record snapshot [providers: mongodb-only]
-- [ ] `select` — findMany with nested select of contents.text [providers: mongodb-only]
-- [ ] `orderBy` — findMany ordered by contents _count desc [providers: mongodb-only]
-- [ ] `filter equals` — findMany filtering contents equals whole list [providers: mongodb-only]
-- [ ] `filter equals shorthand` — findMany filtering contents equals shorthand [providers: mongodb-only]
-- [ ] `filter every` — findMany with contents every upvotes every vote true [providers: mongodb-only]
-- [ ] `filter some` — findMany with contents some upvotes some vote false [providers: mongodb-only]
-- [ ] `filter empty` — findMany with contents some upvotes isEmpty [providers: mongodb-only]
-- [ ] `filter none` — findMany with contents none upvotes isEmpty [providers: mongodb-only]
+- [x] `simple` — findMany by id returns one record snapshot [providers: mongodb-only] → test/ports/prisma/functional/composites-list-findMany/composites-list-findMany.test.ts
+- [x] `select` — findMany with nested select of contents.text [providers: mongodb-only] → non-ported
+- [x] `orderBy` — findMany ordered by contents _count desc [providers: mongodb-only] → non-ported
+- [x] `filter equals` — findMany filtering contents equals whole list [providers: mongodb-only] → test/ports/prisma/functional/composites-list-findMany/composites-list-findMany.test.ts
+- [x] `filter equals shorthand` — findMany filtering contents equals shorthand [providers: mongodb-only] → test/ports/prisma/functional/composites-list-findMany/composites-list-findMany.test.ts
+- [x] `filter every` — findMany with contents every upvotes every vote true [providers: mongodb-only] → non-ported
+- [x] `filter some` — findMany with contents some upvotes some vote false [providers: mongodb-only] → non-ported
+- [x] `filter empty` — findMany with contents some upvotes isEmpty [providers: mongodb-only] → non-ported
+- [x] `filter none` — findMany with contents none upvotes isEmpty [providers: mongodb-only] → non-ported
 
 ### packages/client/tests/functional/composites/list/update.ts
 
-- [ ] `set` — update contents set replaces list [providers: mongodb-only]
-- [ ] `set shorthand` — update contents shorthand replaces list [providers: mongodb-only]
-- [ ] `set null` — update contents.set null rejects with `set` must not be null [providers: mongodb-only]
-- [ ] `set null shorthand` — update contents null rejects with `contents` must not be null [providers: mongodb-only]
-- [ ] `set nested list` — update contents set with nested upvotes list [providers: mongodb-only]
-- [ ] `push` — update contents push appends item [providers: mongodb-only]
-- [ ] `updateMany` — update contents updateMany with where filter [providers: mongodb-only]
-- [ ] `deleteMany` — update contents deleteMany with where filter [providers: mongodb-only]
-- [ ] `unset` — update contents unset rejects with Unknown argument `unset` [providers: mongodb-only]
-- [ ] `upsert set` — update contents upsert rejects with Unknown argument `upsert` [providers: mongodb-only]
-- [ ] `upsert update` — update contents upsert (update variant) rejects with Unknown argument `upsert` [providers: mongodb-only]
+- [x] `set` — update contents set replaces list [providers: mongodb-only] → test/ports/prisma/functional/composites-list-update/composites-list-update.test.ts
+- [x] `set shorthand` — update contents shorthand replaces list [providers: mongodb-only] → test/ports/prisma/functional/composites-list-update/composites-list-update.test.ts
+- [x] `set null` — update contents.set null rejects with `set` must not be null [providers: mongodb-only] → test.fails: test/ports/prisma/functional/composites-list-update/composites-list-update.test.ts
+- [x] `set null shorthand` — update contents null rejects with `contents` must not be null [providers: mongodb-only] → test.fails: test/ports/prisma/functional/composites-list-update/composites-list-update.test.ts
+- [x] `set nested list` — update contents set with nested upvotes list [providers: mongodb-only] → test/ports/prisma/functional/composites-list-update/composites-list-update.test.ts
+- [x] `push` — update contents push appends item [providers: mongodb-only] → test/ports/prisma/functional/composites-list-update/composites-list-update.test.ts
+- [x] `updateMany` — update contents updateMany with where filter [providers: mongodb-only] → non-ported
+- [x] `deleteMany` — update contents deleteMany with where filter [providers: mongodb-only] → non-ported
+- [x] `unset` — update contents unset rejects with Unknown argument `unset` [providers: mongodb-only] → non-ported
+- [x] `upsert set` — update contents upsert rejects with Unknown argument `upsert` [providers: mongodb-only] → non-ported
+- [x] `upsert update` — update contents upsert (update variant) rejects with Unknown argument `upsert` [providers: mongodb-only] → non-ported
 
 ### packages/client/tests/functional/composites/list/updateMany.ts
 
@@ -254,11 +254,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/composites/list/upsert-create.ts
 
-- [ ] `set` — upsert (create path) contents set returns snapshot [providers: mongodb-only]
-- [ ] `set shorthand` — upsert (create path) contents shorthand returns snapshot [providers: mongodb-only]
-- [ ] `set null` — upsert (create path) contents.set null rejects with `set` must not be null [providers: mongodb-only]
-- [ ] `set null shorthand` — upsert (create path) contents null rejects with `contents` must not be null [providers: mongodb-only]
-- [ ] `set nested list` — upsert (create path) contents set nested upvotes returns snapshot [providers: mongodb-only]
+- [x] `set` — upsert (create path) contents set returns snapshot [providers: mongodb-only] → test/ports/prisma/functional/composites-list-upsert-create/composites-list-upsert-create.test.ts
+- [x] `set shorthand` — upsert (create path) contents shorthand returns snapshot [providers: mongodb-only] → test/ports/prisma/functional/composites-list-upsert-create/composites-list-upsert-create.test.ts
+- [x] `set null` — upsert (create path) contents.set null rejects with `set` must not be null [providers: mongodb-only] → test.fails: test/ports/prisma/functional/composites-list-upsert-create/composites-list-upsert-create.test.ts
+- [x] `set null shorthand` — upsert (create path) contents null rejects with `contents` must not be null [providers: mongodb-only] → test.fails: test/ports/prisma/functional/composites-list-upsert-create/composites-list-upsert-create.test.ts
+- [x] `set nested list` — upsert (create path) contents set nested upvotes returns snapshot [providers: mongodb-only] → test/ports/prisma/functional/composites-list-upsert-create/composites-list-upsert-create.test.ts
 
 ### packages/client/tests/functional/composites/list/upsert-update.ts
 
@@ -276,11 +276,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/composites/object/aggregate.ts
 
-- [ ] `aggregate` — aggregate with _count and orderBy by content.upvotes _count returns { _count: 1 } [providers: mongodb-only]
+- [x] `aggregate` — aggregate with _count and orderBy by content.upvotes _count returns { _count: 1 } [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-aggregate/composites-object-aggregate.md): no read-side aggregate() and no nested-composite _count orderBy in mongo ORM
 
 ### packages/client/tests/functional/composites/object/count.ts
 
-- [ ] `count` — count with orderBy by content.upvotes _count returns 1 [providers: mongodb-only]
+- [x] `count` — count with orderBy by content.upvotes _count returns 1 [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-count/composites-object-count.md): no read-side count() and no nested-composite _count orderBy in mongo ORM
 
 ### packages/client/tests/functional/composites/object/create.ts
 
@@ -292,37 +292,37 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/composites/object/createMany.ts
 
-- [ ] `set` — createMany with content set returns { count: 1 } [providers: mongodb-only]
-- [ ] `set shorthand` — createMany with content shorthand returns { count: 1 } [providers: mongodb-only]
-- [ ] `set null` — createMany content.set null: required rejects, optional { count: 1 } (branches on contentProperty) [providers: mongodb-only]
-- [ ] `set null shorthand` — createMany content null: required rejects, optional { count: 1 } (branches on contentProperty) [providers: mongodb-only]
-- [ ] `set nested list` — createMany with content set nested upvotes returns { count: 1 } [providers: mongodb-only]
+- [x] `set` — createMany with content set returns { count: 1 } [providers: mongodb-only] → ports/prisma/functional/composites-object-createMany/composites-object-createMany.test.ts (createCount → 1)
+- [x] `set shorthand` — createMany with content shorthand returns { count: 1 } [providers: mongodb-only] → ports/prisma/functional/composites-object-createMany/composites-object-createMany.test.ts
+- [x] `set null` — createMany content.set null: required rejects, optional { count: 1 } (branches on contentProperty) [providers: mongodb-only] → ports/prisma/functional/composites-object-createMany/composites-object-createMany.test.ts (optional variant ported passing; required-variant is it.fails — type-rejects null but mongo does not throw at runtime, failing.md)
+- [x] `set null shorthand` — createMany content null: required rejects, optional { count: 1 } (branches on contentProperty) [providers: mongodb-only] → ports/prisma/functional/composites-object-createMany/composites-object-createMany.test.ts (optional variant ported passing; required-variant is it.fails, failing.md)
+- [x] `set nested list` — createMany with content set nested upvotes returns { count: 1 } [providers: mongodb-only] → ports/prisma/functional/composites-object-createMany/composites-object-createMany.test.ts
 
 ### packages/client/tests/functional/composites/object/delete.ts
 
-- [ ] `delete` — delete by id then count is 0 [providers: mongodb-only]
+- [x] `delete` — delete by id then count is 0 [providers: mongodb-only] → ports/prisma/functional/composites-object-delete/composites-object-delete.test.ts (post-condition verified via .first() === null; prisma-next has no read-side count())
 
 ### packages/client/tests/functional/composites/object/deleteMany.ts
 
-- [ ] `delete` — deleteMany by id then count is 0 [providers: mongodb-only]
+- [x] `delete` — deleteMany by id then count is 0 [providers: mongodb-only] → ports/prisma/functional/composites-object-deleteMany/composites-object-deleteMany.test.ts (.deleteCount() === 1; absence verified via .first() === null)
 
 ### packages/client/tests/functional/composites/object/findFirst.ts
 
-- [ ] `simple` — findFirst by id returns full snapshot [providers: mongodb-only]
-- [ ] `select` — findFirst with nested select of content.text [providers: mongodb-only]
-- [ ] `orderBy` — findFirst with orderBy by content.upvotes _count [providers: mongodb-only]
-- [ ] `filter isSet` — findFirst with country isSet true returns null [providers: mongodb-only]
+- [x] `simple` — findFirst by id returns full snapshot [providers: mongodb-only] → ports/prisma/functional/composites-object-findFirst/composites-object-findFirst.test.ts (country seeded null to match upstream's omitted→null read)
+- [x] `select` — findFirst with nested select of content.text [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findFirst/composites-object-findFirst.md): mongo ORM select() is top-level only
+- [x] `orderBy` — findFirst with orderBy by content.upvotes _count [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findFirst/composites-object-findFirst.md): no nested-composite _count orderBy
+- [x] `filter isSet` — findFirst with country isSet true returns null [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findFirst/composites-object-findFirst.md): no isSet operator in mongo where
 
 ### packages/client/tests/functional/composites/object/findMany.ts
 
-- [ ] `simple` — findMany by id returns one record snapshot [providers: mongodb-only]
-- [ ] `select` — findMany with nested select of content.text [providers: mongodb-only]
-- [ ] `orderBy` — findMany ordered by content.upvotes _count desc [providers: mongodb-only]
-- [ ] `filter equals` — findMany filtering content equals whole object [providers: mongodb-only]
-- [ ] `filter equals shorthand` — findMany filtering content equals shorthand [providers: mongodb-only]
-- [ ] `filter is` — findMany with content is (OR of text) [providers: mongodb-only]
-- [ ] `filter isNot` — findMany with content isNot text [providers: mongodb-only]
-- [ ] `filter isSet` — findMany with country isSet true [providers: mongodb-only]
+- [x] `simple` — findMany by id returns one record snapshot [providers: mongodb-only] → ports/prisma/functional/composites-object-findMany/composites-object-findMany.test.ts (country seeded null to match upstream's omitted→null read)
+- [x] `select` — findMany with nested select of content.text [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findMany/composites-object-findMany.md): mongo ORM select() is top-level only
+- [x] `orderBy` — findMany ordered by content.upvotes _count desc [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findMany/composites-object-findMany.md): no nested-composite _count orderBy
+- [x] `filter equals` — findMany filtering content equals whole object [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findMany/composites-object-findMany.md): no { equals } operator wrapper (bare-value shorthand is the supported mechanism, ported below)
+- [x] `filter equals shorthand` — findMany filtering content equals shorthand [providers: mongodb-only] → ports/prisma/functional/composites-object-findMany/composites-object-findMany.test.ts (where({ content }) compiles to $eq on the embedded document)
+- [x] `filter is` — findMany with content is (OR of text) [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findMany/composites-object-findMany.md): no `is` composite-relation operator
+- [x] `filter isNot` — findMany with content isNot text [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findMany/composites-object-findMany.md): no `isNot` composite-relation operator
+- [x] `filter isSet` — findMany with country isSet true [providers: mongodb-only] → non-ported (ports/prisma/non-ported/functional/composites-object-findMany/composites-object-findMany.md): no isSet operator in mongo where
 
 ### packages/client/tests/functional/composites/object/update.ts
 
@@ -360,11 +360,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/composites/object/upsert-create.ts
 
-- [ ] `set` — upsert (create path) content set returns snapshot [providers: mongodb-only]
-- [ ] `set shorthand` — upsert (create path) content shorthand returns snapshot [providers: mongodb-only]
-- [ ] `set null` — upsert (create) content.set null: optional returns null, required rejects (branches on contentProperty) [providers: mongodb-only]
-- [ ] `set null shorthand` — upsert (create) content null: optional returns null, required rejects (branches on contentProperty) [providers: mongodb-only]
-- [ ] `set nested list` — upsert (create path) content set nested upvotes returns snapshot [providers: mongodb-only]
+- [x] `set` — upsert (create path) content set returns snapshot [providers: mongodb-only] → ports/prisma/functional/composites-object-upsert-create/composites-object-upsert-create.test.ts (toMatchObject + _id instanceof ObjectId — create-port pattern)
+- [x] `set shorthand` — upsert (create path) content shorthand returns snapshot [providers: mongodb-only] → ports/prisma/functional/composites-object-upsert-create/composites-object-upsert-create.test.ts
+- [x] `set null` — upsert (create) content.set null: optional returns null, required rejects (branches on contentProperty) [providers: mongodb-only] → ports/prisma/functional/composites-object-upsert-create/composites-object-upsert-create.test.ts (optional variant ported passing; required-variant is it.fails — type-rejects null but mongo does not throw, failing.md)
+- [x] `set null shorthand` — upsert (create) content null: optional returns null, required rejects (branches on contentProperty) [providers: mongodb-only] → ports/prisma/functional/composites-object-upsert-create/composites-object-upsert-create.test.ts (optional variant ported passing; required-variant is it.fails, failing.md)
+- [x] `set nested list` — upsert (create path) content set nested upvotes returns snapshot [providers: mongodb-only] → ports/prisma/functional/composites-object-upsert-create/composites-object-upsert-create.test.ts
 
 ### packages/client/tests/functional/composites/object/upsert-update.ts
 

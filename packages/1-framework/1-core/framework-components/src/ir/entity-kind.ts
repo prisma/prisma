@@ -1,5 +1,6 @@
 import { blindCast } from '@prisma-next/utils/casts';
 import type { Type } from 'arktype';
+import { runtimeError } from '../shared/runtime-error';
 
 export interface EntityKindDescriptor<Input, Node> {
   readonly kind: string;
@@ -45,7 +46,8 @@ export function hydrateNamespaceEntities(
     } else if (onUnknown === 'carry') {
       result[kind] = Object.freeze(rawMap);
     } else {
-      throw new Error(
+      throw runtimeError(
+        'CONTRACT.ENTITY_KIND_UNKNOWN',
         `Unknown entries key "${kind}" in namespace "${nsId ?? '?'}"; no hydration factory registered for this entity kind`,
       );
     }

@@ -4,7 +4,7 @@
  * Mirrors the patterns in `postgres/codecs-class.ts` and `sqlite/codecs-class.ts` for the single `pg/vector@1` codec. Three artifacts:
  *
  * 1. `PgVectorCodec` extends {@link CodecImpl} with the runtime encode/decode/encodeJson/decodeJson conversions inline. Conversions are simple enough (PostgreSQL `[1,2,3]` text format) that no shared helper module is warranted; the class body is the source of truth.
- * 2. `PgVectorDescriptor` extends {@link CodecDescriptorImpl} with the codec id, traits, target types, params schema (`{ length: number }`, validated against {@link VECTOR_MAX_DIM}), `meta` (postgres `nativeType: 'vector'`), and the emit-path `renderOutputType` producing `Vector<${length}>`.
+ * 2. `PgVectorDescriptor` extends {@link PostgresCodecDescriptor} with the codec id, traits, target types, params schema (`{ length: number }`, validated against {@link VECTOR_MAX_DIM}), `meta` (postgres `nativeType: 'vector'`), explicit target behavior, and the emit-path `renderOutputType` producing `Vector<${length}>`.
  * 3. `pgVectorColumn(length)` per-codec column helper invoking `descriptor.factory({ length })` directly + passing the bare `nativeType: 'vector'`. The family-layer {@link expandNativeType} hook renders the parameterized form (`vector(1536)`) at emit/verify time from `nativeType` + `typeParams`.
  *
  * `length` threads into the runtime codec via the constructor so encode/decode/encodeJson/decodeJson enforce the declared dimension at every ingress path. Without this, `vector(3)` and `vector(1536)` would produce codecs with identical behaviour and a dimension-mismatched value would round-trip undetected.
@@ -14,14 +14,17 @@ import type { JsonValue } from '@prisma-next/contract/types';
 import {
   type AnyCodecDescriptor,
   type CodecCallContext,
-  CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
   type ColumnHelperFor,
   type ColumnHelperForStrict,
   column,
 } from '@prisma-next/framework-components/codec';
-import type { ExtractCodecTypes } from '@prisma-next/sql-relational-core/ast';
+import type { ExtractCodecTypes, ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
+import {
+  definePostgresCodecs,
+  PostgresCodecDescriptor,
+} from '@prisma-next/target-postgres/codec-descriptor';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { VECTOR_CODEC_ID, VECTOR_MAX_DIM } from './constants';
@@ -147,7 +150,13 @@ export class PgVectorCodec extends CodecImpl<
   }
 }
 
-export class PgVectorDescriptor extends CodecDescriptorImpl<VectorParams> {
+export class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
+  protected override nativeType(): string {
+    return PG_VECTOR_META.db.sql.postgres.nativeType;
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return expression;
+  }
   override readonly codecId = VECTOR_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['vector'] as const;
@@ -180,4 +189,4 @@ const codecDescriptorMap = {
 
 export type CodecTypes = ExtractCodecTypes<typeof codecDescriptorMap>;
 
-export const codecDescriptors: readonly AnyCodecDescriptor[] = Object.values(codecDescriptorMap);
+export const codecDescriptors = definePostgresCodecs(Object.values(codecDescriptorMap));
