@@ -9,15 +9,21 @@
  * and still fails the recorded way, so a projection cannot be brought into
  * agreement without updating this file.
  *
- * This file therefore does not enumerate every codec whose JSON is not yet
- * canonical. Both conformance conditions are stated against the codec's own two
- * methods, so a codec whose `encodeJson` is itself not canonical conforms here:
- * its projection faithfully realizes a representation that is simply not the one
- * the codec ends up with. `pg/bytea@1` (PostgreSQL hex, where the canonical form
- * is base64) and the PostgreSQL temporals are in that position — they conform
- * today and transit through a failing state as their canonical form lands.
- * Which codecs still owe a canonical form is tracked by the plan, not by this
- * file.
+ * A green run is therefore not a claim that every codec's JSON is canonical.
+ * Both conditions are measured against the codec's own two methods, so a codec
+ * whose `encodeJson` is itself not canonical conforms here: its projection
+ * faithfully realizes a representation that is simply not the one the codec ends
+ * up with. Such a codec conforms, then transits through a failing state when its
+ * canonical form lands, then conforms again.
+ *
+ * Which codecs are in that position is deliberately not listed here — that list
+ * lives in the plan, and a copy of it in this header would go stale every time
+ * one of them landed. What this file names is narrower and self-maintaining: the
+ * cases that fail *today*, each carrying its own `notYetCanonical` reason.
+ *
+ * A case is only as good as the boundary it crosses. A value chosen for being
+ * typical is the one least likely to expose a format defect — see the base64
+ * line-break cases below, where the small value could not have caught it.
  */
 
 import type { PostgresCodecConformanceCase } from './harness';
@@ -81,6 +87,18 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
   { codecId: 'pg/bit@1', label: 'single bit', value: '1' },
   { codecId: 'pg/varbit@1', label: 'bit string', value: '1010' },
   { codecId: 'pg/bytea@1', label: 'byte string', value: new Uint8Array([0, 1, 255]) },
+  // RFC 2045 base64 breaks every 76 characters, which is 57 bytes in. A value
+  // has to cross that to show whether the projection carries the break through.
+  {
+    codecId: 'pg/bytea@1',
+    label: 'byte string one past the base64 line break',
+    value: Uint8Array.from({ length: 57 }, (_, index) => index),
+  },
+  {
+    codecId: 'pg/bytea@1',
+    label: 'byte string spanning several base64 line breaks',
+    value: Uint8Array.from({ length: 200 }, (_, index) => (index * 7) % 256),
+  },
   { codecId: 'pg/date@1', label: 'calendar date', value: new Date(Date.UTC(2026, 0, 2)) },
   {
     codecId: 'pg/timestamp@1',

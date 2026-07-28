@@ -9,14 +9,22 @@
  * and still fails the recorded way, so a projection cannot be brought into
  * agreement without updating this file.
  *
- * This file therefore does not enumerate every codec whose JSON is not yet
- * canonical. Both conformance conditions are stated against the codec's own two
- * methods, so a codec whose `encodeJson` is itself not canonical conforms here:
- * its projection faithfully realizes a representation that is simply not the one
- * the codec ends up with. `sqlite/bigint@1` within the safe-integer range is in
- * exactly that position — it conforms today, and transits through a failing
- * state once decimal text becomes its canonical form. Which codecs still owe a
- * canonical form is tracked by the plan, not by this file.
+ * A green run is therefore not a claim that every codec's JSON is canonical.
+ * Both conditions are measured against the codec's own two methods, so a codec
+ * whose `encodeJson` is itself not canonical conforms here: its projection
+ * faithfully realizes a representation that is simply not the one the codec ends
+ * up with. Such a codec conforms, then transits through a failing state when its
+ * canonical form lands, then conforms again.
+ *
+ * Which codecs are in that position is deliberately not listed here — that list
+ * lives in the plan, and a copy of it in this header would go stale every time
+ * one of them landed. What this file names is narrower and self-maintaining: the
+ * cases that fail *today*, each carrying its own `notYetCanonical` reason.
+ *
+ * A case is only as good as the boundary it crosses. A value chosen for being
+ * typical is the one least likely to expose a format defect, so prefer values
+ * that sit just past a representation's limits over values that sit comfortably
+ * inside all of them.
  */
 
 import type { SqliteCodecConformanceCase } from './harness';
