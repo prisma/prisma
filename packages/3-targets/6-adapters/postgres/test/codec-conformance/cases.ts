@@ -172,4 +172,35 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
   },
   { codecId: 'pg/inet@1', label: 'ipv4 address', value: '192.168.0.1' },
   { codecId: 'pg/text-array@1', label: 'string array', value: ['a', 'b'] },
+  {
+    codecId: 'pg/text-array@1',
+    label: 'elements containing array-literal punctuation',
+    value: ['a,b', '{c}', 'd"e', 'f\\g', '', ' h '],
+  },
+  {
+    codecId: 'pg/text@1',
+    label: 'text needing JSON escaping',
+    value: 'quote " backslash \\ newline \n tab \t',
+  },
+  { codecId: 'pg/text@1', label: 'text beyond the basic plane', value: 'a\u{1F600}b' },
+  {
+    codecId: 'pg/varchar@1',
+    label: 'text needing JSON escaping',
+    value: 'quote " backslash \\ newline \n',
+  },
+  { codecId: 'pg/char@1', label: 'character beyond the basic plane', value: '\u{1F600}' },
+  { codecId: 'sql/text@1', label: 'text needing JSON escaping', value: 'quote " backslash \\' },
+  { codecId: 'pg/float4@1', label: 'float not exactly representable', value: 0.1 },
+  { codecId: 'pg/int2@1', label: 'int2 upper bound', value: 32767 },
+  { codecId: 'pg/int2@1', label: 'int2 lower bound', value: -32768 },
+  {
+    codecId: 'pg/jsonb@1',
+    label: 'document whose keys jsonb reorders',
+    value: { zebra: 1, a: 2, mm: 3 },
+  },
+  {
+    codecId: 'pg/json@1',
+    label: 'document with strings needing escaping',
+    value: { 'k"y': 'v\\a"l', nested: ['x\ny'] },
+  },
 ];

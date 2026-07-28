@@ -147,6 +147,15 @@ const PG_INTERVAL_META = { db: { sql: { postgres: { nativeType: 'interval' } } }
 const PG_JSON_META = { db: { sql: { postgres: { nativeType: 'json' } } } } as const;
 const PG_JSONB_META = { db: { sql: { postgres: { nativeType: 'jsonb' } } } } as const;
 
+/**
+ * Projects the expression unchanged, for codecs whose canonical JSON is what
+ * PostgreSQL's own JSON conversion already produces.
+ *
+ * Identity here is a claim about the target's behaviour, not an absence of one:
+ * the codec's conformance cases are what test it, including at the boundaries
+ * of the representation — escaping, sign, and range — where a native conversion
+ * would be most likely to diverge.
+ */
 const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
 
 /**
