@@ -58,6 +58,8 @@ An internal, database-backed harness takes a descriptor, a set of representative
 
 The harness is internal to this slice. Slice 5 promotes its case-runner API into the public dev-only `@prisma-next/postgres-codec-testkit` / `@prisma-next/sqlite-codec-testkit` packages; shaping it here with that promotion in mind is deliberate, but the package boundary is not this slice's problem.
 
+**What the harness's green does not prove.** It exercises a projection inside a flat JSON object over a base table. Derived-table nesting — which slice 4 introduces when it wires renderers, and which is the whole reason SQLite needs retagging — is out of its reach by construction. Slice 4 must bring its own evidence for the nested case and must not read this slice's green as covering it.
+
 ## Coherence rationale
 
 One outcome: every target descriptor states its canonical JSON as SQL, and a database proves it. A reviewer holds one question throughout — "is this codec's projection equal to its `encodeJson`?" — and the harness answers it uniformly for every row of the table. The formats cannot be split from the harness that validates them without shipping unverified format claims, and they cannot be split target-by-target without leaving a reviewer to re-orient across two PRs asking the identical question.
