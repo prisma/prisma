@@ -49,6 +49,7 @@ import {
   SelectAst,
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
+import type { AnyPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
 import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
 import { createContract } from '@prisma-next/test-utils';
 import { ifDefined } from '@prisma-next/utils/defined';
@@ -95,8 +96,13 @@ export interface ExpectedProjectionFailure {
 }
 
 export interface PostgresCodecConformanceCase {
-  /** Codec id resolved against the target's built-in descriptor registry. */
+  /** Codec id, resolved against the target's built-in registry unless `descriptor` is given. */
   readonly codecId: string;
+  /**
+   * Descriptor to project through, for a codec an extension contributes rather
+   * than the target registering. The registry only knows the built-ins.
+   */
+  readonly descriptor?: AnyPostgresCodecDescriptor;
   /** Identifies the value under test within its codec's cases. */
   readonly label: string;
   /** Application-level value handed to `codec.encode` and `codec.encodeJson`. */
@@ -162,10 +168,14 @@ function codecRefOf(conformanceCase: PostgresCodecConformanceCase): CodecRef {
   };
 }
 
-function descriptorFor(codecId: string) {
-  const descriptor = postgresCodecDescriptorRegistry.descriptorFor(codecId);
+function descriptorFor(conformanceCase: PostgresCodecConformanceCase) {
+  const descriptor =
+    conformanceCase.descriptor ??
+    postgresCodecDescriptorRegistry.descriptorFor(conformanceCase.codecId);
   if (descriptor === undefined) {
-    throw new Error(`No built-in PostgreSQL codec descriptor is registered for '${codecId}'.`);
+    throw new Error(
+      `No PostgreSQL codec descriptor for '${conformanceCase.codecId}'; an extension codec must supply one on the case.`,
+    );
   }
   return descriptor;
 }
@@ -175,7 +185,7 @@ function descriptorFor(codecId: string) {
  * document arrives as text and the harness — not the driver — owns the parse.
  */
 export function buildProjectionSql(conformanceCase: PostgresCodecConformanceCase): string {
-  const descriptor = descriptorFor(conformanceCase.codecId);
+  const descriptor = descriptorFor(conformanceCase);
   const projection = descriptor.projectJson(
     ColumnRef.of(STORAGE_TABLE, VALUE_COLUMN),
     codecRefOf(conformanceCase),
@@ -194,7 +204,7 @@ export async function runPostgresCodecProjection(
   connection: ConformanceConnection,
   conformanceCase: PostgresCodecConformanceCase,
 ): Promise<CodecProjectionOutcome> {
-  const descriptor = descriptorFor(conformanceCase.codecId);
+  const descriptor = descriptorFor(conformanceCase);
   const ref = codecRefOf(conformanceCase);
   const params = validateCodecTypeParams(descriptor, ref);
   const codec = descriptor.factory(params)({ name: VALUE_COLUMN });
