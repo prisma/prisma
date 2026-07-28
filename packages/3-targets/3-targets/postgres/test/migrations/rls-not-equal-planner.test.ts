@@ -236,9 +236,11 @@ describe('not-equal policy under non-managed control policies', () => {
     expect(result.warnings).toContainEqual(
       expect.objectContaining({
         kind: 'controlPolicySuppressedCall',
-        summary: expect.stringContaining(`'${control}'`),
+        summary: expect.stringContaining(`RLS policy "${EXACT_NAME}"`),
+        location: expect.objectContaining({ rlsPolicy: EXACT_NAME }),
       }),
     );
+    expect(result.warnings?.[0]?.summary).toContain(`'${control}'`);
   });
 
   it('under tolerated the replacement pair is suppressed as one unit — no orphaned CREATE', async () => {

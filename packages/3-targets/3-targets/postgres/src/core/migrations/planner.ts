@@ -828,15 +828,6 @@ function relationalNamespaceNode(
 }
 
 /**
- * Rebuilds the `PostgresRlsPolicy` contract entity `CreatePostgresRlsPolicyCall`
- * carries (its `renderTypeScript`/`createRlsPolicy` paths serialize the whole
- * entity, `namespaceId` included). This reconstructs rather than looking the
- * original up in the contract on purpose: the diff node's `namespaceId` is the
- * *resolved DDL schema* (set when the expected tree was built), which is the
- * value the emitted op must carry; the contract-stored entity holds the raw,
- * pre-resolution coordinate, so a lookup would change the migration output.
- */
-/**
  * A drifted exact-named policy's repair: DROP then CREATE under ONE
  * physical name. The two calls are one unit — splitting them (suppressing
  * the drop, keeping the create) yields a plan whose create fails its own
@@ -899,6 +890,15 @@ function gradePolicyReplacement(
   return { disposition: 'plan' };
 }
 
+/**
+ * Rebuilds the `PostgresRlsPolicy` contract entity `CreatePostgresRlsPolicyCall`
+ * carries (its `renderTypeScript`/`createRlsPolicy` paths serialize the whole
+ * entity, `namespaceId` included). This reconstructs rather than looking the
+ * original up in the contract on purpose: the diff node's `namespaceId` is the
+ * *resolved DDL schema* (set when the expected tree was built), which is the
+ * value the emitted op must carry; the contract-stored entity holds the raw,
+ * pre-resolution coordinate, so a lookup would change the migration output.
+ */
 function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
     name: node.name,

@@ -13,27 +13,8 @@ import type {
   AuthoringTypeNamespace,
   PslExtensionBlock,
 } from '@prisma-next/framework-components/authoring';
-import type { ContributedPslDiagnosticCode } from '@prisma-next/framework-components/psl-ast';
-
-// Contributed diagnostic codes, declared once as typed consts — the
-// `ContributedPslDiagnosticCode` type is the only thing enforcing the
-// `PSL_` prefix convention, so the declared-const form (the
-// `sql-attribute-specs.ts` convention) is the settled spelling for pack
-// codes; inline string literals bypass it.
-const PSL_RLS_PREDICATE_NOT_FOR_OPERATION: ContributedPslDiagnosticCode =
-  'PSL_RLS_PREDICATE_NOT_FOR_OPERATION';
-const PSL_POLICY_INVALID_MAP: ContributedPslDiagnosticCode = 'PSL_POLICY_INVALID_MAP';
-const PSL_NATIVE_ENUM_INVALID_MAP: ContributedPslDiagnosticCode = 'PSL_NATIVE_ENUM_INVALID_MAP';
-const PSL_NATIVE_ENUM_BARE_MEMBER: ContributedPslDiagnosticCode = 'PSL_NATIVE_ENUM_BARE_MEMBER';
-const PSL_EXTENSION_INVALID_VALUE: ContributedPslDiagnosticCode = 'PSL_EXTENSION_INVALID_VALUE';
-const PSL_NATIVE_ENUM_DUPLICATE_MEMBER_VALUE: ContributedPslDiagnosticCode =
-  'PSL_NATIVE_ENUM_DUPLICATE_MEMBER_VALUE';
-const PSL_NATIVE_ENUM_MISSING_MEMBERS: ContributedPslDiagnosticCode =
-  'PSL_NATIVE_ENUM_MISSING_MEMBERS';
-const PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE: ContributedPslDiagnosticCode =
-  'PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE';
-
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { ContributedPslDiagnosticCode } from '@prisma-next/framework-components/psl-ast';
 import { modelAttribute } from '@prisma-next/psl-parser';
 import type {
   EntityHandleLoweringInput,
@@ -64,6 +45,24 @@ import {
   PostgresRoleSchema,
 } from './postgres-validators';
 import { computeContentHash, POLICY_OPERATION_PREDICATES } from './rls/canonicalize';
+
+// Contributed diagnostic codes, declared once as typed consts — the
+// `ContributedPslDiagnosticCode` type is the only thing enforcing the
+// `PSL_` prefix convention, so the declared-const form (the
+// `sql-attribute-specs.ts` convention) is the settled spelling for pack
+// codes; inline string literals bypass it.
+const PSL_RLS_PREDICATE_NOT_FOR_OPERATION: ContributedPslDiagnosticCode =
+  'PSL_RLS_PREDICATE_NOT_FOR_OPERATION';
+const PSL_POLICY_INVALID_MAP: ContributedPslDiagnosticCode = 'PSL_POLICY_INVALID_MAP';
+const PSL_NATIVE_ENUM_INVALID_MAP: ContributedPslDiagnosticCode = 'PSL_NATIVE_ENUM_INVALID_MAP';
+const PSL_NATIVE_ENUM_BARE_MEMBER: ContributedPslDiagnosticCode = 'PSL_NATIVE_ENUM_BARE_MEMBER';
+const PSL_EXTENSION_INVALID_VALUE: ContributedPslDiagnosticCode = 'PSL_EXTENSION_INVALID_VALUE';
+const PSL_NATIVE_ENUM_DUPLICATE_MEMBER_VALUE: ContributedPslDiagnosticCode =
+  'PSL_NATIVE_ENUM_DUPLICATE_MEMBER_VALUE';
+const PSL_NATIVE_ENUM_MISSING_MEMBERS: ContributedPslDiagnosticCode =
+  'PSL_NATIVE_ENUM_MISSING_MEMBERS';
+const PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE: ContributedPslDiagnosticCode =
+  'PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE';
 
 /**
  * `pg.enum(<ref>)` registers as an ordinary type constructor whose sole
