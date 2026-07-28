@@ -541,12 +541,55 @@
     <span class="reqno">Requirement 6</span>
     <span class="owner" style="margin-left: 8px;">Everyone</span>
     <h2>The rough edges users hit on day one must be gone</h2>
-    <p class="soft">None of these block anything technically. All of them are what a skeptical engineer meets in their first hour, under announcement-day attention.</p>
+    <p class="soft">None of these block anything technically. All of them are what a skeptical engineer meets in their first hour, under announcement-day attention. The items marked <em>verified July 28</em> are dogfooding gotchas that were re-checked against <code>main</code> on July 28 and confirmed still present — and the migration-tooling ones among them risk real data loss, not just embarrassment.</p>
 
     <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">A dropped database connection can crash the host process</span><span class="pill open">Open</span></summary>
       <div class="body">
         <p>When an idle pooled connection drops (a database restart, a network blip), the error has no listener attached and crashes the whole Node.js process. A production-readiness bug, not housekeeping — fixed before anyone's production meets it. (<a href="https://linear.app/prisma-company/issue/TML-2655">TML-2655</a>)</p>
+        <p>Re-verified July 28: both places that build a <code>pg.Pool</code> from a <code>url</code> binding still attach no <code>'error'</code> handler, and the <code>db.ts</code> that <code>prisma-next init</code> scaffolds still uses exactly that path — so every scaffolded app deployed behind a connection pooler is exposed. A production app on Prisma Compute already hit this; the whole process died on each idle-connection drop. (<a href="https://linear.app/prisma-company/issue/TML-2842">TML-2842</a>)</p>
+      </div>
+    </details>
+
+    <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t"><code>migration plan</code> can silently generate a destructive baseline</span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p><em>Verified July 28 · data-loss risk.</em> With no <code>--from</code>, <code>migration plan</code> picks its origin from the refs index, not from the latest on-disk migration — and a ref pointing at a non-tip node is explicitly accepted, with no warning. On an empty migration graph it auto-writes a <code>baseline</code> package anchored at whatever the ref says, so a stale or destination-pointing ref yields a plan containing operations like <code>dropTable</code> toward origin. There is no dirty-ref detection and no baseline-specific destructive-operation warning, only the generic per-op <code>(destructive)</code> marker at render time. (<a href="https://linear.app/prisma-company/issue/TML-3097">TML-3097</a>)</p>
+      </div>
+    </details>
+
+    <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t"><code>migration new --from &lt;hash&gt;</code> silently records <code>from: null</code></span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p><em>Verified July 28.</em> When the app's migrations directory is empty, the entire <code>--from</code> resolution is skipped: the flag is accepted, the scaffolded package records <code>from: null</code>, and nothing warns that the supplied hash was ignored. On a non-empty graph the flag works (and a bad hash errors properly) — the silent path is exactly the first-migration case. (<a href="https://linear.app/prisma-company/issue/TML-3096">TML-3096</a>)</p>
+      </div>
+    </details>
+
+    <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">A corrupted contract snapshot loads without complaint</span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p><em>Verified July 28.</em> No code path recomputes a loaded snapshot's storage hash and compares it to the persisted value. The snapshot store reads with a plain <code>JSON.parse</code>, the deserializer copies <code>storageHash</code> through untouched, and the migration-check codes only string-compare hash <em>fields</em> against each other. Hand-edit a snapshot's content while leaving its <code>storageHash</code> field alone and <code>migration plan</code> reports a clean <code>noOp: true</code>. The one existing recompute helper (<code>assertDescriptorSelfConsistency</code>) runs only on in-memory extension descriptors, never on disk loads. (<a href="https://linear.app/prisma-company/issue/TML-2566">TML-2566</a>)</p>
+      </div>
+    </details>
+
+    <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t"><code>.delete()</code> with a multi-row predicate deletes exactly one row</span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p><em>Verified July 28.</em> <code>.where({id: q.in([1,2,3])}).delete()</code> type-checks, deletes one row, and returns it. The single-row scoping is deliberate and test-pinned, and multi-row forms exist (<code>deleteAll()</code>, <code>deleteAndCount()</code>) — but nothing in the type system stops a multi-row predicate on <code>.delete()</code>, and the doc comment ("delete matching rows and return the first deleted row") reads as if it batches. A user who meant to delete three rows silently keeps two. Either the types constrain the predicate, or the name/docs make the one-row semantics impossible to miss. (<a href="https://linear.app/prisma-company/issue/TML-3093">TML-3093</a>)</p>
+      </div>
+    </details>
+
+    <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">PSL <code>Json</code> is Postgres <code>json</code>; Prisma 7's <code>Json</code> is <code>jsonb</code></span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p><em>Verified July 28.</em> Anyone porting a <code>schema.prisma</code> keeps writing <code>Json</code> and silently gets <code>json</code> columns where Prisma 7 gave them <code>jsonb</code>. Emit and check both pass; only <code>db verify</code> catches it, and it caught a real project three wrong columns late. The PSL diagnostic model currently has no warning severity to hang a "did you mean <code>Jsonb</code>?" advisory on, and the divergence is documented only in Prisma-Next-internal upgrade recipes, not in porting guidance. An emit-time warning or an explicit porting-docs callout must exist before day one, because day one is exactly when the ported schemas arrive. (<a href="https://linear.app/prisma-company/issue/TML-3102">TML-3102</a>)</p>
+      </div>
+    </details>
+
+    <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t"><code>prisma-next init --no-skill</code> deletes an installed agent-skill file</span><span class="pill open">Open</span></summary>
+      <div class="body">
+        <p><em>Verified July 28.</em> Init queues deletion of <code>.agents/skills/prisma-next/SKILL.md</code> unconditionally as "legacy cleanup" — the same path a genuinely installed router skill occupies. In the default run the subsequent skill install masks the delete by rewriting the file; with <code>--no-skill</code> the install never runs, so init destroys the user's installed skill and reports it only in the JSON <code>filesDeleted</code> list. (<a href="https://linear.app/prisma-company/issue/TML-2637">TML-2637</a>)</p>
       </div>
     </details>
 

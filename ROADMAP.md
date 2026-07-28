@@ -218,11 +218,43 @@ Prisma 7's code, tests, and release automation move to a `v7` branch in prisma/p
 
 ## 6. The rough edges users hit on day one must be gone
 
-None of these block anything technically. All of them are what a skeptical engineer meets in their first hour, under announcement-day attention.
+None of these block anything technically. All of them are what a skeptical engineer meets in their first hour, under announcement-day attention. The items marked *verified July 28* are dogfooding gotchas that were re-checked against `main` on July 28 and confirmed still present — and the migration-tooling ones among them risk real data loss, not just embarrassment.
 
-<details><summary>⬜ <b>A dropped database connection can crash the host process</b></summary>
+<details><summary>⬜ <b>A dropped database connection can crash the host process</b> · verified July 28</summary>
 
 When an idle pooled connection drops (a database restart, a network blip), the error has no listener attached and crashes the whole Node.js process. A production-readiness bug, not housekeeping — fixed before anyone's production meets it. ([TML-2655](https://linear.app/prisma-company/issue/TML-2655))
+
+Re-verified July 28: both places that build a `pg.Pool` from a `url` binding still attach no `'error'` handler, and the `db.ts` that `prisma-next init` scaffolds still uses exactly that path — so every scaffolded app deployed behind a connection pooler is exposed. A production app on Prisma Compute already hit this; the whole process died on each idle-connection drop. ([TML-2842](https://linear.app/prisma-company/issue/TML-2842))
+</details>
+
+<details><summary>⬜ <b>`migration plan` can silently generate a destructive baseline</b> · verified July 28 · data-loss risk</summary>
+
+With no `--from`, `migration plan` picks its origin from the refs index, not from the latest on-disk migration — and a ref pointing at a non-tip node is explicitly accepted, with no warning. On an empty migration graph it auto-writes a `baseline` package anchored at whatever the ref says, so a stale or destination-pointing ref yields a plan containing operations like `dropTable` toward origin. There is no dirty-ref detection and no baseline-specific destructive-operation warning, only the generic per-op `(destructive)` marker at render time. ([TML-3097](https://linear.app/prisma-company/issue/TML-3097))
+</details>
+
+<details><summary>⬜ <b>`migration new --from <hash>` silently records `from: null`</b> · verified July 28</summary>
+
+When the app's migrations directory is empty, the entire `--from` resolution is skipped: the flag is accepted, the scaffolded package records `from: null`, and nothing warns that the supplied hash was ignored. On a non-empty graph the flag works (and a bad hash errors properly) — the silent path is exactly the first-migration case. ([TML-3096](https://linear.app/prisma-company/issue/TML-3096))
+</details>
+
+<details><summary>⬜ <b>A corrupted contract snapshot loads without complaint</b> · verified July 28</summary>
+
+No code path recomputes a loaded snapshot's storage hash and compares it to the persisted value. The snapshot store reads with a plain `JSON.parse`, the deserializer copies `storageHash` through untouched, and the migration-check codes only string-compare hash *fields* against each other. Hand-edit a snapshot's content while leaving its `storageHash` field alone and `migration plan` reports a clean `noOp: true`. The one existing recompute helper (`assertDescriptorSelfConsistency`) runs only on in-memory extension descriptors, never on disk loads. ([TML-2566](https://linear.app/prisma-company/issue/TML-2566))
+</details>
+
+<details><summary>⬜ <b>`.delete()` with a multi-row predicate deletes exactly one row</b> · verified July 28</summary>
+
+`.where({id: q.in([1,2,3])}).delete()` type-checks, deletes one row, and returns it. The single-row scoping is deliberate and test-pinned, and multi-row forms exist (`deleteAll()`, `deleteAndCount()`) — but nothing in the type system stops a multi-row predicate on `.delete()`, and the doc comment ("delete matching rows and return the first deleted row") reads as if it batches. A user who meant to delete three rows silently keeps two. Either the types constrain the predicate, or the name/docs make the one-row semantics impossible to miss. ([TML-3093](https://linear.app/prisma-company/issue/TML-3093))
+</details>
+
+<details><summary>⬜ <b>PSL `Json` is Postgres `json`; Prisma 7's `Json` is `jsonb`</b> · verified July 28</summary>
+
+Anyone porting a `schema.prisma` keeps writing `Json` and silently gets `json` columns where Prisma 7 gave them `jsonb`. Emit and check both pass; only `db verify` catches it, and it caught a real project three wrong columns late. The PSL diagnostic model currently has no warning severity to hang a "did you mean `Jsonb`?" advisory on, and the divergence is documented only in Prisma-Next-internal upgrade recipes, not in porting guidance. An emit-time warning or an explicit porting-docs callout must exist before day one, because day one is exactly when the ported schemas arrive. ([TML-3102](https://linear.app/prisma-company/issue/TML-3102))
+</details>
+
+<details><summary>⬜ <b>`prisma-next init --no-skill` deletes an installed agent-skill file</b> · verified July 28</summary>
+
+Init queues deletion of `.agents/skills/prisma-next/SKILL.md` unconditionally as "legacy cleanup" — the same path a genuinely installed router skill occupies. In the default run the subsequent skill install masks the delete by rewriting the file; with `--no-skill` the install never runs, so init destroys the user's installed skill and reports it only in the JSON `filesDeleted` list. ([TML-2637](https://linear.app/prisma-company/issue/TML-2637))
 </details>
 
 <details><summary>⬜ <b>A deprecation warning prints on every single database connection</b></summary>
