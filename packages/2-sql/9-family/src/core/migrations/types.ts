@@ -276,7 +276,7 @@ export type SqlPlannerConflictKind =
   | 'typeMismatch'
   | 'nullabilityConflict'
   | 'indexIncompatible'
-  | 'policyIncompatible'
+  | 'rlsPolicyIncompatible'
   | 'foreignKeyConflict'
   | 'missingButNonAdditive'
   | 'unsupportedOperation'
@@ -289,7 +289,7 @@ export interface SqlPlannerConflictLocation {
   readonly column?: string;
   readonly index?: string;
   readonly constraint?: string;
-  readonly policy?: string;
+  readonly rlsPolicy?: string;
 }
 
 export interface SqlPlannerConflict extends MigrationPlannerConflict {

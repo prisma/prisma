@@ -210,9 +210,9 @@ describe.sequential('out-of-band body drift on an exact-named policy', () => {
     if (result.kind !== 'failure') return;
     expect(result.conflicts).toContainEqual(
       expect.objectContaining({
-        kind: 'policyIncompatible',
+        kind: 'rlsPolicyIncompatible',
         summary: expect.stringContaining(EXACT_NAME),
-        location: expect.objectContaining({ policy: EXACT_NAME }),
+        location: expect.objectContaining({ rlsPolicy: EXACT_NAME }),
       }),
     );
   });

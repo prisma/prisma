@@ -179,12 +179,12 @@ describe('not-equal policy issue (exact-mode content drift)', () => {
     if (result.kind !== 'failure') return;
     expect(result.conflicts).toContainEqual(
       expect.objectContaining({
-        kind: 'policyIncompatible',
+        kind: 'rlsPolicyIncompatible',
         summary: expect.stringContaining(EXACT_NAME),
         location: expect.objectContaining({
           entityKind: 'table',
           entityName: TABLE_NAME,
-          policy: EXACT_NAME,
+          rlsPolicy: EXACT_NAME,
         }),
       }),
     );
@@ -213,7 +213,7 @@ describe('not-equal policy issue (exact-mode content drift)', () => {
     );
     expect(result.conflicts).toContainEqual(
       expect.objectContaining({
-        kind: 'policyIncompatible',
+        kind: 'rlsPolicyIncompatible',
         summary: expect.stringContaining(EXACT_NAME),
       }),
     );
@@ -253,9 +253,26 @@ describe('not-equal policy under non-managed control policies', () => {
     expect(result.warnings).toContainEqual(
       expect.objectContaining({
         kind: 'controlPolicySuppressedCall',
-        summary: expect.stringContaining("'tolerated'"),
+        summary: expect.stringContaining(`RLS policy "${EXACT_NAME}"`),
+        location: expect.objectContaining({ rlsPolicy: EXACT_NAME }),
       }),
     );
+  });
+
+  it('a suppressed relational change and a suppressed policy replacement on one table are two distinguishable warnings', async () => {
+    const contract = buildContract(exactPolicy('(tenant_id = 1)'), 'tolerated');
+    const schema = actualSchema(exactPolicy('(tenant_id = 2)'), { extraColumn: true });
+
+    const result = plan(contract, schema, ALL_CLASSES_POLICY);
+    expect(result.kind).toBe('success');
+    if (result.kind !== 'success') return;
+    const suppressions = (result.warnings ?? []).filter(
+      (w) => w.kind === 'controlPolicySuppressedCall',
+    );
+    expect(suppressions).toHaveLength(2);
+    const summaries = suppressions.map((w) => w.summary);
+    expect(summaries.filter((x) => x.includes(`RLS policy "${EXACT_NAME}"`))).toHaveLength(1);
+    expect(new Set(summaries).size).toBe(2);
   });
 
   it('tolerated drift without the destructive allowance is still a suppression, not a conflict', async () => {

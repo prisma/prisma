@@ -254,7 +254,7 @@ function conflictKindForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['k
     case 'createRlsPolicy':
     case 'dropRlsPolicy':
     case 'renameRlsPolicy':
-      return 'policyIncompatible';
+      return 'rlsPolicyIncompatible';
     default:
       return 'missingButNonAdditive';
   }
@@ -281,7 +281,7 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
     column?: string;
     index?: string;
     constraint?: string;
-    policy?: string;
+    rlsPolicy?: string;
   } = {};
   if (anyCall.tableName) {
     location.entityKind = 'table';
@@ -298,9 +298,9 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
   if (anyCall.constraintName) location.constraint = anyCall.constraintName;
   // Same convention as indexes: a rename call's NEW name is the policy's
   // contract-side identity.
-  if (anyCall.policyName) location.policy = anyCall.policyName;
-  else if (anyCall.policy?.name) location.policy = anyCall.policy.name;
-  else if (anyCall.newPolicyName) location.policy = anyCall.newPolicyName;
+  if (anyCall.policyName) location.rlsPolicy = anyCall.policyName;
+  else if (anyCall.policy?.name) location.rlsPolicy = anyCall.policy.name;
+  else if (anyCall.newPolicyName) location.rlsPolicy = anyCall.newPolicyName;
   return Object.keys(location).length > 0 ? (location as SqlPlannerConflictLocation) : undefined;
 }
 

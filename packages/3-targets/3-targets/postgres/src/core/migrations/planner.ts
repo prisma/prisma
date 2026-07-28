@@ -17,6 +17,7 @@ import {
 import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
 import type {
+  MigrationOperationClass,
   MigrationPlanner,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
@@ -352,13 +353,25 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       ...schemaDiffPartition.kept,
       ...fieldEventPartition.kept,
     ];
+    // Byte-identical suppression warnings (the same subject suppressed by
+    // more than one partition) collapse to one; distinct subjects — e.g. a
+    // table-level suppression beside a policy-level one naming its
+    // rlsPolicy — stay separate.
+    const seenWarnings = new Set<string>();
     const warnings: SqlPlannerConflict[] = [
       ...issuePartition.suppressions,
       ...indexRenamePartition.suppressions,
       ...schemaDiff.suppressions,
       ...schemaDiffPartition.suppressions,
       ...fieldEventPartition.suppressions,
-    ].map((record) => renderPostgresSuppression(record, options.contract));
+    ]
+      .map((record) => renderPostgresSuppression(record, options.contract))
+      .filter((warning) => {
+        const key = JSON.stringify(warning);
+        if (seenWarnings.has(key)) return false;
+        seenWarnings.add(key);
+        return true;
+      });
 
     return Object.freeze({
       kind: 'success' as const,
@@ -667,48 +680,37 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       }
     }
 
-    // A changed (not-equal) policy is replaced under its own name: the drop
-    // must precede the create (CREATE POLICY collides on the live name) and
-    // is destructive-class, so without that allowance the whole replacement
-    // surfaces as a disallowed-call conflict instead of a half-applied plan.
-    //
-    // The pair is graded through the table's control policy as ONE unit
-    // BEFORE it becomes calls or a conflict: the two calls share the drifted
-    // policy's physical name, so per-call partitioning could suppress the
-    // drop and keep the create (which then fails apply on its own
-    // "does not exist" precheck). Any non-managed control (external,
-    // observed, tolerated) suppresses the whole replacement — drift on an
-    // object the plan does not manage is reported, never repaired — and a
-    // drifted policy on such a table must not fail the plan either.
+    // A changed (not-equal) policy is repaired as a PolicyReplacement —
+    // DROP then CREATE under one physical name, graded as one unit by
+    // gradePolicyReplacement before it becomes calls or a conflict.
     for (const finding of changed) {
-      const drop = new DropPostgresRlsPolicyCall(
-        finding.schemaForTable,
-        finding.node.tableName,
-        finding.node.name,
-      );
-      const subject = resolvePostgresCallControlPolicySubject(drop, options.contract);
-      const controlPolicy = controlPolicyForCall(subject, options.contract.defaultControlPolicy);
-      if (controlPolicy !== 'managed') {
-        suppressions.push({
-          subject,
-          policy: controlPolicy,
-          factoryName: undefined,
-          createsNewObject: false,
-        });
-        continue;
-      }
-      if (!allowsDestructive) {
-        conflicts.push(conflictForDisallowedCall(drop, options.policy.allowedOperationClasses));
-        continue;
-      }
-      calls.push(drop);
-      calls.push(
-        new CreatePostgresRlsPolicyCall(
+      const replacement: PolicyReplacement = {
+        drop: new DropPostgresRlsPolicyCall(
+          finding.schemaForTable,
+          finding.node.tableName,
+          finding.node.name,
+        ),
+        create: new CreatePostgresRlsPolicyCall(
           finding.schemaForTable,
           finding.node.tableName,
           policyNodeToContractPolicy(finding.node),
         ),
+      };
+      const graded = gradePolicyReplacement(
+        replacement,
+        options.contract,
+        options.policy.allowedOperationClasses,
       );
+      if (graded.disposition === 'suppress') {
+        suppressions.push(graded.record);
+        continue;
+      }
+      if (graded.disposition === 'conflict') {
+        conflicts.push(graded.conflict);
+        continue;
+      }
+      calls.push(replacement.drop);
+      calls.push(replacement.create);
     }
 
     for (const finding of missing) {
@@ -834,6 +836,69 @@ function relationalNamespaceNode(
  * value the emitted op must carry; the contract-stored entity holds the raw,
  * pre-resolution coordinate, so a lookup would change the migration output.
  */
+/**
+ * A drifted exact-named policy's repair: DROP then CREATE under ONE
+ * physical name. The two calls are one unit — splitting them (suppressing
+ * the drop, keeping the create) yields a plan whose create fails its own
+ * "policy does not exist" precheck at apply time.
+ */
+interface PolicyReplacement {
+  readonly drop: DropPostgresRlsPolicyCall;
+  readonly create: CreatePostgresRlsPolicyCall;
+}
+
+type PolicyReplacementDisposition =
+  | { readonly disposition: 'plan' }
+  | { readonly disposition: 'suppress'; readonly record: SuppressionRecord }
+  | { readonly disposition: 'conflict'; readonly conflict: SqlPlannerConflict };
+
+/**
+ * Grades a {@link PolicyReplacement} as one unit against the table's
+ * control policy, BEFORE the pair becomes calls or a conflict. This runs
+ * ahead of `partitionCallsByControlPolicy`, which later re-grades the
+ * surviving calls per-call — a no-op here, since only managed units
+ * survive this grading.
+ *
+ * A replacement is deliberately STRICTER than the shared
+ * `callAllowedUnderControlPolicy` rule: `tolerated` permits whole-object
+ * creation, but a replacement's create is the second half of a repair of
+ * an existing object, not a new object — so ANY non-managed control
+ * (external, observed, tolerated) suppresses the whole unit. Drift on an
+ * object the plan does not manage is reported, never repaired; the
+ * suppression subject names the drifted policy (`rlsPolicy`) so the
+ * report says which policy drifted, matching the conflict path's
+ * `location.rlsPolicy`.
+ */
+function gradePolicyReplacement(
+  replacement: PolicyReplacement,
+  contract: Contract<SqlStorage>,
+  allowedOperationClasses: readonly MigrationOperationClass[],
+): PolicyReplacementDisposition {
+  const subject = resolvePostgresCallControlPolicySubject(replacement.drop, contract);
+  const controlPolicy = controlPolicyForCall(subject, contract.defaultControlPolicy);
+  if (controlPolicy !== 'managed') {
+    return {
+      disposition: 'suppress',
+      record: {
+        subject:
+          subject === undefined
+            ? undefined
+            : { ...subject, rlsPolicy: replacement.drop.policyName },
+        policy: controlPolicy,
+        factoryName: undefined,
+        createsNewObject: false,
+      },
+    };
+  }
+  if (!allowedOperationClasses.includes('destructive')) {
+    return {
+      disposition: 'conflict',
+      conflict: conflictForDisallowedCall(replacement.drop, allowedOperationClasses),
+    };
+  }
+  return { disposition: 'plan' };
+}
+
 function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
     name: node.name,
