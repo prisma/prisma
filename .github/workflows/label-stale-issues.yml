@@ -5,7 +5,9 @@ name: 'Labels stale issues'
 # this lives here rather than alongside the code line it was written for.
 on:
   schedule:
-    - cron: '0 0 * * *'
+    # Offset from the top of the hour: GitHub delays or drops scheduled runs
+    # queued on the hour, where load across the platform concentrates.
+    - cron: '23 0 * * *'
   workflow_dispatch:
 
 # The action walks both issues and pull requests, applying `status/needs-action`

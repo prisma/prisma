@@ -1,5 +1,8 @@
-import { Octokit } from '@octokit/rest'
-import { graphql } from '@octokit/graphql'
+const GITHUB_API = 'https://api.github.com'
+
+// Bound so a hung GitHub call fails the scheduled run promptly instead of
+// occupying a runner until the job-level timeout.
+const REQUEST_TIMEOUT_MS = 30_000
 
 // Get current repository details from the GITHUB_REPOSITORY environment variable ("owner/repo")
 const repoInfo = process.env.GITHUB_REPOSITORY
@@ -21,33 +24,47 @@ async function run() {
 
   const closingMessage = process.env.CLOSING_MESSAGE || 'Closing discussion due to inactivity.'
 
-  const octokit = new Octokit({
-    auth: token,
-    userAgent: 'auto-close-discussions',
-  })
+  const headers = {
+    accept: 'application/vnd.github+json',
+    authorization: `token ${token}`,
+    'user-agent': 'auto-close-discussions',
+  }
 
-  // Set up GraphQL client
-  const graphqlWithAuth = graphql.defaults({
-    headers: {
-      authorization: `token ${token}`,
-    },
-  })
+  const rest = async (path) => {
+    const response = await fetch(`${GITHUB_API}${path}`, {
+      headers,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
+    if (!response.ok) {
+      throw new Error(`GitHub REST ${path} responded ${response.status}: ${await response.text()}`)
+    }
+    return response.json()
+  }
+
+  const graphqlWithAuth = async (query, variables) => {
+    const response = await fetch(`${GITHUB_API}/graphql`, {
+      method: 'POST',
+      headers: { ...headers, 'content-type': 'application/json' },
+      body: JSON.stringify({ query, variables }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
+    const payload = await response.json()
+    if (payload.errors) {
+      const error = new Error(payload.errors.map((entry) => entry.message).join('; '))
+      error.errors = payload.errors
+      throw error
+    }
+    return payload.data
+  }
 
   try {
     // 1. Get the repository ID first (needed for GraphQL)
-    const repoData = await octokit.repos.get({
-      owner: OWNER,
-      repo: REPO,
-    })
-    const repoId = repoData.data.node_id
+    const repoData = await rest(`/repos/${OWNER}/${REPO}`)
+    const repoId = repoData.node_id
 
-    // NEW: Fetch collaborators with write (push) access
-    const collabResponse = await octokit.repos.listCollaborators({
-      owner: OWNER,
-      repo: REPO,
-    })
+    const collabResponse = await rest(`/repos/${OWNER}/${REPO}/collaborators`)
 
-    const collaborators = collabResponse.data
+    const collaborators = collabResponse
       .filter((user) => user.permissions && user.permissions.push)
       .map((user) => user.login)
     console.log(`Found ${collaborators.length} collaborators with write access.`)
