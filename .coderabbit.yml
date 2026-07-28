@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: 'en-US'
+early_access: false
+reviews:
+  # The profile the organisation UI applies to this branch. It is set
+  # explicitly because the presence of a repository config would otherwise
+  # take the schema default of "chill" and quietly relax reviews here.
+  profile: 'assertive'
+  path_filters:
+    - '!projects/**'
+  auto_review:
+    # CodeRabbit reviews only the default branch unless a base branch is named
+    # here. The default branch carries the same entry: which copy governs the
+    # gate for a pull request based on v7 is not settled by the documentation,
+    # and a setting that silently does nothing is the failure mode worth
+    # avoiding.
+    base_branches:
+      - 'v7'
