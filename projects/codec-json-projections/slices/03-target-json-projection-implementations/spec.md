@@ -37,6 +37,7 @@ Each identity hook is replaced by the AST composition that yields the codec's ca
 | `pg/numeric`, `pg/int8` | decimal string | cast to `text` before the JSON constructor sees a number |
 | `pg/bytea` | base64 string | `encode(…, 'base64')` |
 | `pg/timestamp*`, `pg/date`, `pg/time*` | canonical ISO | session-independent UTC rendering with pinned precision |
+| `pg/interval` | ISO-8601 duration (`P1M2DT3H`) | constructed from `EXTRACT` components; `to_char` has no duration output and `IntervalStyle` cannot be bound per-projection |
 | `pg/json`, `pg/jsonb` | JSON document | document semantics, not scalar |
 | SQLite bigint | decimal string | cast to text |
 | SQLite BLOB | hexadecimal string | `hex(…)`, pinned case |

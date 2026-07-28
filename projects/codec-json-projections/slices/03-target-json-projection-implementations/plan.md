@@ -67,6 +67,17 @@ Inserted mid-slice (operator decision, 2026-07-28) after dispatch 2 halted on a 
 - **Hands to:** Settled temporal and binary rendering, resolving the slice spec's open question 1.
 - **Focus:** The two families that carry genuine rendering judgment. Temporal is the highest-judgment work in the slice; keeping it away from the mechanical fan-out is the point of this boundary.
 
+### Dispatch 3a: `pg/interval@1` canonical ISO-8601 duration
+
+Inserted mid-slice (operator decision, 2026-07-28) after dispatch 3 raised interval as a deferral request rather than skipping it. The project spec and design notes never mention `interval`, so its canonical form was genuinely unpinned — a decision, not a task.
+
+- **Outcome:** `pg/interval@1` is canonical as an ISO-8601 duration (`P1M2DT3H`) on both sides. The projection constructs it in SQL from `EXTRACT` components, because `to_char` has no duration output and `IntervalStyle` cannot be bound per-projection. `encodeJson` / `decodeJson` gain a matching formatter and parser. Its marked expected-failure case flips to passing, including under a hostile session.
+- **Builds on:** Dispatch 3's temporal work and its hostile-session case pattern.
+- **Hands to:** A PostgreSQL temporal set with no exemptions, so slice 4's hard cut can advertise canonical JSON without a codec carve-out.
+- **Focus:** Interval alone. It does not revisit the six codecs dispatch 3 settled.
+
+**Why this needed deciding rather than doing.** An interval is not a duration — `1 month` has no fixed length in seconds — so a canonical form must preserve months, days and time components separately, which is exactly what ISO-8601 duration does. And `pg/interval@1`'s application value is currently an opaque string with no defined syntax (`encodeJson` is a bare passthrough), so making the projection canonical necessarily defines what an interval application value *is*. The alternatives considered and rejected: pinning `IntervalStyle` on connect (cheaper, but makes correctness depend on connection state rather than on the projection, and is a runtime/driver decision outside this slice), and accepting interval as a documented gap (which would ship a session-dependent-JSON hole of precisely the class this project exists to close).
+
 ### Dispatch 4: PostgreSQL remaining scalar and document projections
 
 - **Outcome:** Every remaining PostgreSQL descriptor states its projection as a deliberate, tested claim — identity where native conversion is already canonical (`text`, `char`, `varchar`, `bool`, `int`, `int2`, `int4`, `float`, `float4`, `float8`, `uuid`, `inet`, `bit`, `varbit`, `enum`, and the shared `sql/*` descriptors), and document semantics for `pg/json@1` and `pg/jsonb@1`. `sql/timestamp@1`, which dispatch 1 registered as an expected failure over the trailing `Z`, is resolved here or explicitly reassigned to dispatch 3 if it turns out to be a temporal decision. No PostgreSQL descriptor retains an untested identity hook, and no expected-failure entries remain for this target.
