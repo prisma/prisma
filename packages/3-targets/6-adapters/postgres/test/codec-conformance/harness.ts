@@ -9,10 +9,17 @@
  *
  * A projection conforms when both of these hold:
  *
- * 1. the parsed value deep-equals `codec.encodeJson(value)` — `encodeJson` is
- *    the specification and the projection is its SQL realization; and
+ * 1. the parsed value deep-equals `codec.encodeJson(value)` — the codec's
+ *    current `encodeJson` is the yardstick and the projection is its SQL
+ *    realization; and
  * 2. `codec.decodeJson` turns the parsed value back into the application value
  *    the case started from.
+ *
+ * Both conditions are measured against the codec's methods as they stand.
+ * Conformance is therefore agreement with today's `encodeJson` / `decodeJson`,
+ * not a claim that either is already in its final form: a codec that still owes
+ * a change to its own JSON representation conforms here until that change
+ * lands.
  *
  * The second condition is what makes the harness an oracle rather than a
  * tautology: a codec whose `encodeJson` loses information the same way the
@@ -57,10 +64,10 @@ export interface ConformanceConnection {
 }
 
 /**
- * How a projection can fail to realize its codec's canonical JSON. The kinds
- * are materially different — a projection whose SQL will not execute and one
- * that merely rounds a digit are not the same defect — so a case that records
- * one kind is not satisfied by another.
+ * How a projection can disagree with its codec's current `encodeJson` /
+ * `decodeJson`. The kinds are materially different — a projection whose SQL
+ * will not execute and one that merely rounds a digit are not the same defect —
+ * so a case that records one kind is not satisfied by another.
  */
 export type ProjectionFailureKind =
   /** The projection SQL did not execute. */
@@ -83,7 +90,7 @@ export interface ProjectionFailure {
 /** The disagreement a case records, so the suite can assert the kind and not merely that something failed. */
 export interface ExpectedProjectionFailure {
   readonly kind: ProjectionFailureKind;
-  /** Why this codec's projection is not canonical for this value yet. */
+  /** Why this case's projection disagrees with the codec's current methods. */
   readonly reason: string;
 }
 
@@ -117,8 +124,8 @@ export interface CodecProjectionOutcome {
   /** What `codec.encodeJson` specifies the projected value must equal. */
   readonly expected: JsonValue | undefined;
   /**
-   * How the projection failed, or `undefined` when it realizes the codec's
-   * canonical JSON for this value.
+   * How the projection disagreed with the codec's current `encodeJson` /
+   * `decodeJson`, or `undefined` when it agreed and the value round-tripped.
    */
   readonly failure: ProjectionFailure | undefined;
 }
