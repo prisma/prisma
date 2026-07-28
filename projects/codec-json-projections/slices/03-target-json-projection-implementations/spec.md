@@ -55,6 +55,14 @@ The last row matters: an identity projection remains correct for codecs whose na
 
 SQLite loses the JSON subtype across derived tables, so a document-valued projection that survives one level of nesting arrives as text. The retagging mechanism re-applies the subtype at the document boundary. It is built and unit-tested here against AST/SQL expectations; it is wired in slice 4.
 
+**What D6's probe established, for slice 4's benefit** — measured, not assumed:
+
+- **The loss is total at the first boundary and does not compound.** One derived table degrades the document to text; two are no worse. `json_group_array` behaves identically to `json_object`, so the mechanism does not depend on which constructor produced the document.
+- **Retagging the outermost level alone is sufficient.** Retag-at-both and retag-at-last were tested against each other and yield the same document. The retag therefore belongs where the document is *consumed*, not at every level it passes through.
+- **The retag collapses rather than nests.** `json(json(x))` renders as one application, because SQLite's `json()` is already idempotent. Slice 4 can apply it at a boundary without knowing what a subexpression already did.
+- **It throws `malformed JSON` on text that is not JSON.** Safe on SQL `NULL` and on integers, and correct for every JSON top-level form — but a value that was never a document must not be handed to it. The only current caller is `sqlite/json@1`, whose column always holds JSON text; slice 4 must not apply it blindly.
+- **The natural wiring seam is the SQLite renderer's `JsonDocumentProjection` visitor case**, which exists from slice 1 and currently renders as identity. D6 deliberately did *not* route through it, because changing a visitor case is renderer wiring and therefore slice 4's.
+
 ### Conformance harness
 
 An internal, database-backed harness takes a descriptor, a set of representative application values, and a live connection; for each value it encodes through the codec, stores it, projects it via `projectJson()`, executes, parses the driver's JSON, and asserts equality with `codec.encodeJson`. It runs `projectJson()` directly rather than through the render path, which is exactly why it works before the hard cut. The arbitrary-precision numeric regression (`1234567890.12345678901234567890`, `9007199254740993`) is a first-class case.
