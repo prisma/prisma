@@ -13,6 +13,26 @@ import type {
   AuthoringTypeNamespace,
   PslExtensionBlock,
 } from '@prisma-next/framework-components/authoring';
+import type { ContributedPslDiagnosticCode } from '@prisma-next/framework-components/psl-ast';
+
+// Contributed diagnostic codes, declared once as typed consts — the
+// `ContributedPslDiagnosticCode` type is the only thing enforcing the
+// `PSL_` prefix convention, so the declared-const form (the
+// `sql-attribute-specs.ts` convention) is the settled spelling for pack
+// codes; inline string literals bypass it.
+const PSL_RLS_PREDICATE_NOT_FOR_OPERATION: ContributedPslDiagnosticCode =
+  'PSL_RLS_PREDICATE_NOT_FOR_OPERATION';
+const PSL_POLICY_INVALID_MAP: ContributedPslDiagnosticCode = 'PSL_POLICY_INVALID_MAP';
+const PSL_NATIVE_ENUM_INVALID_MAP: ContributedPslDiagnosticCode = 'PSL_NATIVE_ENUM_INVALID_MAP';
+const PSL_NATIVE_ENUM_BARE_MEMBER: ContributedPslDiagnosticCode = 'PSL_NATIVE_ENUM_BARE_MEMBER';
+const PSL_EXTENSION_INVALID_VALUE: ContributedPslDiagnosticCode = 'PSL_EXTENSION_INVALID_VALUE';
+const PSL_NATIVE_ENUM_DUPLICATE_MEMBER_VALUE: ContributedPslDiagnosticCode =
+  'PSL_NATIVE_ENUM_DUPLICATE_MEMBER_VALUE';
+const PSL_NATIVE_ENUM_MISSING_MEMBERS: ContributedPslDiagnosticCode =
+  'PSL_NATIVE_ENUM_MISSING_MEMBERS';
+const PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE: ContributedPslDiagnosticCode =
+  'PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE';
+
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { modelAttribute } from '@prisma-next/psl-parser';
 import type {
@@ -206,7 +226,7 @@ function lowerRlsPolicyFromBlock(
   const support = POLICY_OPERATION_PREDICATES[operation];
   const rejectPredicate = (predicate: 'using' | 'withCheck'): undefined => {
     ctx.diagnostics?.push({
-      code: 'PSL_RLS_PREDICATE_NOT_FOR_OPERATION',
+      code: PSL_RLS_PREDICATE_NOT_FOR_OPERATION,
       message: `\`${block.keyword}\` policy "${block.name}" does not take a \`${predicate}\` predicate; the ${operation.toUpperCase()} operation uses ${support.using ? '`using`' : '`withCheck`'}${support.using && support.withCheck ? ' and `withCheck`' : ' only'}.`,
       sourceId: ctx.sourceId ?? 'unknown',
       span: block.parameters[predicate]?.span ?? block.span,
@@ -233,7 +253,7 @@ function lowerRlsPolicyFromBlock(
         : undefined;
     if (exactName === undefined || exactName === '') {
       ctx.diagnostics?.push({
-        code: 'PSL_POLICY_INVALID_MAP',
+        code: PSL_POLICY_INVALID_MAP,
         message: `\`${block.keyword}\` policy "${block.name}" @@map attribute must have a quoted, non-empty policy-name argument`,
         sourceId: ctx.sourceId ?? 'unknown',
         span: mapAttr.span,
@@ -289,7 +309,7 @@ function lowerNativeEnumFromBlock(
     const mapped = rawArg !== undefined ? unwrapQuotedString(rawArg) : undefined;
     if (mapped === undefined) {
       diagnostics?.push({
-        code: 'PSL_NATIVE_ENUM_INVALID_MAP',
+        code: PSL_NATIVE_ENUM_INVALID_MAP,
         message: `native_enum "${block.name}" @@map attribute must have a quoted type-name argument`,
         sourceId,
         span: mapAttr.span,
@@ -305,7 +325,7 @@ function lowerNativeEnumFromBlock(
   for (const [memberName, paramValue] of Object.entries(block.parameters)) {
     if (paramValue.kind === 'bare') {
       diagnostics?.push({
-        code: 'PSL_NATIVE_ENUM_BARE_MEMBER',
+        code: PSL_NATIVE_ENUM_BARE_MEMBER,
         message: `native_enum "${block.name}" member "${memberName}" has no value; members must be authored as "${memberName} = \\"value\\""`,
         sourceId,
         span: paramValue.span,
@@ -320,7 +340,7 @@ function lowerNativeEnumFromBlock(
       jsonValue = JSON.parse(paramValue.raw);
     } catch {
       diagnostics?.push({
-        code: 'PSL_EXTENSION_INVALID_VALUE',
+        code: PSL_EXTENSION_INVALID_VALUE,
         message: `native_enum "${block.name}" member "${memberName}" value "${paramValue.raw}" is not valid JSON`,
         sourceId,
         span: paramValue.span,
@@ -330,7 +350,7 @@ function lowerNativeEnumFromBlock(
     }
     if (typeof jsonValue !== 'string') {
       diagnostics?.push({
-        code: 'PSL_EXTENSION_INVALID_VALUE',
+        code: PSL_EXTENSION_INVALID_VALUE,
         message: `native_enum "${block.name}" member "${memberName}" value must be a string`,
         sourceId,
         span: paramValue.span,
@@ -340,7 +360,7 @@ function lowerNativeEnumFromBlock(
     }
     if (seenValues.has(jsonValue)) {
       diagnostics?.push({
-        code: 'PSL_NATIVE_ENUM_DUPLICATE_MEMBER_VALUE',
+        code: PSL_NATIVE_ENUM_DUPLICATE_MEMBER_VALUE,
         message: `native_enum "${block.name}": duplicate member value "${jsonValue}"`,
         sourceId,
         span: paramValue.span,
@@ -356,7 +376,7 @@ function lowerNativeEnumFromBlock(
 
   if (members.length === 0) {
     diagnostics?.push({
-      code: 'PSL_NATIVE_ENUM_MISSING_MEMBERS',
+      code: PSL_NATIVE_ENUM_MISSING_MEMBERS,
       message: `native_enum "${block.name}" must have at least one member`,
       sourceId,
       span: block.span,
@@ -399,7 +419,7 @@ function lowerRoleFromBlock(
 ): PostgresRole | undefined {
   if (block.namespaceId !== UNBOUND_NAMESPACE_ID) {
     ctx.diagnostics?.push({
-      code: 'PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE',
+      code: PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE,
       message: `\`role\` block "${block.name}" must be declared inside \`namespace unbound { }\`, not in namespace "${block.namespaceId}"`,
       sourceId: ctx.sourceId ?? 'unknown',
       span: block.span,
