@@ -2,7 +2,7 @@ name: PR Code Security
 
 on:
   pull_request:
-    branches: [main]
+    branches: [v7]
 
 jobs:
   secret-detection:
