@@ -26,6 +26,8 @@ import {
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import {
   CastExpr,
+  FunctionCallExpr,
+  LiteralExpr,
   type ProjectionExpr,
   SqlCharCodec,
   SqlFloatCodec,
@@ -155,6 +157,33 @@ const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => e
  */
 const decimalTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
   CastExpr.as(expression, 'text');
+
+/**
+ * Projects a `bytea` as base64 text.
+ *
+ * Like the decimal-text cast, the encoding is part of the projected expression:
+ * PostgreSQL's own JSON conversion of a `bytea` emits its `\x`-prefixed hex
+ * output form, so the base64 encoding has to replace that conversion rather
+ * than post-process it.
+ */
+const base64JsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
+  FunctionCallExpr.of('encode', [expression, LiteralExpr.of('base64')]);
+
+/**
+ * Projects a `timestamptz` as a UTC ISO-8601 string that no session setting can
+ * move.
+ *
+ * A `timestamptz` handed straight to a JSON constructor is rendered in the
+ * session's `TimeZone`, so the same stored instant reads as `+00:00`, `-05:00`
+ * or `+05:30` depending on who is connected. `timezone('UTC', …)` resolves the
+ * instant to UTC wall-clock independently of the session, and the explicit
+ * `to_char` format pins the rendering rather than inheriting `DateStyle`.
+ */
+const utcIsoJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
+  FunctionCallExpr.of('to_char', [
+    FunctionCallExpr.of('timezone', [LiteralExpr.of('UTC'), expression]),
+    LiteralExpr.of('YYYY-MM-DD"T"HH24:MI:SS.MS"+00:00"'),
+  ]);
 
 export const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
   nativeType: () => 'character',
@@ -920,7 +949,7 @@ export class PgTimestamptzDescriptor extends PostgresCodecDescriptor<PrecisionPa
     return PG_TIMESTAMPTZ_META.db.sql.postgres.nativeType;
   }
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return utcIsoJsonProjection(expression);
   }
   override readonly codecId = PG_TIMESTAMPTZ_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
@@ -1171,7 +1200,7 @@ export class PgByteaDescriptor extends PostgresCodecDescriptor<void> {
     return PG_BYTEA_META.db.sql.postgres.nativeType;
   }
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return base64JsonProjection(expression);
   }
   override readonly codecId = PG_BYTEA_CODEC_ID;
   override readonly traits = ['equality'] as const;

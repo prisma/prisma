@@ -55,7 +55,12 @@ export const sqlTextDecode = (wire: string): string => wire;
 
 export const sqlTimestampEncode = (value: Date): Date => value;
 export const sqlTimestampDecode = (wire: Date): Date => wire;
-export const sqlTimestampEncodeJson = (value: Date): JsonValue => value.toISOString();
+/**
+ * A `timestamp` column carries no zone, so its JSON form is the ISO rendering
+ * without a trailing `Z` — the shape the database itself produces for the
+ * column, and the shape {@link sqlTimestampDecodeJson} reads back as UTC.
+ */
+export const sqlTimestampEncodeJson = (value: Date): JsonValue => value.toISOString().slice(0, -1);
 export const sqlTimestampDecodeJson = (json: JsonValue): Date => {
   if (typeof json !== 'string') {
     throw structuredError(
@@ -64,7 +69,9 @@ export const sqlTimestampDecodeJson = (json: JsonValue): Date => {
       { meta: { codec: SQL_TIMESTAMP_CODEC_ID } },
     );
   }
-  const date = new Date(json);
+  // The zone-less form is resolved as UTC; `new Date` would otherwise read it in
+  // the process's local zone and shift the instant.
+  const date = new Date(json.endsWith('Z') ? json : `${json}Z`);
   if (Number.isNaN(date.getTime())) {
     throw structuredError(
       'RUNTIME.DECODE_FAILED',

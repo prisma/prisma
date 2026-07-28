@@ -24,21 +24,29 @@ import type { PostgresCodecConformanceCase } from './harness';
 
 const ENUM_TYPE = 'codec_conformance_mood';
 
+/**
+ * A session whose temporal settings all differ from the defaults. A temporal
+ * case that passes under it renders from the stored value alone rather than
+ * inheriting whatever the connected session happens to be set to.
+ */
+const HOSTILE_TEMPORAL_SESSION: readonly string[] = [
+  "SET TimeZone = 'Asia/Kolkata'",
+  "SET DateStyle = 'German, DMY'",
+  "SET IntervalStyle = 'sql_standard'",
+];
+
 export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] = [
   { codecId: 'sql/char@1', label: 'single character', value: 'a' },
   { codecId: 'sql/varchar@1', label: 'text', value: 'hello' },
   { codecId: 'sql/int@1', label: 'integer', value: 42 },
   { codecId: 'sql/float@1', label: 'finite float', value: 1.5 },
   { codecId: 'sql/text@1', label: 'text', value: 'hello' },
+  { codecId: 'sql/timestamp@1', label: 'instant', value: new Date('2026-01-02T03:04:05.678Z') },
   {
     codecId: 'sql/timestamp@1',
-    label: 'instant',
+    label: 'instant under a hostile session',
     value: new Date('2026-01-02T03:04:05.678Z'),
-    notYetCanonical: {
-      kind: 'mismatch',
-      reason:
-        'the identity projection renders a timestamp without the trailing Z that encodeJson emits',
-    },
+    setupSql: HOSTILE_TEMPORAL_SESSION,
   },
   { codecId: 'pg/text@1', label: 'text', value: 'hello' },
   {
@@ -80,13 +88,54 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     value: new Date('2026-01-02T03:04:05.678Z'),
   },
   {
+    codecId: 'pg/timestamp@1',
+    label: 'instant under a hostile session',
+    value: new Date('2026-01-02T03:04:05.678Z'),
+    setupSql: HOSTILE_TEMPORAL_SESSION,
+  },
+  {
     codecId: 'pg/timestamptz@1',
     label: 'instant with milliseconds',
     value: new Date('2026-01-02T03:04:05.678Z'),
   },
+  {
+    codecId: 'pg/timestamptz@1',
+    label: 'instant under a hostile session',
+    value: new Date('2026-01-02T03:04:05.678Z'),
+    setupSql: HOSTILE_TEMPORAL_SESSION,
+  },
+  {
+    codecId: 'pg/date@1',
+    label: 'calendar date under a hostile session',
+    value: new Date(Date.UTC(2026, 0, 2)),
+    setupSql: HOSTILE_TEMPORAL_SESSION,
+  },
   { codecId: 'pg/time@1', label: 'time of day', value: '03:04:05' },
+  {
+    codecId: 'pg/time@1',
+    label: 'time of day under a hostile session',
+    value: '03:04:05',
+    setupSql: HOSTILE_TEMPORAL_SESSION,
+  },
   { codecId: 'pg/timetz@1', label: 'time of day at UTC', value: '03:04:05+00' },
+  {
+    codecId: 'pg/timetz@1',
+    label: 'time of day at UTC under a hostile session',
+    value: '03:04:05+00',
+    setupSql: HOSTILE_TEMPORAL_SESSION,
+  },
   { codecId: 'pg/interval@1', label: 'day interval', value: '1 day' },
+  {
+    codecId: 'pg/interval@1',
+    label: 'day interval under a hostile session',
+    value: '1 day',
+    setupSql: HOSTILE_TEMPORAL_SESSION,
+    notYetCanonical: {
+      kind: 'mismatch',
+      reason:
+        "an interval is rendered in the session's IntervalStyle, and the codec carries an opaque string whose own syntax is undecided, so there is no form for a projection to pin it to yet",
+    },
+  },
   { codecId: 'pg/json@1', label: 'document', value: { a: 1, b: ['x'] } },
   { codecId: 'pg/jsonb@1', label: 'document', value: { a: 1, b: ['x'] } },
   {

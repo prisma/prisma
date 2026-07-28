@@ -2,6 +2,8 @@ import type { AnyCodecDescriptor, CodecRef } from '@prisma-next/framework-compon
 import {
   CastExpr,
   ColumnRef,
+  FunctionCallExpr,
+  LiteralExpr,
   sqlCharDescriptor,
   sqlFloatDescriptor,
   sqlIntDescriptor,
@@ -185,8 +187,8 @@ describe('PostgreSQL built-in codec descriptors', () => {
       descriptor: AnyPostgresCodecDescriptor;
       nativeType: string;
       typeParams?: CodecRef['typeParams'];
-      /** Codecs whose canonical JSON is decimal text cast the expression before the JSON constructor sees it. */
-      jsonProjection?: 'decimal-text';
+      /** Codecs whose projection replaces the database's own JSON conversion rather than accepting it. */
+      jsonProjection?: 'decimal-text' | 'base64' | 'utc-iso';
     }> = [
       { descriptor: pgTextDescriptor, nativeType: 'text' },
       {
@@ -223,13 +225,14 @@ describe('PostgreSQL built-in codec descriptors', () => {
         descriptor: pgTimestamptzDescriptor,
         nativeType: 'timestamp with time zone',
         typeParams: { precision: 3 },
+        jsonProjection: 'utc-iso',
       },
       { descriptor: pgTimeDescriptor, nativeType: 'time', typeParams: { precision: 3 } },
       { descriptor: pgTimetzDescriptor, nativeType: 'timetz', typeParams: { precision: 3 } },
       { descriptor: pgBoolDescriptor, nativeType: 'boolean' },
       { descriptor: pgBitDescriptor, nativeType: 'bit', typeParams: { length: 8 } },
       { descriptor: pgVarbitDescriptor, nativeType: 'bit varying', typeParams: { length: 8 } },
-      { descriptor: pgByteaDescriptor, nativeType: 'bytea' },
+      { descriptor: pgByteaDescriptor, nativeType: 'bytea', jsonProjection: 'base64' },
       { descriptor: pgUuidDescriptor, nativeType: 'uuid' },
       { descriptor: pgInetDescriptor, nativeType: 'inet' },
       { descriptor: pgIntervalDescriptor, nativeType: 'interval', typeParams: {} },
@@ -244,6 +247,17 @@ describe('PostgreSQL built-in codec descriptors', () => {
       expect(metaNativeType(descriptor, typeParams)).toBe(nativeType);
       if (jsonProjection === 'decimal-text') {
         expect(descriptor.projectJson(expression, ref)).toEqual(CastExpr.as(expression, 'text'));
+      } else if (jsonProjection === 'base64') {
+        expect(descriptor.projectJson(expression, ref)).toEqual(
+          FunctionCallExpr.of('encode', [expression, LiteralExpr.of('base64')]),
+        );
+      } else if (jsonProjection === 'utc-iso') {
+        expect(descriptor.projectJson(expression, ref)).toEqual(
+          FunctionCallExpr.of('to_char', [
+            FunctionCallExpr.of('timezone', [LiteralExpr.of('UTC'), expression]),
+            LiteralExpr.of('YYYY-MM-DD"T"HH24:MI:SS.MS"+00:00"'),
+          ]),
+        );
       } else {
         expect(descriptor.projectJson(expression, ref)).toBe(expression);
       }
