@@ -58,6 +58,37 @@ export interface ConformanceConnection {
   query(sql: string, params?: readonly unknown[]): Promise<ReadonlyArray<Record<string, unknown>>>;
 }
 
+/**
+ * How a projection can fail to realize its codec's canonical JSON. The kinds
+ * are materially different — a projection whose SQL will not execute and one
+ * that merely rounds a digit are not the same defect — so a case that records
+ * one kind is not satisfied by another.
+ */
+export type ProjectionFailureKind =
+  /** The projection SQL did not execute. */
+  | 'execution'
+  /** `encodeJson` refused the application value. */
+  | 'encode-json-rejects'
+  /** The parsed value disagrees with `encodeJson`. */
+  | 'mismatch'
+  /** `decodeJson` refused the projected value. */
+  | 'decode-json-rejects'
+  /** The parsed value agrees with `encodeJson` but does not carry the application value back. */
+  | 'lossy-round-trip';
+
+export interface ProjectionFailure {
+  readonly kind: ProjectionFailureKind;
+  /** What went wrong, in enough detail to diagnose from a test report. */
+  readonly detail: string;
+}
+
+/** The disagreement a case records, so the suite can assert the kind and not merely that something failed. */
+export interface ExpectedProjectionFailure {
+  readonly kind: ProjectionFailureKind;
+  /** Why this codec's projection is not canonical for this value yet. */
+  readonly reason: string;
+}
+
 export interface SqliteCodecConformanceCase {
   /** Codec id resolved against the target's built-in descriptor registry. */
   readonly codecId: string;
@@ -70,11 +101,12 @@ export interface SqliteCodecConformanceCase {
   /** Codec type params, for parameterized codecs. */
   readonly typeParams?: JsonValue;
   /**
-   * Why this codec's projection is not canonical for this value, when it is
-   * not. The suite asserts that a case carrying a reason really does still fail,
-   * so the list cannot rot once a projection becomes canonical.
+   * How this case's projection currently disagrees with the codec's
+   * `encodeJson` / `decodeJson`, when it does. The suite asserts that a marked
+   * case still fails *and still fails this way*, so neither the marker nor its
+   * recorded kind can rot as projections change.
    */
-  readonly notYetCanonical?: string;
+  readonly notYetCanonical?: ExpectedProjectionFailure;
 }
 
 export interface CodecProjectionOutcome {
@@ -86,10 +118,11 @@ export interface CodecProjectionOutcome {
   readonly projected: JsonValue | undefined;
   /** What `codec.encodeJson` specifies the projected value must equal. */
   readonly expected: JsonValue | undefined;
-  /** Whether the projection realizes the codec's canonical JSON for this value. */
-  readonly conforms: boolean;
-  /** Why the projection does not conform, when it does not. */
-  readonly mismatch: string | undefined;
+  /**
+   * How the projection failed, or `undefined` when it realizes the codec's
+   * canonical JSON for this value.
+   */
+  readonly failure: ProjectionFailure | undefined;
 }
 
 const STORAGE_TABLE = 'codec_conformance';
@@ -167,8 +200,10 @@ export async function runSqliteCodecProjection(
       rawJson: undefined,
       projected: undefined,
       expected: undefined,
-      conforms: false,
-      mismatch: `the projection failed to execute: ${describeError(error)}`,
+      failure: {
+        kind: 'execution',
+        detail: `the projection failed to execute: ${describeError(error)}`,
+      },
     };
   }
 
@@ -187,8 +222,10 @@ export async function runSqliteCodecProjection(
       rawJson,
       projected,
       expected: undefined,
-      conforms: false,
-      mismatch: `encodeJson rejects the value: ${describeError(error)}`,
+      failure: {
+        kind: 'encode-json-rejects',
+        detail: `encodeJson rejects the value: ${describeError(error)}`,
+      },
     };
   }
 
@@ -197,8 +234,10 @@ export async function runSqliteCodecProjection(
   if (!isDeepStrictEqual(projected, expected)) {
     return {
       ...base,
-      conforms: false,
-      mismatch: `projected ${JSON.stringify(projected)} but encodeJson specifies ${JSON.stringify(expected)}`,
+      failure: {
+        kind: 'mismatch',
+        detail: `projected ${JSON.stringify(projected)} but encodeJson specifies ${JSON.stringify(expected)}`,
+      },
     };
   }
 
@@ -208,18 +247,22 @@ export async function runSqliteCodecProjection(
   } catch (error) {
     return {
       ...base,
-      conforms: false,
-      mismatch: `decodeJson rejects the projected value: ${describeError(error)}`,
+      failure: {
+        kind: 'decode-json-rejects',
+        detail: `decodeJson rejects the projected value: ${describeError(error)}`,
+      },
     };
   }
 
   if (!isDeepStrictEqual(roundTripped, conformanceCase.value)) {
     return {
       ...base,
-      conforms: false,
-      mismatch: `the projection loses information: decodeJson returned ${String(roundTripped)} for an application value of ${String(conformanceCase.value)}`,
+      failure: {
+        kind: 'lossy-round-trip',
+        detail: `the projection loses information: decodeJson returned ${String(roundTripped)} for an application value of ${String(conformanceCase.value)}`,
+      },
     };
   }
 
-  return { ...base, conforms: true, mismatch: undefined };
+  return { ...base, failure: undefined };
 }
