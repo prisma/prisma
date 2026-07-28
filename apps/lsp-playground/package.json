@@ -32,7 +32,7 @@
     "monaco-languageclient": "^10.7.0",
     "vscode": "npm:@codingame/monaco-vscode-extension-api@^25.1.2",
     "vscode-jsonrpc": "^8.2.0",
-    "vscode-languageclient": "~9.0.1",
+    "vscode-languageclient": "~10.0.1",
     "vscode-languageserver-protocol": "~3.18.2",
     "vscode-ws-jsonrpc": "3.5.0",
     "ws": "^8.21.1"
