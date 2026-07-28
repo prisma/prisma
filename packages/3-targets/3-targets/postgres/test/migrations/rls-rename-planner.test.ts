@@ -226,7 +226,7 @@ describe('prefix-only rename pairing', () => {
     ]);
   });
 
-  it('phase 1 never pairs an unparseable live name; different content stays create + drop', async () => {
+  it('hash pairing never pairs an unparseable live name; different content stays create + drop', async () => {
     const contract = buildContract([
       policyNamed('p_read_ab12cd34', { using: '(auth.uid() = owner_id)' }),
     ]);
@@ -273,7 +273,7 @@ describe('multi-candidate hash groups', () => {
   });
 });
 
-describe('phase 2 — content pairing (exact→managed convergence)', () => {
+describe('content pairing (exact→managed convergence)', () => {
   function exactPolicy(name: string, overrides?: { readonly using?: string }): PostgresRlsPolicy {
     return new PostgresRlsPolicy({
       name,
@@ -320,7 +320,7 @@ describe('phase 2 — content pairing (exact→managed convergence)', () => {
     ]);
   });
 
-  it('remaining phase-2 pairs consume candidates deterministically by sorted name', async () => {
+  it('remaining content pairs consume candidates deterministically by sorted name', async () => {
     const contract = buildContract([
       policyNamed('a_managed_11111111'),
       policyNamed('b_managed_22222222'),

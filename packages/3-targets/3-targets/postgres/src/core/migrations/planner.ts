@@ -381,15 +381,16 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * deterministic by sorted names — the same structure as the policy pass
    * below (which stays untouched: policies pair by hash only).
    *
-   * Phase 1 — hash pairing: extras whose live names parse as wire names,
-   * grouped by `(schema, table, hash)`; missing nodes iterated in sorted-name
-   * order consume the sorted-name-first candidate — a prefix-only rename.
+   * Hash pairing (prefix-only renames): extras whose live names parse as
+   * wire names, grouped by `(schema, table, hash)`; missing nodes iterated
+   * in sorted-name order consume the sorted-name-first candidate.
    *
-   * Phase 2 — content pairing: the remaining managed-missing nodes
+   * Content pairing (exact→managed convergence), after hash pairing has
+   * consumed its matches: the remaining managed-missing nodes
    * (`prefix` defined) against the remaining extras of any name shape,
    * paired iff content-equal (columns ordered-strict both-defined-or-
    * both-undefined, `unique`/`type` strict, `options` loose, bodies
-   * byte-equal) — exact→managed adoption convergence.
+   * byte-equal).
    *
    * Leftovers proceed as create/drop exactly as before; without the
    * widening allowance the pass is skipped and pairing degrades to the
@@ -510,10 +511,10 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * ROW LEVEL SECURITY` derive from the table's marker-driven `rlsEnabled`
    * attribute diff on the relational side.
    *
-   * Rename post-pass, two phases (the index pass's structure): phase 1
-   * pairs a `not-found` and a `not-expected` policy on the SAME table whose
+   * Rename post-pass (the index pass's structure): hash pairing pairs a
+   * `not-found` and a `not-expected` policy on the SAME table whose
    * wire-name content hashes match but prefixes differ (prefix-only rename);
-   * phase 2 pairs remaining managed-missing policies against remaining
+   * content pairing then pairs remaining managed-missing policies against remaining
    * extras of any name shape by verbatim content (the node-owned `contentEquals` —
    * exact→managed adoption). Multi-candidate groups pair deterministically
    * by sorted name; leftovers proceed as create/drop; an exact-named
@@ -631,7 +632,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         );
       }
 
-      // Phase 2 — content pairing (exact→managed convergence): a
+      // Content pairing (exact→managed convergence), after hash pairing
+      // has consumed its matches: a
       // remaining managed-missing policy pairs with a remaining
       // extra of ANY name shape when the content matches verbatim
       // (the node-owned `contentEquals` — not the normalized hash tuple). This is how

@@ -2,7 +2,7 @@
  * A live policy with a human-readable exact name
  * is adopted via `@@map` (body text = the live reprint), verifies clean, and
  * replacing `@@map` with the plain managed head converges through EXACTLY
- * one `ALTER POLICY … RENAME` (phase-2 content pairing) — no drop, no
+ * one `ALTER POLICY … RENAME` (content pairing) — no drop, no
  * create — after which verify is clean under the wire name.
  */
 
