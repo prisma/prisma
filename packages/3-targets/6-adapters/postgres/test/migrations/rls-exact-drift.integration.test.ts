@@ -11,7 +11,6 @@
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import { APP_SPACE_ID, issueOutcome } from '@prisma-next/framework-components/control';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
 import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
 import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
@@ -40,7 +39,7 @@ const ALL_CLASSES_POLICY = {
 const NO_DESTRUCTIVE_POLICY = { allowedOperationClasses: ['additive', 'widening'] as const };
 
 const MANAGED_NAME = `tenant_read_${computeContentHash({
-  using: normalizeSqlBody(BODY),
+  using: BODY,
   roles: ['app_user'],
   operation: 'select',
   permissive: true,

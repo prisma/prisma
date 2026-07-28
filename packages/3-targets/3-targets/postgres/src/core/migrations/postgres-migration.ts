@@ -468,20 +468,18 @@ export abstract class PostgresMigration<
     readonly table: string;
     readonly policy: PostgresRlsPolicyMigrationInput;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    const p = options.policy;
+    // The migration input is the flat spelling of the constructor input
+    // (optional keys for absence-legal fields), so defaults-then-spread is
+    // the whole adaptation: omitted keys land as explicit undefined, and a
+    // new field flows through without a hand-written copy.
     return new CreatePostgresRlsPolicyCall(
       options.schema,
       options.table,
       new PostgresRlsPolicy({
-        name: p.name,
-        prefix: p.prefix,
-        tableName: p.tableName,
-        namespaceId: p.namespaceId,
-        operation: p.operation,
-        roles: p.roles,
-        using: p.using,
-        withCheck: p.withCheck,
-        permissive: p.permissive,
+        prefix: undefined,
+        using: undefined,
+        withCheck: undefined,
+        ...options.policy,
       }),
     ).toOp(this.controlAdapterFor('createRlsPolicy'));
   }

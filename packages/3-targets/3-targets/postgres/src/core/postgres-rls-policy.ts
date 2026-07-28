@@ -6,24 +6,25 @@ import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
 /**
+ * The machine-rendered flat spelling of an input type: keys whose value
+ * admits `undefined` become optional (and still accept explicit
+ * `undefined`), everything else is carried unchanged — the
+ * `required-key-undefined-fields.mdc` carve-out for rendered literals,
+ * derived instead of hand-written so the field list has one home.
+ */
+type FlatSpelling<T> = { [K in keyof T as undefined extends T[K] ? never : K]: T[K] } & {
+  [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
+};
+
+/**
  * The optional-key policy shape accepted by the migration authoring API
  * (`Migration#createRlsPolicy`) and emitted by the migration renderer.
- * Machine-rendered literals omit absent keys, so absence-legal fields are
- * optional here; the constructor-facing {@link PostgresRlsPolicyInput}
- * keeps them as required keys typed `| undefined`.
+ * Machine-rendered literals omit absent keys (`prefix` for an exact
+ * policy, `withCheck` for a SELECT policy); derived from
+ * {@link PostgresRlsPolicyInput}, so a new field appears here — and flows
+ * through `createRlsPolicy`'s spread — without a second hand-written list.
  */
-export interface PostgresRlsPolicyMigrationInput {
-  readonly name: string;
-  /** See {@link PostgresRlsPolicyInput.prefix}: present ⇔ managed. */
-  readonly prefix?: string;
-  readonly tableName: string;
-  readonly namespaceId: string;
-  readonly operation: RlsPolicyOperation;
-  readonly roles: readonly string[];
-  readonly using?: string;
-  readonly withCheck?: string;
-  readonly permissive: boolean;
-}
+export type PostgresRlsPolicyMigrationInput = FlatSpelling<PostgresRlsPolicyInput>;
 
 export interface PostgresRlsPolicyInput {
   /**

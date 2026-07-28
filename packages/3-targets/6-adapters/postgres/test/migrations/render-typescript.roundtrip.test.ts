@@ -149,19 +149,19 @@ const tscPath = join(repoRoot, 'node_modules/.bin/tsc');
 
 /**
  * Writes a rendered migration plus the tsconfig and contract-type fixtures
- * the typecheck tests need. The facade import is pointed at the live
- * workspace source (an absolute path specifier; bare workspace imports
- * inside the sources then resolve from their own package directories), so
- * tsc checks the rendered text against the real `createRlsPolicy`
- * signature. The execution fixtures' minimal `Contract` type does not
- * satisfy the `Migration` base's `Contract<SqlStorage>` constraint, so the
- * snapshot contract types come from the same dist types the migration
- * source graph resolves its own bare imports to.
+ * the typecheck tests need. The facade import is pointed at the facade's
+ * BUILT dist (an absolute path to `dist/migration.mjs`, which tsc resolves
+ * to the rolled-up `migration.d.mts`) — the same declarations a user's
+ * project resolves through the package `exports` map, so a dts-rollup
+ * regression is visible here (`tsdown-dist-layout-in-tests`). The
+ * execution fixtures' minimal `Contract` type does not satisfy the
+ * `Migration` base's `Contract<SqlStorage>` constraint, so the snapshot
+ * contract types come from the same dist types.
  */
 async function writeTypecheckDir(dir: string, renderedSource: string): Promise<void> {
   const tsSource = renderedSource.replace(
     "'@prisma-next/postgres/migration'",
-    `'${resolve(targetPostgresRoot, 'src/exports/migration.ts')}'`,
+    `'${resolve(repoRoot, 'packages/3-extensions/postgres/dist/migration.mjs')}'`,
   );
   await writeFile(join(dir, 'migration.ts'), tsSource);
   const contractDistTypes = resolve(
