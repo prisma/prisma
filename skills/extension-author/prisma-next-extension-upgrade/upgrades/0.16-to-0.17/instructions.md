@@ -381,6 +381,10 @@ changes:
         - "PostgresRlsPolicy"
         - "PostgresPolicySchemaNode"
         - "policy_select"
+        - "policy_insert"
+        - "policy_update"
+        - "policy_delete"
+        - "policy_all"
       anyMatch: true
 ---
 
