@@ -444,4 +444,4 @@ Routine dev-dependency bumps and biome `$schema` version alignment in `examples/
 
 ## Incidental dependency bumps in examples
 
-Routine runtime dependency bumps in `examples/` (dependabot `runtime-deps` group, PR #1065) carry no consumer-facing behaviour change and require no upgrade action.
+Routine runtime dependency bumps in `examples/` (dependabot `runtime-deps` group, PR #1065) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
