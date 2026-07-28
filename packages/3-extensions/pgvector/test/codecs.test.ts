@@ -93,7 +93,7 @@ describe('pgvector codecs', () => {
       expect(() => vectorCodec.encodeJson(value)).toThrow(
         'Vector value must contain only finite numbers',
       );
-      expect(() => vectorCodec.decodeJson(wire)).toThrow(
+      expect(() => vectorCodec.decodeJson(value)).toThrow(
         'Vector value must contain only finite numbers',
       );
     }
@@ -138,14 +138,21 @@ describe('pgvector codecs', () => {
   });
 
   describe('encodeJson / decodeJson', () => {
-    it('encodes the PostgreSQL JSON string representation', () => {
+    it('encodes to a JSON numeric array', () => {
       const codec = asAsyncCodec(3);
-      expect(codec.encodeJson([0.1, 0.2, 0.3])).toBe('[0.1,0.2,0.3]');
+      expect(codec.encodeJson([0.1, 0.2, 0.3])).toEqual([0.1, 0.2, 0.3]);
     });
 
-    it('decodes the PostgreSQL JSON string representation', () => {
+    it('decodes a JSON numeric array', () => {
       const codec = asAsyncCodec(3);
-      expect(codec.decodeJson('[0.1,0.2,0.3]')).toEqual([0.1, 0.2, 0.3]);
+      expect(codec.decodeJson([0.1, 0.2, 0.3])).toEqual([0.1, 0.2, 0.3]);
+    });
+
+    it('rejects the text form, which reads back at the wrong precision', () => {
+      const codec = asAsyncCodec(3);
+      expect(() => codec.decodeJson('[0.1,0.2,0.3]')).toThrow(
+        'Vector database JSON value must be an array',
+      );
     });
 
     it('rejects encodeJson when the value is not an array', () => {
@@ -155,10 +162,12 @@ describe('pgvector codecs', () => {
       );
     });
 
-    it('rejects decodeJson when the PostgreSQL JSON string has invalid values or length', () => {
+    it('rejects decodeJson when the array has the wrong length or bad elements', () => {
       const codec = asAsyncCodec(3);
-      expect(() => codec.decodeJson('[1,2]')).toThrow(/Vector length mismatch/);
-      expect(() => codec.decodeJson('[1,two,3]')).toThrow(/Invalid vector value/);
+      expect(() => codec.decodeJson([1, 2])).toThrow(/Vector length mismatch/);
+      expect(() => codec.decodeJson([1, 'two', 3] as unknown as number[])).toThrow(
+        /Vector value must contain only numbers/,
+      );
     });
   });
 

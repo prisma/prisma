@@ -21,6 +21,7 @@ import {
   column,
 } from '@prisma-next/framework-components/codec';
 import type { ExtractCodecTypes, ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
+import { CastExpr, FunctionCallExpr } from '@prisma-next/sql-relational-core/ast';
 import {
   definePostgresCodecs,
   PostgresCodecDescriptor,
@@ -135,27 +136,47 @@ export class PgVectorCodec extends CodecImpl<
 
   encodeJson(value: number[]): JsonValue {
     this.assertVector(value, 'RUNTIME.ENCODE_FAILED');
-    return `[${value.join(',')}]`;
+    return [...value];
   }
 
   decodeJson(json: JsonValue): number[] {
-    if (typeof json !== 'string') {
-      throw pgVectorError('RUNTIME.DECODE_FAILED', 'Vector database JSON value must be a string', {
+    if (!Array.isArray(json)) {
+      throw pgVectorError('RUNTIME.DECODE_FAILED', 'Vector database JSON value must be an array', {
         meta: { codecId: VECTOR_CODEC_ID },
       });
     }
-    const value = parseVector(json);
+    const value = [...json];
     this.assertVector(value, 'RUNTIME.DECODE_FAILED');
     return value;
   }
 }
+
+/**
+ * Projects a `vector` as a JSON numeric array.
+ *
+ * A `vector` handed straight to a JSON constructor is rendered through its text
+ * output function, so it arrives as the *string* `"[1,2,3]"` rather than as an
+ * array.
+ *
+ * The route matters as much as the destination. A vector's elements are `real`,
+ * and its text form prints the shortest decimal that round-trips *as a `real`* —
+ * `0.1` for a value the application holds as `0.10000000149011612`. Reading that
+ * text back as a double therefore lands on a different number, so casting the
+ * text to `json` would lose precision the value still had. Widening each element
+ * to `float8` first keeps the exact value the `real` denotes, which is what
+ * `encodeJson` returns.
+ */
+const jsonArrayFromVectorElements = (expression: ProjectionExpr): ProjectionExpr =>
+  FunctionCallExpr.of('array_to_json', [
+    CastExpr.as(CastExpr.as(expression, 'real[]'), 'float8[]'),
+  ]);
 
 export class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
   protected override nativeType(): string {
     return PG_VECTOR_META.db.sql.postgres.nativeType;
   }
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return jsonArrayFromVectorElements(expression);
   }
   override readonly codecId = VECTOR_CODEC_ID;
   override readonly traits = ['equality'] as const;
