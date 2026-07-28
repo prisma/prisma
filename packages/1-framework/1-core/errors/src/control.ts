@@ -1,5 +1,6 @@
 import { ifDefined } from '@prisma-next/utils/defined';
 import type { StructuredError } from '@prisma-next/utils/structured-error';
+import { docsUrlFor } from '@prisma-next/utils/structured-error';
 
 /**
  * CLI error envelope for output formatting.
@@ -125,7 +126,7 @@ export function errorConfigFileNotFound(
   return new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Config file not found', {
     ...(options?.why ? { why: options.why } : { why: 'Config file not found' }),
     fix: "Run 'prisma-next init' to create a config file",
-    docsUrl: 'https://prisma-next.dev/docs/cli/config',
+    docsUrl: docsUrlFor('CONFIG.FILE_NOT_FOUND'),
     ...(configPath ? { where: { path: configPath } } : {}),
   });
 }
@@ -139,7 +140,7 @@ export function errorContractConfigMissing(options?: {
   return new CliStructuredError('CONFIG.CONTRACT_MISSING', 'Contract configuration missing', {
     why: options?.why ?? 'The contract configuration is required for emit',
     fix: 'Add contract configuration to your prisma-next.config.ts',
-    docsUrl: 'https://prisma-next.dev/docs/cli/contract-emit',
+    docsUrl: docsUrlFor('CONFIG.CONTRACT_MISSING'),
   });
 }
 
@@ -155,7 +156,7 @@ export function errorContractValidationFailed(
   return new CliStructuredError('CONTRACT.VALIDATION_FAILED', 'Contract validation failed', {
     why: reason,
     fix: 'Re-run `prisma-next contract emit`, or fix the contract file and try again',
-    docsUrl: 'https://prisma-next.dev/docs/contracts',
+    docsUrl: docsUrlFor('CONTRACT.VALIDATION_FAILED'),
     ...(options?.where ? { where: options.where } : {}),
   });
 }
@@ -218,7 +219,7 @@ export function errorQueryRunnerFactoryRequired(options?: {
     {
       why: options?.why ?? 'Config.db.queryRunnerFactory is required for db verify',
       fix: 'Add db.queryRunnerFactory to prisma-next.config.ts',
-      docsUrl: 'https://prisma-next.dev/docs/cli/db-verify',
+      docsUrl: docsUrlFor('CONFIG.QUERY_RUNNER_FACTORY_REQUIRED'),
     },
   );
 }
@@ -235,7 +236,7 @@ export function errorFamilyReadMarkerSqlRequired(options?: {
     {
       why: options?.why ?? 'Family verify.readMarker is required for db verify',
       fix: 'Ensure family.verify.readMarker() is exported by your family package',
-      docsUrl: 'https://prisma-next.dev/docs/cli/db-verify',
+      docsUrl: docsUrlFor('CONFIG.FAMILY_READ_MARKER_REQUIRED'),
     },
   );
 }
@@ -269,7 +270,7 @@ export function errorDriverRequired(options?: { readonly why?: string }): CliStr
     {
       why: options?.why ?? 'Config.driver is required for DB-connected commands',
       fix: 'Add a control-plane driver to prisma-next.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
-      docsUrl: 'https://prisma-next.dev/docs/cli/config',
+      docsUrl: docsUrlFor('CONFIG.DRIVER_REQUIRED'),
     },
   );
 }
@@ -291,7 +292,7 @@ export function errorContractMissingExtensions(options: {
           ? `Contract requires extension pack '${missing[0]}', but CLI config does not provide a matching descriptor.`
           : `Contract requires extension packs ${missing.map((p) => `'${p}'`).join(', ')}, but CLI config does not provide matching descriptors.`,
       fix: 'Add the missing extension descriptors to `extensions` in prisma-next.config.ts',
-      docsUrl: 'https://prisma-next.dev/docs/cli/config',
+      docsUrl: docsUrlFor('CONFIG.MISSING_EXTENSION_PACKS'),
       meta: {
         missingExtensions: missing,
         providedComponentIds: [...options.providedComponentIds].sort(),
@@ -322,7 +323,7 @@ export function errorMigrationPlanningFailed(options: {
     why: computedWhy,
     fix: computedFix,
     meta: { conflicts: options.conflicts },
-    docsUrl: 'https://prisma-next.dev/docs/cli/db-init',
+    docsUrl: docsUrlFor('MIGRATION.PLANNING_FAILED'),
   });
 }
 
@@ -338,7 +339,7 @@ export function errorTargetMigrationNotSupported(options?: {
     {
       why: options?.why ?? 'The configured target does not provide migration planner/runner',
       fix: 'Select a target that provides migrations (it must export `target.migrations` for db init)',
-      docsUrl: 'https://prisma-next.dev/docs/cli/db-init',
+      docsUrl: docsUrlFor('MIGRATION.TARGET_UNSUPPORTED'),
     },
   );
 }
@@ -425,7 +426,7 @@ export function errorConfigValidation(
   return new CliStructuredError('CONFIG.VALIDATION_FAILED', 'Config validation error', {
     why: options?.why ?? `Config must have a "${field}" field`,
     fix: 'Check your prisma-next.config.ts and ensure all required fields are provided',
-    docsUrl: 'https://prisma-next.dev/docs/cli/config',
+    docsUrl: docsUrlFor('CONFIG.VALIDATION_FAILED'),
   });
 }
 

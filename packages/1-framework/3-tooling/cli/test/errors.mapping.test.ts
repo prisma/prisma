@@ -1,3 +1,4 @@
+import { docsUrlFor } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { errorDriverRequired, errorFamilyReadMarkerSqlRequired } from '../src/utils/cli-errors';
 
@@ -10,7 +11,7 @@ describe('CliStructuredError.toEnvelope()', () => {
       code: 'CONFIG.DRIVER_REQUIRED',
       summary: 'Driver is required for DB-connected commands',
       fix: 'Add a control-plane driver to prisma-next.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
-      docsUrl: 'https://prisma-next.dev/docs/cli/config',
+      docsUrl: docsUrlFor('CONFIG.DRIVER_REQUIRED'),
     });
   });
 
@@ -22,7 +23,7 @@ describe('CliStructuredError.toEnvelope()', () => {
       code: 'CONFIG.FAMILY_READ_MARKER_REQUIRED',
       summary: 'Family readMarker() is required',
       fix: 'Ensure family.verify.readMarker() is exported by your family package',
-      docsUrl: 'https://prisma-next.dev/docs/cli/db-verify',
+      docsUrl: docsUrlFor('CONFIG.FAMILY_READ_MARKER_REQUIRED'),
     });
   });
 });

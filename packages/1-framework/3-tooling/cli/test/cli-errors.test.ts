@@ -1,3 +1,4 @@
+import { docsUrlFor } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   buildNeverPlannedFailure,
@@ -22,7 +23,7 @@ describe('CliStructuredError.toEnvelope()', () => {
     expect(envelope.fix).toBe(
       'Add a control-plane driver to prisma-next.config.ts (e.g. import a driver descriptor and set `driver: postgresDriver`)',
     );
-    expect(envelope.docsUrl).toBe('https://prisma-next.dev/docs/cli/config');
+    expect(envelope.docsUrl).toBe(docsUrlFor('CONFIG.DRIVER_REQUIRED'));
   });
 
   it('converts readMarker error to envelope with CONFIG.FAMILY_READ_MARKER_REQUIRED', () => {
@@ -34,7 +35,7 @@ describe('CliStructuredError.toEnvelope()', () => {
     expect(envelope.fix).toBe(
       'Ensure family.verify.readMarker() is exported by your family package',
     );
-    expect(envelope.docsUrl).toBe('https://prisma-next.dev/docs/cli/db-verify');
+    expect(envelope.docsUrl).toBe(docsUrlFor('CONFIG.FAMILY_READ_MARKER_REQUIRED'));
   });
 });
 
