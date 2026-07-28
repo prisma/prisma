@@ -1,0 +1,21 @@
+name: v7 - Daily Test
+
+# Registration stub. The workflow that does the work lives at this path on the
+# `v7` branch. GitHub keeps a workflow dispatchable only while it is present on
+# the default branch or holds recent runs, so this file holds the registration
+# open unconditionally. A dispatch carrying `ref: v7` runs the `v7` copy; the
+# job below is reached only when someone dispatches against the default branch
+# by mistake.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  wrong-ref:
+    name: Dispatched against the wrong ref
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "::error::This workflow belongs to the 7.x line. Re-run it against ref 'v7'."
+          exit 1
