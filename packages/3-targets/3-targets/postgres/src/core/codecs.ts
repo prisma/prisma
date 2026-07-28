@@ -25,6 +25,7 @@ import {
 } from '@prisma-next/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import {
+  CastExpr,
   type ProjectionExpr,
   SqlCharCodec,
   SqlFloatCodec,
@@ -48,6 +49,8 @@ import {
   pgDateDecodeJson,
   pgDateEncode,
   pgDateEncodeJson,
+  pgInt8Decode,
+  pgInt8RenderValueLiteral,
   pgIntervalDecode,
   pgJsonbDecode,
   pgJsonbEncode,
@@ -138,6 +141,20 @@ const PG_JSON_META = { db: { sql: { postgres: { nativeType: 'json' } } } } as co
 const PG_JSONB_META = { db: { sql: { postgres: { nativeType: 'jsonb' } } } } as const;
 
 const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
+
+/**
+ * Projects a numeric-valued expression as decimal text.
+ *
+ * The cast is part of the projected expression, which is what makes it correct:
+ * whatever `jsonProjection` returns is the argument the JSON constructor
+ * receives, so casting here happens *before* PostgreSQL builds the JSON value.
+ * Handed a `numeric` or `int8` directly, the constructor emits a JSON **number**,
+ * and every digit past IEEE-754's 53 bits of significand is gone by the time the
+ * driver has parsed it — before any codec can intervene. A cast applied to the
+ * constructor's result instead of its argument would be too late to matter.
+ */
+const decimalTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
+  CastExpr.as(expression, 'text');
 
 export const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
   nativeType: () => 'character',
@@ -511,23 +528,36 @@ export const pgInt2Column = () =>
 pgInt2Column satisfies ColumnHelperFor<PgInt2Descriptor>;
 pgInt2Column satisfies ColumnHelperForStrict<PgInt2Descriptor>;
 
+/**
+ * A Postgres `int8` spans the full signed 64-bit range, which a JS `number`
+ * cannot hold past 2^53. Application values are `bigint` and the canonical JSON
+ * is decimal text; the wire form is the decimal string `pg` reads and writes for
+ * this type.
+ */
 export class PgInt8Codec extends CodecImpl<
   typeof PG_INT8_CODEC_ID,
   readonly ['equality', 'order', 'numeric'],
-  number,
-  number
+  string | number | bigint,
+  bigint
 > {
-  async encode(value: number, _ctx: CodecCallContext): Promise<number> {
-    return value;
+  async encode(value: bigint, _ctx: CodecCallContext): Promise<string> {
+    return value.toString();
   }
-  async decode(wire: number, _ctx: CodecCallContext): Promise<number> {
-    return wire;
+  async decode(wire: string | number | bigint, _ctx: CodecCallContext): Promise<bigint> {
+    return pgInt8Decode(wire);
   }
-  encodeJson(value: number): JsonValue {
-    return value;
+  encodeJson(value: bigint): JsonValue {
+    return value.toString();
   }
-  decodeJson(json: JsonValue): number {
-    return json as number;
+  decodeJson(json: JsonValue): bigint {
+    if (typeof json !== 'string') {
+      throw postgresError(
+        'RUNTIME.DECODE_FAILED',
+        'pg/int8@1 database JSON value must be a decimal string',
+        { meta: { codecId: PG_INT8_CODEC_ID, received: typeof json } },
+      );
+    }
+    return pgInt8Decode(json);
   }
 }
 
@@ -536,7 +566,7 @@ export class PgInt8Descriptor extends PostgresCodecDescriptor<void> {
     return PG_INT8_META.db.sql.postgres.nativeType;
   }
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return decimalTextJsonProjection(expression);
   }
   override readonly codecId = PG_INT8_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
@@ -544,7 +574,7 @@ export class PgInt8Descriptor extends PostgresCodecDescriptor<void> {
   override readonly meta = PG_INT8_META;
   override readonly paramsSchema: StandardSchemaV1<void> = voidParamsSchema;
   override renderValueLiteral(value: JsonValue): string | undefined {
-    return renderTsLiteral(value);
+    return pgInt8RenderValueLiteral(value);
   }
   override factory(): (ctx: CodecInstanceContext) => PgInt8Codec {
     return () => new PgInt8Codec(this);
@@ -716,25 +746,24 @@ export class PgNumericCodec extends CodecImpl<
     return pgNumericDecode(wire);
   }
   encodeJson(value: string): JsonValue {
-    const number = Number(value);
-    if (!Number.isFinite(number)) {
+    if (!Number.isFinite(Number(value))) {
       throw postgresError(
         'RUNTIME.ENCODE_FAILED',
-        'pg/numeric@1 database JSON value must be a finite number',
-        { meta: { codecId: 'pg/numeric@1', received: value } },
+        'pg/numeric@1 application value must be a decimal numeral',
+        { meta: { codecId: PG_NUMERIC_CODEC_ID, received: value } },
       );
     }
-    return number;
+    return value;
   }
   decodeJson(json: JsonValue): string {
-    if (typeof json !== 'number') {
+    if (typeof json !== 'string') {
       throw postgresError(
         'RUNTIME.DECODE_FAILED',
-        'pg/numeric@1 database JSON value must be a number',
-        { meta: { codecId: 'pg/numeric@1', received: typeof json } },
+        'pg/numeric@1 database JSON value must be a decimal string',
+        { meta: { codecId: PG_NUMERIC_CODEC_ID, received: typeof json } },
       );
     }
-    return pgNumericDecode(json);
+    return json;
   }
 }
 
@@ -743,7 +772,7 @@ export class PgNumericDescriptor extends PostgresCodecDescriptor<NumericParams> 
     return PG_NUMERIC_META.db.sql.postgres.nativeType;
   }
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return decimalTextJsonProjection(expression);
   }
   override readonly codecId = PG_NUMERIC_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
