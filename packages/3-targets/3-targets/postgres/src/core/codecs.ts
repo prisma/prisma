@@ -25,9 +25,12 @@ import {
 } from '@prisma-next/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import {
+  BinaryExpr,
+  CaseExpr,
   CastExpr,
   FunctionCallExpr,
   LiteralExpr,
+  OrExpr,
   type ProjectionExpr,
   SqlCharCodec,
   SqlFloatCodec,
@@ -54,6 +57,8 @@ import {
   pgInt8Decode,
   pgInt8RenderValueLiteral,
   pgIntervalDecode,
+  pgIntervalDecodeJson,
+  pgIntervalEncodeJson,
   pgJsonbDecode,
   pgJsonbEncode,
   pgJsonDecode,
@@ -184,6 +189,67 @@ const utcIsoJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
     FunctionCallExpr.of('timezone', [LiteralExpr.of('UTC'), expression]),
     LiteralExpr.of('YYYY-MM-DD"T"HH24:MI:SS.MS"+00:00"'),
   ]);
+
+const datePart = (field: string, expression: ProjectionExpr): ProjectionExpr =>
+  FunctionCallExpr.of('date_part', [LiteralExpr.of(field), expression]);
+
+const whenNonZero = (value: ProjectionExpr, rendered: ProjectionExpr): ProjectionExpr =>
+  CaseExpr.of(
+    [{ condition: BinaryExpr.neq(value, LiteralExpr.of(0)), value: rendered }],
+    LiteralExpr.of(null),
+  );
+
+/**
+ * Projects an `interval` as an ISO-8601 duration.
+ *
+ * An interval carries months, days and microseconds independently — `P1M` and
+ * `P30D` are different intervals — so the projection reads each field with
+ * `date_part` and assembles them rather than reducing the value to an epoch,
+ * which would have to choose a length for a month. `IntervalStyle` decides how
+ * PostgreSQL spells an interval and cannot be bound per expression, so the
+ * spelling is constructed here instead of inherited.
+ *
+ * `concat` drops NULL arguments, so a zero component is omitted by rendering as
+ * NULL; the seconds field is taken through `numeric` because a `double
+ * precision` microsecond renders in scientific notation.
+ */
+const isoDurationJsonProjection = (expression: ProjectionExpr): ProjectionExpr => {
+  const field = (name: string) => datePart(name, expression);
+  const seconds = CastExpr.as(field('second'), 'numeric');
+  const assembled = FunctionCallExpr.of('concat', [
+    LiteralExpr.of('P'),
+    whenNonZero(field('year'), FunctionCallExpr.of('concat', [field('year'), LiteralExpr.of('Y')])),
+    whenNonZero(
+      field('month'),
+      FunctionCallExpr.of('concat', [field('month'), LiteralExpr.of('M')]),
+    ),
+    whenNonZero(field('day'), FunctionCallExpr.of('concat', [field('day'), LiteralExpr.of('D')])),
+    CaseExpr.of(
+      [
+        {
+          condition: OrExpr.of([
+            BinaryExpr.neq(field('hour'), LiteralExpr.of(0)),
+            BinaryExpr.neq(field('minute'), LiteralExpr.of(0)),
+            BinaryExpr.neq(field('second'), LiteralExpr.of(0)),
+          ]),
+          value: LiteralExpr.of('T'),
+        },
+      ],
+      LiteralExpr.of(null),
+    ),
+    whenNonZero(field('hour'), FunctionCallExpr.of('concat', [field('hour'), LiteralExpr.of('H')])),
+    whenNonZero(
+      field('minute'),
+      FunctionCallExpr.of('concat', [field('minute'), LiteralExpr.of('M')]),
+    ),
+    whenNonZero(field('second'), FunctionCallExpr.of('concat', [seconds, LiteralExpr.of('S')])),
+  ]);
+
+  return FunctionCallExpr.of('coalesce', [
+    FunctionCallExpr.of('nullif', [assembled, LiteralExpr.of('P')]),
+    LiteralExpr.of('PT0S'),
+  ]);
+};
 
 export const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
   nativeType: () => 'character',
@@ -1314,6 +1380,16 @@ export const pgInetColumn = () =>
 pgInetColumn satisfies ColumnHelperFor<PgInetDescriptor>;
 pgInetColumn satisfies ColumnHelperForStrict<PgInetDescriptor>;
 
+/**
+ * An application value is an ISO-8601 duration string spelled the way
+ * PostgreSQL spells one under `IntervalStyle = 'iso_8601'` — `P1M`, `P30D`,
+ * `P1Y2M3DT4H5M6S`, `PT0S` for zero, each component carrying its own sign.
+ *
+ * The three fields an interval holds — months, days and microseconds — stay
+ * independent, because a month has no fixed length: `P1M` and `P30D` are
+ * different values and neither converts to the other. Any accepted duration is
+ * normalised to this spelling, so `P13M` is carried as `P1Y1M`.
+ */
 export class PgIntervalCodec extends CodecImpl<
   typeof PG_INTERVAL_CODEC_ID,
   readonly ['equality', 'order'],
@@ -1327,10 +1403,10 @@ export class PgIntervalCodec extends CodecImpl<
     return pgIntervalDecode(wire);
   }
   encodeJson(value: string): JsonValue {
-    return value;
+    return pgIntervalEncodeJson(value);
   }
   decodeJson(json: JsonValue): string {
-    return json as string;
+    return pgIntervalDecodeJson(json);
   }
 }
 
@@ -1339,7 +1415,7 @@ export class PgIntervalDescriptor extends PostgresCodecDescriptor<PrecisionParam
     return PG_INTERVAL_META.db.sql.postgres.nativeType;
   }
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return isoDurationJsonProjection(expression);
   }
   override readonly codecId = PG_INTERVAL_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;

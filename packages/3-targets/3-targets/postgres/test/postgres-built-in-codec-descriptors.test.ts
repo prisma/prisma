@@ -188,7 +188,7 @@ describe('PostgreSQL built-in codec descriptors', () => {
       nativeType: string;
       typeParams?: CodecRef['typeParams'];
       /** Codecs whose projection replaces the database's own JSON conversion rather than accepting it. */
-      jsonProjection?: 'decimal-text' | 'base64' | 'utc-iso';
+      jsonProjection?: 'decimal-text' | 'base64' | 'utc-iso' | 'iso-duration';
     }> = [
       { descriptor: pgTextDescriptor, nativeType: 'text' },
       {
@@ -235,7 +235,12 @@ describe('PostgreSQL built-in codec descriptors', () => {
       { descriptor: pgByteaDescriptor, nativeType: 'bytea', jsonProjection: 'base64' },
       { descriptor: pgUuidDescriptor, nativeType: 'uuid' },
       { descriptor: pgInetDescriptor, nativeType: 'inet' },
-      { descriptor: pgIntervalDescriptor, nativeType: 'interval', typeParams: {} },
+      {
+        descriptor: pgIntervalDescriptor,
+        nativeType: 'interval',
+        typeParams: {},
+        jsonProjection: 'iso-duration',
+      },
       { descriptor: pgJsonDescriptor, nativeType: 'json' },
       { descriptor: pgJsonbDescriptor, nativeType: 'jsonb' },
       { descriptor: pgTextArrayDescriptor, nativeType: 'text[]' },
@@ -251,6 +256,12 @@ describe('PostgreSQL built-in codec descriptors', () => {
         expect(descriptor.projectJson(expression, ref)).toEqual(
           FunctionCallExpr.of('encode', [expression, LiteralExpr.of('base64')]),
         );
+      } else if (jsonProjection === 'iso-duration') {
+        // The assembled duration is large; that it is not the bare expression,
+        // and that it is a coalesce over the constructed string, is the claim.
+        const projected = descriptor.projectJson(expression, ref);
+        expect(projected).not.toBe(expression);
+        expect(projected).toMatchObject({ kind: 'function-call', fn: 'coalesce' });
       } else if (jsonProjection === 'utc-iso') {
         expect(descriptor.projectJson(expression, ref)).toEqual(
           FunctionCallExpr.of('to_char', [

@@ -448,16 +448,17 @@ describe('adapter-postgres codecs', () => {
     };
 
     it('encodes string as-is', async () => {
-      expect(await intervalCodec.encode('1 day', {})).toBe('1 day');
+      expect(await intervalCodec.encode('P1D', {})).toBe('P1D');
     });
 
-    it('decodes string as-is', async () => {
-      expect(await intervalCodec.decode('2 hours', {})).toBe('2 hours');
+    it('normalises a text wire value to the canonical duration', async () => {
+      expect(await intervalCodec.decode('PT2H', {})).toBe('PT2H');
+      expect(await intervalCodec.decode('P13M', {})).toBe('P1Y1M');
     });
 
-    it('serializes object wire values to JSON strings', async () => {
+    it('reads the driver component object as a duration', async () => {
       const decoded = await intervalCodec.decode({ hours: 2, minutes: 30 }, {});
-      expect(decoded).toBe('{"hours":2,"minutes":30}');
+      expect(decoded).toBe('PT2H30M');
     });
   });
 
