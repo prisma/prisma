@@ -9,7 +9,7 @@
  * content, so a same-named managed policy is by definition unchanged).
  */
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import { APP_SPACE_ID, issueOutcome } from '@prisma-next/framework-components/control';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
 import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
 import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
@@ -156,8 +156,11 @@ describe.sequential('out-of-band body drift on an exact-named policy', () => {
       frameworkComponents,
     });
     expect(drifted.ok).toBe(false);
-    const issuesJson = JSON.stringify(drifted.schema.issues);
-    expect(issuesJson).toContain(EXACT_NAME);
+    const notEqual = drifted.schema.issues.filter(
+      (issue) =>
+        issueOutcome(issue) === 'not-equal' && issue.path.some((p) => p.includes(EXACT_NAME)),
+    );
+    expect(notEqual.length).toBeGreaterThan(0);
   });
 
   it('a destructive-allowed plan replaces the drifted policy: drop before create, same name', {

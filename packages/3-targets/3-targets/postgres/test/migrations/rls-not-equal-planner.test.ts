@@ -267,5 +267,11 @@ describe('not-equal policy under non-managed control policies', () => {
     if (result.kind !== 'success') return;
     const ops = await Promise.all(result.plan.operations);
     expect(ops.map((op) => op.id)).toEqual([]);
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        kind: 'controlPolicySuppressedCall',
+        summary: expect.stringContaining("'tolerated'"),
+      }),
+    );
   });
 });

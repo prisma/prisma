@@ -162,6 +162,27 @@ async function planOpIds(
   return ops.map((op) => op.id);
 }
 
+async function planOpLabels(
+  contract: Contract<SqlStorage>,
+  schema: PostgresDatabaseSchemaNode,
+  policy: { readonly allowedOperationClasses: readonly MigrationOperationClass[] },
+): Promise<readonly string[]> {
+  const planner = createPostgresMigrationPlanner(stubLowerer);
+  const result = planner.plan({
+    contract,
+    schema,
+    policy: { allowedOperationClasses: [...policy.allowedOperationClasses] },
+    fromContract: null,
+    frameworkComponents: [],
+    spaceId: APP_SPACE_ID,
+    snapshotsImportPath: '../../snapshots',
+  });
+  expect(result.kind).toBe('success');
+  if (result.kind !== 'success') return [];
+  const ops = await Promise.all(result.plan.operations);
+  return ops.map((op) => op.label);
+}
+
 describe('prefix-only rename pairing', () => {
   it('plans exactly one ALTER POLICY … RENAME TO — no drop, no create', async () => {
     const contract = buildContract([policyNamed('owner_read_ab12cd34')]);
@@ -306,11 +327,13 @@ describe('phase 2 — content pairing (exact→managed convergence)', () => {
     ]);
     const schema = actualSchema([exactPolicy('z legacy'), exactPolicy('y legacy')]);
 
-    const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
     // Missing sorted: a_managed_…, b_managed_…; candidates sorted: y legacy, z legacy.
-    expect(opIds).toEqual([
-      `rlsPolicy.public.${TABLE_NAME}.y legacy.rename`,
-      `rlsPolicy.public.${TABLE_NAME}.z legacy.rename`,
+    // Labels pin the rename TARGETS, not just the source-keyed op ids — the
+    // reversed pairing would emit the same two ids.
+    const labels = await planOpLabels(contract, schema, ALL_CLASSES_POLICY);
+    expect(labels).toEqual([
+      `Rename RLS policy "y legacy" to "a_managed_11111111" on "${TABLE_NAME}"`,
+      `Rename RLS policy "z legacy" to "b_managed_22222222" on "${TABLE_NAME}"`,
     ]);
   });
 
