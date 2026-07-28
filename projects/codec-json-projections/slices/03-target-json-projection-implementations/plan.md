@@ -65,6 +65,7 @@ Three facts shape the plan:
 
 - **Outcome:** `sqlite/bigint@1` is canonical as decimal text on both sides — its `encodeJson` currently rejects unsafe integers outright, so this is a real behavior change, not a format tweak — and `sqlite/blob@1` is canonical as pinned-case hexadecimal. `sqlite/text@1`, `sqlite/integer@1`, `sqlite/real@1`, `sqlite/datetime@1`, and the shared `sql/*` descriptors on this target state their projections as tested claims. Finite-only float behavior is asserted. No SQLite descriptor retains an untested identity hook; fixtures that move are regenerated.
 - **Builds on:** Dispatch 1's oracle; dispatch 2's both-sides-together idiom.
+- **Carries a D1 debt (F5).** `sqlite/bigint@1`'s conformance case in `packages/3-targets/6-adapters/sqlite/test/codec-conformance/cases.ts` carries a `reason` string reading "the canonical JSON is a number, so a value outside the safe-integer range has no representation". Under the vocabulary D1 established, "canonical" means the form the codec ends up with — and this codec ends up as decimal text, here. The string must become "`encodeJson` emits a number" (or be rewritten wholesale as the case changes). Deferred from D1 R3 by orchestrator override; if D5 lands without it, it is a D5 finding.
 - **Hands to:** A complete SQLite scalar projection set, leaving only the document-retagging mechanism for this target.
 - **Focus:** SQLite scalars. Document retagging is dispatch 6; stored scalar arrays remain out of scope per the project's non-goals.
 
