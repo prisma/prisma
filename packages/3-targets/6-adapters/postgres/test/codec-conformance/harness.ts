@@ -112,6 +112,12 @@ export interface PostgresCodecConformanceCase {
   /** SQL executed before the storage table is created — e.g. `CREATE TYPE` for a native enum. */
   readonly setupSql?: readonly string[];
   /**
+   * Stores the value in a column of the codec's native array type and projects
+   * it through the descriptor's inherited array lift. `value` is then an array
+   * whose elements are application values, or `null` for a null array.
+   */
+  readonly many?: true;
+  /**
    * How this case's projection currently disagrees with the codec's
    * `encodeJson` / `decodeJson`, when it does. The suite asserts that a marked
    * case still fails *and still fails this way*, so neither the marker nor its
@@ -165,6 +171,7 @@ function codecRefOf(conformanceCase: PostgresCodecConformanceCase): CodecRef {
   return {
     codecId: conformanceCase.codecId,
     ...ifDefined('typeParams', conformanceCase.typeParams),
+    ...ifDefined('many', conformanceCase.many),
   };
 }
 
@@ -200,6 +207,58 @@ export function buildProjectionSql(conformanceCase: PostgresCodecConformanceCase
   return renderLoweredSql(select, conformanceContract, postgresCodecDescriptorRegistry).sql;
 }
 
+type ElementCodec = {
+  encode(value: unknown, ctx: Record<string, never>): Promise<unknown>;
+  encodeJson(value: unknown): JsonValue;
+  decodeJson(json: JsonValue): unknown;
+};
+
+/** Maps `mapper` over an array case's elements, leaving nulls alone; a null array stays null. */
+function overElements<T>(value: unknown, mapper: (element: unknown) => T): T[] | null {
+  if (value === null) return null;
+  if (!Array.isArray(value)) {
+    throw new Error('A `many` conformance case must carry an array value or null.');
+  }
+  return value.map((element) => mapper(element));
+}
+
+async function encodeValue(
+  codec: ElementCodec,
+  conformanceCase: PostgresCodecConformanceCase,
+): Promise<unknown> {
+  if (conformanceCase.many !== true) return codec.encode(conformanceCase.value, {});
+  if (conformanceCase.value === null) return null;
+  const elements = overElements(conformanceCase.value, (element) => element) ?? [];
+  return Promise.all(
+    elements.map(async (element) =>
+      element === null ? null : toDriverParam(await codec.encode(element, {})),
+    ),
+  );
+}
+
+function expectedJson(
+  codec: ElementCodec,
+  conformanceCase: PostgresCodecConformanceCase,
+): JsonValue {
+  if (conformanceCase.many !== true) return codec.encodeJson(conformanceCase.value);
+  return overElements(conformanceCase.value, (element) =>
+    element === null ? null : codec.encodeJson(element),
+  );
+}
+
+function roundTripValue(
+  codec: ElementCodec,
+  conformanceCase: PostgresCodecConformanceCase,
+  projected: JsonValue,
+): unknown {
+  if (conformanceCase.many !== true) return codec.decodeJson(projected);
+  if (projected === null) return null;
+  if (!Array.isArray(projected)) {
+    throw new Error('An array projection must produce a JSON array or null.');
+  }
+  return projected.map((element) => (element === null ? null : codec.decodeJson(element)));
+}
+
 export async function runPostgresCodecProjection(
   connection: ConformanceConnection,
   conformanceCase: PostgresCodecConformanceCase,
@@ -217,13 +276,13 @@ export async function runPostgresCodecProjection(
   for (const statement of conformanceCase.setupSql ?? []) {
     await connection.query(statement);
   }
-  await connection.query(
-    `CREATE TABLE "${STORAGE_TABLE}" ("${VALUE_COLUMN}" ${descriptor.nativeTypeFor(ref)})`,
-  );
+  const elementType = descriptor.nativeTypeFor(ref);
+  const columnType = conformanceCase.many === true ? `${elementType}[]` : elementType;
+  await connection.query(`CREATE TABLE "${STORAGE_TABLE}" ("${VALUE_COLUMN}" ${columnType})`);
 
-  const wire = await codec.encode(conformanceCase.value, {});
+  const wire = await encodeValue(codec, conformanceCase);
   await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES ($1)`, [
-    toDriverParam(wire),
+    conformanceCase.many === true ? wire : toDriverParam(wire),
   ]);
 
   const sql = buildProjectionSql(conformanceCase);
@@ -253,7 +312,7 @@ export async function runPostgresCodecProjection(
 
   let expected: JsonValue;
   try {
-    expected = codec.encodeJson(conformanceCase.value);
+    expected = expectedJson(codec, conformanceCase);
   } catch (error) {
     return {
       sql,
@@ -281,7 +340,7 @@ export async function runPostgresCodecProjection(
 
   let roundTripped: unknown;
   try {
-    roundTripped = codec.decodeJson(projected);
+    roundTripped = roundTripValue(codec, conformanceCase, projected);
   } catch (error) {
     return {
       ...base,
