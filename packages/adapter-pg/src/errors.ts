@@ -75,23 +75,38 @@ function mapDriverError(error: DatabaseError): MappedError {
         message: error.message,
       }
     case '23505': {
-      let constraint: { fields: string[] } | { index: string } | undefined
+      const fields = error.detail
+        ?.match(/Key \(([^)]+)\)/)
+        ?.at(1)
+        ?.split(', ')
 
+      let constraint: { fields: string[] } | { index: string } | undefined
       if (error.constraint) {
         constraint = { index: error.constraint }
-      } else {
-        const fields = error.detail
-          ?.match(/Key \(([^)]+)\)/)
-          ?.at(1)
-          ?.split(', ')
-        if (fields !== undefined) {
-          constraint = { fields }
+      } else if (fields !== undefined) {
+        constraint = { fields }
+      }
+
+      // CockroachDB does not populate `error.table` (unlike PostgreSQL,
+      // which reports the bare table name there), so we recover the table
+      // name from constraints following Prisma's default naming convention
+      // for unique constraints, `{table}_{field1}_..._{fieldN}_key`, by
+      // stripping the fields (parsed above from `error.detail`) and the
+      // trailing `_key` off the constraint name. Custom-named constraints
+      // (`@@unique(map: ...)`) yield no table name here, in which case the
+      // client falls back to the top-level operation's model name.
+      let table = error.table
+      if (table === undefined && fields !== undefined && fields.length > 0) {
+        const suffix = `_${fields.join('_')}_key`
+        if (error.constraint?.endsWith(suffix)) {
+          table = error.constraint.slice(0, -suffix.length)
         }
       }
 
       return {
         kind: 'UniqueConstraintViolation',
         constraint,
+        table,
       }
     }
     case '23502': {
