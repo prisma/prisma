@@ -25,10 +25,10 @@ The framework owns one generic entry type and the sink ([`framework-authoring.ts
 
 ```ts
 export interface AuthoringWarning {
-  readonly code: string; // stable machine code; the flush groups on it
+  readonly code: string; // stable machine code; user-greppable, stamped on emitWarning
   readonly message: string; // full text when itemized
   readonly item: string; // short label under a batched summary (`policy "…"`)
-  readonly guidance: string; // group summary text: rendered as "<count> <guidance>"
+  readonly summary: string; // what a batched group asserts about EVERY member: "<count> <summary>"
 }
 
 export interface AuthoringWarningSink {
@@ -38,7 +38,7 @@ export interface AuthoringWarningSink {
 
 - **Push sites mint fully-formed warnings.** The concrete vocabulary (`exactNameBodyWarning(subject, exactName)` in [`index-naming.ts`](../../../packages/2-sql/1-core/contract/src/index-naming.ts)) lives beside the emitter and never travels as a type — only `AuthoringWarning` crosses layers.
 - **The accumulating layer owns a plain array** (an `AuthoringWarning[]` satisfies the sink structurally) and threads it through `AuthoringEntityContext.warnings`. A producer that runs before the build (the PSL interpreter) hands its batch to the build on the producer→builder IR (`ContractDefinition.warnings`).
-- **Exactly one flush per build.** `flushAuthoringWarnings` groups by `code` and applies the batch threshold per group: at or below it, every `message` is emitted; above it, one summary — `"<count> <guidance>"` over the `item` lines. Warnings of different codes never batch into each other's summary.
+- **Exactly one flush per build** — which may emit more than one warning. `flushAuthoringWarnings` groups on `code` AND `summary` and applies the batch threshold per group: at or below it, every `message` is emitted; above it, one batched warning — `"<count> <summary>"` over the `item` lines. Warnings batch together iff both keys match, so a mixed batch renders one summary per distinct summary text.
 
 ## Why the payload must be generic
 
@@ -58,6 +58,8 @@ The framework must not learn family or target vocabulary (`no-family-vocabulary-
 
 ## Cautions / common mistakes
 
+- **A group's summary must be true of every member.** The batched rendering asserts `summary` of the whole group, so the grouping key covers `code` + `summary` — never group on `code` alone when summaries can differ (the first shipped adopter did, and a mixed index+policy batch told indexes to drop an `@@map` they do not have).
+- **The threshold is per group.** Splitting groups by summary weakens the original global wall-of-text guard: N groups of threshold-size hits each itemize N×threshold warnings. Deliberate trade — a summary that lies about its members is worse than a longer listing; revisit only if a build legitimately produces many distinct summaries.
 - **Push sites must not format for presentation.** Batching and thresholds are the flush's job; a push site that pre-joins messages defeats the summary.
 - **Keep the sink optional and ignorable.** A producer that does not collect warnings must still work; `lowerAuthoredIndex` falls back to an immediate single-entry flush when no sink is passed.
 - **One flush per build is a testable invariant** — the test pinning it belongs with the flush, not the push (`psl-policy-map-authoring.test.ts` pins one `process.emitWarning` call across indexes and policies).

@@ -268,7 +268,7 @@ describe('flushAuthoringWarnings over exact-name body warnings — threshold bat
       code: 'PN_SOME_OTHER_ADVISORY',
       message: 'some other advisory message',
       item: 'thing "x"',
-      guidance: 'things need attention.',
+      summary: 'things need attention.',
     };
     const names = ['a', 'b', 'c', 'd', 'e', 'f'].map((n) => `idx_${n}`);
     const warnings = captureWarnings(() => flushAuthoringWarnings([...names.map(item), other]));
@@ -300,18 +300,43 @@ describe('lowerAuthoredIndex — exact-name body warning', () => {
     ]);
   });
 
-  it('the policy subject carries policy remediation — drop @@map, the block head names the policy', () => {
+  it('the policy subject speaks policy vocabulary end to end — @@map named, drop-@@map remediation', () => {
     const warning = exactNameBodyWarning('policy', 'Tenant members can read');
     expect(warning.message).toBe(
-      'policy "Tenant members can read" uses map: with a SQL body. Drift detection compares ' +
+      'policy "Tenant members can read" uses @@map with a SQL body. Drift detection compares ' +
         "the authored SQL text byte-for-byte against Postgres's reprinted form, which is only " +
         'reliable when the text was captured by contract infer. For hand-authored definitions, ' +
         "drop @@map and let the policy block's head name the policy; to migrate an adopted " +
         'policy to managed naming, remove @@map (keeping the body text unchanged) and apply ' +
         'the resulting rename migration.',
     );
-    expect(warning.message).not.toContain('name:');
-    expect(warning.guidance).not.toContain('name:');
+    expect(warning.summary).toBe(
+      'objects use @@map with a SQL body. Drift detection compares ' +
+        "the authored SQL text byte-for-byte against Postgres's reprinted form, which is only " +
+        'reliable when the text was captured by contract infer. For hand-authored definitions, ' +
+        "drop @@map and let the policy block's head name the policy; to migrate an adopted " +
+        'policy to managed naming, remove @@map (keeping the body text unchanged) and apply ' +
+        'the resulting rename migration.',
+    );
+  });
+
+  it('same code, different summary — index and policy warnings never share a batch', () => {
+    const warnings = captureWarnings(() =>
+      flushAuthoringWarnings([
+        ...['a', 'b', 'c', 'd'].map((n) => exactNameBodyWarning('index', `idx_${n}`)),
+        exactNameBodyWarning('policy', 'p one'),
+        exactNameBodyWarning('policy', 'p two'),
+      ]),
+    );
+    // Six same-code warnings, but two summaries: neither group crosses the
+    // threshold, so every warning itemizes with its own subject's wording.
+    expect(warnings).toHaveLength(6);
+    for (const w of warnings.slice(0, 4)) {
+      expect(w.message).toContain('uses map: with a SQL body.');
+    }
+    for (const w of warnings.slice(4)) {
+      expect(w.message).toContain('uses @@map with a SQL body.');
+    }
   });
 
   it('fires for map + where', () => {

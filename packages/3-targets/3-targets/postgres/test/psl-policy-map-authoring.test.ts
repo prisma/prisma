@@ -311,43 +311,55 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
     const calls = exactNameWarningCalls();
     expect(calls).toHaveLength(1);
     const message = String(calls[0]?.[0]);
-    expect(message).toContain('policy "Tenant members can read" uses map: with a SQL body.');
+    expect(message).toContain('policy "Tenant members can read" uses @@map with a SQL body.');
     expect(message).toContain(
       "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map",
     );
     expect(message).not.toContain('name:');
   });
 
-  it('over-threshold mixed index + policy warnings collapse into ONE summary flush', () => {
-    const indexAttributes = [1, 2, 3, 4]
+  it('an over-threshold mixed batch flushes once as TWO summaries, each true of every member', () => {
+    const indexAttributes = [1, 2, 3, 4, 5, 6]
       .map((n) => `    @@index([email], where: "(owner_id = ${n})", map: "adopted_idx_${n}")`)
       .join('\n');
-    interpret(
-      policyDoc(
-        `
-  policy_select p_read {
+    const policyBlocks = ['a', 'b', 'c', 'd', 'e', 'f']
+      .map(
+        (n) => `
+  policy_select p_read_${n} {
     target = profile
     roles  = [app_user]
     using  = "owner_id = 1"
-    @@map("adopted select policy")
-  }
-
-  policy_update p_write {
-    target = profile
-    roles  = [app_user]
-    using  = "owner_id = 1"
-    @@map("adopted update policy")
+    @@map("adopted policy ${n}")
   }
 `,
-        indexAttributes,
-      ),
-    );
+      )
+      .join('\n');
+    interpret(policyDoc(policyBlocks, indexAttributes));
+    // One flush per build; warnings batch iff code AND summary match, so the
+    // mixed batch renders one summary per subject — each carrying its own
+    // subject's feature name and remediation, true of every listed member.
     const calls = exactNameWarningCalls();
-    expect(calls).toHaveLength(1);
-    const message = String(calls[0]?.[0]);
-    expect(message).toContain('6 objects use map: with a SQL body.');
-    expect(message).toContain('index "adopted_idx_1"');
-    expect(message).toContain('policy "adopted select policy"');
-    expect(message).toContain('policy "adopted update policy"');
+    expect(calls).toHaveLength(2);
+    const messages = calls.map((c) => String(c[0]));
+    const policySummary = messages.find((m) =>
+      m.startsWith('6 objects use @@map with a SQL body.'),
+    );
+    const indexSummary = messages.find((m) => m.startsWith('6 objects use map: with a SQL body.'));
+    expect(policySummary).toBeDefined();
+    expect(indexSummary).toBeDefined();
+    expect(policySummary).toContain(
+      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
+    );
+    for (const n of ['a', 'b', 'c', 'd', 'e', 'f']) {
+      expect(policySummary).toContain(`  - policy "adopted policy ${n}"`);
+    }
+    expect(policySummary).not.toContain('index "');
+    expect(indexSummary).toContain(
+      'use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
+    );
+    for (const n of [1, 2, 3, 4, 5, 6]) {
+      expect(indexSummary).toContain(`  - index "adopted_idx_${n}"`);
+    }
+    expect(indexSummary).not.toContain('policy "');
   });
 });

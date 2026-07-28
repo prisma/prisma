@@ -24,7 +24,7 @@ The "Reach for it when..." column is the fastest way to scan: read it for the si
 | Package layering: domains × layers × planes | [`package-layering.md`](./package-layering.md) | You're creating a new package, adding an import, or reaching for "shared utilities" — and you need to know where it goes. | Stable |
 | Authoring warning sink | [`authoring-warning-sink.md`](./authoring-warning-sink.md) | A target pack or lowering helper needs to surface a non-fatal, batchable advisory to the user, and the emitter cannot see the flush boundary. | Emerging |
 
-The status column reads **Stable** once an entry has at least two reference implementations in the codebase, and **Emerging** when a pattern has one shipped adopter plus a credible second adopter committed. Two entries are Emerging: three-layer polymorphic IR (migration ops follow it today; Contract IR and Schema IR are committed to follow) and the authoring warning sink (one warning kind shipped; every future authoring-time advisory is the committed second adopter).
+The status column reads **Stable** once an entry has at least two reference implementations in the codebase, and **Emerging** when a pattern has one shipped adopter plus a credible second adopter committed. Two entries are Emerging: three-layer polymorphic IR (migration ops follow it today; Contract IR and Schema IR are committed to follow) and the authoring warning sink (two push sites shipped — the shared index lowering and the Postgres policy factory — through one warning kind; a second warning kind is what graduates it).
 
 ## How to add a new pattern
 

@@ -51,26 +51,34 @@ const EXACT_NAME_BODY_REMEDIATION = {
     "For hand-authored definitions, drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
 } as const;
 
+/** What the user actually wrote, per subject: index `map:`, policy `@@map`. */
+const EXACT_NAME_FEATURE = {
+  index: 'map:',
+  policy: '@@map',
+} as const;
+
 const EXACT_NAME_BODY_WARNING_CODE = 'PN_EXACT_NAME_BODY_COMPARISON';
 
 /**
  * Mints the exact-name body-comparison warning for a `map:`-named object
  * carrying a hand-authorable SQL body — fully formed, so the transport and
  * the flush stay generic. `subject` is `index` here and `policy` where
- * policies mint the same warning; the remediation half of the guidance is
- * subject-specific.
+ * policies mint the same warning; the feature name and the remediation are
+ * subject-specific end to end, so a batched summary (grouped on
+ * code + summary) is true of every object it covers.
  */
 export function exactNameBodyWarning(
   subject: 'index' | 'policy',
   exactName: string,
 ): AuthoringWarning {
   const item = `${subject} "${exactName}"`;
-  const guidance = `${EXACT_NAME_BODY_PREAMBLE} ${EXACT_NAME_BODY_REMEDIATION[subject]}`;
+  const feature = EXACT_NAME_FEATURE[subject];
+  const tail = `with a SQL body. ${EXACT_NAME_BODY_PREAMBLE} ${EXACT_NAME_BODY_REMEDIATION[subject]}`;
   return {
     code: EXACT_NAME_BODY_WARNING_CODE,
-    message: `${item} uses map: with a SQL body. ${guidance}`,
+    message: `${item} uses ${feature} ${tail}`,
     item,
-    guidance: `objects use map: with a SQL body. ${guidance}`,
+    summary: `objects use ${feature} ${tail}`,
   };
 }
 

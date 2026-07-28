@@ -188,21 +188,24 @@ export interface AuthoringDiagnosticSink {
 /**
  * A non-fatal advisory minted at authoring time. Fully formed at the push
  * site — the transport and the flush never learn family or target
- * vocabulary; {@link flushAuthoringWarnings} groups on `code` alone.
+ * vocabulary. Warnings batch together iff `code` AND `summary` match: the
+ * batched rendering asserts the summary of every member, so the grouping
+ * key must cover everything the summary claims.
  */
 export interface AuthoringWarning {
-  /** Stable machine code; the flush batches warnings sharing it. */
+  /** Stable machine code — what the user greps and what `process.emitWarning` stamps. */
   readonly code: string;
   /** Full text emitted when the warning is itemized (group at or below the batch threshold). */
   readonly message: string;
   /** Short subject label listed under a batched group summary (e.g. `object "…"`). */
   readonly item: string;
   /**
-   * Group summary text. An over-threshold group renders as
-   * `"<count> <guidance>"` above the item lines, so this starts with the
-   * plural noun phrase (e.g. `objects use <feature>. <remediation>`).
+   * Group summary text — what a batched group asserts about EVERY member.
+   * An over-threshold group renders as `"<count> <summary>"` above the item
+   * lines, so this starts with the plural noun phrase (e.g.
+   * `objects use <feature>. <remediation>`).
    */
-  readonly guidance: string;
+  readonly summary: string;
 }
 
 /**
@@ -220,29 +223,33 @@ const AUTHORING_WARNING_BATCH_THRESHOLD = 5;
 /**
  * Emits collected authoring warnings once per build, grouped by `code`:
  * a group at or below the threshold itemizes every `message`; above it,
- * one summary — `"<count> <guidance>"` followed by the `item` lines — so
+ * one summary — `"<count> <summary>"` followed by the `item` lines — so
  * a build with many hits of one kind does not wall-of-text, and warnings
  * of different codes never batch into each other's summary.
  */
 export function flushAuthoringWarnings(warnings: readonly AuthoringWarning[]): void {
+  // Grouped on code + summary: the batched rendering asserts the summary of
+  // every member, so the key must cover everything the summary claims — two
+  // warnings sharing a code but differing in summary never share a batch.
   const groups = new Map<string, AuthoringWarning[]>();
   for (const warning of warnings) {
-    const group = groups.get(warning.code) ?? [];
+    const key = `${warning.code}\u0000${warning.summary}`;
+    const group = groups.get(key) ?? [];
     group.push(warning);
-    groups.set(warning.code, group);
+    groups.set(key, group);
   }
-  for (const [code, group] of groups) {
+  for (const group of groups.values()) {
+    const first = group[0];
+    if (first === undefined) continue;
     if (group.length <= AUTHORING_WARNING_BATCH_THRESHOLD) {
       for (const warning of group) {
-        process.emitWarning(warning.message, { code });
+        process.emitWarning(warning.message, { code: warning.code });
       }
       continue;
     }
-    const first = group[0];
-    if (first === undefined) continue;
     process.emitWarning(
-      `${group.length} ${first.guidance}\n${group.map((w) => `  - ${w.item}`).join('\n')}`,
-      { code },
+      `${group.length} ${first.summary}\n${group.map((w) => `  - ${w.item}`).join('\n')}`,
+      { code: first.code },
     );
   }
 }
