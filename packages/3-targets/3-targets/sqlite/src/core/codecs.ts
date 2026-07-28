@@ -101,7 +101,7 @@ export const jsonDocumentRetag = (expression: ProjectionExpr): ProjectionExpr =>
   isJsonRetag(expression) ? expression : FunctionCallExpr.of(JSON_RETAG_FN, [expression]);
 
 /** Whether an expression is already a retag, so applying one again would only nest. */
-export const isJsonRetag = (expression: ProjectionExpr): boolean =>
+const isJsonRetag = (expression: ProjectionExpr): boolean =>
   expression instanceof FunctionCallExpr &&
   expression.fn === JSON_RETAG_FN &&
   expression.args.length === 1;
