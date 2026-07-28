@@ -22,6 +22,7 @@ import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import {
   ColumnRef,
   DerivedTableSource,
+  JsonArrayAggExpr,
   JsonObjectExpr,
   LiteralExpr,
   NativeJsonValueProjection,
@@ -77,6 +78,24 @@ function nested(levels: number, project: (expr: ProjectionExpr) => ProjectionExp
   ]);
 }
 
+/**
+ * The same nesting, but with `json_group_array` as the enclosing constructor
+ * rather than `json_object`. Whether an aggregate preserves *element* subtypes
+ * the way an object preserves *value* subtypes is a contingent fact about
+ * SQLite, not something the premise implies, so it is measured here too.
+ */
+function nestedAggregate(project: (expr: ProjectionExpr) => ProjectionExpr): SelectAst {
+  return SelectAst.from(DerivedTableSource.as('d', documentSource())).withProjection([
+    ProjectionItem.of(
+      'doc',
+      JsonArrayAggExpr.of(
+        new NativeJsonValueProjection(project(ColumnRef.of('d', INNER_COLUMN))),
+        'emptyArray',
+      ),
+    ),
+  ]);
+}
+
 describe('SQLite JSON subtype across a derived table', () => {
   let database: DatabaseSync | undefined;
 
@@ -93,6 +112,12 @@ describe('SQLite JSON subtype across a derived table', () => {
     const { sql } = renderLoweredSql(select, contract);
     const row = database!.prepare(sql).get() as { doc: string };
     return JSON.parse(row.doc).outer;
+  }
+
+  function runAggregate(select: SelectAst): unknown {
+    const { sql } = renderLoweredSql(select, contract);
+    const row = database!.prepare(sql).get() as { doc: string };
+    return JSON.parse(row.doc);
   }
 
   const identity = (expr: ProjectionExpr): ProjectionExpr => expr;
@@ -130,5 +155,13 @@ describe('SQLite JSON subtype across a derived table', () => {
 
   it('needs the retag only where the document is consumed', () => {
     expect(run(nested(2, jsonDocumentRetag))).toEqual(DOCUMENT);
+  });
+
+  it('degrades an untagged element inside json_group_array too', () => {
+    expect(runAggregate(nestedAggregate(identity))).toEqual([JSON.stringify(DOCUMENT)]);
+  });
+
+  it('restores a document element inside json_group_array', () => {
+    expect(runAggregate(nestedAggregate(jsonDocumentRetag))).toEqual([DOCUMENT]);
   });
 });

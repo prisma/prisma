@@ -83,6 +83,45 @@ const cases: readonly PostgresCodecConformanceCase[] = [
   }),
 ];
 
+/**
+ * A `many` column of vectors — a `vector[]` — which is what actually routes
+ * through the inherited array lift. A single `vector` does not: it is a scalar
+ * whose representation happens to be an array, and the lift fires on
+ * `CodecRef.many`.
+ */
+const manyVectorCases: readonly PostgresCodecConformanceCase[] = [
+  {
+    codecId: 'pg/vector@1',
+    descriptor: pgVectorDescriptor,
+    label: 'a column of several vectors',
+    value: [
+      [1, 2, 3],
+      [4, 5, 6],
+    ],
+    typeParams: { length: 3 },
+    many: true,
+    setupSql: INSTALL_VECTOR,
+  },
+  {
+    codecId: 'pg/vector@1',
+    descriptor: pgVectorDescriptor,
+    label: 'a null column of vectors',
+    value: null,
+    typeParams: { length: 3 },
+    many: true,
+    setupSql: INSTALL_VECTOR,
+  },
+  {
+    codecId: 'pg/vector@1',
+    descriptor: pgVectorDescriptor,
+    label: 'a column of vectors with a null element',
+    value: [[1, 2, 3], null],
+    typeParams: { length: 3 },
+    many: true,
+    setupSql: INSTALL_VECTOR,
+  },
+];
+
 describe.sequential('pgvector codec JSON-projection conformance', () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;
   let driver: Awaited<ReturnType<typeof postgresControlDriverDescriptor.create>> | undefined;
@@ -102,7 +141,7 @@ describe.sequential('pgvector codec JSON-projection conformance', () => {
     database = undefined;
   }, timeouts.spinUpPpgDev);
 
-  for (const conformanceCase of cases) {
+  for (const conformanceCase of [...cases, ...manyVectorCases]) {
     it(`pg/vector@1 (${conformanceCase.label}) agrees with encodeJson and round-trips through decodeJson`, {
       timeout: timeouts.spinUpPpgDev,
     }, async () => {
