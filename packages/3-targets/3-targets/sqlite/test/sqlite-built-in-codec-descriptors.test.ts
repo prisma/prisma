@@ -114,7 +114,6 @@ describe('SQLite built-in codec descriptors', () => {
       sqliteIntegerDescriptor,
       sqliteRealDescriptor,
       sqliteDatetimeDescriptor,
-      sqliteJsonDescriptor,
     ];
 
     for (const descriptor of descriptors) {
@@ -132,6 +131,11 @@ describe('SQLite built-in codec descriptors', () => {
     // An INTEGER reaching JSON as a number does not survive the int64 range.
     expect(sqliteBigintDescriptor.projectJson(expression, refFor(sqliteBigintDescriptor))).toEqual(
       CastExpr.as(expression, 'TEXT'),
+    );
+    // A document loses SQLite's JSON subtype across a derived table and would
+    // embed as a string containing JSON; the retag re-applies it.
+    expect(sqliteJsonDescriptor.projectJson(expression, refFor(sqliteJsonDescriptor))).toEqual(
+      FunctionCallExpr.of('json', [expression]),
     );
   });
 

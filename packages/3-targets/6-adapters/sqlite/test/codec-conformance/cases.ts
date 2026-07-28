@@ -69,16 +69,28 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
     value: new Date('2026-01-02T03:04:05.678Z'),
     storageType: 'TEXT',
   },
+  { codecId: 'sqlite/json@1', label: 'document', value: { a: 1, b: ['x'] }, storageType: 'TEXT' },
+  // A document is not always an object: the retag has to carry every JSON shape,
+  // including the scalars whose text form is indistinguishable from a stored string.
   {
     codecId: 'sqlite/json@1',
-    label: 'document',
-    value: { a: 1, b: ['x'] },
+    label: 'array at the top level',
+    value: [1, 'two', null],
     storageType: 'TEXT',
-    notYetCanonical: {
-      kind: 'mismatch',
-      reason:
-        'a document stored as text arrives as a JSON string, not a JSON document, until the projection retags it',
-    },
+  },
+  {
+    codecId: 'sqlite/json@1',
+    label: 'string at the top level',
+    value: 'plain',
+    storageType: 'TEXT',
+  },
+  { codecId: 'sqlite/json@1', label: 'number at the top level', value: 42, storageType: 'TEXT' },
+  { codecId: 'sqlite/json@1', label: 'null at the top level', value: null, storageType: 'TEXT' },
+  {
+    codecId: 'sqlite/json@1',
+    label: 'document whose strings need escaping',
+    value: { 'k"y': 'v\\a"l', nested: ['x\ny'] },
+    storageType: 'TEXT',
   },
   {
     codecId: 'sqlite/bigint@1',

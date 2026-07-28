@@ -75,6 +75,37 @@ const decimalTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =
 const hexJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
   FunctionCallExpr.of('hex', [expression]);
 
+const JSON_RETAG_FN = 'json' as const;
+
+/**
+ * Re-applies SQLite's JSON subtype to a document-valued expression.
+ *
+ * SQLite carries "this text is JSON" as a subtype on the value rather than in
+ * its type, and the subtype does not survive a derived table: a document that
+ * `json_object` produced arrives one level out as plain text, so the enclosing
+ * constructor embeds it as a *string containing JSON* rather than as a
+ * document. `json()` re-applies the subtype, which is what makes the value nest
+ * as a document again.
+ *
+ * The loss happens at the first derived-table boundary and does not compound, so
+ * a retag is needed where the document is consumed rather than at every level it
+ * passes through.
+ *
+ * Applying this twice is a no-op — SQLite's `json()` is idempotent, and the
+ * wrapper collapses rather than nesting so the rendered SQL says so too. It is
+ * safe on any valid JSON text, including scalars, and on NULL; it raises
+ * `malformed JSON` on text that is not JSON, which is the correct failure for a
+ * value that was never a document.
+ */
+export const jsonDocumentRetag = (expression: ProjectionExpr): ProjectionExpr =>
+  isJsonRetag(expression) ? expression : FunctionCallExpr.of(JSON_RETAG_FN, [expression]);
+
+/** Whether an expression is already a retag, so applying one again would only nest. */
+export const isJsonRetag = (expression: ProjectionExpr): boolean =>
+  expression instanceof FunctionCallExpr &&
+  expression.fn === JSON_RETAG_FN &&
+  expression.args.length === 1;
+
 const DECIMAL_INTEGER = /^-?\d+$/;
 const UPPERCASE_HEX = /^(?:[0-9A-F]{2})*$/;
 
@@ -370,7 +401,7 @@ export class SqliteJsonCodec extends CodecImpl<
 
 export class SqliteJsonDescriptor extends SqliteCodecDescriptor<void> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return jsonDocumentRetag(expression);
   }
   override readonly codecId = SQLITE_JSON_CODEC_ID;
   override readonly traits = ['equality'] as const;

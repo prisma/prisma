@@ -1,0 +1,91 @@
+/**
+ * The JSON-document retag, tested at both ends: the AST it builds and the SQL
+ * that AST renders to.
+ *
+ * Nothing calls the retag from a production render path yet, so these tests are
+ * the only thing holding its shape. They assert the two properties a caller will
+ * depend on when one does — that applying it twice is the same as applying it
+ * once, and that it renders as SQLite's `json()`.
+ *
+ * Why it exists at all: SQLite carries "this text is JSON" as a value subtype,
+ * and the subtype does not survive a derived table. A document that reaches an
+ * enclosing constructor without it is embedded as a string containing JSON
+ * rather than as a document.
+ */
+
+import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import {
+  ColumnRef,
+  FunctionCallExpr,
+  JsonObjectExpr,
+  NativeJsonValueProjection,
+  ProjectionItem,
+  SelectAst,
+  TableSource,
+} from '@prisma-next/sql-relational-core/ast';
+import {
+  isJsonRetag,
+  jsonDocumentRetag,
+  sqliteCodecDescriptorRegistry,
+} from '@prisma-next/target-sqlite/codecs';
+import { createContract } from '@prisma-next/test-utils';
+import { describe, expect, it } from 'vitest';
+import { renderLoweredSql } from '../src/core/adapter';
+import type { SqliteContract } from '../src/core/types';
+
+const contract: SqliteContract = {
+  ...createContract<SqlStorage>({ target: 'sqlite', targetFamily: 'sql' }),
+  target: 'sqlite',
+};
+
+const column = ColumnRef.of('documents', 'body');
+
+function renderProjected(expression: ReturnType<typeof jsonDocumentRetag>): string {
+  const document = JsonObjectExpr.fromEntries([
+    JsonObjectExpr.entry('value', new NativeJsonValueProjection(expression)),
+  ]);
+  const select = SelectAst.from(TableSource.named('documents')).withProjection([
+    ProjectionItem.of('doc', document),
+  ]);
+  return renderLoweredSql(select, contract).sql;
+}
+
+describe('SQLite JSON-document retag', () => {
+  it('wraps a document-valued expression in a subtype re-application', () => {
+    expect(jsonDocumentRetag(column)).toEqual(FunctionCallExpr.of('json', [column]));
+  });
+
+  it('collapses rather than nesting when applied again', () => {
+    const once = jsonDocumentRetag(column);
+    expect(jsonDocumentRetag(once)).toBe(once);
+    expect(jsonDocumentRetag(jsonDocumentRetag(jsonDocumentRetag(column)))).toEqual(
+      FunctionCallExpr.of('json', [column]),
+    );
+  });
+
+  it('recognises its own output and nothing else', () => {
+    expect(isJsonRetag(jsonDocumentRetag(column))).toBe(true);
+    expect(isJsonRetag(column)).toBe(false);
+    expect(isJsonRetag(FunctionCallExpr.of('json_object', [column]))).toBe(false);
+    expect(isJsonRetag(FunctionCallExpr.of('json', [column, column]))).toBe(false);
+  });
+
+  it('renders as json() inside the enclosing JSON constructor', () => {
+    expect(renderProjected(jsonDocumentRetag(column))).toBe(
+      `SELECT json_object('value', json("documents"."body")) AS "doc" FROM "documents"`,
+    );
+  });
+
+  it('renders the untagged expression as a bare column, which is the defect it prevents', () => {
+    expect(renderProjected(column)).toBe(
+      `SELECT json_object('value', "documents"."body") AS "doc" FROM "documents"`,
+    );
+  });
+
+  it('is what the registered sqlite/json@1 descriptor projects through', () => {
+    const descriptor = sqliteCodecDescriptorRegistry.descriptorFor('sqlite/json@1');
+    expect(descriptor?.projectJson(column, { codecId: 'sqlite/json@1' })).toEqual(
+      jsonDocumentRetag(column),
+    );
+  });
+});
