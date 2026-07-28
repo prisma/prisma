@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/prisma/prisma-next">
+  <a href="https://github.com/prisma/prisma">
     <img src="./images/prisma-next.png" alt="Prisma Next" width="680" />
   </a>
 </p>
@@ -11,10 +11,12 @@
 <p align="center">
   <a href="./LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" /></a>
   <a href="https://www.npmjs.com/package/prisma-next"><img alt="npm" src="https://img.shields.io/npm/v/prisma-next?label=prisma-next" /></a>
-  <a href="https://github.com/prisma/prisma-next/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/prisma/prisma-next/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://github.com/prisma/prisma/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/prisma/prisma/actions/workflows/ci.yml/badge.svg" /></a>
 </p>
 
 ---
+
+> **Looking for Prisma ORM 7?** It lives on the [`v7` branch](https://github.com/prisma/prisma/tree/v7) of this repository, and the `prisma` and `@prisma/*` packages on npm continue to be published from there.
 
 > **Prisma Next is currently in [Early Access](https://pris.ly/pn-ea)** and we're building it in the open with the community. APIs will still evolve as your feedback shapes them, so we don't recommend it for production workloads yet. Come along for the ride: star the repo, follow [@prisma on X](https://pris.ly/x), or read along on the [Prisma blog](https://www.prisma.io/blog).
 
