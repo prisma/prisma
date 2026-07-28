@@ -259,7 +259,7 @@ describe('parsePostgresDefault numeric literals', () => {
     expect(parsePostgresDefault('123', 'bigint')).toEqual({ kind: 'literal', value: '123' });
   });
 
-  it('keeps a bigint-typed unsafe integer as a string', () => {
+  it('reads a bigint-typed integer past the safe range as decimal text', () => {
     expect(parsePostgresDefault('9007199254740993', 'int8')).toEqual({
       kind: 'literal',
       value: '9007199254740993',
@@ -322,7 +322,7 @@ describe('parsePostgresDefault string literals', () => {
     expect(parsePostgresDefault("'123'", 'bigint')).toEqual({ kind: 'literal', value: '123' });
   });
 
-  it('keeps a bigint-typed unsafe numeric string as a string', () => {
+  it('reads a quoted bigint-typed numeral past the safe range as decimal text', () => {
     expect(parsePostgresDefault("'9007199254740993'", 'bigint')).toEqual({
       kind: 'literal',
       value: '9007199254740993',

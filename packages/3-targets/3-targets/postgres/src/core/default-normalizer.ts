@@ -238,9 +238,6 @@ export function parsePostgresDefault(
         // Keep legacy behavior for malformed/non-JSON string content.
       }
     }
-    if (isBigInt && NUMERIC_PATTERN.test(unescaped)) {
-      return { kind: 'literal', value: unescaped };
-    }
     return { kind: 'literal', value: unescaped };
   }
 
