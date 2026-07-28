@@ -1,4 +1,4 @@
-name: Daily BuildPulse run
+name: v7 - Daily BuildPulse run
 
 on:
   workflow_dispatch:
