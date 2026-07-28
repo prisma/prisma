@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'575237c8f346d182719b83fe1b29b4e1634fd130be638bc8e78472a6139bdaef'>;
+  StorageHashBase<'3fc02fc59de32d9aefb403a8a4d164d85c34dd2b3734c07e03cfdae225cf8438'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -3725,7 +3725,7 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly default: {
                     readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int8@1', 0>;
+                    readonly value: DefaultLiteralValue<'pg/int8@1', '0'>;
                   };
                 };
                 readonly transports: {
@@ -4360,7 +4360,7 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly default: {
                     readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int8@1', 0>;
+                    readonly value: DefaultLiteralValue<'pg/int8@1', '0'>;
                   };
                 };
                 readonly upload_signature: {
@@ -4456,7 +4456,7 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly default: {
                     readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int8@1', 0>;
+                    readonly value: DefaultLiteralValue<'pg/int8@1', '0'>;
                   };
                 };
                 readonly part_number: {

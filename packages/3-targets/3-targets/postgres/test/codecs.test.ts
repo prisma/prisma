@@ -225,7 +225,6 @@ describe('adapter-postgres codecs', () => {
     it.each([
       { scalar: 'int2', value: 12 },
       { scalar: 'int4', value: 42 },
-      { scalar: 'int8', value: 9001 },
       { scalar: 'float4', value: 3.14 },
       { scalar: 'float8', value: Math.E },
     ] as const)('keeps $scalar values unchanged', async ({ scalar, value }) => {
@@ -517,9 +516,42 @@ describe('adapter-postgres codecs', () => {
     describe('pg/numeric@1', () => {
       const codec = codecForScalar('numeric');
 
-      it('uses the Postgres JSON number representation', () => {
-        expect(codec.encodeJson('1234.5')).toBe(1234.5);
-        expect(codec.decodeJson(1234.5)).toBe('1234.5');
+      it('uses decimal text, so arbitrary precision survives', () => {
+        expect(codec.encodeJson('1234.5')).toBe('1234.5');
+        expect(codec.decodeJson('1234.5')).toBe('1234.5');
+        expect(codec.encodeJson('1234567890.12345678901234567890')).toBe(
+          '1234567890.12345678901234567890',
+        );
+        expect(codec.decodeJson('1234567890.12345678901234567890')).toBe(
+          '1234567890.12345678901234567890',
+        );
+      });
+
+      it('rejects a JSON number, which has already lost digits', () => {
+        expect(() => codec.decodeJson(1234.5)).toThrow(
+          'pg/numeric@1 database JSON value must be a decimal string',
+        );
+      });
+    });
+
+    describe('pg/int8@1', () => {
+      const codec = codecForScalar('int8');
+
+      it('uses decimal text, so values beyond 2^53 survive', () => {
+        expect(codec.encodeJson(42n)).toBe('42');
+        expect(codec.decodeJson('42')).toBe(42n);
+        expect(codec.encodeJson(9007199254740993n)).toBe('9007199254740993');
+        expect(codec.decodeJson('9007199254740993')).toBe(9007199254740993n);
+      });
+
+      it('rejects a JSON number, which has already lost digits', () => {
+        expect(() => codec.decodeJson(42)).toThrow(
+          'pg/int8@1 database JSON value must be a decimal string',
+        );
+      });
+
+      it('renders a default as a bigint literal', () => {
+        expect(pgInt8Descriptor.renderValueLiteral?.('9007199254740993')).toBe('9007199254740993n');
       });
     });
 
@@ -599,12 +631,6 @@ describe('adapter-postgres codecs', () => {
         const codec = codecForScalar('bool');
         expect(codec.encodeJson(true)).toBe(true);
         expect(codec.decodeJson(false)).toBe(false);
-      });
-
-      it('pg/int8@1 round-trips numbers (identity)', () => {
-        const codec = codecForScalar('int8');
-        expect(codec.encodeJson(9001)).toBe(9001);
-        expect(codec.decodeJson(9001)).toBe(9001);
       });
     });
   });

@@ -51,6 +51,28 @@ export const pgNumericDecode = (wire: string | number): string => {
   return wire;
 };
 
+const DECIMAL_INTEGER = /^-?\d+$/;
+
+/** Reads an `int8` wire or JSON value as a `bigint`, rejecting anything `BigInt()` would misread. */
+export const pgInt8Decode = (wire: string | number | bigint): bigint => {
+  if (typeof wire === 'bigint') return wire;
+  const text = String(wire);
+  if (!DECIMAL_INTEGER.test(text)) {
+    throw postgresError('RUNTIME.DECODE_FAILED', 'pg/int8@1 value must be a decimal integer', {
+      meta: { codecId: 'pg/int8@1', received: text },
+    });
+  }
+  return BigInt(text);
+};
+
+/**
+ * Renders an `int8` default as a `bigint` literal. The canonical JSON is decimal
+ * text but the application type is `bigint`, so a plain string literal would not
+ * typecheck against the emitted column type.
+ */
+export const pgInt8RenderValueLiteral = (value: JsonValue): string | undefined =>
+  typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
+
 export const pgNumericRenderOutputType = (typeParams: {
   readonly precision?: number;
   readonly scale?: number;

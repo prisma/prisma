@@ -14,11 +14,10 @@
  * methods, so a codec whose `encodeJson` is itself not canonical conforms here:
  * its projection faithfully realizes a representation that is simply not the one
  * the codec ends up with. `pg/bytea@1` (PostgreSQL hex, where the canonical form
- * is base64), `pg/int8@1` (a JavaScript number, where the canonical form is
- * decimal text) and the PostgreSQL temporals are all in that position — they
- * conform today and transit through a failing state as their canonical form
- * lands. Which codecs still owe a canonical form is tracked by the plan, not by
- * this file.
+ * is base64) and the PostgreSQL temporals are in that position — they conform
+ * today and transit through a failing state as their canonical form lands.
+ * Which codecs still owe a canonical form is tracked by the plan, not by this
+ * file.
  */
 
 import type { PostgresCodecConformanceCase } from './harness';
@@ -58,29 +57,17 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
   { codecId: 'pg/float@1', label: 'finite float', value: 1.5 },
   { codecId: 'pg/int4@1', label: 'integer', value: 42 },
   { codecId: 'pg/int2@1', label: 'small integer', value: 7 },
-  { codecId: 'pg/int8@1', label: 'largest safe integer', value: 9007199254740991 },
+  { codecId: 'pg/int8@1', label: 'largest safe integer', value: 9007199254740991n },
+  { codecId: 'pg/int8@1', label: 'integer beyond double precision', value: 9007199254740993n },
+  { codecId: 'pg/int8@1', label: 'int8 lower bound', value: -9223372036854775808n },
   { codecId: 'pg/float4@1', label: 'finite float', value: 1.5 },
   { codecId: 'pg/float8@1', label: 'finite float', value: 1.5 },
   { codecId: 'pg/numeric@1', label: 'representable decimal', value: '1.5' },
-  {
-    codecId: 'pg/numeric@1',
-    label: 'integer beyond double precision',
-    value: '9007199254740993',
-    notYetCanonical: {
-      kind: 'lossy-round-trip',
-      reason:
-        'numeric reaches JSON as a number, so the value is rounded to the nearest double before anything can read it',
-    },
-  },
+  { codecId: 'pg/numeric@1', label: 'integer beyond double precision', value: '9007199254740993' },
   {
     codecId: 'pg/numeric@1',
     label: 'twenty fractional digits',
     value: '1234567890.12345678901234567890',
-    notYetCanonical: {
-      kind: 'lossy-round-trip',
-      reason:
-        'numeric reaches JSON as a number, so the fractional digits beyond double precision are lost',
-    },
   },
   { codecId: 'pg/bool@1', label: 'true', value: true },
   { codecId: 'pg/bit@1', label: 'single bit', value: '1' },

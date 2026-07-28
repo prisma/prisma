@@ -93,9 +93,13 @@ describe('codecs-class', () => {
     it('id proxies through the descriptor', () => {
       expect(codec.id).toBe(PG_INT8_CODEC_ID);
     });
-    it('encodes and decodes number values verbatim', async () => {
-      expect(await codec.encode(9_999_999_999, callCtx)).toBe(9_999_999_999);
-      expect(await codec.decode(9_999_999_999, callCtx)).toBe(9_999_999_999);
+    it('encodes to decimal text and decodes the wire string to bigint', async () => {
+      expect(await codec.encode(9_999_999_999n, callCtx)).toBe('9999999999');
+      expect(await codec.decode('9999999999', callCtx)).toBe(9_999_999_999n);
+    });
+    it('carries a value past the safe-integer range', async () => {
+      expect(await codec.encode(9007199254740993n, callCtx)).toBe('9007199254740993');
+      expect(await codec.decode('9007199254740993', callCtx)).toBe(9007199254740993n);
     });
   });
 

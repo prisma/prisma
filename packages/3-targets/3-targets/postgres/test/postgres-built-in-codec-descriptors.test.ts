@@ -1,5 +1,6 @@
 import type { AnyCodecDescriptor, CodecRef } from '@prisma-next/framework-components/codec';
 import {
+  CastExpr,
   ColumnRef,
   sqlCharDescriptor,
   sqlFloatDescriptor,
@@ -184,6 +185,8 @@ describe('PostgreSQL built-in codec descriptors', () => {
       descriptor: AnyPostgresCodecDescriptor;
       nativeType: string;
       typeParams?: CodecRef['typeParams'];
+      /** Codecs whose canonical JSON is decimal text cast the expression before the JSON constructor sees it. */
+      jsonProjection?: 'decimal-text';
     }> = [
       { descriptor: pgTextDescriptor, nativeType: 'text' },
       {
@@ -201,10 +204,15 @@ describe('PostgreSQL built-in codec descriptors', () => {
       { descriptor: pgFloatDescriptor, nativeType: 'double precision' },
       { descriptor: pgInt4Descriptor, nativeType: 'integer' },
       { descriptor: pgInt2Descriptor, nativeType: 'smallint' },
-      { descriptor: pgInt8Descriptor, nativeType: 'bigint' },
+      { descriptor: pgInt8Descriptor, nativeType: 'bigint', jsonProjection: 'decimal-text' },
       { descriptor: pgFloat4Descriptor, nativeType: 'real' },
       { descriptor: pgFloat8Descriptor, nativeType: 'double precision' },
-      { descriptor: pgNumericDescriptor, nativeType: 'numeric', typeParams: {} },
+      {
+        descriptor: pgNumericDescriptor,
+        nativeType: 'numeric',
+        typeParams: {},
+        jsonProjection: 'decimal-text',
+      },
       { descriptor: pgDateDescriptor, nativeType: 'date' },
       {
         descriptor: pgTimestampDescriptor,
@@ -230,11 +238,15 @@ describe('PostgreSQL built-in codec descriptors', () => {
       { descriptor: pgTextArrayDescriptor, nativeType: 'text[]' },
     ];
 
-    for (const { descriptor, nativeType, typeParams } of cases) {
+    for (const { descriptor, nativeType, typeParams, jsonProjection } of cases) {
       const ref = refFor(descriptor, typeParams);
       expect(descriptor.nativeTypeFor(ref)).toBe(nativeType);
       expect(metaNativeType(descriptor, typeParams)).toBe(nativeType);
-      expect(descriptor.projectJson(expression, ref)).toBe(expression);
+      if (jsonProjection === 'decimal-text') {
+        expect(descriptor.projectJson(expression, ref)).toEqual(CastExpr.as(expression, 'text'));
+      } else {
+        expect(descriptor.projectJson(expression, ref)).toBe(expression);
+      }
     }
   });
 
