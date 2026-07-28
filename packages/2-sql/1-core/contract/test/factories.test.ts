@@ -173,16 +173,13 @@ describe('SQL contract factories', () => {
       });
     });
 
-    it.each([
-      'noAction',
-      'restrict',
-      'cascade',
-      'setNull',
-      'setDefault',
-    ] as const)('accepts %s as a referential action', (action) => {
-      const foreignKey = fk('post', ['userId'], 'user', ['id'], { onDelete: action });
-      expect(foreignKey.onDelete).toBe(action);
-    });
+    it.each(['noAction', 'restrict', 'cascade', 'setNull', 'setDefault'] as const)(
+      'accepts %s as a referential action',
+      (action) => {
+        const foreignKey = fk('post', ['userId'], 'user', ['id'], { onDelete: action });
+        expect(foreignKey.onDelete).toBe(action);
+      },
+    );
 
     it('omits undefined referential actions from output', () => {
       const foreignKey = fk('post', ['userId'], 'user', ['id'], { onDelete: 'cascade' });

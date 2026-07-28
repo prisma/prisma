@@ -47,174 +47,175 @@ interface JourneyContext {
   readonly migrationApply: StepResult | null;
 }
 
-describe.each(
-  ALL_CELLS.map((cell) => ({ cell, label: cellLabel(cell) })),
-)('init-journey · $label', ({ cell }) => {
-  let ctx: JourneyContext;
+describe.each(ALL_CELLS.map((cell) => ({ cell, label: cellLabel(cell) })))(
+  'init-journey · $label',
+  ({ cell }) => {
+    let ctx: JourneyContext;
 
-  beforeAll(async () => {
-    ctx = await runFullJourney(cell);
-  }, 240_000);
+    beforeAll(async () => {
+      ctx = await runFullJourney(cell);
+    }, 240_000);
 
-  afterAll(async () => {
-    await ctx?.database?.close();
-    ctx?.project?.cleanup();
-  });
+    afterAll(async () => {
+      await ctx?.database?.close();
+      ctx?.project?.cleanup();
+    });
 
-  it('step 1 (init): scaffolds the expected project skeleton', () => {
-    expect(ctx.project.initResult.exitCode, formatInitDiagnostic(ctx.project)).toBe(0);
+    it('step 1 (init): scaffolds the expected project skeleton', () => {
+      expect(ctx.project.initResult.exitCode, formatInitDiagnostic(ctx.project)).toBe(0);
 
-    expectScaffoldedFiles(ctx.project);
-    expectSchemaFile(ctx.project, cell);
-    expectConfigFile(ctx.project, cell);
-    expectPackageJsonIsEsm(ctx.project);
-  });
+      expectScaffoldedFiles(ctx.project);
+      expectSchemaFile(ctx.project, cell);
+      expectConfigFile(ctx.project, cell);
+      expectPackageJsonIsEsm(ctx.project);
+    });
 
-  it('step 2 (install): pnpm install succeeds with isolated linker', () => {
-    const install = ctx.project.installResult;
-    expect(install, 'install was skipped — harness option mismatch').not.toBeNull();
-    if (install === null) return;
-    expect(install.exitCode, formatInstallDiagnostic(ctx.project, install)).toBe(0);
+    it('step 2 (install): pnpm install succeeds with isolated linker', () => {
+      const install = ctx.project.installResult;
+      expect(install, 'install was skipped — harness option mismatch').not.toBeNull();
+      if (install === null) return;
+      expect(install.exitCode, formatInstallDiagnostic(ctx.project, install)).toBe(0);
 
-    expectFacadeIsResolvable(ctx.project);
-  });
+      expectFacadeIsResolvable(ctx.project);
+    });
 
-  it('step 3 (emit): produces contract.json + contract.d.ts next to the input', () => {
-    const emit = ctx.emit;
-    expect(emit, 'emit was not run (precondition failure)').not.toBeNull();
-    if (emit === null) return;
-    expect(emit.exitCode, formatStepDiagnostic('emit', ctx.project, emit)).toBe(0);
+    it('step 3 (emit): produces contract.json + contract.d.ts next to the input', () => {
+      const emit = ctx.emit;
+      expect(emit, 'emit was not run (precondition failure)').not.toBeNull();
+      if (emit === null) return;
+      expect(emit.exitCode, formatStepDiagnostic('emit', ctx.project, emit)).toBe(0);
 
-    // The init scaffold passes a single string `contract: "./src/prisma/contract.ts"`
-    // to the facade `defineConfig`, which derives an output path next to the
-    // input. The journey verifies that derivation actually reaches the emitter
-    // — this is the seam that breaks when init scaffold and emit output get
-    // out of sync (the symptom shape of TML-2461, even if the facade currently
-    // masks the underlying default-output bug).
-    expect(
-      existsSync(join(ctx.project.dir, 'src/prisma/contract.json')),
-      'contract.json must land next to the scaffolded contract source',
-    ).toBe(true);
-    expect(
-      existsSync(join(ctx.project.dir, 'src/prisma/contract.d.ts')),
-      'contract.d.ts must land next to the scaffolded contract source',
-    ).toBe(true);
-  });
+      // The init scaffold passes a single string `contract: "./src/prisma/contract.ts"`
+      // to the facade `defineConfig`, which derives an output path next to the
+      // input. The journey verifies that derivation actually reaches the emitter
+      // — this is the seam that breaks when init scaffold and emit output get
+      // out of sync (the symptom shape of TML-2461, even if the facade currently
+      // masks the underlying default-output bug).
+      expect(
+        existsSync(join(ctx.project.dir, 'src/prisma/contract.json')),
+        'contract.json must land next to the scaffolded contract source',
+      ).toBe(true);
+      expect(
+        existsSync(join(ctx.project.dir, 'src/prisma/contract.d.ts')),
+        'contract.d.ts must land next to the scaffolded contract source',
+      ).toBe(true);
+    });
 
-  it('step 4a (migration plan): materialises a create-from-scratch migration draft', () => {
-    const result = ctx.migrationPlan;
-    expect(result, 'migration plan was not run (precondition failure)').not.toBeNull();
-    if (result === null) return;
-    expect(result.exitCode, formatStepDiagnostic('migration plan', ctx.project, result)).toBe(0);
-    expect(
-      existsSync(join(ctx.project.dir, 'migrations/app')),
-      'migration plan must create migrations/app/<timestamp>_init/',
-    ).toBe(true);
-  });
+    it('step 4a (migration plan): materialises a create-from-scratch migration draft', () => {
+      const result = ctx.migrationPlan;
+      expect(result, 'migration plan was not run (precondition failure)').not.toBeNull();
+      if (result === null) return;
+      expect(result.exitCode, formatStepDiagnostic('migration plan', ctx.project, result)).toBe(0);
+      expect(
+        existsSync(join(ctx.project.dir, 'migrations/app')),
+        'migration plan must create migrations/app/<timestamp>_init/',
+      ).toBe(true);
+    });
 
-  it('step 4b (migration emit): self-emits ops.json next to the draft migration.ts', () => {
-    const result = ctx.migrationEmit;
-    expect(result, 'migration self-emit was not run (precondition failure)').not.toBeNull();
-    if (result === null) return;
-    expect(result.exitCode, formatStepDiagnostic('migration emit', ctx.project, result)).toBe(0);
-  });
+    it('step 4b (migration emit): self-emits ops.json next to the draft migration.ts', () => {
+      const result = ctx.migrationEmit;
+      expect(result, 'migration self-emit was not run (precondition failure)').not.toBeNull();
+      if (result === null) return;
+      expect(result.exitCode, formatStepDiagnostic('migration emit', ctx.project, result)).toBe(0);
+    });
 
-  it('step 4c (migration apply): applies the planned migration (TML-2486 seam)', () => {
-    const result = ctx.migrationApply;
-    expect(result, 'migration apply was not run (precondition failure)').not.toBeNull();
-    if (result === null) return;
-    TML_2486_seam(cell, ctx.project, result);
-  });
+    it('step 4c (migration apply): applies the planned migration (TML-2486 seam)', () => {
+      const result = ctx.migrationApply;
+      expect(result, 'migration apply was not run (precondition failure)').not.toBeNull();
+      if (result === null) return;
+      TML_2486_seam(cell, ctx.project, result);
+    });
 
-  it(
-    'step 5 (user code: ObjectId import) (TML-2487 seam)',
-    async () => {
-      if (cell.target !== 'mongo') return;
-      const run = await runUserCode(
-        ctx.project,
-        'check-objectid.ts',
-        [
-          "import { ObjectId } from '@prisma-next/mongo/bson';",
-          'const id = new ObjectId();',
-          'console.log(id.toHexString().length);',
-          '',
-        ].join('\n'),
-      );
-      TML_2487_seam(run);
-    },
-    timeouts.coldTransformImport,
-  );
+    it(
+      'step 5 (user code: ObjectId import) (TML-2487 seam)',
+      async () => {
+        if (cell.target !== 'mongo') return;
+        const run = await runUserCode(
+          ctx.project,
+          'check-objectid.ts',
+          [
+            "import { ObjectId } from '@prisma-next/mongo/bson';",
+            'const id = new ObjectId();',
+            'console.log(id.toHexString().length);',
+            '',
+          ].join('\n'),
+        );
+        TML_2487_seam(run);
+      },
+      timeouts.coldTransformImport,
+    );
 
-  it(
-    'step 6 (user code: write & read an entity through the contract) (TML-2314 seam)',
-    async () => {
-      if (cell.target !== 'postgres') return;
-      // The core "bolt user code on top" assertion: a freshly-scaffolded
-      // user opens the runtime facade, writes a `User` row through the
-      // typed ORM, reads it back by `email`, and verifies the round-trip.
-      // This is the user inner loop the journey exists to backstop —
-      // everything before this (init, install, emit, migration plan +
-      // apply) is pre-amble that only matters if the user can then
-      // write/read data.
-      //
-      // The same script also exercises the control facade
-      // (`createPostgresControlClient`) — the TML-2314 seam. The runtime
-      // and control facades are distinct surfaces, but a real user
-      // typically uses both in the same script (data path + programmatic
-      // migrations / health-check), so they ride together here.
-      const run = await runUserCode(
-        ctx.project,
-        'check-postgres-journey.ts',
-        [
-          "import { createPostgresControlClient } from '@prisma-next/postgres/control';",
-          "import postgres from '@prisma-next/postgres/runtime';",
-          "import type { Contract } from './src/prisma/contract.d';",
-          "import contractJson from './src/prisma/contract.json' with { type: 'json' };",
-          '',
-          'const url = process.env.DATABASE_URL;',
-          'if (url === undefined) {',
-          "  console.error('DATABASE_URL missing');",
-          '  process.exit(2);',
-          '}',
-          '',
-          'const db = postgres<Contract>({ contractJson, url });',
-          // String concatenation (not a template literal) to avoid
-          // biome's `noTemplateCurlyInString` rule in this fixture
-          // string — the generated user code is functionally
-          // equivalent.
-          "const email = 'journey-' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '@example.com';",
-          'try {',
-          "  const created = await db.orm.public.User.create({ email, name: 'Journey User' });",
-          '  const found = await db.orm.public.User.where((u) => u.email.eq(email)).first();',
-          '  if (found === null || found.id !== created.id || found.email !== email) {',
-          "    console.error('runtime CRUD roundtrip failed', { created, found });",
-          '    process.exit(1);',
-          '  }',
-          '} finally {',
-          '  await db.runtime().close();',
-          '}',
-          '',
-          'const control = createPostgresControlClient({ connection: url });',
-          'try {',
-          '  await control.connect();',
-          '  const marker = await control.readMarker();',
-          '  if (marker === null) {',
-          "    console.error('control readMarker returned null after migration apply');",
-          '    process.exit(3);',
-          '  }',
-          '} finally {',
-          '  await control.close();',
-          '}',
-          '',
-          "console.log('ok');",
-          '',
-        ].join('\n'),
-      );
-      TML_2314_seam(run);
-    },
-    timeouts.coldTransformImport,
-  );
-});
+    it(
+      'step 6 (user code: write & read an entity through the contract) (TML-2314 seam)',
+      async () => {
+        if (cell.target !== 'postgres') return;
+        // The core "bolt user code on top" assertion: a freshly-scaffolded
+        // user opens the runtime facade, writes a `User` row through the
+        // typed ORM, reads it back by `email`, and verifies the round-trip.
+        // This is the user inner loop the journey exists to backstop —
+        // everything before this (init, install, emit, migration plan +
+        // apply) is pre-amble that only matters if the user can then
+        // write/read data.
+        //
+        // The same script also exercises the control facade
+        // (`createPostgresControlClient`) — the TML-2314 seam. The runtime
+        // and control facades are distinct surfaces, but a real user
+        // typically uses both in the same script (data path + programmatic
+        // migrations / health-check), so they ride together here.
+        const run = await runUserCode(
+          ctx.project,
+          'check-postgres-journey.ts',
+          [
+            "import { createPostgresControlClient } from '@prisma-next/postgres/control';",
+            "import postgres from '@prisma-next/postgres/runtime';",
+            "import type { Contract } from './src/prisma/contract.d';",
+            "import contractJson from './src/prisma/contract.json' with { type: 'json' };",
+            '',
+            'const url = process.env.DATABASE_URL;',
+            'if (url === undefined) {',
+            "  console.error('DATABASE_URL missing');",
+            '  process.exit(2);',
+            '}',
+            '',
+            'const db = postgres<Contract>({ contractJson, url });',
+            // String concatenation (not a template literal) to avoid
+            // biome's `noTemplateCurlyInString` rule in this fixture
+            // string — the generated user code is functionally
+            // equivalent.
+            "const email = 'journey-' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '@example.com';",
+            'try {',
+            "  const created = await db.orm.public.User.create({ email, name: 'Journey User' });",
+            '  const found = await db.orm.public.User.where((u) => u.email.eq(email)).first();',
+            '  if (found === null || found.id !== created.id || found.email !== email) {',
+            "    console.error('runtime CRUD roundtrip failed', { created, found });",
+            '    process.exit(1);',
+            '  }',
+            '} finally {',
+            '  await db.runtime().close();',
+            '}',
+            '',
+            'const control = createPostgresControlClient({ connection: url });',
+            'try {',
+            '  await control.connect();',
+            '  const marker = await control.readMarker();',
+            '  if (marker === null) {',
+            "    console.error('control readMarker returned null after migration apply');",
+            '    process.exit(3);',
+            '  }',
+            '} finally {',
+            '  await control.close();',
+            '}',
+            '',
+            "console.log('ok');",
+            '',
+          ].join('\n'),
+        );
+        TML_2314_seam(run);
+      },
+      timeouts.coldTransformImport,
+    );
+  },
+);
 
 async function runFullJourney(cell: CellId): Promise<JourneyContext> {
   const project = await createJourneyProject(cell);

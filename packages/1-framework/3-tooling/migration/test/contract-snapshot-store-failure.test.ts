@@ -113,22 +113,22 @@ describe('writeContractSnapshot atomic-write failure handling', () => {
     expect(readdirSync(join(migrationsDir, CONTRACT_SNAPSHOTS_DIRNAME))).toEqual([]);
   });
 
-  it.each([
-    'EEXIST',
-    'ENOTEMPTY',
-  ])('treats a race-losing rename (%s) as write-if-absent success and cleans up the temp dir', async (code) => {
-    fsMocks.renameFailOnCall = 1;
-    fsMocks.renameErrorCode = code;
+  it.each(['EEXIST', 'ENOTEMPTY'])(
+    'treats a race-losing rename (%s) as write-if-absent success and cleans up the temp dir',
+    async (code) => {
+      fsMocks.renameFailOnCall = 1;
+      fsMocks.renameErrorCode = code;
 
-    const result = await writeContractSnapshot(migrationsDir, STORAGE_HASH, {
-      contractJson: contractFixture(STORAGE_HASH),
-      contractDts: 'export type Contract = {};',
-    });
+      const result = await writeContractSnapshot(migrationsDir, STORAGE_HASH, {
+        contractJson: contractFixture(STORAGE_HASH),
+        contractDts: 'export type Contract = {};',
+      });
 
-    expect(result).toEqual({
-      written: false,
-      dir: contractSnapshotDir(migrationsDir, STORAGE_HASH),
-    });
-    expect(readdirSync(join(migrationsDir, CONTRACT_SNAPSHOTS_DIRNAME))).toEqual([]);
-  });
+      expect(result).toEqual({
+        written: false,
+        dir: contractSnapshotDir(migrationsDir, STORAGE_HASH),
+      });
+      expect(readdirSync(join(migrationsDir, CONTRACT_SNAPSHOTS_DIRNAME))).toEqual([]);
+    },
+  );
 });

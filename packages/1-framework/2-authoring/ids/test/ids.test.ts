@@ -35,18 +35,14 @@ describe('@prisma-next/ids', () => {
     expect(spec.generated.id).toBe(id);
   });
 
-  it.each([
-    'ulid',
-    'nanoid',
-    'uuidv7',
-    'uuidv4',
-    'cuid2',
-    'ksuid',
-  ] as const)('generates values for %s', (id) => {
-    const value = generateId({ id });
-    expect(typeof value).toBe('string');
-    expect(value).not.toBe('');
-  });
+  it.each(['ulid', 'nanoid', 'uuidv7', 'uuidv4', 'cuid2', 'ksuid'] as const)(
+    'generates values for %s',
+    (id) => {
+      const value = generateId({ id });
+      expect(typeof value).toBe('string');
+      expect(value).not.toBe('');
+    },
+  );
 
   it('stores generator options in execution defaults', () => {
     const spec = nanoid({ size: 12 });

@@ -95,13 +95,14 @@ describe('formatSkillInstallCommand', () => {
       'deno',
       `deno run -A npm:skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${AGENT_FLAGS}`,
     ],
-  ] satisfies ReadonlyArray<
-    readonly [PackageManager, string]
-  >)('formats %s command with the version-pinned usage source', (pm, expected) => {
-    withCleanEnv(() => {
-      expect(formatSkillInstallCommand({ pm, source: usageSource })).toBe(expected);
-    });
-  });
+  ] satisfies ReadonlyArray<readonly [PackageManager, string]>)(
+    'formats %s command with the version-pinned usage source',
+    (pm, expected) => {
+      withCleanEnv(() => {
+        expect(formatSkillInstallCommand({ pm, source: usageSource })).toBe(expected);
+      });
+    },
+  );
 
   it('pnpm command for the upgrade source omits the #ref fragment', () => {
     withCleanEnv(() => {
