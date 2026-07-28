@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - v7
       - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for `pull_request` (see below) and all files

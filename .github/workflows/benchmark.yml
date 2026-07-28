@@ -3,7 +3,7 @@ name: Benchmark
 on:
   push:
     branches:
-      - main
+      - v7
       - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for `pull_request` (see below) and all files
@@ -65,7 +65,7 @@ jobs:
         run: pnpm run bench
 
       - name: Store benchmark result
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/v7' }}
         uses: rhysd/github-action-benchmark@v1
         with:
           name: Benchmark.js Benchmark
