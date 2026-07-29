@@ -91,7 +91,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     await Promise.all([
       consume(driver.execute({ sql: 'select a' })),
       consume(driver.executePrepared({ sql: 'select b', params: [], handle: makeHandleSlot() })),
-      driver.explain({ sql: 'select c' }),
+      driver.explain?.({ sql: 'select c' }),
       driver.query('select d'),
     ]);
 

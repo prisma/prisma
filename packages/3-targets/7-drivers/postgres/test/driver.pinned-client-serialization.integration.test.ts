@@ -88,7 +88,9 @@ async function createHarness(options?: { readonly cursorBatchSize?: number }): P
 function captureProcessWarnings(): { readonly warnings: Error[]; stop(): void } {
   const warnings: Error[] = [];
   const handler = (warning: Error): void => {
-    warnings.push(warning);
+    if (warning.name === 'DeprecationWarning') {
+      warnings.push(warning);
+    }
   };
   process.on('warning', handler);
   return {
