@@ -1,13 +1,18 @@
 import { createPostgresAdapter } from '@prisma-next/adapter-postgres/adapter';
 import { createSqliteAdapter } from '@prisma-next/adapter-sqlite/adapter';
+import type { SqliteContract } from '@prisma-next/adapter-sqlite/types';
 import {
+  type AnyJsonValueProjection,
   CodecJsonValueProjection,
   ColumnRef,
+  DerivedTableSource,
+  JsonArrayAggExpr,
   JsonDocumentProjection,
   JsonObjectExpr,
   NativeJsonValueProjection,
   ProjectionItem,
   SelectAst,
+  SubqueryExpr,
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
 import { applicationDomainOf } from '@prisma-next/test-utils';
@@ -99,11 +104,154 @@ const sqliteContract = new TestSqlContractSerializer().deserializeContract({
     },
   },
   domain: applicationDomainOf({ models: {} }),
-});
+}) as SqliteContract;
+
+/**
+ * Every JSON entry a plan emits, as `<key>:<variant>` — plus the codec id
+ * where the variant is `codec`, since a codec entry naming the wrong codec is
+ * as wrong as the wrong variant. `json_agg`'s aggregated element has no key of
+ * its own and reads as `[]`.
+ */
+function jsonEntriesOf(ast: SelectAst): string[] {
+  const found: string[] = [];
+
+  const describeProjection = (key: string, projection: AnyJsonValueProjection): void => {
+    found.push(
+      projection instanceof CodecJsonValueProjection
+        ? `${key}:codec(${projection.codec.codecId})`
+        : `${key}:${projection.kind}`,
+    );
+    walkExpr(projection.value);
+  };
+
+  function walkExpr(expr: unknown): void {
+    if (expr instanceof JsonObjectExpr) {
+      for (const entry of expr.entries) describeProjection(entry.key, entry.value);
+      return;
+    }
+    if (expr instanceof JsonArrayAggExpr) {
+      describeProjection('[]', expr.expr);
+      return;
+    }
+    if (expr instanceof SubqueryExpr) {
+      walkSelect(expr.query);
+    }
+  }
+
+  function walkSelect(select: SelectAst): void {
+    for (const item of select.projection) walkExpr(item.expr);
+    if (select.from instanceof DerivedTableSource) walkSelect(select.from.query);
+    for (const join of select.joins ?? []) {
+      if (join.source instanceof DerivedTableSource) walkSelect(join.source.query);
+    }
+  }
+
+  walkSelect(ast);
+  return found;
+}
 
 describe('JSON projection variants', () => {
   const postgresAdapter = createPostgresAdapter();
   const sqliteAdapter = createSqliteAdapter();
+
+  /**
+   * What the planner now states about each entry it emits. These fail if the
+   * planner stops choosing variants — which the SQL baseline below cannot
+   * catch, since an unchosen variant renders exactly like a chosen one.
+   */
+  describe('states the identity of every value it puts into JSON', () => {
+    const planned = new Map(representativePlans());
+
+    function entriesFor(label: string): string[] {
+      const ast = planned.get(label);
+      if (ast === undefined) throw new Error(`no representative plan labelled '${label}'`);
+      return jsonEntriesOf(ast);
+    }
+
+    it('gives a child row set codec entries for its columns and a document for the row', () => {
+      expect(entriesFor('plain include')).toEqual([
+        '[]:document',
+        'embedding:codec(pg/vector@1)',
+        'id:codec(pg/int4@1)',
+        'title:codec(pg/text@1)',
+        'user_id:codec(pg/int4@1)',
+        'views:codec(pg/int4@1)',
+      ]);
+    });
+
+    it('gives a nested include a document entry, and its own columns codec entries', () => {
+      expect(entriesFor('nested include')).toEqual([
+        '[]:document',
+        'embedding:codec(pg/vector@1)',
+        'id:codec(pg/int4@1)',
+        'title:codec(pg/text@1)',
+        'user_id:codec(pg/int4@1)',
+        'views:codec(pg/int4@1)',
+        'comments:document',
+        '[]:document',
+        'body:codec(pg/text@1)',
+        'id:codec(pg/int4@1)',
+        'post_id:codec(pg/int4@1)',
+      ]);
+    });
+
+    it('leaves an aggregate native — a computed value carries no codec', () => {
+      expect(entriesFor('aggregate include')).toEqual(['value:native']);
+      expect(entriesFor('aggregate include over a column')).toEqual(['value:native']);
+    });
+
+    it('gives every combine branch a document entry, whatever the branch is', () => {
+      expect(entriesFor('combine of a row branch and a scalar branch')).toEqual([
+        'recent:document',
+        'total:document',
+        '[]:document',
+        'embedding:codec(pg/vector@1)',
+        'id:codec(pg/int4@1)',
+        'title:codec(pg/text@1)',
+        'user_id:codec(pg/int4@1)',
+        'views:codec(pg/int4@1)',
+        'value:native',
+      ]);
+    });
+
+    it('keeps the identities through the ranked distinct path', () => {
+      expect(entriesFor('distinct non-leaf include')).toEqual([
+        '[]:document',
+        'embedding:codec(pg/vector@1)',
+        'id:codec(pg/int4@1)',
+        'title:codec(pg/text@1)',
+        'user_id:codec(pg/int4@1)',
+        'views:codec(pg/int4@1)',
+        'comments:document',
+        '[]:document',
+        'body:codec(pg/text@1)',
+        'id:codec(pg/int4@1)',
+        'post_id:codec(pg/int4@1)',
+      ]);
+    });
+
+    it('reaches the child columns of a many-to-many include across the junction', () => {
+      expect(entriesFor('many-to-many include')).toEqual([
+        '[]:document',
+        'id:codec(sql/char@1)',
+        'name:codec(pg/text@1)',
+      ]);
+    });
+
+    it('no entry is left native except the aggregates', () => {
+      const natives = [...planned].flatMap(([label, ast]) =>
+        jsonEntriesOf(ast)
+          .filter((entry) => entry.endsWith(':native'))
+          .map((entry) => `${label} ${entry}`),
+      );
+
+      expect(natives).toEqual([
+        'aggregate include value:native',
+        'aggregate include over a column value:native',
+        'combine of a row branch and a scalar branch value:native',
+      ]);
+    });
+  });
 
   /**
    * The baseline: the SQL these plans rendered before the ORM chose variants.
@@ -141,24 +289,29 @@ describe('JSON projection variants', () => {
       ]);
     }
 
-    const variants = {
-      codec: new CodecJsonValueProjection(value, codecRef),
-      native: new NativeJsonValueProjection(value),
-      document: new JsonDocumentProjection(value),
-    };
+    const variants = [
+      new CodecJsonValueProjection(value, codecRef),
+      new NativeJsonValueProjection(value),
+      new JsonDocumentProjection(value),
+    ];
 
-    it.each([
-      ['PostgreSQL', postgresAdapter, baseContract],
-      ['SQLite', sqliteAdapter, sqliteContract],
-    ] as const)('%s renders all three identically', (_label, adapter, contract) => {
-      const rendered = Object.values(variants).map(
-        (variant) =>
-          adapter.lower(
-            selectProjecting(JsonObjectExpr.fromEntries([JsonObjectExpr.entry('price', variant)])),
-            {
-              contract,
-            },
-          ).sql,
+    function selectsProjecting(): SelectAst[] {
+      return variants.map((variant) =>
+        selectProjecting(JsonObjectExpr.fromEntries([JsonObjectExpr.entry('price', variant)])),
+      );
+    }
+
+    it('PostgreSQL renders all three identically', () => {
+      const rendered = selectsProjecting().map(
+        (ast) => postgresAdapter.lower(ast, { contract: baseContract }).sql,
+      );
+
+      expect(new Set(rendered).size).toBe(1);
+    });
+
+    it('SQLite renders all three identically', () => {
+      const rendered = selectsProjecting().map(
+        (ast) => sqliteAdapter.lower(ast, { contract: sqliteContract }).sql,
       );
 
       expect(new Set(rendered).size).toBe(1);
