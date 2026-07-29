@@ -6,7 +6,7 @@
 
 ## Validation gate
 
-Every dispatch runs this gate. The test filter is **derived from the diff at each run** — `git diff --name-only tml-3100-target-json-projection-implementations...HEAD` mapped to owning packages — plus the standing floor below; the slice-3 lesson is that a filter written before the work exists misses the package the work lands in.
+Operator-confirmed 2026-07-29, with whole-slice autonomy (escalations: unpinned forks, unclassifiable expectation moves, live un-routed metaFor consumers, the pair-merge decision at DoD). Every dispatch runs this gate. The test filter is **derived from the diff at each run** — `git diff --name-only tml-3100-target-json-projection-implementations...HEAD` mapped to owning packages — plus the standing floor below; the slice-3 lesson is that a filter written before the work exists misses the package the work lands in.
 
 ```bash
 pnpm build
