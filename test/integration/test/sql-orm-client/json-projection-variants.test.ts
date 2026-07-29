@@ -1,9 +1,11 @@
 import { createPostgresAdapter } from '@prisma-next/adapter-postgres/adapter';
 import { createSqliteAdapter } from '@prisma-next/adapter-sqlite/adapter';
 import type { SqliteContract } from '@prisma-next/adapter-sqlite/types';
+import { pgvectorCodecRegistry } from '@prisma-next/extension-pgvector/runtime';
 import {
   type AnyJsonValueProjection,
   CodecJsonValueProjection,
+  type CodecRef,
   ColumnRef,
   DerivedTableSource,
   JsonArrayAggExpr,
@@ -17,9 +19,13 @@ import {
 } from '@prisma-next/sql-relational-core/ast';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
-import { TestSqlContractSerializer } from '../../../2-sql/9-family/test/test-sql-contract-serializer';
-import { compileSelectWithIncludes } from '../src/query-plan-select';
-import { baseContract, createCollection, createCollectionFor } from './collection-fixtures';
+import { TestSqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
+import { compileSelectWithIncludes } from '../../../../packages/3-extensions/sql-orm-client/src/query-plan-select';
+import {
+  baseContract,
+  createCollection,
+  createCollectionFor,
+} from '../../../../packages/3-extensions/sql-orm-client/test/collection-fixtures';
 
 /**
  * Representative plans, one per shape that emits JSON entries: a plain
@@ -151,7 +157,13 @@ function jsonEntriesOf(ast: SelectAst): string[] {
 }
 
 describe('JSON projection variants', () => {
-  const postgresAdapter = createPostgresAdapter();
+  // The ORM fixture contract has a `pg/vector@1` column, and the renderer now
+  // asks a codec's descriptor how to project it. An adapter without the pack
+  // that contributes the codec fails at lowering rather than rendering a bare
+  // column — the same stack a pgvector application assembles.
+  const postgresAdapter = createPostgresAdapter({
+    codecDescriptors: Array.from(pgvectorCodecRegistry.values()),
+  });
   const sqliteAdapter = createSqliteAdapter();
 
   /**
@@ -273,48 +285,85 @@ describe('JSON projection variants', () => {
   });
 
   /**
-   * Why that parity holds: both renderers dispatch the three variants to the
-   * same rendering. This is the dispatch's dormancy evidence — the emission
-   * change cannot be observed until a renderer stops being indifferent, which
-   * is what the renderer flips do next. These assertions are expected to fail
-   * then, and that failure is the cut becoming visible rather than a defect.
+   * The summary check a reviewer runs to believe the cut, alongside
+   * `include-codecs.test.ts`: over one expression, does the renderer act on
+   * the variant? Each target answers for itself, because "acts on it" means
+   * something different per target — the assertion is what that target's
+   * semantics require, not a uniform "all three differ".
    */
-  describe('both renderers are indifferent to the variant', () => {
-    const value = ColumnRef.of('post', 'price');
-    const codecRef = { codecId: 'irrelevant/codec@1', typeParams: {}, many: false } as const;
-
-    function selectProjecting(entry: JsonObjectExpr): SelectAst {
-      return SelectAst.from(TableSource.named('post')).withProjection([
-        ProjectionItem.of('json', entry),
+  describe('the renderers act on the variant', () => {
+    function selectProjecting(variant: AnyJsonValueProjection, table: string): SelectAst {
+      return SelectAst.from(TableSource.named(table)).withProjection([
+        ProjectionItem.of(
+          'json',
+          JsonObjectExpr.fromEntries([JsonObjectExpr.entry('value', variant)]),
+        ),
       ]);
     }
 
-    const variants = [
-      new CodecJsonValueProjection(value, codecRef),
-      new NativeJsonValueProjection(value),
-      new JsonDocumentProjection(value),
-    ];
+    describe('PostgreSQL', () => {
+      const value = ColumnRef.of('posts', 'views');
+      const nonIdentity: CodecRef = { codecId: 'pg/numeric@1' };
+      const identity: CodecRef = { codecId: 'pg/int4@1' };
 
-    function selectsProjecting(): SelectAst[] {
-      return variants.map((variant) =>
-        selectProjecting(JsonObjectExpr.fromEntries([JsonObjectExpr.entry('price', variant)])),
-      );
-    }
+      function render(variant: AnyJsonValueProjection): string {
+        return postgresAdapter.lower(selectProjecting(variant, 'posts'), {
+          contract: baseContract,
+        }).sql;
+      }
 
-    it('PostgreSQL renders all three identically', () => {
-      const rendered = selectsProjecting().map(
-        (ast) => postgresAdapter.lower(ast, { contract: baseContract }).sql,
-      );
+      it('a codec whose canonical JSON is not its stored form renders differently from native', () => {
+        expect(render(new CodecJsonValueProjection(value, nonIdentity))).not.toBe(
+          render(new NativeJsonValueProjection(value)),
+        );
+      });
 
-      expect(new Set(rendered).size).toBe(1);
+      it('the difference is the codec descriptor projection, not incidental', () => {
+        expect(render(new CodecJsonValueProjection(value, nonIdentity))).toContain(
+          'CAST("posts"."views" AS text)',
+        );
+      });
+
+      it('a codec whose canonical JSON is its stored form renders like native', () => {
+        expect(render(new CodecJsonValueProjection(value, identity))).toBe(
+          render(new NativeJsonValueProjection(value)),
+        );
+      });
+
+      // Not an oversight that document matches native here: PostgreSQL carries
+      // a JSON value's type with it, so nesting a document needs no help. The
+      // assertion is per-target for exactly this reason.
+      it('a document renders like native, PostgreSQL preserving JSON type', () => {
+        expect(render(new JsonDocumentProjection(value))).toBe(
+          render(new NativeJsonValueProjection(value)),
+        );
+      });
+
+      it('an unregistered codec fails at lowering rather than rendering a bare column', () => {
+        expect(() =>
+          render(new CodecJsonValueProjection(value, { codecId: 'nowhere/codec@1' })),
+        ).toThrow(/nowhere\/codec@1/);
+      });
     });
 
-    it('SQLite renders all three identically', () => {
-      const rendered = selectsProjecting().map(
-        (ast) => sqliteAdapter.lower(ast, { contract: sqliteContract }).sql,
-      );
+    describe('SQLite', () => {
+      const value = ColumnRef.of('post', 'price');
 
-      expect(new Set(rendered).size).toBe(1);
+      function render(variant: AnyJsonValueProjection): string {
+        return sqliteAdapter.lower(selectProjecting(variant, 'post'), {
+          contract: sqliteContract,
+        }).sql;
+      }
+
+      it('renders all three identically', () => {
+        const rendered = [
+          render(new CodecJsonValueProjection(value, { codecId: 'sqlite/bigint@1' })),
+          render(new NativeJsonValueProjection(value)),
+          render(new JsonDocumentProjection(value)),
+        ];
+
+        expect(new Set(rendered).size).toBe(1);
+      });
     });
   });
 });

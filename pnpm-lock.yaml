@@ -3817,9 +3817,6 @@ importers:
       '@prisma-next/adapter-postgres':
         specifier: workspace:0.16.0
         version: link:../../3-targets/6-adapters/postgres
-      '@prisma-next/adapter-sqlite':
-        specifier: workspace:0.16.0
-        version: link:../../3-targets/6-adapters/sqlite
       '@prisma-next/cli':
         specifier: workspace:0.16.0
         version: link:../../1-framework/3-tooling/cli
