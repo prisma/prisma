@@ -4,9 +4,12 @@ import type {
   CodecRef,
 } from '@prisma-next/framework-components/codec';
 import {
+  CaseExpr,
   CastExpr,
   ColumnRef,
   FunctionCallExpr,
+  LiteralExpr,
+  NullCheckExpr,
   sqlCharDescriptor,
   sqlFloatDescriptor,
   sqlIntDescriptor,
@@ -124,9 +127,15 @@ describe('SQLite built-in codec descriptors', () => {
   it('replaces the native conversion where it cannot carry the value', () => {
     const expression = ColumnRef.of('records', 'value');
 
-    // SQLite's JSON functions reject a BLOB argument outright.
+    // SQLite's JSON functions reject a BLOB argument outright. `hex()` is
+    // guarded on NULL because `hex(NULL)` is `''`, which is also the hex of an
+    // empty blob — so without the guard an absent blob and an empty one would
+    // be indistinguishable, and `decodeJson` accepts `''` as a valid empty one.
     expect(sqliteBlobDescriptor.projectJson(expression, refFor(sqliteBlobDescriptor))).toEqual(
-      FunctionCallExpr.of('hex', [expression]),
+      CaseExpr.of(
+        [{ condition: NullCheckExpr.isNull(expression), value: LiteralExpr.of(null) }],
+        FunctionCallExpr.of('hex', [expression]),
+      ),
     );
     // An INTEGER reaching JSON as a number does not survive the int64 range.
     expect(sqliteBigintDescriptor.projectJson(expression, refFor(sqliteBigintDescriptor))).toEqual(

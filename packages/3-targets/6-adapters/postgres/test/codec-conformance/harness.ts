@@ -123,6 +123,18 @@ export interface PostgresCodecConformanceCase {
    * case still fails *and still fails this way*, so neither the marker nor its
    * recorded kind can rot as projections change.
    */
+  /**
+   * Store SQL `NULL` instead of encoding `value`, and require the projection to
+   * produce JSON `null`.
+   *
+   * This is a dimension every column has and no `value` can express: the codecs
+   * are strict, so a null case cannot be written as `value: null` — `encodeJson`
+   * would reject it before the database was reached. The runtime never calls
+   * `decodeJson` for a null (`collection-dispatch` short-circuits it), so
+   * neither does the harness; what a null case measures is that the projection
+   * carries absence through as absence.
+   */
+  readonly nullValue?: true;
   readonly notYetCanonical?: ExpectedProjectionFailure;
 }
 
@@ -280,10 +292,14 @@ export async function runPostgresCodecProjection(
   const columnType = conformanceCase.many === true ? `${elementType}[]` : elementType;
   await connection.query(`CREATE TABLE "${STORAGE_TABLE}" ("${VALUE_COLUMN}" ${columnType})`);
 
-  const wire = await encodeValue(codec, conformanceCase);
-  await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES ($1)`, [
-    conformanceCase.many === true ? wire : toDriverParam(wire),
-  ]);
+  if (conformanceCase.nullValue === true) {
+    await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES (NULL)`);
+  } else {
+    const wire = await encodeValue(codec, conformanceCase);
+    await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES ($1)`, [
+      conformanceCase.many === true ? wire : toDriverParam(wire),
+    ]);
+  }
 
   const sql = buildProjectionSql(conformanceCase);
 
@@ -308,6 +324,19 @@ export async function runPostgresCodecProjection(
   const projected = document[DOCUMENT_KEY];
   if (projected === undefined) {
     throw new Error(`Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`);
+  }
+
+  if (conformanceCase.nullValue === true) {
+    const nullBase = { sql, rawJson, projected, expected: null } as const;
+    return projected === null
+      ? { ...nullBase, failure: undefined }
+      : {
+          ...nullBase,
+          failure: {
+            kind: 'mismatch',
+            detail: `a NULL column projected as ${JSON.stringify(projected)} rather than null`,
+          },
+        };
   }
 
   let expected: JsonValue;

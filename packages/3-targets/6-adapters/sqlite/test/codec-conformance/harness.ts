@@ -108,6 +108,18 @@ export interface SqliteCodecConformanceCase {
   /** Codec type params, for parameterized codecs. */
   readonly typeParams?: JsonValue;
   /**
+   * Store SQL `NULL` instead of encoding `value`, and require the projection to
+   * produce JSON `null`.
+   *
+   * This is a dimension every column has and no `value` can express: the codecs
+   * are strict, so a null case cannot be written as `value: null` — `encodeJson`
+   * would reject it before the database was reached. The runtime never calls
+   * `decodeJson` for a null (`collection-dispatch` short-circuits it), so
+   * neither does the harness; what a null case measures is that the projection
+   * carries absence through as absence.
+   */
+  readonly nullValue?: true;
+  /**
    * How this case's projection currently disagrees with the codec's
    * `encodeJson` / `decodeJson`, when it does. The suite asserts that a marked
    * case still fails *and still fails this way*, so neither the marker nor its
@@ -175,7 +187,7 @@ export function buildProjectionSql(conformanceCase: SqliteCodecConformanceCase):
     ProjectionItem.of(DOCUMENT_ALIAS, document),
   ]);
 
-  return renderLoweredSql(select, conformanceContract).sql;
+  return renderLoweredSql(select, conformanceContract, sqliteCodecDescriptorRegistry).sql;
 }
 
 export async function runSqliteCodecProjection(
@@ -192,8 +204,12 @@ export async function runSqliteCodecProjection(
     `CREATE TABLE "${STORAGE_TABLE}" ("${VALUE_COLUMN}" ${conformanceCase.storageType})`,
   );
 
-  const wire = await codec.encode(conformanceCase.value, {});
-  await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES (?)`, [wire]);
+  if (conformanceCase.nullValue === true) {
+    await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES (NULL)`);
+  } else {
+    const wire = await codec.encode(conformanceCase.value, {});
+    await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES (?)`, [wire]);
+  }
 
   const sql = buildProjectionSql(conformanceCase);
 
@@ -218,6 +234,19 @@ export async function runSqliteCodecProjection(
   const projected = document[DOCUMENT_KEY];
   if (projected === undefined) {
     throw new Error(`Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`);
+  }
+
+  if (conformanceCase.nullValue === true) {
+    const nullBase = { sql, rawJson, projected, expected: null } as const;
+    return projected === null
+      ? { ...nullBase, failure: undefined }
+      : {
+          ...nullBase,
+          failure: {
+            kind: 'mismatch',
+            detail: `a NULL column projected as ${JSON.stringify(projected)} rather than null`,
+          },
+        };
   }
 
   let expected: JsonValue;

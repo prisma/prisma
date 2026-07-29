@@ -49,6 +49,23 @@ describe.sequential('PostgreSQL codec JSON-projection conformance', () => {
     expect(uncovered).toEqual([]);
   });
 
+  // Null is a dimension every column has, and it is what let the interval
+  // projection report an absent value as a zero one. Requiring a case per
+  // descriptor makes the dimension self-enforcing: a new codec cannot register
+  // without one.
+  it('registers a NULL case for every built-in descriptor', () => {
+    const covered = new Set(
+      postgresConformanceCases
+        .filter((entry) => entry.nullValue === true)
+        .map((entry) => entry.codecId),
+    );
+    const uncovered = [...postgresCodecDescriptorRegistry.values()]
+      .map((descriptor) => descriptor.codecId)
+      .filter((codecId) => !covered.has(codecId));
+
+    expect(uncovered).toEqual([]);
+  });
+
   for (const conformanceCase of postgresConformanceCases) {
     const expectation =
       conformanceCase.notYetCanonical === undefined

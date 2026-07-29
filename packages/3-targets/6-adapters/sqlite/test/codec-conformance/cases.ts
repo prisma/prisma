@@ -134,4 +134,86 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
     value: 0.1,
     storageType: 'REAL',
   },
+  // Every column can be NULL, and no `value` can express it: the codecs are
+  // strict, so `encodeJson` would reject null before a database was reached. A
+  // NULL case stores SQL NULL and requires the projection to carry absence
+  // through as absence — the dimension that let an assembled projection report
+  // an absent value as a present one.
+  {
+    codecId: 'sql/char@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'TEXT',
+    nullValue: true,
+  },
+  {
+    codecId: 'sql/float@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'REAL',
+    nullValue: true,
+  },
+  {
+    codecId: 'sql/int@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'INTEGER',
+    nullValue: true,
+  },
+  {
+    codecId: 'sql/varchar@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'TEXT',
+    nullValue: true,
+  },
+  {
+    codecId: 'sqlite/bigint@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'INTEGER',
+    nullValue: true,
+  },
+  {
+    codecId: 'sqlite/blob@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'BLOB',
+    nullValue: true,
+  },
+  {
+    codecId: 'sqlite/datetime@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'TEXT',
+    nullValue: true,
+  },
+  {
+    codecId: 'sqlite/integer@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'INTEGER',
+    nullValue: true,
+  },
+  {
+    codecId: 'sqlite/json@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'TEXT',
+    nullValue: true,
+  },
+  {
+    codecId: 'sqlite/real@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'REAL',
+    nullValue: true,
+  },
+  {
+    codecId: 'sqlite/text@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'TEXT',
+    nullValue: true,
+  },
 ];

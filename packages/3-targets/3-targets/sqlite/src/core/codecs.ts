@@ -22,8 +22,11 @@ import {
   voidParamsSchema,
 } from '@prisma-next/framework-components/codec';
 import {
+  CaseExpr,
   CastExpr,
   FunctionCallExpr,
+  LiteralExpr,
+  NullCheckExpr,
   type ProjectionExpr,
   sqlCharDescriptor,
   sqlFloatDescriptor,
@@ -71,9 +74,17 @@ const decimalTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =
  * to replace the native conversion rather than post-process it. `hex()` emits
  * uppercase and never wraps at any length, which is the spelling `encodeJson`
  * pins.
+ *
+ * `hex(NULL)` is `''` rather than NULL, and `''` is the hex of an empty blob —
+ * so without the NULL check an absent blob and an empty one would both project
+ * as `''`, and `decodeJson` accepts `''` because zero hex pairs is a valid
+ * empty blob. The check keeps the two distinguishable.
  */
 const hexJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
-  FunctionCallExpr.of('hex', [expression]);
+  CaseExpr.of(
+    [{ condition: NullCheckExpr.isNull(expression), value: LiteralExpr.of(null) }],
+    FunctionCallExpr.of('hex', [expression]),
+  );
 
 const JSON_RETAG_FN = 'json' as const;
 
