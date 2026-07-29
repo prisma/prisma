@@ -5,7 +5,7 @@ description: Open a high-quality external contributor PR against prisma-next. Us
 
 # Contributor PR skill (external)
 
-This skill is for **external contributors** to `prisma/prisma-next` who are using an LLM-based agent to author or finalize a PR. It is intentionally separate from the maintainer-facing `create-pr` skill: it does not depend on Linear access, internal plan/spec documents, or any private context. It encodes the expectations laid out in [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) as a runnable workflow, so the PR you produce matches the shape maintainers expect on the first review round.
+This skill is for **external contributors** to `prisma/prisma` who are using an LLM-based agent to author or finalize a PR. It is intentionally separate from the maintainer-facing `create-pr` skill: it does not depend on Linear access, internal plan/spec documents, or any private context. It encodes the expectations laid out in [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) as a runnable workflow, so the PR you produce matches the shape maintainers expect on the first review round.
 
 If the user is a maintainer with access to internal Linear tickets, use `create-pr` instead.
 
@@ -141,7 +141,7 @@ EOF
 )"
 ```
 
-   The `gh` CLI must be authenticated against the contributor's GitHub account, not against `prisma/prisma-next` directly. The PR will open against `prisma:main` from the contributor's fork.
+   The `gh` CLI must be authenticated against the contributor's GitHub account, not against `prisma/prisma` directly. The PR will open against `prisma:main` from the contributor's fork.
 
 4. Return the PR URL.
 
