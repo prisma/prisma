@@ -414,7 +414,6 @@ describe('native_enum coexists with a PSL enum block in the same namespace', () 
   const enumTestCodecLookup: CodecLookup = {
     get: (id) => (id === 'pg/text@1' ? textCodec : undefined),
     targetTypesFor: (id) => (id === 'pg/text@1' ? ['text'] : undefined),
-    metaFor: () => undefined,
     renderOutputTypeFor: () => undefined,
   };
 

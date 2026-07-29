@@ -19,7 +19,6 @@ import {
 const emptyCodecLookup: CodecLookup = {
   get: (): Codec | undefined => undefined,
   targetTypesFor: () => undefined,
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 

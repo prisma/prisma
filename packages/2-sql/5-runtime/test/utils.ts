@@ -4,11 +4,7 @@ import {
   coreHash,
   profileHash,
 } from '@prisma-next/contract/types';
-import type {
-  CodecDescriptor,
-  CodecMeta,
-  CodecTrait,
-} from '@prisma-next/framework-components/codec';
+import type { CodecDescriptor, CodecTrait } from '@prisma-next/framework-components/codec';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import {
   instantiateExecutionStack,
@@ -249,7 +245,6 @@ export function descriptorsFromCodecs(
     const legacy = instance as {
       readonly traits?: readonly CodecTrait[];
       readonly targetTypes?: readonly string[];
-      readonly meta?: CodecMeta;
     };
     descriptors.push({
       codecId: instance.id,
@@ -258,7 +253,6 @@ export function descriptorsFromCodecs(
       paramsSchema: acceptAnyParamsSchema,
       isParameterized: true,
       factory: () => () => instance,
-      ...(legacy.meta !== undefined ? { meta: legacy.meta } : {}),
     });
   }
   return descriptors;

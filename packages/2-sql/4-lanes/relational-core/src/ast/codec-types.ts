@@ -84,19 +84,6 @@ export interface SqlCodecInstanceContext extends CodecInstanceContext {
 }
 
 /**
- * Codec metadata for database-specific type information. Used for schema introspection and verification.
- */
-export interface CodecMeta {
-  readonly db?: {
-    readonly sql?: {
-      readonly postgres?: {
-        readonly nativeType: string; // e.g. 'integer', 'text', 'vector', 'timestamp with time zone'
-      };
-    };
-  };
-}
-
-/**
  * SQL codec — extends the framework codec base by narrowing the per-call context to the SQL-family {@link SqlCodecCallContext} (adds `column?: SqlColumnRef`). TypeScript treats method-syntax declarations bivariantly, so the SQL narrowing is structurally compatible with the framework {@link BaseCodec} super-interface.
  *
  * Codec-id-keyed static metadata (`traits`, `targetTypes`, `meta`, `paramsSchema`, `renderOutputType`) lives on the unified {@link import('@prisma-next/framework-components/codec').CodecDescriptor} — the codec instance itself only carries `id` plus the four conversion methods.

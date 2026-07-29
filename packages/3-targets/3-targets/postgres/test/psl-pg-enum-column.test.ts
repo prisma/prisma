@@ -47,7 +47,6 @@ const pgEnumCodec = {
 const codecLookup: CodecLookup = {
   get: (id) => (id === PG_ENUM_CODEC_ID ? pgEnumCodec : undefined),
   targetTypesFor: () => undefined,
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
   descriptorFor: (id) => (id === PG_ENUM_CODEC_ID ? pgEnumDescriptor : undefined),
 };

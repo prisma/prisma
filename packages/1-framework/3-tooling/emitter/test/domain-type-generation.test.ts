@@ -48,7 +48,6 @@ function literalCodecLookup(): CodecLookup {
   return {
     get: () => undefined,
     targetTypesFor: () => undefined,
-    metaFor: () => undefined,
     renderOutputTypeFor: () => undefined,
     renderValueLiteralFor: (_id, value) => renderPrimitiveLiteral(value),
   };
@@ -933,7 +932,6 @@ function stubCodecLookup(codecs: Record<string, CodecStub>): CodecLookup {
   return {
     get: (id) => codecs[id],
     targetTypesFor: (id) => codecs[id]?.targetTypes,
-    metaFor: () => undefined,
     renderOutputTypeFor: (id, params) => codecs[id]?.renderOutputType?.(params),
   };
 }
@@ -1159,7 +1157,6 @@ describe('resolveFieldType', () => {
     const lookup: CodecLookup = {
       get: () => undefined,
       targetTypesFor: () => undefined,
-      metaFor: () => undefined,
       renderOutputTypeFor: () => union,
       renderInputTypeFor: () => union,
     };
@@ -1176,7 +1173,6 @@ describe('resolveFieldType', () => {
     const lookup: CodecLookup = {
       get: () => undefined,
       targetTypesFor: () => undefined,
-      metaFor: () => undefined,
       renderOutputTypeFor: () => "'a' | 'b'",
     };
     const field: ContractField = {
@@ -1436,7 +1432,6 @@ describe('renderValueSetType', () => {
     const lookup: CodecLookup = {
       get: () => undefined,
       targetTypesFor: () => undefined,
-      metaFor: () => undefined,
       renderOutputTypeFor: () => undefined,
     };
     expect(renderValueSetType(['low'], 'pg/text@1', 'output', lookup)).toBeUndefined();

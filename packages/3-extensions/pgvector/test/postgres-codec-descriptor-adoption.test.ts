@@ -24,7 +24,6 @@ describe('pgvector PostgreSQL codec descriptor adoption', () => {
     const expression = ColumnRef.of('records', 'embedding');
 
     expect(pgVectorDescriptor.nativeTypeFor(ref)).toBe('vector');
-    expect(pgVectorDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('vector');
     // Elements widen to float8 before the array is built, so the exact value a
     // `real` denotes survives rather than its shortest text form.
     expect(pgVectorDescriptor.projectJson(expression, ref)).toEqual(

@@ -71,9 +71,7 @@ const geometryParamsSchema = arktype({
   return true;
 }) satisfies StandardSchemaV1<GeometryParams>;
 
-const POSTGIS_GEOMETRY_META = {
-  db: { sql: { postgres: { nativeType: 'geometry' } } },
-} as const;
+const POSTGIS_GEOMETRY_NATIVE_TYPE = 'geometry';
 
 const allowedGeometryTypes = new Set([
   'Point',
@@ -148,7 +146,7 @@ export class PostgisGeometryCodec extends CodecImpl<
 
 export class PostgisGeometryDescriptor extends PostgresCodecDescriptor<GeometryParams> {
   protected override nativeType(): string {
-    return POSTGIS_GEOMETRY_META.db.sql.postgres.nativeType;
+    return POSTGIS_GEOMETRY_NATIVE_TYPE;
   }
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
@@ -156,7 +154,6 @@ export class PostgisGeometryDescriptor extends PostgresCodecDescriptor<GeometryP
   override readonly codecId = POSTGIS_GEOMETRY_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['geometry'] as const;
-  override readonly meta = POSTGIS_GEOMETRY_META;
   override readonly paramsSchema: StandardSchemaV1<GeometryParams> = geometryParamsSchema;
   override renderOutputType(params: GeometryParams): string {
     const { srid } = params;

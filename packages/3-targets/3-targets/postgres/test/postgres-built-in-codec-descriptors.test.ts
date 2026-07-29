@@ -97,20 +97,6 @@ const refFor = (
   ...ifDefined('typeParams', typeParams),
 });
 
-const metaNativeType = (
-  descriptor: AnyPostgresCodecDescriptor,
-  typeParams?: CodecRef['typeParams'],
-): string | undefined => {
-  const meta = descriptor.metaFor?.(typeParams) ?? descriptor.meta;
-  const sql = meta?.db?.['sql'];
-  if (typeof sql !== 'object' || sql === null || !('postgres' in sql)) return undefined;
-  const postgres = sql.postgres;
-  if (typeof postgres !== 'object' || postgres === null || !('nativeType' in postgres)) {
-    return undefined;
-  }
-  return typeof postgres.nativeType === 'string' ? postgres.nativeType : undefined;
-};
-
 describe('PostgreSQL built-in codec descriptors', () => {
   it('keeps the complete canonical order with only target descriptors', () => {
     expect(codecDescriptors.map((descriptor) => descriptor.codecId)).toEqual(EXPECTED_CODEC_IDS);
@@ -249,7 +235,6 @@ describe('PostgreSQL built-in codec descriptors', () => {
     for (const { descriptor, nativeType, typeParams, jsonProjection } of cases) {
       const ref = refFor(descriptor, typeParams);
       expect(descriptor.nativeTypeFor(ref)).toBe(nativeType);
-      expect(metaNativeType(descriptor, typeParams)).toBe(nativeType);
       if (jsonProjection === 'decimal-text') {
         expect(descriptor.projectJson(expression, ref)).toEqual(CastExpr.as(expression, 'text'));
       } else if (jsonProjection === 'base64') {

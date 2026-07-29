@@ -5,7 +5,7 @@ import type { CapabilityMatrix } from '../shared/capabilities';
 import { mergeCapabilityMatrices } from '../shared/capabilities';
 import type { Codec } from '../shared/codec';
 import type { AnyCodecDescriptor } from '../shared/codec-descriptor';
-import type { CodecLookup, CodecMeta, CodecRef, CodecRegistry } from '../shared/codec-types';
+import type { CodecLookup, CodecRef, CodecRegistry } from '../shared/codec-types';
 import type {
   AuthoringContributions,
   AuthoringEntityTypeNamespace,
@@ -351,11 +351,6 @@ export function extractCodecLookup(
   const byId = new Map<string, Codec>();
   const descriptorsById = new Map<string, AnyCodecDescriptor>();
   const targetTypesById = new Map<string, readonly string[]>();
-  const metaById = new Map<string, CodecMeta>();
-  const metaRenderersById = new Map<
-    string,
-    (params: Record<string, unknown> | JsonValue) => CodecMeta | undefined
-  >();
   const renderersById = new Map<string, (params: Record<string, unknown>) => string | undefined>();
   const inputRenderersById = new Map<
     string,
@@ -382,12 +377,6 @@ export function extractCodecLookup(
       descriptorsById.set(codecDescriptor.codecId, codecDescriptor);
       if (Array.isArray(codecDescriptor.targetTypes)) {
         targetTypesById.set(codecDescriptor.codecId, codecDescriptor.targetTypes);
-      }
-      if (codecDescriptor.meta !== undefined) {
-        metaById.set(codecDescriptor.codecId, codecDescriptor.meta);
-      }
-      if (typeof codecDescriptor.metaFor === 'function') {
-        metaRenderersById.set(codecDescriptor.codecId, codecDescriptor.metaFor);
       }
       if (typeof codecDescriptor.renderOutputType === 'function') {
         renderersById.set(codecDescriptor.codecId, codecDescriptor.renderOutputType);
@@ -434,13 +423,6 @@ export function extractCodecLookup(
     },
     forColumn: () => undefined,
     targetTypesFor: (id) => targetTypesById.get(id),
-    metaFor: (id, typeParams) => {
-      if (typeParams !== undefined) {
-        const paramsAware = metaRenderersById.get(id)?.(typeParams);
-        if (paramsAware !== undefined) return paramsAware;
-      }
-      return metaById.get(id);
-    },
     renderOutputTypeFor: (id, params) => renderersById.get(id)?.(params),
     renderInputTypeFor: (id, params) => inputRenderersById.get(id)?.(params),
     renderValueLiteralFor: (id, value, side) => valueLiteralRenderersById.get(id)?.(value, side),

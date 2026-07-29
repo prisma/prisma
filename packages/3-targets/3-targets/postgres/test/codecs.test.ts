@@ -39,7 +39,7 @@ import {
   pgVarbitDescriptor,
   pgVarcharDescriptor,
 } from '../src/core/codecs';
-import { postgresCodecRegistry } from '../src/core/registry';
+import { postgresCodecDescriptorRegistry, postgresCodecRegistry } from '../src/core/registry';
 
 const SYNTH_CTX: CodecInstanceContext = { name: 'test' };
 
@@ -506,15 +506,17 @@ describe('adapter-postgres codecs', () => {
       { scalar: 'inet', nativeType: 'inet' },
     ];
 
-    it.each(postgresNativeTypeCases)(
-      'sets postgres nativeType metadata for $scalar',
-      ({ scalar, nativeType }) => {
-        const meta = descriptorByScalar[scalar].meta as
-          | { db?: { sql?: { postgres?: { nativeType?: string } } } }
-          | undefined;
-        expect(meta?.db?.sql?.postgres?.nativeType).toBe(nativeType);
-      },
-    );
+    it.each(postgresNativeTypeCases)('states the postgres native type for $scalar', ({
+      scalar,
+      nativeType,
+    }) => {
+      // Resolved through the registry rather than off the map, whose value type
+      // spans the SQL-base descriptors too — those carry no PostgreSQL native
+      // type, and none of these cases names one.
+      const codecId = descriptorByScalar[scalar].codecId;
+      const descriptor = postgresCodecDescriptorRegistry.descriptorFor(codecId);
+      expect(descriptor?.nativeTypeFor({ codecId })).toBe(nativeType);
+    });
 
     const paramsSchemaPresenceCases: ReadonlyArray<{
       scalar: ScalarName;
