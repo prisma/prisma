@@ -7,6 +7,7 @@ import {
   SelectAst,
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
+import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
@@ -59,7 +60,7 @@ describe('RawExpr sqlite lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract);
+    const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('datetime("now")');
     expect(lowered.params).toHaveLength(0);
@@ -73,7 +74,7 @@ describe('RawExpr sqlite lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract);
+    const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('score > ?');
     expect(lowered.params).toHaveLength(1);
@@ -89,7 +90,7 @@ describe('RawExpr sqlite lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract);
+    const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('id BETWEEN ? AND ?');
     expect(lowered.params).toHaveLength(2);
@@ -106,7 +107,7 @@ describe('RawExpr sqlite lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract);
+    const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('??');
     expect(lowered.params).toHaveLength(2);
@@ -120,7 +121,7 @@ describe('RawExpr sqlite lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract);
+    const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain('LENGTH(CAST("user"."id" AS TEXT)) > 0');
   });
@@ -133,7 +134,7 @@ describe('RawExpr sqlite lowering', () => {
     });
 
     const ast = selectWithWhere(rawExpr);
-    const lowered = renderLoweredSql(ast, contract);
+    const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
     expect(lowered.sql).toContain("status = 'active'");
     expect(lowered.params).toHaveLength(0);

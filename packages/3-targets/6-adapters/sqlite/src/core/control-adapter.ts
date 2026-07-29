@@ -156,6 +156,7 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
     return renderLoweredSql(
       ast,
       blindCast<SqliteContract, 'caller must supply a matching SqliteContract'>(context.contract),
+      this.codecRegistry,
     );
   }
 
@@ -179,7 +180,7 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
     const contract = blindCast<SqliteContract, 'Caller must supply matching contract'>(
       context?.contract,
     );
-    const lowered = renderLoweredSql(ast, contract);
+    const lowered = renderLoweredSql(ast, contract, this.codecRegistry);
     const codecRegistry = blindCast<
       ContractCodecRegistry,
       'framework CodecRegistry: its descriptors materialise SQL codecs; the framework Codec type erases to BaseCodec at this boundary'

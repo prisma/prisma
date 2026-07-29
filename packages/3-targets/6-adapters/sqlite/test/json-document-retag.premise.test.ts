@@ -30,7 +30,10 @@ import {
   ProjectionItem,
   SelectAst,
 } from '@prisma-next/sql-relational-core/ast';
-import { jsonDocumentRetag } from '@prisma-next/target-sqlite/codecs';
+import {
+  jsonDocumentRetag,
+  sqliteCodecDescriptorRegistry,
+} from '@prisma-next/target-sqlite/codecs';
 import { createContract } from '@prisma-next/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { renderLoweredSql } from '../src/core/adapter';
@@ -109,13 +112,13 @@ describe('SQLite JSON subtype across a derived table', () => {
   });
 
   function run(select: SelectAst): unknown {
-    const { sql } = renderLoweredSql(select, contract);
+    const { sql } = renderLoweredSql(select, contract, sqliteCodecDescriptorRegistry);
     const row = database!.prepare(sql).get() as { doc: string };
     return JSON.parse(row.doc).outer;
   }
 
   function runAggregate(select: SelectAst): unknown {
-    const { sql } = renderLoweredSql(select, contract);
+    const { sql } = renderLoweredSql(select, contract, sqliteCodecDescriptorRegistry);
     const row = database!.prepare(sql).get() as { doc: string };
     return JSON.parse(row.doc);
   }

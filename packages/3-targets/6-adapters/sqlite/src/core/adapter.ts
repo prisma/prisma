@@ -1,3 +1,4 @@
+import type { CodecRef } from '@prisma-next/framework-components/codec';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import type {
   Adapter,
@@ -27,6 +28,7 @@ import type {
   NullCheckExpr,
   OperationExpr,
   OrderByItem,
+  ProjectionExpr,
   ProjectionItem,
   RawExpr,
   RawSqlLiteral,
@@ -39,6 +41,8 @@ import type {
 } from '@prisma-next/sql-relational-core/ast';
 import { isDdlNode } from '@prisma-next/sql-relational-core/ast';
 import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
+import type { SqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codec-descriptor';
+import { jsonDocumentRetag } from '@prisma-next/target-sqlite/codecs';
 import type { SqliteDdlNode } from '@prisma-next/target-sqlite/ddl';
 import { escapeLiteral, quoteIdentifier } from '@prisma-next/target-sqlite/sql-utils';
 import { assertNever, InternalError } from '@prisma-next/utils/internal-error';
@@ -85,7 +89,10 @@ class SqliteAdapterImpl implements Adapter<AnyQueryAst, SqliteContract, SqliteLo
 
   readonly profile: AdapterProfile<'sqlite'>;
 
+  readonly #codecs: SqliteCodecRegistry;
+
   constructor(codecRegistry: SqliteCodecRegistry, profileId?: string) {
+    this.#codecs = codecRegistry;
     const controlAdapter = new SqliteControlAdapter(codecRegistry);
     this.profile = Object.freeze({
       id: profileId ?? 'sqlite/default@1',
@@ -121,7 +128,7 @@ class SqliteAdapterImpl implements Adapter<AnyQueryAst, SqliteContract, SqliteLo
         { meta: { surface: 'runtime-adapter' } },
       );
     }
-    return renderLoweredSql(ast, context.contract);
+    return renderLoweredSql(ast, context.contract, this.#codecs);
   }
 }
 
@@ -151,6 +158,17 @@ export const sqliteRawCodecInferer: RawCodecInferer = {
 };
 
 /**
+ * What every render function needs: the contract it renders against, and the
+ * validated codec registry a JSON projection resolves its descriptor from. The
+ * two travel together so no render path can reach a codec entry without the
+ * registry that explains it.
+ */
+interface SqliteRenderContext {
+  readonly contract: SqliteContract | undefined;
+  readonly codecs: SqliteCodecDescriptorRegistry;
+}
+
+/**
  * Lower a SQL query AST into a SQLite-flavored `{ sql, params }` payload.
  *
  * Shared between the runtime adapter (`SqliteAdapterImpl.lower`) and the control adapter (`SqliteControlAdapter.lower`) so both produce byte-identical SQL for the same AST and contract.
@@ -158,7 +176,9 @@ export const sqliteRawCodecInferer: RawCodecInferer = {
 export function renderLoweredSql(
   ast: AnyQueryAst,
   contract: SqliteContract,
+  codecs: SqliteCodecDescriptorRegistry,
 ): SqliteLoweredStatement {
+  const ctx: SqliteRenderContext = { contract, codecs };
   const collectedParamRefs = ast.collectParamRefs();
   const params: LoweredParam[] = [];
   for (const ref of collectedParamRefs) {
@@ -174,16 +194,16 @@ export function renderLoweredSql(
   const node = ast;
   switch (node.kind) {
     case 'select':
-      sql = renderSelect(node, contract);
+      sql = renderSelect(node, ctx);
       break;
     case 'insert':
-      sql = renderInsert(node, contract);
+      sql = renderInsert(node, ctx);
       break;
     case 'update':
-      sql = renderUpdate(node, contract);
+      sql = renderUpdate(node, ctx);
       break;
     case 'delete':
-      sql = renderDelete(node, contract);
+      sql = renderDelete(node, ctx);
       break;
     default:
       throw new InternalError(`Unsupported AST node kind: ${nodeKind(node)}`);
@@ -195,34 +215,34 @@ export function renderLoweredSql(
 function renderLimitOffset(
   keyword: 'LIMIT' | 'OFFSET',
   value: SelectAst['limit'] | SelectAst['offset'],
-  contract?: SqliteContract,
+  ctx: SqliteRenderContext,
 ): string {
   if (value === undefined) return '';
   if (typeof value === 'number') return `${keyword} ${value}`;
-  return `${keyword} ${renderExpr(value, contract)}`;
+  return `${keyword} ${renderExpr(value, ctx)}`;
 }
 
-function renderSelect(ast: SelectAst, contract: SqliteContract): string {
+function renderSelect(ast: SelectAst, ctx: SqliteRenderContext): string {
   const distinctPrefix = ast.distinct ? 'DISTINCT ' : '';
-  const selectClause = `SELECT ${distinctPrefix}${renderProjection(ast.projection, contract)}`;
-  const fromClause = ast.from !== undefined ? `FROM ${renderSource(ast.from, contract)}` : '';
+  const selectClause = `SELECT ${distinctPrefix}${renderProjection(ast.projection, ctx)}`;
+  const fromClause = ast.from !== undefined ? `FROM ${renderSource(ast.from, ctx)}` : '';
 
   const joinsClause = ast.joins?.length
-    ? ast.joins.map((join) => renderJoin(join, contract)).join(' ')
+    ? ast.joins.map((join) => renderJoin(join, ctx)).join(' ')
     : '';
 
-  const whereClause = ast.where ? `WHERE ${renderExpr(ast.where, contract)}` : '';
+  const whereClause = ast.where ? `WHERE ${renderExpr(ast.where, ctx)}` : '';
   const groupByClause = ast.groupBy?.length
-    ? `GROUP BY ${ast.groupBy.map((expr) => renderExpr(expr, contract)).join(', ')}`
+    ? `GROUP BY ${ast.groupBy.map((expr) => renderExpr(expr, ctx)).join(', ')}`
     : '';
-  const havingClause = ast.having ? `HAVING ${renderExpr(ast.having, contract)}` : '';
+  const havingClause = ast.having ? `HAVING ${renderExpr(ast.having, ctx)}` : '';
   const orderClause = ast.orderBy?.length
     ? `ORDER BY ${ast.orderBy
-        .map((order) => `${renderExpr(order.expr, contract)} ${order.dir.toUpperCase()}`)
+        .map((order) => `${renderExpr(order.expr, ctx)} ${order.dir.toUpperCase()}`)
         .join(', ')}`
     : '';
-  const limitClause = renderLimitOffset('LIMIT', ast.limit, contract);
-  const offsetClause = renderLimitOffset('OFFSET', ast.offset, contract);
+  const limitClause = renderLimitOffset('LIMIT', ast.limit, ctx);
+  const offsetClause = renderLimitOffset('OFFSET', ast.offset, ctx);
 
   return [
     selectClause,
@@ -242,7 +262,7 @@ function renderSelect(ast: SelectAst, contract: SqliteContract): string {
 
 function renderProjection(
   projection: ReadonlyArray<ProjectionItem>,
-  contract?: SqliteContract,
+  ctx: SqliteRenderContext,
 ): string {
   return projection
     .map((item) => {
@@ -250,19 +270,26 @@ function renderProjection(
       if (item.expr.kind === 'literal') {
         return `${renderLiteral(item.expr)} AS ${alias}`;
       }
-      return `${renderExpr(item.expr, contract)} AS ${alias}`;
+      return `${renderExpr(item.expr, ctx)} AS ${alias}`;
     })
     .join(', ');
 }
 
 function qualifyTableFromNamespaceCoordinate(
   table: Pick<TableSource, 'name' | 'namespaceId'>,
-  contract: SqliteContract,
+  ctx: SqliteRenderContext,
 ): string {
   if (table.namespaceId === undefined) {
     return quoteIdentifier(table.name);
   }
-  const namespace = contract.storage.namespaces[table.namespaceId];
+  // Qualifying a namespaced table reads the namespace off the contract, so a
+  // caller that reached here without one asked for something it cannot have.
+  if (ctx.contract === undefined) {
+    throw new InternalError(
+      `Table "${table.name}" carries namespace "${table.namespaceId}" but no contract was supplied to resolve it`,
+    );
+  }
+  const namespace = ctx.contract.storage.namespaces[table.namespaceId];
   if (namespace === undefined) {
     throw structuredError(
       'RUNTIME.NAMESPACE_UNKNOWN',
@@ -274,28 +301,28 @@ function qualifyTableFromNamespaceCoordinate(
   if (qualifyTable === undefined) {
     throw structuredError(
       'RUNTIME.NAMESPACE_UNKNOWN',
-      `Table "${table.name}" references namespace "${table.namespaceId}" which is not materialised for SQL rendering on the contract`,
+      `Table "${table.name}" references namespace "${table.namespaceId}" which is not materialised for SQL rendering on the ctx`,
       { meta: { table: table.name, namespaceId: table.namespaceId, reason: 'not-materialised' } },
     );
   }
   return qualifyTable.call(namespace, table.name);
 }
 
-function renderTableSource(source: TableSource, contract: SqliteContract): string {
-  const qualified = qualifyTableFromNamespaceCoordinate(source, contract);
+function renderTableSource(source: TableSource, ctx: SqliteRenderContext): string {
+  const qualified = qualifyTableFromNamespaceCoordinate(source, ctx);
   if (!source.alias) {
     return qualified;
   }
   return `${qualified} AS ${quoteIdentifier(source.alias)}`;
 }
 
-function renderSource(source: AnyFromSource, contract: SqliteContract): string {
+function renderSource(source: AnyFromSource, ctx: SqliteRenderContext): string {
   const node = source;
   switch (node.kind) {
     case 'table-source':
-      return renderTableSource(node, contract);
+      return renderTableSource(node, ctx);
     case 'derived-table-source':
-      return `(${renderSelect(node.query, contract)}) AS ${quoteIdentifier(node.alias)}`;
+      return `(${renderSelect(node.query, ctx)}) AS ${quoteIdentifier(node.alias)}`;
     case 'function-source': {
       if (node.ordinality) {
         throw structuredError(
@@ -311,7 +338,7 @@ function renderSource(source: AnyFromSource, contract: SqliteContract): string {
           { meta: { target: 'sqlite', feature: 'function-source-column-aliases' } },
         );
       }
-      const args = node.args.map((arg) => renderExpr(arg, contract)).join(', ');
+      const args = node.args.map((arg) => renderExpr(arg, ctx)).join(', ');
       const call = `${node.fn}(${args})`;
       return node.alias !== undefined ? `${call} AS ${quoteIdentifier(node.alias)}` : call;
     }
@@ -320,7 +347,7 @@ function renderSource(source: AnyFromSource, contract: SqliteContract): string {
   }
 }
 
-function renderExpr(expr: AnyExpression, contract?: SqliteContract): string {
+function renderExpr(expr: AnyExpression, ctx: SqliteRenderContext): string {
   const node = expr;
   switch (node.kind) {
     case 'column-ref':
@@ -328,64 +355,64 @@ function renderExpr(expr: AnyExpression, contract?: SqliteContract): string {
     case 'identifier-ref':
       return quoteIdentifier(node.name);
     case 'operation':
-      return renderOperation(node, contract);
+      return renderOperation(node, ctx);
     case 'subquery':
-      return renderSubqueryExpr(node, contract);
+      return renderSubqueryExpr(node, ctx);
     case 'aggregate':
-      return renderAggregateExpr(node, contract);
+      return renderAggregateExpr(node, ctx);
     case 'window-func':
-      return renderWindowFuncExpr(node, contract);
+      return renderWindowFuncExpr(node, ctx);
     case 'function-call':
-      return renderFunctionCallExpr(node, contract);
+      return renderFunctionCallExpr(node, ctx);
     case 'cast':
-      return renderCastExpr(node, contract);
+      return renderCastExpr(node, ctx);
     case 'case':
-      return renderCaseExpr(node, contract);
+      return renderCaseExpr(node, ctx);
     case 'json-object':
-      return renderJsonObjectExpr(node, contract);
+      return renderJsonObjectExpr(node, ctx);
     case 'json-array-agg':
-      return renderJsonArrayAggExpr(node, contract);
+      return renderJsonArrayAggExpr(node, ctx);
     case 'binary':
-      return renderBinary(node, contract);
+      return renderBinary(node, ctx);
     case 'and':
       if (node.exprs.length === 0) {
         return 'TRUE';
       }
-      return `(${node.exprs.map((part) => renderExpr(part, contract)).join(' AND ')})`;
+      return `(${node.exprs.map((part) => renderExpr(part, ctx)).join(' AND ')})`;
     case 'or':
       if (node.exprs.length === 0) {
         return 'FALSE';
       }
-      return `(${node.exprs.map((part) => renderExpr(part, contract)).join(' OR ')})`;
+      return `(${node.exprs.map((part) => renderExpr(part, ctx)).join(' OR ')})`;
     case 'exists': {
-      if (contract === undefined) {
-        throw new InternalError('EXISTS subquery rendering requires a Sqlite contract');
+      if (ctx.contract === undefined) {
+        throw new InternalError('EXISTS subquery rendering requires a Sqlite ctx');
       }
       const notKeyword = node.notExists ? 'NOT ' : '';
-      const subquery = renderSelect(node.subquery, contract);
+      const subquery = renderSelect(node.subquery, ctx);
       return `${notKeyword}EXISTS (${subquery})`;
     }
     case 'null-check':
-      return renderNullCheck(node, contract);
+      return renderNullCheck(node, ctx);
     case 'not':
-      return `NOT (${renderExpr(node.expr, contract)})`;
+      return `NOT (${renderExpr(node.expr, ctx)})`;
     case 'param-ref':
     case 'prepared-param-ref':
       return '?';
     case 'literal':
       return renderLiteral(node);
     case 'list':
-      return renderListLiteral(node);
+      return renderListLiteral(node, ctx);
     case 'raw-expr':
-      return renderRawExpr(node, contract);
+      return renderRawExpr(node, ctx);
     default:
       return assertNever(node, `Unsupported expression node kind: ${unreachableKind(node)}`);
   }
 }
 
-function renderRawExpr(node: RawExpr, contract?: SqliteContract): string {
+function renderRawExpr(node: RawExpr, ctx: SqliteRenderContext): string {
   return node.parts
-    .map((part) => (typeof part === 'string' ? part : renderExpr(part, contract)))
+    .map((part) => (typeof part === 'string' ? part : renderExpr(part, ctx)))
     .join('');
 }
 
@@ -420,9 +447,9 @@ function renderLiteral(expr: LiteralExpr): string {
   return `'${escapeLiteral(json)}'`;
 }
 
-function renderOperation(expr: OperationExpr, contract?: SqliteContract): string {
-  const self = renderExpr(expr.self, contract);
-  const args = expr.args.map((arg) => renderExpr(arg, contract));
+function renderOperation(expr: OperationExpr, ctx: SqliteRenderContext): string {
+  const self = renderExpr(expr.self, ctx);
+  const args = expr.args.map((arg) => renderExpr(arg, ctx));
 
   let result = expr.lowering.template;
   result = result.replace(/\{\{self\}\}/g, self);
@@ -433,7 +460,7 @@ function renderOperation(expr: OperationExpr, contract?: SqliteContract): string
   return result;
 }
 
-function renderSubqueryExpr(expr: SubqueryExpr, contract?: SqliteContract): string {
+function renderSubqueryExpr(expr: SubqueryExpr, ctx: SqliteRenderContext): string {
   if (expr.query.projection.length !== 1) {
     throw structuredError(
       'RUNTIME.AST_INVALID',
@@ -441,10 +468,10 @@ function renderSubqueryExpr(expr: SubqueryExpr, contract?: SqliteContract): stri
       { meta: { node: 'subquery' } },
     );
   }
-  if (contract === undefined) {
-    throw new InternalError('Subquery expression rendering requires a Sqlite contract');
+  if (ctx.contract === undefined) {
+    throw new InternalError('Subquery expression rendering requires a Sqlite ctx');
   }
-  return `(${renderSelect(expr.query, contract)})`;
+  return `(${renderSelect(expr.query, ctx)})`;
 }
 
 function requiresNullCheckGrouping(kind: AnyExpression['kind']): boolean {
@@ -476,13 +503,13 @@ function requiresNullCheckGrouping(kind: AnyExpression['kind']): boolean {
   }
 }
 
-function renderNullCheck(expr: NullCheckExpr, contract?: SqliteContract): string {
-  const rendered = renderExpr(expr.expr, contract);
+function renderNullCheck(expr: NullCheckExpr, ctx: SqliteRenderContext): string {
+  const rendered = renderExpr(expr.expr, ctx);
   const renderedExpr = requiresNullCheckGrouping(expr.expr.kind) ? `(${rendered})` : rendered;
   return expr.isNull ? `${renderedExpr} IS NULL` : `${renderedExpr} IS NOT NULL`;
 }
 
-function renderBinary(expr: BinaryExpr, contract?: SqliteContract): string {
+function renderBinary(expr: BinaryExpr, ctx: SqliteRenderContext): string {
   if (expr.right.kind === 'list' && expr.right.values.length === 0) {
     if (expr.op === 'in') {
       return 'FALSE';
@@ -493,7 +520,7 @@ function renderBinary(expr: BinaryExpr, contract?: SqliteContract): string {
   }
 
   const leftExpr = expr.left;
-  const left = renderExpr(leftExpr, contract);
+  const left = renderExpr(leftExpr, ctx);
   const leftRendered =
     leftExpr.kind === 'operation' || leftExpr.kind === 'subquery' ? `(${left})` : left;
 
@@ -501,7 +528,7 @@ function renderBinary(expr: BinaryExpr, contract?: SqliteContract): string {
   let right: string;
   switch (rightNode.kind) {
     case 'list':
-      right = renderListLiteral(rightNode);
+      right = renderListLiteral(rightNode, ctx);
       break;
     case 'literal':
       right = renderLiteral(rightNode);
@@ -514,7 +541,7 @@ function renderBinary(expr: BinaryExpr, contract?: SqliteContract): string {
       right = '?';
       break;
     default:
-      right = renderExpr(rightNode, contract);
+      right = renderExpr(rightNode, ctx);
       break;
   }
 
@@ -533,7 +560,7 @@ function renderBinary(expr: BinaryExpr, contract?: SqliteContract): string {
   return `${leftRendered} ${operatorMap[expr.op]} ${right}`;
 }
 
-function renderListLiteral(expr: ListExpression): string {
+function renderListLiteral(expr: ListExpression, ctx: SqliteRenderContext): string {
   if (expr.values.length === 0) {
     return '(NULL)';
   }
@@ -541,114 +568,137 @@ function renderListLiteral(expr: ListExpression): string {
     .map((v) => {
       if (v.kind === 'param-ref' || v.kind === 'prepared-param-ref') return '?';
       if (v.kind === 'literal') return renderLiteral(v);
-      return renderExpr(v);
+      return renderExpr(v, ctx);
     })
     .join(', ');
   return `(${values})`;
 }
 
-function renderAggregateExpr(expr: AggregateExpr, contract?: SqliteContract): string {
+function renderAggregateExpr(expr: AggregateExpr, ctx: SqliteRenderContext): string {
   const fn = expr.fn.toUpperCase();
   if (!expr.expr) {
     return `${fn}(*)`;
   }
-  return `${fn}(${renderExpr(expr.expr, contract)})`;
+  return `${fn}(${renderExpr(expr.expr, ctx)})`;
 }
 
-function renderWindowFuncExpr(expr: WindowFuncExpr, contract?: SqliteContract): string {
+function renderWindowFuncExpr(expr: WindowFuncExpr, ctx: SqliteRenderContext): string {
   const fn = expr.fn.toUpperCase();
-  const args = expr.args.map((arg) => renderExpr(arg, contract)).join(', ');
+  const args = expr.args.map((arg) => renderExpr(arg, ctx)).join(', ');
   const partitionClause =
     expr.partitionBy && expr.partitionBy.length > 0
-      ? `PARTITION BY ${expr.partitionBy.map((e) => renderExpr(e, contract)).join(', ')}`
+      ? `PARTITION BY ${expr.partitionBy.map((e) => renderExpr(e, ctx)).join(', ')}`
       : '';
   const orderClause =
     expr.orderBy && expr.orderBy.length > 0
-      ? `ORDER BY ${renderOrderByItems(expr.orderBy, contract)}`
+      ? `ORDER BY ${renderOrderByItems(expr.orderBy, ctx)}`
       : '';
   const over = [partitionClause, orderClause].filter((part) => part.length > 0).join(' ');
   return `${fn}(${args}) OVER (${over})`;
 }
 
-function renderFunctionCallExpr(expr: FunctionCallExpr, contract?: SqliteContract): string {
-  const args = expr.args.map((arg) => renderExpr(arg, contract)).join(', ');
+function renderFunctionCallExpr(expr: FunctionCallExpr, ctx: SqliteRenderContext): string {
+  const args = expr.args.map((arg) => renderExpr(arg, ctx)).join(', ');
   return `${expr.fn}(${args})`;
 }
 
-function renderCastExpr(expr: CastExpr, contract?: SqliteContract): string {
-  return `CAST(${renderExpr(expr.expr, contract)} AS ${expr.targetType})`;
+function renderCastExpr(expr: CastExpr, ctx: SqliteRenderContext): string {
+  return `CAST(${renderExpr(expr.expr, ctx)} AS ${expr.targetType})`;
 }
 
-function renderCaseExpr(expr: CaseExpr, contract?: SqliteContract): string {
+function renderCaseExpr(expr: CaseExpr, ctx: SqliteRenderContext): string {
   const branches = expr.branches
     .map(
-      (branch) =>
-        `WHEN ${renderExpr(branch.condition, contract)} THEN ${renderExpr(branch.value, contract)}`,
+      (branch) => `WHEN ${renderExpr(branch.condition, ctx)} THEN ${renderExpr(branch.value, ctx)}`,
     )
     .join(' ');
-  const elseClause =
-    expr.elseExpr === undefined ? '' : ` ELSE ${renderExpr(expr.elseExpr, contract)}`;
+  const elseClause = expr.elseExpr === undefined ? '' : ` ELSE ${renderExpr(expr.elseExpr, ctx)}`;
   return `CASE ${branches}${elseClause} END`;
 }
 
 function renderJsonValueProjection(
   projection: AnyJsonValueProjection,
-  contract?: SqliteContract,
+  ctx: SqliteRenderContext,
 ): string {
   const visitor: JsonValueProjectionVisitor<string> = {
-    codec: ({ value }) => renderExpr(value, contract),
-    native: ({ value }) => renderExpr(value, contract),
-    document: ({ value }) => renderExpr(value, contract),
+    // The codec's descriptor owns the expression that turns a stored value into
+    // its canonical JSON: decimal text for a bigint, uppercase hex for a blob.
+    codec: ({ value, codec }) => renderExpr(projectJsonThroughCodec(value, codec, ctx.codecs), ctx),
+    native: ({ value }) => renderExpr(value, ctx),
+    // SQLite carries "this text is JSON" as a subtype on the value, and the
+    // subtype does not survive a derived table. A document arriving from one is
+    // plain text by the time the enclosing constructor sees it, so it is
+    // retagged here — at the boundary that consumes it, which is the only level
+    // that needs it, the retag collapsing when it is already applied.
+    document: ({ value }) => renderExpr(jsonDocumentRetag(value), ctx),
   };
   return projection.accept(visitor);
 }
 
-function renderJsonObjectExpr(expr: JsonObjectExpr, contract?: SqliteContract): string {
+function projectJsonThroughCodec(
+  value: ProjectionExpr,
+  codec: CodecRef,
+  codecs: SqliteCodecDescriptorRegistry,
+): ProjectionExpr {
+  const descriptor = codecs.descriptorFor(codec.codecId);
+  if (descriptor === undefined) {
+    throw structuredError(
+      'RUNTIME.PARAM_REF_MISSING_CODEC',
+      `SQLite lowering: a JSON projection carries codecId "${codec.codecId}" but the ` +
+        'validated SQLite codec registry has no entry for it. This usually indicates a ' +
+        'missing extension pack in the runtime stack — register the pack that ' +
+        'contributes this codec, or use the codec directly from ' +
+        "`@prisma-next/target-sqlite/codecs` if it's a builtin.",
+      { meta: { codecId: codec.codecId } },
+    );
+  }
+  return descriptor.projectJson(value, codec);
+}
+
+function renderJsonObjectExpr(expr: JsonObjectExpr, ctx: SqliteRenderContext): string {
   const args = expr.entries
     .flatMap((entry): [string, string] => {
       const key = `'${escapeLiteral(entry.key)}'`;
-      return [key, renderJsonValueProjection(entry.value, contract)];
+      return [key, renderJsonValueProjection(entry.value, ctx)];
     })
     .join(', ');
   return `json_object(${args})`;
 }
 
-function renderOrderByItems(items: ReadonlyArray<OrderByItem>, contract?: SqliteContract): string {
-  return items
-    .map((item) => `${renderExpr(item.expr, contract)} ${item.dir.toUpperCase()}`)
-    .join(', ');
+function renderOrderByItems(items: ReadonlyArray<OrderByItem>, ctx: SqliteRenderContext): string {
+  return items.map((item) => `${renderExpr(item.expr, ctx)} ${item.dir.toUpperCase()}`).join(', ');
 }
 
-function renderJsonArrayAggExpr(expr: JsonArrayAggExpr, contract?: SqliteContract): string {
+function renderJsonArrayAggExpr(expr: JsonArrayAggExpr, ctx: SqliteRenderContext): string {
   const aggregateOrderBy =
     expr.orderBy && expr.orderBy.length > 0
-      ? ` ORDER BY ${renderOrderByItems(expr.orderBy, contract)}`
+      ? ` ORDER BY ${renderOrderByItems(expr.orderBy, ctx)}`
       : '';
-  const aggregated = `json_group_array(${renderJsonValueProjection(expr.expr, contract)}${aggregateOrderBy})`;
+  const aggregated = `json_group_array(${renderJsonValueProjection(expr.expr, ctx)}${aggregateOrderBy})`;
   if (expr.onEmpty === 'emptyArray') {
     return `coalesce(${aggregated}, '[]')`;
   }
   return aggregated;
 }
 
-function renderJoin(join: JoinAst, contract?: SqliteContract): string {
-  if (contract === undefined) {
-    throw new InternalError('JOIN rendering requires a Sqlite contract');
+function renderJoin(join: JoinAst, ctx: SqliteRenderContext): string {
+  if (ctx.contract === undefined) {
+    throw new InternalError('JOIN rendering requires a Sqlite ctx');
   }
   const joinType = join.joinType.toUpperCase();
-  const source = renderSource(join.source, contract);
-  const onClause = renderJoinOn(join.on, contract);
+  const source = renderSource(join.source, ctx);
+  const onClause = renderJoinOn(join.on, ctx);
   return `${joinType} JOIN ${source} ON ${onClause}`;
 }
 
-function renderJoinOn(on: JoinOnExpr, contract?: SqliteContract): string {
+function renderJoinOn(on: JoinOnExpr, ctx: SqliteRenderContext): string {
   if (on.kind === 'eq-col-join-on') {
     return `${renderColumn(on.left)} = ${renderColumn(on.right)}`;
   }
-  return renderExpr(on, contract);
+  return renderExpr(on, ctx);
 }
 
-function renderInsertValue(value: InsertValue): string {
+function renderInsertValue(value: InsertValue, ctx: SqliteRenderContext): string {
   switch (value.kind) {
     case 'param-ref':
     case 'prepared-param-ref':
@@ -656,7 +706,7 @@ function renderInsertValue(value: InsertValue): string {
     case 'column-ref':
       return renderColumn(value);
     case 'raw-expr':
-      return renderExpr(value);
+      return renderExpr(value, ctx);
     case 'default-value':
       throw structuredError(
         'RUNTIME.AST_UNSUPPORTED',
@@ -668,8 +718,8 @@ function renderInsertValue(value: InsertValue): string {
   }
 }
 
-function renderInsert(ast: InsertAst, contract: SqliteContract): string {
-  const table = qualifyTableFromNamespaceCoordinate(ast.table, contract);
+function renderInsert(ast: InsertAst, ctx: SqliteRenderContext): string {
+  const table = qualifyTableFromNamespaceCoordinate(ast.table, ctx);
   const rows = ast.rows;
   const firstRow = rows[0];
   if (firstRow === undefined) {
@@ -696,7 +746,7 @@ function renderInsert(ast: InsertAst, contract: SqliteContract): string {
               { meta: { node: 'insert', table: ast.table.name, column } },
             );
           }
-          return renderInsertValue(value);
+          return renderInsertValue(value, ctx);
         });
         return `(${renderedRow.join(', ')})`;
       })
@@ -722,7 +772,7 @@ function renderInsert(ast: InsertAst, contract: SqliteContract): string {
         break;
       case 'do-update-set': {
         const updates = Object.entries(action.set).map(([colName, value]) => {
-          return `${quoteIdentifier(colName)} = ${renderExpr(value, contract)}`;
+          return `${quoteIdentifier(colName)} = ${renderExpr(value, ctx)}`;
         });
         onConflictClause = ` ON CONFLICT (${conflictColumns.join(', ')}) DO UPDATE SET ${updates.join(', ')}`;
         break;
@@ -732,32 +782,35 @@ function renderInsert(ast: InsertAst, contract: SqliteContract): string {
     }
   }
 
-  const returningClause = renderReturning(ast.returning);
+  const returningClause = renderReturning(ast.returning, ctx);
 
   return `${insertClause}${onConflictClause}${returningClause}`;
 }
 
-function renderUpdate(ast: UpdateAst, contract: SqliteContract): string {
-  const table = qualifyTableFromNamespaceCoordinate(ast.table, contract);
+function renderUpdate(ast: UpdateAst, ctx: SqliteRenderContext): string {
+  const table = qualifyTableFromNamespaceCoordinate(ast.table, ctx);
   const setClauses = Object.entries(ast.set).map(([col, val]) => {
-    return `${quoteIdentifier(col)} = ${renderExpr(val, contract)}`;
+    return `${quoteIdentifier(col)} = ${renderExpr(val, ctx)}`;
   });
 
-  const whereClause = ast.where ? ` WHERE ${renderExpr(ast.where, contract)}` : '';
-  const returningClause = renderReturning(ast.returning);
+  const whereClause = ast.where ? ` WHERE ${renderExpr(ast.where, ctx)}` : '';
+  const returningClause = renderReturning(ast.returning, ctx);
 
   return `UPDATE ${table} SET ${setClauses.join(', ')}${whereClause}${returningClause}`;
 }
 
-function renderDelete(ast: DeleteAst, contract: SqliteContract): string {
-  const table = qualifyTableFromNamespaceCoordinate(ast.table, contract);
-  const whereClause = ast.where ? ` WHERE ${renderExpr(ast.where)}` : '';
-  const returningClause = renderReturning(ast.returning);
+function renderDelete(ast: DeleteAst, ctx: SqliteRenderContext): string {
+  const table = qualifyTableFromNamespaceCoordinate(ast.table, ctx);
+  const whereClause = ast.where ? ` WHERE ${renderExpr(ast.where, ctx)}` : '';
+  const returningClause = renderReturning(ast.returning, ctx);
 
   return `DELETE FROM ${table}${whereClause}${returningClause}`;
 }
 
-function renderReturning(returning: ReadonlyArray<ProjectionItem> | undefined): string {
+function renderReturning(
+  returning: ReadonlyArray<ProjectionItem> | undefined,
+  ctx: SqliteRenderContext,
+): string {
   if (!returning?.length) {
     return '';
   }
@@ -769,7 +822,7 @@ function renderReturning(returning: ReadonlyArray<ProjectionItem> | undefined): 
           ? rendered
           : `${rendered} AS ${quoteIdentifier(item.alias)}`;
       }
-      return `${renderExpr(item.expr)} AS ${quoteIdentifier(item.alias)}`;
+      return `${renderExpr(item.expr, ctx)} AS ${quoteIdentifier(item.alias)}`;
     })
     .join(', ')}`;
 }

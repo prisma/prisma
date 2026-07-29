@@ -387,7 +387,7 @@ describe('SQLite adapter codec registry composition', () => {
     );
   });
 
-  it('keeps descriptor JSON hooks dormant and preserves JSON object and array SQL', () => {
+  it('asks a composed descriptor how to project every JSON entry it owns', () => {
     let projectionCalls = 0;
     const descriptor = sqliteDescriptor({
       codecId: 'app/json-hook@1',
@@ -411,11 +411,15 @@ describe('SQLite adapter codec registry composition', () => {
     const runtime = runtimeAdapter.lower(ast, { contract });
     const control = controlAdapter.lower(ast, { contract });
 
+    // This descriptor's projection is the identity, so the SQL is unchanged —
+    // which is the point: a codec whose canonical JSON is its stored form
+    // renders as itself, and the renderer still had to ask to find that out.
+    // The call count is what says it asked, once per entry, on both paths.
     expect(runtime.sql).toBe(
       `SELECT json_object('value', "records"."value") AS "object", json_group_array("records"."value") AS "array" FROM "records"`,
     );
     expect(control).toEqual(runtime);
-    expect(projectionCalls).toBe(0);
+    expect(projectionCalls).toBe(4);
   });
 
   it('preserves built-in BLOB, bigint, and structured JSON representations', () => {

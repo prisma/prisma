@@ -356,6 +356,8 @@ describe('JSON projection variants', () => {
 
     describe('SQLite', () => {
       const value = ColumnRef.of('post', 'price');
+      const nonIdentity: CodecRef = { codecId: 'sqlite/bigint@1' };
+      const identity: CodecRef = { codecId: 'sqlite/text@1' };
 
       function render(variant: AnyJsonValueProjection): string {
         return sqliteAdapter.lower(selectProjecting(variant, 'post'), {
@@ -363,14 +365,42 @@ describe('JSON projection variants', () => {
         }).sql;
       }
 
-      it('renders all three identically', () => {
-        const rendered = [
-          render(new CodecJsonValueProjection(value, { codecId: 'sqlite/bigint@1' })),
+      it('a codec whose canonical JSON is not its stored form renders differently from native', () => {
+        expect(render(new CodecJsonValueProjection(value, nonIdentity))).not.toBe(
           render(new NativeJsonValueProjection(value)),
-          render(new JsonDocumentProjection(value)),
-        ];
+        );
+      });
 
-        expect(new Set(rendered).size).toBe(1);
+      it('the difference is the codec descriptor projection, not incidental', () => {
+        expect(render(new CodecJsonValueProjection(value, nonIdentity))).toContain(
+          'CAST("post"."price" AS TEXT)',
+        );
+      });
+
+      it('a codec whose canonical JSON is its stored form renders like native', () => {
+        expect(render(new CodecJsonValueProjection(value, identity))).toBe(
+          render(new NativeJsonValueProjection(value)),
+        );
+      });
+
+      // Here is where the two targets genuinely differ, which is why the
+      // assertion is per-target rather than a shared "all three differ".
+      // PostgreSQL carries a JSON value's type with it, so a document nested
+      // into an enclosing document needs no help and legitimately renders like
+      // native. SQLite keeps that as a subtype which a derived table drops, so
+      // there is no such coincidence: a document must be retagged, and a
+      // document rendering like native would mean the retag went missing.
+      it('a document renders differently from native, SQLite dropping the JSON subtype', () => {
+        const document = render(new JsonDocumentProjection(value));
+
+        expect(document).not.toBe(render(new NativeJsonValueProjection(value)));
+        expect(document).toContain('json("post"."price")');
+      });
+
+      it('an unregistered codec fails at lowering rather than rendering a bare column', () => {
+        expect(() =>
+          render(new CodecJsonValueProjection(value, { codecId: 'nowhere/codec@1' })),
+        ).toThrow(/nowhere\/codec@1/);
       });
     });
   });

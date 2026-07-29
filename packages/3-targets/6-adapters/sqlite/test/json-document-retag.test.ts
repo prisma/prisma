@@ -46,7 +46,7 @@ function renderProjected(expression: ReturnType<typeof jsonDocumentRetag>): stri
   const select = SelectAst.from(TableSource.named('documents')).withProjection([
     ProjectionItem.of('doc', document),
   ]);
-  return renderLoweredSql(select, contract).sql;
+  return renderLoweredSql(select, contract, sqliteCodecDescriptorRegistry).sql;
 }
 
 describe('SQLite JSON-document retag', () => {
