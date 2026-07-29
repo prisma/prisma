@@ -1,10 +1,10 @@
+import type { CommandCompletion, CompletionOption } from '@prisma/internals'
 import {
   completionDevDbPorts,
   completionDevHttpPorts,
   completionDevServerNames,
   completionDevShadowDbPorts,
-} from '@prisma/internals/src/cli/completion-values'
-import type { CommandCompletion, CompletionOption } from '@prisma/internals/src/cli/types'
+} from '@prisma/internals'
 import { dbCompletion } from '@prisma/migrate/src/commands/db-command-completion'
 import { dbExecuteCompletion } from '@prisma/migrate/src/commands/db-execute-completion'
 import { dbPullCompletion } from '@prisma/migrate/src/commands/db-pull-completion'
