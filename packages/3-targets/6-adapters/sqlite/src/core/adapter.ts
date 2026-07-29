@@ -301,7 +301,7 @@ function qualifyTableFromNamespaceCoordinate(
   if (qualifyTable === undefined) {
     throw structuredError(
       'RUNTIME.NAMESPACE_UNKNOWN',
-      `Table "${table.name}" references namespace "${table.namespaceId}" which is not materialised for SQL rendering on the ctx`,
+      `Table "${table.name}" references namespace "${table.namespaceId}" which is not materialised for SQL rendering on the contract`,
       { meta: { table: table.name, namespaceId: table.namespaceId, reason: 'not-materialised' } },
     );
   }
@@ -386,7 +386,7 @@ function renderExpr(expr: AnyExpression, ctx: SqliteRenderContext): string {
       return `(${node.exprs.map((part) => renderExpr(part, ctx)).join(' OR ')})`;
     case 'exists': {
       if (ctx.contract === undefined) {
-        throw new InternalError('EXISTS subquery rendering requires a Sqlite ctx');
+        throw new InternalError('EXISTS subquery rendering requires a Sqlite contract');
       }
       const notKeyword = node.notExists ? 'NOT ' : '';
       const subquery = renderSelect(node.subquery, ctx);
@@ -469,7 +469,7 @@ function renderSubqueryExpr(expr: SubqueryExpr, ctx: SqliteRenderContext): strin
     );
   }
   if (ctx.contract === undefined) {
-    throw new InternalError('Subquery expression rendering requires a Sqlite ctx');
+    throw new InternalError('Subquery expression rendering requires a Sqlite contract');
   }
   return `(${renderSelect(expr.query, ctx)})`;
 }
@@ -683,7 +683,7 @@ function renderJsonArrayAggExpr(expr: JsonArrayAggExpr, ctx: SqliteRenderContext
 
 function renderJoin(join: JoinAst, ctx: SqliteRenderContext): string {
   if (ctx.contract === undefined) {
-    throw new InternalError('JOIN rendering requires a Sqlite ctx');
+    throw new InternalError('JOIN rendering requires a Sqlite contract');
   }
   const joinType = join.joinType.toUpperCase();
   const source = renderSource(join.source, ctx);

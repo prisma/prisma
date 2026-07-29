@@ -32,7 +32,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 const WIDE_BIGINT = 9007199254740993n;
 /** 80 bytes, and letter-bearing hex, since `hex()` emits uppercase. */
 const WIDE_BLOB = Uint8Array.from({ length: 80 }, (_, index) => (index * 7) % 256);
-/** A document, and a string that merely contains JSON — D6's sharp pair. */
+/**
+ * A document, and a text value whose characters happen to look like one. The
+ * pair separates retagging by codec identity from retagging by content: only
+ * the first is a `sqlite/json@1` column, so only the first may come back as a
+ * parsed object.
+ */
 const DOCUMENT = { nested: { list: [1, 2, 3] }, flag: true };
 const STRING_CONTAINING_JSON = '{"not":"a document"}';
 
@@ -145,10 +150,12 @@ describe('integration/sqlite include canonical JSON', () => {
     ]);
   });
 
-  // The pair D6 singled out: a document and a string that happens to contain
-  // JSON must not converge. The retag applies to the document column because
-  // its codec says so, not because its content looks like JSON, so a text
-  // column holding the same characters stays a string.
+  // A document and a text value spelled the same way must not converge. The
+  // retag reaches the document column because that column's codec is
+  // `sqlite/json@1`, not because its stored characters look like JSON — so a
+  // `sqlite/text@1` column holding those same characters stays a string. Were
+  // the retag driven by content instead, both would parse and the two columns
+  // would become indistinguishable.
   it('keeps a document apart from a string that merely contains JSON', async () => {
     seed(2, { document: JSON.stringify(DOCUMENT), label: STRING_CONTAINING_JSON });
 
