@@ -347,16 +347,18 @@ changes:
         - "pg/int8@1"
         - "int8Column"
       anyMatch: true
-  - id: pg-interval-values-are-iso-8601-durations
+  - id: pg-interval-values-are-structured-durations
     summary: |
-      Reading a `pg/interval@1` column returns an ISO-8601 duration string — `P1M`, `P30D`,
-      `P1Y2M3DT4H5M6S`, `PT0S` for zero — where it returned a `JSON.stringify` of the driver's
-      component object such as `{"days":1}`. Writing accepts the same spelling. An interval
-      carries months, days and microseconds independently, so `P1M` and `P30D` remain distinct
-      and neither converts to the other. Replace any parsing of the old object-shaped string,
-      and replace interval literals written in PostgreSQL's own syntax (`'1 day'`) with the
-      ISO-8601 form (`'P1D'`); a value that is not a valid duration is now rejected rather than
-      passed through.
+      Reading a `pg/interval@1` column returns `{ months, days, micros }` — the three fields
+      PostgreSQL stores — where it returned a `JSON.stringify` of the driver's component object
+      such as `{"days":1}`. `months` and `days` are `number`; `micros` is `bigint`, because
+      PostgreSQL stores it as a 64-bit integer. Writing takes the same object. Replace any
+      parsing of the old string with field access, and replace interval literals with the object
+      (`{ months: 0, days: 1, micros: 0n }` for one day). The three fields stay independent
+      because a month has no fixed length: one month and thirty days are different values and
+      neither converts to the other. Serialized form is unchanged in kind but not in spelling —
+      a contract holds the ISO-8601 duration string (`P1M`, `P1Y2M3DT4H5M6S`, `PT0S`), so
+      re-emit; `micros` past microsecond resolution rounds as PostgreSQL rounds.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
@@ -540,13 +542,25 @@ TypeScript does not implicitly convert between `number` and `bigint`, so `pnpm t
 
 Arithmetic mixing the two throws at runtime rather than coercing, so a site that typechecks after a cast is worth reading again.
 
-## `pg-interval-values-are-iso-8601-durations`
+## `pg-interval-values-are-structured-durations`
 
-The application value of `pg/interval@1` is now defined, where before it was whatever the driver happened to hand over. It is an ISO-8601 duration string, spelled as PostgreSQL spells one under `IntervalStyle = 'iso_8601'`: zero components omitted, `T` present only when a time component is, each component carrying its own sign, and `PT0S` for a zero interval.
+An interval is not a duration. PostgreSQL stores three independent fields — months, days and microseconds — because a month has no fixed length, so `{ months: 1 }` and `{ days: 30 }` are different intervals and neither can be converted into the other. The application value is now those three fields, so reading an interval hands you numbers to compute with rather than a string to parse.
 
-Any accepted duration is normalised to that spelling, so `P13M` is carried as `P1Y1M`. Text that is not a valid duration — including PostgreSQL's own `'1 day'` — is rejected rather than passed through.
+```ts
+// before
+const gap: string = row.gap;              // "{\"days\":1}"
 
-This is the one change in this release that alters what a *query* returns rather than only what a contract holds.
+// after
+const gap = row.gap;                      // { months: 0, days: 1, micros: 0n }
+const totalDays = gap.days + gap.months * 30;   // your calendar rule, not ours
+```
+
+The representation is separate from the value, as it is for `pg/bytea@1` (a `Uint8Array` carried as base64) and `pg/int8@1` (a `bigint` carried as decimal text). A contract holds the ISO-8601 duration string, so re-emit to pick up the spelling — `P1M`, `P1Y2M3DT4H5M6S`, `PT0S` for zero, each component carrying its own sign.
+
+Two details worth knowing:
+
+- **The ISO rendering normalises where the value does not.** Thirteen months render as `P1Y1M` and read back as `{ months: 13 }`. The value keeps what you gave it.
+- **Fractional seconds round.** PostgreSQL rounds past microsecond resolution rather than truncating — `1.1234567` seconds is `1.123457` — and both paths into the value now agree with it.
 
 ## `codec-json-forms-are-canonical`
 

@@ -363,16 +363,20 @@ describe('codecs-class', () => {
       expect(codec.id).toBe(PG_INTERVAL_CODEC_ID);
     });
 
-    it('encodes string verbatim', async () => {
-      expect(await codec.encode('P1D', callCtx)).toBe('P1D');
+    it('writes the value as the ISO duration PostgreSQL accepts', async () => {
+      expect(await codec.encode({ months: 0, days: 1, micros: 0n }, callCtx)).toBe('P1D');
     });
 
-    it('normalises a text wire value to the canonical duration', async () => {
-      expect(await codec.decode('P0Y1M', callCtx)).toBe('P1M');
+    it('reads a text wire value into the three fields', async () => {
+      expect(await codec.decode('P0Y1M', callCtx)).toEqual({ months: 1, days: 0, micros: 0n });
     });
 
-    it('reads the driver component object as a duration', async () => {
-      expect(await codec.decode({ days: 1 } as unknown as string, callCtx)).toBe('P1D');
+    it('reads the driver component object into the three fields', async () => {
+      expect(await codec.decode({ days: 1 } as unknown as string, callCtx)).toEqual({
+        months: 0,
+        days: 1,
+        micros: 0n,
+      });
     });
   });
 

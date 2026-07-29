@@ -26,7 +26,16 @@
  * line-break cases below, where the small value could not have caught it.
  */
 
+import type { PgInterval } from '@prisma-next/target-postgres/codecs';
 import type { PostgresCodecConformanceCase } from './harness';
+
+/** Spells out an interval's three fields so a case reads as the value it is. */
+const interval = (fields: Partial<PgInterval>): PgInterval => ({
+  months: 0,
+  days: 0,
+  micros: 0n,
+  ...fields,
+});
 
 const ENUM_TYPE = 'codec_conformance_mood';
 
@@ -215,25 +224,48 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     value: '03:04:05+00',
     setupSql: HOSTILE_TEMPORAL_SESSION,
   },
-  // A month has no fixed length, so P1M and P30D must stay distinct rather than
-  // collapsing through a common epoch.
-  { codecId: 'pg/interval@1', label: 'one month', value: 'P1M' },
-  { codecId: 'pg/interval@1', label: 'thirty days', value: 'P30D' },
-  { codecId: 'pg/interval@1', label: 'every component', value: 'P1Y2M3DT4H5M6S' },
-  { codecId: 'pg/interval@1', label: 'fractional seconds', value: 'PT1.234567S' },
-  { codecId: 'pg/interval@1', label: 'mixed signs', value: 'P1M-1D' },
-  { codecId: 'pg/interval@1', label: 'wholly negative', value: 'P-1M-1DT-1.25S' },
-  { codecId: 'pg/interval@1', label: 'zero', value: 'PT0S' },
+  // An interval's application value is its three stored fields. A month has no
+  // fixed length, so `{ months: 1 }` and `{ days: 30 }` stay distinct rather than
+  // collapsing through a common epoch; the ISO string is the JSON side only.
+  { codecId: 'pg/interval@1', label: 'one month', value: interval({ months: 1 }) },
+  { codecId: 'pg/interval@1', label: 'thirty days', value: interval({ days: 30 }) },
+  {
+    codecId: 'pg/interval@1',
+    label: 'every component',
+    value: interval({ months: 14, days: 3, micros: 14_706_000_000n }),
+  },
+  {
+    codecId: 'pg/interval@1',
+    label: 'fractional seconds',
+    value: interval({ micros: 1_234_567n }),
+  },
+  {
+    codecId: 'pg/interval@1',
+    label: 'seven fractional digits round as the database rounds',
+    value: interval({ micros: 1_123_457n }),
+  },
+  { codecId: 'pg/interval@1', label: 'mixed signs', value: interval({ months: 1, days: -1 }) },
+  {
+    codecId: 'pg/interval@1',
+    label: 'wholly negative',
+    value: interval({ months: -1, days: -1, micros: -1_250_000n }),
+  },
+  { codecId: 'pg/interval@1', label: 'zero', value: interval({}) },
+  {
+    codecId: 'pg/interval@1',
+    label: 'months past a year, which the ISO rendering normalises but the value keeps',
+    value: interval({ months: 13 }),
+  },
   {
     codecId: 'pg/interval@1',
     label: 'every component under a hostile session',
-    value: 'P1Y2M3DT4H5M6S',
+    value: interval({ months: 14, days: 3, micros: 14_706_000_000n }),
     setupSql: HOSTILE_TEMPORAL_SESSION,
   },
   {
     codecId: 'pg/interval@1',
     label: 'mixed signs under a hostile session',
-    value: 'P1M-1D',
+    value: interval({ months: 1, days: -1 }),
     setupSql: HOSTILE_TEMPORAL_SESSION,
   },
   { codecId: 'pg/json@1', label: 'document', value: { a: 1, b: ['x'] } },

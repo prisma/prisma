@@ -48,6 +48,7 @@ import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { definePostgresCodecs, PostgresCodecDescriptor, postgresCodec } from './codec-descriptor';
 import {
+  type PgInterval,
   pgByteaDecodeJson,
   pgByteaEncodeJson,
   pgDateDecode,
@@ -59,6 +60,7 @@ import {
   pgIntervalDecode,
   pgIntervalDecodeJson,
   pgIntervalEncodeJson,
+  pgIntervalToIso,
   pgJsonbDecode,
   pgJsonbEncode,
   pgJsonDecode,
@@ -1419,31 +1421,43 @@ pgInetColumn satisfies ColumnHelperFor<PgInetDescriptor>;
 pgInetColumn satisfies ColumnHelperForStrict<PgInetDescriptor>;
 
 /**
- * An application value is an ISO-8601 duration string spelled the way
- * PostgreSQL spells one under `IntervalStyle = 'iso_8601'` — `P1M`, `P30D`,
- * `P1Y2M3DT4H5M6S`, `PT0S` for zero, each component carrying its own sign.
+ * An application value is a {@link PgInterval} — the three fields PostgreSQL
+ * actually stores, `{ months, days, micros }` — and its canonical JSON is the
+ * ISO-8601 duration string PostgreSQL spells under
+ * `IntervalStyle = 'iso_8601'`: `P1M`, `P30D`, `P1Y2M3DT4H5M6S`, `PT0S` for
+ * zero, each component carrying its own sign.
  *
- * The three fields an interval holds — months, days and microseconds — stay
- * independent, because a month has no fixed length: `P1M` and `P30D` are
- * different values and neither converts to the other. Any accepted duration is
- * normalised to this spelling, so `P13M` is carried as `P1Y1M`.
+ * Value and representation are independent here, as they are for `pg/bytea@1`
+ * (`Uint8Array` carried as base64) and `pg/int8@1` (`bigint` carried as decimal
+ * text). Reading an interval hands back numbers to compute with rather than a
+ * string to parse; writing one takes the same numbers.
+ *
+ * The fields stay independent because a month has no fixed length: `{months: 1}`
+ * and `{days: 30}` are different values and neither converts to the other. The
+ * ISO rendering normalises only in its own spelling — twelve months render as a
+ * year — so `{months: 13}` renders `P1Y1M` and reads back as `{months: 13}`.
  */
 export class PgIntervalCodec extends CodecImpl<
   typeof PG_INTERVAL_CODEC_ID,
   readonly ['equality', 'order'],
   string | Record<string, unknown>,
-  string
+  PgInterval
 > {
-  async encode(value: string, _ctx: CodecCallContext): Promise<string> {
-    return value;
+  async encode(value: PgInterval, _ctx: CodecCallContext): Promise<string> {
+    // PostgreSQL accepts an ISO-8601 duration as interval input, so the
+    // canonical rendering doubles as the wire form.
+    return pgIntervalToIso(value);
   }
-  async decode(wire: string | Record<string, unknown>, _ctx: CodecCallContext): Promise<string> {
+  async decode(
+    wire: string | Record<string, unknown>,
+    _ctx: CodecCallContext,
+  ): Promise<PgInterval> {
     return pgIntervalDecode(wire);
   }
-  encodeJson(value: string): JsonValue {
+  encodeJson(value: PgInterval): JsonValue {
     return pgIntervalEncodeJson(value);
   }
-  decodeJson(json: JsonValue): string {
+  decodeJson(json: JsonValue): PgInterval {
     return pgIntervalDecodeJson(json);
   }
 }
