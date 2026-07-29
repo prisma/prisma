@@ -85,7 +85,7 @@ describe.sequential('arktype-json codec JSON-projection conformance', () => {
       timeout: timeouts.spinUpPpgDev,
     }, async () => {
       const outcome = await runPostgresCodecProjection(connection!, conformanceCase);
-      expect(outcome.failure?.detail ?? 'conforms').toBe('conforms');
+      expect(outcome.failure).toBeUndefined();
     });
   }
 });

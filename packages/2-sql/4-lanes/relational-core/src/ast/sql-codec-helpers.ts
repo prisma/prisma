@@ -53,12 +53,14 @@ export const sqlFloatDecode = (wire: number): number => wire;
 export const sqlTextEncode = (value: string): string => value;
 export const sqlTextDecode = (wire: string): string => wire;
 
+const ZONELESS_ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?$/;
+
 export const sqlTimestampEncode = (value: Date): Date => value;
 export const sqlTimestampDecode = (wire: Date): Date => wire;
 /**
- * A `timestamp` column carries no zone, so its JSON form is the ISO rendering
- * without a trailing `Z` — the shape the database itself produces for the
- * column, and the shape {@link sqlTimestampDecodeJson} reads back as UTC.
+ * A `timestamp` carries no zone, so its JSON form is the ISO rendering without a
+ * trailing `Z` — `2026-01-02T03:04:05.678` — and {@link sqlTimestampDecodeJson}
+ * reads that form back as UTC.
  */
 export const sqlTimestampEncodeJson = (value: Date): JsonValue => value.toISOString().slice(0, -1);
 export const sqlTimestampDecodeJson = (json: JsonValue): Date => {
@@ -69,9 +71,19 @@ export const sqlTimestampDecodeJson = (json: JsonValue): Date => {
       { meta: { codec: SQL_TIMESTAMP_CODEC_ID } },
     );
   }
-  // The zone-less form is resolved as UTC; `new Date` would otherwise read it in
-  // the process's local zone and shift the instant.
-  const date = new Date(json.endsWith('Z') ? json : `${json}Z`);
+  // Only the zone-less canonical form is accepted. An offset-bearing string is
+  // rejected rather than reinterpreted: this codec cannot reproduce an offset,
+  // so accepting one would decode a value it could never encode back.
+  if (!ZONELESS_ISO_TIMESTAMP.test(json)) {
+    throw structuredError(
+      'RUNTIME.DECODE_FAILED',
+      `Expected a zone-less ISO date-time (YYYY-MM-DDTHH:MM:SS[.sss]) for sql/timestamp@1, got ${json}`,
+      { meta: { codec: SQL_TIMESTAMP_CODEC_ID } },
+    );
+  }
+  // Resolved as UTC; `new Date` would otherwise read the zone-less form in the
+  // process's local zone and shift the instant.
+  const date = new Date(`${json}Z`);
   if (Number.isNaN(date.getTime())) {
     throw structuredError(
       'RUNTIME.DECODE_FAILED',

@@ -61,7 +61,7 @@ describe.sequential('PostgreSQL codec JSON-projection conformance', () => {
       const outcome = await runPostgresCodecProjection(connection!, conformanceCase);
 
       if (conformanceCase.notYetCanonical === undefined) {
-        expect(outcome.failure?.detail ?? 'conforms').toBe('conforms');
+        expect(outcome.failure).toBeUndefined();
       } else {
         expect(outcome.failure?.kind).toBe(conformanceCase.notYetCanonical.kind);
       }

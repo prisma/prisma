@@ -65,7 +65,7 @@ describe.sequential('SQLite codec JSON-projection conformance', () => {
       const outcome = await runSqliteCodecProjection(connection!, conformanceCase);
 
       if (conformanceCase.notYetCanonical === undefined) {
-        expect(outcome.failure?.detail ?? 'conforms').toBe('conforms');
+        expect(outcome.failure).toBeUndefined();
       } else {
         expect(outcome.failure?.kind).toBe(conformanceCase.notYetCanonical.kind);
       }

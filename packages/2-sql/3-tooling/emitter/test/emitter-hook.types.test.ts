@@ -207,16 +207,32 @@ describe('sql-target-family-hook', () => {
 });
 
 describe('default-literal typing', () => {
-  it('resolves a literal default through the codec JSON channel, not its application type', () => {
-    const aliases = sqlEmission.getFamilyTypeAliases?.();
+  /**
+   * `getFamilyTypeAliases` returns several aliases joined into one string, so a
+   * bare substring match would pass on a hit anywhere in the blob. These read
+   * the `DefaultLiteralValue` declaration out of it first, and normalise
+   * whitespace so a semantics-preserving reformat of the emitted source does not
+   * fail the test.
+   */
+  function defaultLiteralValueDeclaration(): string {
+    const aliases = sqlEmission.getFamilyTypeAliases?.() ?? '';
+    const start = aliases.indexOf('type DefaultLiteralValue<');
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = aliases.indexOf(';', start);
+    expect(end).toBeGreaterThan(start);
+    return aliases.slice(start, end).replace(/\s+/g, ' ');
+  }
 
-    expect(aliases).toContain("CodecTypes[CodecId]['json']");
-    expect(aliases).not.toContain("? CodecTypes[CodecId]['output']");
+  it('resolves a literal default through the codec JSON channel, not its application type', () => {
+    const declaration = defaultLiteralValueDeclaration();
+
+    expect(declaration).toContain("CodecTypes[CodecId]['json']");
+    expect(declaration).not.toContain("CodecTypes[CodecId]['output']");
   });
 
   it('keeps the emitted literal when the codec JSON channel admits it', () => {
-    const aliases = sqlEmission.getFamilyTypeAliases?.();
-
-    expect(aliases).toContain("Encoded extends CodecTypes[CodecId]['json']");
+    expect(defaultLiteralValueDeclaration()).toContain(
+      "Encoded extends CodecTypes[CodecId]['json'] ? Encoded",
+    );
   });
 });
