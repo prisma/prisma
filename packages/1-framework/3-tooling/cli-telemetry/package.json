@@ -59,7 +59,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/prisma/prisma-next.git",
+    "url": "https://github.com/prisma/prisma.git",
     "directory": "packages/1-framework/3-tooling/cli-telemetry"
   }
 }
