@@ -33,7 +33,9 @@ import {
   sqlCharEncode,
   sqlCharRenderOutputType,
   sqlFloatDecode,
+  sqlFloatDecodeJson,
   sqlFloatEncode,
+  sqlFloatEncodeJson,
   sqlIntDecode,
   sqlIntEncode,
   sqlTextDecode,
@@ -148,10 +150,10 @@ export class SqlFloatCodec extends CodecImpl<
     return sqlFloatDecode(wire);
   }
   encodeJson(value: number): JsonValue {
-    return value;
+    return sqlFloatEncodeJson(value);
   }
   decodeJson(json: JsonValue): number {
-    return json as number;
+    return sqlFloatDecodeJson(json);
   }
 }
 

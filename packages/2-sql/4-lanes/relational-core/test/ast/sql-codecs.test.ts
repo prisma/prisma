@@ -78,6 +78,25 @@ describe('sql-codecs', () => {
       expect(codec.encodeJson(3.14)).toBe(3.14);
       expect(codec.decodeJson(3.14)).toBe(3.14);
     });
+
+    // A database can hold a non-finite float and spells it as a JSON string —
+    // PostgreSQL emits `"NaN"` and `"Infinity"` — which JSON has no number for.
+    // The codec's application type is `number`, so it rejects rather than hand
+    // back a string wearing that type.
+    it('rejects a non-finite value it cannot spell as JSON', () => {
+      expect(() => codec.encodeJson(Number.NaN)).toThrow(/finite/);
+      expect(() => codec.encodeJson(Number.POSITIVE_INFINITY)).toThrow(/finite/);
+    });
+
+    it('rejects the strings a database uses for non-finite floats', () => {
+      expect(() => codec.decodeJson('NaN')).toThrow(/sql\/float@1/);
+      expect(() => codec.decodeJson('Infinity')).toThrow(/sql\/float@1/);
+    });
+
+    it('rejects a JSON value that is not a number', () => {
+      expect(() => codec.decodeJson(true)).toThrow(/sql\/float@1/);
+      expect(() => codec.decodeJson(null)).toThrow(/sql\/float@1/);
+    });
   });
 
   describe('sql/char@1', () => {

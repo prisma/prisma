@@ -50,6 +50,34 @@ export const sqlIntDecode = (wire: number): number => wire;
 export const sqlFloatEncode = (value: number): number => value;
 export const sqlFloatDecode = (wire: number): number => wire;
 
+/**
+ * JSON has no spelling for a non-finite number, and a database that holds one
+ * emits it as a string — PostgreSQL writes `"NaN"` and `"Infinity"`. This
+ * codec's application type is `number`, so both directions reject rather than
+ * carry a value that type cannot hold.
+ */
+export const sqlFloatEncodeJson = (value: number): JsonValue => {
+  if (!Number.isFinite(value)) {
+    throw structuredError(
+      'RUNTIME.ENCODE_FAILED',
+      `${SQL_FLOAT_CODEC_ID} application value must be a finite number, got ${value}`,
+      { meta: { codec: SQL_FLOAT_CODEC_ID } },
+    );
+  }
+  return value;
+};
+
+export const sqlFloatDecodeJson = (json: JsonValue): number => {
+  if (typeof json !== 'number' || !Number.isFinite(json)) {
+    throw structuredError(
+      'RUNTIME.DECODE_FAILED',
+      `Expected a finite number for ${SQL_FLOAT_CODEC_ID}, got ${JSON.stringify(json)}`,
+      { meta: { codec: SQL_FLOAT_CODEC_ID } },
+    );
+  }
+  return json;
+};
+
 export const sqlTextEncode = (value: string): string => value;
 export const sqlTextDecode = (wire: string): string => wire;
 
