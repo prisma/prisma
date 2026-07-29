@@ -31,6 +31,12 @@ export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResu
  * overlapping calls on a `pgClient` binding, a pinned connection, or a
  * transaction handle run strictly sequentially in FIFO order. Pool bindings
  * run each driver-level call on its own pool client and are unaffected.
+ *
+ * Lock lifetime: buffered execution (cursors disabled) locks the client only
+ * while fetching; row iteration is lock-free, so a nested query on the same
+ * client inside `for await` works. Cursor-enabled streams hold the lock for
+ * the stream's entire lifetime — a nested query on the same client inside
+ * stream iteration deadlocks, exactly as under pg@8's queue.
  */
 export type PostgresBinding =
   | { readonly kind: 'url'; readonly url: string }
@@ -125,10 +131,11 @@ class AsyncMutex {
 
 // One query in flight per physical client: pg@9 removes pg@8's internal query
 // queue and throws when a query is sent while another is running, so the
-// driver owns FIFO serialization. Held across a whole unit of work (an entire
-// runQuery stream span, a buffered query, a transaction boundary statement),
-// which also keeps concurrent streams on a shared client from interleaving
-// their BEGIN…COMMIT wraps.
+// driver owns FIFO serialization. Held for exactly as long as the client is
+// busy: a buffered fetch or transaction boundary statement locks only its own
+// await, while a cursor stream span locks BEGIN…COMMIT wholesale (the cursor
+// occupies the connection for its entire lifetime), which also keeps
+// concurrent streams on a shared client from interleaving their wraps.
 const clientQueryLocks = new WeakMap<object, AsyncMutex>();
 
 function acquireClientQueryLock(client: object): Promise<() => void> {
@@ -224,33 +231,35 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
   private async *runQuery<Row>(request: SqlExecuteRequest, name?: string): AsyncIterable<Row> {
     const client = await this.acquireClient();
     try {
-      const releaseLock = await acquireClientQueryLock(client);
-      try {
-        if (!this.options.cursorDisabled) {
-          try {
-            for await (const row of this.streamWithPortalProtection(
-              client,
-              request,
-              this.options.cursorBatchSize,
-              name,
-            )) {
-              yield row as Row;
-            }
-            return;
-          } catch (cursorError) {
-            // Non-pg cursor-specific errors fall through to the buffered path;
-            // real pg errors propagate.
-            if (!(cursorError instanceof Error) || isPostgresError(cursorError)) {
-              throw cursorError;
-            }
+      if (!this.options.cursorDisabled) {
+        // A cursor occupies the connection for the stream's whole lifetime,
+        // so the lock spans it (BEGIN…COMMIT included); released in `finally`
+        // on completion, stream error, and consumer abandonment — and before
+        // the buffered fallback below, which takes its own per-statement lock.
+        const releaseLock = await acquireClientQueryLock(client);
+        try {
+          for await (const row of this.streamWithPortalProtection(
+            client,
+            request,
+            this.options.cursorBatchSize,
+            name,
+          )) {
+            yield row as Row;
           }
+          return;
+        } catch (cursorError) {
+          // Non-pg cursor-specific errors fall through to the buffered path;
+          // real pg errors propagate.
+          if (!(cursorError instanceof Error) || isPostgresError(cursorError)) {
+            throw cursorError;
+          }
+        } finally {
+          releaseLock();
         }
+      }
 
-        for await (const row of this.executeBuffered(client, request.sql, request.params, name)) {
-          yield row as Row;
-        }
-      } finally {
-        releaseLock();
+      for await (const row of this.executeBuffered(client, request.sql, request.params, name)) {
+        yield row as Row;
       }
     } finally {
       await this.releaseClient(client);
@@ -381,6 +390,9 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     }
   }
 
+  // The lock covers only the fetch: once `client.query` resolves the client
+  // is protocol-idle, and holding the lock across the yields would hand its
+  // lifetime to the consumer (deadlocking a nested query inside `for await`).
   private async *executeBuffered(
     client: PoolClient | Client,
     sql: string,
@@ -388,7 +400,13 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     name?: string,
   ): AsyncIterable<Record<string, unknown>> {
     const config: QueryConfig = { name, text: sql, values: (params ?? []) as unknown[] };
-    const result = await client.query(config);
+    const releaseLock = await acquireClientQueryLock(client);
+    let result: PgQueryResult;
+    try {
+      result = await client.query(config);
+    } finally {
+      releaseLock();
+    }
     for (const row of result.rows as Record<string, unknown>[]) {
       yield row;
     }

@@ -87,11 +87,15 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
   it('serializes mixed execute/executePrepared/explain/query overlap on a direct driver', async () => {
     const state = createConcurrencyState();
     const driver = makeDirectDriver(state);
+    const explain = driver.explain;
+    if (explain === undefined) {
+      throw new Error('driver.explain is not implemented');
+    }
 
     await Promise.all([
       consume(driver.execute({ sql: 'select a' })),
       consume(driver.executePrepared({ sql: 'select b', params: [], handle: makeHandleSlot() })),
-      driver.explain?.({ sql: 'select c' }),
+      explain.call(driver, { sql: 'select c' }),
       driver.query('select d'),
     ]);
 
@@ -130,7 +134,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     expect(state.completed).toEqual(['BEGIN', 'select 1', 'select 2', 'select 3', 'COMMIT']);
   });
 
-  it('serializes a driver-level query against an outstanding pinned connection on the same client', async () => {
+  it('serializes driver-level and pinned-connection statements sharing one physical client', async () => {
     const state = createConcurrencyState();
     const driver = makeDirectDriver(state);
     const connection = await driver.acquireConnection();
@@ -139,6 +143,73 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     await connection.release();
 
     expect(state.maxInFlight).toBe(1);
+  });
+
+  it('completes a nested query awaited inside buffered stream iteration on a pinned connection', async () => {
+    const state = createConcurrencyState();
+    const driver = makeDirectDriver(state);
+    const connection = await driver.acquireConnection();
+
+    const nested: unknown[] = [];
+    for await (const row of connection.execute<{ echo: string }>({ sql: 'select outer' })) {
+      expect(row).toEqual({ echo: 'select outer' });
+      const inner = await connection.query<{ echo: string }>('select inner');
+      nested.push(inner.rows[0]);
+    }
+    await connection.release();
+
+    expect(nested).toEqual([{ echo: 'select inner' }]);
+    expect(state.completed).toEqual(['select outer', 'select inner']);
+  });
+
+  it('completes a nested query awaited inside buffered stream iteration on a transaction', async () => {
+    const state = createConcurrencyState();
+    const driver = makeDirectDriver(state);
+    const connection = await driver.acquireConnection();
+    const transaction = await connection.beginTransaction();
+
+    const nested: unknown[] = [];
+    for await (const row of transaction.execute<{ echo: string }>({ sql: 'select outer' })) {
+      expect(row).toEqual({ echo: 'select outer' });
+      const inner = await transaction.query<{ echo: string }>('select inner');
+      nested.push(inner.rows[0]);
+    }
+    await transaction.commit();
+    await connection.release();
+
+    expect(nested).toEqual([{ echo: 'select inner' }]);
+    expect(state.completed).toEqual(['BEGIN', 'select outer', 'select inner', 'COMMIT']);
+  });
+
+  it('runs a follow-up query after a partially iterated buffered stream is abandoned', async () => {
+    const state = createConcurrencyState();
+    const driver = makeDirectDriver(state);
+
+    const iterator = driver
+      .execute<{ echo: string }>({ sql: 'select abandoned' })
+      [Symbol.asyncIterator]();
+    const first = await iterator.next();
+    expect(first.done).toBe(false);
+
+    const after = await driver.query<{ echo: string }>('select after');
+    expect(after.rows).toEqual([{ echo: 'select after' }]);
+  });
+
+  it('commits a transaction while a buffered stream on it is still open', async () => {
+    const state = createConcurrencyState();
+    const driver = makeDirectDriver(state);
+    const connection = await driver.acquireConnection();
+    const transaction = await connection.beginTransaction();
+
+    const iterator = transaction
+      .execute<{ echo: string }>({ sql: 'select open-stream' })
+      [Symbol.asyncIterator]();
+    const first = await iterator.next();
+    expect(first.done).toBe(false);
+
+    await transaction.commit();
+    await connection.release();
+    expect(state.completed).toEqual(['BEGIN', 'select open-stream', 'COMMIT']);
   });
 
   it('does not serialize pool-level queries across distinct pool clients', async () => {

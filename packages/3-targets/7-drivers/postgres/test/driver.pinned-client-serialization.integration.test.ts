@@ -119,8 +119,11 @@ afterEach(async () => {
 }, timeouts.spinUpDbServer);
 
 describe('pinned-client serialization on a real wire', () => {
+  // pg wraps its overlap warning in util.deprecate, which fires once per
+  // process — so exactly one test owns the warning capture, and its warning
+  // assertion runs first.
   it(
-    '3-way query overlap on a direct driver stays sequential and emits no warning',
+    '3-way query overlap on a pinned client emits no pg DeprecationWarning',
     async () => {
       const h = await createHarness();
       const capture = captureProcessWarnings();
@@ -132,9 +135,8 @@ describe('pinned-client serialization on a real wire', () => {
         ]);
         await settleWarnings();
 
-        expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
-        expect(h.maxInFlight()).toBe(1);
         expect(capture.warnings).toEqual([]);
+        expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
       } finally {
         capture.stop();
       }
@@ -143,24 +145,36 @@ describe('pinned-client serialization on a real wire', () => {
   );
 
   it(
-    '3-way query overlap on a pinned connection stays sequential and emits no warning',
+    '3-way query overlap on a direct driver stays sequential',
+    async () => {
+      const h = await createHarness();
+      const results = await Promise.all([
+        h.driver.query<{ n: number }>('select 1 as n'),
+        h.driver.query<{ n: number }>('select 2 as n'),
+        h.driver.query<{ n: number }>('select 3 as n'),
+      ]);
+
+      expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
+      expect(h.maxInFlight()).toBe(1);
+    },
+    timeouts.spinUpDbServer,
+  );
+
+  it(
+    '3-way query overlap on a pinned connection stays sequential',
     async () => {
       const h = await createHarness();
       const connection = await h.driver.acquireConnection();
-      const capture = captureProcessWarnings();
       try {
         const results = await Promise.all([
           connection.query<{ n: number }>('select 1 as n'),
           connection.query<{ n: number }>('select 2 as n'),
           connection.query<{ n: number }>('select 3 as n'),
         ]);
-        await settleWarnings();
 
         expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
         expect(h.maxInFlight()).toBe(1);
-        expect(capture.warnings).toEqual([]);
       } finally {
-        capture.stop();
         await connection.release();
       }
     },
@@ -168,26 +182,22 @@ describe('pinned-client serialization on a real wire', () => {
   );
 
   it(
-    '3-way query overlap on a transaction handle stays sequential and emits no warning',
+    '3-way query overlap on a transaction handle stays sequential',
     async () => {
       const h = await createHarness();
       const connection = await h.driver.acquireConnection();
-      const transaction = await connection.beginTransaction();
-      const capture = captureProcessWarnings();
       try {
+        const transaction = await connection.beginTransaction();
         const results = await Promise.all([
           transaction.query<{ n: number }>('select 1 as n'),
           transaction.query<{ n: number }>('select 2 as n'),
           transaction.query<{ n: number }>('select 3 as n'),
         ]);
         await transaction.commit();
-        await settleWarnings();
 
         expect(results.map((r) => r.rows[0])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
         expect(h.maxInFlight()).toBe(1);
-        expect(capture.warnings).toEqual([]);
       } finally {
-        capture.stop();
         await connection.release();
       }
     },
