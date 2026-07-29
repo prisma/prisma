@@ -1,3 +1,4 @@
+export type { PgInterval } from '../core/codec-helpers';
 export type {
   PgBitDescriptor,
   PgBoolDescriptor,

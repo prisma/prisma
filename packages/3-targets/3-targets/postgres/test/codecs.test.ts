@@ -442,29 +442,51 @@ describe('adapter-postgres codecs', () => {
   });
 
   describe('interval codec', () => {
-    const intervalCodec = codecForScalar('interval') as {
-      encode: (value: string, ctx: SqlCodecCallContext) => Promise<string>;
-      decode: (wire: string | Record<string, unknown>, ctx: SqlCodecCallContext) => Promise<string>;
-    };
-
-    it('encodes string as-is', async () => {
-      expect(await intervalCodec.encode('P1D', {})).toBe('P1D');
+    const codec = codecForScalar('interval');
+    const fields = (partial: { months?: number; days?: number; micros?: bigint }) => ({
+      months: 0,
+      days: 0,
+      micros: 0n,
+      ...partial,
     });
 
-    it('normalises a text wire value to the canonical duration', async () => {
-      expect(await intervalCodec.decode('PT2H', {})).toBe('PT2H');
-      expect(await intervalCodec.decode('P13M', {})).toBe('P1Y1M');
+    it('writes the value as the ISO duration PostgreSQL accepts', async () => {
+      expect(await codec.encode(fields({ days: 1 }), {})).toBe('P1D');
+    });
+
+    it('reads a text wire value into the three fields', async () => {
+      expect(await codec.decode('PT2H', {})).toEqual(fields({ micros: 7_200_000_000n }));
+      expect(await codec.decode('P13M', {})).toEqual(fields({ months: 13 }));
     });
 
     it('rejects a text wire value that is not an ISO-8601 duration', async () => {
-      await expect(intervalCodec.decode('1 day', {})).rejects.toThrow(
+      await expect(codec.decode('1 day', {})).rejects.toThrow(
         'pg/interval@1 value must be an ISO-8601 duration, got 1 day',
       );
     });
 
-    it('reads the driver component object as a duration', async () => {
-      const decoded = await intervalCodec.decode({ hours: 2, minutes: 30 }, {});
-      expect(decoded).toBe('PT2H30M');
+    it('reads the driver component object into the three fields', async () => {
+      expect(await codec.decode({ hours: 2, minutes: 30 }, {})).toEqual(
+        fields({ micros: 9_000_000_000n }),
+      );
+    });
+
+    it('carries the JSON side as the ISO duration, normalising only its spelling', () => {
+      expect(codec.encodeJson(fields({ months: 13 }))).toBe('P1Y1M');
+      expect(codec.decodeJson('P1Y1M')).toEqual(fields({ months: 13 }));
+      expect(codec.encodeJson(fields({ months: 1, days: -1 }))).toBe('P1M-1D');
+    });
+
+    /**
+     * PostgreSQL rounds sub-microsecond fractional seconds rather than
+     * truncating: `INTERVAL '1.1234567 seconds'` is `1.123457`, and
+     * `'1.9999999'` carries into `2`. Both paths into the value agree.
+     */
+    it('rounds fractional seconds past microsecond resolution', () => {
+      expect(codec.decodeJson('PT1.1234567S')).toEqual(fields({ micros: 1_123_457n }));
+      expect(codec.decodeJson('PT1.9999999S')).toEqual(fields({ micros: 2_000_000n }));
+      expect(codec.decodeJson('PT-1.1234567S')).toEqual(fields({ micros: -1_123_457n }));
+      expect(codec.encodeJson(fields({ micros: 1_123_457n }))).toBe('PT1.123457S');
     });
   });
 
