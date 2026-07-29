@@ -149,15 +149,34 @@ describe('sql-codecs', () => {
       expect(await codec.decode(instant, callCtx)).toBe(instant);
     });
 
-    it('serializes Date to ISO 8601 string for JSON', () => {
+    it('serializes Date to a zone-less ISO 8601 string for JSON', () => {
       const instant = new Date('2024-01-15T10:30:00Z');
-      expect(codec.encodeJson(instant)).toBe('2024-01-15T10:30:00.000Z');
-      expect(codec.decodeJson('2024-01-15T10:30:00.000Z')).toEqual(instant);
+      expect(codec.encodeJson(instant)).toBe('2024-01-15T10:30:00.000');
+      expect(codec.decodeJson('2024-01-15T10:30:00.000')).toEqual(instant);
+    });
+
+    // The pair is UTC on both sides, so the JSON is the same text on every
+    // machine. Reading the zone-less form through `new Date` directly would
+    // resolve it in the process's zone and shift the instant.
+    it('reads the zone-less form as UTC whatever the process zone', () => {
+      expect(codec.decodeJson('2024-07-15T10:30:00').getTime()).toBe(
+        Date.UTC(2024, 6, 15, 10, 30, 0),
+      );
+    });
+
+    it('rejects an offset-bearing string rather than reinterpreting it', () => {
+      expect(() => codec.decodeJson('2024-01-15T10:30:00.000Z')).toThrow(
+        /Expected a zone-less ISO date-time/,
+      );
+      expect(() => codec.decodeJson('2024-01-15T10:30:00+02:00')).toThrow(
+        /Expected a zone-less ISO date-time/,
+      );
     });
 
     it('throws on invalid JSON input', () => {
       expect(() => codec.decodeJson(42)).toThrow(/Expected ISO date string/);
-      expect(() => codec.decodeJson('not-a-date')).toThrow(/Invalid ISO date string/);
+      expect(() => codec.decodeJson('not-a-date')).toThrow(/Expected a zone-less ISO date-time/);
+      expect(() => codec.decodeJson('2024-13-01T00:00:00')).toThrow(/Invalid ISO date string/);
     });
 
     it('renderOutputType returns Timestamp<precision>', () => {
