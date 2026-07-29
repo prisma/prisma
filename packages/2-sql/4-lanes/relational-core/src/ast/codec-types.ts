@@ -159,8 +159,8 @@ export type DescriptorCodecInput<D> =
  * codec.
  *
  * This is a distinct channel from {@link DescriptorCodecInput} because the two
- * diverge: `pg/int8@1` carries `bigint` application values whose canonical JSON
- * is a decimal string, and a `contract.json` holds the string. Reading the
+ * diverge wherever a codec's canonical JSON is not the value it hands the
+ * application — a wide integer carried as a decimal string, say. Reading the
  * application type where the JSON type is meant produces a contract type that
  * describes a value the file cannot contain.
  *

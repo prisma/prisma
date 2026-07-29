@@ -69,7 +69,11 @@ describe('service_role reads auth.refresh_tokens via the .supabase secondary roo
           'INSERT INTO auth.refresh_tokens (token, revoked) VALUES ($1, false) RETURNING id',
           [token],
         );
-        tokenId = BigInt(result.rows[0]?.id ?? 0);
+        const inserted = result.rows[0]?.id;
+        if (inserted === undefined) {
+          throw new Error('INSERT INTO auth.refresh_tokens returned no row for RETURNING id');
+        }
+        tokenId = BigInt(inserted);
       });
 
       const appContract = buildAppContract();

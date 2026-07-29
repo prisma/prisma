@@ -156,6 +156,25 @@ const PG_JSONB_META = { db: { sql: { postgres: { nativeType: 'jsonb' } } } } as 
  * of the representation — escaping, sign, and range — where a native conversion
  * would be most likely to diverge.
  */
+/**
+ * Whether a string is numeric text in the form PostgreSQL *prints*, which is
+ * narrower than the form it accepts.
+ *
+ * `numeric` reads `+123`, `.5`, `1.`, `1e5`, `0x1f`, `1_000` and whitespace-padded
+ * input, but prints every one of them in a single normalised form — `123`,
+ * `0.5`, `1`, `100000`, `31`, `1000`, `12`. The projection reads the column back
+ * through that printing, so accepting an input spelling here would produce an
+ * application value the projection can never return: `encodeJson('1e5')` would
+ * claim `1e5` where the database yields `100000`.
+ *
+ * `NaN`, `Infinity` and `-Infinity` are genuine `numeric` values, not error
+ * states, and PostgreSQL emits them into JSON as strings — so they belong to the
+ * canonical form and round-trip like any other value.
+ */
+const CANONICAL_NUMERIC_TEXT = /^(?:-?\d+(?:\.\d+)?|NaN|-?Infinity)$/;
+
+const isCanonicalNumericText = (value: string): boolean => CANONICAL_NUMERIC_TEXT.test(value);
+
 const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
 
 /**
@@ -860,10 +879,10 @@ export class PgNumericCodec extends CodecImpl<
     return pgNumericDecode(wire);
   }
   encodeJson(value: string): JsonValue {
-    if (!Number.isFinite(Number(value))) {
+    if (!isCanonicalNumericText(value)) {
       throw postgresError(
         'RUNTIME.ENCODE_FAILED',
-        'pg/numeric@1 application value must be a decimal numeral',
+        'pg/numeric@1 application value must be canonical numeric text: an optionally negated decimal numeral, or NaN, Infinity or -Infinity',
         { meta: { codecId: PG_NUMERIC_CODEC_ID, received: value } },
       );
     }

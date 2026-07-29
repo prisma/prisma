@@ -545,6 +545,47 @@ describe('adapter-postgres codecs', () => {
           'pg/numeric@1 database JSON value must be a decimal string',
         );
       });
+
+      /**
+       * The accepted grammar is what PostgreSQL *prints* for a numeric, not what
+       * it accepts as input. It reads `+123`, `.5`, `1.`, `1e5`, `0x1f`, `1_000`
+       * and whitespace-padded text, and prints all of them normalised — so
+       * accepting an input spelling would name an application value the
+       * projection can never return.
+       */
+      it('accepts the forms a numeric prints, including the non-finite ones', () => {
+        for (const value of [
+          '0',
+          '-0',
+          '123',
+          '-123',
+          '1.5',
+          '-1.5',
+          'NaN',
+          'Infinity',
+          '-Infinity',
+          `${'9'.repeat(60)}.${'1'.repeat(40)}`,
+        ]) {
+          expect(codec.encodeJson(value)).toBe(value);
+        }
+      });
+
+      it('rejects spellings a numeric reads but never prints', () => {
+        for (const value of [
+          '+123',
+          '.5',
+          '1.',
+          '1e5',
+          '1E5',
+          '1e-5',
+          '0x1f',
+          '1_000',
+          '  12  ',
+          '',
+        ]) {
+          expect(() => codec.encodeJson(value)).toThrow(/canonical numeric text/);
+        }
+      });
     });
 
     describe('pg/int8@1', () => {

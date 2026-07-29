@@ -31,11 +31,6 @@ import type { PostgresCodecConformanceCase } from './harness';
 const ENUM_TYPE = 'codec_conformance_mood';
 
 /**
- * A session whose temporal settings all differ from the defaults. A temporal
- * case that passes under it renders from the stored value alone rather than
- * inheriting whatever the connected session happens to be set to.
- */
-/**
  * `extra_float_digits` decides how many digits PostgreSQL prints for a float.
  * At its default of 1 (PostgreSQL 12 and later) it prints the shortest decimal
  * that round-trips; at 0 or below it reverts to a fixed count and truncates.
@@ -46,6 +41,11 @@ const floatDigitsSession = (digits: 1 | 3): readonly string[] => [
   `SET extra_float_digits = ${digits}`,
 ];
 
+/**
+ * A session whose temporal settings all differ from the defaults. A temporal
+ * case that passes under it renders from the stored value alone rather than
+ * inheriting whatever the connected session happens to be set to.
+ */
 const HOSTILE_TEMPORAL_SESSION: readonly string[] = [
   "SET TimeZone = 'Asia/Kolkata'",
   "SET DateStyle = 'German, DMY'",
@@ -85,6 +85,7 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
   { codecId: 'pg/int8@1', label: 'largest safe integer', value: 9007199254740991n },
   { codecId: 'pg/int8@1', label: 'integer beyond double precision', value: 9007199254740993n },
   { codecId: 'pg/int8@1', label: 'int8 lower bound', value: -9223372036854775808n },
+  { codecId: 'pg/int8@1', label: 'int8 upper bound', value: 9223372036854775807n },
   { codecId: 'pg/float4@1', label: 'finite float', value: 1.5 },
   { codecId: 'pg/float8@1', label: 'finite float', value: 1.5 },
   // These values are chosen to discriminate between `extra_float_digits`
@@ -136,6 +137,19 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     setupSql: floatDigitsSession(3),
   },
   { codecId: 'pg/numeric@1', label: 'representable decimal', value: '1.5' },
+  // NaN and the infinities are numeric values rather than error states, and
+  // PostgreSQL emits them into JSON as strings, so they round-trip like any
+  // other. Nothing else covered them.
+  { codecId: 'pg/numeric@1', label: 'not a number', value: 'NaN' },
+  { codecId: 'pg/numeric@1', label: 'positive infinity', value: 'Infinity' },
+  { codecId: 'pg/numeric@1', label: 'negative infinity', value: '-Infinity' },
+  // Past the 38 digits an IEEE-754 double could stand in for, and past the
+  // precision any float coercion would survive.
+  {
+    codecId: 'pg/numeric@1',
+    label: 'a hundred significant digits',
+    value: `${'9'.repeat(60)}.${'1'.repeat(40)}`,
+  },
   { codecId: 'pg/numeric@1', label: 'integer beyond double precision', value: '9007199254740993' },
   {
     codecId: 'pg/numeric@1',

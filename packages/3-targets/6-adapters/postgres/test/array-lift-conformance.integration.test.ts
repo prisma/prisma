@@ -16,6 +16,7 @@
 
 import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
 import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { ifDefined } from '@prisma-next/utils/defined';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type {
   ConformanceConnection,
@@ -34,7 +35,7 @@ function arrayCase(
     label,
     value,
     many: true,
-    ...(typeParams === undefined ? {} : { typeParams }),
+    ...ifDefined('typeParams', typeParams),
   };
 }
 
@@ -104,7 +105,7 @@ describe.sequential('PostgreSQL array lift conformance', () => {
       timeout: timeouts.spinUpPpgDev,
     }, async () => {
       const outcome = await runPostgresCodecProjection(connection!, conformanceCase);
-      expect(outcome.failure?.detail ?? 'conforms').toBe('conforms');
+      expect(outcome.failure).toBeUndefined();
     });
   }
 });

@@ -65,7 +65,8 @@ describe('postgresError sites', () => {
     expect(isStructuredError(error)).toBe(true);
     expect(error).toMatchObject({
       code: 'RUNTIME.ENCODE_FAILED',
-      message: 'pg/numeric@1 application value must be a decimal numeral',
+      message:
+        'pg/numeric@1 application value must be canonical numeric text: an optionally negated decimal numeral, or NaN, Infinity or -Infinity',
     });
   });
 
