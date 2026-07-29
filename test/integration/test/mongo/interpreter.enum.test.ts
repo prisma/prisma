@@ -50,7 +50,6 @@ const mongoCodecLookup: CodecLookup = {
     } as ReturnType<CodecLookup['get']>;
   },
   targetTypesFor: (id: string) => mongoTargetTypes[id],
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 
