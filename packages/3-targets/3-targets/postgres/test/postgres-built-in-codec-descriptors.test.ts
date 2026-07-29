@@ -264,10 +264,12 @@ describe('PostgreSQL built-in codec descriptors', () => {
         );
       } else if (jsonProjection === 'iso-duration') {
         // The assembled duration is large; that it is not the bare expression,
-        // and that it is a coalesce over the constructed string, is the claim.
+        // and that a NULL interval short-circuits to NULL ahead of the
+        // assembly, is the claim. `concat` drops NULLs, so without that guard
+        // an absent interval would assemble to a zero one.
         const projected = descriptor.projectJson(expression, ref);
         expect(projected).not.toBe(expression);
-        expect(projected).toMatchObject({ kind: 'function-call', fn: 'coalesce' });
+        expect(projected).toMatchObject({ kind: 'case' });
       } else if (jsonProjection === 'utc-iso') {
         expect(descriptor.projectJson(expression, ref)).toEqual(
           FunctionCallExpr.of('to_char', [

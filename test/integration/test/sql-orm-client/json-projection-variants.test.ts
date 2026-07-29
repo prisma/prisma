@@ -1,7 +1,7 @@
 import { createPostgresAdapter } from '@prisma-next/adapter-postgres/adapter';
 import { createSqliteAdapter } from '@prisma-next/adapter-sqlite/adapter';
 import type { SqliteContract } from '@prisma-next/adapter-sqlite/types';
-import { pgvectorCodecRegistry } from '@prisma-next/extension-pgvector/runtime';
+import pgvectorRuntime from '@prisma-next/extension-pgvector/runtime';
 import {
   type AnyJsonValueProjection,
   CodecJsonValueProjection,
@@ -17,6 +17,7 @@ import {
   SubqueryExpr,
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
+import { isPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
@@ -156,13 +157,20 @@ function jsonEntriesOf(ast: SelectAst): string[] {
   return found;
 }
 
+// The pack publishes its descriptors as framework ones; the PostgreSQL adapter
+// takes the PostgreSQL-capable subset, which the target's own predicate picks
+// out without a cast.
+const pgvectorCodecDescriptors = (pgvectorRuntime.types?.codecTypes?.codecDescriptors ?? []).filter(
+  isPostgresCodecDescriptor,
+);
+
 describe('JSON projection variants', () => {
   // The ORM fixture contract has a `pg/vector@1` column, and the renderer now
   // asks a codec's descriptor how to project it. An adapter without the pack
   // that contributes the codec fails at lowering rather than rendering a bare
   // column — the same stack a pgvector application assembles.
   const postgresAdapter = createPostgresAdapter({
-    codecDescriptors: Array.from(pgvectorCodecRegistry.values()),
+    codecDescriptors: pgvectorCodecDescriptors,
   });
   const sqliteAdapter = createSqliteAdapter();
 

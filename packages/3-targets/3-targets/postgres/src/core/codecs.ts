@@ -30,6 +30,7 @@ import {
   CastExpr,
   FunctionCallExpr,
   LiteralExpr,
+  NullCheckExpr,
   OrExpr,
   type ProjectionExpr,
   SqlCharCodec,
@@ -252,6 +253,10 @@ const whenNonZero = (value: ProjectionExpr, rendered: ProjectionExpr): Projectio
  * `concat` drops NULL arguments, so a zero component is omitted by rendering as
  * NULL; the seconds field is taken through `numeric` because a `double
  * precision` microsecond renders in scientific notation.
+ *
+ * That same NULL-dropping is why the whole assembly sits under an explicit NULL
+ * check: for a NULL interval every field is NULL, `concat` yields `'P'`, and the
+ * zero-duration fallback below would report an absent value as a zero one.
  */
 const isoDurationJsonProjection = (expression: ProjectionExpr): ProjectionExpr => {
   const field = (name: string) => datePart(name, expression);
@@ -285,10 +290,13 @@ const isoDurationJsonProjection = (expression: ProjectionExpr): ProjectionExpr =
     whenNonZero(field('second'), FunctionCallExpr.of('concat', [seconds, LiteralExpr.of('S')])),
   ]);
 
-  return FunctionCallExpr.of('coalesce', [
-    FunctionCallExpr.of('nullif', [assembled, LiteralExpr.of('P')]),
-    LiteralExpr.of('PT0S'),
-  ]);
+  return CaseExpr.of(
+    [{ condition: NullCheckExpr.isNull(expression), value: LiteralExpr.of(null) }],
+    FunctionCallExpr.of('coalesce', [
+      FunctionCallExpr.of('nullif', [assembled, LiteralExpr.of('P')]),
+      LiteralExpr.of('PT0S'),
+    ]),
+  );
 };
 
 export const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
