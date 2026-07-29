@@ -10,10 +10,9 @@ import {
   textColumn,
 } from '@prisma-next/adapter-sqlite/column-types';
 import sqliteAdapter from '@prisma-next/adapter-sqlite/runtime';
-import { type Contract, soleDomainNamespaceId } from '@prisma-next/contract/types';
+import { soleDomainNamespaceId } from '@prisma-next/contract/types';
 import sqliteDriver from '@prisma-next/driver-sqlite/runtime';
 import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import { Collection } from '@prisma-next/sql-orm-client';
 import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
 import { defineContract, field, model, rel } from '@prisma-next/sqlite/contract-builder';
@@ -88,7 +87,7 @@ describe('integration/sqlite include canonical JSON', () => {
       adapter: sqliteAdapter,
       driver: sqliteDriver,
     });
-    const context = createExecutionContext<Contract<SqlStorage>>({ contract, stack });
+    const context = createExecutionContext({ contract, stack });
     const instance = instantiateExecutionStack(stack);
     const adapter = instance.adapter;
     const driver = instance.driver;
