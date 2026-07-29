@@ -64,6 +64,8 @@ Emission first (behavior-preserving, byte-parity evidence), then one renderer fl
 - **Open question 2 (generic float finiteness)**: resolve during D2 grounding; if `sql/float@1`-family lacks the `sqlite/real@1` treatment, it is a small D2 add; if covered, record and drop.
 - **Aggregate divergence noted at PR review** (`count()` types `bigint`, runtime returns `'2'`): TML-3064's, explicitly not this slice's — resist the temptation in D2, where it will be visible.
 
+- **Slice-5 trap, from D3 review:** the `decodeJson(null)` guard lives in the runtime (`collection-dispatch` short-circuits null at three shapes), **not** at the codec boundary. A public testkit calling `decodeJson` directly over harness cases has no such short-circuit, so a null case routed through it meets codec strictness and throws. Not a defect anywhere today; a trap for the one dispatch that calls these methods from outside the runtime. Belongs in TML-3064's brief.
+
 ## Hand-off linearity
 
 D2 and D3 both build on D1 directly and are independent of each other; D4 needs both flips; D5 needs everything. The non-linear edge worth naming: D3's retag work reads D6's probe record in *slice 3's* spec, not anything D2 produces.
