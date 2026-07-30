@@ -11,6 +11,7 @@ import {
 } from '@prisma-next/sql-contract/entity-handle-lowering-hook';
 import type { AuthoredIndexMethod } from '@prisma-next/sql-contract/index-naming';
 import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
+import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { InternalError } from '@prisma-next/utils/internal-error';
 import type {
@@ -812,10 +813,14 @@ function resolveModelNode(
     ...(unique.name ? { name: unique.name } : {}),
   })) satisfies readonly UniqueConstraintNode[];
   const indexes = (spec.sqlSpec?.indexes ?? []).map((index): IndexNode => {
-    const method: AuthoredIndexMethod =
-      index.type !== undefined
-        ? { type: index.type, options: index.options }
-        : { type: undefined, options: undefined };
+    // Carried verbatim rather than narrowed: the constraint type already
+    // forbids options without a type, but a caller that suppresses the
+    // compile error still reaches here, and dropping the orphaned options
+    // would hide it from lowerAuthoredIndex's runtime backstop.
+    const method = blindCast<
+      AuthoredIndexMethod,
+      'the constraint type carries the union; reading the two fields separately loses the correlation'
+    >({ type: index.type, options: index.options });
     const carried = {
       where: index.where,
       unique: index.unique,
