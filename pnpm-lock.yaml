@@ -1798,6 +1798,9 @@ importers:
         specifier: ^10.0.0
         version: 10.0.0
     devDependencies:
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/sql-contract':
         specifier: workspace:0.16.0
         version: link:../../../2-sql/1-core/contract
@@ -1945,6 +1948,9 @@ importers:
         specifier: ^3.9.5
         version: 3.9.5
     devDependencies:
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
@@ -2305,6 +2311,9 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
@@ -2937,6 +2946,9 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
@@ -4032,6 +4044,9 @@ importers:
       '@prisma-next/psl-parser':
         specifier: workspace:0.16.0
         version: link:../../1-framework/2-authoring/psl-parser
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../0-shared/publish-surface
       '@prisma-next/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
@@ -4251,6 +4266,9 @@ importers:
       '@prisma-next/psl-printer':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/2-authoring/psl-printer
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/sql-contract-psl':
         specifier: workspace:0.16.0
         version: link:../../../2-sql/2-authoring/contract-psl
@@ -4321,6 +4339,9 @@ importers:
       '@prisma-next/driver-sqlite':
         specifier: workspace:0.16.0
         version: link:../../7-drivers/sqlite
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
@@ -5116,6 +5137,9 @@ importers:
       '@prisma-next/postgres':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/postgres
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
@@ -5385,9 +5409,6 @@ importers:
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/3-tooling/migration
-      '@prisma-next/publish-surface':
-        specifier: workspace:0.16.0
-        version: link:../../../0-shared/publish-surface
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig

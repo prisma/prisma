@@ -214,14 +214,6 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       dir: 'packages/9-public/@prisma/orm-toolchain',
       kind: 'platform',
       packages: [
-        // The import-root mapping is toolchain surface, not just build
-        // configuration: emission resolves the specifiers it writes into
-        // generated files through it.
-        {
-          dir: 'packages/0-shared/publish-surface',
-          name: '@prisma-next/publish-surface',
-          entry: 'publish-surface',
-        },
         { dir: 'packages/1-framework/3-tooling/cli', name: '@prisma-next/cli', entry: 'cli' },
         {
           dir: 'packages/1-framework/3-tooling/cli-telemetry',

@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@prisma-next/test-utils": "workspace:0.16.0",
+    "@prisma-next/publish-surface": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "@prisma-next/tsdown": "workspace:0.16.0",

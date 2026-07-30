@@ -172,13 +172,14 @@ export function importSubpaths(installedPackageDir: string): string[] {
  * Internal package names that published dists still carry as *string
  * constants* (not import specifiers), recorded as of TML-3122.
  *
- * Most are emitter output: the import roots and type-module specifiers the
- * emitter and the migration renderers write into a user's generated
- * contract and migration files. Rewriting those to published names is
- * TML-3123's deliverable, so they are recorded here rather than fixed. The
- * rest name internal packages inside diagnostics, config-validation
- * messages, and telemetry identifiers; the switchover slice retires them
- * along with the `@prisma-next/*` names themselves.
+ * Most are emitter input: the specifiers the emitter and the migration
+ * renderers hand to their import-specifier resolver before writing a user's
+ * generated contract and migration files. TML-3123 made that resolution
+ * configurable but left the default returning them unchanged, so the
+ * constants necessarily remain in the dist; TML-3126 flips the default and
+ * retires them. The rest name internal packages inside diagnostics,
+ * config-validation messages, and telemetry identifiers; the switchover
+ * slice retires those along with the `@prisma-next/*` names themselves.
  *
  * This is a baseline lock, not an endorsement. Anything not listed fails
  * {@link findInternalNames}, so no *new* internal name can reach a

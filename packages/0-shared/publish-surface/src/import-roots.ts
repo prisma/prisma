@@ -12,6 +12,7 @@
 import { publicShells, type ShellName } from './shells';
 
 const INTERNAL_SCOPE = '@prisma-next/';
+const PUBLISHED_SCOPE = '@prisma/';
 
 /** An import root that emitted code cannot express. */
 export class ImportRootError extends Error {}
@@ -161,4 +162,33 @@ export function resolveImportSpecifier(specifier: string, root: ImportRoot): str
 export function createImportSpecifierResolver(root: ImportRoot): ImportSpecifierResolver {
   if (root.mode === 'internal') return (specifier) => specifier;
   return (specifier) => resolveImportSpecifier(specifier, root);
+}
+
+// Generated sources are rendered by `renderImports`, which always writes
+// `from '<specifier>'` with single quotes, so scanning for that is enough and
+// keeps this package free of a parser dependency.
+const FROM_CLAUSE = /\bfrom\s+'([^']+)'/g;
+
+/** The module specifiers a generated source file imports from. */
+export function importedSpecifiers(source: string): string[] {
+  return [...source.matchAll(FROM_CLAUSE)].map(([, specifier]) => specifier ?? '');
+}
+
+/**
+ * The specifiers in a generated file that the application would not have as a
+ * direct dependency under `root` — the thing no emitted file may contain.
+ *
+ * Under the `internal` root nothing is reported: those names are the
+ * repository's own, and every in-repo consumer resolves them through the
+ * workspace.
+ */
+export function transitiveImports(source: string, root: ImportRoot): string[] {
+  if (root.mode === 'internal') return [];
+  const direct = new Set<string>(directDependencyShells(root));
+  return importedSpecifiers(source).filter((specifier) => {
+    if (specifier.startsWith(INTERNAL_SCOPE)) return true;
+    if (!specifier.startsWith(PUBLISHED_SCOPE)) return false;
+    const [scope, shell] = specifier.split('/');
+    return !direct.has(`${scope}/${shell}`);
+  });
 }
