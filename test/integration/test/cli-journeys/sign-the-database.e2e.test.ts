@@ -181,8 +181,10 @@ describe('sign a database this toolchain has never seen, then transition to mana
           '@@index(expression: "lower(email)", map: "documents_email_lower_idx")',
           '@@index(expression: "lower(email)", name: "documents_email_lower")',
         )
-        .replace('    @@map("Tenant members can read")\n', '');
-      expect(transitioned).not.toBe(inferredPsl);
+        .replace(/^\s*@@map\("Tenant members can read"\)\n/m, '');
+      // The index replacement above cannot mask a no-op here: prove the
+      // @@map line itself is gone, not merely that something changed.
+      expect(transitioned).not.toContain('@@map("Tenant members can read")');
       writeFileSync(join(ctx.testDir, 'contract.prisma'), transitioned, 'utf-8');
       const emitManaged = await runContractEmit(ctx);
       expect(emitManaged.exitCode, `3.2: emit managed\n${stripAnsi(emitManaged.stderr)}`).toBe(0);
