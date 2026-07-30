@@ -135,7 +135,8 @@ export function topologicalSort(
   const deps = new Map<string, Set<string>>();
   const tableToModel = new Map<string, string>();
   for (const tableName of Object.keys(tables)) {
-    const modelName = modelNameMap.get(tableName) as string;
+    const modelName = modelNameMap.get(tableName);
+    assertDefined(modelName, `topologicalSort: no model name mapped for table "${tableName}"`);
     tableToModel.set(tableName, modelName);
     deps.set(modelName, new Set());
   }
