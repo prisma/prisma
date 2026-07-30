@@ -1,3 +1,4 @@
+import { docsUrlFor } from '@prisma-next/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   CliStructuredError,
@@ -142,6 +143,11 @@ describe('Config Errors', () => {
     expect(error.code).toBe('CONFIG.FILE_NOT_FOUND');
     expect(error.message).toBe('Config file not found');
     expect(error.where?.path).toBe('/path/to/config.ts');
+  });
+
+  it('errorConfigFileNotFound links the canonical error-reference anchor for its code', () => {
+    const error = errorConfigFileNotFound();
+    expect(error.docsUrl).toBe(docsUrlFor('CONFIG.FILE_NOT_FOUND'));
   });
 
   it('errorConfigFileNotFound with custom why', () => {
