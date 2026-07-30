@@ -5,7 +5,10 @@ import type {
   JsonValue,
 } from '@prisma-next/contract/types';
 import { serializeObjectKey, serializeValue } from '@prisma-next/emitter/domain-type-generation';
-import type { ValidationContext } from '@prisma-next/framework-components/emission';
+import type {
+  ImportSpecifierResolver,
+  ValidationContext,
+} from '@prisma-next/framework-components/emission';
 import type { Namespace } from '@prisma-next/framework-components/ir';
 import type { MongoCollection, MongoStorage } from '@prisma-next/mongo-contract';
 import { blindCast } from '@prisma-next/utils/casts';
@@ -302,13 +305,13 @@ export const mongoEmission = {
     };
   },
 
-  getFamilyImports(): string[] {
+  getFamilyImports(resolveImportSpecifier: ImportSpecifierResolver): string[] {
     return [
       'import type {',
       '  MongoCollection,',
       '  MongoContractWithTypeMaps,',
       '  MongoTypeMaps,',
-      "} from '@prisma-next/mongo-contract';",
+      `} from '${resolveImportSpecifier('@prisma-next/mongo-contract')}';`,
     ];
   },
 

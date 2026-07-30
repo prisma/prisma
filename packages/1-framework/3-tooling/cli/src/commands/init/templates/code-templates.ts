@@ -1,10 +1,35 @@
 import { DEFAULT_CONTRACT_SOURCE_DIR } from '@prisma-next/config/config-types';
+import {
+  type ImportSpecifierResolver,
+  keepInternalSpecifiers,
+} from '@prisma-next/framework-components/emission';
 
 export type TargetId = 'postgres' | 'mongo';
 export type AuthoringId = 'psl' | 'typescript';
 
-export function targetPackageName(target: TargetId): string {
-  return target === 'postgres' ? '@prisma-next/postgres' : '@prisma-next/mongo';
+/**
+ * The package name a scaffolded project depends on and imports from, for the
+ * import root it is being scaffolded against. Every specifier in the scaffold
+ * derives from this one, so the dependency `init` installs and the imports it
+ * writes cannot disagree.
+ */
+export function targetPackageName(
+  target: TargetId,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
+): string {
+  return resolveImportSpecifier(
+    target === 'postgres' ? '@prisma-next/postgres' : '@prisma-next/mongo',
+  );
+}
+
+/** One entrypoint of the scaffolded project's target package. */
+export function targetEntrypoint(
+  target: TargetId,
+  subpath: string,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
+): string {
+  const internal = target === 'postgres' ? '@prisma-next/postgres' : '@prisma-next/mongo';
+  return resolveImportSpecifier(`${internal}/${subpath}`);
 }
 
 export function targetLabel(target: TargetId): string {
@@ -18,9 +43,14 @@ export function defaultSchemaPath(authoring: AuthoringId): string {
   return `${DEFAULT_CONTRACT_SOURCE_DIR}/contract.prisma`;
 }
 
-export function starterSchema(target: TargetId, authoring: AuthoringId): string {
+export function starterSchema(
+  target: TargetId,
+  authoring: AuthoringId,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
+): string {
   if (authoring === 'typescript') {
-    return target === 'mongo' ? starterSchemaTsMongo() : starterSchemaTsPostgres();
+    const builder = targetEntrypoint(target, 'contract-builder', resolveImportSpecifier);
+    return target === 'mongo' ? starterSchemaTsMongo(builder) : starterSchemaTsPostgres(builder);
   }
   return target === 'mongo' ? starterSchemaPslMongo() : starterSchemaPslPostgres();
 }
@@ -34,9 +64,14 @@ export function starterSchema(target: TargetId, authoring: AuthoringId): string 
  * the same outer shape as `starterSchemaTs*` (FR5.3) so a user reading
  * the doc and the file side-by-side sees the same structure.
  */
-export function schemaSample(target: TargetId, authoring: AuthoringId): string {
+export function schemaSample(
+  target: TargetId,
+  authoring: AuthoringId,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
+): string {
   if (authoring === 'typescript') {
-    return target === 'mongo' ? schemaSampleTsMongo() : schemaSampleTsPostgres();
+    const builder = targetEntrypoint(target, 'contract-builder', resolveImportSpecifier);
+    return target === 'mongo' ? schemaSampleTsMongo(builder) : schemaSampleTsPostgres(builder);
   }
   return target === 'mongo' ? schemaSamplePslMongo() : schemaSamplePslPostgres();
 }
@@ -64,9 +99,9 @@ model User {
 \`\`\``;
 }
 
-function schemaSampleTsPostgres(): string {
+function schemaSampleTsPostgres(builder: string): string {
   return `\`\`\`typescript
-import { defineContract } from '@prisma-next/postgres/contract-builder';
+import { defineContract } from '${builder}';
 
 export const contract = defineContract(
   {},
@@ -86,9 +121,9 @@ export const contract = defineContract(
 \`\`\``;
 }
 
-function schemaSampleTsMongo(): string {
+function schemaSampleTsMongo(builder: string): string {
   return `\`\`\`typescript
-import { defineContract } from '@prisma-next/mongo/contract-builder';
+import { defineContract } from '${builder}';
 
 export const contract = defineContract(
   {},
@@ -157,8 +192,8 @@ model Post {
 `;
 }
 
-function starterSchemaTsPostgres(): string {
-  return `import { defineContract } from '@prisma-next/postgres/contract-builder';
+function starterSchemaTsPostgres(builder: string): string {
+  return `import { defineContract } from '${builder}';
 
 export const contract = defineContract(
   {},
@@ -197,8 +232,8 @@ export const contract = defineContract(
 `;
 }
 
-function starterSchemaTsMongo(): string {
-  return `import { defineContract } from '@prisma-next/mongo/contract-builder';
+function starterSchemaTsMongo(builder: string): string {
+  return `import { defineContract } from '${builder}';
 
 export const contract = defineContract(
   {},
@@ -235,10 +270,14 @@ export const contract = defineContract(
 `;
 }
 
-export function configFile(target: TargetId, contractPath: string): string {
-  const pkg = targetPackageName(target);
+export function configFile(
+  target: TargetId,
+  contractPath: string,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
+): string {
+  const configEntrypoint = targetEntrypoint(target, 'config', resolveImportSpecifier);
   return `import 'dotenv/config';
-import { defineConfig } from '${pkg}/config';
+import { defineConfig } from '${configEntrypoint}';
 
 export default defineConfig({
   contract: ${JSON.stringify(contractPath)},
@@ -249,9 +288,13 @@ export default defineConfig({
 `;
 }
 
-export function dbFile(target: TargetId): string {
+export function dbFile(
+  target: TargetId,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
+): string {
+  const runtime = targetEntrypoint(target, 'runtime', resolveImportSpecifier);
   if (target === 'postgres') {
-    return `import postgres from '@prisma-next/postgres/runtime';
+    return `import postgres from '${runtime}';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -262,7 +305,7 @@ export const db = postgres<Contract>({
 `;
   }
 
-  return `import mongo from '@prisma-next/mongo/runtime';
+  return `import mongo from '${runtime}';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 

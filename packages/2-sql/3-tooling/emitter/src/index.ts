@@ -14,6 +14,7 @@ import { isSafeTypeExpression } from '@prisma-next/emitter/type-expression-safet
 import type { CodecLookup } from '@prisma-next/framework-components/codec';
 import type {
   GenerateContractTypesOptions,
+  ImportSpecifierResolver,
   ValidationContext,
 } from '@prisma-next/framework-components/emission';
 import {
@@ -417,12 +418,12 @@ export const sqlEmission = {
     ].join('\n');
   },
 
-  getFamilyImports(): string[] {
+  getFamilyImports(resolveImportSpecifier: ImportSpecifierResolver): string[] {
     return [
       'import type {',
       '  ContractWithTypeMaps,',
       '  TypeMaps as TypeMapsType,',
-      "} from '@prisma-next/sql-contract/types';",
+      `} from '${resolveImportSpecifier('@prisma-next/sql-contract/types')}';`,
     ];
   },
 

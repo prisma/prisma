@@ -18,7 +18,6 @@
   },
   "devDependencies": {
     "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

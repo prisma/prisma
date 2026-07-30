@@ -7,7 +7,11 @@ import type {
   JsonValue,
 } from '@prisma-next/contract/types';
 import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
+import {
+  type ImportSpecifierResolver,
+  keepInternalSpecifiers,
+  type TypesImportSpec,
+} from '@prisma-next/framework-components/emission';
 import { type ImportRequirement, renderImports } from '@prisma-next/ts-render';
 import { blindCast } from '@prisma-next/utils/casts';
 import { emitterError } from './emitter-errors';
@@ -232,9 +236,12 @@ export function deduplicateImports(imports: TypesImportSpec[]): TypesImportSpec[
   return result;
 }
 
-export function generateImportLines(imports: TypesImportSpec[]): string[] {
+export function generateImportLines(
+  imports: TypesImportSpec[],
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
+): string[] {
   const requirements: ImportRequirement[] = imports.map((imp) => ({
-    moduleSpecifier: imp.package,
+    moduleSpecifier: resolveImportSpecifier(imp.package),
     symbol: imp.named,
     alias: imp.alias,
     typeOnly: true,

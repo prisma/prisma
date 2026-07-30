@@ -1397,9 +1397,6 @@ importers:
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
@@ -5388,6 +5385,9 @@ importers:
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/3-tooling/migration
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig

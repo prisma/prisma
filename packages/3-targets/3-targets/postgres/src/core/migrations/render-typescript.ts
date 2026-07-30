@@ -14,6 +14,10 @@ import {
   contractSnapshotTypesSpecifier,
   type OpFactoryCall,
 } from '@prisma-next/framework-components/control';
+import {
+  type ImportSpecifierResolver,
+  keepInternalSpecifiers,
+} from '@prisma-next/framework-components/emission';
 import { detectScaffoldRuntime, shebangLineFor } from '@prisma-next/migration-tools/migration-ts';
 import { type ImportRequirement, renderImports } from '@prisma-next/ts-render';
 
@@ -22,6 +26,13 @@ export interface RenderMigrationMeta {
   readonly to: string;
   /** POSIX-relative path from the migration package dir to `migrations/snapshots`, e.g. '../../snapshots'. */
   readonly snapshotsImportPath: string;
+  /**
+   * Rewrites the package names the scaffold imports from, for the import root
+   * the consuming application installed. Applied once to the assembled
+   * requirement list rather than at each `OpFactoryCall`, so a new operation
+   * cannot forget it. Defaults to leaving specifiers as authored.
+   */
+  readonly resolveImportSpecifier?: ImportSpecifierResolver;
 }
 
 /**
@@ -87,7 +98,13 @@ function buildImports(calls: ReadonlyArray<OpFactoryCall>, meta: RenderMigration
       requirements.push(req);
     }
   }
-  return renderImports(requirements);
+  const resolveImportSpecifier = meta.resolveImportSpecifier ?? keepInternalSpecifiers;
+  return renderImports(
+    requirements.map((req) => ({
+      ...req,
+      moduleSpecifier: resolveImportSpecifier(req.moduleSpecifier),
+    })),
+  );
 }
 
 /**

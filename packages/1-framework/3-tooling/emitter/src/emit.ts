@@ -1,6 +1,9 @@
 import { canonicalizeContractToObject } from '@prisma-next/contract/hashing';
 import type { Contract } from '@prisma-next/contract/types';
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
+import {
+  type EmissionSpi,
+  keepInternalSpecifiers,
+} from '@prisma-next/framework-components/emission';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { format } from 'prettier';
 import { getEmittedArtifactPaths } from './artifact-paths';
@@ -58,6 +61,7 @@ export async function emit(
     contractTypeHashes,
     generateOptions,
     stack.codecLookup,
+    options.resolveImportSpecifier ?? keepInternalSpecifiers,
   );
   const contractDts = await format(contractDtsRaw, {
     parser: 'typescript',

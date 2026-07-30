@@ -36,7 +36,10 @@ function contractSourceError(
   return error;
 }
 
-const DEFAULT_ALLOWLIST = ['@prisma-next/*', 'node:crypto'];
+// Both naming schemes: a contract authored against the workspace names and one
+// authored against the published `@prisma/orm-*` entrypoints (ADR 242) are the
+// same code under two roots, and the CLI has to load either.
+const DEFAULT_ALLOWLIST = ['@prisma-next/*', '@prisma/orm-*', 'node:crypto'];
 
 function isAllowedImport(importPath: string, allowlist: ReadonlyArray<string>): boolean {
   for (const pattern of allowlist) {

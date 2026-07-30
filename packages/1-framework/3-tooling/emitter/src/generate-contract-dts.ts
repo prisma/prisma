@@ -5,10 +5,12 @@ import type {
   ContractValueObject,
 } from '@prisma-next/contract/types';
 import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type {
-  EmissionSpi,
-  GenerateContractTypesOptions,
-  TypesImportSpec,
+import {
+  type EmissionSpi,
+  type GenerateContractTypesOptions,
+  type ImportSpecifierResolver,
+  keepInternalSpecifiers,
+  type TypesImportSpec,
 } from '@prisma-next/framework-components/emission';
 import { blindCast } from '@prisma-next/utils/casts';
 import { InternalError } from '@prisma-next/utils/internal-error';
@@ -51,15 +53,16 @@ export function generateContractDts(
   },
   options?: GenerateContractTypesOptions,
   codecLookup?: CodecLookup,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
 ): string {
   const allImports: TypesImportSpec[] = [...codecTypeImports];
   if (options?.queryOperationTypeImports) {
     allImports.push(...options.queryOperationTypeImports);
   }
   const uniqueImports = deduplicateImports(allImports);
-  const importLines = generateImportLines(uniqueImports);
+  const importLines = generateImportLines(uniqueImports, resolveImportSpecifier);
 
-  const familyImportLines = emitter.getFamilyImports();
+  const familyImportLines = emitter.getFamilyImports(resolveImportSpecifier);
 
   const hashAliases = generateHashTypeAliases(hashes);
 
@@ -185,7 +188,7 @@ import type {
   NamespaceId,
   ProfileHashBase,
   StorageHashBase,
-} from '@prisma-next/contract/types';
+} from '${resolveImportSpecifier('@prisma-next/contract/types')}';
 
 ${hashAliases}
 
