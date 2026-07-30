@@ -22,23 +22,34 @@ Scaffold `packages/9-public/@prisma/` with the 7 platform shells (`orm-framework
 - **Builds on:** 1
 - **Hands to:** the complete 17-package surface exists and builds.
 
-### 3. Emitter import roots — [TML-3123](https://linear.app/prisma-company/issue/TML-3123) · `slices/emitter-import-roots/`
+### 3. Emitter import roots become configurable — [TML-3123](https://linear.app/prisma-company/issue/TML-3123) · `slices/emitter-import-roots/`
 
-Emitters write published names only: facade entrypoints by default, platform entrypoints in decomposed mode. Both modes tested; no-transitive-import audit; `contractHash` invariance.
+Every place that writes a package name into user code — the framework/SQL/Mongo emitters, the targets' hardcoded emitted-migration roots, the CLI's `init` templates — takes its import root from one configurable source (`publicSpecifier()`/`shells.ts`). All three modes (facade, platform, internal) are tested, with a no-transitive-import audit and `contractHash` invariance across the rename.
+
+**The default stays internal.** Flipping it here would break the repo: an example's generated contract would import facade entrypoints while the example's own source imports internals, loading two copies of every shared module — the precise failure this project exists to prevent.
 
 - **Builds on:** 2 (facade entrypoints must resolve)
-- **Hands to:** regeneration produces published-name imports.
+- **Hands to:** a single switch that changes every emitted import root, proven in all three modes.
 
-### 4. Switchover — [TML-3124](https://linear.app/prisma-company/issue/TML-3124) · `slices/switchover/`
+### 4. Consumer migration and the flip — [TML-3126](https://linear.app/prisma-company/issue/TML-3126) · `slices/consumer-migration/`
 
-Atomic flip: privatize all non-`9-public` packages, publish workflow targets exactly the 9-public set, two-direction publishability lint + published-names-only import lint + shim drift-lint, examples/tests migrate to facades, decomposed-install proof, packed-tarball verification per family, upgrade instructions.
+Flip the emitter default to facade mode and migrate every in-repo consumer in the same commit: examples, `test/integration`, `test/e2e`, and `init`'s scaffolded dependencies all move to published names; fixtures and generated artifacts regenerate. After this slice nothing in-repo imports an internal package name.
 
 - **Builds on:** 3
+- **Hands to:** the repo runs entirely on published names, so privatization becomes mechanical.
+
+### 5. Switchover — [TML-3124](https://linear.app/prisma-company/issue/TML-3124) · `slices/switchover/`
+
+Privatize all non-`9-public` packages, point the publish workflow at exactly the 9-public set, land the two-direction publishability lint + published-names-only import lint + shim drift-lint, sweep the internal-name baseline (diagnostics, config-validation, telemetry), add the decomposed-install proof and packed-tarball verification per family, record upgrade instructions.
+
+- **Builds on:** 4
 - **Hands to:** publish dry-run lists exactly the ADR 242 surface; project DoD met except close-out docs.
 
 ## Sequencing
 
-Stack: 1 → 2 → 3 → 4. No parallel groups — each slice consumes the previous hand-off. Within slice 3, platform-mode work can start once slice 1 merges if throughput demands it; not planned as a separate group.
+Stack: 1 → 2 → 3 → 4 → 5. No parallel groups — each slice consumes the previous hand-off.
+
+Five slices exceeds the 1–4 guideline. The extra slice came from a sequencing constraint discovered during delivery rather than from scope growth: the emitter's *capability* and the *flip* of its default cannot land together, because the flip is only safe once every in-repo consumer has moved. Splitting them keeps each slice reviewable in one sitting and keeps every intermediate commit green.
 
 ## Dependencies
 
