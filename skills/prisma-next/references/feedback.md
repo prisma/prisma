@@ -21,13 +21,13 @@ Canonical channels:
 
 ## When Not to Use
 
-- User wants to fix the bug themselves in the user's own code. The fix lives in another skill (debug / contract / migrations / queries / runtime / build). Chain to the right skill first; only fall back to feedback if the user explicitly wants the framework to do something differently.
+- User wants to fix the bug themselves in the user's own code. The fix lives in another workflow reference (debug / contract / migrations / queries / runtime / build). Open the right reference first; only fall back to feedback if the user explicitly wants the framework to do something differently.
 - User wants to upgrade Prisma Next (the bug may already be fixed) → the `prisma-next-upgrade` skill (separately installed); this skill mentions it as a pre-flight check.
-- The user's question is already covered by a workflow skill in the cluster (*"how do I add a column?"* → `references/contract.md`; *"what's the right query interface?"* → `references/queries.md`). Route to the workflow skill, not to the team — load the skill, answer the question, and only escalate to Discord if the agent can't.
+- The user's question is already covered by a workflow reference in this skill (*"how do I add a column?"* → `references/contract.md`; *"what's the right query interface?"* → `references/queries.md`). Route to the workflow reference, not to the team — open the reference, answer the question, and only escalate to Discord if the agent can't.
 
 ## Key Concepts
 
-- **Three channels, one decision.** GitHub Issues (bugs + concrete feature requests), Prisma Discord (Q&A, design feedback, direct team contact), or another in-cluster skill (when the question turns out to be a workflow question, not a hand-off-to-team question). The skill's first move is the channel decision; everything else follows.
+- **Three channels, one decision.** GitHub Issues (bugs + concrete feature requests), Prisma Discord (Q&A, design feedback, direct team contact), or another workflow reference in this skill (when the question turns out to be a workflow question, not a hand-off-to-team question). The first move is the channel decision; everything else follows.
 - **Public artifact.** GitHub issues *and* Discord messages are world-readable and archived. The body / message must not contain `DATABASE_URL` strings, internal company schema fragments, customer data in sample rows, or any other content the user wouldn't share publicly. The agent redacts before either kind of submission.
 - **Bug vs feature vs question.** A *bug* is "documented surface behaved unexpectedly". A *feature request* is "I want a capability that doesn't exist". A *question* is "I want to discuss X with someone, or I'm not sure this is a bug at all". Many capability-gap routes are feature requests; many extension-author prompts are questions.
 - **The framework team needs to reproduce (issues only).** A bug report without a reproduction is much harder to act on. Where possible, the agent produces a minimal repro the team can re-run locally — ideally a small change against [`examples/prisma-next-demo`](https://github.com/prisma/prisma-next/tree/main/examples/prisma-next-demo), which the team already has checked out. Discord Q&A doesn't require a full repro — a short code snippet plus the question is usually enough.
