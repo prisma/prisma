@@ -94,7 +94,7 @@ console.log(users);
 
 If that prints `[{ id: 1, email: 'alice@example.com' }]`, the project is wired end-to-end and the user has crossed from *"I have a project"* to *"I'm building."*
 
-`db.orm.<Model>` is the default ORM lane — model-shaped, fully typed against the contract, lazily connects to the database on first use (it picks up `DATABASE_URL` from `.env` via the runtime's `dotenv/config`-loaded environment). The deeper `references/queries.md` skill covers the rest of the surface (filters, joins, transactions, the SQL builder, raw SQL, TypedSQL) when the user is ready.
+`db.orm.<Model>` is the default ORM lane — model-shaped, fully typed against the contract, lazily connects to the database on first use (it picks up `DATABASE_URL` from `.env` via the runtime's `dotenv/config`-loaded environment). The deeper `references/queries.md` reference covers the rest of the supported surface (filters, joins, transactions, the SQL builder) when the user is ready — and names the gaps (raw SQL and TypedSQL are not currently available).
 
 > **Mongo target:** the snippet above is SQL-target shape. On `@prisma-next/mongo`, `db.orm` is keyed by the collection's storage name (`@@map(...)`, or the lowercased model name if no `@@map`), so the same arc reads `await db.orm.users.create(...)` / `await db.orm.users.select('id', 'email').all()` — not `db.orm.User`. Full rule and rewrite recipe in `references/queries.md` § *MongoDB ORM addressing*.
 
