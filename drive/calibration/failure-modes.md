@@ -514,6 +514,20 @@ Patterns to **catch** the F-family modes live in [`grep-library.md`](./grep-libr
 
 **Reference incident.** 2026-07-02→06, native-postgres-enums (PR #906). Round 1: `CodecRef.nativeType` flagged ("SQL-specific, cannot live in the framework domain") — fixed by moving the cast to a codec hook placed on the *framework* `CodecDescriptor`. Round 2: the hook flagged ("NATIVETYPE CANNOT BE REFERENCED IN THE FRAMEWORK DOMAIN") — relocated, but a new framework type (`AuthoringEntityRefResolution`) kept `nativeType` + a `valueSetEnforcement` strategy string-enum under a grandfathering argument. Round 3: both flagged, plus derivation logic (`deriveValueSet`) in framework core. Three rounds, one class. Operator intervention produced the class-sweep rule, the vocabulary ratchet, and this entry.
 
+### F27. All tests pass but the CI job is red — a vitest worker fork died
+
+**Symptom.** A test job fails while its own summary reports full success: every test file passed bar one, every test passed, `Type Errors: no errors`. The only error is an `Unhandled Error` block reading `[vitest-pool]: Worker forks emitted error` / `Caused by: Error: Worker exited unexpectedly`. The nonzero exit comes from the unhandled error, not from any assertion.
+
+**Detection signal.**
+
+- The job summary shows `Test Files N passed (N+1)` with no failing-test detail anywhere in the log.
+- The failure block names `emitUnexpectedExit` / `onTaskError` in vitest's `cli-api` chunk rather than a test file.
+- Grepping the log for assertion markers (`✕`, `AssertionError`, `expected`) returns nothing but build noise.
+
+**Mitigation.** Re-run the failed job before investigating — this signature is usually a crashed worker, not a regression, and chasing it through the log is expensive. If it recurs on the re-run, treat it as a resource-pressure hypothesis (worker memory, parallelism against the job's container) rather than a logic error, and check whether the branch added build or test volume to that job. Do not "fix" it by editing test code that the summary says passed.
+
+**Reference incident.** 2026-07-30, `public-npm-surface` slice 1 (PR #29854). Integration Tests red with 1646/1646 tests passed and 276/277 files passed; the branch's own new suites run in a different job entirely. A re-run of the failed job passed clean with no code change.
+
 ## Slice-shape scope traps
 
 Patterns that have produced scope creep in the past — catch these at triage or slice-spec time, not at execution time.

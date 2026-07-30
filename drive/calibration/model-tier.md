@@ -14,6 +14,16 @@ Which model tier should this dispatch run on? Per [`docs/drive/principles/decomp
 | Voice-aware doc edits (skill / README / matcher updates with explicit insertion points and an established voice to match) | composer-2.5 |
 | Long-running validation gate runs (typecheck, test:packages) | Whichever tier the parent dispatch chose (no model dispatch — just bash) |
 
+## When the preferred tier is unavailable
+
+Model tiers hit capacity and usage limits. When the tier this table recommends cannot be dispatched to:
+
+1. **Substitute downward within the same capability class** (orchestrator-tier work → another orchestrator-class model; mechanical work → any cheap tier) rather than pausing the project.
+2. **Tell the operator in the same turn**, naming the tier that was unavailable and the substitute used. Tier choice is often a standing operator instruction, so a silent substitution violates it invisibly.
+3. **Never substitute upward-in-cost silently for bulk mechanical work** — surface it instead, since the cost delta is the operator's call.
+
+(Added by the `public-npm-surface` retro: an implementer dispatch terminated on a Fable 5 usage limit mid-slice, and the routing table had no stated fallback, so the orchestrator improvised a substitution that contradicted a standing "always use Fable for implementers" instruction.)
+
 ## Confidence notes
 
 The composer-2.5 entries above reflect a small but consistent trial — currently two-for-two on dispatches where the design was settled before the dispatch fired (an ownership-rule refactor and a multi-file doc update). The tier holds for:

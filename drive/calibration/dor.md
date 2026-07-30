@@ -35,6 +35,7 @@ In addition to the canonical dispatch DoR:
 - [ ] Brief's "Inputs" section references the applicable [`failure-modes.md`](./failure-modes.md) entries with their dispositions in the edge-case table.
 - [ ] Brief's "Inputs" section references the applicable [`grep-library.md`](./grep-library.md) entries this dispatch should run.
 - [ ] Brief's tier is one of the three the team uses (orchestrator / mid / cheap — see [`model-tier.md`](./model-tier.md)).
+- [ ] Brief instructs the implementer to **commit and push after each numbered step**, not only at the end. A dispatch that pushes once at completion loses everything on any mid-flight termination — crash, timeout, model usage limit, operator interrupt. (Added by the `public-npm-surface` retro after a slice-2 dispatch died on a usage limit having pushed nothing; the relaunched dispatch with per-step pushes had two steps preserved on the remote while still running.)
 - [ ] Brief specifies a slice plan path under `projects/<x>/slices/<s>/` (or "orphan" if no parent project).
 - [ ] Brief's edge-case table includes "destructive git operations forbidden without orchestrator approval" disposition (non-negotiable for all subagent dispatches; see [F5 in failure-modes.md](./failure-modes.md#f5-destructive-git-operations-executed-by-subagents-without-orchestrator-approval)).
 - [ ] Affected packages identified (so `pnpm build` of dependent packages can fire as a "done when" gate).
