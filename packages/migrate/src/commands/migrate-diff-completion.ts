@@ -43,5 +43,9 @@ export const migrateDiffCompletion: CommandCompletion = {
     },
     { name: 'script', description: 'Output a SQL script instead of a human-readable summary' },
     { name: 'exit-code', description: 'Change the exit code behavior (Empty=0, Error=1, Not empty=2)' },
+    {
+      name: 'reset-shadow-database',
+      description: 'Allow the shadow database to be reset even when it is not empty',
+    },
   ],
 }

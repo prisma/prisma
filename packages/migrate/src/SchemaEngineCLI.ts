@@ -21,6 +21,7 @@ import { bold, red } from 'kleur/colors'
 import { Extension, SchemaExtensionConfig } from './extensions'
 import type { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
+import { type EngineDatasource, engineDatasource } from './utils/engine-datasource'
 import { handleViewsIO } from './views/handleViewsIO'
 
 const debugRpc = Debug('prisma:schemaEngine:rpc')
@@ -42,6 +43,8 @@ let messageId = 1
 
 interface SchemaEngineCLISetupInput {
   datasource?: Datasource
+  /** Consent to reset a shadow database that is not empty, given for this invocation. */
+  resetShadowDatabase?: boolean
   debug?: boolean
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
@@ -55,7 +58,7 @@ export class SchemaEngineCLI implements SchemaEngine {
   private debug: boolean
   private child?: ChildProcess
   private schemaContext?: SchemaContext
-  private datasource?: Datasource
+  private datasource?: EngineDatasource
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   /**  _All_ the logs from the engine process. */
   private messages: string[] = []
@@ -74,12 +77,13 @@ export class SchemaEngineCLI implements SchemaEngine {
     debug = false,
     schemaContext,
     datasource,
+    resetShadowDatabase,
     enabledPreviewFeatures,
     extensions,
     baseDir,
   }: SchemaEngineCLIOptions) {
     this.schemaContext = schemaContext
-    this.datasource = datasource
+    this.datasource = engineDatasource(datasource, resetShadowDatabase)
     if (debug) {
       Debug.enable('SchemaEngine*')
     }

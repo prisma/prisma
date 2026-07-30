@@ -24,6 +24,7 @@ import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
+import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
@@ -60,6 +61,9 @@ ${bold('Options')}
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
+  --reset-shadow-database
+                    Allow the configured shadow database to be reset even when it is not
+                    empty, destroying everything in it
 
 ${bold('Examples')}
 
@@ -82,6 +86,7 @@ ${bold('Examples')}
       // '--force': Boolean,
       // '-f': '--force',
       '--create-only': Boolean,
+      '--reset-shadow-database': Boolean,
       '--schema': String,
       '--config': String,
       '--url': String,
@@ -94,6 +99,10 @@ ${bold('Examples')}
 
     if (args['--help']) {
       return this.help()
+    }
+
+    if (args['--reset-shadow-database']) {
+      aiAgentConfirmationCheckpoint()
     }
 
     const schemaContext = await loadSchemaContext({
@@ -150,6 +159,7 @@ ${bold('Examples')}
       schemaFilter,
       shadowDbInitScript: cmdSpecificConfig.migrations?.initShadowDb,
       extensions: cmdSpecificConfig['extensions'],
+      resetShadowDatabase: args['--reset-shadow-database'],
     })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput

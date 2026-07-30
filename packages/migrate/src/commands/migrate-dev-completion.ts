@@ -20,5 +20,9 @@ export const migrateDevCompletion: CommandCompletion = {
     },
     { name: 'name', alias: 'n', description: 'Name the migration', values: completionMigrationNames },
     { name: 'create-only', description: 'Create a new migration but do not apply it' },
+    {
+      name: 'reset-shadow-database',
+      description: 'Allow the shadow database to be reset even when it is not empty',
+    },
   ],
 }

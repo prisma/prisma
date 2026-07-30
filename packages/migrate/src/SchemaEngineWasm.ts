@@ -29,6 +29,8 @@ interface SchemaEngineWasmSetupInput {
   adapter: ErrorCapturingSqlMigrationAwareDriverAdapterFactory
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
+  /** Consent to reset a shadow database that is not empty, given for this invocation. */
+  resetShadowDatabase?: boolean
 }
 
 export interface SchemaEngineWasmOptions extends Omit<SchemaEngineWasmSetupInput, 'adapter'> {
@@ -62,7 +64,12 @@ export class SchemaEngineWasm implements SchemaEngine {
     this.errorRegistry = errorRegistry
   }
 
-  static async setup({ adapter, schemaContext, ...rest }: SchemaEngineWasmSetupInput): Promise<SchemaEngineWasm> {
+  static async setup({
+    adapter,
+    schemaContext,
+    resetShadowDatabase,
+    ...rest
+  }: SchemaEngineWasmSetupInput): Promise<SchemaEngineWasm> {
     const debug = (arg: string) => {
       debugStderr(arg)
     }
@@ -72,6 +79,7 @@ export class SchemaEngineWasm implements SchemaEngine {
     const engine = await wasmSchemaEngineLoader.loadSchemaEngine(
       {
         datamodels,
+        resetShadowDatabase,
       },
       debug,
       adapter,

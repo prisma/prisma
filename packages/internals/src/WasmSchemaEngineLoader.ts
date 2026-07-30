@@ -33,7 +33,10 @@ async function getSchemaEngineWasmInstance() {
 let loadedWasmInstance: typeof SchemaEngine
 export const wasmSchemaEngineLoader = {
   async loadSchemaEngine(
-    input: ConstructorOptions,
+    // `resetShadowDatabase` is a constructor option of the schema engine that the published
+    // `@prisma/schema-engine-wasm` typings do not declare yet; an engine that does not know it
+    // ignores it. The `&` goes away when the engines version that declares it is the minimum.
+    input: ConstructorOptions & { resetShadowDatabase?: boolean },
     debug: (arg: string) => void,
     adapter: ErrorCapturingSqlDriverAdapterFactory,
   ) {

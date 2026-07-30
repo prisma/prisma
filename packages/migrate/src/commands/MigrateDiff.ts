@@ -20,6 +20,7 @@ import path from 'path'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs, EngineResults } from '../types'
+import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import { CaptureStdout } from '../utils/captureStdout'
 import { listMigrations } from '../utils/listMigrations'
 
@@ -52,7 +53,8 @@ ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):
 ${bold('Flags')}
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
-  --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.`,
+  --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it`,
 )
 
 export class MigrateDiff implements Command {
@@ -136,6 +138,7 @@ ${bold('Examples')}
         // Others
         '--script': Boolean,
         '--exit-code': Boolean,
+        '--reset-shadow-database': Boolean,
         '--telemetry-information': String,
         '--config': String,
         // Removed, but parsed to show help error
@@ -157,6 +160,10 @@ ${bold('Examples')}
 
     if (args['--help']) {
       return this.help()
+    }
+
+    if (args['--reset-shadow-database']) {
+      aiAgentConfirmationCheckpoint()
     }
 
     const removedTargetParameterHint = Object.keys(args)
@@ -267,6 +274,7 @@ ${bold('Examples')}
       baseDir,
       schemaFilter,
       extensions: config['extensions'],
+      resetShadowDatabase: args['--reset-shadow-database'],
     })
 
     // Capture stdout if --output is defined
