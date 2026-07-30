@@ -16,7 +16,7 @@ export interface WireName {
 /**
  * Where a name-identified object's name comes from: `managed` means the
  * toolchain derives it as `formatWireName(prefix, hash)`; `exact` means the
- * author owns it verbatim. Because the managed arm carries only the prefix
+ * author owns it verbatim. Because the wire arm carries only the prefix
  * and the hash, a name that disagrees with its prefix is unrepresentable.
  *
  * Storage and JSON stay flat (`name` plus an optional `prefix`);
@@ -24,23 +24,23 @@ export interface WireName {
  */
 export type SqlObjectNaming =
   | { readonly kind: 'exact'; readonly name: string }
-  | ({ readonly kind: 'managed' } & WireName);
+  | ({ readonly kind: 'wire' } & WireName);
 
 /** The flat name the union describes. Inverse of {@link namingOf}. */
-export function physicalNameOf(naming: SqlObjectNaming): string {
-  return naming.kind === 'managed' ? formatWireName(naming.prefix, naming.hash) : naming.name;
+export function nameOf(naming: SqlObjectNaming): string {
+  return naming.kind === 'wire' ? formatWireName(naming.prefix, naming.hash) : naming.name;
 }
 
 /**
  * The naming a name-identified node was built with, read back off the flat
- * pair it stores. Inverse of {@link physicalNameOf}, and total for that
+ * pair it stores. Inverse of {@link nameOf}, and total for that
  * reason: the constructor derived `name` from the union, so the two agree.
  * Flat data arriving from outside the process goes through
  * {@link parseNaming} instead.
  */
 export function namingOf(name: string, prefix: string | undefined): SqlObjectNaming {
   if (prefix === undefined) return { kind: 'exact', name };
-  return { kind: 'managed', prefix, hash: name.slice(prefix.length + 1) };
+  return { kind: 'wire', prefix, hash: name.slice(prefix.length + 1) };
 }
 
 /**
@@ -57,12 +57,12 @@ export function parseNaming(name: string, prefix: string | undefined): SqlObject
       'storage',
     );
   }
-  return { kind: 'managed', prefix: parsed.prefix, hash: parsed.hash };
+  return { kind: 'wire', prefix: parsed.prefix, hash: parsed.hash };
 }
 
 /**
  * The naming an object read out of a live catalog has: a wire-shaped name
- * gets the managed arm so the rename pass can pair it by prefix, and every
+ * gets the wire arm so the rename pass can pair it by prefix, and every
  * other name is exact.
  *
  * The managed answer is a claim about the name's SHAPE only — the hash is
@@ -77,7 +77,7 @@ export function namingOfLiveName(name: string): SqlObjectNaming {
   const wire = parseWireName(name);
   return wire === undefined
     ? { kind: 'exact', name }
-    : { kind: 'managed', prefix: wire.prefix, hash: wire.hash };
+    : { kind: 'wire', prefix: wire.prefix, hash: wire.hash };
 }
 
 const WIRE_NAME_PATTERN = /^(.+)_([0-9a-f]{8})$/;

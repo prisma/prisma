@@ -91,7 +91,7 @@ describe('SQL contract factories', () => {
       });
     });
 
-    it('creates a managed index when a prefix is given', () => {
+    it('creates a wire-named index when a prefix is given', () => {
       const idx = index('user_email_idx_deadbeef', ['email'], { prefix: 'user_email_idx' });
       expect(idx).toEqual({
         name: 'user_email_idx_deadbeef',

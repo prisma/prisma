@@ -1138,7 +1138,7 @@ describe('SQL contract validators', () => {
       expect(validateStorageSemantics(s)).toEqual([]);
     });
 
-    it('two content-identical MANAGED indexes under different prefixes still reject', () => {
+    it('two content-identical WIRE-NAMED indexes under different prefixes still reject', () => {
       const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: table(
@@ -1208,7 +1208,7 @@ describe('SQL contract validators', () => {
       expect(errors[0]).toContain('NOT NULL');
     });
 
-    it('detects duplicate managed index definitions whose options differ only in key order', () => {
+    it('detects duplicate wire-named index definitions whose options differ only in key order', () => {
       const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: table(
@@ -1329,7 +1329,7 @@ describe('SQL contract validators', () => {
       expect(validateStorageSemantics(s)).toHaveLength(0);
     });
 
-    it('detects duplicate MANAGED expression index definitions with identical bodies', () => {
+    it('detects duplicate WIRE-NAMED expression index definitions with identical bodies', () => {
       const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: table(

@@ -1,6 +1,6 @@
 import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { freezeNode } from '@prisma-next/framework-components/ir';
-import { physicalNameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
+import { nameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
 import { SqlNode } from './sql-node';
 
 /**
@@ -63,7 +63,7 @@ export type IndexInput = IndexElements & {
 export class Index extends SqlNode {
   readonly name: string;
   readonly unique: boolean;
-  /** Derived from the managed naming arm — presence is the naming-mode discriminator in the flat JSON. */
+  /** Derived from the wire naming arm — presence is the naming-mode discriminator in the flat JSON. */
   declare readonly prefix?: string;
   declare readonly columns?: readonly string[];
   declare readonly expression?: string;
@@ -73,7 +73,7 @@ export class Index extends SqlNode {
 
   constructor(input: IndexInput) {
     super();
-    const name = physicalNameOf(input.naming);
+    const name = nameOf(input.naming);
     if (name.length === 0) {
       throw new ContractValidationError(
         'Index: every index carries a full physical name; an expression index must be explicitly named (a default name cannot be derived from an expression).',
@@ -88,7 +88,7 @@ export class Index extends SqlNode {
     }
     this.name = name;
     this.unique = input.unique;
-    if (input.naming.kind === 'managed') this.prefix = input.naming.prefix;
+    if (input.naming.kind === 'wire') this.prefix = input.naming.prefix;
     if (input.columns !== undefined) this.columns = input.columns;
     if (input.expression !== undefined) this.expression = input.expression;
     if (input.where !== undefined) this.where = input.where;

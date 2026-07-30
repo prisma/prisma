@@ -3,7 +3,7 @@ import { freezeNode } from '@prisma-next/framework-components/ir';
 import { isArrayEqual } from '@prisma-next/utils/array-equal';
 import { blindCast } from '@prisma-next/utils/casts';
 import { InternalError } from '@prisma-next/utils/internal-error';
-import { normalizeIndexOptionValue, physicalNameOf, type SqlObjectNaming } from '../naming';
+import { nameOf, normalizeIndexOptionValue, type SqlObjectNaming } from '../naming';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
 import type { SqlAnnotations } from './sql-column-ir';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './sql-schema-ir-node';
@@ -79,7 +79,7 @@ export type SqlIndexIRInput = SqlIndexElements & {
  * and `columns` ordered-strict when both sides carry them; an exact-named
  * receiver (`prefix === undefined`) additionally byte-compares
  * `expression`/`where` (both sides are reprints in the supported flow —
- * normalizing would only mask real drift); a managed receiver never
+ * normalizing would only mask real drift); a wire-named receiver never
  * compares bodies (the wire-name hash already commits to them).
  *
  * `expression`, `where`, and `unique` are genuine SQL-family attributes —
@@ -106,7 +106,7 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
 
   constructor(input: SqlIndexIRInput) {
     super();
-    const name = physicalNameOf(input.naming);
+    const name = nameOf(input.naming);
     if ((input.columns === undefined) === (input.expression === undefined)) {
       throw new InternalError(
         `SqlIndexIR "${name}": exactly one of columns or expression must be set.`,
@@ -114,7 +114,7 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
     }
     this.name = name;
     this.unique = input.unique;
-    if (input.naming.kind === 'managed') this.prefix = input.naming.prefix;
+    if (input.naming.kind === 'wire') this.prefix = input.naming.prefix;
     if (input.columns !== undefined) this.columns = input.columns;
     if (input.expression !== undefined) this.expression = input.expression;
     if (input.where !== undefined) this.where = input.where;
@@ -143,7 +143,7 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
    * Mode-selected structural equality — see the class doc. Delegates to the
    * single node-owned relation: `columns` compare ordered-strict when both
    * sides carry them; an exact receiver (`prefix === undefined`)
-   * byte-compares `expression ?? ''` and `where ?? ''`; a managed receiver
+   * byte-compares `expression ?? ''` and `where ?? ''`; a wire-named receiver
    * never compares bodies (the wire-name hash already commits to them).
    */
   isEqualTo(other: DiffableNode): boolean {
@@ -173,7 +173,7 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
    *   index.
    * - `bodies: 'verbatim'` byte-compares `expression ?? ''` / `where ?? ''`
    *   (absent ≡ empty, no normalization — both sides are reprints in the
-   *   supported flow); `bodies: 'ignored'` skips them (managed identity —
+   *   supported flow); `bodies: 'ignored'` skips them (wire identity —
    *   the wire-name hash commits to the content).
    *
    * `unique` compares strictly; `type` and option VALUES compare through

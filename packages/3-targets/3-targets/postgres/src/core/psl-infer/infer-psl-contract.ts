@@ -1045,7 +1045,7 @@ function buildModelConstraintAttribute(
  * node's constructor normalizes btree back to undefined, so verify compares
  * clean. Provably safe on BOTH naming branches: `lowerAuthoredIndex`
  * rejects options without a type, so an untyped-options managed hash (which
- * the added `type: "btree"` would move) is unconstructable — a managed index
+ * the added `type: "btree"` would move) is unconstructable — a wire-named index
  * with options always hashed an explicit type, and the exact branch never
  * re-hashes.
  */

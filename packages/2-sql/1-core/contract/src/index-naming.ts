@@ -32,8 +32,8 @@ export type AuthoredIndexMethod =
 
 /**
  * An index as authored, before naming: `map` is an exact physical name
- * (adopted verbatim); `name` is a managed wire-name prefix. With neither,
- * the managed prefix defaults to `defaultIndexName(table, columns)`.
+ * (adopted verbatim); `name` is a wire-name prefix. With neither,
+ * the wire prefix defaults to `defaultIndexName(table, columns)`.
  * `where`, `unique`, `type`, and `options` participate in the content hash
  * alongside the elements.
  */
@@ -49,15 +49,15 @@ const EXACT_NAME_BODY_PREAMBLE =
   "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer.";
 
 /**
- * Per-subject remediation: an index moves to managed naming via `name:`;
+ * Per-subject remediation: an index moves to wire naming via `name:`;
  * a policy has no such parameter — dropping `@@map` makes the block's head
- * the managed prefix.
+ * the wire prefix.
  */
 const EXACT_NAME_BODY_REMEDIATION = {
   index:
-    'For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
+    'For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to wire naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
   policy:
-    "For hand-authored definitions, drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
+    "For hand-authored definitions, drop @@map and let the policy block's head name the policy; to migrate an adopted policy to wire naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
 } as const;
 
 /** What the user actually wrote, per subject: index `map:`, policy `@@map`. */
@@ -112,7 +112,7 @@ export function lowerAuthoredIndex(
   if (authored.map !== undefined && authored.name !== undefined) {
     throw contractError(
       'CONTRACT.ARGUMENT_INVALID',
-      `Index "${authored.map}" on table "${tableName}": map and name are mutually exclusive — map adopts an exact physical name, name is a managed prefix.`,
+      `Index "${authored.map}" on table "${tableName}": map and name are mutually exclusive — map adopts an exact physical name, name is a wire prefix.`,
     );
   }
   if (
@@ -128,7 +128,7 @@ export function lowerAuthoredIndex(
   if (authored.options !== undefined && authored.type === undefined) {
     throw contractError(
       'CONTRACT.ARGUMENT_INVALID',
-      `Index on table "${tableName}": options requires an explicit type — an index with options but no type cannot round-trip through contract infer (the emitted type: would change the managed wire name).`,
+      `Index on table "${tableName}": options requires an explicit type — an index with options but no type cannot round-trip through contract infer (the emitted type: would change the wire name).`,
     );
   }
 
@@ -166,7 +166,7 @@ export function lowerAuthoredIndex(
     ...(authored.options !== undefined && { options: authored.options }),
   });
   const carried = {
-    naming: { kind: 'managed' as const, prefix, hash },
+    naming: { kind: 'wire' as const, prefix, hash },
     where: authored.where,
     unique,
     type: authored.type,

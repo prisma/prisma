@@ -1,7 +1,7 @@
 /**
  * A live policy with a human-readable exact name
  * is adopted via `@@map` (body text = the live reprint), verifies clean, and
- * replacing `@@map` with the plain managed head converges through EXACTLY
+ * replacing `@@map` with the plain wire-named head converges through EXACTLY
  * one `ALTER POLICY … RENAME` (content pairing) — no drop, no
  * create — after which verify is clean under the wire name.
  */
@@ -44,7 +44,7 @@ const ADOPTED_SCHEMA = `
 // RLS hash tuple is a stability commitment (any tuple change re-suffixes every
 // wire name), and a recomputed expectation would move together with a tuple
 // regression instead of catching it.
-const MANAGED_NAME = 'tenant_read_f8d5e783';
+const WIRE_NAME = 'tenant_read_f8d5e783';
 
 interface PlannedOp {
   readonly id: string;
@@ -61,13 +61,13 @@ function readPlannedOps(ctx: JourneyContext): readonly PlannedOp[] {
 }
 
 withTempDir(({ createTempDir }) => {
-  describe('exact-named policy adoption converges to managed via one rename', () => {
+  describe('exact-named policy adoption converges to wire naming via one rename', () => {
     const db = useDevDatabase({
       onReady: (cs) => withClient(cs, (client) => client.query(ADOPTED_SCHEMA)),
     });
 
     it(
-      'adopt via @@map → verify clean → swap to managed head → renames-only plan → apply → verify clean',
+      'adopt via @@map → verify clean → swap to wire-named head → renames-only plan → apply → verify clean',
       async () => {
         const ctx: JourneyContext = setupJourney({
           connectionString: db.connectionString,
@@ -98,7 +98,7 @@ withTempDir(({ createTempDir }) => {
           migrationsApplied: 0,
         });
 
-        // swap to managed: replace @@map with the plain managed head (body verbatim).
+        // swap to wire naming: replace @@map with the plain wire-named head (body verbatim).
         swapPslContract(ctx, 'contract-rls-managed');
         const emitManaged = await runContractEmit(ctx);
         expect(
@@ -121,7 +121,7 @@ withTempDir(({ createTempDir }) => {
           {
             id: `rlsPolicy.public.user.${EXACT_NAME}.rename`,
             operationClass: 'widening',
-            sql: `ALTER POLICY "${EXACT_NAME}" ON "public"."user" RENAME TO "${MANAGED_NAME}"`,
+            sql: `ALTER POLICY "${EXACT_NAME}" ON "public"."user" RENAME TO "${WIRE_NAME}"`,
           },
         ]);
 

@@ -395,7 +395,7 @@ describe('permissive is an authorable block property', () => {
     expect(restrictiveName).not.toBe(permissiveName);
   });
 
-  it('omitted permissive defaults true — the managed wire name is byte-unchanged', () => {
+  it('omitted permissive defaults true — the wire name is byte-unchanged', () => {
     const explicit = interpret(
       policyDoc(`
   policy_select p_read {
@@ -477,7 +477,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
     const message = String(calls[0]?.[0]);
     expect(message).toContain('policy "Tenant members can read" uses @@map with a SQL body.');
     expect(message).toContain(
-      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map",
+      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to wire naming, remove @@map",
     );
     expect(message).not.toContain('name:');
   });
@@ -512,14 +512,14 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
     expect(policySummary).toBeDefined();
     expect(indexSummary).toBeDefined();
     expect(policySummary).toContain(
-      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
+      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to wire naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
     );
     for (const n of ['a', 'b', 'c', 'd', 'e', 'f']) {
       expect(policySummary).toContain(`  - policy "adopted policy ${n}"`);
     }
     expect(policySummary).not.toContain('index "');
     expect(indexSummary).toContain(
-      'use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
+      'use name: and let Prisma Next manage the physical name; to migrate an adopted object to wire naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
     );
     for (const n of [1, 2, 3, 4, 5, 6]) {
       expect(indexSummary).toContain(`  - index "adopted_idx_${n}"`);

@@ -184,7 +184,7 @@ function buildRlsPolicyEntity(input: {
   });
 
   return new PostgresRlsPolicy({
-    naming: { kind: 'managed', prefix: input.prefix, hash: wireHash },
+    naming: { kind: 'wire', prefix: input.prefix, hash: wireHash },
     tableName: input.tableName,
     namespaceId: input.namespaceId,
     operation: input.operation,

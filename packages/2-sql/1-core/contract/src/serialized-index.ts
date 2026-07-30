@@ -4,7 +4,7 @@ import type { IndexElements, IndexInput } from './ir/sql-index';
 
 /**
  * An index as `contract.json` stores it: full `name`, optional `prefix` whose
- * presence marks managed mode. The `table` entity kind hydrates it through
+ * presence marks wire mode. The `table` entity kind hydrates it through
  * {@link indexInputFromSerialized}.
  */
 export type SerializedIndex = IndexElements & {

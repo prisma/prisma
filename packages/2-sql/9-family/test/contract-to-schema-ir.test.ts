@@ -608,7 +608,7 @@ describe('contractToSchemaIR', () => {
     const idx = result.tables['T']!.indexes[0]!;
     expect(idx).toEqual(
       new SqlIndexIR({
-        naming: { kind: 'managed', prefix: 'T_email_idx', hash: 'deadbeef' },
+        naming: { kind: 'wire', prefix: 'T_email_idx', hash: 'deadbeef' },
         columns: ['email'],
         where: 'email IS NOT NULL',
         unique: true,

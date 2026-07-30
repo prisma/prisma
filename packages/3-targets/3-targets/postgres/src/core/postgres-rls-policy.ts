@@ -1,6 +1,6 @@
 import { freezeNode } from '@prisma-next/framework-components/ir';
 import { SqlNode } from '@prisma-next/sql-contract/types';
-import { physicalNameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
+import { nameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
@@ -63,8 +63,8 @@ export class PostgresRlsPolicy extends SqlNode {
 
   constructor(input: PostgresRlsPolicyInput) {
     super();
-    this.name = physicalNameOf(input.naming);
-    if (input.naming.kind === 'managed') this.prefix = input.naming.prefix;
+    this.name = nameOf(input.naming);
+    if (input.naming.kind === 'wire') this.prefix = input.naming.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;

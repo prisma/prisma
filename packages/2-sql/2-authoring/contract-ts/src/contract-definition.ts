@@ -77,7 +77,7 @@ export type IndexNode = IndexNodeElements &
     readonly unique: boolean | undefined;
     /** Exact physical name (`map:`) — adopted verbatim, no wire hash. */
     readonly map: string | undefined;
-    /** Managed wire-name prefix (`name:`) — lowers to `<name>_<8hex>`. */
+    /** Wire-name prefix (`name:`) — lowers to `<name>_<8hex>`. */
     readonly name: string | undefined;
   };
 

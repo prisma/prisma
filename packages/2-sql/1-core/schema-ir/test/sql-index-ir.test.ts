@@ -219,7 +219,7 @@ describe('SqlIndexIR', () => {
     });
   });
 
-  describe('isEqualTo — managed mode never compares bodies', () => {
+  describe('isEqualTo — wire mode never compares bodies', () => {
     it('expression and where drift is invisible to a managed expected node', () => {
       const expected = managed({ name: NAME, expression: 'lower(email)', where: 'x > 1' });
       const actual = exact({ name: NAME, expression: 'upper(email)', where: 'x > 2' });

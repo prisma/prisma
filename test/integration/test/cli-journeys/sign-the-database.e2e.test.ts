@@ -8,7 +8,7 @@
  * operations.
  *
  * Second half: from that signed contract, one index and one policy transition
- * from `map:` to the managed spelling (bodies verbatim) → the widening plan
+ * from `map:` to the wire spelling (bodies verbatim) → the widening plan
  * contains EXACTLY two ops, both renames (byte-asserted) → apply → verify
  * clean under the wire names.
  */
@@ -57,12 +57,12 @@ const FOREIGN_TOOL_SCHEMA = `
     USING (tenant_id = 1) WITH CHECK (tenant_id = 1);
 `;
 
-const MANAGED_INDEX_NAME = `documents_email_lower_${computeIndexContentHash({
+const WIRE_INDEX_NAME = `documents_email_lower_${computeIndexContentHash({
   expression: 'lower(email)',
   unique: false,
 })}`;
 
-const MANAGED_POLICY_NAME = `Tenant_members_can_read_${computeContentHash({
+const WIRE_POLICY_NAME = `Tenant_members_can_read_${computeContentHash({
   using: normalizeSqlBody('(tenant_id = 1)'),
   roles: ['tenant_app_user'],
   operation: 'select',
@@ -88,7 +88,7 @@ function readPlannedOps(ctx: JourneyContext): readonly PlannedOp[] {
 // has already changed. `retry: 0` overrides the suite-wide CI retry budget
 // here: a flake must surface as itself rather than as a second, misleading
 // failure from the replay.
-describe('sign a database this toolchain has never seen, then transition to managed', {
+describe('sign a database this toolchain has never seen, then transition to wire naming', {
   retry: 0,
 }, () => {
   const db = useDevDatabase({
@@ -164,7 +164,7 @@ describe('sign a database this toolchain has never seen, then transition to mana
   );
 
   it(
-    'map:-to-managed transition plans exactly two renames, applies, verifies clean',
+    'map:-to-wire transition plans exactly two renames, applies, verifies clean',
     async () => {
       expect(ctx, 'the signing step must have completed').toBeDefined();
 
@@ -183,7 +183,7 @@ describe('sign a database this toolchain has never seen, then transition to mana
         migrationsApplied: 0,
       });
 
-      // Transition ONE index and ONE policy to managed spellings,
+      // Transition ONE index and ONE policy to wire spellings,
       // bodies verbatim.
       const transitioned = inferredPsl
         .replace(
@@ -215,12 +215,12 @@ describe('sign a database this toolchain has never seen, then transition to mana
         {
           id: 'index.public.documents.documents_email_lower_idx.rename',
           operationClass: 'widening',
-          sql: `ALTER INDEX "public"."documents_email_lower_idx" RENAME TO "${MANAGED_INDEX_NAME}"`,
+          sql: `ALTER INDEX "public"."documents_email_lower_idx" RENAME TO "${WIRE_INDEX_NAME}"`,
         },
         {
           id: 'rlsPolicy.public.documents.Tenant members can read.rename',
           operationClass: 'widening',
-          sql: `ALTER POLICY "Tenant members can read" ON "public"."documents" RENAME TO "${MANAGED_POLICY_NAME}"`,
+          sql: `ALTER POLICY "Tenant members can read" ON "public"."documents" RENAME TO "${WIRE_POLICY_NAME}"`,
         },
       ]);
 

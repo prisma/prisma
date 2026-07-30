@@ -3,7 +3,7 @@ import type { PostgresRlsPolicyInput, RlsPolicyOperation } from './postgres-rls-
 
 /**
  * A policy as `contract.json` stores it: full `name`, optional `prefix` whose
- * presence marks managed mode. The `policy` entity kind hydrates it through
+ * presence marks wire mode. The `policy` entity kind hydrates it through
  * {@link policyInputFromSerialized}.
  */
 export type SerializedRlsPolicy = {

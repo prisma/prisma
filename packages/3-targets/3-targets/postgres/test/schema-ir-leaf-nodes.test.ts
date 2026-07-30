@@ -175,7 +175,7 @@ describe('PostgresPolicySchemaNode', () => {
     });
   });
 
-  describe('isEqualTo — managed mode stays id-driven', () => {
+  describe('isEqualTo — wire mode stays id-driven', () => {
     it('same wire name is equal even when bodies differ (hash identity covers content)', () => {
       const a = policyNode(basePolicyInput);
       const b = policyNode({

@@ -245,7 +245,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          naming: { kind: 'managed', prefix: 'p', hash: 'ab12cd34' },
+          naming: { kind: 'wire', prefix: 'p', hash: 'ab12cd34' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -320,7 +320,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          naming: { kind: 'managed', prefix: 'tenant_read', hash: 'f8d5e783' },
+          naming: { kind: 'wire', prefix: 'tenant_read', hash: 'f8d5e783' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',

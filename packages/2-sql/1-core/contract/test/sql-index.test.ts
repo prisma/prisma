@@ -90,7 +90,7 @@ describe('Index', () => {
       }),
     );
     expect(namingOf(managed.name, managed.prefix)).toEqual({
-      kind: 'managed',
+      kind: 'wire',
       prefix: 'users_email_idx',
       hash: 'ab12cd34',
     });

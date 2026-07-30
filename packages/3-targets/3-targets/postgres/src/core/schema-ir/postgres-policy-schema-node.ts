@@ -1,6 +1,6 @@
 import type { DiffableNode, SchemaNodeRef } from '@prisma-next/framework-components/control';
 import { freezeNode } from '@prisma-next/framework-components/ir';
-import { physicalNameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
+import { nameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
 import { isArrayEqual } from '@prisma-next/utils/array-equal';
 import { blindCast } from '@prisma-next/utils/casts';
@@ -40,7 +40,7 @@ export interface PostgresPolicySchemaNodeInput {
  * `PostgresRlsPolicy` contract entities / introspected rows.
  *
  * `id` is the full physical name. `isEqualTo` is mode-selected by the
- * receiver's `prefix`: a managed receiver (`prefix` present) compares ids
+ * receiver's `prefix`: a wire-named receiver (`prefix` present) compares ids
  * only — the wire name encodes a body hash, so name-equality is
  * body-equality and predicate bodies are never byte-compared (Postgres
  * reprints them). An exact receiver (`prefix` absent) compares content:
@@ -65,8 +65,8 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
 
   constructor(input: PostgresPolicySchemaNodeInput) {
     super();
-    this.name = physicalNameOf(input.naming);
-    if (input.naming.kind === 'managed') this.prefix = input.naming.prefix;
+    this.name = nameOf(input.naming);
+    if (input.naming.kind === 'wire') this.prefix = input.naming.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;
@@ -95,7 +95,7 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
     // Managed short-circuits to id equality — deliberately a different shape
     // from SqlIndexIR.isEqualTo (which calls contentEquals in both modes):
     // the policy hash tuple is total over the fields contentEquals compares,
-    // so a managed policy's name equality already implies content equality.
+    // so a wire-named policy's name equality already implies content equality.
     if (this.prefix !== undefined) {
       return this.id === node.id;
     }

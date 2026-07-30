@@ -321,7 +321,7 @@ changes:
     summary: |
       SQL index entities are name-identified from 0.17, at both layers an extension touches.
       Contract IR (`Index` from `@prisma-next/sql-contract/types`): `name` (full physical
-      name) and `unique` are required, `prefix` marks a managed wire name (`name` must parse
+      name) and `unique` are required, `prefix` marks a wire name (`name` must parse
       back to `prefix` + 8-hex suffix), and `columns` became optional — exactly one of
       `columns` / `expression` must be set; the constructor and `IndexSchema` validation
       throw on the old shape, so any pack code or test fixture building `indexes: [{ columns:
@@ -336,7 +336,7 @@ changes:
       never compares bodies. Construction sites must supply the real physical name — never a
       placeholder. Re-emit your pack's committed contract space (`build:contract-space` /
       `contract:generate`); storage hashes move for every contract that declares indexes, and
-      managed index physical names gain the `_<8hex>` content-hash suffix (see the user-skill
+      wire-named index physical names gain the `_<8hex>` content-hash suffix (see the user-skill
       `indexes-are-name-identified` entry for the database-convergence flow — the first
       widening plan is renames-only).
     detection:
@@ -602,11 +602,11 @@ Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. 
 
 ### Schema IR: `SqlIndexIR`
 
-`SqlIndexIRInput` requires `name` and adds explicit `prefix` / `expression` / `where` keys (the package's every-field-required convention: state absence with `undefined`, never by omission), and `columns` became `readonly string[] | undefined` (xor `expression`). The node's diff-tree `id` is now `index:<name>` — the old tuple-derived `index:<col,col>` ids are gone, so any test asserting child ids or diff paths must use the physical name. `isEqualTo` is mode-selected by the receiver: both modes compare `unique` strict, `type` strict, `options` loosely (`String()`-coerced), and `columns` ordered-strict when both sides carry them; an exact-named receiver (`prefix === undefined`) additionally byte-compares `expression ?? ''` and `where ?? ''`; a managed receiver never compares bodies. Introspection now captures expression and partial indexes at full fidelity and preserves same-tuple twin indexes — packs must not assume one index per column tuple.
+`SqlIndexIRInput` requires `name` and adds explicit `prefix` / `expression` / `where` keys (the package's every-field-required convention: state absence with `undefined`, never by omission), and `columns` became `readonly string[] | undefined` (xor `expression`). The node's diff-tree `id` is now `index:<name>` — the old tuple-derived `index:<col,col>` ids are gone, so any test asserting child ids or diff paths must use the physical name. `isEqualTo` is mode-selected by the receiver: both modes compare `unique` strict, `type` strict, `options` loosely (`String()`-coerced), and `columns` ordered-strict when both sides carry them; an exact-named receiver (`prefix === undefined`) additionally byte-compares `expression ?? ''` and `where ?? ''`; a wire-named receiver never compares bodies. Introspection now captures expression and partial indexes at full fidelity and preserves same-tuple twin indexes — packs must not assume one index per column tuple.
 
 ### Committed contract spaces
 
-Re-emit your pack's contract space with the upgraded toolchain (`build:contract-space`, or your generator script à la `contract:generate`): every contract that declares indexes gets the new entry shape and a new storage hash, and managed index physical names gain the `_<8hex>` content-hash suffix. Databases your pack maintains (acceptance harnesses, reference instances) converge via a renames-only widening plan — see the user-skill `indexes-are-name-identified` entry for that flow. Expression and partial indexes are authorable from 0.17 (PSL `@@index(expression:/where:/unique:/type:/name: xor map:)`, TS `constraints.index` with the same matrix); declare them with `name:` for managed wire names, or `map:` for infer-captured exact names — hand-authoring a body under `map:` warns (`PN_EXACT_NAME_BODY_COMPARISON`) because drift detection byte-compares the authored text against Postgres's reprint. Live indexes you choose not to declare stay tolerated under an `external` control policy.
+Re-emit your pack's contract space with the upgraded toolchain (`build:contract-space`, or your generator script à la `contract:generate`): every contract that declares indexes gets the new entry shape and a new storage hash, and wire-named index physical names gain the `_<8hex>` content-hash suffix. Databases your pack maintains (acceptance harnesses, reference instances) converge via a renames-only widening plan — see the user-skill `indexes-are-name-identified` entry for that flow. Expression and partial indexes are authorable from 0.17 (PSL `@@index(expression:/where:/unique:/type:/name: xor map:)`, TS `constraints.index` with the same matrix); declare them with `name:` for wire names, or `map:` for infer-captured exact names — hand-authoring a body under `map:` warns (`PN_EXACT_NAME_BODY_COMPARISON`) because drift detection byte-compares the authored text against Postgres's reprint. Live indexes you choose not to declare stay tolerated under an `external` control policy.
 
 ## `rls-policy-migration-literal-carries-the-naming-union`
 

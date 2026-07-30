@@ -305,7 +305,7 @@ describe('inferPostgresPslContract', () => {
     `);
   });
 
-  describe('index emission — managed re-detection and the full matrix', () => {
+  describe('index emission — wire re-detection and the full matrix', () => {
     interface IndexFixture {
       readonly name: string;
       readonly prefix?: string;
@@ -349,7 +349,7 @@ describe('inferPostgresPslContract', () => {
       return printPsl(sqlSchemaIrToPslAst(schemaIR));
     }
 
-    it('a default-named managed index re-detects: the wire hash recomputes, name: emits', () => {
+    it('a default-named wire-named index re-detects: the wire hash recomputes, name: emits', () => {
       const psl = pslWithIndex({
         name: 'user_email_idx_46df9cad',
         prefix: 'user_email_idx',
@@ -401,9 +401,9 @@ describe('inferPostgresPslContract', () => {
       expect(psl).toContain(`@@index([email], map: "${authoredName}")`);
     });
 
-    it('a managed index with an explicit non-default type and options re-detects stable', () => {
+    it('a wire-named index with an explicit non-default type and options re-detects stable', () => {
       // The F01 backstop makes options-without-type unconstructable, so a
-      // managed index carrying options always hashed an explicit type — the
+      // wire-named index carrying options always hashed an explicit type — the
       // recompute from introspected parts agrees and name: re-emits.
       const hash = computeIndexContentHash({
         columns: ['email'],

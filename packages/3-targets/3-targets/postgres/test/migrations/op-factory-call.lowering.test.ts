@@ -961,7 +961,7 @@ describe('CreatePostgresRlsPolicyCall', () => {
     expect(call.renderTypeScript()).toBe(
       [
         'this.createRlsPolicy({ schema: "public", table: "post", policy: {',
-        '  naming: { kind: "managed", prefix: "post_owner", hash: "a1b2c3d4" },',
+        '  naming: { kind: "wire", prefix: "post_owner", hash: "a1b2c3d4" },',
         '  tableName: "post",',
         '  namespaceId: "public",',
         '  operation: "select",',

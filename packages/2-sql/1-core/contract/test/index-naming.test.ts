@@ -1,6 +1,6 @@
 import type { AuthoringWarning } from '@prisma-next/framework-components/authoring';
 import { flushAuthoringWarnings } from '@prisma-next/framework-components/authoring';
-import { computeIndexContentHash, physicalNameOf } from '@prisma-next/sql-schema-ir/naming';
+import { computeIndexContentHash, nameOf } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it, vi } from 'vitest';
 import {
   type AuthoredIndexInput,
@@ -43,7 +43,7 @@ function captureWarnings(run: () => void) {
 describe('lowerAuthoredIndex — matrix threading', () => {
   it('fields-only wire names are unchanged (regression pin)', () => {
     expect(lowerAuthoredIndex('user', { columns: ['email'] })).toEqual({
-      naming: { kind: 'managed', prefix: 'user_email_idx', hash: '46df9cad' },
+      naming: { kind: 'wire', prefix: 'user_email_idx', hash: '46df9cad' },
       columns: ['email'],
       unique: false,
     });
@@ -55,13 +55,13 @@ describe('lowerAuthoredIndex — matrix threading', () => {
       name: 'users_email_eq',
     });
     expect(lowered).toEqual({
-      naming: { kind: 'managed', prefix: 'users_email_eq', hash: '17273133' },
+      naming: { kind: 'wire', prefix: 'users_email_eq', hash: '17273133' },
       expression: 'lower(email)',
       unique: false,
     });
     // Cross-check against the naming module's own hash.
     const hash = computeIndexContentHash({ expression: 'lower(email)', unique: false });
-    expect(physicalNameOf(lowered.naming)).toBe(`users_email_eq_${hash}`);
+    expect(nameOf(lowered.naming)).toBe(`users_email_eq_${hash}`);
   });
 
   it('threads where into the carried node and the hash tuple', () => {
@@ -70,7 +70,7 @@ describe('lowerAuthoredIndex — matrix threading', () => {
       where: '(deleted_at IS NULL)',
     });
     expect(lowered).toEqual({
-      naming: { kind: 'managed', prefix: 'user_email_idx', hash: '77bde254' },
+      naming: { kind: 'wire', prefix: 'user_email_idx', hash: '77bde254' },
       columns: ['email'],
       where: '(deleted_at IS NULL)',
       unique: false,
@@ -80,18 +80,18 @@ describe('lowerAuthoredIndex — matrix threading', () => {
       where: '(deleted_at IS NULL)',
       unique: false,
     });
-    expect(physicalNameOf(lowered.naming)).toBe(`user_email_idx_${hash}`);
+    expect(nameOf(lowered.naming)).toBe(`user_email_idx_${hash}`);
   });
 
   it('threads unique into the carried node and the hash tuple', () => {
     const lowered = lowerAuthoredIndex('user', { columns: ['email'], unique: true });
     expect(lowered).toEqual({
-      naming: { kind: 'managed', prefix: 'user_email_idx', hash: '34912d96' },
+      naming: { kind: 'wire', prefix: 'user_email_idx', hash: '34912d96' },
       columns: ['email'],
       unique: true,
     });
     const hash = computeIndexContentHash({ columns: ['email'], unique: true });
-    expect(physicalNameOf(lowered.naming)).toBe(`user_email_idx_${hash}`);
+    expect(nameOf(lowered.naming)).toBe(`user_email_idx_${hash}`);
   });
 
   it('threads the full matrix (expression + where + unique + type) under an exact map name', () => {
@@ -122,7 +122,7 @@ describe('lowerAuthoredIndex — matrix threading', () => {
       name: 'users_email_eq',
     });
     expect(lowered.naming).toEqual({
-      kind: 'managed',
+      kind: 'wire',
       prefix: 'users_email_eq',
       hash: '2b38ed5c',
     });
@@ -303,7 +303,7 @@ describe('lowerAuthoredIndex — exact-name body warning', () => {
     'index "users_email_eq" uses map: with a SQL body. Drift detection compares the authored ' +
     "SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the " +
     'text was captured by contract infer. For hand-authored definitions, use name: and let ' +
-    'Prisma Next manage the physical name; to migrate an adopted object to managed naming, ' +
+    'Prisma Next manage the physical name; to migrate an adopted object to wire naming, ' +
     'replace map: with name: (keeping the body text unchanged) and apply the resulting rename ' +
     'migration.';
 
@@ -323,7 +323,7 @@ describe('lowerAuthoredIndex — exact-name body warning', () => {
         "the authored SQL text byte-for-byte against Postgres's reprinted form, which is only " +
         'reliable when the text was captured by contract infer. For hand-authored definitions, ' +
         "drop @@map and let the policy block's head name the policy; to migrate an adopted " +
-        'policy to managed naming, remove @@map (keeping the body text unchanged) and apply ' +
+        'policy to wire naming, remove @@map (keeping the body text unchanged) and apply ' +
         'the resulting rename migration.',
     );
     expect(warning.summary).toBe(
@@ -331,7 +331,7 @@ describe('lowerAuthoredIndex — exact-name body warning', () => {
         "the authored SQL text byte-for-byte against Postgres's reprinted form, which is only " +
         'reliable when the text was captured by contract infer. For hand-authored definitions, ' +
         "drop @@map and let the policy block's head name the policy; to migrate an adopted " +
-        'policy to managed naming, remove @@map (keeping the body text unchanged) and apply ' +
+        'policy to wire naming, remove @@map (keeping the body text unchanged) and apply ' +
         'the resulting rename migration.',
     );
   });
