@@ -134,9 +134,10 @@ describe('@@map lowers an exact-named policy', () => {
     expect(ns.policy['p_read']?.name).toBe(longName);
   });
 
-  it('two blocks with distinct heads sharing one map value both lower without a duplicate diagnostic', () => {
-    const result = interpret(
-      policyDoc(`
+  it('two same-table blocks sharing one map value are rejected — CREATE POLICY would collide', () => {
+    expect(() =>
+      interpret(
+        policyDoc(`
   policy_select p_read {
     target = profile
     roles  = [app_user]
@@ -151,9 +152,44 @@ describe('@@map lowers an exact-named policy', () => {
     @@map("shared physical name")
   }
 `),
-    );
+      ),
+    ).toThrow(/"shared physical name" is declared multiple times/);
+  });
+
+  it('two blocks sharing one map value on DIFFERENT tables both lower — policy names are per-table in Postgres', () => {
+    const result = interpret(`
+namespace public {
+  model profile {
+    id       Int @id
+    owner_id Int
+
+    @@rls
+  }
+
+  model account {
+    id       Int @id
+    owner_id Int
+
+    @@rls
+  }
+
+  policy_select p_read_profile {
+    target = profile
+    roles  = [app_user]
+    using  = "owner_id = 1"
+    @@map("shared physical name")
+  }
+
+  policy_select p_read_account {
+    target = account
+    roles  = [app_user]
+    using  = "owner_id = 1"
+    @@map("shared physical name")
+  }
+}
+`);
     const ns = publicNamespace(result);
-    expect(Object.keys(ns.policy).sort()).toEqual(['p_read', 'p_write']);
+    expect(Object.keys(ns.policy).sort()).toEqual(['p_read_account', 'p_read_profile']);
   });
 
   it('two reopened spellings sharing one head stay a duplicate-entity diagnostic (head-keyed)', () => {

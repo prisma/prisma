@@ -207,6 +207,43 @@ type NamespacedStorageWalk = {
   >;
 };
 
+/**
+ * Any entries entity that declares both a `tableName` and a physical `name`
+ * (e.g. a target's RLS policy entities) shares one physical-name space per
+ * table: two such entries of one kind on the same table would collide as
+ * DDL (`CREATE POLICY "<name>" ON <table>` fails on the second), while the
+ * same name on different tables is legal. Structural — no entry-kind
+ * vocabulary; `table` entries are keyed by name already and are excluded.
+ */
+function validateTableScopedEntryNames(storage: SqlStorage, errors: string[]): void {
+  for (const [namespaceId, ns] of Object.entries(storage.namespaces)) {
+    if (!isPlainRecord(ns.entries)) continue;
+    for (const [entriesKind, slot] of Object.entries(ns.entries)) {
+      if (entriesKind === 'table' || !isPlainRecord(slot)) continue;
+      const seen = new Map<string, number>();
+      for (const entity of Object.values(slot)) {
+        // Entities are IR class instances here (and plain records on the
+        // deserialize path) — read structurally, not via a plain-record guard.
+        if (typeof entity !== 'object' || entity === null) continue;
+        const record = blindCast<
+          Record<string, unknown>,
+          'structural read of an entries entity (class instance or plain record); only string-typed name/tableName are consumed'
+        >(entity);
+        const name = record['name'];
+        const tableName = record['tableName'];
+        if (typeof name !== 'string' || typeof tableName !== 'string') continue;
+        const key = `${tableName} ${name}`;
+        seen.set(key, (seen.get(key) ?? 0) + 1);
+        if (seen.get(key) === 2) {
+          errors.push(
+            `Namespace "${namespaceId}" table "${tableName}": ${entriesKind} "${name}" is declared multiple times`,
+          );
+        }
+      }
+    }
+  }
+}
+
 function eachStorageTable(storage: NamespacedStorageWalk) {
   return Object.entries(storage.namespaces).flatMap(([namespaceId, ns]) =>
     Object.entries(ns.entries['table'] ?? {}).map(([tableName, table]) => ({
@@ -458,6 +495,8 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
  */
 export function validateStorageSemantics(storage: SqlStorage): string[] {
   const errors: string[] = [];
+
+  validateTableScopedEntryNames(storage, errors);
 
   for (const { namespaceId, tableName, table: rawTable } of eachStorageTable(storage)) {
     const table = rawTable as StorageTable;

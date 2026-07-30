@@ -135,7 +135,7 @@ function actualSchema(options: {
                   roles: [...policy.roles],
                   using: policy.using,
                   permissive: policy.permissive,
-                  withCheck: undefined,
+                  withCheck: policy.withCheck,
                   dependsOn: undefined,
                 }),
             ),
