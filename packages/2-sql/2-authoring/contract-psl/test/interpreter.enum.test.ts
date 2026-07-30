@@ -611,16 +611,14 @@ describe.each([
     scalarColumnDescriptors: sqliteScalarColumnDescriptors,
     enumInferenceCodecs: sqliteEnumInferenceCodecs,
   },
-])('enum @@type inference ($targetName)', ({
-  target,
-  scalarColumnDescriptors,
-  enumInferenceCodecs,
-}) => {
-  const namespaceId = target.defaultNamespaceId;
+])(
+  'enum @@type inference ($targetName)',
+  ({ target, scalarColumnDescriptors, enumInferenceCodecs }) => {
+    const namespaceId = target.defaultNamespaceId;
 
-  it('no @@type, all-bare members infers the target text codec', () => {
-    const result = interpret(
-      `
+    it('no @@type, all-bare members infers the target text codec', () => {
+      const result = interpret(
+        `
 enum Role {
   Admin
   User
@@ -630,23 +628,23 @@ model Post {
   role Role
 }
 `,
-      { target, scalarColumnDescriptors, enumInferenceCodecs },
-    );
+        { target, scalarColumnDescriptors, enumInferenceCodecs },
+      );
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    const domainNs = result.value.domain.namespaces[namespaceId];
-    expect(domainNs?.enum?.['Role']).toMatchObject({ codecId: enumInferenceCodecs.text });
-    const ns = (result.value.storage as unknown as SqlStorage).namespaces[namespaceId];
-    expect(ns?.entries.valueSet?.['Role']).toMatchObject({
-      kind: 'valueSet',
-      values: ['Admin', 'User'],
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const domainNs = result.value.domain.namespaces[namespaceId];
+      expect(domainNs?.enum?.['Role']).toMatchObject({ codecId: enumInferenceCodecs.text });
+      const ns = (result.value.storage as unknown as SqlStorage).namespaces[namespaceId];
+      expect(ns?.entries.valueSet?.['Role']).toMatchObject({
+        kind: 'valueSet',
+        values: ['Admin', 'User'],
+      });
     });
-  });
 
-  it('no @@type, all-string-value members infers the target text codec', () => {
-    const result = interpret(
-      `
+    it('no @@type, all-string-value members infers the target text codec', () => {
+      const result = interpret(
+        `
 enum Role {
   Admin = "admin"
   User  = "user"
@@ -656,23 +654,23 @@ model Post {
   role Role
 }
 `,
-      { target, scalarColumnDescriptors, enumInferenceCodecs },
-    );
+        { target, scalarColumnDescriptors, enumInferenceCodecs },
+      );
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    const domainNs = result.value.domain.namespaces[namespaceId];
-    expect(domainNs?.enum?.['Role']).toMatchObject({ codecId: enumInferenceCodecs.text });
-    const ns = (result.value.storage as unknown as SqlStorage).namespaces[namespaceId];
-    expect(ns?.entries.valueSet?.['Role']).toMatchObject({
-      kind: 'valueSet',
-      values: ['admin', 'user'],
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const domainNs = result.value.domain.namespaces[namespaceId];
+      expect(domainNs?.enum?.['Role']).toMatchObject({ codecId: enumInferenceCodecs.text });
+      const ns = (result.value.storage as unknown as SqlStorage).namespaces[namespaceId];
+      expect(ns?.entries.valueSet?.['Role']).toMatchObject({
+        kind: 'valueSet',
+        values: ['admin', 'user'],
+      });
     });
-  });
 
-  it('no @@type, all-integer-value members infers the target int codec', () => {
-    const result = interpret(
-      `
+    it('no @@type, all-integer-value members infers the target int codec', () => {
+      const result = interpret(
+        `
 enum Priority {
   Low  = 1
   High = 2
@@ -682,23 +680,23 @@ model Post {
   priority Priority
 }
 `,
-      { target, scalarColumnDescriptors, enumInferenceCodecs },
-    );
+        { target, scalarColumnDescriptors, enumInferenceCodecs },
+      );
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    const domainNs = result.value.domain.namespaces[namespaceId];
-    expect(domainNs?.enum?.['Priority']).toMatchObject({ codecId: enumInferenceCodecs.int });
-    const ns = (result.value.storage as unknown as SqlStorage).namespaces[namespaceId];
-    expect(ns?.entries.valueSet?.['Priority']).toMatchObject({
-      kind: 'valueSet',
-      values: [1, 2],
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const domainNs = result.value.domain.namespaces[namespaceId];
+      expect(domainNs?.enum?.['Priority']).toMatchObject({ codecId: enumInferenceCodecs.int });
+      const ns = (result.value.storage as unknown as SqlStorage).namespaces[namespaceId];
+      expect(ns?.entries.valueSet?.['Priority']).toMatchObject({
+        kind: 'valueSet',
+        values: [1, 2],
+      });
     });
-  });
 
-  it('explicit @@type is unchanged: same codec and diagnostics as before this slice', () => {
-    const result = interpret(
-      `
+    it('explicit @@type is unchanged: same codec and diagnostics as before this slice', () => {
+      const result = interpret(
+        `
 enum Priority {
   @@type("${enumInferenceCodecs.text}")
   Low  = "low"
@@ -709,18 +707,18 @@ model Post {
   priority Priority
 }
 `,
-      { target, scalarColumnDescriptors, enumInferenceCodecs },
-    );
+        { target, scalarColumnDescriptors, enumInferenceCodecs },
+      );
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    const domainNs = result.value.domain.namespaces[namespaceId];
-    expect(domainNs?.enum?.['Priority']).toMatchObject({ codecId: enumInferenceCodecs.text });
-  });
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const domainNs = result.value.domain.namespaces[namespaceId];
+      expect(domainNs?.enum?.['Priority']).toMatchObject({ codecId: enumInferenceCodecs.text });
+    });
 
-  it('no @@type, a mix of string and integer member values cannot be inferred', () => {
-    const result = interpret(
-      `
+    it('no @@type, a mix of string and integer member values cannot be inferred', () => {
+      const result = interpret(
+        `
 enum Mixed {
   Low  = "low"
   High = 2
@@ -730,27 +728,27 @@ model Post {
   mixed Mixed
 }
 `,
-      { target, scalarColumnDescriptors, enumInferenceCodecs },
-    );
+        { target, scalarColumnDescriptors, enumInferenceCodecs },
+      );
 
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_ENUM_CANNOT_INFER_TYPE',
-          message: expect.stringMatching(/Mixed/),
-        }),
-      ]),
-    );
-    expect(
-      result.failure.diagnostics.find((d) => d.code === 'PSL_ENUM_CANNOT_INFER_TYPE')?.message,
-    ).toMatch(/@@type/);
-  });
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            code: 'PSL_ENUM_CANNOT_INFER_TYPE',
+            message: expect.stringMatching(/Mixed/),
+          }),
+        ]),
+      );
+      expect(
+        result.failure.diagnostics.find((d) => d.code === 'PSL_ENUM_CANNOT_INFER_TYPE')?.message,
+      ).toMatch(/@@type/);
+    });
 
-  it('no @@type, a float member value cannot be inferred', () => {
-    const result = interpret(
-      `
+    it('no @@type, a float member value cannot be inferred', () => {
+      const result = interpret(
+        `
 enum Priority {
   Low = 1.5
 }
@@ -759,19 +757,19 @@ model Post {
   priority Priority
 }
 `,
-      { target, scalarColumnDescriptors, enumInferenceCodecs },
-    );
+        { target, scalarColumnDescriptors, enumInferenceCodecs },
+      );
 
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_ENUM_CANNOT_INFER_TYPE' })]),
-    );
-  });
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual(
+        expect.arrayContaining([expect.objectContaining({ code: 'PSL_ENUM_CANNOT_INFER_TYPE' })]),
+      );
+    });
 
-  it('no @@type, a boolean member value cannot be inferred', () => {
-    const result = interpret(
-      `
+    it('no @@type, a boolean member value cannot be inferred', () => {
+      const result = interpret(
+        `
 enum Flag {
   On = true
 }
@@ -780,16 +778,17 @@ model Post {
   flag Flag
 }
 `,
-      { target, scalarColumnDescriptors, enumInferenceCodecs },
-    );
+        { target, scalarColumnDescriptors, enumInferenceCodecs },
+      );
 
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_ENUM_CANNOT_INFER_TYPE' })]),
-    );
-  });
-});
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual(
+        expect.arrayContaining([expect.objectContaining({ code: 'PSL_ENUM_CANNOT_INFER_TYPE' })]),
+      );
+    });
+  },
+);
 
 // ---------------------------------------------------------------------------
 // Non-string codec happy path

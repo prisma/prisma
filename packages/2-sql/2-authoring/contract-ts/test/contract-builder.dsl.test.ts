@@ -326,9 +326,12 @@ describe('contract DSL authoring surface', () => {
         }),
       /field\.sql\(\{ id \}\) requires an existing inline \.id/,
     ],
-  ] as const)('rejects field-local %s overlays without the semantic declaration', (_label, run, error) => {
-    expect(run).toThrow(error);
-  });
+  ] as const)(
+    'rejects field-local %s overlays without the semantic declaration',
+    (_label, run, error) => {
+      expect(run).toThrow(error);
+    },
+  );
 
   it('supports token-based many-to-many relations with lazy through refs', () => {
     const PostTag = model('PostTag', {
@@ -523,46 +526,43 @@ describe('contract DSL authoring surface', () => {
       targetTable: 'user_profile',
       expectedCardinality: '1:1',
     },
-  ] as const)('lowers %s ownership relations through the relation pipeline', ({
-    relationName,
-    targetModelName,
-    targetTable,
-    expectedCardinality,
-    ...ownershipCase
-  }) => {
-    const contract = buildOwnershipRelationContract({
-      relationName,
-      targetModelName,
-      targetTable,
-      expectedCardinality,
-      ...ownershipCase,
-    });
+  ] as const)(
+    'lowers %s ownership relations through the relation pipeline',
+    ({ relationName, targetModelName, targetTable, expectedCardinality, ...ownershipCase }) => {
+      const contract = buildOwnershipRelationContract({
+        relationName,
+        targetModelName,
+        targetTable,
+        expectedCardinality,
+        ...ownershipCase,
+      });
 
-    const modelsByName = modelsOf(contract) as Record<
-      string,
-      { relations: Record<string, unknown> }
-    >;
-    expect(modelsByName['User']?.relations).toMatchObject({
-      [relationName]: {
-        to: crossRef(targetModelName, 'public'),
-        cardinality: expectedCardinality,
-        on: {
-          localFields: ['id'],
-          targetFields: ['userId'],
+      const modelsByName = modelsOf(contract) as Record<
+        string,
+        { relations: Record<string, unknown> }
+      >;
+      expect(modelsByName['User']?.relations).toMatchObject({
+        [relationName]: {
+          to: crossRef(targetModelName, 'public'),
+          cardinality: expectedCardinality,
+          on: {
+            localFields: ['id'],
+            targetFields: ['userId'],
+          },
         },
-      },
-    });
-    expect(modelsByName[targetModelName]?.relations).toMatchObject({
-      user: {
-        to: crossRef('User', 'public'),
-        cardinality: 'N:1',
-        on: {
-          localFields: ['userId'],
-          targetFields: ['id'],
+      });
+      expect(modelsByName[targetModelName]?.relations).toMatchObject({
+        user: {
+          to: crossRef('User', 'public'),
+          cardinality: 'N:1',
+          on: {
+            localFields: ['userId'],
+            targetFields: ['id'],
+          },
         },
-      },
-    });
-  });
+      });
+    },
+  );
 
   it('applies root naming defaults and preserves explicit overrides', () => {
     const BlogPost = model('BlogPost', {

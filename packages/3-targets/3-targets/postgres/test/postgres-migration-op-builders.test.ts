@@ -401,20 +401,20 @@ const cases: ReadonlyArray<{
 ];
 
 describe('PostgresMigration op-builder methods without a ControlStack', () => {
-  it.each(cases)('$name throws MIGRATION.POSTGRES_CONTROL_STACK_MISSING synchronously', ({
-    name,
-    run,
-  }) => {
-    const m = new ExposedMigration();
-    expect(() => run(m)).toThrow(
-      expect.objectContaining({
-        name: 'CliStructuredError',
-        code: 'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
-        message: `PostgresMigration.${name} requires a control adapter`,
-        meta: { operation: name },
-      }),
-    );
-  });
+  it.each(cases)(
+    '$name throws MIGRATION.POSTGRES_CONTROL_STACK_MISSING synchronously',
+    ({ name, run }) => {
+      const m = new ExposedMigration();
+      expect(() => run(m)).toThrow(
+        expect.objectContaining({
+          name: 'CliStructuredError',
+          code: 'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
+          message: `PostgresMigration.${name} requires a control adapter`,
+          meta: { operation: name },
+        }),
+      );
+    },
+  );
 
   it('covers every declared case exactly once', () => {
     expect(cases.map((c) => c.name).sort()).toEqual(

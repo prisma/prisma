@@ -461,3 +461,7 @@ Review every `CodecRef` construction for a parameterized descriptor, including p
 When a parameterized descriptor intentionally supports an unparameterized column or contract reference, make its parameter type and Standard Schema accept the empty validated parameter object used during representative materialization. Express only genuinely absent fields as optional and preserve the existing unparameterized factory behavior; do not add a hidden default or change the codec encoded representation.
 
 After the migration, run the extension package's typecheck, lint, and tests. Verify its public codec ids, factories, column helpers, rendered types, SQL/wire behavior, `encodeJson` / `decodeJson`, runtime/control descriptor membership, and emitted contract behavior are unchanged apart from the descriptor types becoming PostgreSQL-specific.
+
+## Incidental lint-config bumps
+
+Biome `$schema` version alignment in `packages/3-extensions/` (dependabot `dev-deps` group, PR #1058) requires no Prisma Next-specific upgrade action by extension authors.

@@ -437,3 +437,7 @@ Under an **additive-only** policy (e.g. `db init`'s class set) the rename pairin
 ### Hard-coded names
 
 If application code, tests, or operational scripts hard-code physical index names (e.g. `user_email_idx`), read the new names from the regenerated `contract.json` — managed names now carry the hash suffix. PSL schemas that must keep a byte-exact legacy name can pin it with `@@index([...], map: "<exact name>")`.
+
+## Incidental dependency and lint-config bumps
+
+Routine dev-dependency bumps and biome `$schema` version alignment in `examples/` (dependabot `dev-deps` group, PR #1058) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
