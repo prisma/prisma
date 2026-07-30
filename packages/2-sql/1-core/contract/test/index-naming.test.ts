@@ -179,6 +179,23 @@ describe('lowerAuthoredIndex — cross-field guards', () => {
     });
   });
 
+  it('rejects options without a type — the untyped-options shape cannot round-trip through infer', () => {
+    let caught: unknown;
+    try {
+      lowerAuthoredIndex('user', {
+        columns: ['email'],
+        name: 'user_email_idx',
+        options: { fillfactor: 70 },
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      code: 'CONTRACT.ARGUMENT_INVALID',
+      message: expect.stringContaining('options requires an explicit type'),
+    });
+  });
+
   it('rejects map combined with name as a user-facing error (no longer internal)', () => {
     let caught: unknown;
     try {

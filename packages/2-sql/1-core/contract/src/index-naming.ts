@@ -115,6 +115,17 @@ export function lowerAuthoredIndex(
       `Index on table "${tableName}": an expression index requires an explicit name (name:) or exact physical name (map:) — a default name cannot be derived from an expression.`,
     );
   }
+  if (authored.options !== undefined && authored.type === undefined) {
+    // The shared backstop for the PSL diagnostic ("options argument requires
+    // a type argument"): an untyped-options managed index cannot round-trip —
+    // infer must emit `type:` beside `options:`, and the explicit type would
+    // enter the wire hash the untyped authoring never included, planning a
+    // spurious rename against an unchanged database.
+    throw contractError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `Index on table "${tableName}": options requires an explicit type — an index with options but no type cannot round-trip through contract infer (the emitted type: would change the managed wire name).`,
+    );
+  }
 
   const unique = authored.unique ?? false;
 
