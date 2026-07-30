@@ -20,20 +20,30 @@ export type AuthoredIndexElements =
   | { readonly columns?: never; readonly expression: string };
 
 /**
+ * The authored access method: options only exist as options *of a type*, so
+ * the pair is one two-arm union rather than two independent fields. An
+ * options bag without a type is therefore unrepresentable, the same way
+ * {@link AuthoredIndexElements} makes columns-with-expression
+ * unrepresentable.
+ */
+export type AuthoredIndexMethod =
+  | { readonly type: undefined; readonly options: undefined }
+  | { readonly type: string; readonly options: Record<string, unknown> | undefined };
+
+/**
  * An index as authored, before naming: `map` is an exact physical name
  * (adopted verbatim); `name` is a managed wire-name prefix. With neither,
  * the managed prefix defaults to `defaultIndexName(table, columns)`.
  * `where`, `unique`, `type`, and `options` participate in the content hash
  * alongside the elements.
  */
-export type AuthoredIndexInput = AuthoredIndexElements & {
-  readonly where: string | undefined;
-  readonly unique: boolean | undefined;
-  readonly map: string | undefined;
-  readonly name: string | undefined;
-  readonly type: string | undefined;
-  readonly options: Record<string, unknown> | undefined;
-};
+export type AuthoredIndexInput = AuthoredIndexElements &
+  AuthoredIndexMethod & {
+    readonly where: string | undefined;
+    readonly unique: boolean | undefined;
+    readonly map: string | undefined;
+    readonly name: string | undefined;
+  };
 
 const EXACT_NAME_BODY_PREAMBLE =
   "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer.";
@@ -116,11 +126,6 @@ export function lowerAuthoredIndex(
     );
   }
   if (authored.options !== undefined && authored.type === undefined) {
-    // The shared backstop for the PSL diagnostic ("options argument requires
-    // a type argument"): an untyped-options managed index cannot round-trip —
-    // infer must emit `type:` beside `options:`, and the explicit type would
-    // enter the wire hash the untyped authoring never included, planning a
-    // spurious rename against an unchanged database.
     throw contractError(
       'CONTRACT.ARGUMENT_INVALID',
       `Index on table "${tableName}": options requires an explicit type — an index with options but no type cannot round-trip through contract infer (the emitted type: would change the managed wire name).`,

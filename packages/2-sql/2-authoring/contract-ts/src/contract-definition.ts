@@ -7,6 +7,7 @@ import type { ForeignKeyDefaultsState } from '@prisma-next/contract-authoring';
 import type { AuthoringWarning } from '@prisma-next/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
 import type { ExtensionPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
+import type { AuthoredIndexMethod } from '@prisma-next/sql-contract/index-naming';
 import type {
   ReferentialAction,
   SqlNamespaceBase,
@@ -69,17 +70,16 @@ export type IndexNodeElements =
       readonly expression: string;
     };
 
-export type IndexNode = IndexNodeElements & {
-  /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
-  readonly where: string | undefined;
-  readonly unique: boolean | undefined;
-  /** Exact physical name (`map:`) — adopted verbatim, no wire hash. */
-  readonly map: string | undefined;
-  /** Managed wire-name prefix (`name:`) — lowers to `<name>_<8hex>`. */
-  readonly name: string | undefined;
-  readonly type: string | undefined;
-  readonly options: Record<string, unknown> | undefined;
-};
+export type IndexNode = IndexNodeElements &
+  AuthoredIndexMethod & {
+    /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
+    readonly where: string | undefined;
+    readonly unique: boolean | undefined;
+    /** Exact physical name (`map:`) — adopted verbatim, no wire hash. */
+    readonly map: string | undefined;
+    /** Managed wire-name prefix (`name:`) — lowers to `<name>_<8hex>`. */
+    readonly name: string | undefined;
+  };
 
 export interface ForeignKeyNode {
   readonly columns: readonly string[];

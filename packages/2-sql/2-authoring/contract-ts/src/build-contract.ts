@@ -933,10 +933,10 @@ export function buildSqlContractFromDefinition(
       const declaredIndexes = (semanticModel.indexes ?? []).map((i) =>
         lowerAuthoredIndex(
           tableName,
-          // The blind cast defers the columns-xor-expression decision to
-          // lowerAuthoredIndex's runtime guard, which owns the diagnostic
-          // for the neither/both cases.
-          blindCast<AuthoredIndexInput, 'columns-xor-expression enforced by lowerAuthoredIndex'>({
+          blindCast<
+            AuthoredIndexInput,
+            'the definition tree already carries both unions; the spread loses the correlation, and lowerAuthoredIndex re-checks at runtime'
+          >({
             ...ifDefined('columns', i.columns),
             ...ifDefined('expression', i.expression),
             where: i.where,

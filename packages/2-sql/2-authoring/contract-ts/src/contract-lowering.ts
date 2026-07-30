@@ -9,6 +9,7 @@ import {
   type ResolvedEntityHandleRef,
   type ResolvedPackEntityHandle,
 } from '@prisma-next/sql-contract/entity-handle-lowering-hook';
+import type { AuthoredIndexMethod } from '@prisma-next/sql-contract/index-naming';
 import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { InternalError } from '@prisma-next/utils/internal-error';
@@ -811,13 +812,16 @@ function resolveModelNode(
     ...(unique.name ? { name: unique.name } : {}),
   })) satisfies readonly UniqueConstraintNode[];
   const indexes = (spec.sqlSpec?.indexes ?? []).map((index): IndexNode => {
+    const method: AuthoredIndexMethod =
+      index.type !== undefined
+        ? { type: index.type, options: index.options }
+        : { type: undefined, options: undefined };
     const carried = {
       where: index.where,
       unique: index.unique,
       name: index.name,
       map: index.map,
-      type: index.type,
-      options: index.options,
+      ...method,
     };
     return index.expression !== undefined
       ? { ...carried, expression: index.expression }
