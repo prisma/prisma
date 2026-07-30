@@ -135,7 +135,7 @@ Quick links to detailed subsystem specifications:
 **Verification**
 
 - `migration check` verifies artifact and graph integrity offline; diffing runs against on-disk contract snapshots, never a shadow database
-- Pre and post checks, capability gates, and policy checks run at apply time
+- Pre- and post-checks, capability gates, and policy checks run at apply time
 
 **Execution**
 
