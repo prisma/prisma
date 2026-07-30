@@ -97,12 +97,13 @@ This is the dominant CD operation. The verb is dead-simple by design: the *only*
 **Persona:** CD pipeline (or the operator monitoring it).
 **Question:** "What will run on merge, and is that what we want?"
 
-The CD signal is a two-part flow:
+The CD signal is a three-part flow:
 
 ```bash
 migration check         # graph integrity: every migration self-consistent,
                         # every edge's from/to lines up, no orphans,
                         # no dangling refs. Read-only, no DB.
+migration status --from <contract>  # offline preview of the deploy path
 migrate --to production  # the actual execution
 ```
 
