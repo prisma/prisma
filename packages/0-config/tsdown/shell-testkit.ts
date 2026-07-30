@@ -131,14 +131,18 @@ export function bundledSources(installedPackageDir: string): string[] {
   for (const file of walk(join(installedPackageDir, 'dist'))) {
     if (!file.endsWith('.mjs.map')) continue;
     const map: unknown = JSON.parse(readFileSync(file, 'utf8'));
-    if (typeof map !== 'object' || map === null || !('sources' in map)) continue;
-    for (const source of Object(map).sources as unknown[]) {
+    if (!isRecord(map) || !Array.isArray(map['sources'])) continue;
+    for (const source of map['sources']) {
       if (typeof source !== 'string') continue;
       const path = source.replace(/^(?:\.\.\/)+/, '');
       if (!path.startsWith('src-gen/')) sources.add(path);
     }
   }
   return [...sources].sort();
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function walk(dir: string): string[] {
