@@ -83,7 +83,14 @@ function readPlannedOps(ctx: JourneyContext): readonly PlannedOp[] {
   );
 }
 
-describe('sign a database this toolchain has never seen, then transition to managed', () => {
+// Both steps mutate the one live database and the second continues from the
+// state the first left, so a retried step would replay against a database it
+// has already changed. `retry: 0` overrides the suite-wide CI retry budget
+// here: a flake must surface as itself rather than as a second, misleading
+// failure from the replay.
+describe('sign a database this toolchain has never seen, then transition to managed', {
+  retry: 0,
+}, () => {
   const db = useDevDatabase({
     onReady: (cs) => withClient(cs, (client) => client.query(FOREIGN_TOOL_SCHEMA)),
   });
@@ -159,6 +166,8 @@ describe('sign a database this toolchain has never seen, then transition to mana
   it(
     'map:-to-managed transition plans exactly two renames, applies, verifies clean',
     async () => {
+      expect(ctx, 'the signing step must have completed').toBeDefined();
+
       // Baseline migration so migration plan diffs from the
       // adopted contract; a fresh migrate is a no-op against the live DB.
       const planBaseline = await runMigrationPlanAndEmit(ctx, ['--name', 'baseline']);
