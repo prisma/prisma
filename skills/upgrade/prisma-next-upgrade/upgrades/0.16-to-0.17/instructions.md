@@ -506,6 +506,31 @@ changes:
         - "codec: { codecId"
         - "pg/enum@1"
       anyMatch: true
+  - id: sql-timestamp-json-is-utc-not-local
+    summary: |
+      **`sql/timestamp@1` now reads a zone-less timestamp as UTC where it read it in the running
+      process's local zone.** This is an interpretation change, not a formatting one, and it is the
+      dangerous half: `new Date('2026-01-02T03:04:05')` resolves in the local zone, so the same
+      stored value used to decode to a different instant on a machine in `Europe/Berlin` than on one
+      in `UTC` — shifted by the offset, silently. It now resolves as UTC on every machine.
+      If you compensated for the old shift anywhere downstream — adding the offset back, forcing
+      `TZ=UTC` on the process, normalising after decode — **remove that compensation**, or it now
+      double-corrects and the instant is wrong by twice the offset. Nothing raises: the value is
+      plausible, just wrong. If you ran with `TZ=UTC` there was no shift to compensate for and
+      nothing to change.
+      The JSON form changes with it: `encodeJson` emits `2026-01-02T03:04:05.678` where it emitted
+      `2026-01-02T03:04:05.678Z`. A `timestamp` carries no zone, so the trailing `Z` claimed one it
+      did not have; `decodeJson` now rejects an offset-bearing string outright rather than
+      reinterpreting it, since this codec cannot reproduce an offset it was handed. Update any
+      hand-written JSON, fixture or comparison that spells the old form.
+      `pg/timestamp@1` is unaffected — it already read as UTC and already emitted the zone-less
+      form.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,json}"
+      contains:
+        - "sql/timestamp@1"
+        - "sqlTimestampColumn"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — User upgrade instructions
@@ -669,3 +694,26 @@ Re-emit first (`prisma-next contract emit`), then reconcile any code that reads 
 The second place it surfaces is reads. A query that returns JSON projects each column through its codec, so a column whose codec is one of the nine listed above arrives in that codec's canonical form rather than in whatever the database's own JSON conversion produced. Decoding through the ORM needs no change — the codec's `decodeJson` is the other half of the same pair, and the two moved together. What needs checking is code that bypasses the ORM's decoding: a raw query that reads an aggregated JSON column and parses it itself, a comparison against a hand-written JSON string, a snapshot of database-produced JSON.
 
 Where a form is a strict improvement in range, nothing downstream breaks by widening. Where a form changes spelling — `bytea` from `\x`-hex to base64, `sqlite/blob@1` from base64 to uppercase hex — a hand-written comparison is the thing that breaks, and it breaks loudly rather than silently.
+
+## `sql-timestamp-json-is-utc-not-local`
+
+The formatting change is easy to see and easy to fix. The interpretation change is neither, so take it first.
+
+A `timestamp` column carries no time zone. Its JSON form is therefore a zone-less string, and something has to decide which instant that string denotes. `sql/timestamp@1` used to hand the string to `new Date(...)`, which resolves a zone-less form **in the zone the process happens to be running in**. The same stored value decoded to a different instant depending on where the code ran, and it decoded silently — a `Date` is a `Date`, whichever instant it holds.
+
+It now resolves as UTC, unconditionally, and `encodeJson` writes UTC. The pair round-trips on any machine.
+
+The migration hazard is compensation you may already have in place:
+
+- If you added an offset back after decoding, **remove it.** It now double-corrects, and the result is wrong by twice your offset.
+- If you set `TZ=UTC` on the process specifically to stabilise these values, you can drop that — though leaving it costs nothing, since UTC was already the case it produced.
+- If you normalised timestamps after reading them, check whether the normalisation is still doing anything.
+
+None of these fail loudly. A doubled offset produces a timestamp that parses, compares and serialises perfectly well and denotes the wrong moment, which is why this entry leads with the interpretation rather than the dropped `Z`.
+
+Two smaller consequences follow:
+
+- `encodeJson` emits `2026-01-02T03:04:05.678` rather than `2026-01-02T03:04:05.678Z`. Update fixtures, snapshots and hand-written comparisons.
+- `decodeJson` rejects an offset-bearing string instead of reinterpreting it. The codec cannot reproduce an offset, so accepting one would decode a value it could never encode back.
+
+`pg/timestamp@1` needs no attention: it already read as UTC and already emitted the zone-less form, and this change brings the generic codec into line with it.

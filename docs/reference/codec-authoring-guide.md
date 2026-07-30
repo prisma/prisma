@@ -27,6 +27,8 @@ PostgreSQL and SQLite target descriptors also declare AST-to-AST JSON projection
 
 **A value read back through database-produced JSON is the value that was stored.** Where a query returns JSON — an `.include()`'s nested rows, an aggregated child row set — each column reaches that JSON through its own codec's projection, and `decodeJson` returns the application value the column holds. A `numeric` arrives as its exact decimal text rather than rounded through a double; a `bytea` as base64 rather than a hex escape; a `bigint` as decimal text rather than a JSON number that cannot hold it. Absence is preserved: a `NULL` column reads back as `null`, never as a zero or an empty value.
 
+The guarantee is about **columns**. A value computed by the query rather than stored by it — an aggregate such as `count()`, `sum()` or `avg()` — has no column codec to be canonical against, so it reaches JSON as whatever the database's own conversion produces and is outside this guarantee. `count()` is the one you will meet first: it is typed `bigint` and the runtime hands back a string. Aggregate decoding is being addressed separately ([TML-3064](https://linear.app/prisma-company/issue/TML-3064)); until it is, treat an aggregate's value as needing your own conversion.
+
 The guarantee rests on the codec, not on the database's own JSON conversion, which is why it can be stated at all. It has exactly two limits, and both are real:
 
 - **`pg/geometry@1` is exempt.** The PostGIS geometry codec has no canonical JSON projection, so a geometry column inside database-produced JSON carries whatever PostGIS's own JSON conversion emits, and round-tripping it is not guaranteed. Tracked as [TML-3105](https://linear.app/prisma-company/issue/TML-3105).
