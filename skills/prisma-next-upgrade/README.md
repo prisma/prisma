@@ -6,7 +6,7 @@ An agent skill that upgrades a project consuming Prisma Next from one minor vers
 
 This skill is for **users** of Prisma Next — projects that depend on the public package API (`@prisma-next/postgres`, `@prisma-next/mongo`, the contract files in `prisma/`, etc.).
 
-If you are an extension author, install the [`prisma-next-extension-upgrade`](../../extension-author/prisma-next-extension-upgrade/SKILL.md) skill instead. If your repo contains both an app and an extension, install both.
+If you are an extension author, install the [`prisma-next-extension-upgrade`](../prisma-next-extension-upgrade/SKILL.md) skill instead. If your repo contains both an app and an extension, install both.
 
 ## Installation
 
@@ -14,9 +14,9 @@ If you are an extension author, install the [`prisma-next-extension-upgrade`](..
 pnpm dlx skills add prisma/prisma-next/skills --skill prisma-next-upgrade -y
 ```
 
-`--all` skips the per-agent selection prompt and installs to every agent runtime the `skills` CLI detects on this machine. For a single-agent install, swap `--all` for `-a <agent>` (e.g. `-a claude-code`).
+`--skill` selects this skill from the shared `skills` source and `-y` skips the confirmation prompt. To limit the install to one agent runtime, add `-a <agent>` (e.g. `-a claude-code`).
 
-The upgrade-skill subpath is intentionally **unpinned** (always tracks `main`). Bug fixes to older per-transition upgrade instructions ship as part of the cumulative latest skill content; pinning to an older revision can apply a known-broken translation. This is the only Prisma Next skill cluster that is unpinned by design — the user-facing usage skills under `skills/*` install pinned to the project's installed Prisma Next version (see [`prisma-next init`](../../../packages/1-framework/3-tooling/cli/) for the canonical wiring).
+The upgrade skill installs intentionally **unpinned** (always tracks `main`). Bug fixes to older per-transition upgrade instructions ship as part of the cumulative latest skill content; pinning to an older revision can apply a known-broken translation. The two upgrade skills are the only Prisma Next skills that are unpinned by design — the consolidated `prisma-next` usage skill installs pinned to the project's installed Prisma Next version (see [`prisma-next init`](../../packages/1-framework/3-tooling/cli/) for the canonical wiring).
 
 ## Usage
 

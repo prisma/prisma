@@ -28,7 +28,7 @@ Concretely: if the agent runtime supports an in-session refresh, perform it now.
 pnpm dlx skills add prisma/prisma-next/skills --skill prisma-next-extension-upgrade -y
 ```
 
-The extension-author skill subpath is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth and the latest release fixes apply to every prior transition.
+The extension-author skill install is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth and the latest release fixes apply to every prior transition.
 
 Then re-invoke this skill before proceeding.
 
