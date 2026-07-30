@@ -6,6 +6,34 @@ Contributor guide for the Prisma Next skills cluster. If you are *using* the ski
 
 Skills that teach an LLM agent how to operate Prisma Next end-to-end. The usage surface is one consolidated skill: [`skills/prisma-next/SKILL.md`](./prisma-next/SKILL.md) is the runtime-matched entry point (its `description:` frontmatter fires on any Prisma Next work) and routes via its routing table into workflow-scoped reference files under [`skills/prisma-next/references/`](./prisma-next/references/) — one user goal per reference file. The two upgrade skills ([`prisma-next-upgrade`](./prisma-next-upgrade/), [`prisma-next-extension-upgrade`](./prisma-next-extension-upgrade/)) stay separate because their install ref policy differs (always `main`, never version-pinned).
 
+## Design principles
+
+The consolidated shape is deliberate. These principles govern every change to the published skills; a change that regresses one of them needs an explicit reason in the PR.
+
+### One skill, not a cluster
+
+The usage surface is exactly one installable skill. Agent runtimes match skills against the user's prompt by `description:` — a cluster of sibling skills forces each description to carve out its own trigger territory, and the boundaries drift, overlap, and misfire as the cluster grows. One skill means one activation decision ("is this Prisma Next work?") followed by an explicit routing step the skill itself controls.
+
+**A new top-level skill needs a structural reason, not a topical one.** The upgrade skills exist because their install ref policy differs from the usage skill (always-`main` vs version-pinned) — that is a structural reason. A new workflow, feature area, or extension is a new reference file plus a routing-table row, never a new sibling skill.
+
+### Progressive disclosure
+
+`SKILL.md` is the only always-loaded content, so it must earn its context budget. It carries three things: the activation description, the routing table, and the canonical mental model — nothing else. Everything workflow-specific lives in a reference file that is loaded only when its routing-table row matches. API detail, worked examples, pitfalls, and capability gaps all belong at the reference layer.
+
+The test for placement: *would every Prisma Next task benefit from the agent having read this?* If yes, it may live in `SKILL.md`. If only some tasks would, it goes in a reference file.
+
+### Length budgets
+
+- **`SKILL.md`: ~150 lines.** It is an index and a mental model, not a manual. If it is growing, content is leaking up from the reference layer — push it back down.
+- **Reference files: ~200–350 lines.** Below that range, consider whether the file earns its routing-table row or should merge into a sibling. Above it, split into a companion reference (the `queries.md` → `queries-postgres.md` / `queries-mongo.md` split is the template) and link the companions from the parent reference's routing row.
+- **`description:` frontmatter: one activation trigger, not a keyword dump.** The 1024-character registry limit is a ceiling, not a target. The description answers "does this skill apply to the current work?"; the per-workflow trigger phrases (CLI flags, error codes, feature vocabulary) live in the routing table's *Triggers* column, where there is room to be exhaustive.
+
+### Point at the source of truth instead of copying it
+
+Where a fact can be *queried* — from the framework source, the installed packages, or the CLI itself — a reference file should teach the query, not transcribe the answer. Transcribed API detail goes stale silently; a lookup procedure stays correct as the framework moves. This is the same principle as *concepts-over-procedures* below, applied to content: prefer *"ask the system with `command --flag`"* over a table of memorised outputs, and prefer `--help` pointers over restating flag lists.
+
+The long-term direction is for versioned API documentation to ship inside the published `@prisma-next/*` packages, with reference files shrinking toward routing plus lookup method. Until that lands, reference files still carry API content inline — which is why the lockstep rule below (skill updates ship in the same PR as framework-surface changes) is load-bearing.
+
 ## Authoring rules
 
 These rules are load-bearing for the cluster. A new skill or a skill rewrite that doesn't honour them is a defect, not a style preference. Where this list differs from the general Prisma Next contributor guide, this list takes precedence *for files under `skills/`*.
