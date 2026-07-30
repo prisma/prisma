@@ -465,8 +465,7 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
   // The framework-emitted `migration.ts` imports framework packages
   // directly (not via the user-facing facade): postgres goes through
   // `@prisma-next/postgres/migration`; mongo goes through
-  // `@prisma-next/cli/migration-cli` + `@prisma-next/family-mongo/migration`
-  // + `@prisma-next/target-mongo/migration`. Under `node-linker=isolated`
+  // `@prisma-next/target-mongo/migration`. Under `node-linker=isolated`
   // (the layout this journey deliberately uses to catch TML-2485-class
   // bugs) these are only reachable when declared as direct deps. The
   // init scaffold itself does not currently declare them, so a real
@@ -475,9 +474,7 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
   // worth filing separately. Add them here so the journey can complete
   // end-to-end; the scaffold gap is a follow-up.
   const migrationDeps =
-    cell.target === 'mongo'
-      ? ['@prisma-next/cli', '@prisma-next/family-mongo', '@prisma-next/target-mongo']
-      : ['@prisma-next/target-postgres'];
+    cell.target === 'mongo' ? ['@prisma-next/target-mongo'] : ['@prisma-next/target-postgres'];
   const migrationDepEntries = Object.fromEntries(
     migrationDeps.map((name) => [name, `file:${requireTarball(tarballs, name)}`]),
   );

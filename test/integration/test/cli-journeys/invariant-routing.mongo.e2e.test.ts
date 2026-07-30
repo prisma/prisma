@@ -225,9 +225,7 @@ function renderInvariantMigrationTs(
   const invariantField = opts.invariantId
     ? `        invariantId: ${JSON.stringify(opts.invariantId)},\n`
     : '';
-  return `import { MigrationCLI } from '@prisma-next/cli/migration-cli';
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { createIndex, dataTransform } from '@prisma-next/target-mongo/migration';
+  return `import { createIndex, dataTransform, Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';
 import { RawUpdateManyCommand, RawAggregateCommand } from '@prisma-next/mongo-query-ast/execution';
 
 const planMeta = {
@@ -285,9 +283,7 @@ MigrationCLI.run(import.meta.url, M);
  * the ref-required invariant.
  */
 function renderIndexOnlyMigrationTs(draftFrom: string, draftTo: string): string {
-  return `import { MigrationCLI } from '@prisma-next/cli/migration-cli';
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { createIndex } from '@prisma-next/target-mongo/migration';
+  return `import { createIndex, Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';
 
 class M extends Migration {
   override describe() {

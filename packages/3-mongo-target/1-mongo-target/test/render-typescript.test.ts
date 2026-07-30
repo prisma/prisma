@@ -31,9 +31,9 @@ describe('renderCallsToTypeScript', () => {
 
     const output = renderTypeScript(calls);
 
-    expect(output).toContain("import { Migration } from '@prisma-next/family-mongo/migration';");
-    expect(output).toContain("import { MigrationCLI } from '@prisma-next/cli/migration-cli';");
-    expect(output).toContain("import { createIndex } from '@prisma-next/target-mongo/migration';");
+    expect(output).toContain(
+      "import { Migration, MigrationCLI, createIndex } from '@prisma-next/target-mongo/migration';",
+    );
     expect(output).toContain('override get operations()');
     expect(output).toContain('export default M;');
     expect(output).toContain('MigrationCLI.run(import.meta.url, M);');
@@ -268,9 +268,9 @@ describe('renderCallsToTypeScript', () => {
   it('handles empty calls array', () => {
     const output = renderTypeScript([]);
 
-    expect(output).toContain("import { Migration } from '@prisma-next/family-mongo/migration';");
-    expect(output).toContain("import { MigrationCLI } from '@prisma-next/cli/migration-cli';");
-    expect(output).not.toContain('@prisma-next/target-mongo/migration');
+    expect(output).toContain(
+      "import { Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';",
+    );
     expect(output).toContain('return [');
     expect(output).toContain('];');
   });

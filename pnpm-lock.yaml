@@ -3986,6 +3986,9 @@ importers:
       '@prisma-next/adapter-mongo':
         specifier: workspace:0.16.0
         version: link:../2-mongo-adapter
+      '@prisma-next/cli':
+        specifier: workspace:0.16.0
+        version: link:../../1-framework/3-tooling/cli
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../1-framework/0-foundation/contract

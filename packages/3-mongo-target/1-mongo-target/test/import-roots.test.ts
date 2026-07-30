@@ -1,7 +1,6 @@
 import {
   createImportSpecifierResolver,
   type ImportRoot,
-  ImportRootError,
   importedSpecifiers,
   internalImportRoot,
   transitiveImports,
@@ -33,24 +32,26 @@ function packageImports(source: string): string[] {
 }
 
 describe('emitted migration files under each import root', () => {
-  it('names workspace packages under the internal root', () => {
+  // One specifier, the way Postgres and SQLite scaffolds already read. The
+  // `Migration` base and `MigrationCLI` reach the scaffold through the
+  // target's own `migration` entry, so every name the scaffold carries
+  // belongs to the same package and every root has something to map it to.
+  it('names one workspace package under the internal root', () => {
     expect(packageImports(render(internalImportRoot))).toEqual([
-      '@prisma-next/cli/migration-cli',
-      '@prisma-next/family-mongo/migration',
       '@prisma-next/target-mongo/migration',
     ]);
   });
 
-  it('names the platform packages under the platform root', () => {
-    expect(packageImports(render(platform))).toEqual([
-      '@prisma/orm-family-mongo/family/migration',
-      '@prisma/orm-target-mongo/target/migration',
-      '@prisma/orm-toolchain/cli/migration-cli',
-    ]);
+  it('names the published facade under the facade root', () => {
+    expect(packageImports(render(mongoFacade))).toEqual(['@prisma/orm-mongo/target/migration']);
+  });
+
+  it('names the target package under the platform root', () => {
+    expect(packageImports(render(platform))).toEqual(['@prisma/orm-target-mongo/target/migration']);
   });
 
   it('imports nothing the application would not depend on directly', () => {
-    for (const root of [internalImportRoot, platform]) {
+    for (const root of [internalImportRoot, mongoFacade, platform]) {
       expect(transitiveImports(render(root), root)).toEqual([]);
     }
   });
@@ -62,26 +63,8 @@ describe('emitted migration files under each import root', () => {
         .filter((line) => !line.includes("from '"))
         .join('\n');
 
-    expect(withoutImports(render(platform))).toEqual(withoutImports(render(internalImportRoot)));
-  });
-
-  // Mongo is the mirror image of Postgres and SQLite: its scaffold names
-  // three platform packages directly instead of collapsing them into one
-  // target `migration` entry, so `platform` works and `facade` has nothing to
-  // point at — the Mongo facade republishes the contract surfaces, not the
-  // family's `Migration` base or the CLI.
-  //
-  // This asymmetry is a known accident rather than a design. The note on
-  // `BASE_IMPORTS` in `src/core/render-typescript.ts` already tracks pulling
-  // `MigrationCLI` into the Mongo migration entry "so a Mongo migration only
-  // needs one import". Doing exactly that — having
-  // `@prisma-next/target-mongo/migration` re-export `Migration` and
-  // `MigrationCLI`, the way `@prisma-next/target-postgres/migration` already
-  // does — collapses this scaffold to a single specifier, after which Mongo
-  // resolves under all three roots with no change to the published facade
-  // surface. It changes default output, so it rides with TML-3126.
-  it('refuses the facade root, which the Mongo facade does not carry', () => {
-    expect(() => render(mongoFacade)).toThrow(ImportRootError);
-    expect(() => render(mongoFacade)).toThrow(/does not depend on directly/);
+    for (const root of [mongoFacade, platform]) {
+      expect(withoutImports(render(root))).toEqual(withoutImports(render(internalImportRoot)));
+    }
   });
 });

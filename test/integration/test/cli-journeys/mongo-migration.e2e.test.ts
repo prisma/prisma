@@ -242,9 +242,6 @@ describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spi
     const migrationDir = getLatestMigrationDir(ctx);
 
     const migrationTs = readFileSync(join(migrationDir, 'migration.ts'), 'utf-8');
-    expect(migrationTs).toContain(
-      "import { Migration } from '@prisma-next/family-mongo/migration'",
-    );
     expect(migrationTs).toContain('@prisma-next/target-mongo/migration');
     expect(migrationTs).toContain('createIndex');
     // Prettier rewrites double-quoted literals to single-quoted on disk.
@@ -310,7 +307,7 @@ describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spi
 
     const migrationTs = readFileSync(join(migrationDir, 'migration.ts'), 'utf-8');
     expect(migrationTs).toContain(
-      "import { Migration } from '@prisma-next/family-mongo/migration'",
+      "import { Migration, MigrationCLI } from '@prisma-next/target-mongo/migration'",
     );
     // New generator shape: the base derives describe() from the imported contract
     // JSON, so the scaffold carries `Migration<…, End>` + the endContractJson
@@ -320,8 +317,8 @@ describe('Journey: Mongo migration authoring (offline)', { timeout: timeouts.spi
     expect(migrationTs).toContain('override readonly endContractJson = endContract;');
     expect(migrationTs).toContain('get operations()');
     expect(migrationTs).toContain('return [');
-    // Empty stub: factory imports omitted because no calls were rendered.
-    expect(migrationTs).not.toContain('@prisma-next/target-mongo/migration');
+    // Empty stub: no operation factory is imported because no calls were rendered.
+    expect(migrationTs).not.toContain('createIndex');
 
     const manifest = JSON.parse(readFileSync(join(migrationDir, 'migration.json'), 'utf-8')) as {
       to: string;
@@ -437,9 +434,7 @@ describe('Journey: Mongo migration authoring (live database)', {
     // The check finds documents whose `name` contains an uppercase letter;
     // after the transform all names are lower-case so the check is
     // satisfied, enabling idempotency-skip on re-apply (tested below).
-    const handAuthored = `import { MigrationCLI } from '@prisma-next/cli/migration-cli';
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { createIndex, dataTransform } from '@prisma-next/target-mongo/migration';
+    const handAuthored = `import { createIndex, dataTransform, Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';
 import { RawUpdateManyCommand, RawAggregateCommand } from '@prisma-next/mongo-query-ast/execution';
 
 const planMeta = {

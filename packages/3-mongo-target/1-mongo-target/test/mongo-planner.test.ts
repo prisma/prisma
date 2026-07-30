@@ -1675,8 +1675,9 @@ describe('MongoMigrationPlanner', () => {
 
       const source = empty.renderTypeScript();
 
-      expect(source).toContain("import { Migration } from '@prisma-next/family-mongo/migration';");
-      expect(source).toContain("import { MigrationCLI } from '@prisma-next/cli/migration-cli';");
+      expect(source).toContain(
+        "import { Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';",
+      );
       expect(source).toContain('class M extends Migration<Start, End>');
       expect(source).toContain('MigrationCLI.run(import.meta.url, M);');
       // New shape: from/to are derived from the imported contract JSON, not

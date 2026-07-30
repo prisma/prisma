@@ -50,10 +50,14 @@ export interface CollModMeta {
   readonly operationClass?: MigrationOperationClass;
 }
 
-// The authored name. `render-typescript.ts` maps it to whatever the consuming
-// application's import root calls it (TML-3123), once over the whole assembled
-// import list.
-const TARGET_MIGRATION_MODULE = '@prisma-next/target-mongo/migration';
+/**
+ * The single module a scaffolded Mongo `migration.ts` imports from: the
+ * operation factories below, plus the `Migration` base and `MigrationCLI`
+ * that `render-typescript.ts` adds. The authored name; `render-typescript.ts`
+ * maps it to whatever the consuming application's import root calls it,
+ * once over the whole assembled import list.
+ */
+export const TARGET_MIGRATION_MODULE = '@prisma-next/target-mongo/migration';
 
 abstract class OpFactoryCallNode extends TsExpression implements FrameworkOpFactoryCall {
   abstract readonly factoryName: string;
