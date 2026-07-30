@@ -50,28 +50,29 @@ describe('publicShells', () => {
     expect(dangling).toEqual([]);
   });
 
-  it('classifies every shell', () => {
-    const kinds = [...publicShells].map(([name, shell]) => `${name}: ${shell.kind}`);
+  // `kind` decides which shells emitted code may name, so it has to track the
+  // shells rather than record what they happened to be on the day it was
+  // written. These two pin it to the naming rule and to the structure that
+  // rule stands for.
+  it('classifies each shell the way its name says', () => {
+    const expectedKind = (name: string) => {
+      if (name.startsWith('@prisma/orm-extension-')) return 'extension';
+      return /^@prisma\/orm-(framework|toolchain|family-|target-)/.test(name)
+        ? 'platform'
+        : 'facade';
+    };
 
-    expect(kinds).toMatchInlineSnapshot(`
-      [
-        "@prisma/orm-framework: platform",
-        "@prisma/orm-toolchain: platform",
-        "@prisma/orm-family-sql: platform",
-        "@prisma/orm-family-mongo: platform",
-        "@prisma/orm-target-postgres: platform",
-        "@prisma/orm-target-sqlite: platform",
-        "@prisma/orm-target-mongo: platform",
-        "@prisma/orm-postgres: facade",
-        "@prisma/orm-sqlite: facade",
-        "@prisma/orm-mongo: facade",
-        "@prisma/orm-extension-postgis: extension",
-        "@prisma/orm-extension-pgvector: extension",
-        "@prisma/orm-extension-paradedb: extension",
-        "@prisma/orm-extension-supabase: extension",
-        "@prisma/orm-extension-arktype-json: extension",
-        "@prisma/orm-extension-middleware-cache: extension",
-      ]
-    `);
+    for (const [name, shell] of publicShells) {
+      expect(`${name}: ${shell.kind}`).toBe(`${name}: ${expectedKind(name)}`);
+    }
+  });
+
+  it('gives exactly the facades the re-exports and forwarded bin that make one', () => {
+    for (const [name, shell] of publicShells) {
+      const carriesFacadeMachinery =
+        shell.reexports !== undefined || shell.forwardedBins !== undefined;
+
+      expect(`${name}: ${carriesFacadeMachinery}`).toBe(`${name}: ${shell.kind === 'facade'}`);
+    }
   });
 });

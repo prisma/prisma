@@ -9,9 +9,19 @@ export type AuthoringId = 'psl' | 'typescript';
 
 /**
  * The package name a scaffolded project depends on and imports from, for the
- * import root it is being scaffolded against. Every specifier in the scaffold
- * derives from this one, so the dependency `init` installs and the imports it
- * writes cannot disagree.
+ * import root it is being scaffolded against.
+ *
+ * Every specifier the scaffold writes derives from this one, and `init` builds
+ * a single resolver and hands it to both the file templates and the dependency
+ * it installs — so the two cannot disagree. The one caller that deliberately
+ * does not thread a resolver is the re-init cleanup in `inputs.ts`, which
+ * inspects a manifest an earlier run wrote rather than writing one.
+ *
+ * Resolvers for scaffolding should come from `createScaffoldSpecifierResolver`
+ * in the publish-surface package, which rejects the roots a facade-shaped
+ * scaffold cannot express. (Named without its scope on purpose: JSDoc survives
+ * into the published bundle, where an internal package name would trip the
+ * shell tarball checks.)
  */
 export function targetPackageName(
   target: TargetId,

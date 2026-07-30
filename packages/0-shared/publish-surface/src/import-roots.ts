@@ -9,7 +9,7 @@
  * a specifier. The mapping itself is `./shells`; nothing here duplicates it.
  */
 
-import { publicShells, type ShellName } from './shells';
+import { publicShells, type ShellDefinition, type ShellName } from './shells';
 
 const INTERNAL_SCOPE = '@prisma-next/';
 const PUBLISHED_SCOPE = '@prisma/';
@@ -34,7 +34,9 @@ export type ImportRoot =
   | { readonly mode: 'facade'; readonly facade: ShellName }
   | { readonly mode: 'platform' };
 
-export const internalImportRoot: ImportRoot = { mode: 'internal' };
+// Narrower than `ImportRoot` on purpose: the internal root is valid wherever
+// a root is taken, including the places that accept only a subset.
+export const internalImportRoot: Extract<ImportRoot, { mode: 'internal' }> = { mode: 'internal' };
 
 /**
  * Rewrites one module specifier for an import root. Specifiers outside the
@@ -48,11 +50,19 @@ interface OwningShell {
   readonly entry: string;
 }
 
-const owners: ReadonlyMap<string, OwningShell> = buildOwnerIndex();
+const owners: ReadonlyMap<string, OwningShell> = buildOwnerIndex(publicShells);
 
-function buildOwnerIndex(): Map<string, OwningShell> {
+/**
+ * Takes the shell map as an argument rather than closing over `publicShells`
+ * so the duplicate-owner guard is reachable from a test: the real map is
+ * valid by construction, and a guard nothing can exercise is a guard nobody
+ * knows still works.
+ */
+export function buildOwnerIndex(
+  shells: ReadonlyMap<ShellName, ShellDefinition>,
+): Map<string, OwningShell> {
   const index = new Map<string, OwningShell>();
-  for (const [shell, definition] of publicShells) {
+  for (const [shell, definition] of shells) {
     for (const pkg of definition.packages) {
       const existing = index.get(pkg.name);
       if (existing !== undefined) {
@@ -119,6 +129,7 @@ export function platformEntrypointOf(specifier: string): { shell: ShellName; id:
  */
 function facadeEntrypoint(facade: ShellName, name: string, subpath: string): string | undefined {
   const definition = publicShells.get(facade);
+  /* v8 ignore next -- @preserve: every ShellName is a key of publicShells */
   if (definition === undefined) throw new ImportRootError(`unknown shell ${facade}`);
   if (definition.kind !== 'facade') {
     throw new ImportRootError(`${facade} is a ${definition.kind} shell, not a facade`);
@@ -164,14 +175,41 @@ export function createImportSpecifierResolver(root: ImportRoot): ImportSpecifier
   return (specifier) => resolveImportSpecifier(specifier, root);
 }
 
-// Generated sources are rendered by `renderImports`, which always writes
-// `from '<specifier>'` with single quotes, so scanning for that is enough and
-// keeps this package free of a parser dependency.
-const FROM_CLAUSE = /\bfrom\s+'([^']+)'/g;
+/**
+ * The import roots a scaffolded application can be generated against.
+ *
+ * `platform` is absent deliberately, and this is a modelling statement rather
+ * than a limitation to be lifted: `prisma-next init` writes an application
+ * around a per-database facade, and that facade's `runtime` entrypoint is its
+ * own wiring code, not a re-export of anything. A decomposed install has no
+ * name for it because it has no such module — it wires the platform packages
+ * itself. Scaffolding a decomposed project is a different template, not a
+ * different import root.
+ */
+export type ScaffoldImportRoot = Extract<ImportRoot, { mode: 'internal' | 'facade' }>;
 
-/** The module specifiers a generated source file imports from. */
+/**
+ * Builds the resolver `prisma-next init` scaffolds with. Identical to
+ * {@link createImportSpecifierResolver} except that it will not accept a root
+ * a scaffold cannot express, so the impossible case is rejected where the
+ * resolver is made rather than when a template happens to hit a name.
+ */
+export function createScaffoldSpecifierResolver(root: ScaffoldImportRoot): ImportSpecifierResolver {
+  return createImportSpecifierResolver(root);
+}
+
+// Covers every form generated code uses to name a module: `import … from
+// '<s>'`, a bare side-effect `import '<s>'`, `import('<s>')` in a type
+// position, and `export … from '<s>'`. Both quote styles, so a change of
+// quoting in the renderers cannot silently empty the scan.
+const MODULE_SPECIFIER = /\b(?:from|import)\s*\(?\s*(['"])([^'"\n]+)\1/g;
+
+/** True when `source` contains anything that looks like an import at all. */
+const HAS_IMPORT_SYNTAX = /(?:^|[\s(;])import[\s(]/;
+
+/** The module specifiers a generated source file names. */
 export function importedSpecifiers(source: string): string[] {
-  return [...source.matchAll(FROM_CLAUSE)].map(([, specifier]) => specifier ?? '');
+  return [...source.matchAll(MODULE_SPECIFIER)].map(([, , specifier]) => specifier ?? '');
 }
 
 /**
@@ -181,11 +219,23 @@ export function importedSpecifiers(source: string): string[] {
  * Under the `internal` root nothing is reported: those names are the
  * repository's own, and every in-repo consumer resolves them through the
  * workspace.
+ *
+ * Throws rather than returning `[]` when the source plainly has imports but
+ * the scan found none. An audit whose scanner has stopped matching would
+ * otherwise report every file as clean, which is the one failure mode that
+ * makes the audit worse than not having it.
  */
 export function transitiveImports(source: string, root: ImportRoot): string[] {
+  const specifiers = importedSpecifiers(source);
+  if (specifiers.length === 0 && HAS_IMPORT_SYNTAX.test(source)) {
+    throw new ImportRootError(
+      'source contains import syntax but no specifier was recognised; ' +
+        'the audit would pass vacuously',
+    );
+  }
   if (root.mode === 'internal') return [];
   const direct = new Set<string>(directDependencyShells(root));
-  return importedSpecifiers(source).filter((specifier) => {
+  return specifiers.filter((specifier) => {
     if (specifier.startsWith(INTERNAL_SCOPE)) return true;
     if (!specifier.startsWith(PUBLISHED_SCOPE)) return false;
     const [scope, shell] = specifier.split('/');

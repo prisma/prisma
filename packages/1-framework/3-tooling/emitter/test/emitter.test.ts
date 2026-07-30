@@ -300,7 +300,11 @@ describe('emitter', () => {
     });
   });
 
-  it('emits contract even when extensionIds are not in contract.extensions', async () => {
+  // Formats through prettier like the other `emit()` cases here, so it needs
+  // the same room they were already given rather than the 100ms default.
+  it('emits contract even when extensionIds are not in contract.extensions', {
+    timeout: timeouts.typeScriptCompilation,
+  }, async () => {
     const ir = createTestContract({
       storage: emptySqlStorage,
     });

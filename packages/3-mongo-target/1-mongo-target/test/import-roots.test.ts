@@ -65,14 +65,21 @@ describe('emitted migration files under each import root', () => {
     expect(withoutImports(render(platform))).toEqual(withoutImports(render(internalImportRoot)));
   });
 
-  // Mongo is the mirror image of Postgres and SQLite: its scaffold already
-  // names three platform packages directly instead of routing them through a
-  // `@prisma-next/mongo/migration` facade entry, so the platform root works
-  // and the facade root has nothing to point at — the Mongo facade
-  // republishes the contract surfaces but not the family's migration base or
-  // the CLI. Closing this needs either a facade `migration` entry mirroring
-  // the SQL targets or two more facade re-exports; both change the published
-  // facade surface, so TML-3126 decides.
+  // Mongo is the mirror image of Postgres and SQLite: its scaffold names
+  // three platform packages directly instead of collapsing them into one
+  // target `migration` entry, so `platform` works and `facade` has nothing to
+  // point at — the Mongo facade republishes the contract surfaces, not the
+  // family's `Migration` base or the CLI.
+  //
+  // This asymmetry is a known accident rather than a design. The note on
+  // `BASE_IMPORTS` in `src/core/render-typescript.ts` already tracks pulling
+  // `MigrationCLI` into the Mongo migration entry "so a Mongo migration only
+  // needs one import". Doing exactly that — having
+  // `@prisma-next/target-mongo/migration` re-export `Migration` and
+  // `MigrationCLI`, the way `@prisma-next/target-postgres/migration` already
+  // does — collapses this scaffold to a single specifier, after which Mongo
+  // resolves under all three roots with no change to the published facade
+  // surface. It changes default output, so it rides with TML-3126.
   it('refuses the facade root, which the Mongo facade does not carry', () => {
     expect(() => render(mongoFacade)).toThrow(ImportRootError);
     expect(() => render(mongoFacade)).toThrow(/does not depend on directly/);

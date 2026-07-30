@@ -1,8 +1,6 @@
 # @prisma-next/publish-surface
 
-> **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
-> and is published only to support its runtime. Its API is unstable and may change
-> without notice. Do not depend on this package directly; install `prisma-next` instead.
+> **Private, and never published.** This package describes what the published surface *is*; it is not part of it. It is `"private": true` and belongs to no shell, so nothing outside this repository can depend on it.
 
 The canonical map from internal workspace packages to the published `@prisma/orm-*` entrypoints of [ADR 242](../../../docs/architecture%20docs/adrs/), and the import-root modes that emission resolves generated import specifiers through.
 
@@ -19,7 +17,9 @@ The canonical map from internal workspace packages to the published `@prisma/orm
 
   Resolution refuses to produce a name the application does not depend on **directly**. A package manager puts a package's own dependencies in that package's `node_modules`, so a generated file importing a transitively installed package fails to resolve at run time even though the files are on disk. `resolveImportSpecifier` throws rather than emit one.
 
-Two consumers read this table and nothing copies it: the shell build (`@prisma-next/tsdown/shell-build`, which turns each mapping into a generated entrypoint) and emission (the framework, SQL, and Mongo contract emitters, the targets' migration renderers, and `prisma-next init`).
+One consumer reads this table today and nothing copies it: the shell build (`@prisma-next/tsdown/shell-build`), which turns each mapping into a generated entrypoint.
+
+Emission does **not** read it. The contract emitters, the targets' migration renderers, and `prisma-next init` each receive an opaque `ImportSpecifierResolver` — a `(specifier) => string` declared in `@prisma-next/framework-components/emission` — and never learn what the published names are. That keeps `packages/1-framework` free of family and target vocabulary, and keeps this package out of every published bundle. Whoever chooses the root builds the resolver here and passes it in; today that is only tests, because the default root leaves specifiers unchanged.
 
 ## Why the name is declared, not read from disk
 

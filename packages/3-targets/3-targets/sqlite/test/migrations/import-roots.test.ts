@@ -56,9 +56,22 @@ describe('emitted migration files under each import root', () => {
     );
   });
 
-  // Same shape as Postgres: the scaffold's one facade import merges symbols
-  // from four packages, and a decomposed install has no facade to merge them.
-  it('refuses the platform root, which has no facade to name', () => {
+  // Same shape as Postgres, and the same cause: `@prisma-next/sqlite/migration`
+  // is a one-line `export * from '@prisma-next/target-sqlite/migration'`, and
+  // the module behind it is platform-owned and resolves under every root (see
+  // the next case). Only the alias the scaffold names has no platform form.
+  // The two candidate fixes are recorded on the Postgres equivalent; both
+  // ride with TML-3126.
+  it('refuses the platform root, which has no name for the facade alias', () => {
     expect(() => render(platform)).toThrow(ImportRootError);
+  });
+
+  it('resolves the module behind the facade alias under every root', () => {
+    expect(createImportSpecifierResolver(platform)('@prisma-next/target-sqlite/migration')).toBe(
+      '@prisma/orm-target-sqlite/target/migration',
+    );
+    expect(
+      createImportSpecifierResolver(sqliteFacade)('@prisma-next/target-sqlite/migration'),
+    ).toBe('@prisma/orm-sqlite/target/migration');
   });
 });

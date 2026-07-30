@@ -1,8 +1,7 @@
 import {
-  createImportSpecifierResolver,
-  type ImportRoot,
-  ImportRootError,
+  createScaffoldSpecifierResolver,
   internalImportRoot,
+  type ScaffoldImportRoot,
   transitiveImports,
 } from '@prisma-next/publish-surface/import-roots';
 import { describe, expect, it } from 'vitest';
@@ -16,15 +15,14 @@ import {
 } from '../../../src/commands/init/templates/code-templates';
 import { quickReferenceMd } from '../../../src/commands/init/templates/quick-reference';
 
-const facadeFor: Record<TargetId, ImportRoot> = {
+const facadeFor: Record<TargetId, ScaffoldImportRoot> = {
   postgres: { mode: 'facade', facade: '@prisma/orm-postgres' },
   mongo: { mode: 'facade', facade: '@prisma/orm-mongo' },
 };
-const platform: ImportRoot = { mode: 'platform' };
 
 /** Everything `init` writes into a user's project that can carry a package name. */
-function scaffold(target: TargetId, authoring: AuthoringId, root: ImportRoot): string {
-  const resolve = createImportSpecifierResolver(root);
+function scaffold(target: TargetId, authoring: AuthoringId, root: ScaffoldImportRoot): string {
+  const resolve = createScaffoldSpecifierResolver(root);
   return [
     targetPackageName(target, resolve),
     starterSchema(target, authoring, resolve),
@@ -47,7 +45,7 @@ describe('scaffolded project files under each import root', () => {
       const root = facadeFor[target];
       const source = scaffold(target, 'typescript', root);
 
-      expect(targetPackageName(target, createImportSpecifierResolver(root))).toBe(
+      expect(targetPackageName(target, createScaffoldSpecifierResolver(root))).toBe(
         `@prisma/orm-${target}`,
       );
       expect(source).toContain(`from '@prisma/orm-${target}/contract-builder'`);
@@ -63,13 +61,17 @@ describe('scaffolded project files under each import root', () => {
       }
     });
 
-    // `init` scaffolds an application around the per-database facade: its
-    // `runtime` entrypoint is the facade's own wiring code, not a re-export,
-    // so a decomposed install has no equivalent to rename to. Scaffolding a
-    // decomposed project is a different template, not a different import
-    // root.
-    it('refuses the platform root, which has no facade to scaffold against', () => {
-      expect(() => scaffold(target, 'typescript', platform)).toThrow(ImportRootError);
+    // `init` scaffolds an application around the per-database facade, whose
+    // `runtime` entrypoint is the facade's own wiring code rather than a
+    // re-export of anything — a decomposed install has no name for it because
+    // it has no such module. That makes `platform` not a scaffold root at all,
+    // so `ScaffoldImportRoot` excludes it and this does not compile rather
+    // than throwing at render time.
+    it('cannot be asked for the platform root', () => {
+      // @ts-expect-error `platform` is not a `ScaffoldImportRoot`.
+      const rejected: ScaffoldImportRoot = { mode: 'platform' };
+
+      expect(rejected.mode).toBe('platform');
     });
   });
 

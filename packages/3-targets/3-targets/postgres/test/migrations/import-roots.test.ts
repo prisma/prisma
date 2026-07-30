@@ -89,15 +89,36 @@ describe('emitted migration files under each import root', () => {
     );
   });
 
-  // The scaffold's single `@prisma-next/postgres/migration` import merges
-  // symbols from four packages: the target's `Migration` base, the CLI's
-  // `MigrationCLI`, the SQL family's contract-free DDL builders, and the
-  // framework's `placeholder`. A decomposed install has no facade to merge
-  // them, and one specifier cannot be split by symbol, so this combination
-  // has no answer yet — see TML-3126. Failing loudly beats emitting an
-  // import that would not resolve in the user's project.
-  it('refuses the platform root, which has no facade to name', () => {
+  // The blocker is the *name* the scaffold carries, not the module behind it.
+  // `@prisma-next/postgres/migration` is a one-line
+  // `export * from '@prisma-next/target-postgres/migration'`. The four-way
+  // merge — the target's `Migration` base, the CLI's `MigrationCLI`, the SQL
+  // family's DDL builders, the framework's `placeholder` — lives in the
+  // target's own `src/exports/migration.ts`, which is platform-owned and
+  // resolves under every root (see the next case). Platform fails only
+  // because the emitted constant names the facade's alias rather than the
+  // module that alias points at.
+  //
+  // Two ways to close it, both for TML-3126 because both ride with the flip:
+  // (a) record entrypoint aliases in `@prisma-next/publish-surface` — "this
+  //     facade subpath is a pure re-export of that target subpath" —
+  //     consulted when direct resolution lands outside the root's direct
+  //     dependencies; or
+  // (b) change the authored constant to the target specifier, which is
+  //     simpler but changes default output, so it cannot land before the flip.
+  it('refuses the platform root, which has no name for the facade alias', () => {
     expect(() => render(platform)).toThrow(ImportRootError);
     expect(() => render(platform)).toThrow(/does not depend on directly/);
+  });
+
+  it('resolves the module behind the facade alias under every root', () => {
+    // Evidence for the note above: the underlying target specifier is not the
+    // obstacle, so both fixes are real options rather than wishful.
+    expect(createImportSpecifierResolver(platform)('@prisma-next/target-postgres/migration')).toBe(
+      '@prisma/orm-target-postgres/target/migration',
+    );
+    expect(
+      createImportSpecifierResolver(postgresFacade)('@prisma-next/target-postgres/migration'),
+    ).toBe('@prisma/orm-postgres/target/migration');
   });
 });

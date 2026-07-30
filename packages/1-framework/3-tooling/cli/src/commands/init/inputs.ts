@@ -257,6 +257,11 @@ async function resolveRemovePreviousFacade(opts: {
     return null;
   }
   const otherTarget: TargetId = opts.target === 'postgres' ? 'mongo' : 'postgres';
+  // Deliberately the workspace name rather than this run's import root: this
+  // reads a `package.json` an *earlier* `init` wrote, possibly against a
+  // different root. Once more than one root can reach a user's project this
+  // has to look for every name a previous run could have installed, not the
+  // one this run would write (TML-3126).
   const otherFacade = targetPackageName(otherTarget);
   let parsed: Record<string, unknown>;
   try {

@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildOwnerIndex,
   createImportSpecifierResolver,
+  createScaffoldSpecifierResolver,
   directDependencyShells,
   type ImportRoot,
   ImportRootError,
+  importedSpecifiers,
   internalImportRoot,
   platformEntrypointOf,
   resolveImportSpecifier,
+  type ScaffoldImportRoot,
+  transitiveImports,
 } from '../src/import-roots';
+import type { ShellDefinition, ShellName } from '../src/shells';
 
 const postgresFacade: ImportRoot = { mode: 'facade', facade: '@prisma/orm-postgres' };
 const mongoFacade: ImportRoot = { mode: 'facade', facade: '@prisma/orm-mongo' };
@@ -76,6 +82,19 @@ describe('resolveImportSpecifier', () => {
     it('refuses another database facade', () => {
       expect(() => resolveImportSpecifier('@prisma-next/sqlite/migration', postgresFacade)).toThrow(
         ImportRootError,
+      );
+    });
+
+    it('forwards a subpath-only re-export but not its bare package name', () => {
+      // The facade forwards the target under `target/…` for subpaths only —
+      // it publishes its own `./target` pack under that name — so the bare
+      // package has no facade name and falls through to the target shell,
+      // which a facade-only application does not install.
+      expect(resolveImportSpecifier('@prisma-next/target-postgres/migration', postgresFacade)).toBe(
+        '@prisma/orm-postgres/target/migration',
+      );
+      expect(() => resolveImportSpecifier('@prisma-next/target-postgres', postgresFacade)).toThrow(
+        /@prisma\/orm-target-postgres\/target, which an application on the facade/,
       );
     });
 
@@ -191,5 +210,176 @@ describe('createImportSpecifierResolver', () => {
     expect(resolve('@prisma-next/sql-contract/types')).toBe(
       '@prisma/orm-family-sql/contract/types',
     );
+  });
+});
+
+describe('createScaffoldSpecifierResolver', () => {
+  const postgresScaffold: ScaffoldImportRoot = { mode: 'facade', facade: '@prisma/orm-postgres' };
+
+  it('resolves the roots a scaffold can express', () => {
+    expect(createScaffoldSpecifierResolver(internalImportRoot)('@prisma-next/postgres')).toBe(
+      '@prisma-next/postgres',
+    );
+    expect(createScaffoldSpecifierResolver(postgresScaffold)('@prisma-next/postgres/runtime')).toBe(
+      '@prisma/orm-postgres/runtime',
+    );
+  });
+
+  // A decomposed install has no facade wiring for a scaffold to name, so
+  // `platform` is rejected where the resolver is built rather than when a
+  // template happens to hit a name it cannot resolve.
+  it('does not accept the platform root', () => {
+    // @ts-expect-error `platform` is not a `ScaffoldImportRoot`.
+    const rejected = createScaffoldSpecifierResolver(platform);
+
+    expect(rejected).toBeTypeOf('function');
+  });
+});
+
+describe('buildOwnerIndex', () => {
+  const shell = (packages: ShellDefinition['packages']): ShellDefinition => ({
+    dir: 'packages/9-public/@prisma/orm-framework',
+    kind: 'platform',
+    packages,
+  });
+
+  it('indexes each package against the shell that publishes it', () => {
+    const index = buildOwnerIndex(
+      new Map<ShellName, ShellDefinition>([
+        ['@prisma/orm-framework', shell([{ dir: 'a', name: '@prisma-next/a', entry: 'a' }])],
+        ['@prisma/orm-family-sql', shell([{ dir: 'b', name: '@prisma-next/b', entry: '' }])],
+      ]),
+    );
+
+    expect(index.get('@prisma-next/a')).toEqual({ shell: '@prisma/orm-framework', entry: 'a' });
+    expect(index.get('@prisma-next/b')).toEqual({ shell: '@prisma/orm-family-sql', entry: '' });
+  });
+
+  it('refuses a package claimed by two shells, which would publish it twice', () => {
+    const duplicated = new Map<ShellName, ShellDefinition>([
+      ['@prisma/orm-framework', shell([{ dir: 'a', name: '@prisma-next/a', entry: 'a' }])],
+      ['@prisma/orm-family-sql', shell([{ dir: 'a2', name: '@prisma-next/a', entry: 'a' }])],
+    ]);
+
+    expect(() => buildOwnerIndex(duplicated)).toThrow(ImportRootError);
+    expect(() => buildOwnerIndex(duplicated)).toThrow(
+      /@prisma-next\/a is mapped to both @prisma\/orm-framework and @prisma\/orm-family-sql/,
+    );
+  });
+});
+
+describe('importedSpecifiers', () => {
+  it('finds every form generated code names a module with', () => {
+    const source = [
+      "import type { Contract } from '@prisma-next/contract/types';",
+      'import {',
+      '  Migration,',
+      "} from '@prisma-next/postgres/migration';",
+      `import Other from "@prisma-next/double-quoted";`,
+      "import '@prisma-next/side-effect';",
+      "type Ref = import('@prisma-next/inline-type').Thing;",
+      "export { x } from '@prisma-next/re-exported';",
+      'import endContract from \'../../snapshots/abc/contract.json\' with { type: "json" };',
+    ].join('\n');
+
+    expect(importedSpecifiers(source)).toEqual([
+      '@prisma-next/contract/types',
+      '@prisma-next/postgres/migration',
+      '@prisma-next/double-quoted',
+      '@prisma-next/side-effect',
+      '@prisma-next/inline-type',
+      '@prisma-next/re-exported',
+      '../../snapshots/abc/contract.json',
+    ]);
+  });
+
+  it('finds nothing in a source with no imports', () => {
+    expect(importedSpecifiers('export type Contract = { readonly a: 1 };')).toEqual([]);
+  });
+
+  it('ignores quoted strings that are data rather than module names', () => {
+    // The emitted `contract.d.ts` mirrors `contract.json`'s extensions block,
+    // which carries `package: '@prisma-next/…'` as a string literal type. It
+    // is contract data, not an import, and must not be rewritten or audited.
+    const source = "export type X = { readonly package: '@prisma-next/extension-pgvector' };";
+
+    expect(importedSpecifiers(source)).toEqual([]);
+  });
+});
+
+describe('transitiveImports', () => {
+  const importing = (...specifiers: string[]) =>
+    specifiers.map((s) => `import { x } from '${s}';`).join('\n');
+
+  it('reports nothing when every import is a direct dependency', () => {
+    const clean = importing(
+      '@prisma/orm-postgres/family-contract/types',
+      '@prisma/orm-extension-pgvector/codec-types',
+    );
+
+    expect(transitiveImports(clean, postgresFacade)).toEqual([]);
+  });
+
+  it('reports a published package the application does not install directly', () => {
+    const leaky = importing(
+      '@prisma/orm-postgres/contract/types',
+      '@prisma/orm-family-sql/contract/types',
+      '@prisma/orm-toolchain/cli/migration-cli',
+    );
+
+    expect(transitiveImports(leaky, postgresFacade)).toEqual([
+      '@prisma/orm-family-sql/contract/types',
+      '@prisma/orm-toolchain/cli/migration-cli',
+    ]);
+  });
+
+  it('reports a facade under the platform root, which a decomposed install lacks', () => {
+    const leaky = importing(
+      '@prisma/orm-family-sql/contract/types',
+      '@prisma/orm-postgres/migration',
+    );
+
+    expect(transitiveImports(leaky, platform)).toEqual(['@prisma/orm-postgres/migration']);
+  });
+
+  it('reports an internal name that escaped rewriting', () => {
+    const leaky = importing(
+      '@prisma/orm-postgres/contract/types',
+      '@prisma-next/sql-contract/types',
+    );
+
+    expect(transitiveImports(leaky, postgresFacade)).toEqual(['@prisma-next/sql-contract/types']);
+  });
+
+  it('reports a side-effect import, which has no `from` clause to scan', () => {
+    const leaky = "import '@prisma/orm-family-sql/runtime';";
+
+    expect(transitiveImports(leaky, postgresFacade)).toEqual(['@prisma/orm-family-sql/runtime']);
+  });
+
+  it('leaves relative paths and third-party packages alone', () => {
+    const source = importing('./contract', '../../snapshots/abc/contract.json', 'arktype', 'pg');
+
+    expect(transitiveImports(source, platform)).toEqual([]);
+  });
+
+  it('reports nothing under the internal root, whose names are the repository’s own', () => {
+    expect(
+      transitiveImports(importing('@prisma-next/sql-contract/types'), internalImportRoot),
+    ).toEqual([]);
+  });
+
+  it('refuses a source whose imports it could not read rather than call it clean', () => {
+    // A renderer that started quoting with backticks would otherwise make
+    // every audited file look import-free, and the audit would pass on
+    // output nobody had checked.
+    const unscannable = 'import { Migration } from `@prisma-next/postgres/migration`;';
+
+    expect(() => transitiveImports(unscannable, postgresFacade)).toThrow(ImportRootError);
+    expect(() => transitiveImports(unscannable, postgresFacade)).toThrow(/pass vacuously/);
+  });
+
+  it('accepts a genuinely import-free source', () => {
+    expect(transitiveImports('export type X = 1;', postgresFacade)).toEqual([]);
   });
 });
