@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsdown",
     "lint": "biome check . --error-on-warnings",
-    "clean": "rm -rf dist src",
+    "clean": "rm -rf dist src-gen",
     "test": "vitest run"
   },
   "dependencies": {
@@ -47,6 +47,7 @@
     }
   },
   "exports": {
+    "./components": "./dist/components.mjs",
     "./components/authoring": "./dist/components__authoring.mjs",
     "./components/codec": "./dist/components__codec.mjs",
     "./components/components": "./dist/components__components.mjs",
@@ -57,8 +58,10 @@
     "./components/psl-ast": "./dist/components__psl-ast.mjs",
     "./components/runtime": "./dist/components__runtime.mjs",
     "./components/utils": "./dist/components__utils.mjs",
+    "./config": "./dist/config.mjs",
     "./config/config-types": "./dist/config__config-types.mjs",
     "./config/config-validation": "./dist/config__config-validation.mjs",
+    "./contract": "./dist/contract.mjs",
     "./contract/apply-specifier-default-control-policy": "./dist/contract__apply-specifier-default-control-policy.mjs",
     "./contract/contract-validation-error": "./dist/contract__contract-validation-error.mjs",
     "./contract/default-namespace": "./dist/contract__default-namespace.mjs",
@@ -70,6 +73,7 @@
     "./contract/types": "./dist/contract__types.mjs",
     "./contract/validate-domain": "./dist/contract__validate-domain.mjs",
     "./contract-authoring": "./dist/contract-authoring.mjs",
+    "./errors": "./dist/errors.mjs",
     "./errors/control": "./dist/errors__control.mjs",
     "./errors/execution": "./dist/errors__execution.mjs",
     "./errors/migration": "./dist/errors__migration.mjs",
@@ -83,6 +87,7 @@
     "./psl-parser/tokenizer": "./dist/psl-parser__tokenizer.mjs",
     "./psl-printer": "./dist/psl-printer.mjs",
     "./ts-render": "./dist/ts-render.mjs",
+    "./utils": "./dist/utils.mjs",
     "./utils/abortable": "./dist/utils__abortable.mjs",
     "./utils/array-equal": "./dist/utils__array-equal.mjs",
     "./utils/assertions": "./dist/utils__assertions.mjs",

@@ -3,7 +3,14 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "migrations/**", "package.json", "tsconfig.json", "tsdown.config.ts"],
+      "inputs": [
+        "src/**",
+        "migrations/**",
+        "package.json",
+        "tsconfig.json",
+        "tsdown.config.ts",
+        "$TURBO_ROOT$/packages/0-config/tsdown/*.ts"
+      ],
       "outputs": ["dist/**"]
     },
     "dev": {
@@ -47,6 +54,23 @@
     },
     "@prisma-next/sql-builder#emit": {
       "dependsOn": ["@prisma-next/cli#build"]
+    },
+    "@prisma/orm-framework#test": {
+      "dependsOn": [
+        "build",
+        "^build",
+        "@prisma/orm-toolchain#build",
+        "@prisma/orm-family-sql#build",
+        "@prisma/orm-family-mongo#build",
+        "@prisma/orm-target-postgres#build",
+        "@prisma/orm-target-sqlite#build",
+        "@prisma/orm-target-mongo#build"
+      ],
+      "inputs": ["test/**", "dist/**"]
+    },
+    "@prisma/orm-target-postgres#test": {
+      "dependsOn": ["build", "^build"],
+      "inputs": ["test/**", "dist/**"]
     }
   }
 }

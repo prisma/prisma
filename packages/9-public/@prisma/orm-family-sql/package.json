@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsdown",
     "lint": "biome check . --error-on-warnings",
-    "clean": "rm -rf dist src"
+    "clean": "rm -rf dist src-gen"
   },
   "dependencies": {
     "@prisma/orm-framework": "workspace:0.16.0",
@@ -52,6 +52,7 @@
     "./builder": "./dist/builder.mjs",
     "./builder/runtime": "./dist/builder__runtime.mjs",
     "./builder/types": "./dist/builder__types.mjs",
+    "./contract": "./dist/contract.mjs",
     "./contract/canonicalization-hooks": "./dist/contract__canonicalization-hooks.mjs",
     "./contract/contract-view": "./dist/contract__contract-view.mjs",
     "./contract/entity-handle-lowering-hook": "./dist/contract__entity-handle-lowering-hook.mjs",
@@ -70,9 +71,11 @@
     "./contract-emitter": "./dist/contract-emitter.mjs",
     "./contract-psl": "./dist/contract-psl.mjs",
     "./contract-psl/provider": "./dist/contract-psl__provider.mjs",
+    "./contract-ts": "./dist/contract-ts.mjs",
     "./contract-ts/config-types": "./dist/contract-ts__config-types.mjs",
     "./contract-ts/contract-builder": "./dist/contract-ts__contract-builder.mjs",
     "./errors": "./dist/errors.mjs",
+    "./family": "./dist/family.mjs",
     "./family/control": "./dist/family__control.mjs",
     "./family/control-adapter": "./dist/family__control-adapter.mjs",
     "./family/diff": "./dist/family__diff.mjs",

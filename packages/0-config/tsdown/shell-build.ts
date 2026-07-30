@@ -44,11 +44,36 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
 
   await initLexer;
 
-  const srcDir = join(shellDir, 'src');
+  // Generated entries live outside `src/` so turbo's `src/**` build input
+  // never hashes a directory that only exists after a build.
+  const srcDir = join(shellDir, 'src-gen');
   rmSync(srcDir, { recursive: true, force: true });
+  mkdirSync(srcDir, { recursive: true });
 
   const entry: Record<string, string> = {};
+  const addEntry = (entryName: string, fileName: string): string => {
+    if (entryName.includes('__')) {
+      throw new ShellConfigError(
+        `entry name "${entryName}" contains "__", which is reserved as the flat-name separator`,
+      );
+    }
+    // Flat file names: the dts plugin names declaration outputs after the
+    // entry file's basename, so nested entry paths would strand every
+    // `.d.mts` at the dist root (with hash-renaming on basename collisions),
+    // away from its `.mjs` sibling. `__` maps back to `/` in the generated
+    // exports map (see `shellExports`).
+    const flatName = entryName.replaceAll('/', '__');
+    if (entry[flatName] !== undefined) {
+      throw new ShellConfigError(`duplicate shell entry name "${entryName}" in ${shellName}`);
+    }
+    entry[flatName] = `src-gen/${fileName.replaceAll('/', '__')}`;
+    return join(srcDir, fileName.replaceAll('/', '__'));
+  };
+
+  const aggregates = new Map<string, Map<string, string[]>>();
   for (const pkg of internals) {
+    const aggregated: { specifier: string; distFile: string }[] = [];
+    let hasRootExport = false;
     for (const [subpath, value] of Object.entries(pkg.exports)) {
       if (subpath === './package.json') continue;
       if (excludedSubpaths.some((pattern) => pattern.test(subpath))) continue;
@@ -58,30 +83,40 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
           `unsupported exports value for ${pkg.name} ${subpath}: ${JSON.stringify(value)}`,
         );
       }
+      if (subpath === '.') hasRootExport = true;
       const entryName = subpath === '.' ? pkg.entry : `${pkg.entry}/${subpath.slice(2)}`;
       const specifier = subpath === '.' ? pkg.name : `${pkg.name}/${subpath.slice(2)}`;
-      // Flat file names: the dts plugin names declaration outputs after the
-      // entry file's basename, so nested entry paths would strand every
-      // `.d.mts` at the dist root (with hash-renaming on basename
-      // collisions), away from its `.mjs` sibling. `__` maps back to `/` in
-      // the generated exports map (see `shellExports`).
-      const flatName = entryName.replaceAll('/', '__');
-      const entryFile = join(srcDir, `${flatName}.ts`);
-      mkdirSync(dirname(entryFile), { recursive: true });
+      const entryFile = addEntry(entryName, `${entryName}.ts`);
       writeFileSync(entryFile, entryModuleSource(specifier, join(pkg.absDir, distFile)));
-      entry[flatName] = `src/${flatName}.ts`;
+      if (subpath !== '.') aggregated.push({ specifier, distFile: join(pkg.absDir, distFile) });
+    }
+    // The ADR names each internal package as a whole (`@prisma/orm-framework/contract`,
+    // `@prisma/orm-target-postgres/adapter`, ...). When the internal package
+    // has no root export, synthesize that aggregate from its subpath exports;
+    // when it has one, the root export already owns the name.
+    if (!hasRootExport && aggregated.length > 0) {
+      const expected = new Map<string, string[]>();
+      for (const { specifier, distFile } of aggregated) {
+        for (const name of moduleExports(specifier, distFile)) {
+          if (name === 'default') continue;
+          expected.set(name, [...(expected.get(name) ?? []), specifier]);
+        }
+      }
+      aggregates.set(pkg.entry, expected);
+      const entryFile = addEntry(pkg.entry, `${pkg.entry}.ts`);
+      writeFileSync(
+        entryFile,
+        `${aggregated.map(({ specifier }) => `export * from '${specifier}';`).join('\n')}\n`,
+      );
     }
   }
 
   const binFiles = new Set<string>();
   for (const [binName, binFile] of Object.entries(shell.bins ?? {})) {
-    const flatName = `bin__${binName}`;
-    const entryFile = join(srcDir, `${flatName}.mjs`);
     const binPath = resolve(repoRoot, binFile);
     binFiles.add(binPath);
-    mkdirSync(dirname(entryFile), { recursive: true });
+    const entryFile = addEntry(`bin/${binName}`, `bin/${binName}.mjs`);
     writeFileSync(entryFile, `import '${binPath}';\n`);
-    entry[flatName] = `src/${flatName}.mjs`;
   }
 
   validateShellManifest(shellName, shellDir, internals, lookup);
@@ -100,12 +135,15 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
           ? Object.fromEntries(
               Object.keys(shell.bins ?? {}).map((binName) => [
                 binName,
-                `./src/bin__${binName}.mjs`,
+                `./src-gen/bin__${binName}.mjs`,
               ]),
             )
           : false,
     },
     plugins: [crossShellRewritePlugin(shellName, lookup), binSideEffectsPlugin(binFiles)],
+    hooks: {
+      'build:done': () => assertAggregatesComplete(shellName, shellDir, aggregates),
+    },
     outputOptions: (options) => ({
       ...options,
       banner: (chunk: { name: string }) =>
@@ -130,15 +168,56 @@ function shellExports(exports: Record<string, unknown>): Record<string, unknown>
 
 function entryModuleSource(specifier: string, distFile: string): string {
   const lines = [`export * from '${specifier}';`];
-  if (hasDefaultExport(distFile)) {
+  if (moduleExports(specifier, distFile).includes('default')) {
     lines.push(`export { default } from '${specifier}';`);
   }
   return `${lines.join('\n')}\n`;
 }
 
-function hasDefaultExport(distFile: string): boolean {
-  const [, exports] = parseModule(readFileSync(distFile, 'utf8'));
-  return exports.some((e) => e.n === 'default');
+/** Export names of a built internal module, with a diagnosable error when the dist is missing. */
+function moduleExports(specifier: string, distFile: string): string[] {
+  let source: string;
+  try {
+    source = readFileSync(distFile, 'utf8');
+  } catch {
+    throw new ShellConfigError(
+      `cannot read ${distFile} for ${specifier} — build the internal package first (pnpm build from the repository root)`,
+    );
+  }
+  const [, exports] = parseModule(source);
+  return exports.map((e) => e.n);
+}
+
+/**
+ * A synthesized aggregate uses `export *`, and ECMAScript silently omits a
+ * name when two star-exported modules bind it to *different* values (the
+ * same binding reached through several subpaths is fine). Verify the built
+ * aggregate exports the full union of its subpaths' names, and fail naming
+ * every dropped export so a collision is a decision, not a hole in the
+ * public surface.
+ */
+function assertAggregatesComplete(
+  shellName: ShellName,
+  shellDir: string,
+  aggregates: ReadonlyMap<string, ReadonlyMap<string, string[]>>,
+): void {
+  const problems: string[] = [];
+  for (const [entryName, expected] of aggregates) {
+    const distFile = join(shellDir, 'dist', `${entryName}.mjs`);
+    const actual = new Set(moduleExports(`${shellName}/${entryName}`, distFile));
+    for (const [name, specifiers] of expected) {
+      if (!actual.has(name)) {
+        problems.push(
+          `${shellName}/${entryName} dropped "${name}" (ambiguous between ${specifiers.join(', ')})`,
+        );
+      }
+    }
+  }
+  if (problems.length > 0) {
+    throw new ShellConfigError(
+      `aggregate entrypoints lost exports to star-export ambiguity:\n  ${problems.join('\n  ')}`,
+    );
+  }
 }
 
 function resolveExportTarget(value: unknown): string | undefined {
