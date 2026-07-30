@@ -1,7 +1,3 @@
----
-name: prisma-next-migration-review
-description: Review what Prisma Next migrations will run on merge or deploy, render the migration graph, resolve concurrent / diamond-convergence conflicts, and configure environment refs for CI. Use for "what migrations are going to run", "what runs on deploy", merge conflict, diamond convergence, concurrent migrations, migration status, ref management, staging, production, MIGRATION.DIVERGED, MIGRATION.NO_MARKER, MIGRATION.MARKER_NOT_IN_HISTORY, prisma migrate status, prisma migrate diff, prisma migrate resolve.
----
 
 # Prisma Next — Migration Review (Deployment + Concurrency)
 
@@ -21,9 +17,9 @@ The skill teaches *the system's mental model* — what a ref is, what a marker i
 
 ## When Not to Use
 
-- User wants to *author* a migration → `prisma-next-migrations`.
-- User wants to fix a hash-mismatch / drift in a single env → `prisma-next-migrations` (re-plan path) or `prisma-next-debug` (envelope-driven).
-- User wants to edit the contract → `prisma-next-contract`.
+- User wants to *author* a migration → `references/migrations.md`.
+- User wants to fix a hash-mismatch / drift in a single env → `references/migrations.md` (re-plan path) or `references/debug.md` (envelope-driven).
+- User wants to edit the contract → `references/contract.md`.
 
 ## Key Concepts — the navigation model
 
@@ -194,7 +190,7 @@ For a human-readable ordered preview of the migration path before applying, use 
 
 `migration status` exits non-zero only on hard errors (unreadable migrations directory, unsatisfiable invariants, unreconstructable history). Diagnostics like `MIGRATION.MARKER_NOT_IN_HISTORY`, `MIGRATION.DIVERGED`, `CONTRACT.AHEAD`, and `MIGRATION.NO_MARKER` are reported on the result envelope with `severity: 'warn'` but the process exits `0` — the agent (or a CI gate) must inspect `diagnostics[]` and fail the build itself. Use `--json` so the gate parses a structured shape rather than the human summary.
 
-`migrate` is interactive-free and has no destructive-op confirmation prompt — the safety rails that prompt for destructive changes live on `db update` (see the `prisma-next-migrations` skill). Whatever the planner put in the migration graph is what `migrate` runs; review happens at `migration plan` and at `migration status` time, before the apply step.
+`migrate` is interactive-free and has no destructive-op confirmation prompt — the safety rails that prompt for destructive changes live on `db update` (see the `references/migrations.md` skill). Whatever the planner put in the migration graph is what `migrate` runs; review happens at `migration plan` and at `migration status` time, before the apply step.
 
 ## Common Pitfalls
 
@@ -206,8 +202,8 @@ For a human-readable ordered preview of the migration path before applying, use 
 
 ## What Prisma Next doesn't do yet
 
-- **Per-environment migration ordering beyond the default chain.** If you need staging to skip a migration that production requires (or vice versa), the supported path is to author the per-env divergence as separate migrations and gate them in your deploy script. If you want first-class per-env routing, file a feature request via the `prisma-next-feedback` skill.
-- **A built-in side-by-side "branch diff" view.** There is a full-graph render (`migration graph`) that shows branches, but no `git diff`-style comparison between two branches' migration sets. Workaround: run `migration status` on each branch and `diff` the output. If you want a built-in branch-comparison view, file a feature request via the `prisma-next-feedback` skill.
+- **Per-environment migration ordering beyond the default chain.** If you need staging to skip a migration that production requires (or vice versa), the supported path is to author the per-env divergence as separate migrations and gate them in your deploy script. If you want first-class per-env routing, file a feature request via the `references/feedback.md` skill.
+- **A built-in side-by-side "branch diff" view.** There is a full-graph render (`migration graph`) that shows branches, but no `git diff`-style comparison between two branches' migration sets. Workaround: run `migration status` on each branch and `diff` the output. If you want a built-in branch-comparison view, file a feature request via the `references/feedback.md` skill.
 
 ## Reference Files
 

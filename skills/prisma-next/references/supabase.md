@@ -1,7 +1,3 @@
----
-name: prisma-next-supabase
-description: "Use Prisma Next with a Supabase project via `@prisma-next/extension-supabase` — wire `extensions: [supabasePack]`, declare cross-space FKs to `supabase:auth.AuthUser`, author RLS policies (`policy_select` / `policy_update` / `@@rls`, `auth.uid()` predicates), build `db.ts` with the `supabase()` factory, bind roles per request (`asUser(jwt)` / `asAnon()` / `asServiceRole()`), query `auth.*` / `storage.*` via the `db.asServiceRole().supabase` admin root, and validate JWTs (`jwksUrl` for current projects / `jwtSecret` for legacy HS256). Use for supabase, RLS, row level security, policy, role binding, anon, authenticated, service_role, auth.users, auth.uid(), JWT, JWKS, SUPABASE_JWKS_URL, SUPABASE_JWT_SECRET, SUPABASE.JWT_INVALID, SUPABASE.CONFIG_INVALID, RoleBoundDb, session pooler, supabase:auth.AuthUser, @prisma-next/extension-supabase."
----
 
 # Prisma Next — Supabase
 
@@ -20,10 +16,10 @@ This skill covers using Prisma Next against a **Supabase** project end-to-end: c
 
 ## When Not to Use
 
-- General contract editing (models, fields, relations) → `prisma-next-contract`.
-- Non-Supabase `db.ts` wiring, middleware, teardown → `prisma-next-runtime`.
-- General query shapes (filtering, includes, aggregates) → `prisma-next-queries` — everything there applies to a role-bound `db` too.
-- Migration planning / applying → `prisma-next-migrations`.
+- General contract editing (models, fields, relations) → `references/contract.md`.
+- Non-Supabase `db.ts` wiring, middleware, teardown → `references/runtime.md`.
+- General query shapes (filtering, includes, aggregates) → `references/queries.md` — everything there applies to a role-bound `db` too.
+- Migration planning / applying → `references/migrations.md`.
 
 ## Key Concepts
 
@@ -115,7 +111,7 @@ The pieces:
 - **Predicates are verbatim SQL strings.** Quote camelCase column names inside them (`\"userId\"`), and cast where needed — `auth.uid()` returns `uuid`. Renames in your contract do not rewrite predicate bodies.
 - **TS-builder parity exists.** `@prisma-next/postgres/contract-builder` exports `policySelect` / `policyInsert` / `policyUpdate` / `policyDelete` / `policyAll`, `rlsEnabled(Model)`, and `role('anon')` — mirroring the PSL lowering key-for-key (identical emitted wire names). PSL is the canonical path shown here.
 
-Emit + migrate as usual (`prisma-next contract emit`, then `prisma-next-migrations`). The plan creates your table, its FK, `ENABLE ROW LEVEL SECURITY`, and the `CREATE POLICY` statements — and **no DDL for `auth.*`**.
+Emit + migrate as usual (`prisma-next contract emit`, then `references/migrations.md`). The plan creates your table, its FK, `ENABLE ROW LEVEL SECURITY`, and the `CREATE POLICY` statements — and **no DDL for `auth.*`**.
 
 ## Workflow — `db.ts` with the `supabase()` factory
 
@@ -135,11 +131,11 @@ export const db = await supabase<Contract>({
 });
 ```
 
-Options beyond the basics: `middleware` (same composition as `postgres()` — see `prisma-next-runtime`; middleware never sees the role-binding `set_config` calls), `poolOptions`, `pg` (BYO `pg.Pool` / `pg.Client` instead of `url`). Teardown is `await db.close()` / `await using` exactly as in `prisma-next-runtime` — the same script-hang rules apply.
+Options beyond the basics: `middleware` (same composition as `postgres()` — see `references/runtime.md`; middleware never sees the role-binding `set_config` calls), `poolOptions`, `pg` (BYO `pg.Pool` / `pg.Client` instead of `url`). Teardown is `await db.close()` / `await using` exactly as in `references/runtime.md` — the same script-hang rules apply.
 
 ## Workflow — Role-bound queries
 
-The concept: bind the role that should execute the request, then query through the returned `RoleBoundDb` — every query surface from `prisma-next-queries` works, RLS-filtered by Postgres.
+The concept: bind the role that should execute the request, then query through the returned `RoleBoundDb` — every query surface from `references/queries.md` works, RLS-filtered by Postgres.
 
 ```typescript
 // A signed-in user: rows are RLS-scoped to the JWT's auth.uid().
@@ -159,7 +155,7 @@ const updated = await userDb.orm.public.Profile
   .updateAndCount({ username: 'new-name' });
 ```
 
-Notes: `asAnon()` / `asServiceRole()` are sync; only `asUser` is async. Multi-namespace contracts address models by coordinate (`orm.public.Profile`, `sql.public.profile`) — see `prisma-next-queries` § *Namespace-aware accessors*. `RoleBoundDb.transaction(fn)` wraps work in a transaction on the role-bound session.
+Notes: `asAnon()` / `asServiceRole()` are sync; only `asUser` is async. Multi-namespace contracts address models by coordinate (`orm.public.Profile`, `sql.public.profile`) — see `references/queries.md` § *Namespace-aware accessors*. `RoleBoundDb.transaction(fn)` wraps work in a transaction on the role-bound session.
 
 ## Workflow — Admin reads of `auth.*` / `storage.*`
 
@@ -223,8 +219,8 @@ The concept: the runtime needs a **direct, session-capable** Postgres connection
 
 ## What Prisma Next doesn't do yet
 
-- **No `/control` subpath on the extension** — it can't register through the target façade's `defineConfig({ extensions: [...] })`; wiring goes through the low-level config's `extensions` as shown above. File interest via `prisma-next-feedback`.
-- **`GRANT` authoring.** Table privileges are not contract elements; the one grant a Supabase app needs (the `service_role` `auth.*` pair for admin reads) is run once by hand (SQL editor / `psql`). If you want grants managed by the contract, file via `prisma-next-feedback`.
+- **No `/control` subpath on the extension** — it can't register through the target façade's `defineConfig({ extensions: [...] })`; wiring goes through the low-level config's `extensions` as shown above. File interest via `references/feedback.md`.
+- **`GRANT` authoring.** Table privileges are not contract elements; the one grant a Supabase app needs (the `service_role` `auth.*` pair for admin reads) is run once by hand (SQL editor / `psql`). If you want grants managed by the contract, file via `references/feedback.md`.
 - **Transactions spanning the app root and the `.supabase` admin root.** The two roots are separate contract-bound runtimes sharing one pool; a cross-root transaction is not supported.
 - **Triggers / functions as contract elements.** The classic "create a profile row on signup" `auth.users` trigger is authored as raw SQL against your database, not in the contract. `auth.uid()` etc. appear only inside opaque policy predicate strings.
 - **Supabase Realtime, storage uploads, PostgREST / `@supabase/supabase-js` interop, edge runtimes.** Out of scope for the extension — it speaks Postgres directly (Node.js / Bun).

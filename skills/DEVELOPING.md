@@ -2,9 +2,9 @@
 
 Contributor guide for the Prisma Next skills cluster. If you are *using* the skills, read [`README.md`](./README.md) and stop here. If you are *authoring or maintaining* a skill in this cluster, read this file first.
 
-## What this cluster is
+## What this tree is
 
-A small set of `SKILL.md` files that teach an LLM agent how to operate Prisma Next end-to-end. Each skill is workflow-scoped (one user goal per skill), runtime-matched by its `description:` frontmatter, and lives at `skills/<skill-name>/SKILL.md`. The router skill (`prisma-next`) catches vague prompts and points at the right specific skill.
+Skills that teach an LLM agent how to operate Prisma Next end-to-end. The usage surface is one consolidated skill: [`skills/prisma-next/SKILL.md`](./prisma-next/SKILL.md) is the runtime-matched entry point (its `description:` frontmatter fires on any Prisma Next work) and routes via its routing table into workflow-scoped reference files under [`skills/prisma-next/references/`](./prisma-next/references/) — one user goal per reference file. The two upgrade skills ([`prisma-next-upgrade`](./prisma-next-upgrade/), [`prisma-next-extension-upgrade`](./prisma-next-extension-upgrade/)) stay separate because their install ref policy differs (always `main`, never version-pinned).
 
 ## Authoring rules
 
@@ -14,7 +14,7 @@ These rules are load-bearing for the cluster. A new skill or a skill rewrite tha
 
 **Every CLI flag, command name, error code, config key, and file path you cite must be verified against the framework source before the sentence ships.** Authoring against an imagined tool surface — *"`migrate --dry-run` probably exists; it's standard"* — is how the most common defect class in this cluster gets in: a confidently-worded claim about an API that doesn't ship. The agent the skill teaches will not catch it (the skill is what the agent loads instead of re-deriving the API); reviewers catch it only if they happen to check.
 
-Verify *during* drafting, not at the end. The first draft of the `prisma-next-migration-review` pilot — written with the stated goal of "verify the tool surface before authoring" — still introduced three fabricated claims: a `--dry-run` flag on `migrate`, a "long-running operation" classifier that doesn't exist, and a destructive-op confirmation prompt on `migrate` (the prompt lives on `db update`). None of the three were caught by the author; all three were caught only by review. The lesson is that a final "verify pass" doesn't work — the verification step has to fire *at each tool-surface claim, while drafting it*, so the temptation to extrapolate from a similar command is gone before it leaves a trace in the file.
+Verify *during* drafting, not at the end. The first draft of the `migration-review.md` pilot — written with the stated goal of "verify the tool surface before authoring" — still introduced three fabricated claims: a `--dry-run` flag on `migrate`, a "long-running operation" classifier that doesn't exist, and a destructive-op confirmation prompt on `migrate` (the prompt lives on `db update`). None of the three were caught by the author; all three were caught only by review. The lesson is that a final "verify pass" doesn't work — the verification step has to fire *at each tool-surface claim, while drafting it*, so the temptation to extrapolate from a similar command is gone before it leaves a trace in the file.
 
 Use ripgrep against the framework source as you write. Verifying a flag:
 
@@ -34,7 +34,7 @@ Verifying a diagnostic code:
 rg "code: '<CODE>'" packages/1-framework/3-tooling/cli/src/commands/<file>.ts
 ```
 
-If the search returns nothing, the surface does not ship. Name the gap in *What Prisma Next doesn't do yet* and route the user to `prisma-next-feedback`. Do not paper over the gap with a plausible-looking incantation.
+If the search returns nothing, the surface does not ship. Name the gap in *What Prisma Next doesn't do yet* and route the user to `references/feedback.md`. Do not paper over the gap with a plausible-looking incantation.
 
 ### Teach concepts, not procedures
 
@@ -50,9 +50,9 @@ Procedural workflow sections — *"step 1: run X; step 2: read Y; step 3: if Z, 
 
 **The carve-out.** Some operations are genuinely one-safe-path (data-loss-risk migrations, irreversible operations, security-critical sequences where the agent must not improvise). Those workflow sections may be procedural — explicitly say *"this is the one-safe-path case"* in the section header so future maintainers don't strip the steps thinking they're cargo-culted.
 
-#### Worked example — `prisma-next-migration-review`
+#### Worked example — `references/migration-review.md`
 
-The pilot rewrite of [`skills/prisma-next-migration-review/SKILL.md`](./prisma-next-migration-review/SKILL.md) is the canonical worked example for this principle in this cluster. Before that rewrite, the skill contained:
+The pilot rewrite of [`skills/prisma-next/references/migration-review.md`](./prisma-next/references/migration-review.md) is the canonical worked example for this principle in this cluster. Before that rewrite, the skill contained:
 
 - A five-step *"diamond convergence procedure"* for resolving concurrent migrations.
 - A four-step *"detect that main advanced"* workflow.
@@ -74,7 +74,7 @@ A skill that teaches the verbose form has handed the agent a worse mental model 
 **Verify each user-authored import:**
 
 ```bash
-rg "from '@prisma-next/" skills/<skill>/SKILL.md \
+rg "from '@prisma-next/" skills/prisma-next/references/<topic>.md \
   | rg -v '@prisma-next/(postgres|mongo|sqlite|extension-|[a-z]+-plugin-)' \
   | rg -v 'framework-rendered'
 ```
@@ -90,7 +90,7 @@ The exclusion list covers the three sanctioned sources of user-authored `@prisma
 
 The framework-rendered migration scaffold uses the target façade's `/migration` subpath — the same façade-only convention as the rest of the project.
 
-**Worked example — the contract skill re-audit.** Commit `e41f02c1b` rewrote every user-authored example in `prisma-next-contract/SKILL.md` against the façade. The `prisma-next.config.ts` example went from seven imports across `@prisma-next/{cli,adapter-postgres,driver-postgres,family-sql,target-postgres,sql-contract-psl}` to two imports from `@prisma-next/{postgres/config, extension-pgvector/control}`. The TS builder example moved off `@prisma-next/sql-contract-ts/contract-builder` onto `@prisma-next/postgres/contract-builder`, and uses `@prisma-next/postgres/family` and `@prisma-next/postgres/target` as the `family`/`target` packs (a less-obvious façade subpath worth knowing about). Read the diff for a before/after.
+**Worked example — the contract skill re-audit.** Commit `e41f02c1b` rewrote every user-authored example in `references/contract.md` against the façade. The `prisma-next.config.ts` example went from seven imports across `@prisma-next/{cli,adapter-postgres,driver-postgres,family-sql,target-postgres,sql-contract-psl}` to two imports from `@prisma-next/{postgres/config, extension-pgvector/control}`. The TS builder example moved off `@prisma-next/sql-contract-ts/contract-builder` onto `@prisma-next/postgres/contract-builder`, and uses `@prisma-next/postgres/family` and `@prisma-next/postgres/target` as the `family`/`target` packs (a less-obvious façade subpath worth knowing about). Read the diff for a before/after.
 
 Commit `bf742221c` (`examples: migrate to @prisma-next/<target> façade imports`) does the same migration across nine example apps in `examples/`. Those apps are the canonical worked references; cite them when a skill needs a concrete example to point at.
 
@@ -98,25 +98,25 @@ Commit `bf742221c` (`examples: migrate to @prisma-next/<target> façade imports`
 
 These are well-trodden but worth listing in one place:
 
-- **`description:` frontmatter is a runtime matcher, not marketing prose.** Include the exact phrases — CLI flags, error codes, feature names, foreign-tool vocabulary — a user would type for this workflow.
-- **One workflow per skill.** Cluster size is bounded by the per-skill line ceiling. If a workflow grows past it, split — don't sprawl.
-- **`What Prisma Next doesn't do yet` is mandatory.** It names a concrete gap, describes today's workaround, and routes to `prisma-next-feedback`. Never confabulate an API that doesn't exist.
-- **No cross-cluster references that drift.** When a skill links to a sibling skill, link by skill name, not by line range.
+- **`description:` frontmatter is a runtime matcher, not marketing prose.** Only the consolidated `SKILL.md` carries frontmatter; its description fires on any Prisma Next work. Per-workflow trigger phrases — CLI flags, error codes, feature names, foreign-tool vocabulary a user would type — live in the routing table's *Triggers* column, and a new reference file must add its row there.
+- **One workflow per reference file.** File size is bounded by the per-file line ceiling. If a workflow grows past it, split into a companion reference (the queries → queries-postgres/queries-mongo split is the template) — don't sprawl.
+- **`What Prisma Next doesn't do yet` is mandatory.** It names a concrete gap, describes today's workaround, and routes to `references/feedback.md`. Never confabulate an API that doesn't exist.
+- **No cross-reference links that drift.** When a reference file links to a sibling, link by reference path (`references/<topic>.md`), not by line range.
 - **Skill content ships in lockstep with the framework.** Stale skill content is worse than no skill. When a PR touches framework surface a skill references, the skill update is part of the PR scope, not follow-up work.
 
 ## Authoring workflow
 
-1. Read [`README.md`](./README.md) for the user-facing scope of the cluster.
-2. Read the [`skill-specialist` persona](https://github.com/prisma/ignite/blob/main/skills/.curated/drive-agent-personas/personas/skill-specialist.md) in the Ignite persona library — it's the canonical lens for skill-cluster work.
-3. Read [`skills/prisma-next-migration-review/SKILL.md`](./prisma-next-migration-review/SKILL.md) for the cluster's worked example of concepts-over-procedures.
-4. Draft `SKILL.md`, **verifying each tool-surface claim against the framework source as you write it** (see *Verify the tool surface as you author* above for the ripgrep commands). The shape:
-   - `description:` frontmatter as a matcher (CLI flags, error codes, feature names — all verified).
+1. Read [`README.md`](./README.md) for the user-facing scope of the skills.
+2. Read the [`skill-specialist` persona](https://github.com/prisma/ignite/blob/main/skills/.curated/drive-agent-personas/personas/skill-specialist.md) in the Ignite persona library — it's the canonical lens for skill work.
+3. Read [`skills/prisma-next/references/migration-review.md`](./prisma-next/references/migration-review.md) for the worked example of concepts-over-procedures.
+4. Draft the reference file, **verifying each tool-surface claim against the framework source as you write it** (see *Verify the tool surface as you author* above for the ripgrep commands). The shape:
+   - A routing-table row in `SKILL.md` as the matcher (CLI flags, error codes, feature names — all verified).
    - Preamble + canonical mental-model headline.
    - *When to Use* / *When Not to Use*.
    - *Key Concepts* — name the moving parts.
    - *Workflow* — for each workflow, *concept block + the query that reveals state*.
    - *Common Pitfalls*.
-   - *What Prisma Next doesn't do yet* — concrete gap + workaround + route to `prisma-next-feedback`.
+   - *What Prisma Next doesn't do yet* — concrete gap + workaround + route to `references/feedback.md`.
    - *Reference Files* (when applicable; the migration-review skill omits this and points at `--help` instead).
    - *Checklist*.
 5. Re-read your workflow sections against the symptoms in *Teach concepts, not procedures*. Procedural? Rewrite as concept + query.
@@ -131,4 +131,4 @@ When you add or rewrite a skill workflow, add or update a journey test that exer
 
 - **Skill content drift / staleness** — fix in-PR or open a follow-up under this project / Linear ticket. Don't merge a framework-surface change without the skill update.
 - **Skill cluster scope or shape issues** — surface to `tech-lead` (orchestration) or the `skill-specialist` lens (cluster shape). See the [persona library](https://github.com/prisma/ignite/blob/main/skills/.curated/drive-agent-personas).
-- **Framework affordance gaps the skill is papering over** — file via the `prisma-next-feedback` skill or open the Linear ticket directly. Don't bury an affordance gap as a workaround in a skill body without naming it in *What Prisma Next doesn't do yet* and routing the user to feedback.
+- **Framework affordance gaps the skill is papering over** — file via the feedback flow in `references/feedback.md` or open the Linear ticket directly. Don't bury an affordance gap as a workaround in a skill body without naming it in *What Prisma Next doesn't do yet* and routing the user to feedback.

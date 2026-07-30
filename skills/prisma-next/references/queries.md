@@ -1,20 +1,3 @@
----
-name: prisma-next-queries
-description: >-
-  Write Prisma Next queries for Postgres, SQLite, or Mongo — pick a lane
-  (Postgres/SQLite `db.orm.<Model>` + `db.sql.<table>`; Mongo `db.orm.<root>`
-  + `db.query.from(...)` pipeline builder), filter / project / sort / paginate,
-  eager-load with `.include(...)`, Postgres/SQLite `db.transaction(...)`,
-  Postgres/SQLite ORM `.aggregate(...)`, Mongo aggregations via query builder,
-  namespace-aware accessors (`db.orm.<ns>.<Model>`, `db.sql.<ns>.<table>`).
-  Triggers: query, where, match, select, project, orderBy, take, skip, include,
-  lookup, first, all, count, aggregate, group, create, update, delete, upsert,
-  returning, transaction, db.close, script teardown, variant, polymorphism,
-  drizzle-style, kysely-style. Notes: `.all()` is a Thenable (just `await` it),
-  iterators are single-use (`RUNTIME.ITERATOR_CONSUMED`), Postgres `count` is
-  `number` while sum/avg/min/max are `number | null`, ranges use chained
-  `.where()` or `and(...)` (no `.between(...)`).
----
 
 # Prisma Next — Queries
 
@@ -34,10 +17,10 @@ Once the contract is emitted and the DB is up to date, this skill covers everyth
 
 ## When Not to Use
 
-- User wants to add / change a model → `prisma-next-contract`.
-- User wants to wire `db.ts` or add middleware → `prisma-next-runtime`.
-- User is querying through a Supabase role-bound db (`asUser` / `asAnon` / `asServiceRole`, RLS, `auth.*` admin reads) → `prisma-next-supabase` for the role-binding surface; everything in this skill then applies to the returned `RoleBoundDb`.
-- User wants to debug a query failure (structured error envelope) → `prisma-next-debug`.
+- User wants to add / change a model → `references/contract.md`.
+- User wants to wire `db.ts` or add middleware → `references/runtime.md`.
+- User is querying through a Supabase role-bound db (`asUser` / `asAnon` / `asServiceRole`, RLS, `auth.*` admin reads) → `references/supabase.md` for the role-binding surface; everything in this skill then applies to the returned `RoleBoundDb`.
+- User wants to debug a query failure (structured error envelope) → `references/debug.md`.
 
 ## Pick your target
 
@@ -45,9 +28,9 @@ Prisma Next ships **two query lanes per target** on the same `db` value from `sr
 
 | Runtime import in `db.ts` | Load |
 |---|---|
-| `@prisma-next/postgres/runtime` | [`postgres.md`](./postgres.md) — `db.orm.<Model>` + `db.sql.<table>` |
-| `@prisma-next/mongo/runtime` | [`mongo.md`](./mongo.md) — `db.orm.<root>` + `db.query.from(...)` |
-| `@prisma-next/extension-supabase/runtime` | [`postgres.md`](./postgres.md) — a Supabase `RoleBoundDb` is a Postgres surface (`db.orm.<Model>` + `db.sql.<table>`); bind a role first via `prisma-next-supabase` |
+| `@prisma-next/postgres/runtime` | [`queries-postgres.md`](./queries-postgres.md) — `db.orm.<Model>` + `db.sql.<table>` |
+| `@prisma-next/mongo/runtime` | [`queries-mongo.md`](./queries-mongo.md) — `db.orm.<root>` + `db.query.from(...)` |
+| `@prisma-next/extension-supabase/runtime` | [`queries-postgres.md`](./queries-postgres.md) — a Supabase `RoleBoundDb` is a Postgres surface (`db.orm.<Model>` + `db.sql.<table>`); bind a role first via `references/supabase.md` |
 
 Both targets share the contract and connection on one `db` value. Reach for the ORM first; drop to the lower-level lane when the ORM can't express the shape. Lane choice is local — one query function picks one lane, not the whole app.
 
@@ -62,7 +45,7 @@ When a contract declares more than one namespace (e.g. `public` and `auth`), mod
 
 The flat `db.orm.User` / `db.sql.users` form still works for single-namespace contracts (or when all table names are unique across namespaces). When the same bare name appears in more than one namespace, you must use the namespace coordinate.
 
-See [`postgres.md` § Namespace-aware accessors](./postgres.md#namespace-aware-accessors) for a worked example.
+See [`queries-postgres.md` § Namespace-aware accessors](./postgres.md#namespace-aware-accessors) for a worked example.
 
 ## Consuming the result: `await`, `.toArray()`, or `for await`
 
@@ -123,7 +106,7 @@ If you've seen `collect(...)` / `toArray(...)` helpers in a codebase wrapping `.
 
 ## Running queries from a short script
 
-When the user is running a one-off `tsx my-script.ts` (not a long-lived server), call `await db.close()` at the end so the process exits cleanly — on Postgres the façade-owned pool keeps Node's event loop alive; on Mongo the façade-owned `MongoClient` does the same. See `prisma-next-runtime` § *Running as a script (teardown)* for the full pattern including `await using`.
+When the user is running a one-off `tsx my-script.ts` (not a long-lived server), call `await db.close()` at the end so the process exits cleanly — on Postgres the façade-owned pool keeps Node's event loop alive; on Mongo the façade-owned `MongoClient` does the same. See `references/runtime.md` § *Running as a script (teardown)* for the full pattern including `await using`.
 
 ```typescript
 // src/scripts/seed.ts
@@ -145,7 +128,7 @@ await db.close();
 
 ## Common Pitfalls (cross-target)
 
-1. **Using Postgres examples on a Mongo project (or vice versa).** Check `db.ts` and load the correct target guide ([`postgres.md`](./postgres.md) or [`mongo.md`](./mongo.md)).
+1. **Using Postgres examples on a Mongo project (or vice versa).** Check `db.ts` and load the correct target guide ([`queries-postgres.md`](./queries-postgres.md) or [`queries-mongo.md`](./queries-mongo.md)).
 2. **Writing a `collect()` / `toArray()` helper to convert `.all()` to an array.** `.all()` returns an `AsyncIterableResult<Row>` which *is* a `PromiseLike<Row[]>` — `await collection.all()` directly yields `Row[]`. See *Consuming the result* above.
 3. **Consuming an `AsyncIterableResult` twice.** Each result is single-use. The second consumer throws `RUNTIME.ITERATOR_CONSUMED`. Buffer once into a variable and reuse the variable.
 
@@ -155,28 +138,28 @@ Target-specific pitfalls live in the per-target guides.
 
 - **N:M `.include()` across a junction table.** The contract IR supports many-to-many relations with a `through` junction table, and `N:M` relations appear as valid relation names on the ORM collection. However, `.include()` on an N:M relation does not emit the two-step junction join — the query plan builder only handles the direct join columns (`localColumn` / `targetColumn`) and ignores the `through` metadata. Attempting it either produces wrong results or an error. Workaround: express the N:M traversal through `db.sql.<table>` with an explicit join on the junction table.
 - **N:M nested mutations.** `mutation-executor.ts` explicitly throws `'N:M nested mutations are not supported yet'` for nested creates/links through an N:M relation.
-- **`and` / `or` / `not` combinators in the postgres façade.** The combinators currently import from `@prisma-next/sql-orm-client` (an internal package). Workaround today: import them from `@prisma-next/sql-orm-client` directly, the way the example apps do. If you want them on `@prisma-next/postgres/runtime`, file a feature request via `prisma-next-feedback`.
-- **`.orderBy(...)` / `.take(...)` on grouped aggregates (Postgres).** `db.orm.<Model>.groupBy(...).aggregate(...)` materializes a `Promise<Array<Group & Aggregates>>` and exposes neither ordering nor row limits at the DB layer. Result: a "top-N groups by SUM" query falls back to JS-side sort + slice over the full grouped result, which is fine at small cardinalities and bad at scale. Workarounds: (a) drop to `db.sql.<table>` and write the `GROUP BY` + `ORDER BY` + `LIMIT` against the aggregated table directly; (b) live with the JS-side sort/slice if the grouped cardinality is bounded. File a feature request via `prisma-next-feedback` if this is hitting you in production.
-- **A raw-SQL lane.** Prisma Next does not currently expose a user-facing raw-SQL surface (no `db.sql.raw(...)`). Workaround: model the query through the SQL builder or — for shapes the builder can't yet express — file a feature request via `prisma-next-feedback` describing the shape so the team can decide whether to grow the builder or ship a raw lane.
-- **TypedSQL (`.sql` files compiled into typed callables).** Not implemented. Workaround: stick to the SQL builder; for repeated queries, extract a function that returns the built plan and call `db.runtime().execute(plan)` at the call site. If you want a `.sql`-file compile path, file a feature request via `prisma-next-feedback`.
-- **`EXPLAIN` / query-plan inspection.** Prisma Next does not expose an `.explain()` method. Workaround: connect a `pg.Pool` you control via the runtime's `pg:` binding (see `prisma-next-runtime`) and issue `EXPLAIN ANALYZE` through it. If you want a first-class plan-inspection surface, file a feature request via `prisma-next-feedback`.
-- **Streaming large result sets.** No `.stream()` cursor today. Workaround: paginate via `.skip(n).take(m)` for moderate sizes; for very large sets, hold a `pg.Client` from the runtime's `pg:` binding and stream through it directly. If you want a built-in streaming surface, file a feature request via `prisma-next-feedback`.
-- **Multi-statement batching (Prisma-7-style `db.$transaction([call1, call2])`).** Prisma Next runs each call sequentially. Workaround: wrap atomically-related work in `db.transaction(async (tx) => { ... })` on Postgres. If you want batch-as-array semantics, file a feature request via `prisma-next-feedback`.
-- **Mongo façade transactions.** `@prisma-next/mongo/runtime` does not expose `db.transaction(...)`. Multi-document atomicity is not yet wrapped in the Prisma Next Mongo façade. Workaround: use the MongoDB driver's session API directly if you control the client binding (`mongoClient:` option). File a feature request via `prisma-next-feedback` if you need a first-class façade surface.
+- **`and` / `or` / `not` combinators in the postgres façade.** The combinators currently import from `@prisma-next/sql-orm-client` (an internal package). Workaround today: import them from `@prisma-next/sql-orm-client` directly, the way the example apps do. If you want them on `@prisma-next/postgres/runtime`, file a feature request via `references/feedback.md`.
+- **`.orderBy(...)` / `.take(...)` on grouped aggregates (Postgres).** `db.orm.<Model>.groupBy(...).aggregate(...)` materializes a `Promise<Array<Group & Aggregates>>` and exposes neither ordering nor row limits at the DB layer. Result: a "top-N groups by SUM" query falls back to JS-side sort + slice over the full grouped result, which is fine at small cardinalities and bad at scale. Workarounds: (a) drop to `db.sql.<table>` and write the `GROUP BY` + `ORDER BY` + `LIMIT` against the aggregated table directly; (b) live with the JS-side sort/slice if the grouped cardinality is bounded. File a feature request via `references/feedback.md` if this is hitting you in production.
+- **A raw-SQL lane.** Prisma Next does not currently expose a user-facing raw-SQL surface (no `db.sql.raw(...)`). Workaround: model the query through the SQL builder or — for shapes the builder can't yet express — file a feature request via `references/feedback.md` describing the shape so the team can decide whether to grow the builder or ship a raw lane.
+- **TypedSQL (`.sql` files compiled into typed callables).** Not implemented. Workaround: stick to the SQL builder; for repeated queries, extract a function that returns the built plan and call `db.runtime().execute(plan)` at the call site. If you want a `.sql`-file compile path, file a feature request via `references/feedback.md`.
+- **`EXPLAIN` / query-plan inspection.** Prisma Next does not expose an `.explain()` method. Workaround: connect a `pg.Pool` you control via the runtime's `pg:` binding (see `references/runtime.md`) and issue `EXPLAIN ANALYZE` through it. If you want a first-class plan-inspection surface, file a feature request via `references/feedback.md`.
+- **Streaming large result sets.** No `.stream()` cursor today. Workaround: paginate via `.skip(n).take(m)` for moderate sizes; for very large sets, hold a `pg.Client` from the runtime's `pg:` binding and stream through it directly. If you want a built-in streaming surface, file a feature request via `references/feedback.md`.
+- **Multi-statement batching (Prisma-7-style `db.$transaction([call1, call2])`).** Prisma Next runs each call sequentially. Workaround: wrap atomically-related work in `db.transaction(async (tx) => { ... })` on Postgres. If you want batch-as-array semantics, file a feature request via `references/feedback.md`.
+- **Mongo façade transactions.** `@prisma-next/mongo/runtime` does not expose `db.transaction(...)`. Multi-document atomicity is not yet wrapped in the Prisma Next Mongo façade. Workaround: use the MongoDB driver's session API directly if you control the client binding (`mongoClient:` option). File a feature request via `references/feedback.md` if you need a first-class façade surface.
 - **Mongo ORM aggregates.** No `.aggregate(...)` / `.groupBy(...)` on `db.orm.<root>`. Workaround: express aggregations through `db.query.from(...).group(...).build()` and `runtime.execute(plan)`.
 - **Mongo filter helpers on the façade.** Rich filters (`.in`, ranges, boolean composition) currently import from `@prisma-next/mongo-query-ast/execution` (`MongoFieldFilter`, etc.) — not yet re-exported on `@prisma-next/mongo/runtime`. Workaround: use object equality `.where({ field: value })` where possible; import from the internal package only when necessary. Tracked alongside façade-completeness gaps in Linear `TML-2526`.
-- **Automatic N+1 detection.** Prisma Next does not warn when an `.include(...)` is missing. Workaround: be deliberate about `.include(...)` in code review; the `lints` middleware (see `prisma-next-runtime`) catches the more common authoring slips (missing `WHERE` on a `DELETE` / `UPDATE`, missing `LIMIT` on a `SELECT`).
+- **Automatic N+1 detection.** Prisma Next does not warn when an `.include(...)` is missing. Workaround: be deliberate about `.include(...)` in code review; the `lints` middleware (see `references/runtime.md`) catches the more common authoring slips (missing `WHERE` on a `DELETE` / `UPDATE`, missing `LIMIT` on a `SELECT`).
 
 ## Reference Files
 
 This skill is split for selective loading. Target-specific reference paths live in the per-target guides:
 
-- **Postgres** — [`postgres.md` § Reference Files](./postgres.md#reference-files)
-- **Mongo** — [`mongo.md` § Reference Files](./mongo.md#reference-files)
+- **Postgres** — [`queries-postgres.md` § Reference Files](./postgres.md#reference-files)
+- **Mongo** — [`queries-mongo.md` § Reference Files](./mongo.md#reference-files)
 
 ## Checklist
 
-- [ ] Confirmed the active target from `db.ts` and loaded the matching guide ([`postgres.md`](./postgres.md) or [`mongo.md`](./mongo.md)).
+- [ ] Confirmed the active target from `db.ts` and loaded the matching guide ([`queries-postgres.md`](./queries-postgres.md) or [`queries-mongo.md`](./queries-mongo.md)).
 - [ ] For multi-namespace contracts, used `db.orm.<ns>.<Model>` / `db.sql.<ns>.<table>` coordinates when the same bare name exists in more than one namespace.
 - [ ] Chose the right lane (ORM by default; lower-level builder for shapes the ORM doesn't express).
 - [ ] Used `.first()` / `.first({ pk })` (Postgres) or `.where({ ... }).first()` (Mongo) for single-row reads — not `.all()`.

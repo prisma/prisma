@@ -159,6 +159,22 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
     expect(existsSync(join(tmpDir, '.agents/skills/prisma-next/SKILL.md'))).toBe(false);
   });
 
+  it('removes retired per-workflow skill directories left by pre-consolidation installs', async () => {
+    mkdirSync(join(tmpDir, '.claude/skills/prisma-next-queries'), { recursive: true });
+    writeFileSync(join(tmpDir, '.claude/skills/prisma-next-queries/SKILL.md'), '# stale');
+    writeFileSync(join(tmpDir, '.claude/skills/prisma-next-queries/postgres.md'), '# stale');
+    mkdirSync(join(tmpDir, '.agents/skills/prisma-next-contract'), { recursive: true });
+    writeFileSync(join(tmpDir, '.agents/skills/prisma-next-contract/SKILL.md'), '# stale');
+
+    const exit = await runInitTest(tmpDir, {
+      options: { install: false },
+      flags: interactiveFlags(),
+    });
+    expect(exit).toBe(INIT_EXIT_OK);
+    expect(existsSync(join(tmpDir, '.claude/skills/prisma-next-queries'))).toBe(false);
+    expect(existsSync(join(tmpDir, '.agents/skills/prisma-next-contract'))).toBe(false);
+  });
+
   it('generates config with single facade import and contract as string path', async () => {
     await runInitTest(tmpDir, { options: { install: false }, flags: interactiveFlags() });
 
@@ -421,13 +437,15 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
   it('with --no-install skips dependency installation and emit', async () => {
     await runInitTest(tmpDir, { options: { install: false }, flags: interactiveFlags() });
 
-    const dependencyInstallCalls = vi
-      .mocked(execFile)
-      .mock.calls.filter(([, args]) =>
+    const dependencyInstallCalls = vi.mocked(execFile).mock.calls.filter(
+      ([, args]) =>
+        // `--skill prisma-next` in the skills install carries the same
+        // literal as the devDep — exclude skills invocations first.
+        !(args as string[]).includes('skills@latest') &&
         (args as string[]).some((arg) =>
           ['@prisma-next/postgres', 'dotenv', 'prisma-next', '@types/node'].includes(arg),
         ),
-      );
+    );
     expect(dependencyInstallCalls).toHaveLength(0);
     expect(
       vi.mocked(execFile).mock.calls.some(([, args]) => {

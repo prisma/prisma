@@ -25,7 +25,7 @@ Before doing anything else, ensure this skill is installed at `@latest` and relo
 Concretely: if the agent runtime supports an in-session refresh, perform it now. Otherwise, exit and ask the user to re-install:
 
 ```bash
-pnpm dlx skills add prisma/prisma-next/skills/extension-author --all
+pnpm dlx skills add prisma/prisma-next/skills --skill prisma-next-extension-upgrade -y
 ```
 
 The extension-author skill subpath is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth and the latest release fixes apply to every prior transition.
@@ -40,7 +40,7 @@ This skill applies when the project **is** a Prisma Next extension. Heuristics:
 - the package's `name` matches `^@.*/extension-` (the in-tree convention used by `@prisma-next/extension-pgvector`, etc.), or
 - the package is referenced as an `extensions` entry from a sibling app's `prisma-next.config.ts` in the same monorepo.
 
-If the project additionally consumes Prisma Next from its own app code, install the `prisma-next-upgrade` skill (`pnpm dlx skills add prisma/prisma-next/skills/upgrade --all`) and run the user flow first, then this flow in the same session.
+If the project additionally consumes Prisma Next from its own app code, install the `prisma-next-upgrade` skill (`pnpm dlx skills add prisma/prisma-next/skills --skill prisma-next-upgrade -y`) and run the user flow first, then this flow in the same session.
 
 If detection is ambiguous, ask the user which role to operate under.
 

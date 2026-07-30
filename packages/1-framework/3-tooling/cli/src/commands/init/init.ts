@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 import * as clack from '@clack/prompts';
 import { basename, dirname, isAbsolute, join } from 'pathe';
@@ -53,6 +53,7 @@ import {
   DEFAULT_SKILL_SOURCES,
   formatSkillInstallCommand,
   LEGACY_SKILL_FILE,
+  legacySkillDirs,
   runProjectLevelSkillInstall,
 } from './skill-install';
 import { configFile, dbFile, starterSchema, targetPackageName } from './templates/code-templates';
@@ -191,6 +192,12 @@ export async function runInit(
   if (existsSync(join(baseDir, LEGACY_SKILL_FILE))) {
     filesToDelete.push(LEGACY_SKILL_FILE);
   }
+
+  // Retired per-workflow skill directories from pre-consolidation
+  // installs compete with the consolidated `prisma-next` skill for
+  // activation. Queue every existing one for recursive deletion on
+  // every run (not gated on `--reinit`).
+  const legacyDirsToDelete = legacySkillDirs().filter((rel) => existsSync(join(baseDir, rel)));
 
   // FR3.2: a real `.env` is only written when the user opted in. Never
   // overwrite an existing `.env` — secrets live there and clobbering
@@ -394,6 +401,14 @@ export async function runInit(
         throw err;
       }
     }
+  }
+
+  // Retired skill directories are removed whole — `rmSync` with
+  // `force` tolerates a concurrent removal the same way the ENOENT
+  // branch above does for single files.
+  for (const rel of legacyDirsToDelete) {
+    rmSync(join(baseDir, rel), { recursive: true, force: true });
+    filesDeleted.push(rel);
   }
 
   const emitCommand = formatRunCommand(pm, 'prisma-next', 'contract emit');

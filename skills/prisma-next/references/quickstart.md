@@ -1,20 +1,3 @@
----
-name: prisma-next-quickstart
-description: >-
-  Adopt Prisma Next into a new project, onto an existing database, or as the
-  first move after a bootstrap tool dropped you into a scaffold. Use for "what
-  can I do with Prisma Next", "what can I do next with Prisma", "where do I
-  start", "what should I do first", "just ran createprisma", "createprisma",
-  "npx createprisma", "npx create-prisma", "first steps", "first query", "I
-  have a scaffolded Prisma Next project what now"; for `pnpm dlx prisma-next
-  init` greenfield setup; and for `prisma-next contract infer` + `db sign`
-  against an existing database. Also covers the connect-write-read first-arc
-  orientation, the day-to-day commands (`contract emit`, `db init`, `db
-  update`, `migration plan`, `migrate`, `db schema`, `db verify`), and
-  routing to `prisma-next-contract` / `prisma-next-queries` /
-  `prisma-next-runtime` for the next move. Flags: --target, --authoring,
-  --schema-path, --probe-db, --output.
----
 
 # Prisma Next — Quickstart (Adoption)
 
@@ -39,17 +22,17 @@ This skill does **not** cover migrating from another ORM (Drizzle, Prisma 6/7, S
 
 ## When Not to Use
 
-- User already has a PN project and wants to add a model → `prisma-next-contract`.
+- User already has a PN project and wants to add a model → `references/contract.md`.
 - User wants to migrate FROM a specific ORM → install `@prisma-next/migrate-from-<orm>-skill` (separate).
-- User wants to wire `db.ts` in a project that already has a contract → `prisma-next-runtime`.
-- User wants to integrate Prisma Next with a build tool (Vite plugin, Next.js, …) → `prisma-next-build`.
+- User wants to wire `db.ts` in a project that already has a contract → `references/runtime.md`.
+- User wants to integrate Prisma Next with a build tool (Vite plugin, Next.js, …) → `references/build.md`.
 
 ## Key Concepts
 
 - **Contract**: the data model. Authored as `contract.prisma` (PSL, the canonical surface) or `contract.ts` (TypeScript builder). The framework reads it and emits two artefacts: `contract.json` (runtime IR) and `contract.d.ts` (types).
 - **Target**: the backing store. Today: `postgres` or `mongodb`. Picked at `init` time; baked into the `@prisma-next/<target>` façade the scaffold imports from.
-- **Authoring mode**: how you write the contract. `psl` (Prisma Schema Language, default) or `typescript` (programmatic builder, optionally paired with the Vite plugin for auto-emit during `vite dev` — see `prisma-next-build`).
-- **Façade packages.** The scaffold installs exactly one façade per target — `@prisma-next/postgres` (or `@prisma-next/mongo`). User code imports from façade subpaths (`@prisma-next/postgres/config`, `@prisma-next/postgres/runtime`, `@prisma-next/postgres/contract-builder`). The façade bakes in the family / target / adapter / driver wiring; never reach past it. See `prisma-next-contract` for the full list.
+- **Authoring mode**: how you write the contract. `psl` (Prisma Schema Language, default) or `typescript` (programmatic builder, optionally paired with the Vite plugin for auto-emit during `vite dev` — see `references/build.md`).
+- **Façade packages.** The scaffold installs exactly one façade per target — `@prisma-next/postgres` (or `@prisma-next/mongo`). User code imports from façade subpaths (`@prisma-next/postgres/config`, `@prisma-next/postgres/runtime`, `@prisma-next/postgres/contract-builder`). The façade bakes in the family / target / adapter / driver wiring; never reach past it. See `references/contract.md` for the full list.
 - **`db.ts`**: the runtime entry point. Lives next to the contract source at `src/prisma/db.ts`. Imports the contract artefacts and exports a `db` value the rest of the app uses.
 - **Marker**: a `pn_meta_marker` row in your database that records the contract hash. Lets PN detect drift between contract and live DB. Created by `db init` (greenfield / first-touch orientation) or `db sign` (brownfield).
 
@@ -85,7 +68,7 @@ Three things to internalise:
 - **`migrations/app/`** — the `app/` segment is the consuming application's space-id. Extensions you depend on get sibling directories under `migrations/` (one per extension contract-space), but you don't write into those — only the `app/` subtree is your migrations.
 - **`prisma-next.config.ts` lives at the repo root**, not under `src/`. Every command resolves paths relative to the config's directory.
 
-**Contributors building extension packages or aggregate-root monorepo packages use a different layout** — `src/contract.{prisma,ts}` (no `prisma/` subdir) + `migrations/<timestamp>_<slug>/` (no `app/` segment). That distinction is intentional; see `prisma-next-contract` for which path applies to you.
+**Contributors building extension packages or aggregate-root monorepo packages use a different layout** — `src/contract.{prisma,ts}` (no `prisma/` subdir) + `migrations/<timestamp>_<slug>/` (no `app/` segment). That distinction is intentional; see `references/contract.md` for which path applies to you.
 
 > **Heads up — `prisma-next init` currently scaffolds the wrong layout.** It writes `prisma/contract.{prisma,ts}` and `prisma/db.ts` at the repo root instead of under `src/prisma/`. Tracked as [TML-2532](https://linear.app/prisma-company/issue/TML-2532). Until the fix lands, either pass `--schema-path src/prisma/contract.prisma` to `init`, or move the scaffolded `prisma/` directory into `src/prisma/` after `init` and update the `contract` path in `prisma-next.config.ts` to match. The canonical layout above is what the demo example uses and what the rest of the framework expects.
 
@@ -111,9 +94,9 @@ console.log(users);
 
 If that prints `[{ id: 1, email: 'alice@example.com' }]`, the project is wired end-to-end and the user has crossed from *"I have a project"* to *"I'm building."*
 
-`db.orm.<Model>` is the default ORM lane — model-shaped, fully typed against the contract, lazily connects to the database on first use (it picks up `DATABASE_URL` from `.env` via the runtime's `dotenv/config`-loaded environment). The deeper `prisma-next-queries` skill covers the rest of the surface (filters, joins, transactions, the SQL builder, raw SQL, TypedSQL) when the user is ready.
+`db.orm.<Model>` is the default ORM lane — model-shaped, fully typed against the contract, lazily connects to the database on first use (it picks up `DATABASE_URL` from `.env` via the runtime's `dotenv/config`-loaded environment). The deeper `references/queries.md` skill covers the rest of the surface (filters, joins, transactions, the SQL builder, raw SQL, TypedSQL) when the user is ready.
 
-> **Mongo target:** the snippet above is SQL-target shape. On `@prisma-next/mongo`, `db.orm` is keyed by the collection's storage name (`@@map(...)`, or the lowercased model name if no `@@map`), so the same arc reads `await db.orm.users.create(...)` / `await db.orm.users.select('id', 'email').all()` — not `db.orm.User`. Full rule and rewrite recipe in `prisma-next-queries` § *MongoDB ORM addressing*.
+> **Mongo target:** the snippet above is SQL-target shape. On `@prisma-next/mongo`, `db.orm` is keyed by the collection's storage name (`@@map(...)`, or the lowercased model name if no `@@map`), so the same arc reads `await db.orm.users.create(...)` / `await db.orm.users.select('id', 'email').all()` — not `db.orm.User`. Full rule and rewrite recipe in `references/queries.md` § *MongoDB ORM addressing*.
 
 **Prerequisites for the arc to work.** All three paths leave these in place by the time you reach the arc:
 
@@ -170,10 +153,10 @@ Run the snippet from *Your first arc — connect, write, read* above against wha
 
 Now ask the user what they want to build. Route to the skill that owns that move:
 
-- More queries (filters, joins, transactions, raw SQL, TypedSQL) → `prisma-next-queries`.
-- Add a model, change a field, add a relation → `prisma-next-contract`. They'll touch `contract emit` and `db update` (or `migration plan` + `migrate`) as part of that workflow.
-- Middleware, environment config, multiple targets → `prisma-next-runtime`.
-- Vite / Next.js / dev-server integration → `prisma-next-build`.
+- More queries (filters, joins, transactions, raw SQL, TypedSQL) → `references/queries.md`.
+- Add a model, change a field, add a relation → `references/contract.md`. They'll touch `contract emit` and `db update` (or `migration plan` + `migrate`) as part of that workflow.
+- Middleware, environment config, multiple targets → `references/runtime.md`.
+- Vite / Next.js / dev-server integration → `references/build.md`.
 - They want a fuller toolbelt overview at this point — *Commands you'll use day-to-day* below is the one-glance summary.
 
 ### Anti-patterns on this path
@@ -238,7 +221,7 @@ After init succeeds, the path converges on *Your first arc — connect, write, r
 1. Set `DATABASE_URL` in `.env` (copy from `.env.example`).
 2. Initialise the database: `pnpm prisma-next db init`. Creates tables, indexes, constraints, and writes the marker row — using the starter contract `init` generated.
 
-Then run the snippet from *Your first arc* above against the `User` model. When the user is ready to extend the contract — add more models, change fields, add relations — chain to `prisma-next-contract`. For more queries, chain to `prisma-next-queries`.
+Then run the snippet from *Your first arc* above against the `User` model. When the user is ready to extend the contract — add more models, change fields, add relations — chain to `references/contract.md`. For more queries, chain to `references/queries.md`.
 
 **Why this is queries-first, not schema-editing-first.** `init` ships with `User` and `Post` on purpose: the user shouldn't have to design a schema to prove their setup works. Extending the contract is the next move *after* the first arc lands, not part of getting there. If the user asks you to skip straight to *"add a Comment model"* — sure, do that — but get one query green against `User` or `Post` first if there's any doubt the project is wired correctly.
 
@@ -285,20 +268,20 @@ A reference table — not a script to recite at the user. Commands surface in th
 | What you want to do | Command | Deeper skill |
 |---|---|---|
 | Apply the current contract to the DB the first time | `prisma-next db init` | this skill |
-| Re-emit `contract.json` + `contract.d.ts` after editing the contract source | `prisma-next contract emit` | `prisma-next-contract` |
-| Quick dev-only schema sync (no migration history kept) | `prisma-next db update` | `prisma-next-migrations` |
-| Plan a migration from a contract diff | `prisma-next migration plan --name <slug>` | `prisma-next-migrations` |
-| Apply pending migrations | `prisma-next migrate` | `prisma-next-migrations` |
-| Inspect the live database | `prisma-next db schema` | `prisma-next-debug` |
-| Confirm the DB matches the contract (drift check) | `prisma-next db verify` | `prisma-next-debug` |
+| Re-emit `contract.json` + `contract.d.ts` after editing the contract source | `prisma-next contract emit` | `references/contract.md` |
+| Quick dev-only schema sync (no migration history kept) | `prisma-next db update` | `references/migrations.md` |
+| Plan a migration from a contract diff | `prisma-next migration plan --name <slug>` | `references/migrations.md` |
+| Apply pending migrations | `prisma-next migrate` | `references/migrations.md` |
+| Inspect the live database | `prisma-next db schema` | `references/debug.md` |
+| Confirm the DB matches the contract (drift check) | `prisma-next db verify` | `references/debug.md` |
 | Bring an existing DB into a PN contract | `prisma-next contract infer --db "$DATABASE_URL"` | this skill (brownfield) |
-| Decode a structured error envelope | (read the `code` / `why` / `fix` fields) | `prisma-next-debug` |
-| Report a bug or request a feature | (file via the feedback skill) | `prisma-next-feedback` |
+| Decode a structured error envelope | (read the `code` / `why` / `fix` fields) | `references/debug.md` |
+| Report a bug or request a feature | (file via the feedback skill) | `references/feedback.md` |
 
 ## Decision — PSL vs TypeScript authoring
 
 - **PSL** (`contract.prisma`) — the default. Concise, declarative, familiar to anyone who has used Prisma. Recommended for most projects.
-- **TypeScript** (`contract.ts`) — a programmatic builder. Use when the contract is genuinely computed (multi-tenant per-tenant variants), when you reuse contract fragments across files, or when an extension requires constructs PSL doesn't yet express (e.g. pgvector's parameterised storage-type registration). Pairs with the Vite plugin from `prisma-next-build` for auto-emit on save.
+- **TypeScript** (`contract.ts`) — a programmatic builder. Use when the contract is genuinely computed (multi-tenant per-tenant variants), when you reuse contract fragments across files, or when an extension requires constructs PSL doesn't yet express (e.g. pgvector's parameterised storage-type registration). Pairs with the Vite plugin from `references/build.md` for auto-emit on save.
 
 Switch authoring later by re-running `prisma-next init` in the same directory. The init flow detects the existing scaffold and prompts to reinit (use `--force` to skip the prompt in non-interactive runs). Existing contract content is *not* automatically translated — you'll re-author by hand in the target language.
 
@@ -308,15 +291,15 @@ Switch authoring later by re-running `prisma-next init` in the same directory. T
 2. **`init` doesn't connect to your database.** It only scaffolds files and installs dependencies (and runs the initial `contract emit`). You connect with `db init` / `db update` / `migrate`. If `init` succeeds and queries fail, the issue is `DATABASE_URL`, not `init`.
 3. **Treating inferred PSL as the final contract.** `contract infer` produces a starting point. Don't `db sign` against a contract you haven't read.
 4. **Forgetting to emit after editing the contract.** The contract artefacts (`contract.json`, `contract.d.ts`) are stale until you run `contract emit`. If the type-checker says a model "doesn't exist", you skipped emit.
-5. **Setting `DATABASE_URL` in `prisma-next.config.ts` instead of `.env`.** The config reads `.env` automatically via `dotenv/config`. Hardcoding the URL leaks credentials and bypasses per-environment overrides. See `prisma-next-runtime`.
+5. **Setting `DATABASE_URL` in `prisma-next.config.ts` instead of `.env`.** The config reads `.env` automatically via `dotenv/config`. Hardcoding the URL leaks credentials and bypasses per-environment overrides. See `references/runtime.md`.
 6. **Hand-editing `contract.json` or `contract.d.ts`.** They're emitted artefacts; the next `contract emit` overwrites your changes. Edit the source instead.
 7. **Using `--out` for `contract infer`.** The flag is `--output`.
 
 ## What Prisma Next doesn't do yet
 
-- **Migration from another ORM.** Prisma Next doesn't migrate your schema *from* Drizzle / Prisma 6/7 / Sequelize / TypeORM / Kysely / Knex / a raw driver. Workaround: install the matching `@prisma-next/migrate-from-<orm>-skill` if one exists for your source, or treat the source as a brownfield database and `contract infer` from it. If you need a guided migration flow built-in, file a feature request via the `prisma-next-feedback` skill.
-- **`prisma db push`-style production sync.** `db update` is the quick development path; for production, use migrations (`migration plan` + `migrate`). PN deliberately does not offer a "push-to-prod-without-a-migration" surface — see `prisma-next-migrations`.
-- **Studio / GUI database browser.** Use `prisma-next db schema` for a CLI tree-style summary of the live DB. If you need an interactive UI, file a feature request via the `prisma-next-feedback` skill.
+- **Migration from another ORM.** Prisma Next doesn't migrate your schema *from* Drizzle / Prisma 6/7 / Sequelize / TypeORM / Kysely / Knex / a raw driver. Workaround: install the matching `@prisma-next/migrate-from-<orm>-skill` if one exists for your source, or treat the source as a brownfield database and `contract infer` from it. If you need a guided migration flow built-in, file a feature request via the `references/feedback.md` skill.
+- **`prisma db push`-style production sync.** `db update` is the quick development path; for production, use migrations (`migration plan` + `migrate`). PN deliberately does not offer a "push-to-prod-without-a-migration" surface — see `references/migrations.md`.
+- **Studio / GUI database browser.** Use `prisma-next db schema` for a CLI tree-style summary of the live DB. If you need an interactive UI, file a feature request via the `references/feedback.md` skill.
 
 ## Reference Files
 
@@ -339,4 +322,4 @@ This skill is intentionally body-only; `prisma-next init --help`, `contract infe
 - [ ] Initialised the DB (`db init` greenfield / first-touch orientation) or signed the marker (`db sign` brownfield).
 - [ ] Did NOT hand-edit `contract.json` or `contract.d.ts`.
 - [ ] Did NOT set `DATABASE_URL` in `prisma-next.config.ts`.
-- [ ] Confirmed the user understands what the *next* skill is for their workflow (typically `prisma-next-queries` for more queries, then `prisma-next-contract` when they're ready to extend the schema).
+- [ ] Confirmed the user understands what the *next* skill is for their workflow (typically `references/queries.md` for more queries, then `references/contract.md` when they're ready to extend the schema).

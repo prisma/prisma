@@ -1,65 +1,73 @@
 ---
 name: prisma-next
-description: Route a vague Prisma Next prompt to the right specific skill. Use for "help me with Prisma Next", "what is Prisma Next", "explain Prisma Next", "I'm new to PN", "where do I start", "what can I do with Prisma Next", "what can I do next with Prisma", "just ran createprisma", "tour of Prisma Next", "Prisma Next overview", and comparison questions like "Prisma Next vs Prisma 7", "PN vs Drizzle", "PN vs Kysely", "PN vs TypeORM". Do NOT use when the prompt clearly matches a workflow skill — adoption / quickstart / first-touch orientation / brownfield introspection, schema / contract editing, migration authoring (db update / migration plan / migrate), migration review on deploy / concurrent migrations, queries / db.orm / db.sql / TypedSQL, Supabase / RLS / role binding, runtime / db.ts / middleware wiring, build / Vite plugin / Next.js plugin, debug / structured error envelopes / PN-* error codes, or feedback / bug report / feature request — load that sibling skill directly.
+description: >-
+  Comprehensive guide for building with Prisma 8 (Prisma Next), the
+  contract-first data layer. Use whenever working on Prisma code in a project
+  that uses it — authoring or editing the data contract (contract.prisma, PSL,
+  TypeScript builders), migrations, queries (db.orm / db.sql), runtime wiring
+  (db.ts, middleware, DATABASE_URL), build-tool integration, Supabase / RLS,
+  reading PN-* structured errors, or filing feedback — and for orientation
+  questions like "what is Prisma Next" or comparisons to other ORMs. Signals
+  that this skill applies: @prisma-next/* imports, prisma-next.config.ts,
+  contract.prisma / contract.json / contract.d.ts, the prisma-next CLI,
+  PN-* error codes. Does not apply to Prisma ORM 7 or earlier
+  (schema.prisma + @prisma/client projects).
 ---
 
-# Prisma Next — Router
+# Prisma Next (Prisma 8)
 
 > **Edit your data contract. Prisma handles the rest.**
 
-This skill exists to disambiguate vague Prisma Next prompts. When the user hasn't yet committed to a specific workflow (e.g. *"help me with Prisma Next"*, *"explain how Prisma Next works"*, *"I'm new to PN, where do I start?"*), this skill fires and routes them to the right specific skill.
-
-## When to Use
-
-- The user has not yet stated a concrete task.
-- The user types a meta-question about Prisma Next (*"what is Prisma Next?"*, *"how does PN compare to Drizzle/Prisma 7?"*).
-- The user asks for a tour, an overview, or a starting point.
-
-## When Not to Use
-
-- The user named a workflow — use the matching skill directly:
-  - Setting up a new project or adopting an existing DB → `prisma-next-quickstart`.
-  - Editing the schema, adding a model, changing a field → `prisma-next-contract`.
-  - Authoring a migration, fixing a planner error → `prisma-next-migrations`.
-  - Reviewing what's about to run on merge, handling concurrent migrations → `prisma-next-migration-review`.
-  - Writing a query → `prisma-next-queries`.
-  - Supabase — RLS policies, role binding (`asUser` / `asAnon` / `asServiceRole`), `auth.users` FKs, `@prisma-next/extension-supabase` → `prisma-next-supabase`.
-  - Wiring `db.ts`, middleware, environment config → `prisma-next-runtime`.
-  - Build-system / dev-server plugin (Vite, Next.js, …) → `prisma-next-build`.
-  - A specific error code or symptom → `prisma-next-debug`.
-  - Reporting a bug or filing a feature request against Prisma Next → `prisma-next-feedback`.
-
-## Routing rules
-
-If the user's prompt clearly matches one of the workflow skills, route there directly without asking.
-
-Otherwise, ask **one** disambiguating question. Pick from:
-
-- *"Are you new to Prisma Next and asking what you can do with it, or where to start?"* (and any *"what can I do with Prisma Next?"* / *"I just ran createprisma"* variant) → `prisma-next-quickstart` (first-touch orientation path).
-- *"Do you want to set up a new Prisma Next project, or wire it into an existing database?"* → `prisma-next-quickstart`.
-- *"Do you want to edit your data contract (add a model / field / relation), or work with the database (migrations, queries)?"* → `prisma-next-contract` vs the others.
-- *"Is this about authoring a migration, or about reviewing what's going to run on deploy?"* → `prisma-next-migrations` vs `prisma-next-migration-review`.
-- *"Is this about wiring Prisma Next into your build tool (Vite / Next.js / …), or about wiring `db.ts` and middleware at runtime?"* → `prisma-next-build` vs `prisma-next-runtime`.
-- *"What error or symptom are you seeing?"* → `prisma-next-debug`.
-- *"Do you want to report this as a bug to the Prisma Next team, or is this a feature request?"* → `prisma-next-feedback`.
-
-If you still can't tell which skill applies, ask the user what they want to do. Do not guess.
+Prisma Next is a contract-first data layer. This skill routes every Prisma Next task to the right reference file — open the reference before writing code; do not answer from this file alone.
 
 ## The canonical model (one paragraph)
 
-Prisma Next is a contract-first data layer. You author a **data contract** (a `contract.prisma` file, or a TypeScript builder). The framework emits machine-readable artifacts (`contract.json`, `contract.d.ts`) and gives you three runtime surfaces on SQL targets: a typed SQL query builder (`db.sql.from(...)`), a typed ORM client (`db.orm.User.select(...)`), and a raw SQL escape hatch (`db.sql.raw(...)`). On MongoDB targets only the ORM lane exists, and its keys are collection storage names (`db.orm.users`) rather than PSL model names — `prisma-next-queries` § *MongoDB ORM addressing* covers the rule. Migrations are planned from the contract diff; you review them, optionally edit the `migration.ts` for data transforms, and apply.
+You author a **data contract** (a `contract.prisma` file, or a TypeScript builder). The framework emits machine-readable artifacts (`contract.json`, `contract.d.ts`) and gives you two runtime surfaces on SQL targets: a typed SQL query builder (`db.sql.<ns>.<table>`) and a typed ORM client (`db.orm.<ns>.<Model>`). On MongoDB targets only the ORM lane exists, and its keys are collection storage names (`db.orm.users`) rather than PSL model names — [`references/queries.md`](references/queries.md) § *MongoDB ORM addressing* covers the rule. Migrations are planned from the contract diff; you review them, optionally edit the `migration.ts` for data transforms, and apply.
 
 Three steps the user does:
 
-1. **Edit your data contract.** (`prisma-next-contract`)
-2. **The system plans the migrations for you.** (`prisma-next-migrations`)
-3. **If you need data migrations, you edit `migration.ts` and execute it.** (`prisma-next-migrations`)
+1. **Edit your data contract.** ([`references/contract.md`](references/contract.md))
+2. **The system plans the migrations for you.** ([`references/migrations.md`](references/migrations.md))
+3. **If you need data migrations, you edit `migration.ts` and execute it.** ([`references/migrations.md`](references/migrations.md))
 
 Everything else — queries, runtime wiring, build integration, debugging, feedback — sits on top of those three.
 
+## Routing table
+
+Open the reference whose triggers match the task. If more than one matches, open each — they are written to compose.
+
+| Task | Reference | Triggers |
+|---|---|---|
+| Adopt / set up / first steps | [`references/quickstart.md`](references/quickstart.md) | new project, existing database, "what can I do with Prisma Next", "where do I start", "just ran createprisma", `npx create-prisma`, first steps, first query, `prisma-next init` greenfield setup, `contract infer` + `db sign` brownfield adoption, connect-write-read first arc, day-to-day commands (`contract emit`, `db init`, `db update`, `migration plan`, `migrate`, `db schema`, `db verify`), flags `--target` / `--authoring` / `--schema-path` / `--probe-db` / `--output` |
+| Edit the data contract | [`references/contract.md`](references/contract.md) | schema, models, fields, attributes, relations, indexes, enums, value objects (composite types), type aliases, namespaces (Postgres schemas), cross-contract foreign keys (cross-space FK), polymorphic types (`@@discriminator` / `@@base`), extension namespaces (`pgvector.Vector(...)`, `cipherstash.EncryptedString(...)`), `prisma-next.config.ts` / `defineConfig`, `prisma-next contract emit`, PSL, `contract.prisma`, `contract.ts`, `contract.json`, `contract.d.ts`, `@prisma-next/postgres/config`, `@prisma-next/postgres/contract-builder`, `@prisma-next/mongo/config`, `extensions:`, pgvector, cipherstash, postgis, paradedb, `@@control`, control policy (managed / tolerated / external / observed), soft delete, validations, callbacks |
+| Author migrations | [`references/migrations.md`](references/migrations.md) | `db update` vs `migration plan`, `migrate`, `migration new`, `migration show`, `db update --dry-run`, `db verify`, `db sign`, data migration, `dataTransform`, placeholder sentinels in framework-rendered `migration.ts`, `MIGRATION.HASH_MISMATCH`, PN-MIG-2001 unfilled placeholder, schema drift |
+| Review migrations on deploy | [`references/migration-review.md`](references/migration-review.md) | "what migrations are going to run", "what runs on deploy / merge", merge conflict, diamond convergence, concurrent migrations, migration status, ref management for CI, staging / production environment refs, `MIGRATION.DIVERGED`, `MIGRATION.NO_MARKER`, `MIGRATION.MARKER_NOT_IN_HISTORY`, `migrate status`, `migrate diff`, `migrate resolve` |
+| Write queries | [`references/queries.md`](references/queries.md) | query, where, select, project, orderBy, take, skip, include, lookup, first, all, count, aggregate, groupBy, create, update, delete, upsert, returning, transaction, `db.orm`, `db.sql`, `db.query.from(...)` (Mongo pipeline), namespace-aware accessors, `.all()` Thenable, single-use iterators (`RUNTIME.ITERATOR_CONSUMED`), drizzle-style, kysely-style. Postgres/SQLite specifics: [`references/queries-postgres.md`](references/queries-postgres.md); Mongo specifics: [`references/queries-mongo.md`](references/queries-mongo.md) |
+| Wire the runtime | [`references/runtime.md`](references/runtime.md) | `db.ts`, `postgres<Contract>(...)` / `sqlite<Contract>(...)` / `mongo<Contract>(...)` façades, middleware composition (telemetry, lints, budgets), `DATABASE_URL`, `.env`, connection pool / `poolOptions`, dev vs prod config, transactions, read replicas, multi-database, script won't exit / hangs, `db.close` / `pool.end`, `await using` / `[Symbol.asyncDispose]` |
+| Build-tool integration | [`references/build.md`](references/build.md) | Vite plugin (`@prisma-next/vite-plugin-contract-emit`, Vite 7/8), `vite.config.ts`, contract emit on save, HMR / dev server, Next.js / Webpack / esbuild / Rollup / Turbopack (named gaps, not fabricated) |
+| Supabase | [`references/supabase.md`](references/supabase.md) | `@prisma-next/extension-supabase`, RLS, row level security, policies (`policy_select` / `policy_update` / `@@rls`, `auth.uid()`), role binding (`asUser(jwt)` / `asAnon()` / `asServiceRole()`), `auth.users`, cross-space FKs to `supabase:auth.AuthUser`, JWT / JWKS (`SUPABASE_JWKS_URL`, `SUPABASE_JWT_SECRET`), `SUPABASE.JWT_INVALID`, `SUPABASE.CONFIG_INVALID`, `RoleBoundDb`, session pooler |
+| Debug an error | [`references/debug.md`](references/debug.md) | any structured error envelope (code, domain, severity, why, fix, meta), emit failed, query won't typecheck, query crashed, migration won't apply, `MIGRATION.HASH_MISMATCH`, `BUDGET.ROWS_EXCEEDED`, `BUDGET.TIME_EXCEEDED`, `RUNTIME.ABORTED`, `PLAN.HASH_MISMATCH`, `CONTRACT.MARKER_MISSING`, PN-RUN-* / PN-MIG-* / PN-CLI-* / PN-SCHEMA-* codes, drift, capability missing, planner conflict, EXPLAIN, query log, script won't exit / close connection |
+| File feedback / ask the team | [`references/feedback.md`](references/feedback.md) | bug report, file an issue, feature request, missing feature, capability gap, "this is broken", surprising behaviour, Q&A / design discussion, ask the Prisma team, Prisma Discord (pris.ly/discord), extension-author questions |
+
+## Routing rules
+
+If the task clearly matches a row, open that reference directly without asking.
+
+For a vague prompt, ask **one** disambiguating question. Pick from:
+
+- *"Are you new to Prisma Next and asking what you can do with it, or where to start?"* → [`references/quickstart.md`](references/quickstart.md) (first-touch orientation path).
+- *"Do you want to set up a new Prisma Next project, or wire it into an existing database?"* → [`references/quickstart.md`](references/quickstart.md).
+- *"Do you want to edit your data contract (add a model / field / relation), or work with the database (migrations, queries)?"* → [`references/contract.md`](references/contract.md) vs the others.
+- *"Is this about authoring a migration, or about reviewing what's going to run on deploy?"* → [`references/migrations.md`](references/migrations.md) vs [`references/migration-review.md`](references/migration-review.md).
+- *"Is this about wiring Prisma Next into your build tool (Vite / Next.js / …), or about wiring `db.ts` and middleware at runtime?"* → [`references/build.md`](references/build.md) vs [`references/runtime.md`](references/runtime.md).
+- *"What error or symptom are you seeing?"* → [`references/debug.md`](references/debug.md).
+- *"Do you want to report this as a bug to the Prisma Next team, or is this a feature request?"* → [`references/feedback.md`](references/feedback.md).
+
+If you still can't tell which reference applies, ask the user what they want to do. Do not guess.
+
 ## Checklist
 
-- [ ] If the prompt matches a specific workflow skill, route there without asking.
+- [ ] If the task matches a routing-table row, open that reference before writing code.
 - [ ] If the prompt is vague, ask one disambiguating question.
-- [ ] Do not attempt to answer the user's question from this skill — load the right specific skill first.
-- [ ] If the user describes a missing feature or a misbehaviour they want fixed, route to `prisma-next-feedback`.
+- [ ] Do not attempt to answer from this file alone — the references carry the verified tool surface.
+- [ ] If the user describes a missing feature or a misbehaviour they want fixed, open [`references/feedback.md`](references/feedback.md).

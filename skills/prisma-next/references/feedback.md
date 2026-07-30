@@ -1,7 +1,3 @@
----
-name: prisma-next-feedback
-description: Hand a Prisma Next question or report off to the team — file a GitHub issue (bug or feature request), or route Q&A / design discussion / direct-team-contact to the Prisma Discord at pris.ly/discord. Use for bug, bug report, file an issue, report a bug, feature request, missing feature, this should be a feature, file this, this is a bug, this is broken, surprising behaviour, this doesn't work, file feedback, send feedback, capability gap, file via prisma-next-feedback, ask the team, talk to the team, talk to the Prisma team, talk to Prisma, Discord, Prisma Discord, Q&A, design feedback, is this the intended way, how should I do X, extension author question, extension author needs help.
----
 
 # Prisma Next — Feedback (Bug Reports, Feature Requests, Team Q&A)
 
@@ -27,7 +23,7 @@ Canonical channels:
 
 - User wants to fix the bug themselves in the user's own code. The fix lives in another skill (debug / contract / migrations / queries / runtime / build). Chain to the right skill first; only fall back to feedback if the user explicitly wants the framework to do something differently.
 - User wants to upgrade Prisma Next (the bug may already be fixed) → the `prisma-next-upgrade` skill (separately installed); this skill mentions it as a pre-flight check.
-- The user's question is already covered by a workflow skill in the cluster (*"how do I add a column?"* → `prisma-next-contract`; *"what's the right query interface?"* → `prisma-next-queries`). Route to the workflow skill, not to the team — load the skill, answer the question, and only escalate to Discord if the agent can't.
+- The user's question is already covered by a workflow skill in the cluster (*"how do I add a column?"* → `references/contract.md`; *"what's the right query interface?"* → `references/queries.md`). Route to the workflow skill, not to the team — load the skill, answer the question, and only escalate to Discord if the agent can't.
 
 ## Key Concepts
 

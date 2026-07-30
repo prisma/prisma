@@ -3,8 +3,8 @@
  * Validates SKILL.md frontmatter across every skill root the `skills` CLI
  * and `prisma-next init` discover skills from: `skills-contrib` (contributor
  * skill sources, linted only) and the user-facing tree that `prisma-next
- * init` installs into consumer projects (`skills`, `skills/upgrade`,
- * `skills/extension-author`). YAML must parse, and `name` + `description`
+ * init` installs into consumer projects (`skills`). YAML must parse, and
+ * `name` + `description`
  * must be non-empty strings. Also enforces the agentskills.io 1024-character
  * description limit used by `skills add` registry manifests.
  *
@@ -24,7 +24,7 @@ const matter = require('gray-matter');
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 
 export const SKILLS_DIR = 'skills-contrib';
-export const SKILL_ROOTS = [SKILLS_DIR, 'skills', 'skills/upgrade', 'skills/extension-author'];
+export const SKILL_ROOTS = [SKILLS_DIR, 'skills'];
 export const MAX_DESCRIPTION_LENGTH = 1024;
 
 export function validateSkillMd(content) {

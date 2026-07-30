@@ -1,7 +1,3 @@
----
-name: prisma-next-runtime
-description: Wire the Prisma Next runtime — `db.ts` setup using `postgres<Contract>(...)` from `@prisma-next/postgres/runtime`, `sqlite<Contract>(...)` from `@prisma-next/sqlite/runtime`, or `mongo<Contract>(...)` from `@prisma-next/mongo/runtime`; middleware composition (telemetry from `@prisma-next/middleware-telemetry`; lints and budgets), `DATABASE_URL` config, per-environment branching, switching between Postgres, SQLite, and Mongo façades. Use for db.ts, postgres(), sqlite(), mongo(), middleware, telemetry, lints, budgets, DATABASE_URL, .env, connection pool, poolOptions, dev vs prod config, transactions, db.transaction, read replicas, multi-database, script won't exit, hangs, close connection, db.end, db.close, pool.end, [Symbol.asyncDispose], await using.
----
 
 # Prisma Next — Runtime (`db.ts` Wiring)
 
@@ -21,12 +17,12 @@ This skill covers the **runtime entry point** — `db.ts` — and how to compose
 
 ## When Not to Use
 
-- User wants to write queries → `prisma-next-queries`.
-- User is on Supabase — the `supabase()` role-first factory, `asUser(jwt)` / `asAnon()` / `asServiceRole()`, JWT config, RLS → `prisma-next-supabase`.
-- User wants to edit the contract → `prisma-next-contract`.
-- User wants to wire Prisma Next into a build tool (Vite plugin, Next.js, …) → `prisma-next-build`.
-- User wants to debug a connection / runtime error → `prisma-next-debug`.
-- User wants to file a bug or feature request → `prisma-next-feedback`.
+- User wants to write queries → `references/queries.md`.
+- User is on Supabase — the `supabase()` role-first factory, `asUser(jwt)` / `asAnon()` / `asServiceRole()`, JWT config, RLS → `references/supabase.md`.
+- User wants to edit the contract → `references/contract.md`.
+- User wants to wire Prisma Next into a build tool (Vite plugin, Next.js, …) → `references/build.md`.
+- User wants to debug a connection / runtime error → `references/debug.md`.
+- User wants to file a bug or feature request → `references/feedback.md`.
 
 ## Key Concepts
 
@@ -35,7 +31,7 @@ This skill covers the **runtime entry point** — `db.ts` — and how to compose
 - **Lazy connect.** The factory does not connect to the database synchronously. Static query surfaces (`db.sql`, `db.orm`) are available immediately; the driver / pool is instantiated on the first call that needs a runtime (or when you explicitly call `await db.connect({ url })`). This is why `db.ts` can be imported in modules that load before the env is ready.
 - **Middleware composes in order.** The first middleware in the `middleware: [...]` array runs *outermost* — it sees the operation first on the way in and last on the way out. Telemetry first means budget / lint failures show up inside telemetry spans.
 - **`prisma-next.config.ts` vs `.env`.** The config (`defineConfig({ contract, db, extensions, migrations })`) is for static project shape: contract path, installed extensions, migrations directory, default connection string. `.env` is for per-environment values (`DATABASE_URL`, secrets). The config reads `.env` automatically via `dotenv/config`. Hardcoding `DATABASE_URL` in the config file leaks credentials and bypasses per-env overrides.
-- **Build-system / dev-server integration is a separate skill.** `vite dev` auto-emit lives in `prisma-next-build`. The runtime side (this skill) reads `contract.json` / `contract.d.ts` regardless of how they got onto disk, so the two skills compose cleanly.
+- **Build-system / dev-server integration is a separate skill.** `vite dev` auto-emit lives in `references/build.md`. The runtime side (this skill) reads `contract.json` / `contract.d.ts` regardless of how they got onto disk, so the two skills compose cleanly.
 
 ## Workflow — Basic `db.ts`
 
@@ -55,7 +51,7 @@ export const db = postgres<Contract>({
 });
 ```
 
-(`init` currently scaffolds at `prisma/db.ts` instead — see TML-2532 in `prisma-next-quickstart`. The canonical path is `src/prisma/db.ts`; the rest of `src/` imports from `./prisma/db` or `../prisma/db` depending on depth.)
+(`init` currently scaffolds at `prisma/db.ts` instead — see TML-2532 in `references/quickstart.md`. The canonical path is `src/prisma/db.ts`; the rest of `src/` imports from `./prisma/db` or `../prisma/db` depending on depth.)
 
 Three things to know:
 
@@ -63,7 +59,7 @@ Three things to know:
 - **`with { type: 'json' }` is required.** Node's ESM JSON-import-attribute spec. Without it, the import errors.
 - **`url` is optional at construct time.** If `DATABASE_URL` is not set when `db.ts` loads, the factory still returns a client; you can call `await db.connect({ url })` later. The factory throws lazily — only when a runtime is actually needed.
 
-The Mongo façade has the same construction shape — `import mongo from '@prisma-next/mongo/runtime'` — and the same `db.connect(...)` / `db.close()` lifecycle methods. **The Mongo façade does not expose `db.transaction(...)`.** See *What Prisma Next doesn't do yet* for the workaround. **The ORM surface differs in one place: keys.** On Mongo, `db.orm` is keyed by the collection's storage name (from `@@map(...)`, or the lowercased model name if no `@@map` is set), not by the PSL model name — so `model User { … @@map("users") }` is reached at `db.orm.users`, not `db.orm.User`. The SQL builder lane (`db.sql.<table>`) doesn't exist on Mongo at all (`db.sql` is `undefined`). See `prisma-next-queries` § *MongoDB ORM addressing* for the full rule and a rewrite recipe for SQL-target examples.
+The Mongo façade has the same construction shape — `import mongo from '@prisma-next/mongo/runtime'` — and the same `db.connect(...)` / `db.close()` lifecycle methods. **The Mongo façade does not expose `db.transaction(...)`.** See *What Prisma Next doesn't do yet* for the workaround. **The ORM surface differs in one place: keys.** On Mongo, `db.orm` is keyed by the collection's storage name (from `@@map(...)`, or the lowercased model name if no `@@map` is set), not by the PSL model name — so `model User { … @@map("users") }` is reached at `db.orm.users`, not `db.orm.User`. The SQL builder lane (`db.sql.<table>`) doesn't exist on Mongo at all (`db.sql` is `undefined`). See `references/queries.md` § *MongoDB ORM addressing* for the full rule and a rewrite recipe for SQL-target examples.
 
 ## Workflow — Running as a script (teardown)
 
@@ -303,10 +299,10 @@ The `db.sql` / `db.orm` surfaces stay the same in name; the operators each surfa
 
 ## Workflow — Build-system / dev-server integration
 
-If you want contract artefacts to re-emit automatically while the dev server is running (instead of running `prisma-next contract emit` by hand each time the contract source changes), reach for the build-tool plugin from `prisma-next-build`:
+If you want contract artefacts to re-emit automatically while the dev server is running (instead of running `prisma-next contract emit` by hand each time the contract source changes), reach for the build-tool plugin from `references/build.md`:
 
 - **Vite**: install `@prisma-next/vite-plugin-contract-emit` and register `prismaVitePlugin('prisma-next.config.ts')` in `vite.config.ts`.
-- **Next.js, Webpack, esbuild, Rollup, Turbopack**: no first-party plugin yet — the workaround is a `prebuild` script that runs `prisma-next contract emit`. See `prisma-next-build` for the walkthrough.
+- **Next.js, Webpack, esbuild, Rollup, Turbopack**: no first-party plugin yet — the workaround is a `prebuild` script that runs `prisma-next contract emit`. See `references/build.md` for the walkthrough.
 
 The runtime side (this skill) is the same regardless: `db.ts` reads `contract.json` + `contract.d.ts` from disk. The build-system plugin's job is to keep those files current during development.
 
@@ -323,10 +319,10 @@ The runtime side (this skill) is the same regardless: `db.ts` reads `contract.js
 
 ## What Prisma Next doesn't do yet
 
-- **`@prisma-next/postgres/middleware` subpath.** The postgres façade re-exports the runtime factory (`./runtime`), config (`./config`), contract-builder (`./contract-builder`), control (`./control`), family (`./family`), target (`./target`), and serverless (`./serverless`) — but not middleware. Today's workaround: import `lints` and `budgets` from `@prisma-next/sql-runtime`, and `createTelemetryMiddleware` from `@prisma-next/middleware-telemetry`. File additional gaps you hit via `prisma-next-feedback`.
-- **Multi-database routing / read replicas.** Prisma Next doesn't ship a built-in primary/replica router or shard-aware client. Workaround: configure separate `db.ts` instances per data store and call the right one in your application code. If you need first-class multi-database routing, file a feature request via the `prisma-next-feedback` skill.
-- **Connection pooling as a first-class config field.** `poolOptions.connectionTimeoutMillis` and `poolOptions.idleTimeoutMillis` are wired through, but the rest of `pg.Pool`'s tuning surface (max connections, `allowExitOnIdle`, ssl options, …) is not exposed by name. Workaround: construct the `pg.Pool` yourself and pass it via `pg:`. If you need more pool fields surfaced on the façade, file a feature request via the `prisma-next-feedback` skill.
-- **Query logger middleware as a built-in.** Prisma Next doesn't ship a "log every query" middleware. Workaround: write a small custom middleware that wraps each operation and logs; or use `createTelemetryMiddleware` and log inside the `onEvent` callback. If you need a built-in query log, file a feature request via the `prisma-next-feedback` skill.
+- **`@prisma-next/postgres/middleware` subpath.** The postgres façade re-exports the runtime factory (`./runtime`), config (`./config`), contract-builder (`./contract-builder`), control (`./control`), family (`./family`), target (`./target`), and serverless (`./serverless`) — but not middleware. Today's workaround: import `lints` and `budgets` from `@prisma-next/sql-runtime`, and `createTelemetryMiddleware` from `@prisma-next/middleware-telemetry`. File additional gaps you hit via `references/feedback.md`.
+- **Multi-database routing / read replicas.** Prisma Next doesn't ship a built-in primary/replica router or shard-aware client. Workaround: configure separate `db.ts` instances per data store and call the right one in your application code. If you need first-class multi-database routing, file a feature request via the `references/feedback.md` skill.
+- **Connection pooling as a first-class config field.** `poolOptions.connectionTimeoutMillis` and `poolOptions.idleTimeoutMillis` are wired through, but the rest of `pg.Pool`'s tuning surface (max connections, `allowExitOnIdle`, ssl options, …) is not exposed by name. Workaround: construct the `pg.Pool` yourself and pass it via `pg:`. If you need more pool fields surfaced on the façade, file a feature request via the `references/feedback.md` skill.
+- **Query logger middleware as a built-in.** Prisma Next doesn't ship a "log every query" middleware. Workaround: write a small custom middleware that wraps each operation and logs; or use `createTelemetryMiddleware` and log inside the `onEvent` callback. If you need a built-in query log, file a feature request via the `references/feedback.md` skill.
 
 ## Reference Files
 
@@ -344,5 +340,5 @@ This skill is intentionally body-only; `prisma-next init --help`, the `defineCon
 - [ ] Did NOT hardcode credentials in any committed file.
 - [ ] Did NOT confabulate a `@prisma-next/postgres/middleware` subpath, a `@prisma-next/postgres-extension-audit` package, or a second type parameter on `postgres<...>`.
 - [ ] Did NOT claim `db.transaction(...)` exists on the Mongo façade — only Postgres and SQLite expose it.
-- [ ] Did NOT confabulate read-replica / multi-DB / extra pool config — pointed at *What Prisma Next doesn't do yet* and routed to `prisma-next-feedback`.
-- [ ] For build-system / dev-server prompts (Vite plugin, Next.js plugin, …) routed to `prisma-next-build`.
+- [ ] Did NOT confabulate read-replica / multi-DB / extra pool config — pointed at *What Prisma Next doesn't do yet* and routed to `references/feedback.md`.
+- [ ] For build-system / dev-server prompts (Vite plugin, Next.js plugin, …) routed to `references/build.md`.

@@ -1,7 +1,3 @@
----
-name: prisma-next-contract
-description: Edit the Prisma Next data contract — add models, fields, relations, indexes, enums, value objects (composite types), type aliases, namespaces (Postgres schemas), cross-contract foreign keys (cross-space FK), polymorphic types (`@@discriminator` / `@@base`), use extension namespaces (`pgvector.Vector(...)`, `cipherstash.EncryptedString(...)`), wire `prisma-next.config.ts` with `defineConfig` from the `@prisma-next/<target>/config` façade, and run `prisma-next contract emit`. Use for schema, models, fields, attributes, soft delete, paranoid, scopes, validations, callbacks, prisma schema, PSL, contract.prisma, contract.ts, contract.json, contract.d.ts, `@prisma-next/postgres/config`, `@prisma-next/postgres/contract-builder`, `@prisma-next/postgres/control`, `@prisma-next/mongo/config`, `@prisma-next/mongo/contract-builder`, `extensions:`, pgvector, cipherstash, postgis, paradedb, supabase, `@prisma-next/extension-supabase`, `@@control`, control policy, managed, tolerated, external, observed.
----
 
 # Prisma Next — Contract Authoring
 
@@ -10,10 +6,10 @@ description: Edit the Prisma Next data contract — add models, fields, relation
 The data contract is the single source of truth for your data layer. You edit a contract source — `contract.prisma` (PSL, the canonical surface) or `contract.ts` (TypeScript builder) — and the framework derives types, migrations, and runtime configuration from it. The three-step user model:
 
 1. **You edit your data contract.**
-2. **The system plans the migrations for you.** (`prisma-next-migrations`)
-3. **If you need data migrations, you edit `migration.ts` and execute it.** (`prisma-next-migrations`)
+2. **The system plans the migrations for you.** (`references/migrations.md`)
+3. **If you need data migrations, you edit `migration.ts` and execute it.** (`references/migrations.md`)
 
-Behind step 1 the agent runs `prisma-next contract emit` after every contract edit (or installs the Vite plugin so the bundler runs it on save — see `prisma-next-build`). Emit reads the contract source through the provider the façade picks based on the file extension of `contract:` in `prisma-next.config.ts`, then writes two artefacts colocated with the source:
+Behind step 1 the agent runs `prisma-next contract emit` after every contract edit (or installs the Vite plugin so the bundler runs it on save — see `references/build.md`). Emit reads the contract source through the provider the façade picks based on the file extension of `contract:` in `prisma-next.config.ts`, then writes two artefacts colocated with the source:
 
 - `contract.json` — the canonical, content-hashed Contract IR. Read by the planner, the runtime, and `db verify`.
 - `contract.d.ts` — the precise TypeScript types the runtime + lanes propagate when you import `Contract` from it.
@@ -34,13 +30,13 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 
 ## When Not to Use
 
-- User wants to apply a contract change to the DB → `prisma-next-migrations`.
-- User wants to write a query against the contract → `prisma-next-queries`.
-- User wants to wire `db.ts` (runtime entry point, middleware, env config) → `prisma-next-runtime`.
-- User wants the Vite / bundler integration → `prisma-next-build`.
-- User wants to set up Prisma Next for the first time → `prisma-next-quickstart`.
-- User wants a deeper read of a single structured error envelope → `prisma-next-debug`.
-- User wants to file a missing-feature request → `prisma-next-feedback`.
+- User wants to apply a contract change to the DB → `references/migrations.md`.
+- User wants to write a query against the contract → `references/queries.md`.
+- User wants to wire `db.ts` (runtime entry point, middleware, env config) → `references/runtime.md`.
+- User wants the Vite / bundler integration → `references/build.md`.
+- User wants to set up Prisma Next for the first time → `references/quickstart.md`.
+- User wants a deeper read of a single structured error envelope → `references/debug.md`.
+- User wants to file a missing-feature request → `references/feedback.md`.
 
 ## Key Concepts
 
@@ -77,7 +73,7 @@ The concept: every contract change starts by locating the source file. The confi
 cat prisma-next.config.ts
 ```
 
-If `contract:` ends in `.prisma`, the source is PSL; if it ends in `.ts`, the source is the TS builder. If `prisma-next.config.ts` is missing, route to `prisma-next-quickstart`.
+If `contract:` ends in `.prisma`, the source is PSL; if it ends in `.ts`, the source is the TS builder. If `prisma-next.config.ts` is missing, route to `references/quickstart.md`.
 
 ## Workflow — Edit a model / field / relation (PSL)
 
@@ -100,7 +96,7 @@ model Post {
 }
 ```
 
-Then run `pnpm prisma-next contract emit` (or rely on the Vite plugin — see `prisma-next-build`). Specify cascade behaviour explicitly with `onDelete` / `onUpdate`; the default is `Restrict`.
+Then run `pnpm prisma-next contract emit` (or rely on the Vite plugin — see `references/build.md`). Specify cascade behaviour explicitly with `onDelete` / `onUpdate`; the default is `Restrict`.
 
 `@@index` also accepts `expression:` (instead of a fields list), `where:` (partial-index predicate), `unique:`, `type:`/`options:` (target-registered access method), and `name:` xor `map:`:
 
@@ -224,7 +220,7 @@ Verify the polymorphism syntax against the interpreter tests if in doubt: `packa
 
 Mongo has no schema layer, so polymorphism on Mongo is modelled by an explicit `discriminator` field on the model in the TS builder (see `@prisma-next/mongo/contract-builder`); `@@base` / `@@discriminator` PSL attributes are SQL-only.
 
-Querying the variants is a runtime concern — see `prisma-next-queries`.
+Querying the variants is a runtime concern — see `references/queries.md`.
 
 ## Workflow — Value objects (composite types)
 
@@ -322,7 +318,7 @@ model AuditLog {
 }
 ```
 
-A contract-level default can be set via `defaultControlPolicy` on `prismaContract(path, { defaultControlPolicy })`. See `prisma-next-migrations` for how control policies affect DDL planning.
+A contract-level default can be set via `defaultControlPolicy` on `prismaContract(path, { defaultControlPolicy })`. See `references/migrations.md` for how control policies affect DDL planning.
 
 ## Workflow — `@prisma-next/extension-supabase`
 
@@ -341,7 +337,7 @@ export default defineConfig({
 });
 ```
 
-`db.ts` does **not** use the stock `postgres()` factory — a Supabase app builds its client with the `supabase()` factory from `@prisma-next/extension-supabase/runtime` (role-first: `asUser(jwt)` / `asAnon()` / `asServiceRole()`, JWT validation, RLS). That runtime — and RLS policy authoring (`policy_select` / `@@rls`) — is covered by **`prisma-next-supabase`**; load it for anything past the config wiring.
+`db.ts` does **not** use the stock `postgres()` factory — a Supabase app builds its client with the `supabase()` factory from `@prisma-next/extension-supabase/runtime` (role-first: `asUser(jwt)` / `asAnon()` / `asServiceRole()`, JWT validation, RLS). That runtime — and RLS policy authoring (`policy_select` / `@@rls`) — is covered by **`references/supabase.md`**; load it for anything past the config wiring.
 
 Export subpaths: `@prisma-next/extension-supabase/pack`, `@prisma-next/extension-supabase/runtime`, `@prisma-next/extension-supabase/contract`. Canonical worked example: `examples/supabase`.
 
@@ -356,21 +352,21 @@ pnpm prisma-next contract emit
 
 ## Common Pitfalls
 
-1. **Forgetting to re-emit after an edit.** `contract.json` and `contract.d.ts` go stale; downstream typecheck and `migration plan` see the old shape. Re-emit, or install the Vite plugin (`prisma-next-build`).
+1. **Forgetting to re-emit after an edit.** `contract.json` and `contract.d.ts` go stale; downstream typecheck and `migration plan` see the old shape. Re-emit, or install the Vite plugin (`references/build.md`).
 2. **Editing the emitted artefacts.** `contract.json` and `contract.d.ts` are emitted; edits there round-trip away on the next emit. Edit the source.
 3. **Wrong factory/import path for the TS builder.** `defineContract`, `field`, `model`, `rel` come from `@prisma-next/postgres/contract-builder` (or `@prisma-next/mongo/contract-builder`). Outside the callback overload, the available field constructors are `field.column(...)`, `field.generated(...)`, `field.namedType(...)`.
-4. **Reaching into internal packages from user code.** User-authored files (`prisma-next.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@prisma-next/<target>/<subpath>` and `@prisma-next/extension-<name>/<subpath>`. Imports from `@prisma-next/cli/*`, `@prisma-next/family-*`, `@prisma-next/target-*`, `@prisma-next/adapter-*`, `@prisma-next/driver-*`, or `@prisma-next/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma Next doesn't do yet* and route to `prisma-next-feedback`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-next-postgis-demo/prisma-next.config.ts`.
+4. **Reaching into internal packages from user code.** User-authored files (`prisma-next.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@prisma-next/<target>/<subpath>` and `@prisma-next/extension-<name>/<subpath>`. Imports from `@prisma-next/cli/*`, `@prisma-next/family-*`, `@prisma-next/target-*`, `@prisma-next/adapter-*`, `@prisma-next/driver-*`, or `@prisma-next/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma Next doesn't do yet* and route to `references/feedback.md`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-next-postgis-demo/prisma-next.config.ts`.
 5. **Confusing the config `extensions` with the TS builder's `extensions`.** Same packs, two surfaces, one field name but two shapes: `defineConfig({ extensions: [pgvector] })` (array of *control* descriptors from `@prisma-next/extension-<name>/control`) versus `defineContract({ extensions: { pgvector } })` (record of *pack* descriptors from `@prisma-next/extension-<name>/pack`).
-6. **Renaming a field and expecting the planner to detect it.** Prisma Next has no in-contract rename hint; the planner sees a destructive drop+add. Hand-edit `migration.ts` after `migration plan` (see `prisma-next-migrations`), or use the keep-then-drop two-migration pattern.
+6. **Renaming a field and expecting the planner to detect it.** Prisma Next has no in-contract rename hint; the planner sees a destructive drop+add. Hand-edit `migration.ts` after `migration plan` (see `references/migrations.md`), or use the keep-then-drop two-migration pattern.
 
 ## What Prisma Next doesn't do yet
 
-- **In-contract rename hint.** No `@@rename(old: ..., new: ...)` or similar. Use the workarounds in *Common Pitfalls* #6. To request first-class rename, file via `prisma-next-feedback`.
-- **Model validations.** No declarative `@validates(...)` surface. Validate in application code (arktype). To request declarative validations in the contract, file via `prisma-next-feedback`.
-- **Lifecycle callbacks** (`beforeSave`, `afterCreate`, etc.). Not supported. Use middleware (`prisma-next-runtime`) or app code. To request lifecycle callbacks, file via `prisma-next-feedback`.
-- **Soft delete / `paranoid: true`.** No built-in soft-delete column. Add a nullable `deletedAt DateTime?` and filter explicitly in queries (or in middleware). To request built-in soft delete, file via `prisma-next-feedback`.
-- **Scopes / default filters.** No ActiveRecord-style scopes. Compose query helpers yourself. To request scopes, file via `prisma-next-feedback`.
-- **Implicit Prisma-ORM many-to-many.** List navigation on both sides without an explicit join model is rejected. Author the join model explicitly. To request implicit M2M, file via `prisma-next-feedback`.
+- **In-contract rename hint.** No `@@rename(old: ..., new: ...)` or similar. Use the workarounds in *Common Pitfalls* #6. To request first-class rename, file via `references/feedback.md`.
+- **Model validations.** No declarative `@validates(...)` surface. Validate in application code (arktype). To request declarative validations in the contract, file via `references/feedback.md`.
+- **Lifecycle callbacks** (`beforeSave`, `afterCreate`, etc.). Not supported. Use middleware (`references/runtime.md`) or app code. To request lifecycle callbacks, file via `references/feedback.md`.
+- **Soft delete / `paranoid: true`.** No built-in soft-delete column. Add a nullable `deletedAt DateTime?` and filter explicitly in queries (or in middleware). To request built-in soft delete, file via `references/feedback.md`.
+- **Scopes / default filters.** No ActiveRecord-style scopes. Compose query helpers yourself. To request scopes, file via `references/feedback.md`.
+- **Implicit Prisma-ORM many-to-many.** List navigation on both sides without an explicit join model is rejected. Author the join model explicitly. To request implicit M2M, file via `references/feedback.md`.
 
 ## Reference
 
@@ -391,4 +387,4 @@ pnpm prisma-next contract emit
 - [ ] Ran `pnpm prisma-next contract emit` after the edit (or let the Vite plugin re-emit on save).
 - [ ] Confirmed `contract.json` and `contract.d.ts` updated next to the source.
 - [ ] Did **not** hand-edit `contract.json` / `contract.d.ts`.
-- [ ] Did **not** confabulate a missing feature (validations, callbacks, soft delete, scopes, in-contract rename hint) — referred the user to *What Prisma Next doesn't do yet* + `prisma-next-feedback`.
+- [ ] Did **not** confabulate a missing feature (validations, callbacks, soft delete, scopes, in-contract rename hint) — referred the user to *What Prisma Next doesn't do yet* + `references/feedback.md`.
