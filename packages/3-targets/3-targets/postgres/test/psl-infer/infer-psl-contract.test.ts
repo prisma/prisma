@@ -1,5 +1,6 @@
 import { flatPslModels } from '@prisma-next/framework-components/psl-ast';
 import { printPsl } from '@prisma-next/psl-printer';
+import { computeIndexContentHash, formatWireName } from '@prisma-next/sql-schema-ir/naming';
 import type { SqlIndexIRInput, SqlSchemaIRInput } from '@prisma-next/sql-schema-ir/types';
 import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
 import { isStructuredError } from '@prisma-next/utils/structured-error';
@@ -384,13 +385,40 @@ describe('inferPostgresPslContract', () => {
       // The authored 'btree' hashed into the suffix, but introspection
       // normalizes the default method away, so the recompute mismatches and
       // the index adopts exactly — a clean round-trip, just map: not name:.
+      const authoredName = formatWireName(
+        'user_email_btree',
+        computeIndexContentHash({ columns: ['email'], unique: false, type: 'btree' }),
+      );
       const psl = pslWithIndex({
-        name: 'user_email_btree_73653512',
+        name: authoredName,
         prefix: 'user_email_btree',
         columns: ['email'],
         unique: false,
       });
-      expect(psl).toContain('@@index([email], map: "user_email_btree_73653512")');
+      expect(psl).toContain(`@@index([email], map: "${authoredName}")`);
+    });
+
+    it('a managed index with an explicit non-default type and options re-detects stable', () => {
+      // The F01 backstop makes options-without-type unconstructable, so a
+      // managed index carrying options always hashed an explicit type — the
+      // recompute from introspected parts agrees and name: re-emits.
+      const hash = computeIndexContentHash({
+        columns: ['email'],
+        unique: false,
+        type: 'hash',
+        options: { fillfactor: '70' },
+      });
+      const psl = pslWithIndex({
+        name: formatWireName('user_email_hashed', hash),
+        prefix: 'user_email_hashed',
+        columns: ['email'],
+        unique: false,
+        type: 'hash',
+        options: { fillfactor: '70' },
+      });
+      expect(psl).toContain(
+        '@@index([email], name: "user_email_hashed", type: "hash", options: { fillfactor: "70" })',
+      );
     });
 
     it('an expression index emits expression: with no positional list', () => {
