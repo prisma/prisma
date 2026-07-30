@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  bundledSources,
   findInternalSpecifiers,
   importSubpaths,
   installShells,
@@ -104,5 +105,23 @@ describe('all publish shells packed and installed together', () => {
       const installedDir = join(scratch, 'node_modules', name);
       expect(await findInternalSpecifiers(installedDir)).toEqual([]);
     }
+  });
+
+  // The identity rule of ADR 242: an internal module is published from
+  // exactly one package. A shell that bundled a module mapped to another
+  // shell would ship a second copy of it, breaking shared registries and
+  // `instanceof` for anyone who installs both.
+  it('bundles only the internal packages mapped to it', () => {
+    const strays: string[] = [];
+    for (const name of allShells) {
+      const shell = publicShells.get(name);
+      if (shell === undefined) throw new Error(`unknown shell ${name}`);
+      const owned = shell.packages.map((pkg) => `${pkg.dir}/`);
+      for (const source of bundledSources(join(scratch, 'node_modules', name))) {
+        const path = `packages/${source}`;
+        if (!owned.some((dir) => path.startsWith(dir))) strays.push(`${name}: ${path}`);
+      }
+    }
+    expect(strays).toEqual([]);
   });
 });
