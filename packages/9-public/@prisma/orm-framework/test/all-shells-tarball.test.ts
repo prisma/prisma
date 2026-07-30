@@ -4,7 +4,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   bundledSources,
-  findInternalSpecifiers,
+  findInternalImportSpecifiers,
+  findInternalNames,
   importSubpaths,
   installShells,
   packShell,
@@ -100,10 +101,17 @@ describe('all publish shells packed and installed together', () => {
     expect(runInScratch(scratch, script)).toContain('adr names ok');
   });
 
+  it('ships no unrecorded internal package name in any shell dist', async () => {
+    for (const name of allShells) {
+      const installedDir = join(scratch, 'node_modules', name);
+      expect(await findInternalNames(installedDir)).toEqual([]);
+    }
+  });
+
   it('ships no @prisma-next import specifier in any shell dist', async () => {
     for (const name of allShells) {
       const installedDir = join(scratch, 'node_modules', name);
-      expect(await findInternalSpecifiers(installedDir)).toEqual([]);
+      expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
     }
   });
 
@@ -117,7 +125,9 @@ describe('all publish shells packed and installed together', () => {
       const shell = publicShells.get(name);
       if (shell === undefined) throw new Error(`unknown shell ${name}`);
       const owned = shell.packages.map((pkg) => `${pkg.dir}/`);
-      for (const source of bundledSources(join(scratch, 'node_modules', name))) {
+      const sources = bundledSources(join(scratch, 'node_modules', name));
+      expect(sources.length).toBeGreaterThan(0);
+      for (const source of sources) {
         const path = `packages/${source}`;
         if (!owned.some((dir) => path.startsWith(dir))) strays.push(`${name}: ${path}`);
       }

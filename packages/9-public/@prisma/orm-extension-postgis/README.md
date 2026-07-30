@@ -27,4 +27,6 @@ The PostGIS server extension must be installable on your PostgreSQL server. Most
 
 ## Dependencies
 
-`@prisma/orm-framework`, `@prisma/orm-family-sql`, `@prisma/orm-target-postgres`, and `@prisma/orm-toolchain` at exact lockstep versions, plus `arktype`. The target package is shared with whatever installed it — the facade or a decomposed install — so codec and operation registries stay single-instance.
+`@prisma/orm-framework`, `@prisma/orm-family-sql`, and `@prisma/orm-toolchain` at exact lockstep versions, plus `arktype`.
+
+`@prisma/orm-target-postgres` is an exact-pinned **peer** dependency: the application supplies it, directly or through a facade, and everyone shares that one copy. A hard dependency would let an application upgrade the facade without upgrading this pack and end up with two target copies whose codec and operation registries have quietly diverged; as a peer that combination fails to install instead.

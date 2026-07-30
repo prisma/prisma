@@ -17,7 +17,6 @@
   "dependencies": {
     "@prisma/orm-family-sql": "workspace:0.16.0",
     "@prisma/orm-framework": "workspace:0.16.0",
-    "@prisma/orm-target-postgres": "workspace:0.16.0",
     "@prisma/orm-toolchain": "workspace:0.16.0",
     "@standard-schema/spec": "^1.1.0",
     "arktype": "^2.2.2"
@@ -26,11 +25,13 @@
     "@prisma-next/extension-pgvector": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
     "@prisma-next/tsdown": "workspace:0.16.0",
+    "@prisma/orm-target-postgres": "workspace:0.16.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {
+    "@prisma/orm-target-postgres": "workspace:0.16.0",
     "typescript": ">=5.9"
   },
   "peerDependenciesMeta": {

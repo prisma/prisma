@@ -5,7 +5,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   bundledSources,
-  findInternalSpecifiers,
+  findInternalImportSpecifiers,
+  findInternalNames,
   importSubpaths,
   installShells,
   type PackedShell,
@@ -79,13 +80,19 @@ describe('an application that installs only the Postgres facade', () => {
   });
 
   it('bundles only its own wiring code', () => {
-    for (const source of bundledSources(installedDir)) {
+    const sources = bundledSources(installedDir);
+    expect(sources.length).toBeGreaterThan(0);
+    for (const source of sources) {
       expect(source).toMatch(/^3-extensions\/postgres\//);
     }
   });
 
+  it('ships no unrecorded internal package name in dist', async () => {
+    expect(await findInternalNames(installedDir)).toEqual([]);
+  });
+
   it('ships no @prisma-next import specifier in dist', async () => {
-    expect(await findInternalSpecifiers(installedDir)).toEqual([]);
+    expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
   });
 });
 

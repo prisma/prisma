@@ -4616,9 +4616,6 @@ importers:
       '@prisma/orm-framework':
         specifier: workspace:0.16.0
         version: link:../orm-framework
-      '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../orm-target-postgres
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
@@ -4635,6 +4632,9 @@ importers:
       '@prisma-next/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
+      '@prisma/orm-target-postgres':
+        specifier: workspace:0.16.0
+        version: link:../orm-target-postgres
       tsdown:
         specifier: 'catalog:'
         version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
@@ -4703,9 +4703,6 @@ importers:
       '@prisma/orm-framework':
         specifier: workspace:0.16.0
         version: link:../orm-framework
-      '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../orm-target-postgres
       '@prisma/orm-toolchain':
         specifier: workspace:0.16.0
         version: link:../orm-toolchain
@@ -4725,6 +4722,9 @@ importers:
       '@prisma-next/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
+      '@prisma/orm-target-postgres':
+        specifier: workspace:0.16.0
+        version: link:../orm-target-postgres
       tsdown:
         specifier: 'catalog:'
         version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
@@ -4743,9 +4743,6 @@ importers:
       '@prisma/orm-framework':
         specifier: workspace:0.16.0
         version: link:../orm-framework
-      '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../orm-target-postgres
       '@prisma/orm-toolchain':
         specifier: workspace:0.16.0
         version: link:../orm-toolchain
@@ -4765,6 +4762,9 @@ importers:
       '@prisma-next/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
+      '@prisma/orm-target-postgres':
+        specifier: workspace:0.16.0
+        version: link:../orm-target-postgres
       tsdown:
         specifier: 'catalog:'
         version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
@@ -4783,9 +4783,6 @@ importers:
       '@prisma/orm-postgres':
         specifier: workspace:0.16.0
         version: link:../orm-postgres
-      '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../orm-target-postgres
       '@prisma/orm-toolchain':
         specifier: workspace:0.16.0
         version: link:../orm-toolchain
@@ -4811,6 +4808,9 @@ importers:
       '@prisma-next/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
+      '@prisma/orm-target-postgres':
+        specifier: workspace:0.16.0
+        version: link:../orm-target-postgres
       tsdown:
         specifier: 'catalog:'
         version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)

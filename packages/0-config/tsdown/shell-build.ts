@@ -353,6 +353,15 @@ function readAllInternalPackages(repoRoot: string): Map<string, InternalPackage>
       const absDir = resolve(repoRoot, mapping.dir);
       const manifest = readJson(join(absDir, 'package.json'));
       const name = stringField(manifest, 'name', mapping.dir);
+      // One internal module, one published package (ADR 242). Mapping a
+      // package into two shells would ship two copies of it, and a
+      // last-wins `set` would hide that behind a build that still succeeds.
+      const claimed = lookup.get(name);
+      if (claimed !== undefined) {
+        throw new ShellConfigError(
+          `${name} is mapped to both ${claimed.shell} and ${shellName}; each internal package belongs to exactly one shell`,
+        );
+      }
       lookup.set(name, {
         name,
         dir: mapping.dir,
@@ -427,8 +436,17 @@ function validateShellManifest(
     const [scope, name] = specifier.split('/');
     expectedDeps.set(`${scope}/${name}`, `workspace:${version}`);
   }
-  // A sibling shell the bundle imports directly is a hard dependency; the
-  // peer declaration it also arrived through would only duplicate it.
+  // A shell that declares a peer shell must not also depend on it: the
+  // point of the peer is that the installer supplies the one copy everyone
+  // shares, and a dependency alongside it would let a version skew resolve
+  // to a second copy instead of failing the install.
+  for (const peerShell of shell.peerShells ?? []) {
+    expectedPeers.set(peerShell, `workspace:${version}`);
+    expectedDeps.delete(peerShell);
+  }
+  // Peers picked up from the internal manifests are weaker evidence — some
+  // internal packages declare an optional peer on a package they also
+  // depend on — so there a real dependency still wins.
   for (const dep of expectedDeps.keys()) expectedPeers.delete(dep);
 
   const errors: string[] = [];

@@ -4,7 +4,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  findInternalSpecifiers,
+  findInternalImportSpecifiers,
+  findInternalNames,
   importSubpaths,
   installShells,
   packShell,
@@ -70,10 +71,17 @@ describe('cross-shell tarball chain (target-postgres -> family-sql -> framework,
     expect(output).toContain('init');
   });
 
+  it('ships no unrecorded internal package name in any shell dist', async () => {
+    for (const shell of chain) {
+      const installedDir = join(scratch, 'node_modules', '@prisma', shell);
+      expect(await findInternalNames(installedDir)).toEqual([]);
+    }
+  });
+
   it('ships no @prisma-next import specifier in any shell dist', async () => {
     for (const shell of chain) {
       const installedDir = join(scratch, 'node_modules', '@prisma', shell);
-      expect(await findInternalSpecifiers(installedDir)).toEqual([]);
+      expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
     }
   });
 });

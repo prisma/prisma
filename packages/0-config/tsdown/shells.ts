@@ -68,6 +68,18 @@ export interface ShellDefinition {
    */
   readonly forwardedBins?: Readonly<Record<string, string>>;
   /**
+   * Sibling shells this shell requires the installer to provide, declared as
+   * peer dependencies rather than pulled in as its own copy.
+   *
+   * Extension packs use this for the target shell they extend (ADR 242).
+   * A hard dependency would let an application upgrade the facade without
+   * upgrading the extension and end up with two copies of the target — the
+   * codec and operation registries would silently diverge and `instanceof`
+   * would stop holding. As a peer, that combination fails to install
+   * instead.
+   */
+  readonly peerShells?: readonly ShellName[];
+  /**
    * Extra dist files to copy into the shell's dist root (globs relative to
    * the repository root), e.g. templates an internal package reads next to
    * its code via `import.meta.dirname`.
@@ -94,6 +106,12 @@ export type ShellName =
   | '@prisma/orm-extension-middleware-cache';
 
 /**
+ * The CLI command every facade puts on an application's `PATH`. It runs the
+ * toolchain's single published copy; the facade only carries the launcher.
+ */
+const FACADE_BINS = { 'prisma-next': '@prisma/orm-toolchain/bin/prisma-next' } as const;
+
+/**
  * Contract surfaces every facade republishes, so generated contract files
  * import only a package the application depends on directly. `family` is
  * the facade's own family contract package (`@prisma-next/sql-contract` or
@@ -103,12 +121,6 @@ export type ShellName =
  * `target` forwards subpaths only: the facades already publish `./target`
  * as their own target pack.
  */
-/**
- * The CLI command every facade puts on an application's `PATH`. It runs the
- * toolchain's single published copy; the facade only carries the launcher.
- */
-const FACADE_BINS = { 'prisma-next': '@prisma/orm-toolchain/bin/prisma-next' } as const;
-
 function facadeReexports(family: string, target: string, adapter: string): ShellReexportMapping[] {
   return [
     { package: '@prisma-next/contract', entry: 'contract' },
@@ -285,6 +297,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-extension-postgis',
       packages: [{ dir: 'packages/3-extensions/postgis', entry: '' }],
+      peerShells: ['@prisma/orm-target-postgres'],
     },
   ],
   [
@@ -292,6 +305,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-extension-pgvector',
       packages: [{ dir: 'packages/3-extensions/pgvector', entry: '' }],
+      peerShells: ['@prisma/orm-target-postgres'],
     },
   ],
   [
@@ -306,6 +320,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-extension-supabase',
       packages: [{ dir: 'packages/3-extensions/supabase', entry: '' }],
+      peerShells: ['@prisma/orm-target-postgres'],
     },
   ],
   [
@@ -313,6 +328,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-extension-arktype-json',
       packages: [{ dir: 'packages/3-extensions/arktype-json', entry: '' }],
+      peerShells: ['@prisma/orm-target-postgres'],
     },
   ],
   [

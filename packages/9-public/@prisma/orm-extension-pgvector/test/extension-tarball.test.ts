@@ -1,15 +1,18 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   bundledSources,
-  findInternalSpecifiers,
+  findInternalImportSpecifiers,
+  findInternalNames,
   importSubpaths,
   installShells,
   type PackedShell,
   packShell,
+  packShellAtVersion,
   runInScratch,
+  tryInstallShells,
 } from '@prisma-next/tsdown/shell-testkit';
 import { publicShells, type ShellName } from '@prisma-next/tsdown/shells';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -17,6 +20,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..');
 const extension = '@prisma/orm-extension-pgvector';
 const facade = '@prisma/orm-postgres';
+const targetShell = '@prisma/orm-target-postgres';
 const platform: ShellName[] = [
   '@prisma/orm-framework',
   '@prisma/orm-toolchain',
@@ -38,8 +42,13 @@ describe('an extension pack installed next to the facade it extends', () => {
 
   beforeAll(() => {
     scratch = mkdtempSync(join(tmpdir(), 'orm-extension-pgvector-'));
+    // The target shell is declared alongside the facade because pnpm
+    // resolves a peer range through the registry rather than through
+    // `pnpm.overrides`, so a harness built on `file:` tarballs cannot
+    // satisfy a peer that only arrives transitively. It is the same single
+    // copy either way — which is what the identity assertion below checks.
     installShells(scratch, pack(scratch, [extension, facade, ...platform]), {
-      direct: [extension, facade],
+      direct: [extension, facade, targetShell],
     });
     installedDir = join(scratch, 'node_modules', '@prisma', 'orm-extension-pgvector');
   });
@@ -68,15 +77,25 @@ describe('an extension pack installed next to the facade it extends', () => {
     expect(runInScratch(scratch, script)).toContain(`resolved ${subpaths.length}`);
   });
 
+  it('requires its target shell as an exact-pinned peer, not a dependency', () => {
+    const manifest: unknown = JSON.parse(readFileSync(join(installedDir, 'package.json'), 'utf8'));
+    const { dependencies, peerDependencies } = Object(manifest) as {
+      dependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+    };
+    expect(peerDependencies?.[targetShell]).toBe('0.16.0');
+    expect(dependencies?.[targetShell]).toBeUndefined();
+  });
+
   it('resolves its target-shell requirement to the copy the facade uses', () => {
     const script = `
       import { strict as assert } from 'node:assert';
       import { createRequire } from 'node:module';
       const fromExtension = createRequire(import.meta.resolve('${extension}/package.json'));
       const fromFacade = createRequire(import.meta.resolve('${facade}/package.json'));
-      const target = '@prisma/orm-target-postgres/package.json';
+      const target = '${targetShell}/package.json';
       assert.equal(fromExtension.resolve(target), fromFacade.resolve(target));
-      const viaExtension = await import(fromExtension.resolve('@prisma/orm-target-postgres/adapter/runtime'));
+      const viaExtension = await import(fromExtension.resolve('${targetShell}/adapter/runtime'));
       const viaFacade = await import('${facade}/adapter/runtime');
       assert.equal(viaExtension.default, viaFacade.default);
       console.log('peer ok');
@@ -85,12 +104,56 @@ describe('an extension pack installed next to the facade it extends', () => {
   });
 
   it('bundles only its own extension code', () => {
-    for (const source of bundledSources(installedDir)) {
+    const sources = bundledSources(installedDir);
+    expect(sources.length).toBeGreaterThan(0);
+    for (const source of sources) {
       expect(source).toMatch(/^3-extensions\/pgvector\//);
     }
   });
 
+  it('ships no unrecorded internal package name in dist', async () => {
+    expect(await findInternalNames(installedDir)).toEqual([]);
+  });
+
   it('ships no @prisma-next import specifier in dist', async () => {
-    expect(await findInternalSpecifiers(installedDir)).toEqual([]);
+    expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
+  });
+});
+
+// What the peer buys: an application that upgrades the facade without
+// upgrading the extension would, under a hard dependency, quietly end up
+// with two copies of the target shell and two codec registries. As a peer
+// under strict resolution the same combination cannot install at all.
+describe('an extension pack next to a target shell of a different version', () => {
+  let scratch: string;
+
+  beforeAll(() => {
+    scratch = mkdtempSync(join(tmpdir(), 'orm-extension-pgvector-skew-'));
+  });
+
+  afterAll(() => {
+    rmSync(scratch, { recursive: true, force: true });
+  });
+
+  it('fails to install rather than resolving a second copy', () => {
+    const targetDir = publicShells.get(targetShell)?.dir;
+    if (targetDir === undefined) throw new Error(`unknown shell ${targetShell}`);
+    // Everything the extension needs is packed except the target, which is
+    // present one patch ahead — so the only thing that can fail is the peer.
+    const packed = [
+      ...pack(scratch, [
+        extension,
+        '@prisma/orm-framework',
+        '@prisma/orm-family-sql',
+        '@prisma/orm-toolchain',
+      ]),
+      packShellAtVersion(join(repoRoot, targetDir), scratch, '0.16.1'),
+    ];
+    const result = tryInstallShells(scratch, packed, {
+      direct: [extension, targetShell],
+      npmrc: ['strict-peer-dependencies=true', 'auto-install-peers=false'],
+    });
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain(`unmet peer ${targetShell}@0.16.0: found 0.16.1`);
   });
 });

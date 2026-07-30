@@ -3,7 +3,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  findInternalSpecifiers,
+  findInternalImportSpecifiers,
+  findInternalNames,
   importSubpaths,
   installShells,
   packShell,
@@ -54,7 +55,11 @@ describe('@prisma/orm-framework tarball smoke test', () => {
     expect(runInScratch(scratch, script)).toContain('identity ok');
   });
 
+  it('ships no unrecorded internal package name in dist', async () => {
+    expect(await findInternalNames(installedDir)).toEqual([]);
+  });
+
   it('ships no @prisma-next import specifier in dist', async () => {
-    expect(await findInternalSpecifiers(installedDir)).toEqual([]);
+    expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
   });
 });
