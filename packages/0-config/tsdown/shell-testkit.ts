@@ -213,9 +213,18 @@ function shellMapModules(installedPackageDir: string): ReadonlySet<string> {
   const exports = Object(manifest.exports);
   const key = Object.keys(exports).find((subpath) => subpath.endsWith(SHELL_MAP_SUBPATH));
   if (key === undefined) return new Set();
+  const entry: unknown = exports[key];
+  // Shells emit one file per entrypoint. A conditional-exports object would
+  // mean the entry moved, and silently reading nothing would turn the whole
+  // allowance off — so say so instead.
+  if (typeof entry !== 'string') {
+    throw new ShellTestError(
+      `${installedPackageDir} exports ${key} as something other than a file`,
+    );
+  }
 
   const found = new Set<string>();
-  const pending = [resolve(installedPackageDir, String(exports[key]))];
+  const pending = [resolve(installedPackageDir, entry)];
   while (pending.length > 0) {
     const file = pending.pop();
     if (file === undefined || found.has(file)) continue;
