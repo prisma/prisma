@@ -441,3 +441,7 @@ If application code, tests, or operational scripts hard-code physical index name
 ## Incidental dependency and lint-config bumps
 
 Routine dev-dependency bumps and biome `$schema` version alignment in `examples/` (dependabot `dev-deps` group, PR #1058) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
+
+## Incidental dependency bumps in examples
+
+Routine runtime dependency bumps in `examples/` (dependabot `runtime-deps` group, PR #1065) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
