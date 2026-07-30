@@ -217,7 +217,7 @@ export function buildTestContractCodecs(
 
 /**
  * Synthesize `CodecDescriptor`s from a codec array of non-parameterized codec instances. Test-only: the production synthesis bridge was retired under TML-2357. Lets the existing `createTestAdapterDescriptor` pattern keep wrapping a stub `Adapter` (whose `__codecs` slot still exposes the codec set) into the descriptor-list shape that `SqlStaticContributions.codecs:` now expects. The `Codec` instances carry
- * `traits`/`targetTypes`/`meta` via the SQL family extension; the structural narrow reads those fields directly.
+ * `traits`/`targetTypes` via the SQL family extension; the structural narrow reads those fields directly.
  */
 export function descriptorsFromCodecs(
   codecs: ReadonlyArray<Codec<string>>,

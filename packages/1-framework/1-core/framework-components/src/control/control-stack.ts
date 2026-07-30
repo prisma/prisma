@@ -364,7 +364,7 @@ export function extractCodecLookup(
   for (const descriptor of descriptors) {
     const codecTypes = descriptor.types?.codecTypes;
     const descriptorId = descriptor.id;
-    // Descriptor-side metadata is the single source of truth for `targetTypes` / `meta` / `renderOutputType`. A component contributes its codecs by listing `codecDescriptors` on `types.codecTypes`; each codecId has exactly one contributor across the stack.
+    // Descriptor-side metadata is the single source of truth for `targetTypes` / `renderOutputType`. A component contributes its codecs by listing `codecDescriptors` on `types.codecTypes`; each codecId has exactly one contributor across the stack.
     for (const codecDescriptor of codecTypes?.codecDescriptors ?? []) {
       assertUniqueCodecOwner({
         codecId: codecDescriptor.codecId,

@@ -1,7 +1,7 @@
 /**
  * Codec descriptor interface (consumer surface) and abstract `CodecDescriptorImpl` base (codec-author surface).
  *
- * Consumers depend on the {@link CodecDescriptor} interface — it is the codec-id-keyed source of truth for static metadata (`traits`, `targetTypes`, `meta`) and registration concerns (`paramsSchema`; optional `renderOutputType`). The runtime `Codec` instance returned by `factory(params)(ctx)` carries only the conversion behavior.
+ * Consumers depend on the {@link CodecDescriptor} interface — it is the codec-id-keyed source of truth for static metadata (`traits`, `targetTypes`) and registration concerns (`paramsSchema`; optional `renderOutputType`). The runtime `Codec` instance returned by `factory(params)(ctx)` carries only the conversion behavior.
  *
  * Codec authors `extend` the {@link CodecDescriptorImpl} abstract class to declare their codec id, traits, target types, params schema, the `factory(params)` that materializes a typed `Codec<...>`, and (optionally) a `renderOutputType(params)` for the emit path.
  *
@@ -16,7 +16,7 @@ import { type CodecInstanceContext, type CodecTrait, voidParamsSchema } from './
 /**
  * Unified codec descriptor. Every codec in the framework registers through this shape — non-parameterized codecs use `P = void` and a constant factory that returns the same shared codec instance for every column; parameterized codecs use a non-empty `P` and a curried higher-order factory that returns a per-instance codec.
  *
- * The descriptor is the codec-id-keyed source of truth for static metadata (`traits`, `targetTypes`, `meta`) and registration concerns (`paramsSchema` for JSON-boundary validation; optional `renderOutputType` for the `contract.d.ts` emit path). The runtime `Codec` instance returned by `factory(params)(ctx)` carries only the conversion behavior.
+ * The descriptor is the codec-id-keyed source of truth for static metadata (`traits`, `targetTypes`) and registration concerns (`paramsSchema` for JSON-boundary validation; optional `renderOutputType` for the `contract.d.ts` emit path). The runtime `Codec` instance returned by `factory(params)(ctx)` carries only the conversion behavior.
  *
  * Whether a codec id "is parameterized" stops being a registration-time distinction — it's a property of `P` on the descriptor. The descriptor map indexes every descriptor by `codecId`; both `descriptorFor(codecId)` and `forColumn(table, column)` resolve through the same map without branching on parameterization.
  *
