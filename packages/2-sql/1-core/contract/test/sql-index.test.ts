@@ -25,7 +25,7 @@ function input(partial: {
 }
 
 describe('Index', () => {
-  it('constructs a managed column index (prefix + wire name)', () => {
+  it('constructs a wire-named column index (prefix + wire name)', () => {
     const idx = new Index(
       input({
         name: 'users_email_idx_ab12cd34',
@@ -81,7 +81,7 @@ describe('Index', () => {
   });
 
   it('hands the naming it was built with back', () => {
-    const managed = new Index(
+    const wireNamed = new Index(
       input({
         name: 'users_email_idx_ab12cd34',
         prefix: 'users_email_idx',
@@ -89,7 +89,7 @@ describe('Index', () => {
         unique: false,
       }),
     );
-    expect(namingOf(managed.name, managed.prefix)).toEqual({
+    expect(namingOf(wireNamed.name, wireNamed.prefix)).toEqual({
       kind: 'wire',
       prefix: 'users_email_idx',
       hash: 'ab12cd34',

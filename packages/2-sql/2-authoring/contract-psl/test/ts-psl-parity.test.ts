@@ -481,7 +481,7 @@ model Post {
     expect(tsFks).toEqual(pslFks);
   });
 
-  it('PSL and TS lower the same expression index to identical managed IR (wire name pinned)', () => {
+  it('PSL and TS lower the same expression index to identical wire-named IR (wire name pinned)', () => {
     const pslDocument = symbolTableInputFromParseArgs({
       schema: `model User {
   id    Int    @id
@@ -669,7 +669,7 @@ model Post {
     expect(tsIndexes).toEqual(pslIndexes);
   });
 
-  it('PSL name: and TS name: lower the same managed fields index (wire name pinned)', () => {
+  it('PSL name: and TS name: lower the same wire-named fields index (wire name pinned)', () => {
     const pslDocument = symbolTableInputFromParseArgs({
       schema: `model User {
   id    Int    @id
@@ -724,7 +724,7 @@ model Post {
     expect(tsIndexes).toEqual(pslIndexes);
   });
 
-  it('PSL and TS lower the same unnamed index to identical managed IR (wire names pinned)', () => {
+  it('PSL and TS lower the same unnamed index to identical wire-named IR (wire names pinned)', () => {
     const pslDocument = symbolTableInputFromParseArgs({
       schema: `model User {
   id Int @id

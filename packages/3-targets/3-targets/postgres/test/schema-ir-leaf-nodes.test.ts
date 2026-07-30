@@ -93,7 +93,7 @@ describe('PostgresPolicySchemaNode', () => {
     expect(Object.isFrozen(node)).toBe(true);
   });
 
-  describe('prefix invariant (managed vs exact)', () => {
+  describe('prefix invariant (wire vs exact)', () => {
     it('an exact node carries no prefix — the property is absent', () => {
       const exact = policyNode({
         ...basePolicyInput,

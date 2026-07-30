@@ -323,7 +323,7 @@ policy_select p_read {
     );
   });
 
-  it('without @@map the managed lowering is unchanged — head prefix, wire name', () => {
+  it('without @@map the wire lowering is unchanged — head prefix, wire name', () => {
     const result = interpret(
       policyDoc(`
   policy_select p_read {

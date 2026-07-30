@@ -302,7 +302,7 @@ changes:
       the parameter `Migration#createRlsPolicy` accepts and the renderer writes is
       `RenderedRlsPolicyLiteral`, which is `PostgresRlsPolicyInput` with absent-valued keys
       omittable — so the flat `name` / `prefix` pair becomes `naming: { kind: "exact", name }`
-      or `naming: { kind: "managed", prefix, hash }`. The contract-JSON shape is unchanged and
+      or `naming: { kind: "wire", prefix, hash }`. The contract-JSON shape is unchanged and
       keeps its own type, `SerializedRlsPolicy`, hydrated by `policyInputFromSerialized`
       (0.16's `rlsPolicyInputFromFlat`). Pack code constructing `PostgresRlsPolicy` directly
       already passed the `naming` union and is unaffected; pack code that built the flat
@@ -332,7 +332,7 @@ changes:
       (tuple-derived ids are gone — assertions on `index:<col,col>` ids must switch to the
       name), and `isEqualTo` is mode-selected: both modes compare `unique`/`type` strict,
       `options` loose, `columns` ordered-strict when both sides carry them; an exact-named
-      node (no `prefix`) additionally byte-compares `expression`/`where`; a managed node
+      node (no `prefix`) additionally byte-compares `expression`/`where`; a wire-named node
       never compares bodies. Construction sites must supply the real physical name — never a
       placeholder. Re-emit your pack's committed contract space (`build:contract-space` /
       `contract:generate`); storage hashes move for every contract that declares indexes, and
@@ -376,14 +376,14 @@ changes:
       anyMatch: true
   - id: rls-policies-gain-exact-names
     summary: |
-      RLS policies adopt the same managed/exact identity split as indexes. On
+      RLS policies adopt the same wire/exact identity split as indexes. On
       `PostgresRlsPolicyInput` / `PostgresPolicySchemaNodeInput`, `prefix`, `using`,
       `withCheck` (and the node input's `dependsOn`) change from optional keys to REQUIRED
       keys typed `| undefined` — a hard compile break for every existing construction site
       that omitted them: `new PostgresRlsPolicy({ …, using })` without `withCheck` no longer
       compiles. Fix: state the absent keys explicitly (`withCheck: undefined`,
       `prefix: undefined`, `dependsOn: undefined`). In the serialized policy contract schema
-      `prefix` stays optional — its presence means managed (wire-named), absence means
+      `prefix` stays optional — its presence means wire-named, absence means
       exact-named (a verbatim adopted physical name). Both constructors now ENFORCE that a
       declared
       `prefix` matches the wire name's parsed prefix: pack code or test fixtures building a
@@ -395,7 +395,7 @@ changes:
       byte-for-byte), so a
       body-drifted same-named exact policy now surfaces as a `not-equal` verify issue and a
       drop + create plan instead of being invisible. PSL policy blocks newly accept
-      `@@map("physical name")` to author the exact mode (additive — managed lowering is
+      `@@map("physical name")` to author the exact mode (additive — wire lowering is
       byte-unchanged).
     detection:
       glob: "**/*.{ts,mts,cts,prisma}"
@@ -504,7 +504,7 @@ changes:
       and regenerate through the checked-in generator; re-emit moves the storage hash. The
       duplicate-index validation keys exact-mode entries by name, so a reference database's
       content-identical twin indexes now validate. An index whose live name is wire-shaped
-      and whose hash recomputes against the introspected content re-infers as managed
+      and whose hash recomputes against the introspected content re-infers as wire-named
       `name:` — a heuristic: a name that is not wire-shaped, or whose hash does not
       recompute, adopts as exact `map:`.
     detection:
@@ -595,10 +595,10 @@ An index entity (`Index` from `@prisma-next/sql-contract/types`; the `indexes: [
 
 - `name: string` — the full physical name, always present.
 - `unique: boolean` — always present.
-- `prefix?: string` — present iff the name is managed; the constructor enforces that `name` parses back to `prefix` + an 8-hex suffix.
+- `prefix?: string` — present iff the name is wire-named; the constructor enforces that `name` parses back to `prefix` + an 8-hex suffix.
 - `columns?` xor `expression?` — exactly one must be set; `where?` carries a partial-index predicate. All body strings are opaque SQL, never parsed or escaped.
 
-Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. Contract-space fixtures or pack code that load `indexes: [{ columns: ['email'] }]` through validation fail with a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)`; constructing the entity directly throws `Index: every index carries a full physical name…`. Add the real physical name and `unique: false`. The `index(...)` convenience factory from `@prisma-next/sql-contract/factories` changed signature accordingly: `index(name, columns, opts?)` (opts: `prefix`, `unique`, `type`, `options`). Packs that lower authored index inputs themselves can reuse `lowerAuthoredIndex` from `@prisma-next/sql-contract/index-naming` — it implements the managed/exact naming rules (default prefix, `name:`-as-prefix, `map:`-as-exact) including the 54-character prefix cap.
+Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. Contract-space fixtures or pack code that load `indexes: [{ columns: ['email'] }]` through validation fail with a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)`; constructing the entity directly throws `Index: every index carries a full physical name…`. Add the real physical name and `unique: false`. The `index(...)` convenience factory from `@prisma-next/sql-contract/factories` changed signature accordingly: `index(name, columns, opts?)` (opts: `prefix`, `unique`, `type`, `options`). Packs that lower authored index inputs themselves can reuse `lowerAuthoredIndex` from `@prisma-next/sql-contract/index-naming` — it implements the wire/exact naming rules (default prefix, `name:`-as-prefix, `map:`-as-exact) including the 54-character prefix cap.
 
 ### Schema IR: `SqlIndexIR`
 
@@ -614,7 +614,7 @@ Re-emit your pack's contract space with the upgraded toolchain (`build:contract-
 
 | 0.16 | 0.17 |
 | --- | --- |
-| `name: "post_owner_a1b2c3d4", prefix: "post_owner"` | `naming: { kind: "managed", prefix: "post_owner", hash: "a1b2c3d4" }` |
+| `name: "post_owner_a1b2c3d4", prefix: "post_owner"` | `naming: { kind: "wire", prefix: "post_owner", hash: "a1b2c3d4" }` |
 | `name: "Tenant members can read"` | `naming: { kind: "exact", name: "Tenant members can read" }` |
 
 The two flat fields could disagree; the union cannot be written wrong, which is why the migration authoring surface carries it.

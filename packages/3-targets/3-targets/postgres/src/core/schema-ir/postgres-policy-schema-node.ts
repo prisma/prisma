@@ -92,7 +92,7 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
       'every diff-tree node the differ pairs is a SqlSchemaIRNode; the guard rejects non-policy kinds'
     >(other);
     PostgresPolicySchemaNode.assert(node);
-    // Managed short-circuits to id equality — deliberately a different shape
+    // A wire-named receiver short-circuits to id equality — deliberately a different shape
     // from SqlIndexIR.isEqualTo (which calls contentEquals in both modes):
     // the policy hash tuple is total over the fields contentEquals compares,
     // so a wire-named policy's name equality already implies content equality.

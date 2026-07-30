@@ -195,11 +195,11 @@ describe('sign a database this toolchain has never seen, then transition to wire
       // @@map line itself is gone, not merely that something changed.
       expect(transitioned).not.toContain('@@map("Tenant members can read")');
       writeFileSync(join(ctx.testDir, 'contract.prisma'), transitioned, 'utf-8');
-      const emitManaged = await runContractEmit(ctx);
-      expect(emitManaged.exitCode, `3.2: emit managed\n${stripAnsi(emitManaged.stderr)}`).toBe(0);
+      const emitWire = await runContractEmit(ctx);
+      expect(emitWire.exitCode, `3.2: emit wire\n${stripAnsi(emitWire.stderr)}`).toBe(0);
 
       // The widening plan is EXACTLY the two renames.
-      const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'adopt-managed-names']);
+      const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'adopt-wire-names']);
       expect(plan.exitCode, `3.3: migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
       const ops = readPlannedOps(ctx);
       expect(
@@ -227,10 +227,8 @@ describe('sign a database this toolchain has never seen, then transition to wire
       // Apply; verify clean under the wire names.
       const apply = await runMigrate(ctx);
       expect(apply.exitCode, `3.4: migration apply\n${stripAnsi(apply.stderr)}`).toBe(0);
-      const verifyManaged = await runDbVerify(ctx);
-      expect(verifyManaged.exitCode, `3.4: verify clean\n${stripAnsi(verifyManaged.stderr)}`).toBe(
-        0,
-      );
+      const verifyWire = await runDbVerify(ctx);
+      expect(verifyWire.exitCode, `3.4: verify clean\n${stripAnsi(verifyWire.stderr)}`).toBe(0);
     },
     timeouts.spinUpPpgDev,
   );

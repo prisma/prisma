@@ -315,7 +315,7 @@ changes:
       name differently from 0.17. The flat `name` / `prefix` pair is replaced by a single
       `naming` field carrying one of two shapes: `{ kind: "exact", name: "<physical name>" }`
       for a policy whose name the author owns, or
-      `{ kind: "managed", prefix: "<prefix>", hash: "<8hex>" }` for a toolchain-named one
+      `{ kind: "wire", prefix: "<prefix>", hash: "<8hex>" }` for a toolchain-named one
       (0.16's `name: "<prefix>_<8hex>"` plus `prefix: "<prefix>"`). Every other key is
       unchanged. A migration file emitted by 0.16 that calls `createRlsPolicy` therefore stops
       compiling — TypeScript reports `Property 'naming' is missing`. Regenerate the affected
@@ -624,7 +624,7 @@ Each entry in a table's `indexes` array in `contract.json` / `contract.d.ts` now
 - `prefix` — present when the name is toolchain-owned: the physical name is then `<prefix>_<8hex>`, where the suffix is a content hash of the index definition.
 - `columns` — now optional; an index carries either `columns` or an opaque `expression` string, never both.
 
-Newly available in 0.17 (additive — no migration needed): `contract infer` captures the full index matrix (expression, partial `where:`, unique non-constraint, `type:`/`options:`) and the RLS surface (`@@rls`, every policy as a `policy_<operation>` block with `@@map` and verbatim reprinted bodies, `permissive = false` for RESTRICTIVE rows), so `infer → emit → db verify` is zero-issue on databases carrying those objects. Re-running `contract infer` therefore rewrites `contract.prisma` with more entries than 0.16 emitted; an index whose live name is wire-shaped (`<prefix>_<8hex>`, created by this toolchain) and whose hash recomputes now re-infers as managed `name:` instead of exact `map:` — both spellings verify clean, the managed one keeps renames first-class. `permissive` is an authorable policy-block property (default `true`; wire names for `permissive = true` policies are byte-unchanged). Contracts may also now carry two content-identical exact-named (`map:`) indexes under different names — legal twins a signed database can have. RLS policy blocks (`policy_select` etc.) accept `@@map("physical name")` to adopt an existing live policy under its exact name — no wire-name hash, drift detection byte-compares the body against Postgres's reprint (hand-authoring the text warns with `PN_EXACT_NAME_BODY_COMPARISON`), and replacing `@@map` with the plain head later converges via a single `ALTER POLICY … RENAME`. Also newly available: both authoring surfaces accept the full index parameter matrix. PSL `@@index` and TS `constraints.index` take `expression:` (instead of a fields list; requires `name:` or `map:`), `where:` (partial-index predicate), `unique:`, `type:`/`options:` (target-registered access method), and `name:` xor `map:`. Combining `map:` with a SQL body emits the `PN_EXACT_NAME_BODY_COMPARISON` warning at build time — drift detection byte-compares hand-authored text against Postgres's reprint, so prefer `name:` unless the text was captured by `contract infer`. SQLite contracts reject `expression:`/`where:` with `CONTRACT.ARGUMENT_INVALID` (the target does not support them).
+Newly available in 0.17 (additive — no migration needed): `contract infer` captures the full index matrix (expression, partial `where:`, unique non-constraint, `type:`/`options:`) and the RLS surface (`@@rls`, every policy as a `policy_<operation>` block with `@@map` and verbatim reprinted bodies, `permissive = false` for RESTRICTIVE rows), so `infer → emit → db verify` is zero-issue on databases carrying those objects. Re-running `contract infer` therefore rewrites `contract.prisma` with more entries than 0.16 emitted; an index whose live name is wire-shaped (`<prefix>_<8hex>`, created by this toolchain) and whose hash recomputes now re-infers as wire-named `name:` instead of exact `map:` — both spellings verify clean, the wire-named one keeps renames first-class. `permissive` is an authorable policy-block property (default `true`; wire names for `permissive = true` policies are byte-unchanged). Contracts may also now carry two content-identical exact-named (`map:`) indexes under different names — legal twins a signed database can have. RLS policy blocks (`policy_select` etc.) accept `@@map("physical name")` to adopt an existing live policy under its exact name — no wire-name hash, drift detection byte-compares the body against Postgres's reprint (hand-authoring the text warns with `PN_EXACT_NAME_BODY_COMPARISON`), and replacing `@@map` with the plain head later converges via a single `ALTER POLICY … RENAME`. Also newly available: both authoring surfaces accept the full index parameter matrix. PSL `@@index` and TS `constraints.index` take `expression:` (instead of a fields list; requires `name:` or `map:`), `where:` (partial-index predicate), `unique:`, `type:`/`options:` (target-registered access method), and `name:` xor `map:`. Combining `map:` with a SQL body emits the `PN_EXACT_NAME_BODY_COMPARISON` warning at build time — drift detection byte-compares hand-authored text against Postgres's reprint, so prefer `name:` unless the text was captured by `contract infer`. SQLite contracts reject `expression:`/`where:` with `CONTRACT.ARGUMENT_INVALID` (the target does not support them).
 
 A contract emitted by 0.16 fails validation when a 0.17 toolchain loads it — a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)` — and the storage hash moves for every contract that declares indexes. Re-emit:
 
@@ -636,9 +636,9 @@ prisma-next contract emit
 
 | Authoring input | 0.16 physical name | 0.17 physical name |
 | --- | --- | --- |
-| PSL `@@index([a, b])` / TS `constraints.index([cols.a, cols.b])` (unnamed) | `<table>_<a>_<b>_idx` | `<table>_<a>_<b>_idx_<8hex>` (managed) |
-| FK-backing index (derived from a relation) | `<table>_<col>_idx` | `<table>_<col>_idx_<8hex>` (managed) |
-| TS `constraints.index([...], { name: "x" })` | `x` | `x_<8hex>` — the name is now a managed *prefix* |
+| PSL `@@index([a, b])` / TS `constraints.index([cols.a, cols.b])` (unnamed) | `<table>_<a>_<b>_idx` | `<table>_<a>_<b>_idx_<8hex>` (wire-named) |
+| FK-backing index (derived from a relation) | `<table>_<col>_idx` | `<table>_<col>_idx_<8hex>` (wire-named) |
+| TS `constraints.index([...], { name: "x" })` | `x` | `x_<8hex>` — the name is now a wire *prefix* |
 | PSL `@@index([...], map: "x")` | `x` | `x` — an exact physical name, now verified against the live catalog |
 
 The `<8hex>` suffix is a content hash over the index definition (element list, predicate, uniqueness, access method, options), so an unchanged definition always produces the same name.
@@ -672,7 +672,7 @@ this.createRlsPolicy({ schema: "public", table: "post", policy: {
 
 // 0.17
 this.createRlsPolicy({ schema: "public", table: "post", policy: {
-  naming: { kind: "managed", prefix: "post_owner", hash: "a1b2c3d4" },
+  naming: { kind: "wire", prefix: "post_owner", hash: "a1b2c3d4" },
   // …
 } })
 ```

@@ -58,7 +58,7 @@ describe('PostgresRlsPolicy — Contract-IR entity, not a DiffableNode', () => {
     expect(json['kind']).toBe('policy');
   });
 
-  describe('prefix invariant (managed vs exact)', () => {
+  describe('prefix invariant (wire vs exact)', () => {
     const base = {
       prefix: undefined,
       tableName: 'profiles',

@@ -307,7 +307,7 @@ describe('content pairing (exact→wire convergence)', () => {
     ]);
   });
 
-  it('an exact-named missing policy never content-pairs (managed only)', async () => {
+  it('an exact-named missing policy never content-pairs (wire-named only)', async () => {
     const contract = buildContract([exactPolicy('adopted exact name')]);
     const schema = actualSchema([exactPolicy('legacy live name')]);
 

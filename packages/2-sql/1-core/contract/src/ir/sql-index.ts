@@ -45,7 +45,7 @@ export type IndexInput = IndexElements & {
 /**
  * SQL Contract IR node for a table-level secondary index, name-identified:
  * `name` is the full physical name; a present `prefix` marks the index as
- * managed (`name` is `formatWireName(prefix, <8hex>)`), an absent `prefix`
+ * wire-named (`name` is `formatWireName(prefix, <8hex>)`), an absent `prefix`
  * marks it exact (the name is adopted verbatim).
  *
  * `expression`, `where`, and `unique` are genuine SQL-family attributes —

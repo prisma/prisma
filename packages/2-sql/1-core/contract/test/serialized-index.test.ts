@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { indexInputFromSerialized, type SerializedIndex } from '../src/serialized-index';
 
 describe('indexInputFromSerialized', () => {
-  it('carries a managed entry through as the wire naming arm', () => {
+  it('carries a wire-named entry through as the wire naming arm', () => {
     expect(
       indexInputFromSerialized({
         name: 'users_email_idx_ab12cd34',

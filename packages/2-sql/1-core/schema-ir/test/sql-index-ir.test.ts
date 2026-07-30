@@ -32,7 +32,7 @@ function index(input: LooseIndexInput): SqlIndexIR {
   return new SqlIndexIR(rest as SqlIndexIRInput);
 }
 
-function managed(input: Partial<LooseIndexInput> & { readonly name: string }): SqlIndexIR {
+function wireNamed(input: Partial<LooseIndexInput> & { readonly name: string }): SqlIndexIR {
   return index({ unique: false, partial: false, prefix: 'user_email_idx', ...input });
 }
 
@@ -109,18 +109,18 @@ describe('SqlIndexIR', () => {
 
   describe('btree normalization at construction', () => {
     it("normalizes type 'btree' to absent (both derivation paths construct here)", () => {
-      const authored = managed({ name: NAME, columns: ['email'], type: 'btree' });
+      const authored = wireNamed({ name: NAME, columns: ['email'], type: 'btree' });
       expect(authored.type).toBeUndefined();
       expect(Object.hasOwn(authored, 'type')).toBe(false);
     });
 
     it('keeps non-default types', () => {
-      const hashTyped = managed({ name: NAME, columns: ['email'], type: 'hash' });
+      const hashTyped = wireNamed({ name: NAME, columns: ['email'], type: 'hash' });
       expect(hashTyped.type).toBe('hash');
     });
 
     it("two 'btree' nodes are equal", () => {
-      const a = managed({ name: NAME, columns: ['email'], type: 'btree' });
+      const a = wireNamed({ name: NAME, columns: ['email'], type: 'btree' });
       const b = exact({ name: NAME, columns: ['email'], type: 'btree' });
       expect(a.isEqualTo(b)).toBe(true);
     });
@@ -128,11 +128,11 @@ describe('SqlIndexIR', () => {
 
   describe('contentEquals — the single node-owned relation', () => {
     it("a boolean option value equals its catalog reprint ('on'/'off')", () => {
-      const authored = managed({ name: NAME, columns: ['email'], options: { fastupdate: true } });
+      const authored = wireNamed({ name: NAME, columns: ['email'], options: { fastupdate: true } });
       const reprint = exact({ name: NAME, columns: ['email'], options: { fastupdate: 'on' } });
       expect(authored.isEqualTo(reprint)).toBe(true);
 
-      const authoredOff = managed({
+      const authoredOff = wireNamed({
         name: NAME,
         columns: ['email'],
         options: { fastupdate: false },
@@ -143,14 +143,14 @@ describe('SqlIndexIR', () => {
     });
 
     it("an authored type 'btree' equals a normalized-away type through the seam", () => {
-      const authored = managed({ name: NAME, columns: ['email'], type: 'btree' });
+      const authored = wireNamed({ name: NAME, columns: ['email'], type: 'btree' });
       const live = exact({ name: NAME, columns: ['email'] });
       expect(authored.isEqualTo(live)).toBe(true);
       expect(live.isEqualTo(authored)).toBe(true);
     });
 
     it("columnPresence 'matching' refuses a column node against an expression node", () => {
-      const columnsNode = managed({ name: NAME, columns: ['email'] });
+      const columnsNode = wireNamed({ name: NAME, columns: ['email'] });
       const expressionNode = exact({ name: 'legacy_expr', expression: 'lower(email)' });
       expect(
         columnsNode.contentEquals(expressionNode, {
@@ -170,42 +170,42 @@ describe('SqlIndexIR', () => {
 
   describe('isEqualTo — both modes (structural attributes)', () => {
     it('true when unique/type/options/columns all match', () => {
-      const a = managed({ name: NAME, columns: ['email'], unique: true, type: 'gin' });
+      const a = wireNamed({ name: NAME, columns: ['email'], unique: true, type: 'gin' });
       const b = exact({ name: NAME, columns: ['email'], unique: true, type: 'gin' });
       expect(a.isEqualTo(b)).toBe(true);
     });
 
     it('a unique index and a non-unique index are not equal (symmetric)', () => {
-      const uniqueIdx = managed({ name: NAME, columns: ['email'], unique: true });
+      const uniqueIdx = wireNamed({ name: NAME, columns: ['email'], unique: true });
       const plainIdx = exact({ name: NAME, columns: ['email'] });
       expect(uniqueIdx.isEqualTo(plainIdx)).toBe(false);
       expect(plainIdx.isEqualTo(uniqueIdx)).toBe(false);
     });
 
-    it('false when type differs (managed side detects drift)', () => {
-      const a = managed({ name: NAME, columns: ['email'], type: 'btree' });
+    it('false when type differs (wire-named side detects drift)', () => {
+      const a = wireNamed({ name: NAME, columns: ['email'], type: 'btree' });
       const b = exact({ name: NAME, columns: ['email'], type: 'gin' });
       expect(a.isEqualTo(b)).toBe(false);
     });
 
     it('false when options differ; loose String() coercion still applies', () => {
-      const drifted = managed({ name: NAME, columns: ['email'], options: { fillfactor: 90 } });
+      const drifted = wireNamed({ name: NAME, columns: ['email'], options: { fillfactor: 90 } });
       const live = exact({ name: NAME, columns: ['email'], options: { fillfactor: '70' } });
       expect(drifted.isEqualTo(live)).toBe(false);
 
-      const typed = managed({ name: NAME, columns: ['email'], options: { fillfactor: 70 } });
+      const typed = wireNamed({ name: NAME, columns: ['email'], options: { fillfactor: 70 } });
       const stringly = exact({ name: NAME, columns: ['email'], options: { fillfactor: '70' } });
       expect(typed.isEqualTo(stringly)).toBe(true);
     });
 
     it('absent options and empty options compare equal', () => {
-      const a = managed({ name: NAME, columns: ['email'] });
+      const a = wireNamed({ name: NAME, columns: ['email'] });
       const b = exact({ name: NAME, columns: ['email'], options: {} });
       expect(a.isEqualTo(b)).toBe(true);
     });
 
     it('columns compare ordered-strict when both sides carry them', () => {
-      const ab = managed({ name: NAME, columns: ['a', 'b'] });
+      const ab = wireNamed({ name: NAME, columns: ['a', 'b'] });
       const ba = exact({ name: NAME, columns: ['b', 'a'] });
       const abAgain = exact({ name: NAME, columns: ['a', 'b'] });
       expect(ab.isEqualTo(ba)).toBe(false);
@@ -213,15 +213,15 @@ describe('SqlIndexIR', () => {
     });
 
     it('columns are skipped when either side is an expression node', () => {
-      const managedColumns = managed({ name: NAME, columns: ['email'] });
+      const wireNamedColumns = wireNamed({ name: NAME, columns: ['email'] });
       const liveExpression = exact({ name: NAME, expression: 'lower(email)' });
-      expect(managedColumns.isEqualTo(liveExpression)).toBe(true);
+      expect(wireNamedColumns.isEqualTo(liveExpression)).toBe(true);
     });
   });
 
   describe('isEqualTo — wire mode never compares bodies', () => {
-    it('expression and where drift is invisible to a managed expected node', () => {
-      const expected = managed({ name: NAME, expression: 'lower(email)', where: 'x > 1' });
+    it('expression and where drift is invisible to a wire-named expected node', () => {
+      const expected = wireNamed({ name: NAME, expression: 'lower(email)', where: 'x > 1' });
       const actual = exact({ name: NAME, expression: 'upper(email)', where: 'x > 2' });
       expect(expected.isEqualTo(actual)).toBe(true);
     });
@@ -277,7 +277,7 @@ describe('SqlIndexIR', () => {
 
   describe('partial', () => {
     it('is readable, non-enumerable, and ignored by isEqualTo', () => {
-      const partialIdx = managed({ name: NAME, columns: ['email'], unique: true, partial: true });
+      const partialIdx = wireNamed({ name: NAME, columns: ['email'], unique: true, partial: true });
       const totalIdx = exact({ name: NAME, columns: ['email'], unique: true });
       expect(partialIdx.partial).toBe(true);
       expect(totalIdx.partial).toBe(false);
@@ -298,7 +298,7 @@ describe('SqlIndexIR', () => {
     ];
 
     it('is readable, non-enumerable, and ignored by isEqualTo', () => {
-      const withDeps = managed({ name: NAME, columns: ['email'], dependsOn });
+      const withDeps = wireNamed({ name: NAME, columns: ['email'], dependsOn });
       const without = exact({ name: NAME, columns: ['email'] });
       expect(withDeps.dependsOn).toEqual(dependsOn);
       expect(without.dependsOn).toBeUndefined();

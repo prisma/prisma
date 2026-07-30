@@ -99,15 +99,14 @@ withTempDir(({ createTempDir }) => {
         });
 
         // swap to wire naming: replace @@map with the plain wire-named head (body verbatim).
-        swapPslContract(ctx, 'contract-rls-managed');
-        const emitManaged = await runContractEmit(ctx);
-        expect(
-          emitManaged.exitCode,
-          `swap to managed: emit\n${stripAnsi(emitManaged.stderr)}`,
-        ).toBe(0);
+        swapPslContract(ctx, 'contract-rls-wire');
+        const emitWire = await runContractEmit(ctx);
+        expect(emitWire.exitCode, `swap to wire naming: emit\n${stripAnsi(emitWire.stderr)}`).toBe(
+          0,
+        );
 
         // plan rename: the widening plan is exactly one ALTER POLICY … RENAME.
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'adopt-managed-name']);
+        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'adopt-wire-name']);
         expect(plan.exitCode, `plan rename: migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
         const ops = readPlannedOps(ctx);
         expect(
@@ -128,11 +127,8 @@ withTempDir(({ createTempDir }) => {
         // apply: run the rename and verify clean under the wire name.
         const apply = await runMigrate(ctx);
         expect(apply.exitCode, `apply: migration apply\n${stripAnsi(apply.stderr)}`).toBe(0);
-        const verifyManaged = await runDbVerify(ctx);
-        expect(
-          verifyManaged.exitCode,
-          `apply: verify clean\n${stripAnsi(verifyManaged.stderr)}`,
-        ).toBe(0);
+        const verifyWire = await runDbVerify(ctx);
+        expect(verifyWire.exitCode, `apply: verify clean\n${stripAnsi(verifyWire.stderr)}`).toBe(0);
       },
       timeouts.spinUpPpgDev,
     );

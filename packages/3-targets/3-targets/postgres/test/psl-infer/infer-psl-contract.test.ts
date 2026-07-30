@@ -359,7 +359,7 @@ describe('inferPostgresPslContract', () => {
       expect(psl).toContain('@@index([email], name: "user_email_idx")');
     });
 
-    it('a custom-prefix wire name re-detects managed with that prefix', () => {
+    it('a custom-prefix wire name re-detects wire-named with that prefix', () => {
       const psl = pslWithIndex({
         name: 'custom_idx_46df9cad',
         prefix: 'custom_idx',
@@ -433,7 +433,7 @@ describe('inferPostgresPslContract', () => {
       expect(psl).toContain('@@index(expression: "lower(email)", map: "users_email_lower")');
     });
 
-    it('an expression index whose reprint re-hashes to the live suffix re-detects managed', () => {
+    it('an expression index whose reprint re-hashes to the live suffix re-detects wire-named', () => {
       const psl = pslWithIndex({
         name: 'users_lower_17273133',
         prefix: 'users_lower',

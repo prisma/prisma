@@ -14,7 +14,7 @@ export interface WireName {
 }
 
 /**
- * Where a name-identified object's name comes from: `managed` means the
+ * Where a name-identified object's name comes from: `wire` means the
  * toolchain derives it as `formatWireName(prefix, hash)`; `exact` means the
  * author owns it verbatim. Because the wire arm carries only the prefix
  * and the hash, a name that disagrees with its prefix is unrepresentable.
@@ -65,13 +65,13 @@ export function parseNaming(name: string, prefix: string | undefined): SqlObject
  * gets the wire arm so the rename pass can pair it by prefix, and every
  * other name is exact.
  *
- * The managed answer is a claim about the name's SHAPE only — the hash is
+ * The wire answer is a claim about the name's SHAPE only — the hash is
  * deliberately not recomputed from the object's content here. Nothing
  * downstream reads it as more than that: the differ always asks the
- * contract-derived side to choose the comparison, so a shape-only managed
+ * contract-derived side to choose the comparison, so a shape-only wire
  * claim on the introspected side never suppresses a body comparison, and
  * `contract infer` recomputes the hash independently before it will emit an
- * index as managed.
+ * index as wire-named.
  */
 export function namingOfLiveName(name: string): SqlObjectNaming {
   const wire = parseWireName(name);

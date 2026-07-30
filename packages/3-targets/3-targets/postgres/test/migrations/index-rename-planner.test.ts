@@ -317,7 +317,7 @@ describe('content pairing (exact→wire convergence)', () => {
     expect(opIds).toEqual([`index.public.${TABLE_NAME}.legacy_email_idx.rename`]);
   });
 
-  it('an exact-named missing index never content-pairs (managed only)', async () => {
+  it('an exact-named missing index never content-pairs (wire-named only)', async () => {
     const contract = buildContract([
       { name: 'items_email_exact', columns: ['email'], unique: false },
     ]);

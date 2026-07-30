@@ -113,7 +113,7 @@ describe('lowerAuthoredIndex — matrix threading', () => {
     });
   });
 
-  it('the managed full matrix hashes over every tuple slot', () => {
+  it('the wire full matrix hashes over every tuple slot', () => {
     const lowered = lowerAuthoredIndex('user', {
       expression: 'eql_v3.eq_term(email)',
       where: '(deleted_at IS NULL)',
@@ -374,7 +374,7 @@ describe('lowerAuthoredIndex — exact-name body warning', () => {
     expect(warnings).toEqual([]);
   });
 
-  it('stays silent for a managed (name:) body', () => {
+  it('stays silent for a wire-named (name:) body', () => {
     const warnings = captureWarnings(() => {
       lowerAuthoredIndex('user', { expression: 'lower(email)', name: 'users_email_eq' });
     });

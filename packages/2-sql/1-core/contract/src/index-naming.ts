@@ -93,7 +93,7 @@ export function exactNameBodyWarning(
 
 /**
  * Lowers an authored index into the name-identified entity `contract.json`
- * persists: exact mode adopts `map` verbatim (no prefix, no hash); managed
+ * persists: exact mode adopts `map` verbatim (no prefix, no hash); wire
  * mode appends the content-hash suffix to the authored or default prefix.
  * The cross-field guards are the shared enforcement backstop for both
  * authoring surfaces (PSL pre-empts them with span-anchored diagnostics).

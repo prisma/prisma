@@ -28,7 +28,7 @@ const HASH = computeContentHash({
 });
 const WIRE_NAME = `${PREFIX}_${HASH}`;
 
-function managedPolicy(): PostgresRlsPolicy {
+function wireNamedPolicy(): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
     naming: parseNaming(WIRE_NAME, PREFIX),
     tableName: TABLE_NAME,
@@ -152,7 +152,7 @@ function policyDiffIssues(contract: Contract<SqlStorage>, schema: PostgresDataba
 
 describe('buildPostgresPlanDiff — RLS drift detection', () => {
   it('no contract policy + Prisma-managed DB policy → one extra diff issue', () => {
-    const issues = policyDiffIssues(buildContract([]), schemaWithPolicies([managedPolicy()]));
+    const issues = policyDiffIssues(buildContract([]), schemaWithPolicies([wireNamedPolicy()]));
 
     expect(issues).toHaveLength(1);
     expect(issueOutcome(issues[0]!)).toBe('not-expected');
@@ -168,7 +168,7 @@ describe('buildPostgresPlanDiff — RLS drift detection', () => {
   });
 
   it('matching contract + DB policy → no issues', () => {
-    const policy = managedPolicy();
+    const policy = wireNamedPolicy();
     const issues = policyDiffIssues(buildContract([policy]), schemaWithPolicies([policy]));
 
     expect(issues).toHaveLength(0);
