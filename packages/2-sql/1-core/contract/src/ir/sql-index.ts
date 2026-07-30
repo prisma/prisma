@@ -81,6 +81,12 @@ export function indexInputFromSerialized(flat: SerializedIndex): IndexInput {
       'storage',
     );
   }
+  if ((flat.columns === undefined) === (flat.expression === undefined)) {
+    throw new ContractValidationError(
+      `Index "${flat.name}": exactly one of columns or expression must be set.`,
+      'storage',
+    );
+  }
   const naming = namingFromFlat(flat.name, flat.prefix);
   if (naming === undefined) {
     throw new ContractValidationError(

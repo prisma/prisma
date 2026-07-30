@@ -116,6 +116,30 @@ describe('Index', () => {
     });
   });
 
+  describe('the JSON boundary enforces the element xor itself', () => {
+    // The constructor's xor guard cannot catch these: the serialized
+    // conversion would otherwise turn "neither" into columns: [] and let
+    // "both" silently drop columns.
+    it('rejects both columns and expression in flat data', () => {
+      const raw: unknown = {
+        name: 'users_email_eq',
+        columns: ['email'],
+        expression: 'lower(email)',
+        unique: false,
+      };
+      expect(() => indexInputFromSerialized(raw as never)).toThrow(
+        /exactly one of columns or expression/,
+      );
+    });
+
+    it('rejects neither columns nor expression in flat data', () => {
+      const raw: unknown = { name: 'users_email_eq', unique: false };
+      expect(() => indexInputFromSerialized(raw as never)).toThrow(
+        /exactly one of columns or expression/,
+      );
+    });
+  });
+
   describe('prefix implies the name is that prefix plus a wire hash', () => {
     it('accepts prefix when the name is formatWireName(prefix, hash)', () => {
       const idx = new Index(
