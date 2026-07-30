@@ -452,6 +452,24 @@ changes:
         - "pg/int8@1"
         - "parsePostgresDefault"
       anyMatch: true
+  - id: extension-column-codecs-must-be-declared-as-target-descriptors
+    summary: |
+      An extension that contributes a codec used on a *column* must publish its target descriptors
+      through `types.codecTypes.codecDescriptors` on the runtime (and control) extension
+      descriptor. The renderers resolve a column's JSON projection out of the assembled descriptor
+      registry, which is built from that field alone — `codecs()` feeds a different path. A codec
+      reachable through `codecs()` but absent from `types.codecTypes.codecDescriptors` now fails at
+      lowering with `RUNTIME.PARAM_REF_MISSING_CODEC` naming the codec id, where the renderer
+      previously ignored codec identity and emitted the bare column. The failure is deliberate:
+      emitting the bare column would produce exactly the uncanonical JSON the projection exists to
+      replace. Publish the same target-typed set in both places.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - "codecTypes"
+        - "codecs: () =>"
+        - "SqlRuntimeExtensionDescriptor"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions
@@ -550,7 +568,9 @@ Re-emit your pack's contract space with the upgraded toolchain (`build:contract-
 
 For every codec descriptor contributed by a PostgreSQL extension, add `@prisma-next/target-postgres` at the same 0.17 version as the extension's other `@prisma-next/*` packages under `dependencies`. Do not leave it only in `devDependencies`: production descriptor modules and runtime/control stack metadata import and expose this protocol. Import the target API from the lean `@prisma-next/target-postgres/codec-descriptor` subpath, and import `ProjectionExpr` from `@prisma-next/sql-relational-core/ast`.
 
-Change a PostgreSQL-bound descriptor that extends `CodecDescriptorImpl<P>` to extend `PostgresCodecDescriptor<P>`. Keep its codec id, traits, target types, `paramsSchema`, factory, output renderer, transitional `meta` / `metaFor`, and column helpers unchanged. Add `protected override nativeType(params: P): string` returning the same trusted PostgreSQL native type spelling the extension already uses, and add `protected override jsonProjection(expression: ProjectionExpr, params: P): ProjectionExpr`. Use `return expression` for the 0.17 behavior-preserving migration unless the extension already has an equivalent AST projection to preserve; production JSON renderers do not invoke `projectJson()` in this transition, so do not use this migration to change SQL output, wire encoding, `encodeJson`, or `decodeJson`.
+Change a PostgreSQL-bound descriptor that extends `CodecDescriptorImpl<P>` to extend `PostgresCodecDescriptor<P>`. Keep its codec id, traits, target types, `paramsSchema`, factory, output renderer and column helpers unchanged; there is no longer a `meta` / `metaFor` channel to carry alongside, and the descriptor's `nativeTypeFor()` is the only place a native type is declared. Add `protected override nativeType(params: P): string` returning the same trusted PostgreSQL native type spelling the extension already uses, and add `protected override jsonProjection(expression: ProjectionExpr, params: P): ProjectionExpr`.
+
+`return expression` is a claim, not a placeholder: the production JSON renderers call `projectJson()` for every column-valued entry they build, so an identity projection asserts that your codec's stored form already *is* its canonical JSON. Write one only where that holds, and where it does not, see `codec-json-projections-must-agree-with-encode-json` below.
 
 When the extension contributes a reusable target-neutral SQL descriptor instead of owning its descriptor class, keep the generic descriptor unchanged and wrap it with `postgresCodec(genericDescriptor, { nativeType, jsonProjection })`. Supply the same current native type and behavior-preserving scalar projection as above. The wrapper preserves the generic descriptor's codec id, parameter schema, factory, renderers, target types, and metadata while adding the PostgreSQL protocol.
 

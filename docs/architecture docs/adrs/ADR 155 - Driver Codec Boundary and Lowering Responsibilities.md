@@ -84,14 +84,15 @@ That union exists because some JS libraries return timestamps as `Date`. But a d
 
 ### Scalar codecs assume a particular parsing configuration (`int8`)
 
-`pg/int8@1` is currently typed as `number → number` and is identity:
+`pg/int8@1` was typed as `number → number` and was identity:
 
 ```ts
-// packages/3-targets/6-adapters/postgres/src/core/codecs.ts
 const pgInt8Codec = codec<'pg/int8@1', number, number>({ encode: (v) => v, decode: (w) => w });
 ```
 
-Many Postgres JS libraries return `int8` as **strings** by default to avoid precision loss. If the underlying library returns strings, this codec is wrong. That’s the exact failure mode we want to eliminate.
+Many Postgres JS libraries return `int8` as **strings** by default to avoid precision loss. If the underlying library returned strings, that codec was wrong — the exact failure mode this ADR set out to eliminate.
+
+**Resolved.** `pg/int8@1` carries `bigint` as its application value, and its canonical JSON is decimal text rather than a JSON number, which cannot hold the int64 range. Neither side depends on how a driver library chooses to parse `int8`.
 
 ### The current Postgres driver does not normalize row values
 

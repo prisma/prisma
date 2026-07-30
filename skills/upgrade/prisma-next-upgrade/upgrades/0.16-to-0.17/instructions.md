@@ -373,17 +373,31 @@ changes:
       decimals lost their tail. `pg/bytea@1` is base64 where it was PostgreSQL's `\x`-prefixed
       hex. `sqlite/blob@1` is uppercase hexadecimal where it was base64. `sqlite/bigint@1`
       additionally accepts values it previously refused outright: half of SQLite's INTEGER range
-      had no JSON representation at all. Run `prisma-next contract emit` to regenerate
+      had no JSON representation at all.
+      This now reaches **reads**, not only contract literals. A query that returns JSON — an
+      `.include()`'s nested rows, an aggregated child row set — projects each column through its
+      codec, so these codecs' values arrive in the forms above where they previously arrived in
+      whatever the database's own JSON conversion produced. Nine codecs project non-identically:
+      `pg/numeric@1`, `pg/int8@1`, `pg/bytea@1`, `pg/interval@1`, `pg/timestamptz@1`,
+      `pg/vector@1`, `sqlite/bigint@1`, `sqlite/blob@1` and `sqlite/json@1`. If you read such a
+      column out of an include and parse or compare its raw JSON yourself — rather than letting
+      the ORM decode it — update that code to the new form.
+      Run `prisma-next contract emit` to regenerate
       `contract.json` / `contract.d.ts`; any literal default on one of these codecs changes
       spelling, and with it the `storageHash`. Code that reads such a default out of a contract,
       or that hand-writes one, must use the new form.
     detection:
-      glob: "**/contract.{json,d.ts}"
+      glob: "**/*.{ts,tsx,mts,cts,json,d.ts}"
       contains:
         - "pg/numeric@1"
         - "pg/bytea@1"
+        - "pg/int8@1"
+        - "pg/interval@1"
+        - "pg/timestamptz@1"
+        - "pg/vector@1"
         - "sqlite/bigint@1"
         - "sqlite/blob@1"
+        - "sqlite/json@1"
       anyMatch: true
   - id: float-json-requires-extra-float-digits-at-least-one
     summary: |
@@ -411,6 +425,86 @@ changes:
       contains:
         - "sqlite/real@1"
         - "realColumn"
+      anyMatch: true
+  - id: pg-timestamptz-json-is-utc-iso
+    summary: |
+      `pg/timestamptz@1`'s canonical JSON is a UTC ISO-8601 timestamp with an explicit `+00:00`
+      offset, constructed by the projection rather than inherited from the session. The form
+      previously followed the connection's `DateStyle` and `TimeZone`, so the same stored instant
+      read back differently on two connections, and under a non-ISO `DateStyle` could fail to
+      parse at all. Nothing to change if you decode through the ORM. If you read a timestamptz out
+      of database-produced JSON yourself it is now always `YYYY-MM-DDTHH:MM:SS.mmm+00:00`: drop any
+      session-dependent parsing, and drop any `SET DateStyle` / `SET TimeZone` you added to
+      stabilise it.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,sql}"
+      contains:
+        - "pg/timestamptz@1"
+        - "timestamptzColumn"
+        - "DateStyle"
+      anyMatch: true
+  - id: sqlite-json-documents-survive-nesting
+    summary: |
+      A `sqlite/json@1` column read through a nested `.include()` arrives as a parsed document
+      where it previously arrived as a string containing JSON. SQLite carries "this text is JSON"
+      as a subtype on the value, and that subtype does not survive a derived table — which every
+      include's child row set passes through — so a document came back double-encoded. The
+      projection retags it at the boundary that consumes it. A `sqlite/text@1` column whose
+      characters happen to look like JSON is unaffected and still arrives as a string: the retag
+      follows the column's codec, not its content. Remove any `JSON.parse` you added to compensate
+      for the double encoding.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "sqlite/json@1"
+        - "jsonColumn"
+      anyMatch: true
+  - id: sqlite-blob-null-is-distinct-from-empty
+    summary: |
+      A `NULL` `sqlite/blob@1` column read through database-produced JSON is `null`, where it
+      previously became an empty `Uint8Array`. SQLite's `hex(NULL)` is the empty string, which is
+      also the hex of a zero-length blob, so absence and emptiness were the same value and nothing
+      raised. If your code distinguishes "no blob" from "empty blob" — and especially if it worked
+      around the old behaviour by treating a zero-length blob as absent — that check now needs to
+      test for `null`.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "sqlite/blob@1"
+        - "blobColumn"
+      anyMatch: true
+  - id: sql-float-rejects-non-finite-values
+    summary: |
+      `sql/float@1` rejects infinities and `NaN` in both JSON directions, matching
+      `sqlite/real@1`. Its `decodeJson` previously performed no check at all, and a database can
+      hold a non-finite float and spells it as a *string* in JSON — PostgreSQL emits `"NaN"` — so
+      the codec handed back a string typed as `number`, silently. Guard any computation that can
+      produce a non-finite float before writing it to a `sql/float@1` column, or use
+      `pg/numeric@1`, whose application value is text and which admits all three.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "sql/float@1"
+        - "sqlFloatColumn"
+      anyMatch: true
+  - id: explicit-codec-refs-need-readable-type-params
+    summary: |
+      A codec ref supplied explicitly — `sql.value(v, { codec: { codecId: 'pg/enum@1' } })` and
+      the other surfaces that take a bare `codecId` — must carry `typeParams` the codec's schema
+      accepts when that codec is parameterized. For `pg/enum@1` that means
+      `typeParams: { typeName: '<enum type>' }`. Such a ref never passes contract validation, so
+      the omission used to surface as a static `text` native type — correct only because
+      PostgreSQL implicitly casts text to an enum, and wrong for any parameterized codec whose
+      type is not text-compatible. It now fails at lowering instead. The failure currently
+      surfaces as a params-validation error rather than a message naming the surface that produced
+      it; that diagnostic is tracked as
+      [TML-3114](https://linear.app/prisma-company/issue/TML-3114). Add the `typeParams` your
+      column declares, or drop the explicit codec and let the column's own codec resolve.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "codec: { codecId"
+        - "pg/enum@1"
       anyMatch: true
 ---
 
@@ -571,3 +665,7 @@ Two details worth knowing:
 The rule these follow is that a value written through a codec and read back must be the same value. Where a codec's JSON form could not carry its own range, the form changed rather than the range being quietly clipped.
 
 Re-emit first (`prisma-next contract emit`), then reconcile any code that reads or writes one of these forms directly. Literal defaults are where this most often surfaces: an `int8` default of `0` is now `"0"` in `contract.json`, and the `storageHash` moves with it.
+
+The second place it surfaces is reads. A query that returns JSON projects each column through its codec, so a column whose codec is one of the nine listed above arrives in that codec's canonical form rather than in whatever the database's own JSON conversion produced. Decoding through the ORM needs no change — the codec's `decodeJson` is the other half of the same pair, and the two moved together. What needs checking is code that bypasses the ORM's decoding: a raw query that reads an aggregated JSON column and parses it itself, a comparison against a hand-written JSON string, a snapshot of database-produced JSON.
+
+Where a form is a strict improvement in range, nothing downstream breaks by widening. Where a form changes spelling — `bytea` from `\x`-hex to base64, `sqlite/blob@1` from base64 to uppercase hex — a hand-written comparison is the thing that breaks, and it breaks loudly rather than silently.

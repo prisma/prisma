@@ -21,7 +21,18 @@ The framework imports live at `@prisma-next/framework-components/codec`:
 
 SQL codecs use the same framework `CodecImpl` base. Their `encodeJson` and `decodeJson` methods define the codec's JSON-safe contract representation; `decode` remains responsible for the driver's ordinary column wire value. Keep that representation stable and mutually consistent, and keep `decodeJson` compatible with the values the current SQL JSON renderer returns for the codec. This distinction matters for types such as PostgreSQL `bytea` and extension-defined types whose values inside database-produced JSON may differ from their normal driver representation.
 
-PostgreSQL and SQLite target descriptors also declare AST-to-AST JSON projection hooks, described below. Those hooks are required target protocol declarations in 0.17, but production JSON renderers do not yet call `projectJson()`. Existing SQL rendering and `encodeJson` / `decodeJson` behavior therefore remain the compatibility contract for this transition. Do not infer that the current database-produced representation is canonical or lossless from the presence of a projection hook.
+PostgreSQL and SQLite target descriptors also declare AST-to-AST JSON projection hooks, described below. The production JSON renderers call `projectJson()` for every column-valued entry they build, so a descriptor's projection is what a database actually returns — see [The canonical JSON guarantee](#the-canonical-json-guarantee).
+
+## The canonical JSON guarantee
+
+**A value read back through database-produced JSON is the value that was stored.** Where a query returns JSON — an `.include()`'s nested rows, an aggregated child row set — each column reaches that JSON through its own codec's projection, and `decodeJson` returns the application value the column holds. A `numeric` arrives as its exact decimal text rather than rounded through a double; a `bytea` as base64 rather than a hex escape; a `bigint` as decimal text rather than a JSON number that cannot hold it. Absence is preserved: a `NULL` column reads back as `null`, never as a zero or an empty value.
+
+The guarantee rests on the codec, not on the database's own JSON conversion, which is why it can be stated at all. It has exactly two limits, and both are real:
+
+- **`pg/geometry@1` is exempt.** The PostGIS geometry codec has no canonical JSON projection, so a geometry column inside database-produced JSON carries whatever PostGIS's own JSON conversion emits, and round-tripping it is not guaranteed. Tracked as [TML-3105](https://linear.app/prisma-company/issue/TML-3105).
+- **Float codecs need `extra_float_digits >= 1`.** `pg/float4@1`, `pg/float8@1`, `pg/float@1` and `sql/float@1` render through PostgreSQL's float-to-text conversion, which `extra_float_digits` controls. At `1` (the default since PostgreSQL 12) it prints the shortest decimal that round-trips exactly, and the guarantee holds. A session that lowers it to `0` or below prints fewer digits than the value needs, and a float read back through JSON may differ from the one stored. Nothing in the framework enforces the setting; if your deployment changes it, floats are outside the guarantee.
+
+Non-finite floats are rejected rather than silently mangled: JSON has no spelling for `NaN` or an infinity, and a database that holds one emits it as a *string*, so `sql/float@1` and `sqlite/real@1` refuse them in both directions rather than hand back a string typed as `number`. `pg/numeric@1` accepts all three, because its application value is already text.
 
 ## Three case studies
 
@@ -244,8 +255,8 @@ class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
     return expression;
   }
 
-  // codecId, traits, targetTypes, paramsSchema, factory, renderOutputType,
-  // and transitional meta/metaFor stay on the ordinary descriptor.
+  // codecId, traits, targetTypes, paramsSchema, factory and renderOutputType
+  // stay on the ordinary descriptor.
 }
 
 export const pgVectorDescriptor = new PgVectorDescriptor();
@@ -268,7 +279,7 @@ const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
 });
 ```
 
-The adapter delegates the wrapped descriptor's codec id, literals, parameter schema, factory, renderers, target types, and transitional metadata. It adds the PostgreSQL discriminant and target methods without changing codec materialization.
+The adapter delegates the wrapped descriptor's codec id, literals, parameter schema, factory, renderers and target types. It adds the PostgreSQL discriminant and target methods without changing codec materialization.
 
 ### SQLite
 
@@ -354,11 +365,11 @@ const sqliteAdapter = createSqliteAdapter({
 
 Do not inject an independent generic codec lookup and target registry: both views are derived from the same validated target descriptors so they cannot drift. Stack composition order remains target contributions, the full adapter descriptor set, then ordered extension contributions.
 
-### Behavior-preserving transition
+### One source of target truth
 
-`CodecMeta`, descriptor `meta` / `metaFor`, and metadata lookups coexist with the target protocol in 0.17. Preserve them and keep their native-type declarations equivalent to the target hooks while existing emission and control consumers migrate. `PostgresCodecDescriptor.nativeTypeFor()` is used for PostgreSQL parameter-cast rendering, but production PostgreSQL and SQLite JSON renderers still pass their current projection variants through without invoking descriptor `projectJson()`.
+The descriptor is the only place a target's behaviour for a codec is declared. `nativeTypeFor()` gives PostgreSQL's parameter-cast rendering and the column's declared type; `projectJson()` gives the expression that produces the column's canonical JSON. There is no parallel metadata channel to keep in step with them.
 
-A required identity `jsonProjection` therefore means “preserve today's SQL JSON output while declaring the target boundary,” not “this representation is canonical or lossless.” Do not change codec ids, factories, column helpers, SQL, wire encoding, `encodeJson`, `decodeJson`, emitted contracts, or stored representations merely to adopt the descriptor protocol. New numeric, byte, BLOB, retagging, or document transformations require a separate behavior change.
+An identity `jsonProjection` is a claim, not a placeholder: it says this codec's stored form *is* its canonical JSON, as it is for `pg/text@1` and `pg/int4@1`. Write one only when that holds. A codec whose stored form cannot survive JSON — a wide integer, a byte string, a value whose text depends on a session setting — needs a projection that converts it, because the renderer will ask and then use the answer.
 
 ## `satisfies` discipline
 
