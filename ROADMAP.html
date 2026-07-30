@@ -196,7 +196,7 @@
     <div class="statusline">
       <span class="item"><span class="k">Ships</span> <span class="v teal">July 31</span></span>
       <span class="item"><span class="k">Health</span> <span class="v ok">On track</span></span>
-      <span class="item"><span class="k">Updated</span> <span class="v">July 23</span></span>
+      <span class="item"><span class="k">Updated</span> <span class="v">July 30</span></span>
       <span class="item"><span class="k">Scoreboard</span> <span class="v link"><a href="https://github.com/prisma/prisma-next/pull/1000">450 proven · 500 unproven · 30 experimental · 250 not in 8.0</a></span></span>
     </div>
     <div class="progress">
@@ -659,7 +659,7 @@
   <section class="landed">
     <h2>Recently landed</h2>
     <ul>
-      <li><strong>Expression, partial, and unique indexes landed end-to-end</strong> — authorable in PSL and TypeScript, name-identified with content-hashed physical names, and emitted at full fidelity by <code>contract infer</code> so existing databases adopt cleanly (requirement 4).</li>
+      <li><strong>Expression, partial, and unique indexes landed end-to-end</strong> — authorable in PSL and TypeScript, name-identified (a managed name carries a content-hash suffix; <code>map:</code> adopts the live name verbatim), and emitted at full fidelity by <code>contract infer</code> so existing databases adopt cleanly (requirement 4).</li>
       <li><strong>One error-code scheme, delivered end-to-end</strong> — every published error is a structural envelope with a dotted code; the ORM and contract-authoring planes' codeless throws were swept onto it; the 221-code reference page ships with a CI check that keeps it complete (requirement 3).</li>
       <li><strong>Contract snapshots deduplicated into one content-addressed store</strong> — migration folders stopped carrying full contract copies, ref-paired snapshots folded in too, closing the migrations-folder layout ahead of the freeze (requirement 3).</li>
       <li><strong>Hashes lost their <code>sha256:</code> prefix</strong> — the textual form of every content hash froze without the redundant algorithm tag (requirement 3).</li>

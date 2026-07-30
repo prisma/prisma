@@ -482,8 +482,9 @@ changes:
       and regenerate through the checked-in generator; re-emit moves the storage hash. The
       duplicate-index validation keys exact-mode entries by name, so a reference database's
       content-identical twin indexes now validate. An index whose live name is wire-shaped
-      and whose hash recomputes re-infers as managed `name:` (real third-party names are not
-      wire-shaped, so adopted contracts stay `map:`).
+      and whose hash recomputes against the introspected content re-infers as managed
+      `name:` — a heuristic: a name that is not wire-shaped, or whose hash does not
+      recompute, adopts as exact `map:`.
     detection:
       glob: "**/*.{ts,mts,cts,prisma}"
       contains:
