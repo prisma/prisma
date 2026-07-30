@@ -57,7 +57,6 @@ The identity switch, done entirely beneath the authoring surface (existing `@@in
 ## Close-out (required)
 
 - [ ] All DoD items in [spec.md](spec.md) verified.
-- [ ] Slice-3 review carry-over (round-2 architect § 3c): lift the drifted-object replacement grading into a family-level `partitionCallUnitsByControlPolicy` (same shape as `partitionCallsByControlPolicy`, over call units with one representative subject) — deletes the target-side `gradePolicyReplacement` inline grading and the harmless double grading, and gives the next drifted object kind (an exact-named index body drift is the candidate) the mechanism for free.
 - [ ] ADR migrated from [specs/adr-name-identified-indexes.md](specs/adr-name-identified-indexes.md) to `docs/architecture docs/adrs/` (next free number at merge time), ADR 234's forward-applicability section updated to point at it.
 - [ ] `docs/` references updated; repo-wide references to `projects/functional-indexes/**` stripped.
 - [ ] `projects/functional-indexes/` deleted in the final PR.
