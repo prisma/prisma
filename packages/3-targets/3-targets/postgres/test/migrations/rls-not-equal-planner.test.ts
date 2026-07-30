@@ -221,27 +221,27 @@ describe('not-equal policy issue (exact-mode content drift)', () => {
 });
 
 describe('not-equal policy under non-managed control policies', () => {
-  it.each([
-    'external',
-    'observed',
-  ] as const)('drift on an %s table never fails the plan — zero policy DDL, one suppression warning', async (control) => {
-    const contract = buildContract(exactPolicy('(tenant_id = 1)'), control);
-    const schema = actualSchema(exactPolicy('(tenant_id = 2)'));
+  it.each(['external', 'observed'] as const)(
+    'drift on an %s table never fails the plan — zero policy DDL, one suppression warning',
+    async (control) => {
+      const contract = buildContract(exactPolicy('(tenant_id = 1)'), control);
+      const schema = actualSchema(exactPolicy('(tenant_id = 2)'));
 
-    const result = plan(contract, schema, ALL_CLASSES_POLICY);
-    expect(result.kind).toBe('success');
-    if (result.kind !== 'success') return;
-    const ops = await Promise.all(result.plan.operations);
-    expect(ops.map((op) => op.id)).toEqual([]);
-    expect(result.warnings).toContainEqual(
-      expect.objectContaining({
-        kind: 'controlPolicySuppressedCall',
-        summary: expect.stringContaining(`RLS policy "${EXACT_NAME}"`),
-        location: expect.objectContaining({ rlsPolicy: EXACT_NAME }),
-      }),
-    );
-    expect(result.warnings?.[0]?.summary).toContain(`'${control}'`);
-  });
+      const result = plan(contract, schema, ALL_CLASSES_POLICY);
+      expect(result.kind).toBe('success');
+      if (result.kind !== 'success') return;
+      const ops = await Promise.all(result.plan.operations);
+      expect(ops.map((op) => op.id)).toEqual([]);
+      expect(result.warnings).toContainEqual(
+        expect.objectContaining({
+          kind: 'controlPolicySuppressedCall',
+          summary: expect.stringContaining(`RLS policy "${EXACT_NAME}"`),
+          location: expect.objectContaining({ rlsPolicy: EXACT_NAME }),
+        }),
+      );
+      expect(result.warnings?.[0]?.summary).toContain(`'${control}'`);
+    },
+  );
 
   it('under tolerated the replacement pair is suppressed as one unit — no orphaned CREATE', async () => {
     const contract = buildContract(exactPolicy('(tenant_id = 1)'), 'tolerated');
