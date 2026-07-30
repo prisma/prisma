@@ -118,23 +118,26 @@ export interface PostgresCodecConformanceCase {
    */
   readonly many?: true;
   /**
+   * Store SQL `NULL` instead of encoding `value`, and require the projection to
+   * produce JSON `null`.
+   *
+   * SQL `NULL` is a state of the column, not a value the codec can be handed, so
+   * no `value` denotes it. Most codecs reject `null` outright; the JSON codecs
+   * accept it, but for them `value: null` means a JSON `null` *document* stored
+   * in the column, which is a different thing from the column being empty. A
+   * mode is the only shape that expresses the column state for every codec.
+   *
+   * The runtime never calls `decodeJson` for a null (`collection-dispatch`
+   * short-circuits it), so neither does the harness; what a null case measures
+   * is that the projection carries absence through as absence.
+   */
+  readonly nullValue?: true;
+  /**
    * How this case's projection currently disagrees with the codec's
    * `encodeJson` / `decodeJson`, when it does. The suite asserts that a marked
    * case still fails *and still fails this way*, so neither the marker nor its
    * recorded kind can rot as projections change.
    */
-  /**
-   * Store SQL `NULL` instead of encoding `value`, and require the projection to
-   * produce JSON `null`.
-   *
-   * This is a dimension every column has and no `value` can express: the codecs
-   * are strict, so a null case cannot be written as `value: null` — `encodeJson`
-   * would reject it before the database was reached. The runtime never calls
-   * `decodeJson` for a null (`collection-dispatch` short-circuits it), so
-   * neither does the harness; what a null case measures is that the projection
-   * carries absence through as absence.
-   */
-  readonly nullValue?: true;
   readonly notYetCanonical?: ExpectedProjectionFailure;
 }
 

@@ -111,12 +111,15 @@ export interface SqliteCodecConformanceCase {
    * Store SQL `NULL` instead of encoding `value`, and require the projection to
    * produce JSON `null`.
    *
-   * This is a dimension every column has and no `value` can express: the codecs
-   * are strict, so a null case cannot be written as `value: null` — `encodeJson`
-   * would reject it before the database was reached. The runtime never calls
-   * `decodeJson` for a null (`collection-dispatch` short-circuits it), so
-   * neither does the harness; what a null case measures is that the projection
-   * carries absence through as absence.
+   * SQL `NULL` is a state of the column, not a value the codec can be handed, so
+   * no `value` denotes it. Most codecs reject `null` outright; the JSON codecs
+   * accept it, but for them `value: null` means a JSON `null` *document* stored
+   * in the column, which is a different thing from the column being empty. A
+   * mode is the only shape that expresses the column state for every codec.
+   *
+   * The runtime never calls `decodeJson` for a null (`collection-dispatch`
+   * short-circuits it), so neither does the harness; what a null case measures
+   * is that the projection carries absence through as absence.
    */
   readonly nullValue?: true;
   /**
