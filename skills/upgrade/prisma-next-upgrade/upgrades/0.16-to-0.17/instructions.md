@@ -309,6 +309,23 @@ changes:
         - "constraints.index"
         - '"indexes":'
       anyMatch: true
+  - id: rls-policy-migration-literal-carries-the-naming-union
+    summary: |
+      A generated migration's `this.createRlsPolicy({ policy: … })` literal spells the policy's
+      name differently from 0.17. The flat `name` / `prefix` pair is replaced by a single
+      `naming` field carrying one of two shapes: `{ kind: "exact", name: "<physical name>" }`
+      for a policy whose name the author owns, or
+      `{ kind: "managed", prefix: "<prefix>", hash: "<8hex>" }` for a toolchain-named one
+      (0.16's `name: "<prefix>_<8hex>"` plus `prefix: "<prefix>"`). Every other key is
+      unchanged. A migration file emitted by 0.16 that calls `createRlsPolicy` therefore stops
+      compiling — TypeScript reports `Property 'naming' is missing`. Regenerate the affected
+      migrations with `prisma-next migration plan`, or edit the literal by hand: the shape is
+      mechanical, and the migration's identity (`migrationHash`, the SQL it executes) does not
+      depend on the literal's spelling.
+    detection:
+      glob: "**/migrations/**/migration.ts"
+      contains:
+        - "createRlsPolicy"
   - id: framework-error-classes-removed
     summary: |
       Three exported framework error classes are deleted: `ConfigFileNotFoundError`
@@ -640,6 +657,29 @@ Under an **additive-only** policy (e.g. `db init`'s class set) the rename pairin
 ### Hard-coded names
 
 If application code, tests, or operational scripts hard-code physical index names (e.g. `user_email_idx`), read the new names from the regenerated `contract.json` — managed names now carry the hash suffix. PSL schemas that must keep a byte-exact legacy name can pin it with `@@index([...], map: "<exact name>")`.
+
+## `rls-policy-migration-literal-carries-the-naming-union`
+
+Generated migrations that create an RLS policy carry the policy as a literal. Where 0.16 spelled its name as two flat fields, 0.17 spells it as one `naming` field with two shapes:
+
+```ts
+// 0.16
+this.createRlsPolicy({ schema: "public", table: "post", policy: {
+  name: "post_owner_a1b2c3d4",
+  prefix: "post_owner",
+  // …
+} })
+
+// 0.17
+this.createRlsPolicy({ schema: "public", table: "post", policy: {
+  naming: { kind: "managed", prefix: "post_owner", hash: "a1b2c3d4" },
+  // …
+} })
+```
+
+A policy whose name the author owns (adopted through `@@map`) carries `naming: { kind: "exact", name: "Tenant members can read" }` instead. Every other key of the literal is unchanged.
+
+The two fields could disagree — a `prefix` that is not what `name` ends with was representable and had to be checked at runtime — while the union cannot be written wrong. A 0.16 migration file that calls `createRlsPolicy` stops compiling against 0.17 with `Property 'naming' is missing`. Either regenerate the migration (`prisma-next migration plan`) or rewrite the two fields as the one union field by hand; the migration's identity and the SQL it runs do not depend on the literal's spelling, so a hand edit needs no re-hashing.
 
 ## Incidental dependency and lint-config bumps
 

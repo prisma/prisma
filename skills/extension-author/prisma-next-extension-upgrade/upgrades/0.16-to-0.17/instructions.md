@@ -295,6 +295,28 @@ changes:
         - "normalizePredicate"
         - "RlsPolicyWireName"
       anyMatch: true
+  - id: rls-policy-migration-literal-carries-the-naming-union
+    summary: |
+      The Postgres RLS policy migration literal spells its name as one union field from 0.17.
+      `PostgresRlsPolicyMigrationInput` is deleted from `@prisma-next/target-postgres/types`;
+      the parameter `Migration#createRlsPolicy` accepts and the renderer writes is
+      `RenderedRlsPolicyLiteral`, which is `PostgresRlsPolicyInput` with absent-valued keys
+      omittable — so the flat `name` / `prefix` pair becomes `naming: { kind: "exact", name }`
+      or `naming: { kind: "managed", prefix, hash }`. The contract-JSON shape is unchanged and
+      keeps its own type, `SerializedRlsPolicy`, hydrated by `policyInputFromSerialized`
+      (0.16's `rlsPolicyInputFromFlat`). Pack code constructing `PostgresRlsPolicy` directly
+      already passed the `naming` union and is unaffected; pack code that built the flat
+      migration literal, or that imported `PostgresRlsPolicyMigrationInput`, must switch to
+      `RenderedRlsPolicyLiteral` and the union field. Regenerate any committed migration your
+      pack ships that calls `createRlsPolicy` — a 0.16 file fails to compile with
+      `Property 'naming' is missing`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - "PostgresRlsPolicyMigrationInput"
+        - "rlsPolicyInputFromFlat"
+        - "createRlsPolicy"
+      anyMatch: true
   - id: sql-index-entities-are-name-identified
     summary: |
       SQL index entities are name-identified from 0.17, at both layers an extension touches.
@@ -585,6 +607,21 @@ Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. 
 ### Committed contract spaces
 
 Re-emit your pack's contract space with the upgraded toolchain (`build:contract-space`, or your generator script à la `contract:generate`): every contract that declares indexes gets the new entry shape and a new storage hash, and managed index physical names gain the `_<8hex>` content-hash suffix. Databases your pack maintains (acceptance harnesses, reference instances) converge via a renames-only widening plan — see the user-skill `indexes-are-name-identified` entry for that flow. Expression and partial indexes are authorable from 0.17 (PSL `@@index(expression:/where:/unique:/type:/name: xor map:)`, TS `constraints.index` with the same matrix); declare them with `name:` for managed wire names, or `map:` for infer-captured exact names — hand-authoring a body under `map:` warns (`PN_EXACT_NAME_BODY_COMPARISON`) because drift detection byte-compares the authored text against Postgres's reprint. Live indexes you choose not to declare stay tolerated under an `external` control policy.
+
+## `rls-policy-migration-literal-carries-the-naming-union`
+
+`PostgresRlsPolicyMigrationInput` is gone. The parameter `Migration#createRlsPolicy` accepts, and the shape `CreatePostgresRlsPolicyCall.renderTypeScript` writes into a generated migration, is now `RenderedRlsPolicyLiteral` — `PostgresRlsPolicyInput` with absent-valued keys omittable, which is how a machine-rendered literal spells absence. The practical difference is the name:
+
+| 0.16 | 0.17 |
+| --- | --- |
+| `name: "post_owner_a1b2c3d4", prefix: "post_owner"` | `naming: { kind: "managed", prefix: "post_owner", hash: "a1b2c3d4" }` |
+| `name: "Tenant members can read"` | `naming: { kind: "exact", name: "Tenant members can read" }` |
+
+The two flat fields could disagree; the union cannot be written wrong, which is why the migration authoring surface carries it.
+
+The stored `contract.json` shape does not change — it stays flat and now has its own type: `SerializedRlsPolicy`, hydrated by `policyInputFromSerialized` (0.16's `rlsPolicyInputFromFlat`, renamed for the boundary it serves). Both are exported from `@prisma-next/target-postgres/types`.
+
+Pack code that constructs `PostgresRlsPolicy` directly already passes `naming` and needs no edit. Pack code that builds the migration literal, or that names `PostgresRlsPolicyMigrationInput` in a signature, switches to `RenderedRlsPolicyLiteral`. Regenerate any migration your pack ships that calls `createRlsPolicy`.
 
 ## `postgres-extension-codecs-require-target-descriptors`
 
