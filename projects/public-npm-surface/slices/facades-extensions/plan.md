@@ -39,6 +39,15 @@ The complete 17-package public surface exists under `packages/9-public/` and bui
 - Shim drift-lint passes from the new location; `init` scaffolds a facade dependency.
 - No `@prisma-next/*` specifier in any published dist.
 
+## Outcome vs plan (recorded at slice completion)
+
+Two plan instructions were corrected during implementation; both corrections are right and are recorded in `design-notes.md`:
+
+1. **"Facade source moves"** — not done, and should not be: relocating the source breaks the transitional constraint this same plan sets, because in-repo examples import both the facade name and internals directly and would load duplicate module copies. Facades ship as generated shells whose published artifact matches the plan exactly.
+2. **"The toolchain's bin gives a facade install `npx prisma-next`"** — false premise. pnpm links bins of direct dependencies only. Each facade declares a launcher bin delegating to the toolchain's single CLI implementation.
+
+`init` scaffolding a facade dependency moves to TML-3123: the targets hardcode `@prisma-next/<db>/migration` as the emitted-migration import root, so `init`'s dependency and the emitter's import root must flip together.
+
 ## Risks
 
 - **Facade source moves** (unlike slice 1's pure additions) — internal imports of `@prisma-next/postgres` etc. must keep resolving; keep the old package as a thin re-export if anything in-repo still depends on it, and remove that in the switchover slice.
