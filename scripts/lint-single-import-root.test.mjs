@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { after, before, describe, test } from 'node:test';
+import { findMixedPackages } from './lint-single-import-root.mjs';
+
+let base;
+
+function pkg(relativeDir, files) {
+  const dir = join(base, relativeDir);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'package.json'), '{"name":"fixture"}');
+  for (const [name, source] of Object.entries(files)) {
+    mkdirSync(join(dir, name, '..'), { recursive: true });
+    writeFileSync(join(dir, name), source);
+  }
+}
+
+before(() => {
+  base = mkdtempSync(join(tmpdir(), 'single-import-root-'));
+
+  pkg('examples/published-only', {
+    'src/db.ts': "import postgres from '@prisma/orm-postgres/runtime';",
+  });
+  pkg('examples/internal-only', {
+    'src/db.ts': "import postgres from '@prisma-next/postgres/runtime';",
+  });
+  pkg('examples/mixed', {
+    'src/db.ts': "import postgres from '@prisma/orm-postgres/runtime';",
+    'src/query.ts': "import { budgets } from '@prisma-next/sql-runtime';",
+  });
+  pkg('examples/parent', { 'src/app.ts': "import x from '@prisma/orm-mongo/runtime';" });
+  pkg('examples/parent/nested', { 'src/app.ts': "import y from '@prisma-next/mongo-orm';" });
+});
+
+after(() => {
+  rmSync(base, { recursive: true, force: true });
+});
+
+describe('findMixedPackages', () => {
+  test('reports a package that names both roots', () => {
+    const mixed = findMixedPackages(base, ['examples']).map((entry) => entry.pkg);
+    assert.ok(mixed.includes('examples/mixed'));
+  });
+
+  test('leaves a package that names one root alone', () => {
+    const mixed = findMixedPackages(base, ['examples']).map((entry) => entry.pkg);
+    assert.ok(!mixed.includes('examples/published-only'));
+    assert.ok(!mixed.includes('examples/internal-only'));
+  });
+
+  // A nested package installs its own dependencies and resolves on its own,
+  // so its imports are not the parent's.
+  test('attributes a nested package’s imports to the nested package', () => {
+    const mixed = findMixedPackages(base, ['examples']).map((entry) => entry.pkg);
+    assert.ok(!mixed.includes('examples/parent'));
+    assert.ok(!mixed.includes('examples/parent/nested'));
+  });
+
+  test('names one offending specifier per root', () => {
+    const [entry] = findMixedPackages(base, ['examples']).filter((e) => e.pkg === 'examples/mixed');
+    assert.deepEqual([...entry.published.keys()], ['@prisma/orm-postgres/runtime']);
+    assert.deepEqual([...entry.internal.keys()], ['@prisma-next/sql-runtime']);
+  });
+});
