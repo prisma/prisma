@@ -1,6 +1,5 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import {
   bigintColumn,
@@ -18,6 +17,8 @@ import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sq
 import { defineContract, field, model, rel } from '@prisma-next/sqlite/contract-builder';
 import { SqliteRuntimeImpl } from '@prisma-next/sqlite/runtime';
 import sqliteTarget from '@prisma-next/target-sqlite/runtime';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import { join } from 'pathe';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 /**
@@ -97,7 +98,7 @@ describe('integration/sqlite include canonical JSON', () => {
     const adapter = instance.adapter;
     const driver = instance.driver;
     if (adapter === undefined || driver === undefined) {
-      throw new Error('SQLite execution stack is missing its adapter or driver');
+      throw new InternalError('SQLite execution stack is missing its adapter or driver');
     }
     await driver.connect({ kind: 'path', path });
     runtime = new SqliteRuntimeImpl({ context, adapter, driver });

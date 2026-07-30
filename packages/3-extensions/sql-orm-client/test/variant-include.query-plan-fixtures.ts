@@ -15,6 +15,7 @@ import {
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { expect } from 'vitest';
 import {
   type CollectionState,
@@ -113,7 +114,7 @@ export function projection(
 function codecOfProjected(childRows: SelectAst, alias: string): CodecRef {
   const codec = childRows.projection.find((item) => item.alias === alias)?.codec;
   if (codec === undefined) {
-    throw new Error(`child rows project no codec for '${alias}'`);
+    throw new InternalError(`child rows project no codec for '${alias}'`);
   }
   return codec;
 }

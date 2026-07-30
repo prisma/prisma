@@ -19,6 +19,7 @@ import {
 } from '@prisma-next/sql-relational-core/ast';
 import { isPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
 import { applicationDomainOf } from '@prisma-next/test-utils';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 import { compileSelectWithIncludes } from '../../../../packages/3-extensions/sql-orm-client/src/query-plan-select';
@@ -184,7 +185,7 @@ describe('JSON projection variants', () => {
 
     function entriesFor(label: string): string[] {
       const ast = planned.get(label);
-      if (ast === undefined) throw new Error(`no representative plan labelled '${label}'`);
+      if (ast === undefined) throw new InternalError(`no representative plan labelled '${label}'`);
       return jsonEntriesOf(ast);
     }
 

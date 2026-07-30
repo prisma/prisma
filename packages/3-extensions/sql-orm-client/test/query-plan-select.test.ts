@@ -28,6 +28,7 @@ import {
   WindowFuncExpr,
 } from '@prisma-next/sql-relational-core/ast';
 import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import { resolveIncludeRelation } from '../src/collection-contract';
 import { compileSelect, compileSelectWithIncludes } from '../src/query-plan-select';
@@ -39,7 +40,7 @@ import { unboundTables } from './unbound-tables';
 
 function codecRefFor(table: string, column: string): CodecRef {
   const ref = codecRefForStorageColumn(baseContract.storage, 'public', table, column);
-  if (ref === undefined) throw new Error(`no codec ref for ${table}.${column}`);
+  if (ref === undefined) throw new InternalError(`no codec ref for ${table}.${column}`);
   return ref;
 }
 
