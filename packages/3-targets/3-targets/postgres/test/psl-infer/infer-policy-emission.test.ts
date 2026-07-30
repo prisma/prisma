@@ -14,6 +14,7 @@ import { postgresAuthoringPslBlockDescriptors } from '../../src/core/authoring';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
+import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { testNaming } from '../fixtures/test-naming';
@@ -166,5 +167,106 @@ describe('policy block emission', () => {
     expect(psl).not.toContain('policy_select');
     expect(psl).toContain('// prisma-next: skipped policy "odd role policy"');
     expect(psl).toContain('@@rls');
+  });
+});
+
+function tableNode(
+  name: string,
+  policies: readonly PostgresPolicySchemaNode[],
+  aalColumn = false,
+): PostgresTableSchemaNode {
+  return new PostgresTableSchemaNode({
+    name,
+    columns: {
+      id: { name: 'id', nativeType: 'int4', nullable: false },
+      ...(aalColumn ? { aal: { name: 'aal', nativeType: 'tenant_read', nullable: true } } : {}),
+    },
+    primaryKey: { columns: ['id'] },
+    foreignKeys: [],
+    uniques: [],
+    indexes: [],
+    policies: [...policies],
+    rlsEnabled: true,
+  });
+}
+
+function policyOn(tableName: string, fixture: PolicyFixture): PostgresPolicySchemaNode {
+  return new PostgresPolicySchemaNode({
+    naming: testNaming(fixture.name, fixture.prefix),
+    tableName,
+    namespaceId: 'public',
+    operation: fixture.operation ?? 'select',
+    roles: [...(fixture.roles ?? ['app_user'])],
+    using: fixture.using,
+    withCheck: fixture.withCheck,
+    permissive: fixture.permissive ?? true,
+    dependsOn: undefined,
+  });
+}
+
+function pslFromTables(
+  tables: Record<string, PostgresTableSchemaNode>,
+  nativeEnums: readonly PostgresNativeEnumSchemaNode[] = [],
+): string {
+  const tree = new PostgresDatabaseSchemaNode({
+    namespaces: {
+      public: new PostgresNamespaceSchemaNode({ schemaName: 'public', tables, nativeEnums }),
+    },
+    roles: [],
+    existingSchemas: ['public'],
+    pgVersion: '',
+  });
+  return printPsl(inferPostgresPslContract(tree), {
+    pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
+  });
+}
+
+describe('policy head namespace and ordering across blocks', () => {
+  it('identically-named policies on two tables order by table, then disambiguate', () => {
+    const psl = pslFromTables({
+      post: tableNode('post', [policyOn('post', { name: 'tenant read', using: '(id = 1)' })]),
+      profile: tableNode('profile', [
+        policyOn('profile', { name: 'tenant read', using: '(id = 2)' }),
+      ]),
+    });
+    // Same physical name on both tables: the (name, tableName, operation)
+    // total order puts post before profile, so post's policy keeps the bare
+    // head and profile's takes the suffix — deterministically.
+    const first = psl.indexOf('policy_select tenant_read {');
+    const second = psl.indexOf('policy_select tenant_read_2 {');
+    expect(first).toBeGreaterThan(-1);
+    expect(second).toBeGreaterThan(first);
+    expect(psl.slice(first, second)).toContain('target = Post');
+    expect(psl.slice(second)).toContain('target = Profile');
+  });
+
+  it('a policy head colliding with a native_enum block name takes the numeric suffix', () => {
+    const psl = pslFromTables(
+      {
+        profile: tableNode(
+          'profile',
+          [policyOn('profile', { name: 'TenantRead', using: '(id = 1)' })],
+          true,
+        ),
+      },
+      [
+        new PostgresNativeEnumSchemaNode({
+          typeName: 'tenant_read',
+          namespaceId: 'public',
+          members: ['a', 'b'],
+        }),
+      ],
+    );
+    expect(psl).toContain('native_enum TenantRead {');
+    expect(psl).toContain('policy_select TenantRead_2 {');
+    expect(psl).toContain('@@map("TenantRead")');
+  });
+
+  it('a policy head colliding with a model name takes the numeric suffix', () => {
+    const psl = pslFromTables({
+      profile: tableNode('profile', [policyOn('profile', { name: 'Profile', using: '(id = 1)' })]),
+    });
+    expect(psl).toContain('model Profile {');
+    expect(psl).toContain('policy_select Profile_2 {');
   });
 });

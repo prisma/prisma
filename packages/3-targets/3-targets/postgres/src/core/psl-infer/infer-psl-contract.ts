@@ -41,6 +41,7 @@ import type { SqlModelStorage } from '@prisma-next/sql-contract/types';
 import { computeIndexContentHash, parseWireName } from '@prisma-next/sql-schema-ir/naming';
 import type { SqlColumnIR, SqlForeignKeyIR, SqlIndexIR } from '@prisma-next/sql-schema-ir/types';
 import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+import { assertDefined } from '@prisma-next/utils/assertions';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { postgresError } from '../errors';
@@ -421,13 +422,16 @@ export function inferPostgresPslContract(
   if (enumDefinitions.size > 0 || policiesByTable.size > 0) {
     const contentNamespaces = new Set([...enumNamespaceNames, ...tableNamespaceNames]);
     if (contentNamespaces.size > 1) {
+      // Hard failure is the stated choice for BOTH triggers (enums and RLS
+      // policies): namespaced content requires the namespace wrap, and a
+      // partial emit (policies silently dropped) would under-describe the
+      // database — the property this inference exists to guarantee.
       throw postgresError(
         'CONTRACT.INFER_UNSUPPORTED',
-        'contract infer: native enum adoption with content across multiple schemas is not yet ' +
-          'supported (single-namespace PSL inference emits one `namespace { … }` block; ' +
-          `multi-namespace output is a later slice). Schemas: ${[...contentNamespaces]
-            .sort()
-            .join(', ')}.`,
+        'contract infer: adopting native enums or RLS policies with content across multiple ' +
+          'schemas is not yet supported (single-namespace PSL inference emits one ' +
+          '`namespace { … }` block; multi-namespace output is a later slice). Schemas: ' +
+          `${[...contentNamespaces].sort().join(', ')}.`,
         { meta: { schemas: [...contentNamespaces].sort() } },
       );
     }
@@ -534,7 +538,11 @@ export function buildPslDocumentAst(
   ]);
   const { relationsByTable } = inferRelations(schemaIR.tables, modelNameMap);
 
-  const policyEmission = buildPolicyBlocks(rlsExtras?.policiesByTable ?? new Map(), modelNameMap);
+  const policyEmission = buildPolicyBlocks(
+    rlsExtras?.policiesByTable ?? new Map(),
+    modelNameMap,
+    new Set([...modelNameMap.values(), ...bareEnumNameMap.values()]),
+  );
 
   const models: PslModel[] = [];
   for (const table of Object.values(schemaIR.tables)) {
@@ -1035,7 +1043,11 @@ function buildModelConstraintAttribute(
  * requires): a default-method index carrying reloptions (type normalized
  * away by introspection) emits an explicit `type: "btree"` — the expected
  * node's constructor normalizes btree back to undefined, so verify compares
- * clean.
+ * clean. Provably safe on BOTH naming branches: `lowerAuthoredIndex`
+ * rejects options without a type, so an untyped-options managed hash (which
+ * the added `type: "btree"` would move) is unconstructable — a managed index
+ * with options always hashed an explicit type, and the exact branch never
+ * re-hashes.
  */
 function buildIndexAttribute(
   index: SqlIndexIR,
@@ -1045,7 +1057,11 @@ function buildIndexAttribute(
   if (fieldNames !== undefined) {
     args.push(positionalArg(`[${fieldNames.join(', ')}]`));
   } else {
-    args.push(namedArg('expression', `"${escapePslString(index.expression ?? '')}"`));
+    assertDefined(
+      index.expression,
+      `buildIndexAttribute: index "${index.name}" carries neither columns nor expression; SqlIndexIR enforces exactly one`,
+    );
+    args.push(namedArg('expression', `"${escapePslString(index.expression)}"`));
   }
 
   const parsed = parseWireName(index.name);
@@ -1123,6 +1139,7 @@ interface PolicyBlockEmission {
 function buildPolicyBlocks(
   policiesByTable: ReadonlyMap<string, readonly PostgresPolicySchemaNode[]>,
   modelNameMap: ReadonlyMap<string, string>,
+  reservedHeads: ReadonlySet<string> = new Set(),
 ): PolicyBlockEmission {
   const all: { readonly policy: PostgresPolicySchemaNode; readonly tableName: string }[] = [];
   for (const [tableName, policies] of policiesByTable) {
@@ -1130,14 +1147,33 @@ function buildPolicyBlocks(
       all.push({ policy, tableName });
     }
   }
-  all.sort((a, b) => (a.policy.name < b.policy.name ? -1 : a.policy.name > b.policy.name ? 1 : 0));
+  // Total order: policy names are unique per TABLE, not per schema, so the
+  // physical name alone cannot order two tables' identically-named policies.
+  all.sort((a, b) => {
+    if (a.policy.name !== b.policy.name) return a.policy.name < b.policy.name ? -1 : 1;
+    if (a.tableName !== b.tableName) return a.tableName < b.tableName ? -1 : 1;
+    return a.policy.operation < b.policy.operation
+      ? -1
+      : a.policy.operation > b.policy.operation
+        ? 1
+        : 0;
+  });
 
-  const usedHeads = new Set<string>();
+  // Seeded with every block name already destined for the namespace (models,
+  // native_enum blocks): a policy head colliding with any of them would emit
+  // two same-named blocks, so it takes the numeric suffix instead.
+  const usedHeads = new Set<string>(reservedHeads);
   const blocks: PslExtensionBlock[] = [];
   const skipNotesByTable = new Map<string, string[]>();
   for (const { policy, tableName } of all) {
     const modelName = modelNameMap.get(tableName);
-    if (modelName === undefined) continue;
+    // Policies and models come from one introspection walk of one schema, so
+    // a policy's table always has an emitted model — a miss is a walk bug,
+    // never live data, and must not silently under-describe the database.
+    assertDefined(
+      modelName,
+      `buildPolicyBlocks: policy "${policy.name}" targets table "${tableName}" with no emitted model; tables and policies come from the same introspection walk`,
+    );
 
     const badRole = policy.roles.find((role) => !PSL_IDENTIFIER.test(role));
     if (badRole !== undefined) {
