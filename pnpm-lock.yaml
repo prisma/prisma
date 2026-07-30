@@ -131,8 +131,8 @@ importers:
         specifier: ^25.1.2
         version: 25.1.2
       '@codingame/monaco-vscode-editor-service-override':
-        specifier: ^25.1.2
-        version: 25.1.2
+        specifier: ^34.1.3
+        version: 34.1.3
       '@codingame/monaco-vscode-files-service-override':
         specifier: ^25.1.2
         version: 25.1.2
@@ -5531,6 +5531,9 @@ packages:
 
   '@codingame/monaco-vscode-editor-service-override@25.1.2':
     resolution: {integrity: sha512-EadvDCyWdgxOPmaIvbcVVDNjTUYuKdjYWwKbPbbcTs9t4z1/DjdE7mV3ZdT6aGh5m6zkEEUOi143l27Y5eRt+Q==}
+
+  '@codingame/monaco-vscode-editor-service-override@34.1.3':
+    resolution: {integrity: sha512-/U7nZlmSPlCyYHbb+0ju1Ckpv2jNppQj0K+Ru6kVQoOjE9l0FtuOGfnYYmhwmla7P1hpBwSyTvbKWpuu6/XV3Q==}
 
   '@codingame/monaco-vscode-environment-service-override@25.1.2':
     resolution: {integrity: sha512-8GoD3lk0CN0dIMZOrZNS/i8RCaF1YSQ6nmrf+rqneOSHG9S382EnsZZD69d4+i7JnoeyttO7Kr9KH8WOhRV6OA==}
@@ -11146,6 +11149,10 @@ snapshots:
   '@codingame/monaco-vscode-editor-service-override@25.1.2':
     dependencies:
       '@codingame/monaco-vscode-api': 25.1.2
+
+  '@codingame/monaco-vscode-editor-service-override@34.1.3':
+    dependencies:
+      '@codingame/monaco-vscode-api': 34.1.3
 
   '@codingame/monaco-vscode-environment-service-override@25.1.2':
     dependencies:
