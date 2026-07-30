@@ -12,7 +12,16 @@ import { assembleAuthoringContributions } from '@prisma-next/framework-component
 import { buildSymbolTable } from '@prisma-next/psl-parser';
 import { parse } from '@prisma-next/psl-parser/syntax';
 import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi,
+} from 'vitest';
 import {
   postgresAuthoringEntityTypes,
   postgresAuthoringModelAttributes,
@@ -92,9 +101,18 @@ function publicNamespace(result: ReturnType<typeof interpret>): PostgresSchema {
 }
 
 describe('@@map lowers an exact-named policy', () => {
-  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  // Created in beforeAll (not at collection time): the three suites in this
+  // file each spy the same global, and stacked collection-time spies would
+  // make one suite's restore discard the next suite's instrumentation.
+  let emitWarning: MockInstance<typeof process.emitWarning>;
+  beforeAll(() => {
+    emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  });
   afterEach(() => {
     emitWarning.mockClear();
+  });
+  afterAll(() => {
+    emitWarning.mockRestore();
   });
 
   it('name is the map value verbatim, prefix absent, no hash, keyed by the head', () => {
@@ -321,9 +339,18 @@ policy_select p_read {
 });
 
 describe('permissive is an authorable block property', () => {
-  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  // Created in beforeAll (not at collection time): the three suites in this
+  // file each spy the same global, and stacked collection-time spies would
+  // make one suite's restore discard the next suite's instrumentation.
+  let emitWarning: MockInstance<typeof process.emitWarning>;
+  beforeAll(() => {
+    emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  });
   afterEach(() => {
     emitWarning.mockClear();
+  });
+  afterAll(() => {
+    emitWarning.mockRestore();
   });
 
   it('permissive = false lowers a RESTRICTIVE policy', () => {
@@ -413,9 +440,18 @@ describe('permissive is an authorable block property', () => {
 });
 
 describe('exact-name body-comparison warning for @@map policies — shared per-build batch with indexes', () => {
-  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  // Created in beforeAll (not at collection time): the three suites in this
+  // file each spy the same global, and stacked collection-time spies would
+  // make one suite's restore discard the next suite's instrumentation.
+  let emitWarning: MockInstance<typeof process.emitWarning>;
+  beforeAll(() => {
+    emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+  });
   afterEach(() => {
     emitWarning.mockClear();
+  });
+  afterAll(() => {
+    emitWarning.mockRestore();
   });
 
   function exactNameWarningCalls() {
