@@ -1373,6 +1373,9 @@ importers:
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../tsconfig
+      es-module-lexer:
+        specifier: ^2.3.1
+        version: 2.3.1
       tsdown:
         specifier: 'catalog:'
         version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
@@ -4692,6 +4695,67 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.0.16(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+
+  packages/9-public/@prisma/orm-framework:
+    dependencies:
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.3
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+      uniku:
+        specifier: ^0.3.0
+        version: 0.3.2
+    devDependencies:
+      '@prisma-next/config':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/1-core/config
+      '@prisma-next/contract':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/0-foundation/contract
+      '@prisma-next/contract-authoring':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/2-authoring/contract
+      '@prisma-next/errors':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/1-core/errors
+      '@prisma-next/framework-components':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/1-core/framework-components
+      '@prisma-next/ids':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/2-authoring/ids
+      '@prisma-next/operations':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/1-core/operations
+      '@prisma-next/psl-parser':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/2-authoring/psl-parser
+      '@prisma-next/psl-printer':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/2-authoring/psl-printer
+      '@prisma-next/ts-render':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/1-core/ts-render
+      '@prisma-next/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@prisma-next/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
+      '@prisma-next/utils':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/0-foundation/utils
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
 
   test/e2e/framework:
     dependencies:
@@ -15482,7 +15546,7 @@ snapshots:
       empathic: 2.0.1
       hookable: 6.1.1
       import-without-cache: 0.4.0
-      obug: 2.1.3
+      obug: 2.1.4
       picomatch: 4.0.5
       rolldown: 1.1.5
       rolldown-plugin-dts: 0.27.12(rolldown@1.1.5)(typescript@5.9.3)

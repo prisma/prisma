@@ -8,6 +8,7 @@
   "license": "MIT",
   "devDependencies": {
     "@prisma-next/tsconfig": "workspace:0.16.0",
+    "es-module-lexer": "^2.3.1",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },
@@ -18,6 +19,8 @@
     "typecheck": "tsc --noEmit"
   },
   "exports": {
-    ".": "./base.ts"
+    ".": "./base.ts",
+    "./shell-build": "./shell-build.ts",
+    "./shells": "./shells.ts"
   }
 }
