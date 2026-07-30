@@ -61,6 +61,7 @@
     }
   },
   "exports": {
+    "./bin/prisma-next": "./dist/bin__prisma-next.mjs",
     "./cli": "./dist/cli.mjs",
     "./cli/commands/contract-emit": "./dist/cli__commands__contract-emit.mjs",
     "./cli/commands/contract-infer": "./dist/cli__commands__contract-infer.mjs",

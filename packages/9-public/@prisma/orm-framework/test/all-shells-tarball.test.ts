@@ -18,6 +18,13 @@ const uncoveredElsewhere = [
   '@prisma/orm-family-mongo',
   '@prisma/orm-target-mongo',
   '@prisma/orm-target-sqlite',
+  '@prisma/orm-sqlite',
+  '@prisma/orm-mongo',
+  '@prisma/orm-extension-postgis',
+  '@prisma/orm-extension-paradedb',
+  '@prisma/orm-extension-supabase',
+  '@prisma/orm-extension-arktype-json',
+  '@prisma/orm-extension-middleware-cache',
 ];
 const adrExampleNames = [
   '@prisma/orm-framework/contract',
@@ -30,6 +37,11 @@ const adrExampleNames = [
   '@prisma/orm-target-postgres/adapter',
   '@prisma/orm-target-postgres/driver',
   '@prisma/orm-toolchain/cli',
+  '@prisma/orm-postgres/runtime',
+  '@prisma/orm-postgres/contract',
+  '@prisma/orm-postgres/components',
+  '@prisma/orm-sqlite/runtime',
+  '@prisma/orm-mongo/runtime',
 ];
 
 describe('all publish shells packed and installed together', () => {

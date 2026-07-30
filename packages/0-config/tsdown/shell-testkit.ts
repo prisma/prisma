@@ -26,18 +26,26 @@ export function packShell(shellDir: string, outDir: string): PackedShell {
 /**
  * Install packed shells into a scratch project outside the workspace.
  *
- * Every shell is both a direct `file:` dependency and a pnpm override, so
- * cross-shell dependencies (exact lockstep versions that are not on the npm
- * registry yet) resolve to the local tarballs.
+ * Every shell is a pnpm override, so cross-shell dependencies (exact
+ * lockstep versions that are not on the npm registry yet) resolve to the
+ * local tarballs. `direct` narrows which of them the scratch project
+ * *declares*, so a test can install one package the way an application
+ * would and let the rest arrive transitively; by default all of them are
+ * direct dependencies.
  */
-export function installShells(scratchDir: string, shells: readonly PackedShell[]): void {
+export function installShells(
+  scratchDir: string,
+  shells: readonly PackedShell[],
+  options: { readonly direct?: readonly string[] } = {},
+): void {
   mkdirSync(scratchDir, { recursive: true });
   const fileDeps = Object.fromEntries(shells.map((s) => [s.name, `file:${s.tarball}`]));
+  const direct = options.direct ?? shells.map((s) => s.name);
   const manifest = {
     name: 'shell-tarball-smoke',
     private: true,
     type: 'module',
-    dependencies: fileDeps,
+    dependencies: Object.fromEntries(direct.map((name) => [name, fileDeps[name]])),
     pnpm: { overrides: fileDeps },
   };
   writeFileSync(join(scratchDir, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`);
@@ -66,7 +74,11 @@ export function runInScratch(scratchDir: string, scriptSource: string): string {
   }
 }
 
-/** All import subpaths (exports-map keys minus `./package.json`) of an installed package. */
+/**
+ * All import subpaths of an installed package: the exports-map keys minus
+ * `./package.json` and minus `./bin/*`, which exist so a facade can forward
+ * a command and run the program when imported.
+ */
 export function importSubpaths(installedPackageDir: string): string[] {
   const manifest: unknown = JSON.parse(
     readFileSync(join(installedPackageDir, 'package.json'), 'utf8'),
@@ -74,7 +86,9 @@ export function importSubpaths(installedPackageDir: string): string[] {
   if (typeof manifest !== 'object' || manifest === null || !('exports' in manifest)) {
     throw new ShellTestError(`${installedPackageDir}/package.json has no exports`);
   }
-  return Object.keys(Object(manifest.exports)).filter((key) => key !== './package.json');
+  return Object.keys(Object(manifest.exports)).filter(
+    (key) => key !== './package.json' && !key.startsWith('./bin/'),
+  );
 }
 
 /**
@@ -104,6 +118,27 @@ export async function findInternalSpecifiers(installedPackageDir: string): Promi
     }
   }
   return offenders;
+}
+
+/**
+ * Workspace source paths bundled into an installed package, read from its
+ * sourcemaps, excluding the shell's own generated entry stubs. A shell must
+ * only ever bundle the internal packages mapped to it — anything else is a
+ * second copy of a module that another published package already owns.
+ */
+export function bundledSources(installedPackageDir: string): string[] {
+  const sources = new Set<string>();
+  for (const file of walk(join(installedPackageDir, 'dist'))) {
+    if (!file.endsWith('.mjs.map')) continue;
+    const map: unknown = JSON.parse(readFileSync(file, 'utf8'));
+    if (typeof map !== 'object' || map === null || !('sources' in map)) continue;
+    for (const source of Object(map).sources as unknown[]) {
+      if (typeof source !== 'string') continue;
+      const path = source.replace(/^(?:\.\.\/)+/, '');
+      if (!path.startsWith('src-gen/')) sources.add(path);
+    }
+  }
+  return [...sources].sort();
 }
 
 function walk(dir: string): string[] {

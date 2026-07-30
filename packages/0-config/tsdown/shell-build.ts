@@ -3,7 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
 import type { UserConfig } from 'tsdown';
 import { defineConfig } from './base.ts';
-import { excludedSubpaths, publicShells, type ShellName } from './shells.ts';
+import { excludedSubpaths, publicShells, type ShellDefinition, type ShellName } from './shells.ts';
 
 /** A shell build configuration or mapping-table inconsistency. */
 class ShellConfigError extends Error {}
@@ -84,7 +84,7 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
         );
       }
       if (subpath === '.') hasRootExport = true;
-      const entryName = subpath === '.' ? pkg.entry : `${pkg.entry}/${subpath.slice(2)}`;
+      const entryName = shellEntryName(pkg.entry, subpath);
       const specifier = subpath === '.' ? pkg.name : `${pkg.name}/${subpath.slice(2)}`;
       const entryFile = addEntry(entryName, `${entryName}.ts`);
       writeFileSync(entryFile, entryModuleSource(specifier, join(pkg.absDir, distFile)));
@@ -93,8 +93,10 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     // The ADR names each internal package as a whole (`@prisma/orm-framework/contract`,
     // `@prisma/orm-target-postgres/adapter`, ...). When the internal package
     // has no root export, synthesize that aggregate from its subpath exports;
-    // when it has one, the root export already owns the name.
-    if (!hasRootExport && aggregated.length > 0) {
+    // when it has one, the root export already owns the name. A package
+    // occupying the shell's own namespace is the shell, so there is no
+    // package-level name to synthesize.
+    if (pkg.entry !== '' && !hasRootExport && aggregated.length > 0) {
       const expected = new Map<string, string[]>();
       for (const { specifier, distFile } of aggregated) {
         for (const name of moduleExports(specifier, distFile)) {
@@ -111,6 +113,47 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     }
   }
 
+  // Forwarded surfaces: the generated modules import the sibling package by
+  // its internal name, which the rewrite plugin turns into that sibling's
+  // published entrypoint and marks external. Nothing is copied, so the
+  // forwarded modules stay single-instance across the whole install.
+  for (const mapping of shell.reexports ?? []) {
+    const source = lookup.get(mapping.package);
+    if (source === undefined) {
+      throw new ShellConfigError(
+        `${shellName} re-exports ${mapping.package}, which has no public shell mapping`,
+      );
+    }
+    if (source.shell === shellName) {
+      throw new ShellConfigError(
+        `${shellName} re-exports ${mapping.package}, which it already publishes directly`,
+      );
+    }
+    const hasSourceRootExport = Object.hasOwn(source.exports, '.');
+    if (mapping.root !== false && !hasSourceRootExport) {
+      // No root export upstream: forward the sibling shell's synthesized
+      // package-level aggregate, which carries no default export.
+      const entryFile = addEntry(mapping.entry, `${mapping.entry}.ts`);
+      writeFileSync(entryFile, `export * from '${mapping.package}';\n`);
+    }
+    for (const [subpath, value] of Object.entries(source.exports)) {
+      if (subpath === './package.json') continue;
+      if (subpath === '.' && mapping.root === false) continue;
+      if (excludedSubpaths.some((pattern) => pattern.test(subpath))) continue;
+      const distFile = resolveExportTarget(value);
+      if (distFile === undefined) {
+        throw new ShellConfigError(
+          `unsupported exports value for ${source.name} ${subpath}: ${JSON.stringify(value)}`,
+        );
+      }
+      const entryName = shellEntryName(mapping.entry, subpath);
+      const specifier =
+        subpath === '.' ? mapping.package : `${mapping.package}/${subpath.slice(2)}`;
+      const entryFile = addEntry(entryName, `${entryName}.ts`);
+      writeFileSync(entryFile, entryModuleSource(specifier, join(source.absDir, distFile)));
+    }
+  }
+
   const binFiles = new Set<string>();
   for (const [binName, binFile] of Object.entries(shell.bins ?? {})) {
     const binPath = resolve(repoRoot, binFile);
@@ -118,8 +161,13 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     const entryFile = addEntry(`bin/${binName}`, `bin/${binName}.mjs`);
     writeFileSync(entryFile, `import '${binPath}';\n`);
   }
+  for (const [binName, specifier] of Object.entries(shell.forwardedBins ?? {})) {
+    const entryFile = addEntry(`bin/${binName}`, `bin/${binName}.mjs`);
+    writeFileSync(entryFile, `import '${specifier}';\n`);
+  }
+  const binNames = [...Object.keys(shell.bins ?? {}), ...Object.keys(shell.forwardedBins ?? {})];
 
-  validateShellManifest(shellName, shellDir, internals, lookup);
+  validateShellManifest(shellName, shell, shellDir, internals, lookup);
 
   return defineConfig({
     entry,
@@ -131,12 +179,9 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
       enabled: 'local-only',
       customExports: shellExports,
       bin:
-        Object.keys(shell.bins ?? {}).length > 0
+        binNames.length > 0
           ? Object.fromEntries(
-              Object.keys(shell.bins ?? {}).map((binName) => [
-                binName,
-                `./src-gen/bin__${binName}.mjs`,
-              ]),
+              binNames.map((binName) => [binName, `./src-gen/bin__${binName}.mjs`]),
             )
           : false,
     },
@@ -153,14 +198,26 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
 }
 
 /**
+ * Entry name for one export subpath of an internal package. A package
+ * mapped to the empty entry occupies the shell's own namespace, so its
+ * root export becomes the shell's root export (`index`, which tsdown
+ * renders as `"."`).
+ */
+function shellEntryName(entry: string, subpath: string): string {
+  const tail = subpath === '.' ? '' : subpath.slice(2);
+  if (entry === '') return tail === '' ? 'index' : tail;
+  return tail === '' ? entry : `${entry}/${tail}`;
+}
+
+/**
  * Expand the flat `__`-separated output names back into `/`-separated public
- * subpaths, and drop bin entries (installed via the `bin` field, never
- * importable).
+ * subpaths. Bin entries keep an entrypoint (`./bin/<name>`) alongside the
+ * `bin` field so a facade can forward the command without shipping a second
+ * copy of the program.
  */
 function shellExports(exports: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(exports)) {
-    if (key.includes('bin__')) continue;
     out[key.replaceAll('__', '/')] = value;
   }
   return out;
@@ -242,11 +299,8 @@ function publicSpecifier(
     );
   }
   const subpath = rest.join('/');
-  const id =
-    subpath === ''
-      ? `${target.shell}/${target.entry}`
-      : `${target.shell}/${target.entry}/${subpath}`;
-  return { shell: target.shell, id };
+  const tail = target.entry === '' ? subpath : [target.entry, subpath].filter(Boolean).join('/');
+  return { shell: target.shell, id: tail === '' ? target.shell : `${target.shell}/${tail}` };
 }
 
 function crossShellRewritePlugin(shellName: ShellName, lookup: Map<string, InternalPackage>) {
@@ -322,6 +376,7 @@ function readAllInternalPackages(repoRoot: string): Map<string, InternalPackage>
  */
 function validateShellManifest(
   shellName: ShellName,
+  shell: ShellDefinition,
   shellDir: string,
   internals: readonly InternalPackage[],
   lookup: Map<string, InternalPackage>,
@@ -331,16 +386,20 @@ function validateShellManifest(
 
   const expectedDeps = new Map<string, string>();
   const expectedPeers = new Map<string, string>();
+  const siblingShell = (pkg: InternalPackage, dep: string): ShellName => {
+    const target = lookup.get(dep);
+    if (target === undefined) {
+      throw new ShellConfigError(
+        `${pkg.name} depends on ${dep}, which has no public shell mapping`,
+      );
+    }
+    return target.shell;
+  };
   for (const pkg of internals) {
     for (const [dep, range] of Object.entries(pkg.dependencies)) {
       if (dep.startsWith('@prisma-next/')) {
-        const target = lookup.get(dep);
-        if (target === undefined) {
-          throw new ShellConfigError(
-            `${pkg.name} depends on ${dep}, which has no public shell mapping`,
-          );
-        }
-        if (target.shell !== shellName) expectedDeps.set(target.shell, `workspace:${version}`);
+        const target = siblingShell(pkg, dep);
+        if (target !== shellName) expectedDeps.set(target, `workspace:${version}`);
         continue;
       }
       const existing = expectedDeps.get(dep);
@@ -348,9 +407,28 @@ function validateShellManifest(
     }
     for (const [dep, range] of Object.entries(pkg.peerDependencies)) {
       if (dep === 'typescript') continue;
+      // An extension's peer on an internal adapter package becomes a peer on
+      // the published target shell that carries it (ADR 242).
+      if (dep.startsWith('@prisma-next/')) {
+        const target = siblingShell(pkg, dep);
+        if (target !== shellName) expectedPeers.set(target, `workspace:${version}`);
+        continue;
+      }
       if (!expectedPeers.has(dep)) expectedPeers.set(dep, range);
     }
   }
+  for (const mapping of shell.reexports ?? []) {
+    const source = lookup.get(mapping.package);
+    if (source !== undefined && source.shell !== shellName) {
+      expectedDeps.set(source.shell, `workspace:${version}`);
+    }
+  }
+  for (const specifier of Object.values(shell.forwardedBins ?? {})) {
+    const [scope, name] = specifier.split('/');
+    expectedDeps.set(`${scope}/${name}`, `workspace:${version}`);
+  }
+  // A sibling shell the bundle imports directly is a hard dependency; the
+  // peer declaration it also arrived through would only duplicate it.
   for (const dep of expectedDeps.keys()) expectedPeers.delete(dep);
 
   const errors: string[] = [];

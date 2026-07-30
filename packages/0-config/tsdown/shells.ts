@@ -12,8 +12,27 @@
 export interface ShellPackageMapping {
   /** Internal package directory, relative to the repository root. */
   readonly dir: string;
-  /** Entrypoint namespace inside the shell. */
+  /**
+   * Entrypoint namespace inside the shell. The empty string places the
+   * package directly at the shell's own namespace, so its `./x` export
+   * becomes `@prisma/<shell>/x` — the shape facades and extension packs
+   * use, where the shell publishes a single internal package under its
+   * own name.
+   */
   readonly entry: string;
+}
+
+export interface ShellReexportMapping {
+  /** Internal package name whose surface is forwarded, e.g. `@prisma-next/contract`. */
+  readonly package: string;
+  /** Entrypoint namespace inside this shell that forwards to it. */
+  readonly entry: string;
+  /**
+   * Whether `<entry>` itself forwards the package as a whole. Set false when
+   * the shell's own code already owns that name and only the subpaths
+   * `<entry>/x` should forward. Defaults to true.
+   */
+  readonly root?: boolean;
 }
 
 export interface ShellDefinition {
@@ -21,11 +40,33 @@ export interface ShellDefinition {
   readonly dir: string;
   readonly packages: readonly ShellPackageMapping[];
   /**
+   * Surfaces of *other* shells republished under this shell's own
+   * entrypoints. Nothing is copied: each generated entry re-exports the
+   * sibling shell's published entrypoint, which the shell declares as an
+   * exact-pinned dependency. Facades carry the contract surfaces this way
+   * so that code generated for an application that installs only the
+   * facade imports nothing but a direct dependency (ADR 242).
+   */
+  readonly reexports?: readonly ShellReexportMapping[];
+  /**
    * Bin scripts carried by the shell: bin name to a dist file of one of the
    * internal packages (relative to the repository root). The file is bundled
-   * as a side-effect entry named `bin/<binName>` (excluded from exports).
+   * as a side-effect entry named `bin/<binName>`, and published both as the
+   * `bin` field and as the `./bin/<binName>` entrypoint so another shell can
+   * forward it.
    */
   readonly bins?: Readonly<Record<string, string>>;
+  /**
+   * Bin scripts this shell re-exposes from another shell: bin name to that
+   * shell's `./bin/<binName>` entrypoint. The generated launcher imports the
+   * sibling for its side effects, so the command runs the one published copy
+   * of the program rather than a second one.
+   *
+   * Facades carry the CLI this way because an application installs only the
+   * facade, and package managers put a package manager's own direct
+   * dependencies on `PATH` — a transitively installed bin is not runnable.
+   */
+  readonly forwardedBins?: Readonly<Record<string, string>>;
   /**
    * Extra dist files to copy into the shell's dist root (globs relative to
    * the repository root), e.g. templates an internal package reads next to
@@ -41,7 +82,42 @@ export type ShellName =
   | '@prisma/orm-family-mongo'
   | '@prisma/orm-target-postgres'
   | '@prisma/orm-target-sqlite'
-  | '@prisma/orm-target-mongo';
+  | '@prisma/orm-target-mongo'
+  | '@prisma/orm-postgres'
+  | '@prisma/orm-sqlite'
+  | '@prisma/orm-mongo'
+  | '@prisma/orm-extension-postgis'
+  | '@prisma/orm-extension-pgvector'
+  | '@prisma/orm-extension-paradedb'
+  | '@prisma/orm-extension-supabase'
+  | '@prisma/orm-extension-arktype-json'
+  | '@prisma/orm-extension-middleware-cache';
+
+/**
+ * Contract surfaces every facade republishes, so generated contract files
+ * import only a package the application depends on directly. `family` is
+ * the facade's own family contract package (`@prisma-next/sql-contract` or
+ * `@prisma-next/mongo-contract`); `target` and `adapter` carry the codec
+ * and operation types that emitted contracts reference.
+ *
+ * `target` forwards subpaths only: the facades already publish `./target`
+ * as their own target pack.
+ */
+/**
+ * The CLI command every facade puts on an application's `PATH`. It runs the
+ * toolchain's single published copy; the facade only carries the launcher.
+ */
+const FACADE_BINS = { 'prisma-next': '@prisma/orm-toolchain/bin/prisma-next' } as const;
+
+function facadeReexports(family: string, target: string, adapter: string): ShellReexportMapping[] {
+  return [
+    { package: '@prisma-next/contract', entry: 'contract' },
+    { package: '@prisma-next/framework-components', entry: 'components' },
+    { package: family, entry: 'family-contract' },
+    { package: target, entry: 'target', root: false },
+    { package: adapter, entry: 'adapter' },
+  ];
+}
 
 export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
   ShellName,
@@ -163,6 +239,87 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         { dir: 'packages/3-mongo-target/2-mongo-adapter', entry: 'adapter' },
         { dir: 'packages/3-mongo-target/3-mongo-driver', entry: 'driver' },
       ],
+    },
+  ],
+  [
+    '@prisma/orm-postgres',
+    {
+      dir: 'packages/9-public/@prisma/orm-postgres',
+      packages: [{ dir: 'packages/3-extensions/postgres', entry: '' }],
+      reexports: facadeReexports(
+        '@prisma-next/sql-contract',
+        '@prisma-next/target-postgres',
+        '@prisma-next/adapter-postgres',
+      ),
+      forwardedBins: FACADE_BINS,
+    },
+  ],
+  [
+    '@prisma/orm-sqlite',
+    {
+      dir: 'packages/9-public/@prisma/orm-sqlite',
+      packages: [{ dir: 'packages/3-extensions/sqlite', entry: '' }],
+      reexports: facadeReexports(
+        '@prisma-next/sql-contract',
+        '@prisma-next/target-sqlite',
+        '@prisma-next/adapter-sqlite',
+      ),
+      forwardedBins: FACADE_BINS,
+    },
+  ],
+  [
+    '@prisma/orm-mongo',
+    {
+      dir: 'packages/9-public/@prisma/orm-mongo',
+      packages: [{ dir: 'packages/3-extensions/mongo', entry: '' }],
+      reexports: facadeReexports(
+        '@prisma-next/mongo-contract',
+        '@prisma-next/target-mongo',
+        '@prisma-next/adapter-mongo',
+      ),
+      forwardedBins: FACADE_BINS,
+    },
+  ],
+  [
+    '@prisma/orm-extension-postgis',
+    {
+      dir: 'packages/9-public/@prisma/orm-extension-postgis',
+      packages: [{ dir: 'packages/3-extensions/postgis', entry: '' }],
+    },
+  ],
+  [
+    '@prisma/orm-extension-pgvector',
+    {
+      dir: 'packages/9-public/@prisma/orm-extension-pgvector',
+      packages: [{ dir: 'packages/3-extensions/pgvector', entry: '' }],
+    },
+  ],
+  [
+    '@prisma/orm-extension-paradedb',
+    {
+      dir: 'packages/9-public/@prisma/orm-extension-paradedb',
+      packages: [{ dir: 'packages/3-extensions/paradedb', entry: '' }],
+    },
+  ],
+  [
+    '@prisma/orm-extension-supabase',
+    {
+      dir: 'packages/9-public/@prisma/orm-extension-supabase',
+      packages: [{ dir: 'packages/3-extensions/supabase', entry: '' }],
+    },
+  ],
+  [
+    '@prisma/orm-extension-arktype-json',
+    {
+      dir: 'packages/9-public/@prisma/orm-extension-arktype-json',
+      packages: [{ dir: 'packages/3-extensions/arktype-json', entry: '' }],
+    },
+  ],
+  [
+    '@prisma/orm-extension-middleware-cache',
+    {
+      dir: 'packages/9-public/@prisma/orm-extension-middleware-cache',
+      packages: [{ dir: 'packages/3-extensions/middleware-cache', entry: '' }],
     },
   ],
 ]);
