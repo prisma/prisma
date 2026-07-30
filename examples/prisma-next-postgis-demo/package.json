@@ -38,10 +38,10 @@
     "arktype": "^2.2.2",
     "dotenv": "^17.4.2",
     "leaflet": "^1.9.4",
-    "next": "^16.2.10",
+    "next": "^16.2.11",
     "pg": "catalog:",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
