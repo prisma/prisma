@@ -11,6 +11,7 @@ import {
   isPlainRecord,
   type Namespace,
 } from '@prisma-next/framework-components/ir';
+import { computeIndexContentHash } from '@prisma-next/sql-schema-ir/naming';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { type Type, type } from 'arktype';
@@ -32,6 +33,7 @@ export {
 } from './ir/storage-entry-schemas';
 
 import type {
+  Index,
   SqlModelStorage,
   SqlStorage,
   StorageColumn,
@@ -263,6 +265,46 @@ function findDuplicateValue(values: readonly string[]): string | undefined {
     seen.add(value);
   }
   return undefined;
+}
+
+/** A column may appear at most once in one index's element tuple. */
+function rejectRepeatedIndexColumns(
+  indexes: readonly Index[],
+  coordinate: string,
+  errors: string[],
+): void {
+  for (const index of indexes) {
+    const duplicateColumn = findDuplicateValue(index.columns ?? []);
+    if (duplicateColumn !== undefined) {
+      errors.push(`${coordinate}: index contains duplicate column "${duplicateColumn}"`);
+    }
+  }
+}
+
+/**
+ * Two wire-named indexes with the same content are one index written twice —
+ * the content hash is their identity, so neither spelling can survive. An
+ * exact-named index is identified by its name instead, so content twins under
+ * two names are legal and a repeated name is rejected by the named-object
+ * check.
+ */
+function rejectDuplicateWireNamedIndexContent(
+  indexes: readonly Index[],
+  coordinate: string,
+  errors: string[],
+): void {
+  const seenContent = new Set<string>();
+  for (const index of indexes) {
+    if (index.prefix === undefined) continue;
+    const content = computeIndexContentHash(index);
+    if (seenContent.has(content)) {
+      errors.push(
+        `${coordinate}: duplicate index definition on columns [${(index.columns ?? []).join(', ')}]`,
+      );
+      continue;
+    }
+    seenContent.add(content);
+  }
 }
 
 function isContractFieldType(value: unknown): boolean {
@@ -565,46 +607,9 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
       seenUniqueDefinitions.add(signature);
     }
 
-    const sortOptions = (o: Record<string, unknown> | undefined): Record<string, unknown> | null =>
-      o ? Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b))) : null;
-
-    const seenIndexDefinitions = new Set<string>();
-    for (const index of table.indexes) {
-      const duplicateColumn = findDuplicateValue(index.columns ?? []);
-      if (duplicateColumn !== undefined) {
-        errors.push(
-          `Namespace "${namespaceId}" table "${tableName}": index contains duplicate column "${duplicateColumn}"`,
-        );
-      }
-
-      // Exact-mode entries (no prefix) are identified by NAME: two
-      // content-identical indexes under different physical names are legal
-      // twins a signed database may carry, so they are exempt from the
-      // content-signature check ONLY — every other index check applies.
-      // Name collisions are already rejected by the named-object check
-      // above. Managed entries keep the content key — two managed twins
-      // would share the content hash and therefore collide on the wire name
-      // anyway, so the content key is equivalent to a name key there, and it
-      // additionally rejects same-content different-prefix pairs (which
-      // could never both converge).
-      if (index.prefix !== undefined) {
-        const signature = JSON.stringify({
-          columns: index.columns ?? null,
-          expression: index.expression ?? null,
-          where: index.where ?? null,
-          unique: index.unique,
-          type: index.type ?? null,
-          options: sortOptions(index.options),
-        });
-        if (seenIndexDefinitions.has(signature)) {
-          errors.push(
-            `Namespace "${namespaceId}" table "${tableName}": duplicate index definition on columns [${(index.columns ?? []).join(', ')}]`,
-          );
-          continue;
-        }
-        seenIndexDefinitions.add(signature);
-      }
-    }
+    const tableCoordinate = `Namespace "${namespaceId}" table "${tableName}"`;
+    rejectRepeatedIndexColumns(table.indexes, tableCoordinate, errors);
+    rejectDuplicateWireNamedIndexContent(table.indexes, tableCoordinate, errors);
 
     const seenForeignKeyDefinitions = new Set<string>();
     for (const fk of table.foreignKeys) {
