@@ -308,11 +308,13 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     label: 'document with strings needing escaping',
     value: { 'k"y': 'v\\a"l', nested: ['x\ny'] },
   },
-  // Every column can be NULL, and no `value` can express it: the codecs are
-  // strict, so `encodeJson` would reject null before a database was reached. A
-  // NULL case stores SQL NULL and requires the projection to carry absence
-  // through as absence — the dimension an assembled projection gets wrong by
-  // reporting an absent value as a present one.
+  // Every column can be NULL, and no `value` denotes it: NULL is a state of the
+  // column rather than something a codec can be handed. Most codecs reject
+  // `null`; the JSON codecs accept it, but there `value: null` means a JSON
+  // `null` document stored in the column, not an empty column. A NULL case
+  // stores SQL NULL and requires the projection to carry absence through as
+  // absence — the dimension an assembled projection gets wrong by reporting an
+  // absent value as a present one.
   {
     codecId: 'pg/bit@1',
     label: 'null',
