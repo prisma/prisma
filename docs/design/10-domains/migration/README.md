@@ -73,7 +73,7 @@ Dev iteration on a tweaked migration uses `db update --to <hash>`, which is off-
 
 There is **one** operation that walks the migration graph against a live database: `migrate --to <ref>`. It is the same verb in dev, staging, and production. **What changes between environments is the database URL**, not the verb name and not the verb's behavior.
 
-We explicitly **reject the dev/deploy verb split** that other systems (notably Prisma current) introduce. The safety properties Prisma current bundles into `migrate dev` (shadow-DB drift checks, sandbox replay, etc.) are a *separate, explicit verification step* in our model — you ask for them by name, you don't get them as a hidden side effect of a god-command.
+We explicitly **reject the dev/deploy verb split** that other systems (notably Prisma current) introduce. The safety properties Prisma current bundles into `migrate dev` (shadow-DB drift checks, sandbox replay, etc.) are answered by *separate, explicit verification verbs* in our model (`db verify`, `migration check`) — you ask for them by name, you don't get them as a hidden side effect of a god-command. And none of them needs a shadow database: diffing is fully offline against on-disk contract snapshots, and no shadow database will ever exist.
 
 ### Off-graph reconciliation is not migration
 
@@ -243,8 +243,7 @@ Grouped by sub-area so the relationships are visible. Some terms appear in more 
 - **Verifier** — compares contract (or aggregated spaces) against the live database; reports structured drift kinds.
 - **Adapter** — target-family-specific lowering of operations into a wire form.
 - **Driver** — target-specific transport (the connection-bound thing that actually talks to the database).
-- **Preflight (service)** — sandbox execution for validation. Local: shadow DB or EXPLAIN-only. Hosted: PPg (Prisma Postgres).
-- **PPg** / **Prisma Postgres** — contract-aware Postgres service that hosts preflight and a contract ledger.
+- **PPg** / **Prisma Postgres** — contract-aware Postgres service that hosts a contract ledger.
 - **Advisory lock** — per-DB lock that prevents concurrent applies (Postgres).
 - **CAS** — compare-and-swap, used as concurrency control for Mongo marker writes.
 
@@ -255,7 +254,6 @@ Grouped by sub-area so the relationships are visible. Some terms appear in more 
 - **Initialization** — `db init`. Bootstraps an empty database (greenfield) or applies initial migrations to an existing one. Lays down structure.
 - **Signing** — `db sign`. Verifies a live DB satisfies a contract, then writes the contract hash into the marker. The adoption path for an already-matching database. No structural changes.
 - **Reconciliation** — `db update`. Live-introspect, diff against a target contract, execute the difference. Off-graph; dev-only first-class workflow.
-- **Preflight** — sandbox execution of a migration to verify the migration behaves as promised. Distinct from `verify` (which is about the live DB), and distinct from `migrate` (which mutates the real DB).
 - **Squash** — collapsing a range of migrations into a single equivalent migration.
 - **Promotion** — moving a ref forward (typically: advancing `production` to match a freshly-merged change).
 
@@ -283,11 +281,12 @@ Grouped by intent.
 
 ### Verification
 
-Three verbs along two axes — *what's being verified* (live DB / migration artifact / migration behavior) and *whether the verb touches the database*. Each verb has a distinct name because each answers a structurally different question; reusing `verify` for all three would force users to read the qualifier every time.
+Two verbs along two axes — *what's being verified* (live DB / migration artifact) and *whether the verb touches the database*. Each verb has a distinct name because each answers a structurally different question; reusing `verify` for both would force users to read the qualifier every time.
 
 - **`db verify`** — *"does the live DB currently satisfy its contract?"* Compares marker + live schema against the contract; reports drift kinds. Live, read-only.
 - **`migration check [<m>]`** — *"are these migration artifacts internally consistent?"* With a migration argument: recomputes that migration's hashes, validates its `ops.json`/manifest match, confirms its on-disk shape is complete. With no argument: a holistic check over the whole graph — every migration self-consistent; every edge's `from` and `to` line up with neighbouring contracts; no orphan nodes; no dangling refs. Offline, read-only.
-- **`migration preflight <m>`** — *"would this migration actually do what it promises?"* Sandbox-executes a migration against a shadow DB (or PPg) and reports the outcome. The dev's behavioral verification tool when iterating on a tweaked migration. Live (against the sandbox), mutates only the shadow.
+
+There is deliberately no sandbox-execution verb. An earlier draft proposed `migration preflight <m>` — executing a migration against a shadow database to preview its behaviour — and it was rejected: diffing is fully offline against on-disk contract snapshots, and no shadow database will ever exist. The behavioural guarantee lives at apply time, where the runner enforces each operation's pre/post invariants and the destination hash.
 
 ### Reading — live (touches the DB)
 
@@ -312,7 +311,7 @@ These are the questions the CLI must let an agent or a developer ask, and the ve
 - *"What path will be taken to reach `<ref>`?"* → `migration status --to <ref>`
 - *"What does this branch promise that mainline doesn't?"* → `migration graph` + `ref list` (PR-review tooling can diff the ref pointers)
 - *"What's the graph shape?"* → `migration graph`
-- *"Is the graph well-formed?"* → `migration check` (no argument: graph-wide). *"Is this one migration well-formed?"* → `migration check <m>`. Recomputes hashes, checks manifest ↔ `ops.json` consistency, validates edges/refs. Read-only, offline. Distinct from `migration preflight` (sandbox-executes for behavioral verification) and `db verify` (checks the live DB against its contract).
+- *"Is the graph well-formed?"* → `migration check` (no argument: graph-wide). *"Is this one migration well-formed?"* → `migration check <m>`. Recomputes hashes, checks manifest ↔ `ops.json` consistency, validates edges/refs. Read-only, offline. Distinct from `db verify` (checks the live DB against its contract).
 
 ---
 
@@ -328,7 +327,6 @@ Used both for runner telemetry and for understanding which transitions a workflo
 - **InvariantSatisfied** — a data transform's postcondition passed and its `invariantId` was unioned into the marker's invariants set.
 - **RefMoved** — the contract a ref points at changed on disk.
 - **DriftDetected** — verifier or runtime found a mismatch.
-- **PreflightCompleted** — sandbox execution succeeded with diagnostics.
 
 ---
 
@@ -384,10 +382,10 @@ The choices below are the load-bearing ones — the ones that, if reversed, woul
 - **`db sign [<contract>]` (positional) or `db sign --contract <contract>` (explicit).** The argument names *the thing being signed* — neither `--to` (movement) nor `--at` (position) carries the right meaning. Defaults to the current `contract.json` when omitted.
 - **`ref set <name> <contract>`** is the direct-ref-write verb. `move` was rejected because refs are stored values, not entities that traverse the graph — the spatial-movement vocabulary is reserved for `migrate`.
 - **`head` ref dropped.** Refs are exclusively environment-named (`production`, `staging`, ...). The emitted `contract.json` already plays the role of "what the repo is working toward"; a `head` ref would have been redundant.
-- **Three verification verbs, three distinct names.** Calling them all `verify` would force users to read the qualifier every time; "what kind of verification?" is the wrong question to make the user resolve at the call site.
+- **Two verification verbs, two distinct names.** Calling them both `verify` would force users to read the qualifier every time; "what kind of verification?" is the wrong question to make the user resolve at the call site.
   - **`db verify`** — live DB satisfies its contract (marker + introspection vs. the contract). Live, read-only.
   - **`migration check [<m>]`** — artifact / graph integrity. With `<m>`: that migration's hashes recompute and its on-disk artifacts are complete. Without: graph-wide consistency (every migration self-consistent; every edge's `from` and `to` line up with neighbouring contracts; no orphan nodes; no dangling refs). Offline, read-only. Verb borrowed from `cargo check` and Atlas's "pre-migration checks" — naturally scopes from a single artifact to a holistic sweep.
-  - **`migration preflight <m>`** — behavioral verification via sandbox execution. No surveyed tool has a direct analog (Atlas's `--dev-url` is bundled into apply; Prisma current's shadow replay is implicit-only inside `migrate dev`; Liquibase's `update-sql` / `validate` are preview/structural; Sqitch's `verify` runs post-deploy). Preflight is the aviation borrowing — "checks you run right before doing the thing for real" — uncontested across migration vocab.
+- **`migration preflight` rejected.** An earlier draft included a third verification verb: sandbox execution of a migration against a shadow database. Rejected — diffing is fully offline against on-disk contract snapshots, and no shadow database will ever exist. Behavioural enforcement happens during the real apply (pre/post invariants, destination-hash check).
 - **`db init` and `prisma-next init` both kept.** The namespace disambiguates: `prisma-next init` is project scaffolding; `prisma-next db init` lays down DB structure. No rename needed.
 - **`contract emit` and `migration plan + compile` are asymmetric on purpose — the asymmetry is structural, not stylistic.** The two operations have fundamentally different shapes:
 

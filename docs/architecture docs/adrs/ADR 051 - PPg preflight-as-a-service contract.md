@@ -1,5 +1,7 @@
 # ADR 051 — PPg preflight-as-a-service contract
 
+**Status:** Superseded. The preflight concept this service contract was designed around is abandoned: diffing is fully offline against on-disk contract snapshots, no shadow database will ever exist, and there is no sandbox-execution verb. See [CI Integration § No shadow database](../subsystems/8.%20CI%20Integration.md#no-shadow-database). The content below is preserved as a historical record of the superseded design.
+
 ## Context
 
 Prisma Postgres (PPg) will offer a hosted preflight that validates schema changes and query Plans before they reach production. The service must be deterministic, secure, and yield the same outcomes as local preflight while never accessing user repositories or package managers. Custom migration operations must run in a tightly sandboxed environment with no network access
