@@ -15,12 +15,16 @@ const allRoots = [internalImportRoot, postgresFacade, platform];
 
 const spi = createMockSpi();
 
+// An extension pack, not a target: Domain 1 may not name a Domain 3 target
+// package even inside a string (`pnpm lint:deps`). Which package it is does
+// not matter here — the specifier-mapping cases live in the family emitters'
+// own tests; this file is about contract identity.
 const stack = {
   codecTypeImports: [
     {
-      package: '@prisma-next/target-postgres/codec-types',
+      package: '@prisma-next/extension-arktype-json/codec-types',
       named: 'CodecTypes',
-      alias: 'PgCodecTypes',
+      alias: 'PackCodecTypes',
     },
   ],
 };
@@ -98,8 +102,8 @@ describe('import roots and contract identity', () => {
     expect(withoutOption.contractDts).toBe(withInternalRoot.contractDts);
     expect(importedSpecifiers(withoutOption.contractDts).sort()).toEqual([
       '@prisma-next/contract/types',
+      '@prisma-next/extension-arktype-json/codec-types',
       '@prisma-next/sql-contract/types',
-      '@prisma-next/target-postgres/codec-types',
     ]);
   });
 });
