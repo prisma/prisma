@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { publicShells } from '@prisma-next/publish-surface/shells';
 import {
   bundledSources,
   findInternalImportSpecifiers,
@@ -11,7 +12,6 @@ import {
   packShell,
   runInScratch,
 } from '@prisma-next/tsdown/shell-testkit';
-import { publicShells } from '@prisma-next/tsdown/shells';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..');

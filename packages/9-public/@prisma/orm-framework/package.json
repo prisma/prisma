@@ -32,6 +32,7 @@
     "@prisma-next/psl-printer": "workspace:0.16.0",
     "@prisma-next/ts-render": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@prisma-next/publish-surface": "workspace:0.16.0",
     "@prisma-next/tsdown": "workspace:0.16.0",
     "@prisma-next/utils": "workspace:0.16.0",
     "tsdown": "catalog:",

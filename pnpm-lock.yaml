@@ -1370,6 +1370,9 @@ importers:
 
   packages/0-config/tsdown:
     devDependencies:
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../0-shared/publish-surface
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../tsconfig
@@ -1388,6 +1391,24 @@ importers:
       typescript:
         specifier: '>=5.9'
         version: 5.9.3
+
+  packages/0-shared/publish-surface:
+    devDependencies:
+      '@prisma-next/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../0-config/tsconfig
+      '@prisma-next/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.0.16(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
 
   packages/1-framework/0-foundation/contract:
     dependencies:
@@ -4716,6 +4737,9 @@ importers:
       '@prisma-next/extension-pgvector':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/pgvector
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
@@ -5009,6 +5033,9 @@ importers:
       '@prisma-next/psl-printer':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/2-authoring/psl-printer
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/ts-render':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/1-core/ts-render

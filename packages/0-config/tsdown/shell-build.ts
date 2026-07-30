@@ -1,9 +1,15 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { platformEntrypointOf } from '@prisma-next/publish-surface/import-roots';
+import {
+  excludedSubpaths,
+  publicShells,
+  type ShellDefinition,
+  type ShellName,
+} from '@prisma-next/publish-surface/shells';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
 import type { UserConfig } from 'tsdown';
 import { defineConfig } from './base.ts';
-import { excludedSubpaths, publicShells, type ShellDefinition, type ShellName } from './shells.ts';
 
 /** A shell build configuration or mapping-table inconsistency. */
 class ShellConfigError extends Error {}
@@ -185,7 +191,7 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
             )
           : false,
     },
-    plugins: [crossShellRewritePlugin(shellName, lookup), binSideEffectsPlugin(binFiles)],
+    plugins: [crossShellRewritePlugin(shellName), binSideEffectsPlugin(binFiles)],
     hooks: {
       'build:done': () => assertAggregatesComplete(shellName, shellDir, aggregates),
     },
@@ -286,29 +292,23 @@ function resolveExportTarget(value: unknown): string | undefined {
   return undefined;
 }
 
-function publicSpecifier(
-  source: string,
-  shellName: ShellName,
-  lookup: Map<string, InternalPackage>,
-): { shell: ShellName; id: string } {
-  const [scope, name, ...rest] = source.split('/');
-  const target = lookup.get(`${scope}/${name}`);
-  if (target === undefined) {
+function publicSpecifier(source: string, shellName: ShellName): { shell: ShellName; id: string } {
+  try {
+    return platformEntrypointOf(source);
+  } catch (cause) {
     throw new ShellConfigError(
       `import of ${source} in shell ${shellName} has no public shell mapping`,
+      { cause },
     );
   }
-  const subpath = rest.join('/');
-  const tail = target.entry === '' ? subpath : [target.entry, subpath].filter(Boolean).join('/');
-  return { shell: target.shell, id: tail === '' ? target.shell : `${target.shell}/${tail}` };
 }
 
-function crossShellRewritePlugin(shellName: ShellName, lookup: Map<string, InternalPackage>) {
+function crossShellRewritePlugin(shellName: ShellName) {
   return {
     name: 'prisma-public-shell-rewrite',
     resolveId(source: string) {
       if (!source.startsWith('@prisma-next/')) return null;
-      const target = publicSpecifier(source, shellName, lookup);
+      const target = publicSpecifier(source, shellName);
       if (target.shell === shellName) return null;
       return { id: target.id, external: true };
     },
@@ -324,7 +324,7 @@ function crossShellRewritePlugin(shellName: ShellName, lookup: Map<string, Inter
         output.code = output.code.replace(
           /import\((["'])(@prisma-next\/[^"')]+)\1\)/g,
           (_match, quote: string, source: string) =>
-            `import(${quote}${publicSpecifier(source, shellName, lookup).id}${quote})`,
+            `import(${quote}${publicSpecifier(source, shellName).id}${quote})`,
         );
       }
     },
@@ -353,6 +353,13 @@ function readAllInternalPackages(repoRoot: string): Map<string, InternalPackage>
       const absDir = resolve(repoRoot, mapping.dir);
       const manifest = readJson(join(absDir, 'package.json'));
       const name = stringField(manifest, 'name', mapping.dir);
+      // Specifier resolution runs inside published bundles and reads the
+      // declared name instead of the manifest, so the two must agree.
+      if (name !== mapping.name) {
+        throw new ShellConfigError(
+          `${mapping.dir} declares name ${mapping.name} in the shell map but ${name} in its manifest`,
+        );
+      }
       // One internal module, one published package (ADR 242). Mapping a
       // package into two shells would ship two copies of it, and a
       // last-wins `set` would hide that behind a build that still succeeds.
