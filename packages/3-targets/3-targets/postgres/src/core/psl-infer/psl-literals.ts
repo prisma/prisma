@@ -1,4 +1,4 @@
-import type { ColumnDefault } from '@prisma-next/contract/types';
+import { type ColumnDefault, isColumnDefault } from '@prisma-next/contract/types';
 import type { PslPrinterOptions } from '@prisma-next/family-sql/psl-infer';
 import type {
   PslAttribute,
@@ -103,8 +103,5 @@ export function parseColumnDefault(
   if (typeof value === 'string') {
     return rawDefaultParser ? rawDefaultParser(value, nativeType) : undefined;
   }
-  if (value !== null && typeof value === 'object' && 'kind' in (value as Record<string, unknown>)) {
-    return value as ColumnDefault;
-  }
-  return undefined;
+  return isColumnDefault(value) ? value : undefined;
 }

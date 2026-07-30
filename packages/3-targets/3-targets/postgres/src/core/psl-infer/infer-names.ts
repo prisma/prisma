@@ -1,6 +1,7 @@
 import { toFieldName } from '@prisma-next/family-sql/psl-infer';
 import type { PslModel } from '@prisma-next/framework-components/psl-ast';
 import type { SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+import { assertDefined } from '@prisma-next/utils/assertions';
 import { postgresError } from '../errors';
 
 export type ResolvedColumnFieldName = {
@@ -140,11 +141,17 @@ export function topologicalSort(
   }
 
   for (const [tableName, table] of Object.entries(tables)) {
-    const modelName = tableToModel.get(tableName) as string;
+    const modelName = tableToModel.get(tableName);
+    assertDefined(modelName, `topologicalSort: no model name recorded for table "${tableName}"`);
+    const modelDeps = deps.get(modelName);
+    assertDefined(
+      modelDeps,
+      `topologicalSort: no dependency set recorded for model "${modelName}"`,
+    );
     for (const fk of table.foreignKeys) {
       const refModelName = tableToModel.get(fk.referencedTable);
       if (refModelName && refModelName !== modelName) {
-        (deps.get(modelName) as Set<string>).add(refModelName);
+        modelDeps.add(refModelName);
       }
     }
   }
@@ -160,14 +167,18 @@ export function topologicalSort(
     if (visiting.has(name)) return;
     visiting.add(name);
 
-    const sortedDeps = [...(deps.get(name) as Set<string>)].sort();
+    const nameDeps = deps.get(name);
+    assertDefined(nameDeps, `topologicalSort: no dependency set recorded for model "${name}"`);
+    const sortedDeps = [...nameDeps].sort();
     for (const dep of sortedDeps) {
       visit(dep);
     }
 
     visiting.delete(name);
     visited.add(name);
-    result.push(modelByName.get(name) as PslModel);
+    const model = modelByName.get(name);
+    assertDefined(model, `topologicalSort: no model block recorded for "${name}"`);
+    result.push(model);
   }
 
   for (const name of sortedNames) {
