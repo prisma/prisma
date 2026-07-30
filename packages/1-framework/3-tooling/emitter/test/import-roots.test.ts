@@ -5,6 +5,7 @@ import {
   importedSpecifiers,
   internalImportRoot,
 } from '@prisma-next/publish-surface/import-roots';
+import { timeouts } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createMockSpi } from './mock-spi';
 import { createTestContract, emit } from './utils';
@@ -58,7 +59,9 @@ function emitFor(root: ImportRoot) {
   });
 }
 
-describe('import roots and contract identity', () => {
+// Every case here emits, and emitting runs prettier — whose first load
+// exceeds the package's 100ms default test timeout.
+describe('import roots and contract identity', { timeout: timeouts.typeScriptCompilation }, () => {
   it('leaves every contract hash unchanged across roots', async () => {
     const [internal, facade, decomposed] = await Promise.all(allRoots.map(emitFor));
 
