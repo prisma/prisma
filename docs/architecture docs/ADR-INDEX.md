@@ -95,15 +95,15 @@ This document provides a comprehensive index of all Architectural Decision Recor
 | 229 | Migration graph renderer uses a line/plane/occlusion model | The renderer is modelled around lines (not cells): each edge is a routed line carrying its own identity and colour, cells hold a z-ordered stack of lines, and the topmost line is drawn while the rest are occluded. Layout guarantees one drawable owner per cell (no tees, two columns per lane), so colour is correct by construction with no junction logic. | [ADR 229 - Migration graph renderer uses a line-plane-occlusion model.md](adrs/ADR%20229%20-%20Migration%20graph%20renderer%20uses%20a%20line-plane-occlusion%20model.md) |
 | 240 | Contract snapshots live in a content-addressed store | Every distinct migration contract is stored once per migrations root at `migrations/snapshots/<hex>/contract.{json,d.ts}`, keyed by storage hash; the old per-package sibling contract files and per-space head copies are gone, and `migration.ts` imports resolve through the store. Amends ADR 197 and ADR 232. | [ADR 240 - Contract snapshots live in a content-addressed store.md](adrs/ADR%20240%20-%20Contract%20snapshots%20live%20in%20a%20content-addressed%20store.md) |
 
-## Preflight & CI
+## Guardrails & CI
 
 | ADR | Title | Description | Link |
 |-----|-------|-------------|------|
 | 022 | Lint Rule Taxonomy | Defines taxonomy and classification system for lint rules and violations | [ADR 022 - Lint Rule Taxonomy.md](adrs/ADR%20022%20-%20Lint%20Rule%20Taxonomy.md) |
 | 023 | Budget Evaluation | Establishes query budget evaluation and enforcement mechanisms | [ADR 023 - Budget Evaluation.md](adrs/ADR%20023%20-%20Budget%20Evaluation.md) |
 | 024 | Telemetry Schema | Defines telemetry schema and privacy controls for runtime observability | [ADR 024 - Telemetry Schema.md](adrs/ADR%20024%20-%20Telemetry%20Schema.md) |
-| 029 | Shadow DB preflight semantics | Specifies shadow database semantics for preflight validation and testing | [ADR 029 - Shadow DB preflight semantics.md](adrs/ADR%20029%20-%20Shadow%20DB%20preflight%20semantics.md) |
-| 051 | PPg preflight-as-a-service contract | Defines PPg preflight-as-a-service contract with server-side validation | [ADR 051 - PPg preflight-as-a-service contract.md](adrs/ADR%20051%20-%20PPg%20preflight-as-a-service%20contract.md) |
+| 029 | Shadow DB preflight semantics | Superseded — no shadow database will ever exist; diffing is fully offline against on-disk snapshots | [ADR 029 - Shadow DB preflight semantics.md](adrs/ADR%20029%20-%20Shadow%20DB%20preflight%20semantics.md) |
+| 051 | PPg preflight-as-a-service contract | Superseded — the preflight concept is abandoned; no shadow database will ever exist | [ADR 051 - PPg preflight-as-a-service contract.md](adrs/ADR%20051%20-%20PPg%20preflight-as-a-service%20contract.md) |
 
 ## Extensions & Packs
 
@@ -166,7 +166,7 @@ This document provides a comprehensive index of all Architectural Decision Recor
 
 ## Notes
 
-- **ADR 051** covers PPg preflight-as-a-service contract
+- **ADRs 029 and 051** are superseded: the shadow-DB preflight design is abandoned (diffing is fully offline against on-disk snapshots)
 - **ADRs 104-118** form the core extension system architecture (decorators, attributes, capabilities, packs)
 - **ADRs 126-127** introduce PSL top-level blocks and views as composable extensions
 - **ADRs 096-100** cover the no-emit workflow for TypeScript-authored contracts

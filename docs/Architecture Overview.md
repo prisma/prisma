@@ -42,7 +42,7 @@ Behavior comes from adapters, extension packs, and runtime plugins, not global f
 All packages are modular and composable with strict tree‑shakability: only imported components end up in the bundle. Exports are curated and side‑effect free with named, per‑module entry points. We ship ESM‑compatible packages and TypeScript source to maximize modern bundler support and DX.
 
 ### Feedback before execution
-Fast, targeted feedback at authoring, planning, and execution time. AST-first lints (SQL domain) and budgets inspect `plan.ast` when present; preflight in CI and marker checks catch risks early and explain what to fix, with stricter defaults in staging and production (ADR 022, ADR 029, ADR 051, ADR 021, ADR 115, ADR 162)
+Fast, targeted feedback at authoring, planning, and execution time. AST-first lints (SQL domain) and budgets inspect `plan.ast` when present; offline artifact checks in CI and marker checks catch risks early and explain what to fix, with stricter defaults in staging and production (ADR 022, ADR 021, ADR 115, ADR 162)
 
 ## Architecture at a Glance
 
@@ -56,7 +56,7 @@ Both planes operate on the same shared artifacts (produced and consumed via a sm
 - **Data Contract:** Generated from PSL + TypeScript builders + extension manifests and distributed as JSON alongside TypeScript definitions, including `storageHash` and optional `executionHash` for execution defaults
 - **Capability profile:** The contract declares required capabilities (and optional adapter pins) and emits a pinned `profileHash`. The runner verifies the database satisfies the contract and writes the same `profileHash` to the marker (ADR 117, ADR 021)
 - **Plan Factories:** Compile declarative inputs into deterministic plans with hash-stamped metadata (DSL, ORM, Raw SQL, TypedSQL)
-- **Guardrail Plugins:** Applied during plan creation, preflight, and runtime execution
+- **Guardrail Plugins:** Applied during plan creation and runtime execution
 - **Marker and ledger:** Database marker storing `storageHash` and `profileHash` plus an append-only ledger of applied edges for verification and audit (ADR 021, ADR 001)
 
 ### Diagram — System map
@@ -75,8 +75,6 @@ flowchart LR
     PSL/TS + Packs]
     Plan[Planner
     contract diff → edges]
-    Pf[Preflight
-    shadow or explain]
     Run[Runner
     idempotent ops + checks]
   end
@@ -94,8 +92,7 @@ flowchart LR
 
   C --> Plan
   C --> QF
-  Plan --> Pf
-  Pf --> Run
+  Plan --> Run
   Run --> Mk
   QF --> RT
   RT --> Adp
@@ -117,7 +114,7 @@ Quick links to detailed subsystem specifications:
 - [Adapters & Targets](architecture%20docs/subsystems/5.%20Adapters%20&%20Targets.md) — Adapter SPI for lowering and capability discovery
 - [Ecosystem Extensions & Packs](architecture%20docs/subsystems/6.%20Ecosystem%20Extensions%20&%20Packs.md) — Pack model, function/operator registry, and branded codecs
 - [Migration System](architecture%20docs/subsystems/7.%20Migration%20System.md) — Contract→contract edges, planner/runner, checks, and idempotency
-- [Preflight & CI Integration](architecture%20docs/subsystems/8.%20Preflight%20&%20CI%20Integration.md) — Shadow/EXPLAIN, policy gates, and CI flows
+- [CI Integration](architecture%20docs/subsystems/8.%20CI%20Integration.md) — Offline artifact verification, deploy preview, and CI flows
 - [No-Emit Workflow](architecture%20docs/subsystems/9.%20No-Emit%20Workflow.md) — TS-first authoring, watch plugins, and CI trust model
 - [MongoDB Family](architecture%20docs/subsystems/10.%20MongoDB%20Family.md) — Mongo-specific contract, query, and runtime path
 - [CLI](architecture%20docs/subsystems/11.%20CLI.md) — `prisma-next` distribution, command surface, init flow, and programmatic API
@@ -137,8 +134,8 @@ Quick links to detailed subsystem specifications:
 
 **Verification**
 
-- Plans simulate locally via preflight to answer "Will this migration do what I expect?"
-- Pre and post checks, capability gates, and policy checks run before apply
+- `migration check` verifies artifact and graph integrity offline; diffing runs against on-disk contract snapshots, never a shadow database
+- Pre- and post-checks, capability gates, and policy checks run at apply time
 
 **Execution**
 
@@ -150,28 +147,19 @@ Quick links to detailed subsystem specifications:
 - Postconditions verify effects; PPg ledger records contract hashes and applied migrations
 - Failures emit diagnostics tied back to contract statements or extension hooks
 
-### Diagram — Migration preflight and apply
+### Diagram — Migration plan and apply
 
 ```mermaid
 sequenceDiagram
   autonumber
   participant Author as Author
   participant Planner as Planner
-  participant PPg as PPg Preflight
   participant Runner as Runner
   participant DB as Database
   participant Marker as Marker + Ledger
 
   Author->>Planner: Edit contract H0→H1
   Planner-->>Author: Edge{fromHash,toHash,ops,pre,post}
-  Author->>PPg: Preflight(edge, bundle)
-  alt shadow
-    PPg->>DB: Apply edge in shadow
-    DB-->>PPg: Diagnostics
-  else explain
-    PPg->>DB: EXPLAIN plans
-    DB-->>PPg: Normalized EXPLAIN
-  end
   Author->>Runner: Apply(edge)
   Runner->>DB: Acquire advisory lock
   Runner->>DB: Run ops with pre/post checks
@@ -256,7 +244,7 @@ sequenceDiagram
 |------------------|------------------------------------------------------------------|-----------------------------------------------------------------|
 | Authoring        | Contract builders validate schema intent and capability usage.   | DSL annotations and TypedSQL expose capabilities and policies. |
 | Planning         | Planner simulates edges; hash-stamps preconditions and outcomes. | Plan factories attach lint/budget annotations. |
-| Preflight/Verify | PPg answers “Will this migration do what I expect?” and enforces policy gates. | Runtime verifies marker equality and applies guardrail plugins. |
+| Verification     | `migration check` verifies artifacts offline; `db verify` reports live drift. | Runtime verifies marker equality and applies guardrail plugins. |
 | Execution        | Runner enforces idempotency, markers, and extension requirements. | Streaming execution monitored by guardrail plugins and budgets. |
 | Post-feedback    | PPg ledger, drift detectors, and diagnostics inform authors.     | Policy outcomes and drift indicators feed back to authoring tools. |
 ## Modularity and Extensibility
@@ -398,7 +386,6 @@ flowchart LR
 
 PPg is a contract-aware Postgres service that amplifies determinism and feedback.
 
-- **Preflight service:** answers "Will this migration do what I expect?" by simulating plans against staged data
 - **Contract ledger:** records contract hashes and applied edges to detect drift instantly
 
 PPg is optional, but using it delivers zero-touch guardrails for teams and agents.

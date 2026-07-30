@@ -9,7 +9,7 @@ The Prisma Next migration domain model in [`../../10-domains/migration/`](../../
 | Document | One-line summary | What we took |
 |---|---|---|
 | [`established-conventions.md`](./established-conventions.md) | Cross-system synthesis: ActiveRecord, Liquibase, Django, Sqitch, Atlas, Prisma 5/6. Verdict table at the end. | The shape of the adopt / diverge / avoid table that drove the domain model's vocabulary choices. |
-| [`atlas.md`](./atlas.md) | Atlas: declarative + versioned workflows; URL-typed sources; integrity manifest (`atlas.sum`); explicit "desired state" / "current state" framing. | The "desired state" / "current state" prose anchor; the `check` verb naming for pre-migration integrity; the recognition that "shadow DB" deserves its own verb (`migration preflight`) rather than being a flag on apply. |
+| [`atlas.md`](./atlas.md) | Atlas: declarative + versioned workflows; URL-typed sources; integrity manifest (`atlas.sum`); explicit "desired state" / "current state" framing. | The "desired state" / "current state" prose anchor; the `check` verb naming for pre-migration integrity. (Atlas's shadow-DB-backed dev database was ultimately rejected wholesale: diffing is fully offline against on-disk snapshots, and no shadow database will ever exist.) |
 | [`active-record.md`](./active-record.md) | Rails Active Record: timestamp-ordered file-backed Ruby classes; numeric-version identity; `schema_migrations` ledger; `change` body with auto-inverse. | The hazard model for unhashed file-based identity (motivates our `migrationHash`); the schema-dump-as-rebuild-source distinction (motivates our marker-vs-ledger split). |
 
 ## What's deliberately not here

@@ -1,5 +1,7 @@
 # ADR 029 — Shadow DB preflight semantics
 
+**Status:** Superseded. The team has decided Prisma Next will never use a shadow database: every migration's bookend contracts are stored as on-disk snapshots, so diffing is fully offline, and no sandbox-execution (`preflight`) verb exists. See [CI Integration § No shadow database](../subsystems/8.%20CI%20Integration.md#no-shadow-database). The content below is preserved as a historical record of the superseded design.
+
 ## Context
 
 We want a safe way to validate migrations and Plans before production apply. Teams run preflight in CI and we will also offer PPg preflight-as-a-service. Preflight must be deterministic, isolated, resource-bounded, and leave no residue. Some checks require a real database state, others can run in EXPLAIN-only mode. Preflight artifacts feed developer UIs, agents, and compliance tooling.

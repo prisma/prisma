@@ -245,11 +245,11 @@ Atlas's parameterized model is the closer ancestor; we go one step further by gi
 
 **Reject the dev/deploy verb split.** `migrate --to <ref>` is the canonical and only forward-execution verb. `db update` (off-graph reconciliation, dev-only) and `migrate --to <ref>` (graph walk, environment-agnostic) are two different operations, not two flavors of one.
 
-The shadow-DB concept does surface in our model, but as a **preflight** verb (§ 7b) — not as a flag on the migrate verb.
+The shadow-DB concept does not surface in our model at all: diffing is fully offline against on-disk contract snapshots, and no shadow database will ever exist (§ 7b).
 
 ---
 
-## 7b. Verification and preflight
+## 7b. Verification
 
 ### Convention
 
@@ -266,20 +266,18 @@ Verification has been notably absent from the apply-side of every surveyed syste
 Two distinct verification questions exist, and surveyed systems mostly conflate or omit them:
 
 1. *"Does the live database currently satisfy my contract?"* — a read-only question about an existing DB.
-2. *"Would this migration actually do what it promises?"* — a sandbox question about a migration package.
+2. *"Would this migration actually do what it promises?"* — a question about a migration package.
 
-Most surveyed systems answer #1 implicitly (during apply) and #2 only via shadow-DB replay inside an apply god-command. Splitting them into named verbs lets agents and CI ask either question on its own.
+Most surveyed systems answer #1 implicitly (during apply) and #2 only via shadow-DB replay inside an apply god-command. Separating the questions lets agents and CI ask #1 on its own — and lets #2 be answered without any replay at all.
 
 ### Fit to our model
 
-Two explicit verbs:
-
 - **`db verify`** — answers #1. Live, read-only. Compares marker + introspection against the contract; reports drift kinds (matches ADR 123's taxonomy).
-- **`migration preflight <id>`** — answers #2. Sandbox apply of a migration against a shadow DB (locally) or PPg (hosted). Reports the would-be outcome.
+- Question #2 gets no sandbox verb. Every migration records its `from` and `to` contracts as on-disk snapshots, so diffing never needs a database, and behavioural enforcement happens during the real apply (pre/post invariants, destination-hash check).
 
 ### Verdict
 
-**Adopt both as first-class verbs.** Don't entangle them into `migrate`. The verb name for #2 is open (`preflight`, `dry-run`, `simulate`, `try`); `preflight` is what our internal docs already use.
+**Adopt `db verify` as a first-class verb; reject sandbox preflight.** An earlier draft proposed `migration preflight <id>` (shadow-DB apply locally, PPg hosted). Rejected: diffing is fully offline against on-disk snapshots, and no shadow database will ever exist.
 
 ---
 
@@ -406,16 +404,16 @@ The final step of the audit walks this table against every existing CLI command 
 | **`migrate` as forward-execution verb** | **Adopt** | User's `migrate --db URL --to <ref>` is excellent and matches Rails/Django/Atlas/Prisma. |
 | **`status` for inspection** | **Adopt** | Universal. |
 | **`plan` / `diff` for migration authoring** | **Adopt** | `migration plan` is the analog of `atlas migrate diff`. |
-| **dev / deploy verb split** | **Reject** | One verb (`migrate --to <ref>`) regardless of environment. Safety semantics belong to the DB URL, not the verb. Verification splits out into its own verbs (`db verify`, `migration preflight`). |
+| **dev / deploy verb split** | **Reject** | One verb (`migrate --to <ref>`) regardless of environment. Safety semantics belong to the DB URL, not the verb. Verification splits out into its own verbs (`db verify`, `migration check`). |
 | **adoption as distinct verb** | **Adopt — but split into two verbs** | `db init` lays down structure; `db sign` verifies + writes marker for an already-matching DB. Don't import "baseline" wholesale (overloaded across systems). |
-| **verification as its own verb(s)** | **Adopt — first-class** | Two questions, two verbs: `db verify` (does live DB satisfy contract?) and `migration preflight <id>` (does this migration actually do what it promises?). Most surveyed systems entangle these into `apply`. |
+| **verification as its own verb(s)** | **Adopt — first-class** | `db verify` (does live DB satisfy contract?) and `migration check` (are the artifacts internally consistent?). Most surveyed systems entangle verification into `apply`. |
 | **drift** | **Adopt** with two-level surface | Marker drift vs schema drift in user-facing prose; ADR 123's full taxonomy in diagnostics. |
 | **refs** (named pointers to desired state) | **Novel — keep, anchor on Git** | No surveyed migration system has this. Borrow Git's mental model. |
 | **invariants** | **Novel — keep** | Sqitch's `verify` is narrower; we want the broader correctness primitive. |
 | **contract spaces** | **Novel — keep** | Django's apps + Sqitch's foreign-project refs are closest analogs; neither is sufficient. |
 | **cyclic graph** | **Novel — don't expose** | Path-finding handles cycles internally; users see only refs and `migrate --to`. |
 | **emission** (canonical artifacts from authoring source) | **Adopt the underlying concept; keep `emit` as the verb** | Atlas's `migrate diff` is the closest analog. For migration source, use **`migration compile`** (TS → JSON) — `emit` reads wrong because `migration.ts` already *is* the migration. |
-| **shadow database** | **Surface as `migration preflight`** | Atlas and Prisma both rely on shadow DBs for diff safety, but bundled into `apply`. We surface it as an explicit, named verification verb. |
+| **shadow database** | **Reject** | Atlas and Prisma both rely on shadow DBs for diff safety. We never need one: every migration's bookend contracts are on-disk snapshots, so diffing is fully offline. No shadow database will ever exist. |
 | **baseline** (the noun) | **Reject** | Atlas's baseline ≠ Prisma's baseline ≠ Django's `--fake-initial`. A migration from `∅` is just a regular migration. |
 
 ---

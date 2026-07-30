@@ -97,16 +97,17 @@ This is the dominant CD operation. The verb is dead-simple by design: the *only*
 **Persona:** CD pipeline (or the operator monitoring it).
 **Question:** "What will run on merge, and is that what we want?"
 
-The CD signal is a two-part flow:
+The CD signal is a three-part flow:
 
 ```bash
 migration check         # graph integrity: every migration self-consistent,
                         # every edge's from/to lines up, no orphans,
                         # no dangling refs. Read-only, no DB.
+migration status --from <contract>  # offline preview of the deploy path
 migrate --to production  # the actual execution
 ```
 
-The preview is required to be **rock solid** — it is the go/no-go signal. `migration check` covers integrity that doesn't require running anything; future work (`migration preflight`, deferred) will add shadow execution against a sandbox database for the behavioural-preview half of this question.
+The preview is required to be **rock solid** — it is the go/no-go signal. `migration check` covers artifact and graph integrity; `migration status --from` previews the deploy path. Both are fully offline: diffing runs against on-disk contract snapshots, so there is no sandbox execution and no shadow database will ever exist. The behavioural half of the question is enforced at apply time — the runner checks each operation's pre/post invariants and the destination hash, and refuses to advance the marker on violation.
 
 **Exercised by:** `migration-check.e2e.test.ts` (integrity); the operational side rolls up through every end-to-end migration journey.
 
@@ -151,15 +152,14 @@ These four verbs answer different shapes of the same question — they share a c
 **Persona:** anyone before doing something risky, or after suspecting something is wrong.
 **Question:** "Is the world in the state I think it's in?"
 
-Three distinct verification verbs, three distinct questions:
+Two distinct verification verbs, two distinct questions:
 
 | Verb | What it verifies | Touches live DB? |
 |---|---|---|
 | `db verify` | Live DB satisfies its contract | Yes (read-only) |
 | `migration check [<m>]` | Migration artifact / graph integrity | No |
-| `migration preflight <m>` | Migration's behaviour on a sandbox | Sandbox only (deferred) |
 
-The three are deliberately separately named — sharing `verify` across all three would make "which verification?" the question at every call site. See the [glossary entry for `migration check`](../../../glossary.md#migration-check) for the per-PN-code breakdown of what graph-integrity covers.
+The two are deliberately separately named — sharing `verify` across both would make "which verification?" the question at every call site. There is no sandbox-execution verb: no shadow database will ever exist, so a migration's behaviour is enforced during the real apply (pre/post invariants, destination-hash check), not previewed in a sandbox. See the [glossary entry for `migration check`](../../../glossary.md#migration-check) for the per-PN-code breakdown of what graph-integrity covers.
 
 **Exercised by:** `migration-check.e2e.test.ts`.
 
