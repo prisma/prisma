@@ -22,6 +22,8 @@ The usage surface is exactly one installable skill. Agent runtimes match skills 
 
 The test for placement: *would every Prisma Next task benefit from the agent having read this?* If yes, it may live in `SKILL.md`. If only some tasks would, it goes in a reference file.
 
+**The exception: cross-cutting gotchas.** A fact that defies a reasonable assumption — and that the agent has no obvious trigger to look up before it acts — needs to be read *before* the agent hits the situation, not after. A reference file only loads once its routing-table row matches, so a surprising fact scoped to one reference is fine there (its own *Common Pitfalls* section covers it). A surprising fact that cuts across workflows — the kind where an agent already committed to a plan under a wrong assumption has no reason to go back and check a reference it never routed to — belongs in `SKILL.md` itself. The Mongo ORM addressing rule (`db.orm.<collection>` uses storage names, not PSL model names) is the existing example: it lives in `SKILL.md`'s canonical-model paragraph, not buried in `references/queries.md`, because an agent that already assumed model-name addressing has no reason to open the queries reference to find out it's wrong. Keep this tier small — it is competing for the same ~150-line budget as everything else in `SKILL.md`.
+
 ### Length budgets
 
 - **`SKILL.md`: ~150 lines.** It is an index and a mental model, not a manual. If it is growing, content is leaking up from the reference layer — push it back down.
@@ -78,6 +80,8 @@ Procedural workflow sections — *"step 1: run X; step 2: read Y; step 3: if Z, 
 
 **The carve-out.** Some operations are genuinely one-safe-path (data-loss-risk migrations, irreversible operations, security-critical sequences where the agent must not improvise). Those workflow sections may be procedural — explicitly say *"this is the one-safe-path case"* in the section header so future maintainers don't strip the steps thinking they're cargo-culted.
 
+*Terminology note:* this rule and the general skill-authoring notion of "favor procedures over declarations" (teach a reusable method instead of transcribing one instance's answer) are compatible, not competing — they use "procedure" for opposite things. This rule's "procedure" is a rigid, memorised step-script (avoid it). The general notion's "procedure" is the generalizable *method* itself (prefer it over a one-off answer). A concept block plus the query that reveals state satisfies both: it's a method, not a rigid script.
+
 #### Worked example — `references/migration-review.md`
 
 The pilot rewrite of [`skills/prisma-next/references/migration-review.md`](./prisma-next/references/migration-review.md) is the canonical worked example for this principle in this cluster. Before that rewrite, the skill contained:
@@ -128,6 +132,8 @@ These are well-trodden but worth listing in one place:
 
 - **`description:` frontmatter is a runtime matcher, not marketing prose.** Only the consolidated `SKILL.md` carries frontmatter; its description fires on any Prisma Next work. Per-workflow trigger phrases — CLI flags, error codes, feature names, foreign-tool vocabulary a user would type — live in the routing table's *Triggers* column, and a new reference file must add its row there.
 - **One workflow per reference file.** File size is bounded by the per-file line ceiling. If a workflow grows past it, split into a companion reference (the queries → queries-postgres/queries-mongo split is the template) — don't sprawl.
+- **Provide a default, not a menu.** When more than one tool or approach would work (PSL vs. the TS builder, `db update` vs. `migration plan`, which query lane for a given target), commit to the one that's the recommended path for the common case and state it first. Mention the alternative briefly, as an escape hatch with the condition under which it applies — don't present both as equally-weighted options and leave the choice to the agent. An agent handed a menu without a default either guesses or asks; a stated default lets it proceed.
+- **Omit what the agent already knows.** Every sentence should teach something the agent wouldn't get right without it: a Prisma Next-specific convention, a non-obvious constraint, the actual verified tool surface. Don't explain what a foreign-key constraint is, what a connection pool does, or other general engineering or database knowledge the agent already has — that's editorial padding that pushes genuinely load-bearing content further from the top of the file and erodes the length budgets above. When rewriting or extending a reference file, apply the test explicitly: *would the agent get this wrong without this sentence?* If no, cut it.
 - **`What Prisma Next doesn't do yet` is mandatory.** It names a concrete gap, describes today's workaround, and routes to `references/feedback.md`. Never confabulate an API that doesn't exist.
 - **No cross-reference links that drift.** When a reference file links to a sibling, link by reference path (`references/<topic>.md`), not by line range.
 - **Skill content ships in lockstep with the framework.** Stale skill content is worse than no skill. When a PR touches framework surface a skill references, the skill update is part of the PR scope, not follow-up work.
