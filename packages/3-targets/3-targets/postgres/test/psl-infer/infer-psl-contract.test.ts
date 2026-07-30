@@ -402,9 +402,9 @@ describe('inferPostgresPslContract', () => {
     });
 
     it('a wire-named index with an explicit non-default type and options re-detects stable', () => {
-      // The F01 backstop makes options-without-type unconstructable, so a
-      // wire-named index carrying options always hashed an explicit type — the
-      // recompute from introspected parts agrees and name: re-emits.
+      // A wire-named index carrying options always hashed an explicit type
+      // (options without a type is unrepresentable), so the recompute from
+      // the introspected parts agrees and name: re-emits.
       const hash = computeIndexContentHash({
         columns: ['email'],
         unique: false,

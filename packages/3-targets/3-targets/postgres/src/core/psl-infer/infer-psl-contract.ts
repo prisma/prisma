@@ -1030,24 +1030,10 @@ function buildModelConstraintAttribute(
 }
 
 /**
- * Emits one `@@index` attribute at full fidelity. Identity is re-detected:
- * when the live name parses as a wire name AND its hash recomputes from the
- * introspected content, the index is managed and emits `name: "<prefix>"`;
- * otherwise it adopts exactly with `map: "<live name>"` and the content
- * verbatim. Known benign edge: an index authored `type: "btree"` hashed
- * `'btree'` into its suffix but introspects type-normalized, so the
- * recompute mismatches and it re-infers as `map:` — still a clean round
- * trip, just exact rather than managed (no special case).
- *
- * `options:` always emits with a `type:` beside it (the pair the PSL surface
- * requires): a default-method index carrying reloptions (type normalized
- * away by introspection) emits an explicit `type: "btree"` — the expected
- * node's constructor normalizes btree back to undefined, so verify compares
- * clean. Provably safe on BOTH naming branches: `lowerAuthoredIndex`
- * rejects options without a type, so an untyped-options managed hash (which
- * the added `type: "btree"` would move) is unconstructable — a wire-named index
- * with options always hashed an explicit type, and the exact branch never
- * re-hashes.
+ * Emits one `@@index` attribute at full fidelity. The index's identity is
+ * re-detected rather than trusted: `name:` is emitted only when the live name
+ * parses as a wire name AND that hash recomputes from the introspected
+ * content; otherwise the live name is adopted verbatim with `map:`.
  */
 function buildIndexAttribute(
   index: SqlIndexIR,
@@ -1124,17 +1110,12 @@ interface PolicyBlockEmission {
 }
 
 /**
- * Builds one `policy_<operation>` block per introspected policy. The head is
- * the wire prefix when the name parses, else the physical name — sanitized
- * to the identifier grammar, with within-namespace collisions numeric-
- * suffixed deterministically by sorted physical name. `@@map` ALWAYS carries
- * the physical name: a body reprint never reliably re-hashes to the live
- * suffix, so every adopted policy is exact. Bodies emit verbatim; a
- * RESTRICTIVE row emits `permissive = false` (PERMISSIVE is the default and
- * stays implicit). A policy referencing a role whose name fails the
- * identifier grammar is unauthorable (role refs have no `@@map` escape): it
- * skips with a comment note on its target model — the honest outcome is the
- * live extra a strict verify then names.
+ * Builds one `policy_<operation>` block per introspected policy. Every
+ * adopted policy is exact-named: a reprinted body never reliably re-hashes to
+ * the live suffix, so `@@map` always carries the physical name and the head
+ * is only an identifier. A policy granting to a role whose name is not a
+ * legal identifier cannot be authored at all — role references have no
+ * `@@map` escape — so it is skipped with a note.
  */
 function buildPolicyBlocks(
   policiesByTable: ReadonlyMap<string, readonly PostgresPolicySchemaNode[]>,
