@@ -26,8 +26,12 @@ import type {
   AuthoringContributions,
   AuthoringEntityTypeDescriptor,
   AuthoringEntityTypeNamespace,
+  AuthoringWarning,
 } from '@prisma-next/framework-components/authoring';
-import { isAuthoringEntityTypeDescriptor } from '@prisma-next/framework-components/authoring';
+import {
+  flushAuthoringWarnings,
+  isAuthoringEntityTypeDescriptor,
+} from '@prisma-next/framework-components/authoring';
 import type { CodecLookup, ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
@@ -38,8 +42,6 @@ import {
 } from '@prisma-next/sql-contract/foreign-key-materialization';
 import {
   type AuthoredIndexInput,
-  type ExactNameBodyWarning,
-  flushExactNameBodyWarnings,
   lowerAuthoredIndex,
 } from '@prisma-next/sql-contract/index-naming';
 import { validateIndexTypes } from '@prisma-next/sql-contract/index-type-validation';
@@ -685,10 +687,9 @@ export function buildSqlContractFromDefinition(
   );
 
   const tablesByNamespace: Record<string, Record<string, StorageTableInput>> = {};
-  // Exact-name body warnings collect across the whole build and flush once
-  // (threshold-batched) — an adopted contract carries map: + body on many
-  // objects.
-  const exactNameBodyWarnings: ExactNameBodyWarning[] = [];
+  // Warnings collect across the whole build (seeded with the definition
+  // producer's) and flush once, threshold-batched by code.
+  const authoringWarnings: AuthoringWarning[] = [...(definition.warnings ?? [])];
   const modelNameToNamespaceId = new Map<string, string>();
   const executionDefaults: ExecutionMutationDefault[] = [];
   const modelsByNamespace: Record<string, Record<string, ContractModel>> = {};
@@ -945,7 +946,7 @@ export function buildSqlContractFromDefinition(
             type: i.type,
             options: i.options,
           }),
-          exactNameBodyWarnings,
+          authoringWarnings,
         ),
       );
       const primaryKey = semanticModel.id
@@ -1353,7 +1354,7 @@ export function buildSqlContractFromDefinition(
   };
 
   assertStorageSemantics(definition, contract);
-  flushExactNameBodyWarnings(exactNameBodyWarnings);
+  flushAuthoringWarnings(authoringWarnings);
 
   return contract;
 }

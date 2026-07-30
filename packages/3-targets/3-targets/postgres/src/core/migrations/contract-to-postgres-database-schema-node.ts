@@ -65,8 +65,8 @@ function toPolicyNode(policy: PostgresRlsPolicy, namespaceId: string): PostgresP
     namespaceId,
     operation: policy.operation,
     roles: [...policy.roles],
-    ...ifDefined('using', policy.using),
-    ...ifDefined('withCheck', policy.withCheck),
+    using: policy.using,
+    withCheck: policy.withCheck,
     permissive: policy.permissive,
     dependsOn: [tableDependsOn(namespaceId, policy.tableName), ...policy.roles.map(roleDependsOn)],
   });
@@ -251,13 +251,13 @@ export function contractToPostgresDatabaseSchemaNode(
         );
       }
       if (!Object.hasOwn(ns.rls, tableName)) {
-        const policyPrefix = tablePolicies[0]?.prefix ?? '(unknown)';
+        const policyLabel = tablePolicies[0]?.prefix ?? tablePolicies[0]?.name ?? '(unknown)';
         throw postgresError(
           'CONTRACT.POLICY_INVALID',
-          `contract-to-postgres-database-schema-node: policy "${policyPrefix}" targets table "${tableName}" in namespace "${ddlSchema}", which is not RLS-controlled. Mark the model with @@rls (entries.rls["${tableName}"]) or remove the policy.`,
+          `contract-to-postgres-database-schema-node: policy "${policyLabel}" targets table "${tableName}" in namespace "${ddlSchema}", which is not RLS-controlled. Mark the model with @@rls (entries.rls["${tableName}"]) or remove the policy.`,
           {
             meta: {
-              policyName: policyPrefix,
+              policyName: policyLabel,
               tableName,
               namespaceId: ddlSchema,
               reason: 'table-not-rls-controlled',

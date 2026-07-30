@@ -28,8 +28,8 @@
     "pg-cursor": "^2.21.0"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.4.3",
-    "@electric-sql/pglite-socket": "0.1.3",
+    "@electric-sql/pglite": "0.5.4",
+    "@electric-sql/pglite-socket": "0.2.7",
     "@prisma-next/test-utils": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
     "@prisma-next/tsdown": "workspace:0.16.0",

@@ -166,8 +166,11 @@ describe('relationalNodeGranularity map (granularity is off the node)', () => {
       new SqlCheckConstraintIR({ name: 'chk', column: 'status', permittedValues: ['a'] }),
       'auxiliary',
     ],
-  ] as const)('%s: nodeKind maps to granularity %s; node exposes no role member', (_label, node, expectedGranularity) => {
-    expect(relationalNodeGranularity(node.nodeKind)).toBe(expectedGranularity);
-    expect('diffRole' in node).toBe(false);
-  });
+  ] as const)(
+    '%s: nodeKind maps to granularity %s; node exposes no role member',
+    (_label, node, expectedGranularity) => {
+      expect(relationalNodeGranularity(node.nodeKind)).toBe(expectedGranularity);
+      expect('diffRole' in node).toBe(false);
+    },
+  );
 });

@@ -69,17 +69,15 @@ describe('sql-codec-helpers', () => {
     },
   ];
 
-  it.each(codecDefinitionCases)('defines descriptor for $scalar', ({
-    scalar,
-    id,
-    targetTypes,
-    hasParamsSchema,
-  }) => {
-    const descriptor = descriptorsByScalar[scalar];
-    expect(descriptor.codecId).toBe(id);
-    expect(descriptor.targetTypes).toEqual(targetTypes);
-    expect(descriptor.paramsSchema !== undefined).toBe(hasParamsSchema);
-  });
+  it.each(codecDefinitionCases)(
+    'defines descriptor for $scalar',
+    ({ scalar, id, targetTypes, hasParamsSchema }) => {
+      const descriptor = descriptorsByScalar[scalar];
+      expect(descriptor.codecId).toBe(id);
+      expect(descriptor.targetTypes).toEqual(targetTypes);
+      expect(descriptor.paramsSchema !== undefined).toBe(hasParamsSchema);
+    },
+  );
 
   const codecRoundTripCases: ReadonlyArray<{
     scalar: keyof typeof descriptorsByScalar;
@@ -99,17 +97,15 @@ describe('sql-codec-helpers', () => {
     },
   ];
 
-  it.each(codecRoundTripCases)('encodes and decodes $scalar values', async ({
-    scalar,
-    input,
-    expectedEncoded,
-    expectedDecoded,
-  }) => {
-    const descriptor = descriptorsByScalar[scalar] as AnyCodecDescriptor;
-    const codec = descriptor.factory(undefined as never)({ name: 'test' });
-    expect(await codec.encode(input, {})).toBe(expectedEncoded);
-    expect(await codec.decode(input, {})).toBe(expectedDecoded);
-  });
+  it.each(codecRoundTripCases)(
+    'encodes and decodes $scalar values',
+    async ({ scalar, input, expectedEncoded, expectedDecoded }) => {
+      const descriptor = descriptorsByScalar[scalar] as AnyCodecDescriptor;
+      const codec = descriptor.factory(undefined as never)({ name: 'test' });
+      expect(await codec.encode(input, {})).toBe(expectedEncoded);
+      expect(await codec.decode(input, {})).toBe(expectedDecoded);
+    },
+  );
 
   it('trims trailing spaces when decoding char values', async () => {
     const codec = sqlCharDescriptor.factory({})({ name: 'test' });

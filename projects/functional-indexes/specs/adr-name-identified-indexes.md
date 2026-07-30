@@ -20,7 +20,7 @@ There is no stored mode marker. A node carries `prefix` iff it is managed; its `
 
 ## A worked example
 
-The motivating case (ciphers team, EQL encrypted search):
+The motivating case (Cipherstash team, EQL encrypted search):
 
 ```prisma
 model User {

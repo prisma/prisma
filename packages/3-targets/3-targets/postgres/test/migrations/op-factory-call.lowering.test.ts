@@ -921,6 +921,7 @@ function makePolicy(): PostgresRlsPolicy {
     roles: ['authenticated'],
     using: 'author_id = current_user_id()',
     permissive: true,
+    withCheck: undefined,
   });
 }
 
@@ -955,16 +956,54 @@ describe('CreatePostgresRlsPolicyCall', () => {
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 
-  it('renders this.createRlsPolicy(...) with the policy input serialized as a JSON literal', () => {
+  it('renders the full policy literal, omitting the absent withCheck key', () => {
     const call = new CreatePostgresRlsPolicyCall('public', 'post', makePolicy());
-    const ts = call.renderTypeScript();
-    expect(ts.startsWith('this.createRlsPolicy({ schema: "public", table: "post", policy: {')).toBe(
-      true,
+    expect(call.renderTypeScript()).toBe(
+      [
+        'this.createRlsPolicy({ schema: "public", table: "post", policy: {',
+        '  name: "post_owner_a1b2c3d4",',
+        '  prefix: "post_owner",',
+        '  tableName: "post",',
+        '  namespaceId: "public",',
+        '  operation: "select",',
+        '  roles: ["authenticated"],',
+        '  using: "author_id = current_user_id()",',
+        '  permissive: true,',
+        '} })',
+      ].join('\n'),
     );
-    expect(ts).toContain('name: "post_owner_a1b2c3d4"');
-    expect(ts).toContain('operation: "select"');
-    expect(ts).not.toContain('kind:');
     expect(call.importRequirements()).toEqual([]);
+  });
+
+  it('renders an exact policy literal with no prefix key', () => {
+    const call = new CreatePostgresRlsPolicyCall(
+      'public',
+      'post',
+      new PostgresRlsPolicy({
+        name: 'Tenant members can read',
+        prefix: undefined,
+        tableName: 'post',
+        namespaceId: 'public',
+        operation: 'select',
+        roles: ['app_user'],
+        using: '(tenant_id = 1)',
+        withCheck: undefined,
+        permissive: true,
+      }),
+    );
+    expect(call.renderTypeScript()).toBe(
+      [
+        'this.createRlsPolicy({ schema: "public", table: "post", policy: {',
+        '  name: "Tenant members can read",',
+        '  tableName: "post",',
+        '  namespaceId: "public",',
+        '  operation: "select",',
+        '  roles: ["app_user"],',
+        '  using: "(tenant_id = 1)",',
+        '  permissive: true,',
+        '} })',
+      ].join('\n'),
+    );
   });
 });
 

@@ -185,6 +185,75 @@ export interface AuthoringDiagnosticSink {
   }): void;
 }
 
+/**
+ * A non-fatal advisory minted at authoring time. Fully formed at the push
+ * site — the transport and the flush never learn family or target
+ * vocabulary. Warnings batch together iff `code` AND `summary` match: the
+ * batched rendering asserts the summary of every member, so the grouping
+ * key must cover everything the summary claims.
+ */
+export interface AuthoringWarning {
+  /** Stable machine code — what the user greps and what `process.emitWarning` stamps. */
+  readonly code: string;
+  /** Full text emitted when the warning is itemized (group at or below the batch threshold). */
+  readonly message: string;
+  /** Short subject label listed under a batched group summary (e.g. `object "…"`). */
+  readonly item: string;
+  /**
+   * Group summary text — what a batched group asserts about EVERY member.
+   * An over-threshold group renders as `"<count> <summary>"` above the item
+   * lines, so this starts with the plural noun phrase (e.g.
+   * `objects use <feature>. <remediation>`).
+   */
+  readonly summary: string;
+}
+
+/**
+ * A write-only sink for non-fatal authoring-time warnings a factory may
+ * emit. Entries travel verbatim to a single per-build flush — no
+ * narrowing, no per-kind fields; a plain `AuthoringWarning[]` satisfies
+ * this structurally.
+ */
+export interface AuthoringWarningSink {
+  push(w: AuthoringWarning): void;
+}
+
+const AUTHORING_WARNING_BATCH_THRESHOLD = 5;
+
+/**
+ * Emits collected authoring warnings once per build, grouped by `code`:
+ * a group at or below the threshold itemizes every `message`; above it,
+ * one summary — `"<count> <summary>"` followed by the `item` lines — so
+ * a build with many hits of one kind does not wall-of-text, and warnings
+ * of different codes never batch into each other's summary.
+ */
+export function flushAuthoringWarnings(warnings: readonly AuthoringWarning[]): void {
+  // Grouped on code + summary: the batched rendering asserts the summary of
+  // every member, so the key must cover everything the summary claims — two
+  // warnings sharing a code but differing in summary never share a batch.
+  const groups = new Map<string, AuthoringWarning[]>();
+  for (const warning of warnings) {
+    const key = `${warning.code}\u0000${warning.summary}`;
+    const group = groups.get(key) ?? [];
+    group.push(warning);
+    groups.set(key, group);
+  }
+  for (const group of groups.values()) {
+    const first = group[0];
+    if (first === undefined) continue;
+    if (group.length <= AUTHORING_WARNING_BATCH_THRESHOLD) {
+      for (const warning of group) {
+        process.emitWarning(warning.message, { code: warning.code });
+      }
+      continue;
+    }
+    process.emitWarning(
+      `${group.length} ${first.summary}\n${group.map((w) => `  - ${w.item}`).join('\n')}`,
+      { code: first.code },
+    );
+  }
+}
+
 export interface AuthoringEntityContext {
   readonly family: string;
   readonly target: string;
@@ -194,6 +263,8 @@ export interface AuthoringEntityContext {
   readonly sourceId?: string;
   /** Push channel for authoring-time diagnostics emitted by the factory. */
   readonly diagnostics?: AuthoringDiagnosticSink;
+  /** Push channel for non-fatal authoring-time warnings emitted by the factory. */
+  readonly warnings?: AuthoringWarningSink;
   /**
    * The target's default codec ids for an `enum` block that omits `@@type`.
    * `text` is used when every member is a bare name or a string value;

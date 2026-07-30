@@ -30,14 +30,6 @@ export type SqlIndexElements =
       readonly expression: string;
     };
 
-/**
- * Every non-element field is a required key. Values that may legitimately
- * be absent (an exact-named index's prefix, the btree→undefined type
- * normalization) are typed `| undefined` instead of optional, so each
- * construction site
- * states the absence explicitly rather than omitting the key silently.
- * Undefined values still produce an instance without the property.
- */
 export type SqlIndexIRInput = SqlIndexElements & {
   /** Full physical name — the node's identity. */
   readonly name: string;
@@ -232,8 +224,8 @@ export class SqlIndexIR extends SqlSchemaIRNode implements DiffableNode {
  * The contract JSON and the wire-name content hash keep the authored
  * spelling: `@@index([a], type: "btree")` and `@@index([a])` are distinct
  * wire names — but content-equal after normalization, so a spelling change
- * between them converges as a rename via the planner's phase-2 content
- * pairing (the hashes differ, so phase-1 never pairs them).
+ * between them converges as a rename via the planner's content
+ * pairing (the hashes differ, so hash pairing never pairs them).
  */
 function normalizeIndexType(type: string | undefined): string | undefined {
   return type === 'btree' ? undefined : type;

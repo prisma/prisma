@@ -352,6 +352,40 @@ changes:
         - "CodecDescriptorImpl<"
         - "readonly AnyCodecDescriptor[]"
       anyMatch: true
+  - id: rls-policies-gain-exact-names
+    summary: |
+      RLS policies adopt the same managed/exact identity split as indexes. On
+      `PostgresRlsPolicyInput` / `PostgresPolicySchemaNodeInput`, `prefix`, `using`,
+      `withCheck` (and the node input's `dependsOn`) change from optional keys to REQUIRED
+      keys typed `| undefined` — a hard compile break for every existing construction site
+      that omitted them: `new PostgresRlsPolicy({ …, using })` without `withCheck` no longer
+      compiles. Fix: state the absent keys explicitly (`withCheck: undefined`,
+      `prefix: undefined`, `dependsOn: undefined`). In the serialized policy contract schema
+      `prefix` stays optional — its presence means managed (wire-named), absence means
+      exact-named (a verbatim adopted physical name). Both constructors now ENFORCE that a
+      declared
+      `prefix` matches the wire name's parsed prefix: pack code or test fixtures building a
+      `PostgresRlsPolicy` / `PostgresPolicySchemaNode` whose `name` is not
+      `<prefix>_<8hex>`-shaped while still passing a `prefix` (e.g. `prefix: name` for a
+      hand-written legacy name) now throw — omit `prefix` for such names; that is the
+      exact-named spelling. Exact-named policy nodes compare by content (`operation` /
+      `permissive` strict, `roles` as a deduplicated sorted set, `using` / `withCheck`
+      byte-for-byte), so a
+      body-drifted same-named exact policy now surfaces as a `not-equal` verify issue and a
+      drop + create plan instead of being invisible. PSL policy blocks newly accept
+      `@@map("physical name")` to author the exact mode (additive — managed lowering is
+      byte-unchanged).
+    detection:
+      glob: "**/*.{ts,mts,cts,prisma}"
+      contains:
+        - "PostgresRlsPolicy"
+        - "PostgresPolicySchemaNode"
+        - "policy_select"
+        - "policy_insert"
+        - "policy_update"
+        - "policy_delete"
+        - "policy_all"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions
@@ -461,3 +495,7 @@ Review every `CodecRef` construction for a parameterized descriptor, including p
 When a parameterized descriptor intentionally supports an unparameterized column or contract reference, make its parameter type and Standard Schema accept the empty validated parameter object used during representative materialization. Express only genuinely absent fields as optional and preserve the existing unparameterized factory behavior; do not add a hidden default or change the codec encoded representation.
 
 After the migration, run the extension package's typecheck, lint, and tests. Verify its public codec ids, factories, column helpers, rendered types, SQL/wire behavior, `encodeJson` / `decodeJson`, runtime/control descriptor membership, and emitted contract behavior are unchanged apart from the descriptor types becoming PostgreSQL-specific.
+
+## Incidental lint-config bumps
+
+Biome `$schema` version alignment in `packages/3-extensions/` (dependabot `dev-deps` group, PR #1058) requires no Prisma Next-specific upgrade action by extension authors.

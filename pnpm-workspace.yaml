@@ -15,7 +15,7 @@ allowBuilds:
 blockExoticSubdeps: true
 
 catalog:
-  '@prisma/dev': 0.24.14
+  '@prisma/dev': 0.25.1
   '@types/node': 25.9.4
   '@types/pg': 8.20.0
   arktype: ^2.2.2
@@ -23,10 +23,10 @@ catalog:
   mongodb: ^7.4.0
   mongodb-memory-server: 11.2.0
   pg: 8.22.0
-  tsdown: 0.22.8
+  tsdown: 0.22.12
   tsx: ^4.23.0
   typescript: 5.9.3
-  vite: 8.0.16
+  vite: 8.1.0
   vitest: 4.1.10
   vscode-languageserver: 10.1.0
   vscode-languageserver-textdocument: 1.0.12

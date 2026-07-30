@@ -4,6 +4,7 @@ import type {
   ExecutionMutationDefaultPhases,
 } from '@prisma-next/contract/types';
 import type { ForeignKeyDefaultsState } from '@prisma-next/contract-authoring';
+import type { AuthoringWarning } from '@prisma-next/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
 import type { ExtensionPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
 import type {
@@ -210,6 +211,14 @@ export interface ContractDefinition {
    * `SqlStorage.namespaces` together with `createNamespace`.
    */
   readonly namespaces?: readonly string[];
+  /**
+   * Authoring warnings collected by the definition producer before the
+   * build runs (the PSL interpreter's entity factories run ahead of
+   * `buildSqlContractFromDefinition`); seeds the build's single per-build
+   * flush. Required key: a producer with nothing collected states
+   * `undefined` explicitly.
+   */
+  readonly warnings: readonly AuthoringWarning[] | undefined;
   /** Target-supplied factory that materialises a `SqlNamespaceBase` concretion for a declared namespace coordinate. */
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
   readonly models: readonly ModelNode[];

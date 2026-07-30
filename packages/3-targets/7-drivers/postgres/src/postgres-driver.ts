@@ -26,6 +26,18 @@ import { isAlreadyConnectedError, isPostgresError, normalizePgError } from './no
 
 export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResult<T>;
 
+/**
+ * Concurrency contract: the driver serializes queries per physical client, so
+ * overlapping calls on a `pgClient` binding, a pinned connection, or a
+ * transaction handle run strictly sequentially in FIFO order. Pool bindings
+ * run each driver-level call on its own pool client and are unaffected.
+ *
+ * Lock lifetime: buffered execution (cursors disabled) locks the client only
+ * while fetching; row iteration is lock-free, so a nested query on the same
+ * client inside `for await` works. Cursor-enabled streams hold the lock for
+ * the stream's entire lifetime — a nested query on the same client inside
+ * stream iteration deadlocks, exactly as under pg@8's queue.
+ */
 export type PostgresBinding =
   | { readonly kind: 'url'; readonly url: string }
   | { readonly kind: 'pgPool'; readonly pool: PoolType }
@@ -117,15 +129,20 @@ class AsyncMutex {
   }
 }
 
-// Serializes BEGIN…COMMIT stream spans per physical client so two concurrent
-// streams on a shared client cannot interleave their transaction boundaries.
-const streamSpanLocks = new WeakMap<object, AsyncMutex>();
+// One query in flight per physical client: pg@9 removes pg@8's internal query
+// queue and throws when a query is sent while another is running, so the
+// driver owns FIFO serialization. Held for exactly as long as the client is
+// busy: a buffered fetch or transaction boundary statement locks only its own
+// await, while a cursor stream span locks BEGIN…COMMIT wholesale (the cursor
+// occupies the connection for its entire lifetime), which also keeps
+// concurrent streams on a shared client from interleaving their wraps.
+const clientQueryLocks = new WeakMap<object, AsyncMutex>();
 
-function acquireStreamSpan(client: object): Promise<() => void> {
-  let mutex = streamSpanLocks.get(client);
+function acquireClientQueryLock(client: object): Promise<() => void> {
+  let mutex = clientQueryLocks.get(client);
   if (mutex === undefined) {
     mutex = new AsyncMutex();
-    streamSpanLocks.set(client, mutex);
+    clientQueryLocks.set(client, mutex);
   }
   return mutex.lock();
 }
@@ -215,6 +232,11 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     const client = await this.acquireClient();
     try {
       if (!this.options.cursorDisabled) {
+        // A cursor occupies the connection for the stream's whole lifetime,
+        // so the lock spans it (BEGIN…COMMIT included); released in `finally`
+        // on completion, stream error, and consumer abandonment — and before
+        // the buffered fallback below, which takes its own per-statement lock.
+        const releaseLock = await acquireClientQueryLock(client);
         try {
           for await (const row of this.streamWithPortalProtection(
             client,
@@ -231,6 +253,8 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
           if (!(cursorError instanceof Error) || isPostgresError(cursorError)) {
             throw cursorError;
           }
+        } finally {
+          releaseLock();
         }
       }
 
@@ -248,10 +272,15 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     const text = `EXPLAIN (FORMAT JSON) ${request.sql}`;
     const client = await this.acquireClient();
     try {
-      const result = await client
-        .query(text, request.params as unknown[] | undefined)
-        .catch(rethrowNormalizedError);
-      return { rows: result.rows as ReadonlyArray<Record<string, unknown>> };
+      const releaseLock = await acquireClientQueryLock(client);
+      try {
+        const result = await client
+          .query(text, request.params as unknown[] | undefined)
+          .catch(rethrowNormalizedError);
+        return { rows: result.rows as ReadonlyArray<Record<string, unknown>> };
+      } finally {
+        releaseLock();
+      }
     } finally {
       await this.releaseClient(client);
     }
@@ -263,10 +292,15 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
   ): Promise<SqlQueryResult<Row>> {
     const client = await this.acquireClient();
     try {
-      const result = await client
-        .query(sql, params as unknown[] | undefined)
-        .catch(rethrowNormalizedError);
-      return result as unknown as SqlQueryResult<Row>;
+      const releaseLock = await acquireClientQueryLock(client);
+      try {
+        const result = await client
+          .query(sql, params as unknown[] | undefined)
+          .catch(rethrowNormalizedError);
+        return result as unknown as SqlQueryResult<Row>;
+      } finally {
+        releaseLock();
+      }
     } finally {
       await this.releaseClient(client);
     }
@@ -292,26 +326,24 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       return;
     }
 
-    const releaseSpan = await acquireStreamSpan(client);
+    // The caller (runQuery) already holds the per-client query lock for the
+    // whole stream span, so the BEGIN…COMMIT wrap cannot interleave with any
+    // other query on this client.
+    await client.query('BEGIN');
+    let streamFailed = false;
     try {
-      await client.query('BEGIN');
-      let streamFailed = false;
-      try {
-        yield* this.executeWithCursor(client, request.sql, request.params, cursorBatchSize, name);
-      } catch (error) {
-        streamFailed = true;
-        throw error;
-      } finally {
-        // Terminating COMMIT runs on every exit — normal completion, stream
-        // error, and consumer abandonment (early `.return()`), the last of
-        // which leaves the generator right after this `finally`, so the COMMIT
-        // and its error handling must live inside it. `commitStreamSpan`
-        // surfaces a failing COMMIT unless the stream itself already threw
-        // (then that error wins).
-        await this.commitStreamSpan(client, streamFailed);
-      }
+      yield* this.executeWithCursor(client, request.sql, request.params, cursorBatchSize, name);
+    } catch (error) {
+      streamFailed = true;
+      throw error;
     } finally {
-      releaseSpan();
+      // Terminating COMMIT runs on every exit — normal completion, stream
+      // error, and consumer abandonment (early `.return()`), the last of
+      // which leaves the generator right after this `finally`, so the COMMIT
+      // and its error handling must live inside it. `commitStreamSpan`
+      // surfaces a failing COMMIT unless the stream itself already threw
+      // (then that error wins).
+      await this.commitStreamSpan(client, streamFailed);
     }
   }
 
@@ -358,6 +390,9 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     }
   }
 
+  // The lock covers only the fetch: once `client.query` resolves the client
+  // is protocol-idle, and holding the lock across the yields would hand its
+  // lifetime to the consumer (deadlocking a nested query inside `for await`).
   private async *executeBuffered(
     client: PoolClient | Client,
     sql: string,
@@ -365,7 +400,13 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     name?: string,
   ): AsyncIterable<Record<string, unknown>> {
     const config: QueryConfig = { name, text: sql, values: (params ?? []) as unknown[] };
-    const result = await client.query(config);
+    const releaseLock = await acquireClientQueryLock(client);
+    let result: PgQueryResult;
+    try {
+      result = await client.query(config);
+    } finally {
+      releaseLock();
+    }
     for (const row of result.rows as Record<string, unknown>[]) {
       yield row;
     }
@@ -403,7 +444,12 @@ class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection 
   }
 
   async beginTransaction(): Promise<SqlTransaction> {
-    await this.#connection.query('BEGIN').catch(rethrowNormalizedError);
+    const releaseLock = await acquireClientQueryLock(this.#connection);
+    try {
+      await this.#connection.query('BEGIN').catch(rethrowNormalizedError);
+    } finally {
+      releaseLock();
+    }
     this.#transactionOpen = true;
     return new PostgresTransactionImpl(this.#connection, this.options, () => {
       this.#transactionOpen = false;
@@ -482,17 +528,21 @@ class PostgresTransactionImpl extends PostgresQueryable implements SqlTransactio
   // silently reopening the portal race on a connection whose transaction state
   // no longer matches reality.
   async commit(): Promise<void> {
+    const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
       await this.#connection.query('COMMIT').catch(rethrowNormalizedError);
     } finally {
+      releaseLock();
       this.#settle();
     }
   }
 
   async rollback(): Promise<void> {
+    const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
       await this.#connection.query('ROLLBACK').catch(rethrowNormalizedError);
     } finally {
+      releaseLock();
       this.#settle();
     }
   }

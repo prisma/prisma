@@ -404,7 +404,7 @@ Each entry in a table's `indexes` array in `contract.json` / `contract.d.ts` now
 - `prefix` — present when the name is toolchain-managed: the physical name is then `<prefix>_<8hex>`, where the suffix is a content hash of the index definition.
 - `columns` — now optional; an index carries either `columns` or an opaque `expression` string, never both.
 
-Newly available in 0.17 (additive — no migration needed): both authoring surfaces accept the full index parameter matrix. PSL `@@index` and TS `constraints.index` take `expression:` (instead of a fields list; requires `name:` or `map:`), `where:` (partial-index predicate), `unique:`, `type:`/`options:` (target-registered access method), and `name:` xor `map:`. Combining `map:` with a SQL body emits the `PN_EXACT_NAME_BODY_COMPARISON` warning at build time — drift detection byte-compares hand-authored text against Postgres's reprint, so prefer `name:` unless the text was captured by `contract infer`. SQLite contracts reject `expression:`/`where:` with `CONTRACT.ARGUMENT_INVALID` (the target does not support them).
+Newly available in 0.17 (additive — no migration needed): RLS policy blocks (`policy_select` etc.) accept `@@map("physical name")` to adopt an existing live policy under its exact name — no wire-name hash, drift detection byte-compares the body against Postgres's reprint (hand-authoring the text warns with `PN_EXACT_NAME_BODY_COMPARISON`), and replacing `@@map` with the plain head later converges via a single `ALTER POLICY … RENAME`. Also newly available: both authoring surfaces accept the full index parameter matrix. PSL `@@index` and TS `constraints.index` take `expression:` (instead of a fields list; requires `name:` or `map:`), `where:` (partial-index predicate), `unique:`, `type:`/`options:` (target-registered access method), and `name:` xor `map:`. Combining `map:` with a SQL body emits the `PN_EXACT_NAME_BODY_COMPARISON` warning at build time — drift detection byte-compares hand-authored text against Postgres's reprint, so prefer `name:` unless the text was captured by `contract infer`. SQLite contracts reject `expression:`/`where:` with `CONTRACT.ARGUMENT_INVALID` (the target does not support them).
 
 A contract emitted by 0.16 fails validation when a 0.17 toolchain loads it — a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)` — and the storage hash moves for every contract that declares indexes. Re-emit:
 
@@ -437,3 +437,11 @@ Under an **additive-only** policy (e.g. `db init`'s class set) the rename pairin
 ### Hard-coded names
 
 If application code, tests, or operational scripts hard-code physical index names (e.g. `user_email_idx`), read the new names from the regenerated `contract.json` — managed names now carry the hash suffix. PSL schemas that must keep a byte-exact legacy name can pin it with `@@index([...], map: "<exact name>")`.
+
+## Incidental dependency and lint-config bumps
+
+Routine dev-dependency bumps and biome `$schema` version alignment in `examples/` (dependabot `dev-deps` group, PR #1058) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
+
+## Incidental dependency bumps in examples
+
+Routine runtime dependency bumps in `examples/` (dependabot `runtime-deps` group, PR #1065) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.

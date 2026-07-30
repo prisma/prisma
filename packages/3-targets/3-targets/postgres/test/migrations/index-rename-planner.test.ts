@@ -1,8 +1,8 @@
 /**
  * Index rename post-pass: a `not-found` and a `not-expected` index on the
  * same table collapse into one `ALTER INDEX … RENAME TO` in two phases.
- * Phase 1 pairs wire-parseable names by content hash (prefix-only rename);
- * phase 2 pairs remaining managed-missing nodes against any-shape extras by
+ * Hash pairing pairs wire-parseable names by content hash (prefix-only
+ * rename); content pairing pairs remaining managed-missing nodes against any-shape extras by
  * content (exact→managed adoption). Multi-candidate groups pair
  * deterministically by sorted name; leftovers proceed as create/drop; under
  * an additive-only policy both phases are skipped and the pairing degrades
@@ -163,7 +163,7 @@ function managedIndex(
   };
 }
 
-describe('phase 1 — hash pairing (prefix-only rename)', () => {
+describe('hash pairing (prefix-only rename)', () => {
   it('plans exactly one ALTER INDEX … RENAME TO — no drop, no create', async () => {
     const contract = buildContract([managedIndex('items_email_lookup', 'ab12cd34')]);
     const schema = actualSchema([
@@ -249,7 +249,7 @@ describe('phase 1 — hash pairing (prefix-only rename)', () => {
   });
 });
 
-describe('phase 2 — content pairing (exact→managed convergence)', () => {
+describe('content pairing (exact→managed convergence)', () => {
   it('pairs a managed-missing fields-only index against an unparseable live name', async () => {
     const contract = buildContract([managedIndex('items_email_idx', 'ab12cd34')]);
     const schema = actualSchema([{ name: 'items_email_idx', columns: ['email'] }]);
@@ -324,7 +324,7 @@ describe('phase 2 — content pairing (exact→managed convergence)', () => {
     ]);
   });
 
-  it('remaining phase-2 pairs consume candidates deterministically by sorted name', async () => {
+  it('remaining content pairs consume candidates deterministically by sorted name', async () => {
     const contract = buildContract([
       managedIndex('a_managed', '11111111'),
       managedIndex('b_managed', '22222222'),

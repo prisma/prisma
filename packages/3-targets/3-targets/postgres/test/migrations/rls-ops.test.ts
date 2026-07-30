@@ -40,6 +40,7 @@ describe('renderCreatePolicySql role-name validation', () => {
       roles,
       using: '(true)',
       permissive: true,
+      withCheck: undefined,
     });
   }
 
@@ -103,6 +104,7 @@ const basePolicy = new PostgresRlsPolicy({
   roles: ['authenticated'],
   using: '(auth.uid() = user_id)',
   permissive: true,
+  withCheck: undefined,
 });
 
 describe('createRlsPolicy op', () => {
@@ -132,6 +134,7 @@ describe('createRlsPolicy op', () => {
       roles: ['authenticated'],
       withCheck: '(auth.uid() = user_id)',
       permissive: true,
+      using: undefined,
     });
     await createRlsPolicy('public', 'profiles', policy, lowerer);
     const ddlNode = received.find((n) => n instanceof PostgresCreatePolicy) as PostgresCreatePolicy;
@@ -144,6 +147,8 @@ describe('createRlsPolicy op', () => {
     const { lowerer, received } = recordingCheckLowerer();
     const policy = new PostgresRlsPolicy({
       ...basePolicy,
+      using: basePolicy.using,
+      withCheck: basePolicy.withCheck,
       name: 'restrict_profiles_ab12cd34',
       prefix: 'restrict_profiles',
       permissive: false,

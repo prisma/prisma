@@ -58,21 +58,23 @@ describe('computeMongoContentHash unresolved-command guard', () => {
   it.each([
     { label: 'null', command: null },
     { label: 'a primitive', command: 'not-a-command' },
-  ])('throws when the command slot holds $label rather than a wire command', async ({
-    command,
-  }) => {
-    const exec: MongoExecutionPlan = {
-      meta: baseMeta,
-      command: blindCast<MongoExecutionPlan['command'], 'non-object command slot for guard tests'>(
-        command,
-      ),
-    };
+  ])(
+    'throws when the command slot holds $label rather than a wire command',
+    async ({ command }) => {
+      const exec: MongoExecutionPlan = {
+        meta: baseMeta,
+        command: blindCast<
+          MongoExecutionPlan['command'],
+          'non-object command slot for guard tests'
+        >(command),
+      };
 
-    await expect(async () => computeMongoContentHash(exec)).rejects.toSatisfy((error) => {
-      if (!isRuntimeError(error)) return false;
-      return error.code === 'RUNTIME.CONTENT_HASH_REQUIRES_RESOLVED_COMMAND';
-    });
-  });
+      await expect(async () => computeMongoContentHash(exec)).rejects.toSatisfy((error) => {
+        if (!isRuntimeError(error)) return false;
+        return error.code === 'RUNTIME.CONTENT_HASH_REQUIRES_RESOLVED_COMMAND';
+      });
+    },
+  );
 
   it('throws the same code when beforeExecute calls ctx.contentHash on the pre-resolve plan', async () => {
     const middleware: MongoMiddleware = {

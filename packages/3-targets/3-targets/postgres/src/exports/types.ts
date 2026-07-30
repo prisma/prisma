@@ -6,6 +6,7 @@ export {
 export {
   PostgresRlsPolicy,
   type PostgresRlsPolicyInput,
+  type PostgresRlsPolicyMigrationInput,
   type RlsPolicyOperation,
 } from '../core/postgres-rls-policy';
 export { PostgresRole, type PostgresRoleInput } from '../core/postgres-role';

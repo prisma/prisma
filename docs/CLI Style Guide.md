@@ -14,7 +14,7 @@ For the architectural view of the CLI (distribution, command surface, init pipel
 ## Command Taxonomy
 - Group commands by domain/plane with noun → verb phrasing.
   - `contract emit`
-  - `migration plan | preflight | apply | status`
+  - `migration plan | check | status`
   - `db verify | sign`
 - Aliases: we will add flat verb aliases later for common flows, but the canonical shape is domain‑first.
 - No colon (`db:sign`) forms; prefer space‑separated subcommands. Optional short group aliases (e.g., `db`) are fine; avoid long forms (e.g., `database`).
@@ -61,7 +61,7 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 - Env toggles: `PRISMA_NEXT_DEBUG=1` ≅ `-v`, `PRISMA_NEXT_TRACE=1` ≅ `--trace`.
 - CLI flags take precedence over env vars.
 
-> **Future**: When streaming commands (`preflight`, `apply`) are implemented, `--json` may auto‑select NDJSON for those commands, and `--json=object|ndjson` override syntax can be re‑introduced.
+> **Future**: If long-running streaming commands are introduced, `--json` may auto‑select NDJSON for those commands, and `--json=object|ndjson` override syntax can be re‑introduced.
 
 ## Help & Usage
 - **Styled Help Output**: Help output uses the same styled format as normal command output for consistency:
@@ -95,7 +95,7 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 - Exit code: a structured failure exits `2` (precondition; see [Exit Codes](#exit-codes)), except a user-declined prompt which exits `3`. Only an internal bug or uncaught error exits `1`.
 - **Missing-input failures**: when a command fails because required flags are missing in non-interactive mode, the envelope MUST set `meta.missingFlags: string[]` listing each missing flag's long form (e.g. `["--target", "--authoring"]`) so callers can react programmatically. The `fix:` text SHOULD list the same flags in canonical CLI form, copy-pasteable.
 
-## Plans & Preflights (Rendering)
+## Plans (Rendering)
 - Summary header: target, storageHash/profileHash, op count, affected tables, estimated rows.
 - Per‑op one‑liners: verb + table + key columns.
 - SQL visibility: hidden by default; show with `--show-sql` or at `-v`. Truncate to 10 lines/op; override via `--max-sql-lines <n>`.
@@ -211,7 +211,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 - **Each command's `--json` success shape MUST be defined as a schema** (arktype or equivalent) co-located with the command (e.g. `src/commands/<command>/output.ts`) and exported on the package's public surface, so downstream consumers can validate the output. The error envelope schema is shared (see [Errors](#errors)). Hand-writing JSON without a co-located schema is not allowed.
 - Success and error documents on the same command SHOULD share a discriminator field (typically `ok: boolean`) so consumers can branch without inspecting the structure.
 
-> **Future**: When streaming commands are implemented, NDJSON event streams (`--json=ndjson`) will be supported for long-running commands like `migrate` and `migration preflight`.
+> **Future**: When streaming commands are implemented, NDJSON event streams (`--json=ndjson`) will be supported for long-running commands like `migrate`.
 
 ## Database Commands
 - `db verify` (canonical):
@@ -252,7 +252,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 - Global flags: `--json`, `-v/--verbose`, `--trace`, `-q/--quiet`, `--interactive`, `--no-interactive`, `-y/--yes`, `--color/--no-color`, `--config <path>`, `--db <url>`.
 - Per‑command examples:
   - `contract emit`: `--contract <path>`, `--out <dir>`, `--show-sql`, `--show-diff`.
-  - `migration plan/preflight/apply`: `--out <dir>`, `--show-sql`, `--show-diff`, `--max-sql-lines <n>`, `--yes`.
+  - `migration plan`: `--out <dir>`, `--show-sql`, `--show-diff`, `--max-sql-lines <n>`, `--yes`.
   - `db sign`: `--include-contract-json`, `--app-tag`, `--canonical-version`, `--force`, `--dry-run`.
 
 ## Rationale

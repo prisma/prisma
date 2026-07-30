@@ -45,6 +45,7 @@ const policy = new PostgresRlsPolicy({
   operation: 'select',
   roles: ['public'],
   using: POLICY_USING,
+  withCheck: undefined,
   permissive: true,
 });
 

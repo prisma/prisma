@@ -23,6 +23,12 @@ export interface ControlPolicySubject {
   readonly entityKind?: string;
   readonly entityName?: string;
   readonly column?: string;
+  /**
+   * Names the RLS policy when the suppressed thing is a policy-level unit
+   * on the subject's table (mirrors `column`) — the report must say which
+   * policy, not just which table.
+   */
+  readonly rlsPolicy?: string;
   readonly explicitNodeControlPolicy?: ControlPolicy;
   /**
    * Whether the call creates a whole, previously-absent top-level storage
@@ -269,5 +275,5 @@ export function partitionIssuesByControlPolicy<TIssue>(options: {
 }
 
 function subjectKey(subject: ControlPolicySubject): string {
-  return `${subject.namespaceId}\u0000${subject.entityKind ?? ''}\u0000${subject.entityName ?? ''}`;
+  return `${subject.namespaceId}\u0000${subject.entityKind ?? ''}\u0000${subject.entityName ?? ''}\u0000${subject.rlsPolicy ?? ''}`;
 }

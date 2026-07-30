@@ -1,9 +1,10 @@
+import type { AuthoringWarning } from '@prisma-next/framework-components/authoring';
+import { flushAuthoringWarnings } from '@prisma-next/framework-components/authoring';
 import { computeIndexContentHash } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it, vi } from 'vitest';
 import {
   type AuthoredIndexInput,
-  type ExactNameBodyWarning,
-  flushExactNameBodyWarnings,
+  exactNameBodyWarning,
   lowerAuthoredIndex as lowerAuthoredIndexStrict,
 } from '../src/index-naming';
 
@@ -21,7 +22,7 @@ type LooseAuthoredIndexInput = {
 function lowerAuthoredIndex(
   tableName: string,
   authored: LooseAuthoredIndexInput,
-  warnings?: { push(warning: ExactNameBodyWarning): void },
+  warnings?: { push(warning: AuthoringWarning): void },
 ) {
   return lowerAuthoredIndexStrict(tableName, authored as AuthoredIndexInput, warnings);
 }
@@ -199,7 +200,7 @@ describe('lowerAuthoredIndex — cross-field guards', () => {
 
 describe('lowerAuthoredIndex — exact-name body warning collection', () => {
   it('pushes into a provided collector instead of emitting', () => {
-    const collected: ExactNameBodyWarning[] = [];
+    const collected: AuthoringWarning[] = [];
     const warnings = captureWarnings(() => {
       lowerAuthoredIndex(
         'user',
@@ -208,11 +209,16 @@ describe('lowerAuthoredIndex — exact-name body warning collection', () => {
       );
     });
     expect(warnings).toEqual([]);
-    expect(collected).toEqual([{ subject: 'index', exactName: 'users_email_eq' }]);
+    expect(collected).toEqual([
+      expect.objectContaining({
+        code: 'PN_EXACT_NAME_BODY_COMPARISON',
+        item: 'index "users_email_eq"',
+      }),
+    ]);
   });
 
   it('a fields-only map pushes nothing into the collector', () => {
-    const collected: ExactNameBodyWarning[] = [];
+    const collected: AuthoringWarning[] = [];
     lowerAuthoredIndex(
       'user',
       { columns: ['email'], map: 'users_email_exact' },
@@ -222,17 +228,15 @@ describe('lowerAuthoredIndex — exact-name body warning collection', () => {
   });
 });
 
-describe('flushExactNameBodyWarnings — threshold batching', () => {
-  const item = (name: string): ExactNameBodyWarning => ({ subject: 'index', exactName: name });
+describe('flushAuthoringWarnings over exact-name body warnings — threshold batching', () => {
+  const item = (name: string): AuthoringWarning => exactNameBodyWarning('index', name);
 
   it('flushes nothing for an empty collection', () => {
-    expect(captureWarnings(() => flushExactNameBodyWarnings([]))).toEqual([]);
+    expect(captureWarnings(() => flushAuthoringWarnings([]))).toEqual([]);
   });
 
   it('emits one warning per item up to the threshold, each naming its index', () => {
-    const warnings = captureWarnings(() =>
-      flushExactNameBodyWarnings([item('idx_a'), item('idx_b')]),
-    );
+    const warnings = captureWarnings(() => flushAuthoringWarnings([item('idx_a'), item('idx_b')]));
     expect(warnings).toHaveLength(2);
     expect(warnings[0]?.message).toContain('index "idx_a" uses map: with a SQL body.');
     expect(warnings[1]?.message).toContain('index "idx_b" uses map: with a SQL body.');
@@ -240,25 +244,41 @@ describe('flushExactNameBodyWarnings — threshold batching', () => {
   });
 
   it('exactly the threshold count (5) still emits per-item warnings', () => {
-    const items = ['a', 'b', 'c', 'd', 'e'].map((n) => item(`idx_${n}`));
-    const warnings = captureWarnings(() => flushExactNameBodyWarnings(items));
+    const names = ['a', 'b', 'c', 'd', 'e'].map((n) => `idx_${n}`);
+    const warnings = captureWarnings(() => flushAuthoringWarnings(names.map(item)));
     expect(warnings).toHaveLength(5);
-    for (const [i, entry] of items.entries()) {
-      expect(warnings[i]?.message).toContain(
-        `index "${entry.exactName}" uses map: with a SQL body.`,
-      );
+    for (const [i, name] of names.entries()) {
+      expect(warnings[i]?.message).toContain(`index "${name}" uses map: with a SQL body.`);
     }
   });
 
   it('emits one summary with the name list above the threshold', () => {
-    const items = ['a', 'b', 'c', 'd', 'e', 'f'].map((n) => item(`idx_${n}`));
-    const warnings = captureWarnings(() => flushExactNameBodyWarnings(items));
+    const names = ['a', 'b', 'c', 'd', 'e', 'f'].map((n) => `idx_${n}`);
+    const warnings = captureWarnings(() => flushAuthoringWarnings(names.map(item)));
     expect(warnings).toHaveLength(1);
     expect(warnings[0]?.message).toContain('6 objects use map: with a SQL body.');
-    for (const entry of items) {
-      expect(warnings[0]?.message).toContain(`  - index "${entry.exactName}"`);
+    for (const name of names) {
+      expect(warnings[0]?.message).toContain(`  - index "${name}"`);
     }
     expect(warnings[0]?.options).toEqual({ code: 'PN_EXACT_NAME_BODY_COMPARISON' });
+  });
+
+  it('a warning of a different code never batches into the exact-name summary', () => {
+    const other: AuthoringWarning = {
+      code: 'PN_SOME_OTHER_ADVISORY',
+      message: 'some other advisory message',
+      item: 'thing "x"',
+      summary: 'things need attention.',
+    };
+    const names = ['a', 'b', 'c', 'd', 'e', 'f'].map((n) => `idx_${n}`);
+    const warnings = captureWarnings(() => flushAuthoringWarnings([...names.map(item), other]));
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]?.message).toContain('6 objects use map: with a SQL body.');
+    expect(warnings[0]?.message).not.toContain('thing "x"');
+    expect(warnings[1]).toEqual({
+      message: 'some other advisory message',
+      options: { code: 'PN_SOME_OTHER_ADVISORY' },
+    });
   });
 });
 
@@ -278,6 +298,45 @@ describe('lowerAuthoredIndex — exact-name body warning', () => {
     expect(warnings).toEqual([
       { message: expectedMessage, options: { code: 'PN_EXACT_NAME_BODY_COMPARISON' } },
     ]);
+  });
+
+  it('the policy subject speaks policy vocabulary end to end — @@map named, drop-@@map remediation', () => {
+    const warning = exactNameBodyWarning('policy', 'Tenant members can read');
+    expect(warning.message).toBe(
+      'policy "Tenant members can read" uses @@map with a SQL body. Drift detection compares ' +
+        "the authored SQL text byte-for-byte against Postgres's reprinted form, which is only " +
+        'reliable when the text was captured by contract infer. For hand-authored definitions, ' +
+        "drop @@map and let the policy block's head name the policy; to migrate an adopted " +
+        'policy to managed naming, remove @@map (keeping the body text unchanged) and apply ' +
+        'the resulting rename migration.',
+    );
+    expect(warning.summary).toBe(
+      'objects use @@map with a SQL body. Drift detection compares ' +
+        "the authored SQL text byte-for-byte against Postgres's reprinted form, which is only " +
+        'reliable when the text was captured by contract infer. For hand-authored definitions, ' +
+        "drop @@map and let the policy block's head name the policy; to migrate an adopted " +
+        'policy to managed naming, remove @@map (keeping the body text unchanged) and apply ' +
+        'the resulting rename migration.',
+    );
+  });
+
+  it('same code, different summary — index and policy warnings never share a batch', () => {
+    const warnings = captureWarnings(() =>
+      flushAuthoringWarnings([
+        ...['a', 'b', 'c', 'd'].map((n) => exactNameBodyWarning('index', `idx_${n}`)),
+        exactNameBodyWarning('policy', 'p one'),
+        exactNameBodyWarning('policy', 'p two'),
+      ]),
+    );
+    // Six same-code warnings, but two summaries: neither group crosses the
+    // threshold, so every warning itemizes with its own subject's wording.
+    expect(warnings).toHaveLength(6);
+    for (const w of warnings.slice(0, 4)) {
+      expect(w.message).toContain('uses map: with a SQL body.');
+    }
+    for (const w of warnings.slice(4)) {
+      expect(w.message).toContain('uses @@map with a SQL body.');
+    }
   });
 
   it('fires for map + where', () => {

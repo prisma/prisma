@@ -1,0 +1,27 @@
+---
+description: Internal input types use required keys typed `| undefined`, not optional keys
+globs: ["packages/**/*.ts"]
+alwaysApply: false
+---
+
+# Required keys typed `| undefined` for internal input types
+
+On internal construction-input types (IR node inputs, producer→builder handoff types), a value that may legitimately be absent is a **required key typed `| undefined`**, not an optional key:
+
+```ts
+// Do
+readonly withCheck: string | undefined;
+
+// Don't
+readonly withCheck?: string;
+```
+
+Every construction site then states the absence explicitly (`withCheck: undefined`) instead of silently omitting the key — an omitted field is a compile error, so a new field can never be silently skipped by an existing caller.
+
+## Scope
+
+- Applies to internal inputs: `*IRInput`, `*SchemaNodeInput`, entity constructor inputs, producer→builder IR types.
+- Does NOT apply to user-facing authoring options or machine-rendered literals (e.g. generated migration source), where omission is the natural spelling — type those with optional keys.
+- Do not restate this convention in doc comments on each type; the declaration (`x: T | undefined`) already says it.
+
+Related: `use-if-defined.mdc` (spreading optional values into such objects).

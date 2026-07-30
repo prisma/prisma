@@ -109,19 +109,20 @@ describe('snapshot-read shape scan — checked-in on-disk contracts deserialize 
     return;
   }
 
-  it.each(
-    files.map((f) => [relative(REPO_ROOT, f), f]),
-  )('validates %s through the family ContractSerializer', (_label, path) => {
-    const raw = JSON.parse(readFileSync(path, 'utf-8'));
-    // Some checked-in snapshots are SQL-family contracts shaped
-    // for non-Postgres targets (sqlite, mongo, etc.); the
-    // Postgres serializer would reject those at the
-    // structural-target check. Skip those — the test pins
-    // family-shared structural integrity for Postgres-shaped
-    // snapshots, which is the codepath TML-2536 broke. A
-    // sibling target-specific test would do the analogous
-    // coverage for Sqlite / Mongo.
-    if (raw?.target !== 'postgres') return;
-    expect(() => serializer.deserializeContract(raw)).not.toThrow();
-  });
+  it.each(files.map((f) => [relative(REPO_ROOT, f), f]))(
+    'validates %s through the family ContractSerializer',
+    (_label, path) => {
+      const raw = JSON.parse(readFileSync(path, 'utf-8'));
+      // Some checked-in snapshots are SQL-family contracts shaped
+      // for non-Postgres targets (sqlite, mongo, etc.); the
+      // Postgres serializer would reject those at the
+      // structural-target check. Skip those — the test pins
+      // family-shared structural integrity for Postgres-shaped
+      // snapshots, which is the codepath TML-2536 broke. A
+      // sibling target-specific test would do the analogous
+      // coverage for Sqlite / Mongo.
+      if (raw?.target !== 'postgres') return;
+      expect(() => serializer.deserializeContract(raw)).not.toThrow();
+    },
+  );
 });

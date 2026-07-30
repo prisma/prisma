@@ -128,7 +128,10 @@ function formatSuppressionSubjectLabel(
   if (subject === undefined) return 'unknown';
   const ddlSchema = ddlSchemaNameForNamespace(contract, subject.namespaceId);
   if (subject.entityKind !== undefined && subject.entityName !== undefined) {
-    return `${subject.entityKind} "${ddlSchema}.${subject.entityName}"`;
+    const entityLabel = `${subject.entityKind} "${ddlSchema}.${subject.entityName}"`;
+    return subject.rlsPolicy !== undefined
+      ? `RLS policy "${subject.rlsPolicy}" on ${entityLabel}`
+      : entityLabel;
   }
   return `namespace "${ddlSchema}"`;
 }
@@ -168,10 +171,12 @@ export function renderPostgresSuppression(
       ...ifDefined('entityKind', subject?.entityKind),
       ...ifDefined('entityName', subject?.entityName),
       ...ifDefined('column', subject?.column),
+      ...ifDefined('rlsPolicy', subject?.rlsPolicy),
     },
     meta: {
       controlPolicy: record.policy,
       ...ifDefined('factoryName', record.factoryName),
+      ...ifDefined('rlsPolicy', subject?.rlsPolicy),
       ...ifDefined('declaredControlPolicy', subject?.explicitNodeControlPolicy),
     },
   };

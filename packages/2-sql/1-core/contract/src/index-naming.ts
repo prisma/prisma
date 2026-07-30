@@ -1,3 +1,8 @@
+import type {
+  AuthoringWarning,
+  AuthoringWarningSink,
+} from '@prisma-next/framework-components/authoring';
+import { flushAuthoringWarnings } from '@prisma-next/framework-components/authoring';
 import {
   assertWireNamePrefixLength,
   computeIndexContentHash,
@@ -31,50 +36,50 @@ export type AuthoredIndexInput = AuthoredIndexElements & {
   readonly options: Record<string, unknown> | undefined;
 };
 
-/**
- * One exact-name warning hit: a `map:`-named object carrying a
- * hand-authorable SQL body. `subject` is `index` here and `policy` when
- * policies adopt the same warning.
- */
-export interface ExactNameBodyWarning {
-  readonly subject: 'index' | 'policy';
-  readonly exactName: string;
-}
+const EXACT_NAME_BODY_PREAMBLE =
+  "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer.";
 
-const EXACT_NAME_BODY_GUIDANCE =
-  "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer. For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.";
+/**
+ * Per-subject remediation: an index moves to managed naming via `name:`;
+ * a policy has no such parameter — dropping `@@map` makes the block's head
+ * the managed prefix.
+ */
+const EXACT_NAME_BODY_REMEDIATION = {
+  index:
+    'For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
+  policy:
+    "For hand-authored definitions, drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
+} as const;
+
+/** What the user actually wrote, per subject: index `map:`, policy `@@map`. */
+const EXACT_NAME_FEATURE = {
+  index: 'map:',
+  policy: '@@map',
+} as const;
 
 const EXACT_NAME_BODY_WARNING_CODE = 'PN_EXACT_NAME_BODY_COMPARISON';
 
-const WARNING_BATCH_THRESHOLD = 5;
-
-function formatExactNameBodyWarning(warning: ExactNameBodyWarning): string {
-  return `${warning.subject} "${warning.exactName}" uses map: with a SQL body. ${EXACT_NAME_BODY_GUIDANCE}`;
-}
-
 /**
- * Flushes collected exact-name-body warnings once per contract build: per-item warnings
- * (each naming its object) up to the threshold, one summary with the name
- * list above it — an adopted contract re-emit (which carries `map:` + body
- * for every adopted object once infer emits them) must not wall-of-text.
+ * Mints the exact-name body-comparison warning for a `map:`-named object
+ * carrying a hand-authorable SQL body — fully formed, so the transport and
+ * the flush stay generic. `subject` is `index` here and `policy` where
+ * policies mint the same warning; the feature name and the remediation are
+ * subject-specific end to end, so a batched summary (grouped on
+ * code + summary) is true of every object it covers.
  */
-export function flushExactNameBodyWarnings(warnings: readonly ExactNameBodyWarning[]): void {
-  if (warnings.length === 0) {
-    return;
-  }
-  if (warnings.length <= WARNING_BATCH_THRESHOLD) {
-    for (const warning of warnings) {
-      process.emitWarning(formatExactNameBodyWarning(warning), {
-        code: EXACT_NAME_BODY_WARNING_CODE,
-      });
-    }
-    return;
-  }
-  process.emitWarning(
-    `${warnings.length} objects use map: with a SQL body. ${EXACT_NAME_BODY_GUIDANCE}\n` +
-      warnings.map((warning) => `  - ${warning.subject} "${warning.exactName}"`).join('\n'),
-    { code: EXACT_NAME_BODY_WARNING_CODE },
-  );
+export function exactNameBodyWarning(
+  subject: 'index' | 'policy',
+  exactName: string,
+): AuthoringWarning {
+  const item = `${subject} "${exactName}"`;
+  const feature = EXACT_NAME_FEATURE[subject];
+  const tail = `with a SQL body. ${EXACT_NAME_BODY_PREAMBLE} ${EXACT_NAME_BODY_REMEDIATION[subject]}`;
+  return {
+    code: EXACT_NAME_BODY_WARNING_CODE,
+    message: `${item} uses ${feature} ${tail}`,
+    item,
+    summary: `objects use ${feature} ${tail}`,
+  };
 }
 
 /**
@@ -87,7 +92,7 @@ export function flushExactNameBodyWarnings(warnings: readonly ExactNameBodyWarni
 export function lowerAuthoredIndex(
   tableName: string,
   authored: AuthoredIndexInput,
-  warnings?: { push(warning: ExactNameBodyWarning): void },
+  warnings?: AuthoringWarningSink,
 ): IndexInput {
   if ((authored.columns === undefined) === (authored.expression === undefined)) {
     throw contractError(
@@ -116,11 +121,11 @@ export function lowerAuthoredIndex(
 
   if (authored.map !== undefined) {
     if (authored.expression !== undefined || authored.where !== undefined) {
-      const warning: ExactNameBodyWarning = { subject: 'index', exactName: authored.map };
+      const warning: AuthoringWarning = exactNameBodyWarning('index', authored.map);
       if (warnings !== undefined) {
         warnings.push(warning);
       } else {
-        flushExactNameBodyWarnings([warning]);
+        flushAuthoringWarnings([warning]);
       }
     }
     const carried = {

@@ -135,21 +135,24 @@ describe('expression helpers — named-args', () => {
     ['convert', '$convert', { input: d, to: s }],
     ['getField', '$getField', { field: s, input: d }],
     ['setField', '$setField', { field: s, input: d, value: d }],
-  ] as const)('fn.%s produces operator %s with record args containing correct keys', (helperName, expectedOp, args) => {
-    // narrowed signatures make the union incompatible with a generic Record parameter; cast through unknown
-    const helper = fn[helperName] as unknown as (
-      a: Record<string, TypedAggExpr<DocField>>,
-    ) => TypedAggExpr<DocField>;
-    const result = helper(args);
-    expect(result.node).toBeInstanceOf(MongoAggOperator);
-    const op = result.node as MongoAggOperator;
-    expect(op.op).toBe(expectedOp);
-    expect(isRecordArgs(op.args)).toBe(true);
-    const recordArgs = op.args as Readonly<Record<string, unknown>>;
-    for (const key of Object.keys(args)) {
-      expect(recordArgs).toHaveProperty(key);
-    }
-  });
+  ] as const)(
+    'fn.%s produces operator %s with record args containing correct keys',
+    (helperName, expectedOp, args) => {
+      // narrowed signatures make the union incompatible with a generic Record parameter; cast through unknown
+      const helper = fn[helperName] as unknown as (
+        a: Record<string, TypedAggExpr<DocField>>,
+      ) => TypedAggExpr<DocField>;
+      const result = helper(args);
+      expect(result.node).toBeInstanceOf(MongoAggOperator);
+      const op = result.node as MongoAggOperator;
+      expect(op.op).toBe(expectedOp);
+      expect(isRecordArgs(op.args)).toBe(true);
+      const recordArgs = op.args as Readonly<Record<string, unknown>>;
+      for (const key of Object.keys(args)) {
+        expect(recordArgs).toHaveProperty(key);
+      }
+    },
+  );
 
   it('fn.zip produces $zip with inputs as array of expressions', () => {
     const result = fn.zip({ inputs: [arr, arr] });

@@ -147,6 +147,7 @@ namespace public {
       permissive: true,
       roles,
       using,
+      withCheck: undefined,
     });
 
     expect(policy.operation).toBe('select');

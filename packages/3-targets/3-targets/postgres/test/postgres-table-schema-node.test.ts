@@ -11,6 +11,8 @@ const basePolicy = new PostgresPolicySchemaNode({
   roles: ['authenticated'],
   using: '(auth.uid() = user_id)',
   permissive: true,
+  withCheck: undefined,
+  dependsOn: undefined,
 });
 
 const tableInput = {

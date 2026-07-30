@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 import * as clack from '@clack/prompts';
+import { docsUrlFor } from '@prisma-next/utils/structured-error';
 import { basename, dirname, isAbsolute, join } from 'pathe';
 import { CliStructuredError } from '../../utils/cli-errors';
 import { formatErrorJson, formatErrorOutput } from '../../utils/formatters/errors';
@@ -561,7 +562,7 @@ export async function runInit(
         {
           why: `The success document failed schema validation: ${String(validated)}`,
           fix: 'This is a bug in prisma-next. Please report it with the full `-v` output.',
-          docsUrl: 'https://prisma-next.dev/docs/cli/init',
+          docsUrl: docsUrlFor('CLI.INIT_INVALID_OUTPUT_DOCUMENT'),
         },
       ),
     );

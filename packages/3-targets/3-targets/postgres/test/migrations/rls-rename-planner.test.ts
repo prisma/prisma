@@ -38,15 +38,17 @@ const ALL_CLASSES_POLICY = {
 const NO_DESTRUCTIVE_POLICY = { allowedOperationClasses: ['additive', 'widening'] as const };
 const ADDITIVE_ONLY_POLICY = { allowedOperationClasses: ['additive'] as const };
 
-function policyNamed(name: string): PostgresRlsPolicy {
+function policyNamed(name: string, overrides?: { readonly using?: string }): PostgresRlsPolicy {
+  const prefix = /_[0-9a-f]{8}$/.test(name) ? name.replace(/_[0-9a-f]{8}$/, '') : undefined;
   return new PostgresRlsPolicy({
     name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    prefix,
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
     roles: ['authenticated'],
-    using: '(auth.uid() = user_id)',
+    using: overrides?.using ?? '(auth.uid() = user_id)',
+    withCheck: undefined,
     permissive: true,
   });
 }
@@ -123,8 +125,10 @@ function actualSchema(policies: readonly PostgresRlsPolicy[]): PostgresDatabaseS
                   namespaceId: 'public',
                   operation: policy.operation,
                   roles: [...policy.roles],
-                  ...(policy.using !== undefined ? { using: policy.using } : {}),
+                  using: policy.using,
                   permissive: policy.permissive,
+                  withCheck: undefined,
+                  dependsOn: undefined,
                 }),
             ),
           }),
@@ -158,6 +162,27 @@ async function planOpIds(
   return ops.map((op) => op.id);
 }
 
+async function planOpLabels(
+  contract: Contract<SqlStorage>,
+  schema: PostgresDatabaseSchemaNode,
+  policy: { readonly allowedOperationClasses: readonly MigrationOperationClass[] },
+): Promise<readonly string[]> {
+  const planner = createPostgresMigrationPlanner(stubLowerer);
+  const result = planner.plan({
+    contract,
+    schema,
+    policy: { allowedOperationClasses: [...policy.allowedOperationClasses] },
+    fromContract: null,
+    frameworkComponents: [],
+    spaceId: APP_SPACE_ID,
+    snapshotsImportPath: '../../snapshots',
+  });
+  expect(result.kind).toBe('success');
+  if (result.kind !== 'success') return [];
+  const ops = await Promise.all(result.plan.operations);
+  return ops.map((op) => op.label);
+}
+
 describe('prefix-only rename pairing', () => {
   it('plans exactly one ALTER POLICY … RENAME TO — no drop, no create', async () => {
     const contract = buildContract([policyNamed('owner_read_ab12cd34')]);
@@ -188,8 +213,10 @@ describe('prefix-only rename pairing', () => {
     expect(opIds).toEqual([`rlsPolicy.public.${TABLE_NAME}.owner_read_ab12cd34`]);
   });
 
-  it('never pairs a content edit: same prefix, different hash stays create + drop', async () => {
-    const contract = buildContract([policyNamed('p_read_11111111')]);
+  it('never pairs a content edit: same prefix, different hash, different content stays create + drop', async () => {
+    const contract = buildContract([
+      policyNamed('p_read_11111111', { using: '(auth.uid() = owner_id)' }),
+    ]);
     const schema = actualSchema([policyNamed('p_read_00000000')]);
 
     const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
@@ -199,8 +226,10 @@ describe('prefix-only rename pairing', () => {
     ]);
   });
 
-  it('never pairs an unparseable live policy name', async () => {
-    const contract = buildContract([policyNamed('p_read_ab12cd34')]);
+  it('hash pairing never pairs an unparseable live name; different content stays create + drop', async () => {
+    const contract = buildContract([
+      policyNamed('p_read_ab12cd34', { using: '(auth.uid() = owner_id)' }),
+    ]);
     const schema = actualSchema([policyNamed('handwritten_policy')]);
 
     const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
@@ -241,6 +270,79 @@ describe('multi-candidate hash groups', () => {
       `rlsPolicy.public.${TABLE_NAME}.delta_read_ab12cd34.rename`,
       `rlsPolicy.public.${TABLE_NAME}.gamma_read_ab12cd34.drop`,
     ]);
+  });
+});
+
+describe('content pairing (exact→managed convergence)', () => {
+  function exactPolicy(name: string, overrides?: { readonly using?: string }): PostgresRlsPolicy {
+    return new PostgresRlsPolicy({
+      name,
+      tableName: TABLE_NAME,
+      namespaceId: 'public',
+      operation: 'select',
+      roles: ['authenticated'],
+      using: overrides?.using ?? '(auth.uid() = user_id)',
+      withCheck: undefined,
+      permissive: true,
+      prefix: undefined,
+    });
+  }
+
+  it('pairs a managed-missing policy against an unparseable live name by content', async () => {
+    const contract = buildContract([policyNamed('p_read_ab12cd34')]);
+    const schema = actualSchema([exactPolicy('Tenant members can read')]);
+
+    const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
+    expect(opIds).toEqual([`rlsPolicy.public.${TABLE_NAME}.Tenant members can read.rename`]);
+  });
+
+  it('a byte-different body does not pair — create + drop', async () => {
+    const contract = buildContract([policyNamed('p_read_ab12cd34')]);
+    const schema = actualSchema([
+      exactPolicy('Tenant members can read', { using: '((auth.uid() = user_id))' }),
+    ]);
+
+    const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
+    expect(opIds).toEqual([
+      `rlsPolicy.public.${TABLE_NAME}.p_read_ab12cd34`,
+      `rlsPolicy.public.${TABLE_NAME}.Tenant members can read.drop`,
+    ]);
+  });
+
+  it('an exact-named missing policy never content-pairs (managed only)', async () => {
+    const contract = buildContract([exactPolicy('adopted exact name')]);
+    const schema = actualSchema([exactPolicy('legacy live name')]);
+
+    const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
+    expect(opIds).toEqual([
+      `rlsPolicy.public.${TABLE_NAME}.adopted exact name`,
+      `rlsPolicy.public.${TABLE_NAME}.legacy live name.drop`,
+    ]);
+  });
+
+  it('remaining content pairs consume candidates deterministically by sorted name', async () => {
+    const contract = buildContract([
+      policyNamed('a_managed_11111111'),
+      policyNamed('b_managed_22222222'),
+    ]);
+    const schema = actualSchema([exactPolicy('z legacy'), exactPolicy('y legacy')]);
+
+    // Missing sorted: a_managed_…, b_managed_…; candidates sorted: y legacy, z legacy.
+    // Labels pin the rename TARGETS, not just the source-keyed op ids — the
+    // reversed pairing would emit the same two ids.
+    const labels = await planOpLabels(contract, schema, ALL_CLASSES_POLICY);
+    expect(labels).toEqual([
+      `Rename RLS policy "y legacy" to "a_managed_11111111" on "${TABLE_NAME}"`,
+      `Rename RLS policy "z legacy" to "b_managed_22222222" on "${TABLE_NAME}"`,
+    ]);
+  });
+
+  it('degrades to a bare create under an additive-only policy — the old policy survives until a destructive drop', async () => {
+    const contract = buildContract([policyNamed('p_read_ab12cd34')]);
+    const schema = actualSchema([exactPolicy('Tenant members can read')]);
+
+    const opIds = await planOpIds(contract, schema, ADDITIVE_ONLY_POLICY);
+    expect(opIds).toEqual([`rlsPolicy.public.${TABLE_NAME}.p_read_ab12cd34`]);
   });
 });
 

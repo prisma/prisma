@@ -39,14 +39,15 @@ describe('contract roles — __unbound__ slot matches SupabaseRole.values', () =
     expect(Object.keys(roleEntries).sort()).toEqual([...SupabaseRole.values].sort());
   });
 
-  it.each(
-    SupabaseRole.values,
-  )('role "%s" is control:external, bound to __unbound__', (roleName) => {
-    expect(roleEntries[roleName]).toEqual({
-      kind: 'role',
-      name: roleName,
-      namespaceId: '__unbound__',
-      control: 'external',
-    });
-  });
+  it.each(SupabaseRole.values)(
+    'role "%s" is control:external, bound to __unbound__',
+    (roleName) => {
+      expect(roleEntries[roleName]).toEqual({
+        kind: 'role',
+        name: roleName,
+        namespaceId: '__unbound__',
+        control: 'external',
+      });
+    },
+  );
 });

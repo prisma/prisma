@@ -8,7 +8,7 @@ Related: [ADR 004 — Storage Hash vs Profile Hash](ADR%20004%20-%20Storage%20Ha
 
 Postgres-normalized database objects — starting with RLS policies — carry **content-addressed wire names**. The name a user authors is a *prefix*; the Postgres target appends a short hash of the object's canonical content at lowering time. Equivalence is then a wire-name match, not a body comparison.
 
-Secondary indexes have since adopted the same scheme (the functional-indexes work): the format/parse helpers and the minimal SQL-body normalizer are family-shared in `@prisma-next/sql-schema-ir/naming`, and an index's hash tuple covers its element list (column tuple or opaque expression), partial-index predicate, uniqueness, access method, and options. The RLS-specific sections below are the original decision record; where they say "policy", the mechanism now serves policies and indexes alike.
+Secondary indexes have since adopted the same scheme (the functional-indexes work): the format/parse helpers and the minimal SQL-body normalizer are family-shared in `@prisma-next/sql-schema-ir/naming`, and an index's hash tuple covers its element list (column tuple or opaque expression), partial-index predicate, uniqueness, access method, and options. The RLS-specific sections below are the original decision record; where they say "policy", the mechanism now serves policies and indexes alike. Both kinds have since also gained an **exact-named** mode (index `map:`, policy `@@map`) for adopting live objects verbatim: an exact name carries no prefix and no hash, and equivalence for it is content comparison (bodies byte-for-byte against the Postgres reprint) rather than the wire-name identity described below — the sections below now describe the managed mode.
 
 The format is:
 

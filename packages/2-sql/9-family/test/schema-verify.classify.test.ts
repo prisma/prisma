@@ -98,15 +98,13 @@ describe('strict gating keys on subject granularity', () => {
     });
   }
 
-  it.each([
-    ['namespace'],
-    ['entity'],
-    ['field'],
-    ['auxiliary'],
-  ] as const)('a not-expected %s extra is strict-only', (granularity) => {
-    expect(verdictFor(granularity, true).failures).toHaveLength(1);
-    expect(verdictFor(granularity, false).failures).toHaveLength(0);
-  });
+  it.each([['namespace'], ['entity'], ['field'], ['auxiliary']] as const)(
+    'a not-expected %s extra is strict-only',
+    (granularity) => {
+      expect(verdictFor(granularity, true).failures).toHaveLength(1);
+      expect(verdictFor(granularity, false).failures).toHaveLength(0);
+    },
+  );
 
   it('a not-expected structural extra fails in both modes', () => {
     expect(verdictFor('structural', true).failures).toHaveLength(1);

@@ -82,6 +82,28 @@ describe.sequential('RLS introspection', () => {
     expect(policy!.permissive).toBe(true);
   });
 
+  it('stamps prefix undefined for a live policy whose name is not wire-shaped', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver!.query('CREATE TABLE posts (id int PRIMARY KEY, user_id int NOT NULL)');
+    await driver!.query('ALTER TABLE posts ENABLE ROW LEVEL SECURITY');
+    await driver!.query(
+      `CREATE POLICY "Tenant members can read" ON posts
+         AS PERMISSIVE FOR SELECT TO PUBLIC
+         USING (user_id = 1)`,
+    );
+
+    const schema = await familyInstance.introspect({ driver: driver! });
+    PostgresDatabaseSchemaNode.assert(schema);
+
+    const policy = Object.values(schema.namespaces['public']!.tables)
+      .flatMap((t) => t.policies)
+      .find((p) => p.name === 'Tenant members can read');
+    expect(policy).toBeDefined();
+    expect(policy!.prefix).toBeUndefined();
+    expect(Object.hasOwn(policy!, 'prefix')).toBe(false);
+  });
+
   it('stamps rlsEnabled per table from pg_class.relrowsecurity', {
     timeout: testTimeout,
   }, async () => {

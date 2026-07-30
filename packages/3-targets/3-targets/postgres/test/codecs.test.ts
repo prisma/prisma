@@ -472,15 +472,15 @@ describe('adapter-postgres codecs', () => {
       { scalar: 'inet', nativeType: 'inet' },
     ];
 
-    it.each(postgresNativeTypeCases)('sets postgres nativeType metadata for $scalar', ({
-      scalar,
-      nativeType,
-    }) => {
-      const meta = descriptorByScalar[scalar].meta as
-        | { db?: { sql?: { postgres?: { nativeType?: string } } } }
-        | undefined;
-      expect(meta?.db?.sql?.postgres?.nativeType).toBe(nativeType);
-    });
+    it.each(postgresNativeTypeCases)(
+      'sets postgres nativeType metadata for $scalar',
+      ({ scalar, nativeType }) => {
+        const meta = descriptorByScalar[scalar].meta as
+          | { db?: { sql?: { postgres?: { nativeType?: string } } } }
+          | undefined;
+        expect(meta?.db?.sql?.postgres?.nativeType).toBe(nativeType);
+      },
+    );
 
     const paramsSchemaPresenceCases: ReadonlyArray<{
       scalar: ScalarName;
@@ -504,12 +504,13 @@ describe('adapter-postgres codecs', () => {
       { scalar: 'inet' },
     ];
 
-    it.each(paramsSchemaPresenceCases)('descriptor for $scalar carries a paramsSchema', ({
-      scalar,
-    }) => {
-      // Descriptors always carry `paramsSchema` (every codec has one, be it `voidParamsSchema` for non-parameterized codecs or a codec-specific schema). The parameterization split remains observable through the descriptor's typed paramsSchema shape; the runtime presence check below holds for every codec.
-      expect(descriptorByScalar[scalar].paramsSchema).toBeDefined();
-    });
+    it.each(paramsSchemaPresenceCases)(
+      'descriptor for $scalar carries a paramsSchema',
+      ({ scalar }) => {
+        // Descriptors always carry `paramsSchema` (every codec has one, be it `voidParamsSchema` for non-parameterized codecs or a codec-specific schema). The parameterization split remains observable through the descriptor's typed paramsSchema shape; the runtime presence check below holds for every codec.
+        expect(descriptorByScalar[scalar].paramsSchema).toBeDefined();
+      },
+    );
   });
 
   describe('encodeJson / decodeJson', () => {
