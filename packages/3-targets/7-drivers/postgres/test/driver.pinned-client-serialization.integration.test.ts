@@ -20,7 +20,7 @@ interface Harness {
   close(): Promise<void>;
 }
 
-let harness: Harness | undefined;
+let cleanup: (() => Promise<void>) | undefined;
 
 function installConcurrencySpy(client: Client): { texts: string[]; maxInFlight(): number } {
   const texts: string[] = [];
@@ -56,39 +56,50 @@ function installConcurrencySpy(client: Client): { texts: string[]; maxInFlight()
 async function createHarness(options?: { readonly cursorBatchSize?: number }): Promise<Harness> {
   const db = await PGlite.create();
   const server = new PGLiteSocketServer({ db, port: 0, host: '127.0.0.1' });
+  let client: Client | undefined;
+  let driver: ReturnType<typeof postgresRuntimeDriverDescriptor.create> | undefined;
+  // Registered before any fallible step so afterEach tears down whatever
+  // exists when setup rejects mid-way. Ending the client after driver.close()
+  // is a no-op-safe double-end on the happy path (a connected pgClient
+  // binding already ends it) but covers a client the driver never adopted.
+  const close = async (): Promise<void> => {
+    await driver?.close().catch(() => {});
+    await client?.end().catch(() => {});
+    await server.stop().catch(() => {});
+    await db.close().catch(() => {});
+  };
+  cleanup = close;
+
   await server.start();
   const serverConn = server.getServerConn();
   const port = Number(serverConn.slice(serverConn.lastIndexOf(':') + 1));
 
-  const client = new Client({ host: '127.0.0.1', port, database: 'postgres', user: 'postgres' });
+  client = new Client({ host: '127.0.0.1', port, database: 'postgres', user: 'postgres' });
   client.on('error', () => {});
   await client.connect();
   const spy = installConcurrencySpy(client);
 
-  const driver = postgresRuntimeDriverDescriptor.create({
+  driver = postgresRuntimeDriverDescriptor.create({
     cursor: { batchSize: options?.cursorBatchSize ?? 10 },
   });
   await driver.connect({ kind: 'pgClient', client });
 
-  const created: Harness = {
+  return {
     client,
     driver,
     recordedQueryTexts: spy.texts,
     maxInFlight: spy.maxInFlight,
-    close: async () => {
-      await driver.close().catch(() => {});
-      await server.stop().catch(() => {});
-      await db.close().catch(() => {});
-    },
+    close,
   };
-  harness = created;
-  return created;
 }
 
 function captureProcessWarnings(): { readonly warnings: Error[]; stop(): void } {
   const warnings: Error[] = [];
   const handler = (warning: Error): void => {
-    if (warning.name === 'DeprecationWarning') {
+    if (
+      warning.name === 'DeprecationWarning' &&
+      warning.message.toLowerCase().includes('already executing a query')
+    ) {
       warnings.push(warning);
     }
   };
@@ -112,9 +123,9 @@ async function seedRows(h: Harness, count: number): Promise<void> {
 }
 
 afterEach(async () => {
-  if (harness) {
-    await harness.close();
-    harness = undefined;
+  if (cleanup) {
+    await cleanup();
+    cleanup = undefined;
   }
 }, timeouts.spinUpDbServer);
 
