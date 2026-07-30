@@ -23,6 +23,8 @@ bunx prisma-next init
 yarn dlx prisma-next init
 ```
 
+This is the bootstrap path, and it is what this package exists for: a project with no Prisma Next dependencies yet still needs a way to run `init`. A project that already depends on a database facade (`@prisma/orm-postgres`, `@prisma/orm-sqlite`, `@prisma/orm-mongo`) gets the same `prisma-next` command from that facade and does not need this package as well.
+
 ## Quickstart
 
 In a project with a `package.json`:

@@ -4,7 +4,7 @@ import { resolve } from 'pathe';
 
 const scriptDir = import.meta.dirname;
 const shimPkgPath = resolve(scriptDir, '../package.json');
-const cliPkgPath = resolve(scriptDir, '../../cli/package.json');
+const cliPkgPath = resolve(scriptDir, '../../../1-framework/3-tooling/cli/package.json');
 
 const SYNCED_FIELDS = ['version', 'bin', 'dependencies'];
 const FORBIDDEN_SHIM_FIELDS = ['exports', 'main', 'types'];
@@ -94,7 +94,7 @@ if (drifts.length === 0) {
 
 console.error('[prisma-next lint-sync] package.json drift detected.');
 console.error(
-  'Update packages/1-framework/3-tooling/prisma-next/package.json to match ' +
+  'Update packages/9-public/prisma-next/package.json to match ' +
     '@prisma-next/cli for the following fields:\n',
 );
 for (const { field, summary } of drifts) {

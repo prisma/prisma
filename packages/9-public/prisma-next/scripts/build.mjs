@@ -3,7 +3,7 @@ import { chmod, cp, rm, stat } from 'node:fs/promises';
 import { resolve } from 'pathe';
 
 const scriptDir = import.meta.dirname;
-const cliDist = resolve(scriptDir, '../../cli/dist');
+const cliDist = resolve(scriptDir, '../../../1-framework/3-tooling/cli/dist');
 const shimDist = resolve(scriptDir, '../dist');
 
 try {

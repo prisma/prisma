@@ -145,7 +145,7 @@
       "plane": "migration"
     },
     {
-      "glob": "packages/1-framework/3-tooling/prisma-next/**",
+      "glob": "packages/9-public/prisma-next/**",
       "domain": "framework",
       "layer": "tooling",
       "plane": "migration"

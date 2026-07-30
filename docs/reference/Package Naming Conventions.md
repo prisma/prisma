@@ -57,7 +57,7 @@ Planes are a conceptual grouping recorded in `architecture.config.json` but do n
 | `packages/1-framework/2-authoring/contract/` | `@prisma-next/contract-authoring` |
 | `packages/1-framework/2-authoring/psl-parser/` | `@prisma-next/psl-parser` |
 | `packages/1-framework/3-tooling/cli/` | `@prisma-next/cli` |
-| `packages/1-framework/3-tooling/prisma-next/` | `prisma-next` (bin-only shim — see [ADR 211](../architecture%20docs/adrs/ADR%20211%20-%20prisma-next%20bin-only%20distribution.md)) |
+| `packages/9-public/prisma-next/` | `prisma-next` (bin-only shim — see [ADR 211](../architecture%20docs/adrs/ADR%20211%20-%20prisma-next%20bin-only%20distribution.md)) |
 | `packages/1-framework/3-tooling/emitter/` | `@prisma-next/emitter` |
 
 **SQL Domain:**
