@@ -37,6 +37,9 @@ import { buildTargetDetails } from './planner-target-details';
 
 type Op = SqlMigrationPlanOperation<SqlitePlanTargetDetails>;
 
+// The authored name. `render-typescript.ts` maps it to whatever the consuming
+// application's import root calls it (TML-3123), once over the whole assembled
+// import list.
 const TARGET_MIGRATION_MODULE = '@prisma-next/sqlite/migration';
 
 abstract class SqliteOpFactoryCallNode extends TsExpression implements FrameworkOpFactoryCall {

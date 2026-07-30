@@ -178,8 +178,8 @@ export function importSubpaths(installedPackageDir: string): string[] {
  * configurable but left the default returning them unchanged, so the
  * constants necessarily remain in the dist; TML-3126 flips the default and
  * retires them. The rest name internal packages inside diagnostics,
- * config-validation messages, and telemetry identifiers; the switchover
- * slice retires those along with the `@prisma-next/*` names themselves.
+ * config-validation messages, and telemetry identifiers, which go away with
+ * the `@prisma-next/*` names themselves.
  *
  * This is a baseline lock, not an endorsement. Anything not listed fails
  * {@link findInternalNames}, so no *new* internal name can reach a

@@ -50,6 +50,9 @@ export interface CollModMeta {
   readonly operationClass?: MigrationOperationClass;
 }
 
+// The authored name. `render-typescript.ts` maps it to whatever the consuming
+// application's import root calls it (TML-3123), once over the whole assembled
+// import list.
 const TARGET_MIGRATION_MODULE = '@prisma-next/target-mongo/migration';
 
 abstract class OpFactoryCallNode extends TsExpression implements FrameworkOpFactoryCall {
