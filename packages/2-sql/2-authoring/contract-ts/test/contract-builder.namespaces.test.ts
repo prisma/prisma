@@ -34,6 +34,7 @@ const minimalModelArgs = {
 describe('SqlStorage.namespaces population', () => {
   it('materialises the public namespace with lowered tables when models use the postgres default coordinate', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [minimalModelArgs],
@@ -47,6 +48,7 @@ describe('SqlStorage.namespaces population', () => {
 
   it('creates declared namespace slots (initially empty tables) alongside the public default coordinate', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       namespaces: ['public', 'auth'],
       createNamespace: createTestSqlNamespace,
@@ -60,6 +62,7 @@ describe('SqlStorage.namespaces population', () => {
 
   it('places tables in the namespace referenced by the model coordinate', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [
@@ -75,6 +78,7 @@ describe('SqlStorage.namespaces population', () => {
 
   it('materialises an empty public namespace when no models are declared', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [],
@@ -88,6 +92,7 @@ describe('SqlStorage.namespaces population', () => {
   it('accepts declared namespaces with a createNamespace factory', () => {
     expect(() =>
       buildSqlContractFromDefinition({
+        warnings: undefined,
         target: postgresTargetPack,
         namespaces: ['auth'],
         createNamespace: createTestSqlNamespace,
@@ -98,6 +103,7 @@ describe('SqlStorage.namespaces population', () => {
 
   it('deduplicates declared and table-referenced namespace ids — no slot is built twice', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       namespaces: ['auth'],
       createNamespace: createTestSqlNamespace,

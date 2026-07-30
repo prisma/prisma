@@ -4,8 +4,10 @@ import type {
   SqlMigrationPlannerPlanOptions,
   SqlPlannerConflict,
   SqlPlannerFailureResult,
+  SuppressionRecord,
 } from '@prisma-next/family-sql/control';
 import {
+  controlPolicyForCall,
   extractCodecControlHooks,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
@@ -15,6 +17,7 @@ import {
 import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
 import type {
+  MigrationOperationClass,
   MigrationPlanner,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
@@ -42,7 +45,13 @@ import {
   resolvePostgresNodeIssueCreationFactoryName,
 } from './control-policy';
 import { buildPostgresPlanDiff } from './diff-database-schema';
-import { coalesceSubtreeIssues, issueNode, issueSchemaName, planIssues } from './issue-planner';
+import {
+  coalesceSubtreeIssues,
+  conflictForDisallowedCall,
+  issueNode,
+  issueSchemaName,
+  planIssues,
+} from './issue-planner';
 import type { PostgresOpFactoryCall } from './op-factory-call';
 import {
   CreatePostgresRlsPolicyCall,
@@ -292,8 +301,11 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       strategies: postgresPlannerStrategies,
     });
 
-    if (!result.ok) {
-      return plannerFailure(result.failure);
+    // Relational conflicts and policy-drift conflicts compose into ONE
+    // failure so the user sees the complete set in a single round.
+    const schemaDiff = this.planPostgresSchemaDiff(options, policyDiffIssues);
+    if (!result.ok || schemaDiff.conflicts.length > 0) {
+      return plannerFailure([...(result.ok ? [] : result.failure), ...schemaDiff.conflicts]);
     }
 
     const indexRenamePartition = partitionCallsByControlPolicy({
@@ -304,9 +316,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       resolveFactoryName: (call) => call.factoryName,
     });
 
-    const schemaDiffCalls = this.planPostgresSchemaDiff(options, policyDiffIssues);
     const schemaDiffPartition = partitionCallsByControlPolicy({
-      calls: schemaDiffCalls,
+      calls: schemaDiff.calls,
       contract: options.contract,
       resolveControlPolicySubject: (call) =>
         resolvePostgresCallControlPolicySubject(call, options.contract),
@@ -342,12 +353,25 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       ...schemaDiffPartition.kept,
       ...fieldEventPartition.kept,
     ];
+    // Byte-identical suppression warnings (the same subject suppressed by
+    // more than one partition) collapse to one; distinct subjects — e.g. a
+    // table-level suppression beside a policy-level one naming its
+    // rlsPolicy — stay separate.
+    const seenWarnings = new Set<string>();
     const warnings: SqlPlannerConflict[] = [
       ...issuePartition.suppressions,
       ...indexRenamePartition.suppressions,
+      ...schemaDiff.suppressions,
       ...schemaDiffPartition.suppressions,
       ...fieldEventPartition.suppressions,
-    ].map((record) => renderPostgresSuppression(record, options.contract));
+    ]
+      .map((record) => renderPostgresSuppression(record, options.contract))
+      .filter((warning) => {
+        const key = JSON.stringify(warning);
+        if (seenWarnings.has(key)) return false;
+        seenWarnings.add(key);
+        return true;
+      });
 
     return Object.freeze({
       kind: 'success' as const,
@@ -370,15 +394,16 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * deterministic by sorted names — the same structure as the policy pass
    * below (which stays untouched: policies pair by hash only).
    *
-   * Phase 1 — hash pairing: extras whose live names parse as wire names,
-   * grouped by `(schema, table, hash)`; missing nodes iterated in sorted-name
-   * order consume the sorted-name-first candidate — a prefix-only rename.
+   * Hash pairing (prefix-only renames): extras whose live names parse as
+   * wire names, grouped by `(schema, table, hash)`; missing nodes iterated
+   * in sorted-name order consume the sorted-name-first candidate.
    *
-   * Phase 2 — content pairing: the remaining managed-missing nodes
+   * Content pairing (exact→managed convergence), after hash pairing has
+   * consumed its matches: the remaining managed-missing nodes
    * (`prefix` defined) against the remaining extras of any name shape,
    * paired iff content-equal (columns ordered-strict both-defined-or-
    * both-undefined, `unique`/`type` strict, `options` loose, bodies
-   * byte-equal) — exact→managed adoption convergence.
+   * byte-equal).
    *
    * Leftovers proceed as create/drop exactly as before; without the
    * widening allowance the pass is skipped and pairing degrades to the
@@ -488,20 +513,25 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
   }
 
   /**
-   * Maps the RLS policy presence findings of the one combined tree diff
+   * Maps the RLS policy findings of the one combined tree diff
    * (`buildPostgresPlanDiff`, already ownership-filtered) into
-   * `CREATE POLICY` / `DROP POLICY` / `ALTER POLICY … RENAME TO` ops. It
+   * `CREATE POLICY` / `DROP POLICY` / `ALTER POLICY … RENAME TO` ops — a
+   * `not-equal` finding (an exact-named policy whose content drifted)
+   * becomes drop + create, or a disallowed-call conflict when the policy
+   * forbids the destructive drop. It
    * does not re-diff — it consumes exactly the policy-node subset of the
    * shared diff's issues. Enablement is NOT decided here: `ENABLE`/`DISABLE
    * ROW LEVEL SECURITY` derive from the table's marker-driven `rlsEnabled`
    * attribute diff on the relational side.
    *
-   * Rename post-pass: a `not-found` and a `not-expected` policy on the SAME
-   * table whose wire-name content hashes match but prefixes differ are one
-   * prefix-only rename, collapsed into a single non-destructive
-   * `RenamePostgresRlsPolicyCall`. Multi-candidate hash groups pair
-   * deterministically by sorted wire name; leftovers proceed as
-   * create/drop. Unparseable wire names never pair.
+   * Rename post-pass (the index pass's structure): hash pairing pairs a
+   * `not-found` and a `not-expected` policy on the SAME table whose
+   * wire-name content hashes match but prefixes differ (prefix-only rename);
+   * content pairing then pairs remaining managed-missing policies against remaining
+   * extras of any name shape by verbatim content (the node-owned `contentEquals` —
+   * exact→managed adoption). Multi-candidate groups pair deterministically
+   * by sorted name; leftovers proceed as create/drop; an exact-named
+   * missing policy never content-pairs.
    *
    * The pairing runs only when the policy allows `widening` (rename's
    * class). Without it (db-init's additive-only set), pairing degrades
@@ -513,7 +543,11 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
   private planPostgresSchemaDiff(
     options: PlannerOptionsWithComponents,
     filteredDiffIssues: readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
-  ): readonly PostgresOpFactoryCall[] {
+  ): {
+    readonly calls: readonly PostgresOpFactoryCall[];
+    readonly conflicts: readonly SqlPlannerConflict[];
+    readonly suppressions: readonly SuppressionRecord[];
+  } {
     const allowsDestructive = options.policy.allowedOperationClasses.includes('destructive');
     const allowsWidening = options.policy.allowedOperationClasses.includes('widening');
 
@@ -523,12 +557,25 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
     const missing: PolicyFinding[] = [];
     const extra: PolicyFinding[] = [];
+    const changed: PolicyFinding[] = [];
 
     for (const issue of filteredDiffIssues) {
-      // 'not-equal' is unreachable for content-addressed policies: the wire name
-      // encodes the body hash, so two policies sharing a local key (same name)
-      // are always equal and isEqualTo never returns false.
-      if (issueOutcome(issue) === 'not-found') {
+      // 'not-equal' is reachable for exact-named (prefix-absent) policies:
+      // their isEqualTo compares content, so a same-named live policy with a
+      // drifted body pairs by name and fails equality. Managed policies never
+      // produce it — the wire name encodes the body hash, so name-equality is
+      // body-equality.
+      if (issueOutcome(issue) === 'not-equal') {
+        const expected = issue.expected;
+        PostgresPolicySchemaNode.assert(expected);
+        changed.push({
+          node: expected,
+          schemaForTable: resolveDdlSchemaForNamespaceStorage(
+            options.contract.storage,
+            expected.namespaceId,
+          ),
+        });
+      } else if (issueOutcome(issue) === 'not-found') {
         const expected = issue.expected;
         PostgresPolicySchemaNode.assert(expected);
         // expected.namespaceId is the DDL schema name (resolved during projection);
@@ -554,6 +601,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
 
     const calls: PostgresOpFactoryCall[] = [];
+    const conflicts: SqlPlannerConflict[] = [];
+    const suppressions: SuppressionRecord[] = [];
     const renamedExtras = new Set<PolicyFinding>();
     const renamedMissing = new Set<PolicyFinding>();
     const pairingKey = (finding: PolicyFinding, hash: string): string =>
@@ -595,6 +644,73 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
           ),
         );
       }
+
+      // Content pairing (exact→managed convergence), after hash pairing
+      // has consumed its matches: a
+      // remaining managed-missing policy pairs with a remaining
+      // extra of ANY name shape when the content matches verbatim
+      // (the node-owned `contentEquals` — not the normalized hash tuple). This is how
+      // replacing `@@map` with the plain head converges as one
+      // `ALTER POLICY … RENAME`. Deterministic like the index pass: missing
+      // already iterates sorted by name, candidates consume sorted by name.
+      const sortedExtras = [...extra].sort((a, b) =>
+        a.node.name < b.node.name ? -1 : a.node.name > b.node.name ? 1 : 0,
+      );
+      for (const missingFinding of sortedMissing) {
+        if (renamedMissing.has(missingFinding)) continue;
+        if (missingFinding.node.prefix === undefined) continue;
+        const candidate = sortedExtras.find(
+          (extraFinding) =>
+            !renamedExtras.has(extraFinding) &&
+            extraFinding.schemaForTable === missingFinding.schemaForTable &&
+            extraFinding.node.tableName === missingFinding.node.tableName &&
+            missingFinding.node.contentEquals(extraFinding.node),
+        );
+        if (candidate === undefined) continue;
+        renamedExtras.add(candidate);
+        renamedMissing.add(missingFinding);
+        calls.push(
+          new RenamePostgresRlsPolicyCall(
+            missingFinding.schemaForTable,
+            missingFinding.node.tableName,
+            candidate.node.name,
+            missingFinding.node.name,
+          ),
+        );
+      }
+    }
+
+    // A changed (not-equal) policy is repaired as a PolicyReplacement —
+    // DROP then CREATE under one physical name, graded as one unit by
+    // gradePolicyReplacement before it becomes calls or a conflict.
+    for (const finding of changed) {
+      const replacement: PolicyReplacement = {
+        drop: new DropPostgresRlsPolicyCall(
+          finding.schemaForTable,
+          finding.node.tableName,
+          finding.node.name,
+        ),
+        create: new CreatePostgresRlsPolicyCall(
+          finding.schemaForTable,
+          finding.node.tableName,
+          policyNodeToContractPolicy(finding.node),
+        ),
+      };
+      const graded = gradePolicyReplacement(
+        replacement,
+        options.contract,
+        options.policy.allowedOperationClasses,
+      );
+      if (graded.disposition === 'suppress') {
+        suppressions.push(graded.record);
+        continue;
+      }
+      if (graded.disposition === 'conflict') {
+        conflicts.push(graded.conflict);
+        continue;
+      }
+      calls.push(replacement.drop);
+      calls.push(replacement.create);
     }
 
     for (const finding of missing) {
@@ -620,7 +736,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       }
     }
 
-    return calls;
+    return { calls, conflicts, suppressions };
   }
 
   private ensureAdditivePolicy(policy: MigrationOperationPolicy) {
@@ -712,6 +828,69 @@ function relationalNamespaceNode(
 }
 
 /**
+ * A drifted exact-named policy's repair: DROP then CREATE under ONE
+ * physical name. The two calls are one unit — splitting them (suppressing
+ * the drop, keeping the create) yields a plan whose create fails its own
+ * "policy does not exist" precheck at apply time.
+ */
+interface PolicyReplacement {
+  readonly drop: DropPostgresRlsPolicyCall;
+  readonly create: CreatePostgresRlsPolicyCall;
+}
+
+type PolicyReplacementDisposition =
+  | { readonly disposition: 'plan' }
+  | { readonly disposition: 'suppress'; readonly record: SuppressionRecord }
+  | { readonly disposition: 'conflict'; readonly conflict: SqlPlannerConflict };
+
+/**
+ * Grades a {@link PolicyReplacement} as one unit against the table's
+ * control policy, BEFORE the pair becomes calls or a conflict. This runs
+ * ahead of `partitionCallsByControlPolicy`, which later re-grades the
+ * surviving calls per-call — a no-op here, since only managed units
+ * survive this grading.
+ *
+ * A replacement is deliberately STRICTER than the shared
+ * `callAllowedUnderControlPolicy` rule: `tolerated` permits whole-object
+ * creation, but a replacement's create is the second half of a repair of
+ * an existing object, not a new object — so ANY non-managed control
+ * (external, observed, tolerated) suppresses the whole unit. Drift on an
+ * object the plan does not manage is reported, never repaired; the
+ * suppression subject names the drifted policy (`rlsPolicy`) so the
+ * report says which policy drifted, matching the conflict path's
+ * `location.rlsPolicy`.
+ */
+function gradePolicyReplacement(
+  replacement: PolicyReplacement,
+  contract: Contract<SqlStorage>,
+  allowedOperationClasses: readonly MigrationOperationClass[],
+): PolicyReplacementDisposition {
+  const subject = resolvePostgresCallControlPolicySubject(replacement.drop, contract);
+  const controlPolicy = controlPolicyForCall(subject, contract.defaultControlPolicy);
+  if (controlPolicy !== 'managed') {
+    return {
+      disposition: 'suppress',
+      record: {
+        subject:
+          subject === undefined
+            ? undefined
+            : { ...subject, rlsPolicy: replacement.drop.policyName },
+        policy: controlPolicy,
+        factoryName: undefined,
+        createsNewObject: false,
+      },
+    };
+  }
+  if (!allowedOperationClasses.includes('destructive')) {
+    return {
+      disposition: 'conflict',
+      conflict: conflictForDisallowedCall(replacement.drop, allowedOperationClasses),
+    };
+  }
+  return { disposition: 'plan' };
+}
+
+/**
  * Rebuilds the `PostgresRlsPolicy` contract entity `CreatePostgresRlsPolicyCall`
  * carries (its `renderTypeScript`/`createRlsPolicy` paths serialize the whole
  * entity, `namespaceId` included). This reconstructs rather than looking the
@@ -728,8 +907,8 @@ function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRls
     namespaceId: node.namespaceId,
     operation: node.operation,
     roles: [...node.roles],
-    ...ifDefined('using', node.using),
-    ...ifDefined('withCheck', node.withCheck),
+    using: node.using,
+    withCheck: node.withCheck,
     permissive: node.permissive,
   });
 }

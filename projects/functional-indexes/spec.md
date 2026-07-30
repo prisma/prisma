@@ -2,7 +2,7 @@
 
 Expression (functional) indexes — `CREATE INDEX users_email_eq ON users USING btree (eql_v3.eq_term(email))` — are not expressible in Prisma Next: the index IR, both authoring surfaces, and the DDL renderer only know column tuples, and introspection silently discards any live index with an expression key. The blocker has always been comparison: Postgres reprints stored SQL bodies (casts, parens, whitespace), so body equality is unreliable. This project extends the content-addressed wire-name identity model ([ADR 234](../../docs/architecture%20docs/adrs/ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md)) from RLS policies to **all indexes**, adds an **exact-name mode** (`map:`) whose equivalence is content comparison — reliable precisely when the content came from `contract infer`, because inferred bodies are Postgres's own reprint — and closes the `contract infer` round-trip for both indexes and RLS policies so a database can be inferred, emitted, and verified with **zero operations required** ("sign the database directly"). We are pre-RC in the zero-semver range: this is the only window in which the wholesale index-identity switch can be applied at near-zero installed-base cost, and the transition machinery the project builds (content-pairing → `ALTER INDEX … RENAME`) converts every existing database automatically.
 
-Requested by the ciphers team (EQL encrypted-search indexes); the identity mechanism is generic Postgres.
+Requested by the Cipherstash team (EQL encrypted-search indexes); the identity mechanism is generic Postgres.
 
 ## Purpose
 
@@ -81,7 +81,7 @@ This is a breaking contract-shape change (canonicalization, serializer, `contrac
 
 `expression` and `where` are never parsed, never validated as SQL, never bound to field names. Column references inside them are raw SQL — a field rename silently stales them, the same accepted trade-off RLS predicates made. Normalization for hashing is the existing minimal normalizer (trim + collapse internal whitespace), shared with RLS (D4). No SQL parser enters the codebase (ADR 234's rejected alternative stays rejected).
 
-> **Satisfies:** ciphers' `eql_v3.eq_term(email)` and arbitrary vendor SQL work without a Postgres grammar; consistency with RLS.
+> **Satisfies:** Cipherstash's `eql_v3.eq_term(email)` and arbitrary vendor SQL work without a Postgres grammar; consistency with RLS.
 
 ### D3. Authoring surfaces
 
@@ -132,7 +132,7 @@ constraints.index(opts: { expression: string; name?: string; map?: string; where
 
 Both surfaces lower through one shared path per entity so PSL/TS parity holds by construction; a parity test pins identical IR (wire names included) for identical inputs.
 
-> **Satisfies:** both authoring surfaces, ciphers' index writable as `@@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq")`.
+> **Satisfies:** both authoring surfaces, Cipherstash's index writable as `@@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq")`.
 
 ### D4. Naming and hashing — shared helpers, exact tuples
 
@@ -262,7 +262,7 @@ Wire-name helpers and `SqlIndexIR` semantics live in `2-sql/1-core` (family-shar
 
 ## Project DoD
 
-1. **Ciphers scenario e2e**: `@@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq", type: "btree")` (and the TS equivalent) emits, migrates a fresh database, `db verify` passes; dropping the index out-of-band fails verify; the rendered DDL is byte-asserted.
+1. **Cipherstash scenario e2e**: `@@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq", type: "btree")` (and the TS equivalent) emits, migrates a fresh database, `db verify` passes; dropping the index out-of-band fails verify; the rendered DDL is byte-asserted.
 2. **Sign-the-database e2e** (scenario A): a database prepared with raw SQL containing an expression index, a partial index, a unique expression index, and two RLS policies → `contract infer` → emit → verify: zero issues; plan: zero ops.
 3. **Transition e2e** (scenario C): from the signed contract, replace `map:` with `name:` on one index and one policy → the widening plan contains exactly the two RENAMEs; apply; verify clean.
 4. **Upgrade e2e** (scenario I): a database migrated with the pre-project toolchain (plain index names) + its re-emitted contract → the first widening plan is renames-only.

@@ -4,7 +4,7 @@
 
 ## At a glance
 
-The ciphers team can author their index:
+The Cipherstash team can author their index:
 
 ```prisma
 model User {
@@ -50,9 +50,9 @@ Fires when `map:` combines with a SQL body (`expression` or `where` present); fi
 
 **Mechanism** (grounding gap — PSL has no non-blocking diagnostic; any diagnostic fails the load): the warning is emitted from the shared lowering via the existing `contract-warnings.ts` pattern (`process.emitWarning`, batched, code `PN_EXACT_NAME_BODY_COMPARISON`), which covers BOTH surfaces because PSL lowers through the same builder. No severity field is added to `PslDiagnostic`; no framework change. (Policies gain the same warning in slice 3.)
 
-### 5. Scenario-row tests and the ciphers e2e (DoD-1)
+### 5. Scenario-row tests and the Cipherstash e2e (DoD-1)
 
-- **DoD-1 e2e**: rewrite `expression-index-migration.e2e.test.ts` to author through the real surfaces — a `.prisma` fixture with the ciphers index (plus a partial and a unique-expression index) registered in `pslContractFixtures`, and a `.ts` twin in `contractFixtures`; emit → plan (DDL byte-asserted, `eql_v3.eq_term` rendered verbatim) → apply → verify → out-of-band drop fails verify. The slice-1 factory-assembled fixture is deleted (superseded).
+- **DoD-1 e2e**: rewrite `expression-index-migration.e2e.test.ts` to author through the real surfaces — a `.prisma` fixture with the Cipherstash index (plus a partial and a unique-expression index) registered in `pslContractFixtures`, and a `.ts` twin in `contractFixtures`; emit → plan (DDL byte-asserted, `eql_v3.eq_term` rendered verbatim) → apply → verify → out-of-band drop fails verify. The slice-1 factory-assembled fixture is deleted (superseded).
 - **Scenario rows** (project spec table): **B** greenfield managed authoring via the matrix (covered by the e2e); **D** prefix rename e2e — change `name:` on the expression index, plan is exactly one `ALTER INDEX … RENAME`; **E** body edit — change the expression, plan is create + drop (drop under destructive); **G** hand-authored body under `map:` — warning emitted (assert via a `process.emitWarning` listener) and the false-drift consequence pinned as a documented-degradation test; **H** out-of-band `ALTER INDEX … SET (fillfactor=70)` on a managed index → verify reports `not-equal` (integration; the unit matrix landed in slice 1).
 
 ## Coherence rationale
@@ -77,7 +77,7 @@ One authoring feature completed across both surfaces with its diagnostics and wa
 
 ## Slice-specific done conditions
 
-1. DoD-1 ciphers e2e green in both PSL and TS variants with byte-asserted DDL.
+1. DoD-1 Cipherstash e2e green in both PSL and TS variants with byte-asserted DDL.
 2. Scenario rows B, D, E, G, H each have a named test asserting the stated behavior.
 3. The three PSL diagnostics are span-anchored (point at the `@@index` attribute) with their exact codes, each pinned by an interpreter diagnostics test; TS lowering errors pinned equivalently.
 4. Full gate incl. `lint:throws`, `lint:framework-vocabulary`, `check:upgrade-coverage` (new authoring surface ⇒ upgrade-skill entries), `test:examples`.

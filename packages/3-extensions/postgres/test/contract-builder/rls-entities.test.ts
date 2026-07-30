@@ -26,7 +26,7 @@ import {
   PostgresRlsPolicy,
   PostgresRole,
 } from '@prisma-next/target-postgres/types';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   defineContract,
   field,
@@ -96,6 +96,27 @@ describe('entities lowering: every helper lands in entries with PSL-matching key
   // Roles are cluster-scoped, so they land in `__unbound__`, not the model's
   // namespace — identical to a PSL `role` block.
   const unbound = () => namespace(contract, '__unbound__');
+
+  it('TS policy authoring is managed-only and emits no exact-name body warning', () => {
+    const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
+    try {
+      defineContract({
+        models: { Profile: makeProfile() },
+        entities: [
+          rlsEnabled(Profile),
+          policySelect(Profile, { name: 'p_silent', roles: [appUser], using: usingSql }),
+        ],
+      });
+      expect(
+        emitWarning.mock.calls.filter(
+          ([, options]) =>
+            (options as { code?: string } | undefined)?.code === 'PN_EXACT_NAME_BODY_COMPARISON',
+        ),
+      ).toEqual([]);
+    } finally {
+      emitWarning.mockRestore();
+    }
+  });
 
   it('keys entries.policy by prefix, entries.rls by tableName, entries.role by name', () => {
     expect(Object.keys(ns().policy).sort()).toEqual([

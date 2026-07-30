@@ -21,6 +21,7 @@ import type {
   AuthoringModelAttributeDescriptorNamespace,
   AuthoringModelAttributeLoweringOutput,
   AuthoringPslBlockDescriptorNamespace,
+  AuthoringWarning,
   PslExtensionBlock,
 } from '@prisma-next/framework-components/authoring';
 import {
@@ -2150,6 +2151,10 @@ export function interpretPslDocumentToSqlContract(
   // threaded into `collectResolvedFields` below.
   const entityTypesByDiscriminator = buildEntityTypesByDiscriminator(input.authoringContributions);
   const modelAttributesByName = buildModelAttributesByName(input.authoringContributions);
+  // Warnings pushed by entity factories run ahead of
+  // `buildSqlContractFromDefinition`; handed to the build via the definition
+  // so its one per-build flush covers the whole build.
+  const authoringWarnings: AuthoringWarning[] = [];
   const extensionEntityContext: AuthoringEntityContext = {
     family: input.target.familyId,
     target: input.target.targetId,
@@ -2163,6 +2168,7 @@ export function interpretPslDocumentToSqlContract(
         );
       },
     },
+    warnings: authoringWarnings,
   };
   // Diagnostics-free resolution of every model's declared storage name,
   // feeding the extension-block pass's model-ref conversion (a block's
@@ -2528,6 +2534,7 @@ export function interpretPslDocumentToSqlContract(
   const contract = buildSqlContractFromDefinition(
     {
       target: input.target,
+      warnings: authoringWarnings.length > 0 ? authoringWarnings : undefined,
       ...ifDefined(
         'extensions',
         buildComposedExtensionPackRefs(

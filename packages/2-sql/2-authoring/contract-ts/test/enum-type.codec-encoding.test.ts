@@ -43,6 +43,7 @@ function definitionWith(enumHandle: ReturnType<typeof enumType>): ContractDefini
     target: postgresTargetPack,
     createNamespace: createTestSqlNamespace,
     storageTypes: {},
+    warnings: undefined,
     models: [],
     enums: { [enumHandle.enumName]: enumHandle },
   } as ContractDefinition;

@@ -58,6 +58,7 @@ describe('PostgresRlsPolicy', () => {
     operation: 'select' as const,
     roles: ['authenticated', 'anon'],
     using: 'auth.uid() = user_id',
+    withCheck: undefined,
     permissive: true,
   };
 
@@ -89,6 +90,7 @@ describe('PostgresRlsPolicy', () => {
       roles: ['authenticated'],
       withCheck: 'true',
       permissive: false,
+      using: undefined,
     });
     expect(Object.hasOwn(policy, 'using')).toBe(false);
   });

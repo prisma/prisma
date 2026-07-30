@@ -1116,6 +1116,7 @@ export function buildContractDefinition(definition: ContractInput): ContractDefi
       ? { storageTypes: collection.storageTypes }
       : {}),
     ...(definition.namespaces ? { namespaces: definition.namespaces } : {}),
+    warnings: undefined,
     createNamespace: definition.createNamespace,
     ...(definition.enums && Object.keys(definition.enums).length > 0
       ? { enums: definition.enums }

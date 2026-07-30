@@ -18,6 +18,7 @@ describe('PostgresRlsPolicy — Contract-IR entity, not a DiffableNode', () => {
     roles: ['app_user'],
     using: "owner_id = current_setting('app.uid')::int",
     permissive: true,
+    withCheck: undefined,
   });
 
   it('has no id property', () => {
@@ -50,6 +51,42 @@ describe('PostgresRlsPolicy — Contract-IR entity, not a DiffableNode', () => {
   it('kind survives JSON round-trip', () => {
     const json = JSON.parse(JSON.stringify(policy)) as Record<string, unknown>;
     expect(json['kind']).toBe('policy');
+  });
+
+  describe('prefix invariant (managed vs exact)', () => {
+    const base = {
+      prefix: undefined,
+      tableName: 'profiles',
+      namespaceId: 'public',
+      operation: 'select' as const,
+      roles: ['app_user'],
+      using: undefined,
+      withCheck: undefined,
+      permissive: true,
+    };
+
+    it('an exact policy carries no prefix — the property is absent', () => {
+      const exact = new PostgresRlsPolicy({ ...base, name: 'Tenant members can read' });
+      expect(exact.prefix).toBeUndefined();
+      expect(Object.hasOwn(exact, 'prefix')).toBe(false);
+      expect(JSON.parse(JSON.stringify(exact))).not.toHaveProperty('prefix');
+    });
+
+    it('a declared prefix must match the wire name', () => {
+      expect(
+        () => new PostgresRlsPolicy({ ...base, name: 'read_own_a1b2c3d4', prefix: 'other' }),
+      ).toThrow(/prefix "other" does not match the wire name/);
+      expect(
+        () =>
+          new PostgresRlsPolicy({ ...base, name: 'not_wire_shaped', prefix: 'not_wire_shaped' }),
+      ).toThrow(/does not match the wire name/);
+    });
+
+    it('an exact name that happens to parse as a wire name stays legal with no prefix claimed', () => {
+      const coincidental = new PostgresRlsPolicy({ ...base, name: 'legacy_ab12cd34' });
+      expect(coincidental.prefix).toBeUndefined();
+      expect(coincidental.name).toBe('legacy_ab12cd34');
+    });
   });
 });
 

@@ -1,15 +1,24 @@
 import type { DiffableNode, SchemaNodeRef } from '@prisma-next/framework-components/control';
 import { freezeNode } from '@prisma-next/framework-components/ir';
+import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+import { isArrayEqual } from '@prisma-next/utils/array-equal';
 import { blindCast } from '@prisma-next/utils/casts';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import type { RlsPolicyOperation } from '../postgres-rls-policy';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 
 export interface PostgresPolicySchemaNodeInput {
-  /** Full wire name: `<prefix>_<8hex>`. */
+  /** Full physical name — the node's identity. */
   readonly name: string;
-  /** User-supplied prefix (the part before the `_<8hex>` suffix). */
-  readonly prefix: string;
+  /**
+   * The managed-mode name prefix — its PRESENCE is the naming-mode
+   * discriminator (there is no stored enum). Present ⇔ managed: the
+   * toolchain owns the physical name and `name === formatWireName(prefix,
+   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
+   * physical name whose identity the author owns entirely.
+   */
+  readonly prefix: string | undefined;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). */
@@ -18,9 +27,9 @@ export interface PostgresPolicySchemaNodeInput {
   /** Sorted role names rendered in `TO <roles>`. */
   readonly roles: readonly string[];
   /** USING predicate SQL string, if present. */
-  readonly using?: string;
+  readonly using: string | undefined;
   /** WITH CHECK predicate SQL string, if present. */
-  readonly withCheck?: string;
+  readonly withCheck: string | undefined;
   /** `true` = `AS PERMISSIVE`, `false` = `AS RESTRICTIVE`. */
   readonly permissive: boolean;
   /**
@@ -29,7 +38,7 @@ export interface PostgresPolicySchemaNodeInput {
    * the derivation, which holds the parent (database/namespace) context.
    * Never compared by `isEqualTo`.
    */
-  readonly dependsOn?: readonly SchemaNodeRef[];
+  readonly dependsOn: readonly SchemaNodeRef[] | undefined;
 }
 
 /**
@@ -39,15 +48,20 @@ export interface PostgresPolicySchemaNodeInput {
  * Built by project-from-contract and project-from-database from their respective
  * `PostgresRlsPolicy` contract entities / introspected rows.
  *
- * `id` is the wire name (`<prefix>_<sha256(body)[0..8]>`), so name-equality is
- * body-equality. `isEqualTo` compares names only — never byte-compare predicate
- * bodies, because Postgres reprints them.
+ * `id` is the full physical name. `isEqualTo` is mode-selected by the
+ * receiver's `prefix`: a managed receiver (`prefix` present) compares ids
+ * only — the wire name encodes a body hash, so name-equality is
+ * body-equality and predicate bodies are never byte-compared (Postgres
+ * reprints them). An exact receiver (`prefix` absent) compares content:
+ * `operation`/`permissive` strict, `roles` sorted, and `using ?? ''` /
+ * `withCheck ?? ''` verbatim byte-for-byte — reliable precisely when the
+ * body text was captured from a Postgres reprint (contract infer).
  */
 export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements DiffableNode {
   override readonly nodeKind = PostgresSchemaNodeKind.policy;
 
   readonly name: string;
-  readonly prefix: string;
+  declare readonly prefix?: string;
   readonly tableName: string;
   readonly namespaceId: string;
   readonly operation: RlsPolicyOperation;
@@ -60,8 +74,16 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
 
   constructor(input: PostgresPolicySchemaNodeInput) {
     super();
+    if (input.prefix !== undefined) {
+      const parsed = parseWireName(input.name);
+      if (parsed === undefined || parsed.prefix !== input.prefix) {
+        throw new InternalError(
+          `PostgresPolicySchemaNode "${input.name}": prefix "${input.prefix}" does not match the wire name (expected "${formatWireName(input.prefix, '<8hex>')}").`,
+        );
+      }
+    }
     this.name = input.name;
-    this.prefix = input.prefix;
+    if (input.prefix !== undefined) this.prefix = input.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;
@@ -87,7 +109,33 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
       'every diff-tree node the differ pairs is a SqlSchemaIRNode; the guard rejects non-policy kinds'
     >(other);
     PostgresPolicySchemaNode.assert(node);
-    return this.id === node.id;
+    // Managed short-circuits to id equality — deliberately a different shape
+    // from SqlIndexIR.isEqualTo (which calls contentEquals in both modes):
+    // the policy hash tuple is total over the fields contentEquals compares,
+    // so a managed policy's name equality already implies content equality.
+    if (this.prefix !== undefined) {
+      return this.id === node.id;
+    }
+    return this.contentEquals(node);
+  }
+
+  /**
+   * The single policy content-equality relation — the exact-mode
+   * {@link isEqualTo} and the planner's rename content-pairing both call
+   * this rather than growing a parallel relation: `operation` and
+   * `permissive` strict, `roles` compared deduplicated-and-sorted (the same
+   * set semantics as the wire-hash tuple, so the two never disagree),
+   * `using`/`withCheck` VERBATIM byte-for-byte with absent ≡ empty —
+   * deliberately NOT the normalized wire-hash bodies.
+   */
+  contentEquals(other: PostgresPolicySchemaNode): boolean {
+    return (
+      this.operation === other.operation &&
+      this.permissive === other.permissive &&
+      isArrayEqual([...new Set(this.roles)].sort(), [...new Set(other.roles)].sort()) &&
+      (this.using ?? '') === (other.using ?? '') &&
+      (this.withCheck ?? '') === (other.withCheck ?? '')
+    );
   }
 
   static is(node: SqlSchemaIRNode): node is PostgresPolicySchemaNode {

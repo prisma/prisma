@@ -4,7 +4,7 @@ Orientation for an agent picking this project up cold. The design is **settled a
 
 ## What this project is
 
-Expression (functional) indexes (`CREATE INDEX … USING btree (eql_v3.eq_term(email))`), partial indexes, and unique expression indexes — requested by the ciphers team — plus the identity change that makes them verifiable: **all indexes become name-identified** with ADR-234 content-addressed wire names (`<prefix>_<8hex>`), and both indexes and RLS policies gain an **exact-name mode** (`map:`) whose equivalence is content comparison, closing the `contract infer` round-trip so a live database can be inferred, emitted, and verified with zero operations.
+Expression (functional) indexes (`CREATE INDEX … USING btree (eql_v3.eq_term(email))`), partial indexes, and unique expression indexes — requested by the Cipherstash team — plus the identity change that makes them verifiable: **all indexes become name-identified** with ADR-234 content-addressed wire names (`<prefix>_<8hex>`), and both indexes and RLS policies gain an **exact-name mode** (`map:`) whose equivalence is content comparison, closing the `contract infer` round-trip so a live database can be inferred, emitted, and verified with zero operations.
 
 ## Read in this order
 

@@ -24,6 +24,8 @@ export type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeConstructorEntityRef,
   AuthoringTypeNamespace,
+  AuthoringWarning,
+  AuthoringWarningSink,
   ScalarTypeConstructorOutput,
 } from '../shared/framework-authoring';
 export {
@@ -31,6 +33,7 @@ export {
   assertResolvableTypeConstructorTemplates,
   classifyEnumMemberType,
   collectScalarTypeConstructors,
+  flushAuthoringWarnings,
   hasRegisteredFieldNamespace,
   instantiateAuthoringEntityType,
   instantiateAuthoringFieldPreset,

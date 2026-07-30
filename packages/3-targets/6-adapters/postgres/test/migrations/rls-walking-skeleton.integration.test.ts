@@ -51,6 +51,7 @@ function buildRlsWalkingSkeletonContract(): Contract<SqlStorage> {
     operation: 'select',
     roles: ['app_user'],
     using: POLICY_USING,
+    withCheck: undefined,
     permissive: true,
   });
 

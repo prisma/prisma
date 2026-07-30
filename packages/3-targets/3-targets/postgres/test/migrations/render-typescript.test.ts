@@ -163,6 +163,7 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     roles: ['authenticated'],
     using: '(owner_id = auth.uid())',
     permissive: true,
+    withCheck: undefined,
   });
 
   const rawOp = {

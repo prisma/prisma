@@ -1,24 +1,55 @@
+import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { freezeNode } from '@prisma-next/framework-components/ir';
 import { SqlNode } from '@prisma-next/sql-contract/types';
+import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
+/**
+ * The machine-rendered flat spelling of an input type: keys whose value
+ * admits `undefined` become optional (and still accept explicit
+ * `undefined`), everything else is carried unchanged — the
+ * `required-key-undefined-fields.mdc` carve-out for rendered literals,
+ * derived instead of hand-written so the field list has one home.
+ */
+type FlatSpelling<T> = { [K in keyof T as undefined extends T[K] ? never : K]: T[K] } & {
+  [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
+};
+
+/**
+ * The optional-key policy shape accepted by the migration authoring API
+ * (`Migration#createRlsPolicy`) and emitted by the migration renderer.
+ * Machine-rendered literals omit absent keys (`prefix` for an exact
+ * policy, `withCheck` for a SELECT policy); derived from
+ * {@link PostgresRlsPolicyInput}, so a new field appears here — and flows
+ * through `createRlsPolicy`'s spread — without a second hand-written list.
+ */
+export type PostgresRlsPolicyMigrationInput = FlatSpelling<PostgresRlsPolicyInput>;
+
 export interface PostgresRlsPolicyInput {
-  /** Full wire name: `<prefix>_<8hex>`. Stored as-is; hashing is not this class's job. */
+  /**
+   * Full physical name. Stored as-is; hashing is not this class's job.
+   */
   readonly name: string;
-  /** User-supplied prefix (the part before the `_<8hex>` suffix). */
-  readonly prefix: string;
+  /**
+   * The managed-mode name prefix — its PRESENCE is the naming-mode
+   * discriminator (there is no stored enum). Present ⇔ managed: the
+   * toolchain owns the physical name and `name === formatWireName(prefix,
+   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
+   * physical name whose identity the author owns entirely.
+   */
+  readonly prefix: string | undefined;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). Policies are schema-scoped. */
   readonly namespaceId: string;
   readonly operation: RlsPolicyOperation;
-  /** Sorted role names rendered in `TO <roles>`. Plain strings in this slice. */
+  /** Sorted role names rendered in `TO <roles>`. Plain strings for now. */
   readonly roles: readonly string[];
   /** USING predicate SQL string, if present. */
-  readonly using?: string;
+  readonly using: string | undefined;
   /** WITH CHECK predicate SQL string, if present. */
-  readonly withCheck?: string;
+  readonly withCheck: string | undefined;
   /** `true` = `AS PERMISSIVE`, `false` = `AS RESTRICTIVE`. */
   readonly permissive: boolean;
 }
@@ -39,7 +70,7 @@ export interface PostgresRlsPolicyInput {
 export class PostgresRlsPolicy extends SqlNode {
   override readonly kind = 'policy' as const;
   readonly name: string;
-  readonly prefix: string;
+  declare readonly prefix?: string;
   readonly tableName: string;
   readonly namespaceId: string;
   readonly operation: RlsPolicyOperation;
@@ -50,8 +81,17 @@ export class PostgresRlsPolicy extends SqlNode {
 
   constructor(input: PostgresRlsPolicyInput) {
     super();
+    if (input.prefix !== undefined) {
+      const parsed = parseWireName(input.name);
+      if (parsed === undefined || parsed.prefix !== input.prefix) {
+        throw new ContractValidationError(
+          `Policy "${input.name}": prefix "${input.prefix}" does not match the wire name (expected "${formatWireName(input.prefix, '<8hex>')}").`,
+          'storage',
+        );
+      }
+    }
     this.name = input.name;
-    this.prefix = input.prefix;
+    if (input.prefix !== undefined) this.prefix = input.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;

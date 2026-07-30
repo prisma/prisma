@@ -47,7 +47,7 @@ import {
 } from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
 import { postgresError } from '../errors';
-import type { PostgresRlsPolicy, PostgresRlsPolicyInput } from '../postgres-rls-policy';
+import type { PostgresRlsPolicy, PostgresRlsPolicyMigrationInput } from '../postgres-rls-policy';
 import {
   escapeLiteral,
   quoteIdentifier,
@@ -1721,9 +1721,13 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
 
   renderTypeScript(): string {
     const p = this.policy;
-    const input: PostgresRlsPolicyInput = {
+    // Typed as the migration API's own optional-key parameter shape so the
+    // rendered literal (absent keys omitted) is the shape `createRlsPolicy`
+    // accepts — a drift between the two is a compile error here, not in the
+    // user's generated migration.
+    const input: PostgresRlsPolicyMigrationInput = {
       name: p.name,
-      prefix: p.prefix,
+      ...ifDefined('prefix', p.prefix),
       tableName: p.tableName,
       namespaceId: p.namespaceId,
       operation: p.operation,

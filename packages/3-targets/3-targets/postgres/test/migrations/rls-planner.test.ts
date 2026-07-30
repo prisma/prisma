@@ -60,6 +60,7 @@ function makePolicy(
     roles: ['authenticated'],
     using,
     permissive: true,
+    withCheck: undefined,
   });
 }
 
@@ -142,9 +143,10 @@ function policyNode(policy: PostgresRlsPolicy): PostgresPolicySchemaNode {
     namespaceId: policy.namespaceId,
     operation: policy.operation,
     roles: [...policy.roles],
-    ...(policy.using !== undefined ? { using: policy.using } : {}),
-    ...(policy.withCheck !== undefined ? { withCheck: policy.withCheck } : {}),
+    using: policy.using,
+    withCheck: policy.withCheck,
     permissive: policy.permissive,
+    dependsOn: undefined,
   });
 }
 

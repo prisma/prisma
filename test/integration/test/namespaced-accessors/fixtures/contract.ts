@@ -84,6 +84,7 @@ const profile: ModelNode = {
 };
 
 export const contract = buildSqlContractFromDefinition({
+  warnings: undefined,
   target: postgresTargetPack,
   namespaces: ['public', 'auth'],
   models: [publicUser, profile, authUser],

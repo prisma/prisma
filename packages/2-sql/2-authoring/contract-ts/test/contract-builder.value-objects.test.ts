@@ -56,6 +56,7 @@ describe('value objects in contract definition builder', () => {
 
     const contract = buildSqlContractFromDefinition(
       {
+        warnings: undefined,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,
         models: [
@@ -120,6 +121,7 @@ describe('value objects in contract definition builder', () => {
 
   it('emits valueObjects section with scalar fields', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [
@@ -179,6 +181,7 @@ describe('value objects in contract definition builder', () => {
 
   it('emits valueObject domain type for model fields referencing a value object', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [
@@ -236,6 +239,7 @@ describe('value objects in contract definition builder', () => {
 
   it('maps value object fields to JSONB storage columns', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [
@@ -284,6 +288,7 @@ describe('value objects in contract definition builder', () => {
 
   it('emits many: true for value object list fields', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [
@@ -337,6 +342,7 @@ describe('value objects in contract definition builder', () => {
 
   it('emits nested value-object references inside a parent value object', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [
@@ -418,6 +424,7 @@ describe('value objects in contract definition builder', () => {
 
   it('omits valueObjects from contract when none are defined', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [
@@ -442,6 +449,7 @@ describe('value objects in contract definition builder', () => {
 
   it('maps value object field to correct storage bridge entry', () => {
     const contract = buildSqlContractFromDefinition({
+      warnings: undefined,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: [

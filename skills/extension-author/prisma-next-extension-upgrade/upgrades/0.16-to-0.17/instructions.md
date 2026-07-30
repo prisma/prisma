@@ -352,6 +352,40 @@ changes:
         - "CodecDescriptorImpl<"
         - "readonly AnyCodecDescriptor[]"
       anyMatch: true
+  - id: rls-policies-gain-exact-names
+    summary: |
+      RLS policies adopt the same managed/exact identity split as indexes. On
+      `PostgresRlsPolicyInput` / `PostgresPolicySchemaNodeInput`, `prefix`, `using`,
+      `withCheck` (and the node input's `dependsOn`) change from optional keys to REQUIRED
+      keys typed `| undefined` — a hard compile break for every existing construction site
+      that omitted them: `new PostgresRlsPolicy({ …, using })` without `withCheck` no longer
+      compiles. Fix: state the absent keys explicitly (`withCheck: undefined`,
+      `prefix: undefined`, `dependsOn: undefined`). In the serialized policy contract schema
+      `prefix` stays optional — its presence means managed (wire-named), absence means
+      exact-named (a verbatim adopted physical name). Both constructors now ENFORCE that a
+      declared
+      `prefix` matches the wire name's parsed prefix: pack code or test fixtures building a
+      `PostgresRlsPolicy` / `PostgresPolicySchemaNode` whose `name` is not
+      `<prefix>_<8hex>`-shaped while still passing a `prefix` (e.g. `prefix: name` for a
+      hand-written legacy name) now throw — omit `prefix` for such names; that is the
+      exact-named spelling. Exact-named policy nodes compare by content (`operation` /
+      `permissive` strict, `roles` as a deduplicated sorted set, `using` / `withCheck`
+      byte-for-byte), so a
+      body-drifted same-named exact policy now surfaces as a `not-equal` verify issue and a
+      drop + create plan instead of being invisible. PSL policy blocks newly accept
+      `@@map("physical name")` to author the exact mode (additive — managed lowering is
+      byte-unchanged).
+    detection:
+      glob: "**/*.{ts,mts,cts,prisma}"
+      contains:
+        - "PostgresRlsPolicy"
+        - "PostgresPolicySchemaNode"
+        - "policy_select"
+        - "policy_insert"
+        - "policy_update"
+        - "policy_delete"
+        - "policy_all"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions
