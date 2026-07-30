@@ -18,7 +18,7 @@ import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adap
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { namingOfLiveName, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
@@ -53,7 +53,7 @@ function makePolicy(
   namespaceId: string = SCHEMA_NAME,
 ): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    naming: parseNaming(name, name.replace(/_[0-9a-f]{8}$/, '')),
+    naming: namingOfLiveName(name),
     tableName,
     namespaceId,
     operation: 'select',

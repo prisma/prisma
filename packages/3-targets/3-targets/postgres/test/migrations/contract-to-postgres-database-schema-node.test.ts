@@ -1,7 +1,7 @@
 import { asNamespaceId, coreHash, profileHash } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { namingOfLiveName, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -22,7 +22,7 @@ const SCHEMA_NAME = 'public';
 
 function makePolicy(name: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    naming: parseNaming(name, name.replace(/_[0-9a-f]{8}$/, '')),
+    naming: namingOfLiveName(name),
     tableName: TABLE_NAME,
     namespaceId: SCHEMA_NAME,
     operation: 'select',

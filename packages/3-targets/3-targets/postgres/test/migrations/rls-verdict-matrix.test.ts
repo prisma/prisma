@@ -11,7 +11,7 @@ import type { ControlPolicy } from '@prisma-next/contract/types';
 import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import { verifySqlSchemaByDiff } from '@prisma-next/family-sql/diff';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { namingOfLiveName, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { diffPostgresSchema } from '../../src/core/migrations/diff-database-schema';
@@ -28,7 +28,7 @@ const TABLE_NAME = 'profiles';
 
 function policyNamed(name: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    naming: parseNaming(name, name.replace(/_[0-9a-f]{8}$/, '')),
+    naming: namingOfLiveName(name),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
