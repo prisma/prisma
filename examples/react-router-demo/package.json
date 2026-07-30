@@ -45,7 +45,7 @@
     "@prisma-next/tsconfig": "workspace:0.16.0",
     "@prisma-next/vite-plugin-contract-emit": "workspace:0.16.0",
     "@prisma/dev": "catalog:",
-    "@react-router/dev": "^7.18.1",
+    "@react-router/dev": "^8.1.0",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "@types/react": "^19.2.17",
