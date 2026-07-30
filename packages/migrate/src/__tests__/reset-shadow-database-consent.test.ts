@@ -5,6 +5,10 @@ import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
+// A diff between an empty datamodel and a schema file: it exercises the whole command without
+// needing a database to exist, so what a case proves is the flag's effect and nothing else.
+const diffArgs = ['--from-empty', '--to-schema', 'prisma/schema.prisma']
+
 const agentEnvVars = [
   ...new Set(agentMatchers.flatMap((matcher) => matcher.envVars)),
   'PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION',
@@ -37,7 +41,7 @@ describe('--reset-shadow-database', () => {
     process.env.CLAUDECODE = '1'
 
     const result = MigrateDiff.new().parse(
-      ['--from-empty', '--to-config-datasource', '--reset-shadow-database'],
+      [...diffArgs, '--reset-shadow-database'],
       await ctx.config(),
       ctx.configDir(),
     )
@@ -60,7 +64,7 @@ describe('--reset-shadow-database', () => {
     process.env.PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION = 'yes, reset the shadow database'
 
     const result = await MigrateDiff.new().parse(
-      ['--from-empty', '--to-config-datasource', '--reset-shadow-database'],
+      [...diffArgs, '--reset-shadow-database'],
       await ctx.config(),
       ctx.configDir(),
     )
@@ -72,11 +76,7 @@ describe('--reset-shadow-database', () => {
     ctx.fixture('schema-only-sqlite')
     process.env.CLAUDECODE = '1'
 
-    const result = await MigrateDiff.new().parse(
-      ['--from-empty', '--to-config-datasource'],
-      await ctx.config(),
-      ctx.configDir(),
-    )
+    const result = await MigrateDiff.new().parse([...diffArgs], await ctx.config(), ctx.configDir())
 
     expect(result).toBe('')
   })
