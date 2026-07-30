@@ -1,4 +1,5 @@
 export {
+  asManagedNaming,
   assertWireNamePrefixLength,
   computeIndexContentHash,
   defaultIndexName,

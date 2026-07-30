@@ -31,7 +31,7 @@ import type {
   SqlExecuteRequest,
 } from '@prisma-next/sql-relational-core/ast';
 import { isDdlNode } from '@prisma-next/sql-relational-core/ast';
-import { parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import { asManagedNaming, parseWireName } from '@prisma-next/sql-schema-ir/naming';
 import type {
   PrimaryKeyInput,
   SqlCheckConstraintIRInput,
@@ -1181,11 +1181,15 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         // columns included) is carried as one opaque reprinted string.
         const isExpression = idx.elements.some((el) => el.attname === null);
         const columnNames = idx.elements.flatMap((el) => (el.attname !== null ? [el.attname] : []));
+        // Rename-pass grouping only: adopting the shape-matched parse as
+        // managed is a deliberate claim (asManagedNaming) — the hash is not
+        // verified against content here; exact otherwise.
+        const indexWire = parseWireName(idx.name);
         const base = {
-          // Rename-pass grouping only: managed when the live name follows
-          // the wire-name shape (a parsed wire name IS the managed arm),
-          // exact otherwise.
-          naming: parseWireName(idx.name) ?? { kind: 'exact' as const, name: idx.name },
+          naming:
+            indexWire !== undefined
+              ? asManagedNaming(indexWire)
+              : { kind: 'exact' as const, name: idx.name },
           where: idx.where ?? undefined,
           unique: idx.unique,
           partial: idx.where !== null,
@@ -1274,12 +1278,17 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         ...new Set(parsePgNameArray(row.roles).map((r) => r.toLowerCase())),
       ].sort();
       const permissive = row.permissive.toUpperCase() === 'PERMISSIVE';
-      // Rename-pass grouping only, like index introspection: managed when
-      // the live name follows the wire-name shape, exact otherwise. Contract
-      // infer derives a `?? policyname` fallback, but as the SOURCE HEAD
-      // identifier of the emitted policy block — never as a managed prefix.
+      // Rename-pass grouping only, like index introspection: adopting the
+      // shape-matched parse as managed is a deliberate claim
+      // (asManagedNaming); exact otherwise. Contract infer derives a
+      // `?? policyname` fallback, but as the SOURCE HEAD identifier of the
+      // emitted policy block — never as a managed prefix.
+      const policyWire = parseWireName(row.policyname);
       const policy = new PostgresPolicySchemaNode({
-        naming: parseWireName(row.policyname) ?? { kind: 'exact' as const, name: row.policyname },
+        naming:
+          policyWire !== undefined
+            ? asManagedNaming(policyWire)
+            : { kind: 'exact' as const, name: row.policyname },
         tableName: row.tablename,
         namespaceId: row.schemaname,
         operation,

@@ -34,9 +34,8 @@ export type SqlIndexIRInput = SqlIndexElements & {
   /**
    * Naming-mode union — the node's identity: `managed` derives the flat
    * `name` as `formatWireName(prefix, hash)`; `exact` adopts `name`
-   * verbatim. A mismatched name/prefix pair is unconstructable; producers
-   * holding flat data reconstruct the union via `namingFromFlat` /
-   * `parseWireName`.
+   * verbatim. Invariant statement: {@link SqlObjectNaming}. Producers
+   * holding flat data reconstruct the union via `namingFromFlat`.
    */
   readonly naming: SqlObjectNaming;
   /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */

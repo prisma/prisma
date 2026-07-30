@@ -43,9 +43,9 @@ export type PostgresRlsPolicyMigrationInput = FlatSpelling<
 export interface PostgresRlsPolicyInput {
   /**
    * Naming-mode union: `managed` derives the flat `name` as
-   * `formatWireName(prefix, hash)`; `exact` adopts `name` verbatim. A
-   * mismatched name/prefix pair is unconstructable from the union; flat
-   * data (contract JSON, the migration API's literal) converts through
+   * `formatWireName(prefix, hash)`; `exact` adopts `name` verbatim.
+   * Invariant statement: {@link SqlObjectNaming}. Flat data (contract JSON,
+   * the migration API's literal) converts through
    * {@link rlsPolicyInputFromFlat}, which validates the pair.
    */
   readonly naming: SqlObjectNaming;

@@ -6,8 +6,6 @@ export function defaultIndexName(tableName: string, columns: readonly string[]):
 }
 
 export interface WireName {
-  /** A parsed wire name IS the managed arm of {@link SqlObjectNaming}. */
-  readonly kind: 'managed';
   /** The user-supplied part before the `_<8hex>` suffix. */
   readonly prefix: string;
   /** The 8-lowercase-hex content-hash suffix. */
@@ -15,17 +13,36 @@ export interface WireName {
 }
 
 /**
- * How a wire-named object (index, RLS policy) is named — the constructor
- * input for every name-identified IR class. `managed`: the toolchain owns
- * the physical name, derived as `formatWireName(prefix, hash)`; `exact`:
- * `name` is an adopted verbatim physical name the author owns entirely.
+ * How a wire-named object (an index, or a target's own named objects) is
+ * named — the constructor input for every name-identified IR class.
+ * `managed`: the toolchain owns the physical name, derived as
+ * `formatWireName(prefix, hash)`; `exact`: `name` is an adopted verbatim
+ * physical name the author owns entirely.
+ *
+ * Invariant: the physical name and the prefix agree by construction — the
+ * managed arm carries only `prefix` + `hash`, so a mismatched name/prefix
+ * pair is unrepresentable in the union. What the union does NOT guarantee
+ * is that `hash` matches the object's content: that stays the producer's
+ * obligation (authoring computes it, load boundaries and introspection
+ * adopters assert or knowingly claim it — see {@link asManagedNaming}).
  *
  * The union is input-only. Storage and JSON stay flat (`name` + optional
- * `prefix`); a mismatched name/prefix pair is unconstructable from the
- * union, so only flat-data load boundaries ({@link namingFromFlat}) still
- * validate the pair.
+ * `prefix`); flat-data load boundaries ({@link namingFromFlat}) validate
+ * the pair on the way back in.
  */
-export type SqlObjectNaming = { readonly kind: 'exact'; readonly name: string } | WireName;
+export type SqlObjectNaming =
+  | { readonly kind: 'exact'; readonly name: string }
+  | ({ readonly kind: 'managed' } & WireName);
+
+/**
+ * Adopts parsed wire-name parts as MANAGED naming. Calling this is a claim,
+ * not a fact: the parts only prove the name's shape, and the caller asserts
+ * the hash also matches the object's content (or knowingly accepts a
+ * shape-only match, e.g. rename-pass grouping during introspection).
+ */
+export function asManagedNaming(wire: WireName): SqlObjectNaming {
+  return { kind: 'managed', prefix: wire.prefix, hash: wire.hash };
+}
 
 /** Derives the flat physical name the union describes. */
 export function physicalNameOf(naming: SqlObjectNaming): string {
@@ -46,7 +63,7 @@ export function namingFromFlat(
   if (prefix === undefined) return { kind: 'exact', name };
   const parsed = parseWireName(name);
   if (parsed === undefined || parsed.prefix !== prefix) return undefined;
-  return parsed;
+  return asManagedNaming(parsed);
 }
 
 const WIRE_NAME_PATTERN = /^(.+)_([0-9a-f]{8})$/;
@@ -73,7 +90,7 @@ export function parseWireName(name: string): WireName | undefined {
   const prefix = match?.[1];
   const hash = match?.[2];
   if (prefix === undefined || hash === undefined) return undefined;
-  return { kind: 'managed', prefix, hash };
+  return { prefix, hash };
 }
 
 /**

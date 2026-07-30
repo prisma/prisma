@@ -11,9 +11,8 @@ export interface PostgresPolicySchemaNodeInput {
   /**
    * Naming-mode union — the node's identity: `managed` derives the flat
    * `name` as `formatWireName(prefix, hash)`; `exact` adopts `name`
-   * verbatim. A mismatched name/prefix pair is unconstructable; producers
-   * holding flat data reconstruct the union via `namingFromFlat` /
-   * `parseWireName`.
+   * verbatim. Invariant statement: {@link SqlObjectNaming}. Producers
+   * holding flat data reconstruct the union via `namingFromFlat`.
    */
   readonly naming: SqlObjectNaming;
   /** Name of the table this policy attaches to, by name within the same schema. */

@@ -40,9 +40,8 @@ export type IndexInput = IndexElements & {
   /**
    * Naming-mode union: `managed` derives the flat `name` as
    * `formatWireName(prefix, hash)`; `exact` adopts `name` verbatim (PSL
-   * `map:`). A mismatched name/prefix pair is unconstructable from this
-   * input; the flat JSON load boundary validates via
-   * {@link indexInputFromSerialized}.
+   * `map:`). Invariant statement: {@link SqlObjectNaming}. The flat JSON
+   * load boundary validates via {@link indexInputFromSerialized}.
    */
   readonly naming: SqlObjectNaming;
   /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
@@ -73,6 +72,9 @@ export type SerializedIndex = IndexElements & {
  * name, so the pair is validated here.
  */
 export function indexInputFromSerialized(flat: SerializedIndex): IndexInput {
+  // Not dead code: `flat` is typed but often comes from unvalidated JSON, and
+  // the undefined arm is this boundary's runtime guard (pinned by the
+  // "rejects a missing name at runtime" test).
   if (flat.name === undefined || flat.name.length === 0) {
     throw new ContractValidationError(
       'Index: every index carries a full physical name; an expression index must be explicitly named (a default name cannot be derived from an expression).',
