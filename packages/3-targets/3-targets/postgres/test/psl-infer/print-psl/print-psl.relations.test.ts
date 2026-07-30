@@ -1,6 +1,6 @@
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
-import { testNaming } from '../../fixtures/test-naming';
 import { printPslFromFlat as printPslFromSql } from '../fixtures';
 
 describe('printPsl', () => {
@@ -36,7 +36,7 @@ describe('printPsl', () => {
           uniques: [],
           indexes: [
             {
-              naming: testNaming('post_user_id_idx', undefined),
+              naming: parseNaming('post_user_id_idx', undefined),
               columns: ['user_id'],
               where: undefined,
               unique: false,

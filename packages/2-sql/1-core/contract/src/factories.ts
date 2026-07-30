@@ -1,10 +1,10 @@
 import { asNamespaceId, type ScalarFieldType } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import {
   ForeignKey,
   type ForeignKeyOptions,
   Index,
-  indexInputFromSerialized,
   PrimaryKey,
   type SqlModelFieldStorage,
   type SqlModelStorage,
@@ -46,16 +46,14 @@ export function index(
     readonly options?: Record<string, unknown>;
   },
 ): Index {
-  return new Index(
-    indexInputFromSerialized({
-      name,
-      ...(opts?.prefix !== undefined ? { prefix: opts.prefix } : {}),
-      columns,
-      unique: opts?.unique ?? false,
-      ...(opts?.type !== undefined ? { type: opts.type } : {}),
-      ...(opts?.options !== undefined ? { options: opts.options } : {}),
-    }),
-  );
+  return new Index({
+    naming: parseNaming(name, opts?.prefix),
+    columns,
+    where: undefined,
+    unique: opts?.unique ?? false,
+    type: opts?.type,
+    options: opts?.options,
+  });
 }
 
 export function fk(

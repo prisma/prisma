@@ -8,7 +8,9 @@ import { describe, expect, it } from 'vitest';
 import { composeSqlEntityKinds } from '../src/entity-kinds';
 import { col, fk, index, model, pk, table, unique } from '../src/factories';
 import { CheckConstraint } from '../src/ir/check-constraint';
+import { Index } from '../src/ir/sql-index';
 import { StorageTable } from '../src/ir/storage-table';
+import { indexInputFromSerialized, type SerializedIndex } from '../src/serialized-index';
 import type { ReferentialAction, SqlModelFieldStorage, SqlStorage } from '../src/types';
 import {
   createSqlStorageSchema,
@@ -19,6 +21,11 @@ import {
   validateStorage,
   validateStorageSemantics,
 } from '../src/validators';
+
+/** Routes a stored (flat) index entry through the contract-JSON hydrator. */
+function serializedIndex(flat: SerializedIndex): Index {
+  return new Index(indexInputFromSerialized(flat));
+}
 
 function unboundTables<T extends Record<string, unknown>>(tables: T) {
   return {
@@ -1078,7 +1085,7 @@ describe('SQL contract validators', () => {
             },
             {
               pk: { columns: ['id'], name: 'user_pkey' },
-              indexes: [{ columns: ['id'], name: 'user_pkey', unique: false }],
+              indexes: [serializedIndex({ columns: ['id'], name: 'user_pkey', unique: false })],
             },
           ),
         }),
@@ -1211,22 +1218,22 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                {
+                serializedIndex({
                   name: 'gin1_0695c6f4',
                   prefix: 'gin1',
                   columns: ['email'],
                   unique: false,
                   type: 'gin',
                   options: { a: '1', b: '2' },
-                },
-                {
+                }),
+                serializedIndex({
                   name: 'gin2_0695c6f4',
                   prefix: 'gin2',
                   columns: ['email'],
                   unique: false,
                   type: 'gin',
                   options: { b: '2', a: '1' },
-                },
+                }),
               ],
             },
           ),
@@ -1248,8 +1255,16 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                { name: 'user_email_unique_idx', columns: ['email'], unique: true },
-                { name: 'user_email_plain_idx', columns: ['email'], unique: false },
+                serializedIndex({
+                  name: 'user_email_unique_idx',
+                  columns: ['email'],
+                  unique: true,
+                }),
+                serializedIndex({
+                  name: 'user_email_plain_idx',
+                  columns: ['email'],
+                  unique: false,
+                }),
               ],
             },
           ),
@@ -1269,8 +1284,16 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                { name: 'user_email_lower', expression: 'lower(email)', unique: false },
-                { name: 'user_email_upper', expression: 'upper(email)', unique: false },
+                serializedIndex({
+                  name: 'user_email_lower',
+                  expression: 'lower(email)',
+                  unique: false,
+                }),
+                serializedIndex({
+                  name: 'user_email_upper',
+                  expression: 'upper(email)',
+                  unique: false,
+                }),
               ],
             },
           ),
@@ -1290,13 +1313,13 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                {
+                serializedIndex({
                   name: 'user_email_active',
                   columns: ['email'],
                   where: 'deleted_at IS NULL',
                   unique: false,
-                },
-                { name: 'user_email_all', columns: ['email'], unique: false },
+                }),
+                serializedIndex({ name: 'user_email_all', columns: ['email'], unique: false }),
               ],
             },
           ),
@@ -1316,18 +1339,18 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                {
+                serializedIndex({
                   name: 'lower1_17273133',
                   prefix: 'lower1',
                   expression: 'lower(email)',
                   unique: false,
-                },
-                {
+                }),
+                serializedIndex({
                   name: 'lower2_17273133',
                   prefix: 'lower2',
                   expression: 'lower(email)',
                   unique: false,
-                },
+                }),
               ],
             },
           ),
@@ -1349,8 +1372,16 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                { name: 'user_email_lower1', expression: 'lower(email)', unique: false },
-                { name: 'user_email_lower2', expression: 'lower(email)', unique: false },
+                serializedIndex({
+                  name: 'user_email_lower1',
+                  expression: 'lower(email)',
+                  unique: false,
+                }),
+                serializedIndex({
+                  name: 'user_email_lower2',
+                  expression: 'lower(email)',
+                  unique: false,
+                }),
               ],
             },
           ),
@@ -1432,7 +1463,7 @@ describe('SQL contract validators', () => {
               role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
             },
             uniques: [],
-            indexes: [{ columns: ['id'], name: 'shared_name', unique: false }],
+            indexes: [serializedIndex({ columns: ['id'], name: 'shared_name', unique: false })],
             foreignKeys: [],
             checks: [
               new CheckConstraint({

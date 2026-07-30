@@ -1,10 +1,10 @@
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { PostgresPolicySchemaNode } from '../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../src/core/schema-ir/postgres-table-schema-node';
-import { testNaming } from './fixtures/test-naming';
 
 const basePolicy = new PostgresPolicySchemaNode({
-  naming: testNaming('read_own_a1b2c3d4', 'read_own'),
+  naming: parseNaming('read_own_a1b2c3d4', 'read_own'),
   tableName: 'profiles',
   namespaceId: 'public',
   operation: 'select' as const,
@@ -126,7 +126,7 @@ describe('PostgresTableSchemaNode', () => {
       uniques: [{ columns: ['user_id', 'status'] }],
       indexes: [
         {
-          naming: testNaming('orders_status_idx', undefined),
+          naming: parseNaming('orders_status_idx', undefined),
           columns: ['status'],
           where: undefined,
           unique: false,

@@ -1,6 +1,8 @@
 import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
+import { index } from '@prisma-next/sql-contract/factories';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -15,7 +17,6 @@ import { PostgresSchema } from '../../src/core/postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { testNaming } from '../fixtures/test-naming';
 
 /**
  * Direct coverage for the node-based Postgres planner (the one-differ path):
@@ -143,7 +144,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
           },
         ],
         uniques: [{ columns: ['slug'] }],
-        indexes: [{ name: 'post_slug_idx', columns: ['slug'], unique: false }],
+        indexes: [index('post_slug_idx', ['slug'])],
       },
     });
     const factoryNames = planFor(contract, emptyRoot()).map((c) => c.factoryName);
@@ -431,7 +432,7 @@ describe('planNodeIssues — dependency-graph ordering', () => {
         ],
         indexes: [
           {
-            naming: testNaming('account_legacy_idx', undefined),
+            naming: parseNaming('account_legacy_idx', undefined),
             columns: ['legacy'],
             where: undefined,
             unique: false,

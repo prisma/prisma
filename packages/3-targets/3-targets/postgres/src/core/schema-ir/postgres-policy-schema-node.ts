@@ -8,12 +8,7 @@ import type { RlsPolicyOperation } from '../postgres-rls-policy';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 
 export interface PostgresPolicySchemaNodeInput {
-  /**
-   * Naming-mode union — the node's identity: `managed` derives the flat
-   * `name` as `formatWireName(prefix, hash)`; `exact` adopts `name`
-   * verbatim. Invariant statement: {@link SqlObjectNaming}. Producers
-   * holding flat data reconstruct the union via `namingFromFlat`.
-   */
+  /** The node's identity. Read back off a built node with `namingOf`. */
   readonly naming: SqlObjectNaming;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;

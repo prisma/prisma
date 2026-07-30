@@ -8,6 +8,9 @@ import {
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import {
   CheckConstraint,
+  Index,
+  indexInputFromSerialized,
+  type SerializedIndex,
   SqlStorage,
   type StorageColumn,
   type StorageTable,
@@ -63,6 +66,10 @@ function col(overrides: Partial<StorageColumn> & { nativeType: string }): Storag
     nullable: false,
     ...overrides,
   };
+}
+
+function serializedIndex(flat: SerializedIndex): Index {
+  return new Index(indexInputFromSerialized(flat));
 }
 
 function table(
@@ -543,7 +550,9 @@ describe('contractToSchemaIR', () => {
                 columns: {
                   email: col({ nativeType: 'text' }),
                 },
-                indexes: [{ columns: ['email'], name: 'T_email_idx', unique: false }],
+                indexes: [
+                  serializedIndex({ columns: ['email'], name: 'T_email_idx', unique: false }),
+                ],
               }),
             },
           },
@@ -580,13 +589,13 @@ describe('contractToSchemaIR', () => {
                   email: col({ nativeType: 'text' }),
                 },
                 indexes: [
-                  {
+                  serializedIndex({
                     name: 'T_email_idx_deadbeef',
                     prefix: 'T_email_idx',
                     columns: ['email'],
                     where: 'email IS NOT NULL',
                     unique: true,
-                  },
+                  }),
                 ],
               }),
             },
@@ -626,7 +635,13 @@ describe('contractToSchemaIR', () => {
                   id: col({ nativeType: 'text' }),
                   email: col({ nativeType: 'text' }),
                 },
-                indexes: [{ name: 'T_email_eq', expression: 'lower(email)', unique: false }],
+                indexes: [
+                  serializedIndex({
+                    name: 'T_email_eq',
+                    expression: 'lower(email)',
+                    unique: false,
+                  }),
+                ],
               }),
             },
           },
@@ -731,7 +746,11 @@ describe('contractToSchemaIR', () => {
                   teamId: col({ nativeType: 'text' }),
                 },
                 indexes: [
-                  { columns: ['workflowId'], name: 'WorkflowState_workflowId_idx', unique: false },
+                  serializedIndex({
+                    columns: ['workflowId'],
+                    name: 'WorkflowState_workflowId_idx',
+                    unique: false,
+                  }),
                 ],
                 foreignKeys: [
                   {
@@ -1068,7 +1087,9 @@ describe('contractToSchemaIR — FK referenced-namespace identity', () => {
                 columns: { id: col({ nativeType: 'text' }), slug: col({ nativeType: 'text' }) },
                 primaryKey: { columns: ['id'] },
                 uniques: [{ columns: ['slug'] }],
-                indexes: [{ name: 'Widget_slug_idx', columns: ['slug'], unique: false }],
+                indexes: [
+                  serializedIndex({ name: 'Widget_slug_idx', columns: ['slug'], unique: false }),
+                ],
               }),
             },
           },

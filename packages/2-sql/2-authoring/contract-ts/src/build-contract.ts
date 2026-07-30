@@ -53,6 +53,7 @@ import {
 import {
   applyFkDefaults,
   type CheckConstraintInput,
+  Index,
   type SqlNamespaceInput,
   SqlStorage,
   type SqlStorageInput,
@@ -973,7 +974,10 @@ export function buildSqlContractFromDefinition(
         columns,
         ...ifDefined('control', semanticModel.control),
         uniques,
-        indexes,
+        // Constructed here rather than left as input: the `table` entity
+        // kind's hydration tells an authored index from a stored one by
+        // whether it is already an Index.
+        indexes: indexes.map((i) => new Index(i)),
         foreignKeys,
         ...(primaryKey ? { primaryKey } : {}),
         ...(checksForTable.length > 0 ? { checks: checksForTable } : {}),

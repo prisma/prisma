@@ -4,12 +4,7 @@ import { InternalError } from '@prisma-next/utils/internal-error';
 import { CheckConstraint, type CheckConstraintInput } from './check-constraint';
 import { ForeignKey, type ForeignKeyInput } from './foreign-key';
 import { PrimaryKey, type PrimaryKeyInput } from './primary-key';
-import {
-  Index,
-  type IndexInput,
-  indexInputFromSerialized,
-  type SerializedIndex,
-} from './sql-index';
+import { Index, type IndexInput } from './sql-index';
 import { SqlNode } from './sql-node';
 import { StorageColumn, type StorageColumnInput } from './storage-column';
 import { UniqueConstraint, type UniqueConstraintInput } from './unique-constraint';
@@ -18,7 +13,7 @@ export interface StorageTableInput {
   readonly columns: Record<string, StorageColumn | StorageColumnInput>;
   readonly primaryKey?: PrimaryKey | PrimaryKeyInput;
   readonly uniques: ReadonlyArray<UniqueConstraint | UniqueConstraintInput>;
-  readonly indexes: ReadonlyArray<Index | IndexInput | SerializedIndex>;
+  readonly indexes: ReadonlyArray<Index | IndexInput>;
   readonly foreignKeys: ReadonlyArray<ForeignKey | ForeignKeyInput>;
   readonly control?: ControlPolicy;
   readonly checks?: ReadonlyArray<CheckConstraint | CheckConstraintInput>;
@@ -64,11 +59,7 @@ export class StorageTable extends SqlNode {
     this.uniques = Object.freeze(
       input.uniques.map((u) => (u instanceof UniqueConstraint ? u : new UniqueConstraint(u))),
     );
-    this.indexes = Object.freeze(
-      input.indexes.map((i) =>
-        i instanceof Index ? i : new Index('naming' in i ? i : indexInputFromSerialized(i)),
-      ),
-    );
+    this.indexes = Object.freeze(input.indexes.map((i) => (i instanceof Index ? i : new Index(i))));
     this.foreignKeys = Object.freeze(
       input.foreignKeys.map((fk) => (fk instanceof ForeignKey ? fk : new ForeignKey(fk))),
     );

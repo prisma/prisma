@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { structuredError } from '@prisma-next/utils/structured-error';
 
 export function defaultIndexName(tableName: string, columns: readonly string[]): string {
@@ -13,57 +14,70 @@ export interface WireName {
 }
 
 /**
- * How a wire-named object (an index, or a target's own named objects) is
- * named — the constructor input for every name-identified IR class.
- * `managed`: the toolchain owns the physical name, derived as
- * `formatWireName(prefix, hash)`; `exact`: `name` is an adopted verbatim
- * physical name the author owns entirely.
+ * Where a name-identified object's name comes from: `managed` means the
+ * toolchain derives it as `formatWireName(prefix, hash)`; `exact` means the
+ * author owns it verbatim. Because the managed arm carries only the prefix
+ * and the hash, a name that disagrees with its prefix is unrepresentable.
  *
- * Invariant: the physical name and the prefix agree by construction — the
- * managed arm carries only `prefix` + `hash`, so a mismatched name/prefix
- * pair is unrepresentable in the union. What the union does NOT guarantee
- * is that `hash` matches the object's content: that stays the producer's
- * obligation (authoring computes it, load boundaries and introspection
- * adopters assert or knowingly claim it — see {@link asManagedNaming}).
- *
- * The union is input-only. Storage and JSON stay flat (`name` + optional
- * `prefix`); flat-data load boundaries ({@link namingFromFlat}) validate
- * the pair on the way back in.
+ * Storage and JSON stay flat (`name` plus an optional `prefix`);
+ * {@link parseNaming} is the way back in.
  */
 export type SqlObjectNaming =
   | { readonly kind: 'exact'; readonly name: string }
   | ({ readonly kind: 'managed' } & WireName);
 
-/**
- * Adopts parsed wire-name parts as MANAGED naming. Calling this is a claim,
- * not a fact: the parts only prove the name's shape, and the caller asserts
- * the hash also matches the object's content (or knowingly accepts a
- * shape-only match, e.g. rename-pass grouping during introspection).
- */
-export function asManagedNaming(wire: WireName): SqlObjectNaming {
-  return { kind: 'managed', prefix: wire.prefix, hash: wire.hash };
-}
-
-/** Derives the flat physical name the union describes. */
+/** The flat name the union describes. Inverse of {@link namingOf}. */
 export function physicalNameOf(naming: SqlObjectNaming): string {
   return naming.kind === 'managed' ? formatWireName(naming.prefix, naming.hash) : naming.name;
 }
 
 /**
- * Reconstructs the naming union from flat data (`name` + optional
- * `prefix`) at a load boundary — deserialized JSON and other flat inputs
- * are the one place a mismatched pair is still representable. Returns
- * `undefined` when a declared prefix does not parse back out of the name;
- * the caller raises its own validation error.
+ * The naming a name-identified node was built with, read back off the flat
+ * pair it stores. Inverse of {@link physicalNameOf}, and total for that
+ * reason: the constructor derived `name` from the union, so the two agree.
+ * Flat data arriving from outside the process goes through
+ * {@link parseNaming} instead.
  */
-export function namingFromFlat(
-  name: string,
-  prefix: string | undefined,
-): SqlObjectNaming | undefined {
+export function namingOf(name: string, prefix: string | undefined): SqlObjectNaming {
+  if (prefix === undefined) return { kind: 'exact', name };
+  return { kind: 'managed', prefix, hash: name.slice(prefix.length + 1) };
+}
+
+/**
+ * Reads naming out of flat stored data — deserialized contract JSON and the
+ * literals a user may hand-edit, the one place a name and a prefix can still
+ * disagree. Throws when a declared prefix does not parse back out of the name.
+ */
+export function parseNaming(name: string, prefix: string | undefined): SqlObjectNaming {
   if (prefix === undefined) return { kind: 'exact', name };
   const parsed = parseWireName(name);
-  if (parsed === undefined || parsed.prefix !== prefix) return undefined;
-  return asManagedNaming(parsed);
+  if (parsed === undefined || parsed.prefix !== prefix) {
+    throw new ContractValidationError(
+      `"${name}": prefix "${prefix}" does not match the wire name (expected "${formatWireName(prefix, '<8hex>')}").`,
+      'storage',
+    );
+  }
+  return { kind: 'managed', prefix: parsed.prefix, hash: parsed.hash };
+}
+
+/**
+ * The naming an object read out of a live catalog has: a wire-shaped name
+ * gets the managed arm so the rename pass can pair it by prefix, and every
+ * other name is exact.
+ *
+ * The managed answer is a claim about the name's SHAPE only — the hash is
+ * deliberately not recomputed from the object's content here. Nothing
+ * downstream reads it as more than that: the differ always asks the
+ * contract-derived side to choose the comparison, so a shape-only managed
+ * claim on the introspected side never suppresses a body comparison, and
+ * `contract infer` recomputes the hash independently before it will emit an
+ * index as managed.
+ */
+export function namingOfLiveName(name: string): SqlObjectNaming {
+  const wire = parseWireName(name);
+  return wire === undefined
+    ? { kind: 'exact', name }
+    : { kind: 'managed', prefix: wire.prefix, hash: wire.hash };
 }
 
 const WIRE_NAME_PATTERN = /^(.+)_([0-9a-f]{8})$/;

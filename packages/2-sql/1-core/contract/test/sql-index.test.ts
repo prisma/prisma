@@ -1,15 +1,7 @@
+import { namingOf, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
-import {
-  Index,
-  type IndexInput,
-  indexInputFromSerialized,
-  type SerializedIndex,
-} from '../src/ir/sql-index';
+import { Index, type IndexInput } from '../src/ir/sql-index';
 
-/**
- * Routes flat data through the serialized-load boundary — the place the
- * name/prefix pair is validated now that the constructor takes the union.
- */
 function input(partial: {
   readonly name: string;
   readonly prefix?: string;
@@ -20,7 +12,16 @@ function input(partial: {
   readonly type?: string;
   readonly options?: Record<string, unknown>;
 }): IndexInput {
-  return indexInputFromSerialized(partial as SerializedIndex);
+  const carried = {
+    naming: parseNaming(partial.name, partial.prefix),
+    where: partial.where,
+    unique: partial.unique,
+    type: partial.type,
+    options: partial.options,
+  };
+  return partial.expression !== undefined
+    ? { ...carried, expression: partial.expression }
+    : { ...carried, columns: partial.columns ?? [] };
 }
 
 describe('Index', () => {
@@ -79,6 +80,25 @@ describe('Index', () => {
     expect(idx.options).toEqual({ fillfactor: 70 });
   });
 
+  it('hands the naming it was built with back', () => {
+    const managed = new Index(
+      input({
+        name: 'users_email_idx_ab12cd34',
+        prefix: 'users_email_idx',
+        columns: ['email'],
+        unique: false,
+      }),
+    );
+    expect(namingOf(managed.name, managed.prefix)).toEqual({
+      kind: 'managed',
+      prefix: 'users_email_idx',
+      hash: 'ab12cd34',
+    });
+
+    const exact = new Index(input({ name: 'users_email_key', columns: ['email'], unique: false }));
+    expect(namingOf(exact.name, exact.prefix)).toEqual({ kind: 'exact', name: 'users_email_key' });
+  });
+
   describe('columns xor expression (runtime backstop behind the input union)', () => {
     it('rejects both columns and expression', () => {
       expect(
@@ -110,86 +130,18 @@ describe('Index', () => {
   });
 
   describe('name is always the full physical name', () => {
-    it('rejects a missing name at runtime (unvalidated JSON input)', () => {
-      const raw: unknown = { columns: ['email'], unique: false };
-      expect(() => new Index(indexInputFromSerialized(raw as never))).toThrow(/full physical name/);
-    });
-  });
-
-  describe('the JSON boundary enforces the element xor itself', () => {
-    // The constructor's xor guard cannot catch these: the serialized
-    // conversion would otherwise turn "neither" into columns: [] and let
-    // "both" silently drop columns.
-    it('rejects both columns and expression in flat data', () => {
-      const raw: unknown = {
-        name: 'users_email_eq',
-        columns: ['email'],
-        expression: 'lower(email)',
-        unique: false,
-      };
-      expect(() => indexInputFromSerialized(raw as never)).toThrow(
-        /exactly one of columns or expression/,
-      );
-    });
-
-    it('rejects neither columns nor expression in flat data', () => {
-      const raw: unknown = { name: 'users_email_eq', unique: false };
-      expect(() => indexInputFromSerialized(raw as never)).toThrow(
-        /exactly one of columns or expression/,
-      );
-    });
-  });
-
-  describe('prefix implies the name is that prefix plus a wire hash', () => {
-    it('accepts prefix when the name is formatWireName(prefix, hash)', () => {
-      const idx = new Index(
-        input({
-          name: 'users_email_idx_deadbeef',
-          prefix: 'users_email_idx',
-          columns: ['email'],
-          unique: false,
-        }),
-      );
-      expect(idx.prefix).toBe('users_email_idx');
-    });
-
-    it('rejects prefix when the name has no wire-hash suffix', () => {
+    it('rejects an empty name', () => {
       expect(
         () =>
-          new Index(
-            input({
-              name: 'users_email_idx',
-              prefix: 'users_email_idx',
-              columns: ['email'],
-              unique: false,
-            }),
-          ),
-      ).toThrow(/does not match/);
-    });
-
-    it('rejects prefix when the name parses to a different prefix', () => {
-      expect(
-        () =>
-          new Index(
-            input({
-              name: 'other_prefix_deadbeef',
-              prefix: 'users_email_idx',
-              columns: ['email'],
-              unique: false,
-            }),
-          ),
-      ).toThrow(/does not match/);
-    });
-
-    it('allows an exact name that happens to parse as a wire name (no prefix claimed)', () => {
-      const idx = new Index(
-        input({
-          name: 'adopted_live_name_deadbeef',
-          columns: ['email'],
-          unique: false,
-        }),
-      );
-      expect(idx.prefix).toBeUndefined();
+          new Index({
+            naming: { kind: 'exact', name: '' },
+            columns: ['email'],
+            where: undefined,
+            unique: false,
+            type: undefined,
+            options: undefined,
+          }),
+      ).toThrow(/full physical name/);
     });
   });
 });

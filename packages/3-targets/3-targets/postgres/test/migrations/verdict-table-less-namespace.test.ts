@@ -1,6 +1,7 @@
 import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import { verifySqlSchemaByDiff } from '@prisma-next/family-sql/diff';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { diffPostgresSchema } from '../../src/core/migrations/diff-database-schema';
@@ -10,7 +11,6 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { postgresDiffSubjectGranularity } from '../../src/core/schema-ir/schema-node-kinds';
-import { testNaming } from '../fixtures/test-naming';
 
 /**
  * Table-less contract namespaces (e.g. an enums-only schema) are invisible
@@ -156,7 +156,7 @@ describe('verdict: table-less contract namespaces (Postgres tree)', () => {
 
   it('a live RLS policy on a stray table in the enums-only owned schema fails both pipelines', () => {
     const strayPolicy = new PostgresPolicySchemaNode({
-      naming: testNaming('sneaky_read_a1b2c3d4', 'sneaky_read'),
+      naming: parseNaming('sneaky_read_a1b2c3d4', 'sneaky_read'),
       tableName: 'audit_log',
       namespaceId: 'enums',
       operation: 'select',

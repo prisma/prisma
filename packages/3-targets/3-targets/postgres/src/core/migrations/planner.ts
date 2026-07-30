@@ -27,12 +27,12 @@ import type {
 import { issueOutcome } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import { namingOf, parseWireName } from '@prisma-next/sql-schema-ir/naming';
 import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
 import { SqlIndexIR } from '@prisma-next/sql-schema-ir/types';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
-import { PostgresRlsPolicy, rlsPolicyInputFromFlat } from '../postgres-rls-policy';
+import { PostgresRlsPolicy } from '../postgres-rls-policy';
 import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordinate';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
@@ -900,17 +900,14 @@ function gradePolicyReplacement(
  * pre-resolution coordinate, so a lookup would change the migration output.
  */
 function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRlsPolicy {
-  return new PostgresRlsPolicy(
-    rlsPolicyInputFromFlat({
-      name: node.name,
-      ...ifDefined('prefix', node.prefix),
-      tableName: node.tableName,
-      namespaceId: node.namespaceId,
-      operation: node.operation,
-      roles: [...node.roles],
-      ...ifDefined('using', node.using),
-      ...ifDefined('withCheck', node.withCheck),
-      permissive: node.permissive,
-    }),
-  );
+  return new PostgresRlsPolicy({
+    naming: namingOf(node.name, node.prefix),
+    tableName: node.tableName,
+    namespaceId: node.namespaceId,
+    operation: node.operation,
+    roles: [...node.roles],
+    using: node.using,
+    withCheck: node.withCheck,
+    permissive: node.permissive,
+  });
 }

@@ -1,11 +1,7 @@
 import type { EntityKindDescriptor } from '@prisma-next/framework-components/ir';
 import { PostgresNativeEnum, type PostgresNativeEnumInput } from './postgres-native-enum';
 import { PostgresRlsEnablement, type PostgresRlsEnablementInput } from './postgres-rls-enablement';
-import {
-  PostgresRlsPolicy,
-  type PostgresRlsPolicyMigrationInput,
-  rlsPolicyInputFromFlat,
-} from './postgres-rls-policy';
+import { PostgresRlsPolicy } from './postgres-rls-policy';
 import { PostgresRole, type PostgresRoleInput } from './postgres-role';
 import {
   PostgresNativeEnumSchema,
@@ -13,15 +9,12 @@ import {
   PostgresRlsPolicySchema,
   PostgresRoleSchema,
 } from './postgres-validators';
+import { policyInputFromSerialized, type SerializedRlsPolicy } from './serialized-rls-policy';
 
-export const policyEntityKind: EntityKindDescriptor<
-  PostgresRlsPolicyMigrationInput,
-  PostgresRlsPolicy
-> = {
+export const policyEntityKind: EntityKindDescriptor<SerializedRlsPolicy, PostgresRlsPolicy> = {
   kind: 'policy',
   schema: PostgresRlsPolicySchema,
-  // Contract JSON is flat; the conversion validates the name/prefix pair.
-  construct: (input) => new PostgresRlsPolicy(rlsPolicyInputFromFlat(input)),
+  construct: (input) => new PostgresRlsPolicy(policyInputFromSerialized(input)),
 };
 
 export const roleEntityKind: EntityKindDescriptor<PostgresRoleInput, PostgresRole> = {

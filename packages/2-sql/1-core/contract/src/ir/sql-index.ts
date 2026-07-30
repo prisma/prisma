@@ -1,11 +1,6 @@
 import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { freezeNode } from '@prisma-next/framework-components/ir';
-import {
-  formatWireName,
-  namingFromFlat,
-  physicalNameOf,
-  type SqlObjectNaming,
-} from '@prisma-next/sql-schema-ir/naming';
+import { physicalNameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
 import { SqlNode } from './sql-node';
 
 /**
@@ -37,12 +32,7 @@ export type IndexElements =
  * `SqlIndexIRInput` convention.
  */
 export type IndexInput = IndexElements & {
-  /**
-   * Naming-mode union: `managed` derives the flat `name` as
-   * `formatWireName(prefix, hash)`; `exact` adopts `name` verbatim (PSL
-   * `map:`). Invariant statement: {@link SqlObjectNaming}. The flat JSON
-   * load boundary validates via {@link indexInputFromSerialized}.
-   */
+  /** The index's identity. Read back off a built node with `namingOf`. */
   readonly naming: SqlObjectNaming;
   /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
   readonly where: string | undefined;
@@ -51,60 +41,6 @@ export type IndexInput = IndexElements & {
   readonly type: string | undefined;
   readonly options: Record<string, unknown> | undefined;
 };
-
-/**
- * The flat serialized index shape (`contract.json`): full `name`, optional
- * `prefix` whose presence marks managed mode. Converted to {@link IndexInput}
- * at the load boundary by {@link indexInputFromSerialized}.
- */
-export type SerializedIndex = IndexElements & {
-  readonly name: string;
-  readonly prefix?: string;
-  readonly where?: string;
-  readonly unique: boolean;
-  readonly type?: string;
-  readonly options?: Record<string, unknown>;
-};
-
-/**
- * Converts flat serialized data into the union-shaped constructor input —
- * the one boundary where a declared prefix can still disagree with the
- * name, so the pair is validated here.
- */
-export function indexInputFromSerialized(flat: SerializedIndex): IndexInput {
-  // Not dead code: `flat` is typed but often comes from unvalidated JSON, and
-  // the undefined arm is this boundary's runtime guard (pinned by the
-  // "rejects a missing name at runtime" test).
-  if (flat.name === undefined || flat.name.length === 0) {
-    throw new ContractValidationError(
-      'Index: every index carries a full physical name; an expression index must be explicitly named (a default name cannot be derived from an expression).',
-      'storage',
-    );
-  }
-  if ((flat.columns === undefined) === (flat.expression === undefined)) {
-    throw new ContractValidationError(
-      `Index "${flat.name}": exactly one of columns or expression must be set.`,
-      'storage',
-    );
-  }
-  const naming = namingFromFlat(flat.name, flat.prefix);
-  if (naming === undefined) {
-    throw new ContractValidationError(
-      `Index "${flat.name}": prefix "${flat.prefix}" does not match the wire name (expected "${formatWireName(flat.prefix ?? '', '<8hex>')}").`,
-      'storage',
-    );
-  }
-  const carried = {
-    naming,
-    where: flat.where,
-    unique: flat.unique,
-    type: flat.type,
-    options: flat.options,
-  };
-  return flat.expression !== undefined
-    ? { ...carried, expression: flat.expression }
-    : { ...carried, columns: flat.columns ?? [] };
-}
 
 /**
  * SQL Contract IR node for a table-level secondary index, name-identified:

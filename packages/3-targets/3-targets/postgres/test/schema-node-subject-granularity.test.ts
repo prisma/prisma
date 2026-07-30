@@ -1,4 +1,5 @@
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { PostgresDatabaseSchemaNode } from '../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../src/core/schema-ir/postgres-namespace-schema-node';
@@ -10,7 +11,6 @@ import {
   postgresDiffSubjectGranularity,
   postgresNodeGranularity,
 } from '../src/core/schema-ir/schema-node-kinds';
-import { testNaming } from './fixtures/test-naming';
 
 /**
  * The subject granularity a Postgres diff node's issues carry is resolved
@@ -81,7 +81,7 @@ describe('Postgres schema nodes carry no role/granularity of their own', () => {
     [
       'PostgresPolicySchemaNode',
       new PostgresPolicySchemaNode({
-        naming: testNaming('read_own_a1b2c3d4', 'read_own'),
+        naming: parseNaming('read_own_a1b2c3d4', 'read_own'),
         tableName: 'profiles',
         namespaceId: 'public',
         operation: 'select',

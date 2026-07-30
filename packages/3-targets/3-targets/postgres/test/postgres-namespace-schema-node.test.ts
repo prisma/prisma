@@ -1,3 +1,4 @@
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { PostgresNamespaceSchemaNode } from '../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../src/core/schema-ir/postgres-native-enum-schema-node';
@@ -5,10 +6,9 @@ import { PostgresPolicySchemaNode } from '../src/core/schema-ir/postgres-policy-
 import { PostgresRoleSchemaNode } from '../src/core/schema-ir/postgres-role-schema-node';
 import { PostgresTableSchemaNode } from '../src/core/schema-ir/postgres-table-schema-node';
 import type { SqlSchemaDiffNode } from '../src/core/schema-ir/schema-node-kinds';
-import { testNaming } from './fixtures/test-naming';
 
 const policy = new PostgresPolicySchemaNode({
-  naming: testNaming('read_own_a1b2c3d4', 'read_own'),
+  naming: parseNaming('read_own_a1b2c3d4', 'read_own'),
   tableName: 'profiles',
   namespaceId: 'public',
   operation: 'select' as const,

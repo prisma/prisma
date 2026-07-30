@@ -9,6 +9,7 @@
  * model instead of failing the whole infer.
  */
 import { printPsl } from '@prisma-next/psl-printer';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { postgresAuthoringPslBlockDescriptors } from '../../src/core/authoring';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
@@ -17,7 +18,6 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { testNaming } from '../fixtures/test-naming';
 
 interface PolicyFixture {
   readonly name: string;
@@ -31,7 +31,7 @@ interface PolicyFixture {
 
 function policyNode(fixture: PolicyFixture): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    naming: testNaming(fixture.name, fixture.prefix),
+    naming: parseNaming(fixture.name, fixture.prefix),
     tableName: 'profile',
     namespaceId: 'public',
     operation: fixture.operation ?? 'select',
@@ -192,7 +192,7 @@ function tableNode(
 
 function policyOn(tableName: string, fixture: PolicyFixture): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    naming: testNaming(fixture.name, fixture.prefix),
+    naming: parseNaming(fixture.name, fixture.prefix),
     tableName,
     namespaceId: 'public',
     operation: fixture.operation ?? 'select',

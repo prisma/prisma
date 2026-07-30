@@ -15,7 +15,7 @@ import {
   type StorageTypeInstance,
   type UniqueConstraint,
 } from '@prisma-next/sql-contract/types';
-import { namingFromFlat, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
+import { namingOf } from '@prisma-next/sql-schema-ir/naming';
 import {
   RelationalSchemaNodeKind,
   type SqlAnnotations,
@@ -303,25 +303,13 @@ function convertUnique(unique: UniqueConstraint, tableName: string): SqlUniqueIR
   };
 }
 
-/**
- * Reconstructs the naming union from a validated contract entity's flat
- * fields; a mismatch is corrupt producer state, never live data.
- */
-function trustedNaming(name: string, prefix: string | undefined): SqlObjectNaming {
-  const naming = namingFromFlat(name, prefix);
-  if (naming === undefined) {
-    throw new InternalError(`"${name}": prefix "${prefix}" does not match the wire name.`);
-  }
-  return naming;
-}
-
 function convertIndex(
   index: Index,
   tableName: string,
   tableColumns: readonly string[],
 ): SqlIndexIRInput {
   const base = {
-    naming: trustedNaming(index.name, index.prefix),
+    naming: namingOf(index.name, index.prefix),
     where: index.where,
     unique: index.unique,
     partial: index.where !== undefined,

@@ -1,5 +1,5 @@
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { namingFromFlat } from '@prisma-next/sql-schema-ir/naming';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import {
   PostgresPolicySchemaNode,
@@ -13,11 +13,8 @@ type FlatPolicy = Omit<PostgresPolicySchemaNodeInput, 'naming'> & {
 };
 
 function policyNode(flat: FlatPolicy): PostgresPolicySchemaNode {
-  const naming = namingFromFlat(flat.name, flat.prefix);
-  if (naming === undefined)
-    throw new Error(`"${flat.name}": prefix "${flat.prefix}" does not match the wire name`);
   const { name: _name, prefix: _prefix, ...rest } = flat;
-  return new PostgresPolicySchemaNode({ ...rest, naming });
+  return new PostgresPolicySchemaNode({ ...rest, naming: parseNaming(flat.name, flat.prefix) });
 }
 
 const basePolicyInput = {
@@ -107,9 +104,13 @@ describe('PostgresPolicySchemaNode', () => {
       expect(Object.hasOwn(exact, 'prefix')).toBe(false);
     });
 
-    it('a declared prefix must parse back out of the name — namingFromFlat rejects the pair, so the node is unconstructable', () => {
-      expect(namingFromFlat(basePolicyInput.name, 'other')).toBeUndefined();
-      expect(namingFromFlat('not_wire_shaped', 'not_wire_shaped')).toBeUndefined();
+    it('a declared prefix must parse back out of the name — parseNaming rejects the pair, so the node is unconstructable', () => {
+      expect(() => parseNaming(basePolicyInput.name, 'other')).toThrow(
+        /does not match the wire name/,
+      );
+      expect(() => parseNaming('not_wire_shaped', 'not_wire_shaped')).toThrow(
+        /does not match the wire name/,
+      );
     });
   });
 

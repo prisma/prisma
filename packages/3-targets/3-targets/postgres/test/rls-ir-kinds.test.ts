@@ -1,12 +1,13 @@
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { StorageTable } from '@prisma-next/sql-contract/types';
 import { describe, expect, it } from 'vitest';
-import { PostgresRlsPolicy, rlsPolicyInputFromFlat } from '../src/core/postgres-rls-policy';
+import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';
 import { PostgresSchema } from '../src/core/postgres-schema';
+import { policyInputFromSerialized } from '../src/core/serialized-rls-policy';
 
-function policyOf(flat: Parameters<typeof rlsPolicyInputFromFlat>[0]): PostgresRlsPolicy {
-  return new PostgresRlsPolicy(rlsPolicyInputFromFlat(flat));
+function policyOf(flat: Parameters<typeof policyInputFromSerialized>[0]): PostgresRlsPolicy {
+  return new PostgresRlsPolicy(policyInputFromSerialized(flat));
 }
 
 const emptyTableInput = {

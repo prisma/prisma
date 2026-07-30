@@ -1,4 +1,5 @@
 import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { rlsEnabledAst, rlsPolicyExistsAst } from '../../src/contract-free/checks';
 import {
@@ -13,7 +14,6 @@ import {
 } from '../../src/core/migrations/operations/rls';
 import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
 import { PostgresCreatePolicy, PostgresDropPolicy } from '../../src/exports/ddl';
-import { testNaming } from '../fixtures/test-naming';
 
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
@@ -33,7 +33,7 @@ function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: un
 describe('renderCreatePolicySql role-name validation', () => {
   function policyWithRoles(roles: string[]): PostgresRlsPolicy {
     return new PostgresRlsPolicy({
-      naming: testNaming('p_ab12cd34', 'p'),
+      naming: parseNaming('p_ab12cd34', 'p'),
       tableName: 'profiles',
       namespaceId: 'public',
       operation: 'select',
@@ -96,7 +96,7 @@ describe('renderCreatePolicySql role-name validation', () => {
 });
 
 const basePolicy = new PostgresRlsPolicy({
-  naming: testNaming('read_own_profiles_ab12cd34', 'read_own_profiles'),
+  naming: parseNaming('read_own_profiles_ab12cd34', 'read_own_profiles'),
   tableName: 'profiles',
   namespaceId: 'public',
   operation: 'select',
@@ -125,7 +125,7 @@ describe('createRlsPolicy op', () => {
   it('passes withCheck when present', async () => {
     const { lowerer, received } = recordingCheckLowerer();
     const policy = new PostgresRlsPolicy({
-      naming: testNaming('insert_own_profiles_ab12cd34', 'insert_own_profiles'),
+      naming: parseNaming('insert_own_profiles_ab12cd34', 'insert_own_profiles'),
       tableName: 'profiles',
       namespaceId: 'public',
       operation: 'insert',
@@ -147,7 +147,7 @@ describe('createRlsPolicy op', () => {
       ...basePolicy,
       using: basePolicy.using,
       withCheck: basePolicy.withCheck,
-      naming: testNaming('restrict_profiles_ab12cd34', 'restrict_profiles'),
+      naming: parseNaming('restrict_profiles_ab12cd34', 'restrict_profiles'),
       permissive: false,
     });
     await createRlsPolicy('public', 'profiles', policy, lowerer);

@@ -1,7 +1,7 @@
 import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import { issueOutcome } from '@prisma-next/framework-components/control';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { namingFromFlat, normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
+import { normalizeSqlBody, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { buildPostgresPlanDiff } from '@prisma-next/target-postgres/diff-database-schema';
 import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
@@ -15,12 +15,6 @@ import {
 } from '@prisma-next/target-postgres/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
-
-function namingOrThrow(name: string, prefix: string | undefined) {
-  const naming = namingFromFlat(name, prefix);
-  if (naming === undefined) throw new Error(`bad flat naming: ${name} / ${prefix}`);
-  return naming;
-}
 
 const SCHEMA_NAME = 'public';
 const TABLE_NAME = 'items';
@@ -36,7 +30,7 @@ const WIRE_NAME = `${PREFIX}_${HASH}`;
 
 function managedPolicy(): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    naming: namingOrThrow(WIRE_NAME, PREFIX),
+    naming: parseNaming(WIRE_NAME, PREFIX),
     tableName: TABLE_NAME,
     namespaceId: SCHEMA_NAME,
     operation: 'select',
@@ -62,7 +56,7 @@ function externalPolicy(): PostgresRlsPolicy {
 
 function toPolicyNode(p: PostgresRlsPolicy): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    naming: namingOrThrow(p.name, p.prefix),
+    naming: parseNaming(p.name, p.prefix),
     tableName: p.tableName,
     namespaceId: p.namespaceId,
     operation: p.operation,

@@ -8,6 +8,7 @@ import {
   primaryKey,
   unique,
 } from '@prisma-next/sql-relational-core/contract-free';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { TsExpression } from '@prisma-next/ts-render';
 import { describe, expect, it } from 'vitest';
 import * as opFactoryCalls from '../../src/core/migrations/op-factory-call';
@@ -48,7 +49,6 @@ import {
 import { renderCallsToTypeScript } from '../../src/core/migrations/render-typescript';
 import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
 import * as migrationFacade from '../../src/exports/migration';
-import { testNaming } from '../fixtures/test-naming';
 
 const SNAPSHOTS_IMPORT_PATH = '../../snapshots';
 const FROM_HASH = 'a'.repeat(64);
@@ -156,7 +156,7 @@ describe('renderCallsToTypeScript (postgres)', () => {
 
 describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
   const policy = new PostgresRlsPolicy({
-    naming: testNaming('p_ab12cd34', 'p'),
+    naming: parseNaming('p_ab12cd34', 'p'),
     tableName: 'note',
     namespaceId: 'public',
     operation: 'select',

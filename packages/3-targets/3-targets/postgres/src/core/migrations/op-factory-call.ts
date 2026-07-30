@@ -35,6 +35,7 @@ import type {
   DdlTableConstraint,
 } from '@prisma-next/sql-relational-core/ast';
 import { FunctionColumnDefault, LiteralColumnDefault } from '@prisma-next/sql-relational-core/ast';
+import { namingOf } from '@prisma-next/sql-schema-ir/naming';
 import { type ImportRequirement, jsonToTsSource, TsExpression } from '@prisma-next/ts-render';
 import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
@@ -47,7 +48,7 @@ import {
 } from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
 import { postgresError } from '../errors';
-import type { PostgresRlsPolicy, PostgresRlsPolicyMigrationInput } from '../postgres-rls-policy';
+import type { PostgresRlsPolicy, RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import {
   escapeLiteral,
   quoteIdentifier,
@@ -1721,13 +1722,11 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
 
   renderTypeScript(): string {
     const p = this.policy;
-    // Typed as the migration API's own optional-key parameter shape so the
-    // rendered literal (absent keys omitted) is the shape `createRlsPolicy`
-    // accepts — a drift between the two is a compile error here, not in the
+    // Typed as the parameter `createRlsPolicy` accepts, so a drift between
+    // the renderer and the API is a compile error here rather than in the
     // user's generated migration.
-    const input: PostgresRlsPolicyMigrationInput = {
-      name: p.name,
-      ...ifDefined('prefix', p.prefix),
+    const input: RenderedRlsPolicyLiteral = {
+      naming: namingOf(p.name, p.prefix),
       tableName: p.tableName,
       namespaceId: p.namespaceId,
       operation: p.operation,

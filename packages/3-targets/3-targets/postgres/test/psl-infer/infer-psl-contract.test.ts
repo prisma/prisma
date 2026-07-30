@@ -1,6 +1,10 @@
 import { flatPslModels } from '@prisma-next/framework-components/psl-ast';
 import { printPsl } from '@prisma-next/psl-printer';
-import { computeIndexContentHash, formatWireName } from '@prisma-next/sql-schema-ir/naming';
+import {
+  computeIndexContentHash,
+  formatWireName,
+  parseNaming,
+} from '@prisma-next/sql-schema-ir/naming';
 import type { SqlIndexIRInput, SqlSchemaIRInput } from '@prisma-next/sql-schema-ir/types';
 import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
 import { isStructuredError } from '@prisma-next/utils/structured-error';
@@ -9,7 +13,6 @@ import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-con
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { testNaming } from '../fixtures/test-naming';
 import { inferPslAstFromFlat as sqlSchemaIrToPslAst } from './fixtures';
 
 function ir(partial: Partial<SqlSchemaIRInput> & Pick<SqlSchemaIRInput, 'tables'>): SqlSchemaIR {
@@ -328,7 +331,7 @@ describe('inferPostgresPslContract', () => {
             uniques: [],
             indexes: [
               {
-                naming: testNaming(index.name, index.prefix),
+                naming: parseNaming(index.name, index.prefix),
                 columns: index.columns,
                 expression: index.expression,
                 where: index.where,

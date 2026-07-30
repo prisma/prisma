@@ -18,6 +18,7 @@ import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adap
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
@@ -31,7 +32,6 @@ import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-poli
 import { PostgresRoleSchemaNode } from '../../src/core/schema-ir/postgres-role-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { PostgresCreatePolicy } from '../../src/exports/ddl';
-import { testNaming } from '../fixtures/test-naming';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower(_ast, _ctx) {
@@ -53,7 +53,7 @@ function makePolicy(
   namespaceId: string = SCHEMA_NAME,
 ): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    naming: testNaming(name, name.replace(/_[0-9a-f]{8}$/, '')),
+    naming: parseNaming(name, name.replace(/_[0-9a-f]{8}$/, '')),
     tableName,
     namespaceId,
     operation: 'select',
@@ -137,7 +137,7 @@ function buildContractWith(
 
 function policyNode(policy: PostgresRlsPolicy): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    naming: testNaming(policy.name, policy.prefix),
+    naming: parseNaming(policy.name, policy.prefix),
     tableName: policy.tableName,
     namespaceId: policy.namespaceId,
     operation: policy.operation,

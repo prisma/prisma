@@ -19,6 +19,7 @@ import {
   SqlStorage,
   StorageTable,
 } from '@prisma-next/sql-contract/types';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import type { SqlIndexIRInput } from '@prisma-next/sql-schema-ir/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -27,7 +28,6 @@ import { PostgresSchema } from '../../src/core/postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { testNaming } from '../fixtures/test-naming';
 
 const TABLE_NAME = 'items';
 const stubLowerer: ExecuteRequestLowerer = {
@@ -111,7 +111,7 @@ function actualSchema(indexes: readonly LiveIndex[]): PostgresDatabaseSchemaNode
             indexes: indexes.map(
               (idx) =>
                 ({
-                  naming: testNaming(idx.name, idx.prefix),
+                  naming: parseNaming(idx.name, idx.prefix),
                   columns: idx.columns ?? (idx.expression !== undefined ? undefined : ['email']),
                   expression: idx.expression,
                   where: idx.where,

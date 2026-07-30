@@ -5,11 +5,12 @@
  */
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { PostgresRlsPolicy, rlsPolicyInputFromFlat } from '../src/core/postgres-rls-policy';
+import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';
+import { policyInputFromSerialized } from '../src/core/serialized-rls-policy';
 
-function policyOf(flat: Parameters<typeof rlsPolicyInputFromFlat>[0]): PostgresRlsPolicy {
-  return new PostgresRlsPolicy(rlsPolicyInputFromFlat(flat));
+function policyOf(flat: Parameters<typeof policyInputFromSerialized>[0]): PostgresRlsPolicy {
+  return new PostgresRlsPolicy(policyInputFromSerialized(flat));
 }
 
 describe('PostgresRlsPolicy — Contract-IR entity, not a DiffableNode', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SqlIndexIR, type SqlIndexIRInput } from '../src/ir/sql-index-ir';
-import { namingFromFlat } from '../src/naming';
+import { parseNaming } from '../src/naming';
 
 type LooseIndexInput = Pick<SqlIndexIRInput, 'unique' | 'partial'> & {
   readonly name: string;
@@ -15,7 +15,7 @@ type LooseIndexInput = Pick<SqlIndexIRInput, 'unique' | 'partial'> & {
 };
 
 function index(input: LooseIndexInput): SqlIndexIR {
-  const naming = namingFromFlat(input.name, input.prefix);
+  const naming = parseNaming(input.name, input.prefix);
   if (naming === undefined) throw new Error(`bad flat naming: ${input.name} / ${input.prefix}`);
   const filled = {
     columns: input.columns !== undefined || input.expression !== undefined ? undefined : ['email'],
