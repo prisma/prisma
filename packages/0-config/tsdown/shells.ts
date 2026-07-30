@@ -103,6 +103,10 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         { dir: 'packages/2-sql/4-lanes/sql-builder', entry: 'builder' },
         { dir: 'packages/2-sql/5-runtime', entry: 'runtime' },
         { dir: 'packages/2-sql/9-family', entry: 'family' },
+        // Platform code despite its `3-extensions/` directory: both SQL
+        // facades depend on it, and one module may live in only one
+        // published package, so it cannot be duplicated into each facade.
+        { dir: 'packages/3-extensions/sql-orm-client', entry: 'orm-client' },
       ],
     },
   ],

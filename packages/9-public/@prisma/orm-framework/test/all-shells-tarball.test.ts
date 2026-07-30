@@ -25,6 +25,7 @@ const adrExampleNames = [
   '@prisma/orm-framework/psl-parser',
   '@prisma/orm-family-sql/contract',
   '@prisma/orm-family-sql/runtime',
+  '@prisma/orm-family-sql/orm-client',
   '@prisma/orm-target-postgres/target',
   '@prisma/orm-target-postgres/adapter',
   '@prisma/orm-target-postgres/driver',
