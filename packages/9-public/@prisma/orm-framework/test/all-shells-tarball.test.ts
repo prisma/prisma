@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +9,7 @@ import {
   findInternalNames,
   importSubpaths,
   installShells,
+  knownInternalNamesInDist,
   packShell,
   runInScratch,
 } from '@prisma-next/tsdown/shell-testkit';
@@ -113,6 +114,35 @@ describe('all publish shells packed and installed together', () => {
       const installedDir = join(scratch, 'node_modules', name);
       expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
     }
+  });
+
+  // The toolchain publishes the shell map so that emission can resolve
+  // import roots at run time, which puts every internal package name into a
+  // published dist as string data. The scan above has to keep passing
+  // *without* those names joining the baseline allowlist: absorbing ~50
+  // entries there would stop the scan noticing an internal name anywhere
+  // else in any shell. This states how much of the table is passing on the
+  // data allowance rather than on the allowlist.
+  it('carries the shell map’s internal names as data rather than on the allowlist', () => {
+    const toolchainDist = join(scratch, 'node_modules', '@prisma/orm-toolchain', 'dist');
+    const carried = new Set<string>();
+    for (const file of readdirSync(toolchainDist)) {
+      if (!file.endsWith('.mjs')) continue;
+      for (const match of readFileSync(join(toolchainDist, file), 'utf8').matchAll(
+        /["'](@prisma-next\/[^"'\s]+)["']/g,
+      )) {
+        carried.add(match[1] ?? '');
+      }
+    }
+
+    const mapped = [...publicShells.values()].flatMap((shell) =>
+      shell.packages.map((pkg) => pkg.name),
+    );
+    expect(mapped.filter((name) => carried.has(name)).length).toBeGreaterThan(40);
+    const onDataAllowanceOnly = mapped.filter(
+      (name) => carried.has(name) && !knownInternalNamesInDist.includes(name),
+    );
+    expect(onDataAllowanceOnly.length).toBeGreaterThan(25);
   });
 
   // The identity rule of ADR 242: an internal module is published from

@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { publicShells } from '@prisma-next/publish-surface/shells';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
 
 /** A tarball-install smoke-test failure with the offending command output attached. */
@@ -169,6 +170,65 @@ export function importSubpaths(installedPackageDir: string): string[] {
 }
 
 /**
+ * The internal package names the shell map states, as a set.
+ *
+ * The map is itself published — `@prisma/orm-toolchain/publish-surface/shells`
+ * — because emission resolves generated import specifiers through it at run
+ * time. Publishing it necessarily puts every internal package name into a
+ * published dist as ordinary string data. Those strings are the table's
+ * subject matter, not something the dist imports, and
+ * {@link findInternalImportSpecifiers} — which has no allowlist — is what
+ * would catch any of them turning into a real import.
+ *
+ * Derived from the map instead of listed, so it stays exactly the table's
+ * contents: adding an internal package cannot quietly widen the check, and
+ * the allowance applies only inside {@link shellMapModules}.
+ */
+const shellMapPackageNames: ReadonlySet<string> = new Set(
+  [...publicShells.values()].flatMap((shell) => [
+    ...shell.packages.map((pkg) => pkg.name),
+    ...(shell.reexports ?? []).map((reexport) => reexport.package),
+  ]),
+);
+
+/** Export subpath of the published shell map, as an exports-map key suffix. */
+const SHELL_MAP_SUBPATH = '/publish-surface/shells';
+
+/**
+ * The dist files carrying the shell map in an installed package, empty for
+ * every shell that does not publish it.
+ *
+ * Found by following the package's own exports map and then the relative
+ * imports that entry reaches, rather than by matching a filename: the
+ * bundler decides which chunk the table lands in, and a guessed name would
+ * stop matching without anyone noticing.
+ */
+function shellMapModules(installedPackageDir: string): ReadonlySet<string> {
+  const manifest: unknown = JSON.parse(
+    readFileSync(join(installedPackageDir, 'package.json'), 'utf8'),
+  );
+  if (typeof manifest !== 'object' || manifest === null || !('exports' in manifest)) {
+    return new Set();
+  }
+  const exports = Object(manifest.exports);
+  const key = Object.keys(exports).find((subpath) => subpath.endsWith(SHELL_MAP_SUBPATH));
+  if (key === undefined) return new Set();
+
+  const found = new Set<string>();
+  const pending = [resolve(installedPackageDir, String(exports[key]))];
+  while (pending.length > 0) {
+    const file = pending.pop();
+    if (file === undefined || found.has(file)) continue;
+    found.add(file);
+    const [imports] = parseModule(readFileSync(file, 'utf8'));
+    for (const record of imports) {
+      if (record.n?.startsWith('.')) pending.push(resolve(dirname(file), record.n));
+    }
+  }
+  return found;
+}
+
+/**
  * Internal package names that published dists still carry as *string
  * constants* (not import specifiers), recorded as of TML-3122.
  *
@@ -176,10 +236,13 @@ export function importSubpaths(installedPackageDir: string): string[] {
  * renderers hand to their import-specifier resolver before writing a user's
  * generated contract and migration files. TML-3123 made that resolution
  * configurable but left the default returning them unchanged, so the
- * constants necessarily remain in the dist; TML-3126 flips the default and
+ * constants necessarily remain in the dist; the flip to a published default
  * retires them. The rest name internal packages inside diagnostics,
  * config-validation messages, and telemetry identifiers, which go away with
  * the `@prisma-next/*` names themselves.
+ *
+ * The shell map's own contents are *not* here — see
+ * {@link shellMapPackageNames} for why they are recognised as data instead.
  *
  * This is a baseline lock, not an endorsement. Anything not listed fails
  * {@link findInternalNames}, so no *new* internal name can reach a
@@ -210,7 +273,6 @@ export const knownInternalNamesInDist: readonly string[] = [
   '@prisma-next/extension-postgis/codec-types',
   '@prisma-next/extension-postgis/operation-types',
   '@prisma-next/family-mongo',
-  '@prisma-next/family-mongo/migration',
   '@prisma-next/framework-components',
   '@prisma-next/framework-components/codec',
   '@prisma-next/framework-components/control',
@@ -260,21 +322,30 @@ export const knownInternalNamesInDist: readonly string[] = [
  * are scanned for import specifiers only — an internal name in JSDoc prose
  * is a documentation wart, not a resolution failure.
  *
+ * One package publishes a table *of* internal package names, and inside the
+ * modules that carry it those strings are the data rather than something the
+ * dist would resolve; see {@link shellMapPackageNames}. That allowance is
+ * scoped to those modules, so it cannot hide a name anywhere else.
+ *
  * Returns offending `file: name` strings, excluding
  * {@link knownInternalNamesInDist}.
  */
 export async function findInternalNames(installedPackageDir: string): Promise<string[]> {
   await initLexer;
   const known = new Set(knownInternalNamesInDist);
+  const mapModules = shellMapModules(installedPackageDir);
   const offenders: string[] = [];
   const distDir = join(installedPackageDir, 'dist');
   for (const file of walk(distDir)) {
     if (file.endsWith('.mjs')) {
+      const carriesShellMap = mapModules.has(file);
       for (const match of readFileSync(file, 'utf8').matchAll(
         /["'`](@prisma-next\/[^"'`\s\\]+)["'`\\]/g,
       )) {
         const name = match[1] ?? '';
-        if (!known.has(name)) offenders.push(`${file}: ${name}`);
+        if (known.has(name)) continue;
+        if (carriesShellMap && shellMapPackageNames.has(name)) continue;
+        offenders.push(`${file}: ${name}`);
       }
     } else if (file.endsWith('.d.mts')) {
       for (const line of readFileSync(file, 'utf8').split('\n')) {

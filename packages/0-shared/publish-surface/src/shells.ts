@@ -245,6 +245,14 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           name: '@prisma-next/vite-plugin-contract-emit',
           entry: 'vite-plugin-contract-emit',
         },
+        // This table itself. Emission resolves generated import specifiers
+        // through it at run time, so the toolchain carries it rather than
+        // duplicating a copy of the mapping wherever a resolver is built.
+        {
+          dir: 'packages/0-shared/publish-surface',
+          name: '@prisma-next/publish-surface',
+          entry: 'publish-surface',
+        },
       ],
       bins: { 'prisma-next': 'packages/1-framework/3-tooling/cli/dist/cli.mjs' },
       copy: ['packages/1-framework/3-tooling/cli/dist/*.md'],

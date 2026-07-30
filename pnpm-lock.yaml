@@ -5412,6 +5412,9 @@ importers:
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/3-tooling/migration
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig

@@ -29,8 +29,8 @@ export interface RenderMigrationMeta {
  * target's own `migration` entry:
  *
  * - `Migration` — the user-facing Mongo `Migration` base, forwarded from
- *   `@prisma-next/family-mongo/migration`; subclasses don't need to
- *   redeclare `targetId` or thread family/target generics.
+ *   `@prisma-next/family-mongo`; subclasses don't need to redeclare
+ *   `targetId` or thread family/target generics.
  * - `MigrationCLI` — the migration-file CLI entrypoint that loads
  *   `prisma-next.config.ts`, assembles a `ControlStack`, and instantiates
  *   the migration class. The migration file owns this dependency directly:

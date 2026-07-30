@@ -10,16 +10,15 @@ import { renderCallsToTypeScript } from './render-typescript';
  * and `MongoMigrationPlanner.emptyMigration(...)`.
  *
  * Unlike user-authored migrations (which extend `MongoMigration` from
- * `@prisma-next/family-mongo/migration`), this class lives inside the target
- * and holds the richer authoring IR (`OpFactoryCall[]`) needed to render
- * itself back to TypeScript source. It implements
- * `MigrationPlanWithAuthoringSurface` so that the CLI can uniformly ask any
- * planner result to serialize itself to a `migration.ts`.
+ * `@prisma-next/family-mongo`), this class lives inside the target and holds
+ * the richer authoring IR (`OpFactoryCall[]`) needed to render itself back to
+ * TypeScript source. It implements `MigrationPlanWithAuthoringSurface` so
+ * that the CLI can uniformly ask any planner result to serialize itself to a
+ * `migration.ts`.
  *
- * Extends the framework `Migration` base class directly (not
- * `MongoMigration`) because `MongoMigration` lives in `@prisma-next/family-mongo`,
- * which depends on this package — extending it here would create a dependency
- * cycle.
+ * It extends the framework `Migration` base directly and declares its own
+ * `targetId` rather than inheriting `MongoMigration`, whose added value is
+ * the lazily-built contract views a planner result never reads.
  */
 export class PlannerProducedMongoMigration
   extends Migration<AnyMongoMigrationOperation>
