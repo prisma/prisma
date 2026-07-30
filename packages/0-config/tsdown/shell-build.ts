@@ -60,39 +60,72 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
       }
       const entryName = subpath === '.' ? pkg.entry : `${pkg.entry}/${subpath.slice(2)}`;
       const specifier = subpath === '.' ? pkg.name : `${pkg.name}/${subpath.slice(2)}`;
-      const entryFile = join(srcDir, `${entryName}.ts`);
+      // Flat file names: the dts plugin names declaration outputs after the
+      // entry file's basename, so nested entry paths would strand every
+      // `.d.mts` at the dist root (with hash-renaming on basename
+      // collisions), away from its `.mjs` sibling. `__` maps back to `/` in
+      // the generated exports map (see `shellExports`).
+      const flatName = entryName.replaceAll('/', '__');
+      const entryFile = join(srcDir, `${flatName}.ts`);
       mkdirSync(dirname(entryFile), { recursive: true });
       writeFileSync(entryFile, entryModuleSource(specifier, join(pkg.absDir, distFile)));
-      entry[entryName] = `src/${entryName}.ts`;
+      entry[flatName] = `src/${flatName}.ts`;
     }
   }
 
+  const binFiles = new Set<string>();
   for (const [binName, binFile] of Object.entries(shell.bins ?? {})) {
-    const entryName = `bin/${binName}`;
-    const entryFile = join(srcDir, `${entryName}.mjs`);
+    const flatName = `bin__${binName}`;
+    const entryFile = join(srcDir, `${flatName}.mjs`);
+    const binPath = resolve(repoRoot, binFile);
+    binFiles.add(binPath);
     mkdirSync(dirname(entryFile), { recursive: true });
-    writeFileSync(entryFile, `import '${resolve(repoRoot, binFile)}';\n`);
-    entry[entryName] = `src/${entryName}.mjs`;
+    writeFileSync(entryFile, `import '${binPath}';\n`);
+    entry[flatName] = `src/${flatName}.mjs`;
   }
 
   validateShellManifest(shellName, shellDir, internals, lookup);
 
   return defineConfig({
     entry,
+    copy: (shell.copy ?? []).map((pattern) => ({ from: resolve(repoRoot, pattern) })),
     skipNodeModulesBundle: false,
     external: (id: string) => /^[@a-zA-Z]/.test(id) && !id.startsWith('@prisma-next/'),
     dts: { enabled: true, sourcemap: true },
     exports: {
       enabled: 'local-only',
-      exclude: [/(^|\/)bin\//],
+      customExports: shellExports,
+      bin:
+        Object.keys(shell.bins ?? {}).length > 0
+          ? Object.fromEntries(
+              Object.keys(shell.bins ?? {}).map((binName) => [
+                binName,
+                `./src/bin__${binName}.mjs`,
+              ]),
+            )
+          : false,
     },
-    plugins: [crossShellRewritePlugin(shellName, lookup)],
+    plugins: [crossShellRewritePlugin(shellName, lookup), binSideEffectsPlugin(binFiles)],
     outputOptions: (options) => ({
       ...options,
       banner: (chunk: { name: string }) =>
-        chunk.name.startsWith('bin/') ? '#!/usr/bin/env node\n' : '',
+        chunk.name.startsWith('bin__') ? '#!/usr/bin/env node\n' : '',
     }),
   });
+}
+
+/**
+ * Expand the flat `__`-separated output names back into `/`-separated public
+ * subpaths, and drop bin entries (installed via the `bin` field, never
+ * importable).
+ */
+function shellExports(exports: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(exports)) {
+    if (key.includes('bin__')) continue;
+    out[key.replaceAll('__', '/')] = value;
+  }
+  return out;
 }
 
 function entryModuleSource(specifier: string, distFile: string): string {
@@ -117,25 +150,65 @@ function resolveExportTarget(value: unknown): string | undefined {
   return undefined;
 }
 
+function publicSpecifier(
+  source: string,
+  shellName: ShellName,
+  lookup: Map<string, InternalPackage>,
+): { shell: ShellName; id: string } {
+  const [scope, name, ...rest] = source.split('/');
+  const target = lookup.get(`${scope}/${name}`);
+  if (target === undefined) {
+    throw new ShellConfigError(
+      `import of ${source} in shell ${shellName} has no public shell mapping`,
+    );
+  }
+  const subpath = rest.join('/');
+  const id =
+    subpath === ''
+      ? `${target.shell}/${target.entry}`
+      : `${target.shell}/${target.entry}/${subpath}`;
+  return { shell: target.shell, id };
+}
+
 function crossShellRewritePlugin(shellName: ShellName, lookup: Map<string, InternalPackage>) {
   return {
     name: 'prisma-public-shell-rewrite',
     resolveId(source: string) {
       if (!source.startsWith('@prisma-next/')) return null;
-      const [scope, name, ...rest] = source.split('/');
-      const target = lookup.get(`${scope}/${name}`);
-      if (target === undefined) {
-        throw new ShellConfigError(
-          `import of ${source} in shell ${shellName} has no public shell mapping`,
+      const target = publicSpecifier(source, shellName, lookup);
+      if (target.shell === shellName) return null;
+      return { id: target.id, external: true };
+    },
+    // The dts bundler leaves inline `import("@prisma-next/...")` type
+    // references (copied verbatim from the internal declaration files) in the
+    // emitted output; rewrite them to published specifiers. Same-shell
+    // references become self-references, which TypeScript resolves through
+    // the shell's own exports map.
+    generateBundle(_options: unknown, bundle: Record<string, { type: string; code?: string }>) {
+      for (const [fileName, output] of Object.entries(bundle)) {
+        if (!fileName.endsWith('.d.mts') || output.type !== 'chunk') continue;
+        if (typeof output.code !== 'string') continue;
+        output.code = output.code.replace(
+          /import\((["'])(@prisma-next\/[^"')]+)\1\)/g,
+          (_match, quote: string, source: string) =>
+            `import(${quote}${publicSpecifier(source, shellName, lookup).id}${quote})`,
         );
       }
-      if (target.shell === shellName) return null;
-      const subpath = rest.join('/');
-      const id =
-        subpath === ''
-          ? `${target.shell}/${target.entry}`
-          : `${target.shell}/${target.entry}/${subpath}`;
-      return { id, external: true };
+    },
+  };
+}
+
+/**
+ * Bin dist files run the program via top-level side effects, but the internal
+ * packages declare `sideEffects: false`, so without this the bundle
+ * tree-shakes the whole CLI away.
+ */
+function binSideEffectsPlugin(binFiles: ReadonlySet<string>) {
+  return {
+    name: 'prisma-public-shell-bin-side-effects',
+    resolveId(source: string) {
+      if (!binFiles.has(source)) return null;
+      return { id: source, moduleSideEffects: 'no-treeshake' as const };
     },
   };
 }

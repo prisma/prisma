@@ -21,6 +21,7 @@
   "exports": {
     ".": "./base.ts",
     "./shell-build": "./shell-build.ts",
+    "./shell-testkit": "./shell-testkit.ts",
     "./shells": "./shells.ts"
   }
 }

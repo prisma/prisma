@@ -4696,6 +4696,152 @@ importers:
         specifier: 'catalog:'
         version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.0.16(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
 
+  packages/9-public/@prisma/orm-family-mongo:
+    dependencies:
+      '@prisma/orm-framework':
+        specifier: workspace:0.16.0
+        version: link:../orm-framework
+      '@prisma/orm-toolchain':
+        specifier: workspace:0.16.0
+        version: link:../orm-toolchain
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.3
+      mongodb:
+        specifier: 'catalog:'
+        version: 7.5.0(socks@2.8.9)
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+    devDependencies:
+      '@prisma-next/family-mongo':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/9-family
+      '@prisma-next/mongo-codec':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/1-foundation/mongo-codec
+      '@prisma-next/mongo-contract':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/1-foundation/mongo-contract
+      '@prisma-next/mongo-contract-psl':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/2-authoring/contract-psl
+      '@prisma-next/mongo-contract-ts':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/2-authoring/contract-ts
+      '@prisma-next/mongo-emitter':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/3-tooling/emitter
+      '@prisma-next/mongo-lowering':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/6-transport/mongo-lowering
+      '@prisma-next/mongo-orm':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/5-query-builders/orm
+      '@prisma-next/mongo-query-ast':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/4-query/query-ast
+      '@prisma-next/mongo-query-builder':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/5-query-builders/query-builder
+      '@prisma-next/mongo-runtime':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/7-runtime
+      '@prisma-next/mongo-schema-ir':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/3-tooling/mongo-schema-ir
+      '@prisma-next/mongo-value':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/1-foundation/mongo-value
+      '@prisma-next/mongo-wire':
+        specifier: workspace:0.16.0
+        version: link:../../../2-mongo-family/6-transport/mongo-wire
+      '@prisma-next/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@prisma-next/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  packages/9-public/@prisma/orm-family-sql:
+    dependencies:
+      '@prisma/orm-framework':
+        specifier: workspace:0.16.0
+        version: link:../orm-framework
+      '@prisma/orm-toolchain':
+        specifier: workspace:0.16.0
+        version: link:../orm-toolchain
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.3
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+      pluralize:
+        specifier: ^8.0.0
+        version: 8.0.0
+      ts-toolbelt:
+        specifier: ^9.6.0
+        version: 9.6.0
+    devDependencies:
+      '@prisma-next/family-sql':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/9-family
+      '@prisma-next/sql-builder':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/4-lanes/sql-builder
+      '@prisma-next/sql-contract':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/1-core/contract
+      '@prisma-next/sql-contract-emitter':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/3-tooling/emitter
+      '@prisma-next/sql-contract-psl':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/2-authoring/contract-psl
+      '@prisma-next/sql-contract-ts':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/2-authoring/contract-ts
+      '@prisma-next/sql-errors':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/1-core/errors
+      '@prisma-next/sql-lane-query-builder':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/4-lanes/query-builder
+      '@prisma-next/sql-operations':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/1-core/operations
+      '@prisma-next/sql-relational-core':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/4-lanes/relational-core
+      '@prisma-next/sql-runtime':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/5-runtime
+      '@prisma-next/sql-schema-ir':
+        specifier: workspace:0.16.0
+        version: link:../../../2-sql/1-core/schema-ir
+      '@prisma-next/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@prisma-next/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   packages/9-public/@prisma/orm-framework:
     dependencies:
       '@standard-schema/spec':
@@ -4750,6 +4896,244 @@ importers:
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.0.16(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+
+  packages/9-public/@prisma/orm-target-mongo:
+    dependencies:
+      '@prisma/orm-family-mongo':
+        specifier: workspace:0.16.0
+        version: link:../orm-family-mongo
+      '@prisma/orm-framework':
+        specifier: workspace:0.16.0
+        version: link:../orm-framework
+      '@prisma/orm-toolchain':
+        specifier: workspace:0.16.0
+        version: link:../orm-toolchain
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.3
+      bson:
+        specifier: ^7.3.1
+        version: 7.3.1
+      mongodb:
+        specifier: ^7.0.0
+        version: 7.5.0(socks@2.8.9)
+    devDependencies:
+      '@prisma-next/adapter-mongo':
+        specifier: workspace:0.16.0
+        version: link:../../../3-mongo-target/2-mongo-adapter
+      '@prisma-next/driver-mongo':
+        specifier: workspace:0.16.0
+        version: link:../../../3-mongo-target/3-mongo-driver
+      '@prisma-next/target-mongo':
+        specifier: workspace:0.16.0
+        version: link:../../../3-mongo-target/1-mongo-target
+      '@prisma-next/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@prisma-next/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  packages/9-public/@prisma/orm-target-postgres:
+    dependencies:
+      '@prisma/orm-family-sql':
+        specifier: workspace:0.16.0
+        version: link:../orm-family-sql
+      '@prisma/orm-framework':
+        specifier: workspace:0.16.0
+        version: link:../orm-framework
+      '@prisma/orm-toolchain':
+        specifier: workspace:0.16.0
+        version: link:../orm-toolchain
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
+      arktype:
+        specifier: ^2.2.2
+        version: 2.2.3
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+      pg:
+        specifier: 'catalog:'
+        version: 8.22.0
+      pg-cursor:
+        specifier: ^2.21.0
+        version: 2.21.0(pg@8.22.0)
+    devDependencies:
+      '@prisma-next/adapter-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../../3-targets/6-adapters/postgres
+      '@prisma-next/driver-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../../3-targets/7-drivers/postgres
+      '@prisma-next/target-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../../3-targets/3-targets/postgres
+      '@prisma-next/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@prisma-next/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.0.16(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+
+  packages/9-public/@prisma/orm-target-sqlite:
+    dependencies:
+      '@prisma/orm-family-sql':
+        specifier: workspace:0.16.0
+        version: link:../orm-family-sql
+      '@prisma/orm-framework':
+        specifier: workspace:0.16.0
+        version: link:../orm-framework
+      '@prisma/orm-toolchain':
+        specifier: workspace:0.16.0
+        version: link:../orm-toolchain
+      '@standard-schema/spec':
+        specifier: 1.1.0
+        version: 1.1.0
+      arktype:
+        specifier: ^2.2.2
+        version: 2.2.3
+    devDependencies:
+      '@prisma-next/adapter-sqlite':
+        specifier: workspace:0.16.0
+        version: link:../../../3-targets/6-adapters/sqlite
+      '@prisma-next/driver-sqlite':
+        specifier: workspace:0.16.0
+        version: link:../../../3-targets/7-drivers/sqlite
+      '@prisma-next/target-sqlite':
+        specifier: workspace:0.16.0
+        version: link:../../../3-targets/3-targets/sqlite
+      '@prisma-next/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@prisma-next/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  packages/9-public/@prisma/orm-toolchain:
+    dependencies:
+      '@clack/prompts':
+        specifier: ^1.7.0
+        version: 1.7.0
+      '@prisma/orm-framework':
+        specifier: workspace:0.16.0
+        version: link:../orm-framework
+      '@vercel/detect-agent':
+        specifier: ^1.2.3
+        version: 1.2.3
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.3
+      c12:
+        specifier: ^3.3.4
+        version: 3.3.4(magicast@0.5.3)
+      ci-info:
+        specifier: ^4.3.1
+        version: 4.4.0
+      clipanion:
+        specifier: 4.0.0-rc.4
+        version: 4.0.0-rc.4(typanion@3.14.0)
+      closest-match:
+        specifier: ^1.3.3
+        version: 1.3.3
+      colorette:
+        specifier: ^2.0.20
+        version: 2.0.20
+      commander:
+        specifier: ^15.0.0
+        version: 15.0.0
+      esbuild:
+        specifier: ^0.28.1
+        version: 0.28.1
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
+      package-manager-detector:
+        specifier: ^1.7.0
+        version: 1.7.0
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+      prettier:
+        specifier: ^3.9.5
+        version: 3.9.5
+      string-width:
+        specifier: ^8.2.2
+        version: 8.2.2
+      strip-ansi:
+        specifier: ^7.2.0
+        version: 7.2.0
+      vite:
+        specifier: ^7.0.0 || ^8.0.0
+        version: 8.0.16(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0)
+      vscode-languageserver:
+        specifier: 'catalog:'
+        version: 10.1.0
+      vscode-languageserver-textdocument:
+        specifier: 'catalog:'
+        version: 1.0.12
+      wrap-ansi:
+        specifier: ^10.0.0
+        version: 10.0.0
+    devDependencies:
+      '@prisma-next/cli':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/3-tooling/cli
+      '@prisma-next/cli-telemetry':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/3-tooling/cli-telemetry
+      '@prisma-next/config-loader':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/3-tooling/config-loader
+      '@prisma-next/emitter':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/3-tooling/emitter
+      '@prisma-next/language-server':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/3-tooling/language-server
+      '@prisma-next/migration-tools':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/3-tooling/migration
+      '@prisma-next/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@prisma-next/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
+      '@prisma-next/vite-plugin-contract-emit':
+        specifier: workspace:0.16.0
+        version: link:../../../1-framework/3-tooling/vite-plugin-contract-emit
       tsdown:
         specifier: 'catalog:'
         version: 0.22.8(tsx@4.23.1)(typescript@5.9.3)

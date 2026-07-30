@@ -1,0 +1,81 @@
+{
+  "name": "@prisma/orm-family-mongo",
+  "version": "0.16.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Prisma Next Mongo family domain: contract, authoring, query, transport, runtime",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "lint": "biome check . --error-on-warnings",
+    "clean": "rm -rf dist src"
+  },
+  "dependencies": {
+    "@prisma/orm-framework": "workspace:0.16.0",
+    "@prisma/orm-toolchain": "workspace:0.16.0",
+    "arktype": "catalog:",
+    "mongodb": "catalog:",
+    "pathe": "^2.0.3"
+  },
+  "devDependencies": {
+    "@prisma-next/family-mongo": "workspace:0.16.0",
+    "@prisma-next/mongo-codec": "workspace:0.16.0",
+    "@prisma-next/mongo-contract": "workspace:0.16.0",
+    "@prisma-next/mongo-contract-psl": "workspace:0.16.0",
+    "@prisma-next/mongo-contract-ts": "workspace:0.16.0",
+    "@prisma-next/mongo-emitter": "workspace:0.16.0",
+    "@prisma-next/mongo-lowering": "workspace:0.16.0",
+    "@prisma-next/mongo-orm": "workspace:0.16.0",
+    "@prisma-next/mongo-query-ast": "workspace:0.16.0",
+    "@prisma-next/mongo-query-builder": "workspace:0.16.0",
+    "@prisma-next/mongo-runtime": "workspace:0.16.0",
+    "@prisma-next/mongo-schema-ir": "workspace:0.16.0",
+    "@prisma-next/mongo-value": "workspace:0.16.0",
+    "@prisma-next/mongo-wire": "workspace:0.16.0",
+    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@prisma-next/tsdown": "workspace:0.16.0",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "exports": {
+    "./codec": "./dist/codec.mjs",
+    "./contract": "./dist/contract.mjs",
+    "./contract/canonicalization-hooks": "./dist/contract__canonicalization-hooks.mjs",
+    "./contract/entity-kinds": "./dist/contract__entity-kinds.mjs",
+    "./contract-psl": "./dist/contract-psl.mjs",
+    "./contract-psl/provider": "./dist/contract-psl__provider.mjs",
+    "./contract-ts/config-types": "./dist/contract-ts__config-types.mjs",
+    "./contract-ts/contract-builder": "./dist/contract-ts__contract-builder.mjs",
+    "./emitter": "./dist/emitter.mjs",
+    "./family/control": "./dist/family__control.mjs",
+    "./family/control-adapter": "./dist/family__control-adapter.mjs",
+    "./family/ir": "./dist/family__ir.mjs",
+    "./family/migration": "./dist/family__migration.mjs",
+    "./family/pack": "./dist/family__pack.mjs",
+    "./family/runtime": "./dist/family__runtime.mjs",
+    "./family/schema-verify": "./dist/family__schema-verify.mjs",
+    "./lowering": "./dist/lowering.mjs",
+    "./orm": "./dist/orm.mjs",
+    "./query-ast/control": "./dist/query-ast__control.mjs",
+    "./query-ast/execution": "./dist/query-ast__execution.mjs",
+    "./query-builder": "./dist/query-builder.mjs",
+    "./query-builder/contract-free": "./dist/query-builder__contract-free.mjs",
+    "./runtime": "./dist/runtime.mjs",
+    "./schema-ir": "./dist/schema-ir.mjs",
+    "./value": "./dist/value.mjs",
+    "./value/mongodb-types": "./dist/value__mongodb-types.mjs",
+    "./wire": "./dist/wire.mjs",
+    "./package.json": "./package.json"
+  }
+}

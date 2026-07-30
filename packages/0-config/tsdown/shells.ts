@@ -26,6 +26,12 @@ export interface ShellDefinition {
    * as a side-effect entry named `bin/<binName>` (excluded from exports).
    */
   readonly bins?: Readonly<Record<string, string>>;
+  /**
+   * Extra dist files to copy into the shell's dist root (globs relative to
+   * the repository root), e.g. templates an internal package reads next to
+   * its code via `import.meta.dirname`.
+   */
+  readonly copy?: readonly string[];
 }
 
 export type ShellName =
@@ -77,6 +83,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         },
       ],
       bins: { 'prisma-next': 'packages/1-framework/3-tooling/cli/dist/cli.mjs' },
+      copy: ['packages/1-framework/3-tooling/cli/dist/*.md'],
     },
   ],
   [
