@@ -135,6 +135,21 @@ module.exports = [
         },
       ],
 
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              // The `*-wasm` packages are wasm-pack output published to npm with their
+              // `src/` directory intact, so a deep import into those is legitimate.
+              group: ['@prisma/*/src/*', '@prisma/*/src/**', '!@prisma/*-wasm/src/**'],
+              message:
+                'Workspace packages publish only their build output, so this path does not exist once the package is installed from npm and the import throws MODULE_NOT_FOUND. Import from the package entry instead, e.g. `@prisma/internals`.',
+            },
+          ],
+        },
+      ],
+
       'jest/valid-title': 'off',
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
@@ -167,6 +182,15 @@ module.exports = [
 
     rules: {
       'local-rules/valid-exported-types-index': 'error',
+    },
+  },
+  {
+    // Tests are never published, so they may reach into a package's src/ for
+    // helpers that the package entry does not export.
+    files: ['**/*.test.ts', '**/*.vitest.ts', '**/__tests__/**', '**/tests/**'],
+
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 ]
