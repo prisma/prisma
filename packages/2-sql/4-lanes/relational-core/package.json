@@ -51,6 +51,7 @@
   "types": "./dist/index.d.mts",
   "exports": {
     ".": "./dist/index.mjs",
+    "./aggregate-descriptor-registry": "./dist/exports/aggregate-descriptor-registry.mjs",
     "./ast": "./dist/exports/ast.mjs",
     "./codec-descriptor-registry": "./dist/exports/codec-descriptor-registry.mjs",
     "./contract-free": "./dist/exports/contract-free.mjs",

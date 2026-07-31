@@ -1,14 +1,21 @@
-import type { Contract, ExecutionMutationDefaultValue, JsonValue } from '@internal/contract/types';
+import type {
+  Contract,
+  ExecutionMutationDefaultValue,
+  JsonValue,
+} from '@prisma-next/contract/types';
 import type {
   AnyCodecDescriptor,
   CodecDescriptor,
   CodecRef,
-} from '@internal/framework-components/codec';
-import type { ComponentDescriptor } from '@internal/framework-components/components';
+} from '@prisma-next/framework-components/codec';
+import type {
+  ComponentDescriptor,
+  ComponentMetadata,
+} from '@prisma-next/framework-components/components';
 import {
   checkContractComponentRequirements,
   mergeCapabilityMatrices,
-} from '@internal/framework-components/components';
+} from '@prisma-next/framework-components/components';
 import {
   createExecutionStack,
   type ExecutionStack,
@@ -20,11 +27,11 @@ import {
   type RuntimeExtensionInstance,
   type RuntimeTargetDescriptor,
   type RuntimeTargetInstance,
-} from '@internal/framework-components/execution';
-import { runtimeError } from '@internal/framework-components/runtime';
-import { canonicalizeJson } from '@internal/framework-components/utils';
-import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/types';
-import { blindCast } from '@internal/utils/casts';
+} from '@prisma-next/framework-components/execution';
+import { runtimeError } from '@prisma-next/framework-components/runtime';
+import { canonicalizeJson } from '@prisma-next/framework-components/utils';
+import type { SqlStorage, StorageTypeInstance } from '@prisma-next/sql-contract/types';
+import { blindCast } from '@prisma-next/utils/casts';
 
 function documentScopedCodecTypes(
   contract: Contract<SqlStorage>,
@@ -35,7 +42,11 @@ function documentScopedCodecTypes(
   >(contract.storage.types);
 }
 
-import { createSqlOperationRegistry, type SqlOperationDescriptors } from '@internal/sql-operations';
+import {
+  createSqlOperationRegistry,
+  type SqlOperationDescriptors,
+} from '@prisma-next/sql-operations';
+import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
 import type {
   Adapter,
   AnyQueryAst,
@@ -43,16 +54,16 @@ import type {
   LoweredStatement,
   SqlCodecInstanceContext,
   SqlDriver,
-} from '@internal/sql-relational-core/ast';
-import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
-import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
+} from '@prisma-next/sql-relational-core/ast';
+import { buildCodecDescriptorRegistry } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
 import type {
   AppliedMutationDefault,
   CodecDescriptorRegistry,
   ExecutionContext,
   MutationDefaultsOptions,
   TypeHelperRegistry,
-} from '@internal/sql-relational-core/query-lane-context';
+} from '@prisma-next/sql-relational-core/query-lane-context';
 import { createAstCodecResolver } from './codecs/ast-codec-resolver';
 
 /**
@@ -293,6 +304,17 @@ function collectCodecDescriptors(contributors: ReadonlyArray<SqlStaticContributi
   }
 
   return { all, parameterized };
+}
+
+/**
+ * Flatten every aggregate descriptor the SQL stack contributes. Shape validation, single-ownership of each `(operation, input)` pair, and trait-overlap resolution all happen inside {@link buildSqlAggregateDescriptorRegistry}, so contributions reach it unchecked and fail there — at composition, never mid-query.
+ */
+function collectAggregateDescriptorContributions(
+  contributors: ReadonlyArray<ComponentMetadata>,
+): ReadonlyArray<unknown> {
+  return contributors.flatMap(
+    (contributor) => contributor.types?.codecTypes?.aggregateDescriptors ?? [],
+  );
 }
 
 function collectTypeRefSites(
@@ -796,6 +818,10 @@ export function createExecutionContext<
 
   const codecDescriptors = buildCodecDescriptorRegistry(allCodecDescriptors, contract.storage);
   assertColumnCodecIntegrity(contract.storage, codecDescriptors);
+  const aggregateDescriptors = buildSqlAggregateDescriptorRegistry(
+    collectAggregateDescriptorContributions(contributors),
+    codecDescriptors,
+  );
   const mutationDefaultGeneratorRegistry = collectMutationDefaultGenerators(contributors);
   assertMutationDefaultGeneratorsAvailable(contract, mutationDefaultGeneratorRegistry);
 
@@ -815,6 +841,7 @@ export function createExecutionContext<
     contract,
     contractCodecs,
     codecDescriptors,
+    aggregateDescriptors,
     queryOperations: queryOperationRegistry,
     types,
     applyMutationDefaults: (options) =>

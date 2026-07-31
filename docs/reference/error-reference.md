@@ -467,6 +467,14 @@ A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()
 
 An in-flight `execute()` was cancelled via the per-query `AbortSignal` passed as `execute(plan, { signal })`. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeExecute` / `afterExecute` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Meta: `phase`.
 
+### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
+
+A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `self` output on an operation that consumes no input, or a non-callable `lower`. Raised while the execution context assembles the registry. Meta: `descriptor`.
+
+### RUNTIME.AMBIGUOUS_AGGREGATE_DESCRIPTOR
+
+Two trait-matching aggregate descriptors for one operation both claim a registered codec — the codec advertises both traits, so the result codec is undetermined. Contribute an exact codec descriptor for that operation, or narrow the overlapping trait contributions. Raised while the execution context assembles the aggregate registry, so it never surfaces mid-query. Meta: `operation`, `codecId`, `traits`.
+
 ### RUNTIME.ANNOTATION_INAPPLICABLE
 
 A lane terminal (SQL DSL `.build()`, ORM collection terminal) received an annotation whose declared `applicableTo` set does not include the operation kind being built — the runtime check that backs up the type-level annotation validation when it is bypassed via casts or dynamic invocation. Meta: `namespace`, `terminalName`, `kind`, `applicableTo`.
@@ -518,6 +526,10 @@ At SQL context construction, the contract's target (e.g. `sqlite`) does not matc
 ### RUNTIME.DECODE_FAILED
 
 A codec's `decode` threw while converting a wire value into its output type during result decoding — surfaces per column (SQL), per document field (Mongo), or per included-relation column (ORM client), with the original error attached as `cause`. Also thrown when a returned row is missing an expected projection alias, or when the JSON array for an include alias fails to parse. Meta: `table`, `column` (or `alias` / `collection` + `path`), `codec`, `wirePreview`.
+
+### RUNTIME.DUPLICATE_AGGREGATE_DESCRIPTOR
+
+Two components claim the same aggregate overload — the same `(operation, input)` pair, keyed as `sum:trait:numeric`, `sum:codec:pg/int8@1`, or `count:none`. Each overload resolves to exactly one result codec, so exactly one target, adapter, or extension may contribute it. Meta: `key`.
 
 ### RUNTIME.DUPLICATE_AUTHORING_DISCRIMINATOR
 

@@ -1,7 +1,8 @@
-import type { Contract } from '@internal/contract/types';
-import type { CodecDescriptor, CodecRef } from '@internal/framework-components/codec';
-import type { SqlStorage } from '@internal/sql-contract/types';
-import type { SqlOperationRegistry } from '@internal/sql-operations';
+import type { Contract } from '@prisma-next/contract/types';
+import type { CodecDescriptor, CodecRef } from '@prisma-next/framework-components/codec';
+import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { SqlOperationRegistry } from '@prisma-next/sql-operations';
+import type { SqlAggregateDescriptor, SqlAggregateLowering } from './aggregate-descriptor';
 import type { ContractCodecRegistry } from './ast/codec-types';
 
 /**
@@ -34,6 +35,34 @@ export interface CodecDescriptorRegistry {
    * Descriptors indexed by `targetTypes[i]` (each scalar type the codec advertises). Multiple descriptors may map to the same scalar type; ordering reflects registration order.
    */
   byTargetType(targetType: string): readonly CodecDescriptor<unknown>[];
+}
+
+/**
+ * What one aggregate resolves to: the codec its result carries, whether that result can be null, and the optional hook that builds the expression.
+ *
+ * The resolved value carries no descriptor, so a lowering hook has no channel through which to report a different result codec than the one resolved here.
+ */
+export interface ResolvedSqlAggregate {
+  readonly operation: string;
+  readonly output: CodecRef;
+  readonly nullable: boolean;
+  readonly lower: SqlAggregateLowering | undefined;
+}
+
+/**
+ * Resolution surface for aggregate result identity, assembled once per execution context.
+ *
+ * `resolve` is a lookup: every match — including trait matches, which depend on the composed codec set — is settled while the registry is built, so an ambiguous or malformed contribution fails at composition rather than mid-query.
+ */
+export interface SqlAggregateDescriptorRegistry {
+  /**
+   * The result identity of `operation` over an input carrying `input`, or `undefined` when no contributed descriptor claims that pair.
+   *
+   * Omit `input` for operations that consume no value; a descriptor matching by codec id or trait never answers an input-less call, and a descriptor matching `none` never answers a call carrying an input.
+   */
+  resolve(operation: string, input?: CodecRef): ResolvedSqlAggregate | undefined;
+  /** Every validated descriptor, in contribution order. */
+  values(): IterableIterator<SqlAggregateDescriptor>;
 }
 
 /**
@@ -82,6 +111,10 @@ export interface ExecutionContext<TContract extends Contract<SqlStorage> = Contr
    * Codec-id-keyed descriptor map. Single source of truth for codec-id-keyed metadata (`traits`, `targetTypes`) — every codec, parameterized or not, resolves through this map without branching.
    */
   readonly codecDescriptors: CodecDescriptorRegistry;
+  /**
+   * Aggregate result identity, resolved from the descriptors the composed stack contributes. Planners ask it what codec an aggregate's result carries instead of assuming the input codec or a fixed target codec id.
+   */
+  readonly aggregateDescriptors: SqlAggregateDescriptorRegistry;
   readonly queryOperations: SqlOperationRegistry;
   /**
    * Type helper registry for parameterized types. Schema builders expose these helpers via schema.types.
