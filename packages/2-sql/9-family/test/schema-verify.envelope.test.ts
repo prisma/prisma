@@ -7,11 +7,11 @@
  */
 
 import type { Contract } from '@internal/contract/types';
-import type { SqlSchemaDiffFn } from '@internal/family-sql/control';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { relationalNodeGranularity, SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { verifySqlSchemaByDiff } from '../src/core/diff/schema-verify';
+import type { SqlSchemaDiffFn } from '../src/exports/control';
 import { createTestContract } from './schema-verify.helpers';
 
 /**

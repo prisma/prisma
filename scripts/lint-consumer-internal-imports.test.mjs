@@ -235,7 +235,7 @@ describe('lint-consumer-internal-imports', () => {
 
     const result = runScript();
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
-    assert.match(result.stdout, /names an internal @internal\/\* package/);
+    assert.match(result.stdout, /names an @internal\/\* package/);
   });
 
   it('fails on a single planted import, and names the file and line', () => {
