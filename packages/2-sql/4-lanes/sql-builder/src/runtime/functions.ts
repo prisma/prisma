@@ -1,4 +1,5 @@
-import type { SqlOperationEntry } from '@internal/sql-operations';
+import type { SqlOperationEntry } from '@prisma-next/sql-operations';
+import type { AggregateFn } from '@prisma-next/sql-relational-core/ast';
 import {
   AggregateExpr,
   AndExpr,
@@ -12,12 +13,13 @@ import {
   NullCheckExpr,
   OrExpr,
   SubqueryExpr,
-} from '@internal/sql-relational-core/ast';
-import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
-import { codecOf, createRawSql, toExpr } from '@internal/sql-relational-core/expression';
+} from '@prisma-next/sql-relational-core/ast';
+import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
+import { codecOf, createRawSql, toExpr } from '@prisma-next/sql-relational-core/expression';
+import type { SqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
+import { ifDefined } from '@prisma-next/utils/defined';
 import type {
   AggregateFunctions,
-  AggregateOnlyFunctions,
   BooleanCodecType,
   BuiltinFunctions,
   CodecExpression,
@@ -125,13 +127,37 @@ function inOrNotIn(
   return boolExpr(binaryFn(left, SubqueryExpr.of(valuesOrSubquery.buildAst())));
 }
 
-function numericAgg(
-  fn: 'sum' | 'avg' | 'min' | 'max',
-  expr: Expression<ScopeField>,
-): ExpressionImpl<{ codecId: string; nullable: true }> {
-  return new ExpressionImpl(AggregateExpr[fn](expr.buildAst()), {
-    codecId: expr.returnType.codecId,
-    nullable: true as const,
+/**
+ * Build an aggregate through the target's own answer for it.
+ *
+ * What an aggregate returns is neither the input's codec nor a fixed id: a
+ * target widens `sum` over small integers, takes `avg` somewhere else again,
+ * and may want the result rendered a particular way. All three come from the
+ * registry, and the result carries the codec it declared so decoding resolves
+ * through the ordinary path.
+ */
+function aggregate(
+  aggregates: SqlAggregateDescriptorRegistry,
+  fn: AggregateFn,
+  expr: Expression<ScopeField> | undefined,
+): ExpressionImpl<{ codecId: string; nullable: boolean; codec?: CodecRef }> {
+  const field = expr?.returnType;
+  const inputCodec = field === undefined ? undefined : (field.codec ?? { codecId: field.codecId });
+  const resolved = aggregates.resolve(fn, inputCodec);
+  const inputAst = expr?.buildAst();
+
+  const ast =
+    resolved?.lower !== undefined
+      ? resolved.lower({ expr: inputAst, inputCodec })
+      : new AggregateExpr(fn, inputAst);
+
+  // An operation the target declares no overload for keeps the shape the lane
+  // can still state — the input's own codec — rather than inventing one.
+  const output = resolved?.output ?? inputCodec;
+  return new ExpressionImpl(ast, {
+    codecId: output?.codecId ?? field?.codecId ?? 'unknown',
+    nullable: resolved?.nullable ?? true,
+    ...ifDefined('codec', output),
   });
 }
 
@@ -163,20 +189,21 @@ function createBuiltinFunctions(rawCodecInferer: RawCodecInferer) {
   } satisfies BuiltinFunctions<CodecTypes>;
 }
 
-function createAggregateOnlyFunctions() {
+/**
+ * The aggregate implementations, erased.
+ *
+ * What each returns is the contract's answer — a function of the target's map
+ * and the input's codec — which no runtime value can state. The typed surface
+ * is `AggregateFunctions<QC>`, applied where these are handed out.
+ */
+function createAggregateOnlyFunctions(aggregates: SqlAggregateDescriptorRegistry) {
   return {
-    count: (expr?: Expression<ScopeField>) => {
-      const astExpr = expr ? expr.buildAst() : undefined;
-      return new ExpressionImpl(AggregateExpr.count(astExpr), {
-        codecId: 'pg/int8@1',
-        nullable: false,
-      });
-    },
-    sum: (expr: Expression<ScopeField>) => numericAgg('sum', expr),
-    avg: (expr: Expression<ScopeField>) => numericAgg('avg', expr),
-    min: (expr: Expression<ScopeField>) => numericAgg('min', expr),
-    max: (expr: Expression<ScopeField>) => numericAgg('max', expr),
-  } satisfies AggregateOnlyFunctions;
+    count: (expr?: Expression<ScopeField>) => aggregate(aggregates, 'count', expr),
+    sum: (expr: Expression<ScopeField>) => aggregate(aggregates, 'sum', expr),
+    avg: (expr: Expression<ScopeField>) => aggregate(aggregates, 'avg', expr),
+    min: (expr: Expression<ScopeField>) => aggregate(aggregates, 'min', expr),
+    max: (expr: Expression<ScopeField>) => aggregate(aggregates, 'max', expr),
+  };
 }
 
 export function createFunctions<QC extends QueryContext>(
@@ -201,9 +228,10 @@ export function createFunctions<QC extends QueryContext>(
 export function createAggregateFunctions<QC extends QueryContext>(
   operations: Readonly<Record<string, SqlOperationEntry>>,
   rawCodecInferer: RawCodecInferer,
+  aggregateRegistry: SqlAggregateDescriptorRegistry,
 ): AggregateFunctions<QC> {
   const baseFns = createFunctions<QC>(operations, rawCodecInferer);
-  const aggregates = createAggregateOnlyFunctions();
+  const aggregates = createAggregateOnlyFunctions(aggregateRegistry);
 
   return new Proxy({} as AggregateFunctions<QC>, {
     get(_target, prop: string) {

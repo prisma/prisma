@@ -1,3 +1,4 @@
+import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
 import {
   AggregateExpr,
   AndExpr,
@@ -12,7 +13,8 @@ import {
   ParamRef,
   SelectAst,
   SubqueryExpr,
-} from '@internal/sql-relational-core/ast';
+} from '@prisma-next/sql-relational-core/ast';
+import { buildCodecDescriptorRegistry } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Functions } from '../../src/expression';
 import { ExpressionImpl } from '../../src/runtime/expression-impl';
@@ -239,11 +241,45 @@ describe('createFunctions', () => {
   });
 });
 
+/**
+ * The aggregate overloads these cases resolve against: a count into `lib/int8@1`
+ * whatever it counts, and a sum that widens its input to the same. Declared
+ * directly rather than synthesized from codecs, which drops traits.
+ */
+function testAggregateRegistry() {
+  return buildSqlAggregateDescriptorRegistry(
+    [
+      {
+        operation: 'count',
+        input: { kind: 'any' },
+        output: { kind: 'codec', codecId: 'lib/int8@1' },
+        nullable: false,
+      },
+      {
+        operation: 'sum',
+        input: { kind: 'trait', trait: 'numeric' },
+        output: { kind: 'codec', codecId: 'lib/int8@1' },
+        nullable: true,
+      },
+    ],
+    buildCodecDescriptorRegistry([
+      {
+        codecId: 'pg/int4@1',
+        traits: ['numeric', 'order', 'equality'],
+        targetTypes: [],
+        isParameterized: false,
+        paramsSchema: undefined,
+        factory: () => () => ({ id: 'pg/int4@1' }),
+      },
+    ] as never),
+  );
+}
+
 describe('createAggregateFunctions', () => {
   let fns: ReturnType<typeof createAggregateFunctions>;
 
   beforeEach(() => {
-    fns = createAggregateFunctions({}, stubInferer);
+    fns = createAggregateFunctions({}, stubInferer, testAggregateRegistry());
   });
 
   it('count() produces AggregateExpr with fn count and no expr', () => {
@@ -253,9 +289,12 @@ describe('createAggregateFunctions', () => {
     expect(ast).toBeInstanceOf(AggregateExpr);
     expect(ast.fn).toBe('count');
     expect(ast.expr).toBeUndefined();
+    // The count carries the codec the registry resolved for it, in the slot the
+    // projection reads, rather than a codec id the lane names itself.
     expect((result as ExpressionImpl).returnType).toEqual({
-      codecId: 'pg/int8@1',
+      codecId: 'lib/int8@1',
       nullable: false,
+      codec: { codecId: 'lib/int8@1' },
     });
   });
 
@@ -274,7 +313,13 @@ describe('createAggregateFunctions', () => {
     expect(ast).toBeInstanceOf(AggregateExpr);
     expect(ast.fn).toBe('sum');
     expect(ast.expr).toBeInstanceOf(IdentifierRef);
-    expect((result as ExpressionImpl).returnType).toEqual({ codecId: 'pg/int4@1', nullable: true });
+    // A sum over an int4 widens; the lane states what the registry answered,
+    // not the input it was given.
+    expect((result as ExpressionImpl).returnType).toEqual({
+      codecId: 'lib/int8@1',
+      nullable: true,
+      codec: { codecId: 'lib/int8@1' },
+    });
   });
 
   it('avg produces AggregateExpr with fn avg', () => {
@@ -344,6 +389,7 @@ describe('extension functions', () => {
       readonly capabilities: Record<string, Record<string, boolean>>;
       readonly queryOperationTypes: typeof operations;
       readonly resolvedColumnOutputTypes: Record<string, never>;
+      readonly aggregateTypes: Record<string, never>;
     };
     const typedFns = fns as unknown as Functions<TestQC>;
     const result = (typedFns.cosineDistance as typeof cosineDistanceImpl)(expr1, expr2);

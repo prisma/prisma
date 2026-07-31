@@ -1,8 +1,8 @@
-import type { PlanMeta } from '@internal/contract/types';
-import type { CodecRef } from '@internal/framework-components/codec';
-import type { AnnotationValue, OperationKind } from '@internal/framework-components/runtime';
-import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
-import type { SqlOperationEntry } from '@internal/sql-operations';
+import type { PlanMeta } from '@prisma-next/contract/types';
+import type { CodecRef } from '@prisma-next/framework-components/codec';
+import type { AnnotationValue, OperationKind } from '@prisma-next/framework-components/runtime';
+import type { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import type { SqlOperationEntry } from '@prisma-next/sql-operations';
 import {
   AndExpr,
   type AnyExpression as AstExpression,
@@ -13,16 +13,17 @@ import {
   ProjectionItem,
   SelectAst,
   type TableSource,
-} from '@internal/sql-relational-core/ast';
-import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
-import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
-import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+} from '@prisma-next/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
+import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
 import type {
   AppliedMutationDefault,
   MutationDefaultsOptions,
-} from '@internal/sql-relational-core/query-lane-context';
-import { ifDefined } from '@internal/utils/defined';
-import { structuredError } from '@internal/utils/structured-error';
+  SqlAggregateDescriptorRegistry,
+} from '@prisma-next/sql-relational-core/query-lane-context';
+import { ifDefined } from '@prisma-next/utils/defined';
+import { structuredError } from '@prisma-next/utils/structured-error';
 import type {
   AggregateFunctions,
   Expression,
@@ -65,7 +66,7 @@ export class BuilderBase<Capabilities = unknown> {
 
 export interface BuilderState {
   readonly from: TableSource;
-  readonly joins: readonly import('@internal/sql-relational-core/ast').JoinAst[];
+  readonly joins: readonly import('@prisma-next/sql-relational-core/ast').JoinAst[];
   readonly projections: readonly ProjectionItem[];
   readonly where: readonly AstExpression[];
   readonly orderBy: readonly OrderByItem[];
@@ -101,6 +102,10 @@ export interface BuilderContext {
    * Codec inferer used inside `createBuiltinFunctions` to construct the raw-SQL tag — `fns.raw` dispatches through `inferCodec(value)` for bare-literal interpolations.
    */
   readonly rawCodecInferer: RawCodecInferer;
+  /**
+   * Aggregate result identity, resolved from the descriptors the composed stack contributes. The lane asks it what an aggregate's result carries rather than assuming the input's codec or naming a target's codec id.
+   */
+  readonly aggregates: SqlAggregateDescriptorRegistry;
 }
 
 /**
@@ -164,7 +169,7 @@ export function buildSelectAst(state: BuilderState): SelectAst {
 }
 
 export function buildQueryPlan<Row = unknown>(
-  ast: import('@internal/sql-relational-core/ast').AnyQueryAst,
+  ast: import('@prisma-next/sql-relational-core/ast').AnyQueryAst,
   ctx: BuilderContext,
   annotations?: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>,
 ): SqlQueryPlan<Row> {
@@ -316,7 +321,11 @@ export function resolveSelectArgs(
       f: FieldProxy<Scope>,
       fns: AggregateFunctions<QueryContext>,
     ) => Expression<ScopeField>;
-    const fns = createAggregateFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer);
+    const fns = createAggregateFunctions(
+      ctx.queryOperationTypes,
+      ctx.rawCodecInferer,
+      ctx.aggregates,
+    );
     const result = exprFn(createFieldProxy(scope), fns);
     const field = result.returnType;
     projections.push(ProjectionItem.of(alias, result.buildAst(), field.codec));
@@ -329,7 +338,11 @@ export function resolveSelectArgs(
       f: FieldProxy<Scope>,
       fns: AggregateFunctions<QueryContext>,
     ) => Record<string, Expression<ScopeField>>;
-    const fns = createAggregateFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer);
+    const fns = createAggregateFunctions(
+      ctx.queryOperationTypes,
+      ctx.rawCodecInferer,
+      ctx.aggregates,
+    );
     const record = callbackFn(createFieldProxy(scope), fns);
     for (const [key, expr] of Object.entries(record)) {
       const field = expr.returnType;
@@ -369,7 +382,7 @@ export function resolveOrderBy(
   if (typeof arg === 'function') {
     const combined = orderByScopeOf(scope, rowFields);
     const fns = useAggregateFns
-      ? createAggregateFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer)
+      ? createAggregateFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer, ctx.aggregates)
       : createFunctions(ctx.queryOperationTypes, ctx.rawCodecInferer);
     const result = (arg as ExprCallback)(createFieldProxy(combined), fns);
     return dir === 'asc' ? OrderByItem.asc(result.buildAst()) : OrderByItem.desc(result.buildAst());

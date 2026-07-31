@@ -109,10 +109,14 @@ test('sum/avg/min/max aggregate functions', () => {
     .groupBy((f) => f.user_id)
     .build();
 
+  // Each result type is the contract's answer for that operation over an int4
+  // column on PostgreSQL: `sum` widens to int8 and reads as a bigint, `avg`
+  // becomes a numeric whose canonical form is a decimal string, and `min`/`max`
+  // keep the column's own int4.
   expectTypeOf(aggregates).toEqualTypeOf<
     SqlQueryPlan<{
-      totalViews: number | null;
-      avgViews: number | null;
+      totalViews: bigint | null;
+      avgViews: string | null;
       minViews: number | null;
       maxViews: number | null;
     }>
