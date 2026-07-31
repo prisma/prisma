@@ -93,6 +93,16 @@ jobs:
       - name: Build packages
         run: pnpm build
 
+      # Publish-time gate: the publish list is the `packages/9-public/`
+      # directory, so a package that lost its `"private": true` elsewhere
+      # would not be published — it would sit there being publishable until
+      # some later change to the list picked it up. Fail the release
+      # instead. The reverse direction is the one that would ship: a
+      # `"private": true` inside `packages/9-public/` silently drops a
+      # package from the train and the publish still succeeds.
+      - name: Check publishability
+        run: pnpm lint:publishable
+
       # Publish-time gate: packs every publishable workspace package and
       # verifies the resolved package.json contains no `workspace:*` or
       # `catalog:` dependency specifiers. `pnpm publish` rewrites these on

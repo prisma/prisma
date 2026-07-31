@@ -110,6 +110,8 @@ jobs:
         run: pnpm lint:docs
       - name: Validate package manifests (license declarations)
         run: pnpm lint:manifests
+      - name: Validate publishability (only packages/9-public publishes)
+        run: pnpm lint:publishable
       - name: Lint workflow triggers (forbid Pwn Request pattern)
         run: pnpm lint:workflows
       - name: Test scripts/
