@@ -113,8 +113,14 @@ export function findMixedPackages(baseDir, roots = CONSUMER_ROOTS) {
   return mixed;
 }
 
-export function main() {
-  const mixed = findMixedPackages(repoRoot);
+/**
+ * Checks the tree at `baseDir`, defaulting to this repository. The argument
+ * exists for the same reason `findMixedPackages` takes its roots: so a test
+ * can run the check the way CI runs it — through this entry point, exit code
+ * and message included — against a tree it built itself.
+ */
+export function main(baseDir = repoRoot) {
+  const mixed = findMixedPackages(baseDir);
   if (mixed.length === 0) {
     console.log(`No consumer package under ${CONSUMER_ROOTS.join(', ')} names both import roots.`);
     return 0;
@@ -144,5 +150,5 @@ export function main() {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  process.exit(main());
+  process.exit(main(process.argv[2]));
 }

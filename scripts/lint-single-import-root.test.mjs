@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, describe, test } from 'node:test';
-import { findMixedPackages } from './lint-single-import-root.mjs';
+import { findMixedPackages, main } from './lint-single-import-root.mjs';
 
 let base;
 
@@ -62,5 +62,15 @@ describe('findMixedPackages', () => {
     const [entry] = findMixedPackages(base, ['examples']).filter((e) => e.pkg === 'examples/mixed');
     assert.deepEqual([...entry.published.keys()], ['@prisma/orm-postgres/runtime']);
     assert.deepEqual([...entry.internal.keys()], ['@prisma-next/sql-runtime']);
+  });
+});
+
+describe('main(baseDir)', () => {
+  test('fails on a tree holding a mixed package', () => {
+    assert.equal(main(base), 1);
+  });
+
+  test('passes on a tree with no consumer roots at all', () => {
+    assert.equal(main(mkdtempSync(join(tmpdir(), 'single-import-root-empty-'))), 0);
   });
 });

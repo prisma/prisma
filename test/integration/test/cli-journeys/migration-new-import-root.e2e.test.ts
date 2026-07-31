@@ -11,9 +11,10 @@
  * The last case is why it matters: a project on the facade root whose
  * migration still named `@prisma-next/*` would name two import roots at once,
  * which `scripts/lint-single-import-root.mjs` rejects because the two roots
- * are separate copies of the same modules. That outcome is asserted here
- * against real command output rather than argued about, and asserted in both
- * directions so it cannot pass by the check having gone blind.
+ * are separate copies of the same modules. That case runs the lint itself
+ * over real command output rather than reasoning about what it would say, and
+ * runs it twice — once on a scaffold that must pass and once on one that must
+ * fail — so a pass cannot mean the lint simply stopped finding things.
  *
  * No database: `contract emit`, `migration new` and `migration plan` are all
  * offline.
@@ -25,11 +26,12 @@
  * from a real import.
  */
 
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
-import { findMixedPackages } from '../../../../scripts/lint-single-import-root.mjs';
+import { fileURLToPath } from 'node:url';
+import { afterEach, describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,
@@ -52,6 +54,16 @@ const FACADE_MANIFEST = {
 
 const INTERNAL_SCOPE = '@prisma-next/';
 const SPECIFIER = /\b(?:from|import)\s*\(?\s*['"]([^'"\n]+)['"]/g;
+
+const SINGLE_IMPORT_ROOT_LINT = fileURLToPath(
+  new URL('../../../../scripts/lint-single-import-root.mjs', import.meta.url),
+);
+
+/** The lint's own verdict on `baseDir`, run the way CI runs it. */
+function singleImportRootLint(baseDir: string): { status: number; output: string } {
+  const run = spawnSync(process.execPath, [SINGLE_IMPORT_ROOT_LINT, baseDir], { encoding: 'utf8' });
+  return { status: run.status ?? 1, output: `${run.stdout}${run.stderr}` };
+}
 
 /** Package names a source file imports; relative paths are not root-governed. */
 function packageImports(source: string): string[] {
@@ -93,13 +105,19 @@ async function planMigration(ctx: JourneyContext, name: string): Promise<string>
   return writtenMigrationTs(ctx);
 }
 
+const lintFixtures: string[] = [];
+
 /**
  * A facade-only consumer package on disk: the manifest and config a user
  * writes, plus `migrationTs` as its one generated file. Laid out under
  * `examples/` because that is one of the consumer roots the lint script walks.
+ *
+ * Built outside the repository rather than in the journey's own temp dir,
+ * which lives under `test/` — a tree the real lint walks.
  */
 function facadeOnlyProject(migrationTs: string): string {
   const base = mkdtempSync(join(tmpdir(), 'facade-only-project-'));
+  lintFixtures.push(base);
   const projectDir = join(base, 'examples', 'app');
   mkdirSync(join(projectDir, 'migrations', 'app', '00001_new'), { recursive: true });
   writeFileSync(join(projectDir, 'package.json'), JSON.stringify(FACADE_MANIFEST, null, 2));
@@ -113,6 +131,10 @@ function facadeOnlyProject(migrationTs: string): string {
 
 withTempDir(({ createTempDir }) => {
   describe('Journey: a written migration.ts follows the project’s import root', () => {
+    afterEach(() => {
+      for (const dir of lintFixtures.splice(0)) rmSync(dir, { recursive: true, force: true });
+    });
+
     it(
       'names workspace packages in a project that depends on workspace packages',
       async () => {
@@ -165,14 +187,18 @@ withTempDir(({ createTempDir }) => {
           'facade',
         );
 
-        expect(findMixedPackages(facadeOnlyProject(onFacade), ['examples'])).toEqual([]);
+        const accepted = singleImportRootLint(facadeOnlyProject(onFacade));
+        expect(accepted.status, accepted.output).toBe(0);
+        expect(accepted.output).toContain('No consumer package');
 
         // The same project holding a workspace-named migration instead: that
         // is what the lint exists to catch, so a green result above means the
         // written file changed, not that the check stopped looking.
         const onWorkspace = await scaffoldMigration(setupJourney({ createTempDir }), 'workspace');
 
-        expect(findMixedPackages(facadeOnlyProject(onWorkspace), ['examples'])).toHaveLength(1);
+        const refused = singleImportRootLint(facadeOnlyProject(onWorkspace));
+        expect(refused.status).toBe(1);
+        expect(refused.output).toContain('examples/app');
       },
       timeouts.typeScriptCompilation,
     );
