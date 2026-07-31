@@ -1,15 +1,15 @@
-import type { ContractToSchemaIROptions } from '@prisma-next/family-sql/control';
-import { contractNamespaceToSchemaIR } from '@prisma-next/family-sql/control';
-import type { SchemaNodeRef } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { ContractToSchemaIROptions } from '@internal/family-sql/control';
+import { contractNamespaceToSchemaIR } from '@internal/family-sql/control';
+import type { SchemaNodeRef } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   PrimaryKey,
   RelationalSchemaNodeKind,
   SqlForeignKeyIR,
   SqlIndexIR,
   SqlUniqueIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-schema-ir/types';
+import { ifDefined } from '@internal/utils/defined';
 import { postgresError } from '../errors';
 import type { PostgresRlsPolicy } from '../postgres-rls-policy';
 import type { PostgresContract } from '../postgres-schema';

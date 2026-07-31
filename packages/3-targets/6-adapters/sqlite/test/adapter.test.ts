@@ -33,7 +33,7 @@ import {
   TableSource,
   UpdateAst,
   WindowFuncExpr,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { applicationDomainOf } from '@repo/test-utils';
 import { litParams } from '@repo/test-utils/lowered-params';
 import { describe, expect, it } from 'vitest';

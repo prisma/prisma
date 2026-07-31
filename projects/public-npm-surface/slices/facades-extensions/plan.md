@@ -18,7 +18,7 @@ The complete 17-package public surface exists under `packages/9-public/` and bui
 
 ### Extension packs (6)
 
-`@prisma/orm-extension-{postgis,pgvector,paradedb,supabase,arktype-json,middleware-cache}` from `packages/3-extensions/*`. Peer dependencies repoint from internal adapter packages (`@prisma-next/adapter-postgres`) to published target shells (`@prisma/orm-target-postgres`).
+`@prisma/orm-extension-{postgis,pgvector,paradedb,supabase,arktype-json,middleware-cache}` from `packages/3-extensions/*`. Peer dependencies repoint from internal adapter packages (`@internal/adapter-postgres`) to published target shells (`@prisma/orm-target-postgres`).
 
 ### Bin shim (1)
 
@@ -37,7 +37,7 @@ The complete 17-package public surface exists under `packages/9-public/` and bui
 - Module identity holds across facade → shell boundaries (same assertion style as slice 1).
 - `sql-orm-client` reachable as `@prisma/orm-family-sql/orm-client`; no duplicate copy in either facade.
 - Shim drift-lint passes from the new location; `init` scaffolds a facade dependency.
-- No `@prisma-next/*` **import specifier** in any published dist, and no internal package name reaching a dist as a string constant beyond the recorded baseline (`knownInternalNamesInDist`). The baseline is not empty: the emitter and the migration renderers write internal import roots into user files as ordinary strings, and rewriting those is TML-3123's deliverable. Locking the baseline is what this slice can honestly claim — a *new* internal name in a published dist fails the test.
+- No `@internal/*` **import specifier** in any published dist, and no internal package name reaching a dist as a string constant beyond the recorded baseline (`knownInternalNamesInDist`). The baseline is not empty: the emitter and the migration renderers write internal import roots into user files as ordinary strings, and rewriting those is TML-3123's deliverable. Locking the baseline is what this slice can honestly claim — a *new* internal name in a published dist fails the test.
 
 ## Outcome vs plan (recorded at slice completion)
 
@@ -46,12 +46,12 @@ Two plan instructions were corrected during implementation; both corrections are
 1. **"Facade source moves"** — not done, and should not be: relocating the source breaks the transitional constraint this same plan sets, because in-repo examples import both the facade name and internals directly and would load duplicate module copies. Facades ship as generated shells whose published artifact matches the plan exactly.
 2. **"The toolchain's bin gives a facade install `npx prisma-next`"** — false premise. pnpm links bins of direct dependencies only. Each facade declares a launcher bin delegating to the toolchain's single CLI implementation.
 
-`init` scaffolding a facade dependency moves to TML-3123: the targets hardcode `@prisma-next/<db>/migration` as the emitted-migration import root, so `init`'s dependency and the emitter's import root must flip together.
+`init` scaffolding a facade dependency moves to TML-3123: the targets hardcode `@internal/<db>/migration` as the emitted-migration import root, so `init`'s dependency and the emitter's import root must flip together.
 
-A third correction came out of review: the "no `@prisma-next/*` specifier in any published dist" criterion above was written as if it were met. It is met for import specifiers and not for string constants, so the criterion now says which of the two it claims.
+A third correction came out of review: the "no `@internal/*` specifier in any published dist" criterion above was written as if it were met. It is met for import specifiers and not for string constants, so the criterion now says which of the two it claims.
 
 ## Risks
 
-- **Facade source moves** (unlike slice 1's pure additions) — internal imports of `@prisma-next/postgres` etc. must keep resolving; keep the old package as a thin re-export if anything in-repo still depends on it, and remove that in the switchover slice.
+- **Facade source moves** (unlike slice 1's pure additions) — internal imports of `@internal/postgres` etc. must keep resolving; keep the old package as a thin re-export if anything in-repo still depends on it, and remove that in the switchover slice.
 - **Mongo facade peer** (`mongodb`) and driver externals must land as real facade deps.
 - Editing slice 1's mapping table (decision 1) invalidates shell caches — expected; verify shells still build and identity tests still pass.

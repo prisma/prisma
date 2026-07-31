@@ -34,10 +34,10 @@ flowchart TD
 ## Dependencies
 
 - `@repo/test-utils`: Shared test utilities (database, runtime, contract helpers)
-- `@prisma-next/sql-query`: SQL query DSL and contract validation
-- `@prisma-next/runtime`: Runtime execution engine
-- `@prisma-next/adapter-postgres`: Postgres adapter
-- `@prisma-next/driver-postgres`: Postgres driver
+- `@internal/sql-query`: SQL query DSL and contract validation
+- `@internal/runtime`: Runtime execution engine
+- `@internal/adapter-postgres`: Postgres adapter
+- `@internal/driver-postgres`: Postgres driver
 
 ## Test Patterns
 
@@ -93,11 +93,11 @@ await withDevDatabase(
 - Uses unique ports for the dev DB to avoid conflicts (54020-54112 range)
 - Type tests import the committed `test/e2e/framework/test/fixtures/generated/contract.d.ts`
 - Tests use shared utilities from `@repo/test-utils` via `test/utils.ts` wrapper (injects dependencies)
-- The `executePlanAndCollect` function properly infers return types using `ResultType<P>` from `@prisma-next/sql-query/types`
+- The `executePlanAndCollect` function properly infers return types using `ResultType<P>` from `@internal/sql-query/types`
 
 ## Test Utilities
 
-Contract-related test utilities are located in `test/e2e/framework/test/utils.ts`. These utilities depend on `@prisma-next/sql-contract-ts` and `@prisma-next/sql-contract` for contract validation and types.
+Contract-related test utilities are located in `test/e2e/framework/test/utils.ts`. These utilities depend on `@internal/sql-contract-ts` and `@internal/sql-contract` for contract validation and types.
 
 **Available Utilities:**
 - `loadContractFromDisk<TContract>(contractJsonPath)`: Loads an already-emitted contract from disk. The generic type parameter should be specified from the emitted `contract.d.ts` file (e.g., `loadContractFromDisk<Contract>(contractJsonPath)`).
@@ -116,5 +116,5 @@ const contract = await loadContractFromDisk<Contract>(contractJsonPath);
 await emitAndVerifyContract(cliPath, contractTsPath, adapterPath, outputDir, expectedContractJsonPath);
 ```
 
-**Note**: These utilities are local to the e2e-tests package and depend on `@prisma-next/sql-lane` and `@prisma-next/sql-contract`. They are not exported from `@repo/test-utils` to avoid circular dependencies.
+**Note**: These utilities are local to the e2e-tests package and depend on `@internal/sql-lane` and `@internal/sql-contract`. They are not exported from `@repo/test-utils` to avoid circular dependencies.
 

@@ -1,6 +1,6 @@
-import type { Contract, PlanMeta } from '@prisma-next/contract/types';
-import type { AfterExecuteResult } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract, PlanMeta } from '@internal/contract/types';
+import type { AfterExecuteResult } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   AggregateExpr,
   ColumnRef,
@@ -9,8 +9,8 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { budgets } from '../src/middleware/budgets';

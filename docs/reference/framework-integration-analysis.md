@@ -108,7 +108,7 @@ This is framework-agnostic — the same pattern works in every meta-framework.
 
 ### Open design decision: adapter driver architecture
 
-Should the adapter be **driver-agnostic** (accept any driver — `pg.Pool`, Neon HTTP, Hyperdrive — and wrap it uniformly), or should there be **separate adapters per driver** (`@prisma-next/postgres-pg`, `@prisma-next/postgres-neon`, `@prisma-next/postgres-hyperdrive`)?
+Should the adapter be **driver-agnostic** (accept any driver — `pg.Pool`, Neon HTTP, Hyperdrive — and wrap it uniformly), or should there be **separate adapters per driver** (`@internal/postgres-pg`, `@internal/postgres-neon`, `@internal/postgres-hyperdrive`)?
 
 Drizzle chose separate entry points (`drizzle-orm/node-postgres`, `drizzle-orm/neon-http`, etc.). Prisma ORM chose driver adapters as a layer on top of the engine. Both have trade-offs — separate entry points are simpler but fragment the API surface; a uniform adapter with pluggable drivers is more elegant but adds abstraction.
 
@@ -215,14 +215,14 @@ The contract emit step must be invisible to the developer. If users have to reme
 
 ### Why Prisma Next can solve this
 
-In Prisma ORM, the query engine was a Rust binary invoked via a child process. Building build tool plugins that transparently re-run it was impractical — too slow, too fragile, too many platform-specific binaries. In Prisma Next, the entire emit pipeline is pure TypeScript, invoked via `executeContractEmit()` from `@prisma-next/cli/control-api`. This makes build tool plugin integration trivial.
+In Prisma ORM, the query engine was a Rust binary invoked via a child process. Building build tool plugins that transparently re-run it was impractical — too slow, too fragile, too many platform-specific binaries. In Prisma Next, the entire emit pipeline is pure TypeScript, invoked via `executeContractEmit()` from `@internal/cli/control-api`. This makes build tool plugin integration trivial.
 
 ### Proof of concept: Vite plugin
 
-`@prisma-next/vite-plugin-contract-emit` (in this repo) is a working implementation. It watches the config file and its transitive dependencies via Vite's module graph, debounces changes, cancels superseded emits, surfaces errors in Vite's error overlay, and triggers HMR on success. The repo's support promise is intentionally narrow: the package is validated on Vite 7 and Vite 8 via the same HMR integration suite, and there is no separate Vite-8-specific code path today. Usage:
+`@internal/vite-plugin-contract-emit` (in this repo) is a working implementation. It watches the config file and its transitive dependencies via Vite's module graph, debounces changes, cancels superseded emits, surfaces errors in Vite's error overlay, and triggers HMR on success. The repo's support promise is intentionally narrow: the package is validated on Vite 7 and Vite 8 via the same HMR integration suite, and there is no separate Vite-8-specific code path today. Usage:
 
 ```typescript
-import { prismaVitePlugin } from '@prisma-next/vite-plugin-contract-emit';
+import { prismaVitePlugin } from '@internal/vite-plugin-contract-emit';
 export default defineConfig({
   plugins: [prismaVitePlugin()],
 });
@@ -234,7 +234,7 @@ Equivalent plugins for the remaining build systems:
 
 | Build tool | Frameworks served | Effort estimate |
 |---|---|---|
-| **Vite** | Nuxt, SvelteKit, Remix, Astro, Hono | **Done for Vite 7/8** (`@prisma-next/vite-plugin-contract-emit`) |
+| **Vite** | Nuxt, SvelteKit, Remix, Astro, Hono | **Done for Vite 7/8** (`@internal/vite-plugin-contract-emit`) |
 | **Webpack / Turbopack** | Next.js | Medium — Next.js is the highest-priority framework; Turbopack plugin API is still maturing |
 | **esbuild** | Cloudflare Workers (Wrangler) | Low — esbuild plugin API is simple |
 | **Bun bundler** | Elysia | Low — Bun plugins follow a similar model |
@@ -342,14 +342,14 @@ NestJS (~5M/week) is the only framework that structurally requires a DI wrapper 
 
 **Tier 1 — Validate first** (highest user impact, proves the integration model):
 
-1. **Next.js** — 11.2M/week. Covers RSC, Server Actions, API Routes, Edge Runtime, serverless. Validates hard problems 1, 2, and 3 simultaneously. Requires a dedicated `@prisma-next/nextjs` plugin (Webpack/Turbopack emit, `globalThis` lifecycle management, RSC patterns).
+1. **Next.js** — 11.2M/week. Covers RSC, Server Actions, API Routes, Edge Runtime, serverless. Validates hard problems 1, 2, and 3 simultaneously. Requires a dedicated `@internal/nextjs` plugin (Webpack/Turbopack emit, `globalThis` lifecycle management, RSC patterns).
 2. **Express / Fastify** — 30M + 4M/week. Simplest integration (singleton). Validates basic adapter API and lifecycle hooks.
 3. **Hono on Cloudflare Workers** — 1.5M/week. Validates edge runtime compatibility — the #1 architectural advantage over Prisma ORM.
 
 **Tier 2 — Build adapters** (requires dedicated packages):
 
 4. **Edge-specific adapters** — HTTP-based drivers for Workers (Neon, PlanetScale, D1).
-5. **NestJS module** (`@prisma-next/nestjs`) — 5M/week. Trivial DI wrapper; enterprise adoption depends on it.
+5. **NestJS module** (`@internal/nestjs`) — 5M/week. Trivial DI wrapper; enterprise adoption depends on it.
 
 **Tier 3 — Documentation** (no new code, just guides):
 
@@ -384,14 +384,14 @@ NestJS (~5M/week) is the only framework that structurally requires a DI wrapper 
 
 | Framework | Execution models | Integration pattern | Adapter/package needed? |
 |---|---|---|---|
-| **Next.js** | Serverless, Edge, HMR | `globalThis` singleton; RSC async components; Route Handlers | **Yes — `@prisma-next/nextjs`** (Webpack/Turbopack emit plugin, lifecycle management, RSC patterns) |
+| **Next.js** | Serverless, Edge, HMR | `globalThis` singleton; RSC async components; Route Handlers | **Yes — `@internal/nextjs`** (Webpack/Turbopack emit plugin, lifecycle management, RSC patterns) |
 | **Nuxt** | Serverless (Nitro), HMR | Server plugin singleton; `useAsyncData` server-side | No — docs only |
 | **SvelteKit** | Serverless, HMR | Module export singleton; `+page.server.ts` load functions | No — docs only |
 | **Remix** | Serverless, HMR | Module export singleton; `loader` / `action` | No — docs only |
 | **Astro** | Serverless, HMR | Module export singleton; page frontmatter / API routes | No — docs only |
 | **Express** | Long-lived server | Module-level singleton | No — docs only |
 | **Fastify** | Long-lived server | Plugin registration with lifecycle hooks | No — docs only |
-| **NestJS** | Long-lived server | DI module + injectable provider | **Yes — `@prisma-next/nestjs`** |
+| **NestJS** | Long-lived server | DI module + injectable provider | **Yes — `@internal/nestjs`** |
 | **Hono** | Edge (Workers), Node.js, Deno, Bun | Per-request from env bindings (Workers) or singleton (Node) | **Yes — per-driver adapters** |
 | **Elysia** | Bun | Singleton | No — same as Hono pattern |
 | **RedwoodSDK** | Edge (Workers + D1) | Framework-managed (Prisma + D1) | Not directly — Cloudflare-native framework; depends on D1 adapter existing first |
@@ -418,7 +418,7 @@ export class UserService {
 All non-DI backend frameworks (Express, Fastify, Koa, Hapi) use the same pattern:
 
 ```typescript
-import postgres from '@prisma-next/postgres/runtime';
+import postgres from '@internal/postgres/runtime';
 import type { Contract, TypeMaps } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 

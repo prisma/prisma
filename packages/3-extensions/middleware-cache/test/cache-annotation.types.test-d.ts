@@ -1,4 +1,4 @@
-import type { AnnotationValue, OperationKind } from '@prisma-next/framework-components/runtime';
+import type { AnnotationValue, OperationKind } from '@internal/framework-components/runtime';
 import { expectTypeOf, test } from 'vitest';
 import { type CachePayload, cacheAnnotation } from '../src/cache-annotation';
 

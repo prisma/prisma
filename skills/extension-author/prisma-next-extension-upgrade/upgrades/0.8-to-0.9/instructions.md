@@ -39,7 +39,7 @@ The colocated script walks the project root, descends into every directory named
 
 ## `drop-migration-metadata-contract-fields-from-source`
 
-The `MigrationMetadata` type exported by `@prisma-next/migration-tools` no longer declares `fromContract` or `toContract`. Source TypeScript that constructs (or destructures) `MigrationMetadata` from those fields will now fail to compile.
+The `MigrationMetadata` type exported by `@internal/migration-tools` no longer declares `fromContract` or `toContract`. Source TypeScript that constructs (or destructures) `MigrationMetadata` from those fields will now fail to compile.
 
 There is no codemod — extension authors construct `MigrationMetadata` in too many shapes for a deterministic transform to be safe. Instead, walk every `.ts` / `.tsx` file matched by the `detection.glob` above and apply these rules locally:
 

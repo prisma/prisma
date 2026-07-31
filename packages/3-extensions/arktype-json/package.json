@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/extension-arktype-json",
+  "name": "@internal/extension-arktype-json",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -15,24 +15,24 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/contract-authoring": "workspace:0.16.0",
-    "@prisma-next/family-sql": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/sql-relational-core": "workspace:0.16.0",
-    "@prisma-next/sql-runtime": "workspace:0.16.0",
-    "@prisma-next/target-postgres": "workspace:0.16.0",
+    "@internal/contract": "workspace:0.16.0",
+    "@internal/contract-authoring": "workspace:0.16.0",
+    "@internal/family-sql": "workspace:0.16.0",
+    "@internal/framework-components": "workspace:0.16.0",
+    "@internal/sql-relational-core": "workspace:0.16.0",
+    "@internal/sql-runtime": "workspace:0.16.0",
+    "@internal/target-postgres": "workspace:0.16.0",
     "@standard-schema/spec": "^1.1.0",
     "arktype": "~2.2.2"
   },
   "devDependencies": {
-    "@prisma-next/adapter-postgres": "workspace:0.16.0",
-    "@prisma-next/driver-postgres": "workspace:0.16.0",
-    "@prisma-next/sql-contract": "workspace:0.16.0",
+    "@internal/adapter-postgres": "workspace:0.16.0",
+    "@internal/driver-postgres": "workspace:0.16.0",
+    "@internal/sql-contract": "workspace:0.16.0",
     "@repo/test-utils": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

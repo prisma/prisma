@@ -4,7 +4,7 @@ import {
   importedSpecifiers,
   internalImportRoot,
   transitiveImports,
-} from '@prisma-next/publish-surface/import-roots';
+} from '@internal/publish-surface/import-roots';
 import { describe, expect, it } from 'vitest';
 import { MongoMigrationPlanner } from '../src/core/mongo-planner';
 import { CreateIndexCall } from '../src/core/op-factory-call';
@@ -58,7 +58,7 @@ describe('emitted migration files under each import root', () => {
   // belongs to the same package and every root has something to map it to.
   it('names one workspace package under the internal root', () => {
     expect(packageImports(render(internalImportRoot))).toEqual([
-      '@prisma-next/target-mongo/migration',
+      '@internal/target-mongo/migration',
     ]);
   });
 
@@ -92,7 +92,7 @@ describe('emitted migration files under each import root', () => {
 describe('the empty migration `migration new` scaffolds', () => {
   it('names the workspace package under the internal root', () => {
     expect(packageImports(scaffold(internalImportRoot))).toEqual([
-      '@prisma-next/target-mongo/migration',
+      '@internal/target-mongo/migration',
     ]);
   });
 

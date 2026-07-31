@@ -149,12 +149,12 @@ changes:
       anyMatch: true
   - id: psl-format-error-class-removed
     summary: |
-      The `PslFormatError` class is deleted from `@prisma-next/psl-parser`. `format()`
+      The `PslFormatError` class is deleted from `@internal/psl-parser`. `format()`
       on source with parse errors now throws a structured envelope with code
       `PSL.PARSE_FAILED`; the diagnostics previously on `error.diagnostics` are at
       `error.meta.diagnostics`. Replace `error instanceof PslFormatError` with
       `isStructuredError(error) && error.code === 'PSL.PARSE_FAILED'`
-      (`isStructuredError` from `@prisma-next/utils/structured-error`). The message
+      (`isStructuredError` from `@internal/utils/structured-error`). The message
       text is unchanged.
     detection:
       glob: "**/*.{ts,mts,cts}"
@@ -171,8 +171,8 @@ changes:
       `String: { kind: 'typeConstructor', output: { codecId: 'pg/text@1', nativeType: 'text' } }`.
       Read the scalar type names via `stack.scalarTypes`, or the full name ->
       `{ codecId, nativeType }` map via `collectScalarTypeConstructors(stack.authoringContributions.type)`
-      from `@prisma-next/framework-components/authoring`. Standard target setups
-      (`@prisma-next/postgres`, `@prisma-next/sqlite`) supply the contributions themselves.
+      from `@internal/framework-components/authoring`. Standard target setups
+      (`@internal/postgres`, `@internal/sqlite`) supply the contributions themselves.
     detection:
       glob: "**/*.{ts,mts,cts}"
       contains:
@@ -250,13 +250,13 @@ changes:
       anyMatch: true
   - id: sql-escape-error-class-removed
     summary: |
-      The `SqlEscapeError` class is deleted from `@prisma-next/target-postgres` and
-      `@prisma-next/target-sqlite` (including its re-export from the postgres/sqlite
+      The `SqlEscapeError` class is deleted from `@internal/target-postgres` and
+      `@internal/target-sqlite` (including its re-export from the postgres/sqlite
       adapter `control` entrypoints). Identifier/literal escaping failures now throw a
       structured envelope with code `CONTRACT.IDENTIFIER_INVALID`. Replace
       `error instanceof SqlEscapeError` with
       `isStructuredError(error) && error.code === 'CONTRACT.IDENTIFIER_INVALID'`
-      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message text is
+      (`isStructuredError` from `@internal/utils/structured-error`). Message text is
       unchanged.
     detection:
       glob: "**/*.{ts,mts,cts}"
@@ -265,13 +265,13 @@ changes:
   - id: supabase-error-classes-removed
     summary: |
       The `SupabaseConfigError` and `InvalidJwtError` classes are deleted from
-      `@prisma-next/extension-supabase/runtime`. The same failures now throw
+      `@internal/extension-supabase/runtime`. The same failures now throw
       structured envelopes with codes `SUPABASE.CONFIG_INVALID` and
       `SUPABASE.JWT_INVALID`. Replace `error instanceof SupabaseConfigError` with
       `isStructuredError(error) && error.code === 'SUPABASE.CONFIG_INVALID'` and
       `error instanceof InvalidJwtError` with
       `isStructuredError(error) && error.code === 'SUPABASE.JWT_INVALID'`
-      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message
+      (`isStructuredError` from `@internal/utils/structured-error`). Message
       text is unchanged.
     detection:
       glob: "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
@@ -312,14 +312,14 @@ changes:
   - id: framework-error-classes-removed
     summary: |
       Three exported framework error classes are deleted: `ConfigFileNotFoundError`
-      (from `@prisma-next/config-loader`), `ConfigValidationError` (from
-      `@prisma-next/config/config-validation`), and `DomainNamespaceResolutionError`
-      (from `@prisma-next/contract/types`). The same failures now throw structured
+      (from `@internal/config-loader`), `ConfigValidationError` (from
+      `@internal/config/config-validation`), and `DomainNamespaceResolutionError`
+      (from `@internal/contract/types`). The same failures now throw structured
       envelopes with codes `CONFIG.FILE_NOT_FOUND`, `CONFIG.VALIDATION_FAILED`, and
       `CONTRACT.NAMESPACE_INVALID` respectively. Replace each
       `error instanceof <Class>` with
       `isStructuredError(error) && error.code === '<CODE>'`
-      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message
+      (`isStructuredError` from `@internal/utils/structured-error`). Message
       text is unchanged.
     detection:
       glob: "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"

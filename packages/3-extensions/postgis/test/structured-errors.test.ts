@@ -1,4 +1,4 @@
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { pgGeometryColumn, postgisGeometryDescriptor } from '../src/core/codecs';
 import type { Geometry } from '../src/core/geojson';

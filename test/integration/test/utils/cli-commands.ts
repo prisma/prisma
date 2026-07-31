@@ -15,10 +15,10 @@
  * own.
  */
 
-export { createContractEmitCommand } from '@prisma-next/cli/commands/contract-emit';
-export { createMigrateCommand } from '@prisma-next/cli/commands/migrate';
-export { createMigrationNewCommand } from '@prisma-next/cli/commands/migration-new';
-export { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-plan';
-export { createMigrationStatusCommand } from '@prisma-next/cli/commands/migration-status';
-export { format } from '@prisma-next/psl-parser/format';
-export { printPsl } from '@prisma-next/psl-printer';
+export { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
+export { createMigrateCommand } from '@internal/cli/commands/migrate';
+export { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
+export { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
+export { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
+export { format } from '@internal/psl-parser/format';
+export { printPsl } from '@internal/psl-printer';

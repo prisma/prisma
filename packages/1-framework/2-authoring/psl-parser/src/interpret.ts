@@ -4,9 +4,9 @@ import type {
   ContractSourceDiagnostics,
   ContractSourceProvider,
   PslContractSourceProvider,
-} from '@prisma-next/config/config-types';
-import type { Contract } from '@prisma-next/contract/types';
-import { notOk, type Result } from '@prisma-next/utils/result';
+} from '@internal/config/config-types';
+import type { Contract } from '@internal/contract/types';
+import { notOk, type Result } from '@internal/utils/result';
 import type { SourceFile } from './source-file';
 import type { SymbolTable } from './symbol-table';
 import type { DocumentAst } from './syntax/ast/declarations';
@@ -25,7 +25,7 @@ export interface PslInterpretInput {
 
 /**
  * Declared here — the authoring layer that owns `DocumentAst` / `SourceFile` /
- * `SymbolTable` — because `@prisma-next/config` (core) cannot name authoring
+ * `SymbolTable` — because `@internal/config` (core) cannot name authoring
  * types. `interpret` must not read disk or `context.resolvedInputs` — those
  * are load-path concerns.
  */

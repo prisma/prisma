@@ -4,12 +4,12 @@ to: "0.16"
 changes:
   - id: extension-supabase-test-utils-export-removed
     summary: |
-      `@prisma-next/extension-supabase` no longer exports the `./test/utils` subpath
+      `@internal/extension-supabase` no longer exports the `./test/utils` subpath
       (`bootstrapSupabaseShim`), and it is no longer a pattern to copy for extension test
       tooling. The import typechecked (types shipped in `dist`), but the subpath never worked
       from npm — the shim reads fixture `.sql` files that were never published, so every call
       failed with ENOENT before touching a database. Delete any import of
-      `@prisma-next/extension-supabase/test/utils`; keep hermetic test helpers package-internal
+      `@internal/extension-supabase/test/utils`; keep hermetic test helpers package-internal
       (tests import them by source path) rather than publishing them as subpath exports whose
       on-disk fixtures don't ship.
     detection:
@@ -35,7 +35,7 @@ changes:
       `ControlStack.scalarTypeDescriptors` / `ContractSourceContext.scalarTypeDescriptors` should
       read `stack.scalarTypes` (the scalar type names) or derive the name ->
       `{ codecId, nativeType }` map via `collectScalarTypeConstructors(stack.authoringContributions.type)`
-      from `@prisma-next/framework-components/authoring`. `assembleScalarTypeDescriptors` is
+      from `@internal/framework-components/authoring`. `assembleScalarTypeDescriptors` is
       deleted, and `validateScalarTypeCodecIds` now takes the authoring type namespace instead of
       a descriptor map.
     detection:
@@ -48,7 +48,7 @@ changes:
     summary: |
       On the postgres target the PSL `Json` scalar re-binds from `pg/jsonb@1` / `jsonb` to
       `pg/json@1` / `json`; a new bare `Jsonb` scalar carries `pg/jsonb@1` / `jsonb`
-      (`postgresScalarAuthoringTypes` in `@prisma-next/adapter-postgres`). Extension test
+      (`postgresScalarAuthoringTypes` in `@internal/adapter-postgres`). Extension test
       schemas and fixtures that author postgres `Json` fields and mean jsonb storage must
       switch those fields to `Jsonb`; assertions that pin the `Json` name's derived binding
       (e.g. over `collectScalarTypeConstructors(stack.authoringContributions.type)` or
@@ -68,13 +68,13 @@ changes:
       `@default(<generator>)` never mutates a column's storage any more — the type position is
       the only storage decider — and the whole generator-storage-override SPI is retired with
       it. Removed surfaces: `MutationDefaultGeneratorDescriptor.resolveGeneratedColumnDescriptor`
-      (`@prisma-next/framework-components/control`) — generator descriptors are now
+      (`@internal/framework-components/control`) — generator descriptors are now
       `{ id, applicableCodecIds?, buildPhases? }` only, and `applicableCodecIds` remains the
       validation channel (`PSL_INVALID_DEFAULT_APPLICABILITY` on mismatch); the transitional
       `baseScalar` marker on `AuthoringTypeConstructorDescriptor` and
-      `ScalarTypeConstructorOutput` (`@prisma-next/framework-components/authoring`) — scalar
+      `ScalarTypeConstructorOutput` (`@internal/framework-components/authoring`) — scalar
       type-constructor contributions and the derived scalar view are plain
-      `{ codecId, nativeType, typeParams? }` again; and the `@prisma-next/ids` exports
+      `{ codecId, nativeType, typeParams? }` again; and the `@internal/ids` exports
       `resolveBuiltinGeneratedColumnDescriptor` / `GeneratedColumnDescriptor` (the TS spec
       helpers `uuidv4()`, `nanoid()`, … still return `GeneratedColumnSpec` bundling their
       explicit `sql/char@1` column). Packs that registered a generator descriptor with a
@@ -184,7 +184,7 @@ TML-3028 (dependency-graph migration ordering; SchemaDiffIssue.reason removed):
 the migration-diff internal `SchemaDiffIssue` lost its `reason` field —
 discriminate a diff issue via the presence of `expected`/`actual`, or the
 exported `issueOutcome(issue): ExpectationFailureReason` helper from
-`@prisma-next/framework-components/control`. `ExpectationFailureReason` keeps its
+`@internal/framework-components/control`. `ExpectationFailureReason` keeps its
 `'not-found' | 'not-expected' | 'not-equal'` values and its export path; it is now
 the helper's return type rather than the removed field's type. This is a framework migration-control
 internal, not an extension-authoring SPI. The `packages/3-extensions/` diff is

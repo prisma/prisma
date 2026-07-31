@@ -7,17 +7,17 @@ import {
   integerColumn,
   jsonColumn,
   textColumn,
-} from '@prisma-next/adapter-sqlite/column-types';
-import sqliteAdapter from '@prisma-next/adapter-sqlite/runtime';
-import { soleDomainNamespaceId } from '@prisma-next/contract/types';
-import sqliteDriver from '@prisma-next/driver-sqlite/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { Collection } from '@prisma-next/sql-orm-client';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import { defineContract, field, model, rel } from '@prisma-next/sqlite/contract-builder';
-import { SqliteRuntimeImpl } from '@prisma-next/sqlite/runtime';
-import sqliteTarget from '@prisma-next/target-sqlite/runtime';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/adapter-sqlite/column-types';
+import sqliteAdapter from '@internal/adapter-sqlite/runtime';
+import { soleDomainNamespaceId } from '@internal/contract/types';
+import sqliteDriver from '@internal/driver-sqlite/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { Collection } from '@internal/sql-orm-client';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import { defineContract, field, model, rel } from '@internal/sqlite/contract-builder';
+import { SqliteRuntimeImpl } from '@internal/sqlite/runtime';
+import sqliteTarget from '@internal/target-sqlite/runtime';
+import { InternalError } from '@internal/utils/internal-error';
 import { join } from 'pathe';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 

@@ -164,7 +164,7 @@ The framework emitter's existing `generateFieldResolvedType` (introduced in TML-
 5. Stamps the result into the `FieldOutputTypes` map
 6. Serializes `typeParams` truthfully as const literals on the field
 
-This lives in `@prisma-next/emitter` (tooling layer), dispatching to codecs via `CodecLookup` from the core layer. The legacy renderer infrastructure — `TypeRenderer`, normalization pipeline, `parameterizedRenderers` threading through the control stack, and `parameterized` maps in descriptor metadata — is deleted.
+This lives in `@internal/emitter` (tooling layer), dispatching to codecs via `CodecLookup` from the core layer. The legacy renderer infrastructure — `TypeRenderer`, normalization pipeline, `parameterizedRenderers` threading through the control stack, and `parameterized` maps in descriptor metadata — is deleted.
 
 ## Consequences
 

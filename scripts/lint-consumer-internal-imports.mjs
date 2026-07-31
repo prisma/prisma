@@ -3,13 +3,13 @@
  * A consumer project names no internal workspace package.
  *
  * ADR 242 makes an application depend on exactly one `@prisma/orm-*` database
- * package plus whatever extension packs it installs. The `@prisma-next/*`
+ * package plus whatever extension packs it installs. The `@internal/*`
  * names are this repository's own vocabulary and are not published at all, so
  * a consumer that names one is describing an install no user could reproduce.
  * The repository's own consumers are the standing proof of that, and they can
  * fall short of it in two ways, so each scope is measured twice:
  *
- *   - **imports** — a line naming an internal `@prisma-next/*` specifier.
+ *   - **imports** — a line naming an `@internal/*` specifier.
  *   - **manifests** — an internal package a consumer's `package.json` names,
  *     as its own `name` or in `dependencies` / `devDependencies`. A consumer
  *     could import nothing internal and still list a dozen internal packages,
@@ -37,7 +37,7 @@ import { join } from 'node:path';
 
 const GIT_ROOT = process.cwd();
 
-const INTERNAL_SCOPE = '@prisma-next/';
+const INTERNAL_SCOPE = '@internal/';
 
 /**
  * The trees this check governs: the ones shaped like something a user would
@@ -183,7 +183,7 @@ export function scanManifests(scanDir, scopePath) {
 
 const CONSUMER_RULE =
   'A consumer depends on one @prisma/orm-* database package and its extension packs,\n' +
-  'and imports only published names. The internal @prisma-next/* packages are not\n' +
+  'and imports only published names. The @internal/* packages are not\n' +
   'published, so naming one describes an install no user could reproduce (ADR 242).\n' +
   'If the published surface has no name for something a consumer needs, that is a\n' +
   'gap in the surface, not a reason to keep the workspace name.';
@@ -234,9 +234,7 @@ export function main(scopes = CONSUMER_SCOPES) {
     console.error(`\n${CONSUMER_RULE}\n`);
     return 1;
   }
-  console.log(
-    `No consumer project under ${scopes.join(', ')} names an internal @prisma-next/* package.`,
-  );
+  console.log(`No consumer project under ${scopes.join(', ')} names an @internal/* package.`);
   return 0;
 }
 

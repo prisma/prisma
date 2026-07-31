@@ -1,11 +1,11 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
-import type { AnyMongoDdlCommand } from '@prisma-next/mongo-query-ast/control';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import type { CodecCallContext } from '@internal/framework-components/codec';
+import type { AnyMongoDdlCommand } from '@internal/mongo-query-ast/control';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import type {
   AnyMongoDdlWireCommand,
   AnyMongoDmlWireCommand,
   AnyMongoWireCommand,
-} from '@prisma-next/mongo-wire';
+} from '@internal/mongo-wire';
 
 /**
  * Intermediate state produced by structural lowering. `MongoParamRef` leaves

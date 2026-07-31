@@ -21,8 +21,7 @@ const SCRIPT_PATH = join(
 );
 
 // One matching line (the import), on line 2.
-const FILE_WITH_ONE_HIT =
-  "export const x = 1;\nimport { orm } from '@prisma-next/sql-orm-client';\n";
+const FILE_WITH_ONE_HIT = "export const x = 1;\nimport { orm } from '@internal/sql-orm-client';\n";
 
 let repo;
 
@@ -100,22 +99,20 @@ describe('isScannableFile', () => {
 
 describe('internalSpecifiersOnLine', () => {
   it('reads a static import', () => {
-    assert.deepEqual(
-      internalSpecifiersOnLine("import { orm } from '@prisma-next/sql-orm-client';"),
-      ['@prisma-next/sql-orm-client'],
-    );
+    assert.deepEqual(internalSpecifiersOnLine("import { orm } from '@internal/sql-orm-client';"), [
+      '@internal/sql-orm-client',
+    ]);
   });
 
   it('reads a side-effect import, a dynamic import, and a re-export', () => {
-    assert.deepEqual(internalSpecifiersOnLine("import '@prisma-next/postgres/runtime';"), [
-      '@prisma-next/postgres/runtime',
+    assert.deepEqual(internalSpecifiersOnLine("import '@internal/postgres/runtime';"), [
+      '@internal/postgres/runtime',
     ]);
-    assert.deepEqual(
-      internalSpecifiersOnLine("type X = import('@prisma-next/contract/types').C;"),
-      ['@prisma-next/contract/types'],
-    );
-    assert.deepEqual(internalSpecifiersOnLine('export * from "@prisma-next/utils/casts";'), [
-      '@prisma-next/utils/casts',
+    assert.deepEqual(internalSpecifiersOnLine("type X = import('@internal/contract/types').C;"), [
+      '@internal/contract/types',
+    ]);
+    assert.deepEqual(internalSpecifiersOnLine('export * from "@internal/utils/casts";'), [
+      '@internal/utils/casts',
     ]);
   });
 
@@ -128,7 +125,7 @@ describe('internalSpecifiersOnLine', () => {
   it('does not match the scope name outside an import position', () => {
     // A test asserting that emitted code does *not* name the internal scope has
     // to name it to say so; that is data, not a dependency.
-    assert.deepEqual(internalSpecifiersOnLine("const INTERNAL_SCOPE = '@prisma-next/';"), []);
+    assert.deepEqual(internalSpecifiersOnLine("const INTERNAL_SCOPE = '@internal/';"), []);
   });
 });
 
@@ -137,19 +134,19 @@ describe('findMatchingLines', () => {
     const matches = findMatchingLines(FILE_WITH_ONE_HIT);
     assert.equal(matches.length, 1);
     assert.equal(matches[0].line, 2);
-    assert.deepEqual(matches[0].specifiers, ['@prisma-next/sql-orm-client']);
+    assert.deepEqual(matches[0].specifiers, ['@internal/sql-orm-client']);
   });
 
   it('counts a line naming two internal specifiers once', () => {
     const content =
-      "export { a } from '@prisma-next/utils/casts'; export { b } from '@prisma-next/ids';\n";
+      "export { a } from '@internal/utils/casts'; export { b } from '@internal/ids';\n";
     const matches = findMatchingLines(content);
     assert.equal(matches.length, 1);
-    assert.deepEqual(matches[0].specifiers, ['@prisma-next/utils/casts', '@prisma-next/ids']);
+    assert.deepEqual(matches[0].specifiers, ['@internal/utils/casts', '@internal/ids']);
   });
 
   it('counts a multi-line import once, on the line that names the module', () => {
-    const content = "import {\n  orm,\n  Collection,\n} from '@prisma-next/sql-orm-client';\n";
+    const content = "import {\n  orm,\n  Collection,\n} from '@internal/sql-orm-client';\n";
     const matches = findMatchingLines(content);
     assert.equal(matches.length, 1);
     assert.equal(matches[0].line, 4);
@@ -163,27 +160,24 @@ describe('scanManifests', () => {
 
   it('reads internal packages from dependencies and devDependencies', () => {
     manifest('examples/app/package.json', {
-      dependencies: { '@prisma-next/postgres': 'workspace:*', pg: '8' },
-      devDependencies: { '@prisma-next/cli': 'workspace:*' },
+      dependencies: { '@internal/postgres': 'workspace:*', pg: '8' },
+      devDependencies: { '@internal/cli': 'workspace:*' },
     });
     commitAll('two internal packages');
 
     assert.deepEqual(
       scanManifests(repo, 'examples').map((r) => `${r.field}:${r.package}`),
-      ['dependencies:@prisma-next/postgres', 'devDependencies:@prisma-next/cli'],
+      ['dependencies:@internal/postgres', 'devDependencies:@internal/cli'],
     );
   });
 
   it('reads a consumer that publishes itself under the internal scope', () => {
-    writeRepoFile(
-      'examples/app/package.json',
-      JSON.stringify({ name: '@prisma-next/example-app' }),
-    );
+    writeRepoFile('examples/app/package.json', JSON.stringify({ name: '@internal/example-app' }));
     commitAll('internally scoped consumer');
 
     assert.deepEqual(
       scanManifests(repo, 'examples').map((r) => `${r.field}:${r.package}`),
-      ['name:@prisma-next/example-app'],
+      ['name:@internal/example-app'],
     );
   });
 
@@ -196,7 +190,7 @@ describe('scanManifests', () => {
     assert.deepEqual(scanManifests(repo, 'examples'), []);
   });
 
-  it('ignores @repo/*, which is this repository’s own dev tooling', () => {
+  it('ignores @internal/*, which is this repository’s own dev tooling', () => {
     manifest('examples/app/package.json', {
       devDependencies: { '@repo/tsconfig': 'workspace:*', '@repo/test-utils': 'workspace:*' },
     });
@@ -207,7 +201,7 @@ describe('scanManifests', () => {
 
   it('ignores manifests of installed dependencies', () => {
     manifest('examples/app/node_modules/pkg/package.json', {
-      dependencies: { '@prisma-next/cli': '0.16.0' },
+      dependencies: { '@internal/cli': '0.16.0' },
     });
     commitAll('vendored manifest');
 
@@ -216,10 +210,10 @@ describe('scanManifests', () => {
 
   it('reads nested consumer packages, which install independently', () => {
     manifest('examples/monorepo/package.json', {
-      dependencies: { '@prisma-next/postgres': 'workspace:*' },
+      dependencies: { '@internal/postgres': 'workspace:*' },
     });
     manifest('examples/monorepo/packages/audit/package.json', {
-      dependencies: { '@prisma-next/sql-contract': 'workspace:*' },
+      dependencies: { '@internal/sql-contract': 'workspace:*' },
     });
     commitAll('nested manifests');
 
@@ -241,7 +235,7 @@ describe('lint-consumer-internal-imports', () => {
 
     const result = runScript();
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
-    assert.match(result.stdout, /names an internal @prisma-next\/\* package/);
+    assert.match(result.stdout, /names an internal @internal\/\* package/);
   });
 
   it('fails on a single planted import, and names the file and line', () => {
@@ -250,7 +244,7 @@ describe('lint-consumer-internal-imports', () => {
 
     const result = runScript();
     assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
-    assert.match(result.stderr, /examples\/app\/src\/main\.ts:2: @prisma-next\/sql-orm-client/);
+    assert.match(result.stderr, /examples\/app\/src\/main\.ts:2: @internal\/sql-orm-client/);
     assert.match(result.stderr, /are not\npublished/);
   });
 
@@ -260,13 +254,13 @@ describe('lint-consumer-internal-imports', () => {
     writeRepoFile('examples/app/src/main.ts', "import x from '@prisma/orm-postgres/runtime';\n");
     writeRepoFile(
       'examples/app/package.json',
-      JSON.stringify({ name: 'app', dependencies: { '@prisma-next/cli': 'workspace:*' } }),
+      JSON.stringify({ name: 'app', dependencies: { '@internal/cli': 'workspace:*' } }),
     );
     commitAll('clean imports, dirty manifest');
 
     const result = runScript();
     assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
-    assert.match(result.stderr, /dependencies: @prisma-next\/cli/);
+    assert.match(result.stderr, /dependencies: @internal\/cli/);
   });
 
   it('fails on a planted import in every scope it governs', () => {
@@ -306,6 +300,6 @@ describe('lint-consumer-internal-imports', () => {
 
     const result = runScript('--list');
     assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
-    assert.match(result.stdout, /examples\/app\/src\/main\.ts:2: @prisma-next\/sql-orm-client/);
+    assert.match(result.stdout, /examples\/app\/src\/main\.ts:2: @internal\/sql-orm-client/);
   });
 });

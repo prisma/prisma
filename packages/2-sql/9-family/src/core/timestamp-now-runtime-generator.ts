@@ -1,4 +1,4 @@
-import type { RuntimeMutationDefaultGenerator } from '@prisma-next/sql-runtime';
+import type { RuntimeMutationDefaultGenerator } from '@internal/sql-runtime';
 import { TIMESTAMP_NOW_GENERATOR_ID } from './timestamp-now-generator';
 
 /**
@@ -13,7 +13,7 @@ import { TIMESTAMP_NOW_GENERATOR_ID } from './timestamp-now-generator';
  *
  * Lives in a runtime-plane-only module so the control-plane
  * `timestamp-now-generator.ts` (descriptor + authoring presets) stays
- * free of `@prisma-next/sql-runtime` imports.
+ * free of `@internal/sql-runtime` imports.
  */
 export function timestampNowRuntimeGenerator(): RuntimeMutationDefaultGenerator {
   return {

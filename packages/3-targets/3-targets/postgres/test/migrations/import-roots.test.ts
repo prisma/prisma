@@ -1,5 +1,5 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
 import {
   createImportSpecifierResolver,
   type ImportRoot,
@@ -7,8 +7,8 @@ import {
   importedSpecifiers,
   internalImportRoot,
   transitiveImports,
-} from '@prisma-next/publish-surface/import-roots';
-import { col, lit, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
+} from '@internal/publish-surface/import-roots';
+import { col, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { describe, expect, it } from 'vitest';
 import {
   AddColumnCall,
@@ -80,7 +80,7 @@ function packageImports(source: string): string[] {
 
 describe('emitted migration files under each import root', () => {
   it('names the workspace facade under the internal root', () => {
-    expect(packageImports(render(internalImportRoot))).toEqual(['@prisma-next/postgres/migration']);
+    expect(packageImports(render(internalImportRoot))).toEqual(['@internal/postgres/migration']);
   });
 
   it('names the published facade under the facade root', () => {
@@ -119,8 +119,8 @@ describe('emitted migration files under each import root', () => {
   });
 
   // The blocker is the *name* the scaffold carries, not the module behind it.
-  // `@prisma-next/postgres/migration` is a one-line
-  // `export * from '@prisma-next/target-postgres/migration'`. The four-way
+  // `@internal/postgres/migration` is a one-line
+  // `export * from '@internal/target-postgres/migration'`. The four-way
   // merge — the target's `Migration` base, the CLI's `MigrationCLI`, the SQL
   // family's DDL builders, the framework's `placeholder` — lives in the
   // target's own `src/exports/migration.ts`, which is platform-owned and
@@ -129,7 +129,7 @@ describe('emitted migration files under each import root', () => {
   // module that alias points at.
   //
   // Two ways to close it, both for TML-3126 because both ride with the flip:
-  // (a) record entrypoint aliases in `@prisma-next/publish-surface` — "this
+  // (a) record entrypoint aliases in `@internal/publish-surface` — "this
   //     facade subpath is a pure re-export of that target subpath" —
   //     consulted when direct resolution lands outside the root's direct
   //     dependencies; or
@@ -143,20 +143,18 @@ describe('emitted migration files under each import root', () => {
   it('resolves the module behind the facade alias under every root', () => {
     // Evidence for the note above: the underlying target specifier is not the
     // obstacle, so both fixes are real options rather than wishful.
-    expect(createImportSpecifierResolver(platform)('@prisma-next/target-postgres/migration')).toBe(
+    expect(createImportSpecifierResolver(platform)('@internal/target-postgres/migration')).toBe(
       '@prisma/orm-target-postgres/target/migration',
     );
     expect(
-      createImportSpecifierResolver(postgresFacade)('@prisma-next/target-postgres/migration'),
+      createImportSpecifierResolver(postgresFacade)('@internal/target-postgres/migration'),
     ).toBe('@prisma/orm-postgres/target/migration');
   });
 });
 
 describe('the empty migration `migration new` scaffolds', () => {
   it('names the workspace package under the internal root', () => {
-    expect(packageImports(scaffold(internalImportRoot))).toEqual([
-      '@prisma-next/postgres/migration',
-    ]);
+    expect(packageImports(scaffold(internalImportRoot))).toEqual(['@internal/postgres/migration']);
   });
 
   it('names the published facade under the facade root', () => {

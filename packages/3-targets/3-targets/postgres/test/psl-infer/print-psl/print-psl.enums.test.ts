@@ -8,13 +8,13 @@
  * introspection; the infer entry (`inferPostgresPslContract`) still throws on
  * native enums until the adoption dispatch wires real data through.
  */
-import type { EnumInfo, PslPrinterOptions } from '@prisma-next/family-sql/psl-infer';
-import { parseRawDefault } from '@prisma-next/family-sql/psl-infer';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { printPsl } from '@prisma-next/psl-printer';
-import type { SqlTableIRInput } from '@prisma-next/sql-schema-ir/types';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import type { EnumInfo, PslPrinterOptions } from '@internal/family-sql/psl-infer';
+import { parseRawDefault } from '@internal/family-sql/psl-infer';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { printPsl } from '@internal/psl-printer';
+import type { SqlTableIRInput } from '@internal/sql-schema-ir/types';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { postgresAuthoringPslBlockDescriptors } from '../../../src/core/authoring';
 import { buildPslDocumentAst } from '../../../src/core/psl-infer/infer-psl-contract';

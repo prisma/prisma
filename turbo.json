@@ -52,8 +52,8 @@
     "clean": {
       "cache": false
     },
-    "@prisma-next/sql-builder#emit": {
-      "dependsOn": ["@prisma-next/cli#build"]
+    "@internal/sql-builder#emit": {
+      "dependsOn": ["@internal/cli#build"]
     },
     "@prisma/orm-framework#test": {
       "dependsOn": [

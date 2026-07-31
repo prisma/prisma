@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { createAggregateContractSpace } from '@prisma-next/migration-tools/aggregate';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { Contract } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { createAggregateContractSpace } from '@internal/migration-tools/aggregate';
+import { blindCast } from '@internal/utils/casts';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import {

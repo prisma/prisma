@@ -27,7 +27,7 @@ Prisma Next separates `family → target → adapter → driver`. For D1 we add 
 
 ### What's new for D1
 
-- A driver package (`@prisma-next/driver-sqlite-d1` or similar, in `packages/3-targets/7-drivers/sqlite-d1/`) exporting both a runtime driver and a control driver.
+- A driver package (`@internal/driver-sqlite-d1` or similar, in `packages/3-targets/7-drivers/sqlite-d1/`) exporting both a runtime driver and a control driver.
 - A D1-specific migration runner. PR #341's runner cannot execute on D1 because it relies on interactive reads inside a `BEGIN EXCLUSIVE` transaction. The new runner reshapes the lifecycle around D1's import API, which accepts a self-contained SQL file and runs it atomically server-side.
 - An extension to the shared `ControlDriverInstance` interface adding a bulk-atomic-apply primitive alongside `query`. The D1 runner needs a way to ship a multi-statement script atomically; the existing `query` method is a read-with-results contract and a poor fit. See "Driver interface" below.
 - New capability declarations on the driver side to gate runtime operations that require interactive transactions.

@@ -2,21 +2,18 @@ import { mkdtempSync } from 'node:fs';
 import { mkdir, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import {
-  APP_SPACE_ID,
-  type MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { AggregateMigrationEdgeRef } from '@prisma-next/migration-tools/aggregate';
-import { writeContractSnapshot } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { materialiseMigrationPackage, readMigrationPackage } from '@prisma-next/migration-tools/io';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import type { SqlitePlanTargetDetails } from '@prisma-next/target-sqlite/planner-target-details';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID, type MigrationPlanOperation } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
+import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { materialiseMigrationPackage, readMigrationPackage } from '@internal/migration-tools/io';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import type { SqlitePlanTargetDetails } from '@internal/target-sqlite/planner-target-details';
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import {

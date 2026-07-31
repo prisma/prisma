@@ -1,7 +1,7 @@
 import type {
   MigrationPlanOperation,
   OperationPreview,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 
 /**
  * Shape of an SQL execute step on `SqlMigrationPlanOperation`. Used for runtime

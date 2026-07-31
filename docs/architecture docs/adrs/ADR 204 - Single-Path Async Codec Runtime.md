@@ -234,7 +234,7 @@ Mongo decode was **out of scope** for the original ADR 204 work. At that time, t
 Concretely, in this ADR’s original encode-focused slice:
 
 - **In scope (Mongo):** the encode-side runtime invocation pattern. `resolveValue`, `MongoAdapter.lower()`, and `MongoRuntime.execute()` are reshaped to async + `Promise.all` for consistency with SQL.
-- **Decode (Mongo), follow-up to this ADR:** row decoding now uses structural `MongoResultShape` and `decodeMongoRow` in `@prisma-next/mongo-runtime` (TML-2324); JSON-Schema validation on decoded cells remains SQL-only for now.
+- **Decode (Mongo), follow-up to this ADR:** row decoding now uses structural `MongoResultShape` and `decodeMongoRow` in `@internal/mongo-runtime` (TML-2324); JSON-Schema validation on decoded cells remains SQL-only for now.
 - **In scope (cross-family):** the structural identity of `Codec` and `MongoCodec`, and the structural reusability of a single `defineCodec({...})` module across both runtimes' encode paths.
 
 ## References

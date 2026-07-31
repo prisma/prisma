@@ -2,13 +2,13 @@
 
 An agent skill that upgrades a Prisma Next **extension** package from one minor version to the next. The skill carries the per-step bump-install-instructions-check-pins-validate-commit flow plus the cumulative set of per-transition *upgrade instructions* (one directory per `(from-minor, to-minor)` pair).
 
-The companion CLI `prisma-next-check-pins` ships separately from [`@prisma-next/extension-author-tools`](../../../packages/0-shared/extension-author-tools/) — extension authors install that as a normal `devDependency` and wire it into CI.
+The companion CLI `prisma-next-check-pins` ships separately from [`@internal/extension-author-tools`](../../../packages/0-shared/extension-author-tools/) — extension authors install that as a normal `devDependency` and wire it into CI.
 
 ## Audience
 
 This skill is for **authors of Prisma Next extensions** — packages that consume the framework SPI and expose contract / middleware / codec / migration surfaces to downstream apps.
 
-If you are a user of Prisma Next (your project imports `@prisma-next/postgres`, `@prisma-next/mongo`, etc. from your application code), install the [`prisma-next-upgrade`](../../upgrade/prisma-next-upgrade/SKILL.md) skill instead. If your repo contains both an app and an extension, install both.
+If you are a user of Prisma Next (your project imports `@internal/postgres`, `@internal/mongo`, etc. from your application code), install the [`prisma-next-upgrade`](../../upgrade/prisma-next-upgrade/SKILL.md) skill instead. If your repo contains both an app and an extension, install both.
 
 ## Installation
 
@@ -25,7 +25,7 @@ The extension-author subpath is intentionally **unpinned** (always tracks `main`
 ### The CLI tool (normal devDependency)
 
 ```bash
-pnpm add -D @prisma-next/extension-author-tools
+pnpm add -D @internal/extension-author-tools
 ```
 
 Then wire `pnpm exec prisma-next-check-pins` into your CI.
@@ -44,7 +44,7 @@ The agent reads `SKILL.md`, detects the current and target versions, applies one
 
 ### `prisma-next-check-pins` CLI
 
-The CLI enforces the *exact-pin rule* for Prisma Next extensions: every `@prisma-next/*` entry across `dependencies`, `peerDependencies`, and `optionalDependencies` must be a single exact-version string (no `^`, no `~`, no range, no wildcard, no `workspace:` specifier), and every entry must resolve to the same version.
+The CLI enforces the *exact-pin rule* for Prisma Next extensions: every `@internal/*` entry across `dependencies`, `peerDependencies`, and `optionalDependencies` must be a single exact-version string (no `^`, no `~`, no range, no wildcard, no `workspace:` specifier), and every entry must resolve to the same version.
 
 ```bash
 pnpm exec prisma-next-check-pins

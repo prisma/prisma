@@ -1,9 +1,6 @@
-import type {
-  ControlFamilyDescriptor,
-  ControlStack,
-} from '@prisma-next/framework-components/control';
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
+import type { ControlFamilyDescriptor, ControlStack } from '@internal/framework-components/control';
+import type { EmissionSpi } from '@internal/framework-components/emission';
+import { sqlEmission } from '@internal/sql-contract-emitter';
 import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from './authoring-entity-types';
 import { sqlFamilyAuthoringFieldPresets } from './authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from './authoring-type-constructors';

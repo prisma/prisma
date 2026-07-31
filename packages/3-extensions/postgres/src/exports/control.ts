@@ -4,19 +4,19 @@
  * Collapses the five-package wiring required to drive control-side
  * operations (`dbInit`, `dbUpdate`, `dbVerify`, `migrate`, …) into
  * a single `createPostgresControlClient()` call. Mirrors what
- * `@prisma-next/postgres/runtime` did for the query side.
+ * `@internal/postgres/runtime` did for the query side.
  */
 
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
 import {
   type ControlClient,
   type ControlClientOptions,
   createControlClient,
-} from '@prisma-next/cli/control-api';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/cli/control-api';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
+import { ifDefined } from '@internal/utils/defined';
 
 export interface PostgresControlClientOptions {
   /**

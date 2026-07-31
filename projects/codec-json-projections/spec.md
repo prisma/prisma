@@ -71,7 +71,7 @@ The accepted hard cut restores canonical lossless representations, including Pos
 - **Reference array semantics.** PostgreSQL's default array lift binds the source once and preserves null array, empty array, null elements, and element order. Every optimized override passes the same shared conformance cases.
 - **Runtime/type-level aggregate parity.** `SqlAggregateDescriptor` is the single source for operation/input matching, exact-over-trait precedence, output codec, type parameters, nullability, and lowering; emitted `aggregateTypes` and runtime resolution cannot select different results.
 - **Database-backed conformance.** Built-in target suites cover every built-in and wrapped generic codec; extension suites cover every migrated extension codec through real AST, renderer, database, driver, and codec paths.
-- **Clean dependency boundaries.** Public conformance APIs live in `@prisma-next/postgres-codec-testkit` and `@prisma-next/sqlite-codec-testkit` as dev-only packages; production adapters do not depend on them.
+- **Clean dependency boundaries.** Public conformance APIs live in `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit` as dev-only packages; production adapters do not depend on them.
 - **Breaking-change completeness.** Codec docs, target/extension docs, generated fixtures, contract examples, and upgrade instructions all describe canonical codec JSON, required projections, regenerated contracts, and changed bigint/aggregate application types.
 
 ## Transitional-shape constraints
@@ -102,7 +102,7 @@ Inherits the team-DoD floor ([`drive/calibration/dod.md`](../../drive/calibratio
 - [ ] Built-in PostgreSQL/SQLite codecs and in-repo pgvector/PostGIS/other affected extension codecs pass real database-backed scalar/document/array conformance as applicable.
 - [ ] `SqlAggregateDescriptor` resolution uses exact codec matches before trait matches and declaratively determines output codec/nullability; runtime and emitted `aggregateTypes` share that source of truth.
 - [ ] Top-level and include aggregate APIs decode through resolved output codecs and expose target-accurate results, including PostgreSQL/SQLite `count()` as `bigint`, integer sums where appropriate as `bigint`, and arbitrary-precision numeric aggregates as decimal strings.
-- [ ] `@prisma-next/postgres-codec-testkit` and `@prisma-next/sqlite-codec-testkit` are public test-framework-independent dev tools, have no path into production adapter dependencies, and are exercised by at least one extension-owned suite.
+- [ ] `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit` are public test-framework-independent dev tools, have no path into production adapter dependencies, and are exercised by at least one extension-owned suite.
 - [ ] Existing codec IDs remain unchanged, all affected generated contracts/fixtures are regenerated, and upgrade instructions explicitly require regeneration and describe stored JSON/default/value-set and TypeScript result changes.
 - [ ] Long-lived codec/projection/aggregate architecture documentation is updated and a dedicated ADR is authored or the final ADR audit records why an amendment to an existing ADR is the better durable form.
 

@@ -29,7 +29,7 @@ Single slice covering both Mongo + Postgres `defineConfig` wrappers, the CLI fla
 
 ### Out of project (tracked separately)
 
-- **TML-2677** — Add `@prisma-next/sqlite/config` `defineConfig` wrapper at ergonomic parity with Mongo + Postgres. Surfaced during this project's slice spec authoring; deliberately deferred (not a config-knob extension; needs its own design pass + demo migration).
+- **TML-2677** — Add `@internal/sqlite/config` `defineConfig` wrapper at ergonomic parity with Mongo + Postgres. Surfaced during this project's slice spec authoring; deliberately deferred (not a config-knob extension; needs its own design pass + demo migration).
 
 ## Dependencies (external)
 

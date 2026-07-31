@@ -1,9 +1,9 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { ContractSourceContext } from '@prisma-next/config/config-types';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { hasPslInterpreter, type PslInterpretInput } from '@prisma-next/psl-parser/interpret';
-import { parse } from '@prisma-next/psl-parser/syntax';
+import type { ContractSourceContext } from '@internal/config/config-types';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { hasPslInterpreter, type PslInterpretInput } from '@internal/psl-parser/interpret';
+import { parse } from '@internal/psl-parser/syntax';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';

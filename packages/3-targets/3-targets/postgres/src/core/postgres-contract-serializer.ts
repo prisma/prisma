@@ -1,22 +1,19 @@
-import type { Contract } from '@prisma-next/contract/types';
-import {
-  SqlContractSerializerBase,
-  type SqlEntityHydrationFactory,
-} from '@prisma-next/family-sql/ir';
+import type { Contract } from '@internal/contract/types';
+import { SqlContractSerializerBase, type SqlEntityHydrationFactory } from '@internal/family-sql/ir';
 import {
   type AuthoringEntityContext,
   type AuthoringEntityTypeFactoryOutput,
   type AuthoringEntityTypeNamespace,
   isAuthoringEntityTypeDescriptor,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import {
   type AnyEntityKindDescriptor,
   type Namespace,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
-import type { SqlNamespaceInput, SqlStorage } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import type { JsonObject } from '@prisma-next/utils/json';
+} from '@internal/framework-components/ir';
+import type { SqlNamespaceInput, SqlStorage } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import type { JsonObject } from '@internal/utils/json';
 import { postgresAuthoringEntityTypes } from './authoring';
 import { PG_INT_CODEC_ID, PG_TEXT_CODEC_ID } from './codec-ids';
 import {

@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { contractToMongoSchemaIR } from '@prisma-next/family-mongo/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   MigrationOperationClass,
   MigrationOperationPolicy,
@@ -9,16 +9,16 @@ import type {
   MigrationPlannerResult,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
-} from '@prisma-next/framework-components/control';
-import type { MongoContract } from '@prisma-next/mongo-contract';
+} from '@internal/framework-components/control';
+import type { MongoContract } from '@internal/mongo-contract';
 import type {
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
-import { canonicalize, deepEqual } from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-schema-ir';
+import { canonicalize, deepEqual } from '@internal/mongo-schema-ir';
 import type { OpFactoryCall } from './op-factory-call';
 import {
   CollModCall,

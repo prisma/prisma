@@ -9,8 +9,8 @@
  * Uses the fork-2 topology (2 forward lanes, no back-lanes) so totalCols = numLanes * colsPerLane.
  */
 
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { MigrationEdge, MigrationGraph } from '@prisma-next/migration-tools/graph';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { buildGrid } from '../../../src/utils/formatters/migration-graph-grid-layout';

@@ -1,16 +1,16 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { executeDbInit, executeDbUpdate } from '@prisma-next/cli/control-api';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { SqlControlExtensionDescriptor } from '@prisma-next/family-sql/control';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import { executeDbInit, executeDbUpdate } from '@internal/cli/control-api';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { materialiseMigrationPackage } from '@internal/migration-tools/io';
+import { emitContractSpaceArtifacts } from '@internal/migration-tools/spaces';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import {

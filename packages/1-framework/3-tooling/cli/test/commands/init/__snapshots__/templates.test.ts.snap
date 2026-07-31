@@ -79,7 +79,7 @@ Node-based Prisma Next projects expect Node.js 24 LTS or newer.
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + psl > configFile is stable 1`] = `
 "import 'dotenv/config';
-import { defineConfig } from '@prisma-next/mongo/config';
+import { defineConfig } from '@internal/mongo/config';
 
 export default defineConfig({
   contract: "./src/prisma/contract.prisma",
@@ -91,7 +91,7 @@ export default defineConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + psl > dbFile is stable 1`] = `
-"import mongo from '@prisma-next/mongo/runtime';
+"import mongo from '@internal/mongo/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -158,7 +158,7 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 \`\`\`typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma-next/mongo/config';
+import { defineConfig } from '@internal/mongo/config';
 
 export default defineConfig({
   contract: './src/prisma/contract.prisma',
@@ -225,7 +225,7 @@ The ORM covers the common cases. For the rest, two escape hatches are designed i
 
 If this project lives inside a pnpm workspace, a few things are worth knowing:
 
-- **Catalogs.** When the workspace's \`pnpm-workspace.yaml\` defines a \`catalogs\` entry for \`prisma-next\` or \`@prisma-next/mongo\`, pnpm uses the catalog version everywhere — \`init\` does too. If you wanted the published \`latest\` instead, update or remove the catalog entry, then re-run \`pnpm install\`.
+- **Catalogs.** When the workspace's \`pnpm-workspace.yaml\` defines a \`catalogs\` entry for \`prisma-next\` or \`@internal/mongo\`, pnpm uses the catalog version everywhere — \`init\` does too. If you wanted the published \`latest\` instead, update or remove the catalog entry, then re-run \`pnpm install\`.
 - **\`pnpm dlx\`.** \`pnpm dlx prisma-next@latest init …\` works in any directory. Inside a workspace, pnpm still resolves dependencies through the workspace's catalog/overrides rather than the registry; expect the installed Prisma Next packages to reflect the workspace's catalog rather than \`latest\`.
 - **\`pnpm\` → \`npm\` fallback.** If \`pnpm\` ever fails to install Prisma Next with a \`workspace:*\` or \`catalog:\` resolution error (a leak in a published artefact), \`init\` falls back to \`npm install\` and surfaces a warning. Once the offending package republishes a clean version you can switch back with \`pnpm install\`.
 "
@@ -256,7 +256,7 @@ model Post {
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + typescript > configFile is stable 1`] = `
 "import 'dotenv/config';
-import { defineConfig } from '@prisma-next/mongo/config';
+import { defineConfig } from '@internal/mongo/config';
 
 export default defineConfig({
   contract: "./src/prisma/contract.ts",
@@ -268,7 +268,7 @@ export default defineConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + typescript > dbFile is stable 1`] = `
-"import mongo from '@prisma-next/mongo/runtime';
+"import mongo from '@internal/mongo/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -296,7 +296,7 @@ This project is set up for MongoDB. Prisma Next also supports other databases.
 Your data contract is the heart of your application. It lives at [\`src/prisma/contract.ts\`](src/prisma/contract.ts) and describes your models:
 
 \`\`\`typescript
-import { defineContract } from '@prisma-next/mongo/contract-builder';
+import { defineContract } from '@internal/mongo/contract-builder';
 
 export const contract = defineContract(
   {},
@@ -346,7 +346,7 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 \`\`\`typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma-next/mongo/config';
+import { defineConfig } from '@internal/mongo/config';
 
 export default defineConfig({
   contract: './src/prisma/contract.ts',
@@ -413,14 +413,14 @@ The ORM covers the common cases. For the rest, two escape hatches are designed i
 
 If this project lives inside a pnpm workspace, a few things are worth knowing:
 
-- **Catalogs.** When the workspace's \`pnpm-workspace.yaml\` defines a \`catalogs\` entry for \`prisma-next\` or \`@prisma-next/mongo\`, pnpm uses the catalog version everywhere — \`init\` does too. If you wanted the published \`latest\` instead, update or remove the catalog entry, then re-run \`pnpm install\`.
+- **Catalogs.** When the workspace's \`pnpm-workspace.yaml\` defines a \`catalogs\` entry for \`prisma-next\` or \`@internal/mongo\`, pnpm uses the catalog version everywhere — \`init\` does too. If you wanted the published \`latest\` instead, update or remove the catalog entry, then re-run \`pnpm install\`.
 - **\`pnpm dlx\`.** \`pnpm dlx prisma-next@latest init …\` works in any directory. Inside a workspace, pnpm still resolves dependencies through the workspace's catalog/overrides rather than the registry; expect the installed Prisma Next packages to reflect the workspace's catalog rather than \`latest\`.
 - **\`pnpm\` → \`npm\` fallback.** If \`pnpm\` ever fails to install Prisma Next with a \`workspace:*\` or \`catalog:\` resolution error (a leak in a published artefact), \`init\` falls back to \`npm install\` and surfaces a warning. Once the offending package republishes a clean version you can switch back with \`pnpm install\`.
 "
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > mongo + typescript > starterSchema is stable 1`] = `
-"import { defineContract } from '@prisma-next/mongo/contract-builder';
+"import { defineContract } from '@internal/mongo/contract-builder';
 
 export const contract = defineContract(
   {},
@@ -459,7 +459,7 @@ export const contract = defineContract(
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + psl > configFile is stable 1`] = `
 "import 'dotenv/config';
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@internal/postgres/config';
 
 export default defineConfig({
   contract: "./src/prisma/contract.prisma",
@@ -471,7 +471,7 @@ export default defineConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + psl > dbFile is stable 1`] = `
-"import postgres from '@prisma-next/postgres/runtime';
+"import postgres from '@internal/postgres/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -535,7 +535,7 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 \`\`\`typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@internal/postgres/config';
 
 export default defineConfig({
   contract: './src/prisma/contract.prisma',
@@ -583,7 +583,7 @@ pnpm prisma-next migration status    # Show migration status
 
 If this project lives inside a pnpm workspace, a few things are worth knowing:
 
-- **Catalogs.** When the workspace's \`pnpm-workspace.yaml\` defines a \`catalogs\` entry for \`prisma-next\` or \`@prisma-next/postgres\`, pnpm uses the catalog version everywhere — \`init\` does too. If you wanted the published \`latest\` instead, update or remove the catalog entry, then re-run \`pnpm install\`.
+- **Catalogs.** When the workspace's \`pnpm-workspace.yaml\` defines a \`catalogs\` entry for \`prisma-next\` or \`@internal/postgres\`, pnpm uses the catalog version everywhere — \`init\` does too. If you wanted the published \`latest\` instead, update or remove the catalog entry, then re-run \`pnpm install\`.
 - **\`pnpm dlx\`.** \`pnpm dlx prisma-next@latest init …\` works in any directory. Inside a workspace, pnpm still resolves dependencies through the workspace's catalog/overrides rather than the registry; expect the installed Prisma Next packages to reflect the workspace's catalog rather than \`latest\`.
 - **\`pnpm\` → \`npm\` fallback.** If \`pnpm\` ever fails to install Prisma Next with a \`workspace:*\` or \`catalog:\` resolution error (a leak in a published artefact), \`init\` falls back to \`npm install\` and surfaces a warning. Once the offending package republishes a clean version you can switch back with \`pnpm install\`.
 "
@@ -616,7 +616,7 @@ model Post {
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + typescript > configFile is stable 1`] = `
 "import 'dotenv/config';
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@internal/postgres/config';
 
 export default defineConfig({
   contract: "./src/prisma/contract.ts",
@@ -628,7 +628,7 @@ export default defineConfig({
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + typescript > dbFile is stable 1`] = `
-"import postgres from '@prisma-next/postgres/runtime';
+"import postgres from '@internal/postgres/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -656,7 +656,7 @@ This project is set up for PostgreSQL. Prisma Next also supports other databases
 Your data contract is the heart of your application. It lives at [\`src/prisma/contract.ts\`](src/prisma/contract.ts) and describes your models:
 
 \`\`\`typescript
-import { defineContract } from '@prisma-next/postgres/contract-builder';
+import { defineContract } from '@internal/postgres/contract-builder';
 
 export const contract = defineContract(
   {},
@@ -703,7 +703,7 @@ If you use a framework like Next.js or Vite, the Prisma Next plugin will do this
 
 \`\`\`typescript
 import 'dotenv/config';
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@internal/postgres/config';
 
 export default defineConfig({
   contract: './src/prisma/contract.ts',
@@ -751,14 +751,14 @@ pnpm prisma-next migration status    # Show migration status
 
 If this project lives inside a pnpm workspace, a few things are worth knowing:
 
-- **Catalogs.** When the workspace's \`pnpm-workspace.yaml\` defines a \`catalogs\` entry for \`prisma-next\` or \`@prisma-next/postgres\`, pnpm uses the catalog version everywhere — \`init\` does too. If you wanted the published \`latest\` instead, update or remove the catalog entry, then re-run \`pnpm install\`.
+- **Catalogs.** When the workspace's \`pnpm-workspace.yaml\` defines a \`catalogs\` entry for \`prisma-next\` or \`@internal/postgres\`, pnpm uses the catalog version everywhere — \`init\` does too. If you wanted the published \`latest\` instead, update or remove the catalog entry, then re-run \`pnpm install\`.
 - **\`pnpm dlx\`.** \`pnpm dlx prisma-next@latest init …\` works in any directory. Inside a workspace, pnpm still resolves dependencies through the workspace's catalog/overrides rather than the registry; expect the installed Prisma Next packages to reflect the workspace's catalog rather than \`latest\`.
 - **\`pnpm\` → \`npm\` fallback.** If \`pnpm\` ever fails to install Prisma Next with a \`workspace:*\` or \`catalog:\` resolution error (a leak in a published artefact), \`init\` falls back to \`npm install\` and surfaces a warning. Once the offending package republishes a clean version you can switch back with \`pnpm install\`.
 "
 `;
 
 exports[`templates > per-cell snapshots (FR5.4) > postgres + typescript > starterSchema is stable 1`] = `
-"import { defineContract } from '@prisma-next/postgres/contract-builder';
+"import { defineContract } from '@internal/postgres/contract-builder';
 
 export const contract = defineContract(
   {},

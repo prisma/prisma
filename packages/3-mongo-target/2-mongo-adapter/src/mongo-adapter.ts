@@ -1,18 +1,18 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
-import type { MongoCodecRegistry } from '@prisma-next/mongo-codec';
-import type { MongoAdapter, MongoDdlPlan, MongoLoweredDraft } from '@prisma-next/mongo-lowering';
-import type { AnyMongoDdlCommand } from '@prisma-next/mongo-query-ast/control';
-import { keysToKeySpec } from '@prisma-next/mongo-query-ast/control';
+import type { CodecCallContext } from '@internal/framework-components/codec';
+import type { MongoCodecRegistry } from '@internal/mongo-codec';
+import type { MongoAdapter, MongoDdlPlan, MongoLoweredDraft } from '@internal/mongo-lowering';
+import type { AnyMongoDdlCommand } from '@internal/mongo-query-ast/control';
+import { keysToKeySpec } from '@internal/mongo-query-ast/control';
 import type {
   MongoQueryPlan,
   MongoUpdatePipelineStage,
   MongoUpdateSpec,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import type {
   AnyMongoDdlWireCommand,
   AnyMongoDmlWireCommand,
   AnyMongoWireCommand,
-} from '@prisma-next/mongo-wire';
+} from '@internal/mongo-wire';
 import {
   AggregateWireCommand,
   CollModWireCommand,
@@ -28,9 +28,9 @@ import {
   InsertOneWireCommand,
   UpdateManyWireCommand,
   UpdateOneWireCommand,
-} from '@prisma-next/mongo-wire';
-import { blindCast } from '@prisma-next/utils/casts';
-import { assertNever } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-wire';
+import { blindCast } from '@internal/utils/casts';
+import { assertNever } from '@internal/utils/internal-error';
 import { buildStandardCodecRegistry } from './core/codecs';
 import { structuralLowerFilter, structuralLowerPipeline } from './lowering';
 import { resolveDraftDoc } from './resolve-value';

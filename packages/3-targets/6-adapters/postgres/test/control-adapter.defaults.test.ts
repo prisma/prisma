@@ -1,5 +1,5 @@
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
-import { parsePostgresDefault } from '@prisma-next/target-postgres/default-normalizer';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
+import { parsePostgresDefault } from '@internal/target-postgres/default-normalizer';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';

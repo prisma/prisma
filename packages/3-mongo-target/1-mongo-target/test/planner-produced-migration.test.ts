@@ -1,5 +1,5 @@
-import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
-import type { MongoMigrationPlanOperation } from '@prisma-next/mongo-query-ast/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import type { MongoMigrationPlanOperation } from '@internal/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import { CreateIndexCall, DropIndexCall } from '../src/core/op-factory-call';
 import { PlannerProducedMongoMigration } from '../src/core/planner-produced-migration';
@@ -79,7 +79,7 @@ describe('PlannerProducedMongoMigration', () => {
     expect(source).not.toContain(`'${META.from}'`);
     expect(source).not.toContain(`'${META.to}'`);
     expect(source).toContain(
-      "import { Migration, MigrationCLI, createIndex } from '@prisma-next/target-mongo/migration';",
+      "import { Migration, MigrationCLI, createIndex } from '@internal/target-mongo/migration';",
     );
     expect(source).toContain('MigrationCLI.run(import.meta.url, M);');
   });

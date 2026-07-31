@@ -127,7 +127,7 @@ The skill is intentionally a "pit of success", not a gate — there is no enforc
 
 Use the [bug report issue template](./.github/ISSUE_TEMPLATE/bug_report.yml). Please include:
 
-- The published `@prisma-next/*` package and version (or the umbrella `prisma-next` version).
+- The published `@internal/*` package and version (or the umbrella `prisma-next` version).
 - A minimal reproduction (the smaller the better — we cannot triage "my whole app is broken" reports without isolation).
 - Expected vs actual behaviour.
 - Whether you are on the latest minor; if not, please upgrade and re-verify before filing.

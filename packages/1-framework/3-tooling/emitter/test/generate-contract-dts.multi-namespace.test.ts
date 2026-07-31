@@ -1,4 +1,4 @@
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { generateContractDts } from '../src/generate-contract-dts';
 import { createMockSpi } from './mock-spi';

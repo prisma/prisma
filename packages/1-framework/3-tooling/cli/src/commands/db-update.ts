@@ -1,13 +1,13 @@
 import {
   contractSnapshotDir,
   readContractSnapshotJson,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { parseContractRef } from '@prisma-next/migration-tools/ref-resolution';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { assertNever } from '@prisma-next/utils/internal-error';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/migration-tools/contract-snapshot-store';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { parseContractRef } from '@internal/migration-tools/ref-resolution';
+import { ifDefined } from '@internal/utils/defined';
+import { assertNever } from '@internal/utils/internal-error';
+import { notOk, ok, type Result } from '@internal/utils/result';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { Command } from 'commander';
 import { join } from 'pathe';
 import type { DbUpdateFailure } from '../control-api/types';

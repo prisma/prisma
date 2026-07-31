@@ -1,6 +1,6 @@
 import { copyFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createContractEmitCommand } from '@prisma-next/cli/commands/contract-emit';
+import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

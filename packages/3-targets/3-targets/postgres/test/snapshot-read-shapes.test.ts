@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
+import { SqlStorage } from '@internal/sql-contract/types';
 import { join, relative, resolve } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';

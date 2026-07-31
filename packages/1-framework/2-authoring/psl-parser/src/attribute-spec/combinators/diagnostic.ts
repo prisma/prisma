@@ -1,4 +1,4 @@
-import type { PslDiagnostic, PslDiagnosticCode } from '@prisma-next/framework-components/psl-ast';
+import type { PslDiagnostic, PslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import { nodePslSpan } from '../../resolve';
 import type { AstNode } from '../../syntax/ast-helpers';
 import type { InterpretCtx } from '../types';

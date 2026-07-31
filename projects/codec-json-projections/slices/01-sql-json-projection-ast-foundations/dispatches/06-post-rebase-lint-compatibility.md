@@ -13,7 +13,7 @@ Fix the branch-local `lint/correctness/noUnsafeOptionalChaining` diagnostic in t
 ## Completed when
 
 - [ ] The assertion no longer uses optional chaining in a position that can throw on the subsequent `.left` access, while retaining equivalent type/nesting evidence.
-- [ ] The focused where-binding test, `pnpm --filter @prisma-next/sql-orm-client lint`, and `pnpm --filter @prisma-next/sql-orm-client typecheck` pass.
+- [ ] The focused where-binding test, `pnpm --filter @internal/sql-orm-client lint`, and `pnpm --filter @internal/sql-orm-client typecheck` pass.
 - [ ] Only the one test file is explicitly staged and committed with sign-off; do not amend or push.
 
 ## Standing instruction

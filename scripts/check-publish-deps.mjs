@@ -12,14 +12,14 @@
 //      the leak before the broken tarball reaches the registry. Covers
 //      every dep field.
 //
-//   2. `@prisma-next/*` exact-pin check. Every `@prisma-next/*` entry in
+//   2. `@internal/*` exact-pin check. Every `@internal/*` entry in
 //      `dependencies`, `peerDependencies`, and `optionalDependencies`
 //      (the three fields that ship to consumers; `devDependencies` is
 //      skipped) must be a single exact version `X.Y.Z` (with an optional
 //      semver pre-release suffix). Carets, tildes, ranges, and wildcards
 //      all fail. Combined with the `workspace:<X.Y.Z>` literal-version
 //      form in the source manifests, this is the mechanism that gives
-//      every published `@prisma-next/*` package an exact pin on its
+//      every published `@internal/*` package an exact pin on its
 //      siblings, which is what `prisma-next-check-pins` exploits on the
 //      consumer side.
 //
@@ -43,7 +43,7 @@ const DEP_FIELDS = /** @type {const} */ ([
   'optionalDependencies',
 ]);
 
-// `@prisma-next/*` exact-pin check looks only at the three fields that
+// `@internal/*` exact-pin check looks only at the three fields that
 // ship to consumers. devDependencies aren't installed by consumers so
 // imprecise specs there don't affect the type-identity invariant the
 // pin check enforces.
@@ -104,7 +104,7 @@ export function isExactPnVersion(spec) {
 /**
  * Walks `dependencies`, `peerDependencies`, and `optionalDependencies`
  * on a package.json-shaped object and returns the list of
- * `(field, name, spec)` triples where the `@prisma-next/*` entry is
+ * `(field, name, spec)` triples where the `@internal/*` entry is
  * not pinned to an exact version. Specs already flagged by
  * {@link isLeak} are skipped — those are reported by the leak rule
  * to avoid double-attribution noise. Pure / side-effect-free.
@@ -118,7 +118,7 @@ export function findPnPinViolations(pkgJson) {
     const deps = pkgJson[field];
     if (!deps || typeof deps !== 'object') continue;
     for (const [name, spec] of Object.entries(deps)) {
-      if (!name.startsWith('@prisma-next/')) continue;
+      if (!name.startsWith('@internal/')) continue;
       if (typeof spec !== 'string') continue;
       if (isLeak(spec)) continue; // reported by the leak rule
       if (!isExactPnVersion(spec)) {
@@ -177,7 +177,7 @@ export function packAll(destDir) {
 function tarballNameFor(pkgName, version) {
   // Mirrors pnpm pack's default naming: `<name>-<version>.tgz` with the
   // package's `/` rewritten to `-` and the leading scope `@` dropped.
-  // (e.g. `@prisma-next/foo@1.2.3` → `prisma-next-foo-1.2.3.tgz`).
+  // (e.g. `@internal/foo@1.2.3` → `prisma-next-foo-1.2.3.tgz`).
   return `${pkgName.replace(/^@/, '').replace(/\//g, '-')}-${version}.tgz`;
 }
 
@@ -265,7 +265,7 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
       stdoutWrite(`${JSON.stringify({ ok: offenders.length === 0, offenders }, null, 2)}\n`);
     } else if (offenders.length === 0) {
       stderrWrite(
-        `\nOK — no workspace:/catalog: leaks and no @prisma-next/* pin violations in ${dirs.length} publishable packages.\n`,
+        `\nOK — no workspace:/catalog: leaks and no @internal/* pin violations in ${dirs.length} publishable packages.\n`,
       );
     } else {
       stderrWrite(
@@ -284,10 +284,10 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
         '\n  [leak] specs are pnpm-internal (workspace:/catalog:) and break consumer installs.\n' +
           '         Publish via `pnpm publish` (which rewrites them) rather than `npm publish`,\n' +
           '         or convert the dependency to a real version range.\n' +
-          '  [pin]  every @prisma-next/* entry in dependencies/peer/optional must be a single\n' +
+          '  [pin]  every @internal/* entry in dependencies/peer/optional must be a single\n' +
           '         exact version `X.Y.Z` (a pre-release suffix is permitted). Carets, tildes,\n' +
           '         ranges, and wildcards are rejected so consumer installs see the exact\n' +
-          '         @prisma-next/* graph this release validated against.\n',
+          '         @internal/* graph this release validated against.\n',
       );
     }
 

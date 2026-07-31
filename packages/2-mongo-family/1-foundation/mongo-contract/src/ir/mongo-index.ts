@@ -1,5 +1,5 @@
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
-import type { CollationOptions } from '@prisma-next/mongo-value/mongodb-types';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
+import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type { MongoIndexKey } from '../contract-types';
 
 /**

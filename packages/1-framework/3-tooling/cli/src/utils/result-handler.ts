@@ -1,4 +1,4 @@
-import type { Result } from '@prisma-next/utils/result';
+import type { Result } from '@internal/utils/result';
 import type { CliStructuredError } from './cli-errors';
 import { formatErrorJson, formatErrorOutput } from './formatters/errors';
 import type { GlobalFlags } from './global-flags';

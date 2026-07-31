@@ -1,5 +1,5 @@
-import type { DiffableNode } from '@prisma-next/framework-components/control';
-import { freezeNode } from '@prisma-next/framework-components/ir';
+import type { DiffableNode } from '@internal/framework-components/control';
+import { freezeNode } from '@internal/framework-components/ir';
 import { PrimaryKey, type PrimaryKeyInput } from './primary-key';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
 import { SqlCheckConstraintIR, type SqlCheckConstraintIRInput } from './sql-check-constraint-ir';

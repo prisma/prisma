@@ -1,4 +1,4 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
+import type { CodecCallContext } from '@internal/framework-components/codec';
 import { expectTypeOf, test } from 'vitest';
 import type { Codec, SqlCodecCallContext, SqlColumnRef } from '../../src/ast/codec-types';
 import { defineTestCodec } from './test-codec';

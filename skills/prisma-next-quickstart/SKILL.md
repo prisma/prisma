@@ -40,16 +40,16 @@ This skill does **not** cover migrating from another ORM (Drizzle, Prisma 6/7, S
 ## When Not to Use
 
 - User already has a PN project and wants to add a model → `prisma-next-contract`.
-- User wants to migrate FROM a specific ORM → install `@prisma-next/migrate-from-<orm>-skill` (separate).
+- User wants to migrate FROM a specific ORM → install `@internal/migrate-from-<orm>-skill` (separate).
 - User wants to wire `db.ts` in a project that already has a contract → `prisma-next-runtime`.
 - User wants to integrate Prisma Next with a build tool (Vite plugin, Next.js, …) → `prisma-next-build`.
 
 ## Key Concepts
 
 - **Contract**: the data model. Authored as `contract.prisma` (PSL, the canonical surface) or `contract.ts` (TypeScript builder). The framework reads it and emits two artefacts: `contract.json` (runtime IR) and `contract.d.ts` (types).
-- **Target**: the backing store. Today: `postgres` or `mongodb`. Picked at `init` time; baked into the `@prisma-next/<target>` façade the scaffold imports from.
+- **Target**: the backing store. Today: `postgres` or `mongodb`. Picked at `init` time; baked into the `@internal/<target>` façade the scaffold imports from.
 - **Authoring mode**: how you write the contract. `psl` (Prisma Schema Language, default) or `typescript` (programmatic builder, optionally paired with the Vite plugin for auto-emit during `vite dev` — see `prisma-next-build`).
-- **Façade packages.** The scaffold installs exactly one façade per target — `@prisma-next/postgres` (or `@prisma-next/mongo`). User code imports from façade subpaths (`@prisma-next/postgres/config`, `@prisma-next/postgres/runtime`, `@prisma-next/postgres/contract-builder`). The façade bakes in the family / target / adapter / driver wiring; never reach past it. See `prisma-next-contract` for the full list.
+- **Façade packages.** The scaffold installs exactly one façade per target — `@internal/postgres` (or `@internal/mongo`). User code imports from façade subpaths (`@internal/postgres/config`, `@internal/postgres/runtime`, `@internal/postgres/contract-builder`). The façade bakes in the family / target / adapter / driver wiring; never reach past it. See `prisma-next-contract` for the full list.
 - **`db.ts`**: the runtime entry point. Lives next to the contract source at `src/prisma/db.ts`. Imports the contract artefacts and exports a `db` value the rest of the app uses.
 - **Marker**: a `pn_meta_marker` row in your database that records the contract hash. Lets PN detect drift between contract and live DB. Created by `db init` (greenfield / first-touch orientation) or `db sign` (brownfield).
 
@@ -113,7 +113,7 @@ If that prints `[{ id: 1, email: 'alice@example.com' }]`, the project is wired e
 
 `db.orm.<Model>` is the default ORM lane — model-shaped, fully typed against the contract, lazily connects to the database on first use (it picks up `DATABASE_URL` from `.env` via the runtime's `dotenv/config`-loaded environment). The deeper `prisma-next-queries` skill covers the rest of the surface (filters, joins, transactions, the SQL builder, raw SQL, TypedSQL) when the user is ready.
 
-> **Mongo target:** the snippet above is SQL-target shape. On `@prisma-next/mongo`, `db.orm` is keyed by the collection's storage name (`@@map(...)`, or the lowercased model name if no `@@map`), so the same arc reads `await db.orm.users.create(...)` / `await db.orm.users.select('id', 'email').all()` — not `db.orm.User`. Full rule and rewrite recipe in `prisma-next-queries` § *MongoDB ORM addressing*.
+> **Mongo target:** the snippet above is SQL-target shape. On `@internal/mongo`, `db.orm` is keyed by the collection's storage name (`@@map(...)`, or the lowercased model name if no `@@map`), so the same arc reads `await db.orm.users.create(...)` / `await db.orm.users.select('id', 'email').all()` — not `db.orm.User`. Full rule and rewrite recipe in `prisma-next-queries` § *MongoDB ORM addressing*.
 
 **Prerequisites for the arc to work.** All three paths leave these in place by the time you reach the arc:
 
@@ -314,7 +314,7 @@ Switch authoring later by re-running `prisma-next init` in the same directory. T
 
 ## What Prisma Next doesn't do yet
 
-- **Migration from another ORM.** Prisma Next doesn't migrate your schema *from* Drizzle / Prisma 6/7 / Sequelize / TypeORM / Kysely / Knex / a raw driver. Workaround: install the matching `@prisma-next/migrate-from-<orm>-skill` if one exists for your source, or treat the source as a brownfield database and `contract infer` from it. If you need a guided migration flow built-in, file a feature request via the `prisma-next-feedback` skill.
+- **Migration from another ORM.** Prisma Next doesn't migrate your schema *from* Drizzle / Prisma 6/7 / Sequelize / TypeORM / Kysely / Knex / a raw driver. Workaround: install the matching `@internal/migrate-from-<orm>-skill` if one exists for your source, or treat the source as a brownfield database and `contract infer` from it. If you need a guided migration flow built-in, file a feature request via the `prisma-next-feedback` skill.
 - **`prisma db push`-style production sync.** `db update` is the quick development path; for production, use migrations (`migration plan` + `migrate`). PN deliberately does not offer a "push-to-prod-without-a-migration" surface — see `prisma-next-migrations`.
 - **Studio / GUI database browser.** Use `prisma-next db schema` for a CLI tree-style summary of the live DB. If you need an interactive UI, file a feature request via the `prisma-next-feedback` skill.
 

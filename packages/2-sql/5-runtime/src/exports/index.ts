@@ -1,8 +1,8 @@
 export type {
   AfterExecuteResult,
   RuntimeLog as Log,
-} from '@prisma-next/framework-components/runtime';
-export type { MarkerReadResult } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/runtime';
+export type { MarkerReadResult } from '@internal/sql-relational-core/ast';
 export { createAstCodecRegistry } from '../codecs/ast-codec-registry';
 export { deriveParamMetadata, encodeParamsWithMetadata } from '../codecs/encoding';
 export {

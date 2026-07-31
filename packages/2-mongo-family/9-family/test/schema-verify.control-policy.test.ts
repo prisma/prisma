@@ -1,12 +1,8 @@
-import { type ControlPolicy, effectiveControlPolicy } from '@prisma-next/contract/types';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { MongoCollection, type MongoContract } from '@prisma-next/mongo-contract';
-import {
-  MongoSchemaCollection,
-  MongoSchemaIndex,
-  MongoSchemaIR,
-} from '@prisma-next/mongo-schema-ir';
+import { type ControlPolicy, effectiveControlPolicy } from '@internal/contract/types';
+import { issueOutcome } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { MongoCollection, type MongoContract } from '@internal/mongo-contract';
+import { MongoSchemaCollection, MongoSchemaIndex, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
 import { contractToMongoSchemaIR } from '../src/core/contract-to-schema';
 import { diffMongoSchemas } from '../src/core/schema-diff';

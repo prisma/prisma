@@ -4,12 +4,12 @@ import type {
   PslDocumentAst,
   PslExtensionBlock,
   PslSpan,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
   UNSPECIFIED_PSL_NAMESPACE_ID,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -99,7 +99,7 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfigMock,
 }));
 

@@ -1,8 +1,8 @@
 import type {
   ControlMutationDefaultEntry,
   TypedDefaultFunctionCall,
-} from '@prisma-next/framework-components/control';
-import type { PslSpan } from '@prisma-next/psl-parser';
+} from '@internal/framework-components/control';
+import type { PslSpan } from '@internal/psl-parser';
 import { describe, expect, it } from 'vitest';
 import { lowerDefaultFunctionWithRegistry } from '../src/default-function-registry';
 import { createBuiltinLikeControlMutationDefaults } from './fixtures';

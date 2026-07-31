@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/contract-authoring",
+  "name": "@internal/contract-authoring",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -16,8 +16,8 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0"
+    "@internal/framework-components": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:0.16.0",

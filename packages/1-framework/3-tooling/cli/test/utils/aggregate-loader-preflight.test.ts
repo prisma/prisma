@@ -13,8 +13,8 @@
  * exercises the real catch branch without mocking a shared module (which is
  * unreliable under this package's `isolate: false` vitest config).
  */
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { errorInvalidJson } from '@prisma-next/migration-tools/errors';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import { errorInvalidJson } from '@internal/migration-tools/errors';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildReadAggregate } from '../../src/utils/contract-space-aggregate-loader';
 

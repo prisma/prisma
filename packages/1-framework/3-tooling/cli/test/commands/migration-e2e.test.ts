@@ -1,17 +1,17 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
 import {
   formatMigrationDirName,
   readMigrationPackage,
   readMigrationsDir,
   writeMigrationPackage,
-} from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { findLeaf, reconstructGraph } from '@prisma-next/migration-tools/migration-graph';
+} from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { findLeaf, reconstructGraph } from '@internal/migration-tools/migration-graph';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
@@ -32,7 +32,7 @@ function attestedMetadata(
  * offending file post-hoc — see the equivalent helper in
  * `migration-tools/test/fixtures.ts` for the canonical pattern. (The CLI
  * copy mirrors the migration-tools fixture; consolidation into a published
- * `@prisma-next/migration-tools/testing` subpath is queued as a follow-up.)
+ * `@internal/migration-tools/testing` subpath is queued as a follow-up.)
  */
 async function writeTestPackage(
   dir: string,

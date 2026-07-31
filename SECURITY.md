@@ -10,7 +10,7 @@ If you cannot use GitHub's form for any reason, you may instead email `security@
 
 When reporting, please include:
 
-- The affected `@prisma-next/*` package and version (or `prisma-next`).
+- The affected `@internal/*` package and version (or `prisma-next`).
 - A reproduction or proof-of-concept, where possible.
 - Your assessment of severity and impact.
 - Any disclosure timeline you are working under.
@@ -28,7 +28,7 @@ We are still establishing public response-time and patch-time SLOs; the 5-busine
 In scope — we accept reports against any of the following published packages:
 
 - The umbrella package `prisma-next`.
-- All `@prisma-next/*` packages published to npm — including the `target-*`, `adapter-*`, `driver-*`, `extension-*`, `mongo-*`, and `sql-*` families, plus the framework / authoring / tooling packages. The canonical list is whichever `@prisma-next/*` packages appear on npm under that scope at any given time.
+- All `@internal/*` packages published to npm — including the `target-*`, `adapter-*`, `driver-*`, `extension-*`, `mongo-*`, and `sql-*` families, plus the framework / authoring / tooling packages. The canonical list is whichever `@internal/*` packages appear on npm under that scope at any given time.
 
 Out of scope (please do not file vulnerability reports for these):
 
@@ -46,7 +46,7 @@ Prisma Next is **pre-1.0**. While we are pre-1.0:
 
 When Prisma Next reaches 1.0 this section will be revised; the supported-versions story will be more conservative.
 
-For the supply-chain practices that protect published `@prisma-next/*` packages — license declarations, npm provenance attestations, the Dependabot cooldown window, and the `NOTICE`-propagation audit — see [`docs/oss/supply-chain.md`](./docs/oss/supply-chain.md).
+For the supply-chain practices that protect published `@internal/*` packages — license declarations, npm provenance attestations, the Dependabot cooldown window, and the `NOTICE`-propagation audit — see [`docs/oss/supply-chain.md`](./docs/oss/supply-chain.md).
 
 ## What this document does *not* commit to
 

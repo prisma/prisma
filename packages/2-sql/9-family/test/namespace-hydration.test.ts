@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { isStorageValueSet, type SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { isStorageValueSet, type SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer } from './test-sql-contract-serializer';

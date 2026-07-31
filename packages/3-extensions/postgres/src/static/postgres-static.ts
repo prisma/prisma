@@ -1,15 +1,15 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import { buildNamespacedEnums, type NamespacedEnums } from '@prisma-next/contract/enum-accessor';
-import type { Contract } from '@prisma-next/contract/types';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { RawCodecInferer, RawSqlTag } from '@prisma-next/sql-relational-core/expression';
-import { createRawSql } from '@prisma-next/sql-relational-core/expression';
-import type { ExecutionContext, SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { blindCast } from '@prisma-next/utils/casts';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import { buildNamespacedEnums, type NamespacedEnums } from '@internal/contract/enum-accessor';
+import type { Contract } from '@internal/contract/types';
+import { sql } from '@internal/sql-builder/runtime';
+import type { Db } from '@internal/sql-builder/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { RawCodecInferer, RawSqlTag } from '@internal/sql-relational-core/expression';
+import { createRawSql } from '@internal/sql-relational-core/expression';
+import type { ExecutionContext, SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { blindCast } from '@internal/utils/casts';
 import { buildNamespacedNativeEnums, type NamespacedNativeEnums } from '../runtime/native-enums';
 import type { PostgresTargetId } from '../runtime/postgres';
 

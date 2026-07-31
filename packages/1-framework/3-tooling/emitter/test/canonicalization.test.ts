@@ -1,16 +1,16 @@
 import {
   type CanonicalizeContractOptions,
   canonicalizeContract as canonicalizeContractRaw,
-} from '@prisma-next/contract/hashing';
+} from '@internal/contract/hashing';
 import {
   createPreserveEmptyPredicate,
   createStorageSort,
   type NamedArraySortTarget,
   type PathPattern,
-} from '@prisma-next/contract/hashing-utils';
-import type { Contract } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { JsonObject } from '@prisma-next/utils/json';
+} from '@internal/contract/hashing-utils';
+import type { Contract } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { JsonObject } from '@internal/utils/json';
 import { describe, expect, it } from 'vitest';
 import { createTestContract } from './utils';
 

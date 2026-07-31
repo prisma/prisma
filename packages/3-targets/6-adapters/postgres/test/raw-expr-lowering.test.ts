@@ -6,8 +6,8 @@ import {
   RawExpr,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
+} from '@internal/sql-relational-core/ast';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
@@ -46,7 +46,7 @@ const contract = new SqlContractSerializer().deserializeContract({
   domain: applicationDomainOf({ models: {} }),
 }) as PostgresContract;
 
-function selectWithWhere(whereExpr: import('@prisma-next/sql-relational-core/ast').AnyExpression) {
+function selectWithWhere(whereExpr: import('@internal/sql-relational-core/ast').AnyExpression) {
   return SelectAst.from(TableSource.named('user'))
     .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
     .withWhere(whereExpr);

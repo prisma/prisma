@@ -66,10 +66,10 @@
  * `sha256:empty` sentinel to `empty`).
  *
  * The hash algorithm is replicated inline (canonicalisation rules from
- * `@prisma-next/framework-components` `canonicalizeJson` + the
+ * `@internal/framework-components` `canonicalizeJson` + the
  * migration-tools `computeMigrationHash`, which returns bare hex from 0.17)
  * so this script stays self-contained — consumers run it via `pnpm exec tsx`
- * from their project root with no dependency on any `@prisma-next/*` package
+ * from their project root with no dependency on any `@internal/*` package
  * being resolvable from that root.
  *
  * The codemod is idempotent: an already-bare tree carries no `sha256:`
@@ -90,9 +90,9 @@ const dryRun = process.argv.includes('--check');
 const projectRoot = process.cwd();
 
 // --- Inline canonicalisation + hash --------------------------------------
-// Replicated from `@prisma-next/framework-components` `canonicalizeJson`
+// Replicated from `@internal/framework-components` `canonicalizeJson`
 // (sortKeys + JSON.stringify) and the migration-tools `computeMigrationHash`.
-// Kept inline so the script has no `@prisma-next/*` import — pnpm's strict
+// Kept inline so the script has no `@internal/*` import — pnpm's strict
 // node_modules layout won't resolve transitive framework deps from a
 // consumer's project root.
 

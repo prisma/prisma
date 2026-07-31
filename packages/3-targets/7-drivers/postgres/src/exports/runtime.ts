@@ -1,7 +1,7 @@
 import type {
   RuntimeDriverDescriptor,
   RuntimeDriverInstance,
-} from '@prisma-next/framework-components/execution';
+} from '@internal/framework-components/execution';
 import type {
   PreparedExecuteRequest,
   SqlConnection,
@@ -9,7 +9,7 @@ import type {
   SqlExecuteRequest,
   SqlExplainResult,
   SqlQueryResult,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
 import {
   createBoundDriverFromBinding,

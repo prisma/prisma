@@ -1,6 +1,6 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { DdlColumn } from '@prisma-next/sql-relational-core/ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { DdlColumn } from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
 import {
   columnDefaultAst,
   columnExistsAst,

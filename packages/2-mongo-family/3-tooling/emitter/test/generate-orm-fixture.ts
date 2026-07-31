@@ -1,14 +1,14 @@
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { type Contract, coreHash, crossRef, profileHash } from '@prisma-next/contract/types';
-import { generateContractDts } from '@prisma-next/emitter';
-import { blindCast } from '@prisma-next/utils/casts';
+import { type Contract, coreHash, crossRef, profileHash } from '@internal/contract/types';
+import { generateContractDts } from '@internal/emitter';
+import { blindCast } from '@internal/utils/casts';
 import ormContractJson from '../../../1-foundation/mongo-contract/test/fixtures/orm-contract.json';
 import { mongoEmission } from '../src/index';
 
 const codecImports = [
   {
-    package: '@prisma-next/adapter-mongo/codec-types',
+    package: '@internal/adapter-mongo/codec-types',
     named: 'CodecTypes',
     alias: 'MongoCodecTypes',
   },

@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 

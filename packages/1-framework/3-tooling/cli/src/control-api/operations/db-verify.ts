@@ -1,23 +1,23 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlDriverInstance,
   ControlExtensionDescriptor,
   ControlFamilyInstance,
   SchemaDiffIssue,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { hasSchemaSubjectClassifier } from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
+import { hasSchemaSubjectClassifier } from '@internal/framework-components/control';
 import {
   type AggregateContractSpace,
   collectAggregateNamespaces,
   requireHeadRef,
   type VerifierOutput,
   verifyMigration,
-} from '@prisma-next/migration-tools/aggregate';
-import { castAs } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/aggregate';
+import { castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { CliStructuredError } from '../../utils/cli-errors';
 import {
   type BuildAggregateInputs,
@@ -39,7 +39,7 @@ const SPAN_IDS = {
  * Inputs for the aggregate `db verify` operation.
  *
  * Loader → verifier pipeline. The loader (sole descriptor-import
- * boundary) builds a {@link import('@prisma-next/migration-tools/aggregate').ContractSpaceAggregate};
+ * boundary) builds a {@link import('@internal/migration-tools/aggregate').ContractSpaceAggregate};
  * the aggregate verifier bundles `markerCheck` + per-space `schemaCheck`
  * (each contract space verified against the full schema; extras stripped to its own view).
  * `mode: 'strict' | 'lenient'` maps directly to the user facing `--strict` flag.
@@ -88,7 +88,7 @@ export type ExecuteDbVerifyResult = Result<ExecuteDbVerifySuccess, CliStructured
  * Loader → verifier pipeline shared by `db verify` modes (`full`,
  * `marker-only`, `schema-only`).
  *
- * 1. **Load**: build a {@link import('@prisma-next/migration-tools/aggregate').ContractSpaceAggregate}
+ * 1. **Load**: build a {@link import('@internal/migration-tools/aggregate').ContractSpaceAggregate}
  *    from descriptors + on-disk on-disk artefacts. Layout / drift /
  *    integrity / disjointness violations short-circuit with a
  *    structured CLI error.

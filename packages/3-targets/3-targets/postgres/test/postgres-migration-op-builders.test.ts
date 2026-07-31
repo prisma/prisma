@@ -1,14 +1,14 @@
-import type { Contract as FrameworkContract } from '@prisma-next/contract/types';
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
+import type { Contract as FrameworkContract } from '@internal/contract/types';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import type {
   ExecuteRequestLowerer,
   SqlControlAdapter,
-} from '@prisma-next/family-sql/control-adapter';
-import type { ControlStack } from '@prisma-next/framework-components/control';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { DdlColumn, DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
-import { col } from '@prisma-next/sql-relational-core/contract-free';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/family-sql/control-adapter';
+import type { ControlStack } from '@internal/framework-components/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
+import { col } from '@internal/sql-relational-core/contract-free';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import type { AlterColumnTypeOptions } from '../src/core/migrations/op-factory-call';
 import type { DataTransformOptions } from '../src/core/migrations/operations/data-transform';

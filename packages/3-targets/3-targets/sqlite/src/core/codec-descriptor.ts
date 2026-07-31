@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type AnyCodecDescriptor,
   type Codec,
@@ -8,10 +8,10 @@ import {
   type CodecRef,
   type CodecTrait,
   validateCodecTypeParams,
-} from '@prisma-next/framework-components/codec';
-import type { ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/codec';
+import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
+import { structuredError } from '@internal/utils/structured-error';
 
 const SQLITE_CODEC_DESCRIPTOR_KIND = 'sqlite-codec' as const;
 

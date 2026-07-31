@@ -1,17 +1,17 @@
-import { loadConfig } from '@prisma-next/config-loader';
+import { loadConfig } from '@internal/config-loader';
 import type {
   AggregateContractSpace,
   ContractSpaceAggregate,
-} from '@prisma-next/migration-tools/aggregate';
-import type { MigrationGraph } from '@prisma-next/migration-tools/graph';
-import { HEAD_REF_NAME, refsByContractHash } from '@prisma-next/migration-tools/refs';
+} from '@internal/migration-tools/aggregate';
+import type { MigrationGraph } from '@internal/migration-tools/graph';
+import { HEAD_REF_NAME, refsByContractHash } from '@internal/migration-tools/refs';
 import {
   APP_SPACE_ID,
   isValidSpaceId,
   listContractSpaceDirectories,
-} from '@prisma-next/migration-tools/spaces';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/spaces';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import {
   type CliStructuredError,

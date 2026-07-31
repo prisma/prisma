@@ -2,7 +2,7 @@
  * Supabase extension `/contract` branded handles
  *
  * Tests for the branded model handles exported from
- * `@prisma-next/extension-supabase/contract`:
+ * `@internal/extension-supabase/contract`:
  *
  * 1. Brand/coordinate assertions: `AuthUser` carries `spaceId:'supabase'`,
  *    namespace `auth`, table `users`, and `AuthUser.refs.id` carries the
@@ -23,15 +23,15 @@
  * 4. extensionModel factory: a handle built via `extensionModel` carries the
  *    same brand/coordinate as one built by hand.
  */
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import type { TargetFieldRef } from '@prisma-next/sql-contract-ts/contract-builder';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { TargetFieldRef } from '@internal/sql-contract-ts/contract-builder';
 import {
   defineContract,
   extensionModel,
   field,
   model,
   rel,
-} from '@prisma-next/sql-contract-ts/contract-builder';
+} from '@internal/sql-contract-ts/contract-builder';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../2-sql/1-core/contract/test/test-support';
 import contractJson from '../src/contract/contract.json' with { type: 'json' };

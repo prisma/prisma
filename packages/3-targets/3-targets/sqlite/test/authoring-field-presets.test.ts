@@ -1,4 +1,4 @@
-import { temporalAuthoringPresets, temporalCodecPreset } from '@prisma-next/family-sql/control';
+import { temporalAuthoringPresets, temporalCodecPreset } from '@internal/family-sql/control';
 import { describe, expect, it } from 'vitest';
 import { sqliteAuthoringFieldPresets } from '../src/core/authoring';
 

@@ -1,4 +1,4 @@
-import { ok } from '@prisma-next/utils/result';
+import { ok } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
 import type { ArgType, InterpretCtx } from '../src/exports';
 import {

@@ -1,16 +1,16 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { isUniqueConstraintViolation } from '@prisma-next/sql-errors';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { isUniqueConstraintViolation } from '@internal/sql-errors';
 import {
   type AnyExpression,
   BinaryExpr,
   ColumnRef,
   LiteralExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import type { RuntimeScope } from '@prisma-next/sql-relational-core/types';
-import { castAs } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
+import { castAs } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import {
   getColumnToFieldMap,
   resolveFieldToColumn,

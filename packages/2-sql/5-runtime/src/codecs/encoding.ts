@@ -2,7 +2,7 @@ import {
   checkAborted,
   raceAgainstAbort,
   runtimeError,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import {
   type AnyQueryAst,
   type Codec,
@@ -10,9 +10,9 @@ import {
   type ContractCodecRegistry,
   collectOrderedParamRefs,
   type SqlCodecCallContext,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
+import { isStructuredError } from '@internal/utils/structured-error';
 
 export interface ParamMetadata {
   readonly codec: CodecRef | undefined;

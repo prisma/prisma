@@ -1,4 +1,4 @@
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { type CliStructuredError, errorLegendHumanOnly } from './cli-errors';
 import type { GlobalFlags } from './global-flags';
 

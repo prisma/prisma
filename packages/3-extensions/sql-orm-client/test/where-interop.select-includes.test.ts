@@ -13,7 +13,7 @@ import {
   SelectAst,
   SubqueryExpr,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { normalizeWhereArg } from '../src/where-interop';
 

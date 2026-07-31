@@ -1,5 +1,5 @@
-import type { CodecRegistry } from '@prisma-next/framework-components/codec';
-import type { AnySqliteCodecDescriptor } from '@prisma-next/target-sqlite/codec-descriptor';
+import type { CodecRegistry } from '@internal/framework-components/codec';
+import type { AnySqliteCodecDescriptor } from '@internal/target-sqlite/codec-descriptor';
 import { createSqliteAdapter } from '../src/core/adapter';
 import { SqliteControlAdapter } from '../src/core/control-adapter';
 import type { SqliteCodecRegistry } from '../src/core/types';

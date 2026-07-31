@@ -1,4 +1,4 @@
-import { SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+import { SqlTableIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { inferRelations } from '../../src/core/psl-contract-infer/relation-inference';
 

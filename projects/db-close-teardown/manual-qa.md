@@ -28,7 +28,7 @@
 4. That the skill content correctly routes the hang symptom and clearly flags the per-request `await using` anti-pattern.
 5. That Mongo's ownership-rule behaviour change is correct against a real driver, not just a mocked one.
 
-**Script authoring note.** All runnable scripts in this QA script live inside workspace-member package directories (`packages/3-extensions/<pkg>/scratch/`) and are invoked as `pnpm --filter <package> exec tsx scratch/<script>.ts`. This is necessary because pnpm resolves `@prisma-next/*` workspace deps relative to each package's `node_modules/`, and scripts outside the workspace cannot resolve those deps.
+**Script authoring note.** All runnable scripts in this QA script live inside workspace-member package directories (`packages/3-extensions/<pkg>/scratch/`) and are invoked as `pnpm --filter <package> exec tsx scratch/<script>.ts`. This is necessary because pnpm resolves `@internal/*` workspace deps relative to each package's `node_modules/`, and scripts outside the workspace cannot resolve those deps.
 
 ## Table of contents
 
@@ -57,8 +57,8 @@
 2. Confirm the tree is clean: `git status --short` → should show no uncommitted source changes.
 3. `pnpm install` — refresh all `node_modules` symlinks including any devDeps added since last install.
 4. `pnpm build` — rebuild all packages so `dist/` matches source.
-5. `pnpm --filter @prisma-next/postgres --filter @prisma-next/sqlite --filter @prisma-next/mongo typecheck` → all three must pass.
-6. `pnpm --filter @prisma-next/postgres --filter @prisma-next/sqlite --filter @prisma-next/mongo test` → **all 113+ tests must pass** (postgres 64/64, sqlite 7/7, mongo 42/42). If mongo is not 42/42 after a fresh build, do not proceed; report it.
+5. `pnpm --filter @internal/postgres --filter @internal/sqlite --filter @internal/mongo typecheck` → all three must pass.
+6. `pnpm --filter @internal/postgres --filter @internal/sqlite --filter @internal/mongo test` → **all 113+ tests must pass** (postgres 64/64, sqlite 7/7, mongo 42/42). If mongo is not 42/42 after a fresh build, do not proceed; report it.
 
 If any failure occurs in step 6 and you suspect it is pre-existing on `origin/main`, you **must** run the verification protocol before claiming it:
 
@@ -66,7 +66,7 @@ If any failure occurs in step 6 and you suspect it is pre-existing on `origin/ma
 git stash push -u -m "qa-redo-pre-verify"
 git checkout origin/main
 pnpm install && pnpm build
-pnpm --filter @prisma-next/mongo test  # or whichever package failed
+pnpm --filter @internal/mongo test  # or whichever package failed
 # capture output verbatim
 git checkout -
 git stash pop
@@ -88,7 +88,7 @@ Only after running this and confirming `origin/main` reproduces the same failure
 
 **Preconditions:**
 - Pre-flight steps 1–4 complete.
-- `tsx` available: `pnpm --filter @prisma-next/postgres exec tsx --version`.
+- `tsx` available: `pnpm --filter @internal/postgres exec tsx --version`.
 
 ### Steps
 
@@ -161,9 +161,9 @@ cd "$REPO" && git status --short
 REPO="$(git rev-parse --show-toplevel)"
 
 cat > "$REPO/packages/3-extensions/sqlite/scratch/qa-hang-exit.ts" << 'SCRIPT'
-import { createContract } from '@prisma-next/contract/testing';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import sqlite from '@prisma-next/sqlite/runtime';
+import { createContract } from '@internal/contract/testing';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import sqlite from '@internal/sqlite/runtime';
 
 // SQLite requires target: 'sqlite' — createContract<SqlStorage>() defaults to 'postgres'
 const contract = createContract<SqlStorage>({ target: 'sqlite', targetFamily: 'sql' });
@@ -224,9 +224,9 @@ cd "$REPO" && git status --short
 REPO="$(git rev-parse --show-toplevel)"
 
 cat > "$REPO/packages/3-extensions/sqlite/scratch/qa-await-using.ts" << 'SCRIPT'
-import { createContract } from '@prisma-next/contract/testing';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import sqlite from '@prisma-next/sqlite/runtime';
+import { createContract } from '@internal/contract/testing';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import sqlite from '@internal/sqlite/runtime';
 
 // SQLite requires target: 'sqlite' — createContract<SqlStorage>() defaults to 'postgres'
 const contract = createContract<SqlStorage>({ target: 'sqlite', targetFamily: 'sql' });
@@ -290,9 +290,9 @@ cd "$REPO" && git status --short
 REPO="$(git rev-parse --show-toplevel)"
 
 cat > "$REPO/packages/3-extensions/postgres/scratch/qa-post-close-error.ts" << 'SCRIPT'
-import { createContract } from '@prisma-next/contract/testing';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgres from '@prisma-next/postgres/runtime';
+import { createContract } from '@internal/contract/testing';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import postgres from '@internal/postgres/runtime';
 
 const contract = createContract<SqlStorage>();
 const db = postgres({ contract, url: 'postgres://localhost:5999/test' });
@@ -360,9 +360,9 @@ cd "$REPO" && git status --short
 REPO="$(git rev-parse --show-toplevel)"
 
 cat > "$REPO/packages/3-extensions/sqlite/scratch/qa-post-close-error.ts" << 'SCRIPT'
-import { createContract } from '@prisma-next/contract/testing';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import sqlite from '@prisma-next/sqlite/runtime';
+import { createContract } from '@internal/contract/testing';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import sqlite from '@internal/sqlite/runtime';
 
 // SQLite requires target: 'sqlite' — createContract<SqlStorage>() defaults to 'postgres'
 const contract = createContract<SqlStorage>({ target: 'sqlite', targetFamily: 'sql' });
@@ -441,7 +441,7 @@ import { MongoClient as NativeMongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import type { Contract } from '../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
 import contractJson from '../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract.json' with { type: 'json' };
-import mongo from '@prisma-next/mongo/runtime';
+import mongo from '@internal/mongo/runtime';
 
 // Spin up an in-memory MongoDB replica set (same infrastructure as mongo.e2e.test.ts)
 console.log('Spinning up MongoMemoryReplSet...');
@@ -548,7 +548,7 @@ cat > "$REPO/packages/3-extensions/mongo/scratch/qa-post-close-error.ts" << 'SCR
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import type { Contract } from '../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
 import contractJson from '../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract.json' with { type: 'json' };
-import mongo from '@prisma-next/mongo/runtime';
+import mongo from '@internal/mongo/runtime';
 
 const replSet = await MongoMemoryReplSet.create({
   replSet: { count: 1, storageEngine: 'wiredTiger' },

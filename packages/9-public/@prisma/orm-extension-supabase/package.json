@@ -24,7 +24,7 @@
     "pg": "catalog:"
   },
   "devDependencies": {
-    "@prisma-next/extension-supabase": "workspace:0.16.0",
+    "@internal/extension-supabase": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
     "@prisma/orm-target-postgres": "workspace:0.16.0",

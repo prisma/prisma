@@ -1,5 +1,5 @@
-import { newMongoCodecRegistry } from '@prisma-next/mongo-codec';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+import { newMongoCodecRegistry } from '@internal/mongo-codec';
+import { MongoParamRef } from '@internal/mongo-value';
 import { describe, expect, it } from 'vitest';
 import { resolveValue } from '../../../../packages/3-mongo-target/2-mongo-adapter/src/resolve-value';
 import { defineTestCodec } from './test-codec';

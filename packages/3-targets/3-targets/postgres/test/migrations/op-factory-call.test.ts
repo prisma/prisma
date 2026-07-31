@@ -1,5 +1,5 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { col } from '@prisma-next/sql-relational-core/contract-free';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { col } from '@internal/sql-relational-core/contract-free';
 import { describe, expect, it } from 'vitest';
 import {
   columnExistsAst,

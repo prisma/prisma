@@ -9,7 +9,7 @@ changes:
       `field.id.uuidv7String()`. These names now describe the storage encoding
       (char(36) string). Postgres-native uuid storage uses the new
       `field.uuidNative()` / `field.id.uuidv4Native()` / `field.id.uuidv7Native()`
-      presets from `@prisma-next/postgres/contract-builder`.
+      presets from `@internal/postgres/contract-builder`.
     detection:
       glob: "**/*.ts"
       contains:
@@ -40,7 +40,7 @@ changes:
       anyMatch: true
   - id: sql-runtime-base-class-naming
     summary: |
-      `@prisma-next/sql-runtime` now exports `abstract class SqlRuntimeBase` (previously
+      `@internal/sql-runtime` now exports `abstract class SqlRuntimeBase` (previously
       `SqlRuntime`) — the family-layer subclass seam. Target classes are now named with
       `Impl` suffix: `PostgresRuntimeImpl` and `SqliteRuntimeImpl`. The bare names
       `PostgresRuntime` and `SqliteRuntime` are now interfaces — the correct types to
@@ -55,10 +55,10 @@ changes:
       anyMatch: true
   - id: create-runtime-removed
     summary: |
-      `createRuntime` is removed from `@prisma-next/sql-runtime`. Use the target
+      `createRuntime` is removed from `@internal/sql-runtime`. Use the target
       factory (`postgres(...)` / `sqlite(...)`) or construct the target class
-      directly: `new PostgresRuntimeImpl({...})` from `@prisma-next/postgres/runtime`,
-      `new SqliteRuntimeImpl({...})` from `@prisma-next/sqlite/runtime`. App code
+      directly: `new PostgresRuntimeImpl({...})` from `@internal/postgres/runtime`,
+      `new SqliteRuntimeImpl({...})` from `@internal/sqlite/runtime`. App code
       using the facade factories (`postgres(...)`, `sqlite(...)`) is unaffected.
     detection:
       glob: "**/*.{ts,tsx}"
@@ -67,25 +67,25 @@ changes:
   - id: migration-op-factories-to-methods
     summary: |
       The bare migration op factory functions are removed from
-      `@prisma-next/postgres/migration`. Replace each import and call-site with
+      `@internal/postgres/migration`. Replace each import and call-site with
       the corresponding method on `this` inside your `Migration` subclass. The
       option shapes changed from positional arguments to a single options object.
     detection:
       glob: "**/migration.ts"
       contains:
-        - "from '@prisma-next/postgres/migration'"
-        - "from '@prisma-next/target-postgres/migration'"
+        - "from '@internal/postgres/migration'"
+        - "from '@internal/target-postgres/migration'"
       anyMatch: true
     script: migration-op-factories-to-methods.ts
   - id: postgres-contract-serializer
     summary: |
-      `SqlContractSerializer` (from `@prisma-next/family-sql/ir`) can no longer
+      `SqlContractSerializer` (from `@internal/family-sql/ir`) can no longer
       deserialize Postgres contracts. The family serializer has an empty entries
       registry and now rejects the `type` key that every Postgres namespace carries.
       Any migration file or app code that calls
       `new SqlContractSerializer().deserializeContract(postgresContractJson)` must
       switch to `new PostgresContractSerializer()` imported from
-      `@prisma-next/target-postgres/runtime`.
+      `@internal/target-postgres/runtime`.
     detection:
       glob: "**/*.{ts,tsx}"
       contains:
@@ -101,9 +101,9 @@ changes:
       mapping. The transitional `enum2` keyword is retired; rename those blocks to
       `enum` (emitted contract is identical). The TS authoring equivalent is
       `enumType(name, codecRef, ...member(name, value))` from
-      `@prisma-next/postgres/contract-builder` returned under the contract's `enums`
+      `@internal/postgres/contract-builder` returned under the contract's `enums`
       key; the old native `enumType(name, values[])` / `enumColumn` from
-      `@prisma-next/adapter-postgres/column-types` are deleted. Databases that
+      `@internal/adapter-postgres/column-types` are deleted. Databases that
       already carry a native enum type need a one-time converting migration (alter
       column to text USING ::text, add the value-set CHECK, DROP TYPE) — `contract
       infer` refuses native enum types by design and names them in its diagnostic.
@@ -168,7 +168,7 @@ The uuid field preset names now include the storage encoding suffix:
 | `field.id.uuidv4()` | `field.id.uuidv4String()` |
 | `field.id.uuidv7()` | `field.id.uuidv7String()` |
 
-These presets store UUIDs as `char(36)` strings and work across all SQL targets. If you want the Postgres-native `uuid` column type instead, use `field.uuidNative()` / `field.id.uuidv4Native()` / `field.id.uuidv7Native()` from `@prisma-next/postgres/contract-builder`.
+These presets store UUIDs as `char(36)` strings and work across all SQL targets. If you want the Postgres-native `uuid` column type instead, use `field.uuidNative()` / `field.id.uuidv4Native()` / `field.id.uuidv7Native()` from `@internal/postgres/contract-builder`.
 
 The rename is mechanical. Run the colocated script or apply the following find-and-replace in your `contract.ts` (or wherever you use the field builder):
 
@@ -233,40 +233,40 @@ App code using the facade factories (`postgres(...)`, `sqlite(...)`) is unaffect
 
 ```ts
 // Before — referencing the class as a type
-import { PostgresRuntime } from '@prisma-next/postgres/runtime';
+import { PostgresRuntime } from '@internal/postgres/runtime';
 function takesRuntime(r: PostgresRuntime) { ... }
 
 // After — use the interface (same import path)
-import type { PostgresRuntime } from '@prisma-next/postgres/runtime';
+import type { PostgresRuntime } from '@internal/postgres/runtime';
 function takesRuntime(r: PostgresRuntime) { ... }
 
 // Before — subclassing
-import { PostgresRuntime } from '@prisma-next/postgres/runtime';
+import { PostgresRuntime } from '@internal/postgres/runtime';
 class MyRuntime extends PostgresRuntime { ... }
 
 // After — subclass the Impl
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
 class MyRuntime extends PostgresRuntimeImpl { ... }
 ```
 
 ## `create-runtime-removed`
 
-`createRuntime` is removed from `@prisma-next/sql-runtime`. App code using the facade factories (`postgres(...)`, `sqlite(...)`) is unaffected — those still return a `Runtime` as before. Only code that imported and called `createRuntime` directly needs to change.
+`createRuntime` is removed from `@internal/sql-runtime`. App code using the facade factories (`postgres(...)`, `sqlite(...)`) is unaffected — those still return a `Runtime` as before. Only code that imported and called `createRuntime` directly needs to change.
 
 Replace direct `createRuntime` calls with the appropriate target class constructor or factory:
 
 ```ts
 // Before
-import { createRuntime } from '@prisma-next/sql-runtime';
+import { createRuntime } from '@internal/sql-runtime';
 const runtime = createRuntime({ stackInstance, context, driver, ...opts });
 
 // After — use the target factory (recommended for app code)
-import { postgres } from '@prisma-next/postgres';
+import { postgres } from '@internal/postgres';
 const db = postgres({ contract, ...opts });
 // runtime is accessed via db.connect() / db.runtime() etc.
 
 // Or construct the target class directly (for advanced/test use)
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
 const runtime = new PostgresRuntimeImpl({ adapter: stackInstance.adapter, context, driver, ...opts });
 ```
 
@@ -274,7 +274,7 @@ The constructor options are identical to what `createRuntime` accepted, except `
 
 ## `migration-op-factories-to-methods`
 
-The bare op factory functions previously exported from `@prisma-next/postgres/migration` (and the deprecated `@prisma-next/target-postgres/migration` alias) are removed. Each function is now a protected method on the `PostgresMigration` base class — call it as `this.<method>(...)` inside your `Migration` subclass body.
+The bare op factory functions previously exported from `@internal/postgres/migration` (and the deprecated `@internal/target-postgres/migration` alias) are removed. Each function is now a protected method on the `PostgresMigration` base class — call it as `this.<method>(...)` inside your `Migration` subclass body.
 
 The option shapes also changed: positional arguments are replaced by a single options object.
 
@@ -295,7 +295,7 @@ Example:
 
 ```ts
 // Before
-import { addForeignKey, createIndex, dropColumn } from '@prisma-next/postgres/migration';
+import { addForeignKey, createIndex, dropColumn } from '@internal/postgres/migration';
 
 override get operations() {
   return [
@@ -310,7 +310,7 @@ override get operations() {
 }
 
 // After
-import { Migration, MigrationCLI } from '@prisma-next/postgres/migration';
+import { Migration, MigrationCLI } from '@internal/postgres/migration';
 
 override get operations() {
   return [
@@ -337,17 +337,17 @@ pnpm exec tsx node_modules/.skills/prisma-next-upgrade/upgrades/0.13-to-0.14/mig
 
 ## `postgres-contract-serializer`
 
-`SqlContractSerializer` (from `@prisma-next/family-sql/ir`) now rejects Postgres contracts. The family serializer validates entries against a registry of known entity kinds; it only knows the SQL-family built-ins (`table`, `valueSet`) and has no knowledge of the Postgres-specific `type` key (Postgres enum types). Every Postgres namespace carries `"type": {}` in its `entries`, so the family serializer throws a `ContractValidationError` naming `type` as an unregistered kind.
+`SqlContractSerializer` (from `@internal/family-sql/ir`) now rejects Postgres contracts. The family serializer validates entries against a registry of known entity kinds; it only knows the SQL-family built-ins (`table`, `valueSet`) and has no knowledge of the Postgres-specific `type` key (Postgres enum types). Every Postgres namespace carries `"type": {}` in its `entries`, so the family serializer throws a `ContractValidationError` naming `type` as an unregistered kind.
 
 Replace `SqlContractSerializer` with `PostgresContractSerializer` in any migration file or app code that deserializes a Postgres-emitted contract:
 
 ```ts
 // Before
-import { SqlContractSerializer } from '@prisma-next/family-sql/ir';
+import { SqlContractSerializer } from '@internal/family-sql/ir';
 const contract = new SqlContractSerializer().deserializeContract(contractJson) as Contract;
 
 // After
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 const contract = new PostgresContractSerializer().deserializeContract(contractJson) as Contract;
 ```
 
@@ -384,10 +384,10 @@ Rules:
 - Each member maps to its database value with `member = "value"`. Under the native semantics the stored label was the member name, so a faithful conversion sets each value to the member's name (`admin = "admin"`). A member that previously carried `@map("dbvalue")` becomes `member = "dbvalue"` — `@map` on enum members is removed; the member value is the mapping.
 - If your schema uses the transitional `enum2` keyword (added in 0.13), rename `enum2` → `enum`. Nothing else changes — that block shape is exactly what `enum` now means.
 
-If you author contracts in TypeScript instead of PSL: the native `enumType(name, values[])` and `enumColumn(...)` helpers from `@prisma-next/adapter-postgres/column-types` are deleted. Author the domain enum with `enumType` + `member` from your target's contract-builder and return it under the `enums` key:
+If you author contracts in TypeScript instead of PSL: the native `enumType(name, values[])` and `enumColumn(...)` helpers from `@internal/adapter-postgres/column-types` are deleted. Author the domain enum with `enumType` + `member` from your target's contract-builder and return it under the `enums` key:
 
 ```ts
-import { defineContract, enumType, member } from '@prisma-next/postgres/contract-builder';
+import { defineContract, enumType, member } from '@internal/postgres/contract-builder';
 
 const pgText = { codecId: 'pg/text@1', nativeType: 'text' } as const;
 const UserType = enumType('user_type', pgText, member('admin', 'admin'), member('user', 'user'));

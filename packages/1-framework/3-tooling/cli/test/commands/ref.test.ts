@@ -2,16 +2,16 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import {
   contractSnapshotDir,
   writeContractSnapshot,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { writeRef } from '@prisma-next/migration-tools/refs';
+} from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { writeRef } from '@internal/migration-tools/refs';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -20,12 +20,12 @@ const mocks = vi.hoisted(() => ({
   writeRef: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 
-vi.mock('@prisma-next/migration-tools/refs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@prisma-next/migration-tools/refs')>();
+vi.mock('@internal/migration-tools/refs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@internal/migration-tools/refs')>();
   return {
     ...actual,
     writeRef: mocks.writeRef,
@@ -124,8 +124,8 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     mocks.loadConfig.mockReset();
     mocks.writeRef.mockReset();
     const { writeRef: realWriteRef } = await vi.importActual<
-      typeof import('@prisma-next/migration-tools/refs')
-    >('@prisma-next/migration-tools/refs');
+      typeof import('@internal/migration-tools/refs')
+    >('@internal/migration-tools/refs');
     mocks.writeRef.mockImplementation(realWriteRef);
 
     tempDir = join(tmpdir(), `ref-cmd-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);

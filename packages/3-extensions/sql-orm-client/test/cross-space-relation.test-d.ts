@@ -6,8 +6,8 @@
  * 2. A cross-space relation emitted as `never` cannot be used with `include('relName')`
  *    — `include` of it is a compile error (the crux of Option B)
  */
-import type { Contract, NamespaceId } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract, NamespaceId } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { Collection } from '../src/collection';
 import type { RelationNames } from '../src/types';
 import { createMockRuntime } from './helpers';

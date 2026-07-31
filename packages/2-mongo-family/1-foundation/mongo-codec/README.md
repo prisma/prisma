@@ -1,4 +1,4 @@
-# @prisma-next/mongo-codec
+# @internal/mongo-codec
 
 Codec interface and registry for MongoDB value serialization.
 
@@ -58,4 +58,4 @@ See [ADR 204 — Single-Path Async Codec Runtime](../../../../docs/architecture%
 
 - **Depends on**: nothing (leaf package)
 - **Depended on by**:
-  - `@prisma-next/adapter-mongo` (registers concrete codec implementations)
+  - `@internal/adapter-mongo` (registers concrete codec implementations)

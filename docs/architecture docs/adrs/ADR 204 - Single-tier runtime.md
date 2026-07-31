@@ -10,11 +10,11 @@ Accepted.
 
 ## Decision
 
-Every family runtime is a single class that **extends** an abstract `RuntimeCore` base, lives in its family package, and is the only runtime tier. The `RuntimeCore` base class, the `runWithMiddleware` orchestrator helper, and the runtime SPI types (`RuntimeExecutor`, `RuntimeMiddleware`, `RuntimeMiddlewareContext`, `AfterExecuteResult`, `QueryPlan`, `ExecutionPlan`) live in [`@prisma-next/framework-components`](../../../packages/1-framework/1-core/framework-components/) at the framework's **core layer**, exported via the `runtime` subpath.
+Every family runtime is a single class that **extends** an abstract `RuntimeCore` base, lives in its family package, and is the only runtime tier. The `RuntimeCore` base class, the `runWithMiddleware` orchestrator helper, and the runtime SPI types (`RuntimeExecutor`, `RuntimeMiddleware`, `RuntimeMiddlewareContext`, `AfterExecuteResult`, `QueryPlan`, `ExecutionPlan`) live in [`@internal/framework-components`](../../../packages/1-framework/1-core/framework-components/) at the framework's **core layer**, exported via the `runtime` subpath.
 
 `RuntimeCore` belongs in the framework layer because what it owns is **behavior**, not plan shape: *when* hooks fire, *how* middleware wraps a driver loop, *which* lifecycle steps a family must implement. It never inspects the contents of a `QueryPlan` or `ExecutionPlan` — those are generic parameters each family narrows to its own concrete types. That's how a target-agnostic core layer can host a runtime base that SQL and Mongo both extend without either family's vocabulary leaking into the framework.
 
-The previous target-agnostic `@prisma-next/runtime-executor` package and the `packages/1-framework/4-runtime/` directory are removed.
+The previous target-agnostic `@internal/runtime-executor` package and the `packages/1-framework/4-runtime/` directory are removed.
 
 ## What this looks like
 
@@ -24,7 +24,7 @@ A family runtime, end-to-end, is now this shape:
 import {
   RuntimeCore,
   runWithMiddleware,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 
 class SqlRuntime
   extends RuntimeCore<SqlQueryPlan, SqlExecutionPlan, SqlMiddleware>
@@ -75,7 +75,7 @@ Adding a new family runtime — Cassandra, Document, anything else — is one co
 
 ## Background — the world this replaces
 
-ADR 140 set up a **two-tier** runtime: a target-agnostic kernel (`@prisma-next/runtime-executor`) owned the SPI and middleware lifecycle, and family runtimes implemented that SPI by **composing** an inner `runtime-executor` instance with their own lowering and driver code.
+ADR 140 set up a **two-tier** runtime: a target-agnostic kernel (`@internal/runtime-executor`) owned the SPI and middleware lifecycle, and family runtimes implemented that SPI by **composing** an inner `runtime-executor` instance with their own lowering and driver code.
 
 In practice the two tiers carried very little independent value:
 
@@ -100,10 +100,10 @@ A useful corollary of the abstract-base shape: any middleware typed against the 
 
 | Package | Before | After |
 |---------|--------|-------|
-| `@prisma-next/runtime-executor` (framework, runtime layer) | Owned the runtime SPI + plugin lifecycle. | **Deleted.** Contents folded into `@prisma-next/framework-components`. |
-| `@prisma-next/framework-components` (framework, core layer) | Component descriptors; control / execution / emission types. | Adds a `runtime` subpath export with the SPI, abstract `RuntimeCore`, and `runWithMiddleware`. |
-| `@prisma-next/sql-runtime` (SQL, runtime layer) | Composed an inner `runtime-executor`. | `SqlRuntime extends RuntimeCore` directly. |
-| `@prisma-next/mongo-runtime` (Mongo, runtime layer) | Composed an inner `runtime-executor`. | `MongoRuntimeImpl extends RuntimeCore` directly. |
+| `@internal/runtime-executor` (framework, runtime layer) | Owned the runtime SPI + plugin lifecycle. | **Deleted.** Contents folded into `@internal/framework-components`. |
+| `@internal/framework-components` (framework, core layer) | Component descriptors; control / execution / emission types. | Adds a `runtime` subpath export with the SPI, abstract `RuntimeCore`, and `runWithMiddleware`. |
+| `@internal/sql-runtime` (SQL, runtime layer) | Composed an inner `runtime-executor`. | `SqlRuntime extends RuntimeCore` directly. |
+| `@internal/mongo-runtime` (Mongo, runtime layer) | Composed an inner `runtime-executor`. | `MongoRuntimeImpl extends RuntimeCore` directly. |
 
 The dependency-direction enforcement chain in `architecture.config.json` collapses from
 
@@ -128,7 +128,7 @@ Family runtimes import the SPI from the core layer of the framework domain — t
 
 ### Keep `runtime-executor` as a thin facade over `RuntimeCore`
 
-Reduce `@prisma-next/runtime-executor` to a re-export of `RuntimeCore`, `runWithMiddleware`, and the SPI types from `@prisma-next/framework-components`. Preserves the "runtime SPI lives in a runtime-named package" mental model.
+Reduce `@internal/runtime-executor` to a re-export of `RuntimeCore`, `runWithMiddleware`, and the SPI types from `@internal/framework-components`. Preserves the "runtime SPI lives in a runtime-named package" mental model.
 
 Rejected: an extra package, an extra tsconfig project, and an extra import path with no boundary behind it. With every consumer already crossing into `framework-components` for adjacent SPIs, the facade adds no clarity and one more thing to maintain.
 
@@ -140,6 +140,6 @@ Rejected: addresses the orchestrator-drift concern but leaves the wrap-and-forwa
 
 ### Move the runtime SPI to its own core-layer package
 
-Introduce `@prisma-next/runtime-spi` at the core layer, separate from `framework-components`.
+Introduce `@internal/runtime-spi` at the core layer, separate from `framework-components`.
 
 Rejected: keeps the SPI isolated but creates yet another core-layer package with a thin surface. The SPI naturally co-locates with the other framework primitives (`Contract`, `ExecutionContext`, `AsyncIterableResult`) family runtimes already import. Splitting it adds a package without adding a boundary anyone needs.

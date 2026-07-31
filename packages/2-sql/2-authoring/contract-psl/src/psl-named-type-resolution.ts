@@ -1,7 +1,7 @@
-import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
-import type { AuthoringContributions } from '@prisma-next/framework-components/authoring';
-import type { NamedTypeSymbol } from '@prisma-next/psl-parser';
-import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
+import type { ContractSourceDiagnostic } from '@internal/config/config-types';
+import type { AuthoringContributions } from '@internal/framework-components/authoring';
+import type { NamedTypeSymbol } from '@internal/psl-parser';
+import type { StorageTypeInstance } from '@internal/sql-contract/types';
 import { formatDbAttributeMigrationMessage } from './psl-attribute-parsing';
 import {
   type ColumnDescriptor,

@@ -2,8 +2,8 @@
  * Backs `db init` / `db update`. Strategy: introspect → planMigration; planFromDiff-for-app + resolveRecordedPath-extensions; plan-mode + orphan-marker preflight.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlAdapterInstance,
   ControlDriverInstance,
@@ -14,18 +14,18 @@ import type {
   MigrationPlanOperation,
   OperationPreview,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-import { hasOperationPreview } from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
+import { hasOperationPreview } from '@internal/framework-components/control';
 import {
   type ContractSpaceAggregate,
   collectAggregateNamespaces,
   type PlannerError,
   planMigration,
-} from '@prisma-next/migration-tools/aggregate';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { notOk, ok } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/aggregate';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok } from '@internal/utils/result';
 import { CliStructuredError } from '../../utils/cli-errors';
 import {
   type BuildAggregateInputs,

@@ -1,4 +1,4 @@
-import { createDbSchemaCommand } from '@prisma-next/cli/commands/db-schema';
+import { createDbSchemaCommand } from '@internal/cli/commands/db-schema';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

@@ -2,7 +2,7 @@ import type {
   ContractField,
   ContractValueObject,
   ContractValueObjectDefinitions,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import type {
   AnyMongoTypeMaps,
   ExtractMongoCodecTypes,
@@ -10,9 +10,9 @@ import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoModelsMap,
-} from '@prisma-next/mongo-contract';
-import type { MongoValue } from '@prisma-next/mongo-value';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+} from '@internal/mongo-contract';
+import type { MongoValue } from '@internal/mongo-value';
+import { MongoParamRef } from '@internal/mongo-value';
 
 // ── Runtime types ────────────────────────────────────────────────────────────
 

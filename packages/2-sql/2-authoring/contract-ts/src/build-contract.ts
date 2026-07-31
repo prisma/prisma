@@ -2,7 +2,7 @@ import {
   computeExecutionHash,
   computeProfileHash,
   computeStorageHash,
-} from '@prisma-next/contract/hashing';
+} from '@internal/contract/hashing';
 import {
   asNamespaceId,
   type ColumnDefault,
@@ -20,36 +20,33 @@ import {
   type JsonValue,
   type StorageHashBase,
   type ValueSetRef,
-} from '@prisma-next/contract/types';
-import { type CapabilityMatrix, mergeCapabilityMatrices } from '@prisma-next/contract-authoring';
+} from '@internal/contract/types';
+import { type CapabilityMatrix, mergeCapabilityMatrices } from '@internal/contract-authoring';
 import type {
   AuthoringContributions,
   AuthoringEntityTypeDescriptor,
   AuthoringEntityTypeNamespace,
   AuthoringWarning,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import {
   flushAuthoringWarnings,
   isAuthoringEntityTypeDescriptor,
-} from '@prisma-next/framework-components/authoring';
-import type { CodecLookup, ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import { tableEntityKind, valueSetEntityKind } from '@prisma-next/sql-contract/entity-kinds';
+} from '@internal/framework-components/authoring';
+import type { CodecLookup, ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import { tableEntityKind, valueSetEntityKind } from '@internal/sql-contract/entity-kinds';
 import {
   type ForeignKeyAuthoringInput,
   materializeForeignKeysAndIndexes,
-} from '@prisma-next/sql-contract/foreign-key-materialization';
-import {
-  type AuthoredIndexInput,
-  lowerAuthoredIndex,
-} from '@prisma-next/sql-contract/index-naming';
-import { validateIndexTypes } from '@prisma-next/sql-contract/index-type-validation';
+} from '@internal/sql-contract/foreign-key-materialization';
+import { type AuthoredIndexInput, lowerAuthoredIndex } from '@internal/sql-contract/index-naming';
+import { validateIndexTypes } from '@internal/sql-contract/index-type-validation';
 import {
   createIndexTypeRegistry,
   type IndexTypeMap,
   type IndexTypeRegistration,
-} from '@prisma-next/sql-contract/index-types';
+} from '@internal/sql-contract/index-types';
 import {
   applyFkDefaults,
   type CheckConstraintInput,
@@ -61,12 +58,12 @@ import {
   type StorageTypeInstance,
   type StorageValueSetInput,
   toStorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
-import { validateStorageSemantics } from '@prisma-next/sql-contract/validators';
-import { deriveValueSetFromEntity } from '@prisma-next/sql-contract/value-set-derivation-hook';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-contract/types';
+import { validateStorageSemantics } from '@internal/sql-contract/validators';
+import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import type {
   ContractDefinition,
   FieldNode,

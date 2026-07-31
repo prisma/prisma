@@ -91,7 +91,7 @@ _Follow-on (slices 4–6):_
 
 _Required: this project changes the contract surface._
 
-- **Entities affected:** the SQL domain relation — the `ModelRelation` JSON schema (`data-contract-sql-v1.json`), the `ContractReferenceRelation` arktype validator (`packages/2-sql/1-core/contract`), and the corresponding `ContractReferenceRelation` TS type (`@prisma-next/sql-contract/types`).
+- **Entities affected:** the SQL domain relation — the `ModelRelation` JSON schema (`data-contract-sql-v1.json`), the `ContractReferenceRelation` arktype validator (`packages/2-sql/1-core/contract`), and the corresponding `ContractReferenceRelation` TS type (`@internal/sql-contract/types`).
 - **New / changed kinds:** relation `cardinality` enum gains `'N:M'`; relation gains optional `through: { table, parentColumns, childColumns }` (canonical field names match lowering; `build-contract`'s `parentCols/childCols` drift is reconciled). The `as ContractRelation['cardinality']` cast in `build-contract.ts` is deleted.
 - **Migration plan for downstream consumers:** purely **additive** — existing non-M:N contracts are byte-unchanged in shape, so no consumer breaks and no deprecation window is needed. The contract **hash** changes, so all emitted fixtures/goldens regenerate; `pnpm fixtures:check` gates this. `validateContract` consumers gain M:N acceptance (today they reject it), so this only widens what validates.
 

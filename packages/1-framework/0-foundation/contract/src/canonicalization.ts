@@ -1,6 +1,6 @@
-import { isArrayEqual } from '@prisma-next/utils/array-equal';
-import { ifDefined } from '@prisma-next/utils/defined';
-import type { JsonObject } from '@prisma-next/utils/json';
+import { isArrayEqual } from '@internal/utils/array-equal';
+import { ifDefined } from '@internal/utils/defined';
+import type { JsonObject } from '@internal/utils/json';
 import { matchesPathPattern, type PathPattern } from './canonicalization-path-match';
 import type { Contract } from './contract-types';
 

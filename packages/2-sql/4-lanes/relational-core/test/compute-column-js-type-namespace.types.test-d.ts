@@ -1,5 +1,5 @@
-import type { Contract, StorageHashBase } from '@prisma-next/contract/types';
-import type { SqlStorage, TypeMaps, TypeMapsPhantomKey } from '@prisma-next/sql-contract/types';
+import type { Contract, StorageHashBase } from '@internal/contract/types';
+import type { SqlStorage, TypeMaps, TypeMapsPhantomKey } from '@internal/sql-contract/types';
 import { expectTypeOf, test } from 'vitest';
 import type { ComputeColumnJsType } from '../src/types';
 

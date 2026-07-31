@@ -1,4 +1,4 @@
-import type { AuthoringArgumentDescriptor } from '@prisma-next/framework-components/authoring';
+import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
 import { expectTypeOf, test } from 'vitest';
 import type {
   ArgTypeFromDescriptor,

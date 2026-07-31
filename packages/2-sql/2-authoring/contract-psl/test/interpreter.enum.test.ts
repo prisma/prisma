@@ -1,13 +1,13 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { Codec, CodecLookup } from '@prisma-next/framework-components/codec';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { Codec, CodecLookup } from '@internal/framework-components/codec';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   defineContract,
   enumType,
   field,
   member,
   model,
-} from '@prisma-next/sql-contract-ts/contract-builder';
+} from '@internal/sql-contract-ts/contract-builder';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import {

@@ -23,7 +23,7 @@ Run `pnpm lint:framework-vocabulary`. After T1+T2 the count should drop by ~2–
 - [ ] `InterpretCtx.symbols` removed (`rg "symbols" packages/1-framework/2-authoring/psl-parser/src/attribute-spec/types.ts` → zero); `buildRelationInterpretCtx` no longer sets it.
 - [ ] "constraint" reworded in the `InferAttr` comment.
 - [ ] `pnpm lint:framework-vocabulary` passes (with a minimal, justified threshold delta only if an irreducible residual remains).
-- [ ] Gates: `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; after `pnpm --filter @prisma-next/psl-parser build`, workspace `pnpm typecheck`.
+- [ ] Gates: `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; after `pnpm --filter @internal/psl-parser build`, workspace `pnpm typecheck`.
 
 ## Constraints
 No `any`; no bare `as`; no file-ext imports; no behaviour change (removing a dead field + rewording a comment must not alter parsing). Explicit-staging commit(s) with sign-off, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT rename the `symbol-table` module or any shared type. Do NOT touch GitHub.

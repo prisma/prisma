@@ -1,18 +1,18 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { errorUnfilledPlaceholder } from '@prisma-next/errors/migration';
+import type { Contract } from '@internal/contract/types';
+import { errorUnfilledPlaceholder } from '@internal/errors/migration';
 import {
   type ContractAtResult,
   createAggregateContractSpace,
   createContractSpaceAggregate,
-} from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
+} from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import {
   errorContractSnapshotMissing,
   MigrationToolsError,
-} from '@prisma-next/migration-tools/errors';
-import { reconstructGraph } from '@prisma-next/migration-tools/migration-graph';
-import type { OnDiskMigrationPackage } from '@prisma-next/migration-tools/package';
-import { ok } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/errors';
+import { reconstructGraph } from '@internal/migration-tools/migration-graph';
+import type { OnDiskMigrationPackage } from '@internal/migration-tools/package';
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -58,20 +58,20 @@ vi.mock('../../src/utils/contract-space-aggregate-loader', () => ({
   loadContractSpaceAggregateForCli: mocks.loadContractSpaceAggregateForCli,
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 
-vi.mock('@prisma-next/migration-tools/refs', async () => {
-  const actual = await vi.importActual<typeof import('@prisma-next/migration-tools/refs')>(
-    '@prisma-next/migration-tools/refs',
+vi.mock('@internal/migration-tools/refs', async () => {
+  const actual = await vi.importActual<typeof import('@internal/migration-tools/refs')>(
+    '@internal/migration-tools/refs',
   );
   return { ...actual, readRefs: mocks.readRefs };
 });
 
-vi.mock('@prisma-next/migration-tools/io', async () => {
-  const actual = await vi.importActual<typeof import('@prisma-next/migration-tools/io')>(
-    '@prisma-next/migration-tools/io',
+vi.mock('@internal/migration-tools/io', async () => {
+  const actual = await vi.importActual<typeof import('@internal/migration-tools/io')>(
+    '@internal/migration-tools/io',
   );
   return {
     ...actual,
@@ -79,14 +79,14 @@ vi.mock('@prisma-next/migration-tools/io', async () => {
   };
 });
 
-vi.mock('@prisma-next/migration-tools/contract-snapshot-store', async () => {
+vi.mock('@internal/migration-tools/contract-snapshot-store', async () => {
   const actual = await vi.importActual<
-    typeof import('@prisma-next/migration-tools/contract-snapshot-store')
-  >('@prisma-next/migration-tools/contract-snapshot-store');
+    typeof import('@internal/migration-tools/contract-snapshot-store')
+  >('@internal/migration-tools/contract-snapshot-store');
   return { ...actual, writeContractSnapshot: mocks.writeContractSnapshot };
 });
 
-vi.mock('@prisma-next/migration-tools/migration-ts', () => ({
+vi.mock('@internal/migration-tools/migration-ts', () => ({
   writeMigrationTs: mocks.writeMigrationTs,
 }));
 
@@ -98,9 +98,9 @@ vi.mock('../../src/control-api/operations/extract-sql-ddl', () => ({
   extractSqlDdl: mocks.extractSqlDdl,
 }));
 
-vi.mock('@prisma-next/framework-components/control', async () => {
-  const actual = await vi.importActual<typeof import('@prisma-next/framework-components/control')>(
-    '@prisma-next/framework-components/control',
+vi.mock('@internal/framework-components/control', async () => {
+  const actual = await vi.importActual<typeof import('@internal/framework-components/control')>(
+    '@internal/framework-components/control',
   );
   return { ...actual, createControlStack: mocks.createControlStack };
 });
@@ -372,15 +372,15 @@ describe('migration plan command', () => {
   // Use `doUnmock` (non-hoisted) here so subsequent files see the real modules.
   afterAll(() => {
     vi.doUnmock('node:fs/promises');
-    vi.doUnmock('@prisma-next/config-loader');
+    vi.doUnmock('@internal/config-loader');
     vi.doUnmock('../../src/utils/command-helpers');
-    vi.doUnmock('@prisma-next/migration-tools/refs');
-    vi.doUnmock('@prisma-next/migration-tools/io');
-    vi.doUnmock('@prisma-next/migration-tools/contract-snapshot-store');
-    vi.doUnmock('@prisma-next/migration-tools/migration-ts');
+    vi.doUnmock('@internal/migration-tools/refs');
+    vi.doUnmock('@internal/migration-tools/io');
+    vi.doUnmock('@internal/migration-tools/contract-snapshot-store');
+    vi.doUnmock('@internal/migration-tools/migration-ts');
     vi.doUnmock('../../src/utils/framework-components');
     vi.doUnmock('../../src/control-api/operations/extract-sql-ddl');
-    vi.doUnmock('@prisma-next/framework-components/control');
+    vi.doUnmock('@internal/framework-components/control');
     vi.doUnmock('../../src/utils/contract-space-seed-phase');
     vi.doUnmock('../../src/utils/contract-space-aggregate-loader');
     vi.resetModules();

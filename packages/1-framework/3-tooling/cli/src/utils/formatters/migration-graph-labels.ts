@@ -13,7 +13,7 @@
  * as the previous renderer — that part was never the bug.
  */
 
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { bold, createColors, green, yellow } from 'colorette';
 import type { GlyphMode } from '../glyph-mode';
 import { laneColorizer } from './migration-graph-occlusion-render';

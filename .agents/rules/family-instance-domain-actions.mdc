@@ -20,8 +20,8 @@ When implementing domain actions on family instances:
 
 ```typescript
 // Import pure helper functions from core
-import { canonicalizeContract } from '@prisma-next/core-control-plane/emission/canonicalization';
-import { computeExecutionHash, computeProfileHash, computeStorageHash } from '@prisma-next/core-control-plane/emission/hashing';
+import { canonicalizeContract } from '@internal/core-control-plane/emission/canonicalization';
+import { computeExecutionHash, computeProfileHash, computeStorageHash } from '@internal/core-control-plane/emission/hashing';
 import { format } from 'prettier';
 
 // Inline the domain action orchestration
@@ -55,7 +55,7 @@ async emitContract({ contractIR }): Promise<EmitContractResult> {
 
 ```typescript
 // Don't import domain action functions
-import { emit } from '@prisma-next/core-control-plane/emission/emit';
+import { emit } from '@internal/core-control-plane/emission/emit';
 
 async emitContract({ contractIR }): Promise<EmitContractResult> {
   // Don't delegate to core domain action - inline the logic instead

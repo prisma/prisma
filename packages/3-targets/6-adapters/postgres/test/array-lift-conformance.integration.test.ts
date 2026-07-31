@@ -14,8 +14,8 @@
  * element, where a lift that stringified would be hardest to notice.
  */
 
-import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
+import { ifDefined } from '@internal/utils/defined';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type {

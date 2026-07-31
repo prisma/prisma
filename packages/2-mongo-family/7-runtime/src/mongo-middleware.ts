@@ -2,7 +2,7 @@ import type {
   AfterExecuteResult,
   RuntimeMiddleware,
   RuntimeMiddlewareContext,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import type { MongoExecutionPlan } from './mongo-execution-plan';
 import type { MongoParamRefMutator } from './param-ref-mutator';
 

@@ -1,1 +1,1 @@
-export { default } from '@prisma-next/family-mongo/pack';
+export { default } from '@internal/family-mongo/pack';

@@ -1,26 +1,26 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
   SqlMigrationPlanner,
   SqlMigrationPlannerPlanOptions,
   SqlPlannerFailureResult,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import {
   extractCodecControlHooks,
   planFieldEventOperations,
   plannerFailure,
-} from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+} from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   MigrationPlanner,
   MigrationScaffoldContext,
   SchemaDiffIssue,
   SchemaOwnership,
-} from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { RelationalSchemaNodeKind, type SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { RelationalSchemaNodeKind, type SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { buildSqlitePlanDiff } from './diff-database-schema';
 import { coalesceSubtreeIssues, issueNode, planIssues } from './issue-planner';
 import {

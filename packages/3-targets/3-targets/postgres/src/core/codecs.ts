@@ -11,7 +11,7 @@
  * `this` (the descriptor).
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecImpl,
@@ -21,8 +21,8 @@ import {
   column,
   renderTsLiteral,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   BinaryExpr,
   CaseExpr,
@@ -42,8 +42,8 @@ import {
   sqlTextDescriptor,
   sqlTimestampDescriptor,
   sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { definePostgresCodecs, PostgresCodecDescriptor, postgresCodec } from './codec-descriptor';

@@ -9,20 +9,20 @@
  * strategies, mirroring the Postgres `ColumnSpec` pattern.
  */
 
-import { errorUnfilledPlaceholder } from '@prisma-next/errors/migration';
+import { errorUnfilledPlaceholder } from '@internal/errors/migration';
 import type {
   MigrationOperationClass,
   SqlMigrationPlanOperation,
-} from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer, Lowerer } from '@prisma-next/family-sql/control-adapter';
-import type { OpFactoryCall as FrameworkOpFactoryCall } from '@prisma-next/framework-components/control';
+} from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
+import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
 import type {
   AnyDdlColumnDefault,
   DdlColumn,
   DdlTableConstraint,
-} from '@prisma-next/sql-relational-core/ast';
-import { type ImportRequirement, jsonToTsSource, TsExpression } from '@prisma-next/ts-render';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import { type ImportRequirement, jsonToTsSource, TsExpression } from '@internal/ts-render';
+import { ifDefined } from '@internal/utils/defined';
 import { columnExistsAst, indexExistsAst, tableExistsAst } from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
 import { sqliteError } from '../errors';
@@ -40,7 +40,7 @@ type Op = SqlMigrationPlanOperation<SqlitePlanTargetDetails>;
 // The authored name. `render-typescript.ts` maps it to whatever the consuming
 // application's import root calls it (TML-3123), once over the whole assembled
 // import list.
-const TARGET_MIGRATION_MODULE = '@prisma-next/sqlite/migration';
+const TARGET_MIGRATION_MODULE = '@internal/sqlite/migration';
 
 abstract class SqliteOpFactoryCallNode extends TsExpression implements FrameworkOpFactoryCall {
   abstract readonly factoryName: string;

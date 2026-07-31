@@ -1,4 +1,4 @@
-import type { SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
+import type { SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import packageJson from '../../package.json' with { type: 'json' };
 
 /**

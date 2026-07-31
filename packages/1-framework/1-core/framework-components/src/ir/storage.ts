@@ -1,6 +1,6 @@
-import { isPlainRecord } from '@prisma-next/contract/is-plain-record';
-import type { StorageBase } from '@prisma-next/contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import { isPlainRecord } from '@internal/contract/is-plain-record';
+import type { StorageBase } from '@internal/contract/types';
+import { blindCast } from '@internal/utils/casts';
 import type { IRNode } from './ir-node';
 import type { Namespace } from './namespace';
 

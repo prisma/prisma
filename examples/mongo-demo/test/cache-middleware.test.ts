@@ -24,7 +24,7 @@ const contract = new MongoContractSerializer().deserializeContract<Contract>(con
 
 /**
  * End-to-end check that a real Mongo runtime + the cross-family
- * `@prisma-next/middleware-cache` + an annotated read short-circuits on
+ * `@internal/middleware-cache` + an annotated read short-circuits on
  * the second call. The same plan is executed twice; the second call
  * never reaches the driver because the cache middleware serves it from
  * the in-process LRU. Runs against `mongodb-memory-server` rather than

@@ -1,6 +1,6 @@
-import { buildSymbolTable, type SymbolTable } from '@prisma-next/psl-parser';
-import type { DocumentAst, SourceFile } from '@prisma-next/psl-parser/syntax';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { buildSymbolTable, type SymbolTable } from '@internal/psl-parser';
+import type { DocumentAst, SourceFile } from '@internal/psl-parser/syntax';
+import { InternalError } from '@internal/utils/internal-error';
 import type { ProjectInterpretation } from './config-resolution';
 import { type LspDiagnostic, mapInterpreterDiagnostics } from './diagnostic-mapping';
 import { computeDocumentDiagnostics, type DocumentDiagnostics } from './document-diagnostics';

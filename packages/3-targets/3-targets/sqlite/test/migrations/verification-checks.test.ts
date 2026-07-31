@@ -6,7 +6,7 @@ import {
   type LiteralExpr,
   type ParamRef,
   type TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { columnExistsAst, indexExistsAst, tableExistsAst } from '../../src/contract-free/checks';
 

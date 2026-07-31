@@ -16,18 +16,18 @@
  * the printer can round-trip them via the codec's JSON encode/decode.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import {
   assembleAuthoringContributions,
   extractCodecLookup,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
@@ -36,16 +36,16 @@ import {
   type PslModel,
   type PslSpan,
   UNSPECIFIED_PSL_NAMESPACE_ID,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import {
   type BlockSymbol,
   buildSymbolTable,
   findBlockDescriptor,
   type SymbolTable,
   validateExtensionBlockFromSymbol,
-} from '@prisma-next/psl-parser';
-import type { SourceFile } from '@prisma-next/psl-parser/syntax';
-import { parse } from '@prisma-next/psl-parser/syntax';
+} from '@internal/psl-parser';
+import type { SourceFile } from '@internal/psl-parser/syntax';
+import { parse } from '@internal/psl-parser/syntax';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { describe, expect, it } from 'vitest';
 import { printPslFromAst } from '../src/print-psl';

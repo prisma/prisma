@@ -1,9 +1,9 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 import type {
   AfterExecuteResult,
   ExecutionPlan,
   RuntimeMiddlewareContext,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import { describe, expect, it, vi } from 'vitest';
 import { cacheAnnotation } from '../src/cache-annotation';
 import { createCacheMiddleware } from '../src/cache-middleware';

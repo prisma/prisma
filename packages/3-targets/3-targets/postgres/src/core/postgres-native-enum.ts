@@ -1,7 +1,7 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { SqlNode } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { ControlPolicy } from '@internal/contract/types';
+import { freezeNode } from '@internal/framework-components/ir';
+import { SqlNode } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
 
 export interface PostgresNativeEnumInput<Members extends readonly string[] = readonly string[]> {
   /** The Postgres type name (`CREATE TYPE <typeName> AS ENUM (…)`). */

@@ -8,13 +8,13 @@ import {
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
   type OpFactoryCall,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
-} from '@prisma-next/framework-components/emission';
-import { detectScaffoldRuntime, shebangLineFor } from '@prisma-next/migration-tools/migration-ts';
-import { type ImportRequirement, renderImports } from '@prisma-next/ts-render';
+} from '@internal/framework-components/emission';
+import { detectScaffoldRuntime, shebangLineFor } from '@internal/migration-tools/migration-ts';
+import { type ImportRequirement, renderImports } from '@internal/ts-render';
 
 export interface RenderMigrationMeta {
   readonly from: string | null;
@@ -32,7 +32,7 @@ export interface RenderMigrationMeta {
 
 /**
  * Always-present base imports for the rendered scaffold. Both come from
- * `@prisma-next/sqlite/migration` so an authored SQLite
+ * `@internal/sqlite/migration` so an authored SQLite
  * `migration.ts` only needs a single dependency for its base class and
  * its CLI entrypoint. Mirrors Postgres's `BASE_IMPORTS`.
  *
@@ -40,12 +40,12 @@ export interface RenderMigrationMeta {
  *   generic to `SqlitePlanTargetDetails` and the abstract `targetId` to
  *   `'sqlite'`.
  * - `MigrationCLI` — the migration-file CLI entrypoint, re-exported from
- *   `@prisma-next/cli/migration-cli`. Loads `prisma-next.config.ts`,
+ *   `@internal/cli/migration-cli`. Loads `prisma-next.config.ts`,
  *   assembles a `ControlStack`, and instantiates the migration class.
  */
 const BASE_IMPORTS: readonly ImportRequirement[] = [
-  { moduleSpecifier: '@prisma-next/sqlite/migration', symbol: 'Migration' },
-  { moduleSpecifier: '@prisma-next/sqlite/migration', symbol: 'MigrationCLI' },
+  { moduleSpecifier: '@internal/sqlite/migration', symbol: 'Migration' },
+  { moduleSpecifier: '@internal/sqlite/migration', symbol: 'MigrationCLI' },
 ];
 
 export function renderCallsToTypeScript(

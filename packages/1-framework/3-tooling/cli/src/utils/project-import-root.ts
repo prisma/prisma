@@ -16,7 +16,7 @@ import {
   type ImportSpecifierResolver,
   importRootForDependencies,
   internalImportRoot,
-} from '@prisma-next/publish-surface/import-roots';
+} from '@internal/publish-surface/import-roots';
 import { dirname, join, resolve } from 'pathe';
 import { errorRuntime } from './cli-errors';
 

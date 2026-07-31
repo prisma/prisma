@@ -2,13 +2,13 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadContractFromTs } from '@prisma-next/cli';
-import { emit } from '@prisma-next/emitter/test/utils';
+import { loadContractFromTs } from '@internal/cli';
+import { emit } from '@internal/emitter/test/utils';
 import {
   extractCodecTypeImports,
   extractComponentIds,
-} from '@prisma-next/framework-components/control';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
+} from '@internal/framework-components/control';
+import { sqlEmission } from '@internal/sql-contract-emitter';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getSqlDescriptorBundle } from '../utils/framework-components';

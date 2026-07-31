@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
 
-describe('@prisma-next/driver-postgres', () => {
+describe('@internal/driver-postgres', () => {
   let cleanup: (() => Promise<void>) | undefined;
 
   async function createMemPoolDriver(options?: {

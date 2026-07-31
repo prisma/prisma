@@ -1,4 +1,4 @@
-import { namespacePslExtensionBlocks } from '@prisma-next/framework-components/psl-ast';
+import { namespacePslExtensionBlocks } from '@internal/framework-components/psl-ast';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   contract,

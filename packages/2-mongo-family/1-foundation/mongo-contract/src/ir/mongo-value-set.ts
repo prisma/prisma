@@ -1,5 +1,5 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
+import type { JsonValue } from '@internal/contract/types';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 
 /**
  * Hydration / construction input shape for {@link MongoValueSet}. Mirrors the on-disk storage JSON

@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   AnnotationValue,
   MetaBuilder,
   OperationKind,
-} from '@prisma-next/framework-components/runtime';
-import { createMetaBuilder } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/runtime';
+import { createMetaBuilder } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   AggregateExpr,
   type AnyExpression,
@@ -13,8 +13,8 @@ import {
   type BinaryOp,
   ColumnRef,
   LiteralExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SimplifyDeep } from '@prisma-next/utils/simplify-deep';
+} from '@internal/sql-relational-core/ast';
+import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
 import { getFieldToColumnMap } from './collection-contract';
 import { mapStorageRowToModelFields } from './collection-runtime';

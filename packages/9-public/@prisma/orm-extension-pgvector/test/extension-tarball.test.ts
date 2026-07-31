@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { publicShells, type ShellName } from '@prisma-next/publish-surface/shells';
+import { publicShells, type ShellName } from '@internal/publish-surface/shells';
 import {
   bundledSources,
   findInternalImportSpecifiers,
@@ -115,7 +115,7 @@ describe('an extension pack installed next to the facade it extends', () => {
     expect(await findInternalNames(installedDir)).toEqual([]);
   });
 
-  it('ships no @prisma-next import specifier in dist', async () => {
+  it('ships no @internal import specifier in dist', async () => {
     expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
   });
 });

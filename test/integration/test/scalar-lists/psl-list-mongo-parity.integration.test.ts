@@ -7,15 +7,15 @@
  * (UnknownLinuxDistro "nixos"); it is written for CI, where the memory server
  * runs.
  */
-import type { SerializeContract } from '@prisma-next/contract/hashing';
-import { emit } from '@prisma-next/emitter';
-import { mongoFamilyDescriptor } from '@prisma-next/family-mongo/control';
-import sql from '@prisma-next/family-sql/control';
-import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/canonicalization-hooks';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import { type MongoTargetContract, mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
-import postgres from '@prisma-next/target-postgres/control';
-import type { JsonObject } from '@prisma-next/utils/json';
+import type { SerializeContract } from '@internal/contract/hashing';
+import { emit } from '@internal/emitter';
+import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import sql from '@internal/family-sql/control';
+import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import { type MongoTargetContract, mongoTargetDescriptor } from '@internal/target-mongo/control';
+import postgres from '@internal/target-postgres/control';
+import type { JsonObject } from '@internal/utils/json';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

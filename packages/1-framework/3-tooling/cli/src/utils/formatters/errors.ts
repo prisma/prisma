@@ -1,5 +1,5 @@
-import type { MigrationPlannerConflict } from '@prisma-next/framework-components/control';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { MigrationPlannerConflict } from '@internal/framework-components/control';
+import { blindCast } from '@internal/utils/casts';
 import { red } from 'colorette';
 
 import type { CliErrorConflict, CliErrorEnvelope } from '../cli-errors';

@@ -1,10 +1,10 @@
-import type { GeneratedValueSpec } from '@prisma-next/contract/types';
-import { timestampNowRuntimeGenerator } from '@prisma-next/family-sql/runtime';
-import type { RuntimeAdapterInstance } from '@prisma-next/framework-components/execution';
-import { builtinGeneratorIds } from '@prisma-next/ids';
-import { generateId } from '@prisma-next/ids/runtime';
-import type { SqlRuntimeAdapterDescriptor } from '@prisma-next/sql-runtime';
-import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
+import type { GeneratedValueSpec } from '@internal/contract/types';
+import { timestampNowRuntimeGenerator } from '@internal/family-sql/runtime';
+import type { RuntimeAdapterInstance } from '@internal/framework-components/execution';
+import { builtinGeneratorIds } from '@internal/ids';
+import { generateId } from '@internal/ids/runtime';
+import type { SqlRuntimeAdapterDescriptor } from '@internal/sql-runtime';
+import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
 import { createSqliteAdapterWithCodecRegistry, sqliteRawCodecInferer } from './adapter';
 import { assembleSqliteCodecRegistry } from './codec-lookup';
 import { sqliteAdapterDescriptorMeta } from './descriptor-meta';

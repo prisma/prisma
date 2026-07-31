@@ -1,5 +1,5 @@
-import type { CodecInstanceContext } from '@prisma-next/framework-components/codec';
-import type { SqlCharCodec, SqlTimestampCodec } from '@prisma-next/sql-relational-core/ast';
+import type { CodecInstanceContext } from '@internal/framework-components/codec';
+import type { SqlCharCodec, SqlTimestampCodec } from '@internal/sql-relational-core/ast';
 import { expectTypeOf, test } from 'vitest';
 import type {
   AnyPostgresCodecDescriptor,

@@ -1,5 +1,5 @@
-import { createDbInitCommand } from '@prisma-next/cli/commands/db-init';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { createDbInitCommand } from '@internal/cli/commands/db-init';
+import { ifDefined } from '@internal/utils/defined';
 import type { setupTestDirectoryFromFixtures } from './cli-test-helpers';
 import { executeCommand, getExitCode, setupDbTestFixture } from './cli-test-helpers';
 

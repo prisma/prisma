@@ -1,5 +1,5 @@
-import { isInternalError } from '@prisma-next/utils/internal-error';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isInternalError } from '@internal/utils/internal-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   builtinGeneratorRegistryMetadata,
@@ -12,7 +12,7 @@ import {
 } from '../src/index';
 import { generateId } from '../src/runtime';
 
-describe('@prisma-next/ids', () => {
+describe('@internal/ids', () => {
   it('builds a generated column spec for uuidv4', () => {
     const spec = uuidv4();
     expect(spec).toEqual({

@@ -1,6 +1,6 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { REFERENTIAL_ACTION_SQL } from '@prisma-next/sql-contract/referential-action-sql';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
+import { InternalError } from '@internal/utils/internal-error';
 import { constraintExistsAst } from '../../../contract-free/checks';
 import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
 import { qualifyTableName } from '../planner-sql-checks';

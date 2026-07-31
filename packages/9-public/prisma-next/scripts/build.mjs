@@ -14,8 +14,8 @@ try {
 } catch (err) {
   console.error(
     `[prisma-next build] CLI dist not found at ${cliDist}.\n` +
-      'Run `pnpm -F @prisma-next/cli build` first, or let pnpm schedule the build via the ' +
-      '`@prisma-next/cli` devDependency.',
+      'Run `pnpm -F @internal/cli build` first, or let pnpm schedule the build via the ' +
+      '`@internal/cli` devDependency.',
   );
   console.error(err instanceof Error ? err.message : err);
   process.exit(1);

@@ -1,4 +1,4 @@
-import type { ExecutionPlan } from '@prisma-next/framework-components/runtime';
+import type { ExecutionPlan } from '@internal/framework-components/runtime';
 import type { AnyQueryAst } from './ast/types';
 
 /**

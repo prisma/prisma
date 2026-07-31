@@ -1,13 +1,13 @@
 import {
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
-} from '@prisma-next/framework-components/emission';
-import { detectScaffoldRuntime, shebangLineFor } from '@prisma-next/migration-tools/migration-ts';
-import { type ImportRequirement, renderImports } from '@prisma-next/ts-render';
+} from '@internal/framework-components/emission';
+import { detectScaffoldRuntime, shebangLineFor } from '@internal/migration-tools/migration-ts';
+import { type ImportRequirement, renderImports } from '@internal/ts-render';
 import { type OpFactoryCall, TARGET_MIGRATION_MODULE } from './op-factory-call';
 
 export interface RenderMigrationMeta {
@@ -29,7 +29,7 @@ export interface RenderMigrationMeta {
  * target's own `migration` entry:
  *
  * - `Migration` — the user-facing Mongo `Migration` base, forwarded from
- *   `@prisma-next/family-mongo`; subclasses don't need to redeclare
+ *   `@internal/family-mongo`; subclasses don't need to redeclare
  *   `targetId` or thread family/target generics.
  * - `MigrationCLI` — the migration-file CLI entrypoint that loads
  *   `prisma-next.config.ts`, assembles a `ControlStack`, and instantiates
@@ -54,7 +54,7 @@ const BASE_IMPORTS: readonly ImportRequirement[] = [
  * snapshot store (the destination contract, plus the source contract for a
  * non-baseline migration), extends `Migration<Start, End>` (or
  * `Migration<never, End>` for a baseline) from
- * `@prisma-next/target-mongo/migration`,
+ * `@internal/target-mongo/migration`,
  * assigns the JSON to `endContractJson` / `startContractJson`, and implements
  * `operations`. The `Migration` base derives `describe()` from those fields.
  *

@@ -1,4 +1,4 @@
-import type { CollModOptions } from '@prisma-next/mongo-query-ast/control';
+import type { CollModOptions } from '@internal/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import {
   CollModCall,
@@ -32,7 +32,7 @@ describe('renderCallsToTypeScript', () => {
     const output = renderTypeScript(calls);
 
     expect(output).toContain(
-      "import { Migration, MigrationCLI, createIndex } from '@prisma-next/target-mongo/migration';",
+      "import { Migration, MigrationCLI, createIndex } from '@internal/target-mongo/migration';",
     );
     expect(output).toContain('override get operations()');
     expect(output).toContain('export default M;');
@@ -237,7 +237,7 @@ describe('renderCallsToTypeScript', () => {
     expect(output).toContain('createIndex');
     const importLine = output
       .split('\n')
-      .find((l) => l.includes('@prisma-next/target-mongo/migration'));
+      .find((l) => l.includes('@internal/target-mongo/migration'));
     expect(importLine).toContain('createCollection');
     expect(importLine).toContain('createIndex');
   });
@@ -269,7 +269,7 @@ describe('renderCallsToTypeScript', () => {
     const output = renderTypeScript([]);
 
     expect(output).toContain(
-      "import { Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';",
+      "import { Migration, MigrationCLI } from '@internal/target-mongo/migration';",
     );
     expect(output).toContain('return [');
     expect(output).toContain('];');

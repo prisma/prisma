@@ -1,5 +1,5 @@
-import mongoFamilyPack from '@prisma-next/family-mongo/pack';
-import mongoTargetPack from '@prisma-next/target-mongo/pack';
+import mongoFamilyPack from '@internal/family-mongo/pack';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import { expectTypeOf } from 'vitest';
 import { defineContract, field, model } from '../../src/exports/contract-builder';
 

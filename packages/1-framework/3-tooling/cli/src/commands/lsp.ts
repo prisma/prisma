@@ -24,7 +24,7 @@ export function createLspCommand(): Command {
     .action(async () => {
       // Lazy import so `vscode-languageserver` stays off every other command's
       // startup path — only `prisma-next lsp` pays its load cost.
-      const { startServer } = await import('@prisma-next/language-server');
+      const { startServer } = await import('@internal/language-server');
       startServer();
     });
 

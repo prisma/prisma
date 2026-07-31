@@ -1,12 +1,12 @@
-import { generateContractDts } from '@prisma-next/emitter';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
+import { generateContractDts } from '@internal/emitter';
+import type { TypesImportSpec } from '@internal/framework-components/emission';
 import {
   createImportSpecifierResolver,
   type ImportRoot,
   importedSpecifiers,
   internalImportRoot,
   transitiveImports,
-} from '@prisma-next/publish-surface/import-roots';
+} from '@internal/publish-surface/import-roots';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';
@@ -23,19 +23,19 @@ const hashes = { storageHash: 'storage', profileHash: 'profile' };
  */
 const codecTypeImports: TypesImportSpec[] = [
   {
-    package: '@prisma-next/target-postgres/codec-types',
+    package: '@internal/target-postgres/codec-types',
     named: 'CodecTypes',
     alias: 'PgCodecTypes',
   },
   {
-    package: '@prisma-next/extension-pgvector/codec-types',
+    package: '@internal/extension-pgvector/codec-types',
     named: 'CodecTypes',
     alias: 'PgVectorCodecTypes',
   },
 ];
 const queryOperationTypeImports: TypesImportSpec[] = [
   {
-    package: '@prisma-next/adapter-postgres/operation-types',
+    package: '@internal/adapter-postgres/operation-types',
     named: 'QueryOperationTypes',
     alias: 'PgQueryOps',
   },
@@ -82,11 +82,11 @@ function emit(root: ImportRoot): string {
 describe('emitted contract types under each import root', () => {
   it('names workspace packages under the internal root', () => {
     expect(importedSpecifiers(emit(internalImportRoot)).sort()).toEqual([
-      '@prisma-next/adapter-postgres/operation-types',
-      '@prisma-next/contract/types',
-      '@prisma-next/extension-pgvector/codec-types',
-      '@prisma-next/sql-contract/types',
-      '@prisma-next/target-postgres/codec-types',
+      '@internal/adapter-postgres/operation-types',
+      '@internal/contract/types',
+      '@internal/extension-pgvector/codec-types',
+      '@internal/sql-contract/types',
+      '@internal/target-postgres/codec-types',
     ]);
   });
 

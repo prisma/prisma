@@ -1,5 +1,5 @@
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
-import { SqlCheckConstraintIR } from '@prisma-next/sql-schema-ir/types';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
+import { SqlCheckConstraintIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { PostgresControlAdapter, parseCheckConstraintDef } from '../src/core/control-adapter';

@@ -63,7 +63,7 @@ Multi-plane packages require **multiple globs** in `architecture.config.json`, o
 
 - **`src/exports/control.ts`**: Migration plane entry point (control plane)
   - Exports control plane descriptors (`ControlAdapterDescriptor`, `ControlTargetDescriptor`, `ControlDriverDescriptor`, etc.)
-  - Can import from migration plane packages (e.g., `@prisma-next/cli`, `@prisma-next/core-control-plane`)
+  - Can import from migration plane packages (e.g., `@internal/cli`, `@internal/core-control-plane`)
   - Can import from core (`../core/...`)
   - **Naming convention**: Use `control.ts` (not `cli.ts`) and export as `./control` (not `./cli`)
 

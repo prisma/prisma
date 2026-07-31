@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { Collection } from '@prisma-next/sql-orm-client';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import type { SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { Collection } from '@internal/sql-orm-client';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import type { SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { withReturningCapability } from './collection-fixtures';
 import { getTestContext, getTestContract, type TestContract } from './helpers';

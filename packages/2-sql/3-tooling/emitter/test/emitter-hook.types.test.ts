@@ -1,5 +1,5 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { ValidationContext } from '@prisma-next/framework-components/emission';
+import type { Contract } from '@internal/contract/types';
+import type { ValidationContext } from '@internal/framework-components/emission';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';

@@ -1,4 +1,4 @@
-import { blindCast } from '@prisma-next/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import type { Contract } from './contract-types';
 import type { ContractEnum } from './domain-types';
 import type { JsonValue } from './types';

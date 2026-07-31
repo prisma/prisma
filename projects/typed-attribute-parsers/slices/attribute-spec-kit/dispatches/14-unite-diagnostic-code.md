@@ -11,7 +11,7 @@ The operator wants comments that explain by **contrasting with an alternative we
 ## Part B — unite on a single diagnostic code (code change; operator-directed)
 The operator asks: "Why does `diagnosticCode` need to be customizable? Can't we just unite on a single `PSL_INVALID_ATTRIBUTE`?" The per-attribute `diagnosticCode` exists only to preserve legacy codes-parity for `@relation` (`PSL_INVALID_RELATION_ATTRIBUTE`). Remove the customization; use **one constant code** for all attribute-spec structural + leaf diagnostics.
 
-- Pick the single code: check `PslDiagnosticCode` (in `@prisma-next/framework-components/psl-ast`) for the best existing generic — prefer one literally meaning "invalid attribute". If a `PSL_INVALID_ATTRIBUTE` exists, use it; otherwise use the current default `PSL_INVALID_ATTRIBUTE_SYNTAX` uniformly. Note which you chose and why.
+- Pick the single code: check `PslDiagnosticCode` (in `@internal/framework-components/psl-ast`) for the best existing generic — prefer one literally meaning "invalid attribute". If a `PSL_INVALID_ATTRIBUTE` exists, use it; otherwise use the current default `PSL_INVALID_ATTRIBUTE_SYNTAX` uniformly. Note which you chose and why.
 - **Remove `AttributeSpec.diagnosticCode`** (types.ts) and its usage; **remove `InterpretCtx.diagnosticCode`** and the `leafCtx = { ...ctx, diagnosticCode: code }` threading in `interpret.ts` — the engine emits structural diagnostics with the single constant directly, and passes `ctx` (unchanged) to leaves.
 - **Leaves** (`leafDiagnostic` in `combinators/diagnostic.ts`) stamp the single constant instead of `ctx.diagnosticCode`. If `leafDiagnostic` no longer needs anything attribute-specific from ctx for the code, simplify accordingly.
 - **SQL `sqlRelation`** (`psl-relation-resolution.ts`): remove `diagnosticCode: 'PSL_INVALID_RELATION_ATTRIBUTE'` from the spec; `relationInvariants` (the both-or-neither refine) currently hard-codes `PSL_INVALID_RELATION_ATTRIBUTE` — change it to the single unified code; `buildRelationInterpretCtx` — remove the `diagnosticCode` property.
@@ -26,7 +26,7 @@ Removing the `diagnosticCode` field/comments involves no forbidden vocabulary, s
 ## Completed when
 - [ ] Part A: the two named comments removed; no "rather than/instead of … shared list/sink" or "rather than a hard-coded generic" comment remains (`rg -n "shared list|shared sink|hard-coded generic|rather than pushing" packages/1-framework/2-authoring/psl-parser` → zero).
 - [ ] Part B: `AttributeSpec.diagnosticCode` and `InterpretCtx.diagnosticCode` gone (`rg -n "diagnosticCode" packages/1-framework/2-authoring/psl-parser/src/attribute-spec packages/2-sql/2-authoring/contract-psl/src` → zero); all attribute-spec diagnostics use one constant code; `sqlRelation` no longer sets a per-attribute code.
-- [ ] Gates: `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl test`; `pnpm fixtures:check` (clean); `pnpm lint:framework-vocabulary`; workspace `pnpm typecheck` after psl-parser build.
+- [ ] Gates: `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl test`; `pnpm fixtures:check` (clean); `pnpm lint:framework-vocabulary`; workspace `pnpm typecheck` after psl-parser build.
 
 ## Constraints
 No `any`; no bare `as`; no file-ext imports; tests-first where behaviour (the code emitted) changes. Explicit-staging commit(s) with sign-off, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.

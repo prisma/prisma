@@ -16,9 +16,9 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import { APP_SPACE_ID, storageHashHex } from '@prisma-next/framework-components/control';
-import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
-import { col, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
+import { APP_SPACE_ID, storageHashHex } from '@internal/framework-components/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import { col, primaryKey } from '@internal/sql-relational-core/contract-free';
 import {
   AddColumnCall,
   CreateExtensionCall,
@@ -33,10 +33,10 @@ import {
   RawSqlCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
-} from '@prisma-next/target-postgres/op-factory-call';
-import { TypeScriptRenderablePostgresMigration } from '@prisma-next/target-postgres/planner-produced-postgres-migration';
-import { renderOps } from '@prisma-next/target-postgres/render-ops';
-import { PostgresRlsPolicy } from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/op-factory-call';
+import { TypeScriptRenderablePostgresMigration } from '@internal/target-postgres/planner-produced-postgres-migration';
+import { renderOps } from '@internal/target-postgres/render-ops';
+import { PostgresRlsPolicy } from '@internal/target-postgres/types';
 import { timeouts } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -101,9 +101,9 @@ const fixtureConfigSource = [
  */
 function rewriteImports(tsSource: string): string {
   return tsSource
-    .replace("'@prisma-next/postgres/migration'", `'${targetPostgresMigrationExport}'`)
+    .replace("'@internal/postgres/migration'", `'${targetPostgresMigrationExport}'`)
     .replace(
-      "'@prisma-next/sql-relational-core/contract-free'",
+      "'@internal/sql-relational-core/contract-free'",
       `'${relationalCoreContractFreeExport}'`,
     );
 }
@@ -161,7 +161,7 @@ const tscPath = join(repoRoot, 'node_modules/.bin/tsc');
  */
 async function writeTypecheckDir(dir: string, renderedSource: string): Promise<void> {
   const tsSource = renderedSource.replace(
-    "'@prisma-next/postgres/migration'",
+    "'@internal/postgres/migration'",
     `'${resolve(repoRoot, 'packages/3-extensions/postgres/dist/migration.mjs')}'`,
   );
   await writeFile(join(dir, 'migration.ts'), tsSource);

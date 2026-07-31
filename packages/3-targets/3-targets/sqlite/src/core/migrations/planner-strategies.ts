@@ -16,16 +16,16 @@
 import type {
   MigrationOperationClass,
   MigrationOperationPolicy,
-} from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
+} from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
   type SqlSchemaIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
 import { columnTypeChanged, tableSpecFromNode } from './issue-planner';
 import { DataTransformCall, RecreateTableCall, type SqliteOpFactoryCall } from './op-factory-call';
 import type { SqliteIndexSpec } from './operations/shared';

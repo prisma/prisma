@@ -1,14 +1,14 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { CliStructuredError } from '@prisma-next/errors/control';
+import type { Contract } from '@internal/contract/types';
+import { CliStructuredError } from '@internal/errors/control';
 import {
   type AggregateContractSpace,
   createAggregateContractSpace,
-} from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { reconstructGraph } from '@prisma-next/migration-tools/migration-graph';
-import type { OnDiskMigrationPackage } from '@prisma-next/migration-tools/package';
-import type { Refs } from '@prisma-next/migration-tools/refs';
+} from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { reconstructGraph } from '@internal/migration-tools/migration-graph';
+import type { OnDiskMigrationPackage } from '@internal/migration-tools/package';
+import type { Refs } from '@internal/migration-tools/refs';
 import { applicationDomainOf } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {

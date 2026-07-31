@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Enforce the exact-pin rule for Prisma Next extensions: every
-// `@prisma-next/*` entry in `dependencies`, `peerDependencies`, and
+// `@internal/*` entry in `dependencies`, `peerDependencies`, and
 // `optionalDependencies` must be a single exact-version string, and
 // every entry must resolve to the same version. Exits 0 on success
 // (no output); on failure, prints one structured line per offending
@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { cwd, exit, stderr } from 'node:process';
 
 const DEP_FIELDS = ['dependencies', 'peerDependencies', 'optionalDependencies'];
-const PRISMA_NEXT_SCOPE = '@prisma-next/';
+const PRISMA_NEXT_SCOPE = '@internal/';
 const EXACT_VERSION_RE = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
 
 function readPackageJson() {
@@ -60,7 +60,7 @@ function findViolations(entries) {
         violations.push({
           ...entry,
           rule: 'single-version',
-          message: `all @prisma-next/* entries must share the same exact version (observed: ${observed})`,
+          message: `all @internal/* entries must share the same exact version (observed: ${observed})`,
         });
       }
     }

@@ -1,4 +1,4 @@
-import type { SqlOperationEntry } from '@prisma-next/sql-operations';
+import type { SqlOperationEntry } from '@internal/sql-operations';
 import {
   AggregateExpr,
   AndExpr,
@@ -12,9 +12,9 @@ import {
   NullCheckExpr,
   OrExpr,
   SubqueryExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
-import { codecOf, createRawSql, toExpr } from '@prisma-next/sql-relational-core/expression';
+} from '@internal/sql-relational-core/ast';
+import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
+import { codecOf, createRawSql, toExpr } from '@internal/sql-relational-core/expression';
 import type {
   AggregateFunctions,
   AggregateOnlyFunctions,

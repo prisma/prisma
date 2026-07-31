@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type AnyCodecDescriptor,
   type Codec,
@@ -8,7 +8,7 @@ import {
   type CodecRef,
   type CodecTrait,
   validateCodecTypeParams,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import {
   CaseExpr,
   ColumnRef,
@@ -23,9 +23,9 @@ import {
   ProjectionItem,
   SelectAst,
   SubqueryExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
+import { structuredError } from '@internal/utils/structured-error';
 
 const POSTGRES_CODEC_DESCRIPTOR_KIND = 'postgres-codec' as const;
 const ARRAY_INPUT_ALIAS = 'array_input';

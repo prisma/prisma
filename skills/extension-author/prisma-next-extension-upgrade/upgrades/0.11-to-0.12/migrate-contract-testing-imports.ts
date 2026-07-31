@@ -1,17 +1,17 @@
 /**
- * Rewrites test-only imports from the removed `@prisma-next/contract/testing`
+ * Rewrites test-only imports from the removed `@internal/contract/testing`
  * subpath to `@repo/test-utils`.
  *
  * Background: starting at 0.12 the contract test factories (`createContract`,
  * `createSqlContract`, `DUMMY_HASH`, `applicationDomainOf`, …) live in
- * `@repo/test-utils`. The `@prisma-next/contract/testing` export was
- * removed from `@prisma-next/contract`.
+ * `@repo/test-utils`. The `@internal/contract/testing` export was
+ * removed from `@internal/contract`.
  *
  * Behaviour:
  * - Walks the project root recursively, ignoring `node_modules`, `.git`,
  *   `dist`, and `build`.
  * - Rewrites every `.ts` / `.tsx` file whose source contains
- *   `@prisma-next/contract/testing`.
+ *   `@internal/contract/testing`.
  * - Idempotent: files already importing from `@repo/test-utils` are
  *   left untouched.
  *
@@ -22,7 +22,7 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const FROM = '@prisma-next/contract/testing';
+const FROM = '@internal/contract/testing';
 const TO = '@repo/test-utils';
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build']);
@@ -67,7 +67,7 @@ for (const path of files) {
 }
 
 if (targets.length === 0) {
-  console.log('No @prisma-next/contract/testing imports found.');
+  console.log('No @internal/contract/testing imports found.');
   process.exit(0);
 }
 

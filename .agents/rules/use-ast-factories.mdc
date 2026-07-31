@@ -29,7 +29,7 @@ const literalExpr: LiteralExpr = { kind: 'literal', value: 'test' };
 **✅ CORRECT: Use factory functions**
 
 ```typescript
-import { createColumnRef, createParamRef, createLiteralExpr } from '@prisma-next/sql-relational-core/ast';
+import { createColumnRef, createParamRef, createLiteralExpr } from '@internal/sql-relational-core/ast';
 
 const colRef: ColumnRef = createColumnRef('user', 'id');
 const paramRef: ParamRef = createParamRef(1, 'userId');
@@ -38,7 +38,7 @@ const literalExpr: LiteralExpr = createLiteralExpr('test');
 
 ## Available Factory Functions
 
-From `@prisma-next/sql-relational-core/ast`:
+From `@internal/sql-relational-core/ast`:
 - `createColumnRef(table, column)` - Creates a `ColumnRef`
 - `createParamRef(index, name?)` - Creates a `ParamRef`
 - `createLiteralExpr(value)` - Creates a `LiteralExpr`

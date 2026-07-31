@@ -15,7 +15,7 @@ let projectDir: string;
 /**
  * Build a `prisma-next.config.mjs` source string with the minimum
  * descriptor shape that `validateConfig` (from
- * `@prisma-next/config/config-validation`) accepts. The integration
+ * `@internal/config/config-validation`) accepts. The integration
  * test exercises the full c12 + validator pipeline in the detached
  * child, so the fixture has to be structurally valid.
  */
@@ -46,7 +46,7 @@ beforeAll(async () => {
     JSON.stringify({ name: 'fixture', devDependencies: { typescript: '^5.9.3' } }),
   );
   // The detached child reads `prisma-next.config.*` via c12 and runs
-  // it through `@prisma-next/config`'s `validateConfig` to derive
+  // it through `@internal/config`'s `validateConfig` to derive
   // `databaseTarget` + `extensions`. The integration suite exercises
   // the full pipeline; write a `.mjs` fixture that satisfies the
   // canonical validator so the happy-path assertions on those fields

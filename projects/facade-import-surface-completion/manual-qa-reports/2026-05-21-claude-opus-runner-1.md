@@ -10,8 +10,8 @@
 
 ❌ **Fail.** The PR HEAD is not merge-ready: the standard pre-QA gate (`pnpm typecheck && pnpm test:packages && pnpm fixtures:check`) is **red on two independent counts** introduced by PR commits:
 
-- **F-1 ⚠️ High** — `pnpm typecheck` fails in `e2e-tests`. Commit `308873659` migrated `test/e2e/framework/test/sqlite/{fixtures/contract.ts,migrations/harness.ts}` to import from `@prisma-next/sqlite/contract-builder` but did not add `@prisma-next/sqlite` to `test/e2e/framework/package.json`'s dependencies (the commit message even brags about doing this for `test/integration` — it was missed here).
-- **F-2 ⚠️ High** — `pnpm fixtures:check` fails because commit `7d9116a3b` (`refactor(@prisma-next/sql-orm-client): move pgvector-dependent tests to integration`) wrote an `emit` script with the wrong relative path (`cd ../../../../test/integration` from a directory only 3 levels deep — should be `cd ../../../test/integration`).
+- **F-1 ⚠️ High** — `pnpm typecheck` fails in `e2e-tests`. Commit `308873659` migrated `test/e2e/framework/test/sqlite/{fixtures/contract.ts,migrations/harness.ts}` to import from `@internal/sqlite/contract-builder` but did not add `@internal/sqlite` to `test/e2e/framework/package.json`'s dependencies (the commit message even brags about doing this for `test/integration` — it was missed here).
+- **F-2 ⚠️ High** — `pnpm fixtures:check` fails because commit `7d9116a3b` (`refactor(@internal/sql-orm-client): move pgvector-dependent tests to integration`) wrote an `emit` script with the wrong relative path (`cd ../../../../test/integration` from a directory only 3 levels deep — should be `cd ../../../test/integration`).
 
 Both are 🔧 fix-in-PR. All 8 user-facing scenarios (1–8) dispatched and observed the loaded promises of TML-2526 work end-to-end: the renderer flips to façade specifiers (S1/S2), the `mongo` `.` barrel is gone (S3), the in-tree TML-2633 carve-out comments are honest about the symptom (S4), pre-existing `target-*/migration` imports still work (S5), tree-shaking is clean (S6), and user-facing prose teaches façade form (S7). Six additional 📝 follow-ups surface diagnostic-copy gaps, script-quality drift, and one discoverability question for postgres enums via the TS contract-builder.
 
@@ -19,7 +19,7 @@ The merge-blocking work is the two ⚠️ High items. The 📝 follow-ups can ro
 
 ## Findings
 
-### F-1 — ⚠️ High — `pnpm typecheck` red on PR HEAD: `e2e-tests` package.json missing `@prisma-next/sqlite` dependency
+### F-1 — ⚠️ High — `pnpm typecheck` red on PR HEAD: `e2e-tests` package.json missing `@internal/sqlite` dependency
 
 **Scenario:** Pre-flight gate (`drive/qa/README.md § Standard pre-QA gate`)
 **Step:** Pre-flight step 1
@@ -27,8 +27,8 @@ The merge-blocking work is the two ⚠️ High items. The 📝 follow-ups can ro
 
 **Observed:**
 ```
-e2e-tests:typecheck: test/sqlite/fixtures/contract.ts(7,51): error TS2307: Cannot find module '@prisma-next/sqlite/contract-builder' or its corresponding type declarations.
-e2e-tests:typecheck: test/sqlite/migrations/harness.ts(21,23): error TS2307: Cannot find module '@prisma-next/sqlite/contract-builder' or its corresponding type declarations.
+e2e-tests:typecheck: test/sqlite/fixtures/contract.ts(7,51): error TS2307: Cannot find module '@internal/sqlite/contract-builder' or its corresponding type declarations.
+e2e-tests:typecheck: test/sqlite/migrations/harness.ts(21,23): error TS2307: Cannot find module '@internal/sqlite/contract-builder' or its corresponding type declarations.
 e2e-tests:typecheck: test/sqlite/migrations/harness.ts(38,31): error TS2304: Cannot find name 'sqlFamilyPack'.
 e2e-tests:typecheck: test/sqlite/migrations/harness.ts(38,54): error TS2304: Cannot find name 'sqlitePack'.
 e2e-tests:typecheck:  ELIFECYCLE  Command failed with exit code 2.
@@ -45,9 +45,9 @@ e2e-tests:typecheck:  ELIFECYCLE  Command failed with exit code 2.
 - Full output captured at `manual-qa-reports/artefacts/F-1/typecheck.log`.
 
 Root cause analysis:
-- `git log -1 -- test/e2e/framework/test/sqlite/fixtures/contract.ts` → `308873659 feat(test-fixtures): migrate verbose defineContract form to facade contract-builders`. That commit's message states: *"Also adds @prisma-next/mongo to test/integration package.json since mongo fixtures now import from that facade."* The commit migrated the SQLite e2e fixtures to import from `@prisma-next/sqlite/contract-builder` (façade) but `git show 308873659 -- test/e2e/framework/package.json` shows **no edit** to that file. `test/e2e/framework/package.json` lists `@prisma-next/postgres` as a workspace dep but not `@prisma-next/sqlite` — so pnpm doesn't symlink the sqlite façade into `test/e2e/framework/node_modules`, and the freshly-migrated import fails to resolve.
+- `git log -1 -- test/e2e/framework/test/sqlite/fixtures/contract.ts` → `308873659 feat(test-fixtures): migrate verbose defineContract form to facade contract-builders`. That commit's message states: *"Also adds @internal/mongo to test/integration package.json since mongo fixtures now import from that facade."* The commit migrated the SQLite e2e fixtures to import from `@internal/sqlite/contract-builder` (façade) but `git show 308873659 -- test/e2e/framework/package.json` shows **no edit** to that file. `test/e2e/framework/package.json` lists `@internal/postgres` as a workspace dep but not `@internal/sqlite` — so pnpm doesn't symlink the sqlite façade into `test/e2e/framework/node_modules`, and the freshly-migrated import fails to resolve.
 
-**Notes:** Trivial fix: add `"@prisma-next/sqlite": "workspace:0.9.0"` to `test/e2e/framework/package.json`'s `dependencies`, run `pnpm install`. The `sqlFamilyPack` / `sqlitePack` errors at `harness.ts:38` likely resolve once the façade is importable (they reference imports that were removed when the file switched to the façade form but a residual line still references them; the typecheck would surface only the import errors if the dependency were declared, but the secondary errors will need inspection too).
+**Notes:** Trivial fix: add `"@internal/sqlite": "workspace:0.9.0"` to `test/e2e/framework/package.json`'s `dependencies`, run `pnpm install`. The `sqlFamilyPack` / `sqlitePack` errors at `harness.ts:38` likely resolve once the façade is importable (they reference imports that were removed when the file switched to the façade form but a residual line still references them; the typecheck would surface only the import errors if the dependency were declared, but the secondary errors will need inspection too).
 
 ### F-2 — ⚠️ High — `pnpm fixtures:check` red on PR HEAD: `sql-orm-client` emit script has wrong relative path
 
@@ -61,7 +61,7 @@ packages/3-extensions/sql-orm-client emit$ cd ../../../../test/integration && no
 packages/3-extensions/sql-orm-client emit: sh: line 0: cd: ../../../../test/integration: No such file or directory
 packages/3-extensions/sql-orm-client emit: Failed
 /Users/wmadden/.../packages/3-extensions/sql-orm-client:
- ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @prisma-next/sql-orm-client@0.9.0 emit: `cd ../../../../test/integration && node ...`
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @internal/sql-orm-client@0.9.0 emit: `cd ../../../../test/integration && node ...`
 Exit status 1
  ELIFECYCLE  Command failed with exit code 1.
 ```
@@ -74,12 +74,12 @@ Exit status 1
 - Full output captured at `manual-qa-reports/artefacts/F-2/fixtures-check.log`.
 
 Root cause analysis:
-- `git log -1 -- packages/3-extensions/sql-orm-client/package.json` → `7d9116a3b refactor(@prisma-next/sql-orm-client): move pgvector-dependent tests to integration, drop pgvector devDep`. That commit's emit script (`git show 7d9116a3b -- packages/3-extensions/sql-orm-client/package.json`) starts with `cd ../../../../test/integration`. From `packages/3-extensions/sql-orm-client/` (3 levels deep), four `..` overshoots the repo root by one. The same emit script is correct in `packages/2-sql/4-lanes/sql-builder/` (4 levels deep, where four `..` is right) — looks like the path was copy-pasted between packages without adjusting the depth.
-- Adjacent observation captured during the same gate run: the root `package.json`'s `fixtures:emit` script references a workspace package `@prisma-next/e2e-sqlite-tests` that does not exist (`No projects matched the filters "@prisma-next/e2e-sqlite-tests"`). pnpm prints the warning but continues; this is **pre-existing** (root `package.json` is unmodified in this PR). Captured as part of the same artefact log but **not** filed as a separate finding against this PR.
+- `git log -1 -- packages/3-extensions/sql-orm-client/package.json` → `7d9116a3b refactor(@internal/sql-orm-client): move pgvector-dependent tests to integration, drop pgvector devDep`. That commit's emit script (`git show 7d9116a3b -- packages/3-extensions/sql-orm-client/package.json`) starts with `cd ../../../../test/integration`. From `packages/3-extensions/sql-orm-client/` (3 levels deep), four `..` overshoots the repo root by one. The same emit script is correct in `packages/2-sql/4-lanes/sql-builder/` (4 levels deep, where four `..` is right) — looks like the path was copy-pasted between packages without adjusting the depth.
+- Adjacent observation captured during the same gate run: the root `package.json`'s `fixtures:emit` script references a workspace package `@internal/e2e-sqlite-tests` that does not exist (`No projects matched the filters "@internal/e2e-sqlite-tests"`). pnpm prints the warning but continues; this is **pre-existing** (root `package.json` is unmodified in this PR). Captured as part of the same artefact log but **not** filed as a separate finding against this PR.
 
 **Notes:** Trivial fix: change `cd ../../../../test/integration` → `cd ../../../test/integration` (and adjust the `cp` source/target relative paths accordingly: from `test/sql-orm-client/fixtures/generated/contract.json` → `../packages/3-extensions/sql-orm-client/test/fixtures/generated/` instead of the current `../../packages/...`). Run `pnpm fixtures:check` to confirm green.
 
-### F-3 — 📝 Follow-up — Bare `@prisma-next/mongo` diagnostics don't hint at `/bson`
+### F-3 — 📝 Follow-up — Bare `@internal/mongo` diagnostics don't hint at `/bson`
 
 **Scenario:** 3 — Mongo `.` barrel removal (negative control)
 **Step:** Step 4 (TS diagnostic) + the runtime variant via `node -e "import(…)"`
@@ -87,22 +87,22 @@ Root cause analysis:
 
 **Observed (TS):**
 ```
-qa-probe-bare/probe.ts(1,26): error TS2307: Cannot find module '@prisma-next/mongo' or its corresponding type declarations.
+qa-probe-bare/probe.ts(1,26): error TS2307: Cannot find module '@internal/mongo' or its corresponding type declarations.
 ```
 
 **Observed (Node runtime, from `examples/mongo-demo`):**
 ```
-ERR: No "exports" main defined in /…/examples/mongo-demo/node_modules/@prisma-next/mongo/package.json imported from /…/examples/mongo-demo/[eval]
+ERR: No "exports" main defined in /…/examples/mongo-demo/node_modules/@internal/mongo/package.json imported from /…/examples/mongo-demo/[eval]
 ```
 
-**Expected (per script):** A diagnostic that nudges the user toward `@prisma-next/mongo/bson`. The script explicitly calls this out as a quality bar even if non-blocking.
+**Expected (per script):** A diagnostic that nudges the user toward `@internal/mongo/bson`. The script explicitly calls this out as a quality bar even if non-blocking.
 
 **Reproduction:**
-- TS: ran `pnpm exec tsc -p qa-probe-bare/tsconfig.json` in a probe directory whose only source file did `import { ObjectId } from '@prisma-next/mongo';`.
-- Node runtime: from `examples/mongo-demo`, `node -e "import('@prisma-next/mongo').then(…, e => console.log('ERR:', e.message))"`.
+- TS: ran `pnpm exec tsc -p qa-probe-bare/tsconfig.json` in a probe directory whose only source file did `import { ObjectId } from '@internal/mongo';`.
+- Node runtime: from `examples/mongo-demo`, `node -e "import('@internal/mongo').then(…, e => console.log('ERR:', e.message))"`.
 - Both diagnostics tell the user the barrel is gone; neither mentions `/bson` as the right substitute.
 
-**Notes:** Diagnostic-copy quality. Mitigations the project could ship: (a) keep a `"."` exports entry that re-exports a deprecation tombstone whose error message says "use `@prisma-next/mongo/bson` for BSON value constructors" (intentionally non-tree-shaking-friendly, accept the cost for one cycle); (b) ship an ESLint / biome rule that catches `from '@prisma-next/mongo'` and suggests `/bson`; (c) accept the cost and leave the diagnostic as-is (documented in the migration READMEs). The PR's mongo README already names `/bson` as the migration path, so a smart user reaches the right answer; the runner judges this is meaningfully better than nothing and the gap is non-blocking.
+**Notes:** Diagnostic-copy quality. Mitigations the project could ship: (a) keep a `"."` exports entry that re-exports a deprecation tombstone whose error message says "use `@internal/mongo/bson` for BSON value constructors" (intentionally non-tree-shaking-friendly, accept the cost for one cycle); (b) ship an ESLint / biome rule that catches `from '@internal/mongo'` and suggests `/bson`; (c) accept the cost and leave the diagnostic as-is (documented in the migration READMEs). The PR's mongo README already names `/bson` as the migration path, so a smart user reaches the right answer; the runner judges this is meaningfully better than nothing and the gap is non-blocking.
 
 ### F-4 — 📝 Follow-up — Script's expected migration path doesn't match what the demo emits
 
@@ -116,7 +116,7 @@ ERR: No "exports" main defined in /…/examples/mongo-demo/node_modules/@prisma-
 
 **Expected (per script):** `migrations/<timestamp>_qa-initial/migration.ts` (no `app/`; dash separator).
 
-**Notes:** The substantive oracle — what the rendered `migration.ts` imports from — passed cleanly in both scenarios (only `@prisma-next/sqlite/migration` for S1, only `@prisma-next/postgres/migration` for S2). This finding is purely about the script's wayfinding text; an unsophisticated runner could waste minutes hunting for the wrong path. File against `drive-qa-plan` to update for the next QA round; the underlying behaviour is correct.
+**Notes:** The substantive oracle — what the rendered `migration.ts` imports from — passed cleanly in both scenarios (only `@internal/sqlite/migration` for S1, only `@internal/postgres/migration` for S2). This finding is purely about the script's wayfinding text; an unsophisticated runner could waste minutes hunting for the wrong path. File against `drive-qa-plan` to update for the next QA round; the underlying behaviour is correct.
 
 ### F-5 — 📝 Follow-up — Scenario 3's tmpdir-with-`link:` setup is awkward; runner used example workspace instead
 
@@ -140,24 +140,24 @@ ERR: No "exports" main defined in /…/examples/mongo-demo/node_modules/@prisma-
 
 **Expected (per script):** The scratch contract reproduces the documented inference collapse (so the runner can confirm the in-tree workaround is honest about a real symptom).
 
-**Notes:** The in-tree workaround-comment evidence is still sound: both files (`test/integration/test/mongo/{fixtures/contract.ts,..-runtime/query-builder.test.ts}`) carry TML-2633-naming comments matching the symptoms above, and both still import from `@prisma-next/mongo-contract-ts/contract-builder` (the verbose form). AC-7 (documented carve-out) is genuinely covered by those static reads. File against `drive-qa-plan` to either (a) rewrite scenario 4's scratch to mirror one of the actual symptom shapes (discriminated union with embedded relations, or a `mongoQuery<typeof contract>` chain), or (b) drop the scratch probe and restrict scenario 4 to the in-tree-comment static read.
+**Notes:** The in-tree workaround-comment evidence is still sound: both files (`test/integration/test/mongo/{fixtures/contract.ts,..-runtime/query-builder.test.ts}`) carry TML-2633-naming comments matching the symptoms above, and both still import from `@internal/mongo-contract-ts/contract-builder` (the verbose form). AC-7 (documented carve-out) is genuinely covered by those static reads. File against `drive-qa-plan` to either (a) rewrite scenario 4's scratch to mirror one of the actual symptom shapes (discriminated union with embedded relations, or a `mongoQuery<typeof contract>` chain), or (b) drop the scratch probe and restrict scenario 4 to the in-tree-comment static read.
 
-### F-7 — 📝 Follow-up — SQLite demo imports column-types from `@prisma-next/adapter-sqlite`, which skill cluster forbids
+### F-7 — 📝 Follow-up — SQLite demo imports column-types from `@internal/adapter-sqlite`, which skill cluster forbids
 
 **Scenario:** 1 — Author a fresh SQLite migration via the façade
 **Step:** Step 2 (read façade-form sources)
-**Oracle:** `skills/prisma-next-contract/SKILL.md` line 45: "Never reach into `@prisma-next/cli/*`, `@prisma-next/family-*`, `@prisma-next/target-*`, `@prisma-next/adapter-*`, `@prisma-next/driver-*`, or `@prisma-next/sql-contract-*` from user code."
+**Oracle:** `skills/prisma-next-contract/SKILL.md` line 45: "Never reach into `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` from user code."
 
 **Observed:** `examples/prisma-next-demo-sqlite/prisma/contract.ts` opens with:
 ```ts
-import { datetimeColumn, textColumn } from '@prisma-next/adapter-sqlite/column-types';
-import { defineContract, rel } from '@prisma-next/sqlite/contract-builder';
+import { datetimeColumn, textColumn } from '@internal/adapter-sqlite/column-types';
+import { defineContract, rel } from '@internal/sqlite/contract-builder';
 ```
-The first import is from `@prisma-next/adapter-sqlite/*`, an internal-package subpath that skill-cluster prose tells users they should not reach into.
+The first import is from `@internal/adapter-sqlite/*`, an internal-package subpath that skill-cluster prose tells users they should not reach into.
 
 **Expected (per script):** The script's Oracle for S1 explicitly says "Exactly one Prisma Next import in `prisma-next.config.ts`" — and lists `defineContract, rel` from the façade for contract.ts. The script doesn't speak to whether `contract.ts` should also need an `adapter-sqlite` import.
 
-**Notes:** Two possible resolutions: (a) re-export the SQLite column-type primitives from `@prisma-next/sqlite/contract-builder` (or a new `@prisma-next/sqlite/column-types` subpath) so user-authored `contract.ts` files stay strictly on the façade; (b) update the skill rule to exempt column-types specifically. The same `adapter-sqlite/column-types` import pattern is used in `test/e2e/framework/test/sqlite/fixtures/contract.ts`, so any fix has multiple consumers. Note this is an end-user surface gap that TML-2526 partially closes (`/contract-builder` lands on the façade, but adapter-`column-types` remains internal).
+**Notes:** Two possible resolutions: (a) re-export the SQLite column-type primitives from `@internal/sqlite/contract-builder` (or a new `@internal/sqlite/column-types` subpath) so user-authored `contract.ts` files stay strictly on the façade; (b) update the skill rule to exempt column-types specifically. The same `adapter-sqlite/column-types` import pattern is used in `test/e2e/framework/test/sqlite/fixtures/contract.ts`, so any fix has multiple consumers. Note this is an end-user surface gap that TML-2526 partially closes (`/contract-builder` lands on the façade, but adapter-`column-types` remains internal).
 
 ### F-8 — 📝 Follow-up — `workspace`-isolation worktree setup needs `pnpm install && pnpm build && pnpm install` cycle
 
@@ -165,7 +165,7 @@ The first import is from `@prisma-next/adapter-sqlite/*`, an internal-package su
 **Step:** Setup (before each scenario's Steps)
 **Oracle:** Script-reproducibility — the runner can stand up a `workspace` worktree without improvisation.
 
-**Observed:** After `git worktree add --detach $PN_QA_WORKTREES/scenario-1 HEAD`, running `pnpm install --frozen-lockfile` succeeds but emits `WARN  Failed to create bin at .../node_modules/.bin/prisma-next. ENOENT: no such file or directory, open '.../@prisma-next/cli/dist/cli.js'`. The CLI's bin link isn't created because `cli/dist/cli.js` doesn't exist yet at install-time. Running `pnpm build` then populates `cli/dist/`. But `pnpm exec prisma-next` still fails (`Command "prisma-next" not found`) until a **second** `pnpm install` is run to recreate the bin links now that `cli.js` exists.
+**Observed:** After `git worktree add --detach $PN_QA_WORKTREES/scenario-1 HEAD`, running `pnpm install --frozen-lockfile` succeeds but emits `WARN  Failed to create bin at .../node_modules/.bin/prisma-next. ENOENT: no such file or directory, open '.../@internal/cli/dist/cli.js'`. The CLI's bin link isn't created because `cli/dist/cli.js` doesn't exist yet at install-time. Running `pnpm build` then populates `cli/dist/`. But `pnpm exec prisma-next` still fails (`Command "prisma-next" not found`) until a **second** `pnpm install` is run to recreate the bin links now that `cli.js` exists.
 
 **Expected (per script):** A single `pnpm install` is enough to set up the worktree, per the manual-qa.md pre-flight step 3 (`pnpm install --frozen-lockfile` exits 0).
 
@@ -179,7 +179,7 @@ The first import is from `@prisma-next/adapter-sqlite/*`, an internal-package su
 
 **Observed:** Naïve probe based on existing demo patterns:
 ```ts
-import { defineContract } from '@prisma-next/postgres/contract-builder';
+import { defineContract } from '@internal/postgres/contract-builder';
 defineContract({ capabilities: {…} }, ({ field, model, enumType }) => {
   const Status = enumType('Status', ['active', 'inactive', 'pending']);
   const User = model('User', { fields: { id: field.id.uuidv4(), status: field.enum(Status) } });
@@ -192,7 +192,7 @@ qa-explore/postgres-enum.ts(15,20): error TS2339: Property 'enumType' does not e
 qa-explore/postgres-enum.ts(21,23): error TS2339: Property 'enum' does not exist on type 'CoreFieldHelpers & FieldHelpersFromNamespace<…>'.
 ```
 
-**Notes:** This may be intentional — postgres enums may live behind PSL only, or behind a different surface (a separate import from `@prisma-next/postgres/contract-builder`, an extension pack, etc.). I didn't search exhaustively. But the natural ergonomic path doesn't surface a discoverable option to the developer; a real user reaching for "how do I declare an enum?" gets the TS2339 wall. Worth a docs sweep or a façade-side ergonomic addition. AC-4 explicitly carves out: "Each façade's `/contract-builder` pre-binds `family` + `target`; inference preserved for **postgres + sqlite**" — the enum entry point may be out of TML-2526's explicit scope but it's adjacent and obviously something the next round of work will surface.
+**Notes:** This may be intentional — postgres enums may live behind PSL only, or behind a different surface (a separate import from `@internal/postgres/contract-builder`, an extension pack, etc.). I didn't search exhaustively. But the natural ergonomic path doesn't surface a discoverable option to the developer; a real user reaching for "how do I declare an enum?" gets the TS2339 wall. Worth a docs sweep or a façade-side ergonomic addition. AC-4 explicitly carves out: "Each façade's `/contract-builder` pre-binds `family` + `target`; inference preserved for **postgres + sqlite**" — the enum entry point may be out of TML-2526's explicit scope but it's adjacent and obviously something the next round of work will surface.
 
 ## Per-scenario log
 
@@ -220,7 +220,7 @@ Total wallclock: ~28 minutes (excluding the brief shell-session hang at the star
 
 **What surprised me:**
 - Tree-shaking (S6) is *extremely* clean — the bundle is 298 bytes containing literally `import {…} from 'mongodb'; console.log(new ObjectId().toString());`. The `/bson` subpath is doing the bare-minimum-shim job perfectly. This is a strong positive signal for AC-8.
-- Scenario 2's rendered `migrations/.../end-contract.d.ts` (the sibling type-only file, not `migration.ts`) imports many types from `@prisma-next/target-postgres/codec-types`. The script's oracle is about `migration.ts` specifically (which is clean) — but a strict reading of "users see only façade specifiers in their checked-in migration files" would also catch `end-contract.d.ts`. Not filed as a finding because the script's oracle is narrower; flagged here for awareness.
+- Scenario 2's rendered `migrations/.../end-contract.d.ts` (the sibling type-only file, not `migration.ts`) imports many types from `@internal/target-postgres/codec-types`. The script's oracle is about `migration.ts` specifically (which is clean) — but a strict reading of "users see only façade specifiers in their checked-in migration files" would also catch `end-contract.d.ts`. Not filed as a finding because the script's oracle is narrower; flagged here for awareness.
 - Workspace-worktree setup is noisier than the script implies (F-8 captures this).
 
 **What "felt off" but I couldn't name:** The mongo bare-import diagnostic ("No `exports` main defined") is technically correct but reads like a system error, not a migration hint. F-3 captures the surface. Diagnostic-copy ergonomics across the façade subpath surfaces is a thread worth pulling on; this round only had time to look at the mongo bare-import case.
@@ -231,11 +231,11 @@ Each AC inherits its worst-severity finding from any covering scenario. Pre-flig
 
 | AC ID | Scenario(s) | Result | Notes |
 | ----- | ----------- | ------ | ----- |
-| AC-1 — `@prisma-next/postgres/migration` re-exports + renderer flip | 2, 5, 7 | ✅ pass | Rendered `migration.ts` imports only from `@prisma-next/postgres/migration`. |
-| AC-2 — `@prisma-next/sqlite` full surface parity + renderer flip | 1, 7 | ✅ pass (with 📝 F-7) | Rendered `migration.ts` imports only from `@prisma-next/sqlite/migration`. F-7 surfaces an adjacent column-types gap. |
-| AC-3 — `@prisma-next/mongo` `/control` + `/bson` + widened `/config` | 3, 6, 7 | ✅ pass | `/bson` subpath resolves and tree-shakes cleanly. |
+| AC-1 — `@internal/postgres/migration` re-exports + renderer flip | 2, 5, 7 | ✅ pass | Rendered `migration.ts` imports only from `@internal/postgres/migration`. |
+| AC-2 — `@internal/sqlite` full surface parity + renderer flip | 1, 7 | ✅ pass (with 📝 F-7) | Rendered `migration.ts` imports only from `@internal/sqlite/migration`. F-7 surfaces an adjacent column-types gap. |
+| AC-3 — `@internal/mongo` `/control` + `/bson` + widened `/config` | 3, 6, 7 | ✅ pass | `/bson` subpath resolves and tree-shakes cleanly. |
 | AC-4 — Each façade's `/contract-builder` pre-binds family + target; postgres + sqlite inference preserved | 1, 2, 7, 8 | ✅ pass (with 📝 F-9) | S1 + S2 confirm typechecks of demo contract.ts. F-9 surfaces a postgres-enum ergonomic gap (likely out of TML-2526 scope). |
-| AC-5 — Breaking change: `@prisma-next/mongo` `.` barrel is gone | 3 | ✅ pass (with 📝 F-3) | Bare import rejects (TS + Node runtime). F-3 surfaces diagnostic copy quality. |
+| AC-5 — Breaking change: `@internal/mongo` `.` barrel is gone | 3 | ✅ pass (with 📝 F-3) | Bare import rejects (TS + Node runtime). F-3 surfaces diagnostic copy quality. |
 | AC-6 — Backwards-compat: existing rendered migrations on `target-*/migration` continue to work | 5 | ✅ pass | `examples/prisma-next-demo` typechecks; `pnpm prisma-next migration list/check` both happy. |
 | AC-7 — Mongo wrap regression carve-out (TML-2633) documented + matching symptom | 4, 7 | ✅ pass (with 📝 F-6) | In-tree comments name TML-2633 + describe symptom. F-6 surfaces scratch-contract mis-fit. |
 | AC-8 — Tree-shaking: façade subpaths are independent entrypoints | 6 | ✅ pass | esbuild bundle of `ObjectId`-only consumer is 298 bytes; only `bson.mjs` pulled in. |
@@ -244,13 +244,13 @@ Each AC inherits its worst-severity finding from any covering scenario. Pre-flig
 
 | Finding | Severity | Proposed disposition | Evidence / next step |
 | ------- | -------- | -------------------- | -------------------- |
-| F-1 | ⚠️ High | 🔧 fix-in-PR | Add `"@prisma-next/sqlite": "workspace:0.9.0"` to `test/e2e/framework/package.json` dependencies; re-run `pnpm typecheck` to confirm green. Trivial edit. May surface secondary `sqlFamilyPack` / `sqlitePack` cleanups in `harness.ts` (lines 38 of that file) that are remnants of the migration. |
+| F-1 | ⚠️ High | 🔧 fix-in-PR | Add `"@internal/sqlite": "workspace:0.9.0"` to `test/e2e/framework/package.json` dependencies; re-run `pnpm typecheck` to confirm green. Trivial edit. May surface secondary `sqlFamilyPack` / `sqlitePack` cleanups in `harness.ts` (lines 38 of that file) that are remnants of the migration. |
 | F-2 | ⚠️ High | 🔧 fix-in-PR | `packages/3-extensions/sql-orm-client/package.json`: change `cd ../../../../test/integration` → `cd ../../../test/integration` in the `emit` script and adjust the `cp` source/dest paths to match the corrected base. Re-run `pnpm fixtures:check` to confirm green. Compare with the (working) `packages/2-sql/4-lanes/sql-builder/package.json` emit script for reference. |
 | F-3 | 📝 Follow-up | 🎫 ticket | Track as a diagnostic-copy ergonomics ticket (subject: "mongo bare import diagnostic should hint at `/bson`"). Owner: framework team. The PR's README guidance already names `/bson`, so this is gap-filling, not load-bearing. |
 | F-4 | 📝 Follow-up | 🎫 ticket | Track against `drive-qa-plan`: update scenario 1/2 "What you should see" path to reflect the `migrations/app/<timestamp>_<name>` rendering pattern (with underscore separator) used by the demos. |
 | F-5 | 📝 Follow-up | 🎫 ticket | Track against `drive-qa-plan`: document the "use an example workspace's `node_modules` as resolution root for tmpdir-scratch probes" route as the canonical workaround for the `link:`-tmpdir setup difficulty. |
 | F-6 | 📝 Follow-up | 🎫 ticket | Track against `drive-qa-plan`: rewrite scenario 4's scratch to use a discriminated-union-with-embedded-relations shape OR drop the scratch probe and restrict scenario 4 to the static read of in-tree comments + verbose-form imports. |
-| F-7 | 📝 Follow-up | 🎫 ticket | Track as a façade-surface adjacency ticket: decide whether `@prisma-next/sqlite/contract-builder` (or a new `/column-types` subpath) should re-export `datetimeColumn`/`textColumn`/etc., or whether the skill rule needs an exemption. End-user surface gap; non-blocking. |
+| F-7 | 📝 Follow-up | 🎫 ticket | Track as a façade-surface adjacency ticket: decide whether `@internal/sqlite/contract-builder` (or a new `/column-types` subpath) should re-export `datetimeColumn`/`textColumn`/etc., or whether the skill rule needs an exemption. End-user surface gap; non-blocking. |
 | F-8 | 📝 Follow-up | 🎫 ticket | Track against `drive-qa-plan`: document the `pnpm install && pnpm build && pnpm install` cycle (or an equivalent workaround) as part of `workspace`-isolation setup. |
 | F-9 | 📝 Follow-up | 🎫 ticket | Track as a postgres-enum ergonomics ticket (subject: "postgres TS contract-builder: where do enums go?"). Likely out of TML-2526's scope but adjacent; the next "façade ergonomics" round should pick it up. |
 
@@ -258,9 +258,9 @@ Verdict policy: F-1 and F-2 carry 🔧 fix-in-PR. Per `drive-qa-run § The repor
 
 ## Suggested follow-ups
 
-- **F-1 / 🔧 fix-in-PR** — Add `@prisma-next/sqlite` workspace dep to `test/e2e/framework/package.json`. Inspect `harness.ts:38` for cleanups left over from the `308873659` façade-migration commit (`sqlFamilyPack` / `sqlitePack` references that should have been removed when the file flipped to the façade form).
-- **F-2 / 🔧 fix-in-PR** — Fix the `sql-orm-client` emit script's relative path. Adjacent worth-checking: do the same patterns work for `@prisma-next/sql-builder`'s emit script (its depth is correct, but worth a sanity check), and is the root `package.json`'s `@prisma-next/e2e-sqlite-tests` filter a typo for an existing pkg name or a stale reference?
-- **F-3 / 🎫 ticket** — File a "diagnostic copy quality on bare `@prisma-next/mongo` import" ticket. The PR's README points the user at `/bson`; close the loop in the error envelope too.
+- **F-1 / 🔧 fix-in-PR** — Add `@internal/sqlite` workspace dep to `test/e2e/framework/package.json`. Inspect `harness.ts:38` for cleanups left over from the `308873659` façade-migration commit (`sqlFamilyPack` / `sqlitePack` references that should have been removed when the file flipped to the façade form).
+- **F-2 / 🔧 fix-in-PR** — Fix the `sql-orm-client` emit script's relative path. Adjacent worth-checking: do the same patterns work for `@internal/sql-builder`'s emit script (its depth is correct, but worth a sanity check), and is the root `package.json`'s `@internal/e2e-sqlite-tests` filter a typo for an existing pkg name or a stale reference?
+- **F-3 / 🎫 ticket** — File a "diagnostic copy quality on bare `@internal/mongo` import" ticket. The PR's README points the user at `/bson`; close the loop in the error envelope too.
 - **F-4 / 🎫 ticket** against `drive-qa-plan` — Refresh the "What you should see" path text in scenarios 1 and 2 of `manual-qa.md` to match the demos' actual rendering pattern (`migrations/app/<timestamp>_qa_initial`).
 - **F-5 / 🎫 ticket** against `drive-qa-plan` — Document the "TS probe inside an existing example workspace" route as the canonical S3 setup; the `link:`-tmpdir route is awkward in practice.
 - **F-6 / 🎫 ticket** against `drive-qa-plan` — Rewrite S4's scratch to actually reproduce the documented inference collapse, or drop the scratch in favour of a static in-tree-comment read.

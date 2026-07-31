@@ -110,7 +110,7 @@ collapse.
 <!--
 TML-2891 (eliminate the SQL family placeholder namespace): app authors who build
 contracts through the public facades / target `defineContract` wrappers
-(`@prisma-next/postgres`, `@prisma-next/sqlite`) are unaffected — those wrappers
+(`@internal/postgres`, `@internal/sqlite`) are unaffected — those wrappers
 supply the now-required `createNamespace` factory, so no app-author code changes.
 The only `examples/` diff is regenerated migration `end-contract.d.ts` snapshots
 whose SQL namespace `kind` changed from `'sql-namespace'` to `'postgres-schema'`;
@@ -221,7 +221,7 @@ No user action — a re-emit picks up the new contract shape.
 <!--
 Exercise Mongo enums in retail-store (this PR): the retail-store example replaces
 order-type string literals with typed enum accessors via `buildNamespacedEnums` from
-`@prisma-next/contract/enum-accessor`. The `MongoClient` facade also gains a direct
+`@internal/contract/enum-accessor`. The `MongoClient` facade also gains a direct
 `db.execute(plan)` method and a `db.raw` property (both additive). None of these
 changes affect the emitted contract shape; a re-emit picks them up automatically.
 No user action required. Incidental substrate diff only.
@@ -242,7 +242,7 @@ on the previous un-decoded values would now observe decoded ones. Incidental to 
 
 <!--
 TML-2955 (expose the static ExecutionContext symmetrically): additive client-safe
-static surface. New `@prisma-next/{mongo,postgres,sqlite}/static` entrypoints export
+static surface. New `@internal/{mongo,postgres,sqlite}/static` entrypoints export
 `<target>Static({ contractJson })`, returning the driver-free `ExecutionContext`
 plus derived `enums` / query builder / `raw` / `contract`; the facades also expose
 `db.context` (Mongo now typed `MongoExecutionContext<TContract>`) and `db.contract`.

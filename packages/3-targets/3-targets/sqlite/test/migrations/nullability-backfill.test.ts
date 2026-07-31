@@ -1,10 +1,10 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, type StorageColumn, type StorageTable } from '@prisma-next/sql-contract/types';
-import { SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, type StorageColumn, type StorageTable } from '@internal/sql-contract/types';
+import { SqlTableIR } from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';

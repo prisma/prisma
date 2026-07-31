@@ -1,10 +1,10 @@
-import type { AuthoringFieldNamespace } from '@prisma-next/framework-components/authoring';
+import type { AuthoringFieldNamespace } from '@internal/framework-components/authoring';
 
 /**
  * Family-level SQL authoring field presets.
  *
  * Only presets whose codec IDs align with the ID generator metadata live here
- * (see `@prisma-next/ids`). These presets are target-agnostic because the
+ * (see `@internal/ids`). These presets are target-agnostic because the
  * generator metadata fixes their codec/native-type to `sql/char@1`
  * (`character`) regardless of target, and the PSL interpreter lets the
  * generator override the scalar descriptor.
@@ -12,11 +12,11 @@ import type { AuthoringFieldNamespace } from '@prisma-next/framework-components/
  * The `uuidString` / `id.uuidv4String` / `id.uuidv7String` presets store UUID
  * values as `character(36)` — portable across all SQL targets. For a native
  * Postgres `uuid` column use `uuidNative` / `id.uuidv4Native` /
- * `id.uuidv7Native` from `@prisma-next/target-postgres`.
+ * `id.uuidv7Native` from `@internal/target-postgres`.
  *
  * Scalar presets that map to target-specific codecs (e.g. `text`, `int`,
  * `boolean`, `dateTime`) are contributed by the target pack (see
- * `postgresAuthoringFieldPresets` in `@prisma-next/target-postgres`) so the
+ * `postgresAuthoringFieldPresets` in `@internal/target-postgres`) so the
  * TS callback surface and the PSL scalar surface lower to byte-identical
  * contracts for the active target.
  */

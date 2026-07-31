@@ -85,33 +85,33 @@ See [`architecture.config.json`](./architecture.config.json) for the complete do
 
 ### Framework Domain (Target-Agnostic)
 
-- **`@prisma-next/contract`** — Core contract types (`ContractBase`, `Source`)
-- **`@prisma-next/operations`** — Target-neutral operation registry and capability helpers
-- **`@prisma-next/contract-authoring`** — Shared authored storage descriptor types
-- **`@prisma-next/cli`** — CLI tooling for contract emission
-- **`@prisma-next/emitter`** — Contract emission engine
-- **`@prisma-next/runtime-executor`** — Target-agnostic execution engine (verification, plugin lifecycle, telemetry)
+- **`@internal/contract`** — Core contract types (`ContractBase`, `Source`)
+- **`@internal/operations`** — Target-neutral operation registry and capability helpers
+- **`@internal/contract-authoring`** — Shared authored storage descriptor types
+- **`@internal/cli`** — CLI tooling for contract emission
+- **`@internal/emitter`** — Contract emission engine
+- **`@internal/runtime-executor`** — Target-agnostic execution engine (verification, plugin lifecycle, telemetry)
 
 ### SQL Family Domain
 
-- **`@prisma-next/sql-contract-ts`** — SQL-specific TypeScript contract authoring surface
-- **`@prisma-next/sql-contract`** — SQL-specific contract types (`SqlContract`, `SqlStorage`, `SqlModelStorage`)
-- **`@prisma-next/sql-operations`** — SQL-specific operation definitions and assembly
-- **`@prisma-next/sql-contract-emitter`** — SQL emitter hook implementation
-- **`@prisma-next/sql-relational-core`** — Schema and column builders, operation attachment, and AST types
-- **`@prisma-next/sql-lane`** — Relational DSL and raw SQL helpers
-- **`@prisma-next/sql-lane-query-builder`** — Query builder lane
-- **`@prisma-next/sql-runtime`** — SQL family runtime that composes runtime-executor with SQL adapters
-- **`@prisma-next/adapter-postgres`** — Postgres adapter implementation
-- **`@prisma-next/driver-postgres`** — Postgres driver (low-level connection)
+- **`@internal/sql-contract-ts`** — SQL-specific TypeScript contract authoring surface
+- **`@internal/sql-contract`** — SQL-specific contract types (`SqlContract`, `SqlStorage`, `SqlModelStorage`)
+- **`@internal/sql-operations`** — SQL-specific operation definitions and assembly
+- **`@internal/sql-contract-emitter`** — SQL emitter hook implementation
+- **`@internal/sql-relational-core`** — Schema and column builders, operation attachment, and AST types
+- **`@internal/sql-lane`** — Relational DSL and raw SQL helpers
+- **`@internal/sql-lane-query-builder`** — Query builder lane
+- **`@internal/sql-runtime`** — SQL family runtime that composes runtime-executor with SQL adapters
+- **`@internal/adapter-postgres`** — Postgres adapter implementation
+- **`@internal/driver-postgres`** — Postgres driver (low-level connection)
 
 ### Targets
 
-- **`@prisma-next/postgres`** — Postgres target package (one-liner client entry point)
+- **`@internal/postgres`** — Postgres target package (one-liner client entry point)
 
 ### Extensions
 
-- **`@prisma-next/pgvector`** — pgvector extension pack for vector similarity search
+- **`@internal/pgvector`** — pgvector extension pack for vector similarity search
 
 ## Agent-Accessible Design
 

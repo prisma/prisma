@@ -4,15 +4,15 @@ import {
   type Contract,
   profileHash,
   type StorageHashBase,
-} from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   CheckConstraint,
   SqlStorage,
   type StorageColumn,
   type StorageTable,
   StorageValueSet,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import {
   PrimaryKey,
   SqlCheckConstraintIR,
@@ -21,7 +21,7 @@ import {
   SqlIndexIR,
   SqlSchemaIR,
   SqlUniqueIR,
-} from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';

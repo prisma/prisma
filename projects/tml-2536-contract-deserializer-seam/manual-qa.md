@@ -690,7 +690,7 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 **Coverage boundary.** This scenario uses `packages/3-extensions/pgvector/` as the substrate stand-in for a real third-party extension package. It does **not** prove the codemod handles every extension's seed-migration layout, every shape of source-level `SqlStorage` construction, or every test fixture an extension might carry. The structural invariants live in the source-rule list itself; this scenario proves the rules read coherently against a representative real extension and that following them produces a working build.
 
-**Oracle:** after applying the codemod + source rules to the pgvector extension, `pnpm --filter @prisma-next/extension-pgvector typecheck && pnpm --filter @prisma-next/extension-pgvector test` should pass. If the source rules are incomplete (e.g. miss a construction shape the extension uses), one of these gates fails with a `SqlStorage` constructor diagnostic that names the offending entry — that's the structural falsifier.
+**Oracle:** after applying the codemod + source rules to the pgvector extension, `pnpm --filter @internal/extension-pgvector typecheck && pnpm --filter @internal/extension-pgvector test` should pass. If the source rules are incomplete (e.g. miss a construction shape the extension uses), one of these gates fails with a `SqlStorage` constructor diagnostic that names the offending entry — that's the structural falsifier.
 
 **Preconditions:**
 - Pre-flight complete.
@@ -716,8 +716,8 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 3. Confirm pgvector's tests are green on the current branch as the baseline:
    ```bash
-   pnpm --filter @prisma-next/extension-pgvector typecheck 2>&1 | tail -5
-   pnpm --filter @prisma-next/extension-pgvector test 2>&1 | tail -5
+   pnpm --filter @internal/extension-pgvector typecheck 2>&1 | tail -5
+   pnpm --filter @internal/extension-pgvector test 2>&1 | tail -5
    ```
    Both should pass. If they don't, stop — this scenario can't isolate the upgrade-skill's effects, and the failure is a baseline issue worth surfacing separately.
 
@@ -735,7 +735,7 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 5. Source-rule audit: open each file from step 1 and confirm none of them carry the pre-strict shape (untagged `{ codecId, nativeType, typeParams }` literals or naked `{ codecId: 'pg/enum@1', ... }` enum literals). If any do, the source-rule guidance must produce a clear fix for that file's shape.
 
-6. (Optional structural falsifier — only if you have time.) Plant a deliberate violation in pgvector's source (e.g. add a test fixture that constructs `SqlStorage` with an untagged codec triple), run `pnpm --filter @prisma-next/extension-pgvector test`, and confirm the `SqlStorage` constructor's diagnostic fires with the entry name and the `toStorageTypeInstance(...)` recommendation. Restore the planted change before moving on:
+6. (Optional structural falsifier — only if you have time.) Plant a deliberate violation in pgvector's source (e.g. add a test fixture that constructs `SqlStorage` with an untagged codec triple), run `pnpm --filter @internal/extension-pgvector test`, and confirm the `SqlStorage` constructor's diagnostic fires with the entry name and the `toStorageTypeInstance(...)` recommendation. Restore the planted change before moving on:
    ```bash
    git diff packages/3-extensions/pgvector | head -50   # review the plant
    # run the test, observe failure

@@ -23,7 +23,7 @@ This skill exists to disambiguate vague Prisma Next prompts. When the user hasn'
   - Authoring a migration, fixing a planner error → `prisma-next-migrations`.
   - Reviewing what's about to run on merge, handling concurrent migrations → `prisma-next-migration-review`.
   - Writing a query → `prisma-next-queries`.
-  - Supabase — RLS policies, role binding (`asUser` / `asAnon` / `asServiceRole`), `auth.users` FKs, `@prisma-next/extension-supabase` → `prisma-next-supabase`.
+  - Supabase — RLS policies, role binding (`asUser` / `asAnon` / `asServiceRole`), `auth.users` FKs, `@internal/extension-supabase` → `prisma-next-supabase`.
   - Wiring `db.ts`, middleware, environment config → `prisma-next-runtime`.
   - Build-system / dev-server plugin (Vite, Next.js, …) → `prisma-next-build`.
   - A specific error code or symptom → `prisma-next-debug`.

@@ -1,5 +1,5 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type { QueryPlan, ResultType } from '@prisma-next/framework-components/runtime';
+import type { PlanMeta } from '@internal/contract/types';
+import type { QueryPlan, ResultType } from '@internal/framework-components/runtime';
 import { assertType, expectTypeOf, test } from 'vitest';
 import { InsertOneCommand } from '../src/commands';
 import type { MongoQueryPlan } from '../src/query-plan';

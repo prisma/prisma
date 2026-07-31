@@ -1,7 +1,7 @@
 /**
  * Walking skeleton integration test — external-contract migrate/verify + public round-trip.
  *
- * Proves the core claim of `@prisma-next/extension-supabase`:
+ * Proves the core claim of `@internal/extension-supabase`:
  *
  *   When a composed contract declares `extensions: [supabasePack]`, the
  *   framework treats the Supabase `auth.*` and `storage.*` tables as
@@ -40,16 +40,16 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { createControlClient } from '@prisma-next/cli/control-api';
-import { coreHash, UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgres from '@prisma-next/target-postgres/control';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { PostgresRole, PostgresSchema } from '@prisma-next/target-postgres/types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import { createControlClient } from '@internal/cli/control-api';
+import { coreHash, UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql from '@internal/family-sql/control';
+import { emitContractSpaceArtifacts } from '@internal/migration-tools/spaces';
+import { SqlStorage } from '@internal/sql-contract/types';
+import postgres from '@internal/target-postgres/control';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { PostgresRole, PostgresSchema } from '@internal/target-postgres/types';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import supabasePack from '../src/exports/pack';

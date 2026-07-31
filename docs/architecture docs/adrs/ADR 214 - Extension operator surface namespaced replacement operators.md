@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. The namespaced-replacement-operator pattern landed with the initial `@prisma-next/extension-cipherstash` release alongside the original `cipherstashEq` / `cipherstashIlike` surface, and was extended with the predicate/helper split when the encrypted-codec catalogue grew to cover numbers, dates, booleans, and JSON ([TML-2375](https://linear.app/prisma-company/issue/TML-2375)). This ADR records both decisions in one place; the cipherstash extension is the canonical worked example.
+Accepted. The namespaced-replacement-operator pattern landed with the initial `@internal/extension-cipherstash` release alongside the original `cipherstashEq` / `cipherstashIlike` surface, and was extended with the predicate/helper split when the encrypted-codec catalogue grew to cover numbers, dates, booleans, and JSON ([TML-2375](https://linear.app/prisma-company/issue/TML-2375)). This ADR records both decisions in one place; the cipherstash extension is the canonical worked example.
 
 ## At a glance
 
@@ -135,7 +135,7 @@ Adding a new codec id to the tuple without a matching dispatch-table entry becom
 
 ## Worked example — cipherstash
 
-The cipherstash extension is the canonical worked example for this ADR. Both halves of Part B (predicate vs free-standing helper) ship in `@prisma-next/extension-cipherstash`:
+The cipherstash extension is the canonical worked example for this ADR. Both halves of Part B (predicate vs free-standing helper) ship in `@internal/extension-cipherstash`:
 
 ```ts
 import {
@@ -143,7 +143,7 @@ import {
   cipherstashDesc,
   cipherstashJsonbPathQueryFirst,
   cipherstashJsonbGet,
-} from '@prisma-next/extension-cipherstash/runtime';
+} from '@internal/extension-cipherstash/runtime';
 
 // Predicate operators — column-method surface, registry-dispatched
 const customers = await db.orm.User

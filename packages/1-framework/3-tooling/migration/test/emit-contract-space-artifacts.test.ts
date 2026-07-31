@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { contractSnapshotDir } from '../src/contract-snapshot-store';

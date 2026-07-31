@@ -1,10 +1,10 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';
@@ -179,7 +179,7 @@ describe('SqliteMigrationPlanner authoring surface', () => {
 
       if (result.kind !== 'success') throw new Error('expected success');
       const source = result.plan.renderTypeScript(keepInternalSpecifiers);
-      expect(source).toContain("from '@prisma-next/sqlite/migration'");
+      expect(source).toContain("from '@internal/sqlite/migration'");
       expect(source).toMatch(/\bMigration\b/);
       // New shape: base derives describe() from the imported contract JSON, so
       // the scaffold carries `Migration<Start, End>` + the JSON/field imports
@@ -225,7 +225,7 @@ describe('SqliteMigrationPlanner authoring surface', () => {
       );
 
       const source = empty.renderTypeScript(keepInternalSpecifiers);
-      expect(source).toContain("from '@prisma-next/sqlite/migration'");
+      expect(source).toContain("from '@internal/sqlite/migration'");
       // New shape: base derives from/to; scaffold imports the contract JSON
       // rather than embedding hash literals or a describe() method.
       expect(source).toContain('export default class M extends Migration<Start, End>');

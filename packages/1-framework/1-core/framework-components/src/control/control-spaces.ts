@@ -1,4 +1,4 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type { MigrationMetadata, MigrationPlanOperation } from './control-migration-types';
 
 /**
@@ -42,9 +42,9 @@ export interface ContractSpaceHeadRef {
  * produces and a runner consumes: a directory name, the metadata
  * envelope, and the operation list.
  *
- * In-memory by default. Readers in `@prisma-next/migration-tools`
+ * In-memory by default. Readers in `@internal/migration-tools`
  * (`readMigrationPackage` / `readMigrationsDir`) return the augmented
- * {@link import('@prisma-next/migration-tools/package').OnDiskMigrationPackage}
+ * {@link import('@internal/migration-tools/package').OnDiskMigrationPackage}
  * variant which adds `dirPath`; everything else operates against the
  * canonical shape so the same value flows through pre-emission
  * authoring, on-disk loading, and runner execution without conversion.

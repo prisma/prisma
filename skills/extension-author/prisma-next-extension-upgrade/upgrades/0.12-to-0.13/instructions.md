@@ -4,12 +4,12 @@ to: "0.13"
 changes:
   - id: sqlite-create-table-method
     summary: |
-      SQLite migrations: `createTable` is no longer a free function exported from `@prisma-next/sqlite/migration`. It is now a protected method on the `Migration` base class. If your extension ships SQLite migration files, replace every free `createTable(...)` call with `this.createTable({ table: ..., columns: [...], constraints: [...] })`. If your extension's migration facade re-export test asserts `createTable` is defined, remove that assertion. The `col()`, `lit()`, `fn()`, `primaryKey()`, `foreignKey()`, and `unique()` builder helpers are now exported from `@prisma-next/sqlite/migration` directly.
+      SQLite migrations: `createTable` is no longer a free function exported from `@internal/sqlite/migration`. It is now a protected method on the `Migration` base class. If your extension ships SQLite migration files, replace every free `createTable(...)` call with `this.createTable({ table: ..., columns: [...], constraints: [...] })`. If your extension's migration facade re-export test asserts `createTable` is defined, remove that assertion. The `col()`, `lit()`, `fn()`, `primaryKey()`, `foreignKey()`, and `unique()` builder helpers are now exported from `@internal/sqlite/migration` directly.
     detection:
       glob: "**/migration.ts"
       contains:
         - "createTable"
-        - "@prisma-next/sqlite/migration"
+        - "@internal/sqlite/migration"
       anyMatch: false
   - id: regen-extension-contracts-strip-empty-type-params
     summary: |
@@ -25,7 +25,7 @@ changes:
       anyMatch: true
   - id: thread-namespace-id-through-codec-ref-resolver-spi
     summary: |
-      The codec-resolution SPI in `@prisma-next/sql-relational-core` now takes a leading, required `namespaceId` coordinate. The `CodecDescriptorRegistry.codecRefForColumn(table, column)` build-time helper — the one AST authors call to stamp `codec` onto every column-bound `ParamRef` / `ProjectionItem`, exported from `@prisma-next/sql-relational-core/query-lane-context` and `@prisma-next/sql-relational-core/codec-descriptor-registry` — is now `codecRefForColumn(namespaceId, table, column)`. The underlying free function `codecRefForStorageColumn(storage, table, column)` (exported from `@prisma-next/sql-relational-core/codec-descriptor-registry`) is now `codecRefForStorageColumn(storage, namespaceId, table, column)`. Extension authors who derive codec refs directly must thread the namespace the table sits in at every call site: pass the explicit `namespaceId` ahead of `table`. There is no codemod — the right namespace is call-site-specific (read it from the model/table you are building the ref for). Two same-bare-named tables in different namespaces now resolve to their own per-namespace columns/codecs instead of the first scan hit.
+      The codec-resolution SPI in `@internal/sql-relational-core` now takes a leading, required `namespaceId` coordinate. The `CodecDescriptorRegistry.codecRefForColumn(table, column)` build-time helper — the one AST authors call to stamp `codec` onto every column-bound `ParamRef` / `ProjectionItem`, exported from `@internal/sql-relational-core/query-lane-context` and `@internal/sql-relational-core/codec-descriptor-registry` — is now `codecRefForColumn(namespaceId, table, column)`. The underlying free function `codecRefForStorageColumn(storage, table, column)` (exported from `@internal/sql-relational-core/codec-descriptor-registry`) is now `codecRefForStorageColumn(storage, namespaceId, table, column)`. Extension authors who derive codec refs directly must thread the namespace the table sits in at every call site: pass the explicit `namespaceId` ahead of `table`. There is no codemod — the right namespace is call-site-specific (read it from the model/table you are building the ref for). Two same-bare-named tables in different namespaces now resolve to their own per-namespace columns/codecs instead of the first scan hit.
     detection:
       glob: "**/*.{ts,tsx}"
       contains:
@@ -47,7 +47,7 @@ changes:
 ---
 
 <!--
-TML-2843: @prisma-next/sqlite gained a facade-level transaction API
+TML-2843: @internal/sqlite gained a facade-level transaction API
 (`SqliteClient.transaction()` + `SqliteTransactionContext`), mirroring
 the existing Postgres facade. Purely additive public surface backed by
 the unchanged SQL runtime `withTransaction` helper; existing extension
@@ -73,7 +73,7 @@ contracts did not validate before this change, so no working extension
 constructs them, and existing 1:1 / 1:N / N:1 relation values match the
 non-junction variant unchanged. No codemod required.
 
-Bug fix in @prisma-next/sql-orm-client — `orderBy` on a
+Bug fix in @internal/sql-orm-client — `orderBy` on a
 variant-narrowed collection now resolves MTI variant-owned fields
 (previously threw), mirroring the existing variant-aware `where`/`first`
 treatment. Additive: the no-variant `orderBy` path and its types are
@@ -88,13 +88,13 @@ diff — no extension-author action required.
 
 ## `sqlite-create-table-method`
 
-Starting at this release, `createTable` is no longer a free function exported from `@prisma-next/sqlite/migration`. It is now a protected method on the `Migration` base class — call it as `this.createTable({...})` inside `get operations()`.
+Starting at this release, `createTable` is no longer a free function exported from `@internal/sqlite/migration`. It is now a protected method on the `Migration` base class — call it as `this.createTable({...})` inside `get operations()`.
 
 If your extension ships SQLite migration files, update them to use `this.createTable(...)` and remove `createTable` from the import list.
 
 If your extension has a facade re-export parity test that asserts `createTable` is defined, remove that assertion; add assertions for `col`, `lit`, `fn`, `primaryKey`, `foreignKey`, and `unique` if your test also checks that the column builders are exported.
 
-The `col()`, `lit()`, `fn()`, `primaryKey()`, `foreignKey()`, and `unique()` builder helpers are now exported from `@prisma-next/sqlite/migration` directly.
+The `col()`, `lit()`, `fn()`, `primaryKey()`, `foreignKey()`, and `unique()` builder helpers are now exported from `@internal/sqlite/migration` directly.
 
 See the user-skill entry `sqlite-create-table-method` for the full before/after migration steps — the authoring-surface change is identical for both user and extension migration files.
 
@@ -177,11 +177,11 @@ then confirm `prisma-next migration check` passes. The `contract.json` diff shou
 
 ## `thread-namespace-id-through-codec-ref-resolver-spi`
 
-Starting at the 0.13 release, every model/table sits in an explicit namespace, and the column-bound codec-resolution SPI in `@prisma-next/sql-relational-core` carries that namespace as a leading, required coordinate. If your extension stamps `codec: CodecRef` onto AST nodes at build time (the "CodecRef invariant for AST authors" path — `descriptors.codecRefForColumn(...)`), or calls the free `codecRefForStorageColumn(...)` against `SqlStorage` directly, you must thread the namespace coordinate through.
+Starting at the 0.13 release, every model/table sits in an explicit namespace, and the column-bound codec-resolution SPI in `@internal/sql-relational-core` carries that namespace as a leading, required coordinate. If your extension stamps `codec: CodecRef` onto AST nodes at build time (the "CodecRef invariant for AST authors" path — `descriptors.codecRefForColumn(...)`), or calls the free `codecRefForStorageColumn(...)` against `SqlStorage` directly, you must thread the namespace coordinate through.
 
 ### `CodecDescriptorRegistry.codecRefForColumn`
 
-The registry method exported from `@prisma-next/sql-relational-core/query-lane-context` (the `CodecDescriptorRegistry` interface) and built by `buildCodecDescriptorRegistry` (`@prisma-next/sql-relational-core/codec-descriptor-registry`) gained a leading `namespaceId` parameter.
+The registry method exported from `@internal/sql-relational-core/query-lane-context` (the `CodecDescriptorRegistry` interface) and built by `buildCodecDescriptorRegistry` (`@internal/sql-relational-core/codec-descriptor-registry`) gained a leading `namespaceId` parameter.
 
 ```ts
 // Before 0.13
@@ -195,7 +195,7 @@ The namespace is whatever namespace the model/table you are building the ref for
 
 ### `codecRefForStorageColumn`
 
-The free function exported from `@prisma-next/sql-relational-core/codec-descriptor-registry` gained the same leading coordinate, inserted between `storage` and `tableName`.
+The free function exported from `@internal/sql-relational-core/codec-descriptor-registry` gained the same leading coordinate, inserted between `storage` and `tableName`.
 
 ```ts
 // Before 0.13
@@ -251,7 +251,7 @@ After re-emitting and re-pinning, run `pnpm typecheck && pnpm test --filter
 
 This release adds a declarative SPI for extension-contributed top-level PSL blocks.
 Register an `AuthoringPslBlockDescriptor` under `AuthoringContributions.pslBlockDescriptors`
-(exported from `@prisma-next/framework-components`) and the framework's generic PSL
+(exported from `@internal/framework-components`) and the framework's generic PSL
 parser, validator, and printer handle the block round-trip through `contract infer`
 without any per-block parsing code. Each descriptor claims a PSL keyword and supplies
 the argument schema; a matching `entityTypes` entry lowers the parsed node to an IR

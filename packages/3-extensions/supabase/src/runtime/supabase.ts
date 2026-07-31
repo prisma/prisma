@@ -1,23 +1,23 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import type { Contract } from '@internal/contract/types';
+import postgresDriver from '@internal/driver-postgres/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import {
   buildNamespacedNativeEnums,
   isPgPool,
   type NamespacedNativeEnums,
-} from '@prisma-next/postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { orm } from '@prisma-next/sql-orm-client';
-import type { RawSqlTag } from '@prisma-next/sql-relational-core/expression';
-import { createRawSql } from '@prisma-next/sql-relational-core/expression';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/postgres/runtime';
+import { sql } from '@internal/sql-builder/runtime';
+import type { Db } from '@internal/sql-builder/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { orm } from '@internal/sql-orm-client';
+import type { RawSqlTag } from '@internal/sql-relational-core/expression';
+import { createRawSql } from '@internal/sql-relational-core/expression';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   ExecutionContext,
   SqlExecutionStackWithDriver,
@@ -25,16 +25,16 @@ import type {
   SqlRuntimeExtensionDescriptor,
   TransactionContext,
   VerifyMarkerOption,
-} from '@prisma-next/sql-runtime';
+} from '@internal/sql-runtime';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   withTransaction,
-} from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { createRemoteJWKSet, decodeProtectedHeader, type JWTVerifyResult, jwtVerify } from 'jose';
 import type { Client } from 'pg';
 import { Pool } from 'pg';

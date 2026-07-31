@@ -1,6 +1,6 @@
-import type { Contract, NamespaceId, StorageHashBase } from '@prisma-next/contract/types';
-import type { ContractWithTypeMaps, SqlStorage, TypeMaps } from '@prisma-next/sql-contract/types';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { Contract, NamespaceId, StorageHashBase } from '@internal/contract/types';
+import type { ContractWithTypeMaps, SqlStorage, TypeMaps } from '@internal/sql-contract/types';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { Collection } from '../src/collection';
 
 import { createMockRuntime } from './helpers';

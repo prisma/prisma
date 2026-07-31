@@ -1,5 +1,5 @@
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import {
   TEST_BASELINE_INVARIANT_ID,

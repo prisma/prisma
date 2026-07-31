@@ -26,7 +26,7 @@ export interface ShellPackageMapping {
   /** Internal package directory, relative to the repository root. */
   readonly dir: string;
   /**
-   * Internal package name, e.g. `@prisma-next/contract`. Declared rather than
+   * Internal package name, e.g. `@internal/contract`. Declared rather than
    * read from `dir/package.json` so specifier resolution works inside a
    * published bundle, where the workspace is not on disk. A test keeps the
    * two in step.
@@ -43,7 +43,7 @@ export interface ShellPackageMapping {
 }
 
 export interface ShellReexportMapping {
-  /** Internal package name whose surface is forwarded, e.g. `@prisma-next/contract`. */
+  /** Internal package name whose surface is forwarded, e.g. `@internal/contract`. */
   readonly package: string;
   /** Entrypoint namespace inside this shell that forwards to it. */
   readonly entry: string;
@@ -170,15 +170,15 @@ const FACADE_BINS = { 'prisma-next': '@prisma/orm-toolchain/bin/prisma-next' } a
  * repository's own consumers reach.
  */
 const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
-  { package: '@prisma-next/contract', entry: 'contract' },
-  { package: '@prisma-next/framework-components', entry: 'components' },
-  { package: '@prisma-next/utils', entry: 'utils' },
+  { package: '@internal/contract', entry: 'contract' },
+  { package: '@internal/framework-components', entry: 'components' },
+  { package: '@internal/utils', entry: 'utils' },
   {
-    package: '@prisma-next/vite-plugin-contract-emit',
+    package: '@internal/vite-plugin-contract-emit',
     entry: 'vite-plugin-contract-emit',
   },
   {
-    package: '@prisma-next/migration-tools',
+    package: '@internal/migration-tools',
     entry: 'migration-tools',
     subpaths: ['aggregate', 'contract-snapshot-store', 'hash', 'io', 'spaces'],
   },
@@ -187,8 +187,8 @@ const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
 /**
  * The per-database part of a facade's republished surface.
  *
- * `family` is the family's contract package (`@prisma-next/sql-contract` or
- * `@prisma-next/mongo-contract`) and `familyPack` its control-plane and IR
+ * `family` is the family's contract package (`@internal/sql-contract` or
+ * `@internal/mongo-contract`) and `familyPack` its control-plane and IR
  * pack; `target` and `adapter` carry the codec and operation types emitted
  * contracts reference; `runtime` is the family runtime an application drives
  * queries through.
@@ -235,10 +235,10 @@ function facadeReexports(options: {
  * construction and naming internals, which publishing would freeze.
  */
 const SQL_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
-  { package: '@prisma-next/sql-orm-client', entry: 'orm-client' },
-  { package: '@prisma-next/sql-builder', entry: 'builder' },
-  { package: '@prisma-next/sql-relational-core', entry: 'relational-core' },
-  { package: '@prisma-next/sql-schema-ir', entry: 'schema-ir', subpaths: ['types'] },
+  { package: '@internal/sql-orm-client', entry: 'orm-client' },
+  { package: '@internal/sql-builder', entry: 'builder' },
+  { package: '@internal/sql-relational-core', entry: 'relational-core' },
+  { package: '@internal/sql-schema-ir', entry: 'schema-ir', subpaths: ['types'] },
 ];
 
 /**
@@ -250,10 +250,10 @@ const SQL_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
  * source in the SQLite example uses directly.
  */
 const MONGO_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
-  { package: '@prisma-next/mongo-orm', entry: 'orm' },
-  { package: '@prisma-next/mongo-query-builder', entry: 'query-builder' },
-  { package: '@prisma-next/mongo-query-ast', entry: 'query-ast' },
-  { package: '@prisma-next/mongo-value', entry: 'value' },
+  { package: '@internal/mongo-orm', entry: 'orm' },
+  { package: '@internal/mongo-query-builder', entry: 'query-builder' },
+  { package: '@internal/mongo-query-ast', entry: 'query-ast' },
+  { package: '@internal/mongo-value', entry: 'value' },
 ];
 
 export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
@@ -268,45 +268,45 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/1-framework/0-foundation/contract',
-          name: '@prisma-next/contract',
+          name: '@internal/contract',
           entry: 'contract',
         },
         {
           dir: 'packages/1-framework/0-foundation/utils',
-          name: '@prisma-next/utils',
+          name: '@internal/utils',
           entry: 'utils',
         },
-        { dir: 'packages/1-framework/1-core/config', name: '@prisma-next/config', entry: 'config' },
-        { dir: 'packages/1-framework/1-core/errors', name: '@prisma-next/errors', entry: 'errors' },
+        { dir: 'packages/1-framework/1-core/config', name: '@internal/config', entry: 'config' },
+        { dir: 'packages/1-framework/1-core/errors', name: '@internal/errors', entry: 'errors' },
         {
           dir: 'packages/1-framework/1-core/framework-components',
-          name: '@prisma-next/framework-components',
+          name: '@internal/framework-components',
           entry: 'components',
         },
         {
           dir: 'packages/1-framework/1-core/operations',
-          name: '@prisma-next/operations',
+          name: '@internal/operations',
           entry: 'operations',
         },
         {
           dir: 'packages/1-framework/1-core/ts-render',
-          name: '@prisma-next/ts-render',
+          name: '@internal/ts-render',
           entry: 'ts-render',
         },
         {
           dir: 'packages/1-framework/2-authoring/contract',
-          name: '@prisma-next/contract-authoring',
+          name: '@internal/contract-authoring',
           entry: 'contract-authoring',
         },
-        { dir: 'packages/1-framework/2-authoring/ids', name: '@prisma-next/ids', entry: 'ids' },
+        { dir: 'packages/1-framework/2-authoring/ids', name: '@internal/ids', entry: 'ids' },
         {
           dir: 'packages/1-framework/2-authoring/psl-parser',
-          name: '@prisma-next/psl-parser',
+          name: '@internal/psl-parser',
           entry: 'psl-parser',
         },
         {
           dir: 'packages/1-framework/2-authoring/psl-printer',
-          name: '@prisma-next/psl-printer',
+          name: '@internal/psl-printer',
           entry: 'psl-printer',
         },
       ],
@@ -318,35 +318,35 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       dir: 'packages/9-public/@prisma/orm-toolchain',
       kind: 'platform',
       packages: [
-        { dir: 'packages/1-framework/3-tooling/cli', name: '@prisma-next/cli', entry: 'cli' },
+        { dir: 'packages/1-framework/3-tooling/cli', name: '@internal/cli', entry: 'cli' },
         {
           dir: 'packages/1-framework/3-tooling/cli-telemetry',
-          name: '@prisma-next/cli-telemetry',
+          name: '@internal/cli-telemetry',
           entry: 'cli-telemetry',
         },
         {
           dir: 'packages/1-framework/3-tooling/config-loader',
-          name: '@prisma-next/config-loader',
+          name: '@internal/config-loader',
           entry: 'config-loader',
         },
         {
           dir: 'packages/1-framework/3-tooling/emitter',
-          name: '@prisma-next/emitter',
+          name: '@internal/emitter',
           entry: 'emitter',
         },
         {
           dir: 'packages/1-framework/3-tooling/language-server',
-          name: '@prisma-next/language-server',
+          name: '@internal/language-server',
           entry: 'language-server',
         },
         {
           dir: 'packages/1-framework/3-tooling/migration',
-          name: '@prisma-next/migration-tools',
+          name: '@internal/migration-tools',
           entry: 'migration-tools',
         },
         {
           dir: 'packages/1-framework/3-tooling/vite-plugin-contract-emit',
-          name: '@prisma-next/vite-plugin-contract-emit',
+          name: '@internal/vite-plugin-contract-emit',
           entry: 'vite-plugin-contract-emit',
         },
         // This table itself. Emission resolves generated import specifiers
@@ -354,7 +354,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         // duplicating a copy of the mapping wherever a resolver is built.
         {
           dir: 'packages/0-shared/publish-surface',
-          name: '@prisma-next/publish-surface',
+          name: '@internal/publish-surface',
           entry: 'publish-surface',
         },
       ],
@@ -370,58 +370,58 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/2-sql/1-core/contract',
-          name: '@prisma-next/sql-contract',
+          name: '@internal/sql-contract',
           entry: 'contract',
         },
-        { dir: 'packages/2-sql/1-core/errors', name: '@prisma-next/sql-errors', entry: 'errors' },
+        { dir: 'packages/2-sql/1-core/errors', name: '@internal/sql-errors', entry: 'errors' },
         {
           dir: 'packages/2-sql/1-core/operations',
-          name: '@prisma-next/sql-operations',
+          name: '@internal/sql-operations',
           entry: 'operations',
         },
         {
           dir: 'packages/2-sql/1-core/schema-ir',
-          name: '@prisma-next/sql-schema-ir',
+          name: '@internal/sql-schema-ir',
           entry: 'schema-ir',
         },
         {
           dir: 'packages/2-sql/2-authoring/contract-psl',
-          name: '@prisma-next/sql-contract-psl',
+          name: '@internal/sql-contract-psl',
           entry: 'contract-psl',
         },
         {
           dir: 'packages/2-sql/2-authoring/contract-ts',
-          name: '@prisma-next/sql-contract-ts',
+          name: '@internal/sql-contract-ts',
           entry: 'contract-ts',
         },
         {
           dir: 'packages/2-sql/3-tooling/emitter',
-          name: '@prisma-next/sql-contract-emitter',
+          name: '@internal/sql-contract-emitter',
           entry: 'contract-emitter',
         },
         {
           dir: 'packages/2-sql/4-lanes/query-builder',
-          name: '@prisma-next/sql-lane-query-builder',
+          name: '@internal/sql-lane-query-builder',
           entry: 'lane-query-builder',
         },
         {
           dir: 'packages/2-sql/4-lanes/relational-core',
-          name: '@prisma-next/sql-relational-core',
+          name: '@internal/sql-relational-core',
           entry: 'relational-core',
         },
         {
           dir: 'packages/2-sql/4-lanes/sql-builder',
-          name: '@prisma-next/sql-builder',
+          name: '@internal/sql-builder',
           entry: 'builder',
         },
-        { dir: 'packages/2-sql/5-runtime', name: '@prisma-next/sql-runtime', entry: 'runtime' },
-        { dir: 'packages/2-sql/9-family', name: '@prisma-next/family-sql', entry: 'family' },
+        { dir: 'packages/2-sql/5-runtime', name: '@internal/sql-runtime', entry: 'runtime' },
+        { dir: 'packages/2-sql/9-family', name: '@internal/family-sql', entry: 'family' },
         // Platform code despite its `3-extensions/` directory: both SQL
         // facades depend on it, and one module may live in only one
         // published package, so it cannot be duplicated into each facade.
         {
           dir: 'packages/3-extensions/sql-orm-client',
-          name: '@prisma-next/sql-orm-client',
+          name: '@internal/sql-orm-client',
           entry: 'orm-client',
         },
       ],
@@ -435,72 +435,72 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/2-mongo-family/1-foundation/mongo-codec',
-          name: '@prisma-next/mongo-codec',
+          name: '@internal/mongo-codec',
           entry: 'codec',
         },
         {
           dir: 'packages/2-mongo-family/1-foundation/mongo-contract',
-          name: '@prisma-next/mongo-contract',
+          name: '@internal/mongo-contract',
           entry: 'contract',
         },
         {
           dir: 'packages/2-mongo-family/1-foundation/mongo-value',
-          name: '@prisma-next/mongo-value',
+          name: '@internal/mongo-value',
           entry: 'value',
         },
         {
           dir: 'packages/2-mongo-family/2-authoring/contract-psl',
-          name: '@prisma-next/mongo-contract-psl',
+          name: '@internal/mongo-contract-psl',
           entry: 'contract-psl',
         },
         {
           dir: 'packages/2-mongo-family/2-authoring/contract-ts',
-          name: '@prisma-next/mongo-contract-ts',
+          name: '@internal/mongo-contract-ts',
           entry: 'contract-ts',
         },
         {
           dir: 'packages/2-mongo-family/3-tooling/emitter',
-          name: '@prisma-next/mongo-emitter',
+          name: '@internal/mongo-emitter',
           entry: 'emitter',
         },
         {
           dir: 'packages/2-mongo-family/3-tooling/mongo-schema-ir',
-          name: '@prisma-next/mongo-schema-ir',
+          name: '@internal/mongo-schema-ir',
           entry: 'schema-ir',
         },
         {
           dir: 'packages/2-mongo-family/4-query/query-ast',
-          name: '@prisma-next/mongo-query-ast',
+          name: '@internal/mongo-query-ast',
           entry: 'query-ast',
         },
         {
           dir: 'packages/2-mongo-family/5-query-builders/orm',
-          name: '@prisma-next/mongo-orm',
+          name: '@internal/mongo-orm',
           entry: 'orm',
         },
         {
           dir: 'packages/2-mongo-family/5-query-builders/query-builder',
-          name: '@prisma-next/mongo-query-builder',
+          name: '@internal/mongo-query-builder',
           entry: 'query-builder',
         },
         {
           dir: 'packages/2-mongo-family/6-transport/mongo-lowering',
-          name: '@prisma-next/mongo-lowering',
+          name: '@internal/mongo-lowering',
           entry: 'lowering',
         },
         {
           dir: 'packages/2-mongo-family/6-transport/mongo-wire',
-          name: '@prisma-next/mongo-wire',
+          name: '@internal/mongo-wire',
           entry: 'wire',
         },
         {
           dir: 'packages/2-mongo-family/7-runtime',
-          name: '@prisma-next/mongo-runtime',
+          name: '@internal/mongo-runtime',
           entry: 'runtime',
         },
         {
           dir: 'packages/2-mongo-family/9-family',
-          name: '@prisma-next/family-mongo',
+          name: '@internal/family-mongo',
           entry: 'family',
         },
       ],
@@ -514,17 +514,17 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/3-targets/3-targets/postgres',
-          name: '@prisma-next/target-postgres',
+          name: '@internal/target-postgres',
           entry: 'target',
         },
         {
           dir: 'packages/3-targets/6-adapters/postgres',
-          name: '@prisma-next/adapter-postgres',
+          name: '@internal/adapter-postgres',
           entry: 'adapter',
         },
         {
           dir: 'packages/3-targets/7-drivers/postgres',
-          name: '@prisma-next/driver-postgres',
+          name: '@internal/driver-postgres',
           entry: 'driver',
         },
       ],
@@ -538,17 +538,17 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/3-targets/3-targets/sqlite',
-          name: '@prisma-next/target-sqlite',
+          name: '@internal/target-sqlite',
           entry: 'target',
         },
         {
           dir: 'packages/3-targets/6-adapters/sqlite',
-          name: '@prisma-next/adapter-sqlite',
+          name: '@internal/adapter-sqlite',
           entry: 'adapter',
         },
         {
           dir: 'packages/3-targets/7-drivers/sqlite',
-          name: '@prisma-next/driver-sqlite',
+          name: '@internal/driver-sqlite',
           entry: 'driver',
         },
       ],
@@ -562,17 +562,17 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/3-mongo-target/1-mongo-target',
-          name: '@prisma-next/target-mongo',
+          name: '@internal/target-mongo',
           entry: 'target',
         },
         {
           dir: 'packages/3-mongo-target/2-mongo-adapter',
-          name: '@prisma-next/adapter-mongo',
+          name: '@internal/adapter-mongo',
           entry: 'adapter',
         },
         {
           dir: 'packages/3-mongo-target/3-mongo-driver',
-          name: '@prisma-next/driver-mongo',
+          name: '@internal/driver-mongo',
           entry: 'driver',
         },
       ],
@@ -583,16 +583,14 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-postgres',
       kind: 'facade',
-      packages: [
-        { dir: 'packages/3-extensions/postgres', name: '@prisma-next/postgres', entry: '' },
-      ],
+      packages: [{ dir: 'packages/3-extensions/postgres', name: '@internal/postgres', entry: '' }],
       reexports: facadeReexports({
-        family: '@prisma-next/sql-contract',
-        familyPack: '@prisma-next/family-sql',
-        runtime: '@prisma-next/sql-runtime',
-        target: '@prisma-next/target-postgres',
-        adapter: '@prisma-next/adapter-postgres',
-        driver: '@prisma-next/driver-postgres',
+        family: '@internal/sql-contract',
+        familyPack: '@internal/family-sql',
+        runtime: '@internal/sql-runtime',
+        target: '@internal/target-postgres',
+        adapter: '@internal/adapter-postgres',
+        driver: '@internal/driver-postgres',
         queryBuilders: SQL_QUERY_REEXPORTS,
       }),
       forwardedBins: FACADE_BINS,
@@ -603,14 +601,14 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-sqlite',
       kind: 'facade',
-      packages: [{ dir: 'packages/3-extensions/sqlite', name: '@prisma-next/sqlite', entry: '' }],
+      packages: [{ dir: 'packages/3-extensions/sqlite', name: '@internal/sqlite', entry: '' }],
       reexports: facadeReexports({
-        family: '@prisma-next/sql-contract',
-        familyPack: '@prisma-next/family-sql',
-        runtime: '@prisma-next/sql-runtime',
-        target: '@prisma-next/target-sqlite',
-        adapter: '@prisma-next/adapter-sqlite',
-        driver: '@prisma-next/driver-sqlite',
+        family: '@internal/sql-contract',
+        familyPack: '@internal/family-sql',
+        runtime: '@internal/sql-runtime',
+        target: '@internal/target-sqlite',
+        adapter: '@internal/adapter-sqlite',
+        driver: '@internal/driver-sqlite',
         queryBuilders: SQL_QUERY_REEXPORTS,
       }),
       forwardedBins: FACADE_BINS,
@@ -621,14 +619,14 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
     {
       dir: 'packages/9-public/@prisma/orm-mongo',
       kind: 'facade',
-      packages: [{ dir: 'packages/3-extensions/mongo', name: '@prisma-next/mongo', entry: '' }],
+      packages: [{ dir: 'packages/3-extensions/mongo', name: '@internal/mongo', entry: '' }],
       reexports: facadeReexports({
-        family: '@prisma-next/mongo-contract',
-        familyPack: '@prisma-next/family-mongo',
-        runtime: '@prisma-next/mongo-runtime',
-        target: '@prisma-next/target-mongo',
-        adapter: '@prisma-next/adapter-mongo',
-        driver: '@prisma-next/driver-mongo',
+        family: '@internal/mongo-contract',
+        familyPack: '@internal/family-mongo',
+        runtime: '@internal/mongo-runtime',
+        target: '@internal/target-mongo',
+        adapter: '@internal/adapter-mongo',
+        driver: '@internal/driver-mongo',
         queryBuilders: MONGO_QUERY_REEXPORTS,
       }),
       forwardedBins: FACADE_BINS,
@@ -640,7 +638,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       dir: 'packages/9-public/@prisma/orm-extension-postgis',
       kind: 'extension',
       packages: [
-        { dir: 'packages/3-extensions/postgis', name: '@prisma-next/extension-postgis', entry: '' },
+        { dir: 'packages/3-extensions/postgis', name: '@internal/extension-postgis', entry: '' },
       ],
       peerShells: ['@prisma/orm-target-postgres'],
     },
@@ -653,7 +651,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/3-extensions/pgvector',
-          name: '@prisma-next/extension-pgvector',
+          name: '@internal/extension-pgvector',
           entry: '',
         },
       ],
@@ -668,7 +666,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/3-extensions/paradedb',
-          name: '@prisma-next/extension-paradedb',
+          name: '@internal/extension-paradedb',
           entry: '',
         },
       ],
@@ -682,7 +680,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/3-extensions/supabase',
-          name: '@prisma-next/extension-supabase',
+          name: '@internal/extension-supabase',
           entry: '',
         },
       ],
@@ -697,7 +695,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/3-extensions/arktype-json',
-          name: '@prisma-next/extension-arktype-json',
+          name: '@internal/extension-arktype-json',
           entry: '',
         },
       ],
@@ -712,7 +710,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         {
           dir: 'packages/3-extensions/middleware-cache',
-          name: '@prisma-next/middleware-cache',
+          name: '@internal/middleware-cache',
           entry: '',
         },
       ],

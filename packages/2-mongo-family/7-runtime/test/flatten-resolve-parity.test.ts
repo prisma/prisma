@@ -1,6 +1,6 @@
-import { createMongoAdapter } from '@prisma-next/adapter-mongo';
-import type { MongoLoweredDraft } from '@prisma-next/mongo-lowering';
-import type { AnyMongoCommand } from '@prisma-next/mongo-query-ast/execution';
+import { createMongoAdapter } from '@internal/adapter-mongo';
+import type { MongoLoweredDraft } from '@internal/mongo-lowering';
+import type { AnyMongoCommand } from '@internal/mongo-query-ast/execution';
 import {
   AggregateCommand,
   DeleteManyCommand,
@@ -10,8 +10,8 @@ import {
   MongoMatchStage,
   UpdateManyCommand,
   UpdateOneCommand,
-} from '@prisma-next/mongo-query-ast/execution';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+} from '@internal/mongo-query-ast/execution';
+import { MongoParamRef } from '@internal/mongo-value';
 import { describe, expect, it } from 'vitest';
 import { flattenMongoParamRefs } from '../src/param-ref-mutator';
 

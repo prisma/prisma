@@ -1,4 +1,4 @@
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import type { AnyCodecDescriptor } from '../src/ast/codec-types';
 import { buildCodecDescriptorRegistry } from '../src/codec-descriptor-registry';

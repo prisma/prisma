@@ -54,18 +54,18 @@ describe('findStaleArtifacts (FR9.1)', () => {
 
 describe('removeDependency (FR9.2)', () => {
   it('returns null when dependencies is missing', () => {
-    expect(removeDependency('{"name":"app"}', '@prisma-next/postgres')).toBeNull();
+    expect(removeDependency('{"name":"app"}', '@internal/postgres')).toBeNull();
   });
 
   it('returns null when dependencies is not an object', () => {
-    expect(removeDependency('{"dependencies":[]}', '@prisma-next/postgres')).toBeNull();
+    expect(removeDependency('{"dependencies":[]}', '@internal/postgres')).toBeNull();
   });
 
   it('returns null when the named dep is absent', () => {
     expect(
       removeDependency(
-        JSON.stringify({ dependencies: { '@prisma-next/mongo': '^1.0.0' } }),
-        '@prisma-next/postgres',
+        JSON.stringify({ dependencies: { '@internal/mongo': '^1.0.0' } }),
+        '@internal/postgres',
       ),
     ).toBeNull();
   });
@@ -75,7 +75,7 @@ describe('removeDependency (FR9.2)', () => {
       {
         name: 'app',
         dependencies: {
-          '@prisma-next/postgres': '^1.0.0',
+          '@internal/postgres': '^1.0.0',
           dotenv: '^16.0.0',
         },
         devDependencies: { typescript: '^5.0.0' },
@@ -83,7 +83,7 @@ describe('removeDependency (FR9.2)', () => {
       null,
       2,
     );
-    const after = removeDependency(before, '@prisma-next/postgres');
+    const after = removeDependency(before, '@internal/postgres');
     expect(after).not.toBeNull();
     const parsed = JSON.parse(after as string) as {
       dependencies: Record<string, string>;
@@ -108,18 +108,18 @@ describe('removeDependency (FR9.2)', () => {
   it('does not touch peerDependencies or devDependencies', () => {
     const before = JSON.stringify(
       {
-        dependencies: { '@prisma-next/postgres': '^1.0.0' },
-        peerDependencies: { '@prisma-next/postgres': '^1.0.0' },
+        dependencies: { '@internal/postgres': '^1.0.0' },
+        peerDependencies: { '@internal/postgres': '^1.0.0' },
       },
       null,
       2,
     );
-    const after = removeDependency(before, '@prisma-next/postgres') as string;
+    const after = removeDependency(before, '@internal/postgres') as string;
     const parsed = JSON.parse(after) as {
       dependencies: Record<string, string>;
       peerDependencies: Record<string, string>;
     };
     expect(parsed.dependencies).toEqual({});
-    expect(parsed.peerDependencies).toEqual({ '@prisma-next/postgres': '^1.0.0' });
+    expect(parsed.peerDependencies).toEqual({ '@internal/postgres': '^1.0.0' });
   });
 });

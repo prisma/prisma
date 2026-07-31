@@ -1,4 +1,4 @@
-import type { IntegrityViolation } from '@prisma-next/migration-tools/aggregate';
+import type { IntegrityViolation } from '@internal/migration-tools/aggregate';
 import { join, relative } from 'pathe';
 import type { CheckFailure } from '../commands/json/schemas';
 

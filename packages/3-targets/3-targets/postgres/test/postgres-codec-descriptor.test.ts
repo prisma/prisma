@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   type CodecDescriptor,
@@ -6,7 +6,7 @@ import {
   CodecImpl,
   type CodecInstanceContext,
   type CodecRef,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import {
   CaseExpr,
   ColumnRef,
@@ -20,8 +20,8 @@ import {
   OrderByItem,
   type ProjectionExpr,
   SubqueryExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { describe, expect, it } from 'vitest';
 import {

@@ -4,7 +4,7 @@ The read-path commit `e587b433c` is structurally accepted (correct LATERAL-free 
 
 ## F1 (should-fix) — bare casts
 
-`packages/3-extensions/sql-orm-client/src/query-plan-select.ts`, in `buildManyToManyJunctionArtifacts`: two bare `as AnyExpression` casts — `(joinOnPairs[0] as AnyExpression)` and `(correlationPairs[0] as AnyExpression)`. Both are pure widenings (`BinaryExpr` is a member of `AnyExpression`). Replace with `castAs<AnyExpression>(…)` (import `castAs` from `@prisma-next/utils/casts`).
+`packages/3-extensions/sql-orm-client/src/query-plan-select.ts`, in `buildManyToManyJunctionArtifacts`: two bare `as AnyExpression` casts — `(joinOnPairs[0] as AnyExpression)` and `(correlationPairs[0] as AnyExpression)`. Both are pure widenings (`BinaryExpr` is a member of `AnyExpression`). Replace with `castAs<AnyExpression>(…)` (import `castAs` from `@internal/utils/casts`).
 
 ## F2 (should-fix) — missing test for M:N + distinct + non-leaf
 
@@ -14,7 +14,7 @@ The read-path commit `e587b433c` is structurally accepted (correct LATERAL-free 
 
 - [ ] No bare `as` casts in `buildManyToManyJunctionArtifacts` (only `castAs<…>`); `pnpm lint:casts` passes (no count increase from this branch).
 - [ ] New M:N + distinct + non-leaf unit test added and **passing**, asserting the junction join + correlation at the inner select.
-- [ ] `pnpm --filter @prisma-next/sql-orm-client typecheck` + `test` green.
+- [ ] `pnpm --filter @internal/sql-orm-client typecheck` + `test` green.
 
 ## Standing instruction
 

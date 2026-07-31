@@ -1,16 +1,16 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { defineConfig as coreDefineConfig } from '@prisma-next/config/config-types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
-import { typescriptContractFromPath } from '@prisma-next/sql-contract-ts/config-types';
-import { PG_INT_CODEC_ID, PG_TEXT_CODEC_ID } from '@prisma-next/target-postgres/codec-ids';
-import postgres from '@prisma-next/target-postgres/control';
-import postgresPackRef from '@prisma-next/target-postgres/pack';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import { defineConfig as coreDefineConfig } from '@internal/config/config-types';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql from '@internal/family-sql/control';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import { prismaContract } from '@internal/sql-contract-psl/provider';
+import { typescriptContractFromPath } from '@internal/sql-contract-ts/config-types';
+import { PG_INT_CODEC_ID, PG_TEXT_CODEC_ID } from '@internal/target-postgres/codec-ids';
+import postgres from '@internal/target-postgres/control';
+import postgresPackRef from '@internal/target-postgres/pack';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
+import { ifDefined } from '@internal/utils/defined';
 import { extname, join } from 'pathe';
 
 export interface PostgresConfigOptions {

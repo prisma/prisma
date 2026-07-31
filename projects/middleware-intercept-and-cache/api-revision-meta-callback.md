@@ -224,7 +224,7 @@ The framework-components annotation module (`annotations.ts`) does **not** chang
 
 ## Acceptance criteria
 
-- [ ] `MetaBuilder<K>` is exported from `@prisma-next/framework-components/runtime`. Type tests cover: `meta.annotate(readApplicable)` typechecks for `K = 'read'`; `meta.annotate(writeOnly)` does not for `K = 'read'`; mirror image for `K = 'write'`; a `'read' | 'write'` annotation works on both. Type test asserts `meta.annotate` returns `this` (for chaining).
+- [ ] `MetaBuilder<K>` is exported from `@internal/framework-components/runtime`. Type tests cover: `meta.annotate(readApplicable)` typechecks for `K = 'read'`; `meta.annotate(writeOnly)` does not for `K = 'read'`; mirror image for `K = 'write'`; a `'read' | 'write'` annotation works on both. Type test asserts `meta.annotate` returns `this` (for chaining).
 - [ ] `MetaBuilder.annotate` validates eagerly via `assertAnnotationsApplicable` and throws `RUNTIME.ANNOTATION_INAPPLICABLE` on cast-bypass (unit test, both kinds).
 - [ ] Every ORM read terminal accepts an optional `configure: (meta: MetaBuilder<'read'>) => void` last argument and threads `meta.annotations` into `plan.meta.annotations` (integration test, one per terminal).
 - [ ] Every ORM write terminal accepts an optional `configure: (meta: MetaBuilder<'write'>) => void` last argument and threads `meta.annotations` into the compiled mutation plan(s) via `mergeUserAnnotations` (integration test, one per terminal).

@@ -1,5 +1,5 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import type { Asterisk, TableAsterisk } from './column-reference';
 import type { Selection, TableToSelection, UnboundTables } from './selection';
 import type { ExactlyOneProperty, IsNever, MergeObjects, Simplify } from './type-atoms';

@@ -31,7 +31,7 @@ describe('classifyPackage', () => {
   it('returns null for a conforming manifest', () => {
     expect(
       classifyPackage({
-        name: '@prisma-next/example',
+        name: '@internal/example',
         version: '1.0.0',
         license: 'Apache-2.0',
       }),
@@ -41,11 +41,11 @@ describe('classifyPackage', () => {
   it('flags a missing license field with reason "missing"', () => {
     expect(
       classifyPackage({
-        name: '@prisma-next/example',
+        name: '@internal/example',
         version: '1.0.0',
       }),
     ).toEqual({
-      name: '@prisma-next/example',
+      name: '@internal/example',
       license: undefined,
       reason: 'missing',
     });
@@ -54,11 +54,11 @@ describe('classifyPackage', () => {
   it('flags an empty-string license with reason "missing"', () => {
     expect(
       classifyPackage({
-        name: '@prisma-next/example',
+        name: '@internal/example',
         license: '',
       }),
     ).toEqual({
-      name: '@prisma-next/example',
+      name: '@internal/example',
       license: '',
       reason: 'missing',
     });
@@ -67,11 +67,11 @@ describe('classifyPackage', () => {
   it('flags a wrong-value license with reason "wrong" and preserves the value', () => {
     expect(
       classifyPackage({
-        name: '@prisma-next/example',
+        name: '@internal/example',
         license: 'MIT',
       }),
     ).toEqual({
-      name: '@prisma-next/example',
+      name: '@internal/example',
       license: 'MIT',
       reason: 'wrong',
     });
@@ -80,11 +80,11 @@ describe('classifyPackage', () => {
   it('flags a malformed license object with reason "wrong"', () => {
     expect(
       classifyPackage({
-        name: '@prisma-next/example',
+        name: '@internal/example',
         license: { type: 'Apache-2.0', url: 'https://example.com' },
       }),
     ).toMatchObject({
-      name: '@prisma-next/example',
+      name: '@internal/example',
       reason: 'wrong',
     });
   });

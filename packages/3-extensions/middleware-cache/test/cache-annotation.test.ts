@@ -1,4 +1,4 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { type CachePayload, cacheAnnotation } from '../src/cache-annotation';
 

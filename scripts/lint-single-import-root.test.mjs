@@ -24,14 +24,14 @@ before(() => {
     'src/db.ts': "import postgres from '@prisma/orm-postgres/runtime';",
   });
   pkg('examples/internal-only', {
-    'src/db.ts': "import postgres from '@prisma-next/postgres/runtime';",
+    'src/db.ts': "import postgres from '@internal/postgres/runtime';",
   });
   pkg('examples/mixed', {
     'src/db.ts': "import postgres from '@prisma/orm-postgres/runtime';",
-    'src/query.ts': "import { budgets } from '@prisma-next/sql-runtime';",
+    'src/query.ts': "import { budgets } from '@internal/sql-runtime';",
   });
   pkg('examples/parent', { 'src/app.ts': "import x from '@prisma/orm-mongo/runtime';" });
-  pkg('examples/parent/nested', { 'src/app.ts': "import y from '@prisma-next/mongo-orm';" });
+  pkg('examples/parent/nested', { 'src/app.ts': "import y from '@internal/mongo-orm';" });
 });
 
 after(() => {
@@ -61,7 +61,7 @@ describe('findMixedPackages', () => {
   test('names one offending specifier per root', () => {
     const [entry] = findMixedPackages(base, ['examples']).filter((e) => e.pkg === 'examples/mixed');
     assert.deepEqual([...entry.published.keys()], ['@prisma/orm-postgres/runtime']);
-    assert.deepEqual([...entry.internal.keys()], ['@prisma-next/sql-runtime']);
+    assert.deepEqual([...entry.internal.keys()], ['@internal/sql-runtime']);
   });
 });
 

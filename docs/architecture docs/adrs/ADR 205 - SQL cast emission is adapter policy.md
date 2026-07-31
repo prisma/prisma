@@ -46,7 +46,7 @@ function getCodecParamCast(codecId: string | undefined): string | undefined {
 Two layering problems with this:
 
 1. The adapter — a generic SQL renderer — names specific codec IDs.
-2. `VECTOR_CODEC_ID` is owned by `@prisma-next/extension-pgvector`. The core adapter knows about an extension package by ID, inverting the dependency.
+2. `VECTOR_CODEC_ID` is owned by `@internal/extension-pgvector`. The core adapter knows about an extension package by ID, inverting the dependency.
 
 ## Decision
 
@@ -147,7 +147,7 @@ Throwing on miss is a deliberate strengthening of the "bare factories can't see 
 
 - **Codec authors do nothing extra.** They already declare `nativeType` for the catalog round-trip; cast emission is automatic.
 - **Extensions just work.** Any codec with a `nativeType` outside the inferrable set casts correctly the moment it's registered into the stack — no adapter knowledge required.
-- **Layering inversion fixed.** `@prisma-next/adapter-postgres` no longer references any extension package or extension codec ID.
+- **Layering inversion fixed.** `@internal/adapter-postgres` no longer references any extension package or extension codec ID.
 - **Adapter-local policy.** Each dialect adapter owns its own inferrable set and its own cast syntax (Postgres `::T`; a future MySQL adapter would emit `CAST(? AS T)`). The codec metadata is dialect-keyed already; the pattern generalises.
 - **"Always cast everything" is one line away.** If we ever decide unconditional casts are worth the SQL noise (parser/planner stability, prepared-statement reuse), we shrink the inferrable set to ∅. No codec changes.
 

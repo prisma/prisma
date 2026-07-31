@@ -1,12 +1,12 @@
-import { type Contract, profileHash, type StorageHashBase } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { type Contract, profileHash, type StorageHashBase } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   SqlStorage,
   type StorageColumn,
   type StorageTable,
   StorageValueSet,
-} from '@prisma-next/sql-contract/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-contract/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';

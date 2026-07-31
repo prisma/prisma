@@ -1,4 +1,4 @@
-import type { StorageColumn } from '@prisma-next/sql-contract/types';
+import type { StorageColumn } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { renderDefaultLiteral } from '../../src/core/migrations/planner-ddl-builders';
 

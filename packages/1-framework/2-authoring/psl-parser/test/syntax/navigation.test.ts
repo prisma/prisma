@@ -1,4 +1,4 @@
-import { assertDefined } from '@prisma-next/utils/assertions';
+import { assertDefined } from '@internal/utils/assertions';
 import { describe, expect, it } from 'vitest';
 import { GreenNodeBuilder } from '../../src/syntax/green-builder';
 import {

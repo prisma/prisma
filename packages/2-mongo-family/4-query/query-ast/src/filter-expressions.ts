@@ -1,4 +1,4 @@
-import type { MongoValue } from '@prisma-next/mongo-value';
+import type { MongoValue } from '@internal/mongo-value';
 import type { MongoAggExpr } from './aggregation-expressions';
 import { MongoAstNode } from './ast-node';
 import { ormError } from './orm-errors';

@@ -78,7 +78,7 @@ describe('cross-shell tarball chain (target-postgres -> family-sql -> framework,
     }
   });
 
-  it('ships no @prisma-next import specifier in any shell dist', async () => {
+  it('ships no @internal import specifier in any shell dist', async () => {
     for (const shell of chain) {
       const installedDir = join(scratch, 'node_modules', '@prisma', shell);
       expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);

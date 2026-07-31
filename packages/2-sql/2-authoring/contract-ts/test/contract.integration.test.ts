@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { validateSqlContractFully } from '@prisma-next/sql-contract/validators';
+import type { Contract } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { sqlStorageFixture, validSqlContractJson } from './sql-contract-json-fixture';
 import { unboundTables } from './unbound-tables';

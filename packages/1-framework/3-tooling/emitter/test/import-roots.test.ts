@@ -1,10 +1,10 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   createImportSpecifierResolver,
   type ImportRoot,
   importedSpecifiers,
   internalImportRoot,
-} from '@prisma-next/publish-surface/import-roots';
+} from '@internal/publish-surface/import-roots';
 import { describe, expect, it } from 'vitest';
 import { createMockSpi } from './mock-spi';
 import { createTestContract, emit } from './utils';
@@ -22,7 +22,7 @@ const spi = createMockSpi();
 const stack = {
   codecTypeImports: [
     {
-      package: '@prisma-next/extension-arktype-json/codec-types',
+      package: '@internal/extension-arktype-json/codec-types',
       named: 'CodecTypes',
       alias: 'PackCodecTypes',
     },
@@ -101,9 +101,9 @@ describe('import roots and contract identity', () => {
 
     expect(withoutOption.contractDts).toBe(withInternalRoot.contractDts);
     expect(importedSpecifiers(withoutOption.contractDts).sort()).toEqual([
-      '@prisma-next/contract/types',
-      '@prisma-next/extension-arktype-json/codec-types',
-      '@prisma-next/sql-contract/types',
+      '@internal/contract/types',
+      '@internal/extension-arktype-json/codec-types',
+      '@internal/sql-contract/types',
     ]);
   });
 });

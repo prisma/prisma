@@ -8,7 +8,7 @@
 // plane) and the PSL interpreter — never at runtime.
 //
 // Keeping the runtime closure free of the `./authoring` import is what lets
-// the bundler tree-shake `@prisma-next/family-sql/control` (and its
+// the bundler tree-shake `@internal/family-sql/control` (and its
 // transitive `verify-sql-schema` chunk) out of the runtime entry. Do not
 // add an `authoring` field here — if you need to, the pack/control meta in
 // `./descriptor-meta` is the right place. See TML-2766 for context.

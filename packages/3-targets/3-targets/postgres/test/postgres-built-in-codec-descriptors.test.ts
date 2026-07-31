@@ -1,4 +1,4 @@
-import type { AnyCodecDescriptor, CodecRef } from '@prisma-next/framework-components/codec';
+import type { AnyCodecDescriptor, CodecRef } from '@internal/framework-components/codec';
 import {
   CastExpr,
   ColumnRef,
@@ -10,8 +10,8 @@ import {
   sqlTextDescriptor,
   sqlTimestampDescriptor,
   sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import type { AnyPostgresCodecDescriptor } from '../src/core/codec-descriptor';
 import { codecDescriptorMap } from '../src/core/codec-type-map';

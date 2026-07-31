@@ -1045,7 +1045,7 @@ describe('ORM client integration examples', () => {
   //
   // The cache helpers under `src/orm-client/find-user-by-id-cached.ts` and
   // `src/orm-client/get-users-cached.ts` opt their reads into the
-  // `@prisma-next/middleware-cache` middleware via `cacheAnnotation(...)`.
+  // `@internal/middleware-cache` middleware via `cacheAnnotation(...)`.
   // The middleware short-circuits repeated executions of the same plan via
   // its `intercept` hook, so a cache hit means the SQL driver is *not*
   // invoked again. We assert that contract by spying on `driver.execute`.

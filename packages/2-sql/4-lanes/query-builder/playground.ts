@@ -1,4 +1,4 @@
-import type { Contract, StorageHashBase } from '@prisma-next/contract/types';
+import type { Contract, StorageHashBase } from '@internal/contract/types';
 import { createRef, createRoot, type SelectBuilder, type TableReference } from './src';
 
 type StorageHash = StorageHashBase<'storage-hash-example'>;

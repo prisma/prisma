@@ -1,9 +1,9 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
@@ -41,7 +41,7 @@ const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 
@@ -293,7 +293,7 @@ describe('migration tamper detection (tolerant model, per-command class)', () =>
     // The repo-wide vitest config uses `isolate: false`, so the `vi.mock`
     // above leaks into the next test file in the same worker. Unmocking
     // restores `loadConfig` for downstream tests.
-    vi.doUnmock('@prisma-next/config-loader');
+    vi.doUnmock('@internal/config-loader');
     vi.resetModules();
   });
 

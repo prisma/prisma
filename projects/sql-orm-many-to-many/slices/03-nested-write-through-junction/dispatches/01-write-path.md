@@ -23,7 +23,7 @@ Composite keys: INSERT/DELETE across all `parentColumns`/`childColumns` pairs. U
 - [ ] `connect`/`disconnect`/`create` over the pure M:N relation route to junction INSERT/DELETE (create = target-insert + link), under both `create()` and `update()`; the `'not supported yet'` guard is gone.
 - [ ] The rejection unit test is flipped to a positive assertion; unit tests cover connect/disconnect/create junction DML (composite-key AND-ed).
 - [ ] FK nested writes unchanged (existing mutation-executor tests pass).
-- [ ] Gate: `pnpm --filter @prisma-next/sql-orm-client typecheck` + `test` green.
+- [ ] Gate: `pnpm --filter @internal/sql-orm-client typecheck` + `test` green.
 
 ## Standing instruction
 

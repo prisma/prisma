@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { deriveProvidedInvariants } from '@prisma-next/migration-tools/invariants';
-import { Migration } from '@prisma-next/migration-tools/migration';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { isThenable } from '@prisma-next/utils/promise';
+import type { Contract } from '@internal/contract/types';
+import { deriveProvidedInvariants } from '@internal/migration-tools/invariants';
+import { Migration } from '@internal/migration-tools/migration';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { isThenable } from '@internal/utils/promise';
 import type { SqlMigrationPlanOperation, SqlPlanTargetDetails } from './migrations/types';
 
 /**

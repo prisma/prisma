@@ -16,7 +16,7 @@ import type {
   CodecExpression,
   Expression,
   ScalarListExpression,
-} from '@prisma-next/sql-relational-core/expression';
+} from '@internal/sql-relational-core/expression';
 import { expectTypeOf, test } from 'vitest';
 import type { FieldProxy, Functions } from '../../src/expression';
 import type { QueryContext, Scope } from '../../src/scope';

@@ -1,5 +1,5 @@
-import type { Result } from '@prisma-next/utils/result';
-import { notOk, ok } from '@prisma-next/utils/result';
+import type { Result } from '@internal/utils/result';
+import { notOk, ok } from '@internal/utils/result';
 import { validateRefName } from '../refs';
 import type { MigrationRef, RefResolutionContext, RefResolutionError } from './types';
 import { findEdgeByDirName, isFullHash, isHexPrefix } from './types';

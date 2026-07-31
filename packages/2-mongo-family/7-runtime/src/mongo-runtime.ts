@@ -1,4 +1,4 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
+import type { CodecCallContext } from '@internal/framework-components/codec';
 import {
   AsyncIterableResult,
   checkAborted,
@@ -8,11 +8,11 @@ import {
   type RuntimeMiddlewareContext,
   runBeforeExecuteChain,
   runWithMiddleware,
-} from '@prisma-next/framework-components/runtime';
-import type { MongoAdapter, MongoDriver } from '@prisma-next/mongo-lowering';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/runtime';
+import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { decodeMongoRow } from './codecs/decoding';
 import { computeMongoContentHash } from './content-hash';
 import type { MongoExecutionPlan } from './mongo-execution-plan';

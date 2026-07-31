@@ -1,12 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { platformEntrypointOf } from '@prisma-next/publish-surface/import-roots';
+import { platformEntrypointOf } from '@internal/publish-surface/import-roots';
 import {
   excludedSubpaths,
   publicShells,
   type ShellDefinition,
   type ShellName,
-} from '@prisma-next/publish-surface/shells';
+} from '@internal/publish-surface/shells';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
 import type { UserConfig } from 'tsdown';
 import { defineConfig } from './base.ts';
@@ -194,7 +194,7 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     entry,
     copy: (shell.copy ?? []).map((pattern) => ({ from: resolve(repoRoot, pattern) })),
     skipNodeModulesBundle: false,
-    external: (id: string) => /^[@a-zA-Z]/.test(id) && !id.startsWith('@prisma-next/'),
+    external: (id: string) => /^[@a-zA-Z]/.test(id) && !id.startsWith('@internal/'),
     dts: { enabled: true, sourcemap: true },
     exports: {
       enabled: 'local-only',
@@ -322,12 +322,12 @@ function crossShellRewritePlugin(shellName: ShellName) {
   return {
     name: 'prisma-public-shell-rewrite',
     resolveId(source: string) {
-      if (!source.startsWith('@prisma-next/')) return null;
+      if (!source.startsWith('@internal/')) return null;
       const target = publicSpecifier(source, shellName);
       if (target.shell === shellName) return null;
       return { id: target.id, external: true };
     },
-    // The dts bundler leaves inline `import("@prisma-next/...")` type
+    // The dts bundler leaves inline `import("@internal/...")` type
     // references (copied verbatim from the internal declaration files) in the
     // emitted output; rewrite them to published specifiers. Same-shell
     // references become self-references, which TypeScript resolves through
@@ -337,7 +337,7 @@ function crossShellRewritePlugin(shellName: ShellName) {
         if (!fileName.endsWith('.d.mts') || output.type !== 'chunk') continue;
         if (typeof output.code !== 'string') continue;
         output.code = output.code.replace(
-          /import\((["'])(@prisma-next\/[^"')]+)\1\)/g,
+          /import\((["'])(@internal\/[^"')]+)\1\)/g,
           (_match, quote: string, source: string) =>
             `import(${quote}${publicSpecifier(source, shellName).id}${quote})`,
         );
@@ -428,7 +428,7 @@ function validateShellManifest(
   };
   for (const pkg of internals) {
     for (const [dep, range] of Object.entries(pkg.dependencies)) {
-      if (dep.startsWith('@prisma-next/')) {
+      if (dep.startsWith('@internal/')) {
         const target = siblingShell(pkg, dep);
         if (target !== shellName) expectedDeps.set(target, `workspace:${version}`);
         continue;
@@ -440,7 +440,7 @@ function validateShellManifest(
       if (dep === 'typescript') continue;
       // An extension's peer on an internal adapter package becomes a peer on
       // the published target shell that carries it (ADR 242).
-      if (dep.startsWith('@prisma-next/')) {
+      if (dep.startsWith('@internal/')) {
         const target = siblingShell(pkg, dep);
         if (target !== shellName) expectedPeers.set(target, `workspace:${version}`);
         continue;

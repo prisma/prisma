@@ -21,15 +21,15 @@ D4 is the atomic renderer flip. Two source constants control which module specif
 
 After the flip:
 
-- `BASE_IMPORTS` for the Postgres renderer points at `@prisma-next/postgres/migration` (instead of `@prisma-next/target-postgres/migration`).
-- `BASE_IMPORTS` for the SQLite renderer points at `@prisma-next/sqlite/migration`.
+- `BASE_IMPORTS` for the Postgres renderer points at `@internal/postgres/migration` (instead of `@internal/target-postgres/migration`).
+- `BASE_IMPORTS` for the SQLite renderer points at `@internal/sqlite/migration`.
 - `TARGET_MIGRATION_MODULE` for both Postgres and SQLite op-factory-call modules points at the matching facade specifier.
 - ~15 string-pinned test files that assert on the rendered specifier need their pins updated to match.
 - A handful of internal-source comments / docstrings referencing the specifier as rendered-output context get touched up.
 
 ## Intent
 
-Atomically flip the migration renderer's emitted specifier from `@prisma-next/target-{postgres,sqlite}/migration` to `@prisma-next/{postgres,sqlite}/migration` so user-facing rendered migration files import from the public façade subpath. No behaviour change in the renderer itself, no schema change, no migration-hash impact (`migrationHash` is content-addressed over `ops.json`, not over `migration.ts` — verified in pre-dispatch research; the renderer flip is hash-invisible).
+Atomically flip the migration renderer's emitted specifier from `@internal/target-{postgres,sqlite}/migration` to `@internal/{postgres,sqlite}/migration` so user-facing rendered migration files import from the public façade subpath. No behaviour change in the renderer itself, no schema change, no migration-hash impact (`migrationHash` is content-addressed over `ops.json`, not over `migration.ts` — verified in pre-dispatch research; the renderer flip is hash-invisible).
 
 Anti-corruption: this dispatch does **not** migrate `examples/` user-authored TS (D5), does **not** touch docs/skills/READMEs outside the renderer files themselves (D6), does **not** touch hand-authored extension-pack migration files (those stay on the target specifier deliberately per A7).
 
@@ -37,8 +37,8 @@ Anti-corruption: this dispatch does **not** migrate `examples/` user-authored TS
 
 ### Renderer sources (4 files)
 
-- `packages/3-targets/3-targets/postgres/src/core/migrations/render-typescript.ts` — `BASE_IMPORTS` swap (`@prisma-next/target-postgres/migration` → `@prisma-next/postgres/migration`).
-- `packages/3-targets/3-targets/sqlite/src/core/migrations/render-typescript.ts` — `BASE_IMPORTS` swap (`@prisma-next/target-sqlite/migration` → `@prisma-next/sqlite/migration`).
+- `packages/3-targets/3-targets/postgres/src/core/migrations/render-typescript.ts` — `BASE_IMPORTS` swap (`@internal/target-postgres/migration` → `@internal/postgres/migration`).
+- `packages/3-targets/3-targets/sqlite/src/core/migrations/render-typescript.ts` — `BASE_IMPORTS` swap (`@internal/target-sqlite/migration` → `@internal/sqlite/migration`).
 - `packages/3-targets/3-targets/postgres/src/core/migrations/op-factory-call.ts` — `TARGET_MIGRATION_MODULE` swap.
 - `packages/3-targets/3-targets/sqlite/src/core/migrations/op-factory-call.ts` — `TARGET_MIGRATION_MODULE` swap.
 
@@ -71,8 +71,8 @@ Edit-then-verify per file group:
 
 1. Flip the 4 renderer sources first (constants only).
 2. Update the docstrings/headers in the renderer files in the same commit.
-3. Run `pnpm test --filter @prisma-next/target-postgres --filter @prisma-next/target-sqlite` — expect failures in the string-pinned tests, fix them inline.
-4. Repeat for the adapters: `pnpm test --filter @prisma-next/adapter-postgres --filter @prisma-next/adapter-sqlite`.
+3. Run `pnpm test --filter @internal/target-postgres --filter @internal/target-sqlite` — expect failures in the string-pinned tests, fix them inline.
+4. Repeat for the adapters: `pnpm test --filter @internal/adapter-postgres --filter @internal/adapter-sqlite`.
 5. Run `pnpm test:integration` for the cli-journey e2e tests; fix the string pins.
 6. Run `pnpm fixtures:check` — should be clean since `migrationHash` is over `ops.json` not over rendered `.ts`.
 
@@ -80,14 +80,14 @@ Commit shape options (your call): single atomic commit (matches the brief's "mus
 
 ## "Done when" gates
 
-- [ ] `pnpm build --filter @prisma-next/target-postgres --filter @prisma-next/target-sqlite` clean.
+- [ ] `pnpm build --filter @internal/target-postgres --filter @internal/target-sqlite` clean.
 - [ ] `pnpm test:packages` clean across both target packages and both adapters.
 - [ ] `pnpm test:integration` clean (cli-journey e2e tests pass with the flipped specifier).
 - [ ] `pnpm test:e2e` clean.
 - [ ] `pnpm fixtures:check` clean (hash invariance verified by passing fixtures).
 - [ ] `pnpm lint:deps` clean.
 - [ ] Intent-validation: diff covers exactly the 4 source files + the test-pin sweep + the docstring touch-ups. No façade source change. No example migration.
-- [ ] Grep gate: `rg "@prisma-next/target-(postgres|sqlite)/migration" -g '!**/node_modules/**' -g '!**/migrations/**'` returns only:
+- [ ] Grep gate: `rg "@internal/target-(postgres|sqlite)/migration" -g '!**/node_modules/**' -g '!**/migrations/**'` returns only:
   - the internal target packages' own `src/exports/migration.ts` (the source of `/migration`),
   - the cipherstash extension's `src/exports/migration.ts` docstring (deliberate; documents the extension authoring contract — leave),
   - the parity tests added in D1 + D3 (which explicitly assert the façade re-exports byte-match the target — leave; they cite both specifiers by design),
@@ -96,7 +96,7 @@ Commit shape options (your call): single atomic commit (matches the brief's "mus
 ## Edge cases / failure modes
 
 - **Mixed-specifier renderer output.** If you flip only `BASE_IMPORTS` and forget `TARGET_MIGRATION_MODULE` (or vice versa), tests will likely catch a render mismatch — but the failure mode is subtle (mixed imports in the same file). Verify both sides flipped in both targets before running tests.
-- **Forgotten test pin.** Tests that assert exact-string against rendered output need every occurrence updated. The slice plan inventory is authoritative; rg-verify after editing: `rg '@prisma-next/target-postgres/migration' packages/ test/ -g '!**/node_modules/**'` should return only the leave-alone list above after your changes.
+- **Forgotten test pin.** Tests that assert exact-string against rendered output need every occurrence updated. The slice plan inventory is authoritative; rg-verify after editing: `rg '@internal/target-postgres/migration' packages/ test/ -g '!**/node_modules/**'` should return only the leave-alone list above after your changes.
 - **Don't touch examples/migrations/app/.** Pre-existing rendered migration files under `examples/<app>/migrations/` use the old specifier deliberately — they're frozen rendered output. Per the slice spec A7 they stay valid. Don't sweep them.
 - **Cipherstash extension's `src/exports/migration.ts` docstring** is *deliberately* on the target specifier — it documents the extension-authoring contract (extension migrations bypass the facade by design). Don't touch.
 

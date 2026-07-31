@@ -1,7 +1,7 @@
-import type { CodecTypes as MongoCodecTypes } from '@prisma-next/adapter-mongo/codec-types';
+import type { CodecTypes as MongoCodecTypes } from '@internal/adapter-mongo/codec-types';
 
-import type { MongoContractWithTypeMaps, MongoTypeMaps } from '@prisma-next/mongo-contract';
-import type { NamespaceId, ProfileHashBase, StorageHashBase } from '@prisma-next/contract/types';
+import type { MongoContractWithTypeMaps, MongoTypeMaps } from '@internal/mongo-contract';
+import type { NamespaceId, ProfileHashBase, StorageHashBase } from '@internal/contract/types';
 
 export type StorageHash =
   StorageHashBase<'vo-test-storage-hash'>;

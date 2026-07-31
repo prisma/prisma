@@ -13,7 +13,7 @@
  * pattern) is preferable to a full example-app round trip.
  */
 
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import supabasePack from '../src/exports/pack';

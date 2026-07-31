@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { ProjectionItem, SelectAst } from '@prisma-next/sql-relational-core/ast';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { ProjectionItem, SelectAst } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { resolveIncludeRelation } from '../src/collection-contract';
 import { dispatchCollectionRows } from '../src/collection-dispatch';

@@ -1,8 +1,8 @@
-import mongoAdapter from '@prisma-next/adapter-mongo/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import { mongoFamilyDescriptor } from '@prisma-next/family-mongo/control';
-import { mongoContract } from '@prisma-next/mongo-contract-psl/provider';
-import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
+import mongoAdapter from '@internal/adapter-mongo/control';
+import { defineConfig } from '@internal/cli/config-types';
+import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import { mongoContract } from '@internal/mongo-contract-psl/provider';
+import { mongoTargetDescriptor } from '@internal/target-mongo/control';
 
 export default defineConfig({
   family: mongoFamilyDescriptor,

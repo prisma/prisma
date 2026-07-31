@@ -1,5 +1,5 @@
-import { generateContractDts } from '@prisma-next/emitter';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+import { generateContractDts } from '@internal/emitter';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';

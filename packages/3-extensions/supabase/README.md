@@ -1,4 +1,4 @@
-# @prisma-next/extension-supabase
+# @internal/extension-supabase
 
 Supabase extension pack for Prisma Next.
 
@@ -22,19 +22,19 @@ The contract is **introspected, not hand-authored**: `pnpm contract:generate` re
 
 ## Dependencies
 
-- **`@prisma-next/contract`**: contract types the `/pack` descriptor and emitted artefacts depend on.
-- **`@prisma-next/family-sql`**: SQL family pack ref + `SqlControlExtensionDescriptor` type the `/pack` descriptor satisfies.
-- **`@prisma-next/framework-components`**: shared component / pack-ref type shapes the descriptor consumes.
-- **`@prisma-next/sql-runtime`**: `SqlRuntimeExtensionDescriptor` the `/runtime` minimal descriptor satisfies.
-- **`@prisma-next/sql-contract-psl`**: `prismaContract` provider used by `prisma-next.config.ts` to emit the PSL-authored contract.
-- **`@prisma-next/utils`**: `blindCast` helper for narrowing the imported `contract.json` to the emitted `Contract` type.
+- **`@internal/contract`**: contract types the `/pack` descriptor and emitted artefacts depend on.
+- **`@internal/family-sql`**: SQL family pack ref + `SqlControlExtensionDescriptor` type the `/pack` descriptor satisfies.
+- **`@internal/framework-components`**: shared component / pack-ref type shapes the descriptor consumes.
+- **`@internal/sql-runtime`**: `SqlRuntimeExtensionDescriptor` the `/runtime` minimal descriptor satisfies.
+- **`@internal/sql-contract-psl`**: `prismaContract` provider used by `prisma-next.config.ts` to emit the PSL-authored contract.
+- **`@internal/utils`**: `blindCast` helper for narrowing the imported `contract.json` to the emitted `Contract` type.
 
-The `/runtime` subpath additionally pulls in the Postgres runtime stack (`@prisma-next/postgres`, `@prisma-next/sql-runtime`, `@prisma-next/sql-builder`, `@prisma-next/sql-orm-client`) plus `jose` (JWT verification) and `pg` (Postgres client/pool). It does **not** depend on `@supabase/supabase-js` — the framework speaks Postgres directly.
+The `/runtime` subpath additionally pulls in the Postgres runtime stack (`@internal/postgres`, `@internal/sql-runtime`, `@internal/sql-builder`, `@internal/sql-orm-client`) plus `jose` (JWT verification) and `pg` (Postgres client/pool). It does **not** depend on `@supabase/supabase-js` — the framework speaks Postgres directly.
 
 ## Installation
 
 ```bash
-pnpm add @prisma-next/extension-supabase
+pnpm add @internal/extension-supabase
 ```
 
 ## Configuration
@@ -43,13 +43,13 @@ Compose the pack into your application contract via `extensions`. The pack's con
 
 ```ts
 // prisma-next.config.ts
-import { defineConfig } from '@prisma-next/cli/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
-import postgresPackRef from '@prisma-next/target-postgres/pack';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
-import supabasePack from '@prisma-next/extension-supabase/pack';
+import { defineConfig } from '@internal/cli/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
+import postgresPackRef from '@internal/target-postgres/pack';
+import { prismaContract } from '@internal/sql-contract-psl/provider';
+import supabasePack from '@internal/extension-supabase/pack';
 
 export default defineConfig({
   family: sql,
@@ -68,7 +68,7 @@ The `/runtime` subpath exports the `supabase(...)` factory. It returns a `Supaba
 
 ```ts
 // db.ts
-import { supabase } from '@prisma-next/extension-supabase/runtime';
+import { supabase } from '@internal/extension-supabase/runtime';
 import type { Contract } from './contract';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -108,7 +108,7 @@ const users = await admin.supabase
 Supplying both, or neither, throws a structured error with code `SUPABASE.CONFIG_INVALID`. A malformed / expired / mis-signed token throws one with code `SUPABASE.JWT_INVALID` and the underlying reason in `meta.reason` — including an algorithm/key-source mismatch (an ES256 token against a `jwtSecret` client, or an HS256 token against a `jwksUrl` client) with a message naming the fix. Match these errors on their code, never a class:
 
 ```ts
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 
 try {
   await db.asUser(jwt);

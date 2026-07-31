@@ -12,7 +12,7 @@ changes:
       anyMatch: true
   - id: facade-add-close-and-async-dispose
     summary: |
-      The official Prisma Next facades (`@prisma-next/postgres`, `@prisma-next/sqlite`, `@prisma-next/mongo`) now expose `close()` and `[Symbol.asyncDispose]` so short-lived scripts can release facade-owned resources cleanly and exit instead of hanging on a live connection. Extensions that expose a facade in the same shape should add the same surface for parity, honouring the ownership rule (only close resources the facade itself constructed) and managing a terminal closed state (subsequent operations reject with a clear error). No script — manual code authoring per extension.
+      The official Prisma Next facades (`@internal/postgres`, `@internal/sqlite`, `@internal/mongo`) now expose `close()` and `[Symbol.asyncDispose]` so short-lived scripts can release facade-owned resources cleanly and exit instead of hanging on a live connection. Extensions that expose a facade in the same shape should add the same surface for parity, honouring the ownership rule (only close resources the facade itself constructed) and managing a terminal closed state (subsequent operations reject with a clear error). No script — manual code authoring per extension.
     detection:
       glob: "**/src/runtime/*.ts"
       contains:
@@ -20,12 +20,12 @@ changes:
       anyMatch: true
   - id: mongo-close-ownership-rule
     summary: |
-      The Mongo facade's `db.close()` is **silently breaking**. Before 0.11 it unconditionally called `await runtime.close()`, which closed the underlying `MongoClient` regardless of how the facade was constructed. From 0.11 it honours the ownership rule and closes only facade-constructed clients (from a `{ url }` binding); when the facade was constructed with `{ mongoClient }` the caller-supplied `MongoClient` is left untouched. Extensions that wrap or extend `@prisma-next/mongo` and relied on `db.close()` disposing of a shared `MongoClient` need to either switch to a `{ url }` binding (so the facade owns the client) or close the `MongoClient` themselves.
+      The Mongo facade's `db.close()` is **silently breaking**. Before 0.11 it unconditionally called `await runtime.close()`, which closed the underlying `MongoClient` regardless of how the facade was constructed. From 0.11 it honours the ownership rule and closes only facade-constructed clients (from a `{ url }` binding); when the facade was constructed with `{ mongoClient }` the caller-supplied `MongoClient` is left untouched. Extensions that wrap or extend `@internal/mongo` and relied on `db.close()` disposing of a shared `MongoClient` need to either switch to a `{ url }` binding (so the facade owns the client) or close the `MongoClient` themselves.
     detection:
       glob: "**/*.{ts,tsx}"
       contains:
         - "mongoClient"
-        - "@prisma-next/mongo"
+        - "@internal/mongo"
       anyMatch: true
   - id: insert-single-row-wrap-in-array
     summary: Wrap single-row `.insert({...})` call sites in an array — `.insert([{...}])`. The single-object overload is removed; `.insert()` now exclusively accepts an array of row objects.
@@ -122,7 +122,7 @@ For each match, open the file and add the `kind` literal to every namespace entr
 
 ### Why the change
 
-The framework needs every namespace IR node to carry its family discriminator at the type level so that cross-family namespace walks (the new `elementCoordinates(storage)` surface in `@prisma-next/framework-components/ir`) can dispatch on a known-present `kind`, not an optional one.
+The framework needs every namespace IR node to carry its family discriminator at the type level so that cross-family namespace walks (the new `elementCoordinates(storage)` surface in `@internal/framework-components/ir`) can dispatch on a known-present `kind`, not an optional one.
 
 The runtime invariant has always held — every concrete namespace class sets `kind` non-enumerably via `Object.defineProperty(this, 'kind', { value, enumerable: false })` in its constructor. The type tightening makes the invariant honest at the consumer surface.
 
@@ -164,7 +164,7 @@ The `[Symbol.asyncDispose]` alias is one line — delegate to `close()` — and 
 
 ## `mongo-close-ownership-rule`
 
-Before 0.11, `@prisma-next/mongo`'s `db.close()` looked like this:
+Before 0.11, `@internal/mongo`'s `db.close()` looked like this:
 
 ```typescript
 async close() {

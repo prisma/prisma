@@ -1,4 +1,4 @@
-import type { MigrationOperationPolicy } from '@prisma-next/framework-components/control';
+import type { MigrationOperationPolicy } from '@internal/framework-components/control';
 import {
   MongoCollection,
   type MongoCollectionOptions,
@@ -8,13 +8,13 @@ import {
   type MongoIndexInput,
   type MongoValidator,
   type MongoValidatorInput,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import {
   MongoSchemaCollection,
   MongoSchemaIndex,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
 import {
   collMod,

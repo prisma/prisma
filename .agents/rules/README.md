@@ -39,7 +39,7 @@ Rules below are listed by bare filename; the canonical file is `.agents/rules/<n
 - `schema-driven-architecture.mdc` — Read the architecture overview before writing code
 - `doc-maintenance.mdc` — Keep docs/READMEs/rules up‑to‑date
 - `no-direct-lockfile-edits.mdc` — Never edit `pnpm-lock.yaml` manually; use `pnpm install`
-- `workspace-package-not-found-run-pnpm-install.mdc` — A missing `@prisma-next/*` module is a build/install-state issue, not a code bug: verify with `require.resolve` (pnpm links per-consumer, NOT at repo root — a root check lies), then `pnpm build` (stale dist) / `pnpm install` (new dep)
+- `workspace-package-not-found-run-pnpm-install.mdc` — A missing `@internal/*` module is a build/install-state issue, not a code bug: verify with `require.resolve` (pnpm links per-consumer, NOT at repo root — a root check lies), then `pnpm build` (stale dist) / `pnpm install` (new dep)
 - `omit-should-in-tests.mdc` — Test descriptions omit "should"
 - `no-transient-project-ids-in-code.mdc` — No transient project/milestone/task IDs in code, comments, ADRs, or tests
 - `optimize-for-human-time-on-prs.mdc` — Optimize for reviewer time; default to fewer, larger PRs
@@ -96,7 +96,7 @@ Rules below are listed by bare filename; the canonical file is `.agents/rules/<n
 ## SQL & Query Patterns
 - `query-patterns.mdc` — Query DSL patterns
 - `postgres-lateral-patterns.mdc` — LATERAL/json_agg patterns
-- `sql-types-imports.mdc` — SQL types import path (use @prisma-next/sql-contract/types)
+- `sql-types-imports.mdc` — SQL types import path (use @internal/sql-contract/types)
 
 ## TypeScript & Typing
 - `typescript-patterns.mdc` — TS patterns index (short)

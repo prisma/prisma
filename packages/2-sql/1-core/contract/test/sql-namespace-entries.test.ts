@@ -1,6 +1,6 @@
-import { coreHash } from '@prisma-next/contract/types';
-import { elementCoordinates, UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
+import { coreHash } from '@internal/contract/types';
+import { elementCoordinates, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { StorageTable } from '../src/ir/storage-table';
 import { StorageValueSet } from '../src/ir/storage-value-set';

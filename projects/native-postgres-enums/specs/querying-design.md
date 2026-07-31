@@ -135,7 +135,7 @@ A **new facade root**, sibling of `db.enums`, **composed into the Postgres clien
   (`createEnumAccessor`) is reused unchanged;
 - is **Postgres-only** — Mongo/SQLite clients have no native enums and gain no such field;
 - is built inside **`buildPostgresStaticContext`** (the client-safe static surface,
-  `@prisma-next/postgres/static`), exactly where `enums` lives — so `nativeEnums` is also
+  `@internal/postgres/static`), exactly where `enums` lives — so `nativeEnums` is also
   available on the driver-free `PostgresStaticContext`, not just the connected client.
 
 ```ts

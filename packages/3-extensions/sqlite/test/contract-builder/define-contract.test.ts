@@ -1,6 +1,6 @@
-import { domainModelsAtDefaultNamespace } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqliteUnboundDatabase } from '@prisma-next/target-sqlite/control';
+import { domainModelsAtDefaultNamespace } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqliteUnboundDatabase } from '@internal/target-sqlite/control';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, model } from '../../src/exports/contract-builder';
 

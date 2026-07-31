@@ -1,4 +1,4 @@
-import { defineIndexTypes } from '@prisma-next/sql-contract/index-types';
+import { defineIndexTypes } from '@internal/sql-contract/index-types';
 import { type } from 'arktype';
 
 // Postgres's built-in index access methods (`CREATE INDEX ... USING <method>`).

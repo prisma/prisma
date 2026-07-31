@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { CodecTypes } from '../exports/codec-types';
 import { sqliteAuthoringFieldPresets } from './authoring';
 import { sqliteTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';

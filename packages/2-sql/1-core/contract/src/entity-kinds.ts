@@ -1,7 +1,7 @@
 import type {
   AnyEntityKindDescriptor,
   EntityKindDescriptor,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import { contractError } from './contract-errors';
 import { StorageTableSchema, StorageValueSetSchema } from './ir/storage-entry-schemas';
 import { StorageTable, type StorageTableInput } from './ir/storage-table';

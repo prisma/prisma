@@ -1,26 +1,26 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
+import type { CodecCallContext } from '@internal/framework-components/codec';
 import type {
   MigrationOperationPolicy,
   MigrationPlan,
   MigrationRunnerExecutionChecks,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   type AggregateMigrationEdgeRef,
   buildFabricatedMigrationEdge,
-} from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { MongoContract } from '@prisma-next/mongo-contract';
+} from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { MongoContract } from '@internal/mongo-contract';
 import type {
   MongoAdapter,
   MongoDdlPlan,
   MongoDriver,
   MongoLoweredDraft,
-} from '@prisma-next/mongo-lowering';
+} from '@internal/mongo-lowering';
 import type {
   AnyMongoInspectionCommand,
   AnyMongoMigrationOperation,
   MongoInspectionCommandVisitor,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import {
   AggregateCommand,
   MongoFieldFilter,
@@ -28,13 +28,13 @@ import {
   MongoMatchStage,
   type MongoQueryPlan,
   RawUpdateManyCommand,
-} from '@prisma-next/mongo-query-ast/execution';
-import { MongoSchemaCollection, MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-query-ast/execution';
+import { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import type {
   AnyMongoDdlWireCommand,
   AnyMongoDmlWireCommand,
   AnyMongoWireCommand,
-} from '@prisma-next/mongo-wire';
+} from '@internal/mongo-wire';
 import { describe, expect, it } from 'vitest';
 import { createCollection, dataTransform } from '../src/core/migration-factories';
 import { serializeMongoOps } from '../src/core/mongo-ops-serializer';

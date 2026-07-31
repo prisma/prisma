@@ -1,5 +1,5 @@
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { notOk, type Result } from '@prisma-next/utils/result';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { notOk, type Result } from '@internal/utils/result';
 import {
   CliStructuredError,
   errorContractValidationFailed,

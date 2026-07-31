@@ -21,9 +21,9 @@
     "arktype": "^2.2.2"
   },
   "devDependencies": {
-    "@prisma-next/adapter-sqlite": "workspace:0.16.0",
-    "@prisma-next/driver-sqlite": "workspace:0.16.0",
-    "@prisma-next/target-sqlite": "workspace:0.16.0",
+    "@internal/adapter-sqlite": "workspace:0.16.0",
+    "@internal/driver-sqlite": "workspace:0.16.0",
+    "@internal/target-sqlite": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",

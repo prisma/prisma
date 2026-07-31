@@ -6,8 +6,8 @@ import type {
   ControlFamilyDescriptor,
   ControlFamilyInstance,
   ControlTargetDescriptor,
-} from '@prisma-next/framework-components/control';
-import { ok } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import { ok } from '@internal/utils/result';
 import { expectTypeOf, test } from 'vitest';
 import { defineConfig, type FormatterConfig, type PrismaNextConfig } from '../src/config-types';
 import type {

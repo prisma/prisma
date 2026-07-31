@@ -1,17 +1,17 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import * as configLoader from '@prisma-next/config-loader';
-import type { Contract } from '@prisma-next/contract/types';
-import type { CliErrorEnvelope } from '@prisma-next/errors/control';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { loadContractSpaceAggregate } from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { writeContractSnapshot } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { writeRef } from '@prisma-next/migration-tools/refs';
+import * as configLoader from '@internal/config-loader';
+import type { Contract } from '@internal/contract/types';
+import type { CliErrorEnvelope } from '@internal/errors/control';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { writeRef } from '@internal/migration-tools/refs';
 import { createSqlContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { join } from 'pathe';
@@ -71,7 +71,7 @@ import {
   setupCommandMocks,
 } from '../utils/test-helpers';
 
-vi.mock('@prisma-next/config-loader', { spy: true });
+vi.mock('@internal/config-loader', { spy: true });
 
 const HASH_4cb4256 = `4cb4256${'0'.repeat(57)}`;
 const HASH_55bada2 = `55bada2${'0'.repeat(57)}`;

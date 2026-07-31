@@ -9,9 +9,9 @@
  * the same `StorageColumnManyOf` wrapping as `CodecChannelType`.
  */
 
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import type { ExtractFieldOutputTypes } from '@prisma-next/sql-contract/types';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { ExtractFieldOutputTypes } from '@internal/sql-contract/types';
 import { expectTypeOf, test } from 'vitest';
 import { field, model } from '../src/contract-builder';
 import type { SqlContractResult } from '../src/contract-types';

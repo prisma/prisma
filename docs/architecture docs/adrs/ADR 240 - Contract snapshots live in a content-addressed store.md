@@ -14,7 +14,7 @@ A rendered `migration.ts` imports the store directly:
 
 ```ts
 #!/usr/bin/env -S node
-import { col, Migration, MigrationCLI } from '@prisma-next/postgres/migration';
+import { col, Migration, MigrationCLI } from '@internal/postgres/migration';
 import type { Contract as Start } from '../../snapshots/93be6c200743261baf55f0586b1380a1c0ade3c48730c09a8fec71ba419c2464/contract';
 import startContract from '../../snapshots/93be6c200743261baf55f0586b1380a1c0ade3c48730c09a8fec71ba419c2464/contract.json' with {
   type: 'json',

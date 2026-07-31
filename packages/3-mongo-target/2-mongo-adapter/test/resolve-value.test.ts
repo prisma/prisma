@@ -1,6 +1,6 @@
-import { mongoCodec, newMongoCodecRegistry } from '@prisma-next/mongo-codec';
-import { MongoParamRef } from '@prisma-next/mongo-value';
-import { isStructuredError, structuredError } from '@prisma-next/utils/structured-error';
+import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
+import { MongoParamRef } from '@internal/mongo-value';
+import { isStructuredError, structuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { resolveValue } from '../src/resolve-value';
 

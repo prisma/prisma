@@ -1,5 +1,5 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { StorageTable } from '@prisma-next/sql-contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';

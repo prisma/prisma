@@ -1,10 +1,10 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
-import postgres from '@prisma-next/target-postgres/control';
-import { PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql from '@internal/family-sql/control';
+import { createControlStack } from '@internal/framework-components/control';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
+import postgres from '@internal/target-postgres/control';
+import { PostgresDatabaseSchemaNode } from '@internal/target-postgres/types';
 import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 

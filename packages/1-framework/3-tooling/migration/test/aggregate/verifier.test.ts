@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { VerifyDatabaseSchemaResult } from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { Contract } from '@internal/contract/types';
+import type { VerifyDatabaseSchemaResult } from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createContractSpaceAggregate } from '../../src/aggregate/aggregate';

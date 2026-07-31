@@ -10,7 +10,7 @@ The query AST covers both DML (`SELECT`/`INSERT`/`UPDATE`/`DELETE`) and target-c
 
 Two distinct ASTs exist in this codebase and they are not the same thing.
 
-1. **The query AST** (`AnyQueryAst` in `@prisma-next/sql-relational-core/ast`) — what the adapter lowers (`adapter.lower(ast, ctx) → LoweredStatement`) and the driver executes. DDL nodes extend this via `DdlNode` (described below).
+1. **The query AST** (`AnyQueryAst` in `@internal/sql-relational-core/ast`) — what the adapter lowers (`adapter.lower(ast, ctx) → LoweredStatement`) and the driver executes. DDL nodes extend this via `DdlNode` (described below).
 2. **The migration-plan IR** (`OpFactoryCall` → `PostgresOpFactoryCallNode` → `CreateTableCall`/`DropColumnCall`/… in the target packages) — the planner's representation of a migration. Its `toOp(lowerer)` builds a query-AST DDL node and lowers it through the adapter at plan/JSON-write time.
 
 The two share a rendering path, not a representation. The migration `*Call` IR carries migration-specific facets (operation classification, `renderTypeScript()` for `migration.ts` codegen, precheck/postcheck steps) that have nothing to do with the query AST. The query AST carries lowering and codec facets irrelevant to the planner. They share a single lowering implementation (`*Call.toOp()` delegates to the same DDL-node construction + `lowerer.lower(node, ctx)` call), not a shared representation.
@@ -119,7 +119,7 @@ type DdlTableConstraint = PrimaryKeyConstraint | ForeignKeyConstraint | UniqueCo
 Key decisions:
 
 - Constraint objects are frozen on construction, same discipline as the `DdlNode` hierarchy.
-- `onDelete`/`onUpdate` reuse the `ReferentialAction` type from `@prisma-next/sql-contract/types` rather than a new enum.
+- `onDelete`/`onUpdate` reuse the `ReferentialAction` type from `@internal/sql-contract/types` rather than a new enum.
 - Constraint classes live in `relational-core` (not per-target) because the three kinds are universal across SQL targets; per-target variation is entirely in how the adapter renders them.
 - When `constraints` is absent, the adapter renders only column defs.
 
@@ -136,7 +136,7 @@ The contract-free DML surface keeps full JS round-tripping (object ↔ `jsonb`, 
 
 The planner's `CreateTableCall.toOp()` lives in the target package and must lower a DDL-AST node. The adapter's lowering code lives in the adapter package, and `adapter-postgres` depends on `target-postgres` — so the target cannot import the adapter directly.
 
-The adapter interface `SqlControlAdapter<TTarget>` (and its structural subset `Lowerer`) lives in `@prisma-next/family-sql/control-adapter` (`packages/2-sql/9-family`) — a layer below both target and adapter, which both already depend on. It exposes `lower(ast: AnyQueryAst | DdlNode, ctx): LoweredStatement`. The migration class (`PostgresMigration extends SqlMigration`) holds the concrete adapter as `this.controlAdapter`. `CreateTableCall.toOp()` receives the adapter via the same threading as `dataTransform()`, builds the node with the contract-free constructor, and lowers it through the interface at plan/JSON-write time. The renderer stays in the adapter; the target depends only on the low-level interface, never the concrete adapter.
+The adapter interface `SqlControlAdapter<TTarget>` (and its structural subset `Lowerer`) lives in `@internal/family-sql/control-adapter` (`packages/2-sql/9-family`) — a layer below both target and adapter, which both already depend on. It exposes `lower(ast: AnyQueryAst | DdlNode, ctx): LoweredStatement`. The migration class (`PostgresMigration extends SqlMigration`) holds the concrete adapter as `this.controlAdapter`. `CreateTableCall.toOp()` receives the adapter via the same threading as `dataTransform()`, builds the node with the contract-free constructor, and lowers it through the interface at plan/JSON-write time. The renderer stays in the adapter; the target depends only on the low-level interface, never the concrete adapter.
 
 ## Migration authoring API
 

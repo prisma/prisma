@@ -11,7 +11,7 @@
 
 import { publicShells, type ShellDefinition, type ShellName } from './shells';
 
-const INTERNAL_SCOPE = '@prisma-next/';
+const INTERNAL_SCOPE = '@internal/';
 const PUBLISHED_SCOPE = '@prisma/';
 
 /** An import root that emitted code cannot express. */

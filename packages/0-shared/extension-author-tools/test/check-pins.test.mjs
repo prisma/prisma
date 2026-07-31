@@ -32,12 +32,12 @@ function runCheck() {
 }
 
 describe('prisma-next-check-pins — pass cases', () => {
-  it('exits 0 silently when every @prisma-next/* dep is a single exact version', () => {
+  it('exits 0 silently when every @internal/* dep is a single exact version', () => {
     writePackageJson({
       name: 'fixture-exact-pin',
       dependencies: {
-        '@prisma-next/contract': '0.7.0',
-        '@prisma-next/sql-contract': '0.7.0',
+        '@internal/contract': '0.7.0',
+        '@internal/sql-contract': '0.7.0',
       },
     });
     const result = runCheck();
@@ -54,15 +54,15 @@ describe('prisma-next-check-pins — pass cases', () => {
     writePackageJson({
       name: 'fixture-prerelease',
       dependencies: {
-        '@prisma-next/contract': '0.7.0-dev.123',
-        '@prisma-next/sql-contract': '0.7.0-dev.123',
+        '@internal/contract': '0.7.0-dev.123',
+        '@internal/sql-contract': '0.7.0-dev.123',
       },
     });
     const result = runCheck();
     assert.equal(result.status, 0, `stderr=${result.stderr}`);
   });
 
-  it('passes vacuously when no @prisma-next/* entries are declared', () => {
+  it('passes vacuously when no @internal/* entries are declared', () => {
     writePackageJson({
       name: 'fixture-no-pn-deps',
       dependencies: { arktype: '^2.1.0', pathe: '^2.0.0' },
@@ -71,11 +71,11 @@ describe('prisma-next-check-pins — pass cases', () => {
     assert.equal(result.status, 0, `stderr=${result.stderr}`);
   });
 
-  it('ignores non-@prisma-next/* entries regardless of their spec shape', () => {
+  it('ignores non-@internal/* entries regardless of their spec shape', () => {
     writePackageJson({
       name: 'fixture-mixed',
       dependencies: {
-        '@prisma-next/contract': '0.7.0',
+        '@internal/contract': '0.7.0',
         arktype: '^2.1.0',
         pathe: '*',
         typescript: 'workspace:*',
@@ -88,9 +88,9 @@ describe('prisma-next-check-pins — pass cases', () => {
   it('checks all three dependency fields together', () => {
     writePackageJson({
       name: 'fixture-three-fields',
-      dependencies: { '@prisma-next/contract': '0.7.0' },
-      peerDependencies: { '@prisma-next/sql-contract': '0.7.0' },
-      optionalDependencies: { '@prisma-next/mongo-contract': '0.7.0' },
+      dependencies: { '@internal/contract': '0.7.0' },
+      peerDependencies: { '@internal/sql-contract': '0.7.0' },
+      optionalDependencies: { '@internal/mongo-contract': '0.7.0' },
     });
     const result = runCheck();
     assert.equal(result.status, 0, `stderr=${result.stderr}`);
@@ -102,11 +102,11 @@ describe('prisma-next-check-pins — exact-version rule violations', () => {
     it(`rejects non-exact spec ${JSON.stringify(spec)}`, () => {
       writePackageJson({
         name: 'fixture-range',
-        dependencies: { '@prisma-next/contract': spec },
+        dependencies: { '@internal/contract': spec },
       });
       const result = runCheck();
       assert.notEqual(result.status, 0);
-      assert.match(result.stderr, /@prisma-next\/contract/);
+      assert.match(result.stderr, /@internal\/contract/);
       assert.match(result.stderr, new RegExp(spec.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     });
   }
@@ -115,41 +115,41 @@ describe('prisma-next-check-pins — exact-version rule violations', () => {
     it(`rejects workspace spec ${JSON.stringify(spec)}`, () => {
       writePackageJson({
         name: 'fixture-workspace',
-        dependencies: { '@prisma-next/contract': spec },
+        dependencies: { '@internal/contract': spec },
       });
       const result = runCheck();
       assert.notEqual(result.status, 0);
-      assert.match(result.stderr, /@prisma-next\/contract/);
+      assert.match(result.stderr, /@internal\/contract/);
       assert.match(result.stderr, /workspace/);
     });
   }
 });
 
 describe('prisma-next-check-pins — single-version rule violations', () => {
-  it('rejects two @prisma-next/* deps pinned to different exact versions', () => {
+  it('rejects two @internal/* deps pinned to different exact versions', () => {
     writePackageJson({
       name: 'fixture-mismatched',
       dependencies: {
-        '@prisma-next/contract': '0.7.0',
-        '@prisma-next/sql-contract': '0.7.1',
+        '@internal/contract': '0.7.0',
+        '@internal/sql-contract': '0.7.1',
       },
     });
     const result = runCheck();
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /@prisma-next\/sql-contract/);
+    assert.match(result.stderr, /@internal\/sql-contract/);
     assert.match(result.stderr, /0\.7\.1/);
   });
 
   it('rejects a range in peerDependencies even when dependencies is exact', () => {
     writePackageJson({
       name: 'fixture-multi-field-violation',
-      dependencies: { '@prisma-next/contract': '0.7.0' },
-      peerDependencies: { '@prisma-next/sql-contract': '^0.7.0' },
+      dependencies: { '@internal/contract': '0.7.0' },
+      peerDependencies: { '@internal/sql-contract': '^0.7.0' },
     });
     const result = runCheck();
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /peerDependencies/);
-    assert.match(result.stderr, /@prisma-next\/sql-contract/);
+    assert.match(result.stderr, /@internal\/sql-contract/);
   });
 });
 
@@ -157,13 +157,13 @@ describe('prisma-next-check-pins — error output shape', () => {
   it('names the dep field, package, observed spec, and rule for each violation', () => {
     writePackageJson({
       name: 'fixture-error-shape',
-      dependencies: { '@prisma-next/contract': '^0.7.0' },
-      peerDependencies: { '@prisma-next/sql-contract': 'workspace:*' },
+      dependencies: { '@internal/contract': '^0.7.0' },
+      peerDependencies: { '@internal/sql-contract': 'workspace:*' },
     });
     const result = runCheck();
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /dependencies\.@prisma-next\/contract/);
-    assert.match(result.stderr, /peerDependencies\.@prisma-next\/sql-contract/);
+    assert.match(result.stderr, /dependencies\.@internal\/contract/);
+    assert.match(result.stderr, /peerDependencies\.@internal\/sql-contract/);
     assert.match(result.stderr, /\^0\.7\.0/);
     assert.match(result.stderr, /workspace:\*/);
   });

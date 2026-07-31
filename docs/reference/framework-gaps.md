@@ -446,24 +446,24 @@ Applicability: **broadly applicable to IO-bound codecs**. Any codec that talks t
 
 ### G11 — ~~Pre-publish API: extensions must vendor types~~ (corrected: extension-author surface)
 
-> **Correction (2026-04-29).** This gap was originally filed citing the comment in CipherStash's `internal-types/prisma-next.ts` that says *"Prisma Next is pre-publish on npm at the time of writing"*. That comment is **stale**: `@prisma-next/sql-runtime`, `@prisma-next/contract-authoring`, `@prisma-next/family-sql` and the rest of the public packages have been on npm for hundreds of versions (latest stable `0.4.2`, plus `dev` and PR-tagged channels). The CipherStash integration's `package.json` takes **zero** `@prisma-next/`* dependencies — they vendored types despite published packages being available, not because they had no choice. The original framing ("force every external extension author to vendor") doesn't reflect reality. The original framework ticket [TML-2343](https://linear.app/prisma-company/issue/TML-2343) was filed against the false premise and has been canceled.
+> **Correction (2026-04-29).** This gap was originally filed citing the comment in CipherStash's `internal-types/prisma-next.ts` that says *"Prisma Next is pre-publish on npm at the time of writing"*. That comment is **stale**: `@internal/sql-runtime`, `@internal/contract-authoring`, `@internal/family-sql` and the rest of the public packages have been on npm for hundreds of versions (latest stable `0.4.2`, plus `dev` and PR-tagged channels). The CipherStash integration's `package.json` takes **zero** `@internal/`* dependencies — they vendored types despite published packages being available, not because they had no choice. The original framing ("force every external extension author to vendor") doesn't reflect reality. The original framework ticket [TML-2343](https://linear.app/prisma-company/issue/TML-2343) was filed against the false premise and has been canceled.
 
-**Symptom (corrected).** The integration ships a 376-line vendored `internal-types/prisma-next.ts` that hand-mirrors a curated subset of the public types from six different `@prisma-next/`* packages (`framework-components/codec`, `sql-relational-core/ast`, `sql-runtime`, `family-sql/control`, `sql-operations`, `contract-authoring`). Vendored shapes can drift from upstream.
+**Symptom (corrected).** The integration ships a 376-line vendored `internal-types/prisma-next.ts` that hand-mirrors a curated subset of the public types from six different `@internal/`* packages (`framework-components/codec`, `sql-relational-core/ast`, `sql-runtime`, `family-sql/control`, `sql-operations`, `contract-authoring`). Vendored shapes can drift from upstream.
 
 **Why the extension chose to vendor (best-guess reading).** The author's stated reason ("pre-publish") doesn't hold. Plausible actual reasons, ranked by how much they look like framework-side gaps:
 
-1. **No curated extension-author surface package.** The vendored file pulls from six different packages. To take real peer deps, an author has to learn which `@prisma-next/`* packages are public API vs internal, what their semver guarantees are, and pin the right combination. A single curated `@prisma-next/extension-types` umbrella that re-exports the symbols extensions need (`BaseCodec`, `SqlCodec`, `CodecRegistry`, `SqlOperationDescriptor`, `SqlRuntimeExtensionDescriptor`, `SqlControlExtensionDescriptor`, `ComponentDatabaseDependencies`, `PlanTypeOperationsInput`, `StorageTypePlanResult`) would make the choice trivial. **This is the only one that's a real framework gap** — and a small / debatable one.
+1. **No curated extension-author surface package.** The vendored file pulls from six different packages. To take real peer deps, an author has to learn which `@internal/`* packages are public API vs internal, what their semver guarantees are, and pin the right combination. A single curated `@internal/extension-types` umbrella that re-exports the symbols extensions need (`BaseCodec`, `SqlCodec`, `CodecRegistry`, `SqlOperationDescriptor`, `SqlRuntimeExtensionDescriptor`, `SqlControlExtensionDescriptor`, `ComponentDatabaseDependencies`, `PlanTypeOperationsInput`, `StorageTypePlanResult`) would make the choice trivial. **This is the only one that's a real framework gap** — and a small / debatable one.
 2. **Pre-1.0 churn aversion.** Even though PN is published, it's pre-1.0. The author may have preferred to snapshot a known-good shape rather than chase API moves between releases. **Author choice, not a framework problem.**
 3. **Install footprint.** They don't want PN packages installing into their consumers' `node_modules`. **Author choice.**
 4. **Independent release cadence.** They ship `@cipherstash/stack@0.15.x` and don't want their releases gated on PN compatibility ranges. **Author choice.**
 
-Applicability of the curated-surface story (reason 1): every third-party extension pack would benefit from a single, well-documented `import { … } from '@prisma-next/extension-types'` entry point. But the absence of one is a DX papercut, not a blocker — the published packages exist and can be depended on directly.
+Applicability of the curated-surface story (reason 1): every third-party extension pack would benefit from a single, well-documented `import { … } from '@internal/extension-types'` entry point. But the absence of one is a DX papercut, not a blocker — the published packages exist and can be depended on directly.
 
 **Today's workaround.** Vendored types file, intentionally narrow, runtime arktype check on `typeParams` (`encryptedStorageParamsSchema`) as a runtime safety net. The most-loose seam is `ArkSchema<TParams>` — typed as an opaque token because the integration doesn't want a hard dep on arktype's full surface, which means the `paramsSchema` slot is essentially `unknown`-typed at the boundary.
 
-**What the framework could provide (smaller scope than originally stated).** Optionally, a curated `@prisma-next/extension-types` umbrella package that re-exports the extension-author surface from one place with extension-author-grade documentation. This would lower the barrier to taking real peer deps for new extension authors. Not filed as a ticket today; consider filing fresh if/when the demand materializes.
+**What the framework could provide (smaller scope than originally stated).** Optionally, a curated `@internal/extension-types` umbrella package that re-exports the extension-author surface from one place with extension-author-grade documentation. This would lower the barrier to taking real peer deps for new extension authors. Not filed as a ticket today; consider filing fresh if/when the demand materializes.
 
-**Payoff.** If the curated umbrella lands: extension authors get one stable import line instead of six. If they don't, extensions can still take real `@prisma-next/`* peer deps individually — the published packages exist and the migration is mechanical.
+**Payoff.** If the curated umbrella lands: extension authors get one stable import line instead of six. If they don't, extensions can still take real `@internal/`* peer deps individually — the published packages exist and the migration is mechanical.
 
 ---
 
@@ -571,7 +571,7 @@ Applicability: **universal among extension authors**. Every extension wants the 
 
 This is **framework-side as a helper package**, optional but high-leverage — every extension author who skips writing their own test scaffolding ships faster.
 
-**What the framework should provide.** A `@prisma-next/codec-test-utils` (or similar) package: helper to construct a synthetic contract from a mini-DSL, a mock `CodecRegistry`, harness to assert "given this contract and this codec graph, this fluent expression lowers to this SQL AST".
+**What the framework should provide.** A `@internal/codec-test-utils` (or similar) package: helper to construct a synthetic contract from a mini-DSL, a mock `CodecRegistry`, harness to assert "given this contract and this codec graph, this fluent expression lowers to this SQL AST".
 
 **Payoff.** New extension packs ship faster; the integration's `prisma-test-helpers.ts` shrinks.
 
@@ -615,11 +615,11 @@ The integration already defines its own `JsonValue` in `internal-types/prisma-ne
 The CipherStash integration's structural shape — control + runtime + pack + column-types + codec-types + operation-types subpath exports, per-extension factory closure, conditional-method `OperationTypes`, microtask batcher, vendored migration assets behind `databaseDependencies.init`, per-column DDL via `planTypeOperations` — is **almost a template** for any non-trivial extension pack. The framework would benefit from publishing this shape as a **starter**:
 
 ```text
-@prisma-next/extension-template
+@internal/extension-template
 ├── src/
 │   ├── core/        (codecs, batcher, migrations)
 │   ├── exports/     (subpath entries)
-│   └── internal-types/  (or take real `@prisma-next/*` peer deps directly; see G11)
+│   └── internal-types/  (or take real `@internal/*` peer deps directly; see G11)
 ├── tsup.config.ts   (one entry per subpath, bundle-discipline lint)
 └── package.json     (subpath exports declared)
 ```

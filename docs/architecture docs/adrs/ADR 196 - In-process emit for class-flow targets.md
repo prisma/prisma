@@ -5,8 +5,8 @@
 A Mongo migration file on disk looks like this:
 
 ```ts
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { createIndex } from '@prisma-next/target-mongo/migration';
+import { Migration } from '@internal/family-mongo/migration';
+import { createIndex } from '@internal/target-mongo/migration';
 
 class BackfillStatus extends Migration {
   override plan() {

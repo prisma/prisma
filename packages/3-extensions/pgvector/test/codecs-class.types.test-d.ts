@@ -16,7 +16,7 @@ import {
   type ColumnHelperFor,
   type ColumnHelperForStrict,
   column,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import { expectTypeOf, test } from 'vitest';
 import {
   type PgVectorCodec,

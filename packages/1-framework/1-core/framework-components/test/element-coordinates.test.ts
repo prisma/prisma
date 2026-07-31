@@ -1,5 +1,5 @@
-import type { StorageBase } from '@prisma-next/contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { StorageBase } from '@internal/contract/types';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import {
   coordinateKey,

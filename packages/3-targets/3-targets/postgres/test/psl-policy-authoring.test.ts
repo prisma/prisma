@@ -13,10 +13,10 @@
  *     factory chain (no test-side hand-lowering).
  */
 
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {

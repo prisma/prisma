@@ -1,34 +1,34 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@prisma-next/config-loader';
-import { createControlStack } from '@prisma-next/framework-components/control';
+import { loadConfig } from '@internal/config-loader';
+import { createControlStack } from '@internal/framework-components/control';
 import type {
   ContractSpaceAggregate,
   IntegrityViolation,
-} from '@prisma-next/migration-tools/aggregate';
-import { loadContractSpaceAggregate } from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
+} from '@internal/migration-tools/aggregate';
+import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import {
   contractSnapshotDir,
   readContractSnapshotJson,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import type { MigrationGraph } from '@prisma-next/migration-tools/graph';
-import { verifyMigrationHash } from '@prisma-next/migration-tools/hash';
-import type { OnDiskMigrationPackage } from '@prisma-next/migration-tools/package';
+} from '@internal/migration-tools/contract-snapshot-store';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import type { MigrationGraph } from '@internal/migration-tools/graph';
+import { verifyMigrationHash } from '@internal/migration-tools/hash';
+import type { OnDiskMigrationPackage } from '@internal/migration-tools/package';
 import {
   parseMigrationRef,
   type RefResolutionError,
-} from '@prisma-next/migration-tools/ref-resolution';
-import type { Refs } from '@prisma-next/migration-tools/refs';
+} from '@internal/migration-tools/ref-resolution';
+import type { Refs } from '@internal/migration-tools/refs';
 import {
   isValidSpaceId,
   listContractSpaceDirectories,
   spaceMigrationDirectory,
   spaceRefsDirectory,
-} from '@prisma-next/migration-tools/spaces';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/spaces';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { join, relative } from 'pathe';
 import {

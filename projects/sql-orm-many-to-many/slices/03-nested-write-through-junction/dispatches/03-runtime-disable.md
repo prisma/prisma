@@ -22,7 +22,7 @@ Write a **runtime** test: nested `.create` on `User.roles` (the required-payload
 - [ ] Nested `.create` on a required-payload junction (`User.roles`) throws a clear error naming the relation + required column(s) + the recommended alternative; uses runtime `requiredPayloadColumns`.
 - [ ] `connect`/`disconnect` on the required-payload junction still produce correct junction DML (unaffected by the guard).
 - [ ] Nested `.create` on the pure junction (`User.tags`, no required payload) is unaffected.
-- [ ] Gate: `pnpm --filter @prisma-next/sql-orm-client typecheck` + `test` green.
+- [ ] Gate: `pnpm --filter @internal/sql-orm-client typecheck` + `test` green.
 
 ## Standing instruction
 

@@ -13,8 +13,8 @@
  * contract, so no example app is needed.
  */
 
-import type { SupabaseDb } from '@prisma-next/extension-supabase/runtime';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
+import type { SupabaseDb } from '@internal/extension-supabase/runtime';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
 import { expectTypeOf, test } from 'vitest';
 import supabasePack from '../src/exports/pack';
 

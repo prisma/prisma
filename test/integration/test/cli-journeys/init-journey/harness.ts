@@ -110,7 +110,7 @@ export interface StepResult extends CommandRun {
 interface CreateJourneyProjectOptions {
   /**
    * Whether to run `pnpm install` after the scaffold lands. The install
-   * resolves every `@prisma-next/*` dep against the workspace tarballs at
+   * resolves every `@internal/*` dep against the workspace tarballs at
    * {@link TARBALL_CACHE_DIR} and uses `node-linker=isolated` so transitive
    * workspace packages are not hoisted into the tmpdir's top-level
    * `node_modules` — the exact pnpm layout that TML-2485 broke under.
@@ -256,7 +256,7 @@ function asString(value: unknown): string {
 // --- Workspace tarball preparation -----------------------------------------
 //
 // Section drives the Phase A.2 strategy: rather than installing
-// `@prisma-next/*` packages from npm (where workspace versions are unpublished)
+// `@internal/*` packages from npm (where workspace versions are unpublished)
 // or symlinking workspace source dirs (which would leak the workspace's
 // hoisted `node_modules`), we pack each workspace package into a tarball once
 // per test session and have the tmpdir install against those tarballs.
@@ -335,12 +335,12 @@ function walkForPackageJsons(dir: string, found: WorkspacePackage[], depth: numb
         private?: boolean;
       };
       // Both scopes: the scaffold installs the published `@prisma/orm-*`
-      // packages, and those are built from the `@prisma-next/*` workspace
+      // packages, and those are built from the `@internal/*` workspace
       // packages, which the overrides below have to reach so resolution never
       // leaves the tarball cache.
       const ours =
         typeof pkg.name === 'string' &&
-        (pkg.name.startsWith('@prisma-next/') ||
+        (pkg.name.startsWith('@internal/') ||
           pkg.name.startsWith('@prisma/orm-') ||
           pkg.name === 'prisma-next');
       if (ours && typeof pkg.name === 'string') {
@@ -497,7 +497,7 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
     typescript: '^5.9.3',
   };
 
-  // Every workspace `@prisma-next/*` package becomes a pnpm override pointing
+  // Every workspace `@internal/*` package becomes a pnpm override pointing
   // at its tarball so transitive resolution stays within the cache, never
   // reaching the public registry. The presence of this block does not mean
   // every package is installed — only ones reached from the dep graph are

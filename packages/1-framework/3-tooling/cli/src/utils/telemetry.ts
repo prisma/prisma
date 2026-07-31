@@ -9,7 +9,7 @@ import {
   type TelemetryRunOutcome,
   type UserConfig,
   userConfigPath,
-} from '@prisma-next/cli-telemetry';
+} from '@internal/cli-telemetry';
 import type { Command } from 'commander';
 import { version as CLI_VERSION } from '../../package.json' with { type: 'json' };
 import { isCI } from './is-ci';
@@ -70,13 +70,13 @@ function resolveTelemetryGate(): TelemetryGate {
 }
 
 /**
- * Path to the compiled sender script inside `@prisma-next/cli-telemetry`'s
+ * Path to the compiled sender script inside `@internal/cli-telemetry`'s
  * `dist/`. Resolved off this module's `import.meta.url` via the package
- * specifier `@prisma-next/cli-telemetry/sender`, so the consumer pays
+ * specifier `@internal/cli-telemetry/sender`, so the consumer pays
  * no attention to internal package layout.
  */
 function senderPath(): string {
-  return fileURLToPath(new URL(import.meta.resolve('@prisma-next/cli-telemetry/sender')));
+  return fileURLToPath(new URL(import.meta.resolve('@internal/cli-telemetry/sender')));
 }
 
 function fireTelemetry(actionCommand: Command, userConfig: UserConfig): TelemetryRunOutcome {

@@ -19,17 +19,17 @@ import type {
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
   MongoSchemaIR,
-} from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-schema-ir';
 import {
   MongoSchemaCollection as MongoSchemaCollectionCtor,
   MongoSchemaCollectionOptions as MongoSchemaCollectionOptionsCtor,
   MongoSchemaIndex as MongoSchemaIndexCtor,
   MongoSchemaIR as MongoSchemaIRCtor,
-} from '@prisma-next/mongo-schema-ir';
-import type { CollationOptions } from '@prisma-next/mongo-value/mongodb-types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-schema-ir';
+import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 
 export interface CanonicalizedSchemas {
   readonly live: MongoSchemaIR;

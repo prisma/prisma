@@ -1,10 +1,10 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { writeRef } from '@prisma-next/migration-tools/refs';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { writeRef } from '@internal/migration-tools/refs';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 
@@ -239,7 +239,7 @@ describe('migrate / migration status — invariant-routing pre-checks', {
   });
 
   afterAll(() => {
-    vi.doUnmock('@prisma-next/config-loader');
+    vi.doUnmock('@internal/config-loader');
     vi.resetModules();
   });
 

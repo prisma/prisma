@@ -1,5 +1,5 @@
-import { MongoFieldFilter, MongoProjectStage } from '@prisma-next/mongo-query-ast/execution';
-import { blindCast } from '@prisma-next/utils/casts';
+import { MongoFieldFilter, MongoProjectStage } from '@internal/mongo-query-ast/execution';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { mongoQuery } from '../src/query';
 import {

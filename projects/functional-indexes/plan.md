@@ -25,7 +25,7 @@ Each slice is named for what a developer can **rely on** when it merges. Slice n
 
 The identity switch, done entirely beneath the authoring surface (existing `@@index([fields])` / `constraints.index(fields)` inputs are unchanged for users; their lowering now produces wire names).
 
-- D4: `@prisma-next/sql-schema-ir/naming` gains `formatWireName` / `parseWireName` / `normalizeSqlBody` / `computeIndexContentHash`; the RLS `wire-name.ts` module is deleted and its call sites updated; `canonicalize.ts` imports `normalizeSqlBody`.
+- D4: `@internal/sql-schema-ir/naming` gains `formatWireName` / `parseWireName` / `normalizeSqlBody` / `computeIndexContentHash`; the RLS `wire-name.ts` module is deleted and its call sites updated; `canonicalize.ts` imports `normalizeSqlBody`.
 - D1: contract `Index` reshape (name required, `prefix`, `expression`, `where`, `unique`) + canonicalization/serializer/`contract.d.ts`; existing lowerings compute default-prefix wire names. Fixtures and example contracts re-emitted (storage hashes move — one sweep, this slice).
 - D5: `SqlIndexIR` reshape — id = name, equivalence matrix, dependsOn rules (incl. the all-columns over-approximation for expression nodes).
 - D6: Postgres introspection rewrite (per-position `pg_get_indexdef`, `pg_get_expr(indpred)`, hacks deleted, prefix stamping); SQLite adapter name-keying.

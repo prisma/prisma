@@ -1,8 +1,8 @@
-import { flatPslModels } from '@prisma-next/framework-components/psl-ast';
-import { printPsl } from '@prisma-next/psl-printer';
-import type { SqlSchemaIRInput } from '@prisma-next/sql-schema-ir/types';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { flatPslModels } from '@internal/framework-components/psl-ast';
+import { printPsl } from '@internal/psl-printer';
+import type { SqlSchemaIRInput } from '@internal/sql-schema-ir/types';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';

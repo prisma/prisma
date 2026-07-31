@@ -1,9 +1,9 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
-import { buildPostgresPlanDiff } from '@prisma-next/target-postgres/diff-database-schema';
-import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { issueOutcome } from '@internal/framework-components/control';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { normalizeSqlBody } from '@internal/sql-schema-ir/naming';
+import { buildPostgresPlanDiff } from '@internal/target-postgres/diff-database-schema';
+import { computeContentHash } from '@internal/target-postgres/rls-canonicalize';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
@@ -12,7 +12,7 @@ import {
   PostgresRlsPolicy,
   PostgresSchema,
   PostgresTableSchemaNode,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 

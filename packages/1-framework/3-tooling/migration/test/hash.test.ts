@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import { describe, expect, it } from 'vitest';
 import { computeMigrationHash, verifyMigrationHash } from '../src/hash';
 import { createTestMetadata, createTestOps } from './fixtures';

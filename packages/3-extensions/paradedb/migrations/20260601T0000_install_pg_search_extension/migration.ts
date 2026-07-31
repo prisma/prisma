@@ -22,7 +22,7 @@
  * by hand; `pnpm tsx migrations/<dirName>/migration.ts` then
  * re-emits `ops.json` + `migration.json` deterministically.
  */
-import { Migration, MigrationCLI } from '@prisma-next/target-postgres/migration';
+import { Migration, MigrationCLI } from '@internal/target-postgres/migration';
 import { PARADEDB_INVARIANTS } from '../../src/core/constants';
 
 export default class M extends Migration {

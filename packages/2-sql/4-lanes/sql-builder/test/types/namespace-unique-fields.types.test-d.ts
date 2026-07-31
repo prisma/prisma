@@ -1,4 +1,4 @@
-import type { ContractWithTypeMaps } from '@prisma-next/sql-contract/types';
+import type { ContractWithTypeMaps } from '@internal/sql-contract/types';
 import { expectTypeOf, test } from 'vitest';
 import type { Db } from '../../src/exports/types';
 import type { ContractToQC } from '../../src/types/table-proxy';

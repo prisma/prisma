@@ -1,12 +1,12 @@
-import type { ExecutionHashBase } from '@prisma-next/contract/types';
-import { generateContractDts } from '@prisma-next/emitter';
+import type { ExecutionHashBase } from '@internal/contract/types';
+import { generateContractDts } from '@internal/emitter';
 import type {
   ControlAdapterDescriptor,
   ControlExtensionDescriptor,
   ControlTargetDescriptor,
-} from '@prisma-next/framework-components/control';
-import { extractCodecTypeImports } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/control';
+import { extractCodecTypeImports } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';
@@ -136,9 +136,9 @@ describe('sql-target-family-hook', () => {
         },
       });
       const types = generateContractDts(ir, sqlEmission, [], testHashes);
-      expect(types).not.toContain("'__@prisma-next/sql-contract/codecTypes@__'");
-      expect(types).not.toContain("'__@prisma-next/sql-contract/operationTypes@__'");
-      expect(types).not.toContain("'__@prisma-next/sql-contract/typeMaps@__'");
+      expect(types).not.toContain("'__@internal/sql-contract/codecTypes@__'");
+      expect(types).not.toContain("'__@internal/sql-contract/operationTypes@__'");
+      expect(types).not.toContain("'__@internal/sql-contract/typeMaps@__'");
     });
   });
 
@@ -178,7 +178,7 @@ describe('sql-target-family-hook', () => {
     expect(types).toContain('Contract as ContractType,');
     expect(types).toContain('ContractWithTypeMaps,');
     expect(types).toContain('TypeMaps as TypeMapsType,');
-    expect(types).toContain("from '@prisma-next/sql-contract/types';");
+    expect(types).toContain("from '@internal/sql-contract/types';");
     expect(types).not.toContain("from './contract-types'");
   });
 
@@ -244,7 +244,7 @@ describe('sql-target-family-hook', () => {
         types: {
           codecTypes: {
             import: {
-              package: '@prisma-next/target-postgres/codec-types',
+              package: '@internal/target-postgres/codec-types',
               named: 'CodecTypes',
               alias: 'PgTypes',
             },
@@ -266,7 +266,7 @@ describe('sql-target-family-hook', () => {
         types: {
           codecTypes: {
             import: {
-              package: '@prisma-next/pgvector/codec-types',
+              package: '@internal/pgvector/codec-types',
               named: 'CodecTypes',
               alias: 'VectorTypes',
             },
@@ -284,11 +284,11 @@ describe('sql-target-family-hook', () => {
     const codecTypeImports = extractCodecTypeImports(descriptors);
     expect(codecTypeImports).toEqual([
       {
-        package: '@prisma-next/target-postgres/codec-types',
+        package: '@internal/target-postgres/codec-types',
         named: 'CodecTypes',
         alias: 'PgTypes',
       },
-      { package: '@prisma-next/pgvector/codec-types', named: 'CodecTypes', alias: 'VectorTypes' },
+      { package: '@internal/pgvector/codec-types', named: 'CodecTypes', alias: 'VectorTypes' },
     ]);
     const types = generateContractDts(ir, sqlEmission, codecTypeImports, testHashes);
     expect(types).toContain('PgTypes');

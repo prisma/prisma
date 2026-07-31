@@ -1,1 +1,1 @@
-export * from '@prisma-next/target-postgres/migration';
+export * from '@internal/target-postgres/migration';

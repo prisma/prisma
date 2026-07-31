@@ -8,7 +8,7 @@ import type {
   SqlQueryable,
   SqlQueryResult,
   SqlTransaction,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import type {
   Client,
   ClientBase,

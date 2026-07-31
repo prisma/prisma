@@ -8,11 +8,11 @@
  * `AddNativeEnumValueCall` op's rendering, prechecks/postchecks, and
  * non-transactional-caveat description.
  */
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';

@@ -1,17 +1,17 @@
-import { computeStorageHash } from '@prisma-next/contract/hashing';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
+import { computeStorageHash } from '@internal/contract/hashing';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type {
   ControlFamilyDescriptor,
   ControlStack,
   ControlTargetDescriptor,
   SchemaDiffIssue,
-} from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';

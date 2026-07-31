@@ -88,14 +88,14 @@ for (const field of SYNCED_FIELDS) {
 }
 
 if (drifts.length === 0) {
-  console.log('[prisma-next lint-sync] package.json in sync with @prisma-next/cli');
+  console.log('[prisma-next lint-sync] package.json in sync with @internal/cli');
   process.exit(0);
 }
 
 console.error('[prisma-next lint-sync] package.json drift detected.');
 console.error(
   'Update packages/9-public/prisma-next/package.json to match ' +
-    '@prisma-next/cli for the following fields:\n',
+    '@internal/cli for the following fields:\n',
 );
 for (const { field, summary } of drifts) {
   console.error(`- ${field}:`);

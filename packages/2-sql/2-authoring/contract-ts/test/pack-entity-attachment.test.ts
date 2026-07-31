@@ -1,16 +1,16 @@
-import type { AuthoringEntityTypeFactoryOutput } from '@prisma-next/framework-components/authoring';
+import type { AuthoringEntityTypeFactoryOutput } from '@internal/framework-components/authoring';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/components';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 import type {
   EntityHandleLoweringInput,
   LoweredPackEntity,
-} from '@prisma-next/sql-contract/entity-handle-lowering-hook';
-import type { SqlValueSetDerivingEntityTypeOutput } from '@prisma-next/sql-contract/value-set-derivation-hook';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-contract/entity-handle-lowering-hook';
+import type { SqlValueSetDerivingEntityTypeOutput } from '@internal/sql-contract/value-set-derivation-hook';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { defineContract } from '../src/contract-builder';

@@ -9,7 +9,7 @@
  * reads the bytes they wrote.
  *
  * The last case is why it matters: a project on the facade root whose
- * migration still named `@prisma-next/*` would name two import roots at once,
+ * migration still named `@internal/*` would name two import roots at once,
  * which `scripts/lint-single-import-root.mjs` rejects because the two roots
  * are separate copies of the same modules. That case runs the lint itself
  * over real command output rather than reasoning about what it would say, and
@@ -43,7 +43,7 @@ import {
 } from '../utils/journey-test-helpers';
 
 const FACADE = '@prisma/orm-postgres';
-const WORKSPACE = '@prisma-next/postgres';
+const WORKSPACE = '@internal/postgres';
 
 const FACADE_MANIFEST = {
   name: 'facade-only-app',
@@ -52,7 +52,7 @@ const FACADE_MANIFEST = {
   dependencies: { [FACADE]: '0.16.0' },
 };
 
-const INTERNAL_SCOPE = '@prisma-next/';
+const INTERNAL_SCOPE = '@internal/';
 const SPECIFIER = /\b(?:from|import)\s*\(?\s*['"]([^'"\n]+)['"]/g;
 
 const SINGLE_IMPORT_ROOT_LINT = fileURLToPath(

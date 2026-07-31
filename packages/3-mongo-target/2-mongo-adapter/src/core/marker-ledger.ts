@@ -1,5 +1,5 @@
-import type { ContractMarkerRecord } from '@prisma-next/contract/types';
-import { parseMarkerRowSafely } from '@prisma-next/errors/execution';
+import type { ContractMarkerRecord } from '@internal/contract/types';
+import { parseMarkerRowSafely } from '@internal/errors/execution';
 import { type } from 'arktype';
 import { mongoAdapterError } from './errors';
 

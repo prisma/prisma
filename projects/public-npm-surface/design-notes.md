@@ -10,7 +10,7 @@ The system-level design is settled and recorded in [ADR 242](../../docs/architec
 
 ## Execution decisions
 
-- **Internal workspace names stay `@prisma-next/*`.** Private names never reach npm; renaming ~50 packages and every in-repo import buys nothing the `private` flag doesn't provide. Recorded as a spec non-goal; flagged to operator (spec OQ 3).
+- **Internal workspace names stay `@internal/*`.** Private names never reach npm; renaming ~50 packages and every in-repo import buys nothing the `private` flag doesn't provide. Recorded as a spec non-goal; flagged to operator (spec OQ 3).
 - **Facades are relocated entry packages, not new code.** Today's per-database entry packages already do the wiring; they move to `packages/9-public/` and gain re-export entrypoints rather than being rewritten.
 - **Shim keeps its current name for now** (spec OQ 2); the `prisma` succession is out of scope per ADR 242's deferred decisions.
 
@@ -26,7 +26,7 @@ Driving the consumer trees to zero internal references turned the "is the facade
 - `driver` on the SQL facades, two subpaths each. Previously Mongo-only, on the reasoning that only code driving a migration runner itself names a driver. The SQL migration-planner harnesses do exactly that, so the reasoning applied and the exclusion did not.
 - `schema-ir`, one subpath (`types`). `SqlSchemaIR` is the schema shape the planner takes and returns, so hand-authored migrations and planner harnesses name it.
 
-**Repo-internal dev packages moved off the brand.** `@prisma-next/{tsconfig,tsdown,test-utils}` became `@repo/*`, and the consumer projects that named themselves `@prisma-next/*` took their bare directory names. These are not module-identity problems — `tsconfig` is consumed via `extends` and never imported — but they left every converted project still naming the old scope. `@repo/*` is what Turborepo calls workspace-internal packages, carries no product brand, and keeps three categories legible: `@repo/*` belongs to the repository, `@prisma-next/*` is the ORM internals, `@prisma/*` is published.
+**Repo-internal dev packages moved off the brand.** `@internal/{tsconfig,tsdown,test-utils}` became `@internal/*`, and the consumer projects that named themselves `@internal/*` took their bare directory names. These are not module-identity problems — `tsconfig` is consumed via `extends` and never imported — but they left every converted project still naming the old scope. `@internal/*` is what Turborepo calls workspace-internal packages, carries no product brand, and keeps three categories legible: `@internal/*` belongs to the repository, `@internal/*` is the ORM internals, `@prisma/*` is published.
 
 **Emission reads the nearest manifest, so a project measuring two databases needs two project boundaries.** `bundle-size` names both facades; its two halves now each carry a manifest beside their config. The same shape fixed the Mongo CLI journeys, whose temp projects had been inheriting the shared fixture app's whole-workspace manifest.
 

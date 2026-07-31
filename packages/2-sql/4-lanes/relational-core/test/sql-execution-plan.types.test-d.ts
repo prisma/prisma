@@ -1,9 +1,5 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type {
-  ExecutionPlan,
-  QueryPlan,
-  ResultType,
-} from '@prisma-next/framework-components/runtime';
+import type { PlanMeta } from '@internal/contract/types';
+import type { ExecutionPlan, QueryPlan, ResultType } from '@internal/framework-components/runtime';
 import { assertType, expectTypeOf, test } from 'vitest';
 import type { AnyQueryAst } from '../src/ast/types';
 import type { SqlExecutionPlan } from '../src/sql-execution-plan';

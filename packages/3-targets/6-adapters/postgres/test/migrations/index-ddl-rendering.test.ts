@@ -3,12 +3,12 @@
  * contract-free AST nodes carry the structure; the adapter renderer owns
  * quoting and escaping, so the byte assertions live beside it.
  */
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   CreateIndexCall,
   DropIndexCall,
   RenameIndexCall,
-} from '@prisma-next/target-postgres/op-factory-call';
+} from '@internal/target-postgres/op-factory-call';
 import { describe, expect, it } from 'vitest';
 import { controlAdapter } from './fixtures/runner-fixtures';
 

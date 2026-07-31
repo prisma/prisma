@@ -1,11 +1,11 @@
-import { createModelAccessor } from '@prisma-next/sql-orm-client';
+import { createModelAccessor } from '@internal/sql-orm-client';
 import {
   BinaryExpr,
   ColumnRef,
   OperationExpr,
   type OrderByItem,
   ParamRef,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { getTestContext } from './helpers';
 

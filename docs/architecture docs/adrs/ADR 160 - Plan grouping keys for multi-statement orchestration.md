@@ -2,7 +2,7 @@
 
 ```ts
 // ORM Client (conceptual)
-import type { ExecutionPlan } from '@prisma-next/contract/types';
+import type { ExecutionPlan } from '@internal/contract/types';
 
 function attachGroupingKey<Row>(
   plan: ExecutionPlan<Row>,

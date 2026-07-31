@@ -2,7 +2,7 @@
  * TML-2965 (native-enum-ts-authoring, D3): `nativeEnum(...)` + `pg.enum(handle)`
  * author a native Postgres enum column through `defineContract` (TS), byte-
  * shape-matching what the PSL `native_enum` + `pg.enum(Ref)` path produces
- * (see `psl-pg-enum-column.test.ts` in `@prisma-next/target-postgres`):
+ * (see `psl-pg-enum-column.test.ts` in `@internal/target-postgres`):
  *
  *   1. The declared entity lands in `entries.native_enum` keyed by its PHYSICAL
  *      Postgres type name (ADR 221 coordinate `entityName`), while its derived
@@ -26,11 +26,11 @@
  *      `typeof contract`).
  */
 
-import { generateContractDts } from '@prisma-next/emitter';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
-import { pgEnumDescriptor } from '@prisma-next/target-postgres/codecs';
-import type { PostgresSchema } from '@prisma-next/target-postgres/types';
+import { generateContractDts } from '@internal/emitter';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { sqlEmission } from '@internal/sql-contract-emitter';
+import { pgEnumDescriptor } from '@internal/target-postgres/codecs';
+import type { PostgresSchema } from '@internal/target-postgres/types';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import {
   defineContract,

@@ -1,10 +1,10 @@
-# @prisma-next/middleware-cache
+# @internal/middleware-cache
 
 A family-agnostic, opt-in caching middleware for Prisma Next runtimes.
 
 Built on the `intercept` hook on `RuntimeMiddleware` (added in TML-2143 M1): on a cache hit, the middleware short-circuits execution and returns the cached rows; the driver is never invoked. On a cache miss, the middleware buffers rows from the driver and commits them to the store on successful completion.
 
-The package depends only on `@prisma-next/framework-components/runtime` — no SQL or Mongo runtime dependency. Cache keys come from `RuntimeMiddlewareContext.contentHash(exec)`, which the family runtime populates, so SQL and Mongo runtimes both work out of the box.
+The package depends only on `@internal/framework-components/runtime` — no SQL or Mongo runtime dependency. Cache keys come from `RuntimeMiddlewareContext.contentHash(exec)`, which the family runtime populates, so SQL and Mongo runtimes both work out of the box.
 
 ## Responsibilities
 
@@ -17,19 +17,19 @@ The package depends only on `@prisma-next/framework-components/runtime` — no S
 
 ## Dependencies
 
-- `@prisma-next/framework-components/runtime` — the only production dependency. Provides `RuntimeMiddleware`, `RuntimeMiddlewareContext` (with `contentHash` and `scope`), `defineAnnotation`, `AfterExecuteResult`, and the orchestrator integration via `runWithMiddleware`.
+- `@internal/framework-components/runtime` — the only production dependency. Provides `RuntimeMiddleware`, `RuntimeMiddlewareContext` (with `contentHash` and `scope`), `defineAnnotation`, `AfterExecuteResult`, and the orchestrator integration via `runWithMiddleware`.
 
-The package does **not** depend on `@prisma-next/sql-runtime`, `@prisma-next/mongo-runtime`, or any target adapter. It does not import `node:crypto` — hashing the canonical execution identity is the family runtime's responsibility (via `@prisma-next/utils/hash-identity` in the SQL and Mongo runtimes today).
+The package does **not** depend on `@internal/sql-runtime`, `@internal/mongo-runtime`, or any target adapter. It does not import `node:crypto` — hashing the canonical execution identity is the family runtime's responsibility (via `@internal/utils/hash-identity` in the SQL and Mongo runtimes today).
 
 
 ## Quick start
 
 ```typescript
-import postgres from '@prisma-next/postgres/runtime';
+import postgres from '@internal/postgres/runtime';
 import {
   cacheAnnotation,
   createCacheMiddleware,
-} from '@prisma-next/middleware-cache';
+} from '@internal/middleware-cache';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -105,7 +105,7 @@ Two consequences worth pinning (both properties of the **default** key path — 
 The default in-memory store is per-process and **not** coherent across replicas. For shared caching, supply a custom `CacheStore`:
 
 ```typescript
-import type { CacheStore, CachedEntry } from '@prisma-next/middleware-cache';
+import type { CacheStore, CachedEntry } from '@internal/middleware-cache';
 
 const redis: CacheStore = {
   async get(key) {

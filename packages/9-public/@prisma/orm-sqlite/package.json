@@ -21,7 +21,7 @@
     "pathe": "^2.0.3"
   },
   "devDependencies": {
-    "@prisma-next/sqlite": "workspace:0.16.0",
+    "@internal/sqlite": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",

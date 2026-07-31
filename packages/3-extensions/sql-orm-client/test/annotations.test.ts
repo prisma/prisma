@@ -2,14 +2,14 @@ import {
   type AnnotationValue,
   defineAnnotation,
   type OperationKind,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import {
   ColumnRef,
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it } from 'vitest';
 import { mergeAnnotations } from '../src/query-plan-meta';
 import {

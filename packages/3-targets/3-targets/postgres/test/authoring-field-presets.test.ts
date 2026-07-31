@@ -1,7 +1,7 @@
 import {
   temporalAuthoringPresets,
   temporalCodecPresetWithPrecision,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import { describe, expect, it } from 'vitest';
 import { postgresAuthoringFieldPresets } from '../src/core/authoring';
 

@@ -1,5 +1,5 @@
-import type { Contract, PlanMeta } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract, PlanMeta } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   BinaryExpr,
   ColumnRef,
@@ -11,8 +11,8 @@ import {
   SelectAst,
   TableSource,
   UpdateAst,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { lints } from '../src/middleware/lints';

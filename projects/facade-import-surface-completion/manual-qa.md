@@ -1,6 +1,6 @@
 # Manual QA — TML-2526 (facade import surface completion)
 
-> **Be the user.** You're a developer who installs `@prisma-next/<target>` and writes every import as `@prisma-next/<target>/<subpath>`. You author a contract, scaffold a migration, drop a tree-shake-aware BSON import into a scratch app, and confirm the workarounds carved out for TML-2633 still match the symptom they describe. You are not exercising the test harness — you are exercising the live façade surface, the renderer's output on disk, and the documentation that teaches that surface.
+> **Be the user.** You're a developer who installs `@internal/<target>` and writes every import as `@internal/<target>/<subpath>`. You author a contract, scaffold a migration, drop a tree-shake-aware BSON import into a scratch app, and confirm the workarounds carved out for TML-2633 still match the symptom they describe. You are not exercising the test harness — you are exercising the live façade surface, the renderer's output on disk, and the documentation that teaches that surface.
 >
 > **Out of scope of this script.**
 > - Re-running `pnpm test:packages` / `pnpm test:integration` / `pnpm test:e2e` against the clean tree (CI already runs these — see "Scenarios deliberately not in this script").
@@ -17,12 +17,12 @@
 
 | # | Scenario | What it proves | Isolation | Covers |
 | - | -------- | -------------- | --------- | ------ |
-| 1 | Author a fresh SQLite migration via the façade | A SQLite user can plan a migration from a façade-only `prisma-next.config.ts` + `prisma/contract.ts`, and the rendered `migration.ts` imports `@prisma-next/sqlite/migration` | workspace | AC-2, AC-4 |
-| 2 | Author a fresh Postgres migration via the façade | A Postgres user can plan a migration the same way, and the rendered `migration.ts` imports `@prisma-next/postgres/migration` | workspace | AC-1, AC-4 |
-| 3 | Mongo `.` barrel removal **(negative control)** | Importing from bare `@prisma-next/mongo` fails with a useful diagnostic; users must reach for `/bson` | tmpdir | AC-5 |
+| 1 | Author a fresh SQLite migration via the façade | A SQLite user can plan a migration from a façade-only `prisma-next.config.ts` + `prisma/contract.ts`, and the rendered `migration.ts` imports `@internal/sqlite/migration` | workspace | AC-2, AC-4 |
+| 2 | Author a fresh Postgres migration via the façade | A Postgres user can plan a migration the same way, and the rendered `migration.ts` imports `@internal/postgres/migration` | workspace | AC-1, AC-4 |
+| 3 | Mongo `.` barrel removal **(negative control)** | Importing from bare `@internal/mongo` fails with a useful diagnostic; users must reach for `/bson` | tmpdir | AC-5 |
 | 4 | Mongo `defineContract` wrap regression **(re-enactment of TML-2633)** | The two in-tree workaround files honestly describe the symptom — the verbose form preserves inference, the façade wrap collapses it | tmpdir | AC-7 |
-| 5 | Pre-existing rendered migration keeps working (backwards-compat) | An on-disk `migration.ts` that still imports `@prisma-next/target-postgres/migration` typechecks against the updated workspace; the `target-*` `/migration` subpath is still in place | read-only | AC-6 |
-| 6 | Tree-shaking observable check **(judgement)** | Bundling a consumer that only imports `ObjectId` from `@prisma-next/mongo/bson` does not pull `/control`, `/runtime`, or any other façade subpath | tmpdir | AC-8 |
+| 5 | Pre-existing rendered migration keeps working (backwards-compat) | An on-disk `migration.ts` that still imports `@internal/target-postgres/migration` typechecks against the updated workspace; the `target-*` `/migration` subpath is still in place | read-only | AC-6 |
+| 6 | Tree-shaking observable check **(judgement)** | Bundling a consumer that only imports `ObjectId` from `@internal/mongo/bson` does not pull `/control`, `/runtime`, or any other façade subpath | tmpdir | AC-8 |
 | 7 | Read of skill cluster + façade READMEs + ADR 208 example | The durable docs a new user encounters teach façade form unconditionally; no `target-*` rhetoric lingers in user-facing prose | read-only | AC-1, AC-2, AC-3, AC-4 |
 | 8 | Exploratory: `/contract-builder` inference probes across three façades | Probe unanticipated `defineContract` shapes (enums, embedded relations, FK chains, capability flags, extension packs) — discover surprises the scripted scenarios skipped | tmpdir | (no AC; charter) |
 
@@ -52,15 +52,15 @@
 
 ## Scenario 1 — Author a fresh SQLite migration via the façade
 
-**What you're proving from the user's seat.** A developer who has installed `@prisma-next/sqlite` should be able to set `defineConfig({ contract, db })`, write a `contract.ts` whose only Prisma Next import is `defineContract` from `@prisma-next/sqlite/contract-builder`, run `pnpm prisma-next migration plan`, and end up with a `migration.ts` on disk whose only Prisma Next import is `@prisma-next/sqlite/migration`. This is the **end-to-end journey smoke** for the largest new surface (sqlite was `/runtime`-only before this PR) and the most user-visible piece of evidence that the renderer flip + the contract-builder wrap line up.
+**What you're proving from the user's seat.** A developer who has installed `@internal/sqlite` should be able to set `defineConfig({ contract, db })`, write a `contract.ts` whose only Prisma Next import is `defineContract` from `@internal/sqlite/contract-builder`, run `pnpm prisma-next migration plan`, and end up with a `migration.ts` on disk whose only Prisma Next import is `@internal/sqlite/migration`. This is the **end-to-end journey smoke** for the largest new surface (sqlite was `/runtime`-only before this PR) and the most user-visible piece of evidence that the renderer flip + the contract-builder wrap line up.
 
 **Covers:** AC-2, AC-4
 
 **Isolation:** `workspace` (writes a tracked `migrations/` directory inside `examples/prisma-next-demo-sqlite/`).
 
 **Oracle:**
-- The freshly-rendered `migrations/<timestamp>_qa-initial/migration.ts` file's `import` lines reference **only** `@prisma-next/sqlite/migration` (and possibly relative imports of the sibling `ops.json` / `end-contract.json`); no `@prisma-next/target-sqlite/*` and no `@prisma-next/family-sql/*` specifiers appear.
-- The example's `prisma-next.config.ts` and `prisma/contract.ts` (read these first, before running the plan) already model the façade-only shape promised by the PR: `defineConfig` from `@prisma-next/sqlite/config` and `defineContract` from `@prisma-next/sqlite/contract-builder`, with no `family:` or `target:` argument in the `defineContract` call.
+- The freshly-rendered `migrations/<timestamp>_qa-initial/migration.ts` file's `import` lines reference **only** `@internal/sqlite/migration` (and possibly relative imports of the sibling `ops.json` / `end-contract.json`); no `@internal/target-sqlite/*` and no `@internal/family-sql/*` specifiers appear.
+- The example's `prisma-next.config.ts` and `prisma/contract.ts` (read these first, before running the plan) already model the façade-only shape promised by the PR: `defineConfig` from `@internal/sqlite/config` and `defineContract` from `@internal/sqlite/contract-builder`, with no `family:` or `target:` argument in the `defineContract` call.
 
 **Preconditions:**
 - Pre-flight gate green.
@@ -75,8 +75,8 @@
    ```
 
 2. Read the façade-form sources the user would have written. These are tracked files — confirm with `git show HEAD:prisma-next.config.ts | head -20` and `git show HEAD:prisma/contract.ts | head -20`. The runner is looking at:
-   - Exactly one Prisma Next import in `prisma-next.config.ts`: `import { defineConfig } from '@prisma-next/sqlite/config';`.
-   - In `prisma/contract.ts`: `import { defineContract, rel } from '@prisma-next/sqlite/contract-builder';` with no `family` or `target` argument in the `defineContract(…)` call.
+   - Exactly one Prisma Next import in `prisma-next.config.ts`: `import { defineConfig } from '@internal/sqlite/config';`.
+   - In `prisma/contract.ts`: `import { defineContract, rel } from '@internal/sqlite/contract-builder';` with no `family` or `target` argument in the `defineContract(…)` call.
 
 3. Emit the contract:
 
@@ -107,11 +107,11 @@
 - The newly-created `migrations/<timestamp>_qa-initial/migration.ts` file's `import` block at the top of the file reads exactly:
 
   ```ts
-  import { … } from '@prisma-next/sqlite/migration';
+  import { … } from '@internal/sqlite/migration';
   ```
 
   (where `…` is whatever subset of `Migration`, `MigrationCLI`, `placeholder`, `createTable`, `addColumn`, op-factory calls, etc., the planner emitted for this contract).
-- No occurrence of `@prisma-next/target-sqlite` anywhere in the new `migration.ts`.
+- No occurrence of `@internal/target-sqlite` anywhere in the new `migration.ts`.
 - The sibling files `migration.json`, `ops.json`, `end-contract.json`, `end-contract.d.ts` exist in the same migration directory.
 - The example's own `pnpm typecheck` is still clean after the plan:
 
@@ -124,10 +124,10 @@
 ### Failure modes (anything matching these = a finding the runner will classify)
 
 - `migration plan` exits non-zero; capture stdout + stderr verbatim.
-- Rendered `migration.ts` imports `@prisma-next/target-sqlite/migration` instead of (or alongside) `@prisma-next/sqlite/migration` — indicates the renderer flip and/or the `TARGET_MIGRATION_MODULE` constant flip didn't fully land.
+- Rendered `migration.ts` imports `@internal/target-sqlite/migration` instead of (or alongside) `@internal/sqlite/migration` — indicates the renderer flip and/or the `TARGET_MIGRATION_MODULE` constant flip didn't fully land.
 - Rendered `migration.ts` mixes specifiers (`Migration` from façade but `addColumn` from `target-*`, or any similar mix) — indicates `op-factory-call.ts`'s `TARGET_MIGRATION_MODULE` is out of sync with `render-typescript.ts`'s `BASE_IMPORTS`.
 - The contract emit step fails with a `defineContract` argument-shape error mentioning `family` or `target` — indicates the SQLite contract-builder wrap signature regressed.
-- `pnpm typecheck` for the example becomes red after the plan — indicates the freshly-rendered `migration.ts` imports symbols the new `@prisma-next/sqlite/migration` does not re-export.
+- `pnpm typecheck` for the example becomes red after the plan — indicates the freshly-rendered `migration.ts` imports symbols the new `@internal/sqlite/migration` does not re-export.
 - The new migration directory is created but is empty (no `migration.ts`) — indicates renderer wiring is broken further upstream.
 
 ### Restore
@@ -147,15 +147,15 @@
 
 ## Scenario 2 — Author a fresh Postgres migration via the façade
 
-**What you're proving from the user's seat.** Same as scenario 1, but for the flagship Postgres target. Confirms the renderer flip + the contract-builder wrap line up symmetrically across both SQL targets — and that the rendered `migration.ts` imports `@prisma-next/postgres/migration`, not `@prisma-next/target-postgres/migration`. **End-to-end journey smoke** for the FR8 + FR1 combination.
+**What you're proving from the user's seat.** Same as scenario 1, but for the flagship Postgres target. Confirms the renderer flip + the contract-builder wrap line up symmetrically across both SQL targets — and that the rendered `migration.ts` imports `@internal/postgres/migration`, not `@internal/target-postgres/migration`. **End-to-end journey smoke** for the FR8 + FR1 combination.
 
 **Covers:** AC-1, AC-4
 
 **Isolation:** `workspace` (writes a tracked `migrations/` directory inside `examples/react-router-demo/`).
 
 **Oracle:**
-- The freshly-rendered `migrations/<timestamp>_qa-initial/migration.ts` file's `import` lines reference **only** `@prisma-next/postgres/migration`; no `@prisma-next/target-postgres/*` and no `@prisma-next/family-sql/*`.
-- The example's `prisma/contract.ts` (read before running) uses `defineContract` from `@prisma-next/postgres/contract-builder` with no `family:` / `target:` argument.
+- The freshly-rendered `migrations/<timestamp>_qa-initial/migration.ts` file's `import` lines reference **only** `@internal/postgres/migration`; no `@internal/target-postgres/*` and no `@internal/family-sql/*`.
+- The example's `prisma/contract.ts` (read before running) uses `defineContract` from `@internal/postgres/contract-builder` with no `family:` / `target:` argument.
 
 **Preconditions:**
 - Pre-flight gate green.
@@ -178,7 +178,7 @@
    git show HEAD:prisma/contract.ts | head -10
    ```
 
-   Confirm `prisma/contract.ts` opens with `import { defineContract, rel } from '@prisma-next/postgres/contract-builder';` and the `defineContract` call has no `family:` or `target:` keys.
+   Confirm `prisma/contract.ts` opens with `import { defineContract, rel } from '@internal/postgres/contract-builder';` and the `defineContract` call has no `family:` or `target:` keys.
 
 3. Emit the contract:
 
@@ -205,10 +205,10 @@
 - The rendered `migration.ts`'s `import` block reads exactly:
 
   ```ts
-  import { … } from '@prisma-next/postgres/migration';
+  import { … } from '@internal/postgres/migration';
   ```
 
-  with no occurrence of `@prisma-next/target-postgres` anywhere in the file.
+  with no occurrence of `@internal/target-postgres` anywhere in the file.
 - The example's `pnpm typecheck` is clean after the plan.
 
 ### Failure modes
@@ -231,18 +231,18 @@ git status --porcelain
 
 ## Scenario 3 — Mongo `.` barrel removal (negative control)
 
-**What you're proving from the user's seat.** The PR's one genuine breaking change is `@prisma-next/mongo`'s top-level `.` barrel removal. A user who had `import { ObjectId } from '@prisma-next/mongo'` in their app must now see that import fail at typecheck (and at runtime resolution), and the failure should be legible enough to point them at `@prisma-next/mongo/bson`. This is the **negative control** that proves the gate actually fires — re-running tests against today's clean tree would only prove CI passed; only planting the now-disallowed import proves the barrel is gone.
+**What you're proving from the user's seat.** The PR's one genuine breaking change is `@internal/mongo`'s top-level `.` barrel removal. A user who had `import { ObjectId } from '@internal/mongo'` in their app must now see that import fail at typecheck (and at runtime resolution), and the failure should be legible enough to point them at `@internal/mongo/bson`. This is the **negative control** that proves the gate actually fires — re-running tests against today's clean tree would only prove CI passed; only planting the now-disallowed import proves the barrel is gone.
 
 **Covers:** AC-5
 
-**Coverage boundary statement.** This scenario proves that importing the BSON value constructors (specifically `ObjectId`) from the bare `@prisma-next/mongo` specifier no longer resolves. It does **not** prove that every conceivable adjacent ergonomic survives the barrel drop — only that the path the PR's prose explicitly calls out is gone. Other former barrel re-exports (`Binary`, `Decimal128`, `Long`, `MongoClient`, `Timestamp`) are subject to the same gate by construction (the `exports` map has no `"."` entry); proving one means proving all under the same gate.
+**Coverage boundary statement.** This scenario proves that importing the BSON value constructors (specifically `ObjectId`) from the bare `@internal/mongo` specifier no longer resolves. It does **not** prove that every conceivable adjacent ergonomic survives the barrel drop — only that the path the PR's prose explicitly calls out is gone. Other former barrel re-exports (`Binary`, `Decimal128`, `Long`, `MongoClient`, `Timestamp`) are subject to the same gate by construction (the `exports` map has no `"."` entry); proving one means proving all under the same gate.
 
 **Isolation:** `tmpdir` (writes only inside `$PN_QA_TMP/scenario-3`).
 
 **Oracle:**
-- `@prisma-next/mongo`'s on-disk `package.json` has no `"."` entry in its `exports` map (`cat packages/3-extensions/mongo/package.json | jq '.exports'`).
-- Module resolution against the bare specifier `@prisma-next/mongo` (no subpath) should fail. Both `tsc --noEmit` and a Node `require.resolve`-style probe should refuse the import.
-- The PR's README guidance gives the migration: `@prisma-next/mongo/bson`. Re-running the same import from `/bson` should succeed.
+- `@internal/mongo`'s on-disk `package.json` has no `"."` entry in its `exports` map (`cat packages/3-extensions/mongo/package.json | jq '.exports'`).
+- Module resolution against the bare specifier `@internal/mongo` (no subpath) should fail. Both `tsc --noEmit` and a Node `require.resolve`-style probe should refuse the import.
+- The PR's README guidance gives the migration: `@internal/mongo/bson`. Re-running the same import from `/bson` should succeed.
 
 **Preconditions:**
 - Pre-flight gate green.
@@ -268,7 +268,7 @@ git status --porcelain
      "private": true,
      "type": "module",
      "dependencies": {
-       "@prisma-next/mongo": "link:../../../packages/3-extensions/mongo",
+       "@internal/mongo": "link:../../../packages/3-extensions/mongo",
        "typescript": "*"
      }
    }
@@ -288,13 +288,13 @@ git status --porcelain
    JSON
    ```
 
-   Alternative resolution route (if `link:` against the workspace folder is awkward in the runner's sandbox): use `pnpm` from the repo root to install the workspace package into the tmpdir via a one-off `pnpm exec node -e "require.resolve('@prisma-next/mongo')"` instead of standing up a separate dependency graph. The runner picks whichever route exercises the same `exports`-map resolution.
+   Alternative resolution route (if `link:` against the workspace folder is awkward in the runner's sandbox): use `pnpm` from the repo root to install the workspace package into the tmpdir via a one-off `pnpm exec node -e "require.resolve('@internal/mongo')"` instead of standing up a separate dependency graph. The runner picks whichever route exercises the same `exports`-map resolution.
 
 3. Plant the now-disallowed barrel import:
 
    ```bash
    cat > index.ts <<'TS'
-   import { ObjectId } from '@prisma-next/mongo';
+   import { ObjectId } from '@internal/mongo';
 
    const x = new ObjectId();
    console.log(x.toString());
@@ -312,7 +312,7 @@ git status --porcelain
 5. Now flip to the documented migration target and confirm it succeeds:
 
    ```bash
-   sed -i.bak "s|from '@prisma-next/mongo'|from '@prisma-next/mongo/bson'|" index.ts
+   sed -i.bak "s|from '@internal/mongo'|from '@internal/mongo/bson'|" index.ts
    pnpm exec tsc --noEmit 2>&1 | head -10
    ```
 
@@ -326,7 +326,7 @@ git status --porcelain
 ### Failure modes
 
 - Step 1 shows a `"."` key in the `exports` map — the barrel was not actually dropped.
-- Step 4 unexpectedly succeeds — module resolution is finding `@prisma-next/mongo` from somewhere it shouldn't (maybe a stale `node_modules` cache from before the barrel-drop commit, maybe a `package.json` `main` field still present). Capture which.
+- Step 4 unexpectedly succeeds — module resolution is finding `@internal/mongo` from somewhere it shouldn't (maybe a stale `node_modules` cache from before the barrel-drop commit, maybe a `package.json` `main` field still present). Capture which.
 - Step 5 fails — the documented `/bson` migration path is broken. This is the load-bearing PR claim and a regression would be high-impact.
 - The diagnostic in step 4 is actively misleading (suggests a typo, suggests a different unrelated package, etc.) — diagnostic copy quality is the kind of judgement only manual QA catches.
 
@@ -342,7 +342,7 @@ No repo-tree mutation; `git status --porcelain` (from the repo root) should stil
 
 ## Scenario 4 — Mongo `defineContract` wrap regression (re-enactment of TML-2633)
 
-**What you're proving from the user's seat.** The PR explicitly carves out a known mongo-facade `defineContract` wrap regression and points to TML-2633. Two in-tree files (`test/integration/test/mongo/fixtures/contract.ts` and `test/integration/test/mongo-runtime/query-builder.test.ts`) deliberately keep the verbose `@prisma-next/mongo-contract-ts/contract-builder` import with a workaround comment. This scenario **re-enacts the originally-failing flow** the carve-out describes: try the façade form against the same contract shapes those files use, observe the documented inference collapse, then confirm the verbose form preserves the precision. The script does **not** treat the regression as a bug to file — it proves the in-tree workaround comments are honest about the symptom.
+**What you're proving from the user's seat.** The PR explicitly carves out a known mongo-facade `defineContract` wrap regression and points to TML-2633. Two in-tree files (`test/integration/test/mongo/fixtures/contract.ts` and `test/integration/test/mongo-runtime/query-builder.test.ts`) deliberately keep the verbose `@internal/mongo-contract-ts/contract-builder` import with a workaround comment. This scenario **re-enacts the originally-failing flow** the carve-out describes: try the façade form against the same contract shapes those files use, observe the documented inference collapse, then confirm the verbose form preserves the precision. The script does **not** treat the regression as a bug to file — it proves the in-tree workaround comments are honest about the symptom.
 
 **Covers:** AC-7
 
@@ -351,9 +351,9 @@ No repo-tree mutation; `git status --porcelain` (from the repo root) should stil
 **Oracle:**
 - The two files in tree carry inline comments naming TML-2633 and describing the symptom in concrete terms. Source-of-truth references:
   - `test/integration/test/mongo/fixtures/contract.ts` — top-of-file comment: "the mongo facade's `defineContract` has a type inference regression for discriminated union contracts with embedded relations (the intersection-based return type loses type precision compared to the base overload)."
-  - `test/integration/test/mongo-runtime/query-builder.test.ts` — top-of-file comment: "`@prisma-next/mongo/contract-builder`'s `defineContract` wrap loses inline-model inference precision when consumers use `mongoQuery<typeof contract>` chains (PlanRow row shapes collapse to `_id: never` / `count: never`)."
-- A scratch consumer that mirrors `query-builder.test.ts`'s inline-model shape but switches the `defineContract` import to `@prisma-next/mongo/contract-builder` (i.e., the façade wrap) must show `expectTypeOf<PlanRow<TPlan>>().toBeNever()` or equivalent inference collapse for the model fields, exactly as the workaround comment promises.
-- The same consumer written against `@prisma-next/mongo-contract-ts/contract-builder` (the verbose form, with explicit `family` + `target` args) must show the row shape's fields resolving to their concrete types.
+  - `test/integration/test/mongo-runtime/query-builder.test.ts` — top-of-file comment: "`@internal/mongo/contract-builder`'s `defineContract` wrap loses inline-model inference precision when consumers use `mongoQuery<typeof contract>` chains (PlanRow row shapes collapse to `_id: never` / `count: never`)."
+- A scratch consumer that mirrors `query-builder.test.ts`'s inline-model shape but switches the `defineContract` import to `@internal/mongo/contract-builder` (i.e., the façade wrap) must show `expectTypeOf<PlanRow<TPlan>>().toBeNever()` or equivalent inference collapse for the model fields, exactly as the workaround comment promises.
+- The same consumer written against `@internal/mongo-contract-ts/contract-builder` (the verbose form, with explicit `family` + `target` args) must show the row shape's fields resolving to their concrete types.
 
 **Preconditions:**
 - Pre-flight gate green.
@@ -382,7 +382,7 @@ No repo-tree mutation; `git status --porcelain` (from the repo root) should stil
 
    ```bash
    cat > contract-facade.ts <<'TS'
-   import { defineContract, field, model } from '@prisma-next/mongo/contract-builder';
+   import { defineContract, field, model } from '@internal/mongo/contract-builder';
 
    export const contract = defineContract({
      models: {
@@ -403,9 +403,9 @@ No repo-tree mutation; `git status --porcelain` (from the repo root) should stil
 
    ```bash
    cat > contract-verbose.ts <<'TS'
-   import mongoFamily from '@prisma-next/family-mongo/pack';
-   import { defineContract, field, model } from '@prisma-next/mongo-contract-ts/contract-builder';
-   import mongoTarget from '@prisma-next/target-mongo/pack';
+   import mongoFamily from '@internal/family-mongo/pack';
+   import { defineContract, field, model } from '@internal/mongo-contract-ts/contract-builder';
+   import mongoTarget from '@internal/target-mongo/pack';
 
    export const contract = defineContract({
      family: mongoFamily,
@@ -455,7 +455,7 @@ No repo-tree mutation; `git status --porcelain` (from the repo root) should stil
        "skipLibCheck": true,
        "baseUrl": ".",
        "paths": {
-         "@prisma-next/*": ["../../../node_modules/@prisma-next/*"]
+         "@internal/*": ["../../../node_modules/@internal/*"]
        }
      },
      "include": ["*.ts"]
@@ -503,15 +503,15 @@ No repo-tree mutation.
 
 ## Scenario 5 — Pre-existing rendered migration keeps working (backwards-compat)
 
-**What you're proving from the user's seat.** A user who upgraded to this PR's version of Prisma Next must keep working without re-rendering their existing migration files. The PR's compatibility section makes one explicit promise: `@prisma-next/target-{postgres,sqlite}/migration` exports stay in place forever; on-disk migrations that still import them continue to typecheck and run. This is the **end-to-end journey smoke** for NFR2 — and the only one CI cannot meaningfully prove (CI never sees a "pre-upgrade migration meets post-upgrade framework" combination by construction; the in-tree fixtures are the only such combination, and they're our best proxy for the user-repo case).
+**What you're proving from the user's seat.** A user who upgraded to this PR's version of Prisma Next must keep working without re-rendering their existing migration files. The PR's compatibility section makes one explicit promise: `@internal/target-{postgres,sqlite}/migration` exports stay in place forever; on-disk migrations that still import them continue to typecheck and run. This is the **end-to-end journey smoke** for NFR2 — and the only one CI cannot meaningfully prove (CI never sees a "pre-upgrade migration meets post-upgrade framework" combination by construction; the in-tree fixtures are the only such combination, and they're our best proxy for the user-repo case).
 
 **Covers:** AC-6
 
 **Isolation:** `read-only` (no mutation; reads tracked example migrations and runs typecheck against them).
 
 **Oracle:**
-- The example's existing rendered migrations live at `examples/prisma-next-demo/migrations/app/*/migration.ts` and import `@prisma-next/target-postgres/migration` — these were rendered *before* the renderer flip and are the in-repo stand-in for "a user's existing migration on disk."
-- The internal `@prisma-next/target-postgres/migration` subpath continues to export the symbols those files reference (`Migration`, `MigrationCLI`, `addForeignKey`, `createIndex`, `createTable`, `rawSql`, etc.).
+- The example's existing rendered migrations live at `examples/prisma-next-demo/migrations/app/*/migration.ts` and import `@internal/target-postgres/migration` — these were rendered *before* the renderer flip and are the in-repo stand-in for "a user's existing migration on disk."
+- The internal `@internal/target-postgres/migration` subpath continues to export the symbols those files reference (`Migration`, `MigrationCLI`, `addForeignKey`, `createIndex`, `createTable`, `rawSql`, etc.).
 - `pnpm typecheck` against the example is clean.
 - `pnpm prisma-next migration list` (or the equivalent inspection command — see step 3) accepts the migrations and reports them in topological order without complaint.
 
@@ -553,7 +553,7 @@ No repo-tree mutation.
 
 ### What you should see
 
-- Step 1: the unique import lines include `@prisma-next/target-postgres/migration` — these are the pre-flip migrations.
+- Step 1: the unique import lines include `@internal/target-postgres/migration` — these are the pre-flip migrations.
 - Step 2: `packages/3-targets/3-targets/postgres/src/exports/migration.ts` exists and contains a `Migration` / `MigrationCLI` / op-factory re-export surface. (The exact contents are an implementation detail; the user-facing claim is "the subpath is still there.")
 - Step 3: `pnpm typecheck` exits 0. The example's TS understands the old migration files.
 - Step 4: `pnpm prisma-next migration list` exits 0, prints the migration directory names in order, and reports no errors. Look at the human-readable output: it should not say anything like "unrecognised migration" or "specifier mismatch."
@@ -561,7 +561,7 @@ No repo-tree mutation.
 
 ### Failure modes
 
-- Step 1 returns no hits for `@prisma-next/target-postgres/migration` — the example's migrations were re-rendered as part of this PR (which would be a non-goal violation per the project spec); the scenario can't validate backwards-compat. Surface as a finding.
+- Step 1 returns no hits for `@internal/target-postgres/migration` — the example's migrations were re-rendered as part of this PR (which would be a non-goal violation per the project spec); the scenario can't validate backwards-compat. Surface as a finding.
 - Step 2 — the file is missing or its exports are reduced — would mean the `target-*` `/migration` subpath was inadvertently trimmed; the PR's compatibility promise breaks.
 - Step 3 — `pnpm typecheck` fails with a "no exported member" / "cannot find module" error pointing at the old import — direct evidence the backwards-compat path is broken.
 - Steps 4 or 5 — the CLI rejects the on-disk migrations or emits a deprecation warning that wasn't called out in the PR — surface the wording verbatim; "deprecation warning that asks the user to re-render" would contradict the PR's explicit non-goal.
@@ -574,15 +574,15 @@ No mutation. `git status --porcelain` should still be empty.
 
 ## Scenario 6 — Tree-shaking observable check (judgement)
 
-**What you're proving from the user's seat.** The architectural justification for dropping the `.` barrel and keeping every façade subpath as its own entrypoint file is tree-shaking discipline: a consumer that imports only `ObjectId` from `@prisma-next/mongo/bson` should not pull in `@prisma-next/mongo/control`, `@prisma-next/mongo/runtime`, or any other subpath's dependency graph. CI's `pnpm test:packages` does not (and cannot easily) verify this — it asserts shape, not bundle size. This is the **observable-quality judgement** that justifies NFR1 and that an end user's bundle analyzer would catch.
+**What you're proving from the user's seat.** The architectural justification for dropping the `.` barrel and keeping every façade subpath as its own entrypoint file is tree-shaking discipline: a consumer that imports only `ObjectId` from `@internal/mongo/bson` should not pull in `@internal/mongo/control`, `@internal/mongo/runtime`, or any other subpath's dependency graph. CI's `pnpm test:packages` does not (and cannot easily) verify this — it asserts shape, not bundle size. This is the **observable-quality judgement** that justifies NFR1 and that an end user's bundle analyzer would catch.
 
 **Covers:** AC-8
 
 **Isolation:** `tmpdir`.
 
 **Oracle:**
-- The esbuild metafile (via `--metafile=meta.json --bundle`) for a tiny consumer that only imports `ObjectId` from `@prisma-next/mongo/bson` should list only the `bson` entrypoint and its transitive imports — not `control.ts`, `runtime.ts`, `config.ts`, or `contract-builder.ts`.
-- Equivalent check: `node --input-type=module -e "import('@prisma-next/mongo/bson').then(m => console.log(Object.keys(m)))"` should resolve without touching `/runtime` or `/control` entry files. (`require.resolve('@prisma-next/mongo/runtime')` from inside that probe should be a no-op — the resolver runs it lazily only if asked.)
+- The esbuild metafile (via `--metafile=meta.json --bundle`) for a tiny consumer that only imports `ObjectId` from `@internal/mongo/bson` should list only the `bson` entrypoint and its transitive imports — not `control.ts`, `runtime.ts`, `config.ts`, or `contract-builder.ts`.
+- Equivalent check: `node --input-type=module -e "import('@internal/mongo/bson').then(m => console.log(Object.keys(m)))"` should resolve without touching `/runtime` or `/control` entry files. (`require.resolve('@internal/mongo/runtime')` from inside that probe should be a no-op — the resolver runs it lazily only if asked.)
 
 **Preconditions:**
 - Pre-flight gate green.
@@ -597,7 +597,7 @@ No mutation. `git status --porcelain` should still be empty.
    mkdir -p "$PN_QA_TMP/scenario-6"
    cd "$PN_QA_TMP/scenario-6"
    cat > consumer.mjs <<'JS'
-   import { ObjectId } from '@prisma-next/mongo/bson';
+   import { ObjectId } from '@internal/mongo/bson';
    console.log(new ObjectId().toString());
    JS
    ```
@@ -623,23 +623,23 @@ No mutation. `git status --porcelain` should still be empty.
    ```bash
    cd "$PN_QA_TMP/scenario-6"
    jq '.inputs | keys' meta.json | head -30
-   jq '[.inputs | keys[] | select(test("@prisma-next/mongo"))]' meta.json
+   jq '[.inputs | keys[] | select(test("@internal/mongo"))]' meta.json
    ```
 
 4. Cross-check via the bundle itself:
 
    ```bash
-   grep -c "@prisma-next/mongo/control" bundle.mjs || echo "0 hits"
-   grep -c "@prisma-next/mongo/runtime" bundle.mjs || echo "0 hits"
-   grep -c "@prisma-next/mongo/config" bundle.mjs || echo "0 hits"
-   grep -c "@prisma-next/mongo/contract-builder" bundle.mjs || echo "0 hits"
-   grep -c "@prisma-next/mongo/bson" bundle.mjs || echo "0 hits"
+   grep -c "@internal/mongo/control" bundle.mjs || echo "0 hits"
+   grep -c "@internal/mongo/runtime" bundle.mjs || echo "0 hits"
+   grep -c "@internal/mongo/config" bundle.mjs || echo "0 hits"
+   grep -c "@internal/mongo/contract-builder" bundle.mjs || echo "0 hits"
+   grep -c "@internal/mongo/bson" bundle.mjs || echo "0 hits"
    ```
 
 ### What you should see
 
 - Step 2: esbuild exits 0 and produces both `bundle.mjs` and `meta.json`.
-- Step 3's first `jq` shows the input list — the only `@prisma-next/mongo/*` inputs should be the `bson` entrypoint and (if its implementation re-exports from a nested file) that file. The runner is looking at:
+- Step 3's first `jq` shows the input list — the only `@internal/mongo/*` inputs should be the `bson` entrypoint and (if its implementation re-exports from a nested file) that file. The runner is looking at:
   - Is `control.ts` in the inputs? It should not be.
   - Is `runtime.ts` in the inputs? It should not be.
   - Is `config.ts` in the inputs? It should not be.
@@ -647,8 +647,8 @@ No mutation. `git status --porcelain` should still be empty.
 
 ### Failure modes
 
-- Step 2 fails — esbuild cannot resolve `@prisma-next/mongo/bson`. Would indicate the `/bson` subpath's `exports` entry is misconfigured (file path wrong, `import` condition missing).
-- Step 3 reveals other `@prisma-next/mongo/*` subpaths in the inputs — the bundle is pulling more than the user asked for. This is the tree-shake regression the architectural choice is supposed to prevent.
+- Step 2 fails — esbuild cannot resolve `@internal/mongo/bson`. Would indicate the `/bson` subpath's `exports` entry is misconfigured (file path wrong, `import` condition missing).
+- Step 3 reveals other `@internal/mongo/*` subpaths in the inputs — the bundle is pulling more than the user asked for. This is the tree-shake regression the architectural choice is supposed to prevent.
 - Step 4's `grep` finds non-zero hits for `control` / `runtime` / `config` / `contract-builder` — same finding; the bundle leaks dependencies.
 - The bundle inflates dramatically beyond what `ObjectId` should require (e.g., > 1 MB when `ObjectId` alone is ~10–50 KB) — judgement signal that something is wrong even if structural inputs look clean.
 
@@ -662,7 +662,7 @@ rm -rf "$PN_QA_TMP/scenario-6"
 
 ## Scenario 7 — Read of skill cluster + façade READMEs + ADR 208 example
 
-**What you're proving from the user's seat.** A new developer who lands in the repo (or in Prisma Next's published docs) and reads the skill cluster, the façade package READMEs, and the ADR 208 illustrative code should see one teaching: façade form everywhere, no `target-*` rhetoric in user-facing prose. D6 swept these surfaces; this scenario is the **human read of durable docs** that confirms the sweep is coherent and that no stale "use `@prisma-next/target-postgres/migration`" snuck back in. Tests cannot meaningfully assert "this prose teaches the right thing."
+**What you're proving from the user's seat.** A new developer who lands in the repo (or in Prisma Next's published docs) and reads the skill cluster, the façade package READMEs, and the ADR 208 illustrative code should see one teaching: façade form everywhere, no `target-*` rhetoric in user-facing prose. D6 swept these surfaces; this scenario is the **human read of durable docs** that confirms the sweep is coherent and that no stale "use `@internal/target-postgres/migration`" snuck back in. Tests cannot meaningfully assert "this prose teaches the right thing."
 
 **Covers:** AC-1, AC-2, AC-3, AC-4
 
@@ -706,10 +706,10 @@ rm -rf "$PN_QA_TMP/scenario-6"
    rg 'TML-2633' test/integration/test/mongo/fixtures/contract.ts test/integration/test/mongo-runtime/query-builder.test.ts
    ```
 
-4. Confirm no user-facing prose (skills/, docs/, READMEs in `packages/3-extensions/`) teaches `@prisma-next/target-*/migration` as the recommended specifier:
+4. Confirm no user-facing prose (skills/, docs/, READMEs in `packages/3-extensions/`) teaches `@internal/target-*/migration` as the recommended specifier:
 
    ```bash
-   rg '@prisma-next/target-(postgres|sqlite)/migration' skills/ docs/ packages/3-extensions/*/README.md
+   rg '@internal/target-(postgres|sqlite)/migration' skills/ docs/ packages/3-extensions/*/README.md
    ```
 
    Expected hits are limited to:
@@ -719,14 +719,14 @@ rm -rf "$PN_QA_TMP/scenario-6"
 
 ### What you should see
 
-- Step 1 — the prose teaches façade form. The runner is reading like a new developer would; the question is whether anywhere in these documents a reader is told to import from `@prisma-next/target-postgres/migration` (or any `target-*` specifier) as the recommended user-facing form. Comparison blocks of the form "Before this PR users wrote X; now they write Y" are fine; standalone recommendations of `target-*` form are not.
+- Step 1 — the prose teaches façade form. The runner is reading like a new developer would; the question is whether anywhere in these documents a reader is told to import from `@internal/target-postgres/migration` (or any `target-*` specifier) as the recommended user-facing form. Comparison blocks of the form "Before this PR users wrote X; now they write Y" are fine; standalone recommendations of `target-*` form are not.
 - Step 2 returns no hits.
 - Step 3 returns one hit in each file (the workaround comment block).
 - Step 4 returns only the expected exemptions (cipherstash docstring, parity-test plumbing, before/after framing). The runner is looking at whether any hit is a recommendation rather than a historical reference.
 
 ### Failure modes
 
-- Step 1 surfaces prose that teaches `@prisma-next/target-*` form as the recommended import in a user-facing document — D6's sweep is incomplete.
+- Step 1 surfaces prose that teaches `@internal/target-*` form as the recommended import in a user-facing document — D6's sweep is incomplete.
 - Step 2 returns any hit — D6's TML-2526 cleanup is incomplete.
 - Step 3 misses either file — the workaround comment was deleted or never added.
 - Step 4 returns a hit in a context that reads as a recommendation rather than a historical/exemption reference — surface the file + line.
@@ -740,7 +740,7 @@ No mutation. `git status --porcelain` should still be empty.
 
 ## Scenario 8 — Exploratory: `/contract-builder` inference probes across three façades
 
-**Charter.** Explore the three façades' `/contract-builder` subpaths (`@prisma-next/postgres/contract-builder`, `@prisma-next/sqlite/contract-builder`, `@prisma-next/mongo/contract-builder`) with the scratch contracts you'd actually write as a new user — multi-model contracts with foreign keys, embedded relations (mongo) or relation chains (SQL), enum fields (postgres), capability flags, and extension packs — to discover behaviours that surprise you, inference that collapses unexpectedly, error envelopes that read poorly, or shapes the scripted scenarios didn't enumerate.
+**Charter.** Explore the three façades' `/contract-builder` subpaths (`@internal/postgres/contract-builder`, `@internal/sqlite/contract-builder`, `@internal/mongo/contract-builder`) with the scratch contracts you'd actually write as a new user — multi-model contracts with foreign keys, embedded relations (mongo) or relation chains (SQL), enum fields (postgres), capability flags, and extension packs — to discover behaviours that surprise you, inference that collapses unexpectedly, error envelopes that read poorly, or shapes the scripted scenarios didn't enumerate.
 
 **Covers:** (no specific AC; surfaces unknowns)
 
@@ -779,11 +779,11 @@ No mutation. `git status --porcelain` should still be empty.
 
 | AC ID | Scenario(s) covering it |
 | ----- | ----------------------- |
-| AC-1 — `@prisma-next/postgres/migration` re-exports + renderer flip emits façade specifier | 2, 5, 7 |
-| AC-2 — `@prisma-next/sqlite` full surface parity (`/config`, `/contract-builder`, `/control`, `/migration`) + renderer flip emits façade specifier | 1, 7 |
-| AC-3 — `@prisma-next/mongo` `/control` + `/bson` + widened `/config` | 3, 6, 7 |
+| AC-1 — `@internal/postgres/migration` re-exports + renderer flip emits façade specifier | 2, 5, 7 |
+| AC-2 — `@internal/sqlite` full surface parity (`/config`, `/contract-builder`, `/control`, `/migration`) + renderer flip emits façade specifier | 1, 7 |
+| AC-3 — `@internal/mongo` `/control` + `/bson` + widened `/config` | 3, 6, 7 |
 | AC-4 — Each façade's `/contract-builder` pre-binds `family` + `target`; inference preserved for postgres + sqlite | 1, 2, 7, 8 |
-| AC-5 — Breaking change: `@prisma-next/mongo` `.` barrel is gone | 3 |
-| AC-6 — Backwards-compat: existing rendered migrations on `@prisma-next/target-*/migration` continue to work | 5 |
+| AC-5 — Breaking change: `@internal/mongo` `.` barrel is gone | 3 |
+| AC-6 — Backwards-compat: existing rendered migrations on `@internal/target-*/migration` continue to work | 5 |
 | AC-7 — Mongo `defineContract` wrap inference regression carve-out (TML-2633) is documented and matches the symptom | 4, 7 |
 | AC-8 — Tree-shaking: each façade subpath is its own entrypoint; consumers of one subpath don't pull others | 6 |

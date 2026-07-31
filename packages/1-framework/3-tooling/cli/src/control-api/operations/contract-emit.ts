@@ -1,11 +1,11 @@
 import { mkdir } from 'node:fs/promises';
-import { loadConfig } from '@prisma-next/config-loader';
-import type { Contract } from '@prisma-next/contract/types';
-import { emit, getEmittedArtifactPaths } from '@prisma-next/emitter';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { abortable } from '@prisma-next/utils/abortable';
-import { ifDefined } from '@prisma-next/utils/defined';
-import type { JsonObject } from '@prisma-next/utils/json';
+import { loadConfig } from '@internal/config-loader';
+import type { Contract } from '@internal/contract/types';
+import { emit, getEmittedArtifactPaths } from '@internal/emitter';
+import { createControlStack } from '@internal/framework-components/control';
+import { abortable } from '@internal/utils/abortable';
+import { ifDefined } from '@internal/utils/defined';
+import type { JsonObject } from '@internal/utils/json';
 import { dirname, join } from 'pathe';
 import { errorContractConfigMissing, errorRuntime } from '../../utils/cli-errors';
 import { queueEmitByOutput } from '../../utils/emit-queue';
@@ -136,7 +136,7 @@ function validateProviderResult(providerResult: unknown): ValidatedProviderResul
  *
  * This is the SINGLE publication path used by both the CLI command
  * (`prisma-next contract emit`) and the Vite plugin
- * (`@prisma-next/vite-plugin-contract-emit`). New callers must go through this
+ * (`@internal/vite-plugin-contract-emit`). New callers must go through this
  * function rather than re-implementing load → emit → publish.
  *
  * The whole flow (load config → resolve source → emit bytes → atomic publish)

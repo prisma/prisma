@@ -16,9 +16,9 @@ import {
   CodecImpl,
   voidParamsSchema,
   type CodecInstanceContext,
-} from '@prisma-next/framework-components/codec';
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { SqlCodecCallContext } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/codec';
+import type { JsonValue } from '@internal/contract/types';
+import type { SqlCodecCallContext } from '@internal/sql-relational-core/ast';
 import { encryptClient } from './encrypt-client';
 
 class EncryptedJsonCodec extends CodecImpl<

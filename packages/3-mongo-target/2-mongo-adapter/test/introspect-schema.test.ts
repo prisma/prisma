@@ -5,7 +5,7 @@ import {
   MongoSchemaIndex,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-schema-ir';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

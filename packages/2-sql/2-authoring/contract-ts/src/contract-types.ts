@@ -6,17 +6,17 @@ import type {
   ContractValueObject,
   NamespaceId,
   StorageHashBase,
-} from '@prisma-next/contract/types';
-import type { ExtensionPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import type { StorageType } from '@prisma-next/framework-components/ir';
-import type { IndexTypeRegistration } from '@prisma-next/sql-contract/index-types';
+} from '@internal/contract/types';
+import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { StorageType } from '@internal/framework-components/ir';
+import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
 import type {
   ContractWithTypeMaps,
   Index,
   ReferentialAction,
   StorageTypeInstance,
   TypeMaps,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import type { UnionToIntersection } from './authoring-type-utils';
 import type { AttributeStageIdFieldNames, FieldStateOf, ScalarFieldBuilder } from './contract-dsl';
 import type { EnumTypeHandle } from './enum-type';

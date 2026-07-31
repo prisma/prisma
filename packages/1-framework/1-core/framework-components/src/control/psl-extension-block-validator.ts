@@ -52,8 +52,8 @@
  * coordinate model `(spaceId, namespaceId, entityKind, entityName)`.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { JsonValue } from '@internal/contract/types';
+import { blindCast } from '@internal/utils/casts';
 import type { CodecLookup } from '../shared/codec-types';
 import type { AuthoringPslBlockDescriptor } from '../shared/framework-authoring';
 import type {

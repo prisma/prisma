@@ -1,14 +1,14 @@
 import { tmpdir } from 'node:os';
 import { PassThrough } from 'node:stream';
 import { pathToFileURL } from 'node:url';
-import type { ContractSourceContext } from '@prisma-next/config/config-types';
-import { errorUnexpected } from '@prisma-next/errors/control';
-import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
-import { buildSymbolTable, type SymbolTable } from '@prisma-next/psl-parser';
-import type { FormatOptions } from '@prisma-next/psl-parser/format';
-import type { PslInterpretCapable } from '@prisma-next/psl-parser/interpret';
-import { type ParseDiagnostic, parse } from '@prisma-next/psl-parser/syntax';
-import { notOk, ok } from '@prisma-next/utils/result';
+import type { ContractSourceContext } from '@internal/config/config-types';
+import { errorUnexpected } from '@internal/errors/control';
+import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import { buildSymbolTable, type SymbolTable } from '@internal/psl-parser';
+import type { FormatOptions } from '@internal/psl-parser/format';
+import type { PslInterpretCapable } from '@internal/psl-parser/interpret';
+import { type ParseDiagnostic, parse } from '@internal/psl-parser/syntax';
+import { notOk, ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -71,8 +71,8 @@ const pipelineMock = vi.hoisted(() => ({
   runPipeline: vi.fn<typeof import('../src/pipeline')['runPipeline']>(),
 }));
 
-vi.mock('@prisma-next/config-loader', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@prisma-next/config-loader')>();
+vi.mock('@internal/config-loader', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@internal/config-loader')>();
   return {
     ...actual,
     findNearestConfigPathForFile: configLoaderMock.findNearestConfigPathForFile,

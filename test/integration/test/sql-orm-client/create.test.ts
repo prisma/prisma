@@ -1,5 +1,5 @@
-import { DefaultValueExpr, InsertAst, ParamRef } from '@prisma-next/sql-relational-core/ast';
-import type { Char } from '@prisma-next/target-postgres/codec-types';
+import { DefaultValueExpr, InsertAst, ParamRef } from '@internal/sql-relational-core/ast';
+import type { Char } from '@internal/target-postgres/codec-types';
 import { describe, expect, it } from 'vitest';
 import {
   createReturningTagsCollection,

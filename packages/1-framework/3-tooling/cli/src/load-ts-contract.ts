@@ -1,9 +1,9 @@
 import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
-import type { Contract } from '@prisma-next/contract/types';
-import { CliStructuredError } from '@prisma-next/errors/control';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { Contract } from '@internal/contract/types';
+import { CliStructuredError } from '@internal/errors/control';
+import { InternalError } from '@internal/utils/internal-error';
 import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
 import { join, resolve as resolvePath } from 'pathe';
@@ -39,7 +39,7 @@ function contractSourceError(
 // Both naming schemes: a contract authored against the workspace names and one
 // authored against the published `@prisma/orm-*` entrypoints (ADR 242) are the
 // same code under two roots, and the CLI has to load either.
-const DEFAULT_ALLOWLIST = ['@prisma-next/*', '@prisma/orm-*', 'node:crypto'];
+const DEFAULT_ALLOWLIST = ['@internal/*', '@prisma/orm-*', 'node:crypto'];
 
 function isAllowedImport(importPath: string, allowlist: ReadonlyArray<string>): boolean {
   for (const pattern of allowlist) {
@@ -200,7 +200,7 @@ export async function loadContractFromTs(
 
   // Disallowed imports are collected by the allowlist resolver plugin itself,
   // which has the `importer` context to distinguish entry-direct imports from
-  // transitive imports made inside allowlisted (`@prisma-next/*`) dependencies.
+  // transitive imports made inside allowlisted (`@internal/*`) dependencies.
   // The metafile is intentionally not re-walked: it would surface internal
   // `node:*` imports inside framework code as false positives.
   const disallowedFromEntry = new Set<string>();

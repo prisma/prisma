@@ -1,5 +1,5 @@
-import { temporalAuthoringPresets, temporalCodecPreset } from '@prisma-next/family-sql/control';
-import type { AuthoringFieldNamespace } from '@prisma-next/framework-components/authoring';
+import { temporalAuthoringPresets, temporalCodecPreset } from '@internal/family-sql/control';
+import type { AuthoringFieldNamespace } from '@internal/framework-components/authoring';
 
 export const sqliteAuthoringFieldPresets = {
   temporal: {

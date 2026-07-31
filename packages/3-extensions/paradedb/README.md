@@ -1,4 +1,4 @@
-# @prisma-next/extension-paradedb
+# @internal/extension-paradedb
 
 ParadeDB full-text search extension pack for Prisma Next.
 
@@ -16,14 +16,14 @@ The v1 surface covers the `key_field` storage parameter only. Per-field tokenize
 
 ## Dependencies
 
-- **`@prisma-next/sql-contract`**: index-type registry primitive
-- **`@prisma-next/contract`** / **`@prisma-next/contract-authoring`**: core contract types
+- **`@internal/sql-contract`**: index-type registry primitive
+- **`@internal/contract`** / **`@internal/contract-authoring`**: core contract types
 - **`arktype`**: option-shape validation
 
 ## Installation
 
 ```bash
-pnpm add @prisma-next/extension-paradedb
+pnpm add @internal/extension-paradedb
 ```
 
 ## Usage
@@ -33,11 +33,11 @@ pnpm add @prisma-next/extension-paradedb
 Author bm25 indexes via the standard `constraints.index(...)` surface; the registered `'bm25'` entry narrows `options` per-`type`:
 
 ```typescript
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
-import paradedb from '@prisma-next/extension-paradedb/pack';
-import postgres from '@prisma-next/target-postgres/pack';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
+import paradedb from '@internal/extension-paradedb/pack';
+import postgres from '@internal/target-postgres/pack';
 
 export const contract = defineContract({
   family: sqlFamily,

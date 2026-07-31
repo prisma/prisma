@@ -1,4 +1,4 @@
-# @prisma-next/sql-contract-ts
+# @internal/sql-contract-ts
 
 **Status:** Current SQL TypeScript contract authoring surface
 
@@ -29,22 +29,22 @@ This package is part of the SQL family namespace (`packages/2-sql/2-authoring/co
 
 ## Package Status
 
-This is the current SQL TypeScript authoring implementation. Shared descriptor types live in `@prisma-next/contract-authoring`. Contract validation flows through the per-target descriptor's `contractSerializer` SPI (e.g. `postgresTarget.contractSerializer.deserializeContract`), or via the canonical façade (`postgres<Contract>(...)`).
+This is the current SQL TypeScript authoring implementation. Shared descriptor types live in `@internal/contract-authoring`. Contract validation flows through the per-target descriptor's `contractSerializer` SPI (e.g. `postgresTarget.contractSerializer.deserializeContract`), or via the canonical façade (`postgres<Contract>(...)`).
 
 ## Architecture
 
 - **Base DSL**: `./contract-builder` exports the stable structural DSL (`defineContract`, `field`, `model`, `rel`)
 - **Composed helper namespaces**: `defineContract(config, (helpers) => ...)` synthesizes `helpers.field.*` and `helpers.type.*` from the selected family, target, and extension packs
 - **SQL resolution and contract generation**: internal resolution normalizes names, relations, indexes, and FK materialization before producing the canonical SQL contract artifacts
-- **Shared descriptor layer**: `@prisma-next/contract-authoring` provides the target-neutral descriptor types used by the DSL and by authoring-adjacent packs
+- **Shared descriptor layer**: `@internal/contract-authoring` provides the target-neutral descriptor types used by the DSL and by authoring-adjacent packs
 
 Contributor-facing lowering notes and detailed warning semantics live in [DEVELOPING.md](./DEVELOPING.md).
 
 ```mermaid
 flowchart LR
-  builderInput[TypeScript contract input] --> sqlContractTs[@prisma-next/sql-contract-ts]
-  sqlContractTs --> authoringCore[@prisma-next/contract-authoring]
-  sqlContractTs --> sqlTypes[@prisma-next/sql-contract/types]
+  builderInput[TypeScript contract input] --> sqlContractTs[@internal/sql-contract-ts]
+  sqlContractTs --> authoringCore[@internal/contract-authoring]
+  sqlContractTs --> sqlTypes[@internal/sql-contract/types]
   sqlContractTs --> contract[SQL Contract]
 ```
 
@@ -59,14 +59,14 @@ flowchart LR
 
 Direct imports expose the base structural helpers. Use this surface when you want to author with explicit column descriptors, explicit generators, or named storage types.
 
-Built-in ID helpers from `@prisma-next/ids` already return the generated-field spec accepted by `field.generated(...)`, so `field.generated(uuidv4())` is a valid structural DSL call.
+Built-in ID helpers from `@internal/ids` already return the generated-field spec accepted by `field.generated(...)`, so `field.generated(uuidv4())` is a valid structural DSL call.
 
 ```typescript
-import { textColumn, timestamptzColumn } from '@prisma-next/adapter-postgres/column-types';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { uuidv4 } from '@prisma-next/ids';
-import { defineContract, field, model, rel } from '@prisma-next/sql-contract-ts/contract-builder';
-import postgresPack from '@prisma-next/target-postgres/pack';
+import { textColumn, timestamptzColumn } from '@internal/adapter-postgres/column-types';
+import sqlFamily from '@internal/family-sql/pack';
+import { uuidv4 } from '@internal/ids';
+import { defineContract, field, model, rel } from '@internal/sql-contract-ts/contract-builder';
+import postgresPack from '@internal/target-postgres/pack';
 
 const User = model('User', {
   fields: {
@@ -112,10 +112,10 @@ export const contract = defineContract({
 Pack-provided helper presets are available through the callback overload. This is the surface that exposes `field.id.*`, `field.text()`, `field.temporal.createdAt()`, `field.temporal.updatedAt()`, `type.sql.String(...)`, and extension helpers such as `type.pgvector.Vector(...)`.
 
 ```typescript
-import pgvector from '@prisma-next/extension-pgvector/pack';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { defineContract, enumType, member } from '@prisma-next/sql-contract-ts/contract-builder';
-import postgresPack from '@prisma-next/target-postgres/pack';
+import pgvector from '@internal/extension-pgvector/pack';
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract, enumType, member } from '@internal/sql-contract-ts/contract-builder';
+import postgresPack from '@internal/target-postgres/pack';
 
 const pgText = { codecId: 'pg/text@1', nativeType: 'text' } as const;
 const Role = enumType('role', pgText, member('USER', 'user'), member('ADMIN', 'admin'));
@@ -242,7 +242,7 @@ End-user app code typically goes through the canonical façade
 (`postgres<Contract>(...)`), which threads the descriptor SPI internally.
 
 ```typescript
-import postgres from '@prisma-next/postgres/runtime';
+import postgres from '@internal/postgres/runtime';
 import contractJson from './contract.json' with { type: 'json' };
 import type { Contract, TypeMaps } from './contract.d';
 
@@ -255,7 +255,7 @@ const db = postgres<Contract, TypeMaps>({
 For advanced consumers that need direct access to the SPI:
 
 ```typescript
-import postgresTarget from '@prisma-next/target-postgres/control';
+import postgresTarget from '@internal/target-postgres/control';
 import type { Contract } from './contract.d';
 
 const contract = postgresTarget.contractSerializer.deserializeContract(
@@ -268,8 +268,8 @@ const contract = postgresTarget.contractSerializer.deserializeContract(
 Use `typescriptContract` from this package when wiring TS-authored contracts in `prisma-next.config.ts`.
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import { typescriptContract } from '@prisma-next/sql-contract-ts/config-types';
+import { defineConfig } from '@internal/cli/config-types';
+import { typescriptContract } from '@internal/sql-contract-ts/config-types';
 import { contract } from './src/prisma/contract';
 
 export default defineConfig({
@@ -287,10 +287,10 @@ The specifier value applies only when the loaded contract omits `defaultControlP
 
 ## Dependencies
 
-- **`@prisma-next/config`** - `ContractConfig` types used by `typescriptContract(...)`
-- **`@prisma-next/contract-authoring`** - Shared descriptor types
-- **`@prisma-next/framework-components`** - Pack refs, authoring contributions, and codec lookup types
-- **`@prisma-next/sql-contract`** - SQL contract types and validation target
+- **`@internal/config`** - `ContractConfig` types used by `typescriptContract(...)`
+- **`@internal/contract-authoring`** - Shared descriptor types
+- **`@internal/framework-components`** - Pack refs, authoring contributions, and codec lookup types
+- **`@internal/sql-contract`** - SQL contract types and validation target
 
 ## Testing
 
@@ -300,11 +300,11 @@ Unit tests for the authoring DSL live in this package. Broader integration tests
 
 - Direct imports give you the structural DSL
 - The callback overload gives you pack-composed helper vocabularies
-- Import authoring helpers directly from `@prisma-next/sql-contract-ts`
+- Import authoring helpers directly from `@internal/sql-contract-ts`
 - Reach contract validation through the per-target descriptor's `contractSerializer.deserializeContract(...)` (or via the canonical façade)
 
 ## See Also
 
-- `@prisma-next/contract-authoring` - Shared target-neutral authoring descriptor types
-- `@prisma-next/sql-contract-psl` - PSL parser-output to SQL contract interpreter
-- `@prisma-next/sql-contract-psl/provider` - SQL PSL-first `prismaContract()` helper
+- `@internal/contract-authoring` - Shared target-neutral authoring descriptor types
+- `@internal/sql-contract-psl` - PSL parser-output to SQL contract interpreter
+- `@internal/sql-contract-psl/provider` - SQL PSL-first `prismaContract()` helper

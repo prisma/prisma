@@ -1,12 +1,12 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type {
   AnyCodecDescriptor,
   CodecDescriptor,
   CodecRef,
-} from '@prisma-next/framework-components/codec';
-import { voidParamsSchema } from '@prisma-next/framework-components/codec';
-import type { Codec, SqlCodecInstanceContext } from '@prisma-next/sql-relational-core/ast';
-import { buildCodecDescriptorRegistry } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+} from '@internal/framework-components/codec';
+import { voidParamsSchema } from '@internal/framework-components/codec';
+import type { Codec, SqlCodecInstanceContext } from '@internal/sql-relational-core/ast';
+import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
 import { describe, expect, it, vi } from 'vitest';
 import { createAstCodecResolver } from '../src/codecs/ast-codec-resolver';
 import { defineTestCodec } from './test-codec';

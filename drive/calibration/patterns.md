@@ -34,7 +34,7 @@ Manual-QA scripts for slices that touch user-observable surface should name and 
 
 ### Extension authors
 
-The audience that authors `@prisma-next/extension-*` packages and consumes the framework's authoring substrate, IR, and ADR-defined extension points.
+The audience that authors `@internal/extension-*` packages and consumes the framework's authoring substrate, IR, and ADR-defined extension points.
 
 - **Substrate location.** `packages/3-extensions/` (worked examples of real extensions) + the framework export surface in `packages/0-framework/` and `packages/1-sql/` / `packages/1-document/`.
 - **Common probes.**

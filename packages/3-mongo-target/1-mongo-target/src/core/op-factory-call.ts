@@ -20,22 +20,22 @@
 import type {
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import type {
   CollModOptions,
   CreateCollectionOptions,
   CreateIndexOptions,
   MongoIndexKey,
   MongoMigrationPlanOperation,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import type {
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
-import { type ImportRequirement, jsonToTsSource, TsExpression } from '@prisma-next/ts-render';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-schema-ir';
+import { type ImportRequirement, jsonToTsSource, TsExpression } from '@internal/ts-render';
+import { ifDefined } from '@internal/utils/defined';
 import {
   collMod,
   createCollection,
@@ -57,7 +57,7 @@ export interface CollModMeta {
  * maps it to whatever the consuming application's import root calls it,
  * once over the whole assembled import list.
  */
-export const TARGET_MIGRATION_MODULE = '@prisma-next/target-mongo/migration';
+export const TARGET_MIGRATION_MODULE = '@internal/target-mongo/migration';
 
 abstract class OpFactoryCallNode extends TsExpression implements FrameworkOpFactoryCall {
   abstract readonly factoryName: string;

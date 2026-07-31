@@ -13,9 +13,9 @@ import {
   SelectAst,
   SubqueryExpr,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { expect } from 'vitest';
 import {
   type CollectionState,

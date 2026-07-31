@@ -24,11 +24,11 @@ File: `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/combinator
 ```
 (`dot()` / `colon()` are existing getters on `QualifiedNameAst` — no stringify, no `.path().join()`.)
 Then add a test case in `packages/1-framework/2-authoring/psl-parser/test/attribute-spec-combinators.test.ts` inside the existing `describe('funcCall', …)` block: a namespaced call `temporal.updatedAt()` (and/or `foo.now()`) is REJECTED (`result.ok === false`). Keep the existing `now()` / `dbgenerated("…")` cases passing.
-Rebuild: `pnpm --filter @prisma-next/psl-parser build` before the SQL typecheck.
+Rebuild: `pnpm --filter @internal/psl-parser build` before the SQL typecheck.
 
 ## Part B — migrate the non-enum `@default` path
 ### B1. Add the spec — `packages/2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts`
-Its imports from `@prisma-next/psl-parser` already include `oneOf`, `list`, `str`, `fieldAttribute`. Add `scalarLiteral` and `funcCall` to that import block (both are exported from `@prisma-next/psl-parser` — shipped in D1). Then add near the other field specs:
+Its imports from `@internal/psl-parser` already include `oneOf`, `list`, `str`, `fieldAttribute`. Add `scalarLiteral` and `funcCall` to that import block (both are exported from `@internal/psl-parser` — shipped in D1). Then add near the other field specs:
 ```ts
 export const defaultSpec = fieldAttribute('default', {
   positional: [{ key: 'value', type: oneOf(scalarLiteral(), list(scalarLiteral()), funcCall()) }],
@@ -66,12 +66,12 @@ Only these change:
 - **These MUST stay unchanged** (they are registry / semantic, NOT the arg-count guard): the `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` assertions at lines ~277/282/287 (registry rejecting `uuid`/`nanoid`/`dbgenerated` args) and ~315 (optional-field execution default). Do NOT touch them — the migration does not change those code paths (a one-positional `@default(uuid(2))` still reaches the registry, which still emits `PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT`).
 
 ## Constraints
-No `any`; no bare `as` (use `blindCast`/`castAs` from `@prisma-next/utils/casts`, narrowed — narrow on `Array.isArray(value)` then `typeof value === 'object'`; the primitive branch is the remaining `string|number|boolean`); no file-ext imports; never suppress biome; tests-first for the funcCall guard. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `.agents/**`. Do NOT touch GitHub. Do NOT touch the enum path `lowerEnumDefaultForField`.
+No `any`; no bare `as` (use `blindCast`/`castAs` from `@internal/utils/casts`, narrowed — narrow on `Array.isArray(value)` then `typeof value === 'object'`; the primitive branch is the remaining `string|number|boolean`); no file-ext imports; never suppress biome; tests-first for the funcCall guard. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `.agents/**`. Do NOT touch GitHub. Do NOT touch the enum path `lowerEnumDefaultForField`.
 
 ## Gates (all must pass, in order)
-1. `pnpm --filter @prisma-next/psl-parser build`
-2. `pnpm --filter @prisma-next/psl-parser typecheck` and `pnpm --filter @prisma-next/psl-parser test`
-3. `pnpm --filter @prisma-next/sql-contract-psl typecheck` and `pnpm --filter @prisma-next/sql-contract-psl test`
+1. `pnpm --filter @internal/psl-parser build`
+2. `pnpm --filter @internal/psl-parser typecheck` and `pnpm --filter @internal/psl-parser test`
+3. `pnpm --filter @internal/sql-contract-psl typecheck` and `pnpm --filter @internal/sql-contract-psl test`
 4. `pnpm fixtures:check` — clean
 5. `pnpm lint:framework-vocabulary`; `pnpm lint:deps`
 

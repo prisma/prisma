@@ -1,4 +1,4 @@
-# @prisma-next/adapter-postgres
+# @internal/adapter-postgres
 
 PostgreSQL adapter for Prisma Next.
 
@@ -133,13 +133,13 @@ flowchart TD
 
 - Exports raw JSON helpers:
   - `jsonColumn`, `jsonbColumn` — untyped raw JSON / JSONB column descriptors
-  - For schema-typed JSON columns, use the per-library extension package (`@prisma-next/extension-arktype-json` for arktype). The schema-accepting `json(schema)` / `jsonb(schema)` overloads previously shipped here retired in Phase C of the codec-registry-unification project.
+  - For schema-typed JSON columns, use the per-library extension package (`@internal/extension-arktype-json` for arktype). The schema-accepting `json(schema)` / `jsonb(schema)` overloads previously shipped here retired in Phase C of the codec-registry-unification project.
 
 ## Dependencies
 
-- **`@prisma-next/sql-contract`**: SQL contract types
-- **`@prisma-next/sql-relational-core`**: SQL AST types and codec registry
-- **`@prisma-next/cli`**: CLI config types and extension pack manifest types
+- **`@internal/sql-contract`**: SQL contract types
+- **`@internal/sql-relational-core`**: SQL AST types and codec registry
+- **`@internal/cli`**: CLI config types and extension pack manifest types
 
 ## Related Subsystems
 
@@ -155,7 +155,7 @@ flowchart TD
 - [ADR 068 - Error mapping to RuntimeError](../../../../docs/architecture%20docs/adrs/ADR%20068%20-%20Error%20mapping%20to%20RuntimeError.md)
 - [ADR 112 - Target Extension Packs](../../../../docs/architecture%20docs/adrs/ADR%20112%20-%20Target%20Extension%20Packs.md)
 - [ADR 114 - Extension codecs & branded types](../../../../docs/architecture%20docs/adrs/ADR%20114%20-%20Extension%20codecs%20&%20branded%20types.md)
-- [ADR 168 - Postgres JSON and JSONB typed columns](../../../../docs/architecture%20docs/adrs/ADR%20168%20-%20Postgres%20JSON%20and%20JSONB%20typed%20columns.md). Schema-typed JSON columns now ship from per-library extension packages (`@prisma-next/extension-arktype-json` for arktype); see [ADR 208 - Higher-order codecs for parameterized types](../../../../docs/architecture%20docs/adrs/ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md).
+- [ADR 168 - Postgres JSON and JSONB typed columns](../../../../docs/architecture%20docs/adrs/ADR%20168%20-%20Postgres%20JSON%20and%20JSONB%20typed%20columns.md). Schema-typed JSON columns now ship from per-library extension packages (`@internal/extension-arktype-json` for arktype); see [ADR 208 - Higher-order codecs for parameterized types](../../../../docs/architecture%20docs/adrs/ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md).
 
 ## Usage
 
@@ -166,8 +166,8 @@ flowchart TD
 ### Runtime
 
 ```typescript
-import { createPostgresAdapter } from '@prisma-next/adapter-postgres/adapter';
-import { createRuntime } from '@prisma-next/sql-runtime';
+import { createPostgresAdapter } from '@internal/adapter-postgres/adapter';
+import { createRuntime } from '@internal/sql-runtime';
 
 const runtime = createRuntime({
   contract,
@@ -179,7 +179,7 @@ const runtime = createRuntime({
 ### CLI Config
 
 ```typescript
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
 
 export default defineConfig({
   family: sql,
@@ -273,8 +273,8 @@ Both `json` and `jsonb` accept any valid JSON value:
 ### Authoring helpers
 
 ```typescript
-import { jsonbColumn } from '@prisma-next/adapter-postgres/column-types';
-import { arktypeJson } from '@prisma-next/extension-arktype-json/column-types';
+import { jsonbColumn } from '@internal/adapter-postgres/column-types';
+import { arktypeJson } from '@internal/extension-arktype-json/column-types';
 import { type as arktype } from 'arktype';
 
 const auditPayloadSchema = arktype({
@@ -293,7 +293,7 @@ table('event', (t) =>
 
 ### Typed fallback behavior
 
-- For schema-typed columns, use a per-library extension package (e.g. `@prisma-next/extension-arktype-json`). The emit-path renderer reads the schema's `expression` from typeParams and produces a concrete TS type in `contract.d.ts`.
+- For schema-typed columns, use a per-library extension package (e.g. `@internal/extension-arktype-json`). The emit-path renderer reads the schema's `expression` from typeParams and produces a concrete TS type in `contract.d.ts`.
 - For untyped columns (`jsonColumn`, `jsonbColumn`), the emitted type falls back to `JsonValue`.
 - Runtime values still encode/decode as JSON-compatible values.
 

@@ -15,19 +15,19 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.7.0",
-    "@prisma-next/config": "workspace:0.16.0",
-    "@prisma-next/config-loader": "workspace:0.16.0",
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/emitter": "workspace:0.16.0",
-    "@prisma-next/errors": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/language-server": "workspace:0.16.0",
-    "@prisma-next/migration-tools": "workspace:0.16.0",
-    "@prisma-next/psl-parser": "workspace:0.16.0",
-    "@prisma-next/psl-printer": "workspace:0.16.0",
-    "@prisma-next/publish-surface": "workspace:0.16.0",
-    "@prisma-next/cli-telemetry": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0",
+    "@internal/config": "workspace:0.16.0",
+    "@internal/config-loader": "workspace:0.16.0",
+    "@internal/contract": "workspace:0.16.0",
+    "@internal/emitter": "workspace:0.16.0",
+    "@internal/errors": "workspace:0.16.0",
+    "@internal/framework-components": "workspace:0.16.0",
+    "@internal/language-server": "workspace:0.16.0",
+    "@internal/migration-tools": "workspace:0.16.0",
+    "@internal/psl-parser": "workspace:0.16.0",
+    "@internal/psl-printer": "workspace:0.16.0",
+    "@internal/publish-surface": "workspace:0.16.0",
+    "@internal/cli-telemetry": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0",
     "arktype": "^2.2.2",
     "ci-info": "^4.3.1",
     "clipanion": "4.0.0-rc.4",
@@ -43,7 +43,7 @@
     "wrap-ansi": "^10.0.0"
   },
   "devDependencies": {
-    "@prisma-next/cli": "workspace:0.16.0"
+    "@internal/cli": "workspace:0.16.0"
   },
   "peerDependencies": {
     "typescript": ">=5.9"

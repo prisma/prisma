@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
 
-describe('@prisma-next/driver-postgres runtime driver lifecycle', () => {
+describe('@internal/driver-postgres runtime driver lifecycle', () => {
   let cleanup: (() => Promise<void>) | undefined;
 
   afterEach(async () => {

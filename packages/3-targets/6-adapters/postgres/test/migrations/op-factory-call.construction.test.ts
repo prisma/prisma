@@ -6,13 +6,13 @@
  * lowering is covered in op-factory-call.lowering.test.ts.
  */
 
-import { col, fn, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
+import { col, fn, primaryKey } from '@internal/sql-relational-core/contract-free';
 import {
   AddColumnCall,
   CreateSchemaCall,
   CreateTableCall,
   DataTransformCall,
-} from '@prisma-next/target-postgres/op-factory-call';
+} from '@internal/target-postgres/op-factory-call';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';

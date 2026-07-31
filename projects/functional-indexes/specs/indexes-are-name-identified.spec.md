@@ -10,7 +10,7 @@ Every SQL index node — declared `@@index`/`constraints.index` and FK-backing �
 
 ### 1. Naming module hoist (D4)
 
-`packages/2-sql/1-core/schema-ir/src/exports/naming.ts` (already exported as `@prisma-next/sql-schema-ir/naming`, currently just `defaultIndexName`) gains:
+`packages/2-sql/1-core/schema-ir/src/exports/naming.ts` (already exported as `@internal/sql-schema-ir/naming`, currently just `defaultIndexName`) gains:
 
 - `formatWireName(prefix, hash)` / `parseWireName(name)` — moved from `packages/3-targets/3-targets/postgres/src/core/rls/wire-name.ts`, generalized names, same `/^(.+)_([0-9a-f]{8})$/` shape. `wire-name.ts` is **deleted**; call sites updated: `authoring.ts:164` (policy wire-name construction), `migrations/planner.ts` (rename pairing), adapters `control-adapter.ts:1261` (policy prefix extraction), and the `exports/rls-canonicalize.ts` re-exports (no shims — the RLS-specific names go away).
 - `normalizeSqlBody(sql)` — moved from `normalizePredicate` in `rls/canonicalize.ts`; that file imports it from the naming module. Same implementation (`trim` + collapse internal whitespace), same stability commitment.

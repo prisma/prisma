@@ -1,4 +1,4 @@
-import type { PslExtensionBlock } from '@prisma-next/framework-components/psl-ast';
+import type { PslExtensionBlock } from '@internal/framework-components/psl-ast';
 import type { PrinterModel, PrinterNamedType } from './types';
 
 /**

@@ -1,9 +1,9 @@
-import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
+import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type {
   ColumnDefault,
   ExecutionMutationDefaultPhases,
   ValueSetRef,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import type {
   AuthoringContributions,
   AuthoringEntityTypeDescriptor,
@@ -12,7 +12,7 @@ import type {
   AuthoringFieldPresetDescriptor,
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import {
   hasRegisteredFieldNamespace,
   instantiateAuthoringFieldPreset,
@@ -21,21 +21,21 @@ import {
   isAuthoringFieldPresetDescriptor,
   isAuthoringTypeConstructorDescriptor,
   validateAuthoringHelperArguments,
-} from '@prisma-next/framework-components/authoring';
-import type { AnyCodecDescriptor, CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/authoring';
+import type { AnyCodecDescriptor, CodecLookup } from '@internal/framework-components/codec';
 import type {
   ControlMutationDefaultRegistry,
   MutationDefaultGeneratorDescriptor,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import type {
   FieldSymbol,
   ModelSymbol,
   PslSpan,
   ResolvedTypeConstructorCall,
-} from '@prisma-next/psl-parser';
-import type { SourceFile } from '@prisma-next/psl-parser/syntax';
+} from '@internal/psl-parser';
+import type { SourceFile } from '@internal/psl-parser/syntax';
 
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 import { contractError } from './contract-errors';
 import { lowerDefaultFunctionWithRegistry } from './default-function-registry';
 

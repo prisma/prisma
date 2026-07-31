@@ -7,7 +7,7 @@ import {
   ParamRef,
   ParamRef as ParamRefClass,
   type UpdateAst,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import {
   compileDeleteCount,

@@ -1,11 +1,11 @@
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type {
   InferModelRow,
   MongoCollectionOptionsAuthoringInput,
   MongoIndexOptionsInput,
   MongoModelsMap,
   MongoUnboundFieldInputTypes,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import { expectTypeOf, test } from 'vitest';
 import { defineContract, field, index, model, valueObject } from '../src/contract-builder';
 import { enumType, member } from '../src/enum-type';

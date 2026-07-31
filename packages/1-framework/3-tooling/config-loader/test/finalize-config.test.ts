@@ -1,5 +1,5 @@
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { ok } from '@prisma-next/utils/result';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import { ok } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
 import { finalizeConfig } from '../src/finalize-config';
 

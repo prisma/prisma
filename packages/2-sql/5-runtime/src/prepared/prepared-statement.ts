@@ -1,9 +1,9 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
-} from '@prisma-next/framework-components/runtime';
-import type { AnyQueryAst, LoweredParam } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/runtime';
+import type { AnyQueryAst, LoweredParam } from '@internal/sql-relational-core/ast';
 import type { DecodeContext } from '../codecs/decoding';
 import type { ParamMetadata } from '../codecs/encoding';
 import type { RuntimeQueryable } from '../sql-runtime';

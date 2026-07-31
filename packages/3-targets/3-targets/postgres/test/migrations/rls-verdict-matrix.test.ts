@@ -7,10 +7,10 @@
  * everything here rides the generic diff verdict.
  */
 
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { verifySqlSchemaByDiff } from '@prisma-next/family-sql/diff';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import type { ControlPolicy } from '@internal/contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { verifySqlSchemaByDiff } from '@internal/family-sql/diff';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { diffPostgresSchema } from '../../src/core/migrations/diff-database-schema';

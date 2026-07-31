@@ -1,11 +1,11 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import paradedbPack from '@prisma-next/extension-paradedb/pack';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import paradedbPack from '@internal/extension-paradedb/pack';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 // postgresPack is used directly in interpretPslDocumentToSqlContract (not in defineContract).
-import postgresPack from '@prisma-next/target-postgres/pack';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import postgresPack from '@internal/target-postgres/pack';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { describe, expect, it } from 'vitest';
 
 const scalarColumnDescriptors = new Map<string, { codecId: string; nativeType: string }>([

@@ -12,8 +12,8 @@
  * built-in codecs use.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
-import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
+import type { JsonValue } from '@internal/contract/types';
+import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { type } from 'arktype';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';

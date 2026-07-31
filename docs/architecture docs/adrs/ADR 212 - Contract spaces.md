@@ -59,7 +59,7 @@ Spaces are **disjoint at the artefact level** (separate `contract.json`, separat
 
 The SQL family's extension descriptor gains an optional `contractSpace` field. Schema-contributing extensions populate it; codec-only or query-op-only extensions leave it absent.
 
-The shape is family-agnostic. `ContractSpace<TContract>` and `ContractSpaceHeadRef` live in `@prisma-next/framework-components/control` so every family (SQL, Mongo, future) reuses the same triple; the family-side descriptor only specialises the contract type parameter:
+The shape is family-agnostic. `ContractSpace<TContract>` and `ContractSpaceHeadRef` live in `@internal/framework-components/control` so every family (SQL, Mongo, future) reuses the same triple; the family-side descriptor only specialises the contract type parameter:
 
 ```ts
 // packages/1-framework/1-core/framework-components/src/control/control-spaces.ts
@@ -83,7 +83,7 @@ export interface SqlControlExtensionDescriptor<TTargetId extends string>
 
 Whether a value is the application's space or an extension's space is a control-plane concern (the descriptor it travels with, and the `space-id` the runner stamps onto the marker row); the type carries no such distinction. This is what lets the Mongo family adopt the concept by specialising the same generic to `ContractSpace<Contract<MongoStorage>>` without duplicating the structural shape.
 
-There is **one** migration package shape across the workspace: `MigrationPackage` from `@prisma-next/framework-components/control` (`{ dirName, metadata, ops }`), augmented to `OnDiskMigrationPackage` with a `dirPath` by the on-disk readers in `@prisma-next/migration-tools`. The SQL family, the migration-tools I/O helpers, and the CLI's `runContractSpaceExtensionMigrationsPass` all consume that single shape — earlier parallel types (`ExtensionMigrationPackage`, `MigrationPackageContents`, `DescriptorMigrationPackage`) whose only difference was the absence of `dirPath` have been collapsed onto `MigrationPackage`.
+There is **one** migration package shape across the workspace: `MigrationPackage` from `@internal/framework-components/control` (`{ dirName, metadata, ops }`), augmented to `OnDiskMigrationPackage` with a `dirPath` by the on-disk readers in `@internal/migration-tools`. The SQL family, the migration-tools I/O helpers, and the CLI's `runContractSpaceExtensionMigrationsPass` all consume that single shape — earlier parallel types (`ExtensionMigrationPackage`, `MigrationPackageContents`, `DescriptorMigrationPackage`) whose only difference was the absence of `dirPath` have been collapsed onto `MigrationPackage`.
 
 The descriptor's `migrations` are the same artefacts the framework's emitter writes for application authors. The expected authoring convention is the **contract-space package layout** (see below): the extension's package contains its own emitted `src/contract.json` and `migrations/<dirName>/...` directories, and the descriptor module wires them via JSON-import declarations. The framework reads these values only at `migrate` time and materialises them into the consuming application's repo, where they become indistinguishable from app-authored migrations.
 
@@ -116,7 +116,7 @@ Key rules (these are the spots where mistakes recur, so the convention spells th
 
 - **Pick the contract source by what the space contributes.** Three cases, each wired in `prisma-next.config.ts`:
   - *App-visible schema* (models, storage types, namespaces) → author PSL in `src/contract.prisma`; wire `prismaContract('./src/contract.prisma', { output: 'src/contract.json', target })`. PSL is the canonical authoring surface: it reads as a schema (not as builder calls), interoperates with brownfield Prisma schemas, and keeps the contract decoupled from the workspace's TS type system.
-  - *Migrations only* — installs invariants (e.g. a Postgres extension) but ships no tables or native types → omit the contract source entirely; wire `emptyContract({ output: 'src/contract.json', target })`. Example: `@prisma-next/extension-paradedb`.
+  - *Migrations only* — installs invariants (e.g. a Postgres extension) but ships no tables or native types → omit the contract source entirely; wire `emptyContract({ output: 'src/contract.json', target })`. Example: `@internal/extension-paradedb`.
   - *Typed objects PSL can't yet express* (e.g. pgvector's parameterised `vector` registration under `storage.types` — `types {}` blocks instantiate, they don't register a parameterised base type) → keep `src/contract.ts`; wire `typescriptContract(contract, 'src/contract.json')`, with a comment in the source naming the missing PSL surface.
 - **No `<space-id>` subdirectory inside `migrations/`.** A package owns exactly one contract space, so the space-id directory adds no information. Migration directories sit *directly* under `migrations/`, and `refs/` sits at `migrations/refs/`. Configure this with `migrations.dir: 'migrations'` (not `migrations/<space-id>`).
 - **No `src/contract/` subdirectory.** The contract source, emitted `contract.json`, and emitted `contract.d.ts` sit *directly* in `src/`.
@@ -124,7 +124,7 @@ Key rules (these are the spots where mistakes recur, so the convention spells th
 
 The contrast with the consuming app's on-disk layout: when an application composes multiple contract spaces, *its* `migrations/` directory ends up with one subdirectory per space (`migrations/<space-id>/`) because there are multiple spaces. That's an emergent shape from composition, not a per-package authoring convention. Inside a contract-space package, the space-id subdirectory does not belong.
 
-Extension authors use the **same emit pipeline** application authors use: PSL (or TS) schema → `prisma-next contract emit` → `<package>/src/contract.{json,d.ts}`; `prisma-next migration plan` → `<package>/migrations/<dirName>/{migration.json, ops.json, end-contract.{json,d.ts}, migration.ts}`. The emitted `migration.ts` extends the same `Migration` abstract class app authors extend (from `@prisma-next/<target>/migration`).
+Extension authors use the **same emit pipeline** application authors use: PSL (or TS) schema → `prisma-next contract emit` → `<package>/src/contract.{json,d.ts}`; `prisma-next migration plan` → `<package>/migrations/<dirName>/{migration.json, ops.json, end-contract.{json,d.ts}, migration.ts}`. The emitted `migration.ts` extends the same `Migration` abstract class app authors extend (from `@internal/<target>/migration`).
 
 The descriptor module is the only TypeScript code that has to be hand-written:
 
@@ -215,7 +215,7 @@ The framework runs the same machinery once per space:
 - **Runner.** Applies each space's migrations against the live database, updating the corresponding marker row.
 - **Verifier.** Aggregates all loaded spaces' contracts into an in-memory expected schema, then compares against the live database.
 
-The producer-side helpers (`planAllSpaces`, `concatenateSpaceApplyInputs`, `verifyContractSpaces`, `emitContractSpaceArtifacts`, `gatherDiskContractSpaceState`, `detectSpaceContractDrift`) live in `@prisma-next/migration-tools/spaces` — target-agnostic primitives. The SQL family wires them into `db init` / `db update` / `db verify` at consumption sites; a Mongo or other family would compose them the same way (the contract-space concept is not SQL-specific even though today only the SQL family ships the wiring).
+The producer-side helpers (`planAllSpaces`, `concatenateSpaceApplyInputs`, `verifyContractSpaces`, `emitContractSpaceArtifacts`, `gatherDiskContractSpaceState`, `detectSpaceContractDrift`) live in `@internal/migration-tools/spaces` — target-agnostic primitives. The SQL family wires them into `db init` / `db update` / `db verify` at consumption sites; a Mongo or other family would compose them the same way (the contract-space concept is not SQL-specific even though today only the SQL family ships the wiring).
 
 ### Apply-time atomicity and ordering
 
@@ -257,7 +257,7 @@ At family-create time the framework asserts `hash(canonicalize(descriptor.contra
 Once `migrate` has run, the user's repo carries everything `db init` / `db apply` / `db verify` need: app-space `contract.json` at the project root, plus pinned per-space `contract.json` / `contract.d.ts` / `refs/head.json` and migration directories under `migrations/<space-id>/`. Apply-time and verify-time paths read **only** the user's repo — they never import an extension descriptor module. This is what makes the system work in CI / production environments where the extension package may not even be installed:
 
 ```bash
-$ rm -rf node_modules/@prisma-next/extension-cipherstash
+$ rm -rf node_modules/@internal/extension-cipherstash
 $ prisma-next db init     # ✓ reads only migrations/cipherstash/ on disk
 $ prisma-next db apply    # ✓ no migrations to apply
 $ prisma-next migrate     # ✗ MIGRATION.EXTENSION_DESCRIPTOR_NOT_FOUND

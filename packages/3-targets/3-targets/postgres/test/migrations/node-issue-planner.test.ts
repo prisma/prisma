@@ -1,7 +1,7 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';

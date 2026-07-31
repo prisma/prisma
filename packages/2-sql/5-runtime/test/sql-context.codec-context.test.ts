@@ -1,10 +1,10 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
-import type { CodecDescriptor } from '@prisma-next/framework-components/codec';
-import { voidParamsSchema } from '@prisma-next/framework-components/codec';
-import { SqlStorage, type StorageTable } from '@prisma-next/sql-contract/types';
-import type { Codec, SqlCodecInstanceContext } from '@prisma-next/sql-relational-core/ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { Contract } from '@internal/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
+import type { CodecDescriptor } from '@internal/framework-components/codec';
+import { voidParamsSchema } from '@internal/framework-components/codec';
+import { SqlStorage, type StorageTable } from '@internal/sql-contract/types';
+import type { Codec, SqlCodecInstanceContext } from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';

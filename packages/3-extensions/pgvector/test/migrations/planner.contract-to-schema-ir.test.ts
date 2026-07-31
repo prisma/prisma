@@ -1,40 +1,40 @@
 import postgresAdapterDescriptor, {
   createPostgresBuiltinCodecLookup,
   PostgresControlAdapter,
-} from '@prisma-next/adapter-postgres/control';
-import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
+} from '@internal/adapter-postgres/control';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type {
   CodecControlHooks,
   NativeTypeExpander,
   SqlMigrationPlanOperation,
   SqlPlannerResult,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import {
   contractToSchemaIR as contractToSchemaIRImpl,
   detectDestructiveChanges,
   extractCodecControlHooks,
-} from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import { APP_SPACE_ID, type SchemaOwnership } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import { APP_SPACE_ID, type SchemaOwnership } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   SqlStorage,
   type SqlStorageInput,
   type StorageColumn,
   type StorageTable,
-} from '@prisma-next/sql-contract/types';
-import { SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/types';
-import { postgresRenderDefault } from '@prisma-next/target-postgres/control';
-import { createPostgresMigrationPlanner } from '@prisma-next/target-postgres/planner';
-import type { PostgresPlanTargetDetails } from '@prisma-next/target-postgres/planner-target-details';
-import { resolveDdlSchemaForNamespaceStorage } from '@prisma-next/target-postgres/schema-ir-annotations';
+} from '@internal/sql-contract/types';
+import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
+import { postgresRenderDefault } from '@internal/target-postgres/control';
+import { createPostgresMigrationPlanner } from '@internal/target-postgres/planner';
+import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planner-target-details';
+import { resolveDdlSchemaForNamespaceStorage } from '@internal/target-postgres/schema-ir-annotations';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
   PostgresNativeEnumSchemaNode,
   PostgresTableSchemaNode,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import pgvectorDescriptor from '../../src/exports/control';

@@ -1,4 +1,4 @@
-# @prisma-next/emitter
+# @internal/emitter
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
 > and is published only to support its runtime. Its API is unstable and may change
@@ -94,7 +94,7 @@ flowchart TD
   - `generateModelsType` (optional): Override default domain model type generation
   - `getFamilyImports`, `getFamilyTypeAliases`, `getTypeMapsExpression`, `getContractWrapper`: Family-specific template fragments
 
-### EmissionSpi (defined in `@prisma-next/framework-components/emission`)
+### EmissionSpi (defined in `@internal/framework-components/emission`)
 - Focused interface for family-specific parts of contract type emission
 - Authoring surfaces determine which SPI to use based on the contract's `targetFamily` field and pass it to `emit()`
 - **Manifest-Agnostic**: The emitter receives pre-assembled context (type imports), not extension packs
@@ -141,13 +141,13 @@ This package is part of the **framework domain**, **tooling layer**, **migration
 ## Usage
 
 ```typescript
-import { emit } from '@prisma-next/emitter';
-import type { Contract } from '@prisma-next/contract/types';
-import { createOperationRegistry } from '@prisma-next/operations';
+import { emit } from '@internal/emitter';
+import type { Contract } from '@internal/contract/types';
+import { createOperationRegistry } from '@internal/operations';
 
 // Determine target family SPI based on target family
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
-// or: import { mongoEmission } from '@prisma-next/mongo-emitter';
+import { sqlEmission } from '@internal/sql-contract-emitter';
+// or: import { mongoEmission } from '@internal/mongo-emitter';
 
 // Emit contract
 const contract: Contract = {

@@ -61,7 +61,7 @@ Each product has a single Linear project for *all* tickets — both gotchas and 
 
 | Product | Linear project |
 |---------|----------------|
-| **Prisma Next** ORM (`@prisma-next/*`, schema, generated client, migration tooling) | [`pn-gotchas`](https://linear.app/prisma-company/project/pn-gotchas-a6f6f5157a5c/overview) |
+| **Prisma Next** ORM (`@internal/*`, schema, generated client, migration tooling) | [`pn-gotchas`](https://linear.app/prisma-company/project/pn-gotchas-a6f6f5157a5c/overview) |
 | **Prisma Compute** (`@prisma/compute-cli`, deploy, runtime, env management) | [`compute-gotchas`](https://linear.app/prisma-company/project/compute-gotchas-dd3ac34b5ad4/overview) |
 | **Prisma Postgres** (PPg, `@prisma/dev`, dialect behaviour) | [`ppg-gotchas`](https://linear.app/prisma-company/project/ppg-gotchas-afe77336f696/overview) |
 
@@ -304,7 +304,7 @@ The capture workflow is documented in [`.agents/skills/record-gotcha/SKILL.md`](
 >
 > **Filed upstream:** [TML-XXXX](https://linear.app/prisma-company/issue/TML-XXXX)
 > **Product:** Prisma Next
-> **Version:** `@prisma-next/cli@<version>`
+> **Version:** `@internal/cli@<version>`
 > **First hit:** `examples/prisma-next-demo`, changing the schema while iterating on a demo
 > **Cost:** ~15 minutes
 >
@@ -335,7 +335,7 @@ Why it's bad: title doesn't tell future-you what to search for; no version, no c
 When a Prisma release fixes a gotcha, **do not delete the entry.** Append a `**Resolved**` line at the bottom of the entry, citing the release that closed it. The history of what we knew when matters; deleting it loses signal about how long the issue lived.
 
 ```markdown
-**Resolved in `@prisma-next/orm@0.5.1`** — see [release notes](...). Workaround removed in [commit abc123](...).
+**Resolved in `@internal/orm@0.5.1`** — see [release notes](...). Workaround removed in [commit abc123](...).
 ```
 
 If the entry was wrong (rather than fixed), mark it `**Superseded — see <new-entry-link>**` and add a corrected entry below. Don't edit the original body.

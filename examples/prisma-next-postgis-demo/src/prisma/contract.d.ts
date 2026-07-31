@@ -373,13 +373,13 @@ type ContractBase = Omit<
           readonly import: {
             readonly alias: 'PostgisTypes';
             readonly named: 'CodecTypes';
-            readonly package: '@prisma-next/extension-postgis/codec-types';
+            readonly package: '@internal/extension-postgis/codec-types';
           };
           readonly typeImports: readonly [
             {
               readonly alias: 'Geometry';
               readonly named: 'Geometry';
-              readonly package: '@prisma-next/extension-postgis/codec-types';
+              readonly package: '@internal/extension-postgis/codec-types';
             },
           ];
         };
@@ -387,7 +387,7 @@ type ContractBase = Omit<
           readonly import: {
             readonly alias: 'PostgisQueryOperationTypes';
             readonly named: 'QueryOperationTypes';
-            readonly package: '@prisma-next/extension-postgis/operation-types';
+            readonly package: '@internal/extension-postgis/operation-types';
           };
         };
         readonly storage: readonly [

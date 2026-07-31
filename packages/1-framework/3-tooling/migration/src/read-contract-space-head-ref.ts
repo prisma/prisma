@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import type { ContractSpaceHeadRef } from '@prisma-next/framework-components/control';
+import type { ContractSpaceHeadRef } from '@internal/framework-components/control';
 import { join } from 'pathe';
 import { errorInvalidJson, errorInvalidRefFile } from './errors';
 import { assertValidSpaceId, spaceMigrationDirectory, spaceRefsDirectory } from './space-layout';

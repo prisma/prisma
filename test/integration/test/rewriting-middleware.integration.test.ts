@@ -1,21 +1,21 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import pgvector from '@prisma-next/extension-pgvector/runtime';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import postgresDriver from '@internal/driver-postgres/runtime';
+import pgvector from '@internal/extension-pgvector/runtime';
 import {
   type ExecutionStackInstance,
   instantiateExecutionStack,
   type RuntimeDriverInstance,
-} from '@prisma-next/framework-components/execution';
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
+} from '@internal/framework-components/execution';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
+import { sql } from '@internal/sql-builder/runtime';
 import {
   AndExpr,
   BinaryExpr,
   ColumnRef,
   ParamRef,
   type SelectAst,
-} from '@prisma-next/sql-relational-core/ast';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/ast';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import {
   createExecutionContext,
   createSqlExecutionStack,
@@ -25,8 +25,8 @@ import {
   type SqlRuntimeAdapterInstance,
   type SqlRuntimeDriverInstance,
   type SqlRuntimeExtensionInstance,
-} from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+} from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';

@@ -2,7 +2,7 @@
 
 Every user-facing Prisma Next error is a structured envelope identified by a dotted `NAMESPACE.SUBCODE` code (see [ADR 239](../architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) and [Error Handling](../Error%20Handling.md)). This page lists every published code. It is the canonical source for the hosted reference at `https://docs.prisma.io/docs/orm/next/reference/error-reference` (each code anchors as `#<CODE>`; the `next` segment flips to `v8` at RC), and CI verifies completeness on every PR: `pnpm check:error-reference` fails if any code in production source is missing from this page.
 
-Recognize an error programmatically with `isStructuredError` from `@prisma-next/utils/structured-error` and match on `error.code` — never `instanceof`. Envelopes carry `message`, and optionally `why`, `fix`, `where`, `meta`, `cause`, and `docsUrl`.
+Recognize an error programmatically with `isStructuredError` from `@internal/utils/structured-error` and match on `error.code` — never `instanceof`. Envelopes carry `message`, and optionally `why`, `fix`, `where`, `meta`, `cause`, and `docsUrl`.
 
 Exit codes (CLI): an expected structured failure exits `2`, a user abort exits `3`, and `1` is reserved for internal errors (bugs). Errors with codes on this page exit `2` unless noted.
 
@@ -481,7 +481,7 @@ The authored SQL AST uses a feature this target cannot render — currently DEFA
 
 ### RUNTIME.BINDING_INVALID
 
-A target facade client (`@prisma-next/postgres`, `@prisma-next/sqlite`, `@prisma-next/mongo`) received a connection binding whose shape is wrong for the target — malformed connection string, unsupported binding kind, or missing required fields. Raised at `connect(...)` / client construction. Meta: `received`, `reason`.
+A target facade client (`@internal/postgres`, `@internal/sqlite`, `@internal/mongo`) received a connection binding whose shape is wrong for the target — malformed connection string, unsupported binding kind, or missing required fields. Raised at `connect(...)` / client construction. Meta: `received`, `reason`.
 
 ### RUNTIME.BINDING_MISSING
 

@@ -11,17 +11,17 @@
  * Supabase release).
  *
  * Usage:
- *   pnpm --filter @prisma-next/extension-supabase run contract:generate
- *   pnpm --filter @prisma-next/extension-supabase run contract:generate -- --url postgres://...
+ *   pnpm --filter @internal/extension-supabase run contract:generate
+ *   pnpm --filter @internal/extension-supabase run contract:generate -- --url postgres://...
  */
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import postgresAdapterDescriptor from '@prisma-next/adapter-postgres/control';
-import postgresDriverDescriptor from '@prisma-next/driver-postgres/control';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
+import postgresAdapterDescriptor from '@internal/adapter-postgres/control';
+import postgresDriverDescriptor from '@internal/driver-postgres/control';
+import sqlFamilyDescriptor from '@internal/family-sql/control';
+import { createControlStack } from '@internal/framework-components/control';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
@@ -31,14 +31,14 @@ import {
   type PslModel,
   type PslNamedTypeDeclaration,
   type PslNamespace,
-} from '@prisma-next/framework-components/psl-ast';
-import { printPsl } from '@prisma-next/psl-printer';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
+} from '@internal/framework-components/psl-ast';
+import { printPsl } from '@internal/psl-printer';
+import postgresTargetDescriptor from '@internal/target-postgres/control';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
   PostgresTableSchemaNode,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { createDevDatabase } from '@repo/test-utils';
 import { Client } from 'pg';
 import { SupabaseRole } from '../src/contract/roles';

@@ -1,25 +1,25 @@
-import { createMongoRunnerDeps, MongoControlAdapterImpl } from '@prisma-next/adapter-mongo/control';
+import { createMongoRunnerDeps, MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
 import {
   createPostgresBuiltinCodecLookup,
   PostgresControlAdapter,
-} from '@prisma-next/adapter-postgres/control';
+} from '@internal/adapter-postgres/control';
 import {
   createSqliteBuiltinCodecLookup,
   SqliteControlAdapter,
-} from '@prisma-next/adapter-sqlite/control';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import { MongoControlDriver } from '@prisma-next/driver-mongo/control';
-import { createMongoFamilyInstance } from '@prisma-next/family-mongo/control';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
+} from '@internal/adapter-sqlite/control';
+import { MongoDriverImpl } from '@internal/driver-mongo';
+import { MongoControlDriver } from '@internal/driver-mongo/control';
+import { createMongoFamilyInstance } from '@internal/family-mongo/control';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import {
   type AggregateMigrationEdgeRef,
   buildFabricatedMigrationEdge,
-} from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { MongoMigrationRunner, serializeMongoOps } from '@prisma-next/target-mongo/control';
-import { createCollection, createIndex } from '@prisma-next/target-mongo/migration';
-import type { PostgresPlanTargetDetails } from '@prisma-next/target-postgres/planner-target-details';
+} from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { MongoContract } from '@internal/mongo-contract';
+import { MongoMigrationRunner, serializeMongoOps } from '@internal/target-mongo/control';
+import { createCollection, createIndex } from '@internal/target-mongo/migration';
+import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planner-target-details';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

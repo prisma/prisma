@@ -2,7 +2,7 @@ import type {
   AnnotationValue,
   OperationKind,
   ValidAnnotations,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import type {
   AggregateFunctions,
   BooleanCodecType,

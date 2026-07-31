@@ -4,7 +4,7 @@ to: "0.16"
 changes:
   - id: extension-supabase-test-utils-export-removed
     summary: |
-      `@prisma-next/extension-supabase` no longer exports the `./test/utils` subpath
+      `@internal/extension-supabase` no longer exports the `./test/utils` subpath
       (`bootstrapSupabaseShim`). The import typechecked (types shipped in `dist`), but the
       subpath never worked from npm — the shim reads fixture `.sql` files that were never
       published, so every call failed with ENOENT before touching a database. There is no
@@ -32,8 +32,8 @@ changes:
       `String: { kind: 'typeConstructor', output: { codecId: 'pg/text@1', nativeType: 'text' } }`.
       Read the scalar type names via `stack.scalarTypes`, or the full name ->
       `{ codecId, nativeType }` map via `collectScalarTypeConstructors(stack.authoringContributions.type)`
-      from `@prisma-next/framework-components/authoring`. Standard target setups
-      (`@prisma-next/postgres`, `@prisma-next/sqlite`) supply the contributions themselves.
+      from `@internal/framework-components/authoring`. Standard target setups
+      (`@internal/postgres`, `@internal/sqlite`) supply the contributions themselves.
     detection:
       glob: "**/*.{ts,mts,cts}"
       contains:
@@ -167,7 +167,7 @@ Dependabot runtime-deps group bump (PR #1014): `changes: []`. Dependency version
 bumps only. The `examples/` diff is package.json version ranges in the demo apps
 (isbot in react-router-demo; @radix-ui/react-radio-group, @radix-ui/react-select,
 lucide-react, postcss in retail-store) — dependencies of the example applications
-themselves, not of any `@prisma-next/*` package. No framework surface, contract
+themselves, not of any `@internal/*` package. No framework surface, contract
 shape, or emitted artefact change. No user action required. Incidental substrate
 diff only.
 -->

@@ -1,4 +1,4 @@
-import { MongoCollection } from '@prisma-next/mongo-contract';
+import { MongoCollection } from '@internal/mongo-contract';
 import { describe, expect, it } from 'vitest';
 import { MongoTargetDatabase, MongoTargetUnboundDatabase } from '../src/core/mongo-target-database';
 

@@ -1,5 +1,5 @@
-import { Collection } from '@prisma-next/sql-orm-client';
-import type { InsertAst } from '@prisma-next/sql-relational-core/ast';
+import { Collection } from '@internal/sql-orm-client';
+import type { InsertAst } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { withReturningCapability } from './collection-fixtures';
 import { deserializeTestContract, getTestContext, getTestContract } from './helpers';

@@ -8,7 +8,7 @@
  * The factory's method-level generic is the load-bearing piece for literal preservation: per-codec column helpers invoke `descriptor.factory(...)` *directly*, and the direct call binds the generic at its call site. Type extraction (`ReturnType<D['factory']>`, structural matching) widens method generics to their constraint — that's why the column-helper surface is per-codec, not polymorphic.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Codec } from './codec';
 import { type CodecInstanceContext, type CodecTrait, voidParamsSchema } from './codec-types';

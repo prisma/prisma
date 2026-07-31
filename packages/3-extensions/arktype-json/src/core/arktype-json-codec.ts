@@ -11,7 +11,7 @@
  * assignment fails by design; the explicit `expectTypeOf` tests in `test/arktype-json-codec.types.test-d.ts` cover the literal-preservation property the strict variant would otherwise enforce.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecImpl,
@@ -19,13 +19,13 @@ import {
   type ColumnHelperFor,
   type ColumnSpec,
   column,
-} from '@prisma-next/framework-components/codec';
-import { isRuntimeError, runtimeError } from '@prisma-next/framework-components/runtime';
-import type { ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/codec';
+import { isRuntimeError, runtimeError } from '@internal/framework-components/runtime';
+import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
 import {
   definePostgresCodecs,
   PostgresCodecDescriptor,
-} from '@prisma-next/target-postgres/codec-descriptor';
+} from '@internal/target-postgres/codec-descriptor';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { ArkErrors, ark, type Type, type } from 'arktype';
 

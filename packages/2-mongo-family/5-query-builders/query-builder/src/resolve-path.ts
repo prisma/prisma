@@ -1,5 +1,5 @@
-import type { ContractValueObjectDefinitions } from '@prisma-next/contract/types';
-import type { MongoContract, MongoModelsMap } from '@prisma-next/mongo-contract';
+import type { ContractValueObjectDefinitions } from '@internal/contract/types';
+import type { MongoContract, MongoModelsMap } from '@internal/mongo-contract';
 import type { DocField } from './types';
 
 /**

@@ -994,13 +994,13 @@ type ContractBase = Omit<
           readonly import: {
             readonly alias: 'PgVectorTypes';
             readonly named: 'CodecTypes';
-            readonly package: '@prisma-next/extension-pgvector/codec-types';
+            readonly package: '@internal/extension-pgvector/codec-types';
           };
           readonly typeImports: readonly [
             {
               readonly alias: 'Vector';
               readonly named: 'Vector';
-              readonly package: '@prisma-next/extension-pgvector/codec-types';
+              readonly package: '@internal/extension-pgvector/codec-types';
             },
           ];
         };
@@ -1008,14 +1008,14 @@ type ContractBase = Omit<
           readonly import: {
             readonly alias: 'PgVectorOperationTypes';
             readonly named: 'OperationTypes';
-            readonly package: '@prisma-next/extension-pgvector/operation-types';
+            readonly package: '@internal/extension-pgvector/operation-types';
           };
         };
         readonly queryOperationTypes: {
           readonly import: {
             readonly alias: 'PgVectorQueryOperationTypes';
             readonly named: 'QueryOperationTypes';
-            readonly package: '@prisma-next/extension-pgvector/operation-types';
+            readonly package: '@internal/extension-pgvector/operation-types';
           };
         };
         readonly storage: readonly [

@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { PostgresDatabaseSchemaNode } from '../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../src/core/schema-ir/postgres-namespace-schema-node';

@@ -1,10 +1,10 @@
-import { TableSource } from '@prisma-next/sql-relational-core/ast';
+import { TableSource } from '@internal/sql-relational-core/ast';
 import {
   type ColumnDescriptor,
   type ColumnSchema,
   type TableHandle,
   table,
-} from '@prisma-next/sql-relational-core/contract-free';
+} from '@internal/sql-relational-core/contract-free';
 import {
   SQLITE_DATETIME_CODEC_ID,
   SQLITE_INTEGER_CODEC_ID,

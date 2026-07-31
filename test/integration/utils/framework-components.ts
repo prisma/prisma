@@ -1,14 +1,14 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresAdapterRuntime from '@prisma-next/adapter-postgres/runtime';
-import pgvectorExtension from '@prisma-next/extension-pgvector/control';
-import pgvectorExtensionRuntime from '@prisma-next/extension-pgvector/runtime';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresAdapterRuntime from '@internal/adapter-postgres/runtime';
+import pgvectorExtension from '@internal/extension-pgvector/control';
+import pgvectorExtensionRuntime from '@internal/extension-pgvector/runtime';
 import type {
   SqlControlAdapterDescriptor,
   SqlControlExtensionDescriptor,
   SqlControlTargetDescriptor,
-} from '@prisma-next/family-sql/control';
-import postgresTarget from '@prisma-next/target-postgres/control';
-import postgresTargetRuntime from '@prisma-next/target-postgres/runtime';
+} from '@internal/family-sql/control';
+import postgresTarget from '@internal/target-postgres/control';
+import postgresTargetRuntime from '@internal/target-postgres/runtime';
 
 const targetDescriptor = postgresTarget;
 const adapterDescriptor = postgresAdapter;

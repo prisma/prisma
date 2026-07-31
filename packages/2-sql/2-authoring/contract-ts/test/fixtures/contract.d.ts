@@ -2,8 +2,8 @@
 // Example: This pattern allows multiple contracts (e.g., authDataContract.d.ts, salesDataContract.d.ts)
 // without namespace collisions. Each contract can have its own namespace name.
 
-import type { Contract as BaseContract } from '@prisma-next/contract/types';
-import type { ContractWithTypeMaps } from '@prisma-next/sql-contract/types';
+import type { Contract as BaseContract } from '@internal/contract/types';
+import type { ContractWithTypeMaps } from '@internal/sql-contract/types';
 // Minimal CodecTypes for testing - matches adapter-postgres structure
 type CodecTypes = {
   readonly 'pg/int4@1': { output: number };

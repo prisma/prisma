@@ -86,7 +86,7 @@ There is no codemod for this — extensions construct `SqlStorage` via too many 
 - **Codec-triple literal passed to `new SqlStorage({...})` or a builder that flattens to it** (e.g. `types: { Embedding1536: { codecId: 'pg/vector@1', nativeType: 'vector', typeParams: { length: 1536 } } }`): wrap each value with `toStorageTypeInstance(...)`:
 
   ```ts
-  import { toStorageTypeInstance } from '@prisma-next/sql-contract';
+  import { toStorageTypeInstance } from '@internal/sql-contract';
 
   const storage = new SqlStorage({
     types: {
@@ -102,10 +102,10 @@ There is no codemod for this — extensions construct `SqlStorage` via too many 
 
   The helper is idempotent — input already carrying the `kind` field passes through unchanged.
 
-- **Postgres-enum literal** (e.g. `types: { user_type: { codecId: 'pg/enum@1', nativeType: 'user_type', typeParams: { values: ['admin', 'user'] } } }`): the canonical fix is to replace with a `PostgresEnumType` class instance from `@prisma-next/postgres`:
+- **Postgres-enum literal** (e.g. `types: { user_type: { codecId: 'pg/enum@1', nativeType: 'user_type', typeParams: { values: ['admin', 'user'] } } }`): the canonical fix is to replace with a `PostgresEnumType` class instance from `@internal/postgres`:
 
   ```ts
-  import { PostgresEnumType } from '@prisma-next/postgres';
+  import { PostgresEnumType } from '@internal/postgres';
 
   const storage = new SqlStorage({
     types: {

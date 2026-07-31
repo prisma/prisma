@@ -1,13 +1,13 @@
-import postgresAdapterControl from '@prisma-next/adapter-postgres/control';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriverControl from '@prisma-next/driver-postgres/control';
-import sqlFamilyControl, { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID, createControlStack } from '@prisma-next/framework-components/control';
-import { buildFabricatedMigrationEdge } from '@prisma-next/migration-tools/aggregate';
-import postgres from '@prisma-next/postgres/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgresTargetControl from '@prisma-next/target-postgres/control';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import postgresAdapterControl from '@internal/adapter-postgres/control';
+import type { Contract } from '@internal/contract/types';
+import postgresDriverControl from '@internal/driver-postgres/control';
+import sqlFamilyControl, { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID, createControlStack } from '@internal/framework-components/control';
+import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregate';
+import postgres from '@internal/postgres/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import postgresTargetControl from '@internal/target-postgres/control';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 
 /**

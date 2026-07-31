@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { Contract } from '@internal/contract/types';
+import type { TypesImportSpec } from '@internal/framework-components/emission';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { EmitStackInput } from '../src/exports';

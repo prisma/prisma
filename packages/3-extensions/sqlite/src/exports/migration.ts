@@ -1,1 +1,1 @@
-export * from '@prisma-next/target-sqlite/migration';
+export * from '@internal/target-sqlite/migration';

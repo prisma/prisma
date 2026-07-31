@@ -1,5 +1,5 @@
-import type { CodecTrait } from '@prisma-next/framework-components/codec';
-import type { ControlDriverInstance } from '@prisma-next/framework-components/control';
+import type { CodecTrait } from '@internal/framework-components/codec';
+import type { ControlDriverInstance } from '@internal/framework-components/control';
 import type { ReferentialAction } from './ir/foreign-key';
 
 export interface SqlControlDriverInstance<T extends string = string>
@@ -140,7 +140,7 @@ export type QueryOperationSelfSpec =
 /**
  * Structural shape an operation's impl must return: any value carrying a
  * codec-exact `returnType` descriptor. `Expression<T>` (from
- * `@prisma-next/sql-relational-core/expression`, with `T extends ScopeField`)
+ * `@internal/sql-relational-core/expression`, with `T extends ScopeField`)
  * extends this. Trait-targeted returns are deliberately excluded — predicate
  * detection and result decoding both depend on knowing the concrete return
  * codec.
@@ -169,7 +169,7 @@ export type QueryOperationTypesOf<T> = [T] extends [never]
       : Record<string, never>
     : Record<string, never>;
 
-export type TypeMapsPhantomKey = '__@prisma-next/sql-contract/typeMaps@__';
+export type TypeMapsPhantomKey = '__@internal/sql-contract/typeMaps@__';
 
 export type ContractWithTypeMaps<TContract, TTypeMaps> = TContract & {
   readonly [K in TypeMapsPhantomKey]?: TTypeMaps;

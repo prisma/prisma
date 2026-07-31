@@ -1,4 +1,4 @@
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { errorDuplicateInvariantInEdge, errorInvalidInvariantId } from './errors';
 import type { MigrationOps } from './package';
 

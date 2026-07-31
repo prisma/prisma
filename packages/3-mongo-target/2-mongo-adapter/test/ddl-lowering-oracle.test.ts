@@ -4,7 +4,7 @@ import {
   CreateIndexCommand,
   DropCollectionCommand,
   DropIndexCommand,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import { createMongoAdapter } from '../src/mongo-adapter';
 

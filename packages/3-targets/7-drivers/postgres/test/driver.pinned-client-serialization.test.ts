@@ -1,4 +1,4 @@
-import type { PreparedExecuteRequest } from '@prisma-next/sql-relational-core/ast';
+import type { PreparedExecuteRequest } from '@internal/sql-relational-core/ast';
 import { timeouts } from '@repo/test-utils';
 import type { Client, Pool } from 'pg';
 import { describe, expect, it } from 'vitest';

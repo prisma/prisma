@@ -4,7 +4,7 @@ import {
   type DefaultNamespaceEntries,
   type NamespacedEntities,
   type SingleNamespaceView,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import type { MongoContract } from './contract-types';
 
 const MONGO_BUILTIN_KINDS = ['collection'] as const;
@@ -33,7 +33,7 @@ export type MongoContractAccessors<TContract extends MongoContract> = SingleName
  *    a single fixed `namespace` member, collision-proof.
  *
  * The factory (`MongoContractView.from` / `.fromJson`) lives in
- * `@prisma-next/family-mongo/ir`, where the Mongo serializer is reachable; this
+ * `@internal/family-mongo/ir`, where the Mongo serializer is reachable; this
  * package owns the serializer-agnostic projection type and builder.
  */
 export type MongoContractView<TContract extends MongoContract = MongoContract> = TContract &

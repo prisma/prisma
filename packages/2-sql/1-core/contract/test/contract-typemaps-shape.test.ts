@@ -1,4 +1,4 @@
-import type { UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/types';
+import type { UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
 import { describe, expectTypeOf, it } from 'vitest';
 import type { CodecTypesOf, FieldInputTypesOf, FieldOutputTypesOf, TypeMaps } from '../src/types';
 

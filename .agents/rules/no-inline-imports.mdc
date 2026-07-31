@@ -57,5 +57,5 @@ If you find inline type imports in source files:
 
 **Bad patterns (to avoid):**
 - `import('./module').Type` in interface definitions
-- `import('@prisma-next/package').Type` in type annotations
+- `import('@internal/package').Type` in type annotations
 - Inline imports in function return types (except in tests)

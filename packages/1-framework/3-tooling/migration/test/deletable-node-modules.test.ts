@@ -24,9 +24,9 @@
 
 import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { Contract } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
+import type { Contract } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import { createSqlContract } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -71,7 +71,7 @@ async function setupProjectWithTestSpace(): Promise<ProjectFixture> {
   // this directory before invoking the verifier to confirm the verifier
   // + runner succeed when the extension descriptor is not importable
   // (e.g. node_modules removed).
-  await mkdir(join(nodeModulesPath, '@prisma-next', 'synthetic-extension-stand-in'), {
+  await mkdir(join(nodeModulesPath, '@internal', 'synthetic-extension-stand-in'), {
     recursive: true,
   });
 
@@ -209,12 +209,9 @@ describe('aggregate pipeline (loader → planner → verifier) against deleted n
     migrationsDir = join(projectRoot, 'migrations');
     // Stand-in for an installed extension package; deleted before
     // walking the pipeline.
-    await mkdir(
-      join(projectRoot, 'node_modules', '@prisma-next', 'extension-test-contract-space'),
-      {
-        recursive: true,
-      },
-    );
+    await mkdir(join(projectRoot, 'node_modules', '@internal', 'extension-test-contract-space'), {
+      recursive: true,
+    });
 
     // Pin the contract-space artifacts the loader reads. The contract
     // value here is the same shape the validator will return.

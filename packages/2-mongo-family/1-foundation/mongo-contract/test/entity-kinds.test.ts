@@ -1,5 +1,5 @@
-import { hydrateNamespaceEntities } from '@prisma-next/framework-components/ir';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { hydrateNamespaceEntities } from '@internal/framework-components/ir';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   collectionEntityKind,

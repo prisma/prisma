@@ -9,19 +9,16 @@
  * declaration-ordered, and literal-escaped; a sibling-space-owned live enum
  * is never dropped.
  */
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import {
-  INIT_ADDITIVE_POLICY,
-  type MigrationOperationPolicy,
-} from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY, type MigrationOperationPolicy } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type {
   SchemaEntityCoordinate,
   SchemaOwnership,
-} from '@prisma-next/framework-components/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { coordinateKey } from '@prisma-next/framework-components/ir';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { coordinateKey } from '@internal/framework-components/ir';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';

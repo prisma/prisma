@@ -30,11 +30,11 @@ export type {
   PslSpan,
   PslTypeConstructorCall,
   PslTypesBlock,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 export {
   flatPslModels,
   namespacePslExtensionBlocks,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 export { getPositionalArgument, parseQuotedStringLiteral } from '../attribute-helpers';
 export { bool } from '../attribute-spec/combinators/bool';
 export { leafDiagnostic } from '../attribute-spec/combinators/diagnostic';

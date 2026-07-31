@@ -24,7 +24,7 @@ This is the implementation pattern the goal spec ([`factory-defined-codec-types.
 
 ### `CodecDescriptor`
 
-Lives in `@prisma-next/framework-components/codec` (replacing today's `CodecDescriptor` interface).
+Lives in `@internal/framework-components/codec` (replacing today's `CodecDescriptor` interface).
 
 ```typescript
 import type { StandardSchemaV1 } from '@standard-schema/spec';
@@ -72,7 +72,7 @@ export abstract class CodecDescriptor<TParams = void> {
 
 ### `Codec`
 
-Lives in `@prisma-next/framework-components/codec` (replacing today's `Codec` interface).
+Lives in `@internal/framework-components/codec` (replacing today's `Codec` interface).
 
 ```typescript
 import type { CodecDescriptor } from './codec-descriptor';
@@ -253,7 +253,7 @@ The framework exposes one trivial `column()` packager. Per-codec helpers compose
 
 ### Framework `column()` packager
 
-Lives in `@prisma-next/framework-components/codec` (or alongside `ColumnTypeDescriptor`).
+Lives in `@internal/framework-components/codec` (or alongside `ColumnTypeDescriptor`).
 
 ```typescript
 type ColumnSpec<R, P> = ColumnTypeDescriptor & {
@@ -360,7 +360,7 @@ type SettingsInput = ColumnInputType<typeof settingsColumn>;
 The framework's descriptor registry is keyed by `codecId: string` and stores type-erased descriptor instances. Per Q-3c (spike-resolved), the canonical erasure type is `AnyCodecDescriptor` (a `CodecDescriptor<any>` alias defined in `framework-components/shared/codec-descriptor.ts` with the `biome-ignore` comment naming the variance rationale):
 
 ```typescript
-import type { AnyCodecDescriptor } from '@prisma-next/framework-components/codec';
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
 
 class CodecDescriptorRegistry {
   private readonly descriptors = new Map<string, AnyCodecDescriptor>();
@@ -403,7 +403,7 @@ The goal spec's AC-1 through AC-7 apply unchanged. This implementation spec adds
 
 ### AC-CB-1. Class hierarchy declarations
 
-- `CodecDescriptor` is an exported abstract base class from `@prisma-next/framework-components/codec`.
+- `CodecDescriptor` is an exported abstract base class from `@internal/framework-components/codec`.
 - `Codec` is an exported abstract base class from the same package.
 - Both replace today's interface-shaped declarations.
 - Legacy interfaces (if they survive at all) are kept only as deprecated aliases for type-only consumption during the transition; deletion is acceptable per AC-7 (validation gates green).
@@ -462,7 +462,7 @@ The spike picks one. Recommendation pending: probably the positional form (curre
 
 **Resolved by spike** ([`wip/class-based-codec-spike.md`](../../../wip/class-based-codec-spike.md) § Q-A): **layer 1 (`framework-components`), structurally compatible with `ColumnTypeDescriptor`**.
 
-Importing `ColumnTypeDescriptor` from `@prisma-next/contract-authoring` (layer 2) into `framework-components` (layer 1) would violate layering and trip `pnpm lint:deps`. Resolution: inline a structural mirror (`ColumnTypeDescriptorShape`) inside `column-spec.ts` and expose a type-level sanity check (`_ColumnSpecIsColumnTypeDescriptorCompatible`) verifying `ColumnSpec<R, P>` remains assignable to `ColumnTypeDescriptor` at consumer sites without an explicit `extends`. If `column()` later moves to a layer-2+ package, this becomes a real `extends`.
+Importing `ColumnTypeDescriptor` from `@internal/contract-authoring` (layer 2) into `framework-components` (layer 1) would violate layering and trip `pnpm lint:deps`. Resolution: inline a structural mirror (`ColumnTypeDescriptorShape`) inside `column-spec.ts` and expose a type-level sanity check (`_ColumnSpecIsColumnTypeDescriptorCompatible`) verifying `ColumnSpec<R, P>` remains assignable to `ColumnTypeDescriptor` at consumer sites without an explicit `extends`. If `column()` later moves to a layer-2+ package, this becomes a real `extends`.
 
 ### Q-3. `paramsSchema` in the abstract class — required or optional?
 

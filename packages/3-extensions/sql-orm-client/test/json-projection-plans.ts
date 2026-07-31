@@ -16,7 +16,7 @@ import {
   JsonObjectExpr,
   type SelectAst,
   SubqueryExpr,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { compileSelectWithIncludes } from '../src/query-plan-select';
 import { baseContract, createCollection, createCollectionFor } from './collection-fixtures';
 

@@ -1,9 +1,9 @@
-import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { SqlStorage } from '@internal/sql-contract/types';
 import {
   type PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { applicationDomainOf, createDevDatabase } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {

@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
+import type { Contract } from '@internal/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import sqliteStatic, { type SqliteStaticContext } from '../src/static/sqlite-static';

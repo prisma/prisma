@@ -7,13 +7,13 @@
 
 ## Context
 
-The rebase + nested-includes import fix landed cleanly. The continuation subagent (`8f59ed5a`) hit a `typecheck` red on `@prisma-next/postgres/contract-builder` and `@prisma-next/postgres/migration` and stopped per the previous brief's "if a gate is red, STOP" discipline.
+The rebase + nested-includes import fix landed cleanly. The continuation subagent (`8f59ed5a`) hit a `typecheck` red on `@internal/postgres/contract-builder` and `@internal/postgres/migration` and stopped per the previous brief's "if a gate is red, STOP" discipline.
 
 The orchestrator's hypothesis (high-confidence): this is the known prisma-next "stale `dist/*.d.mts`" gotcha. The workspace's golden rule on this:
 
 > After changing exported types in a workspace package consumed elsewhere, run that package's `pnpm build` to refresh `dist/*.d.mts` before validating downstream TypeScript.
 
-Our PR adds new subpaths (`/contract-builder`, `/migration`) to `@prisma-next/postgres` (and friends). After the rebase, those subpaths exist in source but the cached `dist/` from before the rebase doesn't reflect them — so consumers (e.g. `@prisma-next/postgres`'s own tests, or other workspace packages) fail to resolve the new subpaths.
+Our PR adds new subpaths (`/contract-builder`, `/migration`) to `@internal/postgres` (and friends). After the rebase, those subpaths exist in source but the cached `dist/` from before the rebase doesn't reflect them — so consumers (e.g. `@internal/postgres`'s own tests, or other workspace packages) fail to resolve the new subpaths.
 
 Fix: `pnpm build` first, then re-run `typecheck` and the other gates.
 

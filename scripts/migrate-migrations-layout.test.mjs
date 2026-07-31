@@ -8,8 +8,8 @@ import { describe, it } from 'node:test';
 import {
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
-} from '@prisma-next/framework-components/control';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
+} from '@internal/framework-components/control';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
 
 import {
   applyMigrationsRootPlan,
@@ -33,8 +33,8 @@ const CONTRACT_DTS = 'export interface Contract {\n  readonly storageHash: strin
 
 function baselineMigrationTs() {
   return (
-    "import { MigrationCLI } from '@prisma-next/cli/migration-cli';\n" +
-    "import { Migration } from '@prisma-next/family-mongo/migration';\n" +
+    "import { MigrationCLI } from '@internal/cli/migration-cli';\n" +
+    "import { Migration } from '@internal/family-mongo/migration';\n" +
     "import type { Contract as End } from './end-contract';\n" +
     "import endContract from './end-contract.json' with { type: 'json' };\n" +
     '\n' +
@@ -52,8 +52,8 @@ function baselineMigrationTs() {
 
 function deltaMigrationTs() {
   return (
-    "import { MigrationCLI } from '@prisma-next/cli/migration-cli';\n" +
-    "import { Migration } from '@prisma-next/family-mongo/migration';\n" +
+    "import { MigrationCLI } from '@internal/cli/migration-cli';\n" +
+    "import { Migration } from '@internal/family-mongo/migration';\n" +
     "import type { Contract as End } from './end-contract';\n" +
     "import endContract from './end-contract.json' with { type: 'json' };\n" +
     "import type { Contract as Start } from './start-contract';\n" +

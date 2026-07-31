@@ -18,11 +18,11 @@
  * (`sql.<ns>.<table>` / `orm.<ns>.<Model>`).
  */
 
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import postgres from '@prisma-next/postgres/runtime';
-import type { ForeignKey, SqlStorage } from '@prisma-next/sql-contract/types';
-import type { Runtime } from '@prisma-next/sql-runtime';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import postgres from '@internal/postgres/runtime';
+import type { ForeignKey, SqlStorage } from '@internal/sql-contract/types';
+import type { Runtime } from '@internal/sql-runtime';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { Client } from 'pg';
 import { describe, expect, it } from 'vitest';

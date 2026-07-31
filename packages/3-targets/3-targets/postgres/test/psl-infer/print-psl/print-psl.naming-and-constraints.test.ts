@@ -1,5 +1,5 @@
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { printPslFromFlat as printPslFromSql } from '../fixtures';
 

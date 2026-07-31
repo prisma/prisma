@@ -162,7 +162,7 @@ changes:
       `ControlStack.scalarTypeDescriptors` / `ContractSourceContext.scalarTypeDescriptors` should
       read `stack.scalarTypes` (the scalar type names) or derive the name ->
       `{ codecId, nativeType }` map via `collectScalarTypeConstructors(stack.authoringContributions.type)`
-      from `@prisma-next/framework-components/authoring`. `assembleScalarTypeDescriptors` is
+      from `@internal/framework-components/authoring`. `assembleScalarTypeDescriptors` is
       deleted, and `validateScalarTypeCodecIds` now takes the authoring type namespace instead of
       a descriptor map.
     detection:
@@ -183,7 +183,7 @@ changes:
     summary: |
       On the postgres target the PSL `Json` scalar re-binds from `pg/jsonb@1` / `jsonb` to
       `pg/json@1` / `json`; a new bare `Jsonb` scalar carries `pg/jsonb@1` / `jsonb`
-      (`postgresScalarAuthoringTypes` in `@prisma-next/adapter-postgres`). Extension test
+      (`postgresScalarAuthoringTypes` in `@internal/adapter-postgres`). Extension test
       schemas and fixtures that author postgres `Json` fields and mean jsonb storage must
       switch those fields to `Jsonb`; assertions that pin the `Json` name's derived binding
       (e.g. over `collectScalarTypeConstructors(stack.authoringContributions.type)` or
@@ -200,13 +200,13 @@ changes:
       `@default(<generator>)` never mutates a column's storage any more — the type position is
       the only storage decider — and the whole generator-storage-override SPI is retired with
       it. Removed surfaces: `MutationDefaultGeneratorDescriptor.resolveGeneratedColumnDescriptor`
-      (`@prisma-next/framework-components/control`) — generator descriptors are now
+      (`@internal/framework-components/control`) — generator descriptors are now
       `{ id, applicableCodecIds?, buildPhases? }` only, and `applicableCodecIds` remains the
       validation channel (`PSL_INVALID_DEFAULT_APPLICABILITY` on mismatch); the transitional
       `baseScalar` marker on `AuthoringTypeConstructorDescriptor` and
-      `ScalarTypeConstructorOutput` (`@prisma-next/framework-components/authoring`) — scalar
+      `ScalarTypeConstructorOutput` (`@internal/framework-components/authoring`) — scalar
       type-constructor contributions and the derived scalar view are plain
-      `{ codecId, nativeType, typeParams? }` again; and the `@prisma-next/ids` exports
+      `{ codecId, nativeType, typeParams? }` again; and the `@internal/ids` exports
       `resolveBuiltinGeneratedColumnDescriptor` / `GeneratedColumnDescriptor` (the TS spec
       helpers `uuidv4()`, `nanoid()`, … still return `GeneratedColumnSpec` bundling their
       explicit `sql/char@1` column). Packs that registered a generator descriptor with a
@@ -228,7 +228,7 @@ changes:
       anyMatch: true
   - id: postgres-date-rebound-to-pg-date
     summary: |
-      On the postgres target, the bare `Date` type constructor (`postgresNativeAuthoringTypes` in `@prisma-next/adapter-postgres`) re-binds from `pg/timestamptz@1` to the dedicated `pg/date@1` codec. Rewrite the removed `DateTime @db.Date` spelling as `Date`; leaving it unchanged now fails with migration guidance to use `Date` in type position. The stored native type is unchanged (`date`). Extension assertions over `collectScalarTypeConstructors(stack.authoringContributions.type)` now expect `Date -> { codecId: 'pg/date@1', nativeType: 'date' }`. Extension test schemas and fixtures with date columns produce a different codec ref and contract storage hash on re-emit; regenerate committed contract artefacts and update pinned hash or codec-ref literals. Runtime fixtures change shape too:
+      On the postgres target, the bare `Date` type constructor (`postgresNativeAuthoringTypes` in `@internal/adapter-postgres`) re-binds from `pg/timestamptz@1` to the dedicated `pg/date@1` codec. Rewrite the removed `DateTime @db.Date` spelling as `Date`; leaving it unchanged now fails with migration guidance to use `Date` in type position. The stored native type is unchanged (`date`). Extension assertions over `collectScalarTypeConstructors(stack.authoringContributions.type)` now expect `Date -> { codecId: 'pg/date@1', nativeType: 'date' }`. Extension test schemas and fixtures with date columns produce a different codec ref and contract storage hash on re-emit; regenerate committed contract artefacts and update pinned hash or codec-ref literals. Runtime fixtures change shape too:
       `pg/date@1` canonicalizes the JS value as a `Date` at UTC midnight
       (`new Date(Date.UTC(y, m, d))`) instead of passing through the driver's local-midnight
       `Date`, and its JSON form is the bare `YYYY-MM-DD` string, so relation `.include()`
@@ -242,13 +242,13 @@ changes:
       anyMatch: true
   - id: sql-escape-error-class-removed
     summary: |
-      The `SqlEscapeError` class is deleted from `@prisma-next/target-postgres` and
-      `@prisma-next/target-sqlite` (including its re-export from the postgres/sqlite
+      The `SqlEscapeError` class is deleted from `@internal/target-postgres` and
+      `@internal/target-sqlite` (including its re-export from the postgres/sqlite
       adapter `control` entrypoints). Identifier/literal escaping failures now throw a
       structured envelope with code `CONTRACT.IDENTIFIER_INVALID`. Replace
       `error instanceof SqlEscapeError` with
       `isStructuredError(error) && error.code === 'CONTRACT.IDENTIFIER_INVALID'`
-      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message text is
+      (`isStructuredError` from `@internal/utils/structured-error`). Message text is
       unchanged.
     detection:
       glob: "**/*.{ts,mts,cts}"
@@ -257,13 +257,13 @@ changes:
   - id: supabase-error-classes-removed
     summary: |
       The `SupabaseConfigError` and `InvalidJwtError` classes are deleted from
-      `@prisma-next/extension-supabase/runtime`. The same failures now throw
+      `@internal/extension-supabase/runtime`. The same failures now throw
       structured envelopes with codes `SUPABASE.CONFIG_INVALID` and
       `SUPABASE.JWT_INVALID`. Replace `error instanceof SupabaseConfigError` with
       `isStructuredError(error) && error.code === 'SUPABASE.CONFIG_INVALID'` and
       `error instanceof InvalidJwtError` with
       `isStructuredError(error) && error.code === 'SUPABASE.JWT_INVALID'`
-      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message
+      (`isStructuredError` from `@internal/utils/structured-error`). Message
       text is unchanged.
     detection:
       glob: "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
@@ -277,12 +277,12 @@ changes:
       The RLS wire-name helpers moved out of the target-postgres RLS surface into the
       family-shared naming module, with generalized names — the wire-name scheme now serves
       indexes as well as policies. Deleted from
-      `@prisma-next/target-postgres/rls-canonicalize`: `formatRlsPolicyWireName`,
+      `@internal/target-postgres/rls-canonicalize`: `formatRlsPolicyWireName`,
       `parseRlsPolicyWireName`, `normalizePredicate`, and the `RlsPolicyWireName` type. Import
-      the replacements from `@prisma-next/sql-schema-ir/naming` instead: `formatWireName`,
+      the replacements from `@internal/sql-schema-ir/naming` instead: `formatWireName`,
       `parseWireName`, `normalizeSqlBody`, and `WireName`. Behavior is byte-identical (same
       `<prefix>_<8hex>` format, same all-prefix-on-no-parse contract, same trim +
-      whitespace-collapse normalizer). `@prisma-next/target-postgres/rls-canonicalize` still
+      whitespace-collapse normalizer). `@internal/target-postgres/rls-canonicalize` still
       exports the RLS-specific surface: `computeContentHash`, `ContentHashParts`,
       `POLICY_OPERATION_PREDICATES`, `RlsPolicyOperation`. The naming module also gains
       `computeIndexContentHash`, `WIRE_NAME_PREFIX_MAX_LENGTH`, and
@@ -298,14 +298,14 @@ changes:
   - id: sql-index-entities-are-name-identified
     summary: |
       SQL index entities are name-identified from 0.17, at both layers an extension touches.
-      Contract IR (`Index` from `@prisma-next/sql-contract/types`): `name` (full physical
+      Contract IR (`Index` from `@internal/sql-contract/types`): `name` (full physical
       name) and `unique` are required, `prefix` marks a managed wire name (`name` must parse
       back to `prefix` + 8-hex suffix), and `columns` became optional — exactly one of
       `columns` / `expression` must be set; the constructor and `IndexSchema` validation
       throw on the old shape, so any pack code or test fixture building `indexes: [{ columns:
       [...] }]` must add a real `name` and `unique`. The `index(...)` factory from
-      `@prisma-next/sql-contract/factories` is now `index(name, columns, opts?)`. Schema IR
-      (`SqlIndexIR` from `@prisma-next/sql-schema-ir/types`): the input requires `name` plus
+      `@internal/sql-contract/factories` is now `index(name, columns, opts?)`. Schema IR
+      (`SqlIndexIR` from `@internal/sql-schema-ir/types`): the input requires `name` plus
       explicit `prefix` / `expression` / `where` keys, the diff-tree id is `index:<name>`
       (tuple-derived ids are gone — assertions on `index:<col,col>` ids must switch to the
       name), and `isEqualTo` is mode-selected: both modes compare `unique`/`type` strict,
@@ -327,14 +327,14 @@ changes:
   - id: framework-error-classes-removed
     summary: |
       Three exported framework error classes are deleted: `ConfigFileNotFoundError`
-      (from `@prisma-next/config-loader`), `ConfigValidationError` (from
-      `@prisma-next/config/config-validation`), and `DomainNamespaceResolutionError`
-      (from `@prisma-next/contract/types`). The same failures now throw structured
+      (from `@internal/config-loader`), `ConfigValidationError` (from
+      `@internal/config/config-validation`), and `DomainNamespaceResolutionError`
+      (from `@internal/contract/types`). The same failures now throw structured
       envelopes with codes `CONFIG.FILE_NOT_FOUND`, `CONFIG.VALIDATION_FAILED`, and
       `CONTRACT.NAMESPACE_INVALID` respectively. Replace each
       `error instanceof <Class>` with
       `isStructuredError(error) && error.code === '<CODE>'`
-      (`isStructuredError` from `@prisma-next/utils/structured-error`). Message
+      (`isStructuredError` from `@internal/utils/structured-error`). Message
       text is unchanged.
     detection:
       glob: "**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
@@ -521,7 +521,7 @@ After the codemod and re-emit, run `pnpm typecheck && pnpm test` in your extensi
 
 ## `adopt-sql-json-projection-ast-foundations`
 
-Relational JSON container AST construction now requires an explicit value-projection variant. Import `NativeJsonValueProjection` from `@prisma-next/sql-relational-core/ast` and wrap every expression that 0.16 code passed directly to `JsonObjectExpr.entry(key, expression)` or `JsonArrayAggExpr.of(expression, ...)`: use `JsonObjectExpr.entry(key, new NativeJsonValueProjection(expression))` and `JsonArrayAggExpr.of(new NativeJsonValueProjection(expression), ...)`. `NativeJsonValueProjection` preserves the pre-0.17 target-native JSON conversion. Use `CodecJsonValueProjection` only when the extension deliberately supplies a `CodecRef` for codec-owned JSON conversion, and use `JsonDocumentProjection` only when the wrapped expression already produces a JSON document.
+Relational JSON container AST construction now requires an explicit value-projection variant. Import `NativeJsonValueProjection` from `@internal/sql-relational-core/ast` and wrap every expression that 0.16 code passed directly to `JsonObjectExpr.entry(key, expression)` or `JsonArrayAggExpr.of(expression, ...)`: use `JsonObjectExpr.entry(key, new NativeJsonValueProjection(expression))` and `JsonArrayAggExpr.of(new NativeJsonValueProjection(expression), ...)`. `NativeJsonValueProjection` preserves the pre-0.17 target-native JSON conversion. Use `CodecJsonValueProjection` only when the extension deliberately supplies a `CodecRef` for codec-owned JSON conversion, and use `JsonDocumentProjection` only when the wrapped expression already produces a JSON document.
 
 `ExprVisitor<R>` and the `AnyExpression` union now include `FunctionCallExpr` (`kind: 'function-call'`), `CastExpr` (`kind: 'cast'`), and `CaseExpr` (`kind: 'case'`). Add `functionCall`, `cast`, and `case` methods to every visitor object, and add all three discriminants to exhaustive `expr.kind` switches. Binding or rewriting visitors should route these nodes through their normal recursive expression path; restricted visitors such as grouped `HAVING` validators should reject them explicitly when the context does not support them.
 
@@ -530,16 +530,16 @@ Relational JSON container AST construction now requires an explicit value-projec
 When an extension forwards an existing `ProjectionItem` through a derived-table or row-number wrapper, preserve its known codec in the reconstructed projection: use `ProjectionItem.of(item.alias, ColumnRef.of(wrapperAlias, item.alias), item.codec)`. Leave the codec undefined only for computed or otherwise unknown projected results. After applying the applicable edits, run the extension's typecheck and tests; update AST-shape fixtures to assert the explicit wrapper nodes and preserved codec metadata.
 ## `rls-wire-name-helpers-moved-to-sql-schema-ir-naming`
 
-The wire-name mechanics are family-shared from 0.17 (they now serve secondary indexes as well as RLS policies), so the helpers moved from the target-postgres RLS module to `@prisma-next/sql-schema-ir/naming` under generalized names. Apply the mechanical rename:
+The wire-name mechanics are family-shared from 0.17 (they now serve secondary indexes as well as RLS policies), so the helpers moved from the target-postgres RLS module to `@internal/sql-schema-ir/naming` under generalized names. Apply the mechanical rename:
 
-| 0.16 (`@prisma-next/target-postgres/rls-canonicalize`) | 0.17 (`@prisma-next/sql-schema-ir/naming`) |
+| 0.16 (`@internal/target-postgres/rls-canonicalize`) | 0.17 (`@internal/sql-schema-ir/naming`) |
 | --- | --- |
 | `formatRlsPolicyWireName(prefix, hash)` | `formatWireName(prefix, hash)` |
 | `parseRlsPolicyWireName(name)` | `parseWireName(name)` |
 | `normalizePredicate(sql)` | `normalizeSqlBody(sql)` |
 | `RlsPolicyWireName` (type) | `WireName` (type) |
 
-Behavior is byte-identical — same `<prefix>_<8hex>` format and parse pattern, same treat-as-all-prefix contract for names that do not parse, same minimal trim-and-collapse normalizer (still a stability commitment: any change would re-suffix every wire name). `@prisma-next/target-postgres/rls-canonicalize` keeps the RLS-specific exports (`computeContentHash`, `ContentHashParts`, `POLICY_OPERATION_PREDICATES`, `RlsPolicyOperation`); there are no re-export shims for the moved names. The naming module additionally exposes `computeIndexContentHash`, `WIRE_NAME_PREFIX_MAX_LENGTH` (54), and `assertWireNamePrefixLength` — the index-side siblings of the RLS hash assembly.
+Behavior is byte-identical — same `<prefix>_<8hex>` format and parse pattern, same treat-as-all-prefix contract for names that do not parse, same minimal trim-and-collapse normalizer (still a stability commitment: any change would re-suffix every wire name). `@internal/target-postgres/rls-canonicalize` keeps the RLS-specific exports (`computeContentHash`, `ContentHashParts`, `POLICY_OPERATION_PREDICATES`, `RlsPolicyOperation`); there are no re-export shims for the moved names. The naming module additionally exposes `computeIndexContentHash`, `WIRE_NAME_PREFIX_MAX_LENGTH` (54), and `assertWireNamePrefixLength` — the index-side siblings of the RLS hash assembly.
 
 ## `sql-index-entities-are-name-identified`
 
@@ -547,14 +547,14 @@ Indexes are name-identified end to end. Two SPI layers change shape; take them i
 
 ### Contract IR: `Index` / `IndexSchema`
 
-An index entity (`Index` from `@prisma-next/sql-contract/types`; the `indexes: []` array in a `StorageTable`) now requires:
+An index entity (`Index` from `@internal/sql-contract/types`; the `indexes: []` array in a `StorageTable`) now requires:
 
 - `name: string` — the full physical name, always present.
 - `unique: boolean` — always present.
 - `prefix?: string` — present iff the name is managed; the constructor enforces that `name` parses back to `prefix` + an 8-hex suffix.
 - `columns?` xor `expression?` — exactly one must be set; `where?` carries a partial-index predicate. All body strings are opaque SQL, never parsed or escaped.
 
-Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. Contract-space fixtures or pack code that load `indexes: [{ columns: ['email'] }]` through validation fail with a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)`; constructing the entity directly throws `Index: every index carries a full physical name…`. Add the real physical name and `unique: false`. The `index(...)` convenience factory from `@prisma-next/sql-contract/factories` changed signature accordingly: `index(name, columns, opts?)` (opts: `prefix`, `unique`, `type`, `options`). Packs that lower authored index inputs themselves can reuse `lowerAuthoredIndex` from `@prisma-next/sql-contract/index-naming` — it implements the managed/exact naming rules (default prefix, `name:`-as-prefix, `map:`-as-exact) including the 54-character prefix cap.
+Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. Contract-space fixtures or pack code that load `indexes: [{ columns: ['email'] }]` through validation fail with a `Contract structural validation failed: storage.namespaces.<ns> …` error whose message contains `indexes[0].name must be a string (was missing)` and `indexes[0].unique must be boolean (was missing)`; constructing the entity directly throws `Index: every index carries a full physical name…`. Add the real physical name and `unique: false`. The `index(...)` convenience factory from `@internal/sql-contract/factories` changed signature accordingly: `index(name, columns, opts?)` (opts: `prefix`, `unique`, `type`, `options`). Packs that lower authored index inputs themselves can reuse `lowerAuthoredIndex` from `@internal/sql-contract/index-naming` — it implements the managed/exact naming rules (default prefix, `name:`-as-prefix, `map:`-as-exact) including the 54-character prefix cap.
 
 ### Schema IR: `SqlIndexIR`
 
@@ -566,7 +566,7 @@ Re-emit your pack's contract space with the upgraded toolchain (`build:contract-
 
 ## `postgres-extension-codecs-require-target-descriptors`
 
-For every codec descriptor contributed by a PostgreSQL extension, add `@prisma-next/target-postgres` at the same 0.17 version as the extension's other `@prisma-next/*` packages under `dependencies`. Do not leave it only in `devDependencies`: production descriptor modules and runtime/control stack metadata import and expose this protocol. Import the target API from the lean `@prisma-next/target-postgres/codec-descriptor` subpath, and import `ProjectionExpr` from `@prisma-next/sql-relational-core/ast`.
+For every codec descriptor contributed by a PostgreSQL extension, add `@internal/target-postgres` at the same 0.17 version as the extension's other `@internal/*` packages under `dependencies`. Do not leave it only in `devDependencies`: production descriptor modules and runtime/control stack metadata import and expose this protocol. Import the target API from the lean `@internal/target-postgres/codec-descriptor` subpath, and import `ProjectionExpr` from `@internal/sql-relational-core/ast`.
 
 Change a PostgreSQL-bound descriptor that extends `CodecDescriptorImpl<P>` to extend `PostgresCodecDescriptor<P>`. Keep its codec id, traits, target types, `paramsSchema`, factory, output renderer and column helpers unchanged; there is no longer a `meta` / `metaFor` channel to carry alongside, and the descriptor's `nativeTypeFor()` is the only place a native type is declared. Add `protected override nativeType(params: P): string` returning the same trusted PostgreSQL native type spelling the extension already uses, and add `protected override jsonProjection(expression: ProjectionExpr, params: P): ProjectionExpr`.
 

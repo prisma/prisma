@@ -1,19 +1,19 @@
 import { resolve } from 'node:path';
-import { disposeEmitQueue, executeContractEmit } from '@prisma-next/cli/control-api';
-import { loadConfig } from '@prisma-next/config-loader';
+import { disposeEmitQueue, executeContractEmit } from '@internal/cli/control-api';
+import { loadConfig } from '@internal/config-loader';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { prismaVitePlugin } from '../src/plugin';
 
-vi.mock('@prisma-next/cli/control-api', () => ({
+vi.mock('@internal/cli/control-api', () => ({
   executeContractEmit: vi.fn(),
   disposeEmitQueue: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: vi.fn(),
 }));
 
-vi.mock('@prisma-next/emitter', () => ({
+vi.mock('@internal/emitter', () => ({
   getEmittedArtifactPaths: (outputJsonPath: string) => ({
     jsonPath: outputJsonPath,
     dtsPath: outputJsonPath.replace(/\.json$/, '.d.ts'),

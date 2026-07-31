@@ -1,12 +1,12 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { CliStructuredError } from '@prisma-next/errors/control';
+import type { Contract } from '@internal/contract/types';
+import { CliStructuredError } from '@internal/errors/control';
 import {
   type ControlAdapterDescriptor,
   type ControlExtensionDescriptor,
   type ControlFamilyDescriptor,
   type ControlTargetDescriptor,
   createControlStack,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import {
   assertContractRequirementsSatisfied,

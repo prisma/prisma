@@ -1,13 +1,13 @@
-import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import {
   APP_SPACE_ID,
   type MigrationOperationPolicy,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, type StorageTable } from '@prisma-next/sql-contract/types';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, type StorageTable } from '@internal/sql-contract/types';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {

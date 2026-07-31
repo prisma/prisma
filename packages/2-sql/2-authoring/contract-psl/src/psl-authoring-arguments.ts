@@ -1,6 +1,6 @@
-import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
-import type { AuthoringArgumentDescriptor } from '@prisma-next/framework-components/authoring';
-import type { PslSpan, ResolvedAttributeArg } from '@prisma-next/psl-parser';
+import type { ContractSourceDiagnostic } from '@internal/config/config-types';
+import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
+import type { PslSpan, ResolvedAttributeArg } from '@internal/psl-parser';
 import { unquoteStringLiteral } from './psl-attribute-parsing';
 
 const INVALID_AUTHORING_ARGUMENT = Symbol('invalidAuthoringArgument');

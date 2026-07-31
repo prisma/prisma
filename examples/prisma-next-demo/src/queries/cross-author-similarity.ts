@@ -25,7 +25,7 @@ import { db } from '../prisma/db';
  *      projected flat into one output row is not a shape the single-collection surface
  *      produces.
  *
- * Note: `@prisma-next/sql-orm-client` is a repository layer (ADR 164) and can orchestrate
+ * Note: `@internal/sql-orm-client` is a repository layer (ADR 164) and can orchestrate
  * multiple plans for one logical operation, so a user could *simulate* this with client-side
  * stitching — at the cost of extra round-trips and losing single-statement ordering/limit
  * semantics. The point of the SQL DSL escape hatch is that this shape is a single SQL

@@ -8,14 +8,14 @@ Nine sequential dispatches establish PostgreSQL and SQLite target descriptor pro
 
 ### Dispatch 1: PostgreSQL descriptor protocol
 
-- **Outcome:** `@prisma-next/target-postgres` exports a type-safe `PostgresCodecDescriptor` protocol, explicit generic-descriptor adapter, narrow tuple helper, structural validator/typed registry, and default scalar-array lift, all covered by runtime and negative/positive type tests.
+- **Outcome:** `@internal/target-postgres` exports a type-safe `PostgresCodecDescriptor` protocol, explicit generic-descriptor adapter, narrow tuple helper, structural validator/typed registry, and default scalar-array lift, all covered by runtime and negative/positive type tests.
 - **Builds on:** TML-3062's projection expression/source AST and the slice spec's settled PostgreSQL template-method boundary.
 - **Hands to:** A public PostgreSQL descriptor API that validates erased `CodecRef` parameters, preserves wrapped descriptor typing/delegation, and can structurally validate heterogeneous contributions without `instanceof`.
 - **Focus:** Tests first for discriminant/method validation, mandatory scalar projection, trusted native type, default array semantics/single binding, wrapper literal/factory/meta preservation, and raw-descriptor rejection. Do not migrate built-ins, adapters, extensions, or renderer behavior.
 
 ### Dispatch 2: SQLite descriptor protocol
 
-- **Outcome:** `@prisma-next/target-sqlite` exports the analogous scalar-only `SqliteCodecDescriptor` protocol, generic-descriptor adapter, narrow tuple helper, and structural validator/typed registry with complete type/runtime coverage.
+- **Outcome:** `@internal/target-sqlite` exports the analogous scalar-only `SqliteCodecDescriptor` protocol, generic-descriptor adapter, narrow tuple helper, and structural validator/typed registry with complete type/runtime coverage.
 - **Builds on:** Dispatch 1's settled authoring/erasure conventions while retaining SQLite's intentionally different no-stored-array contract.
 - **Hands to:** A public SQLite descriptor API that validates erased `CodecRef` parameters and can structurally validate target contributions while preserving generic descriptor behavior.
 - **Focus:** Tests first for literal/factory/meta delegation, mandatory scalar projection, no speculative `many` machinery, structural validation, and raw-descriptor rejection. Do not migrate built-ins or make runtime construction stack-aware yet.
@@ -98,38 +98,38 @@ The dispatches are sequential because built-in and adapter migrations consume ta
 
 ### Dispatch-specific gates
 
-- **D1/D3:** build/test/typecheck/lint `@prisma-next/target-postgres`; exact descriptor type tests; metadata/native-type and codec JSON regressions.
-- **D2/D4:** build/test/typecheck/lint `@prisma-next/target-sqlite`; exact descriptor type tests; BLOB/bigint/JSON regressions.
-- **D5:** test/typecheck/lint `@prisma-next/extension-pgvector`, `@prisma-next/extension-postgis`, and `@prisma-next/extension-arktype-json`; `pnpm lint:deps`; package manifest validation; lockfile consistency; `pnpm fixtures:check` as a zero-drift gate.
-- **D6:** test/typecheck/lint `@prisma-next/adapter-postgres`; exact parameter-cast, runtime/control parity, malformed composition, extension visibility, and JSON pass-through tests.
-- **D7:** test/typecheck/lint `@prisma-next/adapter-sqlite`; exact runtime/control parity, extension descriptor, metadata-filter, and JSON pass-through tests.
+- **D1/D3:** build/test/typecheck/lint `@internal/target-postgres`; exact descriptor type tests; metadata/native-type and codec JSON regressions.
+- **D2/D4:** build/test/typecheck/lint `@internal/target-sqlite`; exact descriptor type tests; BLOB/bigint/JSON regressions.
+- **D5:** test/typecheck/lint `@internal/extension-pgvector`, `@internal/extension-postgis`, and `@internal/extension-arktype-json`; `pnpm lint:deps`; package manifest validation; lockfile consistency; `pnpm fixtures:check` as a zero-drift gate.
+- **D6:** test/typecheck/lint `@internal/adapter-postgres`; exact parameter-cast, runtime/control parity, malformed composition, extension visibility, and JSON pass-through tests.
+- **D7:** test/typecheck/lint `@internal/adapter-sqlite`; exact runtime/control parity, extension descriptor, metadata-filter, and JSON pass-through tests.
 - **D8:** `pnpm check:upgrade-coverage --mode pr`; `pnpm lint:skills`; extension migration validation via `pnpm test --filter='./packages/3-extensions/*'` in the isolated replay worktree.
 
 ### Final slice gate
 
-- `pnpm --filter @prisma-next/target-postgres build`
-- `pnpm --filter @prisma-next/target-postgres test`
-- `pnpm --filter @prisma-next/target-postgres typecheck`
-- `pnpm --filter @prisma-next/target-postgres lint`
-- `pnpm --filter @prisma-next/target-sqlite build`
-- `pnpm --filter @prisma-next/target-sqlite test`
-- `pnpm --filter @prisma-next/target-sqlite typecheck`
-- `pnpm --filter @prisma-next/target-sqlite lint`
-- `pnpm --filter @prisma-next/adapter-postgres test`
-- `pnpm --filter @prisma-next/adapter-postgres typecheck`
-- `pnpm --filter @prisma-next/adapter-postgres lint`
-- `pnpm --filter @prisma-next/adapter-sqlite test`
-- `pnpm --filter @prisma-next/adapter-sqlite typecheck`
-- `pnpm --filter @prisma-next/adapter-sqlite lint`
-- `pnpm --filter @prisma-next/extension-pgvector test`
-- `pnpm --filter @prisma-next/extension-pgvector typecheck`
-- `pnpm --filter @prisma-next/extension-pgvector lint`
-- `pnpm --filter @prisma-next/extension-postgis test`
-- `pnpm --filter @prisma-next/extension-postgis typecheck`
-- `pnpm --filter @prisma-next/extension-postgis lint`
-- `pnpm --filter @prisma-next/extension-arktype-json test`
-- `pnpm --filter @prisma-next/extension-arktype-json typecheck`
-- `pnpm --filter @prisma-next/extension-arktype-json lint`
+- `pnpm --filter @internal/target-postgres build`
+- `pnpm --filter @internal/target-postgres test`
+- `pnpm --filter @internal/target-postgres typecheck`
+- `pnpm --filter @internal/target-postgres lint`
+- `pnpm --filter @internal/target-sqlite build`
+- `pnpm --filter @internal/target-sqlite test`
+- `pnpm --filter @internal/target-sqlite typecheck`
+- `pnpm --filter @internal/target-sqlite lint`
+- `pnpm --filter @internal/adapter-postgres test`
+- `pnpm --filter @internal/adapter-postgres typecheck`
+- `pnpm --filter @internal/adapter-postgres lint`
+- `pnpm --filter @internal/adapter-sqlite test`
+- `pnpm --filter @internal/adapter-sqlite typecheck`
+- `pnpm --filter @internal/adapter-sqlite lint`
+- `pnpm --filter @internal/extension-pgvector test`
+- `pnpm --filter @internal/extension-pgvector typecheck`
+- `pnpm --filter @internal/extension-pgvector lint`
+- `pnpm --filter @internal/extension-postgis test`
+- `pnpm --filter @internal/extension-postgis typecheck`
+- `pnpm --filter @internal/extension-postgis lint`
+- `pnpm --filter @internal/extension-arktype-json test`
+- `pnpm --filter @internal/extension-arktype-json typecheck`
+- `pnpm --filter @internal/extension-arktype-json lint`
 - `pnpm lint:casts`
 - `pnpm lint:throws`
 - `pnpm lint:deps`

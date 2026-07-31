@@ -1,26 +1,26 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@prisma-next/config-loader';
-import type { Contract } from '@prisma-next/contract/types';
-import { getEmittedArtifactPaths } from '@prisma-next/emitter';
+import { loadConfig } from '@internal/config-loader';
+import type { Contract } from '@internal/contract/types';
+import { getEmittedArtifactPaths } from '@internal/emitter';
 import {
   createControlStack,
   hasOperationPreview,
   type MigrationPlanOperation,
   type OperationPreview,
   type SchemaOwnership,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { deriveProvidedInvariants } from '@prisma-next/migration-tools/invariants';
-import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { writeMigrationTs } from '@prisma-next/migration-tools/migration-ts';
-import type { ImportSpecifierResolver } from '@prisma-next/publish-surface/import-roots';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/contract-snapshot-store';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { deriveProvidedInvariants } from '@internal/migration-tools/invariants';
+import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { writeMigrationTs } from '@internal/migration-tools/migration-ts';
+import type { ImportSpecifierResolver } from '@internal/publish-surface/import-roots';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { join, relative } from 'pathe';
 import {

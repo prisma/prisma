@@ -1,5 +1,5 @@
-import type { ColumnDefaultLiteralInputValue } from '@prisma-next/contract/types';
-import type { ReferentialAction } from '@prisma-next/sql-contract/types';
+import type { ColumnDefaultLiteralInputValue } from '@internal/contract/types';
+import type { ReferentialAction } from '@internal/sql-contract/types';
 import type { CodecRef } from '../ast/codec-types';
 import type { AnyDdlColumnDefault } from '../ast/ddl-types';
 import {

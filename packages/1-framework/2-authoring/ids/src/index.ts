@@ -1,6 +1,6 @@
-import type { ExecutionMutationDefaultValue } from '@prisma-next/contract/types';
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import { type BuiltinGeneratorId, builtinGeneratorIds } from './generator-ids';
 import type { IdGeneratorOptionsById } from './generators';

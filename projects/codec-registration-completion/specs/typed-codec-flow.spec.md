@@ -94,7 +94,7 @@ type TypeMaps = {
 
 **Setup.** Postgres adapter's contributor protocol returns `codecs: () => ReadonlyArray<AnyCodecDescriptor>` (per AC-2 of the parent spec). `Object.values(pgDescriptors)` flattens the typed record into a generic descriptor array for runtime registration.
 
-**Expected behavior.** The runtime registration path (`@prisma-next/sql-runtime` → `CodecLookup.descriptorFor(codecId)`) accepts the heterogeneous array. The framework treats each entry as base `CodecDescriptor` (or `AnyCodecDescriptor`); typed-codec generics are not required at runtime — they served their purpose at the no-emit authoring boundary and at emit time.
+**Expected behavior.** The runtime registration path (`@internal/sql-runtime` → `CodecLookup.descriptorFor(codecId)`) accepts the heterogeneous array. The framework treats each entry as base `CodecDescriptor` (or `AnyCodecDescriptor`); typed-codec generics are not required at runtime — they served their purpose at the no-emit authoring boundary and at emit time.
 
 **What this pins.**
 - The variance erasure point is bounded to the *registration boundary* — type-flow ergonomics survive at the descriptor-record-of-typed-descriptors level (where it matters); the framework runtime continues to consume codecs as black boxes (where it shouldn't matter).
@@ -152,7 +152,7 @@ This is the AC that *proves* AC-0.1–AC-0.4 hold in fact and not just nominally
 
 **Required deletions inside M0:**
 
-1. **`mkCodec` public export** from `@prisma-next/sql-relational-core/ast`. The factory may persist as an *internal* helper inside the package (rename to `buildSqlCodec` to make the role explicit; it's the codec-instance builder called inside `defineCodec` factory closures). External callers must reach typed codecs via descriptors.
+1. **`mkCodec` public export** from `@internal/sql-relational-core/ast`. The factory may persist as an *internal* helper inside the package (rename to `buildSqlCodec` to make the role explicit; it's the codec-instance builder called inside `defineCodec` factory closures). External callers must reach typed codecs via descriptors.
 
 2. **`CodecDefBuilder` and `CodecDefBuilderImpl`** from `packages/2-sql/4-lanes/relational-core/src/ast/codec-types.ts`. The instance-keyed builder has no remaining role; descriptor-keyed `CodecDescriptorBuilder` (line 709-) absorbs every consumer. Delete the legacy `defineCodecGroup()` factory function exported in parallel.
 

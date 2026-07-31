@@ -1,14 +1,14 @@
 import {
   type AuthoringTypeNamespace,
   collectScalarTypeConstructors,
-} from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { assert, describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,

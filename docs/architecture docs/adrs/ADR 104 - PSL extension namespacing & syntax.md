@@ -169,12 +169,12 @@ Errors map to `RuntimeError` codes per ADR 027 and ADR 068.
 The TypeScript contract DSL exposes the same namespace vocabulary via pack refs, and extension-specific column/type helpers are provided by the corresponding extension package.
 
 ```typescript
-import { int4Column } from '@prisma-next/adapter-postgres/column-types';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { vector } from '@prisma-next/extension-pgvector/column-types';
-import pgvector from '@prisma-next/extension-pgvector/pack';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
-import postgres from '@prisma-next/target-postgres/pack';
+import { int4Column } from '@internal/adapter-postgres/column-types';
+import sqlFamily from '@internal/family-sql/pack';
+import { vector } from '@internal/extension-pgvector/column-types';
+import pgvector from '@internal/extension-pgvector/pack';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
+import postgres from '@internal/target-postgres/pack';
 
 export const contract = defineContract({
   family: sqlFamily,

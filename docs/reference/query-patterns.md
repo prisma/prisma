@@ -10,7 +10,7 @@ This document covers standard patterns for working with Prisma Next queries, inc
 
 ```typescript
 // src/prisma/db.ts
-import postgres from '@prisma-next/postgres/runtime';
+import postgres from '@internal/postgres/runtime';
 import type { Contract, TypeMaps } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -75,7 +75,7 @@ const plan = db.sql
 
 ```typescript
 import { db } from '../prisma/db';
-import type { ResultType } from '@prisma-next/sql-query/types';
+import type { ResultType } from '@internal/sql-query/types';
 
 const plan = db.sql
   .from(db.schema.tables.user)
@@ -112,8 +112,8 @@ const result = await collectRows<InsertRow>(plan);
 
 ```typescript
 import { db } from '../prisma/db';
-import { param } from '@prisma-next/sql-query/param';
-import type { ResultType } from '@prisma-next/sql-query/types';
+import { param } from '@internal/sql-query/param';
+import type { ResultType } from '@internal/sql-query/types';
 
 const userTable = db.schema.tables.user;
 const userColumns = userTable.columns;
@@ -132,8 +132,8 @@ const result = await collectRows<InsertRow>(insertPlan);
 
 ```typescript
 import { db } from '../prisma/db';
-import { param } from '@prisma-next/sql-query/param';
-import type { ResultType } from '@prisma-next/sql-query/types';
+import { param } from '@internal/sql-query/param';
+import type { ResultType } from '@internal/sql-query/types';
 
 const userTable = db.schema.tables.user;
 const postTable = db.schema.tables.post;

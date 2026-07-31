@@ -1,6 +1,6 @@
-import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
-import { rangeToPslSpan } from '@prisma-next/psl-parser';
-import { parse, SourceFile } from '@prisma-next/psl-parser/syntax';
+import type { ContractSourceDiagnostic } from '@internal/config/config-types';
+import { rangeToPslSpan } from '@internal/psl-parser';
+import { parse, SourceFile } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
 import {
   mapInterpreterDiagnostics,

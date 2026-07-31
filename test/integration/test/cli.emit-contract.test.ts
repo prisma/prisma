@@ -1,11 +1,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import type { ContractSourceContext } from '@prisma-next/cli/config-types';
-import { loadConfig } from '@prisma-next/config-loader';
-import type { ControlStack } from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
+import type { ContractSourceContext } from '@internal/cli/config-types';
+import { loadConfig } from '@internal/config-loader';
+import type { ControlStack } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import { sqlEmission } from '@internal/sql-contract-emitter';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { emit } from '../utils/emit';

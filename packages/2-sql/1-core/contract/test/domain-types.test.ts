@@ -1,5 +1,5 @@
-import type { Contract, ContractModel } from '@prisma-next/contract/types';
-import { asNamespaceId } from '@prisma-next/contract/types';
+import type { Contract, ContractModel } from '@internal/contract/types';
+import { asNamespaceId } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 
 function crossRef(model: string, namespace = 'default') {

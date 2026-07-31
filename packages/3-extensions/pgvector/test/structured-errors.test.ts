@@ -1,4 +1,4 @@
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { PgVectorCodec, pgVectorDescriptor } from '../src/core/codecs';
 import { VECTOR_MAX_DIM } from '../src/core/constants';

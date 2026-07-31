@@ -1,4 +1,4 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 import type {
   AfterExecuteResult,
   CrossFamilyMiddleware,
@@ -6,18 +6,18 @@ import type {
   QueryPlan,
   RuntimeMiddleware,
   RuntimeMiddlewareContext,
-} from '@prisma-next/framework-components/runtime';
-import { RuntimeCore } from '@prisma-next/framework-components/runtime';
-import type { MongoAdapter, MongoDriver } from '@prisma-next/mongo-lowering';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/framework-components/runtime';
+import { RuntimeCore } from '@internal/framework-components/runtime';
+import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import {
   createMongoExecutionContext,
   createMongoExecutionStack,
   createMongoRuntime,
   type MongoExecutionContext,
   type MongoRuntimeAdapterDescriptor,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
+} from '@internal/mongo-runtime';
+import mongoRuntimeTarget from '@internal/target-mongo/runtime';
 import { describe, expect, it, vi } from 'vitest';
 
 /**
@@ -26,9 +26,9 @@ import { describe, expect, it, vi } from 'vitest';
  * so it composes against any runtime that satisfies the framework SPI.
  *
  * This is the structural shape that the (now-retired)
- * `@prisma-next/middleware-telemetry` package shipped as a
+ * `@internal/middleware-telemetry` package shipped as a
  * proof-of-concept; the cross-family contract is now exercised by the
- * real `@prisma-next/middleware-cache` package (see
+ * real `@internal/middleware-cache` package (see
  * `middleware-cache.test.ts` and `examples/mongo-demo`). The tests in
  * this file remain useful for asserting composition order and the
  * `source: 'driver' | 'middleware'` round-trip without coupling to a

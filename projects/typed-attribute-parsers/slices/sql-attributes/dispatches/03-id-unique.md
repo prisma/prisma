@@ -11,7 +11,7 @@ prior dispatches died on this exact mistake. If you catch yourself reaching for 
 search tool that isn't the terminal, STOP and use `rg` in the terminal instead.
 
 ## Context
-- The attribute-spec kit is at `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/`. It is already published on this branch — import kit funcs/types from `@prisma-next/psl-parser`; AST types from `@prisma-next/psl-parser/syntax`. Do NOT modify psl-parser in this dispatch.
+- The attribute-spec kit is at `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/`. It is already published on this branch — import kit funcs/types from `@internal/psl-parser`; AST types from `@internal/psl-parser/syntax`. Do NOT modify psl-parser in this dispatch.
 - **D2 landed the SQL-side plumbing you reuse:** `packages/2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts` — `findModelAttributeNode`, `findFieldAttributeNode`, `buildModelInterpretCtx`, `buildFieldInterpretCtx`. Add your new specs + helpers here.
 - **Combinators you need (already exist):**
   - `optional(str())` — optional value.
@@ -44,10 +44,10 @@ Same primary-key / unique-constraint output (columns, constraint names, inline-v
 ## Completed when
 - [ ] Field `@id`/`@unique` map name + model `@@id`/`@@unique` fields+map lowered via specs; `@@index` untouched and still green.
 - [ ] `parseAttributeFieldList`/`parseFieldList`/`findDuplicateFieldName` retained (still used by `@@index`); no longer called from the migrated `@@id`/`@@unique` paths.
-- [ ] Gates: `pnpm --filter @prisma-next/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary`.
+- [ ] Gates: `pnpm --filter @internal/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary`.
 
 ## Constraints
-No `any`; no bare `as` (use `blindCast`/`castAs` from `@prisma-next/utils/casts` if truly unavoidable); no file-ext imports; tests-first where emitted code/behaviour changes. Explicit-staging commit with `git commit -s` (DCO), no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.
+No `any`; no bare `as` (use `blindCast`/`castAs` from `@internal/utils/casts` if truly unavoidable); no file-ext imports; tests-first where emitted code/behaviour changes. Explicit-staging commit with `git commit -s` (DCO), no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.
 
 ## Operational metadata
 - **Model tier:** high — the branch split + preserving the exact semantic-check ordering is the design risk; the spec wiring is mechanical.

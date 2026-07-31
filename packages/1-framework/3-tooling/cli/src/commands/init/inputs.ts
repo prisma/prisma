@@ -62,7 +62,7 @@ export interface ResolvedInitInputs {
   readonly reinit: boolean;
   /**
    * FR9.2 — set to the **previous** facade package name (e.g.
-   * `@prisma-next/postgres`) when re-init is switching targets and the
+   * `@internal/postgres`) when re-init is switching targets and the
    * user has consented to remove it from `package.json#dependencies`.
    * `null` when no removal is needed: not a re-init, no previous facade
    * present, the previous facade matches the chosen target, or the user

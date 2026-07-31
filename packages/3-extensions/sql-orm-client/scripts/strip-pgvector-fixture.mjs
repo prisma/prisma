@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Post-emit transform: strip `@prisma-next/extension-pgvector` references
+ * Post-emit transform: strip `@internal/extension-pgvector` references
  * from the package-local `test/fixtures/generated/contract.d.ts`.
  *
  * The integration-side fixture imports pgvector type modules. Importing them
@@ -27,16 +27,16 @@ if (!target) {
 const source = readFileSync(target, 'utf8');
 
 const importBlock = [
-  "import type { QueryOperationTypes as PgAdapterQueryOps } from '@prisma-next/adapter-postgres/operation-types';",
+  "import type { QueryOperationTypes as PgAdapterQueryOps } from '@internal/adapter-postgres/operation-types';",
   'import type {',
   '  CodecTypes as PgVectorTypes,',
   '  Vector,',
-  "} from '@prisma-next/extension-pgvector/codec-types';",
-  "import type { QueryOperationTypes as PgVectorQueryOperationTypes } from '@prisma-next/extension-pgvector/operation-types';",
+  "} from '@internal/extension-pgvector/codec-types';",
+  "import type { QueryOperationTypes as PgVectorQueryOperationTypes } from '@internal/extension-pgvector/operation-types';",
 ].join('\n');
 
 const replacement = [
-  "import type { QueryOperationTypes as PgAdapterQueryOps } from '@prisma-next/adapter-postgres/operation-types';",
+  "import type { QueryOperationTypes as PgAdapterQueryOps } from '@internal/adapter-postgres/operation-types';",
   '// pgvector types replaced with local aliases (see note above)',
   'type PgVectorTypes = object;',
   'type Vector<_N extends number> = number[];',
@@ -54,7 +54,7 @@ const headerNote = `// ⚠️  GENERATED FILE - DO NOT EDIT
 //
 // NOTE: The pgvector extension imports have been replaced with local type aliases
 // in this package-level copy to avoid a circular Turbo build dependency.
-// (@prisma-next/extension-pgvector → @prisma-next/postgres → @prisma-next/sql-orm-client)
+// (@internal/extension-pgvector → @internal/postgres → @internal/sql-orm-client)
 // The integration tests that exercise pgvector-specific operations live in test/integration/.`;
 
 const originalHeader = `// ⚠️  GENERATED FILE - DO NOT EDIT

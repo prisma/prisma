@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/utils",
+  "name": "@internal/utils",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",

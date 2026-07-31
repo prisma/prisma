@@ -2,8 +2,8 @@ import {
   type ContractModelBase,
   crossRef,
   UNBOUND_DOMAIN_NAMESPACE_ID,
-} from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { applicationDomainOf } from '@repo/test-utils';
 
 function normalizeModels(

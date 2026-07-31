@@ -1,7 +1,7 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import { type ContractModel, type ContractRelation, crossRef } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { blindCast } from '@prisma-next/utils/casts';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import { type ContractModel, type ContractRelation, crossRef } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { blindCast } from '@internal/utils/casts';
 import { createContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';

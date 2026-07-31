@@ -1,15 +1,15 @@
-import type { Contract, ControlPolicy } from '@prisma-next/contract/types';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
 import type {
   ControlPolicySubject,
   SqlPlannerConflict,
   SuppressionRecord,
-} from '@prisma-next/family-sql/control';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { entityAt, UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/family-sql/control';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { entityAt, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { type PostgresRole, ROLE_DEFAULT_CONTROL_POLICY } from '../postgres-role';
 import { isPostgresSchema } from '../postgres-schema';
 import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordinate';

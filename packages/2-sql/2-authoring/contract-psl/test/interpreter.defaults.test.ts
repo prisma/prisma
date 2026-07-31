@@ -1,8 +1,8 @@
 import type {
   AuthoringContributions,
   AuthoringTypeNamespace,
-} from '@prisma-next/framework-components/authoring';
-import { collectScalarTypeConstructors } from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
+import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import {

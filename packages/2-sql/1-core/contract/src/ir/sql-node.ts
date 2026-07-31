@@ -1,4 +1,4 @@
-import { IRNodeBase } from '@prisma-next/framework-components/ir';
+import { IRNodeBase } from '@internal/framework-components/ir';
 
 /**
  * SQL family IR node base. Carries the family-level `kind` discriminator

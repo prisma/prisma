@@ -7,7 +7,7 @@
   "description": "Base tsdown configuration for the monorepo",
   "license": "MIT",
   "devDependencies": {
-    "@prisma-next/publish-surface": "workspace:0.16.0",
+    "@internal/publish-surface": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "es-module-lexer": "^2.3.1",
     "tsdown": "catalog:",

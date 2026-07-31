@@ -1,27 +1,27 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import pgvector from '@prisma-next/extension-pgvector/runtime';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import postgresDriver from '@internal/driver-postgres/runtime';
+import pgvector from '@internal/extension-pgvector/runtime';
 import {
   type ExecutionStackInstance,
   instantiateExecutionStack,
   type RuntimeDriverInstance,
-} from '@prisma-next/framework-components/execution';
+} from '@internal/framework-components/execution';
 import type {
   AfterExecuteResult,
   CrossFamilyMiddleware,
   RuntimeMiddlewareContext,
-} from '@prisma-next/framework-components/runtime';
-import { cacheAnnotation, createCacheMiddleware } from '@prisma-next/middleware-cache';
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
+} from '@internal/framework-components/runtime';
+import { cacheAnnotation, createCacheMiddleware } from '@internal/middleware-cache';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
+import { sql } from '@internal/sql-builder/runtime';
 import {
   AndExpr,
   BinaryExpr,
   ColumnRef,
   LiteralExpr,
   type SelectAst,
-} from '@prisma-next/sql-relational-core/ast';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/ast';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import {
   createExecutionContext,
   createSqlExecutionStack,
@@ -30,8 +30,8 @@ import {
   type SqlRuntimeAdapterInstance,
   type SqlRuntimeDriverInstance,
   type SqlRuntimeExtensionInstance,
-} from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+} from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -40,7 +40,7 @@ import type { Contract } from '../sql-builder/fixtures/generated/contract';
 import { setupTestDatabase } from '../utils';
 
 /**
- * Integration tests for `@prisma-next/middleware-cache` against real
+ * Integration tests for `@internal/middleware-cache` against real
  * Postgres. The tests assert four behaviours end-to-end against
  * `createDevDatabase`:
  *
@@ -305,7 +305,7 @@ describe('integration: middleware-cache against real Postgres', {
     it('cache key for the same query differs when registered with vs. without the rewriter', async () => {
       // Two runtimes share the same custom CacheStore so we can
       // observe whether the rewriter changes the key.
-      const { createInMemoryCacheStore } = await import('@prisma-next/middleware-cache');
+      const { createInMemoryCacheStore } = await import('@internal/middleware-cache');
       const sharedStore = createInMemoryCacheStore({ maxEntries: 100 });
 
       const cacheNoRewrite = createCacheMiddleware({ store: sharedStore });
@@ -341,7 +341,7 @@ describe('integration: middleware-cache against real Postgres', {
     /**
      * Inline cross-family observer. Captures the `phase`, `source`,
      * `rowCount`, and `latencyMs` fields off the framework SPI — the
-     * same shape the (now-retired) `@prisma-next/middleware-telemetry`
+     * same shape the (now-retired) `@internal/middleware-telemetry`
      * proof-of-concept exposed. These tests are really about
      * composition with the cache, not about telemetry, so an inline
      * observer reads more clearly than depending on a separate

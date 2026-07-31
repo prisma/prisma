@@ -3,7 +3,7 @@ import {
   internalImportRoot,
   type ScaffoldImportRoot,
   transitiveImports,
-} from '@prisma-next/publish-surface/import-roots';
+} from '@internal/publish-surface/import-roots';
 import { describe, expect, it } from 'vitest';
 import {
   type AuthoringId,
@@ -35,9 +35,9 @@ function scaffold(target: TargetId, authoring: AuthoringId, root: ScaffoldImport
 describe('scaffolded project files under each import root', () => {
   describe.each(['postgres', 'mongo'] as const)('%s', (target) => {
     it('names the workspace facade under the internal root', () => {
-      expect(targetPackageName(target)).toBe(`@prisma-next/${target}`);
+      expect(targetPackageName(target)).toBe(`@internal/${target}`);
       expect(scaffold(target, 'typescript', internalImportRoot)).toContain(
-        `from '@prisma-next/${target}/contract-builder'`,
+        `from '@internal/${target}/contract-builder'`,
       );
     });
 

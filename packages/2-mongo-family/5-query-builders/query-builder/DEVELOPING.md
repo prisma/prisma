@@ -1,4 +1,4 @@
-# Developing @prisma-next/mongo-query-builder
+# Developing @internal/mongo-query-builder
 
 Internal architecture notes for contributors.
 
@@ -48,10 +48,10 @@ Some MongoDB operators (e.g. `$dateToString`, `$trim`, `$topN`) take named argum
 
 ## Package dependencies
 
-- `@prisma-next/mongo-contract` — contract types (`MongoContract`, `MongoContractWithTypeMaps`)
-- `@prisma-next/mongo-query-ast` — AST node constructors (`AggregateCommand`, stage classes, expression classes)
-- `@prisma-next/mongo-value` — `MongoValue` type for filter comparisons
-- `@prisma-next/contract` — `PlanMeta` type
+- `@internal/mongo-contract` — contract types (`MongoContract`, `MongoContractWithTypeMaps`)
+- `@internal/mongo-query-ast` — AST node constructors (`AggregateCommand`, stage classes, expression classes)
+- `@internal/mongo-value` — `MongoValue` type for filter comparisons
+- `@internal/contract` — `PlanMeta` type
 
 ## Running tests
 

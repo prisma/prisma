@@ -1,4 +1,4 @@
-import type { MigrationToolsError } from '@prisma-next/migration-tools/errors';
+import type { MigrationToolsError } from '@internal/migration-tools/errors';
 import { describe, expect, it } from 'vitest';
 import { PostgresMigration } from '../src/core/migrations/postgres-migration';
 import type { Contract } from './fixtures/namespaced-contract.d';

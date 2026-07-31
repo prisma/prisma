@@ -2,7 +2,7 @@ import type {
   ColumnDefault,
   ExecutionMutationDefaultPhases,
   ExecutionMutationDefaultValue,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 
 interface SourcePosition {
   readonly offset: number;

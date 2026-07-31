@@ -1,8 +1,8 @@
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import type { ResultType } from '@prisma-next/framework-components/runtime';
-import { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import { createStubAdapter, createTestContext } from '@prisma-next/sql-runtime/test/utils';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import type { ResultType } from '@internal/framework-components/runtime';
+import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
+import { sql } from '@internal/sql-builder/runtime';
+import { createStubAdapter, createTestContext } from '@internal/sql-runtime/test/utils';
 import { expectTypeOf, test } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 

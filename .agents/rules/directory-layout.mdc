@@ -71,12 +71,12 @@ packages/
 
 | Purpose | Directory | Package Name |
 |---------|-----------|--------------|
-| Family emitter hook | `packages/2-sql/3-tooling/emitter/` | `@prisma-next/sql-contract-emitter` |
-| Contract types | `packages/2-sql/1-core/contract/` | `@prisma-next/sql-contract` |
-| Operations | `packages/2-sql/1-core/operations/` | `@prisma-next/sql-operations` |
-| Postgres target | `packages/3-targets/3-targets/postgres/` | `@prisma-next/target-postgres` |
-| Postgres adapter | `packages/3-targets/6-adapters/postgres/` | `@prisma-next/adapter-postgres` |
-| Postgres driver | `packages/3-targets/7-drivers/postgres/` | `@prisma-next/driver-postgres` |
+| Family emitter hook | `packages/2-sql/3-tooling/emitter/` | `@internal/sql-contract-emitter` |
+| Contract types | `packages/2-sql/1-core/contract/` | `@internal/sql-contract` |
+| Operations | `packages/2-sql/1-core/operations/` | `@internal/sql-operations` |
+| Postgres target | `packages/3-targets/3-targets/postgres/` | `@internal/target-postgres` |
+| Postgres adapter | `packages/3-targets/6-adapters/postgres/` | `@internal/adapter-postgres` |
+| Postgres driver | `packages/3-targets/7-drivers/postgres/` | `@internal/driver-postgres` |
 
 ## Multi-Plane Entrypoints
 

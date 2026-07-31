@@ -3,14 +3,14 @@
  * round-trip with fidelity through the authored path — proven end-to-end against
  * a real Postgres database over the production authoring/migration/infer flow.
  */
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresControlDriver from '@prisma-next/driver-postgres/control';
-import sql, { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID, createControlStack } from '@prisma-next/framework-components/control';
-import { flatPslModels } from '@prisma-next/framework-components/psl-ast';
-import { buildFabricatedMigrationEdge } from '@prisma-next/migration-tools/aggregate';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import type { Contract } from '@internal/contract/types';
+import postgresControlDriver from '@internal/driver-postgres/control';
+import sql, { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID, createControlStack } from '@internal/framework-components/control';
+import { flatPslModels } from '@internal/framework-components/psl-ast';
+import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregate';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   BinaryExpr,
   ColumnRef,
@@ -19,9 +19,9 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { planFromAst } from '@prisma-next/sql-relational-core/plan';
-import postgres from '@prisma-next/target-postgres/control';
+} from '@internal/sql-relational-core/ast';
+import { planFromAst } from '@internal/sql-relational-core/plan';
+import postgres from '@internal/target-postgres/control';
 import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestRuntimeFromClient } from '../utils';

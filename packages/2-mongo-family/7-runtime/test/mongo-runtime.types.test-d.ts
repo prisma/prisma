@@ -1,5 +1,5 @@
-import type { RuntimeExecutor } from '@prisma-next/framework-components/runtime';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import type { RuntimeExecutor } from '@internal/framework-components/runtime';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import { expectTypeOf, test } from 'vitest';
 import type { MongoMiddleware, MongoMiddlewareContext } from '../src/mongo-middleware';
 import type { MongoRuntime } from '../src/mongo-runtime';

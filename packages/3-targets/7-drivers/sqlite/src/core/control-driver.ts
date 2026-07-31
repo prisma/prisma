@@ -1,8 +1,8 @@
 import type { SQLInputValue } from 'node:sqlite';
 import { DatabaseSync } from 'node:sqlite';
-import { errorRuntime } from '@prisma-next/errors/execution';
-import type { ControlDriverDescriptor } from '@prisma-next/framework-components/control';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+import { errorRuntime } from '@internal/errors/execution';
+import type { ControlDriverDescriptor } from '@internal/framework-components/control';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { normalizeSqliteError } from '../normalize-error';
 import { sqliteDriverDescriptorMeta } from './descriptor-meta';
 

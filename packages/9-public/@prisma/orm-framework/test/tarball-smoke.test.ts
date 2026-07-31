@@ -59,7 +59,7 @@ describe('@prisma/orm-framework tarball smoke test', () => {
     expect(await findInternalNames(installedDir)).toEqual([]);
   });
 
-  it('ships no @prisma-next import specifier in dist', async () => {
+  it('ships no @internal import specifier in dist', async () => {
     expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
   });
 });

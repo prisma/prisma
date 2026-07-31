@@ -8,7 +8,7 @@ import {
   MongoLimitStage,
   MongoMatchStage,
   MongoSortStage,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { collection } from '../src/contract-free/collection';
 import { expr, fn } from '../src/exports/index';

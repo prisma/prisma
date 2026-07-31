@@ -6,7 +6,7 @@
 
 ### 1 — Shared naming module
 
-**Outcome:** `@prisma-next/sql-schema-ir/naming` exports `formatWireName`, `parseWireName`, `normalizeSqlBody`, `computeIndexContentHash` (D4 tuple, `String()`-coerced options, 54-char prefix cap); `rls/wire-name.ts` is deleted and every call site (`authoring.ts`, `planner.ts`, adapter `control-adapter.ts`, `exports/rls-canonicalize.ts`) imports the shared module; `rls/canonicalize.ts` imports `normalizeSqlBody`. RLS wire names are byte-identical before/after (existing RLS suites prove it — no fixture moves).
+**Outcome:** `@internal/sql-schema-ir/naming` exports `formatWireName`, `parseWireName`, `normalizeSqlBody`, `computeIndexContentHash` (D4 tuple, `String()`-coerced options, 54-char prefix cap); `rls/wire-name.ts` is deleted and every call site (`authoring.ts`, `planner.ts`, adapter `control-adapter.ts`, `exports/rls-canonicalize.ts`) imports the shared module; `rls/canonicalize.ts` imports `normalizeSqlBody`. RLS wire names are byte-identical before/after (existing RLS suites prove it — no fixture moves).
 
 **Builds on:** nothing. **Hands to:** hash + name helpers importable family-wide; RLS behavior pinned unchanged.
 

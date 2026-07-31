@@ -1,5 +1,5 @@
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type {
   Adapter,
   AdapterProfile,
@@ -38,15 +38,15 @@ import type {
   TableSource,
   UpdateAst,
   WindowFuncExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { isDdlNode } from '@prisma-next/sql-relational-core/ast';
-import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
-import type { SqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codec-descriptor';
-import { jsonDocumentRetag } from '@prisma-next/target-sqlite/codecs';
-import type { SqliteDdlNode } from '@prisma-next/target-sqlite/ddl';
-import { escapeLiteral, quoteIdentifier } from '@prisma-next/target-sqlite/sql-utils';
-import { assertNever, InternalError } from '@prisma-next/utils/internal-error';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import { isDdlNode } from '@internal/sql-relational-core/ast';
+import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
+import type { SqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codec-descriptor';
+import { jsonDocumentRetag } from '@internal/target-sqlite/codecs';
+import type { SqliteDdlNode } from '@internal/target-sqlite/ddl';
+import { escapeLiteral, quoteIdentifier } from '@internal/target-sqlite/sql-utils';
+import { assertNever, InternalError } from '@internal/utils/internal-error';
+import { structuredError } from '@internal/utils/structured-error';
 import { createSqliteCodecRegistryWithBuiltins } from './codec-lookup';
 import { SqliteControlAdapter } from './control-adapter';
 import type {

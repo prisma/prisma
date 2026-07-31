@@ -1,4 +1,4 @@
-import { domainModelsAtDefaultNamespace, type PlanMeta } from '@prisma-next/contract/types';
+import { domainModelsAtDefaultNamespace, type PlanMeta } from '@internal/contract/types';
 import type {
   AnyMongoTypeMaps,
   ExtractMongoCodecTypes,
@@ -7,7 +7,7 @@ import type {
   MongoModelDefinition,
   MongoModelsMap,
   RootModelName,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import type {
   DeleteResult,
   InsertManyResult,
@@ -16,7 +16,7 @@ import type {
   MongoQueryPlan,
   MongoUpdateSpec,
   UpdateResult,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import {
   DeleteManyCommand,
   DeleteOneCommand,
@@ -29,9 +29,9 @@ import {
   MongoMatchStage,
   UpdateManyCommand,
   UpdateOneCommand,
-} from '@prisma-next/mongo-query-ast/execution';
-import type { MongoValue } from '@prisma-next/mongo-value';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-query-ast/execution';
+import type { MongoValue } from '@internal/mongo-value';
+import { InternalError } from '@internal/utils/internal-error';
 import { PipelineChain } from './builder';
 import { contractError } from './contract-errors';
 import { createFieldAccessor, type FieldAccessor } from './field-accessor';

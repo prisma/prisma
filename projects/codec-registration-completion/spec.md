@@ -111,11 +111,11 @@ Full statement: [`specs/typed-codec-flow.spec.md`](specs/typed-codec-flow.spec.m
 
 - `SqlStaticContributions.codecs` returns `ReadonlyArray<CodecDescriptor>` (not `Codec`); the legacy `codecs: () => CodecRegistry` shape gone from the contributor protocol.
 - `parameterizedCodecs:` slot deleted from `SqlStaticContributions`, `Adapter`, `RuntimeAdapter`, `RuntimeTarget`, `ControlAdapter`, every contributor's runtime/control descriptors, and `cli/src/control-api/contract-enrichment.ts`'s destructure.
-- `CodecParamsDescriptor` deletes from `@prisma-next/sql-relational-core`; the adapter-level `parameterizedCodecs():` collapses into the unified `codecs():` slot.
+- `CodecParamsDescriptor` deletes from `@internal/sql-relational-core`; the adapter-level `parameterizedCodecs():` collapses into the unified `codecs():` slot.
 
 ### AC-3. Runtime `Codec` instance narrowed
 
-- The `Codec` interface in `@prisma-next/framework-components/codec` declares only `id` and the four conversion methods (`encode`, `decode`, `encodeJson`, `decodeJson`). **(M1)**
+- The `Codec` interface in `@internal/framework-components/codec` declares only `id` and the four conversion methods (`encode`, `decode`, `encodeJson`, `decodeJson`). **(M1)**
 - `traits`, `targetTypes`, `meta`, and `renderOutputType?` are removed from the base interface in M1, and from every family-specific extension (SQL `Codec`, Mongo `MongoCodec`) in M2 alongside the synthesis-bridge deletion. The two-stage shape is intentional: M1 narrows the *framework* surface and migrates every framework-side consumer; family extensions retain optional transitional fields through M1 so the synthesis bridge (`synthesizeNonParameterizedDescriptor`) and `aliasCodec` keep working until M2 deletes both alongside the per-library descriptor migration. **(M1 framework / M2 family extensions)**
 - `encode`/`decode` retain their async signature with `CodecCallContext` per ADR 204; this work doesn't reshape the call surface.
 - Every consumer of the removed fields migrates to read them from `descriptorFor(codecId)`. Concrete sites (verified by grep on the post-merge baseline):
@@ -150,7 +150,7 @@ Full statement: [`specs/typed-codec-flow.spec.md`](specs/typed-codec-flow.spec.m
 
 ### AC-6. `JsonSchemaValidatorRegistry` deleted; validation inline
 
-- `JsonSchemaValidatorRegistry` and `buildJsonSchemaValidatorRegistry` deleted from `@prisma-next/sql-relational-core` and `@prisma-next/sql-runtime`.
+- `JsonSchemaValidatorRegistry` and `buildJsonSchemaValidatorRegistry` deleted from `@internal/sql-relational-core` and `@internal/sql-runtime`.
 - The `jsonSchemaValidators?` slot on `ExecutionContext` deleted.
 - Every JSON-with-schema codec (`arktype/json@1` is the only production case today) bakes validation into the resolved codec's `decode` body — already the case for `arktypeJsonCodec` per parent's Phase C; this AC formalizes it as the only path.
 - The `'json-validator'` `CodecTrait` deletes if no consumer remains; persists as a structural marker only if a consumer still requires it (audit before deletion).

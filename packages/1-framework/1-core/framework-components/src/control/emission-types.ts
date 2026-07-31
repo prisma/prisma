@@ -1,4 +1,4 @@
-import type { Contract, ContractModelBase, JsonValue } from '@prisma-next/contract/types';
+import type { Contract, ContractModelBase, JsonValue } from '@internal/contract/types';
 import type { CodecLookup } from '../shared/codec-types';
 import type { ImportSpecifierResolver } from '../shared/import-specifier-resolver';
 import type { TypesImportSpec } from '../shared/types-import-spec';

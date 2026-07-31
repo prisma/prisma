@@ -2,7 +2,7 @@ import type {
   MongoAggExpr,
   MongoFilterExpr,
   MongoUpdatePipelineStage,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import {
   MongoAddFieldsStage,
   MongoAggFieldRef,
@@ -11,8 +11,8 @@ import {
   MongoFieldFilter,
   MongoProjectStage,
   MongoReplaceRootStage,
-} from '@prisma-next/mongo-query-ast/execution';
-import type { MongoValue } from '@prisma-next/mongo-value';
+} from '@internal/mongo-query-ast/execution';
+import type { MongoValue } from '@internal/mongo-value';
 import type { NestedDocShape, ObjectField, ResolvePath, ValidPaths } from './resolve-path';
 import type { DocField, DocShape, TypedAggExpr } from './types';
 import type { TypedUpdateOp } from './update-ops';

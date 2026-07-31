@@ -1,4 +1,4 @@
-import type { EntityKindDescriptor } from '@prisma-next/framework-components/ir';
+import type { EntityKindDescriptor } from '@internal/framework-components/ir';
 import { PostgresNativeEnum, type PostgresNativeEnumInput } from './postgres-native-enum';
 import { PostgresRlsEnablement, type PostgresRlsEnablementInput } from './postgres-rls-enablement';
 import { PostgresRlsPolicy, type PostgresRlsPolicyInput } from './postgres-rls-policy';

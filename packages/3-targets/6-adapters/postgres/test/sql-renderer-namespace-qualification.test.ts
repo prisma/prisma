@@ -1,5 +1,5 @@
-import type { StorageHashBase } from '@prisma-next/contract/types';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import type { StorageHashBase } from '@internal/contract/types';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import {
   BinaryExpr,
   ColumnRef,
@@ -8,9 +8,9 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import { PostgresSchema } from '@prisma-next/target-postgres/types';
+} from '@internal/sql-relational-core/ast';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
+import { PostgresSchema } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { renderLoweredSql } from '../src/core/sql-renderer';

@@ -1,4 +1,4 @@
-import { toStorageTypeInstance } from '@prisma-next/sql-contract/types';
+import { toStorageTypeInstance } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import {
   buildExpectedFormatType,

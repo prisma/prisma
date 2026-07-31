@@ -1,7 +1,7 @@
-import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/types';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
+import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
+import { issueOutcome } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { MongoTargetContractSerializer } from '../src/core/mongo-target-contract-serializer';

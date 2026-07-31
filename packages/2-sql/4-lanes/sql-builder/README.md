@@ -1,11 +1,11 @@
-# @prisma-next/sql-builder
+# @internal/sql-builder
 
 Type-safe SQL query builder for Prisma Next with runtime execution.
 
 ## Usage
 
 ```typescript
-import { sql } from '@prisma-next/sql-builder/runtime';
+import { sql } from '@internal/sql-builder/runtime';
 
 const db = sql({ context, runtime });
 
@@ -54,8 +54,8 @@ const counts = await db.posts
 
 ## Dependencies
 
-- `@prisma-next/sql-relational-core` — AST nodes, execution context, query operation registry
-- `@prisma-next/sql-runtime` — Runtime type for query execution
+- `@internal/sql-relational-core` — AST nodes, execution context, query operation registry
+- `@internal/sql-runtime` — Runtime type for query execution
 
 ## Architecture
 

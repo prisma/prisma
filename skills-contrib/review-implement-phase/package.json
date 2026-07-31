@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/skill-review-implement-phase",
+  "name": "@internal/skill-review-implement-phase",
   "private": true,
   "type": "module",
   "version": "0.0.0",

@@ -2,9 +2,9 @@
 
 ## Context
 
-You're picking up D5d of the `facade-import-surface-completion` slice. The architectural cycle that previously blocked extension-pack contracts from importing facade APIs (`@prisma-next/postgres` → `@prisma-next/sql-builder` → `@prisma-next/extension-pgvector` → would-be `@prisma-next/postgres`) was **verifiably broken by D5c R1**:
+You're picking up D5d of the `facade-import-surface-completion` slice. The architectural cycle that previously blocked extension-pack contracts from importing facade APIs (`@internal/postgres` → `@internal/sql-builder` → `@internal/extension-pgvector` → would-be `@internal/postgres`) was **verifiably broken by D5c R1**:
 
-- Reviewer-confirmed: with the transient `@prisma-next/postgres` devDep on pgvector, `pnpm typecheck --filter @prisma-next/extension-pgvector` returns exit 0 (no cycle).
+- Reviewer-confirmed: with the transient `@internal/postgres` devDep on pgvector, `pnpm typecheck --filter @internal/extension-pgvector` returns exit 0 (no cycle).
 - Three commits broke the cycle: `82e4e7105` (sql-builder), `8d86ea44b` (sql-orm-client), `cdedc86cb` (mongo-runtime). Two follow-ups (`fb45ba05e`, `ad692094d`) split the model-accessor tests cleanly.
 
 D5d is the **final code dispatch** before D6 docs sweep. Scope is tight: migrate three contract files, add deps, run gates, fix one F4 carryover.
@@ -25,8 +25,8 @@ D5d is the **final code dispatch** before D6 docs sweep. Scope is tight: migrate
 
 ### Migration 1: `packages/3-extensions/pgvector/src/contract.ts`
 
-- Drop the verbose imports: `@prisma-next/sql-contract-ts/contract-builder`'s `defineContract`, `@prisma-next/family-sql/pack` (`sqlFamily`), `@prisma-next/target-postgres/pack` (`postgresPack`).
-- Replace with: `import { defineContract } from '@prisma-next/postgres/contract-builder';`
+- Drop the verbose imports: `@internal/sql-contract-ts/contract-builder`'s `defineContract`, `@internal/family-sql/pack` (`sqlFamily`), `@internal/target-postgres/pack` (`postgresPack`).
+- Replace with: `import { defineContract } from '@internal/postgres/contract-builder';`
 - Drop the `family:` and `target:` keys from the `defineContract(...)` call.
 - Verify the wrap accepts `extensionPacks: [...]` and any other config the contract uses. If you hit a `TypesConstraint` rejection or similar wrap-signature issue, **heartbeat and halt** — that's a real finding (parallel to D5b's `PostgresEnumStorageEntry` widening) and should be addressed before continuing.
 
@@ -39,14 +39,14 @@ Same pattern as pgvector.
 D5c moved `packages/2-mongo-family/7-runtime/test/query-builder.test.ts` to integration. Find the new location (`git log --diff-filter=R --stat cdedc86cb -- '*query-builder*'` or just `rg --files test/integration/test/mongo-runtime/`). The test had a verbose-with-comment workaround pre-D5c. Now:
 
 - Drop the verbose imports + workaround comment.
-- Replace with: `import { defineContract } from '@prisma-next/mongo/contract-builder';`
+- Replace with: `import { defineContract } from '@internal/mongo/contract-builder';`
 - Drop `family:` and `target:` from the call.
 
 ### Package.json updates
 
-- `packages/3-extensions/pgvector/package.json` — add `@prisma-next/postgres` to dependencies (NOT devDependencies). Check whether `contract.ts` is published or only build-time-consumed; if only build-time, devDeps is fine. **Verify with the package's `exports` map + `files` field**: if `src/contract.ts` is exported as a public entrypoint, it's a runtime dep; otherwise devDep.
+- `packages/3-extensions/pgvector/package.json` — add `@internal/postgres` to dependencies (NOT devDependencies). Check whether `contract.ts` is published or only build-time-consumed; if only build-time, devDeps is fine. **Verify with the package's `exports` map + `files` field**: if `src/contract.ts` is exported as a public entrypoint, it's a runtime dep; otherwise devDep.
 - `packages/3-extensions/postgis/package.json` — same as pgvector.
-- The mongo-runtime test now lives under `test/integration/` so its deps live in `test/integration/package.json` — verify `@prisma-next/mongo` is already there (it should be from D5b). If not, add it.
+- The mongo-runtime test now lives under `test/integration/` so its deps live in `test/integration/package.json` — verify `@internal/mongo` is already there (it should be from D5b). If not, add it.
 
 ### F4 cleanup
 
@@ -59,15 +59,15 @@ Fix as your first commit. Should be a 4-line diff.
 ## "Done when"
 
 - [ ] F4 fixed; `pnpm test:integration` (single-file) on `test/sql-orm-client/model-accessor.pgvector.test.ts` still passes.
-- [ ] `packages/3-extensions/pgvector/src/contract.ts` uses `@prisma-next/postgres/contract-builder` and has no `family`/`target` args.
+- [ ] `packages/3-extensions/pgvector/src/contract.ts` uses `@internal/postgres/contract-builder` and has no `family`/`target` args.
 - [ ] `packages/3-extensions/postgis/src/contract.ts` ditto.
-- [ ] Moved mongo-runtime query-builder test uses `@prisma-next/mongo/contract-builder` and has no `family`/`target` args + workaround comment removed.
+- [ ] Moved mongo-runtime query-builder test uses `@internal/mongo/contract-builder` and has no `family`/`target` args + workaround comment removed.
 - [ ] `pnpm install` ran cleanly; lockfile reflects new deps.
-- [ ] `pnpm typecheck --filter @prisma-next/extension-pgvector --filter @prisma-next/extension-postgis --filter @prisma-next/mongo-runtime --filter integration-tests` all pass.
-- [ ] `pnpm test --filter @prisma-next/extension-pgvector --filter @prisma-next/extension-postgis --filter @prisma-next/mongo-runtime` all pass.
+- [ ] `pnpm typecheck --filter @internal/extension-pgvector --filter @internal/extension-postgis --filter @internal/mongo-runtime --filter integration-tests` all pass.
+- [ ] `pnpm test --filter @internal/extension-pgvector --filter @internal/extension-postgis --filter @internal/mongo-runtime` all pass.
 - [ ] `pnpm test:integration` for the touched mongo-runtime test (run by path) passes.
 - [ ] `pnpm lint:deps` clean (no new layering violations introduced by the new pgvector → postgres / postgis → postgres facade deps).
-- [ ] Grep gate: `rg "@prisma-next/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" packages/3-extensions/{pgvector,postgis}/src/contract.ts test/integration/test/mongo-runtime/` returns zero hits.
+- [ ] Grep gate: `rg "@internal/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" packages/3-extensions/{pgvector,postgis}/src/contract.ts test/integration/test/mongo-runtime/` returns zero hits.
 - [ ] No skips. No broad `as unknown as Record<string, unknown>` casts.
 - [ ] Intent-validation: diff covers only the three migrations + two package.json adds + the F4 4-line revert + lockfile. NO facade source changes, NO test relocations, NO unrelated cleanup.
 
@@ -86,7 +86,7 @@ Fix as your first commit. Should be a 4-line diff.
 
 4. **Scope discipline:** D5d is purely contract migrations + F4 fix. Do NOT touch facade source files, do NOT touch sql-builder/sql-orm-client/mongo-runtime (D5c's work), do NOT migrate any other contracts (none left).
 
-5. **Cycle re-verification:** After committing the pgvector migration, run `pnpm typecheck --filter @prisma-next/extension-pgvector` directly — confirm the migration succeeds organically (since pgvector now has a real `@prisma-next/postgres` dep, no transient experiment needed). Same for postgis.
+5. **Cycle re-verification:** After committing the pgvector migration, run `pnpm typecheck --filter @internal/extension-pgvector` directly — confirm the migration succeeds organically (since pgvector now has a real `@internal/postgres` dep, no transient experiment needed). Same for postgis.
 
 ## Begin
 

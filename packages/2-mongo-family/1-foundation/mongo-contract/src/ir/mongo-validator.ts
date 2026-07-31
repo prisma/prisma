@@ -1,4 +1,4 @@
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 
 export type MongoValidatorValidationLevel = 'strict' | 'moderate';
 export type MongoValidatorValidationAction = 'error' | 'warn';

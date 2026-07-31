@@ -16,7 +16,7 @@ describe('postgis descriptor', () => {
 
   it('has codec types import', () => {
     expect(postgisExtensionDescriptor.types?.codecTypes?.import).toEqual({
-      package: '@prisma-next/extension-postgis/codec-types',
+      package: '@internal/extension-postgis/codec-types',
       named: 'CodecTypes',
       alias: 'PostgisTypes',
     });
@@ -24,7 +24,7 @@ describe('postgis descriptor', () => {
 
   it('has query operation types import', () => {
     expect(postgisExtensionDescriptor.types?.queryOperationTypes?.import).toEqual({
-      package: '@prisma-next/extension-postgis/operation-types',
+      package: '@internal/extension-postgis/operation-types',
       named: 'QueryOperationTypes',
       alias: 'PostgisQueryOperationTypes',
     });

@@ -1,4 +1,4 @@
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlAdapterInstance,
   ControlFamilyInstance,
@@ -8,7 +8,7 @@ import type {
   MigrationPlannerResult,
   SchemaOwnership,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import { buildFabricatedMigrationEdge } from '../fabricated-migration-edge';
 import type { ContractMarkerRecordLike } from '../marker-types';
 import type { PerSpacePlan } from '../planner-types';

@@ -8,10 +8,10 @@
  * per-build batch as indexes (one flush covering both).
  */
 
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   postgresAuthoringEntityTypes,

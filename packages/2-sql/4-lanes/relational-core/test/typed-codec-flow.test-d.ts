@@ -11,7 +11,7 @@
  * Negative coverage uses `// @ts-expect-error` so a regression in the round-trip mapping (e.g. trait widening, Wire/Input drift, codec id mismatch) breaks the test type-check rather than passing silently.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type Codec,
   type CodecCallContext,
@@ -20,7 +20,7 @@ import {
   type CodecInstanceContext,
   type CodecTrait,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { expectTypeOf, test } from 'vitest';
 import type {

@@ -26,7 +26,7 @@ had diverged. The fix sets `outputPath` explicitly to decouple the two.
 
 - `examples/paradedb-demo/prisma-next.config.ts` and
   `examples/prisma-next-demo-sqlite/prisma-next.config.ts`: add `outputPath: './src/prisma'`.
-- `@prisma-next/sqlite` `defineConfig`: accept `outputPath` (postgres and mongo already did),
+- `@internal/sqlite` `defineConfig`: accept `outputPath` (postgres and mongo already did),
   mirroring postgres, with tests — the one enabling change needed so the sqlite example could
   be fixed config-only.
 - Removed the stray untracked `prisma/contract.{d.ts,json}` from both examples. No

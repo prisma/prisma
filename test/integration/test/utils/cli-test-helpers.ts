@@ -10,10 +10,10 @@ import {
 } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Contract } from '@prisma-next/contract/types';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import type { Contract } from '@internal/contract/types';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { afterEach, beforeEach } from 'vitest';
 // Note: executeCommand and other test helpers are re-exported at the bottom of this file
 // They come from the CLI package's test utilities but are not exported from the package
@@ -58,7 +58,7 @@ export function createContractFile(testDir: string): string {
   writeFileSync(
     contractPath,
     `import { int4Column, textColumn } from '@repo/test-utils/column-descriptors';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
 
 const contractObj = defineContract({
   models: {

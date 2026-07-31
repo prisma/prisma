@@ -1,7 +1,7 @@
 import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
-} from '@prisma-next/framework-components/emission';
+} from '@internal/framework-components/emission';
 import { dirname } from 'pathe';
 import {
   type AuthoringId,

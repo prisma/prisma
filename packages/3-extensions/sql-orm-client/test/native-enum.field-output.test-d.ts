@@ -1,6 +1,6 @@
-import type { Contract, StorageHashBase } from '@prisma-next/contract/types';
-import type { ContractWithTypeMaps, TypeMaps } from '@prisma-next/sql-contract/types';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { Contract, StorageHashBase } from '@internal/contract/types';
+import type { ContractWithTypeMaps, TypeMaps } from '@internal/sql-contract/types';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
 import type { CreateInput, DefaultModelRow } from '../src/types';

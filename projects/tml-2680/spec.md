@@ -57,7 +57,7 @@ The rename is breaking; every workspace package that constructs a runtime or imp
 - `packages/2-sql/5-runtime/README.md` — example snippet uses the old API; symbol table entry references `RuntimeVerifyOptions`.
 - `docs/architecture docs/subsystems/4. Runtime & Middleware Framework.md` — runtime API snippet uses the old shape.
 - ADR 021 / 042 (Contract Marker Storage / Evolution) — possibly amended with a Decisions section noting the read-side response shift.
-- Per-package CHANGELOGs (`@prisma-next/sql-runtime`, `@prisma-next/sqlite`, `@prisma-next/postgres`) — breaking-change note with migration snippet.
+- Per-package CHANGELOGs (`@internal/sql-runtime`, `@internal/sqlite`, `@internal/postgres`) — breaking-change note with migration snippet.
 
 # Requirements
 

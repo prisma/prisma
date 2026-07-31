@@ -1,4 +1,4 @@
-import { ifDefined } from '@prisma-next/utils/defined';
+import { ifDefined } from '@internal/utils/defined';
 import type { PreserveEmptyPredicate, StorageSort } from '../../src/canonicalization';
 import type { Contract } from '../../src/contract-types';
 import type { CrossReference } from '../../src/cross-reference';

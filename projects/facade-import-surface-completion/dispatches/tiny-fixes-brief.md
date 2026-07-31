@@ -44,11 +44,11 @@ If grep finds any consumer of the `pack` export, STOP and report — that change
 
 **If Route A causes more failures than it fixes** — pause and report. Don't escalate to Route B without orchestrator confirmation.
 
-**Commit subject:** `fix(@prisma-next/sql-orm-client): align pgvector stub id with contract extension pack`
+**Commit subject:** `fix(@internal/sql-orm-client): align pgvector stub id with contract extension pack`
 
 **Commit body:** explain the runtime ID mismatch (`pgvector-codec-stub` vs the contract's `extensionPacks.pgvector`), the assertion-failure surface, and that this bug pre-existed on origin (verified by the prior type-fix dispatch).
 
-**Validation:** `pnpm --filter @prisma-next/sql-orm-client run test` and report pass/fail file counts. Baseline before this dispatch (per the type-fix subagent's verification): 24 failed test files / 0 type errors. Target after this fix: substantial recovery (ideally 0 or near-0 failures from the pgvector class; other unrelated failures, if any, are out of scope).
+**Validation:** `pnpm --filter @internal/sql-orm-client run test` and report pass/fail file counts. Baseline before this dispatch (per the type-fix subagent's verification): 24 failed test files / 0 type errors. Target after this fix: substantial recovery (ideally 0 or near-0 failures from the pgvector class; other unrelated failures, if any, are out of scope).
 
 ## Validate + push
 
@@ -58,7 +58,7 @@ After both fixes are committed:
 2. `pnpm build` — re-verify 66/66.
 3. `pnpm fixtures:check` — green.
 4. `pnpm lint:deps` — green.
-5. `pnpm --filter @prisma-next/sql-orm-client run test` — report pass/fail counts; do not block push if remaining failures are unrelated to pgvector (per type-fix subagent's note about adapter-postgres PGlite flakes, cli init.test.ts, emitter/sql-runtime/sql-contract single-test failures).
+5. `pnpm --filter @internal/sql-orm-client run test` — report pass/fail counts; do not block push if remaining failures are unrelated to pgvector (per type-fix subagent's note about adapter-postgres PGlite flakes, cli init.test.ts, emitter/sql-runtime/sql-contract single-test failures).
 
 If gates green: `git push --force-with-lease origin tml-2526-facades-must-re-export-everything-users-import-in-their-app`.
 
@@ -94,7 +94,7 @@ GREEN / YELLOW / RED
 ## Fix 2 — helpers.ts pgvector stub id
 - Route chosen: A / B (with rationale if not A)
 - Commit: <sha>
-- Validation: `pnpm --filter @prisma-next/sql-orm-client run test`
+- Validation: `pnpm --filter @internal/sql-orm-client run test`
   - Before: <N> failed test files (per type-fix dispatch baseline: 24)
   - After: <N> failed test files
   - Delta: <description>

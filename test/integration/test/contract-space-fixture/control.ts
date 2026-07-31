@@ -8,16 +8,16 @@
  * like cipherstash or pgvector carry.
  *
  * Hosted as a fixture under the integration-tests workspace rather than as
- * a top-level `@prisma-next/extension-*` package: the package shape is
+ * a top-level `@internal/extension-*` package: the package shape is
  * incidental, not load-bearing for the test surface, and the
  * `extension-` prefix is reserved for production extensions (see project
  * review F1).
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlControlExtensionDescriptor } from '@prisma-next/family-sql/control';
-import type { ContractSpace } from '@prisma-next/framework-components/control';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
+import type { ContractSpace } from '@internal/framework-components/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { TEST_SPACE_ID } from './constants';
 import { testContractSpaceContract } from './contract';
 import { testContractSpaceBaselineMigration, testContractSpaceHeadRef } from './migrations';

@@ -1,21 +1,21 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import type { Contract } from '@internal/contract/types';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql from '@internal/family-sql/control';
 import {
   createControlStack,
   type VerifyDatabaseResult,
-} from '@prisma-next/framework-components/control';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
-import { seedTestMarker } from '@prisma-next/sql-runtime/test/utils';
-import postgres from '@prisma-next/target-postgres/control';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+} from '@internal/framework-components/control';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { sqlEmission } from '@internal/sql-contract-emitter';
+import { seedTestMarker } from '@internal/sql-runtime/test/utils';
+import postgres from '@internal/target-postgres/control';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { emit } from '../utils/emit';

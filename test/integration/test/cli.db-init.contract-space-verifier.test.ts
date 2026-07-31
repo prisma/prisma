@@ -110,7 +110,7 @@ withTempDir(({ createTempDir }) => {
           // No `migrations/<space-id>/` dir is written, so the verifier
           // surfaces `declaredButUnmigrated` for the test extension.
           const { createContractEmitCommand } = await import(
-            '@prisma-next/cli/commands/contract-emit'
+            '@internal/cli/commands/contract-emit'
           );
           const { executeCommand } = await import('./utils/cli-test-helpers');
           const emitCommand = createContractEmitCommand();

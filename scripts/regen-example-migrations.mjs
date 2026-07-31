@@ -69,11 +69,11 @@ import { fileURLToPath } from 'node:url';
 import {
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
+} from '@internal/migration-tools/contract-snapshot-store';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const biome = join(repoRoot, 'node_modules', '.bin', 'biome');
@@ -98,8 +98,8 @@ const childEnv = {
  *                   always correct by construction.
  * contractFamily  — which contract provider to use when overriding the `contract`
  *                   field in the temp config. `'mongo'` uses `mongoContract` from
- *                   `@prisma-next/mongo-contract-psl/provider`; `'sql'` uses
- *                   `prismaContract` from `@prisma-next/sql-contract-psl/provider`
+ *                   `@internal/mongo-contract-psl/provider`; `'sql'` uses
+ *                   `prismaContract` from `@internal/sql-contract-psl/provider`
  *                   together with the postgres target pack and namespace factory.
  *                   Defaults to `'mongo'` when omitted (backward-compat shim so
  *                   existing entries without the field continue to work).
@@ -272,9 +272,9 @@ function rewriteContractSnapshotSpecifiers(source, snapshotsImportPath, toHash, 
 function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
   if (contractFamily === 'sql') {
     return (
-      `import { prismaContract } from '@prisma-next/sql-contract-psl/provider';\n` +
-      `import postgresPackRef from '@prisma-next/target-postgres/pack';\n` +
-      `import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';\n` +
+      `import { prismaContract } from '@internal/sql-contract-psl/provider';\n` +
+      `import postgresPackRef from '@internal/target-postgres/pack';\n` +
+      `import { postgresCreateNamespace } from '@internal/target-postgres/types';\n` +
       `import realConfig from '${realConfigAbsPath}';\n\n` +
       'export default {\n' +
       '  ...realConfig,\n' +
@@ -287,7 +287,7 @@ function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
   }
   // Default: mongo
   return (
-    `import { mongoContract } from '@prisma-next/mongo-contract-psl/provider';\n` +
+    `import { mongoContract } from '@internal/mongo-contract-psl/provider';\n` +
     `import realConfig from '${realConfigAbsPath}';\n\n` +
     'export default {\n' +
     '  ...realConfig,\n' +

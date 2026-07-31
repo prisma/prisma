@@ -1,16 +1,16 @@
-import { CliStructuredError } from '@prisma-next/errors/control';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+import { CliStructuredError } from '@internal/errors/control';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import {
   PrimaryKey,
   SqlForeignKeyIR,
   SqlIndexIR,
   SqlUniqueIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { normalizeSchemaNativeType } from '@prisma-next/target-postgres/native-type-normalizer';
+} from '@internal/sql-schema-ir/types';
+import { normalizeSchemaNativeType } from '@internal/target-postgres/native-type-normalizer';
 import type {
   PostgresDatabaseSchemaNode,
   PostgresTableSchemaNode,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';

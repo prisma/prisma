@@ -1,5 +1,5 @@
-import pgvector from '@prisma-next/extension-pgvector/runtime';
-import { extractCodecTypeImports } from '@prisma-next/framework-components/control';
+import pgvector from '@internal/extension-pgvector/runtime';
+import { extractCodecTypeImports } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { getSqlDescriptorBundle, pgvectorExtensionDescriptor } from '../utils/framework-components';
 
@@ -18,17 +18,17 @@ describe('pgvector extension pack integration', () => {
     expect(codecTypeImports.length).toBe(14);
     // Adapter codec types come first
     expect(codecTypeImports[0]).toEqual({
-      package: '@prisma-next/target-postgres/codec-types',
+      package: '@internal/target-postgres/codec-types',
       named: 'CodecTypes',
       alias: 'PgTypes',
     });
     expect(codecTypeImports).toContainEqual({
-      package: '@prisma-next/extension-pgvector/codec-types',
+      package: '@internal/extension-pgvector/codec-types',
       named: 'CodecTypes',
       alias: 'PgVectorTypes',
     });
     expect(codecTypeImports).toContainEqual({
-      package: '@prisma-next/extension-pgvector/codec-types',
+      package: '@internal/extension-pgvector/codec-types',
       named: 'Vector',
       alias: 'Vector',
     });

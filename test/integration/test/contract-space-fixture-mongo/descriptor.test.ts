@@ -1,4 +1,4 @@
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import {
   MONGO_TEST_BASELINE_INVARIANT_ID,

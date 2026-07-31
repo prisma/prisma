@@ -1,5 +1,5 @@
-import { effectiveControlPolicy, UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { effectiveControlPolicy, UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   MongoCollationOptions,
   MongoCollection,
@@ -8,7 +8,7 @@ import {
   MongoStorage,
   MongoValidator,
   MongoValueSet,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { MongoTargetContractSerializer } from '../src/core/mongo-target-contract-serializer';

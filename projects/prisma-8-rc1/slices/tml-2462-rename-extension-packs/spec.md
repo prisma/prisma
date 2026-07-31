@@ -26,7 +26,7 @@ export default defineConfig({
 })
 ```
 
-Sugar config (`@prisma-next/postgres/config` et al.) already says `extensions`; its `outputPath` becomes `output`:
+Sugar config (`@internal/postgres/config` et al.) already says `extensions`; its `outputPath` becomes `output`:
 
 ```ts
 // before

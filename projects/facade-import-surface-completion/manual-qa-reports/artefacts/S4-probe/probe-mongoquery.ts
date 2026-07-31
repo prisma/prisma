@@ -3,21 +3,21 @@
 // "PlanRow row shapes collapse to _id: never / count: never" when consumers use
 // mongoQuery<typeof contract> chains via the facade defineContract wrap.
 
-import mongoFamilyPack from '@prisma-next/family-mongo/pack';
+import mongoFamilyPack from '@internal/family-mongo/pack';
 import {
   defineContract as facadeDefineContract,
   field as facadeField,
   model as facadeModel,
-} from '@prisma-next/mongo/contract-builder';
-import type { MongoContractWithTypeMaps, MongoTypeMaps } from '@prisma-next/mongo-contract';
+} from '@internal/mongo/contract-builder';
+import type { MongoContractWithTypeMaps, MongoTypeMaps } from '@internal/mongo-contract';
 import {
   defineContract as verboseDefineContract,
   field as verboseField,
   model as verboseModel,
-} from '@prisma-next/mongo-contract-ts/contract-builder';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { acc, mongoQuery } from '@prisma-next/mongo-query-builder';
-import mongoTargetPack from '@prisma-next/target-mongo/pack';
+} from '@internal/mongo-contract-ts/contract-builder';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import { acc, mongoQuery } from '@internal/mongo-query-builder';
+import mongoTargetPack from '@internal/target-mongo/pack';
 
 const facadeOrder = facadeModel('Order', {
   collection: 'orders',

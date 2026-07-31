@@ -1,11 +1,11 @@
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type {
   MigrationPlanWithAuthoringSurface,
   OpFactoryCall,
-} from '@prisma-next/framework-components/control';
-import type { ImportSpecifierResolver } from '@prisma-next/framework-components/emission';
-import type { MigrationMeta } from '@prisma-next/migration-tools/migration';
+} from '@internal/framework-components/control';
+import type { ImportSpecifierResolver } from '@internal/framework-components/emission';
+import type { MigrationMeta } from '@internal/migration-tools/migration';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 import { renderOps } from './render-ops';
 import { renderCallsToTypeScript } from './render-typescript';

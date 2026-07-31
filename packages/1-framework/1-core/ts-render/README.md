@@ -1,4 +1,4 @@
-# @prisma-next/ts-render
+# @internal/ts-render
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
 > and is published only to support its runtime. Its API is unstable and may change
@@ -26,7 +26,7 @@ Stage 1 (`codec.encodeJson`) is a codec responsibility — date serialization, o
 ## Usage
 
 ```ts
-import { type ImportRequirement, TsExpression, jsonToTsSource } from '@prisma-next/ts-render';
+import { type ImportRequirement, TsExpression, jsonToTsSource } from '@internal/ts-render';
 
 class CreateTableCall extends TsExpression {
   constructor(
@@ -42,7 +42,7 @@ class CreateTableCall extends TsExpression {
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return [{ moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'createTable' }];
+    return [{ moduleSpecifier: '@internal/postgres/migration', symbol: 'createTable' }];
   }
 }
 ```

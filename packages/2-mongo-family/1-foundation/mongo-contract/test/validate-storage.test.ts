@@ -3,9 +3,9 @@ import {
   coreHash,
   profileHash,
   UNBOUND_DOMAIN_NAMESPACE_ID,
-} from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 

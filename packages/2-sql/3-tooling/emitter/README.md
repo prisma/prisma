@@ -1,4 +1,4 @@
-# @prisma-next/sql-contract-emitter
+# @internal/sql-contract-emitter
 
 SQL emitter hook for Prisma Next.
 
@@ -18,11 +18,11 @@ This package provides the SQL-specific emitter hook implementation for the Prism
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/contract` (contract IR, `TargetFamilyHook` SPI, `ValidationContext`, `TypesImportSpec` - types moved to shared plane)
-  - `@prisma-next/emitter` (emitter core, `EmitOptions`, `EmitResult`)
-  - `@prisma-next/sql-contract` (SQL contract type definitions)
+  - `@internal/contract` (contract IR, `TargetFamilyHook` SPI, `ValidationContext`, `TypesImportSpec` - types moved to shared plane)
+  - `@internal/emitter` (emitter core, `EmitOptions`, `EmitResult`)
+  - `@internal/sql-contract` (SQL contract type definitions)
 - **Depended on by**:
-  - `@prisma-next/cli` (uses for contract emission)
+  - `@internal/cli` (uses for contract emission)
   - `integration-tests` (uses for contract emission tests)
 
 ## Architecture
@@ -30,16 +30,16 @@ This package provides the SQL-specific emitter hook implementation for the Prism
 ```mermaid
 flowchart TD
     subgraph "Framework Tooling Layer"
-        EMITTER[@prisma-next/emitter]
-        CLI[@prisma-next/cli]
+        EMITTER[@internal/emitter]
+        CLI[@internal/cli]
     end
 
     subgraph "SQL Tooling Layer"
-        SQL_EMITTER[@prisma-next/sql-contract-emitter]
+        SQL_EMITTER[@internal/sql-contract-emitter]
     end
 
     subgraph "SQL Core Layer (Shared Plane)"
-        CT[@prisma-next/sql-contract]
+        CT[@internal/sql-contract]
     end
 
     EMITTER --> SQL_EMITTER
@@ -52,8 +52,8 @@ flowchart TD
 ### Using the SQL Emitter Hook
 
 ```typescript
-import { emit } from '@prisma-next/emitter';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
+import { emit } from '@internal/emitter';
+import { sqlEmission } from '@internal/sql-contract-emitter';
 
 const result = await emit(contractIR, options, sqlEmission);
 

@@ -1,4 +1,4 @@
-# @prisma-next/adapter-sqlite
+# @internal/adapter-sqlite
 
 SQLite adapter for Prisma Next.
 
@@ -126,10 +126,10 @@ flowchart TD
 
 ## Dependencies
 
-- **`@prisma-next/sql-contract`**: SQL contract types
-- **`@prisma-next/sql-relational-core`**: SQL AST types and codec registry
-- **`@prisma-next/sql-runtime`**: Runtime adapter descriptor types
-- **`@prisma-next/framework-components`**: Descriptor types
+- **`@internal/sql-contract`**: SQL contract types
+- **`@internal/sql-relational-core`**: SQL AST types and codec registry
+- **`@internal/sql-runtime`**: Runtime adapter descriptor types
+- **`@internal/framework-components`**: Descriptor types
 
 ## Related Subsystems
 

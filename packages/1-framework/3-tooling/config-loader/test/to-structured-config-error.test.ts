@@ -1,5 +1,5 @@
-import { errorConfigFileNotFound } from '@prisma-next/errors/control';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { errorConfigFileNotFound } from '@internal/errors/control';
+import { structuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { toStructuredConfigError } from '../src/load';
 

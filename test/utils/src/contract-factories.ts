@@ -1,9 +1,9 @@
-import type { PreserveEmptyPredicate, StorageSort } from '@prisma-next/contract/hashing';
+import type { PreserveEmptyPredicate, StorageSort } from '@internal/contract/hashing';
 import {
   computeExecutionHash,
   computeProfileHash,
   computeStorageHash,
-} from '@prisma-next/contract/hashing';
+} from '@internal/contract/hashing';
 import type {
   Contract,
   ContractEnum,
@@ -13,9 +13,9 @@ import type {
   ExecutionSection,
   ProfileHashBase,
   StorageBase,
-} from '@prisma-next/contract/types';
-import { coreHash, UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/contract/types';
+import { coreHash, UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
+import { ifDefined } from '@internal/utils/defined';
 
 type ContractOverrides<TStorage extends StorageBase = StorageBase> = {
   target?: string;

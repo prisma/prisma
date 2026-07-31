@@ -1,4 +1,4 @@
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import { jsonEntriesOf, representativePlans } from './json-projection-plans';
 

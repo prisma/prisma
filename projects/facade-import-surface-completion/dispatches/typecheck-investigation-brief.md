@@ -2,7 +2,7 @@
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Triggering signal:** post-rebase `pnpm typecheck` red on `@prisma-next/sql-orm-client` — 16 errors across 4 type-d test files (full failure context in the rebase subagent's report committed as `4bcd8249` outcome).
+**Triggering signal:** post-rebase `pnpm typecheck` red on `@internal/sql-orm-client` — 16 errors across 4 type-d test files (full failure context in the rebase subagent's report committed as `4bcd8249` outcome).
 
 ## Your role
 

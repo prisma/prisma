@@ -1,6 +1,6 @@
-import type { Contract, NamespaceId } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { Contract, NamespaceId } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { expectTypeOf, test } from 'vitest';
 import type { Collection } from '../src/collection';
 import { createModelAccessor } from '../src/model-accessor';

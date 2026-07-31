@@ -1,5 +1,5 @@
-import { LiteralExpr } from '@prisma-next/sql-relational-core/ast';
-import { buildOperation, toExpr } from '@prisma-next/sql-relational-core/expression';
+import { LiteralExpr } from '@internal/sql-relational-core/ast';
+import { buildOperation, toExpr } from '@internal/sql-relational-core/expression';
 import { paradedbIndexTypes } from '../types/index-types';
 import type { QueryOperationTypes } from '../types/operation-types';
 import { PARADEDB_EXTENSION_ID } from './constants';
@@ -221,7 +221,7 @@ export const paradedbPackMeta = {
   types: {
     queryOperationTypes: {
       import: {
-        package: '@prisma-next/extension-paradedb/operation-types',
+        package: '@internal/extension-paradedb/operation-types',
         named: 'QueryOperationTypes',
         alias: 'ParadeDbQueryOperationTypes',
       },

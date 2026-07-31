@@ -1,16 +1,11 @@
-import mongoAdapterDescriptor, {
-  MongoControlAdapterImpl,
-} from '@prisma-next/adapter-mongo/control';
-import { coreHash, crossRef, profileHash } from '@prisma-next/contract/types';
-import { MongoControlDriver } from '@prisma-next/driver-mongo/control';
+import mongoAdapterDescriptor, { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
+import { coreHash, crossRef, profileHash } from '@internal/contract/types';
+import { MongoControlDriver } from '@internal/driver-mongo/control';
 
-import {
-  createMongoFamilyInstance,
-  mongoFamilyDescriptor,
-} from '@prisma-next/family-mongo/control';
-import { createControlStack, issueOutcome } from '@prisma-next/framework-components/control';
-import { MongoCollection, type MongoContract, MongoIndex } from '@prisma-next/mongo-contract';
-import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
+import { createMongoFamilyInstance, mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import { createControlStack, issueOutcome } from '@internal/framework-components/control';
+import { MongoCollection, type MongoContract, MongoIndex } from '@internal/mongo-contract';
+import { mongoTargetDescriptor } from '@internal/target-mongo/control';
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

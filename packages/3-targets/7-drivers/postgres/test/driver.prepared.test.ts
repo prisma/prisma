@@ -1,5 +1,5 @@
-import { SqlQueryError } from '@prisma-next/sql-errors';
-import type { PreparedExecuteRequest } from '@prisma-next/sql-relational-core/ast';
+import { SqlQueryError } from '@internal/sql-errors';
+import type { PreparedExecuteRequest } from '@internal/sql-relational-core/ast';
 import { timeouts } from '@repo/test-utils';
 import type { Client } from 'pg';
 import { afterEach, describe, expect, it, vi } from 'vitest';

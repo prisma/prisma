@@ -1,5 +1,5 @@
-import { asNamespaceId, type ScalarFieldType } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { asNamespaceId, type ScalarFieldType } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   ForeignKey,
   type ForeignKeyOptions,

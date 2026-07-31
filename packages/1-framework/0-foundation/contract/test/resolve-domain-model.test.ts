@@ -1,4 +1,4 @@
-import { blindCast } from '@prisma-next/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import type { ApplicationDomain } from '../src/domain-envelope';
 import type { ContractModelBase } from '../src/domain-types';

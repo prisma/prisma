@@ -1,7 +1,7 @@
-import { computeStorageHash } from '@prisma-next/contract/hashing';
-import { coreHash } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import { computeStorageHash } from '@internal/contract/hashing';
+import { coreHash } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { PostgresNativeEnum } from '../src/core/postgres-native-enum';
 import {

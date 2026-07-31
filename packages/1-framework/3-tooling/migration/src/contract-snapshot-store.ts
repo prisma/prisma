@@ -1,11 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import {
-  CONTRACT_SNAPSHOTS_DIRNAME,
-  storageHashHex,
-} from '@prisma-next/framework-components/control';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
-import { blindCast } from '@prisma-next/utils/casts';
+import { CONTRACT_SNAPSHOTS_DIRNAME, storageHashHex } from '@internal/framework-components/control';
+import { canonicalizeJson } from '@internal/framework-components/utils';
+import { blindCast } from '@internal/utils/casts';
 import { join, relative } from 'pathe';
 import {
   errorContractSnapshotHashMismatch,

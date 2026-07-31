@@ -1,4 +1,4 @@
-import type { FamilyPackRef } from '@prisma-next/framework-components/components';
+import type { FamilyPackRef } from '@internal/framework-components/components';
 import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from '../core/authoring-entity-types';
 import { sqlFamilyAuthoringFieldPresets } from '../core/authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from '../core/authoring-type-constructors';

@@ -64,7 +64,7 @@ return notOk(errorMigrationFileMissing(dir));         // boundary Result failure
 Bugs take the other path:
 
 ```ts
-import { InternalError, assertNever } from '@prisma-next/utils/internal-error';
+import { InternalError, assertNever } from '@internal/utils/internal-error';
 
 switch (node.kind) {
   case 'a': return handleA(node);

@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/target-postgres/codec-types';
+import type { JsonValue } from '@internal/target-postgres/codec-types';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../../../_harness/postgres';
 import type { Contract } from './_fixture/generated/contract';

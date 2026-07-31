@@ -1,9 +1,9 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
@@ -27,7 +27,7 @@ const graphMocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: graphMocks.loadConfig,
 }));
 
@@ -102,7 +102,7 @@ async function setupGraphFixture(): Promise<string> {
 
 describe('migration graph --json envelope', () => {
   afterAll(() => {
-    vi.doUnmock('@prisma-next/config-loader');
+    vi.doUnmock('@internal/config-loader');
   });
 
   afterEach(async () => {

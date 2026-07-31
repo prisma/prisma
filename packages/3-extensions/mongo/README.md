@@ -1,12 +1,12 @@
-# @prisma-next/mongo
+# @internal/mongo
 
 One-package MongoDB setup for Prisma Next. Install this single package to get config, runtime, contract authoring, control-plane access, and BSON value constructors — no reach-ins to internal packages required.
 
-> **Breaking change:** the top-level `@prisma-next/mongo` barrel (`import { ObjectId } from '@prisma-next/mongo'`) has been removed. Move BSON constructor imports to `@prisma-next/mongo/bson`:
+> **Breaking change:** the top-level `@internal/mongo` barrel (`import { ObjectId } from '@internal/mongo'`) has been removed. Move BSON constructor imports to `@internal/mongo/bson`:
 >
 > ```diff
-> - import { ObjectId } from '@prisma-next/mongo';
-> + import { ObjectId } from '@prisma-next/mongo/bson';
+> - import { ObjectId } from '@internal/mongo';
+> + import { ObjectId } from '@internal/mongo/bson';
 > ```
 
 ## Package Classification
@@ -19,7 +19,7 @@ One-package MongoDB setup for Prisma Next. Install this single package to get co
 
 ```typescript
 // prisma-next.config.ts
-import { defineConfig } from '@prisma-next/mongo/config';
+import { defineConfig } from '@internal/mongo/config';
 
 export default defineConfig({
   contract: './prisma/contract.prisma',
@@ -29,7 +29,7 @@ export default defineConfig({
 
 ```typescript
 // prisma/contract.ts
-import { defineContract, field, model } from '@prisma-next/mongo/contract-builder';
+import { defineContract, field, model } from '@internal/mongo/contract-builder';
 
 export default defineContract({
   models: {
@@ -40,12 +40,12 @@ export default defineContract({
 
 ## Exports
 
-### `@prisma-next/mongo/config`
+### `@internal/mongo/config`
 
 Simplified `defineConfig` that pre-wires all MongoDB internals (family, target, adapter, driver, contract providers). Accepts `contract`, `db`, `extensions`, and `migrations.dir`.
 
 ```typescript
-import { defineConfig } from '@prisma-next/mongo/config';
+import { defineConfig } from '@internal/mongo/config';
 
 export default defineConfig({
   contract: './prisma/contract.prisma',
@@ -54,12 +54,12 @@ export default defineConfig({
 });
 ```
 
-### `@prisma-next/mongo/contract-builder`
+### `@internal/mongo/contract-builder`
 
 TypeScript contract authoring DSL (`defineContract`, `field`, `model`, `rel`, `index`, `valueObject`, …). The `defineContract` facade pre-binds `family` and `target` — callers do not pass those fields.
 
 ```typescript
-import { defineContract, field, model } from '@prisma-next/mongo/contract-builder';
+import { defineContract, field, model } from '@internal/mongo/contract-builder';
 
 export default defineContract({
   models: {
@@ -68,12 +68,12 @@ export default defineContract({
 });
 ```
 
-### `@prisma-next/mongo/control`
+### `@internal/mongo/control`
 
 Control-plane client factory. Collapses the family + target + adapter + driver wiring into a single call.
 
 ```typescript
-import { createMongoControlClient } from '@prisma-next/mongo/control';
+import { createMongoControlClient } from '@internal/mongo/control';
 
 const control = createMongoControlClient({
   connection: process.env['MONGODB_URL']!,
@@ -81,27 +81,27 @@ const control = createMongoControlClient({
 await control.dbUpdate({ migrations: { dir: 'migrations/app' } });
 ```
 
-### `@prisma-next/mongo/bson`
+### `@internal/mongo/bson`
 
 BSON value constructors for use in seed scripts, fixtures, and tests.
 
 ```typescript
-import { ObjectId } from '@prisma-next/mongo/bson';
+import { ObjectId } from '@internal/mongo/bson';
 
 const id = new ObjectId();
 ```
 
 Exports: `Binary`, `Decimal128`, `Long`, `MongoClient`, `ObjectId`, `Timestamp`.
 
-### `@prisma-next/mongo/runtime`
+### `@internal/mongo/runtime`
 
-Re-exports `createMongoRuntime` from `@prisma-next/mongo-runtime` for composing the MongoDB execution pipeline.
+Re-exports `createMongoRuntime` from `@internal/mongo-runtime` for composing the MongoDB execution pipeline.
 
-### `@prisma-next/mongo/family`
+### `@internal/mongo/family`
 
 Re-exports the MongoDB family pack (only needed when using the low-level API; `defineContract` pre-binds this for you).
 
-### `@prisma-next/mongo/target`
+### `@internal/mongo/target`
 
 Re-exports the MongoDB target pack (only needed when using the low-level API; `defineContract` pre-binds this for you).
 
@@ -109,9 +109,9 @@ Re-exports the MongoDB target pack (only needed when using the low-level API; `d
 
 This package bundles all the transitive dependencies needed for a MongoDB Prisma Next project, including those referenced in the emitted `contract.d.ts`:
 
-- `@prisma-next/mongo-contract` (contract type definitions)
-- `@prisma-next/adapter-mongo` (adapter + codec types)
-- `@prisma-next/contract` (shared contract types)
+- `@internal/mongo-contract` (contract type definitions)
+- `@internal/adapter-mongo` (adapter + codec types)
+- `@internal/contract` (shared contract types)
 
 ## Related Docs
 

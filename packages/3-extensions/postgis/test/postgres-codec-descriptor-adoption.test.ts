@@ -1,4 +1,4 @@
-import { ColumnRef } from '@prisma-next/sql-relational-core/ast';
+import { ColumnRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { codecDescriptors, postgisGeometryDescriptor } from '../src/core/codecs';
 import { postgisCodecRegistry } from '../src/core/registry';

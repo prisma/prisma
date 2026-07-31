@@ -1,7 +1,7 @@
-import type { SqlControlFamilyInstance } from '@prisma-next/family-sql/control';
-import type { EntityHandleLoweringInput } from '@prisma-next/sql-contract/entity-handle-lowering-hook';
-import type { StorageColumn } from '@prisma-next/sql-contract/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { SqlControlFamilyInstance } from '@internal/family-sql/control';
+import type { EntityHandleLoweringInput } from '@internal/sql-contract/entity-handle-lowering-hook';
+import type { StorageColumn } from '@internal/sql-contract/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { postgresLowerEntityHandles } from '../src/core/authoring';
 import { pgTimestampDecodeJson, renderLength } from '../src/core/codec-helpers';

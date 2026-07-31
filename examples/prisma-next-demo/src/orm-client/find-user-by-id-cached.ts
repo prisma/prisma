@@ -2,7 +2,7 @@
  * Cached `User.first({ id })` lookup.
  *
  * Demonstrates the read-only `cacheAnnotation` from
- * `@prisma-next/middleware-cache`. The annotation is opt-in: the cache
+ * `@internal/middleware-cache`. The annotation is opt-in: the cache
  * middleware only acts on plans whose `meta.annotations` carry a
  * `cacheAnnotation` payload with a `ttl` set. Calling the same lookup
  * with the same `id` within the TTL window is served from the in-memory

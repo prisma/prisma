@@ -46,7 +46,7 @@ For reference, **pack extensions** (pgvector, PostGIS) change how Prisma Next *b
 This is a natural fit for a **consumer library**. Validation happens at runtime, and the contract on `ExecutionContext.contract` already contains everything needed — model names, field names and types, nullability, enum values, relation structure. A consumer library accepts the context and returns typed validators:
 
 ```typescript
-import { createValidators } from '@prisma-next/extension-validators/arktype';
+import { createValidators } from '@internal/extension-validators/arktype';
 
 const validators = createValidators(context);
 
@@ -80,7 +80,7 @@ This is the largest category (10 generators). It splits into two sub-problems, b
 **A. Schema / type derivation** — derive GraphQL type definitions from the contract. Direct transformation: model → ObjectType, field → FieldDefinition, enum → EnumType, relation → nested type.
 
 ```typescript
-import { createGraphQLSchema } from '@prisma-next/extension-graphql';
+import { createGraphQLSchema } from '@internal/extension-graphql';
 
 const schema = createGraphQLSchema(context, {
   include: ['User', 'Post'],
@@ -91,7 +91,7 @@ const schema = createGraphQLSchema(context, {
 **B. Resolver derivation** — wire CRUD operations from the ORM client to GraphQL resolvers:
 
 ```typescript
-import { createGraphQLResolvers } from '@prisma-next/extension-graphql';
+import { createGraphQLResolvers } from '@internal/extension-graphql';
 
 const resolvers = createGraphQLResolvers(context, {
   User: { queries: ['findMany', 'findUnique'], mutations: ['create', 'update'] },
@@ -149,7 +149,7 @@ Note: runtime JSON Schema *validation* (validating a request body against a mode
 Same pattern as GraphQL — **consumer libraries** that accept `ExecutionContext` and wire contract metadata + ORM client operations to framework-specific API surfaces.
 
 ```typescript
-import { createTrpcRouter } from '@prisma-next/extension-trpc';
+import { createTrpcRouter } from '@internal/extension-trpc';
 
 const appRouter = createTrpcRouter(context, {
   user: { procedures: ['list', 'get', 'create', 'update', 'delete'] },
@@ -186,7 +186,7 @@ Users who want to query through Kysely or Drizzle are opting out of Prisma Next'
 Already addressed:
 
 - **Plain TS interfaces / types**: `contract.d.ts` provides zero-dependency typed model definitions.
-- **Typed JSON fields** (`prisma-json-types-generator`): Prisma Next has a more capable built-in solution. Library-bound JSON codecs (e.g. `@prisma-next/extension-arktype-json`) accept a typed schema (arktype, zod, etc.), serialize the schema's IR into the contract, and validate inline inside the resolved codec's `decode` body — used for both compile-time typing (emitted into `contract.d.ts` as a concrete type expression) and runtime validation. Strictly more capable than the overlay approach.
+- **Typed JSON fields** (`prisma-json-types-generator`): Prisma Next has a more capable built-in solution. Library-bound JSON codecs (e.g. `@internal/extension-arktype-json`) accept a typed schema (arktype, zod, etc.), serialize the schema's IR into the contract, and validate inline inside the resolved codec's `decode` body — used for both compile-time typing (emitted into `contract.d.ts` as a concrete type expression) and runtime validation. Strictly more capable than the overlay approach.
 - **Repository / custom models** (`prisma-custom-models-generator`): The ORM client's `Collection` subclassing is this pattern done properly — custom collections add domain methods that compose with all built-in query methods and propagate through includes. No scaffolding generator needed.
 - **Class-based DTOs** (`prisma-class-generator`): Low relevance in Prisma Next's functional/interface-oriented design.
 
@@ -215,7 +215,7 @@ Same pattern as categories 3 and 4 — a contract-only consumer library. A `cont
 A natural fit for a **consumer library** — accepts `ExecutionContext` and derives factory functions from the contract's model/field metadata (types → appropriate faker functions, constraints → valid data, relations → linked factory chains, defaults → respected).
 
 ```typescript
-import { createFactories } from '@prisma-next/extension-test-factories';
+import { createFactories } from '@internal/extension-test-factories';
 
 const factories = createFactories(context);
 

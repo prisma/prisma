@@ -54,9 +54,9 @@ The rename breaks workspace-wide typecheck unless every consumer is updated in t
 
 ### DoD
 
-- `pnpm --filter @prisma-next/sql-runtime test typecheck` green.
-- `pnpm --filter @prisma-next/sqlite typecheck` green.
-- `pnpm --filter @prisma-next/postgres test typecheck` green.
+- `pnpm --filter @internal/sql-runtime test typecheck` green.
+- `pnpm --filter @internal/sqlite typecheck` green.
+- `pnpm --filter @internal/postgres test typecheck` green.
 - `pnpm test:packages` green (broader workspace not broken).
 - **`pnpm -r typecheck` green** — explicitly catches downstream consumers (`integration-tests`, `e2e-tests`, `prisma-next-demo`) that `pnpm test:packages` does not run.
 - New test cases (skip-when-false, one-shot semantics) passing.
@@ -67,7 +67,7 @@ The rename breaks workspace-wide typecheck unless every consumer is updated in t
 Files:
 
 - `packages/2-sql/5-runtime/README.md` — update the example snippet currently showing `verify: { mode: 'onFirstUse', requireMarker: false }`. The replacement omits the option entirely (default is `'onFirstUse'`); a second snippet shows `verifyMarker: false` for the opt-out case. Update the "RuntimeVerifyOptions" reference in the symbol table to `VerifyMarkerOption`.
-- Per-package CHANGELOGs for `@prisma-next/sql-runtime`, `@prisma-next/sqlite`, `@prisma-next/postgres` — call out the breaking change with the migration snippet:
+- Per-package CHANGELOGs for `@internal/sql-runtime`, `@internal/sqlite`, `@internal/postgres` — call out the breaking change with the migration snippet:
 
   ```
   Before: verify: { mode: 'onFirstUse', requireMarker: false }

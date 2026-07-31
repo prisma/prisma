@@ -1,4 +1,4 @@
-# @prisma-next/sql-contract-ts API Notes
+# @internal/sql-contract-ts API Notes
 
 This page collects user-facing helper semantics that are too detailed for the package README.
 
@@ -10,7 +10,7 @@ This page collects user-facing helper semantics that are too detailed for the pa
 - optional `typeParams`
 - `generated`
 
-Built-in ID helpers from `@prisma-next/ids` already return that shape, so calls such as `field.generated(uuidv4()).id()` and `field.generated(nanoid({ size: 12 })).id()` are valid.
+Built-in ID helpers from `@internal/ids` already return that shape, so calls such as `field.generated(uuidv4()).id()` and `field.generated(nanoid({ size: 12 })).id()` are valid.
 
 If you are composing the spec yourself instead of using an ID helper, pass the same `{ type, typeParams?, generated }` structure.
 

@@ -13,11 +13,11 @@
  * then maps the element codec over each.
  */
 
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import postgresRuntimeDriverDescriptor from '@prisma-next/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import postgresRuntimeDriverDescriptor from '@internal/driver-postgres/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
 import {
   BinaryExpr,
   ColumnRef,
@@ -26,20 +26,20 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { planFromAst } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import { planFromAst } from '@internal/sql-relational-core/plan';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   type Runtime,
-} from '@prisma-next/sql-runtime';
+} from '@internal/sql-runtime';
 import {
   buildDecodeContext,
   buildTestContractCodecs,
   createTestRuntime,
   decodeRow,
-} from '@prisma-next/sql-runtime/test/utils';
-import postgresRuntimeTargetDescriptor from '@prisma-next/target-postgres/runtime';
+} from '@internal/sql-runtime/test/utils';
+import postgresRuntimeTargetDescriptor from '@internal/target-postgres/runtime';
 import { applicationDomainOf, createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../../2-sql/1-core/contract/test/test-support';

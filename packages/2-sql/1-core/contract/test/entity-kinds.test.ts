@@ -1,7 +1,4 @@
-import {
-  hydrateNamespaceEntities,
-  UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
+import { hydrateNamespaceEntities, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { composeSqlEntityKinds, tableEntityKind, valueSetEntityKind } from '../src/entity-kinds';
 import { StorageTable } from '../src/ir/storage-table';

@@ -1,8 +1,8 @@
-import { loadConfig } from '@prisma-next/config-loader';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { MigrationGraph } from '@prisma-next/migration-tools/graph';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { ok, type Result } from '@prisma-next/utils/result';
+import { loadConfig } from '@internal/config-loader';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { MigrationGraph } from '@internal/migration-tools/graph';
+import { ifDefined } from '@internal/utils/defined';
+import { ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import type { CliStructuredError } from '../utils/cli-errors';
 import {

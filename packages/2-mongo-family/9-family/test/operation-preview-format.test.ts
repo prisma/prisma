@@ -5,7 +5,7 @@ import {
   DropCollectionCommand,
   DropIndexCommand,
   type MongoMigrationPlanOperation,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import { formatMongoOperations } from '../src/core/operation-preview';
 

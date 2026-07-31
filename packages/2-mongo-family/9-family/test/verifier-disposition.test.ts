@@ -2,7 +2,7 @@ import type {
   DiffableNode,
   ExpectationFailureReason,
   SchemaDiffIssue,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import {
   classifyMongoDiffIssue,

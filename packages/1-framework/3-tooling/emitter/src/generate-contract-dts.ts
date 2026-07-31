@@ -3,17 +3,17 @@ import type {
   ContractEnum,
   ContractModelBase,
   ContractValueObject,
-} from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/contract/types';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import {
   type EmissionSpi,
   type GenerateContractTypesOptions,
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
   type TypesImportSpec,
-} from '@prisma-next/framework-components/emission';
-import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/framework-components/emission';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import {
   deduplicateImports,
   generateCodecTypeIntersection,
@@ -188,7 +188,7 @@ import type {
   NamespaceId,
   ProfileHashBase,
   StorageHashBase,
-} from '${resolveImportSpecifier('@prisma-next/contract/types')}';
+} from '${resolveImportSpecifier('@internal/contract/types')}';
 
 ${hashAliases}
 

@@ -20,25 +20,25 @@
  * `PostgresOpFactoryCall` union.
  */
 
-import { errorUnfilledPlaceholder } from '@prisma-next/errors/migration';
-import type { CodecControlHooks, SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer, Lowerer } from '@prisma-next/family-sql/control-adapter';
+import { errorUnfilledPlaceholder } from '@internal/errors/migration';
+import type { CodecControlHooks, SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type {
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { StorageColumn, StorageTypeInstance } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import type {
   AnyDdlColumnDefault,
   DdlColumn,
   DdlTableConstraint,
-} from '@prisma-next/sql-relational-core/ast';
-import { FunctionColumnDefault, LiteralColumnDefault } from '@prisma-next/sql-relational-core/ast';
-import { type ImportRequirement, jsonToTsSource, TsExpression } from '@prisma-next/ts-render';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { assertNever } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import { FunctionColumnDefault, LiteralColumnDefault } from '@internal/sql-relational-core/ast';
+import { type ImportRequirement, jsonToTsSource, TsExpression } from '@internal/ts-render';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { assertNever } from '@internal/utils/internal-error';
 import {
   columnExistsAst,
   nativeEnumTypeExistsAst,
@@ -103,17 +103,17 @@ type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
 // (col / lit / fn / primaryKey / foreignKey / unique) from
 // sql-relational-core/contract-free. We emit imports against the facade,
 // not against the underlying sql-relational-core subpath, because user
-// projects depend on `@prisma-next/postgres` (a runtime dep of every
+// projects depend on `@internal/postgres` (a runtime dep of every
 // init-scaffolded project) — they do not depend on the internal
-// `@prisma-next/sql-relational-core` package, so an emitted
-// `import … from '@prisma-next/sql-relational-core/contract-free'` fails
+// `@internal/sql-relational-core` package, so an emitted
+// `import … from '@internal/sql-relational-core/contract-free'` fails
 // ESM resolution at runtime in user migrations even though pnpm has the
 // transitive package on disk.
 //
 // This is the authored name. `render-typescript.ts` maps it to whatever the
 // consuming application's import root calls it (TML-3123), once over the
 // whole assembled import list.
-const POSTGRES_MIGRATION_FACADE = '@prisma-next/postgres/migration';
+const POSTGRES_MIGRATION_FACADE = '@internal/postgres/migration';
 
 abstract class PostgresOpFactoryCallNode extends TsExpression implements FrameworkOpFactoryCall {
   abstract readonly factoryName: string;

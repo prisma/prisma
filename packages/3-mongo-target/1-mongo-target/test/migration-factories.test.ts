@@ -12,8 +12,8 @@ import {
   MongoAndExpr,
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
-} from '@prisma-next/mongo-query-ast/control';
-import { MongoSchemaCollection, MongoSchemaCollectionOptions } from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-query-ast/control';
+import { MongoSchemaCollection, MongoSchemaCollectionOptions } from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
 import {
   collMod,

@@ -144,9 +144,9 @@ You'll need to look at `test/integration/test/mongo/fixtures/contract.ts` to see
 
 ### Step 4 — migrate the two blocked mongo files
 
-After steps 1–3 land and you've confirmed `pnpm test --filter @prisma-next/mongo` passes (including the new type assertions):
+After steps 1–3 land and you've confirmed `pnpm test --filter @internal/mongo` passes (including the new type assertions):
 
-- **`test/integration/test/mongo-runtime/query-builder.test.ts`** — drop verbose imports (`@prisma-next/mongo-contract-ts/contract-builder`, `@prisma-next/family-mongo/pack`, `@prisma-next/target-mongo/pack`), switch to `@prisma-next/mongo/contract-builder`, drop `family:` and `target:` from the `defineContract(...)` call, remove the workaround comment D5b left.
+- **`test/integration/test/mongo-runtime/query-builder.test.ts`** — drop verbose imports (`@internal/mongo-contract-ts/contract-builder`, `@internal/family-mongo/pack`, `@internal/target-mongo/pack`), switch to `@internal/mongo/contract-builder`, drop `family:` and `target:` from the `defineContract(...)` call, remove the workaround comment D5b left.
 - **`test/integration/test/mongo/fixtures/contract.ts`** — same migration; remove F3-workaround comment.
 
 Run `pnpm typecheck --filter integration-tests` to confirm both migrate cleanly. Run `pnpm test:integration test/mongo-runtime/query-builder.test.ts` and any mongo integration suite that consumes the fixture to confirm runtime green.
@@ -156,12 +156,12 @@ Run `pnpm typecheck --filter integration-tests` to confirm both migrate cleanly.
 Per plan § D5e. Critical items:
 
 - F3 + F5 both closed in `code-review.md` (you don't need to edit code-review.md yourself — flag in your structured return and the orchestrator does it).
-- `pnpm typecheck --filter @prisma-next/mongo --filter @prisma-next/mongo-contract-ts --filter integration-tests` all exit 0.
-- `pnpm test --filter @prisma-next/mongo` exit 0; the new positive type assertions (a)+(b) AND the F3 regression test (c) are in the diff.
+- `pnpm typecheck --filter @internal/mongo --filter @internal/mongo-contract-ts --filter integration-tests` all exit 0.
+- `pnpm test --filter @internal/mongo` exit 0; the new positive type assertions (a)+(b) AND the F3 regression test (c) are in the diff.
 - `pnpm test:integration test/mongo-runtime/query-builder.test.ts` exit 0.
 - `pnpm test:integration` for whatever mongo integration suite exercises the F3 fixture (likely a `mongo/` subdirectory) exit 0.
 - `pnpm lint:deps` exit 0.
-- Grep gate: `rg "@prisma-next/(family-mongo|target-mongo)/(pack|control)" test/integration/test/mongo/fixtures/contract.ts test/integration/test/mongo-runtime/query-builder.test.ts` exit 1 (zero hits).
+- Grep gate: `rg "@internal/(family-mongo|target-mongo)/(pack|control)" test/integration/test/mongo/fixtures/contract.ts test/integration/test/mongo-runtime/query-builder.test.ts` exit 1 (zero hits).
 - No skips, no broad `as unknown as Record<string, unknown>` casts in test bodies.
 
 ## How to work

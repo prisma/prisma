@@ -1,4 +1,4 @@
-# @prisma-next/mongo-wire
+# @internal/mongo-wire
 
 Wire-level command and result types for MongoDB operations.
 
@@ -11,7 +11,7 @@ Wire-level command and result types for MongoDB operations.
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/mongo-value` (`Document`, `RawPipeline` for command payloads)
+  - `@internal/mongo-value` (`Document`, `RawPipeline` for command payloads)
 - **Depended on by**:
-  - `@prisma-next/mongo-lowering` (adapter and driver interfaces reference wire commands)
-  - `@prisma-next/adapter-mongo` (produces wire commands from query plans)
+  - `@internal/mongo-lowering` (adapter and driver interfaces reference wire commands)
+  - `@internal/adapter-mongo` (produces wire commands from query plans)

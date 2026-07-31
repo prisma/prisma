@@ -1,6 +1,6 @@
 /**
  * Tests for entity-ref type constructors — the mechanism behind `pg.enum(Ref)`
- * native-enum field typing (see `@prisma-next/target-postgres`'s
+ * native-enum field typing (see `@internal/target-postgres`'s
  * `postgresAuthoringTypes.pg.enum`).
  *
  * A type constructor whose descriptor declares `entityRefArg` names another
@@ -11,7 +11,7 @@
  *
  * This file stays layer-isolated: it registers its own small `native_enum`-
  * and `plain_ref`-shaped PSL blocks, entity types, type constructors, and
- * codec descriptors rather than importing `@prisma-next/target-postgres`
+ * codec descriptors rather than importing `@internal/target-postgres`
  * (same rationale as `pgvectorAuthoringContributions` in `fixtures.ts` —
  * interpreter unit tests should not depend on a target pack). Real-pack
  * parity for `pg.enum(Ref)` itself lives in
@@ -24,11 +24,11 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   AuthoringTypeNamespace,
   PslExtensionBlock,
-} from '@prisma-next/framework-components/authoring';
-import type { AnyCodecDescriptor, CodecLookup } from '@prisma-next/framework-components/codec';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import type { SqlValueSetDerivingEntityTypeOutput } from '@prisma-next/sql-contract/value-set-derivation-hook';
+} from '@internal/framework-components/authoring';
+import type { AnyCodecDescriptor, CodecLookup } from '@internal/framework-components/codec';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import type { SqlValueSetDerivingEntityTypeOutput } from '@internal/sql-contract/value-set-derivation-hook';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';
@@ -72,7 +72,7 @@ function lowerTestPlainRef(block: PslExtensionBlock): TestPlainRef {
   return { name: block.name };
 }
 
-// Mirrors `nativeEnumEntityTypeOutput` in `@prisma-next/target-postgres`'s
+// Mirrors `nativeEnumEntityTypeOutput` in `@internal/target-postgres`'s
 // authoring.ts: `deriveValueSet` is SQL-family surface
 // (`SqlValueSetDerivingEntityTypeOutput`), checked separately against the
 // intersection of both shapes so the outer `entityTypes` map's own

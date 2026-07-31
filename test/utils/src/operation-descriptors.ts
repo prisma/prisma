@@ -2,10 +2,10 @@
  * Adapter-agnostic operation type descriptors for test fixtures.
  *
  * These descriptors match common PostgreSQL vector operations but don't depend on
- * @prisma-next/adapter-postgres or any target-specific packages.
+ * @internal/adapter-postgres or any target-specific packages.
  * Use these in test fixtures to avoid adapter/target dependencies.
  *
- * The shape matches `OperationTypes` from `@prisma-next/sql-relational-core/types`
+ * The shape matches `OperationTypes` from `@internal/sql-relational-core/types`
  * but is defined locally to keep test-utils dependency-free.
  */
 

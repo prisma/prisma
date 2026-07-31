@@ -1,4 +1,4 @@
-import { InsertOneCommand, RawAggregateCommand } from '@prisma-next/mongo-query-ast/execution';
+import { InsertOneCommand, RawAggregateCommand } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { mongoQuery } from '../src/query';
 import type { TContract } from './fixtures/test-contract';

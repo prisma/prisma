@@ -1,9 +1,9 @@
 {
-  "name": "@prisma-next/extension-author-tools",
+  "name": "@internal/extension-author-tools",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
-  "description": "CLI tools that pair with the prisma-next-extension-upgrade agent skill — including `prisma-next-check-pins`, the CI guard that asserts every `@prisma-next/*` peerDep on an extension package is exact-version-pinned. Future tools for extension authors employing the upgrade skill ship from this package.",
+  "description": "CLI tools that pair with the prisma-next-extension-upgrade agent skill — including `prisma-next-check-pins`, the CI guard that asserts every `@internal/*` peerDep on an extension package is exact-version-pinned. Future tools for extension authors employing the upgrade skill ship from this package.",
   "publishConfig": {
     "access": "public",
     "provenance": true

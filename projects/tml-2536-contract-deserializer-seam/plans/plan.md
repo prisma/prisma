@@ -125,7 +125,7 @@ Each dispatch's full brief is assembled at delegation time per [`brief-disciplin
 
 ### D3 — Mirror codemod entry to extension-skill side
 
-**Outcome.** New `skills/extension-author/prisma-next-extension-upgrade/upgrades/0.9-to-0.10/instructions.md` mirroring D2's entry with extension-author framing. Codemod transformation is structurally the same; only the prose audience differs (an extension author authoring against `@prisma-next/extension-*` packages, not an end-user with a demo).
+**Outcome.** New `skills/extension-author/prisma-next-extension-upgrade/upgrades/0.9-to-0.10/instructions.md` mirroring D2's entry with extension-author framing. Codemod transformation is structurally the same; only the prose audience differs (an extension author authoring against `@internal/extension-*` packages, not an end-user with a demo).
 
 **Scope (out).** Substrate application — extension authors have no in-tree demo to stamp.
 

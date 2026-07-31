@@ -342,10 +342,10 @@ only when every fix has landed.
 The runtime test first failed with:
 
 ```
-Error: Cannot find package '@prisma-next/sql-schema-ir/naming' imported from .../packages/2-sql/1-core/contract/dist/foreign-key-materialization.mjs
+Error: Cannot find package '@internal/sql-schema-ir/naming' imported from .../packages/2-sql/1-core/contract/dist/foreign-key-materialization.mjs
 ```
 
 This is the `workspace-package-not-found-run-pnpm-install` rule's case, not a code bug: the
-`@prisma-next/sql-schema-ir` symlink was missing from `packages/2-sql/1-core/contract/node_modules/@prisma-next/`.
+`@internal/sql-schema-ir` symlink was missing from `packages/2-sql/1-core/contract/node_modules/@internal/`.
 `pnpm install` fixed it and left `pnpm-lock.yaml` unchanged. If a later dispatch sees this, install —
 don't debug it.

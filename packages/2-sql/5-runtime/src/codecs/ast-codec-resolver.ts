@@ -1,11 +1,11 @@
-import type { CodecRef } from '@prisma-next/framework-components/codec';
+import type { CodecRef } from '@internal/framework-components/codec';
 import {
   materializeCodec,
   resolveCodecDescriptorOrThrow,
-} from '@prisma-next/framework-components/codec';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
-import type { Codec, SqlCodecInstanceContext } from '@prisma-next/sql-relational-core/ast';
-import type { CodecDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/framework-components/codec';
+import { canonicalizeJson } from '@internal/framework-components/utils';
+import type { Codec, SqlCodecInstanceContext } from '@internal/sql-relational-core/ast';
+import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 
 /**
  * Per-`ExecutionContext` resolver that materialises the {@link Codec} for a {@link CodecRef} carried on an AST node.

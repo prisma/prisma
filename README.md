@@ -76,9 +76,9 @@ Prisma Next has a minimal core. Everything around it, including Postgres support
 
 A few extensions already shipping:
 
-- **`@prisma-next/extension-pgvector`**: vector columns and similarity operators for semantic search.
-- **`@prisma-next/extension-paradedb`**: typed BM25 indexes with multiple tokenizers for full-text search.
-- **`@prisma-next/extension-postgis`**: geospatial types and queries.
+- **`@internal/extension-pgvector`**: vector columns and similarity operators for semantic search.
+- **`@internal/extension-paradedb`**: typed BM25 indexes with multiple tokenizers for full-text search.
+- **`@internal/extension-postgis`**: geospatial types and queries.
 - **[`@cipherstash/prisma-next`](https://pris.ly/cipherstash-p-blog)**: searchable encryption and data-level access control.
 
 Want to ship your own? The **[Authoring Prisma Next Extensions](https://pris.ly/pn-extension-authors)** blog walks through the SPI, the layers your extension can hook into, and how the team features new extensions in the Prisma Next directory.

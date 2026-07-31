@@ -2,7 +2,7 @@ import {
   type AnyFromSource,
   type AstRewriter,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 
 export class PostgresTableSource extends TableSource {
   readonly schema: string | undefined;

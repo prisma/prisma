@@ -1,5 +1,5 @@
-import { generateContractDts } from '@prisma-next/emitter';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
+import { generateContractDts } from '@internal/emitter';
+import type { TypesImportSpec } from '@internal/framework-components/emission';
 import { describe, expect, it } from 'vitest';
 import { mongoEmission } from '../src/index';
 import { blogContract } from './fixtures/blog-contract';
@@ -8,7 +8,7 @@ const testHashes = { storageHash: 'blog-test', profileHash: 'blog-profile' };
 
 const mongoCodecImports: TypesImportSpec[] = [
   {
-    package: '@prisma-next/adapter-mongo/codec-types',
+    package: '@internal/adapter-mongo/codec-types',
     named: 'CodecTypes',
     alias: 'MongoCodecTypes',
   },

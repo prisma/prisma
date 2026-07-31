@@ -1,9 +1,9 @@
-import { type Contract, coreHash, executionHash, profileHash } from '@prisma-next/contract/types';
-import { mergeCapabilityMatrices } from '@prisma-next/framework-components/components';
-import type { RuntimeDriverDescriptor } from '@prisma-next/framework-components/execution';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlOperationDescriptors } from '@prisma-next/sql-operations';
-import type { Codec } from '@prisma-next/sql-relational-core/ast';
+import { type Contract, coreHash, executionHash, profileHash } from '@internal/contract/types';
+import { mergeCapabilityMatrices } from '@internal/framework-components/components';
+import type { RuntimeDriverDescriptor } from '@internal/framework-components/execution';
+import { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlOperationDescriptors } from '@internal/sql-operations';
+import type { Codec } from '@internal/sql-relational-core/ast';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';

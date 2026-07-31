@@ -1,6 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { CliStructuredError } from '@prisma-next/errors/control';
+import { CliStructuredError } from '@internal/errors/control';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -36,7 +36,7 @@ describe('projectImportRoot', () => {
   });
 
   it('stays on the internal root for a project that names only workspace packages', () => {
-    const configPath = writeManifest({ '@prisma-next/postgres': 'workspace:0.16.0' });
+    const configPath = writeManifest({ '@internal/postgres': 'workspace:0.16.0' });
 
     expect(projectImportRoot(configPath)).toEqual({ mode: 'internal' });
   });
@@ -96,16 +96,16 @@ describe('createProjectSpecifierResolver', () => {
     const configPath = writeManifest({ '@prisma/orm-postgres': '0.16.0' });
     const resolve = createProjectSpecifierResolver(configPath);
 
-    expect(resolve('@prisma-next/contract/types')).toBe('@prisma/orm-postgres/contract/types');
-    expect(resolve('@prisma-next/sql-contract/types')).toBe(
+    expect(resolve('@internal/contract/types')).toBe('@prisma/orm-postgres/contract/types');
+    expect(resolve('@internal/sql-contract/types')).toBe(
       '@prisma/orm-postgres/family-contract/types',
     );
   });
 
   it('leaves specifiers alone for a project on the internal root', () => {
-    const configPath = writeManifest({ '@prisma-next/postgres': 'workspace:0.16.0' });
+    const configPath = writeManifest({ '@internal/postgres': 'workspace:0.16.0' });
     const resolve = createProjectSpecifierResolver(configPath);
 
-    expect(resolve('@prisma-next/contract/types')).toBe('@prisma-next/contract/types');
+    expect(resolve('@internal/contract/types')).toBe('@internal/contract/types');
   });
 });

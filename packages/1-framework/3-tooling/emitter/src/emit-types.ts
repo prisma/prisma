@@ -2,12 +2,12 @@ import type {
   PreserveEmptyPredicate,
   SerializeContract,
   StorageSort,
-} from '@prisma-next/contract/hashing';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/contract/hashing';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import type {
   ImportSpecifierResolver,
   TypesImportSpec,
-} from '@prisma-next/framework-components/emission';
+} from '@internal/framework-components/emission';
 
 /**
  * The subset of ControlStack that emit() reads.

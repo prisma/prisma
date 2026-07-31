@@ -6,9 +6,9 @@ Add first-class MongoDB support to `contract.ts` by introducing a typed TypeScri
 
 Prisma Next already supports Mongo contracts in several important places:
 
-- `@prisma-next/mongo-contract` defines the Mongo contract types and validation rules.
-- `@prisma-next/mongo-emitter` emits `contract.json` and `contract.d.ts` from a canonical Mongo contract.
-- `@prisma-next/mongo-contract-psl` interprets Mongo PSL into a contract.
+- `@internal/mongo-contract` defines the Mongo contract types and validation rules.
+- `@internal/mongo-emitter` emits `contract.json` and `contract.d.ts` from a canonical Mongo contract.
+- `@internal/mongo-contract-psl` interprets Mongo PSL into a contract.
 - The CLI can already load a hand-authored `contract.ts` object because `loadContractFromTs()` is family-agnostic and config `contract.source` can return any `Contract`.
 
 What is missing is an ergonomic, typed Mongo authoring surface for `contract.ts`. Today, SQL has a redesigned DSL centered on `defineContract(...)`, pack-composed `field.*` helpers, typed model tokens, and a no-emit friendly result type. Mongo does not. Mongo users either author PSL or hand-construct plain contract objects.
@@ -29,7 +29,7 @@ Mongo also needs domain features that are not represented by the current user-fa
 - collection-root authoring instead of table-first mapping
 - field shapes using `many` / `dict` / union-like document semantics rather than SQL column semantics
 
-**Assumption:** the correct first slice is a dedicated Mongo authoring package, likely `@prisma-next/mongo-contract-ts`, plus only the shared extractions that materially reduce duplication. The goal is not a one-shot family-agnostic rewrite of `@prisma-next/sql-contract-ts`.
+**Assumption:** the correct first slice is a dedicated Mongo authoring package, likely `@internal/mongo-contract-ts`, plus only the shared extractions that materially reduce duplication. The goal is not a one-shot family-agnostic rewrite of `@internal/sql-contract-ts`.
 
 # Requirements
 
@@ -109,7 +109,7 @@ Mongo also needs domain features that are not represented by the current user-fa
 
 ## Non-goals
 
-1. Converting `@prisma-next/sql-contract-ts` into a fully family-agnostic DSL in the same project.
+1. Converting `@internal/sql-contract-ts` into a fully family-agnostic DSL in the same project.
 
 2. Adding Mongo runtime features that are unrelated to authoring, such as change streams, vector search, or encryption support.
 
@@ -188,7 +188,7 @@ No product analytics work is required. If adoption is measured later, package-le
 
 # Open Questions
 
-1. Should the first implementation create `@prisma-next/mongo-contract-ts` directly, or is there enough immediate reuse value to extract a new family-neutral authoring core first?
+1. Should the first implementation create `@internal/mongo-contract-ts` directly, or is there enough immediate reuse value to extract a new family-neutral authoring core first?
    - **Default assumption:** create the Mongo package first and extract only the helper/runtime pieces that clearly serve both families.
 
 2. How much surface symmetry with the redesigned SQL API is required?

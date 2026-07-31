@@ -1,12 +1,12 @@
-import { generateContractDts } from '@prisma-next/emitter';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
+import { generateContractDts } from '@internal/emitter';
+import type { TypesImportSpec } from '@internal/framework-components/emission';
 import {
   createImportSpecifierResolver,
   type ImportRoot,
   importedSpecifiers,
   internalImportRoot,
   transitiveImports,
-} from '@prisma-next/publish-surface/import-roots';
+} from '@internal/publish-surface/import-roots';
 import { describe, expect, it } from 'vitest';
 import { mongoEmission } from '../src/index';
 import { createMongoContract } from './fixtures/create-mongo-contract';
@@ -18,7 +18,7 @@ const hashes = { storageHash: 'storage', profileHash: 'profile' };
 
 const codecTypeImports: TypesImportSpec[] = [
   {
-    package: '@prisma-next/adapter-mongo/codec-types',
+    package: '@internal/adapter-mongo/codec-types',
     named: 'CodecTypes',
     alias: 'MongoCodecTypes',
   },
@@ -39,9 +39,9 @@ function emit(root: ImportRoot): string {
 describe('emitted contract types under each import root', () => {
   it('names workspace packages under the internal root', () => {
     expect(importedSpecifiers(emit(internalImportRoot)).sort()).toEqual([
-      '@prisma-next/adapter-mongo/codec-types',
-      '@prisma-next/contract/types',
-      '@prisma-next/mongo-contract',
+      '@internal/adapter-mongo/codec-types',
+      '@internal/contract/types',
+      '@internal/mongo-contract',
     ]);
   });
 

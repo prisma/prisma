@@ -1,8 +1,8 @@
 import type {
   AnyEntityKindDescriptor,
   EntityKindDescriptor,
-} from '@prisma-next/framework-components/ir';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/ir';
+import { structuredError } from '@internal/utils/structured-error';
 import { StorageCollectionSchema, StorageValueSetSchema } from './contract-schema';
 import { MongoCollection, type MongoCollectionInput } from './ir/mongo-collection';
 import { MongoValueSet, type MongoValueSetInput } from './ir/mongo-value-set';

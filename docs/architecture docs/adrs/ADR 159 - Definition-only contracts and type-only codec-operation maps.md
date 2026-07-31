@@ -193,7 +193,7 @@ Rationale: we want an explicit signal that these maps are for TypeScript inferen
 - No-emit workflows keep a **single configuration surface** (import codec column constructors once; types flow).
 - Lane typing remains deterministic and precise, including parameterized codecs.
 - Runtime composition remains where it belongs: `ExecutionContext` derived from descriptors.
-- Higher-level runtime clients (e.g. `@prisma-next/postgres/runtime`) can stay ergonomic:
+- Higher-level runtime clients (e.g. `@internal/postgres/runtime`) can stay ergonomic:
   - emitted workflow: `postgres<Contract, TypeMaps>({ contractJson, ... })`
   - no-emit workflow: `postgres({ contract })` where `contract` is `ContractWithTypeMaps<Contract, TypeMaps>`
 

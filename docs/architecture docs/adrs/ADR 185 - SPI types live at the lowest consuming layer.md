@@ -8,17 +8,17 @@ customize. The interface between them — `EmissionSpi` — is an SPI
 layer, implemented by each family.
 
 ```text
-  @prisma-next/emitter (tooling layer — calls the hook)
+  @internal/emitter (tooling layer — calls the hook)
         ↓ imports
-  @prisma-next/framework-components/emission (core layer — defines the SPI)
+  @internal/framework-components/emission (core layer — defines the SPI)
         ↑ imports                    ↑ imports
-  @prisma-next/sql-contract-emitter   @prisma-next/mongo-emitter
+  @internal/sql-contract-emitter   @internal/mongo-emitter
   (tooling layer — implements)        (tooling layer — implements)
 ```
 
 Both the caller and the implementers depend on the abstraction. The
 abstraction lives in the lowest layer that can host it — **core**, not
-foundation (where `@prisma-next/contract` lives), because the SPI types
+foundation (where `@internal/contract` lives), because the SPI types
 reference `OperationRegistry` and other core-layer types.
 
 ## Context
@@ -47,7 +47,7 @@ layer).
 
 **SPI interfaces live in the lowest layer whose types they depend on.**
 
-The emission SPI types live in `@prisma-next/framework-components` (core
+The emission SPI types live in `@internal/framework-components` (core
 layer), exported via the `./emission` subpath:
 
 - `EmissionSpi` — the interface family emitters implement to customize
@@ -62,7 +62,7 @@ Orchestration code imports from this subpath:
 
 ```ts
 // tooling layer — emitter (caller)
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
+import type { EmissionSpi } from '@internal/framework-components/emission';
 
 export async function emit(
   contract: Contract,
@@ -75,7 +75,7 @@ Family emitters implement the interface:
 
 ```ts
 // tooling layer — SQL emitter (implementer)
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
+import type { EmissionSpi } from '@internal/framework-components/emission';
 
 export const sqlEmission: EmissionSpi = {
   id: 'sql',
@@ -94,7 +94,7 @@ abstraction lives at its own natural layer — determined by its type
 dependencies, not by who implements it.
 
 The same pattern applies to other SPI types already in
-`@prisma-next/framework-components`: component descriptors
+`@internal/framework-components`: component descriptors
 (`./components`), control-plane types (`./control`), and execution-plane
 types (`./execution`).
 
@@ -104,7 +104,7 @@ types (`./execution`).
 layer) needs to import `EmissionSpi` as a parameter type. Both the
 emitter and family implementations share the same SPI types from core.
 
-**Place in `@prisma-next/contract` (foundation layer)?**
+**Place in `@internal/contract` (foundation layer)?**
 `EmissionSpi` references `GenerateContractTypesOptions` and other
 core-layer types. This would force the contract package to depend on a
 core-layer package, turning a leaf foundation package into one with
@@ -112,15 +112,15 @@ framework-domain coupling.
 
 ## Consequences
 
-- **Contract is a true leaf**: `@prisma-next/contract` depends only on
-  `@prisma-next/utils` and `arktype` — no framework-domain packages.
+- **Contract is a true leaf**: `@internal/contract` depends only on
+  `@internal/utils` and `arktype` — no framework-domain packages.
 - **No upward imports**: Orchestration code imports SPI types from core,
   never from tooling.
 - **Single canonical source**: Each SPI type has one definition; no
   duplicates across packages.
 - **Counter-intuitive placement**: Contributors may instinctively move SPI
   types "closer" to their implementations. The
-  `@prisma-next/framework-components` README documents this rationale to
+  `@internal/framework-components` README documents this rationale to
   prevent drift.
 
 ## Status
@@ -133,5 +133,5 @@ Accepted.
   — defines the descriptor/instance pattern that these SPI types support
 - [ADR 150 — Family-Agnostic CLI and Pack Entry Points](ADR%20150%20-%20Family-Agnostic%20CLI%20and%20Pack%20Entry%20Points.md)
   — establishes the family-agnostic orchestration that consumes these SPIs
-- [`@prisma-next/framework-components` README](../../../packages/1-framework/1-core/shared/framework-components/README.md)
+- [`@internal/framework-components` README](../../../packages/1-framework/1-core/shared/framework-components/README.md)
   — documents the SPI placement rationale for contributors

@@ -1,4 +1,4 @@
-import { defineContract, field, model, rel } from '@prisma-next/mongo/contract-builder';
+import { defineContract, field, model, rel } from '@internal/mongo/contract-builder';
 
 const User = model('User', {
   collection: 'users',

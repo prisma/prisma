@@ -1,4 +1,4 @@
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';

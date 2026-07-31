@@ -2,21 +2,18 @@ import {
   createMongoRunnerDeps,
   extractDb,
   MongoControlAdapterImpl,
-} from '@prisma-next/adapter-mongo/control';
-import { coreHash, crossRef, profileHash } from '@prisma-next/contract/types';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import mongoControlDriver, { MongoControlDriver } from '@prisma-next/driver-mongo/control';
-import {
-  contractToMongoSchemaIR,
-  createMongoFamilyInstance,
-} from '@prisma-next/family-mongo/control';
-import { MongoCollection, type MongoContract, MongoIndex } from '@prisma-next/mongo-contract';
-import type { MongoMigrationPlanOperation } from '@prisma-next/mongo-query-ast/control';
+} from '@internal/adapter-mongo/control';
+import { coreHash, crossRef, profileHash } from '@internal/contract/types';
+import { MongoDriverImpl } from '@internal/driver-mongo';
+import mongoControlDriver, { MongoControlDriver } from '@internal/driver-mongo/control';
+import { contractToMongoSchemaIR, createMongoFamilyInstance } from '@internal/family-mongo/control';
+import { MongoCollection, type MongoContract, MongoIndex } from '@internal/mongo-contract';
+import type { MongoMigrationPlanOperation } from '@internal/mongo-query-ast/control';
 import {
   MongoMigrationPlanner,
   MongoMigrationRunner,
   serializeMongoOps,
-} from '@prisma-next/target-mongo/control';
+} from '@internal/target-mongo/control';
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

@@ -1,4 +1,4 @@
-import type { Contract, ContractMarkerRecord } from '@prisma-next/contract/types';
+import type { Contract, ContractMarkerRecord } from '@internal/contract/types';
 import type {
   ControlAdapterInstance,
   ControlDriverInstance,
@@ -6,8 +6,8 @@ import type {
   MigrationPlannerResult,
   MigrationRunnerResult,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-import { notOk, ok } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import { notOk, ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
 import { executeDbUpdate } from '../../src/control-api/operations/db-update';
 import type { ControlProgressEvent } from '../../src/control-api/types';

@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+import type { Contract } from '@internal/contract/types';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { isPostgresSchema } from '../postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';

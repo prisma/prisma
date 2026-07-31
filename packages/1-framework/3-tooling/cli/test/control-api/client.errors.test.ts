@@ -1,4 +1,4 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   ControlAdapterDescriptor,
   ControlDriverDescriptor,
@@ -6,8 +6,8 @@ import type {
   ControlFamilyDescriptor,
   ControlFamilyInstance,
   ControlTargetDescriptor,
-} from '@prisma-next/framework-components/control';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/control';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { createControlClient } from '../../src/control-api/client';
 

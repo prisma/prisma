@@ -19,7 +19,7 @@ const DB_NAME = 'cache_demo';
  * surface (the SQL DSL does), so we thread the annotation through
  * `plan.meta.annotations.cache` directly. The cache middleware reads it
  * via `cacheAnnotation.read(plan)` exactly the same way it does for SQL
- * plans — the package depends only on `@prisma-next/framework-components/runtime`
+ * plans — the package depends only on `@internal/framework-components/runtime`
  * and is family-agnostic by construction.
  */
 function withCacheAnnotation<P extends MongoQueryPlan>(plan: P, payload: CachePayload): P {

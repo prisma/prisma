@@ -1,7 +1,7 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, type SqlStorageInput } from '@prisma-next/sql-contract/types';
-import { SqlSchemaIR, type SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, type SqlStorageInput } from '@internal/sql-contract/types';
+import { SqlSchemaIR, type SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { verifyPostgresNamespacePresence } from '../../src/core/migrations/verify-postgres-namespaces';

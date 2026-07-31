@@ -7,7 +7,7 @@
  * byte-for-byte consistent without one depending on the other.
  */
 
-import { blindCast } from '@prisma-next/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 
 export type CapabilityMatrix = Record<string, Record<string, boolean>>;
 

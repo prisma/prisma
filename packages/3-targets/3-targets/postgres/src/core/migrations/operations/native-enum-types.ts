@@ -1,5 +1,5 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { ifDefined } from '@internal/utils/defined';
 import { createType, dropType } from '../../../contract-free/ddl';
 import { validateEnumValueLength } from '../../sql-utils';
 import { boundSchema } from '../bound-schema';

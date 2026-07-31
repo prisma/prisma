@@ -1,6 +1,6 @@
-import { charColumn, int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import { uuidv4 } from '@prisma-next/ids';
-import { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
+import { charColumn, int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import { uuidv4 } from '@internal/ids';
+import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
 
 // A pure-junction M:N (User.tags through user_tags) whose junction payload column
 // `created_at` carries an execution-time onCreate default (uuidv4) instead of a

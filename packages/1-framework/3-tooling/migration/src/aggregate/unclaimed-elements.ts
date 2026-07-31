@@ -3,9 +3,9 @@ import type {
   SchemaDiffIssue,
   SchemaEntityCoordinate,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { coordinateKey, UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { coordinateKey, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 
 /**
  * Classifies a diff issue's subject granularity on demand — the injected

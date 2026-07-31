@@ -1,4 +1,4 @@
-import type { RuntimeDriverDescriptor } from '@prisma-next/framework-components/execution';
+import type { RuntimeDriverDescriptor } from '@internal/framework-components/execution';
 import { SqliteDriver, type SqliteRuntimeDriver } from '../sqlite-driver';
 import { sqliteDriverDescriptorMeta } from './descriptor-meta';
 

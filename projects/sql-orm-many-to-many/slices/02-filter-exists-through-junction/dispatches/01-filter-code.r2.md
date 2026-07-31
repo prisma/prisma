@@ -19,7 +19,7 @@ The R1 implementer ran out of budget mid-work and **did not commit**. Uncommitte
 
 - [ ] `some`/`every`/`none` on M:N compile to the correct junction EXISTS/NOT EXISTS (both correlation sides correct, composite-key AND-ed); unit tests pass.
 - [ ] FK filter tests pass.
-- [ ] `pnpm --filter @prisma-next/sql-orm-client typecheck` + `test` green.
+- [ ] `pnpm --filter @internal/sql-orm-client typecheck` + `test` green.
 - [ ] Committed as **one coherent commit** (WIP + completion), explicit staging + `-s` sign-off, **no push**. No bare `as` casts.
 
 ## Standing instruction

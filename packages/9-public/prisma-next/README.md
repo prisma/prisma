@@ -33,7 +33,7 @@ In a project with a `package.json`:
 pnpm dlx prisma-next init
 ```
 
-Init prompts for your database (PostgreSQL or MongoDB) and schema location, scaffolds the config/schema/runtime files, installs the target facade (e.g. `@prisma-next/postgres`) plus `prisma-next`, and emits your contract.
+Init prompts for your database (PostgreSQL or MongoDB) and schema location, scaffolds the config/schema/runtime files, installs the target facade (e.g. `@internal/postgres`) plus `prisma-next`, and emits your contract.
 
 ## Commands
 
@@ -60,16 +60,16 @@ Run `prisma-next --help` or `prisma-next <command> --help` for full options.
 
 `prisma-next` is a CLI distribution only — it has no library exports. Importing from `prisma-next` (root or any subpath) will fail.
 
-Authors of build integrations, extension packs, and advanced config wiring should install [`@prisma-next/cli`](https://www.npmjs.com/package/@prisma-next/cli) and import from its subpaths:
+Authors of build integrations, extension packs, and advanced config wiring should install [`@internal/cli`](https://www.npmjs.com/package/@internal/cli) and import from its subpaths:
 
-- `@prisma-next/cli/config-types` — `defineConfig` and config types
-- `@prisma-next/cli/control-api` — `createControlClient` for programmatic control-plane operations
-- `@prisma-next/config-loader` — `loadConfig`
-- `@prisma-next/cli/commands/*` — individual command factories (`createContractEmitCommand`, `createDbInitCommand`, …)
+- `@internal/cli/config-types` — `defineConfig` and config types
+- `@internal/cli/control-api` — `createControlClient` for programmatic control-plane operations
+- `@internal/config-loader` — `loadConfig`
+- `@internal/cli/commands/*` — individual command factories (`createContractEmitCommand`, `createDbInitCommand`, …)
 
-These subpaths are less stable than the facade packages (`@prisma-next/postgres/config`, `@prisma-next/mongo/config`) — prefer those for application-level config.
+These subpaths are less stable than the facade packages (`@internal/postgres/config`, `@internal/mongo/config`) — prefer those for application-level config.
 
 ## Links
 
 - Project: [prisma-next on GitHub](https://github.com/prisma/prisma-next)
-- Internal architecture documentation: [`@prisma-next/cli` README](https://github.com/prisma/prisma-next/tree/main/packages/1-framework/3-tooling/cli)
+- Internal architecture documentation: [`@internal/cli` README](https://github.com/prisma/prisma-next/tree/main/packages/1-framework/3-tooling/cli)

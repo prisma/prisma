@@ -1,10 +1,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { MongoControlAdapterImpl } from '@prisma-next/adapter-mongo/control';
-import { createDbVerifyCommand } from '@prisma-next/cli/commands/db-verify';
-import { coreHash, crossRef, profileHash } from '@prisma-next/contract/types';
-import { MongoControlDriver } from '@prisma-next/driver-mongo/control';
-import { MongoCollection, type MongoContract, MongoIndex } from '@prisma-next/mongo-contract';
+import { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
+import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
+import { coreHash, crossRef, profileHash } from '@internal/contract/types';
+import { MongoControlDriver } from '@internal/driver-mongo/control';
+import { MongoCollection, type MongoContract, MongoIndex } from '@internal/mongo-contract';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

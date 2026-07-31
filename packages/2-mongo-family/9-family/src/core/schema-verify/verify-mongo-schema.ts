@@ -1,14 +1,14 @@
-import { type ControlPolicy, effectiveControlPolicy } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import { type ControlPolicy, effectiveControlPolicy } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   OperationContext,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { VERIFY_CODE_SCHEMA_FAILURE } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { MongoCollection, MongoContract } from '@prisma-next/mongo-contract';
-import type { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import { VERIFY_CODE_SCHEMA_FAILURE } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { MongoCollection, MongoContract } from '@internal/mongo-contract';
+import type { MongoSchemaIR } from '@internal/mongo-schema-ir';
+import { ifDefined } from '@internal/utils/defined';
 import { contractToMongoSchemaIR } from '../contract-to-schema';
 import { diffMongoSchemas } from '../schema-diff';
 import { canonicalizeSchemasForVerification } from './canonicalize-introspection';

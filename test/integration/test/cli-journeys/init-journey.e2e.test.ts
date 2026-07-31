@@ -327,7 +327,7 @@ const TML_2487_seam = seamExpectation<StepResult>({
 const TML_2314_seam = seamExpectation<StepResult>({
   ticket: 'TML-2314',
   description:
-    'user can write/read an entity via @prisma-next/postgres/runtime and the /control facade composes a working stack',
+    'user can write/read an entity via @internal/postgres/runtime and the /control facade composes a working stack',
   status: 'fixed',
   whenBroken: (r) => {
     expect(r.exitCode, 'TML-2314 still broken: control import must currently fail').not.toBe(0);

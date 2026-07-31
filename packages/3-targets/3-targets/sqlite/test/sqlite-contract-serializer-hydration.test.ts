@@ -1,5 +1,5 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { StorageColumn, StorageTable } from '@prisma-next/sql-contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { SqliteContractSerializer } from '../src/core/sqlite-contract-serializer';

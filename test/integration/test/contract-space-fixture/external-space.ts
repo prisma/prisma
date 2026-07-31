@@ -1,18 +1,18 @@
 /**
  * All-external variant of the synthetic test extension: a contract space
  * that pins a head ref but ships NO migration packages, mirroring
- * `@prisma-next/extension-supabase` (its `auth`/`storage` tables are
+ * `@internal/extension-supabase` (its `auth`/`storage` tables are
  * `external`, so the space emits no DDL and has nothing to author).
  * Exercises the declarative marker advancement path in `migrate`.
  */
 
-import { computeStorageHash } from '@prisma-next/contract/hashing';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { SqlControlExtensionDescriptor } from '@prisma-next/family-sql/control';
-import type { ContractSpace } from '@prisma-next/framework-components/control';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import { computeStorageHash } from '@internal/contract/hashing';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
+import type { ContractSpace } from '@internal/framework-components/control';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 
 const TARGET = 'postgres' as const;
 const TARGET_FAMILY = 'sql' as const;

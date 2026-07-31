@@ -10,7 +10,7 @@
  * handle↔contract consistency test (`test/contract-handles.test.ts`) asserts
  * they agree so any drift is caught at test time.
  */
-import { extensionModel, field } from '@prisma-next/sql-contract-ts/contract-builder';
+import { extensionModel, field } from '@internal/sql-contract-ts/contract-builder';
 
 const pgText = { codecId: 'pg/text@1', nativeType: 'text' } as const;
 const pgTimestamptz = { codecId: 'pg/timestamptz@1', nativeType: 'timestamptz' } as const;

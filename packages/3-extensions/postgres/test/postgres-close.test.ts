@@ -1,4 +1,4 @@
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { createContract } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

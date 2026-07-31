@@ -1,7 +1,7 @@
 import type {
   MigrationOperationClass,
   MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import type { AnyMongoDdlCommand } from './ddl-commands';
 import type { MongoFilterExpr } from './filter-expressions';
 import type { AnyMongoInspectionCommand } from './inspection-commands';

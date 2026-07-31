@@ -6,12 +6,12 @@
 
 ## At a glance
 
-A user writing against `@prisma-next/postgres` picks one of two import paths depending on where their code runs.
+A user writing against `@internal/postgres` picks one of two import paths depending on where their code runs.
 
 In a long-lived Node process:
 
 ```ts
-import { postgres } from '@prisma-next/postgres/runtime';
+import { postgres } from '@internal/postgres/runtime';
 import contractJson from './contract.json' with { type: 'json' };
 import type { Contract } from './contract';
 
@@ -24,8 +24,8 @@ const users = await db.orm.User.take(10).all();
 In a per-request runtime (Cloudflare Workers, AWS Lambda Node, Vercel Edge / Vercel Serverless, Deno Deploy, Bun edge):
 
 ```ts
-import { postgresServerless } from '@prisma-next/postgres/serverless';
-import { withTransaction } from '@prisma-next/sql-runtime';
+import { postgresServerless } from '@internal/postgres/serverless';
+import { withTransaction } from '@internal/sql-runtime';
 import { createOrmClient } from './orm-client';
 import contractJson from './contract.json' with { type: 'json' };
 import type { Contract } from './contract';
@@ -46,10 +46,10 @@ The same package; the same `Contract` type; the same `db.sql` plan-builder if ei
 
 ## Decision
 
-`@prisma-next/postgres` exports two clients with deliberately asymmetric runtime surfaces.
+`@internal/postgres` exports two clients with deliberately asymmetric runtime surfaces.
 
-- `postgres()` (`@prisma-next/postgres/runtime`) suits long-lived processes. It closure-caches a `Runtime` and exposes `db.orm`, `db.runtime()`, and `db.transaction(...)` as members of the returned client.
-- `postgresServerless()` (`@prisma-next/postgres/serverless`) suits per-request runtimes. It exposes `db.connect(binding)` returning `Promise<Runtime & AsyncDisposable>`, and **omits** `db.orm`, `db.runtime()`, and `db.transaction(...)`. Per-request callers acquire a runtime via `connect()`, build the ORM client from it, run transactions through `withTransaction(runtime, ...)`, and release the connection by letting the `using` scope exit.
+- `postgres()` (`@internal/postgres/runtime`) suits long-lived processes. It closure-caches a `Runtime` and exposes `db.orm`, `db.runtime()`, and `db.transaction(...)` as members of the returned client.
+- `postgresServerless()` (`@internal/postgres/serverless`) suits per-request runtimes. It exposes `db.connect(binding)` returning `Promise<Runtime & AsyncDisposable>`, and **omits** `db.orm`, `db.runtime()`, and `db.transaction(...)`. Per-request callers acquire a runtime via `connect()`, build the ORM client from it, run transactions through `withTransaction(runtime, ...)`, and release the connection by letting the `using` scope exit.
 
 The static authoring surface (`db.sql`, `db.context`, `db.stack`, `db.contract`) is identical on both sides — it is a pure function of the contract and never touches a connection. Cursor defaults differ to match the dominant per-side shape (off on Node, on under serverless); both expose a `cursor` option for parity.
 

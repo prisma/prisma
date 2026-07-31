@@ -1,14 +1,14 @@
-import { postgresRawCodecInferer } from '@prisma-next/adapter-postgres/adapter';
-import { createAggregateFunctions, sql } from '@prisma-next/sql-builder/runtime';
-import type { AnyExpression } from '@prisma-next/sql-relational-core/ast';
+import { postgresRawCodecInferer } from '@internal/adapter-postgres/adapter';
+import { createAggregateFunctions, sql } from '@internal/sql-builder/runtime';
+import type { AnyExpression } from '@internal/sql-relational-core/ast';
 import {
   AggregateExpr,
   BinaryExpr,
   IdentifierRef,
   RawExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { createRawSql } from '@prisma-next/sql-relational-core/expression';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/ast';
+import { createRawSql } from '@internal/sql-relational-core/expression';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from './fixtures/namespaced-contract';
 

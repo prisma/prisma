@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { pgVectorColumn, pgVectorDescriptor } from '../src/core/codecs';

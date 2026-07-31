@@ -1,4 +1,4 @@
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type {
   Adapter,
   AdapterProfile,
@@ -6,10 +6,10 @@ import type {
   LowererContext,
   RawSqlLiteral,
   SqlQueryable,
-} from '@prisma-next/sql-relational-core/ast';
-import { isDdlNode } from '@prisma-next/sql-relational-core/ast';
-import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
-import type { PostgresDdlNode } from '@prisma-next/target-postgres/ddl';
+} from '@internal/sql-relational-core/ast';
+import { isDdlNode } from '@internal/sql-relational-core/ast';
+import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
+import type { PostgresDdlNode } from '@internal/target-postgres/ddl';
 import { adapterError } from './adapter-errors';
 import { createPostgresCodecRegistryWithBuiltins } from './codec-lookup';
 import { PostgresControlAdapter } from './control-adapter';

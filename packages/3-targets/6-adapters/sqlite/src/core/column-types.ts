@@ -6,7 +6,7 @@ import {
   SQLITE_JSON_CODEC_ID,
   SQLITE_REAL_CODEC_ID,
   SQLITE_TEXT_CODEC_ID,
-} from '@prisma-next/target-sqlite/codec-ids';
+} from '@internal/target-sqlite/codec-ids';
 
 export const textColumn = {
   codecId: SQLITE_TEXT_CODEC_ID,

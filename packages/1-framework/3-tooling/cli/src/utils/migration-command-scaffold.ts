@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { relative, resolve } from 'node:path';
-import { loadConfig } from '@prisma-next/config-loader';
-import { hasMigrations } from '@prisma-next/framework-components/control';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { loadConfig } from '@internal/config-loader';
+import { hasMigrations } from '@internal/framework-components/control';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import type { Command } from 'commander';
 import { createControlClient } from '../control-api/client';
 import type { ControlClient } from '../control-api/types';

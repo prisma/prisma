@@ -9,9 +9,9 @@ This demo shows:
 - Creating Plans and executing them via the Runtime
 - Contract verification and marker management
 - Native Prisma Next patterns and best practices
-- ORM client end-to-end examples using `@prisma-next/sql-orm-client`
+- ORM client end-to-end examples using `@internal/sql-orm-client`
 - **Two workflows**: Emit workflow (JSON-based) and No-Emit workflow (TypeScript-based)
-- Client-generated UUID identifiers via `@prisma-next/ids`
+- Client-generated UUID identifiers via `@internal/ids`
 
 ## Comparison
 
@@ -118,7 +118,7 @@ The demo includes ORM client examples under `src/orm-client/`:
 - `ormClientGetUserInsights(limit, runtime)` — `include().combine()` metrics and latest related row
 - `ormClientGetUserKindBreakdown(minUsers, runtime)` — `groupBy().having().aggregate()` breakdown
 - `ormClientUpsertUser(data, runtime)` — `upsert()` for create-or-update by primary key
-- `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ ttl })` from `@prisma-next/middleware-cache`
+- `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ ttl })` from `@internal/middleware-cache`
 - `ormClientGetUsersCached(limit, runtime, options?)` — opt-in cached `User.all()` listing, with optional explicit cache-key override
 
 Run from the CLI:
@@ -244,7 +244,7 @@ The source files: `src/orm-client/get-post-tags.ts`, `get-tag-posts.ts`,
 
 ## Cache Middleware Examples
 
-The demo wires `@prisma-next/middleware-cache` into the Postgres client in `src/prisma/db.ts`. The cache middleware is **opt-in per query** — it only acts on plans whose `meta.annotations` carry a `cacheAnnotation` payload with a `ttl` set. Three CLI commands run a query twice and report the latency of each call so the cache hit is visible:
+The demo wires `@internal/middleware-cache` into the Postgres client in `src/prisma/db.ts`. The cache middleware is **opt-in per query** — it only acts on plans whose `meta.annotations` carry a `cacheAnnotation` payload with a `ttl` set. Three CLI commands run a query twice and report the latency of each call so the cache hit is visible:
 
 ```bash
 # ORM client first({ id }) cached for 60s.

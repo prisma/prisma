@@ -22,9 +22,9 @@
     "arktype": "^2.2.2"
   },
   "devDependencies": {
-    "@prisma-next/extension-pgvector": "workspace:0.16.0",
+    "@internal/extension-pgvector": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
-    "@prisma-next/publish-surface": "workspace:0.16.0",
+    "@internal/publish-surface": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
     "@prisma/orm-target-postgres": "workspace:0.16.0",
     "tsdown": "catalog:",

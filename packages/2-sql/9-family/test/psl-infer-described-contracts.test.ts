@@ -1,21 +1,21 @@
-import { computeStorageHash } from '@prisma-next/contract/hashing';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
+import { computeStorageHash } from '@internal/contract/hashing';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type {
   ContractSpace,
   ControlFamilyDescriptor,
   ControlStack,
   ControlTargetDescriptor,
-} from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import type { PslDocumentAst, PslModel, PslSpan } from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import type { PslDocumentAst, PslModel, PslSpan } from '@internal/framework-components/psl-ast';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
   UNSPECIFIED_PSL_NAMESPACE_ID,
-} from '@prisma-next/framework-components/psl-ast';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/framework-components/psl-ast';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';

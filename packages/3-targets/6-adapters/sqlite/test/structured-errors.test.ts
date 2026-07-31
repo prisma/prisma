@@ -1,5 +1,5 @@
-import type { Codec } from '@prisma-next/framework-components/codec';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+import type { Codec } from '@internal/framework-components/codec';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import {
   CheckExpressionConstraint,
   DefaultValueExpr,
@@ -9,11 +9,11 @@ import {
   type RawSqlLiteral,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { col, lit } from '@prisma-next/sql-relational-core/contract-free';
-import { createTable } from '@prisma-next/target-sqlite/contract-free';
-import { SqliteCreateTable } from '@prisma-next/target-sqlite/ddl';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import { col, lit } from '@internal/sql-relational-core/contract-free';
+import { createTable } from '@internal/target-sqlite/contract-free';
+import { SqliteCreateTable } from '@internal/target-sqlite/ddl';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { createSqliteAdapter, sqliteRawCodecInferer } from '../src/core/adapter';
 import { createSqliteBuiltinCodecLookup } from '../src/core/codec-lookup';

@@ -9,7 +9,7 @@ changes:
       `field.id.uuidv7String()`. These names now describe the storage encoding
       (char(36) string). Postgres-native uuid storage uses the new
       `field.uuidNative()` / `field.id.uuidv4Native()` / `field.id.uuidv7Native()`
-      presets from `@prisma-next/postgres/contract-builder`.
+      presets from `@internal/postgres/contract-builder`.
     detection:
       glob: "**/*.ts"
       contains:
@@ -20,8 +20,8 @@ changes:
     script: uuid-preset-rename.ts
   - id: qualify-flat-builder-accessors
     summary: |
-      The builder-layer flat accessors are removed: `@prisma-next/sql-builder`'s `sql()` and
-      `@prisma-next/sql-orm-client`'s `orm()` now expose per-namespace facets only. Extension
+      The builder-layer flat accessors are removed: `@internal/sql-builder`'s `sql()` and
+      `@internal/sql-orm-client`'s `orm()` now expose per-namespace facets only. Extension
       code that builds queries by accessing a bare table/model on the builder output
       (`sql.<table>` / `orm.<Model>`) must name the namespace the table/model is declared in:
       `sql.<namespace>.<table>`, `orm.<namespace>.<Model>` (`public` for a standard
@@ -32,16 +32,16 @@ changes:
     detection:
       glob: "**/*.{ts,tsx}"
       contains:
-        - "@prisma-next/sql-builder"
-        - "@prisma-next/sql-orm-client"
+        - "@internal/sql-builder"
+        - "@internal/sql-orm-client"
       anyMatch: true
   - id: create-runtime-removed
     summary: |
-      `createRuntime` is removed from `@prisma-next/sql-runtime`. Extension code that
+      `createRuntime` is removed from `@internal/sql-runtime`. Extension code that
       constructed a runtime via `createRuntime(...)` must switch to the target class
       constructor directly: `new PostgresRuntimeImpl({...})` from
-      `@prisma-next/postgres/runtime`, or `new SqliteRuntimeImpl({...})` from
-      `@prisma-next/sqlite/runtime`. Pass the same options minus the `stackInstance`
+      `@internal/postgres/runtime`, or `new SqliteRuntimeImpl({...})` from
+      `@internal/sqlite/runtime`. Pass the same options minus the `stackInstance`
       unpacking — supply `adapter` directly instead of `stackInstance.adapter`.
     detection:
       glob: "**/*.{ts,tsx}"
@@ -50,16 +50,16 @@ changes:
   - id: migration-op-factories-to-methods
     summary: |
       The bare migration op factory functions are removed from
-      `@prisma-next/postgres/migration` (and the deprecated
-      `@prisma-next/target-postgres/migration` alias). Replace each import and
+      `@internal/postgres/migration` (and the deprecated
+      `@internal/target-postgres/migration` alias). Replace each import and
       call-site with the corresponding method on `this` inside your `Migration`
       subclass. The option shapes changed from positional arguments to a single
       options object.
     detection:
       glob: "**/migration.ts"
       contains:
-        - "from '@prisma-next/postgres/migration'"
-        - "from '@prisma-next/target-postgres/migration'"
+        - "from '@internal/postgres/migration'"
+        - "from '@internal/target-postgres/migration'"
       anyMatch: true
     script: migration-op-factories-to-methods.ts
   - id: namespace-entries-open-dict
@@ -68,7 +68,7 @@ changes:
       `Readonly<Record<string, Readonly<Record<string, unknown>>>>`. The previously
       closed shape (`{ table?: ..., valueSet?: ... }`) is gone — dot-access
       like `.entries.table` or `.entries.collection` no longer compiles. Read tables via
-      the `namespaceTables(ns)` helper from `@prisma-next/sql-contract/types`, or via
+      the `namespaceTables(ns)` helper from `@internal/sql-contract/types`, or via
       bracket notation `entries['table']`. For typed getter access on the concrete
       class instances use the non-enumerable getters (`ns.table`, `db.collection`).
       Annotations and type constraints that hard-code the closed shape
@@ -83,12 +83,12 @@ changes:
   - id: enum-becomes-domain-concept
     summary: |
       The native Postgres enum surface is deleted from the SPI. `PostgresEnumStorageEntry`
-      no longer exists in `@prisma-next/sql-contract/types` — the `SqlStorage.types` slot
+      no longer exists in `@internal/sql-contract/types` — the `SqlStorage.types` slot
       now holds codec-instance entries only (`StorageTypeInstance`). The `pg/enum@1`
-      codec surface is deleted from `@prisma-next/target-postgres` (`PgEnumDescriptor`,
+      codec surface is deleted from `@internal/target-postgres` (`PgEnumDescriptor`,
       `pgEnumColumn`, `PG_ENUM_CODEC_ID`, the `enum` codec-type-map entry), as are the
       native `enumType` / `enumColumn` helpers from
-      `@prisma-next/adapter-postgres/column-types`. Enums are domain entities plus a
+      `@internal/adapter-postgres/column-types`. Enums are domain entities plus a
       storage `valueSet` enforced by a CHECK constraint; columns reference them as
       `pg/text@1` (or another codec) with a `valueSet` ref. Extensions that referenced
       `PostgresEnumStorageEntry` in type constraints drop it (use `StorageTypeInstance`
@@ -106,9 +106,9 @@ changes:
   - id: namespaced-type-resolution
     summary: |
       Per-namespace type resolution. The emitted TypeMaps `ExtractFieldOutputTypes` /
-      `ExtractFieldInputTypes` (from `@prisma-next/sql-contract`) now nest by namespace —
+      `ExtractFieldInputTypes` (from `@internal/sql-contract`) now nest by namespace —
       `{ [namespace]: { [model]: { [field] } } }` — and `TableProxy` (from
-      `@prisma-next/sql-builder`) takes a required namespace coordinate: `TableProxy<C, Name>`
+      `@internal/sql-builder`) takes a required namespace coordinate: `TableProxy<C, Name>`
       becomes `TableProxy<C, NsId, Name>`. Extension code that indexes those TypeMaps or
       constructs `TableProxy` types directly must thread the namespace coordinate
       (`ExtractFieldOutputTypes<C>[namespace][Model][Field]`, `TableProxy<C, namespace, Name>`):
@@ -124,7 +124,7 @@ changes:
       anyMatch: true
   - id: contract-model-definitions-removed
     summary: |
-      `ContractModelDefinitions` is removed from `@prisma-next/contract` (and its
+      `ContractModelDefinitions` is removed from `@internal/contract` (and its
       `/types` export), along with the second `TModels` type parameter on
       `Contract` (now `Contract<TStorage>`). The flat cross-namespace model union
       it produced is gone; resolve models per-namespace instead. Replace
@@ -161,7 +161,7 @@ TML-2859 above. No extension-author API change. Incidental substrate diff only.
 
 <!--
 TML-2859: SQLite createTable authoring method. The free `createTable` function from
-`@prisma-next/sqlite/migration` is now a protected method on the `SqliteMigration`
+`@internal/sqlite/migration` is now a protected method on the `SqliteMigration`
 base class. The `createTable` re-export test in `packages/3-extensions/sqlite/` was
 removed (it asserted the free function was exported, which is no longer true). The
 README was updated to reflect the current authoring surface. No extension-author action
@@ -203,10 +203,10 @@ contract-shape change. Incidental substrate diff only.
 
 <!--
 TML-2852: the enum read surface. Additive surface for `enumType`-authored enums.
-`@prisma-next/postgres/contract-builder` gains `enumType` / `member` exports (the
+`@internal/postgres/contract-builder` gains `enumType` / `member` exports (the
 Postgres-bound `enumType` constrains member values to the column codec) and the
 factory `defineContract` overload threads a top-level `enums` key;
-`@prisma-next/sql-orm-client` gains the lane-agnostic `db.enums.<namespace>.<Name>`
+`@internal/sql-orm-client` gains the lane-agnostic `db.enums.<namespace>.<Name>`
 runtime accessor map (built from `domain.namespaces[ns].enum`) and value-union
 narrowing of enum-restricted fields, plus emit-time narrowing in the emitter from a
 field's `valueSet` ref. All additive — existing exports and the framework SPI are
@@ -244,7 +244,7 @@ No change to emitted `contract.json` — both old and new preset names emit the 
 
 ## `qualify-flat-builder-accessors`
 
-The query builder (`@prisma-next/sql-builder`) and ORM client (`@prisma-next/sql-orm-client`) are now **always qualified by namespace**. The flat by-bare-name accessors are gone: the value returned by `sql({ … })` / `orm({ … })` is a map of per-namespace facets, so there is no `sql.<table>` and no `orm.<Model>` at the top level. You reach a table or model by naming its namespace.
+The query builder (`@internal/sql-builder`) and ORM client (`@internal/sql-orm-client`) are now **always qualified by namespace**. The flat by-bare-name accessors are gone: the value returned by `sql({ … })` / `orm({ … })` is a map of per-namespace facets, so there is no `sql.<table>` and no `orm.<Model>` at the top level. You reach a table or model by naming its namespace.
 
 This affects extension code that *builds queries* through these packages. Extensions that only contribute codecs, native types, or migration operations — and never construct a `sql`/`orm` query — need no change.
 
@@ -262,7 +262,7 @@ const plan = sql.public.user.select('id', 'email').build();
 const row  = await orm.public.User.find({ where: { id } });
 ```
 
-For an unbound contract (e.g. SQLite, or any target whose entities live in the late-bound namespace) the namespace segment is `__unbound__` — import `UNBOUND_NAMESPACE_ID` from `@prisma-next/framework-components/ir` and index with it (`sql[UNBOUND_NAMESPACE_ID].user`) rather than hard-coding the string. For a multi-namespace contract, name the specific namespace each table/model sits in.
+For an unbound contract (e.g. SQLite, or any target whose entities live in the late-bound namespace) the namespace segment is `__unbound__` — import `UNBOUND_NAMESPACE_ID` from `@internal/framework-components/ir` and index with it (`sql[UNBOUND_NAMESPACE_ID].user`) rather than hard-coding the string. For a multi-namespace contract, name the specific namespace each table/model sits in.
 
 ### Validation
 
@@ -270,7 +270,7 @@ This is a type-level change — `pnpm typecheck` (or `pnpm build`) pinpoints eve
 
 ## `migration-op-factories-to-methods`
 
-The bare op factory functions previously exported from `@prisma-next/postgres/migration` (and the deprecated `@prisma-next/target-postgres/migration` alias) are removed. Each function is now a protected method on the `PostgresMigration` base class — call it as `this.<method>(...)` inside your extension's `Migration` subclass.
+The bare op factory functions previously exported from `@internal/postgres/migration` (and the deprecated `@internal/target-postgres/migration` alias) are removed. Each function is now a protected method on the `PostgresMigration` base class — call it as `this.<method>(...)` inside your extension's `Migration` subclass.
 
 The option shapes also changed: positional arguments are replaced by a single options object.
 
@@ -291,7 +291,7 @@ Example (extension migration):
 
 ```ts
 // Before
-import { installExtension, Migration, MigrationCLI } from '@prisma-next/target-postgres/migration';
+import { installExtension, Migration, MigrationCLI } from '@internal/target-postgres/migration';
 
 override get operations() {
   return [
@@ -304,7 +304,7 @@ override get operations() {
 }
 
 // After
-import { Migration, MigrationCLI } from '@prisma-next/target-postgres/migration';
+import { Migration, MigrationCLI } from '@internal/target-postgres/migration';
 
 override get operations() {
   return [
@@ -325,19 +325,19 @@ pnpm exec tsx node_modules/.skills/prisma-next-extension-upgrade/upgrades/0.13-t
 
 ## `create-runtime-removed`
 
-`createRuntime` is removed from `@prisma-next/sql-runtime`. Construct the target runtime class directly instead.
+`createRuntime` is removed from `@internal/sql-runtime`. Construct the target runtime class directly instead.
 
 ```ts
 // Before
-import { createRuntime } from '@prisma-next/sql-runtime';
+import { createRuntime } from '@internal/sql-runtime';
 const runtime = createRuntime({ stackInstance, context, driver, ...opts });
 
 // After — Postgres
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
 const runtime = new PostgresRuntimeImpl({ adapter: stackInstance.adapter, context, driver, ...opts });
 
 // After — SQLite
-import { SqliteRuntimeImpl } from '@prisma-next/sqlite/runtime';
+import { SqliteRuntimeImpl } from '@internal/sqlite/runtime';
 const runtime = new SqliteRuntimeImpl({ adapter: stackInstance.adapter, context, driver, ...opts });
 ```
 
@@ -374,12 +374,12 @@ const tables = ns.entries['table'] as Record<string, StorageTable> | undefined;
 
 ```ts
 // Using the namespaceTables() helper (for SqlNamespace values)
-import { namespaceTables, namespaceValueSets } from '@prisma-next/sql-contract/types';
+import { namespaceTables, namespaceValueSets } from '@internal/sql-contract/types';
 const tables = namespaceTables(ns);    // Record<string, StorageTable>
 const vsets  = namespaceValueSets(ns); // Record<string, StorageValueSet> | undefined
 
 // Using the namespaceCollections() helper (for MongoNamespace values)
-import { namespaceCollections } from '@prisma-next/mongo-contract';
+import { namespaceCollections } from '@internal/mongo-contract';
 const collections = namespaceCollections(ns); // Record<string, MongoCollection>
 ```
 
@@ -401,20 +401,20 @@ This is a compile-time-only change when using the helpers — no runtime behavio
 
 Native Postgres enums are removed from the framework. Enums are now a **domain concept**: a domain enum entity plus a storage `valueSet` entity, with member values stored through an ordinary codec (typically `pg/text@1` → a `text` column) and the value set enforced by a planner-generated CHECK constraint. The whole native surface is deleted:
 
-- `PostgresEnumStorageEntry` is gone from `@prisma-next/sql-contract/types`. The polymorphic `SqlStorage.types` slot now carries codec-instance entries only. Type constraints that accepted both narrow to `StorageTypeInstance`:
+- `PostgresEnumStorageEntry` is gone from `@internal/sql-contract/types`. The polymorphic `SqlStorage.types` slot now carries codec-instance entries only. Type constraints that accepted both narrow to `StorageTypeInstance`:
 
   ```ts
   // Before
-  import type { PostgresEnumStorageEntry, StorageTypeInstance } from '@prisma-next/sql-contract/types';
+  import type { PostgresEnumStorageEntry, StorageTypeInstance } from '@internal/sql-contract/types';
   type TypesConstraint = Record<string, StorageTypeInstance | PostgresEnumStorageEntry>;
 
   // After
-  import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
+  import type { StorageTypeInstance } from '@internal/sql-contract/types';
   type TypesConstraint = Record<string, StorageTypeInstance>;
   ```
 
-- The `pg/enum@1` codec and its registry surface are deleted from `@prisma-next/target-postgres`: `PgEnumDescriptor`, `pgEnumColumn`, `PG_ENUM_CODEC_ID`, and the `enum` entry in the codec type map. Test fixtures that used `'pg/enum@1'` as an opaque codec id must switch to a live codec id or an inert fixture id (e.g. `app/test-enum@1`) — the id no longer resolves to a registered codec.
-- The native `enumType(name, values[])` / `enumColumn(...)` authoring helpers are deleted from `@prisma-next/adapter-postgres/column-types`. The domain authoring surface is `enumType(name, codecRef, ...member(name, value))` + `member` from the target contract-builder, returned under the contract's `enums` key.
+- The `pg/enum@1` codec and its registry surface are deleted from `@internal/target-postgres`: `PgEnumDescriptor`, `pgEnumColumn`, `PG_ENUM_CODEC_ID`, and the `enum` entry in the codec type map. Test fixtures that used `'pg/enum@1'` as an opaque codec id must switch to a live codec id or an inert fixture id (e.g. `app/test-enum@1`) — the id no longer resolves to a registered codec.
+- The native `enumType(name, values[])` / `enumColumn(...)` authoring helpers are deleted from `@internal/adapter-postgres/column-types`. The domain authoring surface is `enumType(name, codecRef, ...member(name, value))` + `member` from the target contract-builder, returned under the contract's `enums` key.
 - Introspection no longer adopts native enum types: the adapter records detected native enum type names under `annotations.pg.nativeEnumTypeNames` (names only), and `contract infer` refuses with a diagnostic naming them. The old `annotations.pg.enumTypes` structure is gone.
 
 Columns restricted to an enum now carry `codecId: 'pg/text@1'` (or another codec), `nativeType: 'text'`, and a `valueSet` reference; the owning table carries a check entry. If your extension reads `storage.types` looking for enum shapes, read the namespace's `valueSet` entries instead.
@@ -427,7 +427,7 @@ Columns restricted to an enum now carry `codecId: 'pg/text@1'` (or another codec
 
 The SQL/ORM type machinery now resolves columns, fields, and models **by namespace coordinate** rather than by bare name across all namespaces. Two type-shape changes affect extension code that depends on these types directly:
 
-1. **Emitted TypeMaps nest by namespace.** `ExtractFieldOutputTypes<C>` / `ExtractFieldInputTypes<C>` (from `@prisma-next/sql-contract`) now return `{ [namespace]: { [model]: { [field]: <type> } } }` instead of the flat `{ [model]: { [field] } }`. Index the namespace first:
+1. **Emitted TypeMaps nest by namespace.** `ExtractFieldOutputTypes<C>` / `ExtractFieldInputTypes<C>` (from `@internal/sql-contract`) now return `{ [namespace]: { [model]: { [field]: <type> } } }` instead of the flat `{ [model]: { [field] } }`. Index the namespace first:
 
 ```ts
 // Before
@@ -436,7 +436,7 @@ type Row = ExtractFieldOutputTypes<C>['User'];
 type Row = ExtractFieldOutputTypes<C>['public']['User'];
 ```
 
-2. **`TableProxy` takes a required namespace coordinate.** `TableProxy<C, Name>` (from `@prisma-next/sql-builder`) becomes `TableProxy<C, NsId, Name>`:
+2. **`TableProxy` takes a required namespace coordinate.** `TableProxy<C, Name>` (from `@internal/sql-builder`) becomes `TableProxy<C, NsId, Name>`:
 
 ```ts
 // Before
@@ -445,17 +445,17 @@ let p: TableProxy<C, 'users'>;
 let p: TableProxy<C, 'public', 'users'>;
 ```
 
-Use `public` for a standard single-schema SQL contract; for an unbound/SQLite contract use the late-bound namespace (`UNBOUND_NAMESPACE_ID` from `@prisma-next/framework-components/ir`); for a multi-namespace contract, name the namespace each model/table actually sits in. There is no codemod — the correct namespace is call-site-specific. `pnpm typecheck` pins every remaining flat access (`Property '<model>' does not exist on type '{ public: ... }'`). Extensions that only contribute codecs, native types, or migrations — and never reference `ExtractFieldOutputTypes` / `ExtractFieldInputTypes` / `TableProxy` directly — need no change.
+Use `public` for a standard single-schema SQL contract; for an unbound/SQLite contract use the late-bound namespace (`UNBOUND_NAMESPACE_ID` from `@internal/framework-components/ir`); for a multi-namespace contract, name the namespace each model/table actually sits in. There is no codemod — the correct namespace is call-site-specific. `pnpm typecheck` pins every remaining flat access (`Property '<model>' does not exist on type '{ public: ... }'`). Extensions that only contribute codecs, native types, or migrations — and never reference `ExtractFieldOutputTypes` / `ExtractFieldInputTypes` / `TableProxy` directly — need no change.
 
 ## `contract-model-definitions-removed`
 
-`ContractModelDefinitions` is removed from `@prisma-next/contract` (and the `@prisma-next/contract/types` re-export), and the `Contract` interface loses its second `TModels` type parameter — `Contract<TStorage, TModels>` becomes `Contract<TStorage>`. The flat, first-name-wins cross-namespace model union is gone; models resolve per-namespace from the domain plane.
+`ContractModelDefinitions` is removed from `@internal/contract` (and the `@internal/contract/types` re-export), and the `Contract` interface loses its second `TModels` type parameter — `Contract<TStorage, TModels>` becomes `Contract<TStorage>`. The flat, first-name-wins cross-namespace model union is gone; models resolve per-namespace from the domain plane.
 
 Replace any `ContractModelDefinitions<C>` use with a read of a namespace's models:
 
 ```ts
 // Before
-import type { Contract, ContractModelDefinitions } from '@prisma-next/contract/types';
+import type { Contract, ContractModelDefinitions } from '@internal/contract/types';
 type Models = ContractModelDefinitions<C>;
 type UserModel = Models['User'];
 
@@ -464,7 +464,7 @@ type Models = C['domain']['namespaces'][keyof C['domain']['namespaces']]['models
 type UserModel = Models['User'];
 ```
 
-If you need a bare model shape rather than the contract's own models, use `ContractModelBase` from `@prisma-next/contract/types`. Family contract aliases drop their model parameter too — `MongoContract<S, M>` becomes `MongoContract<S>`. When you build a contract *type* that must carry precise per-model shapes (e.g. a test fixture or a `defineContract` result type), override the `domain` explicitly:
+If you need a bare model shape rather than the contract's own models, use `ContractModelBase` from `@internal/contract/types`. Family contract aliases drop their model parameter too — `MongoContract<S, M>` becomes `MongoContract<S>`. When you build a contract *type* that must carry precise per-model shapes (e.g. a test fixture or a `defineContract` result type), override the `domain` explicitly:
 
 ```ts
 type MyContract = Omit<Contract<MyStorage>, 'domain'> & {

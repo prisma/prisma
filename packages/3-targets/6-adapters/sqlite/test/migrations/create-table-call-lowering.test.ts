@@ -4,7 +4,7 @@
  * expected DDL string for a representative schema fragment.
  */
 
-import type { DdlColumn, DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
+import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import {
   col,
   fn,
@@ -12,8 +12,8 @@ import {
   lit,
   primaryKey,
   unique,
-} from '@prisma-next/sql-relational-core/contract-free';
-import { CreateTableCall } from '@prisma-next/target-sqlite/op-factory-call';
+} from '@internal/sql-relational-core/contract-free';
+import { CreateTableCall } from '@internal/target-sqlite/op-factory-call';
 import { describe, expect, it } from 'vitest';
 import type { SqliteTableSpec } from '../../../../3-targets/sqlite/src/core/migrations/operations/shared';
 // Pre-slice oracle: the createTable function and SqliteTableSpec type from the

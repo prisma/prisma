@@ -1,4 +1,4 @@
-import { IRNodeBase } from '@prisma-next/framework-components/ir';
+import { IRNodeBase } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { MongoCollection } from '../../src/ir/mongo-collection';
 import { MongoCollectionOptions } from '../../src/ir/mongo-collection-options';

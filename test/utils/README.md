@@ -12,7 +12,7 @@ The test-utils package provides shared generic test helpers used across multiple
 
 ## Purpose
 
-Provide reusable generic test utilities that DRY up common testing patterns across packages. Centralize database setup/teardown and async iterable utilities. This package has zero dependencies on other `@prisma-next/*` packages to avoid circular dependencies.
+Provide reusable generic test utilities that DRY up common testing patterns across packages. Centralize database setup/teardown and async iterable utilities. This package has zero dependencies on other `@internal/*` packages to avoid circular dependencies.
 
 ## Responsibilities
 
@@ -22,7 +22,7 @@ Provide reusable generic test utilities that DRY up common testing patterns acro
 **Non-goals:**
 - Test-specific business logic
 - Package-specific test utilities (those belong in package test directories)
-- Runtime-specific utilities (see `@prisma-next/runtime/test/utils`)
+- Runtime-specific utilities (see `@internal/runtime/test/utils`)
 - Contract-related utilities (see `test/e2e/framework/test/utils.ts`)
 
 ## Architecture
@@ -50,7 +50,7 @@ flowchart TD
     INTEGRATION --> ASYNC
 ```
 
-**Note**: Runtime-specific utilities are in `@prisma-next/runtime/test/utils`, and contract-related utilities are in `test/e2e/framework/test/utils.ts`.
+**Note**: Runtime-specific utilities are in `@internal/runtime/test/utils`, and contract-related utilities are in `test/e2e/framework/test/utils.ts`.
 
 ## Components
 
@@ -68,7 +68,7 @@ flowchart TD
 
 ### Column Descriptors
 
-Adapter-agnostic column type descriptors for test fixtures. These match common PostgreSQL types but don't depend on `@prisma-next/adapter-postgres` or any target-specific packages. Use these in test fixtures to avoid adapter/target dependencies.
+Adapter-agnostic column type descriptors for test fixtures. These match common PostgreSQL types but don't depend on `@internal/adapter-postgres` or any target-specific packages. Use these in test fixtures to avoid adapter/target dependencies.
 
 **Available descriptors:**
 - `int4Column`, `int2Column`, `int8Column`: Integer types
@@ -80,9 +80,9 @@ Adapter-agnostic column type descriptors for test fixtures. These match common P
 **Usage:**
 ```typescript
 import { int4Column, textColumn } from '@repo/test-utils/column-descriptors';
-import type { TargetPackRef } from '@prisma-next/contract/framework-components';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
+import type { TargetPackRef } from '@internal/contract/framework-components';
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
 
 const postgresPack: TargetPackRef<'sql', 'postgres'> = {
   kind: 'target',
@@ -107,7 +107,7 @@ const contract = defineContract({
 });
 ```
 
-**Note**: The descriptor shape mirrors `ColumnTypeDescriptor` from `@prisma-next/framework-components/codec` but is defined locally to keep `test-utils` dependency-free (avoids a turbo build cycle through packages that devDepend on it).
+**Note**: The descriptor shape mirrors `ColumnTypeDescriptor` from `@internal/framework-components/codec` but is defined locally to keep `test-utils` dependency-free (avoids a turbo build cycle through packages that devDepend on it).
 
 ### Operation Descriptors
 
@@ -122,7 +122,7 @@ Adapter-agnostic operation type descriptors for type-level test fixtures. These 
 **Usage:**
 ```typescript
 import type { PgVectorOperations, CombinedTestOperations } from '@repo/test-utils/operation-descriptors';
-import type { ColumnBuilder, OperationsForTypeId } from '@prisma-next/sql-relational-core/types';
+import type { ColumnBuilder, OperationsForTypeId } from '@internal/sql-relational-core/types';
 
 // Use in type-level tests
 type TestColumnBuilder = ColumnBuilder<
@@ -136,7 +136,7 @@ type TestColumnBuilder = ColumnBuilder<
 type VectorOps = OperationsForTypeId<'pg/vector@1', CombinedTestOperations>;
 ```
 
-**Note**: These types are dependency-free and match the `OperationTypes` shape from `@prisma-next/sql-relational-core/types`, but are defined locally to keep test-utils dependency-free.
+**Note**: These types are dependency-free and match the `OperationTypes` shape from `@internal/sql-relational-core/types`, but are defined locally to keep test-utils dependency-free.
 
 ### Timeout Configuration
 
@@ -160,7 +160,7 @@ it('compiles TypeScript', async () => {
 }, timeouts.typeScriptCompilation);
 ```
 
-**Note**: For runtime-specific utilities (plan execution, runtime creation, contract markers), see `@prisma-next/runtime/test/utils`. For contract-related utilities (contract loading, emission verification), see `test/e2e/framework/test/utils.ts`.
+**Note**: For runtime-specific utilities (plan execution, runtime creation, contract markers), see `@internal/runtime/test/utils`. For contract-related utilities (contract loading, emission verification), see `test/e2e/framework/test/utils.ts`.
 
 ### Typed Expectations
 
@@ -258,7 +258,7 @@ Utilities that don't import `vitest` (e.g., `timeouts`, database helpers) can sa
 
 ## Dependencies
 
-**Zero dependencies on other `@prisma-next/*` packages** - This allows test-utils to be used by all packages without circular dependencies.
+**Zero dependencies on other `@internal/*` packages** - This allows test-utils to be used by all packages without circular dependencies.
 
 **External dependencies (devDependencies only):**
 - `@prisma/dev`: Dev database server (one connection at a time; attempts to open a second connection while the first is active will fail, and ports are auto-assigned per server)
@@ -293,7 +293,7 @@ await withDevDatabase(async ({ connectionString }) => {
 });
 ```
 
-**For runtime-specific utilities**, import from `@prisma-next/runtime/test/utils`:
+**For runtime-specific utilities**, import from `@internal/runtime/test/utils`:
 ```typescript
 import {
   executePlanAndCollect,
@@ -301,7 +301,7 @@ import {
   setupTestDatabase,
   createTestRuntime,
   createTestRuntimeFromClient,
-} from '@prisma-next/sql-runtime/test/utils';
+} from '@internal/sql-runtime/test/utils';
 ```
 
 **For contract-related utilities in E2E tests**, import from local `./utils`:

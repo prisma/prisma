@@ -1,4 +1,4 @@
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
 import { createTestSqlNamespace } from '../../../../../2-sql/1-core/contract/test/test-support';
 import { int4Column, textColumn } from '../helpers/column-descriptors';
 import { postgresPack } from '../helpers/postgres-pack';

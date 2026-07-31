@@ -2,11 +2,11 @@ import {
   asNamespaceId,
   type ContractModelBase,
   UNBOUND_DOMAIN_NAMESPACE_ID,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import {
   type DomainContractShape,
   validateContractDomain,
-} from '@prisma-next/contract/validate-domain';
+} from '@internal/contract/validate-domain';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 

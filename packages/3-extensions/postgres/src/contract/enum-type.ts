@@ -1,14 +1,14 @@
 import {
   bindEnumType,
   type ExtractCodecTypesFromPack,
-} from '@prisma-next/sql-contract-ts/contract-builder';
-import type postgresPack from '@prisma-next/target-postgres/pack';
+} from '@internal/sql-contract-ts/contract-builder';
+import type postgresPack from '@internal/target-postgres/pack';
 
 type PostgresCodecTypes = ExtractCodecTypesFromPack<typeof postgresPack>;
 
 /**
  * The `enumType` authors call when building a Postgres contract (re-exported
- * from `@prisma-next/postgres/contract-builder`).
+ * from `@internal/postgres/contract-builder`).
  *
  * `bindEnumType` is the core, codec-agnostic `enumType` factory; calling it with
  * the Postgres pack's codec typemap fixes which member-value type each codec

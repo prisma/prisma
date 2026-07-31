@@ -8,7 +8,7 @@ import {
   SelectAst,
   SubqueryExpr,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { createIncludeScalar } from '../src/include-descriptors';
 import { compileSelectWithIncludes } from '../src/query-plan-select';

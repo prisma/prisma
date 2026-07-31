@@ -8,8 +8,8 @@
 ## Part A — add the `bareIdentifier()` combinator
 New file `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/combinators/bare-identifier.ts`. Model it on the sibling `entity-ref.ts` (same directory), which parses a bare `IdentifierAst` → its name. Difference: a neutral label and no "entity" framing:
 ```ts
-import type { PslDiagnostic } from '@prisma-next/framework-components/psl-ast';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { IdentifierAst } from '../../syntax/ast/identifier';
 import type { ArgType } from '../types';
 import { leafDiagnostic } from './diagnostic';
@@ -31,11 +31,11 @@ export function bareIdentifier(): ArgType<string> {
   };
 }
 ```
-Export it from `packages/1-framework/2-authoring/psl-parser/src/exports/index.ts` (add a line next to the other combinator exports, e.g. `export { bareIdentifier } from '../attribute-spec/combinators/bare-identifier';`). Add a unit test in `packages/1-framework/2-authoring/psl-parser/test/attribute-spec-combinators.test.ts` (new `describe('bareIdentifier', …)`): accepts a bare identifier (returns its text); rejects a string literal, a number, and a function call. Rebuild: `pnpm --filter @prisma-next/psl-parser build`.
+Export it from `packages/1-framework/2-authoring/psl-parser/src/exports/index.ts` (add a line next to the other combinator exports, e.g. `export { bareIdentifier } from '../attribute-spec/combinators/bare-identifier';`). Add a unit test in `packages/1-framework/2-authoring/psl-parser/test/attribute-spec-combinators.test.ts` (new `describe('bareIdentifier', …)`): accepts a bare identifier (returns its text); rejects a string literal, a number, and a function call. Rebuild: `pnpm --filter @internal/psl-parser build`.
 
 ## Part B — migrate the enum `@default` path
 ### B1. Spec — `packages/2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts`
-Add `bareIdentifier` to the `@prisma-next/psl-parser` import, and add:
+Add `bareIdentifier` to the `@internal/psl-parser` import, and add:
 ```ts
 export const enumDefaultSpec = fieldAttribute('default', {
   positional: [{ key: 'member', type: bareIdentifier() }],
@@ -64,7 +64,7 @@ Rewrite it to:
   }
   return { defaultValue: { kind: 'literal', value: blindCast<ColumnDefaultLiteralInputValue, 'enum member values are codec-validated JsonValue-compatible scalars'>(match.value) } };
   ```
-  (`interpretFieldAttribute` + `findFieldAttributeNode` are already imported in this file; `nodePslSpan` is exported from `@prisma-next/psl-parser` — import if not already present.)
+  (`interpretFieldAttribute` + `findFieldAttributeNode` are already imported in this file; `nodePslSpan` is exported from `@internal/psl-parser` — import if not already present.)
 - The `isQuotedString`/`isFunctionCall` regex block and the exactly-one-positional guard are **gone** — the `bareIdentifier()` spec + the engine's single-positional param now enforce those shapes (a quoted string / function call / array / missing-or-extra arg fails to `PSL_INVALID_ATTRIBUTE_SYNTAX`).
 - **Keep** `PSL_ENUM_UNKNOWN_DEFAULT_MEMBER` (semantic — member not in the enum).
 
@@ -84,9 +84,9 @@ If `rg` (terminal) finds any other test asserting `PSL_ENUM_DEFAULT_MUST_BE_MEMB
 No `any`; keep the single existing `blindCast` for the enum member value (it is pre-existing and justified); no other bare `as`; no file-ext imports; never suppress biome; tests-first for `bareIdentifier`. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `.agents/**`. Do NOT touch GitHub.
 
 ## Gates (all must pass, in order)
-1. `pnpm --filter @prisma-next/psl-parser build`
-2. `pnpm --filter @prisma-next/psl-parser typecheck` and `pnpm --filter @prisma-next/psl-parser test`
-3. `pnpm --filter @prisma-next/sql-contract-psl typecheck` and `pnpm --filter @prisma-next/sql-contract-psl test`
+1. `pnpm --filter @internal/psl-parser build`
+2. `pnpm --filter @internal/psl-parser typecheck` and `pnpm --filter @internal/psl-parser test`
+3. `pnpm --filter @internal/sql-contract-psl typecheck` and `pnpm --filter @internal/sql-contract-psl test`
 4. `pnpm fixtures:check` — clean
 5. `pnpm lint:framework-vocabulary`; `pnpm lint:deps`
 

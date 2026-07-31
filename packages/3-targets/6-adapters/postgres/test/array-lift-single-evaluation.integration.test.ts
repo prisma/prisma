@@ -12,8 +12,8 @@
  * always projects a stored column.
  */
 
-import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   CastExpr,
   FunctionCallExpr,
@@ -22,8 +22,8 @@ import {
   NativeJsonValueProjection,
   ProjectionItem,
   SelectAst,
-} from '@prisma-next/sql-relational-core/ast';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
+} from '@internal/sql-relational-core/ast';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
 import { createContract, createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { renderLoweredSql } from '../src/core/sql-renderer';

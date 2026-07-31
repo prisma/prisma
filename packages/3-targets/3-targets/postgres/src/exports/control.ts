@@ -1,14 +1,14 @@
-import type { ColumnDefault } from '@prisma-next/contract/types';
-import type { SqlControlTargetDescriptor } from '@prisma-next/family-sql/control';
-import { buildNativeTypeExpander } from '@prisma-next/family-sql/control';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
+import type { ColumnDefault } from '@internal/contract/types';
+import type { SqlControlTargetDescriptor } from '@internal/family-sql/control';
+import { buildNativeTypeExpander } from '@internal/family-sql/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import type {
   ControlTargetInstance,
   MigrationRunner,
-} from '@prisma-next/framework-components/control';
-import type { StorageColumn } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import type { StorageColumn } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { postgresResolveDefault } from '../core/default-normalizer';
 import { postgresTargetDescriptorMeta } from '../core/descriptor-meta';
 import { contractToPostgresDatabaseSchemaNode } from '../core/migrations/contract-to-postgres-database-schema-node';

@@ -347,13 +347,13 @@
           "import": {
             "alias": "PostgisTypes",
             "named": "CodecTypes",
-            "package": "@prisma-next/extension-postgis/codec-types"
+            "package": "@internal/extension-postgis/codec-types"
           },
           "typeImports": [
             {
               "alias": "Geometry",
               "named": "Geometry",
-              "package": "@prisma-next/extension-postgis/codec-types"
+              "package": "@internal/extension-postgis/codec-types"
             }
           ]
         },
@@ -361,7 +361,7 @@
           "import": {
             "alias": "PostgisQueryOperationTypes",
             "named": "QueryOperationTypes",
-            "package": "@prisma-next/extension-postgis/operation-types"
+            "package": "@internal/extension-postgis/operation-types"
           }
         },
         "storage": [

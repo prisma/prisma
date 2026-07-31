@@ -1,4 +1,4 @@
-import type { DdlColumn, DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
+import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import { SqliteCreateTable } from '../core/ddl/nodes';
 
 /**
@@ -6,7 +6,7 @@ import { SqliteCreateTable } from '../core/ddl/nodes';
  *
  * Pass `constraints` for table-level composite primary keys, foreign keys, and
  * unique constraints — use the {@link PrimaryKeyConstraint}, {@link ForeignKeyConstraint},
- * and {@link UniqueConstraint} classes from `@prisma-next/sql-relational-core/ast`.
+ * and {@link UniqueConstraint} classes from `@internal/sql-relational-core/ast`.
  *
  * Precondition: identifiers (`table`, column names/types) are emitted to SQL
  * verbatim — they are not quoted or escaped, so callers must pass pre-trusted

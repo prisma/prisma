@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Use ifDefined() for Conditional Object Spreads
 
-**CRITICAL**: Use `ifDefined` from `@prisma-next/utils/defined` instead of inline conditional spread patterns.
+**CRITICAL**: Use `ifDefined` from `@internal/utils/defined` instead of inline conditional spread patterns.
 
 ## Why?
 
@@ -28,7 +28,7 @@ const obj = {
 
 **✅ CORRECT: Using ifDefined**
 ```typescript
-import { ifDefined } from '@prisma-next/utils/defined';
+import { ifDefined } from '@internal/utils/defined';
 
 const obj = {
   required: 'value',

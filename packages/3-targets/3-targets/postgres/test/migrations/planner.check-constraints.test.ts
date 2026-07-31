@@ -1,13 +1,13 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   CheckConstraint,
   SqlStorage,
   StorageTable,
   StorageValueSet,
-} from '@prisma-next/sql-contract/types';
-import { SqlCheckConstraintIR, SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-contract/types';
+import { SqlCheckConstraintIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { planIssues } from '../../src/core/migrations/issue-planner';

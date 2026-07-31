@@ -1,17 +1,17 @@
-import { materialiseExtensionMigrationPackageIfMissing } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import type { MigrationOps } from '@prisma-next/migration-tools/package';
+import { materialiseExtensionMigrationPackageIfMissing } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import type { MigrationOps } from '@internal/migration-tools/package';
 import {
   emitContractSpaceArtifacts,
   planAllSpaces,
   readContractSpaceHeadRef,
   type SpacePlanOutput,
   spaceMigrationDirectory,
-} from '@prisma-next/migration-tools/spaces';
+} from '@internal/migration-tools/spaces';
 
 /**
  * In-memory authored migration package shipped by an extension descriptor.
- * Mirrors `MigrationPackage` from `@prisma-next/migration-tools/io` (the
+ * Mirrors `MigrationPackage` from `@internal/migration-tools/io` (the
  * on-disk shape minus `dirPath`); redeclared structurally here so the
  * CLI helper does not couple to any family's `ExtensionMigrationPackage`
  * type — any family that ships pre-built migration packages can pass

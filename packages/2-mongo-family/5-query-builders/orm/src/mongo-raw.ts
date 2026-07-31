@@ -1,5 +1,5 @@
-import { domainModelsAtDefaultNamespace, type PlanMeta } from '@prisma-next/contract/types';
-import type { MongoContract, MongoModelDefinition } from '@prisma-next/mongo-contract';
+import { domainModelsAtDefaultNamespace, type PlanMeta } from '@internal/contract/types';
+import type { MongoContract, MongoModelDefinition } from '@internal/mongo-contract';
 import { ormError } from './orm-errors';
 import { createRawMongoCollection, type RawMongoCollection } from './raw-collection';
 

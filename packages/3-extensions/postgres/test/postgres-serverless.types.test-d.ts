@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { Runtime } from '@prisma-next/sql-runtime';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { Runtime } from '@internal/sql-runtime';
 import { expectTypeOf, test } from 'vitest';
 import type {
   PostgresOptionsWithContract,

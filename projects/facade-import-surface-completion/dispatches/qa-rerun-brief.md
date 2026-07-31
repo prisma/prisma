@@ -8,7 +8,7 @@
 
 ## Why this re-run exists
 
-The first QA run (`manual-qa-reports/2026-05-21-claude-opus-runner-1.md`) returned `❌ Fail` because of two PR-introduced regressions (F-1 e2e-tests missing `@prisma-next/sqlite` dep; F-2 sql-orm-client emit script wrong `cd` depth). Those were fixed in the tiny-fixes dispatch, and the branch has since been rebased onto `origin/main`, which pulled in TML-2614 (`db.close()` / `[Symbol.asyncDispose]`) — meaning script-scaffolding scenarios can now teardown cleanly with `await using db = ...` instead of hanging. The rebase-cleanup dispatch then resolved two more reds (TML-2520 IR shape in `helpers.ts` + missing `unbound-tables.ts` at integration) that had blocked typecheck.
+The first QA run (`manual-qa-reports/2026-05-21-claude-opus-runner-1.md`) returned `❌ Fail` because of two PR-introduced regressions (F-1 e2e-tests missing `@internal/sqlite` dep; F-2 sql-orm-client emit script wrong `cd` depth). Those were fixed in the tiny-fixes dispatch, and the branch has since been rebased onto `origin/main`, which pulled in TML-2614 (`db.close()` / `[Symbol.asyncDispose]`) — meaning script-scaffolding scenarios can now teardown cleanly with `await using db = ...` instead of hanging. The rebase-cleanup dispatch then resolved two more reds (TML-2520 IR shape in `helpers.ts` + missing `unbound-tables.ts` at integration) that had blocked typecheck.
 
 This re-run validates:
 
@@ -39,7 +39,7 @@ If any of (1)–(2) or (4)+(6) are red, **halt and report** — the merge-blocki
 For scenarios 1 and 2 (where you scaffold a `prisma-next.config.ts` + author code that opens a db handle), prefer the `await using` form newly available on `main`:
 
 ```ts
-import { createDb } from '@prisma-next/postgres';  // or /sqlite, /mongo
+import { createDb } from '@internal/postgres';  // or /sqlite, /mongo
 import config from './prisma-next.config';
 
 await using db = createDb(config);
@@ -64,7 +64,7 @@ If the migration-plan CLI invocations don't open db handles (they may not — th
 
 While running, observe and report:
 
-- **(side-S1)** Does the rendered SQLite `migration.ts` from S1 still import only `@prisma-next/sqlite/migration` (no `@prisma-next/target-sqlite/migration`)? AC-2 oracle.
+- **(side-S1)** Does the rendered SQLite `migration.ts` from S1 still import only `@internal/sqlite/migration` (no `@internal/target-sqlite/migration`)? AC-2 oracle.
 - **(side-S2)** Same for Postgres / AC-1.
 - **(side-S4)** Does the in-tree workaround comment text in `test/integration/test/mongo-runtime/query-builder.test.ts` and `test/integration/test/mongo/fixtures/contract.ts` still match the symptom you reproduce? (Per the original S4 oracle.)
 

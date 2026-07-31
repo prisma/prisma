@@ -1,5 +1,5 @@
-import { asNamespaceId, type NamespaceId } from '@prisma-next/contract/types';
-import { freezeNode } from '@prisma-next/framework-components/ir';
+import { asNamespaceId, type NamespaceId } from '@internal/contract/types';
+import { freezeNode } from '@internal/framework-components/ir';
 import { SqlNode } from './sql-node';
 
 /**
@@ -33,7 +33,7 @@ export interface ForeignKeyReferenceInput {
  * added. For cross-space references `spaceId` appears in JSON so round-trips
  * are lossless.
  *
- * Use `UNBOUND_NAMESPACE_ID` from `@prisma-next/framework-components/ir`
+ * Use `UNBOUND_NAMESPACE_ID` from `@internal/framework-components/ir`
  * as the sentinel `namespaceId` for single-namespace (unbound) references.
  */
 export class ForeignKeyReference extends SqlNode {

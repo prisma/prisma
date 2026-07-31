@@ -17,7 +17,7 @@
     "@prisma/orm-framework": "workspace:0.16.0"
   },
   "devDependencies": {
-    "@prisma-next/middleware-cache": "workspace:0.16.0",
+    "@internal/middleware-cache": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",

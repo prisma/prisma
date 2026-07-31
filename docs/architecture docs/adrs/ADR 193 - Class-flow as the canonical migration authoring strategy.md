@@ -27,8 +27,8 @@ migrations/20250614T1030_add-status-index/
 
 ```ts
 #!/usr/bin/env node --experimental-strip-types
-import { createIndex, dataTransform, placeholder } from '@prisma-next/target-mongo/migration'
-import { Migration } from '@prisma-next/family-mongo/migration'
+import { createIndex, dataTransform, placeholder } from '@internal/target-mongo/migration'
+import { Migration } from '@internal/family-mongo/migration'
 
 class M extends Migration {
   override describe() {

@@ -5,15 +5,15 @@ import type {
   ContractValueObject,
   CrossReference,
   JsonValue,
-} from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/contract/types';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
   type TypesImportSpec,
-} from '@prisma-next/framework-components/emission';
-import { type ImportRequirement, renderImports } from '@prisma-next/ts-render';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/framework-components/emission';
+import { type ImportRequirement, renderImports } from '@internal/ts-render';
+import { blindCast } from '@internal/utils/casts';
 import { emitterError } from './emitter-errors';
 import { isSafeTypeExpression } from './type-expression-safety';
 

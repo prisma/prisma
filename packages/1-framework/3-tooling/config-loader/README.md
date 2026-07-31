@@ -1,4 +1,4 @@
-# @prisma-next/config-loader
+# @internal/config-loader
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
 > and is published only to support its runtime. Its API is unstable and may change
@@ -13,15 +13,15 @@ that turns a `prisma-next.config.ts` on disk into a resolved `PrismaNextConfig`.
 performs the emitter-derived artifact-collision check (`getEmittedArtifactPaths`).
 
 It exposes a single `loadConfig(configPath?)` that maps failures to the CLI's structured
-`@prisma-next/errors/control` errors (`CliStructuredError`). Consumers that need to react to
+`@internal/errors/control` errors (`CliStructuredError`). Consumers that need to react to
 specific failures (e.g. the language server degrading on a missing/invalid config) branch on
 the structured error's stable `code` (`4001` = config file not found, `4009` = config validation).
 
 ## Usage
 
 ```ts
-import { loadConfig } from '@prisma-next/config-loader';
-import { CliStructuredError } from '@prisma-next/errors/control';
+import { loadConfig } from '@internal/config-loader';
+import { CliStructuredError } from '@internal/errors/control';
 
 try {
   const config = await loadConfig('prisma-next.config.ts');

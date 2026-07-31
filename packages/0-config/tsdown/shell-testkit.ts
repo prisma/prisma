@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { publicShells } from '@prisma-next/publish-surface/shells';
+import { publicShells } from '@internal/publish-surface/shells';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
 
 /** A tarball-install smoke-test failure with the offending command output attached. */
@@ -248,7 +248,7 @@ function shellMapModules(installedPackageDir: string): ReadonlySet<string> {
  * constants necessarily remain in the dist; the flip to a published default
  * retires them. The rest name internal packages inside diagnostics,
  * config-validation messages, and telemetry identifiers, which go away with
- * the `@prisma-next/*` names themselves.
+ * the `@internal/*` names themselves.
  *
  * The shell map's own contents are *not* here — see
  * {@link shellMapPackageNames} for why they are recognised as data instead.
@@ -258,68 +258,68 @@ function shellMapModules(installedPackageDir: string): ReadonlySet<string> {
  * published dist while these are being worked through.
  */
 export const knownInternalNamesInDist: readonly string[] = [
-  '@prisma-next/*',
-  '@prisma-next/adapter-mongo/codec-types',
-  '@prisma-next/adapter-postgres/operation-types',
-  '@prisma-next/adapter-sqlite/codec-types',
-  '@prisma-next/cli',
-  '@prisma-next/cli-telemetry',
-  '@prisma-next/cli-telemetry/sender',
-  '@prisma-next/cli/migration-cli',
-  '@prisma-next/config',
-  '@prisma-next/config/config-validation',
-  '@prisma-next/contract/types',
-  '@prisma-next/driver-mongo/control',
-  '@prisma-next/emitter',
-  '@prisma-next/errors/control',
-  '@prisma-next/extension-arktype-json',
-  '@prisma-next/extension-arktype-json/codec-types',
-  '@prisma-next/extension-paradedb/operation-types',
-  '@prisma-next/extension-pgvector',
-  '@prisma-next/extension-pgvector/codec-types',
-  '@prisma-next/extension-pgvector/operation-types',
-  '@prisma-next/extension-postgis',
-  '@prisma-next/extension-postgis/codec-types',
-  '@prisma-next/extension-postgis/operation-types',
-  '@prisma-next/family-mongo',
-  '@prisma-next/framework-components',
-  '@prisma-next/framework-components/codec',
-  '@prisma-next/framework-components/control',
-  '@prisma-next/framework-components/ir',
-  '@prisma-next/framework-components/psl-ast',
-  '@prisma-next/framework-components/runtime',
-  '@prisma-next/ids',
-  '@prisma-next/middleware-cache',
-  '@prisma-next/migration-tools',
-  '@prisma-next/migration-tools/aggregate',
-  '@prisma-next/migration-tools/io',
-  '@prisma-next/mongo',
-  '@prisma-next/mongo-contract',
-  '@prisma-next/mongo-orm',
-  '@prisma-next/mongo-runtime',
-  '@prisma-next/mongo/contract-builder',
-  '@prisma-next/mongo/runtime',
-  '@prisma-next/postgres',
-  '@prisma-next/postgres/contract-builder',
-  '@prisma-next/postgres/migration',
-  '@prisma-next/postgres/runtime',
-  '@prisma-next/sql-contract-psl/provider',
-  '@prisma-next/sql-contract/types',
-  '@prisma-next/sql-relational-core/ast',
-  '@prisma-next/sql-runtime',
-  '@prisma-next/sqlite/migration',
-  '@prisma-next/target-mongo/migration',
-  '@prisma-next/target-postgres',
-  '@prisma-next/target-postgres/codec-types',
-  '@prisma-next/target-postgres/codecs',
-  '@prisma-next/target-postgres/errors',
-  '@prisma-next/target-sqlite',
-  '@prisma-next/target-sqlite/errors',
-  '@prisma-next/utils',
-  '@prisma-next/utils/canonical-stringify',
-  '@prisma-next/utils/hash-content',
-  '@prisma-next/utils/structured-error',
-  '@prisma-next/vite-plugin-contract-emit',
+  '@internal/*',
+  '@internal/adapter-mongo/codec-types',
+  '@internal/adapter-postgres/operation-types',
+  '@internal/adapter-sqlite/codec-types',
+  '@internal/cli',
+  '@internal/cli-telemetry',
+  '@internal/cli-telemetry/sender',
+  '@internal/cli/migration-cli',
+  '@internal/config',
+  '@internal/config/config-validation',
+  '@internal/contract/types',
+  '@internal/driver-mongo/control',
+  '@internal/emitter',
+  '@internal/errors/control',
+  '@internal/extension-arktype-json',
+  '@internal/extension-arktype-json/codec-types',
+  '@internal/extension-paradedb/operation-types',
+  '@internal/extension-pgvector',
+  '@internal/extension-pgvector/codec-types',
+  '@internal/extension-pgvector/operation-types',
+  '@internal/extension-postgis',
+  '@internal/extension-postgis/codec-types',
+  '@internal/extension-postgis/operation-types',
+  '@internal/family-mongo',
+  '@internal/framework-components',
+  '@internal/framework-components/codec',
+  '@internal/framework-components/control',
+  '@internal/framework-components/ir',
+  '@internal/framework-components/psl-ast',
+  '@internal/framework-components/runtime',
+  '@internal/ids',
+  '@internal/middleware-cache',
+  '@internal/migration-tools',
+  '@internal/migration-tools/aggregate',
+  '@internal/migration-tools/io',
+  '@internal/mongo',
+  '@internal/mongo-contract',
+  '@internal/mongo-orm',
+  '@internal/mongo-runtime',
+  '@internal/mongo/contract-builder',
+  '@internal/mongo/runtime',
+  '@internal/postgres',
+  '@internal/postgres/contract-builder',
+  '@internal/postgres/migration',
+  '@internal/postgres/runtime',
+  '@internal/sql-contract-psl/provider',
+  '@internal/sql-contract/types',
+  '@internal/sql-relational-core/ast',
+  '@internal/sql-runtime',
+  '@internal/sqlite/migration',
+  '@internal/target-mongo/migration',
+  '@internal/target-postgres',
+  '@internal/target-postgres/codec-types',
+  '@internal/target-postgres/codecs',
+  '@internal/target-postgres/errors',
+  '@internal/target-sqlite',
+  '@internal/target-sqlite/errors',
+  '@internal/utils',
+  '@internal/utils/canonical-stringify',
+  '@internal/utils/hash-content',
+  '@internal/utils/structured-error',
+  '@internal/vite-plugin-contract-emit',
 ];
 
 /**
@@ -349,7 +349,7 @@ export async function findInternalNames(installedPackageDir: string): Promise<st
     if (file.endsWith('.mjs')) {
       const carriesShellMap = mapModules.has(file);
       for (const match of readFileSync(file, 'utf8').matchAll(
-        /["'`](@prisma-next\/[^"'`\s\\]+)["'`\\]/g,
+        /["'`](@internal\/[^"'`\s\\]+)["'`\\]/g,
       )) {
         const name = match[1] ?? '';
         if (known.has(name)) continue;
@@ -360,7 +360,7 @@ export async function findInternalNames(installedPackageDir: string): Promise<st
       for (const line of readFileSync(file, 'utf8').split('\n')) {
         if (/^\s*(\*|\/\/)/.test(line)) continue;
         for (const match of line.matchAll(
-          /(?:from\s+|^\s*import\s+|import\()(["'])(@prisma-next\/[^"']+)\1/g,
+          /(?:from\s+|^\s*import\s+|import\()(["'])(@internal\/[^"']+)\1/g,
         )) {
           const name = match[2] ?? '';
           if (!known.has(name)) offenders.push(`${file}: ${name}`);
@@ -384,7 +384,7 @@ export async function findInternalImportSpecifiers(installedPackageDir: string):
     if (!file.endsWith('.mjs')) continue;
     const [imports] = parseModule(readFileSync(file, 'utf8'));
     for (const record of imports) {
-      if (record.n?.startsWith('@prisma-next/')) offenders.push(`${file}: ${record.n}`);
+      if (record.n?.startsWith('@internal/')) offenders.push(`${file}: ${record.n}`);
     }
   }
   return offenders;

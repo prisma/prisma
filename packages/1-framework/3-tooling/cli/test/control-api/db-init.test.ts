@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   ControlAdapterInstance,
   ControlDriverInstance,
   ControlFamilyInstance,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-import { ok } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import { ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
 import { executeDbInit } from '../../src/control-api/operations/db-init';
 

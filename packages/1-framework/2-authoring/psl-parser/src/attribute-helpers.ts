@@ -1,4 +1,4 @@
-import type { PslAttribute } from '@prisma-next/framework-components/psl-ast';
+import type { PslAttribute } from '@internal/framework-components/psl-ast';
 
 export function getPositionalArgument(attribute: PslAttribute, index = 0): string | undefined {
   const entries = attribute.args.filter((arg) => arg.kind === 'positional');

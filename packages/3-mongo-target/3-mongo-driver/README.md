@@ -1,4 +1,4 @@
-# @prisma-next/driver-mongo
+# @internal/driver-mongo
 
 MongoDB driver for Prisma Next. Executes wire-protocol documents against a MongoDB connection.
 
@@ -10,4 +10,4 @@ MongoDB driver for Prisma Next. Executes wire-protocol documents against a Mongo
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/mongo-core` (driver interface types)
+  - `@internal/mongo-core` (driver interface types)

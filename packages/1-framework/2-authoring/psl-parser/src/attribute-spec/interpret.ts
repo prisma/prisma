@@ -1,6 +1,6 @@
-import type { PslDiagnostic, PslSpan } from '@prisma-next/framework-components/psl-ast';
-import { blindCast } from '@prisma-next/utils/casts';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import type { PslDiagnostic, PslSpan } from '@internal/framework-components/psl-ast';
+import { blindCast } from '@internal/utils/casts';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { nodePslSpan } from '../resolve';
 import type { FieldAttributeAst, ModelAttributeAst } from '../syntax/ast/attributes';
 import type { AttributeArgAst } from '../syntax/ast/expressions';

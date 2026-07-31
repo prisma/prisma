@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import {
   mergeCapabilityMatrices,
   type TargetBoundComponentDescriptor,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

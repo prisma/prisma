@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/mongo-wire",
+  "name": "@internal/mongo-wire",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -16,9 +16,9 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/mongo-query-ast": "workspace:0.16.0",
-    "@prisma-next/mongo-value": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0"
+    "@internal/mongo-query-ast": "workspace:0.16.0",
+    "@internal/mongo-value": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:0.16.0",

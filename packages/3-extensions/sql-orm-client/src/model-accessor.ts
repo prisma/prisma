@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import type { SqlOperationEntry } from '@prisma-next/sql-operations';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import type { SqlOperationEntry } from '@internal/sql-operations';
 import {
   AndExpr,
   type AnyExpression,
@@ -12,12 +12,12 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
-import type { Expression, ScopeField } from '@prisma-next/sql-relational-core/expression';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { Expression, ScopeField } from '@internal/sql-relational-core/expression';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import {
   getFieldToColumnMap,
   resolveFieldToColumn,

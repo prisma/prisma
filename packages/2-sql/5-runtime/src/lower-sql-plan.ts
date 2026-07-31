@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { Adapter, AnyQueryAst, LoweredStatement } from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import type { Contract } from '@internal/contract/types';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { Adapter, AnyQueryAst, LoweredStatement } from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 
 /**
  * Lowers a SQL query plan to an executable Plan by calling the adapter's lower method.

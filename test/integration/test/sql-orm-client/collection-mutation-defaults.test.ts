@@ -1,8 +1,8 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import pgvectorRuntime from '@prisma-next/extension-pgvector/runtime';
-import { Collection } from '@prisma-next/sql-orm-client';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import pgvectorRuntime from '@internal/extension-pgvector/runtime';
+import { Collection } from '@internal/sql-orm-client';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresTarget from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import { withReturningCapability } from './collection-fixtures';
 import type { MockRuntime, TestContract } from './helpers';

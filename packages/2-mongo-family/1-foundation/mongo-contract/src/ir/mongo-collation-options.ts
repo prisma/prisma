@@ -1,4 +1,4 @@
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 
 export type MongoCollationCaseFirst = 'off' | 'upper' | 'lower';
 export type MongoCollationStrength = 1 | 2 | 3 | 4 | 5;

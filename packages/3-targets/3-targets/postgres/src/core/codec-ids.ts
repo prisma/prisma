@@ -5,7 +5,7 @@ export {
   SQL_TEXT_CODEC_ID,
   SQL_TIMESTAMP_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 export const PG_TEXT_CODEC_ID = 'pg/text@1' as const;
 export const PG_TEXT_ARRAY_CODEC_ID = 'pg/text-array@1' as const;
 export const PG_ENUM_CODEC_ID = 'pg/enum@1' as const;

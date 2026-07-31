@@ -3,7 +3,7 @@ import {
   PostgresCreatePolicy,
   PostgresDisableRowLevelSecurity,
   PostgresDropPolicy,
-} from '@prisma-next/target-postgres/ddl';
+} from '@internal/target-postgres/ddl';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../src/core/control-adapter';

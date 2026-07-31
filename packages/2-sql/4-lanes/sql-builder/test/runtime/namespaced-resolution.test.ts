@@ -1,5 +1,5 @@
-import type { TableSource } from '@prisma-next/sql-relational-core/ast';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { TableSource } from '@internal/sql-relational-core/ast';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import { sql } from '../../src/runtime/sql';
 import type { Contract } from '../fixtures/generated/contract';

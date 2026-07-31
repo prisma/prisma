@@ -1,5 +1,5 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { enrichContract } from '../../src/control-api/contract-enrichment';
@@ -134,7 +134,7 @@ describe('enrichContract', () => {
       types: {
         codecTypes: {
           import: {
-            package: '@prisma-next/extension-pgvector/codec-types',
+            package: '@internal/extension-pgvector/codec-types',
             named: 'CodecTypes',
             alias: 'PgVectorTypes',
           },
@@ -170,7 +170,7 @@ describe('enrichContract', () => {
         types: {
           codecTypes: {
             import: {
-              package: '@prisma-next/extension-pgvector/codec-types',
+              package: '@internal/extension-pgvector/codec-types',
               named: 'CodecTypes',
               alias: 'PgVectorTypes',
             },

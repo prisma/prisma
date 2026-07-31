@@ -1,7 +1,7 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { SqlNode } from '@prisma-next/sql-contract/types';
-import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import { freezeNode } from '@internal/framework-components/ir';
+import { SqlNode } from '@internal/sql-contract/types';
+import { formatWireName, parseWireName } from '@internal/sql-schema-ir/naming';
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 

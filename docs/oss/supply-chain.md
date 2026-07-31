@@ -18,7 +18,7 @@ As of the most recent audit, no runtime-redistributed dependency carries a `NOTI
 
 The publish workflow ([`.github/workflows/publish.yml`](../../.github/workflows/publish.yml)) sets `NPM_CONFIG_PROVENANCE: "true"` on `pnpm publish`. This produces an [npm provenance attestation](https://docs.npmjs.com/generating-provenance-statements) for every published tarball — a cryptographically-signed statement linking the tarball back to the GitHub Actions workflow run that produced it.
 
-Provenance gives downstream consumers the ability to verify that a `@prisma-next/*` tarball on the npm registry was actually built from this repository on a given commit by a given workflow, not injected from elsewhere. It defends against registry-side compromises and lookalike-package attacks. Provenance requires public source, which we have, and OIDC trusted publishing, which the workflow uses (no long-lived `NPM_TOKEN`).
+Provenance gives downstream consumers the ability to verify that a `@internal/*` tarball on the npm registry was actually built from this repository on a given commit by a given workflow, not injected from elsewhere. It defends against registry-side compromises and lookalike-package attacks. Provenance requires public source, which we have, and OIDC trusted publishing, which the workflow uses (no long-lived `NPM_TOKEN`).
 
 ## Dependabot release cooldown
 

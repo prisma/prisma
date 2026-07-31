@@ -1,9 +1,9 @@
-import { CliStructuredError } from '@prisma-next/errors/control';
-import { placeholder } from '@prisma-next/errors/migration';
+import { CliStructuredError } from '@internal/errors/control';
+import { placeholder } from '@internal/errors/migration';
 import type {
   AnyMongoMigrationOperation,
   MongoDataTransformOperation,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import {
   AggregateCommand,
   type MongoExistsExpr,
@@ -12,7 +12,7 @@ import {
   MongoMatchStage,
   type MongoQueryPlan,
   RawUpdateManyCommand,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { dataTransform } from '../src/core/migration-factories';
 import { deserializeMongoOps, serializeMongoOps } from '../src/core/mongo-ops-serializer';

@@ -1,5 +1,5 @@
-import type { MongoLoweredDraft } from '@prisma-next/mongo-lowering';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+import type { MongoLoweredDraft } from '@internal/mongo-lowering';
+import { MongoParamRef } from '@internal/mongo-value';
 import { describe, expect, it } from 'vitest';
 import { createMongoParamRefMutator, flattenMongoParamRefs } from '../src/param-ref-mutator';
 

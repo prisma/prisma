@@ -2,15 +2,15 @@ import {
   freezeNode,
   hydrateNamespaceEntities,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
-import { tableEntityKind } from '@prisma-next/sql-contract/entity-kinds';
+} from '@internal/framework-components/ir';
+import { tableEntityKind } from '@internal/sql-contract/entity-kinds';
 import {
   SqlNamespaceBase,
   type SqlNamespaceEntries,
   type SqlNamespaceInput,
   type StorageTable,
-} from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
 import { sqliteError } from './errors';
 
 export type SqliteDatabaseInput = {

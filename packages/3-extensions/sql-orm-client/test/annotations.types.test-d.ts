@@ -2,7 +2,7 @@ import {
   type AnnotationValue,
   defineAnnotation,
   type MetaBuilder,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import { describe, expectTypeOf, test } from 'vitest';
 import type { Collection } from '../src/collection';
 import type { GroupedCollection } from '../src/grouped-collection';

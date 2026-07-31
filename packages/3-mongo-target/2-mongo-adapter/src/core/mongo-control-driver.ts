@@ -1,5 +1,5 @@
-import type { ControlDriverInstance } from '@prisma-next/framework-components/control';
-import type { MongoControlDriverInstance } from '@prisma-next/mongo-lowering';
+import type { ControlDriverInstance } from '@internal/framework-components/control';
+import type { MongoControlDriverInstance } from '@internal/mongo-lowering';
 
 export function isMongoControlDriver(
   driver: ControlDriverInstance<'mongo', string>,

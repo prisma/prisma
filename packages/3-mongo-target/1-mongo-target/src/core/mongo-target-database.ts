@@ -3,15 +3,15 @@ import {
   hydrateNamespaceEntities,
   NamespaceBase,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import type {
   MongoCollection,
   MongoCollectionInput,
   MongoNamespaceEntries,
   MongoValueSetInput,
-} from '@prisma-next/mongo-contract';
-import { composeMongoEntityKinds } from '@prisma-next/mongo-contract/entity-kinds';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/mongo-contract';
+import { composeMongoEntityKinds } from '@internal/mongo-contract/entity-kinds';
+import { blindCast } from '@internal/utils/casts';
 
 export interface MongoTargetDatabaseInput {
   readonly id: string;

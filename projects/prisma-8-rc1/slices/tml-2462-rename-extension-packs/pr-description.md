@@ -26,7 +26,7 @@ export default defineConfig({
 })
 ```
 
-Sugar configs (`@prisma-next/postgres/config` et al.) already said `extensions`; their `outputPath` becomes `output`. In `contract.json` and `contract.d.ts`, the top-level `extensionPacks` key becomes `extensions`.
+Sugar configs (`@internal/postgres/config` et al.) already said `extensions`; their `outputPath` becomes `output`. In `contract.json` and `contract.d.ts`, the top-level `extensionPacks` key becomes `extensions`.
 
 ## The decision
 

@@ -1,8 +1,8 @@
-import type { DiffableNode, SchemaNodeRef } from '@prisma-next/framework-components/control';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { isArrayEqual } from '@prisma-next/utils/array-equal';
-import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { DiffableNode, SchemaNodeRef } from '@internal/framework-components/control';
+import { freezeNode } from '@internal/framework-components/ir';
+import { isArrayEqual } from '@internal/utils/array-equal';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import { normalizeIndexOptionValue } from '../naming';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
 import type { SqlAnnotations } from './sql-column-ir';

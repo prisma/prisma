@@ -1,4 +1,4 @@
-import type { SymbolTable } from '@prisma-next/psl-parser';
+import type { SymbolTable } from '@internal/psl-parser';
 import {
   ArrayLiteralAst,
   type AttributeArgAst,
@@ -27,7 +27,7 @@ import {
   type SyntaxToken,
   type TypeAnnotationAst,
   TypesBlockAst,
-} from '@prisma-next/psl-parser/syntax';
+} from '@internal/psl-parser/syntax';
 import {
   type Range,
   SemanticTokenModifiers,

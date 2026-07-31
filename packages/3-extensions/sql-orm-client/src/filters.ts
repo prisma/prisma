@@ -1,5 +1,5 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   AndExpr,
   type AnyExpression,
@@ -8,8 +8,8 @@ import {
   LiteralExpr,
   NullCheckExpr,
   OrExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/ast';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { getFieldToColumnMap, modelOf, resolveModelTableName } from './collection-contract';
 import { ormError } from './orm-errors';
 import type { ShorthandWhereFilter } from './types';

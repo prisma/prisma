@@ -1,4 +1,4 @@
-import type { SqlConnection, SqlQueryable } from '@prisma-next/sql-relational-core/ast';
+import type { SqlConnection, SqlQueryable } from '@internal/sql-relational-core/ast';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
@@ -31,7 +31,7 @@ async function preparedNames(queryable: SqlQueryable): Promise<string[]> {
   return result.rows.map((r) => r.name);
 }
 
-describe('@prisma-next/driver-postgres prepared statements', () => {
+describe('@internal/driver-postgres prepared statements', () => {
   const cleanups: Array<() => Promise<void>> = [];
 
   afterEach(async () => {

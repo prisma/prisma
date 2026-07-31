@@ -1,4 +1,4 @@
-import { and } from '@prisma-next/sql-orm-client';
+import { and } from '@internal/sql-orm-client';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../../../_harness/postgres';
 import type { Contract } from './_fixture/generated/contract';

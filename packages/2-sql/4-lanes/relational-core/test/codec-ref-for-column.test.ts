@@ -2,8 +2,8 @@ import {
   SqlStorage,
   type SqlStorage as SqlStorageType,
   StorageTable,
-} from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { codecRefForStorageColumn } from '../src/codec-ref-for-column';

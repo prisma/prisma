@@ -1,5 +1,5 @@
-import type { StorageHashBase } from '@prisma-next/contract/types';
-import type { ContractWithTypeMaps, TypeMaps } from '@prisma-next/sql-contract/types';
+import type { StorageHashBase } from '@internal/contract/types';
+import type { ContractWithTypeMaps, TypeMaps } from '@internal/sql-contract/types';
 import { assertType, expectTypeOf, test } from 'vitest';
 import type { ExtractOutputType, TableToSelection } from '../src/selection';
 

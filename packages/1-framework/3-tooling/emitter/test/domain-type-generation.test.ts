@@ -1,13 +1,9 @@
-import type {
-  ContractField,
-  ContractModel,
-  ContractValueObject,
-} from '@prisma-next/contract/types';
-import { crossRef } from '@prisma-next/contract/types';
-import type { Codec, CodecLookup } from '@prisma-next/framework-components/codec';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
-import { blindCast } from '@prisma-next/utils/casts';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { ContractField, ContractModel, ContractValueObject } from '@internal/contract/types';
+import { crossRef } from '@internal/contract/types';
+import type { Codec, CodecLookup } from '@internal/framework-components/codec';
+import type { TypesImportSpec } from '@internal/framework-components/emission';
+import { blindCast } from '@internal/utils/casts';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
 import {
   deduplicateImports,
@@ -499,34 +495,32 @@ describe('deduplicateImports', () => {
 describe('generateImportLines', () => {
   it('generates import with alias', () => {
     const imports: TypesImportSpec[] = [
-      { package: '@prisma-next/adapter', named: 'CodecTypes', alias: 'PgCodecTypes' },
+      { package: '@internal/adapter', named: 'CodecTypes', alias: 'PgCodecTypes' },
     ];
     const lines = generateImportLines(imports);
-    expect(lines).toEqual([
-      "import type { CodecTypes as PgCodecTypes } from '@prisma-next/adapter';",
-    ]);
+    expect(lines).toEqual(["import type { CodecTypes as PgCodecTypes } from '@internal/adapter';"]);
   });
 
   it('simplifies import when named === alias', () => {
     const imports: TypesImportSpec[] = [
-      { package: '@prisma-next/adapter', named: 'Vector', alias: 'Vector' },
+      { package: '@internal/adapter', named: 'Vector', alias: 'Vector' },
     ];
     const lines = generateImportLines(imports);
-    expect(lines).toEqual(["import type { Vector } from '@prisma-next/adapter';"]);
+    expect(lines).toEqual(["import type { Vector } from '@internal/adapter';"]);
   });
 
   it('merges multiple named imports from the same package onto one line', () => {
     const imports: TypesImportSpec[] = [
       {
-        package: '@prisma-next/adapter-mongo/codec-types',
+        package: '@internal/adapter-mongo/codec-types',
         named: 'CodecTypes',
         alias: 'MongoCodecTypes',
       },
-      { package: '@prisma-next/adapter-mongo/codec-types', named: 'Vector', alias: 'Vector' },
+      { package: '@internal/adapter-mongo/codec-types', named: 'Vector', alias: 'Vector' },
     ];
     const lines = generateImportLines(imports);
     expect(lines).toEqual([
-      "import type { CodecTypes as MongoCodecTypes, Vector } from '@prisma-next/adapter-mongo/codec-types';",
+      "import type { CodecTypes as MongoCodecTypes, Vector } from '@internal/adapter-mongo/codec-types';",
     ]);
   });
 

@@ -1,17 +1,17 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import {
   APP_SPACE_ID,
   type MigrationOperationPolicy,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { createPostgresMigrationPlanner } from '@prisma-next/target-postgres/planner';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { createPostgresMigrationPlanner } from '@internal/target-postgres/planner';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
   PostgresTableSchemaNode,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
@@ -216,7 +216,7 @@ describe('PostgresMigrationPlanner - reconciliation planning', () => {
 });
 
 function createContract(
-  tables: Record<string, import('@prisma-next/sql-contract/types').StorageTableInput>,
+  tables: Record<string, import('@internal/sql-contract/types').StorageTableInput>,
 ): Contract<SqlStorage> {
   return {
     target: 'postgres',

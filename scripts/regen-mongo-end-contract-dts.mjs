@@ -61,7 +61,7 @@ for (const jsonPath of args) {
 
   const codecTypeImports = [
     {
-      package: '@prisma-next/adapter-mongo/codec-types',
+      package: '@internal/adapter-mongo/codec-types',
       named: 'CodecTypes',
       alias: 'MongoCodecTypes',
     },

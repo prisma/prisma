@@ -1,17 +1,17 @@
-import sqliteAdapter from '@prisma-next/adapter-sqlite/runtime';
-import { buildNamespacedEnums, type NamespacedEnums } from '@prisma-next/contract/enum-accessor';
-import type { Contract } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { RawCodecInferer, RawSqlTag } from '@prisma-next/sql-relational-core/expression';
-import { createRawSql } from '@prisma-next/sql-relational-core/expression';
-import type { ExecutionContext, SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import sqliteTarget, { SqliteContractSerializer } from '@prisma-next/target-sqlite/runtime';
-import { assertDefined } from '@prisma-next/utils/assertions';
-import { blindCast } from '@prisma-next/utils/casts';
+import sqliteAdapter from '@internal/adapter-sqlite/runtime';
+import { buildNamespacedEnums, type NamespacedEnums } from '@internal/contract/enum-accessor';
+import type { Contract } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { sql } from '@internal/sql-builder/runtime';
+import type { Db } from '@internal/sql-builder/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { RawCodecInferer, RawSqlTag } from '@internal/sql-relational-core/expression';
+import { createRawSql } from '@internal/sql-relational-core/expression';
+import type { ExecutionContext, SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import sqliteTarget, { SqliteContractSerializer } from '@internal/target-sqlite/runtime';
+import { assertDefined } from '@internal/utils/assertions';
+import { blindCast } from '@internal/utils/casts';
 import type { SqliteTargetId } from '../runtime/sqlite';
 
 type UnboundSql<TContract extends Contract<SqlStorage>> =

@@ -1,14 +1,14 @@
-import { asNamespaceId } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ForeignKey } from '@prisma-next/sql-contract/types';
-import type { SqlTableIRInput } from '@prisma-next/sql-schema-ir/types';
-import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+import { asNamespaceId } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ForeignKey } from '@internal/sql-contract/types';
+import type { SqlTableIRInput } from '@internal/sql-schema-ir/types';
+import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import {
   buildSchemaLookupMap,
   hasForeignKey,
   hasIndex,
   hasUniqueConstraint,
-} from '@prisma-next/target-postgres/planner-schema-lookup';
+} from '@internal/target-postgres/planner-schema-lookup';
 import { describe, expect, it } from 'vitest';
 
 function makeTable(overrides: Partial<SqlTableIRInput> = {}): SqlSchemaIR['tables'][string] {

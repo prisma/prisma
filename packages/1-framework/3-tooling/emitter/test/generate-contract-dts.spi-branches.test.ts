@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
+import type { Contract } from '@internal/contract/types';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type { EmissionSpi } from '@internal/framework-components/emission';
 import { describe, expect, it } from 'vitest';
 import { generateContractDts } from '../src/generate-contract-dts';
 import { createMockSpi } from './mock-spi';

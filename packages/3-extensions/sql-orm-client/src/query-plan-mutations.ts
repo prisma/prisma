@@ -1,5 +1,5 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   type AnyExpression,
   type AstRewriter,
@@ -17,11 +17,11 @@ import {
   SelectAst,
   TableSource,
   UpdateAst,
-} from '@prisma-next/sql-relational-core/ast';
-import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { resolvePolymorphismInfo, resolvePrimaryKeyColumn } from './collection-contract';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst, resolveTableColumns } from './query-plan-meta';

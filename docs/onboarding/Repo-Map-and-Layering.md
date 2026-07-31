@@ -8,7 +8,7 @@
 
 Planes (`migration` / `runtime` / `shared`) cut across the directory hierarchy and are enforced by `dependency-cruiser` against the globs in `architecture.config.json`. Cross-plane rules: `migration → runtime` is **forbidden**; `runtime → migration` is allowed for artifacts only (e.g. compiled query plans, contract IR); `shared → *` is allowed.
 
-Target packages (`@prisma-next/target-*`) split their `src/core/` along this boundary:
+Target packages (`@internal/target-*`) split their `src/core/` along this boundary:
 
 - `src/core/migrations/**` — migration plane. Planner, emitter, operation factories, resolver, TS rendering. Executed at `node migration.ts` time and at `migration plan` / `migrate`.
 - `src/core/**` (everything else) — shared plane. Files used from both migration and runtime entrypoints (`authoring.ts`, `descriptor-meta.ts`, `types.ts`, …).
@@ -16,7 +16,7 @@ Target packages (`@prisma-next/target-*`) split their `src/core/` along this bou
 - `src/exports/runtime.ts` — runtime-plane export.
 - `src/exports/pack.ts` — shared-plane export.
 
-The intent is that target migration code is **plainly control-plane** and should not be allowed to import from runtime-plane packages (e.g. `@prisma-next/sql-runtime`, family runtime adapters). Putting migration code under a shared- or unregistered glob hides plane violations from CI; explicit migration-plane registration surfaces them.
+The intent is that target migration code is **plainly control-plane** and should not be allowed to import from runtime-plane packages (e.g. `@internal/sql-runtime`, family runtime adapters). Putting migration code under a shared- or unregistered glob hides plane violations from CI; explicit migration-plane registration surfaces them.
 
 ### Glob resolution
 

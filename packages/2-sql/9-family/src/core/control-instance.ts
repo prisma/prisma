@@ -1,12 +1,8 @@
-import type {
-  Contract,
-  ContractMarkerRecord,
-  LedgerEntryRecord,
-} from '@prisma-next/contract/types';
+import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
 import type {
   TargetBoundComponentDescriptor,
   TargetDescriptor,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import type {
   ControlFamilyInstance,
   ControlStack,
@@ -21,31 +17,31 @@ import type {
   SignDatabaseResult,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
   SchemaTreeNode,
   VERIFY_CODE_HASH_MISMATCH,
   VERIFY_CODE_MARKER_MISSING,
   VERIFY_CODE_TARGET_MISMATCH,
-} from '@prisma-next/framework-components/control';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
-import { isPlainRecord } from '@prisma-next/framework-components/ir';
-import type { PslDocumentAst } from '@prisma-next/framework-components/psl-ast';
-import { assertDescriptorSelfConsistency } from '@prisma-next/migration-tools/spaces';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import type { SqlControlDriverInstance, SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/control';
+import type { TypesImportSpec } from '@internal/framework-components/emission';
+import { isPlainRecord } from '@internal/framework-components/ir';
+import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
+import { assertDescriptorSelfConsistency } from '@internal/migration-tools/spaces';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import type {
   AnyQueryAst,
   DdlNode,
   LowererContext,
   SqlExecuteRequest,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlSchemaIRNode, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import type { StructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import type { SqlSchemaIRNode, SqlTableIR } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import type { StructuredError } from '@internal/utils/structured-error';
 import type { SqlControlAdapter } from './control-adapter';
 import type {
   SqlControlTargetDescriptor,
@@ -254,7 +250,7 @@ export interface SqlControlFamilyInstance
   /**
    * Classifies a diff issue's subject granularity on demand, resolved from
    * its node's `nodeKind` via the target's classifier. Satisfies the
-   * {@link import('@prisma-next/framework-components/control').SchemaSubjectClassifierCapable}
+   * {@link import('@internal/framework-components/control').SchemaSubjectClassifierCapable}
    * capability that framework consumers spanning contract spaces (the
    * migration aggregate's unclaimed-elements sweep) detect via
    * `hasSchemaSubjectClassifier` and call instead of reading family/target
@@ -266,7 +262,7 @@ export interface SqlControlFamilyInstance
    * Classifies a diff issue's subject storage `entityKind` on demand,
    * resolved from its node's `nodeKind` via the target's classifier —
    * sibling of `classifySubjectGranularity` above, part of the same
-   * {@link import('@prisma-next/framework-components/control').SchemaSubjectClassifierCapable}
+   * {@link import('@internal/framework-components/control').SchemaSubjectClassifierCapable}
    * capability. Nothing is stamped on the issue or the node.
    */
   classifyEntityKind(issue: SchemaDiffIssue): string | undefined;
@@ -801,7 +797,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
     /**
      * Classifies a diff issue's subject granularity on demand, by resolving
      * its node's `nodeKind` through the target's classifier — the
-     * {@link import('@prisma-next/framework-components/control').SchemaSubjectClassifierCapable}
+     * {@link import('@internal/framework-components/control').SchemaSubjectClassifierCapable}
      * capability. Framework consumers spanning contract spaces (the
      * migration aggregate's unclaimed-elements sweep) detect and call this
      * instead of reaching into the concrete schema-IR node, which they
@@ -817,7 +813,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
      * Classifies a diff issue's subject storage `entityKind` on demand, by
      * resolving its node's `nodeKind` through the target's classifier —
      * the sibling of `classifySubjectGranularity` above, and part of the
-     * same {@link import('@prisma-next/framework-components/control').SchemaSubjectClassifierCapable}
+     * same {@link import('@internal/framework-components/control').SchemaSubjectClassifierCapable}
      * capability.
      */
     classifyEntityKind(issue: SchemaDiffIssue): string | undefined {

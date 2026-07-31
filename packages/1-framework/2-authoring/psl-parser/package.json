@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/psl-parser",
+  "name": "@internal/psl-parser",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -16,10 +16,10 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/config": "workspace:0.16.0",
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0"
+    "@internal/config": "workspace:0.16.0",
+    "@internal/contract": "workspace:0.16.0",
+    "@internal/framework-components": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:0.16.0",

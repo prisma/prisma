@@ -1,5 +1,5 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
 import {
   createImportSpecifierResolver,
   type ImportRoot,
@@ -7,7 +7,7 @@ import {
   importedSpecifiers,
   internalImportRoot,
   transitiveImports,
-} from '@prisma-next/publish-surface/import-roots';
+} from '@internal/publish-surface/import-roots';
 import { describe, expect, it } from 'vitest';
 import { DropTableCall } from '../../src/core/migrations/op-factory-call';
 import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';
@@ -63,7 +63,7 @@ function packageImports(source: string): string[] {
 
 describe('emitted migration files under each import root', () => {
   it('names the workspace facade under the internal root', () => {
-    expect(packageImports(render(internalImportRoot))).toEqual(['@prisma-next/sqlite/migration']);
+    expect(packageImports(render(internalImportRoot))).toEqual(['@internal/sqlite/migration']);
   });
 
   it('names the published facade under the facade root', () => {
@@ -88,8 +88,8 @@ describe('emitted migration files under each import root', () => {
     );
   });
 
-  // Same shape as Postgres, and the same cause: `@prisma-next/sqlite/migration`
-  // is a one-line `export * from '@prisma-next/target-sqlite/migration'`, and
+  // Same shape as Postgres, and the same cause: `@internal/sqlite/migration`
+  // is a one-line `export * from '@internal/target-sqlite/migration'`, and
   // the module behind it is platform-owned and resolves under every root (see
   // the next case). Only the alias the scaffold names has no platform form.
   // The two candidate fixes are recorded on the Postgres equivalent; both
@@ -99,18 +99,18 @@ describe('emitted migration files under each import root', () => {
   });
 
   it('resolves the module behind the facade alias under every root', () => {
-    expect(createImportSpecifierResolver(platform)('@prisma-next/target-sqlite/migration')).toBe(
+    expect(createImportSpecifierResolver(platform)('@internal/target-sqlite/migration')).toBe(
       '@prisma/orm-target-sqlite/target/migration',
     );
-    expect(
-      createImportSpecifierResolver(sqliteFacade)('@prisma-next/target-sqlite/migration'),
-    ).toBe('@prisma/orm-sqlite/target/migration');
+    expect(createImportSpecifierResolver(sqliteFacade)('@internal/target-sqlite/migration')).toBe(
+      '@prisma/orm-sqlite/target/migration',
+    );
   });
 });
 
 describe('the empty migration `migration new` scaffolds', () => {
   it('names the workspace package under the internal root', () => {
-    expect(packageImports(scaffold(internalImportRoot))).toEqual(['@prisma-next/sqlite/migration']);
+    expect(packageImports(scaffold(internalImportRoot))).toEqual(['@internal/sqlite/migration']);
   });
 
   it('names the published facade under the facade root', () => {

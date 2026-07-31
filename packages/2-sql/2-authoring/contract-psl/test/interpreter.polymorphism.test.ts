@@ -1,6 +1,6 @@
-import { crossRef } from '@prisma-next/contract/types';
-import { validateContractDomain } from '@prisma-next/contract/validate-domain';
-import type { SqlModelStorage, SqlStorage } from '@prisma-next/sql-contract/types';
+import { crossRef } from '@internal/contract/types';
+import { validateContractDomain } from '@internal/contract/validate-domain';
+import type { SqlModelStorage, SqlStorage } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import {

@@ -1,4 +1,4 @@
-import type { LedgerEntryRecord } from '@prisma-next/contract/types';
+import type { LedgerEntryRecord } from '@internal/contract/types';
 import { type } from 'arktype';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { migrationLogResultSchema } from '../../src/commands/json/schemas';
@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
   readLedger: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 
@@ -36,7 +36,7 @@ vi.mock('../../src/control-api/client', () => ({
 afterAll(() => {
   // Repo-wide vitest runs with `isolate: false`, so the `vi.mock` leaks
   // into the next file in the same worker; unmock to restore it.
-  vi.doUnmock('@prisma-next/config-loader');
+  vi.doUnmock('@internal/config-loader');
   vi.doUnmock('../../src/control-api/client');
   vi.resetModules();
 });

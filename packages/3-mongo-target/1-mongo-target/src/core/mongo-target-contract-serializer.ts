@@ -1,14 +1,14 @@
-import { MongoContractSerializerBase } from '@prisma-next/family-mongo/ir';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { MongoContractSerializerBase } from '@internal/family-mongo/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   type MongoCollectionInput,
   type MongoContract,
   MongoStorage,
   type MongoValueSetInput,
-} from '@prisma-next/mongo-contract';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import type { JsonObject } from '@prisma-next/utils/json';
+} from '@internal/mongo-contract';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import type { JsonObject } from '@internal/utils/json';
 import type { MongoTargetContract } from './mongo-target-contract';
 import { MongoTargetDatabase, MongoTargetUnboundDatabase } from './mongo-target-database';
 

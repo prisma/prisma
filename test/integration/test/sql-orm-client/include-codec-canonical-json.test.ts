@@ -4,14 +4,14 @@ import {
   int8Column,
   intervalColumn,
   numericColumn,
-} from '@prisma-next/adapter-postgres/column-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import { vector } from '@prisma-next/extension-pgvector/column-types';
-import pgvectorRuntime from '@prisma-next/extension-pgvector/runtime';
-import { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
-import { Collection } from '@prisma-next/sql-orm-client';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
+} from '@internal/adapter-postgres/column-types';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import { vector } from '@internal/extension-pgvector/column-types';
+import pgvectorRuntime from '@internal/extension-pgvector/runtime';
+import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
+import { Collection } from '@internal/sql-orm-client';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresTarget from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withCollectionRuntime } from './integration-helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';

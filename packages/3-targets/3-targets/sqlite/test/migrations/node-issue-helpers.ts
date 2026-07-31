@@ -7,8 +7,8 @@
  * produces.
  */
 
-import type { ColumnDefault } from '@prisma-next/contract/types';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
+import type { ColumnDefault } from '@internal/contract/types';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import {
   PrimaryKey,
   SqlCheckConstraintIR,
@@ -18,7 +18,7 @@ import {
   SqlIndexIR,
   SqlTableIR,
   SqlUniqueIR,
-} from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-schema-ir/types';
 
 /** Placeholder codec id for hand-built test fixtures — SQLite's DDL builders only uppercase the base native type, never resolving codec hooks by id. */
 const TEST_CODEC_ID = 'test/native@1';

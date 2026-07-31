@@ -32,8 +32,8 @@ const DEP_FIELDS = [
  *
  * Every scope is rewritten rather than one, because every package in this
  * workspace is versioned in lockstep — the published `@prisma/orm-*` shells,
- * the internal `@prisma-next/*` packages they are built from, and the
- * `@repo/*` development packages alike. Singling out one scope would leave
+ * the internal `@internal/*` packages they are built from, and the
+ * `@internal/*` development packages alike. Singling out one scope would leave
  * the others pinned at whatever version they were last released under.
  *
  * Non-workspace specs (e.g. caret ranges from the registry, catalog entries)

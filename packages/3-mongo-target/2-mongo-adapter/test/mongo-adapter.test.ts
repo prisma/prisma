@@ -1,6 +1,6 @@
-import { mongoCodec, newMongoCodecRegistry } from '@prisma-next/mongo-codec';
-import type { MongoAdapter } from '@prisma-next/mongo-lowering';
-import type { AnyMongoCommand } from '@prisma-next/mongo-query-ast/execution';
+import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
+import type { MongoAdapter } from '@internal/mongo-lowering';
+import type { AnyMongoCommand } from '@internal/mongo-query-ast/execution';
 import {
   AggregateCommand,
   DeleteManyCommand,
@@ -26,9 +26,9 @@ import {
   RawUpdateOneCommand,
   UpdateManyCommand,
   UpdateOneCommand,
-} from '@prisma-next/mongo-query-ast/execution';
-import { MongoParamRef } from '@prisma-next/mongo-value';
-import type { AnyMongoWireCommand } from '@prisma-next/mongo-wire';
+} from '@internal/mongo-query-ast/execution';
+import { MongoParamRef } from '@internal/mongo-value';
+import type { AnyMongoWireCommand } from '@internal/mongo-wire';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { _unstable_createMongoAdapterWithCodecs, createMongoAdapter } from '../src/mongo-adapter';
 

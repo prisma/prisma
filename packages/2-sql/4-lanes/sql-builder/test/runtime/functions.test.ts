@@ -12,7 +12,7 @@ import {
   ParamRef,
   SelectAst,
   SubqueryExpr,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Functions } from '../../src/expression';
 import { ExpressionImpl } from '../../src/runtime/expression-impl';

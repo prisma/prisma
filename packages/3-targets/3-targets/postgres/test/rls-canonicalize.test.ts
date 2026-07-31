@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
+import { normalizeSqlBody } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { computeContentHash } from '../src/core/rls/canonicalize';
 

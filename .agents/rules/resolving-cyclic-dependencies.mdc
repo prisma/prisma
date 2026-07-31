@@ -33,12 +33,12 @@ Package B → Package A (unused dependency)
 
 ```bash
 # Check if package actually uses the dependency
-grep -r "@prisma-next/package-a" packages/framework/core-package-b/src
+grep -r "@internal/package-a" packages/framework/core-package-b/src
 
 # If no matches, remove from package.json
 # Then verify
 pnpm install
-pnpm --filter @prisma-next/package-b typecheck
+pnpm --filter @internal/package-b typecheck
 ```
 
 **❌ WRONG: Restructure code when unused dependency exists**
@@ -50,14 +50,14 @@ pnpm --filter @prisma-next/package-b typecheck
 
 ## Example
 
-When moving `TypesImportSpec` from `@prisma-next/emitter` to `@prisma-next/contract`:
+When moving `TypesImportSpec` from `@internal/emitter` to `@internal/contract`:
 
-1. **Discovered cycle**: `@prisma-next/contract` → `@prisma-next/operations` (needs `OperationRegistry`)
-   - `@prisma-next/operations` → `@prisma-next/contract` (unused dependency)
+1. **Discovered cycle**: `@internal/contract` → `@internal/operations` (needs `OperationRegistry`)
+   - `@internal/operations` → `@internal/contract` (unused dependency)
 
-2. **Verified unused**: `grep` showed `@prisma-next/operations` doesn't import from `@prisma-next/contract`
+2. **Verified unused**: `grep` showed `@internal/operations` doesn't import from `@internal/contract`
 
-3. **Removed dependency**: Removed `@prisma-next/contract` from `@prisma-next/operations/package.json`
+3. **Removed dependency**: Removed `@internal/contract` from `@internal/operations/package.json`
 
 4. **Verified fix**: `pnpm install` and typechecks passed
 

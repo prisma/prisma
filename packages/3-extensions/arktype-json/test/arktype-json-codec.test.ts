@@ -9,10 +9,10 @@
  * - schema validation rejects malformed payloads at decode, while encode only enforces JSON representability.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecInstanceContext } from '@prisma-next/framework-components/codec';
-import type { SqlCodecCallContext } from '@prisma-next/sql-relational-core/ast';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { JsonValue } from '@internal/contract/types';
+import type { CodecInstanceContext } from '@internal/framework-components/codec';
+import type { SqlCodecCallContext } from '@internal/sql-relational-core/ast';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {

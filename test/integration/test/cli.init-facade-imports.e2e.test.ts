@@ -16,12 +16,12 @@ import {
  * When `prisma-next init --postgres|--mongo` ran on a default pnpm install
  * (`node-linker=isolated`), the generated `prisma/contract.ts` failed at
  * runtime with `ERR_MODULE_NOT_FOUND` because the templates imported from
- * `@prisma-next/family-*`, `@prisma-next/target-*`, and
- * `@prisma-next/{mongo,sql}-contract-ts` directly. Those packages are
- * transitive deps of the facade (`@prisma-next/{mongo,postgres}`), so pnpm
+ * `@internal/family-*`, `@internal/target-*`, and
+ * `@internal/{mongo,sql}-contract-ts` directly. Those packages are
+ * transitive deps of the facade (`@internal/{mongo,postgres}`), so pnpm
  * does not symlink them at the top of the user's `node_modules`.
  *
- * The contract is: every `@prisma-next/...` import the templates emit must
+ * The contract is: every `@internal/...` import the templates emit must
  * be a subpath of the facade package, and every subpath used must be
  * declared in the facade package's published `exports` map (so it actually
  * resolves under Node's strict ESM resolver, not just by accident in a
@@ -38,11 +38,11 @@ interface FacadeInfo {
 
 const FACADE_FOR_TARGET: Record<TargetId, FacadeInfo> = {
   postgres: {
-    packageName: '@prisma-next/postgres',
+    packageName: '@internal/postgres',
     packageJsonPath: resolve(REPO_ROOT, 'packages/3-extensions/postgres/package.json'),
   },
   mongo: {
-    packageName: '@prisma-next/mongo',
+    packageName: '@internal/mongo',
     packageJsonPath: resolve(REPO_ROOT, 'packages/3-extensions/mongo/package.json'),
   },
 };
@@ -70,7 +70,7 @@ function readFacadeExports(packageJsonPath: string): FacadeExports {
 }
 
 function extractPrismaNextImports(source: string): readonly string[] {
-  const matches = source.matchAll(/(?:\bfrom\s+|\bimport\s+)['"](@prisma-next\/[^'"]+)['"]/g);
+  const matches = source.matchAll(/(?:\bfrom\s+|\bimport\s+)['"](@internal\/[^'"]+)['"]/g);
   return Array.from(new Set(Array.from(matches, (m) => m[1] as string)));
 }
 
@@ -82,21 +82,21 @@ function templateSources(target: TargetId, authoring: AuthoringId): readonly str
 describe('init templates only depend on the facade package (TML-2485)', () => {
   describe('extractPrismaNextImports', () => {
     it('captures `import x from "pkg"` (named-binding form)', () => {
-      const source = "import postgres from '@prisma-next/postgres/runtime';\n";
-      expect(extractPrismaNextImports(source)).toEqual(['@prisma-next/postgres/runtime']);
+      const source = "import postgres from '@internal/postgres/runtime';\n";
+      expect(extractPrismaNextImports(source)).toEqual(['@internal/postgres/runtime']);
     });
 
     it('captures `import "pkg"` (side-effect form)', () => {
-      const source = "import '@prisma-next/postgres/runtime';\n";
-      expect(extractPrismaNextImports(source)).toEqual(['@prisma-next/postgres/runtime']);
+      const source = "import '@internal/postgres/runtime';\n";
+      expect(extractPrismaNextImports(source)).toEqual(['@internal/postgres/runtime']);
     });
 
     it('deduplicates repeated specifiers', () => {
       const source = [
-        "import postgres from '@prisma-next/postgres/runtime';",
-        "import type { Foo } from '@prisma-next/postgres/runtime';",
+        "import postgres from '@internal/postgres/runtime';",
+        "import type { Foo } from '@internal/postgres/runtime';",
       ].join('\n');
-      expect(extractPrismaNextImports(source)).toEqual(['@prisma-next/postgres/runtime']);
+      expect(extractPrismaNextImports(source)).toEqual(['@internal/postgres/runtime']);
     });
   });
 
@@ -106,7 +106,7 @@ describe('init templates only depend on the facade package (TML-2485)', () => {
     describe(`${target} + ${authoring}`, () => {
       const allImports = templateSources(target, authoring).flatMap(extractPrismaNextImports);
 
-      it('every @prisma-next/* import targets the facade package', () => {
+      it('every @internal/* import targets the facade package', () => {
         expect(allImports.length).toBeGreaterThan(0);
         for (const specifier of allImports) {
           const [scope, packageName] = specifier.split('/');

@@ -1,4 +1,4 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { indexExistsAst } from '../../../contract-free/checks';
 import { buildCreateIndexSql, buildDropIndexSql } from '../planner-ddl-builders';
 import { buildTargetDetails } from '../planner-target-details';

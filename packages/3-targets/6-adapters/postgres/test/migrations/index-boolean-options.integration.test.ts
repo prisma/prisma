@@ -5,13 +5,13 @@
  * the option equality, and the wire-name hash — and a live index created
  * with either boolean spelling compares equal to the authored value.
  */
-import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { computeIndexContentHash } from '@prisma-next/sql-schema-ir/naming';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { computeIndexContentHash } from '@internal/sql-schema-ir/naming';
+import postgresTargetDescriptor from '@internal/target-postgres/control';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {

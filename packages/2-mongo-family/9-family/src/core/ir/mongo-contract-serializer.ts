@@ -1,4 +1,4 @@
-import type { MongoContract } from '@prisma-next/mongo-contract';
+import type { MongoContract } from '@internal/mongo-contract';
 import { MongoContractSerializerBase } from './mongo-contract-serializer-base';
 
 /**

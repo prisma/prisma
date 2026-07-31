@@ -1,6 +1,6 @@
-import { diffSchemas } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+import { diffSchemas } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import {
   PostgresDatabaseSchemaNode,

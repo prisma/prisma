@@ -2,7 +2,7 @@ import {
   type DdlColumn,
   DdlNode,
   type DdlTableConstraint,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import type { RlsPolicyOperation } from '../rls/canonicalize';
 
 // ---------------------------------------------------------------------------

@@ -1,9 +1,9 @@
-import type { MigrationOperationClass } from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { RelationalSchemaNodeKind, type SqlColumnIR } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { MigrationOperationClass } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
 import { tableExistsAst } from '../../../contract-free/checks';
 import { stripOuterParens } from '../../default-normalizer';
 import { escapeLiteral, quoteIdentifier } from '../../sql-utils';

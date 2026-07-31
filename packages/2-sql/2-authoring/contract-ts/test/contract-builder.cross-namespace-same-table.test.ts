@@ -1,6 +1,6 @@
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
-import type { ForeignKey, SqlStorage } from '@prisma-next/sql-contract/types';
-import { validateSqlContractFully } from '@prisma-next/sql-contract/validators';
+import type { TargetPackRef } from '@internal/framework-components/components';
+import type { ForeignKey, SqlStorage } from '@internal/sql-contract/types';
+import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { buildSqlContractFromDefinition } from '../src/contract-builder';

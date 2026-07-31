@@ -1,4 +1,4 @@
-import { TableSource } from '@prisma-next/sql-relational-core/ast';
+import { TableSource } from '@internal/sql-relational-core/ast';
 
 export function tableSourceForProxy(
   tableName: string,

@@ -1,11 +1,7 @@
-import { isRuntimeError } from '@prisma-next/framework-components/runtime';
-import {
-  type MongoCodecRegistry,
-  mongoCodec,
-  newMongoCodecRegistry,
-} from '@prisma-next/mongo-codec';
-import type { MongoFieldShape, MongoResultShape } from '@prisma-next/mongo-query-ast/execution';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { isRuntimeError } from '@internal/framework-components/runtime';
+import { type MongoCodecRegistry, mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
+import type { MongoFieldShape, MongoResultShape } from '@internal/mongo-query-ast/execution';
+import { structuredError } from '@internal/utils/structured-error';
 import { ObjectId } from 'mongodb';
 import { describe, expect, it, vi } from 'vitest';
 import { decodeMongoRow } from '../../src/codecs/decoding';

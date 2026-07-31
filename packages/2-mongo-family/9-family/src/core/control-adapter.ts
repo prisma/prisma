@@ -1,14 +1,14 @@
-import type { ContractMarkerRecord, LedgerEntryRecord } from '@prisma-next/contract/types';
+import type { ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
 import type {
   ControlAdapterDescriptor,
   ControlAdapterInstance,
   ControlDriverInstance,
-} from '@prisma-next/framework-components/control';
-import type { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
+} from '@internal/framework-components/control';
+import type { MongoSchemaIR } from '@internal/mongo-schema-ir';
 
 /**
  * Mongo control adapter interface for control-plane operations.
- * Implemented by target-specific adapters (e.g. `@prisma-next/adapter-mongo`).
+ * Implemented by target-specific adapters (e.g. `@internal/adapter-mongo`).
  *
  * Mirrors `SqlControlAdapter` so the family layer dispatches every
  * driver-bound wire operation through a single SPI surface instead of

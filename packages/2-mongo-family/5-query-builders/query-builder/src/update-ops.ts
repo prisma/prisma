@@ -1,9 +1,9 @@
 import type {
   MongoUpdatePipelineStage,
   MongoUpdateSpec,
-} from '@prisma-next/mongo-query-ast/execution';
-import type { MongoValue } from '@prisma-next/mongo-value';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-query-ast/execution';
+import type { MongoValue } from '@internal/mongo-value';
+import { InternalError } from '@internal/utils/internal-error';
 import { ormError } from './orm-errors';
 
 /**

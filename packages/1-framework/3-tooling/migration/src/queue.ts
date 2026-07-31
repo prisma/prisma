@@ -7,7 +7,7 @@
  * reclaim memory for already-shifted items, so it is not suitable for
  * long-lived queues with many push/shift cycles.
  */
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 
 export class Queue<T> {
   private readonly items: T[];

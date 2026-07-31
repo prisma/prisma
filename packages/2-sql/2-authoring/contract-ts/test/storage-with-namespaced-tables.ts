@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 
 type LegacyStorage = Record<string, unknown> & {
   readonly tables?: Readonly<Record<string, unknown>> | null;

@@ -1,4 +1,4 @@
-# @prisma-next/utils
+# @internal/utils
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
 > and is published only to support its runtime. Its API is unstable and may change
@@ -17,7 +17,7 @@ This package provides general-purpose utility functions used across the Prisma N
 Returns an object with the key/value if value is defined, otherwise an empty object. Use with spread to conditionally include optional properties while satisfying `exactOptionalPropertyTypes`.
 
 ```typescript
-import { ifDefined } from '@prisma-next/utils/defined';
+import { ifDefined } from '@internal/utils/defined';
 
 // Instead of:
 const obj = {
@@ -44,7 +44,7 @@ const obj = {
 Generic Result type for representing success or failure outcomes. This is the standard way to return "expected failures" as values rather than throwing exceptions.
 
 ```typescript
-import { type Result, ok, notOk, okVoid } from '@prisma-next/utils/result';
+import { type Result, ok, notOk, okVoid } from '@internal/utils/result';
 
 // Success result with value
 function divide(a: number, b: number): Result<number, string> {

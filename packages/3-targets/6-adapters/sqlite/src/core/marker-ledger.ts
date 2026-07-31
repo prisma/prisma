@@ -1,18 +1,18 @@
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import {
   type AnyQueryAst,
   type LoweredStatement,
   RawExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { SQLITE_DATETIME_CODEC_ID } from '@prisma-next/target-sqlite/codec-ids';
+} from '@internal/sql-relational-core/ast';
+import { SQLITE_DATETIME_CODEC_ID } from '@internal/target-sqlite/codec-ids';
 import {
   datetime,
   integer,
   jsonText,
   sqliteTable,
   text,
-} from '@prisma-next/target-sqlite/contract-free';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/target-sqlite/contract-free';
+import { structuredError } from '@internal/utils/structured-error';
 import { encodeControlQueryParams } from './control-codecs';
 
 export const marker = sqliteTable('_prisma_marker', {

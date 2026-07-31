@@ -1,4 +1,4 @@
-# @prisma-next/mongo-contract-psl
+# @internal/mongo-contract-psl
 
 PSL-to-Mongo contract interpreter for Prisma Next. Transforms Prisma Schema Language (`.prisma`) files into Mongo `Contract`, enabling contract-first development with MongoDB.
 
@@ -11,16 +11,16 @@ PSL-to-Mongo contract interpreter for Prisma Next. Transforms Prisma Schema Lang
 
 ## Known limitations
 
-- **Per-index `collation`**: PSL authoring does not support the `collation` index option. Users requiring per-index collation must use the TypeScript contract builder (`@prisma-next/mongo-contract-ts`).
+- **Per-index `collation`**: PSL authoring does not support the `collation` index option. Users requiring per-index collation must use the TypeScript contract builder (`@internal/mongo-contract-ts`).
 - **`partialFilterExpression` / `wildcardProjection`**: These object-valued index options are not supported in PSL and require the TypeScript contract builder.
 
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/psl-parser` (PSL AST types and parser)
-  - `@prisma-next/contract` (domain types: `DomainField`, `DomainReferenceRelation`, `Contract`)
-  - `@prisma-next/config` (contract source types: `ContractConfig`, `ContractSourceDiagnostic`)
-  - `@prisma-next/utils` (result types)
+  - `@internal/psl-parser` (PSL AST types and parser)
+  - `@internal/contract` (domain types: `DomainField`, `DomainReferenceRelation`, `Contract`)
+  - `@internal/config` (contract source types: `ContractConfig`, `ContractSourceDiagnostic`)
+  - `@internal/utils` (result types)
 - **Depended on by**:
-  - `@prisma-next/family-mongo` (control stack composition)
+  - `@internal/family-mongo` (control stack composition)
   - `examples/mongo-demo` (via `prisma-next.config.ts`)

@@ -1,4 +1,4 @@
-import type { PslAttribute, PslAttributeArgument } from '@prisma-next/framework-components/psl-ast';
+import type { PslAttribute, PslAttributeArgument } from '@internal/framework-components/psl-ast';
 import { describe, expect, it } from 'vitest';
 import { getPositionalArgument, parseQuotedStringLiteral } from '../src/attribute-helpers';
 

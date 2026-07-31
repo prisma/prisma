@@ -26,7 +26,7 @@ A published shell cannot declare dependencies on private workspace packages, so 
 
 - All 7 shells `pnpm build` green from root; repo-wide CI green.
 - Tarball smoke test passes: every declared entrypoint resolves from an installed tarball; shared-module identity holds within and across shells.
-- No internal `@prisma-next/*` specifier appears in any shell's published dist.
+- No internal `@internal/*` specifier appears in any shell's published dist.
 - Nothing outside `packages/9-public/` changed behavior; publish list untouched.
 
 ## Risks

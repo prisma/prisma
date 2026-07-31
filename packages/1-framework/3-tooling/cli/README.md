@@ -1,16 +1,16 @@
-# @prisma-next/cli
+# @internal/cli
 
 > **For the CLI command, install [`prisma-next`](https://www.npmjs.com/package/prisma-next).**
 > The public `prisma-next` package ships the `prisma-next` binary and nothing
 > else — it has no library exports.
 >
-> This package (`@prisma-next/cli`) is both the CLI's implementation and the
+> This package (`@internal/cli`) is both the CLI's implementation and the
 > documented programmatic-API import target. Authors of build integrations,
 > extension packs, and advanced config wiring import from
-> `@prisma-next/cli/config-types`, `@prisma-next/cli/control-api`,
-> `@prisma-next/cli/commands/*`, and `@prisma-next/config-loader`. These
+> `@internal/cli/config-types`, `@internal/cli/control-api`,
+> `@internal/cli/commands/*`, and `@internal/config-loader`. These
 > subpaths are less stable than the facade packages
-> (`@prisma-next/postgres/config`, `@prisma-next/mongo/config`); prefer those
+> (`@internal/postgres/config`, `@internal/mongo/config`); prefer those
 > for application-level config.
 >
 > This README is architecture and internal documentation for contributors;
@@ -54,7 +54,7 @@ Commands that enforce wiring validation:
 
 If you hit a wiring validation error: add the required descriptors to `config.extensions` (matched by descriptor `id`) and re-run the command.
 
-**Note**: Control plane domain actions (database verification, contract emission) are implemented in `@prisma-next/emitter` and `@prisma-next/framework-components/control`. The CLI uses the control plane domain actions programmatically but does not define control plane types itself.
+**Note**: Control plane domain actions (database verification, contract emission) are implemented in `@internal/emitter` and `@internal/framework-components/control`. The CLI uses the control plane domain actions programmatically but does not define control plane types itself.
 
 ## Command Descriptions
 
@@ -81,11 +81,11 @@ prisma-next contract emit [--config <path>] [--json] [-v] [-q] [--color/--no-col
 The `contract emit` command does not require a `driver` in the config since it doesn't connect to a database:
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import { typescriptContract } from '@prisma-next/sql-contract-ts/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgres from '@prisma-next/target-postgres/control';
-import sql from '@prisma-next/family-sql/control';
+import { defineConfig } from '@internal/cli/config-types';
+import { typescriptContract } from '@internal/sql-contract-ts/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgres from '@internal/target-postgres/control';
+import sql from '@internal/family-sql/control';
 import { contract } from './prisma/contract';
 
 export default defineConfig({
@@ -168,12 +168,12 @@ prisma-next db verify -v
 The `db verify` command requires a `driver` in the config to connect to the database:
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import { typescriptContract } from '@prisma-next/sql-contract-ts/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import postgres from '@prisma-next/target-postgres/control';
-import sql from '@prisma-next/family-sql/control';
+import { defineConfig } from '@internal/cli/config-types';
+import { typescriptContract } from '@internal/sql-contract-ts/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
+import postgres from '@internal/target-postgres/control';
+import sql from '@internal/family-sql/control';
 import { contract } from './prisma/contract';
 
 export default defineConfig({
@@ -311,9 +311,9 @@ interface ControlFamilyInstance {
 }
 ```
 
-Use `createControlStack()` from `@prisma-next/framework-components/control` to create the stack with sensible defaults (`driver` defaults to `undefined`, `extensions` defaults to `[]`).
+Use `createControlStack()` from `@internal/framework-components/control` to create the stack with sensible defaults (`driver` defaults to `undefined`, `extensions` defaults to `[]`).
 
-The SQL family provides this via `@prisma-next/family-sql/control`. The `verify()` method handles marker checks, full `db verify` follows it with `schemaVerify()`, `--marker-only` skips that schema step, and `--schema-only` runs `schemaVerify()` without marker checks.
+The SQL family provides this via `@internal/family-sql/control`. The `verify()` method handles marker checks, full `db verify` follows it with `schemaVerify()`, `--marker-only` skips that schema step, and `--schema-only` runs `schemaVerify()` without marker checks.
 
 ### `prisma-next db schema`
 
@@ -392,12 +392,12 @@ By default, `contract infer` writes to:
 Both `db schema` and `contract infer` require a `driver` in the config to connect to the database:
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import { typescriptContract } from '@prisma-next/sql-contract-ts/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import postgres from '@prisma-next/target-postgres/control';
-import sql from '@prisma-next/family-sql/control';
+import { defineConfig } from '@internal/cli/config-types';
+import { typescriptContract } from '@internal/sql-contract-ts/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
+import postgres from '@internal/target-postgres/control';
+import sql from '@internal/family-sql/control';
 
 export default defineConfig({
   family: sql,
@@ -501,7 +501,7 @@ interface ControlFamilyInstance {
 }
 ```
 
-The SQL family provides this via `@prisma-next/family-sql/control`. The `introspect()` method queries the database catalog and returns `SqlSchemaIR`, and `toSchemaView()` projects it into a `CoreSchemaView` for display.
+The SQL family provides this via `@internal/family-sql/control`. The `introspect()` method queries the database catalog and returns `SqlSchemaIR`, and `toSchemaView()` projects it into a `CoreSchemaView` for display.
 
 **Note:** The introspection output displays native database types (e.g., `int4`, `text`, `timestamptz`) rather than mapped codec IDs (e.g., `pg/int4@1`). This reflects the actual database state, which may be enriched with type mappings later.
 
@@ -543,11 +543,11 @@ prisma-next db sign -v
 The `db sign` command requires a `driver` in the config to connect to the database and a `contract.output` path to locate the emitted contract:
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import postgres from '@prisma-next/target-postgres/control';
-import sql from '@prisma-next/family-sql/control';
+import { defineConfig } from '@internal/cli/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
+import postgres from '@internal/target-postgres/control';
+import sql from '@internal/family-sql/control';
 import { contract } from './prisma/contract';
 
 export default defineConfig({
@@ -707,7 +707,7 @@ interface ControlFamilyInstance {
 }
 ```
 
-The SQL family provides this via `@prisma-next/family-sql/control`. The `sign()` method handles ensuring the marker schema/table exist, reading existing markers, comparing hashes, and writing/updating markers internally.
+The SQL family provides this via `@internal/family-sql/control`. The `sign()` method handles ensuring the marker schema/table exist, reading existing markers, comparing hashes, and writing/updating markers internally.
 
 ### `prisma-next db init`
 
@@ -748,12 +748,12 @@ prisma-next db init --json
 The `db init` command requires a `driver` in the config to connect to the database:
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import { typescriptContract } from '@prisma-next/sql-contract-ts/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import postgres from '@prisma-next/target-postgres/control';
-import sql from '@prisma-next/family-sql/control';
+import { defineConfig } from '@internal/cli/config-types';
+import { typescriptContract } from '@internal/sql-contract-ts/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
+import postgres from '@internal/target-postgres/control';
+import sql from '@internal/family-sql/control';
 import { contract } from './prisma/contract';
 
 export default defineConfig({
@@ -901,11 +901,11 @@ The CLI uses a config file to specify the target family, target, adapter, extens
 **Note:** The CLI uses `c12` for config loading, but constrains it to the current working directory (no upward search) to match the style guide's discovery precedence.
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import { typescriptContract } from '@prisma-next/sql-contract-ts/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgres from '@prisma-next/target-postgres/control';
-import sql from '@prisma-next/family-sql/control';
+import { defineConfig } from '@internal/cli/config-types';
+import { typescriptContract } from '@internal/sql-contract-ts/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgres from '@internal/target-postgres/control';
+import sql from '@internal/family-sql/control';
 import { contract } from './prisma/contract';
 
 export default defineConfig({
@@ -918,8 +918,8 @@ export default defineConfig({
 ```
 
 Prefer helper utilities for authoring mode selection:
-- `typescriptContract(contract, outputPath?)` from `@prisma-next/sql-contract-ts/config-types` for TS-authored contracts
-- `prismaContract(schemaPath, { output?, target? })` from `@prisma-next/sql-contract-psl/provider` for PSL-authored providers
+- `typescriptContract(contract, outputPath?)` from `@internal/sql-contract-ts/config-types` for TS-authored contracts
+- `prismaContract(schemaPath, { output?, target? })` from `@internal/sql-contract-psl/provider` for PSL-authored providers
 - Provider failures are returned as structured diagnostics for CLI rendering
 
 The `contract.output` field specifies the path to `contract.json`. This is the canonical location where other CLI commands can find the contract JSON artifact. Defaults to `'src/prisma/contract.json'` if not specified.
@@ -1035,7 +1035,7 @@ prisma-next migrate [--db <url>] [--to <contract>] [--config <path>] [--json] [-
 - `-v, --verbose`: Verbose output (debug info, timings)
 
 **What it does:**
-1. Reads migration packages from `config.migrations.dir`. Every package is attested — there is no on-disk draft state. The loader (`readMigrationPackage` in `@prisma-next/migration-tools/io`) rehashes `(metadata, ops)` for each `MigrationPackage` it returns and confirms the result matches the stored `migrationHash`. If a package has been hand-edited or partially written since emit, the load fails with `MIGRATION.HASH_MISMATCH` pointing at the offending directory and asks the developer to re-run `node migrations/<dir>/migration.ts` (or restore from version control).
+1. Reads migration packages from `config.migrations.dir`. Every package is attested — there is no on-disk draft state. The loader (`readMigrationPackage` in `@internal/migration-tools/io`) rehashes `(metadata, ops)` for each `MigrationPackage` it returns and confirms the result matches the stored `migrationHash`. If a package has been hand-edited or partially written since emit, the load fails with `MIGRATION.HASH_MISMATCH` pointing at the offending directory and asks the developer to re-run `node migrations/<dir>/migration.ts` (or restore from version control).
 2. Reconstructs the migration graph from all loaded packages
 3. Determines the destination hash and apply contract: from `--to` / `--ref`, or from `contract.json` when neither is supplied
 4. Connects to the database and reads the current marker hash
@@ -1063,7 +1063,7 @@ run `migration.ts` directly with Node to produce `ops.json` and attest
 node migrations/<dir>/migration.ts
 ```
 
-The scaffolded `migration.ts` calls `MigrationCLI.run(import.meta.url, ...)` from `@prisma-next/cli/migration-cli` when invoked as the entrypoint. (Postgres and SQLite scaffolds re-export `MigrationCLI` through `@prisma-next/postgres/migration` or `@prisma-next/sqlite/migration` so a `migration.ts` only needs the single facade import; Mongo scaffolds still pull from `@prisma-next/cli/migration-cli` directly.) The CLI entrypoint loads `prisma-next.config.ts`, assembles a `ControlStack`, instantiates the migration with that stack (so `dataTransform` and other adapter-aware helpers can materialize a real adapter), and serializes operations to `ops.json` while writing the content-addressed `migrationHash` into `migration.json`. If `migration.ts` contains unfilled `placeholder()` slots, the script exits with `PN-MIG-2001` and reports the slot to fill in.
+The scaffolded `migration.ts` calls `MigrationCLI.run(import.meta.url, ...)` from `@internal/cli/migration-cli` when invoked as the entrypoint. (Postgres and SQLite scaffolds re-export `MigrationCLI` through `@internal/postgres/migration` or `@internal/sqlite/migration` so a `migration.ts` only needs the single facade import; Mongo scaffolds still pull from `@internal/cli/migration-cli` directly.) The CLI entrypoint loads `prisma-next.config.ts`, assembles a `ControlStack`, instantiates the migration with that stack (so `dataTransform` and other adapter-aware helpers can materialize a real adapter), and serializes operations to `ops.json` while writing the content-addressed `migrationHash` into `migration.json`. If `migration.ts` contains unfilled `placeholder()` slots, the script exits with `PN-MIG-2001` and reports the slot to fill in.
 
 `MigrationCLI.run` accepts an optional third argument `{ argv?, stdout?, stderr? }` for in-process testability (default: `process.argv` / `process.stdout` / `process.stderr`) and returns the exit code as a `Promise<number>`. The flag surface is `--help` / `--dry-run` / `--config <path>`, parsed by [`clipanion`](https://github.com/arcanis/clipanion). The main multi-command surface (`prisma-next contract emit`, `db verify`, etc.) uses Commander; the per-migration `MigrationCLI.run` entrypoint uses clipanion to keep authored migration files lightweight and in-process testable.
 
@@ -1100,9 +1100,9 @@ flowchart TD
     PUBLISH[publishContractArtifactPair]
     EMIT[Emitter]
     CTRL[Control Client]
-    MIG_TOOLS["@prisma-next/migration-tools"]
+    MIG_TOOLS["@internal/migration-tools"]
     FS[File System]
-    VITE["@prisma-next/vite-plugin-contract-emit"]
+    VITE["@internal/vite-plugin-contract-emit"]
 
     CLI --> CMD_EMIT
     CLI --> CMD_DB
@@ -1123,7 +1123,7 @@ flowchart TD
 
 > **For agents/contributors**: `executeContractEmit` is the SINGLE publication path
 > for `contract.json` + `contract.d.ts`. The CLI command (`prisma-next contract
-> emit`) and the Vite plugin (`@prisma-next/vite-plugin-contract-emit`) both
+> emit`) and the Vite plugin (`@internal/vite-plugin-contract-emit`) both
 > call into it. Do NOT re-implement the load → emit → publish dance in a new
 > caller; if you need additional behavior, extend `ContractEmitOptions` /
 > `ContractEmitResult` and update `executeContractEmit` itself.
@@ -1207,7 +1207,7 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
 ### Pack Assembly
 - **Family instances** now handle pack assembly internally. The CLI creates a family instance via `config.family.create()` and reads assembly data (operation registry, type imports, extension IDs) from the instance.
 - **Removed**: `pack-assembly.ts` has been removed. Pack assembly is now handled by family instances. For SQL family, tests can import pack-based helpers directly from `packages/2-sql/3-tooling/family/src/core/assembly.ts` using relative paths.
-- Assembly logic is family-specific and owned by each family's instance implementation (e.g., `createSqlFamilyInstance` in `@prisma-next/family-sql`).
+- Assembly logic is family-specific and owned by each family's instance implementation (e.g., `createSqlFamilyInstance` in `@internal/family-sql`).
 
 ### Output Formatting (`utils/formatters/`)
 - **Command Output Formatters**: Format human-readable output for commands (emit, verify, etc.)
@@ -1253,14 +1253,14 @@ See `.cursor/rules/config-validation-and-normalization.mdc` for detailed pattern
     - **Component-specific metadata**:
       - Extensions may also include control-plane-only metadata like `contractSpace` (used by verify, planning, and migration flows and not required at runtime).
 
-Unlike the older **manifest-based IR** approach (separate JSON manifests + a parsing/validation step to build an IR), descriptors are imported directly from packages (e.g., `@prisma-next/*/control`). This removes a file-format boundary and keeps the data and its types co-located.
+Unlike the older **manifest-based IR** approach (separate JSON manifests + a parsing/validation step to build an IR), descriptors are imported directly from packages (e.g., `@internal/*/control`). This removes a file-format boundary and keeps the data and its types co-located.
 - Benefits: fewer moving parts (no JSON parsing), easier refactors (TypeScript catches drift), and clearer ownership (the package exports the canonical descriptor object).
 - Trade-offs: descriptors must be available as build-time imports (less dynamic discovery vs scanning arbitrary manifest files).
 
 **Illustrative example (descriptor object):**
 
 ```typescript
-import type { SqlControlExtensionDescriptor } from '@prisma-next/family-sql/control';
+import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
 
 const exampleExtension: SqlControlExtensionDescriptor<'postgres'> = {
   kind: 'extension',
@@ -1272,7 +1272,7 @@ const exampleExtension: SqlControlExtensionDescriptor<'postgres'> = {
   types: {
     queryOperationTypes: {
       import: {
-        package: '@prisma-next/extension-example/operation-types',
+        package: '@internal/extension-example/operation-types',
         named: 'QueryOperationTypes',
         alias: 'ExampleQueryOperationTypes',
       },
@@ -1286,11 +1286,11 @@ export default exampleExtension;
 ```
 
 **How CLI consumers import/use it:**
-- Config imports descriptors directly and passes them to `defineConfig()` (see “Config File Requirements” under `prisma-next contract emit` above; also see “Entrypoints” below for the `@prisma-next/*/control` subpaths):
+- Config imports descriptors directly and passes them to `defineConfig()` (see “Config File Requirements” under `prisma-next contract emit` above; also see “Entrypoints” below for the `@internal/*/control` subpaths):
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import exampleExtension from '@prisma-next/extension-example/control';
+import { defineConfig } from '@internal/cli/config-types';
+import exampleExtension from '@internal/extension-example/control';
 
 export default defineConfig({
   // family/target/adapter/driver omitted for brevity
@@ -1302,14 +1302,14 @@ export default defineConfig({
 
 - **`commander`**: CLI argument parsing and command routing
 - **`esbuild`**: Bundling TypeScript contract files with import allowlisting
-- **`@prisma-next/emitter`**: Contract emission engine (returns strings)
-- **`@prisma-next/migration-tools`**: On-disk migration I/O, hash verification, and history reconstruction
-- **`@prisma-next/framework-components`**: Control plane types, migration operation types, control stack (via `./control`)
-- **`@prisma-next/errors`**: Error types and factories (via `./control`)
+- **`@internal/emitter`**: Contract emission engine (returns strings)
+- **`@internal/migration-tools`**: On-disk migration I/O, hash verification, and history reconstruction
+- **`@internal/framework-components`**: Control plane types, migration operation types, control stack (via `./control`)
+- **`@internal/errors`**: Error types and factories (via `./control`)
 
 ## Design Decisions
 
-1. **Import Allowlist**: Only `@prisma-next/*` packages allowed (MVP). Expand later if needed.
+1. **Import Allowlist**: Only `@internal/*` packages allowed (MVP). Expand later if needed.
 2. **Utility Separation**: TS contract loading is a utility function, not a command. Commands use utilities.
 3. **CLI Framework**: Use `commander` library for robust CLI argument parsing.
 4. **File I/O**: CLI handles all I/O; emitter returns strings (no file operations in emitter).
@@ -1377,11 +1377,11 @@ The CLI package provides a programmatic control client for running control-plane
 ### Basic Usage
 
 ```typescript
-import { createControlClient } from '@prisma-next/cli/control-api';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
+import { createControlClient } from '@internal/cli/control-api';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
 
 // Create a control client with framework component descriptors
 const client = createControlClient({
@@ -1455,23 +1455,23 @@ Operations return structured result types:
 
 The CLI package exports several subpaths for different use cases:
 
-- **`@prisma-next/cli`** (main export): Exports `loadContractFromTs` and `createContractEmitCommand`
-- **`@prisma-next/cli/config-types`**: Exports `defineConfig` and config types
-- **`@prisma-next/cli/control-api`**: Exports `createControlClient` and control API types
-- **`@prisma-next/cli/commands/db-init`**: Exports `createDbInitCommand`
-- **`@prisma-next/cli/commands/db-update`**: Exports `createDbUpdateCommand`
-- **`@prisma-next/cli/commands/db-schema`**: Exports `createDbSchemaCommand`
-- **`@prisma-next/cli/commands/db-sign`**: Exports `createDbSignCommand`
-- **`@prisma-next/cli/commands/db-verify`**: Exports `createDbVerifyCommand`
-- **`@prisma-next/cli/commands/contract-emit`**: Exports `createContractEmitCommand`
-- **`@prisma-next/cli/commands/contract-infer`**: Exports `createContractInferCommand`
-- **`@prisma-next/cli/commands/migration-plan`**: Exports `createMigrationPlanCommand`
-- **`@prisma-next/cli/commands/migration-show`**: Exports `createMigrationShowCommand`
-- **`@prisma-next/cli/commands/migration-status`**: Exports `createMigrationStatusCommand`
-- **`@prisma-next/cli/commands/migrate`**: Exports `createMigrateCommand`
-- **`@prisma-next/config-loader`**: Exports `loadConfig`
+- **`@internal/cli`** (main export): Exports `loadContractFromTs` and `createContractEmitCommand`
+- **`@internal/cli/config-types`**: Exports `defineConfig` and config types
+- **`@internal/cli/control-api`**: Exports `createControlClient` and control API types
+- **`@internal/cli/commands/db-init`**: Exports `createDbInitCommand`
+- **`@internal/cli/commands/db-update`**: Exports `createDbUpdateCommand`
+- **`@internal/cli/commands/db-schema`**: Exports `createDbSchemaCommand`
+- **`@internal/cli/commands/db-sign`**: Exports `createDbSignCommand`
+- **`@internal/cli/commands/db-verify`**: Exports `createDbVerifyCommand`
+- **`@internal/cli/commands/contract-emit`**: Exports `createContractEmitCommand`
+- **`@internal/cli/commands/contract-infer`**: Exports `createContractInferCommand`
+- **`@internal/cli/commands/migration-plan`**: Exports `createMigrationPlanCommand`
+- **`@internal/cli/commands/migration-show`**: Exports `createMigrationShowCommand`
+- **`@internal/cli/commands/migration-status`**: Exports `createMigrationStatusCommand`
+- **`@internal/cli/commands/migrate`**: Exports `createMigrateCommand`
+- **`@internal/config-loader`**: Exports `loadConfig`
 
-**Important**: `loadContractFromTs` is exported from the main package (`@prisma-next/cli`). See `.cursor/rules/cli-package-exports.mdc` for import patterns.
+**Important**: `loadContractFromTs` is exported from the main package (`@internal/cli`). See `.cursor/rules/cli-package-exports.mdc` for import patterns.
 
 ## Package Location
 
@@ -1483,5 +1483,5 @@ This package is part of the **framework domain**, **tooling layer**, **migration
 
 ## See Also
 
-- [`@prisma-next/emitter`](../emitter/README.md) - Contract emission engine
+- [`@internal/emitter`](../emitter/README.md) - Contract emission engine
 - Project Brief — CLI Support for Extension Packs: `docs/briefs/complete/20-CLI-Support-for-Extension-Packs.md`

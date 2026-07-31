@@ -60,8 +60,8 @@ The pivot supersedes the user-facing PSL/TS surface from `682714eee`+ (the attri
 
 **CI gates (not ACs).**
 
-- `pnpm -F @prisma-next/sql-runtime test` — inherited runtime tests (cross-rows stability, empty-update skip, explicit-value-skip, validation at context creation) continue to pass.
-- `pnpm -F @prisma-next/sql-orm-client test` — inherited ORM-client tests (`create` / `createAll` / `updateAll` / `updateAndCount` / `upsert` / nested `updateFirstGraph`) continue to pass, including bulk-update cross-row-stability for `op: 'update'`.
+- `pnpm -F @internal/sql-runtime test` — inherited runtime tests (cross-rows stability, empty-update skip, explicit-value-skip, validation at context creation) continue to pass.
+- `pnpm -F @internal/sql-orm-client test` — inherited ORM-client tests (`create` / `createAll` / `updateAll` / `updateAndCount` / `upsert` / nested `updateFirstGraph`) continue to pass, including bulk-update cross-row-stability for `op: 'update'`.
 
 ## Milestone: Pivot to Field-Preset PSL Surface
 
@@ -96,7 +96,7 @@ Move the registrations from flat names to the `temporal.*` namespace. Both PSL a
 
 - [ ] Re-register presets in Postgres at `target.authoring.field.temporal.createdAt` and `target.authoring.field.temporal.updatedAt` (`packages/3-targets/3-targets/postgres/src/core/authoring.ts:92-119`). Delete the flat-named registrations. Satisfies TC1, TC3, TC4.
 - [ ] Same for SQLite (`packages/3-targets/3-targets/sqlite/src/core/authoring.ts`). Satisfies TC8.
-- [ ] **Consolidation:** the `temporal.{createdAt,updatedAt}` registrations are produced by a single shared helper `temporalAuthoringPresets({ codecId, nativeType })` exported from `@prisma-next/family-sql/control` (`packages/2-sql/9-family/src/core/timestamp-now-generator.ts`). Postgres and SQLite each pass their own `codecId` / `nativeType` pair; the helper owns the rest of the descriptor. This makes byte-equivalence between targets structural and prevents per-target drift if a third SQL target lands.
+- [ ] **Consolidation:** the `temporal.{createdAt,updatedAt}` registrations are produced by a single shared helper `temporalAuthoringPresets({ codecId, nativeType })` exported from `@internal/family-sql/control` (`packages/2-sql/9-family/src/core/timestamp-now-generator.ts`). Postgres and SQLite each pass their own `codecId` / `nativeType` pair; the helper owns the rest of the descriptor. This makes byte-equivalence between targets structural and prevents per-target drift if a third SQL target lands.
 
 ### Phase C: Remove the `@updatedAt` attribute path
 
@@ -134,13 +134,13 @@ Delete the attribute-based path that's now superseded by the preset surface, plu
 
 ### Validation gate
 
-- `pnpm -F @prisma-next/sql-contract-psl test`
-- `pnpm -F @prisma-next/sql-contract-ts test`
-- `pnpm -F @prisma-next/framework-components test`
-- `pnpm -F @prisma-next/sql-runtime test`
-- `pnpm -F @prisma-next/sql-orm-client test`
-- `pnpm -F @prisma-next/adapter-postgres test`
-- `pnpm -F @prisma-next/adapter-sqlite test`
+- `pnpm -F @internal/sql-contract-psl test`
+- `pnpm -F @internal/sql-contract-ts test`
+- `pnpm -F @internal/framework-components test`
+- `pnpm -F @internal/sql-runtime test`
+- `pnpm -F @internal/sql-orm-client test`
+- `pnpm -F @internal/adapter-postgres test`
+- `pnpm -F @internal/adapter-sqlite test`
 - `pnpm test:packages`
 - `pnpm lint:deps`
 - `pnpm build`

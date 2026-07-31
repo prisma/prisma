@@ -3,9 +3,9 @@
 Purpose: define a consistent convention for naming, placing, and describing extension packs across domains.
 
 ## NPM Package Name
-- Use `@prisma-next/extension-<name>` for all extension packs
-  - Examples: `@prisma-next/extension-pgvector`, `@prisma-next/extension-postgis`, `@prisma-next/extension-views`
-- Include domain only when necessary to avoid ambiguity (rare): `@prisma-next/extension-sql-views`
+- Use `@internal/extension-<name>` for all extension packs
+  - Examples: `@internal/extension-pgvector`, `@internal/extension-postgis`, `@internal/extension-views`
+- Include domain only when necessary to avoid ambiguity (rare): `@internal/extension-sql-views`
 
 ## Filesystem Location
 
@@ -22,14 +22,14 @@ packages/
 ```
 
 **Examples:**
-- `packages/3-extensions/pgvector/` → `@prisma-next/extension-pgvector`
-- `packages/3-extensions/sql/views/` → `@prisma-next/extension-sql-views` (future)
+- `packages/3-extensions/pgvector/` → `@internal/extension-pgvector`
+- `packages/3-extensions/sql/views/` → `@internal/extension-sql-views` (future)
 
 ## Required package.json Metadata
 Add the following fields to support discovery and guardrails:
 ```json
 {
-  "name": "@prisma-next/extension-<name>",
+  "name": "@internal/extension-<name>",
   "prismaNext": {
     "family": "sql",            // or "framework", "document"
     "dialects": ["postgres"],    // if domain-specific

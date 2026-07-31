@@ -9,9 +9,9 @@
  * with additional fields for execution (precheck SQL, execute SQL, etc.).
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { ImportRequirement } from '@prisma-next/ts-render';
-import type { Result } from '@prisma-next/utils/result';
+import type { Contract } from '@internal/contract/types';
+import type { ImportRequirement } from '@internal/ts-render';
+import type { Result } from '@internal/utils/result';
 import type { TargetBoundComponentDescriptor } from '../shared/framework-components';
 import type { ImportSpecifierResolver } from '../shared/import-specifier-resolver';
 import type {
@@ -40,7 +40,7 @@ import type { OperationContext } from './control-operation-results';
  *
  * The on-disk JSON shape in `migration.json` matches this type
  * field-for-field — `JSON.stringify(metadata, null, 2)` is the canonical
- * writer output (defined in `@prisma-next/migration-tools/io`).
+ * writer output (defined in `@internal/migration-tools/io`).
  *
  * The manifest carries identity (`from`, `to`, `migrationHash`) but
  * not the full contract IRs themselves. The destination and predecessor
@@ -137,7 +137,7 @@ export interface MigrationPlanOperation {
  *
  * Each domain (target, extension) defines its own set of concrete `*Call`
  * classes that implement this interface — typically by extending
- * {@link import('@prisma-next/ts-render').TsExpression} and adding the
+ * {@link import('@internal/ts-render').TsExpression} and adding the
  * concrete `toOp()` body. Extensions can implement the interface
  * directly without depending on a target's package-private base.
  *
@@ -406,7 +406,7 @@ export interface SchemaEntityCoordinate {
  * extra, so a positive answer always means a sibling.)
  *
  * The oracle is a real domain object — the passive
- * {@link import('@prisma-next/migration-tools/aggregate').ContractSpaceAggregate},
+ * {@link import('@internal/migration-tools/aggregate').ContractSpaceAggregate},
  * which answers this from its loaded contract spaces. The planner holds no
  * list of other spaces' names and no ownership rules of its own; it only
  * asks. Single-space plans (offline `migration plan`) pass an aggregate of
@@ -485,7 +485,7 @@ export interface MigrationPlanner<
      * plan's `renderTypeScript()` metadata. Callers that never render the
      * produced plan to TypeScript (diff-based reconciliation for `db init` /
      * `db update`) pass a placeholder — see `planFromDiff` in
-     * `@prisma-next/migration-tools`.
+     * `@internal/migration-tools`.
      */
     readonly snapshotsImportPath: string;
   }): MigrationPlannerResult;
@@ -572,7 +572,7 @@ export interface MigrationRunner<
    * Each plan is trusted input. Callers are responsible for upstream
    * verification of the originating migration package — typically by
    * obtaining the package via `readMigrationPackage` from
-   * `@prisma-next/migration-tools/io`, which performs hash-integrity checks
+   * `@internal/migration-tools/io`, which performs hash-integrity checks
    * at the load boundary. Runners do not re-verify plans and assume the
    * `(metadata, ops)` pairs on disk have not been tampered with since emit.
    *

@@ -1,11 +1,11 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { resolveStorageTable } from '@prisma-next/sql-contract/resolve-storage-table';
-import { isStorageTypeInstance, type SqlStorage } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { JsonValue } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { resolveStorageTable } from '@internal/sql-contract/resolve-storage-table';
+import { isStorageTypeInstance, type SqlStorage } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
 
 /**
- * Derive the canonical {@link CodecRef} for a `(table, column)` pair against a {@link SqlStorage}. This is the build-time path every column-bound `ParamRef` / `ProjectionItem` uses to stamp its `codec` slot before the AST is handed to the runtime — the runtime resolver then materialises a memoised {@link import('@prisma-next/sql-relational-core/ast').Codec} for the same `CodecRef` via `forCodecRef`.
+ * Derive the canonical {@link CodecRef} for a `(table, column)` pair against a {@link SqlStorage}. This is the build-time path every column-bound `ParamRef` / `ProjectionItem` uses to stamp its `codec` slot before the AST is handed to the runtime — the runtime resolver then materialises a memoised {@link import('@internal/sql-relational-core/ast').Codec} for the same `CodecRef` via `forCodecRef`.
  *
  * Resolution rules over namespace `entries.table[table].columns[column]`:
  *

@@ -1,10 +1,7 @@
-import { canonicalizeContractToObject } from '@prisma-next/contract/hashing';
-import type { Contract } from '@prisma-next/contract/types';
-import {
-  type EmissionSpi,
-  keepInternalSpecifiers,
-} from '@prisma-next/framework-components/emission';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { canonicalizeContractToObject } from '@internal/contract/hashing';
+import type { Contract } from '@internal/contract/types';
+import { type EmissionSpi, keepInternalSpecifiers } from '@internal/framework-components/emission';
+import { ifDefined } from '@internal/utils/defined';
 import { format } from 'prettier';
 import { getEmittedArtifactPaths } from './artifact-paths';
 import type { EmitOptions, EmitResult, EmitStackInput } from './emit-types';

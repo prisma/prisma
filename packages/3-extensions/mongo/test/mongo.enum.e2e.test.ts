@@ -1,10 +1,10 @@
-import { generateContractDts } from '@prisma-next/emitter';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ExtractMongoFieldOutputTypes } from '@prisma-next/mongo-contract';
-import { deriveJsonSchema, type FieldValueSets } from '@prisma-next/mongo-contract-psl';
-import { mongoEmission } from '@prisma-next/mongo-emitter';
-import { blindCast } from '@prisma-next/utils/casts';
+import { generateContractDts } from '@internal/emitter';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ExtractMongoFieldOutputTypes } from '@internal/mongo-contract';
+import { deriveJsonSchema, type FieldValueSets } from '@internal/mongo-contract-psl';
+import { mongoEmission } from '@internal/mongo-emitter';
+import { blindCast } from '@internal/utils/casts';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
@@ -276,7 +276,7 @@ describe('mongo enum — end-to-end (replica set)', {
 describe('emit-then-consume: value-union narrowing through the emitted contract.d.ts', () => {
   const mongoCodecImports = [
     {
-      package: '@prisma-next/adapter-mongo/codec-types',
+      package: '@internal/adapter-mongo/codec-types',
       named: 'CodecTypes' as const,
       alias: 'MongoCodecTypes' as const,
     },

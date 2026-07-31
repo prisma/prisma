@@ -6,7 +6,7 @@ R1 (commit `3a87c7c55`) landed the `through` descriptor correctly — AC-2 is PA
 
 **F1 (must-fix):** `resolveThrough` in `packages/3-extensions/sql-orm-client/src/collection-contract.ts` introduced **5 new bare `as` casts** in production (≈ lines 274–275 and 289–291): `parentColumns as string[]` and `childColumns as string[]` in the `Set` spread, and `parentColumns/childColumns/targetColumns as readonly string[]` in the return object. After the `Array.isArray()` guard the inferred type is `unknown[]`; the contract validator guarantees `string` elements, so these are declarative widenings. They would fail the `no-bare-cast` Biome plugin + the `pnpm lint:casts` ratchet (HEAD cast count > merge-base).
 
-Replace all 5 with `castAs<readonly string[]>(…)` (import `castAs` from `@prisma-next/utils/casts`) — the declarative-widening helper is exactly the right tool since the value already satisfies the type. If a small element-type narrowing helper reads cleaner and removes the casts entirely, that's also acceptable — your call.
+Replace all 5 with `castAs<readonly string[]>(…)` (import `castAs` from `@internal/utils/casts`) — the declarative-widening helper is exactly the right tool since the value already satisfies the type. If a small element-type narrowing helper reads cleaner and removes the casts entirely, that's also acceptable — your call.
 
 ## Scope
 
@@ -17,7 +17,7 @@ Replace all 5 with `castAs<readonly string[]>(…)` (import `castAs` from `@pris
 ## Completed when
 
 - [ ] No bare `as` casts remain in `resolveThrough` (the test-file `as unknown as Contract<…>` is exempt and out of scope).
-- [ ] Gate: `pnpm --filter @prisma-next/sql-orm-client typecheck` + `test` still green.
+- [ ] Gate: `pnpm --filter @internal/sql-orm-client typecheck` + `test` still green.
 - [ ] Gate: `pnpm lint:casts` passes (the ratchet does not report an increase from this branch's casts).
 
 ## Standing instruction

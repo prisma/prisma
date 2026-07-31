@@ -1,4 +1,4 @@
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 import { EMPTY_CONTRACT_HASH } from './constants';
 import { readMigrationsDir } from './io';
 import { findPathWithDecision, reconstructGraph } from './migration-graph';

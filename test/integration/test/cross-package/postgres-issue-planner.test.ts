@@ -1,20 +1,20 @@
 import {
   createPostgresBuiltinCodecLookup,
   PostgresControlAdapter,
-} from '@prisma-next/adapter-postgres/control';
+} from '@internal/adapter-postgres/control';
 
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   SqlStorage,
   type SqlStorageInput,
   type StorageTableInput,
-} from '@prisma-next/sql-contract/types';
-import { buildPostgresPlanDiff } from '@prisma-next/target-postgres/diff-database-schema';
-import { coalesceSubtreeIssues, planIssues } from '@prisma-next/target-postgres/issue-planner';
-import type { CreateTableCall } from '@prisma-next/target-postgres/op-factory-call';
-import { createPostgresMigrationPlanner } from '@prisma-next/target-postgres/planner';
-import { renderCallsToTypeScript } from '@prisma-next/target-postgres/render-typescript';
+} from '@internal/sql-contract/types';
+import { buildPostgresPlanDiff } from '@internal/target-postgres/diff-database-schema';
+import { coalesceSubtreeIssues, planIssues } from '@internal/target-postgres/issue-planner';
+import type { CreateTableCall } from '@internal/target-postgres/op-factory-call';
+import { createPostgresMigrationPlanner } from '@internal/target-postgres/planner';
+import { renderCallsToTypeScript } from '@internal/target-postgres/render-typescript';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
@@ -22,7 +22,7 @@ import {
   PostgresTableSchemaNode,
   PostgresUnboundSchema,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
@@ -634,7 +634,7 @@ describe('planIssues', () => {
       expect(ts).toContain('this.dataTransform(');
       expect(ts).toContain('placeholder(');
       expect(ts).toContain('setNotNull(');
-      expect(ts).toContain("from '@prisma-next/postgres/migration'");
+      expect(ts).toContain("from '@internal/postgres/migration'");
     });
   });
 

@@ -1,9 +1,9 @@
-import { DEFAULT_CONTRACT_SOURCE_DIR } from '@prisma-next/config/config-types';
+import { DEFAULT_CONTRACT_SOURCE_DIR } from '@internal/config/config-types';
 import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
-} from '@prisma-next/framework-components/emission';
-import { createScaffoldSpecifierResolver } from '@prisma-next/publish-surface/import-roots';
+} from '@internal/framework-components/emission';
+import { createScaffoldSpecifierResolver } from '@internal/publish-surface/import-roots';
 
 export type TargetId = 'postgres' | 'mongo';
 export type AuthoringId = 'psl' | 'typescript';
@@ -43,9 +43,7 @@ export function targetPackageName(
   target: TargetId,
   resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
 ): string {
-  return resolveImportSpecifier(
-    target === 'postgres' ? '@prisma-next/postgres' : '@prisma-next/mongo',
-  );
+  return resolveImportSpecifier(target === 'postgres' ? '@internal/postgres' : '@internal/mongo');
 }
 
 /** One entrypoint of the scaffolded project's target package. */
@@ -54,7 +52,7 @@ export function targetEntrypoint(
   subpath: string,
   resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
 ): string {
-  const internal = target === 'postgres' ? '@prisma-next/postgres' : '@prisma-next/mongo';
+  const internal = target === 'postgres' ? '@internal/postgres' : '@internal/mongo';
   return resolveImportSpecifier(`${internal}/${subpath}`);
 }
 

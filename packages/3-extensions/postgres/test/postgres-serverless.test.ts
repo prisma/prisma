@@ -1,5 +1,5 @@
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlMiddleware } from '@prisma-next/sql-runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlMiddleware } from '@internal/sql-runtime';
 import { createContract } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

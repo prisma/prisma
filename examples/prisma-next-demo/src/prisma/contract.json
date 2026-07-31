@@ -1184,13 +1184,13 @@
           "import": {
             "alias": "PgVectorTypes",
             "named": "CodecTypes",
-            "package": "@prisma-next/extension-pgvector/codec-types"
+            "package": "@internal/extension-pgvector/codec-types"
           },
           "typeImports": [
             {
               "alias": "Vector",
               "named": "Vector",
-              "package": "@prisma-next/extension-pgvector/codec-types"
+              "package": "@internal/extension-pgvector/codec-types"
             }
           ]
         },
@@ -1198,14 +1198,14 @@
           "import": {
             "alias": "PgVectorOperationTypes",
             "named": "OperationTypes",
-            "package": "@prisma-next/extension-pgvector/operation-types"
+            "package": "@internal/extension-pgvector/operation-types"
           }
         },
         "queryOperationTypes": {
           "import": {
             "alias": "PgVectorQueryOperationTypes",
             "named": "QueryOperationTypes",
-            "package": "@prisma-next/extension-pgvector/operation-types"
+            "package": "@internal/extension-pgvector/operation-types"
           }
         },
         "storage": [

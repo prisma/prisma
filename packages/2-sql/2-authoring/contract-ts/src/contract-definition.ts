@@ -2,17 +2,17 @@ import type {
   ColumnDefault,
   ControlPolicy,
   ExecutionMutationDefaultPhases,
-} from '@prisma-next/contract/types';
-import type { ForeignKeyDefaultsState } from '@prisma-next/contract-authoring';
-import type { AuthoringWarning } from '@prisma-next/framework-components/authoring';
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import type { ExtensionPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
+} from '@internal/contract/types';
+import type { ForeignKeyDefaultsState } from '@internal/contract-authoring';
+import type { AuthoringWarning } from '@internal/framework-components/authoring';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type {
   ReferentialAction,
   SqlNamespaceBase,
   SqlNamespaceInput,
   StorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import type { EnumTypeHandle } from './enum-type';
 
 export type { ExecutionMutationDefaultPhases };

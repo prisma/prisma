@@ -136,7 +136,7 @@ Both surfaces lower through one shared path per entity so PSL/TS parity holds by
 
 ### D4. Naming and hashing — shared helpers, exact tuples
 
-The wire-name machinery hoists from `packages/3-targets/3-targets/postgres/src/core/rls/` to **`@prisma-next/sql-schema-ir/naming`** (beside `defaultIndexName`), because `SqlIndexIR` is family-shared and SQLite inherits the identity model:
+The wire-name machinery hoists from `packages/3-targets/3-targets/postgres/src/core/rls/` to **`@internal/sql-schema-ir/naming`** (beside `defaultIndexName`), because `SqlIndexIR` is family-shared and SQLite inherits the identity model:
 
 - `formatWireName(prefix, hash): string` → `` `${prefix}_${hash}` `` (moved from `formatRlsPolicyWireName`; call sites updated, old module deleted — no re-export shims).
 - `parseWireName(name): { prefix, hash } | undefined` → `/^(.+)_([0-9a-f]{8})$/` (moved from `parseRlsPolicyWireName`).

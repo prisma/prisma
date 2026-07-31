@@ -55,7 +55,7 @@ Remove `DefaultFunctionLoweringHandler`, `DefaultFunctionRegistry`, `DefaultFunc
 
 ### 6. `packages/3-targets/6-adapters/sqlite/src/core/control-mutation-defaults.ts`
 - Delete `type LoweredDefaultResult = ReturnType<DefaultFunctionLoweringHandler>;` (line 28).
-- Change the import block (lines 14-17) that pulls `DefaultFunctionLoweringContext, DefaultFunctionLoweringHandler` from `@prisma-next/sql-contract-psl`: drop `DefaultFunctionLoweringHandler`, and import `DefaultFunctionLoweringContext` **and** `LoweredDefaultResult` from `@prisma-next/framework-components/control` instead (add them to the existing `@prisma-next/framework-components/control` type import that already brings in `ControlMutationDefaultEntry, MutationDefaultGeneratorDescriptor, TypedDefaultFunctionCall`). This removes the `@prisma-next/sql-contract-psl` import entirely from this file if nothing else uses it — verify with the file contents. (postgres already imports `DefaultFunctionLoweringContext`/`LoweredDefaultResult` from framework-components/control — align sqlite to match.)
+- Change the import block (lines 14-17) that pulls `DefaultFunctionLoweringContext, DefaultFunctionLoweringHandler` from `@internal/sql-contract-psl`: drop `DefaultFunctionLoweringHandler`, and import `DefaultFunctionLoweringContext` **and** `LoweredDefaultResult` from `@internal/framework-components/control` instead (add them to the existing `@internal/framework-components/control` type import that already brings in `ControlMutationDefaultEntry, MutationDefaultGeneratorDescriptor, TypedDefaultFunctionCall`). This removes the `@internal/sql-contract-psl` import entirely from this file if nothing else uses it — verify with the file contents. (postgres already imports `DefaultFunctionLoweringContext`/`LoweredDefaultResult` from framework-components/control — align sqlite to match.)
 
 ## Scope
 **In:** the six edits above. **Out:** any behavioural change; `DefaultFunctionLoweringContext` (keep); the adapter `lower` bodies / signatures (unchanged); `projects/**`, `.agents/**` (read-only).
@@ -64,11 +64,11 @@ Remove `DefaultFunctionLoweringHandler`, `DefaultFunctionRegistry`, `DefaultFunc
 No `any`; no bare `as`; no file-extension imports; never suppress biome; tests-first. `git commit -s` (DCO), explicit staging, no `--amend`, **no push**. Do NOT touch GitHub.
 
 ## Gates (all green, in order)
-1. `pnpm --filter @prisma-next/framework-components build && typecheck && test`
-2. `pnpm --filter @prisma-next/psl-parser build && typecheck && test`
-3. `pnpm --filter @prisma-next/sql-contract-psl typecheck && test`
-4. `pnpm --filter @prisma-next/adapter-postgres typecheck && test`
-5. `pnpm --filter @prisma-next/adapter-sqlite typecheck && test`
+1. `pnpm --filter @internal/framework-components build && typecheck && test`
+2. `pnpm --filter @internal/psl-parser build && typecheck && test`
+3. `pnpm --filter @internal/sql-contract-psl typecheck && test`
+4. `pnpm --filter @internal/adapter-postgres typecheck && test`
+5. `pnpm --filter @internal/adapter-sqlite typecheck && test`
 6. `pnpm lint:deps` (0 violations) and `pnpm lint:framework-vocabulary` (threshold unchanged; reword rather than bump if a comment moves it)
 
 ## Report back

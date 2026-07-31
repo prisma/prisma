@@ -16,7 +16,7 @@ import {
   SelectAst,
   type SqlCodecCallContext,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { buildDecodeContext, decodeRow } from '../src/codecs/decoding';
 import { encodeParam } from '../src/codecs/encoding';

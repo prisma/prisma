@@ -132,7 +132,7 @@ Both commands share the same flag surface:
 Both commands are available via the control client:
 
 ```typescript
-import { createControlClient } from '@prisma-next/cli/control-api';
+import { createControlClient } from '@internal/cli/control-api';
 
 const client = createControlClient({
   family: sqlFamily,

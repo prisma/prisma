@@ -1,5 +1,5 @@
-import type { Contract, ContractModel, StorageBase } from '@prisma-next/contract/types';
-import type { Namespace, UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { Contract, ContractModel, StorageBase } from '@internal/contract/types';
+import type { Namespace, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { MongoIndexOptionsInput } from './ir/mongo-index-options';
 
 export type MongoIndexFieldValue = 1 | -1 | 'text' | '2dsphere' | '2d' | 'hashed';
@@ -100,7 +100,7 @@ export type AnyMongoTypeMaps = MongoTypeMaps<
   Record<string, Record<string, unknown>>
 >;
 
-export type MongoTypeMapsPhantomKey = '__@prisma-next/mongo-core/typeMaps@__';
+export type MongoTypeMapsPhantomKey = '__@internal/mongo-core/typeMaps@__';
 
 export type MongoContractWithTypeMaps<TContract, TTypeMaps> = TContract & {
   readonly [K in MongoTypeMapsPhantomKey]?: TTypeMaps;

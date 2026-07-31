@@ -1,4 +1,4 @@
-import { userConfigPath, writeUserConfig } from '@prisma-next/cli-telemetry';
+import { userConfigPath, writeUserConfig } from '@internal/cli-telemetry';
 import { Command } from 'commander';
 import {
   addGlobalOptions,

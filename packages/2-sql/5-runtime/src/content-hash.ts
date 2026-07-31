@@ -1,6 +1,6 @@
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
-import { canonicalStringify } from '@prisma-next/utils/canonical-stringify';
-import { hashContent } from '@prisma-next/utils/hash-content';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
+import { canonicalStringify } from '@internal/utils/canonical-stringify';
+import { hashContent } from '@internal/utils/hash-content';
 
 /**
  * Computes a stable content hash for a lowered SQL execution plan.
@@ -28,7 +28,7 @@ import { hashContent } from '@prisma-next/utils/hash-content';
  * with a different split of the same characters.
  *
  * The canonical string is then piped through `hashContent` to produce a
- * bounded, opaque digest. See `@prisma-next/utils/hash-content` for the
+ * bounded, opaque digest. See `@internal/utils/hash-content` for the
  * rationale.
  *
  * @internal

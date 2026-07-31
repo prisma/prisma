@@ -1,4 +1,4 @@
-import type { ColumnDefault } from '@prisma-next/contract/types';
+import type { ColumnDefault } from '@internal/contract/types';
 
 const DEFAULT_FUNCTION_ATTRIBUTES: Readonly<Record<string, string>> = {
   'autoincrement()': '@default(autoincrement())',

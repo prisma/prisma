@@ -1,4 +1,4 @@
-import type { ColumnDefault } from '@prisma-next/contract/types';
+import type { ColumnDefault } from '@internal/contract/types';
 import type { DefaultMappingOptions } from './default-mapping';
 
 export type PslTypeReference = {

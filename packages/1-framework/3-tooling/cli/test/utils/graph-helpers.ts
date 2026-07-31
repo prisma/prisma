@@ -1,4 +1,4 @@
-import type { MigrationEdge, MigrationGraph } from '@prisma-next/migration-tools/graph';
+import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
 
 export function entry(from: string, to: string, dirName: string): MigrationEdge {
   return {

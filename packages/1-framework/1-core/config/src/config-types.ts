@@ -5,7 +5,7 @@ import type {
   ControlExtensionDescriptor,
   ControlFamilyDescriptor,
   ControlTargetDescriptor,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import { type } from 'arktype';
 import { configError } from './config-errors';
 import type { ContractSourceProvider } from './contract-source-types';

@@ -1,5 +1,5 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   AggregateExpr,
   AndExpr,
@@ -28,12 +28,12 @@ import {
   SubqueryExpr,
   TableSource,
   WindowFuncExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { assertDefined, invariant } from '@prisma-next/utils/assertions';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { assertNever, InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { assertDefined, invariant } from '@internal/utils/assertions';
+import { ifDefined } from '@internal/utils/defined';
+import { assertNever, InternalError } from '@internal/utils/internal-error';
 import {
   getCompleteColumnToFieldMap,
   getFieldToColumnMap,

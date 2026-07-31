@@ -1,9 +1,9 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { verifySqlSchemaByDiff } from '@prisma-next/family-sql/diff';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import type { SqlStorage as SqlStorageType } from '@prisma-next/sql-contract/types';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import type { ControlPolicy } from '@internal/contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { verifySqlSchemaByDiff } from '@internal/family-sql/diff';
+import { issueOutcome } from '@internal/framework-components/control';
+import type { SqlStorage as SqlStorageType } from '@internal/sql-contract/types';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { diffPostgresSchema } from '../../src/core/migrations/diff-database-schema';

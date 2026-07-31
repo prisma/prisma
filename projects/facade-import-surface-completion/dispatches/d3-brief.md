@@ -16,11 +16,11 @@ Two procedural lapses from D2 that must not repeat in D3:
 
 ## Context
 
-D3 is the SQLite façade. SQLite shares the SQL family with Postgres (so the `ModelLike` lift from D1 R2 already applies — `ModelLike` is publicly exported from `@prisma-next/sql-contract-ts/contract-builder` and you'll use it the same way the Postgres wrap does). The dispatch adds **four new subpaths in one go**: `/config`, `/contract-builder`, `/control`, `/migration`. Each is a thin composition or re-export file mirroring the Postgres precedent. The bundle stays M-sized because each individual file is small and follows the same pattern. No renderer change yet — that's D4.
+D3 is the SQLite façade. SQLite shares the SQL family with Postgres (so the `ModelLike` lift from D1 R2 already applies — `ModelLike` is publicly exported from `@internal/sql-contract-ts/contract-builder` and you'll use it the same way the Postgres wrap does). The dispatch adds **four new subpaths in one go**: `/config`, `/contract-builder`, `/control`, `/migration`. Each is a thin composition or re-export file mirroring the Postgres precedent. The bundle stays M-sized because each individual file is small and follows the same pattern. No renderer change yet — that's D4.
 
 ## Intent (1-3 sentences)
 
-Close the SQLite half of the façade gap so users can author a complete SQLite app importing only from `@prisma-next/sqlite/*` subpaths — no reach-ins to `@prisma-next/{cli,family-sql,sql-contract-*,target-sqlite,adapter-sqlite,driver-sqlite}`. Mirror the Postgres + Mongo precedent set in D1 + D2; do not improvise SPI shapes. Anti-corruption: do **not** flip the SQLite renderer, do **not** migrate example apps, do **not** sweep docs — those are D4/D5/D6.
+Close the SQLite half of the façade gap so users can author a complete SQLite app importing only from `@internal/sqlite/*` subpaths — no reach-ins to `@internal/{cli,family-sql,sql-contract-*,target-sqlite,adapter-sqlite,driver-sqlite}`. Mirror the Postgres + Mongo precedent set in D1 + D2; do not improvise SPI shapes. Anti-corruption: do **not** flip the SQLite renderer, do **not** migrate example apps, do **not** sweep docs — those are D4/D5/D6.
 
 ## Critical design judgments — read before writing code
 
@@ -28,15 +28,15 @@ Close the SQLite half of the façade gap so users can author a complete SQLite a
 
 SQLite is in the SQL family, so the contract-builder shape is identical to Postgres:
 
-- Base `defineContract` is `@prisma-next/sql-contract-ts/contract-builder`'s `defineContract` — same overloads, same `ContractModelBuilder` constraint with its contravariant `attributesFactory`, same fix.
+- Base `defineContract` is `@internal/sql-contract-ts/contract-builder`'s `defineContract` — same overloads, same `ContractModelBuilder` constraint with its contravariant `attributesFactory`, same fix.
 - Use `ModelLike` (now public from `sql-contract-ts/contract-builder` since D1 R2) for the models constraint.
 - Use the **D1 R2 shape**, not the D1 R1 shape: thread all 4 `const` type params (`Types`, `Models`, `ExtensionPacks`, `Capabilities`) through `PostgresBaseScaffold`-equivalent + `PostgresResult`-equivalent. Use the `Omit<ReturnType<...>> & { target/targetFamily }` intersection trick to preserve literal pinning for `'sqlite'`/`'sql'`.
 
 Pack imports:
 
 ```ts
-import sqlFamilyPack from '@prisma-next/family-sql/pack';
-import sqlitePack from '@prisma-next/target-sqlite/pack';
+import sqlFamilyPack from '@internal/family-sql/pack';
+import sqlitePack from '@internal/target-sqlite/pack';
 ```
 
 The SQLite `contract-builder` wrap is mechanically `s/postgres/sqlite/g` + `s/PostgresPack/SqlitePack/g` of D1's wrap. Resist the urge to "improve" the shape; consistency across SQL facades is the goal.
@@ -61,17 +61,17 @@ Mirror of `createMongoControlClient` (D2) which itself mirrored `createPostgresC
 
 ### `/migration`
 
-One-liner: `export * from '@prisma-next/target-sqlite/migration';`. Parity test mirrors D1's postgres parity test (key-equality plus per-symbol identity checks).
+One-liner: `export * from '@internal/target-sqlite/migration';`. Parity test mirrors D1's postgres parity test (key-equality plus per-symbol identity checks).
 
 ## Files in play (from slice plan D3 section)
 
 - `packages/3-extensions/sqlite/src/config/define-config.ts` (new — mirror of postgres).
 - `packages/3-extensions/sqlite/src/exports/config.ts` (new — re-exports).
 - `packages/3-extensions/sqlite/src/contract/define-contract.ts` (new — wrapped `defineContract` per § Critical design judgments).
-- `packages/3-extensions/sqlite/src/exports/contract-builder.ts` (new — exports wrapped `defineContract` + re-exports `field`/`model`/`rel`/types from `@prisma-next/sql-contract-ts/contract-builder`; mirror D1's structure).
+- `packages/3-extensions/sqlite/src/exports/contract-builder.ts` (new — exports wrapped `defineContract` + re-exports `field`/`model`/`rel`/types from `@internal/sql-contract-ts/contract-builder`; mirror D1's structure).
 - `packages/3-extensions/sqlite/src/exports/control.ts` (new — mirror of postgres `control.ts` + D2 mongo `control.ts`).
 - `packages/3-extensions/sqlite/src/exports/migration.ts` (new — one-line `export *`).
-- `packages/3-extensions/sqlite/package.json` (add `./config`, `./contract-builder`, `./control`, `./migration` to `exports`; add 5 new deps to `dependencies`: `@prisma-next/cli`, `@prisma-next/config`, `@prisma-next/sql-contract-psl`, `@prisma-next/sql-contract-ts`, `pathe`).
+- `packages/3-extensions/sqlite/package.json` (add `./config`, `./contract-builder`, `./control`, `./migration` to `exports`; add 5 new deps to `dependencies`: `@internal/cli`, `@internal/config`, `@internal/sql-contract-psl`, `@internal/sql-contract-ts`, `pathe`).
 - `packages/3-extensions/sqlite/tsdown.config.ts` (add entries for config, contract-builder, control, migration).
 - `packages/3-extensions/sqlite/test/config/define-config.test.ts` (new — mirror of mongo's `define-config.test.ts`).
 - `packages/3-extensions/sqlite/test/contract-builder/define-contract.test.ts` (new — runtime; mirror D1 + D2 wrap-shape tests).
@@ -84,18 +84,18 @@ One-liner: `export * from '@prisma-next/target-sqlite/migration';`. Parity test 
 ## "Done when" gates
 
 - [ ] `pnpm install` clean after the new deps land in `package.json` (lockfile delta is expected).
-- [ ] `pnpm build --filter @prisma-next/sqlite` clean.
-- [ ] `pnpm typecheck --filter @prisma-next/sqlite` clean.
-- [ ] `pnpm test --filter @prisma-next/sqlite` clean.
-- [ ] `pnpm lint:deps` clean (additive deps; should stay clean — verify with `@prisma-next/cli`-as-facade-dep precedent from D2 mongo).
-- [ ] No deps cycle introduced (D0 noted: SQLite façade can add `@prisma-next/cli` + `@prisma-next/config` per the existing dep graph; the postgres + mongo facades already do this).
+- [ ] `pnpm build --filter @internal/sqlite` clean.
+- [ ] `pnpm typecheck --filter @internal/sqlite` clean.
+- [ ] `pnpm test --filter @internal/sqlite` clean.
+- [ ] `pnpm lint:deps` clean (additive deps; should stay clean — verify with `@internal/cli`-as-facade-dep precedent from D2 mongo).
+- [ ] No deps cycle introduced (D0 noted: SQLite façade can add `@internal/cli` + `@internal/config` per the existing dep graph; the postgres + mongo facades already do this).
 - [ ] Intent-validation: diff confined to `packages/3-extensions/sqlite/**` + `architecture.config.json` + `pnpm-lock.yaml`. No renderer change, no example touches, no docs sweep, no postgres/mongo touches.
 
 ## Edge cases (from slice spec, D3's portion)
 
 - **SQLite-specific config options:** `PostgresConfigOptions` has `connection?: string`. Verify whether SQLite needs the same field or whether SQLite's connection-string semantics warrant a different name (e.g. `filename`, `database`). Mirror Postgres unless a substantive SQLite-specific reason emerges — surface the decision in your structured return if you deviate.
 - **Targeting the right adapter package:** the SQLite adapter package path may have a different layout than mongo/postgres adapters. Verify against `packages/3-targets/6-adapters/sqlite/` (or wherever it lives) before importing.
-- **`@prisma-next/cli/control-api` import:** `createSqliteControlClient` will need this. The dep addition is fine (already proven safe by D2 mongo).
+- **`@internal/cli/control-api` import:** `createSqliteControlClient` will need this. The dep addition is fine (already proven safe by D2 mongo).
 
 ## Failure modes to avoid
 
@@ -115,7 +115,7 @@ One-liner: `export * from '@prisma-next/target-sqlite/migration';`. Parity test 
 ## Constraints (reminder, terse)
 
 - Explicit-staging commits; no amend; no push.
-- **Commit shape (preferred):** 6 atomic commits — `feat(@prisma-next/sqlite): add dependencies for facade subpaths`, `feat(@prisma-next/sqlite): add /config subpath`, `feat(@prisma-next/sqlite): add /contract-builder subpath with wrapped defineContract`, `feat(@prisma-next/sqlite): add /control subpath`, `feat(@prisma-next/sqlite): add /migration re-export with parity tests`, `docs(@prisma-next/sqlite): rewrite README to mirror Postgres structure`. Lump if structural overlap forces it; your call on exact subjects.
+- **Commit shape (preferred):** 6 atomic commits — `feat(@internal/sqlite): add dependencies for facade subpaths`, `feat(@internal/sqlite): add /config subpath`, `feat(@internal/sqlite): add /contract-builder subpath with wrapped defineContract`, `feat(@internal/sqlite): add /control subpath`, `feat(@internal/sqlite): add /migration re-export with parity tests`, `docs(@internal/sqlite): rewrite README to mirror Postgres structure`. Lump if structural overlap forces it; your call on exact subjects.
 - Heartbeats to `wip/heartbeats/implementer.txt` per § Calibration items above.
 - Final tool call is the structured return per § Return shape.
 - Read-only on `spec.md`, `plan.md`, `code-review.md`, and the D3 brief itself.

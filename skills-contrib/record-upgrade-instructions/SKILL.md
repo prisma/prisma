@@ -2,7 +2,7 @@
 name: record-upgrade-instructions
 description: >-
   Record upgrade instructions alongside a Prisma Next breaking-change
-  PR, so downstream consumers (users of `@prisma-next/*` and authors
+  PR, so downstream consumers (users of `@internal/*` and authors
   of Prisma Next extensions) can apply the matching code translation
   automatically via the published upgrade skills. Use when you have
   refactored framework code and the test suite went red in
@@ -19,8 +19,8 @@ This skill fires on PRs **inside this repo** that make a breaking change to Pris
 
 The published skills you will be authoring entries into:
 
-- `skills/upgrade/prisma-next-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma-next/skills/upgrade --all`. **Audience: users of Prisma Next** (consumers of the public package API: `@prisma-next/postgres`, `@prisma-next/mongo`, the contract files in `prisma/`, on-disk migration shape).
-- `skills/extension-author/prisma-next-extension-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma-next/skills/extension-author --all`. **Audience: authors of Prisma Next extensions** (consumers of the framework SPI: `@prisma-next/contract`, `@prisma-next/framework-components`, `@prisma-next/migration-tools`, etc.).
+- `skills/upgrade/prisma-next-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma-next/skills/upgrade --all`. **Audience: users of Prisma Next** (consumers of the public package API: `@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, on-disk migration shape).
+- `skills/extension-author/prisma-next-extension-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma-next/skills/extension-author --all`. **Audience: authors of Prisma Next extensions** (consumers of the framework SPI: `@internal/contract`, `@internal/framework-components`, `@internal/migration-tools`, etc.).
 
 The two skill clusters are independent (no shared content). Cross-audience breaking changes — where the same on-disk transformation applies to both substrates — are recorded *separately* in each cluster, including duplicated colocated scripts.
 
@@ -133,11 +133,11 @@ Decide per-entry whether each prior add belongs in the just-shipped transition d
 
 This skill records **upgrade instructions** — code-translation entries the published skills will replay against consumer projects. It does **not** add the per-step bump-install-instructions-validate-commit loop to entry bodies. That flow is general content carried in the published `SKILL.md` files (`skills/upgrade/prisma-next-upgrade/SKILL.md` and the matching extension-author file) and runs around your entry. Your entry only contains the code-translation work specific to the transition.
 
-This skill also does not enforce the exact-pin rule for extensions — that is `prisma-next-check-pins` (a `bin` of `@prisma-next/extension-author-tools`), and it runs in extension authors' own CI plus in the extension-upgrade skill's per-step flow.
+This skill also does not enforce the exact-pin rule for extensions — that is `prisma-next-check-pins` (a `bin` of `@internal/extension-author-tools`), and it runs in extension authors' own CI plus in the extension-upgrade skill's per-step flow.
 
 ## Worked example
 
-A PR refactors types in `@prisma-next/migration-tools`. After running `pnpm typecheck`:
+A PR refactors types in `@internal/migration-tools`. After running `pnpm typecheck`:
 
 - `packages/3-extensions/pgvector` is red — the extension consumes `MigrationMetadata` and the type shape changed. You fix the extension's source until tests are green.
 - `examples/multi-extension-monorepo` is red as a downstream consequence of the extension change. You fix the example until tests are green.

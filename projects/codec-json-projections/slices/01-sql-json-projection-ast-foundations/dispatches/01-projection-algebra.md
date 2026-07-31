@@ -2,7 +2,7 @@
 
 ## Task
 
-Introduce the target-neutral JSON value projection algebra in `@prisma-next/sql-relational-core/ast`: a frozen class/visitor union with `CodecJsonValueProjection`, `NativeJsonValueProjection`, and `JsonDocumentProjection`, each wrapping a `ProjectionExpr`, with the codec variant also preserving a complete immutable `CodecRef`. Deliver this as an independently tested exported substrate only; JSON object/array adoption belongs to D2.
+Introduce the target-neutral JSON value projection algebra in `@internal/sql-relational-core/ast`: a frozen class/visitor union with `CodecJsonValueProjection`, `NativeJsonValueProjection`, and `JsonDocumentProjection`, each wrapping a `ProjectionExpr`, with the codec variant also preserving a complete immutable `CodecRef`. Deliver this as an independently tested exported substrate only; JSON object/array adoption belongs to D2.
 
 ## Scope
 
@@ -14,7 +14,7 @@ Introduce the target-neutral JSON value projection algebra in `@prisma-next/sql-
 
 - [ ] Tests written first prove all three concrete classes are frozen class instances, dispatch exhaustively through `JsonValueProjectionVisitor`, rewrite/fold their wrapped expressions without changing variant kind, and defensively preserve full codec metadata including nested `typeParams` and `many`.
 - [ ] The projection algebra is publicly exported through the existing AST export surface, uses no plain-object variants or shallow-spread reconstruction, and introduces no bare production cast.
-- [ ] `pnpm --filter @prisma-next/sql-relational-core test`, `typecheck`, `lint`, and `build`, plus `pnpm lint:casts`, pass; commit the dispatch with explicit staging and `git commit -s`.
+- [ ] `pnpm --filter @internal/sql-relational-core test`, `typecheck`, `lint`, and `build`, plus `pnpm lint:casts`, pass; commit the dispatch with explicit staging and `git commit -s`.
 
 ## Standing instruction
 

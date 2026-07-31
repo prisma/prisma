@@ -1,5 +1,5 @@
-import type { EntityCoordinate } from '@prisma-next/framework-components/ir';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+import type { EntityCoordinate } from '@internal/framework-components/ir';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import { PostgresNativeEnumSchemaNode } from './postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from './postgres-table-schema-node';
 import { postgresNodeEntityKind } from './schema-node-kinds';

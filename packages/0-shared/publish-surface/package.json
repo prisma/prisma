@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/publish-surface",
+  "name": "@internal/publish-surface",
   "version": "0.16.0",
   "private": true,
   "license": "Apache-2.0",

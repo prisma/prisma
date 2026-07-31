@@ -4,14 +4,14 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { promisify } from 'node:util';
-import type { EmitStackInput } from '@prisma-next/emitter';
-import { createTestContract, emit } from '@prisma-next/emitter/test/utils';
+import type { EmitStackInput } from '@internal/emitter';
+import { createTestContract, emit } from '@internal/emitter/test/utils';
 import {
   extractCodecTypeImports,
   extractComponentIds,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { sqlEmission } from '@internal/sql-contract-emitter';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getSqlDescriptorBundle } from '../utils/framework-components';
@@ -172,14 +172,14 @@ describe('contract.d.ts imports resolution', () => {
 
       // Verify the generated contract.d.ts contains the correct import
       const contractDtsContent = await readFile(contractDtsPath, 'utf-8');
-      expect(contractDtsContent).toContain("from '@prisma-next/sql-contract/types'");
+      expect(contractDtsContent).toContain("from '@internal/sql-contract/types'");
       expect(contractDtsContent).toContain('Contract');
       expect(contractDtsContent).toContain('ContractWithTypeMaps');
       expect(contractDtsContent).not.toContain("from './contract-types'");
 
       // Create a test TypeScript file that imports the generated contract.d.ts
       const testFileContent = `import type { Contract, CodecTypes } from './contract';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 
 // Verify we can use the Contract type
 // biome-ignore lint/suspicious/noExplicitAny: test code with type assertions
@@ -192,7 +192,7 @@ const _tables: Contract['storage']['namespaces']['__unbound__']['entries']['tabl
 // Verify we can access CodecTypes
 const _codecTypes: CodecTypes = {} as any;
 
-// Verify SqlStorage is importable from @prisma-next/sql-contract/types
+// Verify SqlStorage is importable from @internal/sql-contract/types
 const _sqlStorage: SqlStorage = _contract.storage;
 
 // Verify the contract type is correctly structured
@@ -219,13 +219,13 @@ type UserIdColumn = UserColumns['id'];
           types: [],
           baseUrl: '.',
           paths: {
-            '@prisma-next/sql-contract/types': [
+            '@internal/sql-contract/types': [
               `${relativeToWorkspace}/packages/2-sql/1-core/contract/dist/types.d.mts`,
             ],
-            '@prisma-next/sql-contract/types/*': [
+            '@internal/sql-contract/types/*': [
               `${relativeToWorkspace}/packages/2-sql/1-core/contract/dist/*`,
             ],
-            '@prisma-next/adapter-postgres/*': [
+            '@internal/adapter-postgres/*': [
               `${relativeToWorkspace}/packages/3-targets/6-adapters/postgres/dist/*`,
             ],
           },
@@ -315,12 +315,12 @@ type UserIdColumn = UserColumns['id'];
 
       // Verify the contract.d.ts imports are correct
       const contractDtsContent = await readFile(contractDtsPath, 'utf-8');
-      expect(contractDtsContent).toContain("from '@prisma-next/sql-contract/types'");
-      expect(contractDtsContent).toContain("from '@prisma-next/target-postgres/codec-types'");
+      expect(contractDtsContent).toContain("from '@internal/sql-contract/types'");
+      expect(contractDtsContent).toContain("from '@internal/target-postgres/codec-types'");
 
       // Create a comprehensive test file that uses all exported types
       const testFileContent = `import type { Contract, CodecTypes, Namespaces } from './contract';
-import { PostgresContractSerializer as SqlContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { PostgresContractSerializer as SqlContractSerializer } from '@internal/target-postgres/runtime';
 import contractJson from './contract.json' with { type: 'json' };
 
 // Verify we can validate the contract
@@ -363,41 +363,41 @@ type CodecIntType = CodecTypes['pg/int4@1'];
           types: [],
           baseUrl: '.',
           paths: {
-            '@prisma-next/sql-contract-ts/*': [
+            '@internal/sql-contract-ts/*': [
               `${relativeToWorkspace}/packages/2-sql/2-authoring/contract-ts/dist/*`,
             ],
-            '@prisma-next/sql-contract/types': [
+            '@internal/sql-contract/types': [
               `${relativeToWorkspace}/packages/2-sql/1-core/contract/dist/types.d.mts`,
             ],
-            '@prisma-next/sql-contract/types/*': [
+            '@internal/sql-contract/types/*': [
               `${relativeToWorkspace}/packages/2-sql/1-core/contract/dist/*`,
             ],
-            '@prisma-next/family-sql/ir': [
+            '@internal/family-sql/ir': [
               `${relativeToWorkspace}/packages/2-sql/9-family/dist/ir.d.mts`,
             ],
-            '@prisma-next/family-sql/*': [`${relativeToWorkspace}/packages/2-sql/9-family/dist/*`],
-            '@prisma-next/adapter-postgres/*': [
+            '@internal/family-sql/*': [`${relativeToWorkspace}/packages/2-sql/9-family/dist/*`],
+            '@internal/adapter-postgres/*': [
               `${relativeToWorkspace}/packages/3-targets/6-adapters/postgres/dist/*`,
             ],
-            '@prisma-next/target-postgres/runtime': [
+            '@internal/target-postgres/runtime': [
               `${relativeToWorkspace}/packages/3-targets/3-targets/postgres/dist/runtime.d.mts`,
             ],
-            '@prisma-next/target-postgres/*': [
+            '@internal/target-postgres/*': [
               `${relativeToWorkspace}/packages/3-targets/3-targets/postgres/dist/*`,
             ],
-            '@prisma-next/framework-components/codec': [
+            '@internal/framework-components/codec': [
               `${relativeToWorkspace}/packages/1-framework/1-core/framework-components/dist/codec.d.mts`,
             ],
-            '@prisma-next/framework-components/*': [
+            '@internal/framework-components/*': [
               `${relativeToWorkspace}/packages/1-framework/1-core/framework-components/dist/*`,
             ],
-            '@prisma-next/contract/types': [
+            '@internal/contract/types': [
               `${relativeToWorkspace}/packages/1-framework/0-foundation/contract/dist/types.d.mts`,
             ],
-            '@prisma-next/contract/*': [
+            '@internal/contract/*': [
               `${relativeToWorkspace}/packages/1-framework/0-foundation/contract/dist/*`,
             ],
-            '@prisma-next/sql-query/*': [
+            '@internal/sql-query/*': [
               `${relativeToWorkspace}/packages/sql-query/dist/exports/*.d.ts`,
             ],
           },

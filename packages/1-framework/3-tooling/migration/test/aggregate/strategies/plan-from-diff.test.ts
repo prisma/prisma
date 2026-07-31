@@ -6,8 +6,8 @@ import type {
   MigrationPlanWithAuthoringSurface,
   SchemaOwnership,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { planFromDiff } from '../../../src/aggregate/strategies/plan-from-diff';

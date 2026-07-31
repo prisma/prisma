@@ -1,4 +1,4 @@
-import { SqlSchemaVerifierBase } from '@prisma-next/family-sql/ir';
+import { SqlSchemaVerifierBase } from '@internal/family-sql/ir';
 import { describe, expect, it } from 'vitest';
 import { PostgresSchemaVerifier } from '../src/core/postgres-schema-verifier';
 

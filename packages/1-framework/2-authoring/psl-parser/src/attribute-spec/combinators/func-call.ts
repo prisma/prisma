@@ -1,5 +1,5 @@
-import type { PslDiagnostic, PslSpan } from '@prisma-next/framework-components/psl-ast';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import type { PslDiagnostic, PslSpan } from '@internal/framework-components/psl-ast';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { nodePslSpan } from '../../resolve';
 import type { ExpressionAst } from '../../syntax/ast/expressions';
 import { FunctionCallAst } from '../../syntax/ast/expressions';

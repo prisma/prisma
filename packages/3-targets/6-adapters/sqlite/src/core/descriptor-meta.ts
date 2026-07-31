@@ -1,4 +1,4 @@
-import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
+import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 
 // Exclude codecs that carry a renderOutputType: those emit named TypeScript types (e.g.
 // Char<N>, Varchar<N>) that are not listed in this adapter's typeImports and would
@@ -30,7 +30,7 @@ export const sqliteAdapterDescriptorMeta = {
     codecTypes: {
       codecDescriptors: executionCodecDescriptors,
       import: {
-        package: '@prisma-next/adapter-sqlite/codec-types',
+        package: '@internal/adapter-sqlite/codec-types',
         named: 'CodecTypes',
         alias: 'SqliteTypes',
       },

@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/sql-errors",
+  "name": "@internal/sql-errors",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",

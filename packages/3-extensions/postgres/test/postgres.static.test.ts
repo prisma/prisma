@@ -1,6 +1,6 @@
-import { buildNamespacedEnums, type NamespacedEnums } from '@prisma-next/contract/enum-accessor';
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import { buildNamespacedEnums, type NamespacedEnums } from '@internal/contract/enum-accessor';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import postgresStatic, { type PostgresStaticContext } from '../src/static/postgres-static';

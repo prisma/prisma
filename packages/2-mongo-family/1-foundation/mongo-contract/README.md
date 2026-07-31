@@ -1,4 +1,4 @@
-# @prisma-next/mongo-contract
+# @internal/mongo-contract
 
 Contract types and validation for the MongoDB family.
 
@@ -12,10 +12,10 @@ Contract types and validation for the MongoDB family.
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/contract` (base `Contract`, `ContractModel`, `StorageBase` types and `validateContractDomain`)
+  - `@internal/contract` (base `Contract`, `ContractModel`, `StorageBase` types and `validateContractDomain`)
   - `arktype` (runtime validation)
 - **Depended on by**:
-  - `@prisma-next/mongo-orm` (contract-typed queries and row inference)
-  - `@prisma-next/mongo-emitter` (contract emission and validation)
-  - `@prisma-next/mongo-contract-psl` (PSL-to-contract interpretation)
-  - `@prisma-next/mongo-runtime` (contract-typed plan execution)
+  - `@internal/mongo-orm` (contract-typed queries and row inference)
+  - `@internal/mongo-emitter` (contract emission and validation)
+  - `@internal/mongo-contract-psl` (PSL-to-contract interpretation)
+  - `@internal/mongo-runtime` (contract-typed plan execution)

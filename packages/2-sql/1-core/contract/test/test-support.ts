@@ -2,8 +2,8 @@ import {
   freezeNode,
   hydrateNamespaceEntities,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/framework-components/ir';
+import { blindCast } from '@internal/utils/casts';
 import { composeSqlEntityKinds } from '../src/entity-kinds';
 import {
   SqlNamespaceBase,

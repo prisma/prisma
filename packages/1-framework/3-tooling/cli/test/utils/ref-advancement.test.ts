@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs';
 import { readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
+import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {

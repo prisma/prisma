@@ -10,15 +10,15 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { Collection } from '@prisma-next/sql-orm-client';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import type { Contract } from '@internal/contract/types';
+import postgresDriver from '@internal/driver-postgres/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { Collection } from '@internal/sql-orm-client';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { Client } from 'pg';
 import stripAnsi from 'strip-ansi';

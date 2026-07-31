@@ -1,18 +1,18 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import {
   APP_SPACE_ID,
   type MigrationPlanner,
   type MigrationPlannerSuccessResult,
-} from '@prisma-next/framework-components/control';
-import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
+} from '@internal/framework-components/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
+import postgresTargetDescriptor from '@internal/target-postgres/control';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
@@ -94,7 +94,7 @@ describe('PostgresMigrationPlanner authoring surface', () => {
 
       const source = success.plan.renderTypeScript(keepInternalSpecifiers);
 
-      expect(source).toContain("from '@prisma-next/postgres/migration'");
+      expect(source).toContain("from '@internal/postgres/migration'");
       expect(source).toMatch(/\bMigration\b/);
       // New shape: base derives describe() from the imported contract JSON, so
       // the scaffold carries `Migration<Start, End>` + the JSON/field imports
@@ -141,7 +141,7 @@ describe('PostgresMigrationPlanner authoring surface', () => {
 
       const source = empty.renderTypeScript(keepInternalSpecifiers);
 
-      expect(source).toContain("from '@prisma-next/postgres/migration'");
+      expect(source).toContain("from '@internal/postgres/migration'");
       expect(source).toContain('export default class M extends Migration<Start, End>');
       expect(source).toContain('override readonly endContractJson = endContract;');
       expect(source).not.toContain('describe()');

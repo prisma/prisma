@@ -1,8 +1,8 @@
 import type {
   AuthoringArgumentDescriptor,
   AuthoringFieldPresetDescriptor,
-} from '@prisma-next/framework-components/authoring';
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/authoring';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import type { ScalarFieldBuilder, ScalarFieldState } from './contract-dsl';
 
 export type UnionToIntersection<U> = (U extends unknown ? (value: U) => void : never) extends (

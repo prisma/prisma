@@ -25,7 +25,7 @@ The first R1 implementer ran out of budget mid-dispatch and **did not commit**. 
 
 - [ ] An M:N `include` compiles to a single correlated subquery through the junction (composite-key AND-ed); unit test asserts the AST + absence of `LATERAL`, and **passes**.
 - [ ] FK include path unchanged (its tests pass).
-- [ ] `pnpm --filter @prisma-next/sql-orm-client typecheck` + `test` green.
+- [ ] `pnpm --filter @internal/sql-orm-client typecheck` + `test` green.
 - [ ] Committed as **one coherent commit** (the WIP + your completion together), explicit staging + `-s` sign-off, **no push**.
 
 ## Standing instruction

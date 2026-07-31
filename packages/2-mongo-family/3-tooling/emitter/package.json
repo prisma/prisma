@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/mongo-emitter",
+  "name": "@internal/mongo-emitter",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -16,15 +16,15 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/emitter": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/mongo-contract": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0"
+    "@internal/contract": "workspace:0.16.0",
+    "@internal/emitter": "workspace:0.16.0",
+    "@internal/framework-components": "workspace:0.16.0",
+    "@internal/mongo-contract": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0"
   },
   "devDependencies": {
     "@repo/test-utils": "workspace:0.16.0",
-    "@prisma-next/publish-surface": "workspace:0.16.0",
+    "@internal/publish-surface": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",

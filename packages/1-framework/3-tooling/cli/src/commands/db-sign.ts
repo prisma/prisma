@@ -1,14 +1,14 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@prisma-next/config-loader';
+import { loadConfig } from '@internal/config-loader';
 import type {
   SignDatabaseResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { readContractSnapshotJson } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { parseContractRef } from '@prisma-next/migration-tools/ref-resolution';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/control';
+import { readContractSnapshotJson } from '@internal/migration-tools/contract-snapshot-store';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { parseContractRef } from '@internal/migration-tools/ref-resolution';
+import { notOk, ok, type Result } from '@internal/utils/result';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { Command } from 'commander';
 import { relative, resolve } from 'pathe';
 import { createControlClient } from '../control-api/client';

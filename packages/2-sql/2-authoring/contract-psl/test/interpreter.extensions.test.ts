@@ -1,4 +1,4 @@
-import type { SqlNamespaceBase, SqlNamespaceInput } from '@prisma-next/sql-contract/types';
+import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';

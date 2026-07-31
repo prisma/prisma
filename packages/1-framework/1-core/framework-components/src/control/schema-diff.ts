@@ -1,4 +1,4 @@
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 
 /**
  * A root-anchored chain of `(nodeKind, id)` steps identifying a node in a

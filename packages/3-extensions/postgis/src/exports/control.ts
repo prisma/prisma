@@ -26,13 +26,13 @@
  *   (contract-space package layout convention).
  */
 
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   CodecControlHooks,
   SqlControlExtensionDescriptor,
-} from '@prisma-next/family-sql/control';
-import { contractSpaceFromJson } from '@prisma-next/migration-tools/spaces';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/family-sql/control';
+import { contractSpaceFromJson } from '@internal/migration-tools/spaces';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import baselineMetadata from '../../migrations/20260601T0000_install_postgis_extension/migration.json' with {
   type: 'json',
 };

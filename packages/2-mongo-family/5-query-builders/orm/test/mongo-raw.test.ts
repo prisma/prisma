@@ -1,6 +1,6 @@
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import type { RawMongoCommand } from '@prisma-next/mongo-query-ast/execution';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { MongoContract } from '@internal/mongo-contract';
+import type { RawMongoCommand } from '@internal/mongo-query-ast/execution';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from '../../../1-foundation/mongo-contract/test/fixtures/orm-contract';
 import ormContractJson from '../../../1-foundation/mongo-contract/test/fixtures/orm-contract.json';

@@ -6,14 +6,10 @@
  * envelope silently dropping the graded warnings.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlSchemaDiffFn } from '@prisma-next/family-sql/control';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import {
-  relationalNodeGranularity,
-  SqlColumnIR,
-  SqlSchemaIR,
-} from '@prisma-next/sql-schema-ir/types';
+import type { Contract } from '@internal/contract/types';
+import type { SqlSchemaDiffFn } from '@internal/family-sql/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { relationalNodeGranularity, SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { verifySqlSchemaByDiff } from '../src/core/diff/schema-verify';
 import { createTestContract } from './schema-verify.helpers';

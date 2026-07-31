@@ -57,7 +57,7 @@ function consumerSpecifiers(): ReadonlySet<string> {
   for (const root of consumerRoots) {
     for (const file of walk(join(repoRoot, root))) {
       for (const [, , specifier] of readFileSync(file, 'utf8').matchAll(MODULE_SPECIFIER)) {
-        if (specifier?.startsWith('@prisma-next/')) specifiers.add(specifier);
+        if (specifier?.startsWith('@internal/')) specifiers.add(specifier);
       }
     }
   }
@@ -100,16 +100,16 @@ describe('the published surface against the applications that will consume it', 
   // hand-written source of the same application does.
   it('carries every surface emitted code names', () => {
     const emitted = [
-      '@prisma-next/contract/types',
-      '@prisma-next/framework-components/control',
-      '@prisma-next/sql-contract/types',
-      '@prisma-next/mongo-contract',
-      '@prisma-next/adapter-postgres/operation-types',
-      '@prisma-next/adapter-mongo/codec-types',
-      '@prisma-next/target-postgres/codec-types',
-      '@prisma-next/postgres/migration',
-      '@prisma-next/sqlite/migration',
-      '@prisma-next/target-mongo/migration',
+      '@internal/contract/types',
+      '@internal/framework-components/control',
+      '@internal/sql-contract/types',
+      '@internal/mongo-contract',
+      '@internal/adapter-postgres/operation-types',
+      '@internal/adapter-mongo/codec-types',
+      '@internal/target-postgres/codec-types',
+      '@internal/postgres/migration',
+      '@internal/sqlite/migration',
+      '@internal/target-mongo/migration',
     ];
 
     expect(emitted.filter((specifier) => !anyFacadeCarries(specifier))).toEqual([]);

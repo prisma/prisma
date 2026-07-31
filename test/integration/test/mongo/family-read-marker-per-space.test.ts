@@ -1,13 +1,8 @@
-import mongoAdapterDescriptor, {
-  MongoControlAdapterImpl,
-} from '@prisma-next/adapter-mongo/control';
-import mongoControlDriver, { MongoControlDriver } from '@prisma-next/driver-mongo/control';
-import {
-  createMongoFamilyInstance,
-  mongoFamilyDescriptor,
-} from '@prisma-next/family-mongo/control';
-import { APP_SPACE_ID, createControlStack } from '@prisma-next/framework-components/control';
-import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
+import mongoAdapterDescriptor, { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
+import mongoControlDriver, { MongoControlDriver } from '@internal/driver-mongo/control';
+import { createMongoFamilyInstance, mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import { APP_SPACE_ID, createControlStack } from '@internal/framework-components/control';
+import { mongoTargetDescriptor } from '@internal/target-mongo/control';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

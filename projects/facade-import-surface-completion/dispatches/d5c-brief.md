@@ -13,11 +13,11 @@ Read in this order:
 
 ## Intent
 
-Three in-monorepo packages have `devDependencies` on extension packs (`@prisma-next/extension-pgvector`) or the mongo facade (`@prisma-next/mongo`) for their test fixtures. Turbo treats `devDependencies` as part of the build graph, so these create cycles that prevent the corresponding facade `defineContract` from being used inside the extension packs themselves:
+Three in-monorepo packages have `devDependencies` on extension packs (`@internal/extension-pgvector`) or the mongo facade (`@internal/mongo`) for their test fixtures. Turbo treats `devDependencies` as part of the build graph, so these create cycles that prevent the corresponding facade `defineContract` from being used inside the extension packs themselves:
 
-- `@prisma-next/postgres` (facade) → `sql-builder` (dep) → `extension-pgvector` (devDep) → would-be `postgres` (cycle)
-- `@prisma-next/postgres` (facade) → `sql-orm-client` (dep) → `extension-pgvector` (devDep) → would-be `postgres` (cycle)
-- `@prisma-next/mongo` (facade) → `mongo-runtime` (dep) → would-be `mongo` (cycle, for `mongo-runtime`'s test)
+- `@internal/postgres` (facade) → `sql-builder` (dep) → `extension-pgvector` (devDep) → would-be `postgres` (cycle)
+- `@internal/postgres` (facade) → `sql-orm-client` (dep) → `extension-pgvector` (devDep) → would-be `postgres` (cycle)
+- `@internal/mongo` (facade) → `mongo-runtime` (dep) → would-be `mongo` (cycle, for `mongo-runtime`'s test)
 
 The fix per the architectural layering principle: extension-pack composition tests belong in `test/integration/`, not in package-level `test/` directories that participate in the build graph. Move the offending test files out of the packages into `test/integration/test/`, drop the package-level devDeps, and let `test/integration/` (which already deps on every extension pack) be where cross-pack composition is verified.
 
@@ -36,9 +36,9 @@ The fix per the architectural layering principle: extension-pack composition tes
 
 **`packages/2-sql/4-lanes/sql-builder/package.json` updates:**
 
-- Drop `@prisma-next/extension-pgvector` from `devDependencies`.
+- Drop `@internal/extension-pgvector` from `devDependencies`.
 - Drop any other extension-pack devDeps (none currently; verify with `jq '.devDependencies' package.json | rg extension-`).
-- Keep `@prisma-next/adapter-postgres`, `@prisma-next/target-postgres`, `@prisma-next/sql-contract-ts`, etc. — these are framework-level deps, not extension packs.
+- Keep `@internal/adapter-postgres`, `@internal/target-postgres`, `@internal/sql-contract-ts`, etc. — these are framework-level deps, not extension packs.
 
 ### sql-orm-client → pgvector cycle
 
@@ -54,9 +54,9 @@ The fix per the architectural layering principle: extension-pack composition tes
 
 **`packages/3-extensions/sql-orm-client/package.json` updates:**
 
-- Drop `@prisma-next/extension-pgvector` from `devDependencies`.
-- Likely also drop `@prisma-next/cli`, `@prisma-next/family-sql`, `@prisma-next/adapter-postgres`, `@prisma-next/driver-postgres`, `@prisma-next/target-postgres` from devDeps IF the only consumer was the moved tests. Verify by checking what's still left in `packages/3-extensions/sql-orm-client/{src,test}/` that imports them.
-- Keep `@prisma-next/sql-contract-ts` and `@repo/test-utils` if any remaining source/tests need them.
+- Drop `@internal/extension-pgvector` from `devDependencies`.
+- Likely also drop `@internal/cli`, `@internal/family-sql`, `@internal/adapter-postgres`, `@internal/driver-postgres`, `@internal/target-postgres` from devDeps IF the only consumer was the moved tests. Verify by checking what's still left in `packages/3-extensions/sql-orm-client/{src,test}/` that imports them.
+- Keep `@internal/sql-contract-ts` and `@repo/test-utils` if any remaining source/tests need them.
 
 **Important:** sql-orm-client may have OTHER tests in `test/` that don't use pgvector (e.g. core ORM client functionality tests). Those stay in `packages/3-extensions/sql-orm-client/test/`. Inspect each remaining test file's imports before deciding.
 
@@ -64,12 +64,12 @@ The fix per the architectural layering principle: extension-pack composition tes
 
 **Files involved:**
 
-- `packages/2-mongo-family/7-runtime/test/query-builder.test.ts` — D5b R1 left this file verbose-with-comment because the test would need `@prisma-next/mongo` as a devDep to use the wrapped `defineContract`, which would close a cycle.
+- `packages/2-mongo-family/7-runtime/test/query-builder.test.ts` — D5b R1 left this file verbose-with-comment because the test would need `@internal/mongo` as a devDep to use the wrapped `defineContract`, which would close a cycle.
 - Move this test file (plus any helpers it uses, e.g. `packages/2-mongo-family/7-runtime/test/setup.ts` — verify dependency) to `test/integration/test/mongo-runtime/query-builder.test.ts` (or similar).
 
 **`packages/2-mongo-family/7-runtime/package.json` updates:**
 
-- Drop any devDeps that were only needed for the moved test (`@prisma-next/family-mongo`, `@prisma-next/mongo-contract-ts`, `@prisma-next/mongo-query-builder`, etc. — inspect carefully; some may be needed by remaining tests in the package).
+- Drop any devDeps that were only needed for the moved test (`@internal/family-mongo`, `@internal/mongo-contract-ts`, `@internal/mongo-query-builder`, etc. — inspect carefully; some may be needed by remaining tests in the package).
 
 ### `test/integration/` updates
 
@@ -83,16 +83,16 @@ The fix per the architectural layering principle: extension-pack composition tes
 
    ```bash
    echo '--- sql-builder ext-pack consumers ---'
-   rg -l 'extension-pgvector|@prisma-next/extension-' packages/2-sql/4-lanes/sql-builder/
+   rg -l 'extension-pgvector|@internal/extension-' packages/2-sql/4-lanes/sql-builder/
 
    echo '--- sql-orm-client ext-pack consumers ---'
-   rg -l 'extension-pgvector|@prisma-next/extension-' packages/3-extensions/sql-orm-client/
+   rg -l 'extension-pgvector|@internal/extension-' packages/3-extensions/sql-orm-client/
 
    echo '--- sql-orm-client tests staying in package ---'
    ls packages/3-extensions/sql-orm-client/test/ | grep -v -E '(collection-mutation-defaults|integration|fixtures|helpers)'
 
    echo '--- mongo-runtime test using facade ---'
-   rg -l '@prisma-next/mongo[^-]|@prisma-next/family-mongo|@prisma-next/target-mongo' packages/2-mongo-family/7-runtime/test/
+   rg -l '@internal/mongo[^-]|@internal/family-mongo|@internal/target-mongo' packages/2-mongo-family/7-runtime/test/
    ```
 
    Use this inventory to confirm scope before any moves. If the actual file count diverges from the brief's ~15 estimate by more than 50%, escalate via heartbeat with `phase: scope-escalation`.
@@ -110,9 +110,9 @@ The fix per the architectural layering principle: extension-pack composition tes
 7. **Verify the cycle is broken:**
 
    ```bash
-   pnpm typecheck --filter @prisma-next/sql-builder
-   pnpm typecheck --filter @prisma-next/sql-orm-client
-   pnpm typecheck --filter @prisma-next/mongo-runtime
+   pnpm typecheck --filter @internal/sql-builder
+   pnpm typecheck --filter @internal/sql-orm-client
+   pnpm typecheck --filter @internal/mongo-runtime
    pnpm typecheck --filter integration-tests
    ```
 
@@ -129,7 +129,7 @@ The fix per the architectural layering principle: extension-pack composition tes
 
    (Adjust paths per your chosen destination.)
 
-9. **Run `pnpm test:packages --filter @prisma-next/sql-builder --filter @prisma-next/sql-orm-client --filter @prisma-next/mongo-runtime`** to confirm the packages still pass their REMAINING (non-moved) tests.
+9. **Run `pnpm test:packages --filter @internal/sql-builder --filter @internal/sql-orm-client --filter @internal/mongo-runtime`** to confirm the packages still pass their REMAINING (non-moved) tests.
 
 10. **Heartbeat cadence:** every ~5 min, at commit boundaries, before/after long shell commands. Use all required keys (`ts`, `role`, `agent_id`, `round=D5c R1`, `phase`, `last_progress`, `next_step`). D5b had a long silent stretch in `integration-test` phase that required orchestrator ping — don't repeat.
 
@@ -137,13 +137,13 @@ The fix per the architectural layering principle: extension-pack composition tes
 
 ## Done when
 
-- [ ] `@prisma-next/extension-pgvector` no longer in `devDependencies` of `sql-builder` or `sql-orm-client`.
-- [ ] `@prisma-next/mongo` not added to `mongo-runtime`'s devDeps (it can't be without the cycle); the test that needed it was moved instead.
+- [ ] `@internal/extension-pgvector` no longer in `devDependencies` of `sql-builder` or `sql-orm-client`.
+- [ ] `@internal/mongo` not added to `mongo-runtime`'s devDeps (it can't be without the cycle); the test that needed it was moved instead.
 - [ ] All moved test files run cleanly from their new location (`pnpm test:integration <path>` passes for each).
 - [ ] All three packages still typecheck independently and pass their remaining tests.
 - [ ] `pnpm install` ran successfully; `pnpm-lock.yaml` reflects the dep changes.
 - [ ] `pnpm lint:deps` clean.
-- [ ] **The cycle is verifiably broken:** add `@prisma-next/postgres` as a devDep to `packages/3-extensions/pgvector/package.json` and run `pnpm typecheck --filter @prisma-next/extension-pgvector`. It must succeed (no `Cyclic dependency detected`). Revert the experimental devDep after verifying — D5d will do the real migration.
+- [ ] **The cycle is verifiably broken:** add `@internal/postgres` as a devDep to `packages/3-extensions/pgvector/package.json` and run `pnpm typecheck --filter @internal/extension-pgvector`. It must succeed (no `Cyclic dependency detected`). Revert the experimental devDep after verifying — D5d will do the real migration.
 - [ ] Intent-validation: diff covers ONLY (a) `git mv`-ed files, (b) package.json dep updates, (c) `pnpm-lock.yaml` refresh, (d) at most a handful of import-path fixes inside the moved files. No facade source changes, no contract.ts migrations (that's D5d).
 
 ## Notes

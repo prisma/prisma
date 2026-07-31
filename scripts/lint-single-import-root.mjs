@@ -4,7 +4,7 @@
  *
  * A published shell (`@prisma/orm-*`) bundles a copy of each internal package
  * it carries, so a module reached through a shell and the same module reached
- * through its `@prisma-next/*` workspace name are two objects. A package that
+ * through its `@internal/*` workspace name are two objects. A package that
  * names both roots therefore runs two copies of everything they share: two
  * registries, two sets of classes, two of every value compared by reference.
  * See `packages/9-public/@prisma/orm-framework/test/module-identity.test.ts`
@@ -28,7 +28,7 @@ import { extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const CONSUMER_ROOTS = ['examples', 'apps', 'test'];
-const INTERNAL_SCOPE = '@prisma-next/';
+const INTERNAL_SCOPE = '@internal/';
 const PUBLISHED_SCOPE = '@prisma/orm-';
 const INCLUDED_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs']);
 const EXCLUDED_DIRECTORIES = new Set([

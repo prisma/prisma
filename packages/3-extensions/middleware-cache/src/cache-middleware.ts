@@ -3,7 +3,7 @@ import type {
   CrossFamilyMiddleware,
   ExecutionPlan,
   RuntimeMiddlewareContext,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import { type CachePayload, cacheAnnotation } from './cache-annotation';
 import { type CacheStore, createInMemoryCacheStore } from './cache-store';
 
@@ -123,13 +123,13 @@ async function resolveCacheKey(
  *
  * Returns a cross-family `RuntimeMiddleware` (no `familyId` /
  * `targetId`). The package depends only on
- * `@prisma-next/framework-components/runtime`; cache keys come from
+ * `@internal/framework-components/runtime`; cache keys come from
  * `ctx.contentHash(exec)`, populated by the family runtime, so SQL and
  * Mongo runtimes both work out of the box.
  *
  * @example
  * ```typescript
- * import { createCacheMiddleware, cacheAnnotation } from '@prisma-next/middleware-cache';
+ * import { createCacheMiddleware, cacheAnnotation } from '@internal/middleware-cache';
  *
  * const db = postgres({
  *   contractJson,

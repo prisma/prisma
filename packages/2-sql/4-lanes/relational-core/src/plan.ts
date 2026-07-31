@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { QueryPlan } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { QueryPlan } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import type { AnyQueryAst } from './ast/types';
 
 /**
@@ -8,7 +8,7 @@ import type { AnyQueryAst } from './ast/types';
  *
  * Lanes build ASTs and metadata but do not perform SQL lowering. The `sql`
  * field is absent — `RuntimeCore` (the runtime base class in
- * `@prisma-next/framework-components/runtime`) drives lowering via the
+ * `@internal/framework-components/runtime`) drives lowering via the
  * SQL adapter and produces a `SqlExecutionPlan`.
  *
  * Extends the framework-level `QueryPlan<Row>` marker (`meta + _row`) and

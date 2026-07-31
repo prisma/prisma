@@ -1,10 +1,10 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import {
   type ResolvedStorageTable,
   resolveStorageTable,
-} from '@prisma-next/sql-contract/resolve-storage-table';
-import type { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { TableSource } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-contract/resolve-storage-table';
+import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { TableSource } from '@internal/sql-relational-core/ast';
 import { ormError } from './orm-errors';
 
 export type { ResolvedStorageTable };

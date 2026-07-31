@@ -3,7 +3,7 @@
  *
  * A published shell bundles a copy of each internal package it carries, so a
  * module reached through `@prisma/orm-*` and the same module reached through
- * its `@prisma-next/*` workspace name are two objects, not one. Nothing about
+ * its `@internal/*` workspace name are two objects, not one. Nothing about
  * that is visible to a type-checker or a passing unit test: the two copies
  * have identical shapes and identical behaviour, and they differ only where
  * identity is the point — a shared registry, an `instanceof`, a function
@@ -19,14 +19,14 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { publicShells, type ShellName } from '@prisma-next/publish-surface/shells';
+import { publicShells, type ShellName } from '@internal/publish-surface/shells';
 import { installShells, packShell, runInScratch } from '@repo/tsdown/shell-testkit';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..');
 
 /**
- * The module the assertions are made about: `@prisma-next/contract`, which
+ * The module the assertions are made about: `@internal/contract`, which
  * every family and every target depends on, published inside
  * `@prisma/orm-framework` and republished by all three facades.
  *

@@ -1,5 +1,5 @@
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import { blindCast } from '@internal/utils/casts';
 import { contractError } from './contract-errors';
 
 /**
@@ -239,7 +239,7 @@ export function enumType(
 
 /**
  * The signature of an `enumType` whose codec typemap is already bound — the
- * shape a target-bound wrapper (e.g. `@prisma-next/postgres/contract-builder`)
+ * shape a target-bound wrapper (e.g. `@internal/postgres/contract-builder`)
  * exposes. The member values are constrained to the codec's input type drawn
  * from `CodecTypes`, while `Name`, `Codec`, and the member tuple still infer
  * from the call.

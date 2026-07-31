@@ -1,4 +1,4 @@
-import type { MigrationToolsError } from '@prisma-next/migration-tools/errors';
+import type { MigrationToolsError } from '@internal/migration-tools/errors';
 import { describe, expect, it } from 'vitest';
 import { MongoMigration } from '../src/core/mongo-migration';
 import type { Contract } from './fixtures/migration-contract.d';

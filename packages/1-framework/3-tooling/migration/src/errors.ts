@@ -1,4 +1,4 @@
-import { ifDefined } from '@prisma-next/utils/defined';
+import { ifDefined } from '@internal/utils/defined';
 import { basename, dirname, relative } from 'pathe';
 import type { MigrationGraph } from './graph';
 

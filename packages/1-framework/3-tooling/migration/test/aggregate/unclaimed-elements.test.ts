@@ -3,9 +3,9 @@ import type {
   DiffSubjectGranularity,
   SchemaDiffIssue,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import type {
   SchemaEntityKindClassifier,

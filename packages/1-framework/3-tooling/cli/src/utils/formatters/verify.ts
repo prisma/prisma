@@ -7,9 +7,9 @@ import type {
   SignDatabaseResult,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { ifDefined } from '@internal/utils/defined';
 import { bold, cyan, dim, green, magenta, red, yellow } from 'colorette';
 import type { GlobalFlags } from '../global-flags';
 import { createColorFormatter, formatDim, isVerbose } from './helpers';

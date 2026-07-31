@@ -1,13 +1,13 @@
-import { coreHash } from '@prisma-next/contract/types';
-import { runtimeAborted, runtimeError } from '@prisma-next/framework-components/runtime';
+import { coreHash } from '@internal/contract/types';
+import { runtimeAborted, runtimeError } from '@internal/framework-components/runtime';
 import {
   ColumnRef,
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
+import { structuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { buildDecodeContext, decodeRow } from '../src/codecs/decoding';
 import { defineTestCodec } from './test-codec';

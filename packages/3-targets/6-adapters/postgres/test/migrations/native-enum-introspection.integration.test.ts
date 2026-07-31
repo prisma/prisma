@@ -6,7 +6,7 @@
  * alphabetically, and a column typed by the enum resolves to a value union
  * ordered the way the type was declared.
  */
-import { PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
+import { PostgresDatabaseSchemaNode } from '@internal/target-postgres/types';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   createDriver,

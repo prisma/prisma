@@ -4,7 +4,7 @@ import {
   codecOf,
   type Expression,
   toExpr,
-} from '@prisma-next/sql-relational-core/expression';
+} from '@internal/sql-relational-core/expression';
 import type { CodecTypes } from '../types/codec-types';
 import type { QueryOperationTypes } from '../types/operation-types';
 import { pgvectorAuthoringTypes } from './authoring';
@@ -75,13 +75,13 @@ const pgvectorPackMetaBase = {
     codecTypes: {
       codecDescriptors: Array.from(pgvectorCodecRegistry.values()),
       import: {
-        package: '@prisma-next/extension-pgvector/codec-types',
+        package: '@internal/extension-pgvector/codec-types',
         named: 'CodecTypes',
         alias: 'PgVectorTypes',
       },
       typeImports: [
         {
-          package: '@prisma-next/extension-pgvector/codec-types',
+          package: '@internal/extension-pgvector/codec-types',
           named: 'Vector',
           alias: 'Vector',
         },
@@ -89,14 +89,14 @@ const pgvectorPackMetaBase = {
     },
     operationTypes: {
       import: {
-        package: '@prisma-next/extension-pgvector/operation-types',
+        package: '@internal/extension-pgvector/operation-types',
         named: 'OperationTypes',
         alias: 'PgVectorOperationTypes',
       },
     },
     queryOperationTypes: {
       import: {
-        package: '@prisma-next/extension-pgvector/operation-types',
+        package: '@internal/extension-pgvector/operation-types',
         named: 'QueryOperationTypes',
         alias: 'PgVectorQueryOperationTypes',
       },

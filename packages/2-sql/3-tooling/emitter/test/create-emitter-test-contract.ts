@@ -4,7 +4,7 @@ import {
   type ContractValueObject,
   profileHash,
   UNBOUND_DOMAIN_NAMESPACE_ID,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { normalizeRootSqlStorage } from './sql-storage-fixture';
 

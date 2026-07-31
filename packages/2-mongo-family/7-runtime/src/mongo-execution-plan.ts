@@ -1,6 +1,6 @@
-import type { ExecutionPlan } from '@prisma-next/framework-components/runtime';
-import type { MongoResultShape } from '@prisma-next/mongo-query-ast/execution';
-import type { AnyMongoDmlWireCommand } from '@prisma-next/mongo-wire';
+import type { ExecutionPlan } from '@internal/framework-components/runtime';
+import type { MongoResultShape } from '@internal/mongo-query-ast/execution';
+import type { AnyMongoDmlWireCommand } from '@internal/mongo-wire';
 
 /**
  * Mongo-domain execution plan: a query lowered to the wire-command shape
@@ -18,7 +18,7 @@ import type { AnyMongoDmlWireCommand } from '@prisma-next/mongo-wire';
  * `RuntimeMiddleware<MongoExecutionPlan>`) can be parameterized over it.
  *
  * Lives in the runtime layer (alongside `MongoRuntime`) because the wire
- * command shape lives in the transport layer (`@prisma-next/mongo-wire`),
+ * command shape lives in the transport layer (`@internal/mongo-wire`),
  * which the lanes layer (`mongo-query-ast`, where `MongoQueryPlan` lives)
  * cannot depend on.
  */

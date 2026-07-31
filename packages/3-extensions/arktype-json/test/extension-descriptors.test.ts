@@ -1,4 +1,4 @@
-import { extractCodecLookup } from '@prisma-next/framework-components/control';
+import { extractCodecLookup } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { ARKTYPE_JSON_CODEC_ID, arktypeJsonDescriptor } from '../src/core/arktype-json-codec';
 import { arktypeJsonExtensionDescriptor } from '../src/exports/control';

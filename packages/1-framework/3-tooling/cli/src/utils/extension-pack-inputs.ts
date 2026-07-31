@@ -13,14 +13,14 @@
  * structural shape of `contractSpace`. SQL-family callers pass the same
  * `contractJson` / `headRef.hash` value through unchanged.
  */
-import type { DeclaredExtensionEntry } from '@prisma-next/migration-tools/aggregate';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import type { MigrationOps } from '@prisma-next/migration-tools/package';
+import type { DeclaredExtensionEntry } from '@internal/migration-tools/aggregate';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import type { MigrationOps } from '@internal/migration-tools/package';
 
 /**
  * In-memory authored migration package shipped by an extension descriptor.
  * Mirrors the `MigrationPackage` shape from
- * `@prisma-next/framework-components/control` minus `dirPath`; redeclared
+ * `@internal/framework-components/control` minus `dirPath`; redeclared
  * structurally here so the helper does not couple to the SQL family's
  * `ExtensionMigrationPackage` type.
  */

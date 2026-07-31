@@ -1,19 +1,19 @@
 import { readFile } from 'node:fs/promises';
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import type { Contract } from '@prisma-next/contract/types';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import type { Contract } from '@internal/contract/types';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
 import type {
   ContractSpaceAggregate,
   DeclaredExtensionEntry,
   IntegrityQueryOptions,
   IntegrityViolation,
-} from '@prisma-next/migration-tools/aggregate';
-import { loadContractSpaceAggregate } from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { blindCast } from '@prisma-next/utils/casts';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/aggregate';
+import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { blindCast } from '@internal/utils/casts';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { CliStructuredError, errorUnexpected, mapMigrationToolsError } from './cli-errors';
 import { readContractEnvelope, resolveContractPath } from './command-helpers';
 import { toDeclaredExtensionsFromRaw } from './extension-pack-inputs';

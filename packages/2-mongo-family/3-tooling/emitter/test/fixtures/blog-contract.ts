@@ -1,4 +1,4 @@
-import { coreHash, crossRef } from '@prisma-next/contract/types';
+import { coreHash, crossRef } from '@internal/contract/types';
 import { createMongoContract } from './create-mongo-contract';
 
 export const blogContract = createMongoContract({

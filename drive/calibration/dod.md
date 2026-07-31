@@ -29,7 +29,7 @@ pnpm test:e2e               # when changes affect emit / migrate / run cycle
 pnpm fixtures:check         # when IR / emitter / serialiser changes
 ```
 
-> **Per-package test invocation.** To gate a single package, use `pnpm --filter <pkg> test` (e.g. `pnpm --filter @prisma-next/migration-tools test`). `pnpm test:packages -- <name>` is **not** a package filter — the `-- <arg>` is a workspace-wide vitest *path* filter, so it matches every path containing `<name>` (adapters, CLI, …) and red-fails on unrelated infra (e.g. a postgres `ECONNRESET`, a missing `prisma-next` bin). Use the `--filter` form for a per-package gate; pair it with `cd <pkg> && pnpm typecheck` for a package-scoped typecheck.
+> **Per-package test invocation.** To gate a single package, use `pnpm --filter <pkg> test` (e.g. `pnpm --filter @internal/migration-tools test`). `pnpm test:packages -- <name>` is **not** a package filter — the `-- <arg>` is a workspace-wide vitest *path* filter, so it matches every path containing `<name>` (adapters, CLI, …) and red-fails on unrelated infra (e.g. a postgres `ECONNRESET`, a missing `prisma-next` bin). Use the `--filter` form for a per-package gate; pair it with `cd <pkg> && pnpm typecheck` for a package-scoped typecheck.
 
 ### Brief-specified
 

@@ -1,22 +1,19 @@
 import { mkdir } from 'node:fs/promises';
-import { executeDbInit, executeDbUpdate } from '@prisma-next/cli/control-api';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
+import { executeDbInit, executeDbUpdate } from '@internal/cli/control-api';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type {
   CodecControlHooks,
   SqlControlExtensionDescriptor,
   SqlMigrationPlanOperation,
-} from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import type {
-  MigrationPlanOperation,
-  OpFactoryCall,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
+} from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import type { MigrationPlanOperation, OpFactoryCall } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { materialiseMigrationPackage } from '@internal/migration-tools/io';
+import { emitContractSpaceArtifacts } from '@internal/migration-tools/spaces';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -44,7 +41,7 @@ import {
  * - codec hooks firing through the aggregate-pipeline path
  *   (loader → `planMigration` synth strategy → `frameworkComponents`).
  *
- * Companion to the unit-level tests in `@prisma-next/cli` that mock
+ * Companion to the unit-level tests in `@internal/cli` that mock
  * the planner / runner. The runner-level cross-space coverage lives in
  * `runner.across-spaces.test.ts`.
  *

@@ -2,10 +2,10 @@ import {
   createEnumAccessor,
   type EnumAccessor,
   type EnumEntriesToAccessors,
-} from '@prisma-next/contract/enum-accessor';
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { PG_ENUM_CODEC_ID } from '@prisma-next/target-postgres/codec-ids';
+} from '@internal/contract/enum-accessor';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { PG_ENUM_CODEC_ID } from '@internal/target-postgres/codec-ids';
 
 /**
  * Reads the namespace's `valueSet` entries directly off the plain contract

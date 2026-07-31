@@ -1,11 +1,11 @@
 /**
  * The RLS authoring helpers are Postgres-only surface: they are exported from
- * `@prisma-next/postgres/contract-builder` and reachable from no other
+ * `@internal/postgres/contract-builder` and reachable from no other
  * target's contract-builder. SQLite and Mongo authors never see them.
  */
-import * as mongoContractBuilder from '@prisma-next/mongo/contract-builder';
-import * as postgresContractBuilder from '@prisma-next/postgres/contract-builder';
-import * as sqliteContractBuilder from '@prisma-next/sqlite/contract-builder';
+import * as mongoContractBuilder from '@internal/mongo/contract-builder';
+import * as postgresContractBuilder from '@internal/postgres/contract-builder';
+import * as sqliteContractBuilder from '@internal/sqlite/contract-builder';
 import { describe, expect, it } from 'vitest';
 
 const RLS_HELPER_NAMES = [

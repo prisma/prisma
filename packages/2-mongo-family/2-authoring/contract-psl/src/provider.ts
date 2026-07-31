@@ -1,15 +1,15 @@
 import { readFile } from 'node:fs/promises';
-import type { ContractConfig, ContractSourceDiagnostic } from '@prisma-next/config/config-types';
-import type { AuthoringTypeNamespace } from '@prisma-next/framework-components/authoring';
-import { collectScalarTypeConstructors } from '@prisma-next/framework-components/authoring';
-import { buildSymbolTable, rangeToPslSpan } from '@prisma-next/psl-parser';
-import type { PslInterpretCapable } from '@prisma-next/psl-parser/interpret';
-import { withSeedDiagnostics } from '@prisma-next/psl-parser/interpret';
-import type { ParseDiagnostic, SourceFile } from '@prisma-next/psl-parser/syntax';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { notOk } from '@prisma-next/utils/result';
+import type { ContractConfig, ContractSourceDiagnostic } from '@internal/config/config-types';
+import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
+import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
+import { buildSymbolTable, rangeToPslSpan } from '@internal/psl-parser';
+import type { PslInterpretCapable } from '@internal/psl-parser/interpret';
+import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
+import type { ParseDiagnostic, SourceFile } from '@internal/psl-parser/syntax';
+import { parse } from '@internal/psl-parser/syntax';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { notOk } from '@internal/utils/result';
 
 import { interpretPslDocumentToMongoContract } from './interpreter';
 

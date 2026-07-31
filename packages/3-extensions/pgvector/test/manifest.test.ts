@@ -18,7 +18,7 @@ describe('pgvector descriptor', () => {
 
   it('has codec types import', () => {
     expect(pgvectorExtensionDescriptor.types?.codecTypes?.import).toEqual({
-      package: '@prisma-next/extension-pgvector/codec-types',
+      package: '@internal/extension-pgvector/codec-types',
       named: 'CodecTypes',
       alias: 'PgVectorTypes',
     });

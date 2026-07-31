@@ -1,5 +1,5 @@
-import { crossRef } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { crossRef } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 
 export { crossRef, UNBOUND_NAMESPACE_ID };
 

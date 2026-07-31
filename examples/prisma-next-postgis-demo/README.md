@@ -1,7 +1,7 @@
 # prisma-next-postgis-demo
 
 A small, self-contained example showing how to use the
-**[`@prisma-next/extension-postgis`](../../packages/3-extensions/postgis)**
+**[`@internal/extension-postgis`](../../packages/3-extensions/postgis)**
 extension pack to model and query geospatial data with Prisma Next on
 PostgreSQL.
 
@@ -163,10 +163,10 @@ shape is visible at type-check time.
 ## Geospatial values
 
 The runtime carries GeoJSON-shaped values. Use the constructors from
-`@prisma-next/extension-postgis/geojson` to build them safely:
+`@internal/extension-postgis/geojson` to build them safely:
 
 ```typescript
-import { bboxPolygon, point, polygon } from '@prisma-next/extension-postgis/geojson';
+import { bboxPolygon, point, polygon } from '@internal/extension-postgis/geojson';
 
 const sightglass = point(-122.4106, 37.7765, 4326);
 
@@ -213,7 +213,7 @@ closest `limit` rows. `ST_DistanceSphere` returns metres on the WGS84
 sphere, so the projected `meters` field is meaningful out of the box.
 
 ```typescript
-import { point } from '@prisma-next/extension-postgis/geojson';
+import { point } from '@internal/extension-postgis/geojson';
 import { findCafesNearPoint } from './src/queries/find-cafes-near-point';
 
 const ferryBuilding = point(-122.3937, 37.7955, 4326);
@@ -278,13 +278,13 @@ the pattern is easy to copy.
 
 ```typescript
 // prisma-next.config.ts (control plane)
-import postgis from '@prisma-next/extension-postgis/control';
+import postgis from '@internal/extension-postgis/control';
 extensions: [postgis];
 ```
 
 ```typescript
 // src/prisma/db.ts (runtime)
-import postgis from '@prisma-next/extension-postgis/runtime';
+import postgis from '@internal/extension-postgis/runtime';
 export const db = postgres<Contract>({ contractJson, extensions: [postgis] });
 ```
 

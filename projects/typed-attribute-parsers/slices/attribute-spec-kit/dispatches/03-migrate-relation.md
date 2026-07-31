@@ -3,7 +3,7 @@
 > Fresh implementer (session resume is unavailable). Read the context paths first; all prior work is committed.
 
 ## Context paths (read before editing)
-- **The kit you consume** (committed): `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/` — `types.ts` (`ArgType`, `AttributeSpec`, `Param`, `InterpretCtx`, `InferAttr`), `interpret.ts` (`interpretAttribute`), `field-attribute.ts` (`fieldAttribute`), `optional.ts`, `combinators/` (`str`, `enumOf`, `fieldRef`, `list`). All exported from `@prisma-next/psl-parser` (`src/exports/index.ts`).
+- **The kit you consume** (committed): `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/` — `types.ts` (`ArgType`, `AttributeSpec`, `Param`, `InterpretCtx`, `InferAttr`), `interpret.ts` (`interpretAttribute`), `field-attribute.ts` (`fieldAttribute`), `optional.ts`, `combinators/` (`str`, `enumOf`, `fieldRef`, `list`). All exported from `@internal/psl-parser` (`src/exports/index.ts`).
 - **The code you replace:** `packages/2-sql/2-authoring/contract-psl/src/psl-relation-resolution.ts` — `parseRelationAttribute` (the hand-written parser) and `normalizeReferentialAction` (KEEP this — it stays the referential-action validator). Read both in full.
 - **The call sites:** `packages/2-sql/2-authoring/contract-psl/src/interpreter.ts` — three `parseRelationAttribute({ attribute, modelName, fieldName, sourceId, diagnostics })` calls (around the `buildModelNodeFromPsl` relation paths). Also `psl-field-resolution.ts` / `psl-relation-resolution.ts` `validateNavigationListFieldAttributes` for surrounding context.
 - Slice spec (esp. § Resolved decisions): `projects/typed-attribute-parsers/slices/attribute-spec-kit/spec.md`. ADR 231.
@@ -50,7 +50,7 @@ Verify against the diagnostics + relations fixtures/tests and reconcile:
 - [ ] `@relation` is validated + lowered via `interpretAttribute(sqlRelation)`; `parseRelationAttribute` deleted.
 - [ ] `rg "parseRelationAttribute"` returns zero results (outside this brief's own text).
 - [ ] Diagnostic **codes + spans** byte-identical for every `@relation` error path (verified against `interpreter.relations.test.ts`, `interpreter.relations.many-to-many.test.ts`, `interpreter.diagnostics.test.ts`).
-- [ ] Gate green: `pnpm --filter @prisma-next/contract-psl-sql test` (or the package's actual name — confirm via its `package.json`); `pnpm fixtures:check`; and after `pnpm --filter @prisma-next/psl-parser build`, a workspace `pnpm typecheck` (cross-package consumer check, since `psl-parser`'s exported types changed). `pnpm --filter @prisma-next/psl-parser test` + lint if you added the bare-identifier leaf.
+- [ ] Gate green: `pnpm --filter @internal/contract-psl-sql test` (or the package's actual name — confirm via its `package.json`); `pnpm fixtures:check`; and after `pnpm --filter @internal/psl-parser build`, a workspace `pnpm typecheck` (cross-package consumer check, since `psl-parser`'s exported types changed). `pnpm --filter @internal/psl-parser test` + lint if you added the bare-identifier leaf.
 
 ## Standing instruction
 Stay focused on the goal; control scope. Trivial-and-related fixes serving the goal go in with a one-line note; anything pulling you off the goal — especially migrating a second attribute — halts and surfaces.

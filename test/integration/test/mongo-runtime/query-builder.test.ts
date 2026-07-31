@@ -1,20 +1,20 @@
-// Intentionally uses verbose mongo-contract-ts import: @prisma-next/mongo/contract-builder's
+// Intentionally uses verbose mongo-contract-ts import: @internal/mongo/contract-builder's
 // defineContract wrap loses inline-model inference precision when consumers use
 // mongoQuery<typeof contract> chains (PlanRow row shapes collapse to _id: never / count: never).
 // Tracked at https://linear.app/prisma-company/issue/TML-2633 — migrate to the facade form
 // once TML-2633 lands.
 
-import { crossRef, type NamespaceId } from '@prisma-next/contract/types';
-import mongoFamilyPack from '@prisma-next/family-mongo/pack';
+import { crossRef, type NamespaceId } from '@internal/contract/types';
+import mongoFamilyPack from '@internal/family-mongo/pack';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
   MongoContractWithTypeMaps,
-} from '@prisma-next/mongo-contract';
-import { defineContract, field, model, rel } from '@prisma-next/mongo-contract-ts/contract-builder';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { acc, fn, mongoQuery } from '@prisma-next/mongo-query-builder';
-import mongoTargetPack from '@prisma-next/target-mongo/pack';
+} from '@internal/mongo-contract';
+import { defineContract, field, model, rel } from '@internal/mongo-contract-ts/contract-builder';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import { acc, fn, mongoQuery } from '@internal/mongo-query-builder';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import { timeouts } from '@repo/test-utils';
 import { ObjectId } from 'mongodb';
 import { describe, expect, expectTypeOf, it } from 'vitest';

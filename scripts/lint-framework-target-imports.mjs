@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Regression guardrail: fails if any `@prisma-next/target-*` text appears
+ * Regression guardrail: fails if any `@internal/target-*` text appears
  * inside `packages/1-framework/**`.
  *
  * Background: the regular dependency linter (`pnpm lint:deps`) catches real
  * `import` statements, but it can't see import specifiers that are only
  * embedded inside string literals (e.g. code that scaffolds a migration.ts
- * file with a literal `import { ... } from "@prisma-next/target-..."`).
+ * file with a literal `import { ... } from "@internal/target-..."`).
  *
  * The framework does not render any part of a migration.ts file — targets
  * own the full content (see `docs/architecture docs/subsystems/7. Migration System.md`
@@ -27,7 +27,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const FORBIDDEN_SUBSTRING = '@prisma-next/target-';
+const FORBIDDEN_SUBSTRING = '@internal/target-';
 const FRAMEWORK_ROOT = 'packages/1-framework';
 const INCLUDED_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs']);
 const EXCLUDED_DIRECTORIES = new Set([
@@ -91,7 +91,7 @@ for (const file of walk(join(repoRoot, FRAMEWORK_ROOT))) {
 
 if (violations.length > 0) {
   console.error(
-    `Found ${violations.length} import specifier(s) naming @prisma-next/target-* inside ${FRAMEWORK_ROOT}:`,
+    `Found ${violations.length} import specifier(s) naming @internal/target-* inside ${FRAMEWORK_ROOT}:`,
   );
   for (const v of violations) {
     console.error(`  ${v.file}:${v.line}: ${v.text}`);
@@ -103,4 +103,4 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
-console.log(`No @prisma-next/target-* references found inside ${FRAMEWORK_ROOT}.`);
+console.log(`No @internal/target-* references found inside ${FRAMEWORK_ROOT}.`);

@@ -1,8 +1,8 @@
 import type {
   AuthoringPslBlockDescriptor,
   AuthoringPslBlockDescriptorNamespace,
-} from '@prisma-next/framework-components/authoring';
-import type { Codec, CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/authoring';
+import type { Codec, CodecLookup } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { validateExtensionBlockFromSymbol } from '../src/extension-block';
 import { parse } from '../src/parse';

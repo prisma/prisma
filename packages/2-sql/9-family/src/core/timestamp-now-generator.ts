@@ -1,5 +1,5 @@
-import type { AuthoringFieldPresetDescriptor } from '@prisma-next/framework-components/authoring';
-import type { MutationDefaultGeneratorDescriptor } from '@prisma-next/framework-components/control';
+import type { AuthoringFieldPresetDescriptor } from '@internal/framework-components/authoring';
+import type { MutationDefaultGeneratorDescriptor } from '@internal/framework-components/control';
 
 /**
  * Canonical id for the wall-clock-now mutation default generator.

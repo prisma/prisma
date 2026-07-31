@@ -1,19 +1,19 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
+import mongoRuntimeAdapter from '@internal/adapter-mongo/runtime';
+import { createMongoDriver } from '@internal/driver-mongo';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
   MongoContractWithTypeMaps,
-} from '@prisma-next/mongo-contract';
-import type { MongoOrmClient } from '@prisma-next/mongo-orm';
-import { mongoOrm } from '@prisma-next/mongo-orm';
+} from '@internal/mongo-contract';
+import type { MongoOrmClient } from '@internal/mongo-orm';
+import { mongoOrm } from '@internal/mongo-orm';
 import {
   createMongoExecutionContext,
   createMongoExecutionStack,
   createMongoRuntime,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
+} from '@internal/mongo-runtime';
+import mongoRuntimeTarget from '@internal/target-mongo/runtime';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

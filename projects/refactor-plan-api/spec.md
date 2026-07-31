@@ -48,7 +48,7 @@ Net result: the `plan()` API expresses the correct invariant — "from identity 
 
 ## Functional Requirements
 
-- `MigrationPlanner.plan(...)` no longer accepts a `fromHash` parameter. It accepts `fromContract: Contract | null` — **required**, no `?`. The type is `Contract | null` (not `unknown`); `framework-components` already imports `Contract` from `@prisma-next/contract/types`, so there is no layering obstacle.
+- `MigrationPlanner.plan(...)` no longer accepts a `fromHash` parameter. It accepts `fromContract: Contract | null` — **required**, no `?`. The type is `Contract | null` (not `unknown`); `framework-components` already imports `Contract` from `@internal/contract/types`, so there is no layering obstacle.
 - All three target planners (postgres, sqlite, mongo) implement the new shape and derive `from` for `describe()` stamping from `fromContract?.storage.storageHash ?? null`.
 - `db-init` and `db-update` pass `fromContract: null` explicitly. The required parameter forces every call site to make the "I have one / I don't" distinction visible.
 - `migration plan` no longer passes `fromHash`; passes `fromContract` (already does today) as the sole "from" identity input to `plan()`.
@@ -71,7 +71,7 @@ Net result: the `plan()` API expresses the correct invariant — "from identity 
 
 # Acceptance Criteria
 
-- [ ] `MigrationPlanner.plan(...)` interface in `@prisma-next/framework-components/control` has no `fromHash` field and declares `fromContract: Contract | null` (required, typed).
+- [ ] `MigrationPlanner.plan(...)` interface in `@internal/framework-components/control` has no `fromHash` field and declares `fromContract: Contract | null` (required, typed).
 - [ ] No production code in `packages/**/src/**` passes `fromHash` to a `plan(...)` call.
 - [ ] No production code in `packages/**/src/**` compares against `fromHash === ''` or `fromHash === null` as a "baseline" sentinel inside `plan(...)` callers (the check should not exist; baseline is implicit in `fromContract === null`).
 - [ ] All three target planners (postgres, sqlite, mongo) derive `describe().from` from `fromContract?.storage.storageHash ?? null`.
@@ -131,6 +131,6 @@ N/A.
 
 _Resolved during spec drafting. Recorded here for traceability:_
 
-1. **Type the `fromContract` parameter precisely or keep `unknown`?** **Resolved: type as `Contract | null`.** `framework-components` already imports `Contract` from `@prisma-next/contract/types` (incl. in `control-migration-types.ts` itself); there is no layering obstacle.
+1. **Type the `fromContract` parameter precisely or keep `unknown`?** **Resolved: type as `Contract | null`.** `framework-components` already imports `Contract` from `@internal/contract/types` (incl. in `control-migration-types.ts` itself); there is no layering obstacle.
 2. **Make `fromContract` required on `plan()`?** **Resolved: yes, required (no `?`).** All four `plan()` call sites must pass it explicitly. `db init`/`db update` pass `null`.
 3. **Drop the parameter or pass `null` from `db init`/`db update`?** **Resolved: pass explicit `null`** (consequence of #2).

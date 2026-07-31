@@ -1,4 +1,4 @@
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { printPslFromFlat as printPslFromSql } from '../fixtures';
 

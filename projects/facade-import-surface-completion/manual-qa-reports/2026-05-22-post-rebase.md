@@ -9,7 +9,7 @@
 
 ## Summary
 
-✅ **Pass.** The post-rebase tree is merge-ready against the slice's user-visible behaviour. The two ⚠️ High items the prior run (`2026-05-21-claude-opus-runner-1.md`) blocked on are both resolved: `pnpm typecheck` now exits 0 (F-1 RESOLVED) and `pnpm fixtures:check` now exits 0 (F-2 RESOLVED). All three re-run scenarios pass their core oracles: the SQLite façade renders only `@prisma-next/sqlite/migration` (S1 / AC-2), the Postgres façade renders only `@prisma-next/postgres/migration` (S2 / AC-1), and the TML-2633 carve-out is honestly described — the façade `defineContract` wrap reproduces the documented `PlanRow` collapse (the type-maps slot resolves to `never`) while the verbose form preserves the proper codec-typed intersection (S4 / AC-7).
+✅ **Pass.** The post-rebase tree is merge-ready against the slice's user-visible behaviour. The two ⚠️ High items the prior run (`2026-05-21-claude-opus-runner-1.md`) blocked on are both resolved: `pnpm typecheck` now exits 0 (F-1 RESOLVED) and `pnpm fixtures:check` now exits 0 (F-2 RESOLVED). All three re-run scenarios pass their core oracles: the SQLite façade renders only `@internal/sqlite/migration` (S1 / AC-2), the Postgres façade renders only `@internal/postgres/migration` (S2 / AC-1), and the TML-2633 carve-out is honestly described — the façade `defineContract` wrap reproduces the documented `PlanRow` collapse (the type-maps slot resolves to `never`) while the verbose form preserves the proper codec-typed intersection (S4 / AC-7).
 
 `db.close()` / `await using` was **not** materially exercised in S1 / S2: the script's CLI invocations (`pnpm prisma-next contract emit`, `pnpm prisma-next migration plan`) are pure-IR planning operations that don't open a `createDb()` handle, so the validation degrades to "the CLI ran clean (exit 0) and the renderer output is unchanged." Both demos' `pnpm typecheck` is green after the plan, which proves the façade-form `prisma-next.config.ts` compiles against the post-rebase tree (and the `await using` form would, by extension, compile too — TML-2614's `[Symbol.asyncDispose]` is on `Db` regardless of whether this script reaches `createDb`).
 
@@ -26,13 +26,13 @@ No new merge-blocking findings. One ℹ️ Note about the test:packages flakes (
 | 3 | `pnpm install --frozen-lockfile` | ✅ exit 0 | |
 | 4 | `pnpm typecheck` | ✅ exit 0 (137/137 turbo tasks) | **F-1 oracle: RESOLVED.** No `e2e-tests:typecheck` errors. |
 | 5 | `pnpm test:packages` | ⚠️ exit 1 (2 unrelated failures, 8894 passed) | Failures: telemetry-backend `Gemini CLI` env-dependent test; adapter-postgres `planner.reconciliation.integration.test.ts` PGlite/`Client has encountered a connection error and is not queryable` — both are the tolerable env/PGlite flakes the brief calls out. |
-| 6 | `pnpm fixtures:check` | ✅ exit 0 | **F-2 oracle: RESOLVED.** All `*emit` scripts (including the previously-broken `@prisma-next/sql-orm-client` script) succeed. |
-| 7 | `pnpm lint:deps` | ✅ exit 0 | "no dependency violations found (978 modules, 2007 dependencies cruised)"; `@prisma-next/target-*` framework-import lint clean; APP_SPACE_ID canonical-source check clean. |
+| 6 | `pnpm fixtures:check` | ✅ exit 0 | **F-2 oracle: RESOLVED.** All `*emit` scripts (including the previously-broken `@internal/sql-orm-client` script) succeed. |
+| 7 | `pnpm lint:deps` | ✅ exit 0 | "no dependency violations found (978 modules, 2007 dependencies cruised)"; `@internal/target-*` framework-import lint clean; APP_SPACE_ID canonical-source check clean. |
 
 ## F-1 / F-2 validation (post-rebase)
 
-- **F-1 — `e2e-tests` package.json missing `@prisma-next/sqlite` dep — RESOLVED.** `pnpm typecheck` for `e2e-tests` now exits 0 (cached via Turbo on this run; verified by Turbo's "137 successful, 137 total" rollup).
-- **F-2 — `@prisma-next/sql-orm-client` emit script wrong `cd` depth — RESOLVED.** `pnpm fixtures:check` now exits 0 end-to-end; the previously-broken emit script in `packages/3-extensions/sql-orm-client/package.json` no longer overshoots the repo root.
+- **F-1 — `e2e-tests` package.json missing `@internal/sqlite` dep — RESOLVED.** `pnpm typecheck` for `e2e-tests` now exits 0 (cached via Turbo on this run; verified by Turbo's "137 successful, 137 total" rollup).
+- **F-2 — `@internal/sql-orm-client` emit script wrong `cd` depth — RESOLVED.** `pnpm fixtures:check` now exits 0 end-to-end; the previously-broken emit script in `packages/3-extensions/sql-orm-client/package.json` no longer overshoots the repo root.
 
 ## Per-scenario results
 
@@ -40,7 +40,7 @@ No new merge-blocking findings. One ℹ️ Note about the test:packages flakes (
 
 **What I did:**
 - Verified `examples/prisma-next-demo-sqlite/migrations/` did not exist at start.
-- Read tracked sources: `prisma-next.config.ts` opens with `import { defineConfig } from '@prisma-next/sqlite/config';`. `prisma/contract.ts` opens with `import { defineContract, rel } from '@prisma-next/sqlite/contract-builder';` and the `defineContract(...)` call has no `family:` / `target:` argument.
+- Read tracked sources: `prisma-next.config.ts` opens with `import { defineConfig } from '@internal/sqlite/config';`. `prisma/contract.ts` opens with `import { defineContract, rel } from '@internal/sqlite/contract-builder';` and the `defineContract(...)` call has no `family:` / `target:` argument.
 - Ran `pnpm prisma-next contract emit` (exit 0; produced `prisma/contract.json` + `prisma/contract.d.ts`).
 - Ran `pnpm prisma-next migration plan --name qa-initial` (exit 0; reported `"summary": "Planned 3 operation(s)"`).
 - Inspected the rendered migration directory and `migration.ts`.
@@ -52,11 +52,11 @@ No new merge-blocking findings. One ℹ️ Note about the test:packages flakes (
 - Sibling files all present: `end-contract.d.ts`, `end-contract.json`, `migration.json`, `migration.ts`, `ops.json`.
 - The rendered `migration.ts` import block reads:
   ```ts
-  import { Migration, MigrationCLI, createIndex, createTable } from '@prisma-next/sqlite/migration';
+  import { Migration, MigrationCLI, createIndex, createTable } from '@internal/sqlite/migration';
   ```
   — exactly one Prisma Next import, only from the façade subpath.
-- **side-S1 (AC-2 oracle):** No occurrence of `@prisma-next/target-sqlite` anywhere in the rendered `migration.ts`. Façade specifier wins.
-- `pnpm typecheck` after the plan: exit 0. The rendered file's symbols all resolve through `@prisma-next/sqlite/migration`.
+- **side-S1 (AC-2 oracle):** No occurrence of `@internal/target-sqlite` anywhere in the rendered `migration.ts`. Façade specifier wins.
+- `pnpm typecheck` after the plan: exit 0. The rendered file's symbols all resolve through `@internal/sqlite/migration`.
 - **TML-2614 / `await using` observation:** `migration plan` is pure-IR planning; it does not open a `createDb()` handle, so the script did not exercise `db.close()` or `await using`. The CLI returned cleanly without SIGINT in well under 5 seconds. No hang.
 
 **Oracle:** Met. **Result: ✅ pass.**
@@ -66,7 +66,7 @@ No new merge-blocking findings. One ℹ️ Note about the test:packages flakes (
 **What I did:**
 - Verified `examples/react-router-demo/migrations/` did not exist at start.
 - Set `PRISMA_NEXT_CONTRACT_SOURCE=ts` (the demo's `prisma-next.config.ts` switches to `prisma/contract.ts` only when this env is `'ts'`).
-- Read tracked sources: `prisma-next.config.ts` uses `defineConfig` from `@prisma-next/postgres/config`. `prisma/contract.ts` opens with `import { defineContract, rel } from '@prisma-next/postgres/contract-builder';` and the `defineContract(...)` call has no `family:` / `target:` argument.
+- Read tracked sources: `prisma-next.config.ts` uses `defineConfig` from `@internal/postgres/config`. `prisma/contract.ts` opens with `import { defineContract, rel } from '@internal/postgres/contract-builder';` and the `defineContract(...)` call has no `family:` / `target:` argument.
 - Ran `pnpm prisma-next contract emit` (exit 0).
 - Ran `pnpm prisma-next migration plan --name qa-initial` (exit 0; `"summary": "Planned 4 operation(s)"`).
 - Inspected the rendered migration directory and `migration.ts`.
@@ -83,9 +83,9 @@ No new merge-blocking findings. One ℹ️ Note about the test:packages flakes (
     addForeignKey,
     createIndex,
     createTable,
-  } from '@prisma-next/postgres/migration';
+  } from '@internal/postgres/migration';
   ```
-- **side-S2 (AC-1 oracle):** No occurrence of `@prisma-next/target-postgres` anywhere in the rendered `migration.ts`. Façade specifier wins.
+- **side-S2 (AC-1 oracle):** No occurrence of `@internal/target-postgres` anywhere in the rendered `migration.ts`. Façade specifier wins.
 - `pnpm typecheck` after the plan: exit 0.
 - **TML-2614 / `await using` observation:** Same as S1 — pure-IR planning, no `createDb()` handle opened. CLI exited cleanly without SIGINT well under 5 seconds.
 
@@ -96,9 +96,9 @@ No new merge-blocking findings. One ℹ️ Note about the test:packages flakes (
 **What I did:**
 - Read the in-tree workaround comments at:
   - `test/integration/test/mongo/fixtures/contract.ts` lines 1–5: "the mongo facade's `defineContract` has a type inference regression for discriminated union contracts with embedded relations (the intersection-based return type loses type precision compared to the base overload). Tracked at https://linear.app/prisma-company/issue/TML-2633".
-  - `test/integration/test/mongo-runtime/query-builder.test.ts` lines 1–5: "`@prisma-next/mongo/contract-builder`'s `defineContract` wrap loses inline-model inference precision when consumers use `mongoQuery<typeof contract>` chains (PlanRow row shapes collapse to `_id: never` / `count: never`). Tracked at https://linear.app/prisma-company/issue/TML-2633".
+  - `test/integration/test/mongo-runtime/query-builder.test.ts` lines 1–5: "`@internal/mongo/contract-builder`'s `defineContract` wrap loses inline-model inference precision when consumers use `mongoQuery<typeof contract>` chains (PlanRow row shapes collapse to `_id: never` / `count: never`). Tracked at https://linear.app/prisma-company/issue/TML-2633".
   - Both comments mention TML-2633 explicitly and describe the symptom.
-- Set up scratch consumer at `test/integration/qa-probe-s4/` (used the existing test/integration workspace's `node_modules` to resolve `@prisma-next/mongo`, `@prisma-next/family-mongo`, `@prisma-next/mongo-contract-ts`, `@prisma-next/target-mongo`, `@prisma-next/mongo-contract`, `@prisma-next/mongo-query-ast`, `@prisma-next/mongo-query-builder`).
+- Set up scratch consumer at `test/integration/qa-probe-s4/` (used the existing test/integration workspace's `node_modules` to resolve `@internal/mongo`, `@internal/family-mongo`, `@internal/mongo-contract-ts`, `@internal/target-mongo`, `@internal/mongo-contract`, `@internal/mongo-query-ast`, `@internal/mongo-query-builder`).
 - Wrote two probes:
   1. **Field-level probe** (`probe.ts`): plain `Order` model with `_id: field.objectId()`, façade vs verbose. Inspected `typeof contract.models.Order.fields['_id']`.
   2. **mongoQuery `PlanRow` probe** (`probe-mongoquery.ts`): mirrors the symptom shape from `query-builder.test.ts` — derives `TContract` from `MongoContractWithTypeMaps<typeof contract, MongoTypeMaps>`, runs `mongoQuery<TContract>` through `.from('orders').match(...).group({ _id, total: acc.sum, orderCount: acc.count() }).build()`, then extracts `PlanRow<typeof plan>`.
@@ -185,8 +185,8 @@ Total wallclock: ~10 minutes (no `pnpm install && pnpm build && pnpm install` cy
 
 | AC ID | Scenario(s) | Result | Notes |
 | ----- | ----------- | ------ | ----- |
-| AC-1 — `@prisma-next/postgres/migration` re-exports + renderer flip | 2 | ✅ pass | Rendered `migration.ts` imports only from the façade. |
-| AC-2 — `@prisma-next/sqlite` parity + renderer flip | 1 | ✅ pass | Rendered `migration.ts` imports only from the façade. |
+| AC-1 — `@internal/postgres/migration` re-exports + renderer flip | 2 | ✅ pass | Rendered `migration.ts` imports only from the façade. |
+| AC-2 — `@internal/sqlite` parity + renderer flip | 1 | ✅ pass | Rendered `migration.ts` imports only from the façade. |
 | AC-4 — Each façade's `/contract-builder` pre-binds family + target; postgres + sqlite inference preserved | 1, 2 | ✅ pass | Demo `contract.ts` files use no `family:` / `target:` arg; demos typecheck after the plan. |
 | AC-7 — Mongo wrap regression carve-out (TML-2633) documented + matching symptom | 4 | ✅ pass | Comments match symptom; façade `mongoQuery<typeof contract>` `PlanRow` collapses (codec-types slot resolves to `never`); verbose form preserves the intersection. |
 
@@ -200,7 +200,7 @@ Total wallclock: ~10 minutes (no `pnpm install && pnpm build && pnpm install` cy
 
 - **The prior report's 📝 Follow-up backlog (F-3 → F-9) is not re-validated here.** The brief explicitly carves them out of this re-run's scope; they remain open per the prior report's disposition.
 - **F-4 (script wayfinding `migrations/<timestamp>_qa-initial/` vs actual `migrations/app/<timestamp>_qa_initial/`)** still applies post-rebase — the actual rendered path remains under `migrations/app/` with the underscore separator. Not re-filed (the brief says "follow the actual rendered output and file a finding; do not edit the script", and the prior report's F-4 already captures this against `drive-qa-plan`).
-- **Prior F-7 (SQLite contract.ts also imports from `@prisma-next/adapter-sqlite/column-types`)** is unchanged in the post-rebase tree — `examples/prisma-next-demo-sqlite/prisma/contract.ts` still has both imports. Out of this re-run's scope; surfaced for orchestrator continuity.
+- **Prior F-7 (SQLite contract.ts also imports from `@internal/adapter-sqlite/column-types`)** is unchanged in the post-rebase tree — `examples/prisma-next-demo-sqlite/prisma/contract.ts` still has both imports. Out of this re-run's scope; surfaced for orchestrator continuity.
 
 ---
 

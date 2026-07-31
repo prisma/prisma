@@ -1,4 +1,4 @@
-import { BinaryExpr, ColumnRef, ParamRef } from '@prisma-next/sql-relational-core/ast';
+import { BinaryExpr, ColumnRef, ParamRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { Collection } from '../src/collection';
 import type { TestContract } from './helpers';

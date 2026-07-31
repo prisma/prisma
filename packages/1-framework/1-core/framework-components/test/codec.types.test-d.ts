@@ -6,7 +6,7 @@
  * Refs: TML-2357.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { expectTypeOf, test } from 'vitest';
 import {

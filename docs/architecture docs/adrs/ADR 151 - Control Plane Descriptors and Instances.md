@@ -60,8 +60,8 @@ These IDs are:
 
 We introduce plane-first, cross-family descriptor interfaces in core, under:
 
-- `@prisma-next/framework-components/control` for control-plane descriptors and base instances
-- (`@prisma-next/framework-components/execution` mirrors this for runtime — see ADR 152)
+- `@internal/framework-components/control` for control-plane descriptors and base instances
+- (`@internal/framework-components/execution` mirrors this for runtime — see ADR 152)
 
 Descriptors:
 
@@ -211,11 +211,11 @@ export interface SqlControlAdapter<TTarget extends string = string>
 We standardize control-plane entrypoints and default exports:
 
 - Each pack exposes a **control-plane entrypoint**:
-  - Family: `@prisma-next/family-sql/control`
-  - Target: `@prisma-next/targets-postgres/control`
-  - Adapter: `@prisma-next/targets-postgres-adapter/control`
-  - Driver: `@prisma-next/targets-postgres-driver/control`
-  - Extensions: `@prisma-next/extensions-*/control`
+  - Family: `@internal/family-sql/control`
+  - Target: `@internal/targets-postgres/control`
+  - Adapter: `@internal/targets-postgres-adapter/control`
+  - Driver: `@internal/targets-postgres-driver/control`
+  - Extensions: `@internal/extensions-*/control`
 - Each control-plane entrypoint:
   - `export default` a flat descriptor object implementing the appropriate `Control*Descriptor` interface
   - May optionally export named types for family-specific interfaces (e.g. `SqlControlAdapter`)
@@ -252,7 +252,7 @@ This ADR covers:
 
 - Cross-family interfaces in core for the **control plane**
 - Refactoring and naming alignment for the **SQL family + Postgres target**:
-  - **Core:** `ControlFamilyDescriptor`, `ControlFamilyInstance`, `ControlDriverInstance` in `@prisma-next/framework-components/control`
+  - **Core:** `ControlFamilyDescriptor`, `ControlFamilyInstance`, `ControlDriverInstance` in `@internal/framework-components/control`
   - **SQL family:** `SqlControlAdapter`, SQL control family instance
   - **Postgres target pack:** Postgres control adapter descriptor and instance
   - **Postgres driver pack:** Postgres control driver descriptor and instance
@@ -283,7 +283,7 @@ Non-goals for this ADR:
 
 ### Migration plan (control plane) - COMPLETED
 
-1. ✅ Introduced the new `Control*Descriptor` and `Control*Instance` interfaces in `@prisma-next/framework-components/control`
+1. ✅ Introduced the new `Control*Descriptor` and `Control*Instance` interfaces in `@internal/framework-components/control`
 2. ✅ Removed legacy types completely:
    - `DriverDescriptor` → removed (use `ControlDriverDescriptor`)
    - `FamilyDescriptor` → removed (use `ControlFamilyDescriptor`)
@@ -293,9 +293,9 @@ Non-goals for this ADR:
    - `SqlControlAdapter` extends `ControlAdapterInstance<'sql', TTarget>`
    - `SqlControlFamilyInstance` (family-specific interface) extends `ControlFamilyInstance<'sql'>`
 4. ✅ Updated Postgres packs:
-   - `@prisma-next/targets-postgres/control` exports a default `ControlTargetDescriptor<'sql','postgres'>`
-   - `@prisma-next/targets-postgres-adapter/control` exports a default `ControlAdapterDescriptor<'sql','postgres'>`
-   - `@prisma-next/targets-postgres-driver/control` exports a default `ControlDriverDescriptor<'sql','postgres'>`
+   - `@internal/targets-postgres/control` exports a default `ControlTargetDescriptor<'sql','postgres'>`
+   - `@internal/targets-postgres-adapter/control` exports a default `ControlAdapterDescriptor<'sql','postgres'>`
+   - `@internal/targets-postgres-driver/control` exports a default `ControlDriverDescriptor<'sql','postgres'>`
 5. ✅ Updated `defineConfig` and CLI config types to expect `Control*Descriptor` shapes exclusively
 6. ✅ Updated all tests and CLI commands to use `Control*Descriptor` types
 7. ✅ Retained `FamilyInstance` interface for CLI command handlers (provides full method set: `validateContract`, `verify`, `schemaVerify`, `introspect`, `emitContract`, `toSchemaView`)

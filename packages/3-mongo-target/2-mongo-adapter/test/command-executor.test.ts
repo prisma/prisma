@@ -5,7 +5,7 @@
  * Each test exercises one of the five DDL command kinds against mongodb-memory-server
  * and asserts the resulting database state.
  */
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
+import { MongoDriverImpl } from '@internal/driver-mongo';
 import {
   CollModCommand,
   CreateCollectionCommand,
@@ -14,7 +14,7 @@ import {
   DropIndexCommand,
   ListCollectionsCommand,
   ListIndexesCommand,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

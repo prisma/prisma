@@ -1,23 +1,20 @@
-import { createMongoRunnerDeps, extractDb } from '@prisma-next/adapter-mongo/control';
-import type { JsonValue } from '@prisma-next/contract/types';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import mongoControlDriver from '@prisma-next/driver-mongo/control';
-import {
-  contractToMongoSchemaIR,
-  createMongoFamilyInstance,
-} from '@prisma-next/family-mongo/control';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { interpretPslDocumentToMongoContract } from '@prisma-next/mongo-contract-psl';
-import type { MongoMigrationPlanOperation } from '@prisma-next/mongo-query-ast/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
+import { createMongoRunnerDeps, extractDb } from '@internal/adapter-mongo/control';
+import type { JsonValue } from '@internal/contract/types';
+import { MongoDriverImpl } from '@internal/driver-mongo';
+import mongoControlDriver from '@internal/driver-mongo/control';
+import { contractToMongoSchemaIR, createMongoFamilyInstance } from '@internal/family-mongo/control';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { MongoContract } from '@internal/mongo-contract';
+import { interpretPslDocumentToMongoContract } from '@internal/mongo-contract-psl';
+import type { MongoMigrationPlanOperation } from '@internal/mongo-query-ast/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
 import {
   MongoMigrationPlanner,
   MongoMigrationRunner,
   serializeMongoOps,
-} from '@prisma-next/target-mongo/control';
+} from '@internal/target-mongo/control';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

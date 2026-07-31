@@ -5,7 +5,7 @@
  *
  * Emission is handed a resolver rather than a mode because the map from
  * workspace names to published names is packaging data (ADR 242), which
- * `@prisma-next/publish-surface/import-roots` owns. Nothing here needs to know
+ * `@internal/publish-surface/import-roots` owns. Nothing here needs to know
  * what the published names are.
  */
 export type ImportSpecifierResolver = (specifier: string) => string;

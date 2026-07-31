@@ -140,7 +140,7 @@ This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI age
 - Precedence: flags > config > defaults.
 - Env policy: the CLI does not auto‑load `.env`. Apps may do so in `prisma-next.config.*` and pass values (e.g., `db.connection`).
 - Contract source: defined in config; no flag override.
-- Contract output directory: `--output-path <dir>` on `contract emit` sets the directory where `contract.json` and `contract.d.ts` are written. The filenames are canonical and not user-controlled. Precedence: `--output-path` flag > `output` in config > derived default (directory of the contract source file). The path is resolved relative to CWD. Extension wrappers (`defineConfig` from `@prisma-next/mongo` and `@prisma-next/postgres`) expose an `output?: string` option that maps directly to this config field.
+- Contract output directory: `--output-path <dir>` on `contract emit` sets the directory where `contract.json` and `contract.d.ts` are written. The filenames are canonical and not user-controlled. Precedence: `--output-path` flag > `output` in config > derived default (directory of the contract source file). The path is resolved relative to CWD. Extension wrappers (`defineConfig` from `@internal/mongo` and `@internal/postgres`) expose an `output?: string` option that maps directly to this config field.
 - Migration directory: defined in config; no flag override.
 - DB Connection: `--db=<URL>` or `config.db.connection`.
 
@@ -232,7 +232,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 - Prompts: target (Postgres or Mongo, default Postgres) and schema location (default `prisma/contract.prisma`). The contract output path is derived from the schema path (replace extension with `.json`); no separate prompt.
 - Detects the package manager from lockfiles (`pnpm-lock.yaml`, `yarn.lock`, `bun.lock`/`bun.lockb`, `package.json#packageManager`, falls back to npm), installs the target facade package as a dependency and `prisma-next` as a dev dependency, then runs `prisma-next contract emit` programmatically to produce `contract.json` and `contract.d.ts`.
 - Scaffolds (all colocated; no `src/prisma/` split):
-  - `prisma-next.config.ts` at the project root, importing `defineConfig` from the target facade (`@prisma-next/postgres/config` or `@prisma-next/mongo/config`). One import line, one function call.
+  - `prisma-next.config.ts` at the project root, importing `defineConfig` from the target facade (`@internal/postgres/config` or `@internal/mongo/config`). One import line, one function call.
   - `prisma/contract.prisma` (PSL) — starter schema with two related models so the user has something to query immediately.
   - `prisma/db.ts` — runtime client (e.g. `postgres<Contract>({ contractJson })`) typed against the emitted contract.
   - `prisma/contract.json` and `prisma/contract.d.ts` — emitted by the post-install `contract emit` step.
@@ -243,7 +243,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 - Re-init detection: if `prisma-next.config.ts` already exists, init prompts once — *"This project is already initialized. Re-initialize? This will overwrite all generated files."* — and then either overwrites everything or exits. No per-file overwrite prompts.
 - `--no-install` skips dependency installation and contract emission, scaffolds the source files only, and prints the manual install + emit commands.
 - Artifacts: commit `contract.json` and `contract.d.ts` to VCS by default.
-- Adopter-visible dependency envelope after init: exactly two new entries in `package.json` (target facade + `prisma-next`); every other `@prisma-next/*` package is pulled in transitively via the facade so emitted `contract.d.ts` imports resolve without `skipLibCheck` hiding broken types. The emitter additionally runs a post-emit dependency check and warns (non-blocking) when a `contract.d.ts` import is not resolvable.
+- Adopter-visible dependency envelope after init: exactly two new entries in `package.json` (target facade + `prisma-next`); every other `@internal/*` package is pulled in transitively via the facade so emitted `contract.d.ts` imports resolve without `skipLibCheck` hiding broken types. The emitter additionally runs a post-emit dependency check and warns (non-blocking) when a `contract.d.ts` import is not resolvable.
 
 ## Flag Conventions
 - Kebab‑case long flags; negation via `--no-<flag>` for booleans.

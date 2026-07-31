@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { publicShells } from '@prisma-next/publish-surface/shells';
+import { publicShells } from '@internal/publish-surface/shells';
 import {
   bundledSources,
   findInternalImportSpecifiers,
@@ -109,7 +109,7 @@ describe('all publish shells packed and installed together', () => {
     }
   });
 
-  it('ships no @prisma-next import specifier in any shell dist', async () => {
+  it('ships no @internal import specifier in any shell dist', async () => {
     for (const name of allShells) {
       const installedDir = join(scratch, 'node_modules', name);
       expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
@@ -129,7 +129,7 @@ describe('all publish shells packed and installed together', () => {
     for (const file of readdirSync(toolchainDist)) {
       if (!file.endsWith('.mjs')) continue;
       for (const match of readFileSync(join(toolchainDist, file), 'utf8').matchAll(
-        /["'](@prisma-next\/[^"'\s]+)["']/g,
+        /["'](@internal\/[^"'\s]+)["']/g,
       )) {
         carried.add(match[1] ?? '');
       }

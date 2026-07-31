@@ -1,6 +1,6 @@
 import { copyFileSync, existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
+import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from './utils/cli-test-helpers';
@@ -27,11 +27,11 @@ const JOURNEY_FIXTURES_DIR = join(
 function writeCompositePkContract(ctx: JourneyContext): void {
   writeFileSync(
     join(ctx.testDir, 'contract.ts'),
-    `import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
-import postgresPack from '@prisma-next/target-postgres/pack';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+    `import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
+import postgresPack from '@internal/target-postgres/pack';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 
 const User = model('User', {
   fields: {
@@ -145,12 +145,12 @@ function setupExtensionJourney(
   copyFileSync(join(JOURNEY_FIXTURES_DIR, 'contract-base.ts'), join(ctx.testDir, 'contract.ts'));
   writeFileSync(
     ctx.configPath,
-    `import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import pgvector from '@prisma-next/extension-pgvector/control';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
+    `import postgresAdapter from '@internal/adapter-postgres/control';
+import { defineConfig } from '@internal/cli/config-types';
+import postgresDriver from '@internal/driver-postgres/control';
+import pgvector from '@internal/extension-pgvector/control';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
 import { contract } from './contract';
 
 export default defineConfig({

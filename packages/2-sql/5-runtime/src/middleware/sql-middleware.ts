@@ -1,13 +1,13 @@
-import type { Contract, PlanMeta } from '@prisma-next/contract/types';
+import type { Contract, PlanMeta } from '@internal/contract/types';
 import type {
   AfterExecuteResult,
   RuntimeMiddleware,
   RuntimeMiddlewareContext,
-} from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { AnyQueryAst } from '@prisma-next/sql-relational-core/ast';
-import type { SqlParamRefMutator } from '@prisma-next/sql-relational-core/middleware';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { AnyQueryAst } from '@internal/sql-relational-core/ast';
+import type { SqlParamRefMutator } from '@internal/sql-relational-core/middleware';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 
 export interface SqlMiddlewareContext extends RuntimeMiddlewareContext {
   readonly contract: Contract<SqlStorage>;

@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { AnyExpression } from '@prisma-next/sql-relational-core/ast';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { AnyExpression } from '@internal/sql-relational-core/ast';
 import type { Collection } from './collection';
 import type {
   CollectionContext,

@@ -1,10 +1,10 @@
-import type { DiffableNode, SchemaNodeRef } from '@prisma-next/framework-components/control';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
-import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
-import { isArrayEqual } from '@prisma-next/utils/array-equal';
-import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { DiffableNode, SchemaNodeRef } from '@internal/framework-components/control';
+import { freezeNode } from '@internal/framework-components/ir';
+import { formatWireName, parseWireName } from '@internal/sql-schema-ir/naming';
+import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import { isArrayEqual } from '@internal/utils/array-equal';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import type { RlsPolicyOperation } from '../postgres-rls-policy';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 

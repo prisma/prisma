@@ -8,16 +8,16 @@
  * — hash identity, a deliberate property (the wire name commits to the
  * content, so a same-named managed policy is by definition unchanged).
  */
-import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { APP_SPACE_ID, issueOutcome } from '@prisma-next/framework-components/control';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
-import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { APP_SPACE_ID, issueOutcome } from '@internal/framework-components/control';
+import { SqlStorage } from '@internal/sql-contract/types';
+import postgresTargetDescriptor from '@internal/target-postgres/control';
+import { computeContentHash } from '@internal/target-postgres/rls-canonicalize';
 import {
   PostgresRlsEnablement,
   PostgresRlsPolicy,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {

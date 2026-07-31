@@ -4,9 +4,9 @@
  * and a contract declaring both verifies clean — the pre-name-identity
  * introspection dedup ("keep only the unique one per column tuple") is gone.
  */
-import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {

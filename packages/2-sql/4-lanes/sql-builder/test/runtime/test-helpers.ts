@@ -1,4 +1,4 @@
-import { ColumnRef, SelectAst, TableSource } from '@prisma-next/sql-relational-core/ast';
+import { ColumnRef, SelectAst, TableSource } from '@internal/sql-relational-core/ast';
 import type { ScopeField } from '../../src/scope';
 
 const int4: ScopeField = { codecId: 'pg/int4@1', nullable: false, codec: { codecId: 'pg/int4@1' } };

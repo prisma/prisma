@@ -3,7 +3,7 @@ import {
   type ColumnSchema,
   type TableHandle,
   table,
-} from '@prisma-next/sql-relational-core/contract-free';
+} from '@internal/sql-relational-core/contract-free';
 import { PostgresTableSource } from '../core/ast/table-source';
 import {
   PG_INT4_CODEC_ID,

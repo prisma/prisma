@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/framework-components",
+  "name": "@internal/framework-components",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -13,10 +13,10 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage"
   },
   "dependencies": {
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/operations": "workspace:0.16.0",
-    "@prisma-next/ts-render": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0",
+    "@internal/contract": "workspace:0.16.0",
+    "@internal/operations": "workspace:0.16.0",
+    "@internal/ts-render": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0",
     "@standard-schema/spec": "^1.1.0",
     "arktype": "catalog:"
   },

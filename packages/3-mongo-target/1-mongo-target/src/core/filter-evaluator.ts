@@ -7,9 +7,9 @@ import type {
   MongoFilterVisitor,
   MongoNotExpr,
   MongoOrExpr,
-} from '@prisma-next/mongo-query-ast/control';
-import { deepEqual } from '@prisma-next/mongo-schema-ir';
-import type { MongoValue } from '@prisma-next/mongo-value';
+} from '@internal/mongo-query-ast/control';
+import { deepEqual } from '@internal/mongo-schema-ir';
+import type { MongoValue } from '@internal/mongo-value';
 import { mongoTargetError } from './mongo-target-errors';
 
 function getNestedField(doc: Record<string, unknown>, path: string): unknown {

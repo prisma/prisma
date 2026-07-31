@@ -27,7 +27,7 @@ The 17 published packages: 3 database facades, 6 extension packs, `orm-framework
 
 ## Non-goals
 
-- **Renaming internal workspace packages.** Private names never reach npm. The `@prisma-next/*` workspace names stay as the repo-internal vocabulary; renaming ~50 packages and every import in the repo buys nothing the privacy flag doesn't already provide. (Open question 3 tracks operator confirmation.)
+- **Renaming internal workspace packages.** Private names never reach npm. The `@internal/*` workspace names stay as the repo-internal vocabulary; renaming ~50 packages and every import in the repo buys nothing the privacy flag doesn't already provide. (Open question 3 tracks operator confirmation.)
 - **Claiming the unscoped `prisma` npm name.** Deferred in ADR 242; the bin shim ships under its current name until the succession with classic Prisma ORM is coordinated.
 - **Resolving the emitter's layer placement.** ADR 242 defers whether the emitter moves out of the tooling layer. This project wires the emitter's *import-specifier output* to published names; moving the emitter between packages is follow-on work if the deferred decision lands that way.
 - **Restructuring internal package granularity.** Shells re-export what exists; no merges or splits of workspace packages.
@@ -39,7 +39,7 @@ The 17 published packages: 3 database facades, 6 extension packs, `orm-framework
 - **Workspace and build.** `pnpm-workspace.yaml` globs gain the `packages/9-public/@prisma/*` level. Packages build with tsdown configs (`packages/0-config/tsdown`); shells need exports maps with one entrypoint per re-exported internal package.
 - **The emitter** (`packages/1-framework/3-tooling/emitter`, plus family emitters) writes import specifiers into users' generated contract files. Today it emits internal workspace names; it must emit facade entrypoints by default and platform-package entrypoints in decomposed mode.
 - **The CLI** (`packages/1-framework/3-tooling/cli`) `init` command installs the user-facing package name; the bin-only shim (`packages/1-framework/3-tooling/prisma-next`, ADR 211) copies the CLI dist and moves under `packages/9-public/`.
-- **Extensions** (`packages/3-extensions/*`) peer-depend on internal adapter packages today (e.g. `@prisma-next/adapter-postgres`); peers must repoint to published target packages.
+- **Extensions** (`packages/3-extensions/*`) peer-depend on internal adapter packages today (e.g. `@internal/adapter-postgres`); peers must repoint to published target packages.
 - **Examples and tests** (`examples/*`, `test/*`) install long lists of internal packages; they collapse to facade + extensions + toolchain and serve as the proving ground that the facade surface is complete.
 - **Publish workflow** (`.github/workflows/publish.yml`, `scripts/` publish tooling, release-notes checks) iterates publishable packages; it must publish exactly the `9-public` set.
 - **Docs.** `docs/reference/Package Naming Conventions.md` is rewritten around the public/private split and carries the canonical directory→entrypoint mapping; ADR 211 gets an amendment note.
@@ -55,12 +55,12 @@ The 17 published packages: 3 database facades, 6 extension packs, `orm-framework
 ## Transitional-shape constraints
 
 - **No stable release mid-rename.** Until the final slice lands, the tree is a mix of old and new publish identities; the publish workflow must not cut a `latest` release from an intermediate state. Dev-tag builds are acceptable. The project should span at most one release window; coordinate with any release that must ship mid-project.
-- **Old names keep working in-repo throughout.** Internal imports (`@prisma-next/*` workspace names) never break at any intermediate commit; shells are additive until the switchover slice flips `private` flags and the publish list together, atomically in one PR.
+- **Old names keep working in-repo throughout.** Internal imports (`@internal/*` workspace names) never break at any intermediate commit; shells are additive until the switchover slice flips `private` flags and the publish list together, atomically in one PR.
 - **The shim invariants of ADR 211** (deps/bin/version drift-lint) must hold at every commit, including after the shim moves directories.
 
 ## Contract impact
 
-No contract entities, kinds, or shapes change. The authoring-surface impact is the import specifier in emitted contract files (`@prisma-next/framework-components` → `@prisma/orm-postgres/components` or `@prisma/orm-framework/components`): regenerating a contract after upgrade rewrites imports but produces an identical `contractHash`. Upgrade instructions must cover the regeneration step (see `record-upgrade-instructions` skill at the switchover slice).
+No contract entities, kinds, or shapes change. The authoring-surface impact is the import specifier in emitted contract files (`@internal/framework-components` → `@prisma/orm-postgres/components` or `@prisma/orm-framework/components`): regenerating a contract after upgrade rewrites imports but produces an identical `contractHash`. Upgrade instructions must cover the regeneration step (see `record-upgrade-instructions` skill at the switchover slice).
 
 ## Adapter impact
 
@@ -80,7 +80,7 @@ All targets are affected identically and mechanically: postgres, sqlite, and mon
 
 1. **npm org readiness.** Do `wmadden`/CI publish tokens have rights to create the new `@prisma/orm-*` names, and is provenance/trusted-publishing configured for them? (External dependency; blocks only the final publish, not the repo work.)
 2. **Interim shim name.** Keep publishing the bin shim as `prisma-next` until the `prisma` succession is decided, or hold it out of the publish list entirely?
-3. **Internal names stay `@prisma-next/*`** — confirm the non-goal above matches operator intent, since it means the old brand persists in repo-internal vocabulary indefinitely.
+3. **Internal names stay `@internal/*`** — confirm the non-goal above matches operator intent, since it means the old brand persists in repo-internal vocabulary indefinitely.
 4. **Extension pack naming depth.** ADR 242 fixes `orm-extension-<x>`; confirm `middleware-cache` becomes `orm-extension-middleware-cache` (it is an extension in-repo but not named `extension-*` today).
 
 ## References
