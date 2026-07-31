@@ -271,6 +271,16 @@ function testAggregateRegistry() {
         paramsSchema: undefined,
         factory: () => () => ({ id: 'pg/int4@1' }),
       },
+      // A textual codec, so `sum` over it is the shape SQLite has twelve of:
+      // the database computes something, and the target declines to type it.
+      {
+        codecId: 'lib/text@1',
+        traits: ['textual', 'order', 'equality'],
+        targetTypes: [],
+        isParameterized: false,
+        paramsSchema: undefined,
+        factory: () => () => ({ id: 'lib/text@1' }),
+      },
     ] as never),
   );
 }
@@ -304,6 +314,27 @@ describe('createAggregateFunctions', () => {
 
     expect(ast.fn).toBe('count');
     expect(ast.expr).toBeInstanceOf(IdentifierRef);
+  });
+
+  // SQLite computes `sum` over a text column — reading leading numbers where
+  // there are any and 0 where there are not — and its target declines to type
+  // the result, because the storage class depends on the rows. The lane says
+  // the same by carrying no codec: the value arrives as the driver handed it
+  // over, rather than under a codec that would decode it like its input.
+  it('carries no codec for an aggregate the target declares no overload for', () => {
+    const textField = new ExpressionImpl(ColumnRef.of('users', 'name'), {
+      codecId: 'lib/text@1',
+      nullable: false,
+      codec: { codecId: 'lib/text@1' },
+    });
+
+    const result = fns.sum(textField) as ExpressionImpl;
+
+    expect(result.returnType.codec).toBeUndefined();
+    expect(result.buildAst()).toBeInstanceOf(AggregateExpr);
+    // The shape the lane can still state is the input's, which is what operator
+    // gating reads; the decode claim is the part that would have been false.
+    expect(result.returnType.codecId).toBe('lib/text@1');
   });
 
   it('sum produces AggregateExpr with fn sum', () => {

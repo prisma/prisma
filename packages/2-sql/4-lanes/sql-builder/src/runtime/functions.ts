@@ -151,9 +151,14 @@ function aggregate(
       ? resolved.lower({ expr: inputAst, inputCodec })
       : new AggregateExpr(fn, inputAst);
 
-  // An operation the target declares no overload for keeps the shape the lane
-  // can still state — the input's own codec — rather than inventing one.
-  const output = resolved?.output ?? inputCodec;
+  // An operation the target declares no overload for carries no codec: the
+  // value reads back as the driver hands it over, which is honest, where naming
+  // the input's codec would claim the result decodes like its input. SQLite has
+  // pairs of exactly this kind — `sum` over text reads whatever leading numbers
+  // the rows happened to hold — and the claim would be false for every one.
+  // `codecId` keeps the input's, since operator gating still has to say
+  // something about the expression's shape.
+  const output = resolved?.output;
   return new ExpressionImpl(ast, {
     codecId: output?.codecId ?? field?.codecId ?? 'unknown',
     nullable: resolved?.nullable ?? true,

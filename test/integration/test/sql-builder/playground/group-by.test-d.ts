@@ -147,3 +147,16 @@ test('HAVING without GROUP BY — type error', () => {
     .having((_f, fns) => fns.gt(fns.count(), 5))
     .build();
 });
+
+// A pair the target declares no overload for — `sum` over a text column, which
+// PostgreSQL refuses outright and SQLite computes without a typeable result.
+// The emitted map carries no row for it, so the value reads as `unknown`: the
+// untyped channel, matching a runtime that carries no codec for it either. What
+// matters is that it is not typed as the input, which would promise a text
+// value the database never returns.
+test('an aggregate the target declares no overload for reads as unknown', () => {
+  const unclaimed = db.public.users.select('summedName', (f, fns) => fns.sum(f.name)).build();
+
+  type Row = typeof unclaimed extends SqlQueryPlan<infer R> ? R : never;
+  expectTypeOf<Row['summedName']>().toEqualTypeOf<unknown>();
+});
