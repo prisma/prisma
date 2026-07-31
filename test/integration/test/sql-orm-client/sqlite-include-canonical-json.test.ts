@@ -56,19 +56,27 @@ const Station = model('Station', {
   fields: {
     id: field.column(integerColumn).id(),
     readingId: field.column(integerColumn).column('reading_id'),
+    // A per-station tally past a double's integers, so an aggregate over it has
+    // something to lose.
+    weight: field.column(bigintColumn).optional(),
   },
   relations: {
     reading: rel.belongsTo(Reading, { from: 'readingId', to: 'id' }),
   },
 }).sql({ table: 'canon_stations' });
 
-const contract = defineContract({ models: { Reading, Station } });
+const ReadingWithStations = Reading.relations({
+  stations: rel.hasMany(() => Station, { by: 'readingId' }),
+}).sql({ table: 'canon_readings' });
+
+const contract = defineContract({ models: { Reading: ReadingWithStations, Station } });
 
 describe('integration/sqlite include canonical JSON', () => {
   let directory: string | undefined;
   let database: DatabaseSync | undefined;
   let runtime: SqliteRuntimeImpl | undefined;
   let stations: Collection<typeof contract, 'Station'> | undefined;
+  let readings: Collection<typeof contract, 'Reading'> | undefined;
 
   beforeAll(async () => {
     directory = mkdtempSync(join(tmpdir(), 'pn-sqlite-canonical-'));
@@ -84,7 +92,8 @@ describe('integration/sqlite include canonical JSON', () => {
       );
       create table canon_stations (
         id integer primary key,
-        reading_id integer not null
+        reading_id integer not null,
+        weight text
       );
     `);
 
@@ -105,6 +114,9 @@ describe('integration/sqlite include canonical JSON', () => {
     // SQLite has no schema namespaces, so the contract builder leaves models in
     // the unbound namespace rather than `public`.
     stations = new Collection({ runtime, context }, 'Station', {
+      namespaceId: soleDomainNamespaceId(contract.domain),
+    });
+    readings = new Collection({ runtime, context }, 'Reading', {
       namespaceId: soleDomainNamespaceId(contract.domain),
     });
   });
@@ -202,5 +214,25 @@ describe('integration/sqlite include canonical JSON', () => {
       { payload: null },
       { payload: new Uint8Array() },
     ]);
+  });
+
+  // SQLite's canonical JSON renders a bigint as text, which is what lets an
+  // aggregate past 2^53 leave the database intact: the include's envelope
+  // carries '9007199254740993', and the codec reads it back as the integer it
+  // is rather than the double it would have become.
+  it('carries an include aggregate past 2^53 through the JSON envelope', async () => {
+    database!
+      .prepare('insert into canon_stations (id, reading_id, weight) values (?, ?, ?)')
+      .run(100, 1, WIDE_BIGINT.toString());
+
+    const weightField = 'weight' as never;
+    const withStations = await readings!
+      .where((reading) => reading.id.eq(1))
+      .select('id')
+      .include('stations', (related) => related.max(weightField))
+      .all();
+
+    expect(withStations).toEqual([{ id: 1, stations: WIDE_BIGINT }]);
+    expect(BigInt(Number(WIDE_BIGINT))).not.toBe(WIDE_BIGINT);
   });
 });

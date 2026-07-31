@@ -47,17 +47,26 @@ const Reading = model('Reading', {
   },
 }).sql({ table: 'canonical_readings' });
 
-const Station = model('Station', {
+const StationBase = model('Station', {
   fields: {
     id: field.column(int4Column).id(),
     readingId: field.column(int4Column).column('reading_id'),
+    // A per-station tally wide enough to hold values a double cannot, so an
+    // aggregate over it has something to lose.
+    weight: field.column(int8Column).optional(),
   },
   relations: {
     reading: rel.belongsTo(Reading, { from: 'readingId', to: 'id' }),
   },
 }).sql({ table: 'canonical_stations' });
 
-const contract = defineContract({ models: { Reading, Station } });
+const Station = StationBase;
+
+const ReadingWithStations = Reading.relations({
+  stations: rel.hasMany(() => StationBase, { by: 'readingId' }),
+}).sql({ table: 'canonical_readings' });
+
+const contract = defineContract({ models: { Reading: ReadingWithStations, Station } });
 const context = createExecutionContext({
   contract,
   stack: createSqlExecutionStack({
@@ -85,7 +94,8 @@ async function setupTables(runtime: PgIntegrationRuntime): Promise<void> {
   await runtime.query(`
     create table canonical_stations (
       id integer primary key,
-      reading_id integer not null
+      reading_id integer not null,
+      weight bigint
     )
   `);
   await runtime.query(
@@ -213,6 +223,51 @@ describe('integration/include canonical JSON', () => {
             embedding: null,
           },
         });
+      }, contract);
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'an aggregate past 2^53 survives both the top-level read and the include',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        await setupTables(runtime);
+        // A second reading, so `sum` has to compute a value rather than echo
+        // one: 9007199254740993 + 2 is 9007199254740995, which no double holds.
+        await runtime.query('insert into canonical_readings (id, counter) values (2, 2)');
+        await runtime.query(
+          'insert into canonical_stations (id, reading_id, weight) values (2, 1, $1::bigint)',
+          [DOD_WIDE_INTEGER],
+        );
+
+        const readings = new Collection({ runtime, context }, 'Reading', {
+          namespaceId: 'public',
+        });
+
+        const counterField = 'counter' as never;
+        const stats = await readings.aggregate((aggregate) => ({
+          total: aggregate.sum(counterField),
+          peak: aggregate.max(counterField),
+        }));
+
+        // PostgreSQL sums bigints into a numeric, whose canonical form is its
+        // decimal string; the maximum keeps the column's own bigint. Both are
+        // exact, which the same values read as numbers are not.
+        expect(stats).toEqual({ total: '9007199254740995', peak: 9007199254740993n });
+        expect(String(Number(stats.total))).not.toBe(stats.total);
+        expect(Number(stats.peak)).not.toBe(9007199254740993n);
+
+        const weightField = 'weight' as never;
+        const withStations = await readings
+          .where((reading) => reading.id.eq(1))
+          .select('id')
+          .include('stations', (stations) => stations.max(weightField))
+          .all();
+
+        // The include carries its value inside a JSON document, where a number
+        // would have rounded it on the way out of the database.
+        expect(withStations).toEqual([{ id: 1, stations: 9007199254740993n }]);
       }, contract);
     },
     timeouts.spinUpPpgDev,
