@@ -1,5 +1,6 @@
 import { coreHash, type JsonValue } from '@prisma-next/contract/types';
 import type { MigrationOperationPolicy } from '@prisma-next/framework-components/control';
+import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
 import {
   buildMongoNamespace,
   MongoCollection,
@@ -1673,7 +1674,7 @@ describe('MongoMigrationPlanner', () => {
         snapshotsImportPath: '../../snapshots',
       });
 
-      const source = empty.renderTypeScript();
+      const source = empty.renderTypeScript(keepInternalSpecifiers);
 
       expect(source).toContain(
         "import { Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';",

@@ -19,6 +19,7 @@
 
 import type { CodecControlHooks } from '@prisma-next/family-sql/control';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
 import type { StorageColumn } from '@prisma-next/sql-contract/types';
 import { col } from '@prisma-next/sql-relational-core/contract-free';
 import {
@@ -259,7 +260,7 @@ describe('TypeScriptRenderablePostgresMigration', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const source = migration.renderTypeScript();
+    const source = migration.renderTypeScript(keepInternalSpecifiers);
     expect(source).toContain(
       "import { Migration, MigrationCLI } from '@prisma-next/postgres/migration';",
     );

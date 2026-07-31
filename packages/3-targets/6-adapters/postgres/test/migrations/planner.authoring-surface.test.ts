@@ -4,6 +4,7 @@ import {
   type MigrationPlanner,
   type MigrationPlannerSuccessResult,
 } from '@prisma-next/framework-components/control';
+import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
 import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
@@ -91,7 +92,7 @@ describe('PostgresMigrationPlanner authoring surface', () => {
       }
       const success = result as MigrationPlannerSuccessResult;
 
-      const source = success.plan.renderTypeScript();
+      const source = success.plan.renderTypeScript(keepInternalSpecifiers);
 
       expect(source).toContain("from '@prisma-next/postgres/migration'");
       expect(source).toMatch(/\bMigration\b/);
@@ -138,7 +139,7 @@ describe('PostgresMigrationPlanner authoring surface', () => {
         APP_SPACE_ID,
       );
 
-      const source = empty.renderTypeScript();
+      const source = empty.renderTypeScript(keepInternalSpecifiers);
 
       expect(source).toContain("from '@prisma-next/postgres/migration'");
       expect(source).toContain('export default class M extends Migration<Start, End>');

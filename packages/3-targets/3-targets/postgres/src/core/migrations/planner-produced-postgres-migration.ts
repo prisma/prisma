@@ -29,6 +29,7 @@ import type {
   MigrationPlanWithAuthoringSurface,
   OpFactoryCall,
 } from '@prisma-next/framework-components/control';
+import type { ImportSpecifierResolver } from '@prisma-next/framework-components/emission';
 import type { MigrationMeta } from '@prisma-next/migration-tools/migration';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { PostgresMigration } from './postgres-migration';
@@ -87,11 +88,12 @@ export class TypeScriptRenderablePostgresMigration
     return this.#spaceId;
   }
 
-  renderTypeScript(): string {
+  renderTypeScript(resolveImportSpecifier: ImportSpecifierResolver): string {
     return renderCallsToTypeScript(this.#calls, {
       from: this.#meta.from,
       to: this.#meta.to,
       snapshotsImportPath: this.#snapshotsImportPath,
+      resolveImportSpecifier,
     });
   }
 }

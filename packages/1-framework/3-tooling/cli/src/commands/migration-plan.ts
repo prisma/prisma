@@ -19,6 +19,7 @@ import { deriveProvidedInvariants } from '@prisma-next/migration-tools/invariant
 import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
 import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
 import { writeMigrationTs } from '@prisma-next/migration-tools/migration-ts';
+import type { ImportSpecifierResolver } from '@prisma-next/publish-surface/import-roots';
 import { notOk, ok, type Result } from '@prisma-next/utils/result';
 import { Command } from 'commander';
 import { join, relative } from 'pathe';
@@ -51,6 +52,7 @@ import { assertFrameworkComponentsCompatible } from '../utils/framework-componen
 import type { CommonCommandOptions } from '../utils/global-flags';
 import { type GlobalFlags, parseGlobalFlagsOrExit } from '../utils/global-flags';
 import { resolveFromForPlan, resolveToForPlan } from '../utils/plan-resolution';
+import { createProjectSpecifierResolver } from '../utils/project-import-root';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI, type TerminalUI } from '../utils/terminal-ui';
 
@@ -78,6 +80,7 @@ async function runPlannerLeg(
   spaceId: string,
   ownership: SchemaOwnership,
   snapshotsImportPath: string,
+  resolveImportSpecifier: ImportSpecifierResolver,
 ): Promise<Result<PlannerSuccess, CliStructuredError>> {
   const fromSchema = migrations.contractToSchema(fromContract, frameworkComponents);
   const plannerResult = planner.plan({
@@ -131,7 +134,7 @@ async function runPlannerLeg(
 
   return ok({
     plannedOps,
-    migrationTsContent: plannerResult.plan.renderTypeScript(),
+    migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
   });
 }
@@ -472,6 +475,7 @@ async function executeMigrationPlanCommand(
 
   try {
     const planner = migrations.createPlanner(controlAdapter);
+    const resolveImportSpecifier = createProjectSpecifierResolver(options.config);
 
     if (
       isAutoBaseline &&
@@ -495,6 +499,7 @@ async function executeMigrationPlanCommand(
         aggregate.app.spaceId,
         aggregate,
         snapshotsImportPathFrom(baselinePackageDir, migrationsDir),
+        resolveImportSpecifier,
       );
       if (!baselineLeg.ok) {
         return notOk(baselineLeg.failure);
@@ -564,6 +569,7 @@ async function executeMigrationPlanCommand(
         aggregate.app.spaceId,
         aggregate,
         snapshotsImportPathFrom(deltaPackageDir, migrationsDir),
+        resolveImportSpecifier,
       );
       if (!deltaLeg.ok) {
         return notOk(deltaLeg.failure);
@@ -638,6 +644,7 @@ async function executeMigrationPlanCommand(
       aggregate.app.spaceId,
       aggregate,
       snapshotsImportPathFrom(packageDir, migrationsDir),
+      resolveImportSpecifier,
     );
     if (!deltaLeg.ok) {
       return notOk(deltaLeg.failure);

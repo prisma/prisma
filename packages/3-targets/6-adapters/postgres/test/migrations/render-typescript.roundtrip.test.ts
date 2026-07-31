@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { APP_SPACE_ID, storageHashHex } from '@prisma-next/framework-components/control';
+import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
 import { col, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
 import {
   AddColumnCall,
@@ -269,7 +270,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       testAdapter,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stdout, stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -295,7 +296,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -356,7 +357,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       testAdapter,
     );
 
-    await writeTypecheckDir(tmpDir, migration.renderTypeScript());
+    await writeTypecheckDir(tmpDir, migration.renderTypeScript(keepInternalSpecifiers));
     // Non-zero exit (a type error in the rendered source) rejects.
     await execFileAsync(tscPath, ['--project', tmpDir]);
   });
@@ -392,7 +393,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     // compile must fail on the missing property, proving the green run of
     // the sibling test is a real typecheck and not a vacuous pass.
     const brokenSource = migration
-      .renderTypeScript()
+      .renderTypeScript(keepInternalSpecifiers)
       .replace('  name: "Tenant members can read",\n', '');
     expect(brokenSource).not.toContain('Tenant members can read');
     await writeTypecheckDir(tmpDir, brokenSource);
@@ -426,7 +427,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {

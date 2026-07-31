@@ -1,3 +1,4 @@
+import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
 import type { MongoMigrationPlanOperation } from '@prisma-next/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import { CreateIndexCall, DropIndexCall } from '../src/core/op-factory-call';
@@ -64,7 +65,7 @@ describe('PlannerProducedMongoMigration', () => {
     const calls = [new CreateIndexCall('users', [{ field: 'email', direction: 1 }])];
     const migration = new PlannerProducedMongoMigration(calls, META, SNAPSHOTS_IMPORT_PATH);
 
-    const source = migration.renderTypeScript();
+    const source = migration.renderTypeScript(keepInternalSpecifiers);
 
     // New shape: base derives describe() from the imported contract JSON, so the
     // scaffold carries `Migration<Start, End>` + the JSON/field imports and emits
@@ -86,7 +87,7 @@ describe('PlannerProducedMongoMigration', () => {
   it('renders an empty-class stub when constructed with no calls', () => {
     const migration = new PlannerProducedMongoMigration([], META, SNAPSHOTS_IMPORT_PATH);
 
-    const source = migration.renderTypeScript();
+    const source = migration.renderTypeScript(keepInternalSpecifiers);
 
     expect(source).toContain('class M extends Migration<Start, End>');
     expect(source).toContain('override readonly endContractJson = endContract;');
@@ -98,7 +99,7 @@ describe('PlannerProducedMongoMigration', () => {
     const calls = [new CreateIndexCall('users', [{ field: 'email', direction: 1 }])];
     const migration = new PlannerProducedMongoMigration(calls, META, SNAPSHOTS_IMPORT_PATH);
 
-    const source = migration.renderTypeScript();
+    const source = migration.renderTypeScript(keepInternalSpecifiers);
 
     expect(source).toContain('class M extends Migration<Start, End>');
     expect(source).not.toContain('describe()');

@@ -15,6 +15,7 @@ import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { APP_SPACE_ID, storageHashHex } from '@prisma-next/framework-components/control';
+import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
 import { col, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
 import {
   AddColumnCall,
@@ -174,7 +175,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stdout, stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -201,7 +202,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -234,7 +235,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -281,7 +282,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], { cwd: tmpDir });

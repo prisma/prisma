@@ -46,6 +46,7 @@ import { formatStyledHeader } from '../utils/formatters/styled';
 import { assertFrameworkComponentsCompatible } from '../utils/framework-components';
 import type { CommonCommandOptions } from '../utils/global-flags';
 import { parseGlobalFlagsOrExit } from '../utils/global-flags';
+import { createProjectSpecifierResolver } from '../utils/project-import-root';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI } from '../utils/terminal-ui';
 
@@ -221,7 +222,10 @@ async function executeMigrationNewCommand(
       },
       APP_SPACE_ID,
     );
-    await writeMigrationTs(packageDir, emptyPlan.renderTypeScript());
+    await writeMigrationTs(
+      packageDir,
+      emptyPlan.renderTypeScript(createProjectSpecifierResolver(options.config)),
+    );
 
     return ok({
       ok: true as const,

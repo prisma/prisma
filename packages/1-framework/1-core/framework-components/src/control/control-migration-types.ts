@@ -13,6 +13,7 @@ import type { Contract } from '@prisma-next/contract/types';
 import type { ImportRequirement } from '@prisma-next/ts-render';
 import type { Result } from '@prisma-next/utils/result';
 import type { TargetBoundComponentDescriptor } from '../shared/framework-components';
+import type { ImportSpecifierResolver } from '../shared/import-specifier-resolver';
 import type {
   ControlAdapterInstance,
   ControlDriverInstance,
@@ -236,8 +237,19 @@ export interface MigrationPlanWithAuthoringSurface extends MigrationPlan {
    * Render this plan back to TypeScript source suitable for writing to
    * `migration.ts`. Output may start with a shebang; when it does, the caller
    * should make the resulting file executable.
+   *
+   * `resolveImportSpecifier` rewrites every package name the rendered file
+   * imports for the import root the consuming application installed (ADR
+   * 242), exactly as the same resolver does for `contract.d.ts` — a
+   * scaffolded migration is a file the application keeps, so every name in
+   * it has to be one the application can resolve. The caller supplies it
+   * rather than the plan capturing it, because the project a plan is
+   * rendered into is known at the render call and not at planning time: `db
+   * init` and `db update` build plans they never render. Pass
+   * {@link import('../shared/import-specifier-resolver').keepInternalSpecifiers}
+   * to emit workspace names unchanged.
    */
-  renderTypeScript(): string;
+  renderTypeScript(resolveImportSpecifier: ImportSpecifierResolver): string;
 }
 
 // ============================================================================

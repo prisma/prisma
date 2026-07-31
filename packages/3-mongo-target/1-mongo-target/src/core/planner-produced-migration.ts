@@ -1,4 +1,5 @@
 import type { MigrationPlanWithAuthoringSurface } from '@prisma-next/framework-components/control';
+import type { ImportSpecifierResolver } from '@prisma-next/framework-components/emission';
 import { Migration, type MigrationMeta } from '@prisma-next/migration-tools/migration';
 import type { AnyMongoMigrationOperation } from '@prisma-next/mongo-query-ast/control';
 import type { OpFactoryCall } from './op-factory-call';
@@ -42,11 +43,12 @@ export class PlannerProducedMongoMigration
     return this.meta;
   }
 
-  renderTypeScript(): string {
+  renderTypeScript(resolveImportSpecifier: ImportSpecifierResolver): string {
     return renderCallsToTypeScript(this.calls, {
       from: this.meta.from,
       to: this.meta.to,
       snapshotsImportPath: this.snapshotsImportPath,
+      resolveImportSpecifier,
     });
   }
 }

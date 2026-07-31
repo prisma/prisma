@@ -1,6 +1,7 @@
 import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import { keepInternalSpecifiers } from '@prisma-next/framework-components/emission';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
 import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
@@ -177,7 +178,7 @@ describe('SqliteMigrationPlanner authoring surface', () => {
       });
 
       if (result.kind !== 'success') throw new Error('expected success');
-      const source = result.plan.renderTypeScript();
+      const source = result.plan.renderTypeScript(keepInternalSpecifiers);
       expect(source).toContain("from '@prisma-next/sqlite/migration'");
       expect(source).toMatch(/\bMigration\b/);
       // New shape: base derives describe() from the imported contract JSON, so
@@ -223,7 +224,7 @@ describe('SqliteMigrationPlanner authoring surface', () => {
         APP_SPACE_ID,
       );
 
-      const source = empty.renderTypeScript();
+      const source = empty.renderTypeScript(keepInternalSpecifiers);
       expect(source).toContain("from '@prisma-next/sqlite/migration'");
       // New shape: base derives from/to; scaffold imports the contract JSON
       // rather than embedding hash literals or a describe() method.
