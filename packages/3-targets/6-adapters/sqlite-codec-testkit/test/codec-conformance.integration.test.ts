@@ -16,9 +16,9 @@
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { ConformanceConnection } from '../src/index';
+import { runSqliteCodecProjection } from '../src/index';
 import { sqliteConformanceCases } from './codec-conformance/cases';
-import type { ConformanceConnection } from './codec-conformance/harness';
-import { runSqliteCodecProjection } from './codec-conformance/harness';
 
 /** Widens a codec wire value to what `node:sqlite` binds as a positional parameter. */
 function toSqliteParam(wire: unknown): SQLInputValue {
@@ -70,6 +70,26 @@ describe.sequential('SQLite codec JSON-projection conformance', () => {
       .filter((codecId) => !covered.has(codecId));
 
     expect(uncovered).toEqual([]);
+  });
+
+  // The registry only knows the built-ins; an extension codec is not in it.
+  // `descriptor` lets a case carry its descriptor directly, the same escape
+  // hatch the PostgreSQL harness has, so a case's codec need not be
+  // pre-registered to run through the harness.
+  it('runs a case whose descriptor is not in the built-in registry', async () => {
+    const unregisteredCase = {
+      codecId: 'sqlite-extension/unregistered-example@1',
+      descriptor: sqliteCodecDescriptorRegistry.descriptorFor('sqlite/text@1')!,
+      label: 'descriptor supplied directly on the case',
+      value: 'hello',
+      storageType: 'TEXT',
+    };
+
+    expect(sqliteCodecDescriptorRegistry.descriptorFor(unregisteredCase.codecId)).toBeUndefined();
+
+    const outcome = await runSqliteCodecProjection(connection!, unregisteredCase);
+
+    expect(outcome.failure).toBeUndefined();
   });
 
   for (const conformanceCase of sqliteConformanceCases) {

@@ -1,0 +1,61 @@
+{
+  "name": "@prisma-next/postgres-codec-testkit",
+  "version": "0.16.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Database-backed codec JSON-projection conformance harness for the PostgreSQL target, for extension authors to verify their own codec descriptors against a live database",
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write .",
+    "lint:fix:unsafe": "biome check --write --unsafe .",
+    "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
+  },
+  "dependencies": {
+    "@prisma-next/adapter-postgres": "workspace:0.16.0",
+    "@prisma-next/contract": "workspace:0.16.0",
+    "@prisma-next/framework-components": "workspace:0.16.0",
+    "@prisma-next/sql-contract": "workspace:0.16.0",
+    "@prisma-next/sql-relational-core": "workspace:0.16.0",
+    "@prisma-next/target-postgres": "workspace:0.16.0",
+    "@prisma-next/utils": "workspace:0.16.0"
+  },
+  "devDependencies": {
+    "@prisma-next/driver-postgres": "workspace:0.16.0",
+    "@prisma-next/test-utils": "workspace:0.16.0",
+    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@prisma-next/tsdown": "workspace:0.16.0",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/3-targets/6-adapters/postgres-codec-testkit"
+  }
+}

@@ -64,6 +64,7 @@
     "./control": "./dist/control.mjs",
     "./operation-types": "./dist/operation-types.mjs",
     "./runtime": "./dist/runtime.mjs",
+    "./sql-renderer": "./dist/sql-renderer.mjs",
     "./types": "./dist/types.mjs",
     "./package.json": "./package.json"
   },

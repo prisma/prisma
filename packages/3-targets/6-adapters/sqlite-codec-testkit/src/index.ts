@@ -1,9 +1,9 @@
 /**
- * Database-backed conformance harness for PostgreSQL codec JSON projections.
+ * Database-backed conformance harness for SQLite codec JSON projections.
  *
  * For one codec descriptor and one representative application value the harness
- * encodes the value through the codec, stores it in a column of the codec's
- * native type, projects the stored column through `descriptor.projectJson()`,
+ * encodes the value through the codec, stores it in a column of the case's
+ * storage type, projects the stored column through `descriptor.projectJson()`,
  * renders the projection inside a JSON constructor, executes it, and parses the
  * JSON text the database produced.
  *
@@ -24,37 +24,41 @@
  * The second condition is what makes the harness an oracle rather than a
  * tautology: a codec whose `encodeJson` loses information the same way the
  * database's native JSON conversion does satisfies condition 1 while still
- * failing to carry the value. Arbitrary-precision `numeric` is exactly that
- * case.
+ * failing to carry the value.
  *
  * `projectJson()` is called directly rather than reached through a
  * query-planning or rendering path, which is what lets the harness measure
  * projections that no production query reaches.
+ *
+ * A SQLite codec descriptor carries no native type — the SQLite descriptor
+ * protocol is `projectJson` alone — so each case states the storage type its
+ * column is declared with.
  *
  * The API is framework-independent and takes a caller-supplied connection, so
  * assertion style and case enumeration stay with the caller.
  */
 
 import { isDeepStrictEqual } from 'node:util';
-import type { JsonValue } from '@internal/contract/types';
-import type { CodecRef } from '@internal/framework-components/codec';
-import { validateCodecTypeParams } from '@internal/framework-components/codec';
-import type { SqlStorage } from '@internal/sql-contract/types';
+import { renderLoweredSql } from '@prisma-next/adapter-sqlite/sql-renderer';
+import type { SqliteContract } from '@prisma-next/adapter-sqlite/types';
+import { computeProfileHash, computeStorageHash } from '@prisma-next/contract/hashing';
+import type { JsonValue } from '@prisma-next/contract/types';
+import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/types';
+import type { CodecRef } from '@prisma-next/framework-components/codec';
+import { validateCodecTypeParams } from '@prisma-next/framework-components/codec';
+import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import {
-  CastExpr,
   ColumnRef,
   JsonObjectExpr,
   NativeJsonValueProjection,
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@internal/sql-relational-core/ast';
-import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
-import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
-import { ifDefined } from '@internal/utils/defined';
-import { createContract } from '@repo/test-utils';
-import { renderLoweredSql } from '../../src/core/sql-renderer';
-import type { PostgresContract } from '../../src/core/types';
+} from '@prisma-next/sql-relational-core/ast';
+import type { AnySqliteCodecDescriptor } from '@prisma-next/target-sqlite/codec-descriptor';
+import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
+import { blindCast } from '@prisma-next/utils/casts';
+import { ifDefined } from '@prisma-next/utils/defined';
 
 /**
  * Minimal execution surface the harness needs from a live database. A caller
@@ -95,28 +99,22 @@ export interface ExpectedProjectionFailure {
   readonly reason: string;
 }
 
-export interface PostgresCodecConformanceCase {
-  /** Codec id, resolved against the target's built-in registry unless `descriptor` is given. */
+export interface SqliteCodecConformanceCase {
+  /** Codec id, resolved against the target's built-in descriptor registry unless `descriptor` is given. */
   readonly codecId: string;
   /**
    * Descriptor to project through, for a codec an extension contributes rather
    * than the target registering. The registry only knows the built-ins.
    */
-  readonly descriptor?: AnyPostgresCodecDescriptor;
+  readonly descriptor?: AnySqliteCodecDescriptor;
   /** Identifies the value under test within its codec's cases. */
   readonly label: string;
   /** Application-level value handed to `codec.encode` and `codec.encodeJson`. */
   readonly value: unknown;
+  /** SQLite column type the value is stored in. */
+  readonly storageType: string;
   /** Codec type params, for parameterized codecs. */
   readonly typeParams?: JsonValue;
-  /** SQL executed before the storage table is created — e.g. `CREATE TYPE` for a native enum. */
-  readonly setupSql?: readonly string[];
-  /**
-   * Stores the value in a column of the codec's native array type and projects
-   * it through the descriptor's inherited array lift. `value` is then an array
-   * whose elements are application values, or `null` for a null array.
-   */
-  readonly many?: true;
   /**
    * Store SQL `NULL` instead of encoding `value`, and require the projection to
    * produce JSON `null`.
@@ -162,51 +160,63 @@ const VALUE_COLUMN = 'value';
 const DOCUMENT_ALIAS = 'document';
 const DOCUMENT_KEY = 'value';
 
-const conformanceContract: PostgresContract = {
-  ...createContract<SqlStorage>({ target: 'postgres', targetFamily: 'sql' }),
-  target: 'postgres',
-};
-
 /**
- * Widens a codec's wire value to the shape `pg` serializes unambiguously: a
- * `Buffer` for binary, and a UTC ISO string for a `Date` so the parameter's
- * wall-clock reading does not depend on the machine's time zone.
+ * A synthetic contract whose only role is to satisfy `renderLoweredSql`'s
+ * signature: the harness renders a single unqualified table reference, so the
+ * renderer never resolves a namespace out of `storage.namespaces`.
  */
-function toDriverParam(wire: unknown): unknown {
-  if (wire instanceof Uint8Array && !Buffer.isBuffer(wire)) return Buffer.from(wire);
-  if (wire instanceof Date) return wire.toISOString();
-  return wire;
+function buildConformanceContract(): SqliteContract {
+  const target = 'sqlite';
+  const targetFamily = 'sql';
+  const rawStorage = { namespaces: {} };
+  const storage = blindCast<
+    SqlStorage,
+    'the harness only ever renders an unqualified table reference, so the full SqlStorage IR (constructed elsewhere via freezeNode) is never resolved through'
+  >({
+    ...rawStorage,
+    storageHash: computeStorageHash({ target, targetFamily, storage: rawStorage }),
+  });
+
+  return {
+    target,
+    targetFamily,
+    roots: {},
+    domain: { namespaces: { [UNBOUND_DOMAIN_NAMESPACE_ID]: { models: {} } } },
+    storage,
+    capabilities: {},
+    extensions: {},
+    profileHash: computeProfileHash({ target, targetFamily, capabilities: {} }),
+    meta: {},
+  };
 }
+
+const conformanceContract: SqliteContract = buildConformanceContract();
 
 function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function codecRefOf(conformanceCase: PostgresCodecConformanceCase): CodecRef {
+function codecRefOf(conformanceCase: SqliteCodecConformanceCase): CodecRef {
   return {
     codecId: conformanceCase.codecId,
     ...ifDefined('typeParams', conformanceCase.typeParams),
-    ...ifDefined('many', conformanceCase.many),
   };
 }
 
-function descriptorFor(conformanceCase: PostgresCodecConformanceCase) {
+function descriptorFor(conformanceCase: SqliteCodecConformanceCase) {
   const descriptor =
     conformanceCase.descriptor ??
-    postgresCodecDescriptorRegistry.descriptorFor(conformanceCase.codecId);
+    sqliteCodecDescriptorRegistry.descriptorFor(conformanceCase.codecId);
   if (descriptor === undefined) {
     throw new Error(
-      `No PostgreSQL codec descriptor for '${conformanceCase.codecId}'; an extension codec must supply one on the case.`,
+      `No SQLite codec descriptor for '${conformanceCase.codecId}'; an extension codec must supply one on the case.`,
     );
   }
   return descriptor;
 }
 
-/**
- * Builds `SELECT CAST(json_build_object('value', <projection>) AS text)`, so the
- * document arrives as text and the harness — not the driver — owns the parse.
- */
-export function buildProjectionSql(conformanceCase: PostgresCodecConformanceCase): string {
+/** Builds `SELECT json_object('value', <projection>)`, whose result is already text. */
+export function buildProjectionSql(conformanceCase: SqliteCodecConformanceCase): string {
   const descriptor = descriptorFor(conformanceCase);
   const projection = descriptor.projectJson(
     ColumnRef.of(STORAGE_TABLE, VALUE_COLUMN),
@@ -216,92 +226,31 @@ export function buildProjectionSql(conformanceCase: PostgresCodecConformanceCase
     JsonObjectExpr.entry(DOCUMENT_KEY, new NativeJsonValueProjection(projection)),
   ]);
   const select = SelectAst.from(TableSource.named(STORAGE_TABLE)).withProjection([
-    ProjectionItem.of(DOCUMENT_ALIAS, CastExpr.as(document, 'text')),
+    ProjectionItem.of(DOCUMENT_ALIAS, document),
   ]);
 
-  return renderLoweredSql(select, conformanceContract, postgresCodecDescriptorRegistry).sql;
+  return renderLoweredSql(select, conformanceContract, sqliteCodecDescriptorRegistry).sql;
 }
 
-type ElementCodec = {
-  encode(value: unknown, ctx: Record<string, never>): Promise<unknown>;
-  encodeJson(value: unknown): JsonValue;
-  decodeJson(json: JsonValue): unknown;
-};
-
-/** Maps `mapper` over an array case's elements, leaving nulls alone; a null array stays null. */
-function overElements<T>(value: unknown, mapper: (element: unknown) => T): T[] | null {
-  if (value === null) return null;
-  if (!Array.isArray(value)) {
-    throw new Error('A `many` conformance case must carry an array value or null.');
-  }
-  return value.map((element) => mapper(element));
-}
-
-async function encodeValue(
-  codec: ElementCodec,
-  conformanceCase: PostgresCodecConformanceCase,
-): Promise<unknown> {
-  if (conformanceCase.many !== true) return codec.encode(conformanceCase.value, {});
-  if (conformanceCase.value === null) return null;
-  const elements = overElements(conformanceCase.value, (element) => element) ?? [];
-  return Promise.all(
-    elements.map(async (element) =>
-      element === null ? null : toDriverParam(await codec.encode(element, {})),
-    ),
-  );
-}
-
-function expectedJson(
-  codec: ElementCodec,
-  conformanceCase: PostgresCodecConformanceCase,
-): JsonValue {
-  if (conformanceCase.many !== true) return codec.encodeJson(conformanceCase.value);
-  return overElements(conformanceCase.value, (element) =>
-    element === null ? null : codec.encodeJson(element),
-  );
-}
-
-function roundTripValue(
-  codec: ElementCodec,
-  conformanceCase: PostgresCodecConformanceCase,
-  projected: JsonValue,
-): unknown {
-  if (conformanceCase.many !== true) return codec.decodeJson(projected);
-  if (projected === null) return null;
-  if (!Array.isArray(projected)) {
-    throw new Error('An array projection must produce a JSON array or null.');
-  }
-  return projected.map((element) => (element === null ? null : codec.decodeJson(element)));
-}
-
-export async function runPostgresCodecProjection(
+export async function runSqliteCodecProjection(
   connection: ConformanceConnection,
-  conformanceCase: PostgresCodecConformanceCase,
+  conformanceCase: SqliteCodecConformanceCase,
 ): Promise<CodecProjectionOutcome> {
   const descriptor = descriptorFor(conformanceCase);
   const ref = codecRefOf(conformanceCase);
   const params = validateCodecTypeParams(descriptor, ref);
   const codec = descriptor.factory(params)({ name: VALUE_COLUMN });
 
-  // Each case starts from default session state, so a case that sets `TimeZone`
-  // or another GUC in `setupSql` to prove session independence cannot change
-  // what a later case measures.
-  await connection.query('RESET ALL');
   await connection.query(`DROP TABLE IF EXISTS "${STORAGE_TABLE}"`);
-  for (const statement of conformanceCase.setupSql ?? []) {
-    await connection.query(statement);
-  }
-  const elementType = descriptor.nativeTypeFor(ref);
-  const columnType = conformanceCase.many === true ? `${elementType}[]` : elementType;
-  await connection.query(`CREATE TABLE "${STORAGE_TABLE}" ("${VALUE_COLUMN}" ${columnType})`);
+  await connection.query(
+    `CREATE TABLE "${STORAGE_TABLE}" ("${VALUE_COLUMN}" ${conformanceCase.storageType})`,
+  );
 
   if (conformanceCase.nullValue === true) {
     await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES (NULL)`);
   } else {
-    const wire = await encodeValue(codec, conformanceCase);
-    await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES ($1)`, [
-      conformanceCase.many === true ? wire : toDriverParam(wire),
-    ]);
+    const wire = await codec.encode(conformanceCase.value, {});
+    await connection.query(`INSERT INTO "${STORAGE_TABLE}" ("${VALUE_COLUMN}") VALUES (?)`, [wire]);
   }
 
   const sql = buildProjectionSql(conformanceCase);
@@ -344,7 +293,7 @@ export async function runPostgresCodecProjection(
 
   let expected: JsonValue;
   try {
-    expected = expectedJson(codec, conformanceCase);
+    expected = codec.encodeJson(conformanceCase.value);
   } catch (error) {
     return {
       sql,
@@ -372,7 +321,7 @@ export async function runPostgresCodecProjection(
 
   let roundTripped: unknown;
   try {
-    roundTripped = roundTripValue(codec, conformanceCase, projected);
+    roundTripped = codec.decodeJson(projected);
   } catch (error) {
     return {
       ...base,

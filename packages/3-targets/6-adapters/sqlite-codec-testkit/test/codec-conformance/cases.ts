@@ -27,7 +27,7 @@
  * inside all of them.
  */
 
-import type { SqliteCodecConformanceCase } from './harness';
+import type { SqliteCodecConformanceCase } from '../../src/index';
 
 export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
   { codecId: 'sql/char@1', label: 'single character', value: 'a', storageType: 'TEXT' },
