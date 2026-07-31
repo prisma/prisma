@@ -1,7 +1,7 @@
 import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import { issueOutcome } from '@prisma-next/framework-components/control';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
+import { normalizeSqlBody, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { buildPostgresPlanDiff } from '@prisma-next/target-postgres/diff-database-schema';
 import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
@@ -28,10 +28,9 @@ const HASH = computeContentHash({
 });
 const WIRE_NAME = `${PREFIX}_${HASH}`;
 
-function managedPolicy(): PostgresRlsPolicy {
+function wireNamedPolicy(): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name: WIRE_NAME,
-    prefix: PREFIX,
+    naming: parseNaming(WIRE_NAME, PREFIX),
     tableName: TABLE_NAME,
     namespaceId: SCHEMA_NAME,
     operation: 'select',
@@ -44,8 +43,7 @@ function managedPolicy(): PostgresRlsPolicy {
 
 function externalPolicy(): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name: 'legacy_admin_policy',
-    prefix: undefined,
+    naming: { kind: 'exact', name: 'legacy_admin_policy' },
     tableName: TABLE_NAME,
     namespaceId: SCHEMA_NAME,
     operation: 'select',
@@ -58,8 +56,7 @@ function externalPolicy(): PostgresRlsPolicy {
 
 function toPolicyNode(p: PostgresRlsPolicy): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    name: p.name,
-    prefix: p.prefix,
+    naming: parseNaming(p.name, p.prefix),
     tableName: p.tableName,
     namespaceId: p.namespaceId,
     operation: p.operation,
@@ -155,7 +152,7 @@ function policyDiffIssues(contract: Contract<SqlStorage>, schema: PostgresDataba
 
 describe('buildPostgresPlanDiff — RLS drift detection', () => {
   it('no contract policy + Prisma-managed DB policy → one extra diff issue', () => {
-    const issues = policyDiffIssues(buildContract([]), schemaWithPolicies([managedPolicy()]));
+    const issues = policyDiffIssues(buildContract([]), schemaWithPolicies([wireNamedPolicy()]));
 
     expect(issues).toHaveLength(1);
     expect(issueOutcome(issues[0]!)).toBe('not-expected');
@@ -171,7 +168,7 @@ describe('buildPostgresPlanDiff — RLS drift detection', () => {
   });
 
   it('matching contract + DB policy → no issues', () => {
-    const policy = managedPolicy();
+    const policy = wireNamedPolicy();
     const issues = policyDiffIssues(buildContract([policy]), schemaWithPolicies([policy]));
 
     expect(issues).toHaveLength(0);

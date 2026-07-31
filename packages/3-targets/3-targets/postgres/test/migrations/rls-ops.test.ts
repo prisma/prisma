@@ -1,4 +1,5 @@
 import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { rlsEnabledAst, rlsPolicyExistsAst } from '../../src/contract-free/checks';
 import {
@@ -32,8 +33,7 @@ function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: un
 describe('renderCreatePolicySql role-name validation', () => {
   function policyWithRoles(roles: string[]): PostgresRlsPolicy {
     return new PostgresRlsPolicy({
-      name: 'p_ab12cd34',
-      prefix: 'p',
+      naming: parseNaming('p_ab12cd34', 'p'),
       tableName: 'profiles',
       namespaceId: 'public',
       operation: 'select',
@@ -96,8 +96,7 @@ describe('renderCreatePolicySql role-name validation', () => {
 });
 
 const basePolicy = new PostgresRlsPolicy({
-  name: 'read_own_profiles_ab12cd34',
-  prefix: 'read_own_profiles',
+  naming: parseNaming('read_own_profiles_ab12cd34', 'read_own_profiles'),
   tableName: 'profiles',
   namespaceId: 'public',
   operation: 'select',
@@ -126,8 +125,7 @@ describe('createRlsPolicy op', () => {
   it('passes withCheck when present', async () => {
     const { lowerer, received } = recordingCheckLowerer();
     const policy = new PostgresRlsPolicy({
-      name: 'insert_own_profiles_ab12cd34',
-      prefix: 'insert_own_profiles',
+      naming: parseNaming('insert_own_profiles_ab12cd34', 'insert_own_profiles'),
       tableName: 'profiles',
       namespaceId: 'public',
       operation: 'insert',
@@ -149,8 +147,7 @@ describe('createRlsPolicy op', () => {
       ...basePolicy,
       using: basePolicy.using,
       withCheck: basePolicy.withCheck,
-      name: 'restrict_profiles_ab12cd34',
-      prefix: 'restrict_profiles',
+      naming: parseNaming('restrict_profiles_ab12cd34', 'restrict_profiles'),
       permissive: false,
     });
     await createRlsPolicy('public', 'profiles', policy, lowerer);

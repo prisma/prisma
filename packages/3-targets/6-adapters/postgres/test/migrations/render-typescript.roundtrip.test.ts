@@ -245,8 +245,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'p_ab12cd34',
-          prefix: 'p',
+          naming: { kind: 'wire', prefix: 'p', hash: 'ab12cd34' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -321,8 +320,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'tenant_read_f8d5e783',
-          prefix: 'tenant_read',
+          naming: { kind: 'wire', prefix: 'tenant_read', hash: 'f8d5e783' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -336,8 +334,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'Tenant members can read',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'Tenant members can read' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -370,8 +367,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
           'public',
           'user',
           new PostgresRlsPolicy({
-            name: 'Tenant members can read',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'Tenant members can read' },
             tableName: 'user',
             namespaceId: 'public',
             operation: 'select',
@@ -388,12 +384,15 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       testAdapter,
     );
 
-    // Delete the policy's required `name` key from the rendered source — the
-    // compile must fail on the missing property, proving the green run of
+    // Delete the policy's required `naming` key from the rendered source —
+    // the compile must fail on the missing property, proving the green run of
     // the sibling test is a real typecheck and not a vacuous pass.
-    const brokenSource = migration
-      .renderTypeScript()
-      .replace('  name: "Tenant members can read",\n', '');
+    const rendered = migration.renderTypeScript();
+    expect(rendered).toContain('naming: { kind: "exact", name: "Tenant members can read" },');
+    const brokenSource = rendered.replace(
+      '        naming: { kind: "exact", name: "Tenant members can read" },\n',
+      '',
+    );
     expect(brokenSource).not.toContain('Tenant members can read');
     await writeTypecheckDir(tmpDir, brokenSource);
 
@@ -402,7 +401,9 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       (error: unknown) => error,
     );
     expect(failure).toBeDefined();
-    expect(String((failure as { stdout?: string }).stdout)).toContain("Property 'name' is missing");
+    expect(String((failure as { stdout?: string }).stdout)).toContain(
+      "Property 'naming' is missing",
+    );
   });
 
   it('preserves RawSqlCall ops byte-for-byte through the render → execute round-trip', {

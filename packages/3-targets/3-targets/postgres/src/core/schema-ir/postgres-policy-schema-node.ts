@@ -1,24 +1,15 @@
 import type { DiffableNode, SchemaNodeRef } from '@prisma-next/framework-components/control';
 import { freezeNode } from '@prisma-next/framework-components/ir';
-import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import { nameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
 import { isArrayEqual } from '@prisma-next/utils/array-equal';
 import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
 import type { RlsPolicyOperation } from '../postgres-rls-policy';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 
 export interface PostgresPolicySchemaNodeInput {
-  /** Full physical name — the node's identity. */
-  readonly name: string;
-  /**
-   * The managed-mode name prefix — its PRESENCE is the naming-mode
-   * discriminator (there is no stored enum). Present ⇔ managed: the
-   * toolchain owns the physical name and `name === formatWireName(prefix,
-   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
-   * physical name whose identity the author owns entirely.
-   */
-  readonly prefix: string | undefined;
+  /** The node's identity. Read back off a built node with `namingOf`. */
+  readonly naming: SqlObjectNaming;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). */
@@ -49,7 +40,7 @@ export interface PostgresPolicySchemaNodeInput {
  * `PostgresRlsPolicy` contract entities / introspected rows.
  *
  * `id` is the full physical name. `isEqualTo` is mode-selected by the
- * receiver's `prefix`: a managed receiver (`prefix` present) compares ids
+ * receiver's `prefix`: a wire-named receiver (`prefix` present) compares ids
  * only — the wire name encodes a body hash, so name-equality is
  * body-equality and predicate bodies are never byte-compared (Postgres
  * reprints them). An exact receiver (`prefix` absent) compares content:
@@ -74,16 +65,8 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
 
   constructor(input: PostgresPolicySchemaNodeInput) {
     super();
-    if (input.prefix !== undefined) {
-      const parsed = parseWireName(input.name);
-      if (parsed === undefined || parsed.prefix !== input.prefix) {
-        throw new InternalError(
-          `PostgresPolicySchemaNode "${input.name}": prefix "${input.prefix}" does not match the wire name (expected "${formatWireName(input.prefix, '<8hex>')}").`,
-        );
-      }
-    }
-    this.name = input.name;
-    if (input.prefix !== undefined) this.prefix = input.prefix;
+    this.name = nameOf(input.naming);
+    if (input.naming.kind === 'wire') this.prefix = input.naming.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;
@@ -109,10 +92,10 @@ export class PostgresPolicySchemaNode extends SqlSchemaIRNode implements Diffabl
       'every diff-tree node the differ pairs is a SqlSchemaIRNode; the guard rejects non-policy kinds'
     >(other);
     PostgresPolicySchemaNode.assert(node);
-    // Managed short-circuits to id equality — deliberately a different shape
+    // A wire-named receiver short-circuits to id equality — deliberately a different shape
     // from SqlIndexIR.isEqualTo (which calls contentEquals in both modes):
     // the policy hash tuple is total over the fields contentEquals compares,
-    // so a managed policy's name equality already implies content equality.
+    // so a wire-named policy's name equality already implies content equality.
     if (this.prefix !== undefined) {
       return this.id === node.id;
     }

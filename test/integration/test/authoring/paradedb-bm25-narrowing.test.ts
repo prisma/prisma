@@ -157,7 +157,7 @@ describe('paradedb bm25 narrowing in TS authoring DSL', () => {
           return { models: { Doc } };
         },
       ),
-    ).toThrow(/options without a type/);
+    ).toThrow(/options requires an explicit type/);
   });
 
   it('imported bare model() rejects any type/options — strict by default', () => {

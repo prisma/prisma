@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { structuredError } from '@prisma-next/utils/structured-error';
 
 export function defaultIndexName(tableName: string, columns: readonly string[]): string {
@@ -10,6 +11,73 @@ export interface WireName {
   readonly prefix: string;
   /** The 8-lowercase-hex content-hash suffix. */
   readonly hash: string;
+}
+
+/**
+ * Where a name-identified object's name comes from: `wire` means the
+ * toolchain derives it as `formatWireName(prefix, hash)`; `exact` means the
+ * author owns it verbatim. Because the wire arm carries only the prefix
+ * and the hash, a name that disagrees with its prefix is unrepresentable.
+ *
+ * Storage and JSON stay flat (`name` plus an optional `prefix`);
+ * {@link parseNaming} is the way back in.
+ */
+export type SqlObjectNaming =
+  | { readonly kind: 'exact'; readonly name: string }
+  | ({ readonly kind: 'wire' } & WireName);
+
+/** The flat name the union describes. Inverse of {@link namingOf}. */
+export function nameOf(naming: SqlObjectNaming): string {
+  return naming.kind === 'wire' ? formatWireName(naming.prefix, naming.hash) : naming.name;
+}
+
+/**
+ * The naming a name-identified node was built with, read back off the flat
+ * pair it stores. Inverse of {@link nameOf}, and total for that
+ * reason: the constructor derived `name` from the union, so the two agree.
+ * Flat data arriving from outside the process goes through
+ * {@link parseNaming} instead.
+ */
+export function namingOf(name: string, prefix: string | undefined): SqlObjectNaming {
+  if (prefix === undefined) return { kind: 'exact', name };
+  return { kind: 'wire', prefix, hash: name.slice(prefix.length + 1) };
+}
+
+/**
+ * Reads naming out of flat stored data — deserialized contract JSON and the
+ * literals a user may hand-edit, the one place a name and a prefix can still
+ * disagree. Throws when a declared prefix does not parse back out of the name.
+ */
+export function parseNaming(name: string, prefix: string | undefined): SqlObjectNaming {
+  if (prefix === undefined) return { kind: 'exact', name };
+  const parsed = parseWireName(name);
+  if (parsed === undefined || parsed.prefix !== prefix) {
+    throw new ContractValidationError(
+      `"${name}": prefix "${prefix}" does not match the wire name (expected "${formatWireName(prefix, '<8hex>')}").`,
+      'storage',
+    );
+  }
+  return { kind: 'wire', prefix: parsed.prefix, hash: parsed.hash };
+}
+
+/**
+ * The naming an object read out of a live catalog has: a wire-shaped name
+ * gets the wire arm so the rename pass can pair it by prefix, and every
+ * other name is exact.
+ *
+ * The wire answer is a claim about the name's SHAPE only — the hash is
+ * deliberately not recomputed from the object's content here. Nothing
+ * downstream reads it as more than that: the differ always asks the
+ * contract-derived side to choose the comparison, so a shape-only wire
+ * claim on the introspected side never suppresses a body comparison, and
+ * `contract infer` recomputes the hash independently before it will emit an
+ * index as wire-named.
+ */
+export function namingOfLiveName(name: string): SqlObjectNaming {
+  const wire = parseWireName(name);
+  return wire === undefined
+    ? { kind: 'exact', name }
+    : { kind: 'wire', prefix: wire.prefix, hash: wire.hash };
 }
 
 const WIRE_NAME_PATTERN = /^(.+)_([0-9a-f]{8})$/;

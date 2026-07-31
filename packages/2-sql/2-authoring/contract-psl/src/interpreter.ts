@@ -1002,10 +1002,13 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         columnNames = mapped;
       }
       indexNodes.push(
-        // The interpreter's own diagnostics pre-empt the neither/both
-        // element cases; the cast defers final enforcement to
-        // lowerAuthoredIndex's runtime guard.
-        blindCast<IndexNode, 'columns-xor-expression enforced by lowerAuthoredIndex'>({
+        // PSL attribute arguments are assembled one at a time, so the
+        // compiler cannot see either union arm; the interpreter's own
+        // span-anchored diagnostics reject both invalid shapes first.
+        blindCast<
+          IndexNode,
+          'dynamically assembled from PSL arguments; the interpreter diagnoses both invalid shapes and lowerAuthoredIndex re-checks'
+        >({
           ...ifDefined('columns', columnNames),
           ...ifDefined('expression', parsed.expression),
           where: parsed.where,

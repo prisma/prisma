@@ -1,5 +1,6 @@
 import { asNamespaceId, type ScalarFieldType } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import {
   ForeignKey,
   type ForeignKeyOptions,
@@ -46,8 +47,7 @@ export function index(
   },
 ): Index {
   return new Index({
-    name,
-    prefix: opts?.prefix,
+    naming: parseNaming(name, opts?.prefix),
     columns,
     where: undefined,
     unique: opts?.unique ?? false,

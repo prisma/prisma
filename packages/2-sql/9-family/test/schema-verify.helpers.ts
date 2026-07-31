@@ -13,11 +13,14 @@ import {
 import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import {
+  indexInputFromSerialized,
   type ReferentialAction,
+  type SerializedIndex,
   SqlStorage,
   StorageTable,
   type StorageTableInput,
 } from '@prisma-next/sql-contract/types';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import type { SqlIndexIRInput, SqlReferentialAction } from '@prisma-next/sql-schema-ir/types';
 import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
@@ -91,16 +94,7 @@ export function createContractTable(
       onUpdate?: ReferentialAction;
     }>;
     uniques?: ReadonlyArray<{ columns: readonly string[]; name?: string }>;
-    indexes?: ReadonlyArray<{
-      name: string;
-      prefix?: string;
-      columns?: readonly string[];
-      expression?: string;
-      where?: string;
-      unique: boolean;
-      type?: string;
-      options?: Record<string, unknown>;
-    }>;
+    indexes?: readonly SerializedIndex[];
     control?: ControlPolicy;
   },
 ): StorageTable {
@@ -123,7 +117,7 @@ export function createContractTable(
       target: { ...fk.target, namespaceId: asNamespaceId(fk.target.namespaceId) },
     })),
     uniques: options?.uniques ?? [],
-    indexes: options?.indexes ?? [],
+    indexes: (options?.indexes ?? []).map(indexInputFromSerialized),
     ...ifDefined('primaryKey', options?.primaryKey),
     ...ifDefined('control', options?.control),
   } satisfies StorageTableInput;
@@ -180,8 +174,7 @@ export function createSchemaTable(
     indexes: (options?.indexes ?? []).map(
       (idx) =>
         ({
-          name: idx.name,
-          prefix: idx.prefix,
+          naming: parseNaming(idx.name, idx.prefix),
           columns: idx.columns,
           expression: idx.expression,
           where: idx.where,

@@ -12,6 +12,7 @@ import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-nex
 import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { index } from '@prisma-next/sql-contract/factories';
 import { SqlStorage, type StorageColumn, type StorageTable } from '@prisma-next/sql-contract/types';
 import { PrimaryKey } from '@prisma-next/sql-schema-ir/types';
 import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
@@ -116,7 +117,7 @@ describe('SQLite planner + introspection round-trip', () => {
             }),
           },
           primaryKey: { columns: ['id'] },
-          indexes: [{ columns: ['email'], name: 'idx_users_email', unique: false }],
+          indexes: [index('idx_users_email', ['email'])],
         }),
       });
 

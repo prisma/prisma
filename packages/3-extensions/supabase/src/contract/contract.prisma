@@ -71,6 +71,13 @@ namespace auth {
     webauthnChallenges       WebauthnChallenges[]
     webauthnCredentials      WebauthnCredentials[]
 
+    @@index([confirmationToken], map: "confirmation_token_idx", where: "((confirmation_token)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([emailChangeTokenCurrent], map: "email_change_token_current_idx", where: "((email_change_token_current)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([emailChangeTokenNew], map: "email_change_token_new_idx", where: "((email_change_token_new)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([reauthenticationToken], map: "reauthentication_token_idx", where: "((reauthentication_token)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([recoveryToken], map: "recovery_token_idx", where: "((recovery_token)::text !~ '^[0-9 ]*$'::text)", unique: true)
+    @@index([email], map: "users_email_partial_key", where: "(is_sso_user = false)", unique: true)
+    @@index(expression: "instance_id, lower(email::text)", map: "users_instance_id_email_idx")
     @@index([instanceId], map: "users_instance_id_idx")
     @@index([isAnonymous], map: "users_is_anonymous_idx")
     @@rls
@@ -249,7 +256,9 @@ namespace auth {
     user                      AuthUser              @relation(fields: [userId], references: [id], onDelete: Cascade, map: "mfa_factors_user_id_fkey")
 
     @@index([userId, createdAt], map: "factor_id_created_at_idx")
+    @@index([friendlyName, userId], map: "mfa_factors_user_friendly_name_unique", where: "(TRIM(BOTH FROM friendly_name) <> ''::text)", unique: true)
     @@index([userId], map: "mfa_factors_user_id_idx")
+    @@index([userId, phone], map: "unique_phone_factor_per_user", unique: true)
     @@rls
     @@map("mfa_factors")
   }
@@ -290,6 +299,7 @@ namespace auth {
     client              OauthClients                      @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "oauth_authorizations_client_id_fkey", index: false)
     user                AuthUser?                         @relation(fields: [userId], references: [id], onDelete: Cascade, map: "oauth_authorizations_user_id_fkey", index: false)
 
+    @@index([expiresAt], map: "oauth_auth_pending_exp_idx", where: "(status = 'pending'::auth.oauth_authorization_status)")
     @@map("oauth_authorizations")
   }
 
@@ -314,6 +324,8 @@ namespace auth {
     user      AuthUser     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "oauth_consents_user_id_fkey", index: false)
 
     @@unique([userId, clientId], map: "oauth_consents_user_client_unique")
+    @@index([clientId], map: "oauth_consents_active_client_idx", where: "(revoked_at IS NULL)")
+    @@index([userId, clientId], map: "oauth_consents_active_user_client_idx", where: "(revoked_at IS NULL)")
     @@index([userId, grantedAt], map: "oauth_consents_user_order_idx")
     @@map("oauth_consents")
   }
@@ -330,6 +342,7 @@ namespace auth {
 
     @@index([relatesTo], map: "one_time_tokens_relates_to_hash_idx", type: "hash")
     @@index([tokenHash], map: "one_time_tokens_token_hash_hash_idx", type: "hash")
+    @@index([userId, tokenType], map: "one_time_tokens_user_id_token_type_key", unique: true)
     @@rls
     @@map("one_time_tokens")
   }
@@ -365,6 +378,7 @@ namespace auth {
     samlRelayStates SamlRelayStates[]
     ssoDomains      SsoDomains[]
 
+    @@index(expression: "lower(resource_id)", map: "sso_providers_resource_id_idx", unique: true)
     @@index([resourceId], map: "sso_providers_resource_id_pattern_idx")
     @@rls
     @@map("sso_providers")
@@ -421,6 +435,7 @@ namespace auth {
     updatedAt     DateTime?    @map("updated_at")
     ssoProvider   SsoProviders @relation(fields: [ssoProviderId], references: [id], onDelete: Cascade, map: "sso_domains_sso_provider_id_fkey")
 
+    @@index(expression: "lower(domain)", map: "sso_domains_domain_idx", unique: true)
     @@index([ssoProviderId], map: "sso_domains_sso_provider_id_idx")
     @@rls
     @@map("sso_domains")
@@ -457,6 +472,7 @@ namespace auth {
     lastUsedAt      DateTime? @map("last_used_at")
     user            AuthUser  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "webauthn_credentials_user_id_fkey")
 
+    @@index([credentialId], map: "webauthn_credentials_credential_id_key", unique: true)
     @@index([userId], map: "webauthn_credentials_user_id_idx")
     @@map("webauthn_credentials")
   }
@@ -535,6 +551,7 @@ namespace storage {
     icebergNamespaces IcebergNamespaces[]
     icebergTables     IcebergTables[]
 
+    @@index([name], map: "buckets_analytics_unique_name_idx", where: "(deleted_at IS NULL)", unique: true)
     @@rls
     @@map("buckets_analytics")
   }
@@ -561,6 +578,7 @@ namespace storage {
     icebergTables IcebergTables[]
     catalog       BucketsAnalytics @relation(fields: [catalogId], references: [id], onDelete: Cascade, map: "iceberg_namespaces_catalog_id_fkey", index: false)
 
+    @@index([catalogId, name], map: "idx_iceberg_namespaces_bucket_id", unique: true)
     @@rls
     @@map("iceberg_namespaces")
   }
@@ -580,6 +598,8 @@ namespace storage {
     catalog       BucketsAnalytics  @relation(fields: [catalogId], references: [id], onDelete: Cascade, map: "iceberg_tables_catalog_id_fkey", index: false)
     namespace     IcebergNamespaces @relation(fields: [namespaceId], references: [id], onDelete: Cascade, map: "iceberg_tables_namespace_id_fkey", index: false)
 
+    @@index([location], map: "idx_iceberg_tables_location", unique: true)
+    @@index([catalogId, namespaceId, name], map: "idx_iceberg_tables_namespace_id", unique: true)
     @@rls
     @@map("iceberg_tables")
   }
@@ -609,6 +629,7 @@ namespace storage {
     s3MultipartUploads      S3MultipartUploads[]
     s3MultipartUploadsParts S3MultipartUploadsParts[]
 
+    @@index([name], map: "bname", unique: true)
     @@rls
     @@map("buckets")
   }
@@ -664,7 +685,9 @@ namespace storage {
     userMetadata   Jsonb?         @map("user_metadata")
     bucket         StorageBucket? @relation(fields: [bucketId], references: [id], map: "objects_bucketId_fkey", index: false)
 
+    @@index([bucketId, name], map: "bucketid_objname", unique: true)
     @@index([bucketId, name], map: "idx_objects_bucket_id_name")
+    @@index(expression: "bucket_id, lower(name)", map: "idx_objects_bucket_id_name_lower")
     @@index([name], map: "name_prefix_search")
     @@rls
     @@map("objects")
@@ -682,6 +705,7 @@ namespace storage {
     updatedAt             DateTime       @default(now()) @map("updated_at")
     bucket                BucketsVectors @relation(fields: [bucketId], references: [id], map: "vector_indexes_bucket_id_fkey", index: false)
 
+    @@index([name, bucketId], map: "vector_indexes_name_bucket_id_idx", unique: true)
     @@rls
     @@map("vector_indexes")
   }

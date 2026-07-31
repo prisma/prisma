@@ -21,20 +21,14 @@ describe('formatWireName', () => {
       ['read_own_profiles', 'deadbeef'],
       ['users_email_idx', '01234567'],
     ] as const) {
-      expect(parseWireName(formatWireName(prefix, hash))).toEqual({
-        prefix,
-        hash,
-      });
+      expect(parseWireName(formatWireName(prefix, hash))).toEqual({ prefix, hash });
     }
   });
 });
 
 describe('parseWireName', () => {
   it('splits a wire name into prefix and hash', () => {
-    expect(parseWireName('p_read_ab12cd34')).toEqual({
-      prefix: 'p_read',
-      hash: 'ab12cd34',
-    });
+    expect(parseWireName('p_read_ab12cd34')).toEqual({ prefix: 'p_read', hash: 'ab12cd34' });
   });
 
   it('keeps underscores inside the prefix (only the final segment is the hash)', () => {
@@ -258,6 +252,24 @@ describe('computeIndexContentHash', () => {
       const gin = computeIndexContentHash({ ...base, type: 'gin' });
       expect(btree).not.toBe(gin);
     });
+  });
+});
+
+describe('pinned wire hashes (stability commitment)', () => {
+  // Literal 8-hex pins for representative content tuples. If any of these
+  // change, the tuple encoding changed and EVERY existing wire name
+  // re-suffixes — that is a breaking change and ships only with an explicit
+  // upgrade instruction, never as a silent refactor.
+  it.each([
+    [{ columns: ['email'], unique: false }, '46df9cad'],
+    [{ columns: ['email'], unique: true }, '34912d96'],
+    [{ columns: ['email'], unique: false, type: 'btree' }, '73653512'],
+    [{ columns: ['email'], unique: false, type: 'hash' }, '239baf6b'],
+    [{ expression: 'lower(email)', unique: false }, '17273133'],
+    [{ columns: ['email'], unique: false, where: '(email IS NOT NULL)' }, '26557448'],
+    [{ columns: ['email'], unique: false, type: 'btree', options: { fillfactor: 70 } }, '72bcb92e'],
+  ] as const)('%j pins to %s', (parts, expected) => {
+    expect(computeIndexContentHash(parts)).toBe(expected);
   });
 });
 

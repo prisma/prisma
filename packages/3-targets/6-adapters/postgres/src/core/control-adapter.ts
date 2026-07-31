@@ -31,7 +31,7 @@ import type {
   SqlExecuteRequest,
 } from '@prisma-next/sql-relational-core/ast';
 import { isDdlNode } from '@prisma-next/sql-relational-core/ast';
-import { parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import { namingOfLiveName } from '@prisma-next/sql-schema-ir/naming';
 import type {
   PrimaryKeyInput,
   SqlCheckConstraintIRInput,
@@ -1182,10 +1182,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         const isExpression = idx.elements.some((el) => el.attname === null);
         const columnNames = idx.elements.flatMap((el) => (el.attname !== null ? [el.attname] : []));
         const base = {
-          name: idx.name,
-          // Rename-pass grouping only, like policy introspection: undefined
-          // when the live name does not follow the wire-name shape.
-          prefix: parseWireName(idx.name)?.prefix,
+          naming: namingOfLiveName(idx.name),
           where: idx.where ?? undefined,
           unique: idx.unique,
           partial: idx.where !== null,
@@ -1274,13 +1271,8 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         ...new Set(parsePgNameArray(row.roles).map((r) => r.toLowerCase())),
       ].sort();
       const permissive = row.permissive.toUpperCase() === 'PERMISSIVE';
-      // Rename-pass grouping only, like index introspection: undefined when
-      // the live name does not follow the wire-name shape. Contract infer
-      // derives a `?? policyname` fallback, but as the SOURCE HEAD
-      // identifier of the emitted policy block — never as this prefix.
       const policy = new PostgresPolicySchemaNode({
-        name: row.policyname,
-        prefix: parseWireName(row.policyname)?.prefix,
+        naming: namingOfLiveName(row.policyname),
         tableName: row.tablename,
         namespaceId: row.schemaname,
         operation,

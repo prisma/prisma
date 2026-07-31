@@ -68,7 +68,7 @@ export interface MaterializedTableConstraints {
  * Lowers a table's authored foreign keys into the discrete entities
  * `contract.json` persists: a `constraint: false` FK contributes no
  * `foreignKeys[]` entry, and an `index: true` FK whose columns aren't already
- * backed by a declared index/unique/primary-key contributes a managed
+ * backed by a declared index/unique/primary-key contributes a wire-named
  * `indexes[]` entry (default prefix + content-hash wire name). Declared
  * indexes always survive unchanged; a second FK sharing already-synthesized
  * backing columns does not mint a duplicate index.

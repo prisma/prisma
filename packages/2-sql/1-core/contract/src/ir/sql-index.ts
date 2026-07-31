@@ -1,6 +1,6 @@
 import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { freezeNode } from '@prisma-next/framework-components/ir';
-import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import { nameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
 import { SqlNode } from './sql-node';
 
 /**
@@ -32,17 +32,8 @@ export type IndexElements =
  * `SqlIndexIRInput` convention.
  */
 export type IndexInput = IndexElements & {
-  /** Full wire name (managed) or verbatim physical name (exact). Always present. */
-  readonly name: string;
-  /**
-   * The managed-mode name prefix — its PRESENCE is the naming-mode
-   * discriminator (there is no stored enum). Present ⇔ managed: the
-   * toolchain owns the physical name and `name === formatWireName(prefix,
-   * <8hex content hash>)`, so the author chooses the prefix but never the
-   * whole name. Absent ⇔ exact: `name` is an adopted verbatim physical name
-   * (PSL `map:`) whose identity the author owns entirely.
-   */
-  readonly prefix: string | undefined;
+  /** The index's identity. Read back off a built node with `namingOf`. */
+  readonly naming: SqlObjectNaming;
   /** Opaque SQL: partial-index predicate (WHERE body, without the keyword). */
   readonly where: string | undefined;
   /** Rendered as CREATE UNIQUE INDEX. */
@@ -54,7 +45,7 @@ export type IndexInput = IndexElements & {
 /**
  * SQL Contract IR node for a table-level secondary index, name-identified:
  * `name` is the full physical name; a present `prefix` marks the index as
- * managed (`name` is `formatWireName(prefix, <8hex>)`), an absent `prefix`
+ * wire-named (`name` is `formatWireName(prefix, <8hex>)`), an absent `prefix`
  * marks it exact (the name is adopted verbatim).
  *
  * `expression`, `where`, and `unique` are genuine SQL-family attributes —
@@ -72,7 +63,7 @@ export type IndexInput = IndexElements & {
 export class Index extends SqlNode {
   readonly name: string;
   readonly unique: boolean;
-  /** See {@link IndexInput.prefix} — presence is the naming-mode discriminator. */
+  /** Derived from the wire naming arm — presence is the naming-mode discriminator in the flat JSON. */
   declare readonly prefix?: string;
   declare readonly columns?: readonly string[];
   declare readonly expression?: string;
@@ -82,7 +73,8 @@ export class Index extends SqlNode {
 
   constructor(input: IndexInput) {
     super();
-    if (input.name === undefined || input.name.length === 0) {
+    const name = nameOf(input.naming);
+    if (name.length === 0) {
       throw new ContractValidationError(
         'Index: every index carries a full physical name; an expression index must be explicitly named (a default name cannot be derived from an expression).',
         'storage',
@@ -90,22 +82,13 @@ export class Index extends SqlNode {
     }
     if ((input.columns === undefined) === (input.expression === undefined)) {
       throw new ContractValidationError(
-        `Index "${input.name}": exactly one of columns or expression must be set.`,
+        `Index "${name}": exactly one of columns or expression must be set.`,
         'storage',
       );
     }
-    if (input.prefix !== undefined) {
-      const parsed = parseWireName(input.name);
-      if (parsed === undefined || parsed.prefix !== input.prefix) {
-        throw new ContractValidationError(
-          `Index "${input.name}": prefix "${input.prefix}" does not match the wire name (expected "${formatWireName(input.prefix, '<8hex>')}").`,
-          'storage',
-        );
-      }
-    }
-    this.name = input.name;
+    this.name = name;
     this.unique = input.unique;
-    if (input.prefix !== undefined) this.prefix = input.prefix;
+    if (input.naming.kind === 'wire') this.prefix = input.naming.prefix;
     if (input.columns !== undefined) this.columns = input.columns;
     if (input.expression !== undefined) this.expression = input.expression;
     if (input.where !== undefined) this.where = input.where;

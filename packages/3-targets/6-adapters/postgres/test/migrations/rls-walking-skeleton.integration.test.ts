@@ -2,7 +2,7 @@ import { type Contract, coreHash, profileHash } from '@prisma-next/contract/type
 import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
+import { normalizeSqlBody, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
 import {
   PostgresRlsEnablement,
@@ -44,8 +44,7 @@ function buildRlsWalkingSkeletonContract(): Contract<SqlStorage> {
   const role = new PostgresRole({ name: 'app_user', namespaceId: 'public' });
 
   const policy = new PostgresRlsPolicy({
-    name: POLICY_WIRE_NAME,
-    prefix: POLICY_PREFIX,
+    naming: parseNaming(POLICY_WIRE_NAME, POLICY_PREFIX),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',

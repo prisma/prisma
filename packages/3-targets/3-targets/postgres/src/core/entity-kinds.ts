@@ -1,7 +1,7 @@
 import type { EntityKindDescriptor } from '@prisma-next/framework-components/ir';
 import { PostgresNativeEnum, type PostgresNativeEnumInput } from './postgres-native-enum';
 import { PostgresRlsEnablement, type PostgresRlsEnablementInput } from './postgres-rls-enablement';
-import { PostgresRlsPolicy, type PostgresRlsPolicyInput } from './postgres-rls-policy';
+import { PostgresRlsPolicy } from './postgres-rls-policy';
 import { PostgresRole, type PostgresRoleInput } from './postgres-role';
 import {
   PostgresNativeEnumSchema,
@@ -9,11 +9,12 @@ import {
   PostgresRlsPolicySchema,
   PostgresRoleSchema,
 } from './postgres-validators';
+import { policyInputFromSerialized, type SerializedRlsPolicy } from './serialized-rls-policy';
 
-export const policyEntityKind: EntityKindDescriptor<PostgresRlsPolicyInput, PostgresRlsPolicy> = {
+export const policyEntityKind: EntityKindDescriptor<SerializedRlsPolicy, PostgresRlsPolicy> = {
   kind: 'policy',
   schema: PostgresRlsPolicySchema,
-  construct: (input) => new PostgresRlsPolicy(input),
+  construct: (input) => new PostgresRlsPolicy(policyInputFromSerialized(input)),
 };
 
 export const roleEntityKind: EntityKindDescriptor<PostgresRoleInput, PostgresRole> = {
