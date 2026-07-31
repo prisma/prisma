@@ -203,15 +203,21 @@ const byKind = await db.orm.User
 
 `aggregate` exposes `.count()`, `.sum(field)`, `.avg(field)`, `.min(field)`, `.max(field)`. Project the aggregates into named result keys; the result type narrows accordingly.
 
-**Aggregate nullability matches SQL semantics:**
+**An aggregate's type is the one its target declares, and its nullability matches SQL semantics.** Both are read from the contract, so the type below is what you get on PostgreSQL:
 
 | Aggregate | Type | Empty result |
 |---|---|---|
-| `count()` | `number` | `0` |
-| `sum(field)` | `number \| null` | `null` (SQL `SUM` over zero rows is `NULL`) |
-| `avg(field)` | `number \| null` | `null` |
-| `min(field)` | `number \| null` | `null` |
-| `max(field)` | `number \| null` | `null` |
+| `count()` | `bigint` | `0n` |
+| `sum(field)` over `int2` / `int4` | `bigint \| null` | `null` (SQL `SUM` over zero rows is `NULL`) |
+| `sum(field)` over `int8` | decimal `string \| null` | `null` |
+| `sum(field)` over `float4` / `float8` | `number \| null` | `null` |
+| `avg(field)` over any integer | decimal `string \| null` | `null` |
+| `avg(field)` over a float | `number \| null` | `null` |
+| `min(field)` / `max(field)` | the column's own type `\| null` — `text` where the column is `varchar` | `null` |
+
+A count is a `bigint` because a count is a cardinality: it is not capped at 2^53, and neither is a sum of integers, which PostgreSQL widens to `int8` for exactly that reason. An integer average is `numeric`, whose canonical form is a decimal string — a `number` cannot carry it. Two consequences to write for: `count === 2` is false when the count is `2n`, and `JSON.stringify` throws on a bigint, so render it as `String(count)`.
+
+**SQLite differs on `avg`**, which is always real there and reads as a `number`; its integer sums are `bigint` like PostgreSQL's. A query written for both handles both.
 
 This isn't a typing bug — it's faithful to what the database returns. Coalesce client-side when you want zero-fill:
 
@@ -219,7 +225,7 @@ This isn't a typing bug — it's faithful to what the database returns. Coalesce
 const revenue = await db.orm.Sale
   .where((s) => s.day.gte(start))
   .aggregate((a) => ({ total: a.sum('amount') }));
-// revenue.total: number | null
+// revenue.total: bigint | null (an int4 column's sum widens to int8)
 
 const safe = revenue.total ?? 0;   // ← apply at the consumption site, not in the aggregate spec.
 ```
@@ -338,7 +344,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 
 1. **Reaching for the lower-level lane when the ORM would have done.** The ORM covers most CRUD shapes; drop to `db.sql` only for shapes the ORM can't express. Default to the ORM.
 2. **Using `.all()` when you wanted one row.** `.all()` issues no implicit limit. Use `.first()` or `.first({ pk })`.
-3. **Coalescing `count()` with `?? 0` "just in case".** `count()` is `number`, not `number | null` — the runtime already substitutes `0` for the empty case. The `?? 0` belongs on `sum` / `avg` / `min` / `max`.
+3. **Coalescing `count()` with `?? 0` "just in case".** `count()` is `bigint`, not `bigint | null` — SQL answers an empty set with `0n`. The `?? 0` belongs on `sum` / `avg` / `min` / `max`, and its zero should match the aggregate's own type (`0n` for an integer sum, `'0'` where the result is a decimal string).
 4. **Reaching for `.between(a, b)` on a field proxy.** It doesn't exist. Either chain `.where((m) => m.field.gte(a)).where((m) => m.field.lte(b))` or use `and(m.field.gte(a), m.field.lte(b))` inside one `.where()` clause.
 5. **Importing `and` / `or` / `not` from a Postgres façade subpath.** The combinators currently live in `@internal/sql-orm-client` — an internal package. See *What Prisma Next doesn't do yet* in [`SKILL.md`](./SKILL.md).
 6. **Trying to `db.sql.from(tables.user)`.** That surface does not exist. The builder is table-shaped: `db.sql.<tableName>.select(...)`. There is no `db.schema.tables` either.
@@ -358,7 +364,8 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 
 - [ ] Chose the right lane (ORM by default; `db.sql` for shapes the ORM doesn't express).
 - [ ] Used `.first()` / `.first({ pk })` for single-row reads — not `.all()`.
-- [ ] Coalesced `sum` / `avg` / `min` / `max` results with `?? 0` at the consumption site when zero-fill is desired — did NOT coalesce `count()`, which is `number`.
+- [ ] Coalesced `sum` / `avg` / `min` / `max` results at the consumption site when zero-fill is desired, with a zero of the aggregate's own type — did NOT coalesce `count()`, which is `bigint` and never null.
+- [ ] Compared and serialised aggregate results as what they are — `2n` not `2`, `String(count)` not bare `JSON.stringify`.
 - [ ] Expressed ranges as chained `.where(...)` clauses or a single `and(...)` clause — did NOT reach for a non-existent `.between(...)` operator.
 - [ ] For cursor pagination, used `.orderBy(...).cursor({ field: lastValue }).take(n).all()` — did NOT hand-write a `.where(p => p.field.lt(cursor))` workaround when the `.cursor()` API serves the same purpose.
 - [ ] For ORM combinators, imported `and` / `or` / `not` from the (currently internal) `@internal/sql-orm-client` and noted the façade gap to the user.

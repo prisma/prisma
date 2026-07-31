@@ -39,7 +39,7 @@ If multiple sources disagree, the more specific one wins and the less specific i
 ## Projection rules
 
 - `db.user.select('alias', (f) => f.id)` yields `{ alias: number }` based on contract column type
-- `db.user.select('alias', (_f, fns) => fns.count())` yields `{ alias: number }`
+- `db.user.select('alias', (_f, fns) => fns.count())` yields the count's declared result type — `{ alias: bigint }` on both built-in targets
 - `db.order.select('alias', (f, fns) => fns.sum(f.amount))` yields the aggregate result type per the aggregate rules below
 - Duplicate aliases are a compile-time error in strict mode and produce a warning in permissive mode
 - `SELECT *` is allowed by the core but strongly discouraged and typically linted as error
@@ -87,15 +87,16 @@ Given `FROM A` and a selected field sourced from table `T`:
 
 ## Aggregate typing rules
 
+An aggregate's result type is declared by the target and resolved through the contract's emitted `aggregateTypes` map, per operation and per input codec. The rules below are what the built-in targets declare, not a scheme the typing layer imposes; a target that widens differently states so in its own descriptors. Nullability is declared alongside, and matches SQL: an empty input set is `NULL` for everything but `COUNT`.
+
 Assume no FILTER and no DISTINCT unless specified:
 
-- **COUNT(*)** yields `number` and is non-null
-- **COUNT(expr)** yields `number` and is non-null
-- **SUM(int*)** yields `number | null`
+- **COUNT(\*)** and **COUNT(expr)** yield `bigint` and are non-null — a count is a cardinality, and both targets count into a 64-bit integer
+- **SUM(int\*)** yields `bigint | null` on PostgreSQL's `int2` / `int4` (the sum widens to `int8`) and on SQLite's integers; PostgreSQL's `sum(int8)` is `numeric`, which reads as a decimal `string | null`
   - null when the group contains zero rows or all expr are null
-- **SUM(float*)** yields `number | null` with the same semantics
-- **AVG(*)** yields `number | null`
-- **MIN(expr)** and **MAX(expr)** yield `T | null` where `T` is the expression type
+- **SUM(float\*)** yields `number | null` with the same nullability
+- **AVG(\*)** diverges by target: PostgreSQL computes an integer average as `numeric` — a decimal `string | null` — and a float average as `number | null`; SQLite's average is always real, so `number | null`
+- **MIN(expr)** and **MAX(expr)** yield `T | null` where `T` is the expression's own type, except where the database widens it: PostgreSQL's extremum over `varchar` returns `text`
 - **ARRAY_AGG(T)** yields `T[] | null` by default
   - Adapters may flip to `T[]` if they guarantee `COALESCE(array_agg(...), '{}')` and must advertise `arrayAggCoalescesEmpty` capability
 - **JSON_AGG(T)** yields `unknown[] | null` by default
@@ -155,15 +156,25 @@ db.user
 
 ### Aggregates
 
-```typescript
-// Count is never null
-db.order.select('c', (_f, fns) => fns.count())
-// { c: number }
+An aggregate's result type is the target's to declare, resolved from the contract's emitted `aggregateTypes` map per operation and input codec — not the input column's type restated. Nullability comes from the same declaration.
 
-// Sum may be null when no rows
+```typescript
+// Count is never null, and reads through its target's count codec
+db.order.select('c', (_f, fns) => fns.count())
+// { c: bigint }
+
+// Sum may be null when no rows, and widens per the target's rule:
+// over PostgreSQL's int4 the sum is an int8
 db.order.select('s', (f, fns) => fns.sum(f.amount))
-// { s: number | null }
+// { s: bigint | null }
+
+// The targets diverge where the databases do: an integer average is
+// numeric on PostgreSQL — a decimal string — and real on SQLite
+db.order.select('a', (f, fns) => fns.avg(f.amount))
+// PostgreSQL: { a: string | null }   SQLite: { a: number | null }
 ```
+
+See [the codec authoring guide's aggregate section](../../reference/codec-authoring-guide.md#aggregate-result-codecs) for how a target declares these.
 
 ### ORM 1:N nested via json_agg
 
@@ -206,4 +217,4 @@ db.order.select('s', (f, fns) => fns.sum(f.amount))
 
 - Whether to surface a user-level option to always coalesce collection aggregates for ergonomics, trading some SQL strictness for simpler types
 - Strategy for typing window functions beyond `row_number()` and `rank()` defaults
-- Standard branded numeric types for COUNT, SUM, and AVG to help downstream budget rules
+- Whether any aggregate warrants a branded result type beyond the codec its target declares

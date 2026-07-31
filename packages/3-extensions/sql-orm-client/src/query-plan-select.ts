@@ -74,11 +74,13 @@ type CursorOrderEntry = {
  *   correlated subquery, a combine branch, or the object a child row set is
  *   aggregated from. Its parts were made canonical at the level that produced
  *   them; this level only nests it.
- * - `native`: the value has no codec identity. An aggregate is the case that
- *   arises today: `COUNT(*)` and `SUM(col)` are computed, and the aggregate's
- *   own result type is not the column's codec. Native is what a value with no
- *   codec identity means, which is a different thing from defaulting a codec
- *   to identity — that, the project forbids.
+ * - `native`: the value has no codec identity. The case that reaches it is an
+ *   aggregate the target declares no overload for — SQLite computes `sum` over
+ *   a text column from whatever leading numbers the rows held, and declines to
+ *   type the result. Native is what a value with no codec identity means, which
+ *   is a different thing from defaulting a codec to identity — that, the
+ *   project forbids. An aggregate the target does declare carries the codec the
+ *   registry resolved for it, like any other value.
  *
  * A document never carries a codec and a codec-bearing column is never a
  * document, so the first two cases cannot both apply.

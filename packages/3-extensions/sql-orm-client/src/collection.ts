@@ -706,7 +706,7 @@ export class Collection<
    *   .where({ published: true })
    *   .groupBy('userId')
    *   .aggregate((agg) => ({ count: agg.count(), totalViews: agg.sum('views') }));
-   * // [{ userId: 1, count: 3, totalViews: 120 }, ...]
+   * // [{ userId: 1, count: 3n, totalViews: 120n }, ...]
    * ```
    */
   groupBy<
@@ -741,7 +741,7 @@ export class Collection<
    *
    * ```typescript
    * const users = await db.orm.User.include('posts', (posts) => posts.count()).all();
-   * // each user row: { ...user, posts: number }
+   * // each user row: { ...user, posts: bigint }
    * ```
    */
   count(): IncludeScalar<AggregateResultFor<TContract, 'count'>> {
@@ -757,7 +757,7 @@ export class Collection<
    *
    * ```typescript
    * const users = await db.orm.User.include('posts', (posts) => posts.sum('views')).all();
-   * // each user row: { ...user, posts: number | null }
+   * // each user row: { ...user, posts: bigint | null } — an int4 column's sum widens to int8
    * ```
    */
   sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
@@ -780,7 +780,7 @@ export class Collection<
    *
    * ```typescript
    * const users = await db.orm.User.include('posts', (posts) => posts.avg('views')).all();
-   * // each user row: { ...user, posts: number | null }
+   * // each user row: { ...user, posts: string | null } — PostgreSQL averages integers as numeric
    * ```
    */
   avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
@@ -856,7 +856,7 @@ export class Collection<
    * ).all();
    * // each user row: {
    * //   ...user,
-   * //   posts: { recent: Post[]; total: number; averageViews: number | null };
+   * //   posts: { recent: Post[]; total: bigint; averageViews: string | null };
    * // }
    * ```
    */
@@ -1159,7 +1159,7 @@ export class Collection<
    *     averageViews: agg.avg('views'),
    *     maxViews: agg.max('views'),
    *   }));
-   * // { total: 42, averageViews: 17.3, maxViews: 9001 }
+   * // { total: 42n, averageViews: '17.3000000000000000', maxViews: 9001 }
    * ```
    *
    * Accepts an optional `configure` callback that receives a
