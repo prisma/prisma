@@ -24,11 +24,11 @@ import {
 import { rm } from 'node:fs/promises';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@prisma-next/cli/commands/contract-emit';
-import { createMigrateCommand } from '@prisma-next/cli/commands/migrate';
-import { createMigrationNewCommand } from '@prisma-next/cli/commands/migration-new';
-import { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-plan';
-import { createMigrationStatusCommand } from '@prisma-next/cli/commands/migration-status';
+import { createContractEmitCommand } from '@prisma/orm-toolchain/cli/commands/contract-emit';
+import { createMigrateCommand } from '@prisma/orm-toolchain/cli/commands/migrate';
+import { createMigrationNewCommand } from '@prisma/orm-toolchain/cli/commands/migration-new';
+import { createMigrationPlanCommand } from '@prisma/orm-toolchain/cli/commands/migration-plan';
+import { createMigrationStatusCommand } from '@prisma/orm-toolchain/cli/commands/migration-status';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
@@ -225,8 +225,8 @@ function renderInvariantMigrationTs(
   const invariantField = opts.invariantId
     ? `        invariantId: ${JSON.stringify(opts.invariantId)},\n`
     : '';
-  return `import { createIndex, dataTransform, Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';
-import { RawUpdateManyCommand, RawAggregateCommand } from '@prisma-next/mongo-query-ast/execution';
+  return `import { createIndex, dataTransform, Migration, MigrationCLI } from '@prisma/orm-mongo/target/migration';
+import { RawUpdateManyCommand, RawAggregateCommand } from '@prisma/orm-mongo/query-ast/execution';
 
 const planMeta = {
   target: 'mongo',
@@ -283,7 +283,7 @@ MigrationCLI.run(import.meta.url, M);
  * the ref-required invariant.
  */
 function renderIndexOnlyMigrationTs(draftFrom: string, draftTo: string): string {
-  return `import { createIndex, Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';
+  return `import { createIndex, Migration, MigrationCLI } from '@prisma/orm-mongo/target/migration';
 
 class M extends Migration {
   override describe() {

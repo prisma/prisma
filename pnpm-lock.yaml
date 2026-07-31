@@ -5023,91 +5023,25 @@ importers:
 
   test/e2e/framework:
     dependencies:
-      '@prisma-next/adapter-postgres':
+      '@prisma/orm-extension-arktype-json':
         specifier: workspace:0.16.0
-        version: link:../../../packages/3-targets/6-adapters/postgres
-      '@prisma-next/adapter-sqlite':
+        version: link:../../../packages/9-public/@prisma/orm-extension-arktype-json
+      '@prisma/orm-extension-pgvector':
         specifier: workspace:0.16.0
-        version: link:../../../packages/3-targets/6-adapters/sqlite
-      '@prisma-next/cli':
+        version: link:../../../packages/9-public/@prisma/orm-extension-pgvector
+      '@prisma/orm-postgres':
         specifier: workspace:0.16.0
-        version: link:../../../packages/1-framework/3-tooling/cli
-      '@prisma-next/contract':
+        version: link:../../../packages/9-public/@prisma/orm-postgres
+      '@prisma/orm-sqlite':
         specifier: workspace:0.16.0
-        version: link:../../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-targets/7-drivers/postgres
-      '@prisma-next/driver-sqlite':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-targets/7-drivers/sqlite
-      '@prisma-next/extension-arktype-json':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-extensions/arktype-json
-      '@prisma-next/extension-pgvector':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-extensions/pgvector
-      '@prisma-next/family-sql':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/2-sql/9-family
-      '@prisma-next/framework-components':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/1-framework/1-core/framework-components
-      '@prisma-next/ids':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/1-framework/2-authoring/ids
-      '@prisma-next/migration-tools':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/1-framework/3-tooling/migration
-      '@prisma-next/postgres':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-extensions/postgres
-      '@prisma-next/sql-builder':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/2-sql/4-lanes/sql-builder
-      '@prisma-next/sql-contract':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/2-sql/1-core/contract
-      '@prisma-next/sql-contract-ts':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/2-sql/2-authoring/contract-ts
-      '@prisma-next/sql-errors':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/2-sql/1-core/errors
-      '@prisma-next/sql-orm-client':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-extensions/sql-orm-client
-      '@prisma-next/sql-relational-core':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/2-sql/4-lanes/relational-core
-      '@prisma-next/sql-runtime':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/2-sql/5-runtime
-      '@prisma-next/sql-schema-ir':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/2-sql/1-core/schema-ir
-      '@prisma-next/sqlite':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-extensions/sqlite
-      '@prisma-next/target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-targets/3-targets/postgres
-      '@prisma-next/target-sqlite':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/3-targets/3-targets/sqlite
+        version: link:../../../packages/9-public/@prisma/orm-sqlite
       '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../utils
       arktype:
         specifier: 'catalog:'
         version: 2.2.3
-      integration-tests:
-        specifier: workspace:0.16.0
-        version: link:../../integration
     devDependencies:
-      '@prisma-next/utils':
-        specifier: workspace:0.16.0
-        version: link:../../../packages/1-framework/0-foundation/utils
       '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../packages/0-config/tsconfig
@@ -5126,6 +5060,27 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.10(@types/node@25.9.4)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.0(@types/node@25.9.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+
+  test/e2e/framework/test/fixtures:
+    dependencies:
+      '@prisma/orm-extension-arktype-json':
+        specifier: workspace:0.16.0
+        version: link:../../../../../packages/9-public/@prisma/orm-extension-arktype-json
+      '@prisma/orm-extension-pgvector':
+        specifier: workspace:0.16.0
+        version: link:../../../../../packages/9-public/@prisma/orm-extension-pgvector
+      '@prisma/orm-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../../../../packages/9-public/@prisma/orm-postgres
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.3
+
+  test/e2e/framework/test/sqlite/fixtures:
+    dependencies:
+      '@prisma/orm-sqlite':
+        specifier: workspace:0.16.0
+        version: link:../../../../../../packages/9-public/@prisma/orm-sqlite
 
   test/integration:
     dependencies:
@@ -5270,6 +5225,30 @@ importers:
       '@prisma-next/vite-plugin-contract-emit':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/3-tooling/vite-plugin-contract-emit
+      '@prisma/orm-extension-pgvector':
+        specifier: workspace:0.16.0
+        version: link:../../packages/9-public/@prisma/orm-extension-pgvector
+      '@prisma/orm-family-sql':
+        specifier: workspace:0.16.0
+        version: link:../../packages/9-public/@prisma/orm-family-sql
+      '@prisma/orm-framework':
+        specifier: workspace:0.16.0
+        version: link:../../packages/9-public/@prisma/orm-framework
+      '@prisma/orm-mongo':
+        specifier: workspace:0.16.0
+        version: link:../../packages/9-public/@prisma/orm-mongo
+      '@prisma/orm-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../packages/9-public/@prisma/orm-postgres
+      '@prisma/orm-target-mongo':
+        specifier: workspace:0.16.0
+        version: link:../../packages/9-public/@prisma/orm-target-mongo
+      '@prisma/orm-target-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../packages/9-public/@prisma/orm-target-postgres
+      '@prisma/orm-toolchain':
+        specifier: workspace:0.16.0
+        version: link:../../packages/9-public/@prisma/orm-toolchain
       arktype:
         specifier: 'catalog:'
         version: 2.2.3

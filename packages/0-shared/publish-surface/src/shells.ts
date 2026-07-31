@@ -199,10 +199,11 @@ const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
  * `./target` or `./family` pack keeps that name for its own module; where a
  * facade publishes neither, the plain name simply stays free.
  *
- * `driver` is per-family rather than universal: a facade wires its own driver,
- * so the only applications that name one are those driving a migration runner
- * themselves, which today is Mongo. The SQL facades leave it out rather than
- * publish a surface nothing reaches.
+ * `driver` is carried by every facade. A facade wires its own driver, so the
+ * only code that names one is code driving the migration planner or runner
+ * itself — which the SQL facades were assumed not to have, until the SQL
+ * migration-planner harnesses turned out to need the driver's control
+ * descriptor to build a control stack by hand. Two subpaths per facade.
  */
 function facadeReexports(options: {
   readonly family: string;
@@ -225,11 +226,19 @@ function facadeReexports(options: {
   ];
 }
 
-/** The SQL family's query surfaces, republished by both SQL facades. */
+/**
+ * The SQL family's query surfaces, republished by both SQL facades.
+ *
+ * `schema-ir` carries one subpath. Code that authors a migration by hand, or
+ * drives the planner itself, names `SqlSchemaIR` — it is the schema shape the
+ * planner takes and returns. The package's other two subpaths are the IR's
+ * construction and naming internals, which publishing would freeze.
+ */
 const SQL_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
   { package: '@prisma-next/sql-orm-client', entry: 'orm-client' },
   { package: '@prisma-next/sql-builder', entry: 'builder' },
   { package: '@prisma-next/sql-relational-core', entry: 'relational-core' },
+  { package: '@prisma-next/sql-schema-ir', entry: 'schema-ir', subpaths: ['types'] },
 ];
 
 /**
@@ -583,6 +592,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         runtime: '@prisma-next/sql-runtime',
         target: '@prisma-next/target-postgres',
         adapter: '@prisma-next/adapter-postgres',
+        driver: '@prisma-next/driver-postgres',
         queryBuilders: SQL_QUERY_REEXPORTS,
       }),
       forwardedBins: FACADE_BINS,
@@ -600,6 +610,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         runtime: '@prisma-next/sql-runtime',
         target: '@prisma-next/target-sqlite',
         adapter: '@prisma-next/adapter-sqlite',
+        driver: '@prisma-next/driver-sqlite',
         queryBuilders: SQL_QUERY_REEXPORTS,
       }),
       forwardedBins: FACADE_BINS,

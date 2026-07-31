@@ -18,15 +18,15 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import postgresAdapterDescriptor from '@prisma-next/adapter-postgres/control';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import postgresDriverDescriptor from '@prisma-next/driver-postgres/control';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { printPsl } from '@prisma-next/psl-printer';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import { printPsl } from '@prisma/orm-framework/psl-printer';
+import postgresAdapterDescriptor from '@prisma/orm-postgres/adapter/control';
+import { createControlStack } from '@prisma/orm-postgres/components/control';
+import { type Contract, coreHash, profileHash } from '@prisma/orm-postgres/contract/types';
+import postgresDriverDescriptor from '@prisma/orm-postgres/driver/control';
+import sqlFamilyDescriptor from '@prisma/orm-postgres/family/control';
+import { SqlStorage } from '@prisma/orm-postgres/family-contract/types';
+import postgresTargetDescriptor from '@prisma/orm-postgres/target/control';
+import { postgresCreateNamespace } from '@prisma/orm-postgres/target/types';
 import { applicationDomainOf, withClient } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';

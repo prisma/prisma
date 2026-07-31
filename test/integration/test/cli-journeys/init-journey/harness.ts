@@ -334,9 +334,16 @@ function walkForPackageJsons(dir: string, found: WorkspacePackage[], depth: numb
         version?: string;
         private?: boolean;
       };
-      if (typeof pkg.name === 'string' && pkg.name.startsWith('@prisma-next/')) {
-        found.push({ name: pkg.name, version: pkg.version ?? '0.0.0', dir });
-      } else if (pkg.name === 'prisma-next') {
+      // Both scopes: the scaffold installs the published `@prisma/orm-*`
+      // packages, and those are built from the `@prisma-next/*` workspace
+      // packages, which the overrides below have to reach so resolution never
+      // leaves the tarball cache.
+      const ours =
+        typeof pkg.name === 'string' &&
+        (pkg.name.startsWith('@prisma-next/') ||
+          pkg.name.startsWith('@prisma/orm-') ||
+          pkg.name === 'prisma-next');
+      if (ours && typeof pkg.name === 'string') {
         found.push({ name: pkg.name, version: pkg.version ?? '0.0.0', dir });
       }
     } catch {
@@ -458,23 +465,21 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
     pnpm?: { overrides?: Record<string, string> };
   };
 
-  const facade = cell.target === 'mongo' ? '@prisma-next/mongo' : '@prisma-next/postgres';
+  const facade = cell.target === 'mongo' ? '@prisma/orm-mongo' : '@prisma/orm-postgres';
   const facadeTarball = requireTarball(tarballs, facade);
   const prismaNextTarball = requireTarball(tarballs, 'prisma-next');
 
-  // The framework-emitted `migration.ts` imports framework packages
-  // directly (not via the user-facing facade): postgres goes through
-  // `@prisma-next/postgres/migration`; mongo goes through
-  // `@prisma-next/target-mongo/migration`. Under `node-linker=isolated`
-  // (the layout this journey deliberately uses to catch TML-2485-class
-  // bugs) these are only reachable when declared as direct deps. The
-  // init scaffold itself does not currently declare them, so a real
-  // user running `tsx migrations/.../migration.ts emit` under isolated
-  // linking would hit `ERR_MODULE_NOT_FOUND` — a real scaffold seam
-  // worth filing separately. Add them here so the journey can complete
+  // The framework-emitted `migration.ts` imports the target package
+  // directly rather than through the user-facing facade. Under
+  // `node-linker=isolated` (the layout this journey deliberately uses to
+  // catch TML-2485-class bugs) that is only reachable when declared as a
+  // direct dep. The init scaffold itself does not currently declare it, so
+  // a real user running `tsx migrations/.../migration.ts emit` under
+  // isolated linking would hit `ERR_MODULE_NOT_FOUND` — a real scaffold
+  // seam worth filing separately. Add it here so the journey can complete
   // end-to-end; the scaffold gap is a follow-up.
   const migrationDeps =
-    cell.target === 'mongo' ? ['@prisma-next/target-mongo'] : ['@prisma-next/target-postgres'];
+    cell.target === 'mongo' ? ['@prisma/orm-target-mongo'] : ['@prisma/orm-target-postgres'];
   const migrationDepEntries = Object.fromEntries(
     migrationDeps.map((name) => [name, `file:${requireTarball(tarballs, name)}`]),
   );

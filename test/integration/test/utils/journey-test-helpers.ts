@@ -771,3 +771,23 @@ export async function sql(
     return { rows: result.rows as Record<string, unknown>[] };
   });
 }
+
+/**
+ * Adds pgvector to a journey project's config, as a user declaring an
+ * extension would.
+ *
+ * Lives here rather than in the test that uses it because it edits the config
+ * this module wrote, by matching the import line the fixture template carries.
+ * The two have to agree on that line's exact text, so they belong together.
+ */
+export function declarePgvectorExtension(ctx: JourneyContext): void {
+  const familyImport = "import sql from '@prisma-next/family-sql/control';";
+  const config = readFileSync(ctx.configPath, 'utf-8');
+  const next = config
+    .replace(
+      familyImport,
+      `${familyImport}\nimport pgvector from '@prisma-next/extension-pgvector/control';`,
+    )
+    .replace('extensions: []', 'extensions: [pgvector]');
+  writeFileSync(ctx.configPath, next);
+}

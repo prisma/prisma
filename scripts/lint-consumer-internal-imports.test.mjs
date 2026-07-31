@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  CONSUMER_SCOPES,
   findMatchingLines,
   internalSpecifiersOnLine,
   isScannableFile,
@@ -18,13 +19,6 @@ const SCRIPT_PATH = join(
   fileURLToPath(new URL('.', import.meta.url)),
   'lint-consumer-internal-imports.mjs',
 );
-
-const CONFIG = {
-  scopes: [
-    { path: 'examples', threshold: 0, manifestThreshold: 0 },
-    { path: 'apps', threshold: 0, manifestThreshold: 0 },
-  ],
-};
 
 // One matching line (the import), on line 2.
 const FILE_WITH_ONE_HIT =
@@ -46,13 +40,6 @@ function writeRepoFile(relPath, content) {
   writeFileSync(full, content);
 }
 
-function writeConfig(config) {
-  writeRepoFile(
-    'scripts/lint-consumer-internal-imports.config.json',
-    JSON.stringify(config, null, 2),
-  );
-}
-
 function commitAll(message) {
   git('add', '-A');
   git('commit', '-m', message);
@@ -68,11 +55,21 @@ beforeEach(() => {
   git('config', 'user.email', 'test@example.com');
   git('config', 'user.name', 'Test');
   git('config', 'commit.gpgsign', 'false');
-  writeConfig(CONFIG);
 });
 
 afterEach(() => {
   rmSync(repo, { recursive: true, force: true });
+});
+
+describe('CONSUMER_SCOPES', () => {
+  it('covers the consumer-shaped trees and no substrate suite', () => {
+    assert.deepEqual(CONSUMER_SCOPES, [
+      'examples',
+      'apps',
+      'test/e2e/framework',
+      'test/integration/test/cli-journeys',
+    ]);
+  });
 });
 
 describe('isScannableFile', () => {
@@ -129,7 +126,9 @@ describe('internalSpecifiersOnLine', () => {
   });
 
   it('does not match the scope name outside an import position', () => {
-    assert.deepEqual(internalSpecifiersOnLine("const name = '@prisma-next/postgres';"), []);
+    // A test asserting that emitted code does *not* name the internal scope has
+    // to name it to say so; that is data, not a dependency.
+    assert.deepEqual(internalSpecifiersOnLine("const INTERNAL_SCOPE = '@prisma-next/';"), []);
   });
 });
 
@@ -162,7 +161,7 @@ describe('scanManifests', () => {
     writeRepoFile(relPath, JSON.stringify({ name: 'app', ...fields }));
   }
 
-  it('counts internal packages from dependencies and devDependencies', () => {
+  it('reads internal packages from dependencies and devDependencies', () => {
     manifest('examples/app/package.json', {
       dependencies: { '@prisma-next/postgres': 'workspace:*', pg: '8' },
       devDependencies: { '@prisma-next/cli': 'workspace:*' },
@@ -170,8 +169,21 @@ describe('scanManifests', () => {
     commitAll('two internal packages');
 
     assert.deepEqual(
-      scanManifests(repo, { path: 'examples' }).map((r) => `${r.field}:${r.package}`),
+      scanManifests(repo, 'examples').map((r) => `${r.field}:${r.package}`),
       ['dependencies:@prisma-next/postgres', 'devDependencies:@prisma-next/cli'],
+    );
+  });
+
+  it('reads a consumer that publishes itself under the internal scope', () => {
+    writeRepoFile(
+      'examples/app/package.json',
+      JSON.stringify({ name: '@prisma-next/example-app' }),
+    );
+    commitAll('internally scoped consumer');
+
+    assert.deepEqual(
+      scanManifests(repo, 'examples').map((r) => `${r.field}:${r.package}`),
+      ['name:@prisma-next/example-app'],
     );
   });
 
@@ -179,18 +191,18 @@ describe('scanManifests', () => {
     manifest('examples/app/package.json', {
       dependencies: { '@prisma/orm-postgres': '0.16.0', arktype: '^2', pg: 'catalog:' },
     });
-    commitAll('facade-only manifest');
+    commitAll('one-database manifest');
 
-    assert.deepEqual(scanManifests(repo, { path: 'examples' }), []);
+    assert.deepEqual(scanManifests(repo, 'examples'), []);
   });
 
-  it('exempts @repo/tsconfig, which is consumed via extends and never imported', () => {
+  it('ignores @repo/*, which is this repository’s own dev tooling', () => {
     manifest('examples/app/package.json', {
-      devDependencies: { '@repo/tsconfig': 'workspace:*' },
+      devDependencies: { '@repo/tsconfig': 'workspace:*', '@repo/test-utils': 'workspace:*' },
     });
-    commitAll('tsconfig only');
+    commitAll('repo dev tooling only');
 
-    assert.deepEqual(scanManifests(repo, { path: 'examples' }), []);
+    assert.deepEqual(scanManifests(repo, 'examples'), []);
   });
 
   it('ignores manifests of installed dependencies', () => {
@@ -199,7 +211,7 @@ describe('scanManifests', () => {
     });
     commitAll('vendored manifest');
 
-    assert.deepEqual(scanManifests(repo, { path: 'examples' }), []);
+    assert.deepEqual(scanManifests(repo, 'examples'), []);
   });
 
   it('reads nested consumer packages, which install independently', () => {
@@ -211,152 +223,89 @@ describe('scanManifests', () => {
     });
     commitAll('nested manifests');
 
-    assert.equal(scanManifests(repo, { path: 'examples' }).length, 2);
+    assert.equal(scanManifests(repo, 'examples').length, 2);
   });
 });
 
-describe('lint-consumer-internal-imports — manifest threshold', () => {
-  it('fails when a consumer declares more internal packages than recorded', () => {
-    writeConfig({ scopes: [{ path: 'examples', threshold: 0, manifestThreshold: 0 }] });
+describe('lint-consumer-internal-imports', () => {
+  it('passes a tree whose consumers name only published packages', () => {
+    writeRepoFile(
+      'examples/app/src/main.ts',
+      "import { orm } from '@prisma/orm-postgres/orm-client';\n",
+    );
     writeRepoFile(
       'examples/app/package.json',
-      JSON.stringify({ name: 'app', dependencies: { '@prisma-next/postgres': 'workspace:*' } }),
+      JSON.stringify({ name: 'app', dependencies: { '@prisma/orm-postgres': 'workspace:*' } }),
     );
-    commitAll('one declared internal package');
+    commitAll('one-database consumer');
+
+    const result = runScript();
+    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
+    assert.match(result.stdout, /names an internal @prisma-next\/\* package/);
+  });
+
+  it('fails on a single planted import, and names the file and line', () => {
+    writeRepoFile('examples/app/src/main.ts', FILE_WITH_ONE_HIT);
+    commitAll('one planted import');
 
     const result = runScript();
     assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
-    assert.match(result.stdout, /scope=examples manifest=1 threshold=0/);
-    assert.match(result.stderr, /raise "manifestThreshold" to 1/);
+    assert.match(result.stderr, /examples\/app\/src\/main\.ts:2: @prisma-next\/sql-orm-client/);
+    assert.match(result.stderr, /are not\npublished/);
   });
 
-  it('fails when a consumer declares fewer than recorded, so the win is locked in', () => {
-    writeConfig({ scopes: [{ path: 'examples', threshold: 0, manifestThreshold: 3 }] });
-    writeRepoFile(
-      'examples/app/package.json',
-      JSON.stringify({ name: 'app', dependencies: { '@prisma/orm-postgres': '0.16.0' } }),
-    );
-    commitAll('facade-only manifest');
-
-    const result = runScript();
-    assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
-    assert.match(result.stdout, /scope=examples manifest=0 threshold=3/);
-    assert.match(result.stderr, /Lower "manifestThreshold" to 0/);
-  });
-
-  it('passes a consumer whose imports are clean but whose manifest is not, only at its threshold', () => {
+  it('fails on a single internal package in a manifest, with clean imports', () => {
     // The two measures are independent: importing nothing internal does not
     // make an install look like a real application's.
-    writeConfig({ scopes: [{ path: 'examples', threshold: 0, manifestThreshold: 2 }] });
+    writeRepoFile('examples/app/src/main.ts', "import x from '@prisma/orm-postgres/runtime';\n");
     writeRepoFile(
       'examples/app/package.json',
-      JSON.stringify({
-        name: 'app',
-        dependencies: { '@prisma-next/postgres': 'workspace:*', '@prisma-next/cli': 'workspace:*' },
-      }),
+      JSON.stringify({ name: 'app', dependencies: { '@prisma-next/cli': 'workspace:*' } }),
     );
-    writeRepoFile('examples/app/src/main.ts', "import x from '@prisma/orm-postgres/runtime';\n");
     commitAll('clean imports, dirty manifest');
 
     const result = runScript();
-    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
-    assert.match(result.stdout, /scope=examples imports=0 threshold=0/);
-    assert.match(result.stdout, /scope=examples manifest=2 threshold=2/);
+    assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
+    assert.match(result.stderr, /dependencies: @prisma-next\/cli/);
   });
-});
 
-describe('lint-consumer-internal-imports — threshold met', () => {
-  it('exits 0 when count equals threshold', () => {
-    writeConfig({ scopes: [{ path: 'examples', threshold: 1, manifestThreshold: 0 }] });
-    writeRepoFile('examples/app/src/main.ts', FILE_WITH_ONE_HIT);
-    commitAll('one hit, threshold 1');
-
-    const result = runScript();
-    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
-    assert.match(result.stdout, /scope=examples imports=1 threshold=1/);
-  });
-});
-
-describe('lint-consumer-internal-imports — count above threshold', () => {
-  it('exits 1, names the offending file, and offers the threshold raise', () => {
-    writeConfig({ scopes: [{ path: 'examples', threshold: 0, manifestThreshold: 0 }] });
-    writeRepoFile('examples/app/src/main.ts', FILE_WITH_ONE_HIT);
-    commitAll('one hit, threshold 0');
+  it('fails on a planted import in every scope it governs', () => {
+    for (const scope of CONSUMER_SCOPES) {
+      writeRepoFile(`${scope}/app/src/main.ts`, FILE_WITH_ONE_HIT);
+    }
+    commitAll('one planted import per scope');
 
     const result = runScript();
     assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
-    assert.match(result.stdout, /imports=1 threshold=0/);
-    assert.match(result.stderr, /examples\/app\/src\/main\.ts \(1\)/);
-    assert.match(result.stderr, /raise.*threshold|facade/i);
+    for (const scope of CONSUMER_SCOPES) {
+      assert.match(result.stderr, new RegExp(`${scope}/app/src/main\\.ts:2`));
+    }
   });
-});
 
-describe('lint-consumer-internal-imports — count below threshold', () => {
-  it('exits 1 and instructs lowering the threshold', () => {
-    writeConfig({ scopes: [{ path: 'examples', threshold: 5, manifestThreshold: 0 }] });
-    writeRepoFile('examples/app/src/main.ts', FILE_WITH_ONE_HIT);
-    commitAll('one hit, threshold 5');
-
-    const result = runScript();
-    assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
-    assert.match(result.stdout, /imports=1 threshold=5/);
-    assert.match(result.stderr, /Lower "threshold" to 1/);
-  });
-});
-
-describe('lint-consumer-internal-imports — scope boundary', () => {
-  it('counts each scope separately and ignores files outside every scope', () => {
-    writeConfig({
-      scopes: [
-        { path: 'examples', threshold: 1, manifestThreshold: 0 },
-        { path: 'apps', threshold: 0, manifestThreshold: 0 },
-      ],
-    });
-    writeRepoFile('examples/app/src/main.ts', FILE_WITH_ONE_HIT);
+  it('says nothing about trees outside its scopes', () => {
     writeRepoFile('packages/lib/src/main.ts', FILE_WITH_ONE_HIT);
-    commitAll('hit inside and outside scope');
+    writeRepoFile('test/integration/test/ports/pg.test.ts', FILE_WITH_ONE_HIT);
+    commitAll('substrate suites name internal packages, which is their job');
 
     const result = runScript();
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
-    assert.match(result.stdout, /scope=examples imports=1 threshold=1/);
-    assert.match(result.stdout, /scope=apps imports=0 threshold=0/);
   });
-});
 
-describe('lint-consumer-internal-imports — exclusions', () => {
   it('ignores build output and installed dependencies', () => {
-    writeConfig({ scopes: [{ path: 'examples', threshold: 0, manifestThreshold: 0 }] });
     writeRepoFile('examples/app/dist/main.js', FILE_WITH_ONE_HIT);
     writeRepoFile('examples/app/node_modules/pkg/index.js', FILE_WITH_ONE_HIT);
     commitAll('excluded-only occurrences');
 
     const result = runScript();
     assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
-    assert.match(result.stdout, /imports=0 threshold=0/);
   });
 
-  it('counts a published-root consumer as clean', () => {
-    writeConfig({ scopes: [{ path: 'examples', threshold: 0, manifestThreshold: 0 }] });
-    writeRepoFile(
-      'examples/app/src/main.ts',
-      "import { orm } from '@prisma/orm-postgres/orm-client';\n",
-    );
-    commitAll('facade-only consumer');
-
-    const result = runScript();
-    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
-    assert.match(result.stdout, /imports=0 threshold=0/);
-  });
-});
-
-describe('lint-consumer-internal-imports — --list', () => {
-  it('prints every current site', () => {
-    writeConfig({ scopes: [{ path: 'examples', threshold: 1, manifestThreshold: 0 }] });
+  it('--list prints every current site', () => {
     writeRepoFile('examples/app/src/main.ts', FILE_WITH_ONE_HIT);
     commitAll('one hit');
 
     const result = runScript('--list');
-    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
+    assert.equal(result.status, 1, `expected exit 1; stdout=${result.stdout}`);
     assert.match(result.stdout, /examples\/app\/src\/main\.ts:2: @prisma-next\/sql-orm-client/);
   });
 });

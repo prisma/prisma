@@ -3,9 +3,25 @@ import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
 } from '@prisma-next/framework-components/emission';
+import { createScaffoldSpecifierResolver } from '@prisma-next/publish-surface/import-roots';
 
 export type TargetId = 'postgres' | 'mongo';
 export type AuthoringId = 'psl' | 'typescript';
+
+/**
+ * The resolver a scaffold for `target` is written against.
+ *
+ * A scaffold is always on the facade root: `init` writes an application around
+ * one database package, and the workspace names are not published, so a project
+ * scaffolded against them could not install (ADR 242). Both the files `init`
+ * writes and the dependency it adds go through this, so they cannot disagree.
+ */
+export function scaffoldSpecifierResolverFor(target: TargetId): ImportSpecifierResolver {
+  return createScaffoldSpecifierResolver({
+    mode: 'facade',
+    facade: target === 'postgres' ? '@prisma/orm-postgres' : '@prisma/orm-mongo',
+  });
+}
 
 /**
  * The package name a scaffolded project depends on and imports from, for the
