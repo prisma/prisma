@@ -87,6 +87,7 @@ Packaging first (the testkits are the home the aggregate matrices extend), then 
 
 ## Open items
 
+- **Deferred-gate condition (D1 R1, orchestrator ruling):** adapter-postgres, extension-pgvector, and integration-tests were environment-blocked at D1's gate (host contention; zero assertion failures). They must produce a green run at a later dispatch gate or on CI before slice DoD. Per the D1 reviewer's catch, `pnpm --filter @prisma-next/adapter-postgres test:coverage` joins the same condition: two DB-backed suites left that package and its vitest coverage thresholds (84/77/88/84) are CI-enforced; if the threshold misses, the `3-targets/3-targets/sqlite` entry in `coverage.config.json` (added for exactly this tests-moved-to-break-a-cycle situation) is the precedent remedy.
 - Spec open questions land as follows: Q1 (descriptor type home/key) → D2 grounding; Q2 (lane registry access) → D7; Q3 (adapter export subpaths) → D1; Q4 (SQLite `descriptor?` escape hatch) → D1.
 - The `decodeJson(null)` runtime-guard trap from slice 4's plan (its D3 review) → D1's brief, verbatim.
 - Ports-suite policy: expectations update in place to the breaking baseline; no compat shims (project non-goal) → D6's brief.
