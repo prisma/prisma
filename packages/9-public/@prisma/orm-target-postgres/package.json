@@ -10,6 +10,8 @@
   ],
   "scripts": {
     "build": "tsdown",
+    "prepack": "node ../../../../scripts/pack-manifest.mjs --strip",
+    "postpack": "node ../../../../scripts/pack-manifest.mjs --restore",
     "lint": "biome check . --error-on-warnings",
     "clean": "rm -rf dist src-gen",
     "test": "vitest run"

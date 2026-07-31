@@ -12,16 +12,23 @@
 //      the leak before the broken tarball reaches the registry. Covers
 //      every dep field.
 //
-//   2. `@prisma-next/*` exact-pin check. Every `@prisma-next/*` entry in
-//      `dependencies`, `peerDependencies`, and `optionalDependencies`
-//      (the three fields that ship to consumers; `devDependencies` is
-//      skipped) must be a single exact version `X.Y.Z` (with an optional
-//      semver pre-release suffix). Carets, tildes, ranges, and wildcards
-//      all fail. Combined with the `workspace:<X.Y.Z>` literal-version
-//      form in the source manifests, this is the mechanism that gives
-//      every published `@prisma-next/*` package an exact pin on its
-//      siblings, which is what `prisma-next-check-pins` exploits on the
-//      consumer side.
+//   2. Exact-pin check on published siblings. Every `@prisma/orm-*` entry
+//      in `dependencies`, `peerDependencies`, and `optionalDependencies`
+//      (the three fields that ship to consumers) must be a single exact
+//      version `X.Y.Z` (with an optional semver pre-release suffix).
+//      Carets, tildes, ranges, and wildcards all fail. Combined with the
+//      `workspace:<X.Y.Z>` literal-version form in the source manifests,
+//      this is what makes a facade install resolve to exactly the
+//      combination of platform packages the release validated, rather
+//      than to whatever the range happens to admit later.
+//
+//   3. Private-name check. No `@prisma-next/*` entry may appear in any
+//      dependency field, `devDependencies` included. Those are workspace
+//      names; nothing publishes under them (ADR 242), so a manifest that
+//      declares one points a reader at a package that does not exist.
+//      Shells declare them to build and drop them at pack time via
+//      `scripts/pack-manifest.mjs`; this is the check that the drop
+//      actually happened.
 //
 // Usage:
 //   node scripts/check-publish-deps.mjs           — exit 1 on any violation
@@ -43,15 +50,21 @@ const DEP_FIELDS = /** @type {const} */ ([
   'optionalDependencies',
 ]);
 
-// `@prisma-next/*` exact-pin check looks only at the three fields that
-// ship to consumers. devDependencies aren't installed by consumers so
-// imprecise specs there don't affect the type-identity invariant the
-// pin check enforces.
+// The exact-pin check looks only at the three fields that ship to
+// consumers. devDependencies aren't installed by consumers so imprecise
+// specs there don't affect the type-identity invariant the pin check
+// enforces.
 const SHIPPED_DEP_FIELDS = /** @type {const} */ ([
   'dependencies',
   'peerDependencies',
   'optionalDependencies',
 ]);
+
+/** Prefix of the published sibling packages a tarball may depend on. */
+const PUBLISHED_PREFIX = '@prisma/orm-';
+
+/** Scope of the workspace-internal packages, which never publish. */
+const PRIVATE_SCOPE = '@prisma-next/';
 
 const EXACT_VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
@@ -104,7 +117,7 @@ export function isExactPnVersion(spec) {
 /**
  * Walks `dependencies`, `peerDependencies`, and `optionalDependencies`
  * on a package.json-shaped object and returns the list of
- * `(field, name, spec)` triples where the `@prisma-next/*` entry is
+ * `(field, name, spec)` triples where a `@prisma/orm-*` entry is
  * not pinned to an exact version. Specs already flagged by
  * {@link isLeak} are skipped — those are reported by the leak rule
  * to avoid double-attribution noise. Pure / side-effect-free.
@@ -118,7 +131,7 @@ export function findPnPinViolations(pkgJson) {
     const deps = pkgJson[field];
     if (!deps || typeof deps !== 'object') continue;
     for (const [name, spec] of Object.entries(deps)) {
-      if (!name.startsWith('@prisma-next/')) continue;
+      if (!name.startsWith(PUBLISHED_PREFIX)) continue;
       if (typeof spec !== 'string') continue;
       if (isLeak(spec)) continue; // reported by the leak rule
       if (!isExactPnVersion(spec)) {
@@ -127,6 +140,28 @@ export function findPnPinViolations(pkgJson) {
     }
   }
   return violations;
+}
+
+/**
+ * Every `@prisma-next/*` entry in any dependency field. Those are
+ * workspace-internal names that no longer publish (ADR 242), so a manifest
+ * that declares one names a package a reader cannot install — including in
+ * `devDependencies`, which `pnpm pack` copies into the tarball verbatim.
+ * Pure / side-effect-free; exported for tests.
+ *
+ * @param {Record<string, unknown>} pkgJson
+ * @returns {Array<{ field: string; name: string; spec: string }>}
+ */
+export function findPrivateNames(pkgJson) {
+  const found = [];
+  for (const field of DEP_FIELDS) {
+    const deps = pkgJson[field];
+    if (!deps || typeof deps !== 'object') continue;
+    for (const [name, spec] of Object.entries(deps)) {
+      if (name.startsWith(PRIVATE_SCOPE)) found.push({ field, name, spec: String(spec) });
+    }
+  }
+  return found;
 }
 
 function readPackedManifest(tgzPath) {
@@ -242,6 +277,7 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
      *   tarball: string;
      *   leaks: ReturnType<typeof findLeaks>;
      *   pnPinViolations: ReturnType<typeof findPnPinViolations>;
+     *   privateNames: ReturnType<typeof findPrivateNames>;
      * }>}
      */
     const offenders = [];
@@ -256,8 +292,15 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
       const packed = readPacked(join(dest, tarballName));
       const leaks = findLeaks(packed);
       const pnPinViolations = findPnPinViolations(packed);
-      if (leaks.length > 0 || pnPinViolations.length > 0) {
-        offenders.push({ pkg: sourcePkg.name, tarball: tarballName, leaks, pnPinViolations });
+      const privateNames = findPrivateNames(packed);
+      if (leaks.length > 0 || pnPinViolations.length > 0 || privateNames.length > 0) {
+        offenders.push({
+          pkg: sourcePkg.name,
+          tarball: tarballName,
+          leaks,
+          pnPinViolations,
+          privateNames,
+        });
       }
     }
 
@@ -265,7 +308,8 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
       stdoutWrite(`${JSON.stringify({ ok: offenders.length === 0, offenders }, null, 2)}\n`);
     } else if (offenders.length === 0) {
       stderrWrite(
-        `\nOK — no workspace:/catalog: leaks and no @prisma-next/* pin violations in ${dirs.length} publishable packages.\n`,
+        '\nOK — no workspace:/catalog: leaks, no @prisma/orm-* pin violations, and no private\n' +
+          `@prisma-next/* names in ${dirs.length} publishable packages.\n`,
       );
     } else {
       stderrWrite(
@@ -279,15 +323,22 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
         for (const v of o.pnPinViolations) {
           stderrWrite(`    [pin]      ${v.field}.${v.name} = ${v.spec}\n`);
         }
+        for (const p of o.privateNames) {
+          stderrWrite(`    [private]  ${p.field}.${p.name} = ${p.spec}\n`);
+        }
       }
       stderrWrite(
         '\n  [leak] specs are pnpm-internal (workspace:/catalog:) and break consumer installs.\n' +
           '         Publish via `pnpm publish` (which rewrites them) rather than `npm publish`,\n' +
           '         or convert the dependency to a real version range.\n' +
-          '  [pin]  every @prisma-next/* entry in dependencies/peer/optional must be a single\n' +
+          '  [pin]  every @prisma/orm-* entry in dependencies/peer/optional must be a single\n' +
           '         exact version `X.Y.Z` (a pre-release suffix is permitted). Carets, tildes,\n' +
           '         ranges, and wildcards are rejected so consumer installs see the exact\n' +
-          '         @prisma-next/* graph this release validated against.\n',
+          '         platform graph this release validated against.\n' +
+          '  [private] @prisma-next/* names do not publish (ADR 242), so a manifest that\n' +
+          '         declares one points at a package nobody can install. Shells declare them\n' +
+          '         to build and drop them at pack time — add the `prepack`/`postpack` hooks\n' +
+          '         from scripts/pack-manifest.mjs, or remove the dependency.\n',
       );
     }
 

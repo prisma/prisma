@@ -76,3 +76,8 @@ projects/*/reference/
 # project close-out, not PR content).
 projects/*/reviews/
 projects/*/learnings.md
+
+# Manifest backups written by scripts/pack-manifest.mjs while a tarball is
+# being packed. A run killed between prepack and postpack leaves one behind;
+# the next pack repairs the manifest from it.
+**/package.json.pack-backup
