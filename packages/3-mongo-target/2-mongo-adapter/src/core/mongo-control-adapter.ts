@@ -59,7 +59,8 @@ export class MongoControlAdapterImpl implements MongoControlAdapter<'mongo'> {
       throw mongoAdapterError(
         'CONFIG.VALIDATION_FAILED',
         'Mongo control adapter requires a Mongo control driver with an execute() transport. ' +
-          'Provide a MongoControlDriver from `@prisma-next/driver-mongo/control`.',
+          "Provide a MongoControlDriver from your Prisma package's `driver/control` " +
+          'entrypoint (`@prisma/orm-mongo/driver/control` in a standard install).',
         { meta: { received: describeReceivedValue(driver) } },
       );
     }

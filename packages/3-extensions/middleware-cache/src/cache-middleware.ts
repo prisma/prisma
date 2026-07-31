@@ -129,7 +129,7 @@ async function resolveCacheKey(
  *
  * @example
  * ```typescript
- * import { createCacheMiddleware, cacheAnnotation } from '@prisma-next/middleware-cache';
+ * import { createCacheMiddleware, cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
  *
  * const db = postgres({
  *   contractJson,

@@ -134,7 +134,7 @@ describe.each(ALL_CELLS.map((cell) => ({ cell, label: cellLabel(cell) })))(
           ctx.project,
           'check-objectid.ts',
           [
-            "import { ObjectId } from '@prisma-next/mongo/bson';",
+            "import { ObjectId } from '@prisma/orm-mongo/bson';",
             'const id = new ObjectId();',
             'console.log(id.toHexString().length);',
             '',
@@ -166,8 +166,8 @@ describe.each(ALL_CELLS.map((cell) => ({ cell, label: cellLabel(cell) })))(
           ctx.project,
           'check-postgres-journey.ts',
           [
-            "import { createPostgresControlClient } from '@prisma-next/postgres/control';",
-            "import postgres from '@prisma-next/postgres/runtime';",
+            "import { createPostgresControlClient } from '@prisma/orm-postgres/control';",
+            "import postgres from '@prisma/orm-postgres/runtime';",
             "import type { Contract } from './src/prisma/contract.d';",
             "import contractJson from './src/prisma/contract.json' with { type: 'json' };",
             '',
@@ -313,7 +313,7 @@ const TML_2486_seam = (cell: CellId, project: JourneyProject, result: StepResult
 
 const TML_2487_seam = seamExpectation<StepResult>({
   ticket: 'TML-2487',
-  description: '@prisma-next/mongo/bson re-exports ObjectId',
+  description: '@prisma/orm-mongo/bson re-exports ObjectId',
   status: 'fixed',
   whenBroken: (r) => {
     expect(r.exitCode, 'TML-2487 still broken: ObjectId import must currently fail').not.toBe(0);
@@ -327,7 +327,7 @@ const TML_2487_seam = seamExpectation<StepResult>({
 const TML_2314_seam = seamExpectation<StepResult>({
   ticket: 'TML-2314',
   description:
-    'user can write/read an entity via @prisma-next/postgres/runtime and the /control facade composes a working stack',
+    'user can write/read an entity via @prisma/orm-postgres/runtime and the /control facade composes a working stack',
   status: 'fixed',
   whenBroken: (r) => {
     expect(r.exitCode, 'TML-2314 still broken: control import must currently fail').not.toBe(0);
@@ -375,7 +375,7 @@ function expectSchemaFile(project: JourneyProject, cell: CellId): void {
 
   if (cell.authoring === 'typescript') {
     expect(contents, 'TS schema imports defineContract from the facade').toContain(
-      `from '@prisma-next/${cell.target}/contract-builder'`,
+      `from '@prisma/orm-${cell.target}/contract-builder'`,
     );
   } else {
     expect(contents, 'PSL schema declares at least one model').toMatch(/^model\s+\w+\s*\{/m);
@@ -388,7 +388,7 @@ function expectSchemaFile(project: JourneyProject, cell: CellId): void {
 function expectConfigFile(project: JourneyProject, cell: CellId): void {
   const contents = readFileSync(join(project.dir, 'prisma-next.config.ts'), 'utf-8');
   expect(contents, 'config imports postgres/mongo facade only').toContain(
-    `from '@prisma-next/${cell.target}/config'`,
+    `from '@prisma/orm-${cell.target}/config'`,
   );
   expect(contents, 'config references the schema file').toContain(schemaPath(cell));
 }
@@ -398,8 +398,7 @@ function schemaPath(cell: CellId): string {
 }
 
 function expectFacadeIsResolvable(project: JourneyProject): void {
-  const facadeName =
-    project.cell.target === 'mongo' ? '@prisma-next/mongo' : '@prisma-next/postgres';
+  const facadeName = project.cell.target === 'mongo' ? '@prisma/orm-mongo' : '@prisma/orm-postgres';
   const facadePath = join(project.dir, 'node_modules', facadeName, 'package.json');
   expect(existsSync(facadePath), `facade package not installed at ${facadePath}`).toBe(true);
 }

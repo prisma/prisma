@@ -2,10 +2,8 @@ import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 import * as clack from '@clack/prompts';
-import {
-  type ImportSpecifierResolver,
-  keepInternalSpecifiers,
-} from '@prisma-next/framework-components/emission';
+import type { ImportSpecifierResolver } from '@prisma-next/framework-components/emission';
+import { createScaffoldSpecifierResolver } from '@prisma-next/publish-surface/import-roots';
 import { docsUrlFor } from '@prisma-next/utils/structured-error';
 import { basename, dirname, isAbsolute, join } from 'pathe';
 import { CliStructuredError } from '../../utils/cli-errors';
@@ -60,7 +58,13 @@ import {
   LEGACY_SKILL_FILE,
   runProjectLevelSkillInstall,
 } from './skill-install';
-import { configFile, dbFile, starterSchema, targetPackageName } from './templates/code-templates';
+import {
+  configFile,
+  dbFile,
+  scaffoldImportRoot,
+  starterSchema,
+  targetPackageName,
+} from './templates/code-templates';
 import { envExampleContent, envFileContent, MIN_SERVER_VERSION } from './templates/env';
 import { quickReferenceMd } from './templates/quick-reference';
 import { minimalProjectReadmeMd } from './templates/readme';
@@ -169,9 +173,8 @@ export async function runInit(
   // The one place `init` decides which package names the scaffold carries.
   // Everything downstream — the files below and the dependency `runInstall`
   // adds — resolves through this, so the imports written and the package
-  // installed cannot disagree. TML-3126 replaces the constant with a real
-  // root; until then it leaves every specifier as authored.
-  const resolveImportSpecifier = keepInternalSpecifiers;
+  // installed cannot disagree.
+  const resolveImportSpecifier = createScaffoldSpecifierResolver(scaffoldImportRoot(inputs.target));
 
   const filesToWrite: FileEntry[] = [
     {

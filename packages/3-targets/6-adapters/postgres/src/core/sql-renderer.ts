@@ -100,8 +100,9 @@ function renderTypedParam(
         'validated PostgreSQL codec registry has no entry for it. This usually indicates ' +
         'a missing extension pack in the runtime stack — register the pack ' +
         'that contributes this codec (e.g. `extensions: [pgvectorRuntime]`), ' +
-        'or use the codec directly from `@prisma-next/target-postgres/codecs` ' +
-        "if it's a builtin.",
+        "or, if it's a builtin, use the codec directly from your Prisma " +
+        "package's `target/codecs` entrypoint (`@prisma/orm-postgres/target/codecs` " +
+        'in a standard install).',
       { meta: { codecId } },
     );
   }

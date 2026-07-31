@@ -39,7 +39,7 @@ export interface CachePayload {
  *
  * @example
  * ```typescript
- * import { cacheAnnotation } from '@prisma-next/middleware-cache';
+ * import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
  *
  * // ORM read terminal — accepts the read-only annotation via the meta callback.
  * const user = await db.User.first(

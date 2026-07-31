@@ -77,7 +77,8 @@ projects/*/reference/
 projects/*/reviews/
 projects/*/learnings.md
 
-# Manifest backups written by scripts/pack-manifest.mjs while a tarball is
-# being packed. A run killed between prepack and postpack leaves one behind;
-# the next pack repairs the manifest from it.
+# Lock and manifest backup written by scripts/pack-manifest.mjs while a
+# tarball is being packed. A run killed between prepack and postpack leaves
+# them behind; the backup is what puts the manifest back.
 **/package.json.pack-backup
+**/package.json.pack-lock

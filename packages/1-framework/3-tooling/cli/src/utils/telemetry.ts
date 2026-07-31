@@ -70,13 +70,29 @@ function resolveTelemetryGate(): TelemetryGate {
 }
 
 /**
- * Path to the compiled sender script inside `@prisma-next/cli-telemetry`'s
- * `dist/`. Resolved off this module's `import.meta.url` via the package
- * specifier `@prisma-next/cli-telemetry/sender`, so the consumer pays
- * no attention to internal package layout.
+ * Where the sender script is published, then where it sits in the workspace.
+ *
+ * This is a runtime resolution rather than an import, so the bundler that
+ * builds the published toolchain does not rewrite it the way it rewrites the
+ * CLI's imports — the specifier has to name the package the code is running
+ * from. Published, that is the toolchain shell; in the repository, only the
+ * workspace name resolves. Trying both is what lets one CLI source serve both.
  */
+const SENDER_SPECIFIERS = [
+  '@prisma/orm-toolchain/cli-telemetry/sender',
+  '@prisma-next/cli-telemetry/sender',
+];
+
+/** Path to the compiled sender script `runTelemetry` forks. */
 function senderPath(): string {
-  return fileURLToPath(new URL(import.meta.resolve('@prisma-next/cli-telemetry/sender')));
+  for (const specifier of SENDER_SPECIFIERS) {
+    try {
+      return fileURLToPath(new URL(import.meta.resolve(specifier)));
+    } catch {
+      // Not the layout this build is running from; try the next.
+    }
+  }
+  throw new Error(`cannot resolve the telemetry sender (tried ${SENDER_SPECIFIERS.join(', ')})`);
 }
 
 function fireTelemetry(actionCommand: Command, userConfig: UserConfig): TelemetryRunOutcome {

@@ -465,31 +465,17 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
     pnpm?: { overrides?: Record<string, string> };
   };
 
-  const facade = cell.target === 'mongo' ? '@prisma-next/mongo' : '@prisma-next/postgres';
+  // The facade `init` scaffolds against, which is also the import root
+  // every file it writes is emitted for. Naming the workspace package here
+  // instead would put two facades in one manifest, which no generated file
+  // can be emitted for.
+  const facade = cell.target === 'mongo' ? '@prisma/orm-mongo' : '@prisma/orm-postgres';
   const facadeTarball = requireTarball(tarballs, facade);
   const prismaNextTarball = requireTarball(tarballs, 'prisma-next');
-
-  // The framework-emitted `migration.ts` imports framework packages
-  // directly (not via the user-facing facade): postgres goes through
-  // `@prisma-next/postgres/migration`; mongo goes through
-  // `@prisma-next/target-mongo/migration`. Under `node-linker=isolated`
-  // (the layout this journey deliberately uses to catch TML-2485-class
-  // bugs) these are only reachable when declared as direct deps. The
-  // init scaffold itself does not currently declare them, so a real
-  // user running `tsx migrations/.../migration.ts emit` under isolated
-  // linking would hit `ERR_MODULE_NOT_FOUND` — a real scaffold seam
-  // worth filing separately. Add them here so the journey can complete
-  // end-to-end; the scaffold gap is a follow-up.
-  const migrationDeps =
-    cell.target === 'mongo' ? ['@prisma-next/target-mongo'] : ['@prisma-next/target-postgres'];
-  const migrationDepEntries = Object.fromEntries(
-    migrationDeps.map((name) => [name, `file:${requireTarball(tarballs, name)}`]),
-  );
 
   pkg.dependencies = {
     ...(pkg.dependencies ?? {}),
     [facade]: `file:${facadeTarball}`,
-    ...migrationDepEntries,
     dotenv: '^16.4.5',
   };
   pkg.devDependencies = {

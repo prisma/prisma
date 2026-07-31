@@ -163,19 +163,19 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
     await runInitTest(tmpDir, { options: { install: false }, flags: interactiveFlags() });
 
     const config = readFileSync(join(tmpDir, 'prisma-next.config.ts'), 'utf-8');
-    expect(config).toContain("from '@prisma-next/postgres/config'");
+    expect(config).toContain("from '@prisma/orm-postgres/config'");
     expect(config).toContain('contract: "./src/prisma/contract.prisma"');
-    const imports = config.split('\n').filter((l) => l.includes("from '@prisma-next/"));
+    const imports = config.split('\n').filter((l) => l.includes("from '@prisma/orm-"));
     expect(imports).toHaveLength(1);
   });
 
-  it('generates db.ts with single @prisma-next runtime import', async () => {
+  it('generates db.ts with a single facade runtime import', async () => {
     await runInitTest(tmpDir, { options: { install: false }, flags: interactiveFlags() });
 
     const db = readFileSync(join(tmpDir, 'src/prisma/db.ts'), 'utf-8');
-    const prismaNextImports = db.split('\n').filter((l) => l.includes("from '@prisma-next/"));
-    expect(prismaNextImports).toHaveLength(1);
-    expect(prismaNextImports[0]).toContain('@prisma-next/postgres/runtime');
+    const prismaImports = db.split('\n').filter((l) => l.includes("from '@prisma/orm-"));
+    expect(prismaImports).toHaveLength(1);
+    expect(prismaImports[0]).toContain('@prisma/orm-postgres/runtime');
   });
 
   it('generates PSL starter schema with User and Post models', async () => {
@@ -197,7 +197,7 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
 
     const schema = readFileSync(join(tmpDir, 'src/prisma/contract.ts'), 'utf-8');
     expect(schema).toContain('defineContract');
-    expect(schema).toContain("from '@prisma-next/postgres/contract-builder'");
+    expect(schema).toContain("from '@prisma/orm-postgres/contract-builder'");
 
     const config = readFileSync(join(tmpDir, 'prisma-next.config.ts'), 'utf-8');
     expect(config).toContain('contract: "./src/prisma/contract.ts"');
@@ -290,7 +290,7 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
 
     const config = readFileSync(join(tmpDir, 'prisma-next.config.ts'), 'utf-8');
     expect(config).not.toBe('old config');
-    expect(config).toContain("from '@prisma-next/postgres/config'");
+    expect(config).toContain("from '@prisma/orm-postgres/config'");
 
     const schema = readFileSync(join(tmpDir, 'src/prisma/contract.prisma'), 'utf-8');
     expect(schema).not.toBe('old schema');
@@ -425,7 +425,7 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
       .mocked(execFile)
       .mock.calls.filter(([, args]) =>
         (args as string[]).some((arg) =>
-          ['@prisma-next/postgres', 'dotenv', 'prisma-next', '@types/node'].includes(arg),
+          ['@prisma/orm-postgres', 'dotenv', 'prisma-next', '@types/node'].includes(arg),
         ),
       );
     expect(dependencyInstallCalls).toHaveLength(0);
@@ -454,7 +454,7 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
 
     expect(execFile).toHaveBeenCalledWith(
       'pnpm',
-      ['add', '@prisma-next/postgres', 'dotenv'],
+      ['add', '@prisma/orm-postgres', 'dotenv'],
       expect.anything(),
       expect.any(Function),
     );
@@ -475,7 +475,7 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
 
     expect(execFile).toHaveBeenCalledWith(
       'deno',
-      ['add', 'npm:@prisma-next/postgres', 'npm:dotenv'],
+      ['add', 'npm:@prisma/orm-postgres', 'npm:dotenv'],
       expect.anything(),
       expect.any(Function),
     );
@@ -1244,7 +1244,7 @@ describe('runInit (non-interactive, FR1)', { timeout: timeouts.databaseOperation
     });
 
     const config = readFileSync(join(tmpDir, 'prisma-next.config.ts'), 'utf-8');
-    expect(config).toContain("from '@prisma-next/mongo/config'");
+    expect(config).toContain("from '@prisma/orm-mongo/config'");
   });
 
   it('accepts --authoring typescript (FR1.1)', async () => {
@@ -1557,7 +1557,7 @@ describe('runInit (non-interactive, FR1)', { timeout: timeouts.databaseOperation
     expect(exit).toBe(INIT_EXIT_OK);
     const config = readFileSync(join(tmpDir, 'prisma-next.config.ts'), 'utf-8');
     expect(config).not.toBe('existing');
-    expect(config).toContain("from '@prisma-next/postgres/config'");
+    expect(config).toContain("from '@prisma/orm-postgres/config'");
   });
 });
 
@@ -2048,7 +2048,7 @@ describe('runInit catalog warning surface (F03 / FR7.3)', {
   it('surfaces a catalog override warning in --json output when pnpm-workspace.yaml pins our packages', async () => {
     writeFileSync(
       join(tmpDir, 'pnpm-workspace.yaml'),
-      ['catalog:', "  '@prisma-next/postgres': 1.0.0", '  prisma-next: 1.2.3', ''].join('\n'),
+      ['catalog:', "  '@prisma/orm-postgres': 1.0.0", '  prisma-next: 1.2.3', ''].join('\n'),
     );
 
     const writes: string[] = [];
@@ -2067,7 +2067,7 @@ describe('runInit catalog warning surface (F03 / FR7.3)', {
       const parsed = JSON.parse(writes.join('').trim()) as { warnings: string[] };
       const allWarnings = parsed.warnings.join('\n');
       expect(allWarnings).toMatch(/catalog overrides detected/);
-      expect(allWarnings).toContain('@prisma-next/postgres: 1.0.0');
+      expect(allWarnings).toContain('@prisma/orm-postgres: 1.0.0');
       expect(allWarnings).toContain('prisma-next: 1.2.3');
     } finally {
       spy.mockRestore();

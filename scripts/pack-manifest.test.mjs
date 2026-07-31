@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, describe, test } from 'node:test';
-import { main, stripPrivateDeps } from './pack-manifest.mjs';
+import { main, strip, stripPrivateDeps } from './pack-manifest.mjs';
 
 const scratch = [];
 
@@ -72,18 +72,30 @@ describe('main', () => {
     assert.equal(existsSync(join(dir, 'package.json.pack-backup')), false);
   });
 
-  // A pack killed between the two hooks leaves the manifest stripped and the
-  // backup on disk. Packing again has to end up where it would have anyway,
-  // rather than backing up the already-stripped manifest and losing the
-  // dependencies permanently.
-  test('--strip after an interrupted run restores first, so nothing is lost', () => {
+  // The backup is a lock as much as a copy: vitest packs the same shell from
+  // more than one test file at once, and a second stripper that went ahead
+  // would restore the manifest while the first was still assembling its
+  // tarball.
+  test('--strip waits for a pack that is already holding the manifest', () => {
+    const dir = project({
+      name: '@prisma/orm-framework',
+      devDependencies: { '@prisma-next/contract': 'workspace:0.16.0' },
+    });
+    main(['--strip'], dir);
+    assert.throws(() => strip(dir, { timeoutMs: 20 }), /still exists after 20ms/);
+    // The waiter gave up without touching what the holder had written.
+    assert.deepEqual(manifestOf(dir).devDependencies, undefined);
+  });
+
+  test('--restore releases the lock so the next pack proceeds', () => {
     const dir = project({
       name: '@prisma/orm-framework',
       devDependencies: { '@prisma-next/contract': 'workspace:0.16.0' },
     });
     const before = readFileSync(join(dir, 'package.json'), 'utf8');
 
-    main(['--strip'], dir); // interrupted here: no --restore
+    main(['--strip'], dir);
+    main(['--restore'], dir);
     main(['--strip'], dir);
     main(['--restore'], dir);
 

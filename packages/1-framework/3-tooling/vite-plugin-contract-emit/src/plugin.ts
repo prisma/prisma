@@ -34,7 +34,7 @@ const MODULE_GRAPH_EXTENSIONS = new Set([
  * @example
  * ```ts
  * import { defineConfig } from 'vite';
- * import { prismaVitePlugin } from '@prisma-next/vite-plugin-contract-emit';
+ * import { prismaVitePlugin } from '@prisma/orm-toolchain/vite-plugin-contract-emit';
  *
  * // Use default config path
  * export default defineConfig({

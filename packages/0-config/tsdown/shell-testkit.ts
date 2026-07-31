@@ -239,97 +239,82 @@ function shellMapModules(installedPackageDir: string): ReadonlySet<string> {
 
 /**
  * Internal package names that published dists still carry as *string
- * constants* (not import specifiers), recorded as of TML-3122.
+ * constants* (not import specifiers, and not doc comments).
  *
- * Most are emitter input: the specifiers the emitter and the migration
- * renderers hand to their import-specifier resolver before writing a user's
- * generated contract and migration files. TML-3123 made that resolution
- * configurable but left the default returning them unchanged, so the
- * constants necessarily remain in the dist; the flip to a published default
- * retires them. The rest name internal packages inside diagnostics,
- * config-validation messages, and telemetry identifiers, which go away with
- * the `@prisma-next/*` names themselves.
+ * All but two are emission's input. The emitter, the migration renderers,
+ * and the codec/operation descriptors author their specifiers against the
+ * workspace names and hand them to an `ImportSpecifierResolver`, which
+ * rewrites each one for the import root the consuming project is on
+ * (`@prisma-next/publish-surface/import-roots`). The workspace name is the
+ * key the mapping is looked up by, so it is a constant in the dist by
+ * construction — the way an enum's names are. What a user's generated file
+ * receives is the resolved published entrypoint, which
+ * `transitiveImports` verifies. These entries retire only if emission is
+ * re-authored against published names and the mapping is inverted, which
+ * would make the repository's own generated files the special case instead.
+ *
+ * The two that are not:
+ *
+ * - `@prisma-next/*` is the import allowlist the CLI bundles a user's
+ *   TypeScript contract file against, alongside `@prisma/orm-*`. It stays
+ *   while this repository's own examples author contracts against workspace
+ *   names, and it is printed in the diagnostic that rejects a disallowed
+ *   import (`packages/1-framework/3-tooling/cli/src/load-ts-contract.ts`).
+ * - `@prisma-next/cli-telemetry/sender` is the second entry in the list the
+ *   CLI resolves the telemetry sender through at run time, after
+ *   `@prisma/orm-toolchain/cli-telemetry/sender`. One CLI source runs from
+ *   both layouts, and only the workspace name resolves in this repository.
  *
  * The shell map's own contents are *not* here — see
  * {@link shellMapPackageNames} for why they are recognised as data instead.
  *
  * This is a baseline lock, not an endorsement. Anything not listed fails
  * {@link findInternalNames}, so no *new* internal name can reach a
- * published dist while these are being worked through.
+ * published dist.
  */
 export const knownInternalNamesInDist: readonly string[] = [
   '@prisma-next/*',
   '@prisma-next/adapter-mongo/codec-types',
   '@prisma-next/adapter-postgres/operation-types',
   '@prisma-next/adapter-sqlite/codec-types',
-  '@prisma-next/cli',
-  '@prisma-next/cli-telemetry',
   '@prisma-next/cli-telemetry/sender',
-  '@prisma-next/cli/migration-cli',
-  '@prisma-next/config',
-  '@prisma-next/config/config-validation',
   '@prisma-next/contract/types',
-  '@prisma-next/driver-mongo/control',
-  '@prisma-next/emitter',
-  '@prisma-next/errors/control',
-  '@prisma-next/extension-arktype-json',
   '@prisma-next/extension-arktype-json/codec-types',
   '@prisma-next/extension-paradedb/operation-types',
-  '@prisma-next/extension-pgvector',
   '@prisma-next/extension-pgvector/codec-types',
   '@prisma-next/extension-pgvector/operation-types',
-  '@prisma-next/extension-postgis',
   '@prisma-next/extension-postgis/codec-types',
   '@prisma-next/extension-postgis/operation-types',
-  '@prisma-next/family-mongo',
-  '@prisma-next/framework-components',
-  '@prisma-next/framework-components/codec',
-  '@prisma-next/framework-components/control',
-  '@prisma-next/framework-components/ir',
-  '@prisma-next/framework-components/psl-ast',
-  '@prisma-next/framework-components/runtime',
-  '@prisma-next/ids',
-  '@prisma-next/middleware-cache',
-  '@prisma-next/migration-tools',
-  '@prisma-next/migration-tools/aggregate',
-  '@prisma-next/migration-tools/io',
   '@prisma-next/mongo',
   '@prisma-next/mongo-contract',
-  '@prisma-next/mongo-orm',
-  '@prisma-next/mongo-runtime',
-  '@prisma-next/mongo/contract-builder',
-  '@prisma-next/mongo/runtime',
   '@prisma-next/postgres',
-  '@prisma-next/postgres/contract-builder',
   '@prisma-next/postgres/migration',
-  '@prisma-next/postgres/runtime',
-  '@prisma-next/sql-contract-psl/provider',
   '@prisma-next/sql-contract/types',
-  '@prisma-next/sql-relational-core/ast',
-  '@prisma-next/sql-runtime',
   '@prisma-next/sqlite/migration',
   '@prisma-next/target-mongo/migration',
-  '@prisma-next/target-postgres',
   '@prisma-next/target-postgres/codec-types',
-  '@prisma-next/target-postgres/codecs',
-  '@prisma-next/target-postgres/errors',
-  '@prisma-next/target-sqlite',
-  '@prisma-next/target-sqlite/errors',
-  '@prisma-next/utils',
-  '@prisma-next/utils/canonical-stringify',
-  '@prisma-next/utils/hash-content',
-  '@prisma-next/utils/structured-error',
-  '@prisma-next/vite-plugin-contract-emit',
 ];
+
+/** A line the bundler copied from a doc comment rather than emitted as code. */
+const COMMENT_LINE = /^\s*(\*|\/\/|\/\*)/;
 
 /**
  * Scan an installed shell's dist for internal workspace package names.
  *
  * Covers every quoted string in the runtime `.mjs` files, not just import
  * specifiers, because the emitter ships import roots as ordinary string
- * constants and those land in a user's generated files. Declaration files
- * are scanned for import specifiers only — an internal name in JSDoc prose
- * is a documentation wart, not a resolution failure.
+ * constants and those land in a user's generated files.
+ *
+ * Comment lines are skipped in both file kinds. The bundler copies doc
+ * comments into its output, and those comments are written for people
+ * working in this repository: a note saying a class "lives in
+ * `@prisma-next/target-postgres/errors`" is describing a directory that
+ * exists, and rewriting it to the published entrypoint would make it name a
+ * path no reader can find. What this scan is for is the strings a *consumer*
+ * would act on — the specifiers emission writes into their files — and none
+ * of those are in comments. Doc comments a user reads (usage examples on an
+ * extension pack, say) name published entrypoints because they are user
+ * documentation, not because a scanner made them.
  *
  * One package publishes a table *of* internal package names, and inside the
  * modules that carry it those strings are the data rather than something the
@@ -348,17 +333,18 @@ export async function findInternalNames(installedPackageDir: string): Promise<st
   for (const file of walk(distDir)) {
     if (file.endsWith('.mjs')) {
       const carriesShellMap = mapModules.has(file);
-      for (const match of readFileSync(file, 'utf8').matchAll(
-        /["'`](@prisma-next\/[^"'`\s\\]+)["'`\\]/g,
-      )) {
-        const name = match[1] ?? '';
-        if (known.has(name)) continue;
-        if (carriesShellMap && shellMapPackageNames.has(name)) continue;
-        offenders.push(`${file}: ${name}`);
+      for (const line of readFileSync(file, 'utf8').split('\n')) {
+        if (COMMENT_LINE.test(line)) continue;
+        for (const match of line.matchAll(/["'`](@prisma-next\/[^"'`\s\\]+)["'`\\]/g)) {
+          const name = match[1] ?? '';
+          if (known.has(name)) continue;
+          if (carriesShellMap && shellMapPackageNames.has(name)) continue;
+          offenders.push(`${file}: ${name}`);
+        }
       }
     } else if (file.endsWith('.d.mts')) {
       for (const line of readFileSync(file, 'utf8').split('\n')) {
-        if (/^\s*(\*|\/\/)/.test(line)) continue;
+        if (COMMENT_LINE.test(line)) continue;
         for (const match of line.matchAll(
           /(?:from\s+|^\s*import\s+|import\()(["'])(@prisma-next\/[^"']+)\1/g,
         )) {

@@ -21,8 +21,9 @@ export function extractDb(driver: ControlDriverInstance<'mongo', 'mongo'>): Db {
   if (!isMongoControlDriver(driver)) {
     throw mongoAdapterError(
       'CONFIG.VALIDATION_FAILED',
-      'Expected a Mongo control driver created by ' +
-        'mongoControlDriver.create() from `@prisma-next/driver-mongo/control`.',
+      'Expected a Mongo control driver created by mongoControlDriver.create(), ' +
+        "from your Prisma package's `driver/control` entrypoint " +
+        '(`@prisma/orm-mongo/driver/control` in a standard install).',
       { meta: { received: describeReceivedValue(driver) } },
     );
   }

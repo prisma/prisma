@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { publicShells } from '../src/shells';
+import { excludedSubpaths, publicShells } from '../src/shells';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 
@@ -74,5 +74,35 @@ describe('publicShells', () => {
 
       expect(`${name}: ${carriesFacadeMachinery}`).toBe(`${name}: ${shell.kind === 'facade'}`);
     }
+  });
+});
+
+// `@prisma-next/sql-runtime` exports `./test/utils`, whose module imports
+// `@prisma-next/test-utils` — a devDependency that never publishes. Leaving
+// the workspace export alone and declining to map the subpath is what keeps
+// the in-repo consumers of that helper working while the published shell
+// stays free of a dangling import. It is a rule about test surfaces rather
+// than about that one package, so this pins the rule.
+describe('excludedSubpaths', () => {
+  const excluded = (subpath: string) => excludedSubpaths.some((pattern) => pattern.test(subpath));
+
+  it('excludes a package’s test-only export subpaths', () => {
+    expect(excluded('./test/utils')).toBe(true);
+    expect(excluded('./test')).toBe(true);
+  });
+
+  it('leaves everything a consumer imports at run time', () => {
+    for (const subpath of ['.', './runtime', './contract/types', './latest-test-results']) {
+      expect(`${subpath}: ${excluded(subpath)}`).toBe(`${subpath}: false`);
+    }
+  });
+
+  it('excludes the subpath that reaches the unpublished test-utils package', () => {
+    const sqlRuntime: unknown = JSON.parse(
+      readFileSync(join(repoRoot, 'packages/2-sql/5-runtime/package.json'), 'utf8'),
+    );
+    const exports = Object(Object(sqlRuntime).exports) as Record<string, unknown>;
+    expect(Object.keys(exports)).toContain('./test/utils');
+    expect(excluded('./test/utils')).toBe(true);
   });
 });

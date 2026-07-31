@@ -3,9 +3,30 @@ import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
 } from '@prisma-next/framework-components/emission';
+import {
+  platformEntrypointOf,
+  type ScaffoldImportRoot,
+} from '@prisma-next/publish-surface/import-roots';
 
 export type TargetId = 'postgres' | 'mongo';
 export type AuthoringId = 'psl' | 'typescript';
+
+/** The workspace package every scaffold specifier for `target` is authored against. */
+function authoredTargetPackage(target: TargetId): string {
+  return target === 'postgres' ? '@prisma-next/postgres' : '@prisma-next/mongo';
+}
+
+/**
+ * The import root a scaffolded project is written against: the facade that
+ * publishes the target's wiring.
+ *
+ * `init` writes an application around one facade and installs that facade, so
+ * a scaffold has no other root to be on — a decomposed project is a different
+ * template, not this one under a different name (ADR 242).
+ */
+export function scaffoldImportRoot(target: TargetId): ScaffoldImportRoot {
+  return { mode: 'facade', facade: platformEntrypointOf(authoredTargetPackage(target)).shell };
+}
 
 /**
  * The package name a scaffolded project depends on and imports from, for the
@@ -27,9 +48,7 @@ export function targetPackageName(
   target: TargetId,
   resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
 ): string {
-  return resolveImportSpecifier(
-    target === 'postgres' ? '@prisma-next/postgres' : '@prisma-next/mongo',
-  );
+  return resolveImportSpecifier(authoredTargetPackage(target));
 }
 
 /** One entrypoint of the scaffolded project's target package. */
@@ -38,8 +57,7 @@ export function targetEntrypoint(
   subpath: string,
   resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
 ): string {
-  const internal = target === 'postgres' ? '@prisma-next/postgres' : '@prisma-next/mongo';
-  return resolveImportSpecifier(`${internal}/${subpath}`);
+  return resolveImportSpecifier(`${authoredTargetPackage(target)}/${subpath}`);
 }
 
 export function targetLabel(target: TargetId): string {

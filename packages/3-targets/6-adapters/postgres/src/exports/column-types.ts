@@ -169,7 +169,7 @@ export function intervalColumn(precision?: number): ColumnTypeDescriptor & {
 /**
  * Postgres `json` column descriptor — untyped raw JSON.
  *
- * For schema-typed JSON columns, use the per-library extension package (`@prisma-next/extension-arktype-json` ships `arktypeJson(schema)` for arktype). The schema-accepting `json(schema)` / `jsonb(schema)` overloads previously shipped from this module retired in Phase C of the codec-registry-unification project — see spec § AC-7.
+ * For schema-typed JSON columns, use the per-library extension package (`@prisma/orm-extension-arktype-json` ships `arktypeJson(schema)` for arktype). The schema-accepting `json(schema)` / `jsonb(schema)` overloads previously shipped from this module retired in Phase C of the codec-registry-unification project — see spec § AC-7.
  */
 export const jsonColumn = {
   codecId: PG_JSON_CODEC_ID,
