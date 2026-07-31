@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 
 /**
- * Publishes every publishable workspace package to npm in parallel.
+ * Publishes the public npm surface to npm in parallel.
+ *
+ * The package list is `packages/9-public/` (ADR 242) via
+ * `scripts/list-publishable-packages.mjs`, not a workspace-wide scan
+ * for non-private manifests: publishability is a directory property,
+ * and a workspace scan would let a package that lost its `private`
+ * flag — anywhere in `packages/`, `apps/`, `examples/`, or `test/` —
+ * reach the registry.
  *
  * `pnpm -r publish` is intentionally serialized (it rejects
- * `--workspace-concurrency` outright), and serial publish of ~60
- * packages takes 5–10 minutes on CI because each package pays for a
+ * `--workspace-concurrency` outright), and each package pays for a
  * fresh npm upload + Sigstore signing round-trip. This script fans
  * the same `pnpm publish` invocations out across N workers, which
  * brings wall-clock time down by close to the concurrency factor.
@@ -34,8 +40,9 @@
  *     under Actions) so failures are easy to find in interleaved CI logs.
  */
 
-import { execFileSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 
+import { listPublicPackages } from './list-publishable-packages.mjs';
 import { classifyPublishResult } from './publish-packages-utils.mjs';
 
 const args = process.argv.slice(2);
@@ -65,17 +72,12 @@ if (!Number.isInteger(concurrency) || concurrency < 1) {
 
 const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
 
-const listJson = execFileSync('pnpm', ['list', '-r', '--json', '--depth', '-1'], {
-  encoding: 'utf-8',
-  maxBuffer: 64 * 1024 * 1024,
-});
-const packages = JSON.parse(listJson)
-  .filter((p) => !p.private && p.path && p.name)
-  .map((p) => ({ name: p.name, path: p.path }));
+const packages = listPublicPackages().map((p) => ({ name: p.name, path: p.dir }));
 
 console.log(
   `Publishing ${packages.length} packages with concurrency=${concurrency}, tag=${tag}${dryRun ? ' (dry-run)' : ''}.`,
 );
+for (const pkg of packages) console.log(`  ${pkg.name}  (${pkg.path})`);
 
 /**
  * Spawn `pnpm publish` for a single package and resolve with a

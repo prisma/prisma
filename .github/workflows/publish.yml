@@ -110,14 +110,18 @@ jobs:
       - name: Check upgrade-instruction coverage
         run: pnpm check:upgrade-coverage --mode publish
 
-      # Both publish paths fan out across `PUBLISH_CONCURRENCY` workers
-      # (default 8) via `scripts/publish-packages.mjs`. `pnpm -r publish` is
-      # intentionally serialized (it rejects `--workspace-concurrency`
-      # outright), and the per-package npm upload + Sigstore signing
-      # round-trips dominate wall-clock time, so serial publish of ~60
-      # packages takes 5–10 minutes on CI. Fanning out brings it down by
-      # close to the concurrency factor while staying well below npm's
-      # informal abuse thresholds.
+      # Both publish paths publish exactly `packages/9-public/` — the public
+      # npm surface of ADR 242 — via `scripts/publish-packages.mjs`, which
+      # reads `scripts/list-publishable-packages.mjs`. Every other workspace
+      # package is `"private": true`; `pnpm lint:publishable` fails the repo
+      # if that stops being true in either direction.
+      #
+      # Both paths fan out across `PUBLISH_CONCURRENCY` workers (default 8).
+      # `pnpm -r publish` is intentionally serialized (it rejects
+      # `--workspace-concurrency` outright), and the per-package npm upload +
+      # Sigstore signing round-trips dominate wall-clock time. Fanning out
+      # brings it down by close to the concurrency factor while staying well
+      # below npm's informal abuse thresholds.
 
       # Dry-run path: exercises the full publish pipeline (pack, validate
       # tarball contents, dependency rewriting) without touching the npm

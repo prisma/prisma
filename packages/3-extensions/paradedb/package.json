@@ -1,6 +1,7 @@
 {
   "name": "@prisma-next/extension-paradedb",
   "version": "0.16.0",
+  "private": true,
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
