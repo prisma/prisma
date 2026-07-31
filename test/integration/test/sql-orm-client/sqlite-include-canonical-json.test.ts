@@ -61,7 +61,7 @@ const Station = model('Station', {
     weight: field.column(bigintColumn).optional(),
   },
   relations: {
-    reading: rel.belongsTo(Reading, { from: 'readingId', to: 'id' }),
+    reading: rel.belongsTo(Reading, { from: 'readingId', to: 'id' }).sql({ fk: {} }),
   },
 }).sql({ table: 'canon_stations' });
 
@@ -225,14 +225,32 @@ describe('integration/sqlite include canonical JSON', () => {
       .prepare('insert into canon_stations (id, reading_id, weight) values (?, ?, ?)')
       .run(100, 1, WIDE_BIGINT.toString());
 
-    const weightField = 'weight' as never;
+    // Same cardinality-inference gap as the PostgreSQL suite: the reducers are
+    // typed away on a contract declared in this file, though the relation is
+    // to-many and the shape below is what the query returns.
+    const reduceToMax = (related: unknown): unknown =>
+      (related as { max: (field: string) => unknown }).max('weight');
     const withStations = await readings!
       .where((reading) => reading.id.eq(1))
       .select('id')
-      .include('stations', (related) => related.max(weightField))
+      .include('stations', (related) => reduceToMax(related) as never)
       .all();
 
     expect(withStations).toEqual([{ id: 1, stations: WIDE_BIGINT }]);
     expect(BigInt(Number(WIDE_BIGINT))).not.toBe(WIDE_BIGINT);
+  });
+
+  // A sum is a value SQLite computes, so it leaves the database as an INTEGER
+  // rather than the text a bigint column stores — and `node:sqlite` refuses an
+  // integer a JS number cannot hold. The target's descriptor answers with the
+  // cast that makes the wire form text, which is what the bigint codec reads.
+  it('carries a top-level sum past 2^53 through the ORM', async () => {
+    const counterField = 'counter' as never;
+    const stats = await readings!.aggregate((aggregate) => ({
+      total: aggregate.sum(counterField),
+    }));
+
+    expect(stats).toEqual({ total: WIDE_BIGINT });
+    expect(BigInt(Number(stats.total))).not.toBe(stats.total);
   });
 });

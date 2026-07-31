@@ -258,11 +258,16 @@ describe('integration/include canonical JSON', () => {
         expect(String(Number(stats.total))).not.toBe(stats.total);
         expect(Number(stats.peak)).not.toBe(9007199254740993n);
 
-        const weightField = 'weight' as never;
+        // The include refinement's cardinality inference does not read a
+        // `hasMany` attached to a model declared in this file as to-many, so it
+        // types the scalar reducers away; the relation is to-many and the shape
+        // asserted below is what the query returns.
+        const reduceToMax = (related: unknown): unknown =>
+          (related as { max: (field: string) => unknown }).max('weight');
         const withStations = await readings
           .where((reading) => reading.id.eq(1))
           .select('id')
-          .include('stations', (stations) => stations.max(weightField))
+          .include('stations', (stations) => reduceToMax(stations) as never)
           .all();
 
         // The include carries its value inside a JSON document, where a number

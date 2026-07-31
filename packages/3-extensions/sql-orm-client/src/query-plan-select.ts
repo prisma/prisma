@@ -1,5 +1,6 @@
 import type { Contract } from '@prisma-next/contract/types';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { SqlAggregateLowering } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
 import {
   AggregateExpr,
   AndExpr,
@@ -35,7 +36,7 @@ import type { SqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational
 import { assertDefined, invariant } from '@prisma-next/utils/assertions';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { assertNever, InternalError } from '@prisma-next/utils/internal-error';
-import { resolveAggregateOutputCodec } from './aggregate-codecs';
+import { resolveAggregate } from './aggregate-codecs';
 import {
   getCompleteColumnToFieldMap,
   getFieldToColumnMap,
@@ -1166,8 +1167,9 @@ function buildIncludeChildScalarSelect(
 ): SelectAst {
   // The reducer's result is a value in its own right, so it enters the JSON
   // envelope under the codec the target declares for it — without which a count
-  // past 2^53 would arrive as a rounded JSON number.
-  const resultCodec = resolveAggregateOutputCodec({
+  // past 2^53 would arrive as a rounded JSON number — and through whatever
+  // expression that target wants built for it.
+  const { codec: resultCodec, lower: resultLowering } = resolveAggregate({
     aggregates,
     contract,
     namespaceId: include.relatedNamespaceId,
@@ -1231,7 +1233,7 @@ function buildIncludeChildScalarSelect(
   const needsInnerScoping = hasPagination || hasDistinct;
 
   if (!needsInnerScoping) {
-    const aggregateExpr = buildIncludeAggregateExpr(scalar, childTableRef);
+    const aggregateExpr = buildIncludeAggregateExpr(scalar, childTableRef, resultLowering);
     const jsonObjectExpr = JsonObjectExpr.fromEntries([
       JsonObjectExpr.entry('value', jsonEntryProjection(aggregateExpr, { codec: resultCodec })),
     ]);
@@ -1340,7 +1342,7 @@ function buildIncludeChildScalarSelect(
   }
 
   // Outer aggregating SELECT over the shaped inner row set.
-  const outerAggregateExpr = buildIncludeAggregateExpr(scalar, innerAlias);
+  const outerAggregateExpr = buildIncludeAggregateExpr(scalar, innerAlias, resultLowering);
   const outerJsonObjectExpr = JsonObjectExpr.fromEntries([
     JsonObjectExpr.entry('value', jsonEntryProjection(outerAggregateExpr, { codec: resultCodec })),
   ]);
@@ -1353,9 +1355,12 @@ function buildIncludeChildScalarSelect(
 function buildIncludeAggregateExpr(
   scalar: IncludeScalar<unknown>,
   childTableRef: string,
-): AggregateExpr {
+  lower: SqlAggregateLowering | undefined,
+): AnyExpression {
   if (scalar.fn === 'count') {
-    return AggregateExpr.count();
+    return lower !== undefined
+      ? lower({ expr: undefined, inputCodec: undefined })
+      : AggregateExpr.count();
   }
   if (scalar.column === undefined) {
     throw ormError(
@@ -1367,6 +1372,7 @@ function buildIncludeAggregateExpr(
     );
   }
   const columnRef = ColumnRef.of(childTableRef, scalar.column);
+  if (lower !== undefined) return lower({ expr: columnRef, inputCodec: undefined });
   switch (scalar.fn) {
     case 'sum':
       return AggregateExpr.sum(columnRef);

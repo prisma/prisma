@@ -30,6 +30,7 @@
 
 import { DatabaseSync } from 'node:sqlite';
 import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import { AggregateExpr, CastExpr, ColumnRef } from '@prisma-next/sql-relational-core/ast';
 import { sqliteAggregateDescriptors } from '@prisma-next/target-sqlite/aggregates';
 import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -223,11 +224,12 @@ describe.sequential('SQLite aggregate conformance', () => {
   });
 
   it('pins count to the bigint codec, with and without an input', () => {
-    expect(registry.resolve('count')).toEqual({
+    // `lower` is the cast that keeps a wide count readable; its shape is
+    // asserted where the lowering itself is, below.
+    expect(registry.resolve('count')).toMatchObject({
       operation: 'count',
       output: { codecId: 'sqlite/bigint@1' },
       nullable: false,
-      lower: undefined,
     });
     expect(registry.resolve('count', { codecId: 'sqlite/text@1' })?.output).toEqual({
       codecId: 'sqlite/bigint@1',
@@ -291,5 +293,52 @@ describe.sequential('SQLite aggregate conformance', () => {
     expect(registry.resolve('sum', { codecId: 'sqlite/integer@1' })?.nullable).toBe(true);
     expect(registry.resolve('avg', { codecId: 'sqlite/integer@1' })?.nullable).toBe(true);
     expect(registry.resolve('min', { codecId: 'sqlite/integer@1' })?.nullable).toBe(true);
+  });
+
+  // A bigint result leaves the database as text, because `node:sqlite` reads an
+  // integer no JS number can hold as an error rather than a value. The lowering
+  // is what renders the cast — and it renders only that: the codec the
+  // descriptor declared is still the codec the registry resolves.
+  describe('bigint results are lowered to text', () => {
+    const BEYOND_SAFE = '9007199254740993';
+
+    it('declares a lowering for every aggregate whose result is a bigint', () => {
+      const unlowered = [...registry.values()]
+        .filter((descriptor) => {
+          const resolved = registry.resolve(
+            descriptor.operation,
+            descriptor.input.kind === 'codec' ? { codecId: descriptor.input.codecId } : undefined,
+          );
+          return resolved?.output.codecId === 'sqlite/bigint@1' && descriptor.lower === undefined;
+        })
+        .map((descriptor) => `${descriptor.operation}:${descriptor.input.kind}`);
+
+      expect(unlowered).toEqual([]);
+    });
+
+    it('builds a cast over the aggregate, and nothing that names a codec', () => {
+      const resolved = registry.resolve('sum', { codecId: 'sqlite/bigint@1' });
+      const lowered = resolved?.lower?.({
+        expr: ColumnRef.of('t', 'c'),
+        inputCodec: { codecId: 'sqlite/bigint@1' },
+      });
+
+      expect(lowered).toEqual(CastExpr.as(AggregateExpr.sum(ColumnRef.of('t', 'c')), 'text'));
+      // The hook has no channel for a codec, so the result identity is the
+      // descriptor's declaration either way.
+      expect(resolved?.output).toEqual({ codecId: 'sqlite/bigint@1' });
+      expect(registry.resolve('count')?.output).toEqual({ codecId: 'sqlite/bigint@1' });
+    });
+
+    it('reads a sum past 2^53 back exactly, where the uncast form cannot be read at all', () => {
+      run(`DROP TABLE IF EXISTS "${TABLE}"`);
+      run(`CREATE TABLE "${TABLE}" ("${COLUMN}" INTEGER)`);
+      run(`INSERT INTO "${TABLE}" ("${COLUMN}") VALUES (${BEYOND_SAFE})`);
+
+      const [row] = run(`SELECT CAST(sum("${COLUMN}") AS text) AS result FROM "${TABLE}"`);
+      expect(row?.['result']).toBe(BEYOND_SAFE);
+
+      expect(() => run(`SELECT sum("${COLUMN}") AS result FROM "${TABLE}"`)).toThrow(/too large/);
+    });
   });
 });

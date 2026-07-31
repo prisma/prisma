@@ -433,13 +433,19 @@ sqliteJsonColumn satisfies ColumnHelperForStrict<SqliteJsonDescriptor>;
 export class SqliteBigintCodec extends CodecImpl<
   typeof SQLITE_BIGINT_CODEC_ID,
   readonly ['equality', 'order', 'numeric'],
-  number | bigint,
+  number | bigint | string,
   bigint
 > {
   async encode(value: bigint, _ctx: CodecCallContext): Promise<number | bigint> {
     return value;
   }
-  async decode(wire: number | bigint, _ctx: CodecCallContext): Promise<bigint> {
+  /**
+   * The wire value is text wherever the value could outrun a JS number: an
+   * aggregate SQLite computes leaves the database through the descriptor's cast
+   * to text, because the driver reads an integer no number can hold as an error
+   * rather than a value.
+   */
+  async decode(wire: number | bigint | string, _ctx: CodecCallContext): Promise<bigint> {
     return BigInt(wire);
   }
   encodeJson(value: bigint): JsonValue {

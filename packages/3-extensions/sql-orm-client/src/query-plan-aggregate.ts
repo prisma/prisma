@@ -16,7 +16,7 @@ import {
 import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
 import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
 import type { SqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
-import { resolveAggregateOutputCodec } from './aggregate-codecs';
+import { resolveAggregate } from './aggregate-codecs';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
 import { tableSourceForContract } from './storage-resolution';
@@ -29,7 +29,7 @@ function toAggregateProjection(
   namespaceId: string,
   tableName: string,
   selector: AggregateSelector<unknown>,
-): { expr: AggregateExpr; codec: CodecRef | undefined } {
+): { expr: AnyExpression; codec: CodecRef | undefined } {
   if (selector.fn !== 'count' && !selector.column) {
     throw ormError(
       'ORM.AGGREGATE_SELECTOR_INVALID',
@@ -40,15 +40,12 @@ function toAggregateProjection(
     );
   }
 
-  const expr =
-    selector.column === undefined
-      ? AggregateExpr.count()
-      : new AggregateExpr(selector.fn, ColumnRef.of(tableName, selector.column));
-
   // The result's codec is the target's to declare: `count` is a wide integer,
   // `sum` widens or preserves per input, and `min`/`max` keep the column's own
   // codec — all of which the aggregate registry answers per operation and input.
-  const codec = resolveAggregateOutputCodec({
+  // A target that also needs the result rendered a particular way says so with a
+  // lowering, which builds the expression in place of the plain call.
+  const { codec, lower } = resolveAggregate({
     aggregates,
     contract,
     namespaceId,
@@ -56,6 +53,15 @@ function toAggregateProjection(
     fn: selector.fn,
     column: selector.column,
   });
+
+  const input =
+    selector.column === undefined ? undefined : ColumnRef.of(tableName, selector.column);
+  const expr =
+    lower !== undefined
+      ? lower({ expr: input, inputCodec: undefined })
+      : input === undefined
+        ? AggregateExpr.count()
+        : new AggregateExpr(selector.fn, input);
 
   return { expr, codec };
 }

@@ -13,7 +13,12 @@
 
 import type { CodecTrait } from '@prisma-next/framework-components/codec';
 import type { ValueInputAggregateDescriptor } from '@prisma-next/framework-components/components';
-import type { SqlAggregateDescriptor } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import type {
+  SqlAggregateDescriptor,
+  SqlAggregateLowering,
+} from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import type { AggregateFn } from '@prisma-next/sql-relational-core/ast';
+import { AggregateExpr, CastExpr } from '@prisma-next/sql-relational-core/ast';
 import {
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,
@@ -32,16 +37,31 @@ const overCodec = (codecId: string): ValueInput => ({ kind: 'codec', codecId });
 const overTrait = (trait: CodecTrait): ValueInput => ({ kind: 'trait', trait });
 
 /** An aggregate whose result is one of the input values, so it carries the input's codec. */
-const preservesInput = (operation: string, input: ValueInput): SqlAggregateDescriptor => ({
+const preservesInput = (operation: AggregateFn, input: ValueInput): SqlAggregateDescriptor => ({
   operation,
   input,
   output: { kind: 'self' },
   nullable: true,
 });
 
+/**
+ * Render the aggregate as text.
+ *
+ * SQLite computes an aggregate into an INTEGER, and the driver reads an integer
+ * no JS number can hold as an error rather than a value — so an aggregate whose
+ * result is a bigint leaves the database through this cast, which is the form
+ * the bigint codec reads anyway. The hook builds the expression and nothing
+ * else: which codec the result carries is the descriptor's `output` to declare,
+ * not this function's to choose.
+ */
+const castResultToText =
+  (operation: AggregateFn): SqlAggregateLowering =>
+  ({ expr }) =>
+    CastExpr.as(new AggregateExpr(operation, expr), 'text');
+
 /** An aggregate whose result is a new value, named by codec and without the input's type parameters. */
 const produces = (
-  operation: string,
+  operation: AggregateFn,
   input: ValueInput,
   codecId: string,
 ): SqlAggregateDescriptor => ({
@@ -49,6 +69,7 @@ const produces = (
   input,
   output: { kind: 'codec', codecId },
   nullable: true,
+  ...(codecId === SQLITE_BIGINT_CODEC_ID ? { lower: castResultToText(operation) } : {}),
 });
 
 /** Codecs stored as SQLite integers. Their `sum` is an integer of up to 64 bits, which is `sqlite/bigint@1`'s range and beyond `sqlite/integer@1`'s. */
@@ -70,6 +91,16 @@ const orderingDescriptors = (operation: 'min' | 'max'): ReadonlyArray<SqlAggrega
   preservesInput(operation, overTrait('numeric')),
   preservesInput(operation, overTrait('textual')),
   ...MIN_MAX_PRESERVING_CODECS.map((codecId) => preservesInput(operation, overCodec(codecId))),
+  // The bigint codec claims itself exactly, so its extremum leaves the database
+  // as text like every other bigint result; the trait fallback above serves the
+  // numeric codecs whose values a JS number holds.
+  {
+    operation,
+    input: { kind: 'codec', codecId: SQLITE_BIGINT_CODEC_ID },
+    output: { kind: 'self' },
+    nullable: true,
+    lower: castResultToText(operation),
+  },
 ];
 
 /**
@@ -82,6 +113,7 @@ export const sqliteAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> =
     input: { kind: 'any' },
     output: { kind: 'codec', codecId: SQLITE_BIGINT_CODEC_ID },
     nullable: false,
+    lower: castResultToText('count'),
   },
 
   ...INTEGER_CODECS.map((codecId) => produces('sum', overCodec(codecId), SQLITE_BIGINT_CODEC_ID)),
