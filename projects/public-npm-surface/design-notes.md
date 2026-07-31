@@ -25,20 +25,16 @@ The system-level design is settled and recorded in [ADR 242](../../docs/architec
 - **A facade install does not get the toolchain's bin for free** (TML-3122, corrects a project-plan assumption): pnpm links bins of *direct* dependencies only, so `@prisma/orm-toolchain`'s bin never appears in an app that depends on it transitively via a facade. Each facade therefore declares its own `bin.prisma-next` as a one-line launcher importing `@prisma/orm-toolchain/bin/prisma-next` — one published CLI implementation, reachable from a facade-only install.
 - **The emitted-migration import root is hardcoded in the targets** (TML-3122): `render-typescript.ts` and `op-factory-call.ts` in the Postgres and Mongo targets write `@prisma-next/<db>/migration` into generated migration files. This couples `init`'s scaffolded dependency to the emitter's import root — the two must flip together, in TML-3123. Until then `init` keeps scaffolding the current names.
 
-## The facade surface does not yet carry an application
+## App-facing dependency shape: one package or three?
 
-Found in TML-3126, which stopped short of the flip rather than working around it. **This is the gap between ADR 242's central promise and what is built.**
+TML-3126 stopped short of the flip after a scan reported 20 internal packages with no facade entrypoint. That scan was over-read at the time — including in this file — as "those APIs are unreachable" and "ADR 242's promise is broken". Both readings were wrong, and the corrected picture matters for the remaining slices:
 
-The facades republish only contract-shaped surfaces (`contract`, `components`, `family-contract`, `target/*`, `adapter`). Real applications also need the family runtime surfaces — `sql-runtime` alone provides `orm()`, `Collection`, `budgets`, `lints`, `Runtime`, `SqlMiddleware` — and 20 internal packages that in-repo examples import have no facade entrypoint at all (7 SQL family, 6 Mongo family, 3 toolchain, 2 drivers, framework `utils`, plus repo-only `test-utils`). Because a shell bundles its own copy of each internal package, a consumer cannot mix roots: naming both `@prisma/orm-*` and `@prisma-next/*` loads two copies of every shared module. Migration is therefore all-or-nothing per consumer, and today no consumer can make the jump.
+- **Users cannot end up with duplicate modules.** After the switchover the internal `@prisma-next/*` packages are not published, so an application has no way to install both an internal package and a shell. Module duplication is a *workspace-only* hazard during migration, where both sit on disk — which is exactly what `scripts/lint-single-import-root.mjs` now guards.
+- **Nothing is unreachable.** `@prisma/orm-family-sql` already publishes `/runtime`, `/orm-client`, `/builder`, `/relational-core` and their subpaths. The scan found packages the *facade* does not re-export, not packages an application cannot get.
 
-So "install one package" does not hold yet. The list is pinned executably in `packages/0-shared/publish-surface/test/consumer-surface.test.ts`, so it shrinks visibly and cannot grow silently.
+What is left is an ergonomics decision, tracked on TML-3128: an app depends either on the facade alone (facades re-export the family runtime surfaces; ~19 new entrypoints) or on the facade plus `@prisma/orm-family-sql` and `@prisma/orm-toolchain` (works today, no new entrypoints, and consistent with how ADR 242 already treats the toolchain). Decide it with evidence by rewriting one example per family using published names only — some of the scanned imports look like stale example code rather than real gaps (`prisma-next-demo` takes the generic `Runtime` from `sql-runtime` where the facade already offers `PostgresRuntime`).
 
-**Resolution (an ADR 242 amendment, not an implementation choice):** facades republish the full application-facing surface of their family and target, not just the contract surfaces. The entrypoint names follow the convention slice 1 already established (internal package → entry name), so no new naming scheme is required. Two sub-decisions fall out:
-
-- **The toolchain is a direct dependency, not a facade re-export.** ADR 242 already says applications install `orm-toolchain`; `directDependencyShells` in the no-transitive-import audit currently excludes it, which is simply a bug. Fixing it closes 3 of the 20 for free.
-- **`test-utils` stays repo-internal.** In-repo examples may keep it as a workspace devDependency; it is not part of the published surface.
-
-**Also worth adopting** (raised by the same slice): derive the import root from the *consuming project's* dependencies rather than a global default. That lets `init` scaffold facade-only projects immediately and lets examples migrate one at a time, replacing a single high-risk big-bang commit with incremental, independently-verifiable moves.
+**Worth adopting either way** (raised by the same slice): derive the import root from the *consuming project's* dependencies rather than a global default, so `init` can scaffold facade-only projects immediately and examples migrate one at a time instead of in one big-bang commit.
 
 ## Decomposed installs and migrations: three import-root gaps, all shallow
 
