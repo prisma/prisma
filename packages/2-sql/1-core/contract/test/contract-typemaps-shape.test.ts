@@ -102,9 +102,9 @@ describe('TypeMaps aggregateTypes', () => {
     expectTypeOf<AggregateTypesOf<TypeMaps>>().toEqualTypeOf<Record<string, never>>();
   });
 
-  // What D6's resolver walks: the exact overload's row and the row the trait
-  // fallback settled are both present and differ, so the resolver reads one
-  // answer per codec rather than re-deciding precedence.
+  // What a result-type resolver walks: the exact overload's row and the row the
+  // trait fallback settled are both present and differ, so the resolver reads
+  // one answer per codec rather than re-deciding precedence.
   it('distinguishes an exact overload from the trait fallback that would otherwise serve the codec', () => {
     type Min = AggregateTypesOf<TM>['min']['byCodec'];
     expectTypeOf<Min['pg/varchar@1']['output']>().toEqualTypeOf<'pg/text@1'>();
