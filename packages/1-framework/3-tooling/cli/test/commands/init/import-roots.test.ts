@@ -76,8 +76,10 @@ describe('scaffolded project files under each import root', () => {
   });
 
   it('changes nothing but the specifiers', () => {
+    // Both scopes a scaffold can carry: the published `@prisma/orm-*` name and
+    // the `@internal/*` workspace name the internal root leaves as authored.
     const withoutSpecifiers = (source: string) =>
-      source.replaceAll(/@prisma(-next)?\/[a-z0-9-]+/g, '<pkg>');
+      source.replaceAll(/@(?:prisma|internal)\/[a-z0-9-]+/g, '<pkg>');
 
     for (const target of ['postgres', 'mongo'] as const) {
       expect(withoutSpecifiers(scaffold(target, 'typescript', facadeFor[target]))).toEqual(
