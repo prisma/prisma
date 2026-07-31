@@ -124,10 +124,10 @@ const childEnv = {
  *                   the `contract` field, so `extensions`, `db`, and `family` are
  *                   always correct by construction.
  * contractFamily  — which contract provider to use when overriding the `contract`
- *                   field in the temp config. `'mongo'` uses `mongoContract` from
- *                   `@internal/mongo-contract-psl/provider`; `'sql'` uses
- *                   `prismaContract` from `@internal/sql-contract-psl/provider`
- *                   together with the postgres target pack and namespace factory.
+ *                   field in the temp config. `'mongo'` uses `mongoContract`;
+ *                   `'sql'` uses `prismaContract` together with the postgres
+ *                   target pack and namespace factory. Both are named by the
+ *                   `workspaceModule` URLs above rather than by package name.
  *                   Defaults to `'mongo'` when omitted (backward-compat shim so
  *                   existing entries without the field continue to work).
  */
