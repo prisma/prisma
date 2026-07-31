@@ -648,7 +648,7 @@ function projectJsonThroughCodec(
         'validated SQLite codec registry has no entry for it. This usually indicates a ' +
         'missing extension pack in the runtime stack — register the pack that ' +
         'contributes this codec, or use the codec directly from ' +
-        "`@prisma-next/target-sqlite/codecs` if it's a builtin.",
+        "`@prisma/orm-target-sqlite/target/codecs` if it's a builtin.",
       { meta: { codecId: codec.codecId } },
     );
   }

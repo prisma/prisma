@@ -82,42 +82,17 @@ function anyFacadeCarries(specifier: string): boolean {
   });
 }
 
-/**
- * Internal packages an example imports that no facade republishes.
- *
- * Neither entry is a package a real application would be unable to import;
- * anything else appearing in this list is.
- *
- * - `@repo/test-utils` is the repository's own test helper. It has no
- *   published counterpart by design, and is a devDependency of the example
- *   test files that use it.
- * - `@prisma-next/migration-tools` is published, as
- *   `@prisma/orm-toolchain/migration-tools`, and reached at the platform root
- *   rather than through a facade. Its consumers here are extension packs and
- *   migration-tooling test harnesses, both of which ADR 242 has building
- *   against the platform packages. Republishing it would add its 17 subpaths
- *   to all three facades for surfaces no application reaches.
- */
-const notCarriedByAnyFacade: readonly string[] = [
-  '@prisma-next/migration-tools',
-  '@repo/test-utils',
-];
-
 describe('the published surface against the applications that will consume it', () => {
-  const specifiers = [...consumerSpecifiers()].sort();
-
-  it('reads the consumers at all', () => {
-    // A scan that stopped matching would report a clean surface, which is the
-    // one result that would be worse than no check.
-    expect(specifiers.length).toBeGreaterThan(50);
-  });
-
-  it('states exactly which internal packages no facade carries', () => {
+  it('leaves the consumers naming no internal package', () => {
+    // The hole this file used to enumerate is closed: every example and app
+    // reaches everything it needs through its database package and its
+    // extension packs. `scripts/lint-consumer-internal-imports.mjs` is what
+    // keeps it closed; this asserts the surface is why it can be.
     const uncarried = [
-      ...new Set(specifiers.filter((s) => !anyFacadeCarries(s)).map(packageOf)),
+      ...new Set([...consumerSpecifiers()].filter((s) => !anyFacadeCarries(s)).map(packageOf)),
     ].sort();
 
-    expect(uncarried).toEqual([...notCarriedByAnyFacade].sort());
+    expect(uncarried).toEqual([]);
   });
 
   // The contract-shaped surfaces do resolve, which is why generated
