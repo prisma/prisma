@@ -14,6 +14,8 @@ import type { SqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational
 export interface ResolvedAggregate {
   /** The codec the result carries. */
   readonly codec: CodecRef | undefined;
+  /** The codec of the value being aggregated, absent for an aggregate over rows. A lowering reads it to render per input where it must. */
+  readonly input: CodecRef | undefined;
   /** Builds the expression, where the target declares one; absent means a plain aggregate call. */
   readonly lower: SqlAggregateLowering | undefined;
 }
@@ -34,25 +36,24 @@ export interface AggregateCodecQuery {
  * An aggregate over a column resolves against that column's own codec, so a target that widens `sum` over small integers and preserves it over decimals answers differently per column without the caller knowing either rule. Where a target also needs the result rendered a particular way — a value its driver cannot otherwise carry — the descriptor's lowering says so, and the codec it declared stays the codec regardless.
  */
 export function resolveAggregate(query: AggregateCodecQuery): ResolvedAggregate {
-  const resolved = resolveEntry(query);
-  return { codec: resolved?.output, lower: resolved?.lower };
+  const input = inputCodecRef(query);
+  const resolved = query.aggregates.resolve(query.fn, input);
+  return { codec: resolved?.output, input, lower: resolved?.lower };
 }
 
 /** The codec an aggregate's result carries, or `undefined` when the composed stack declares no overload for it. */
 export function resolveAggregateOutputCodec(query: AggregateCodecQuery): CodecRef | undefined {
-  return resolveEntry(query)?.output;
+  return query.aggregates.resolve(query.fn, inputCodecRef(query))?.output;
 }
 
-function resolveEntry(query: AggregateCodecQuery) {
-  const input =
-    query.column === undefined
-      ? undefined
-      : codecRefForStorageColumn(
-          query.contract.storage,
-          query.namespaceId,
-          query.tableName,
-          query.column,
-        );
-
-  return query.aggregates.resolve(query.fn, input);
+/** The codec of the value being aggregated — the column's own, or none where the aggregate is over rows. */
+function inputCodecRef(query: AggregateCodecQuery): CodecRef | undefined {
+  return query.column === undefined
+    ? undefined
+    : codecRefForStorageColumn(
+        query.contract.storage,
+        query.namespaceId,
+        query.tableName,
+        query.column,
+      );
 }

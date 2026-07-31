@@ -1169,7 +1169,11 @@ function buildIncludeChildScalarSelect(
   // envelope under the codec the target declares for it — without which a count
   // past 2^53 would arrive as a rounded JSON number — and through whatever
   // expression that target wants built for it.
-  const { codec: resultCodec, lower: resultLowering } = resolveAggregate({
+  const {
+    codec: resultCodec,
+    input: inputCodec,
+    lower: resultLowering,
+  } = resolveAggregate({
     aggregates,
     contract,
     namespaceId: include.relatedNamespaceId,
@@ -1233,7 +1237,12 @@ function buildIncludeChildScalarSelect(
   const needsInnerScoping = hasPagination || hasDistinct;
 
   if (!needsInnerScoping) {
-    const aggregateExpr = buildIncludeAggregateExpr(scalar, childTableRef, resultLowering);
+    const aggregateExpr = buildIncludeAggregateExpr(
+      scalar,
+      childTableRef,
+      resultLowering,
+      inputCodec,
+    );
     const jsonObjectExpr = JsonObjectExpr.fromEntries([
       JsonObjectExpr.entry('value', jsonEntryProjection(aggregateExpr, { codec: resultCodec })),
     ]);
@@ -1342,7 +1351,12 @@ function buildIncludeChildScalarSelect(
   }
 
   // Outer aggregating SELECT over the shaped inner row set.
-  const outerAggregateExpr = buildIncludeAggregateExpr(scalar, innerAlias, resultLowering);
+  const outerAggregateExpr = buildIncludeAggregateExpr(
+    scalar,
+    innerAlias,
+    resultLowering,
+    inputCodec,
+  );
   const outerJsonObjectExpr = JsonObjectExpr.fromEntries([
     JsonObjectExpr.entry('value', jsonEntryProjection(outerAggregateExpr, { codec: resultCodec })),
   ]);
@@ -1356,11 +1370,12 @@ function buildIncludeAggregateExpr(
   scalar: IncludeScalar<unknown>,
   childTableRef: string,
   lower: SqlAggregateLowering | undefined,
+  inputCodec: CodecRef | undefined,
 ): AnyExpression {
   if (scalar.fn === 'count') {
-    return lower !== undefined
-      ? lower({ expr: undefined, inputCodec: undefined })
-      : AggregateExpr.count();
+    // A count over rows has no value to carry a codec, so the lowering is told
+    // as much rather than told nothing.
+    return lower !== undefined ? lower({ expr: undefined, inputCodec }) : AggregateExpr.count();
   }
   if (scalar.column === undefined) {
     throw ormError(
@@ -1372,7 +1387,7 @@ function buildIncludeAggregateExpr(
     );
   }
   const columnRef = ColumnRef.of(childTableRef, scalar.column);
-  if (lower !== undefined) return lower({ expr: columnRef, inputCodec: undefined });
+  if (lower !== undefined) return lower({ expr: columnRef, inputCodec });
   switch (scalar.fn) {
     case 'sum':
       return AggregateExpr.sum(columnRef);

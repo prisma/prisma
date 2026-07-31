@@ -45,7 +45,11 @@ function toAggregateProjection(
   // codec — all of which the aggregate registry answers per operation and input.
   // A target that also needs the result rendered a particular way says so with a
   // lowering, which builds the expression in place of the plain call.
-  const { codec, lower } = resolveAggregate({
+  const {
+    codec,
+    input: inputCodec,
+    lower,
+  } = resolveAggregate({
     aggregates,
     contract,
     namespaceId,
@@ -54,14 +58,14 @@ function toAggregateProjection(
     column: selector.column,
   });
 
-  const input =
+  const inputExpr =
     selector.column === undefined ? undefined : ColumnRef.of(tableName, selector.column);
   const expr =
     lower !== undefined
-      ? lower({ expr: input, inputCodec: undefined })
-      : input === undefined
+      ? lower({ expr: inputExpr, inputCodec })
+      : inputExpr === undefined
         ? AggregateExpr.count()
-        : new AggregateExpr(selector.fn, input);
+        : new AggregateExpr(selector.fn, inputExpr);
 
   return { expr, codec };
 }
