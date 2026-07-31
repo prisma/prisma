@@ -334,9 +334,16 @@ function walkForPackageJsons(dir: string, found: WorkspacePackage[], depth: numb
         version?: string;
         private?: boolean;
       };
-      if (typeof pkg.name === 'string' && pkg.name.startsWith('@prisma-next/')) {
-        found.push({ name: pkg.name, version: pkg.version ?? '0.0.0', dir });
-      } else if (pkg.name === 'prisma-next') {
+      // Both roots: the workspace packages the scaffold still names, and the
+      // published shells they now arrive through (`prisma-next` depends on
+      // `@prisma/orm-toolchain`, so a journey that packs only the former
+      // installs a shim whose command cannot resolve).
+      const ours =
+        typeof pkg.name === 'string' &&
+        (pkg.name.startsWith('@prisma-next/') ||
+          pkg.name.startsWith('@prisma/orm-') ||
+          pkg.name === 'prisma-next');
+      if (ours && typeof pkg.name === 'string') {
         found.push({ name: pkg.name, version: pkg.version ?? '0.0.0', dir });
       }
     } catch {

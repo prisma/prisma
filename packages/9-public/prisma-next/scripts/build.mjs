@@ -1,33 +1,31 @@
 #!/usr/bin/env node
-import { chmod, cp, rm, stat } from 'node:fs/promises';
+// The shim's whole dist: a launcher for the one published copy of the CLI.
+//
+// ADR 211 built this package by copying `@prisma-next/cli`'s dist verbatim,
+// which worked while that package was itself published — the copy's imports
+// of `@prisma-next/*` resolved from the shim's own mirrored dependencies.
+// Those packages are private now (ADR 242), so a verbatim copy would import
+// names that do not exist on the registry, and re-bundling the CLI into the
+// shim would put a second copy of the program on disk beside
+// `@prisma/orm-toolchain`'s. Launching the toolchain's copy is the shape ADR
+// 211 anticipated as its "Flavor 2" upgrade, and it is non-breaking: the
+// shim's public surface is a bin and nothing else, exactly as before.
+
+import { chmod, mkdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'pathe';
 
-const scriptDir = import.meta.dirname;
-const cliDist = resolve(scriptDir, '../../../1-framework/3-tooling/cli/dist');
-const shimDist = resolve(scriptDir, '../dist');
+const LAUNCHER = "#!/usr/bin/env node\nimport '@prisma/orm-toolchain/bin/prisma-next';\n";
 
-try {
-  const s = await stat(cliDist);
-  if (!s.isDirectory()) {
-    throw new Error(`${cliDist} is not a directory`);
-  }
-} catch (err) {
-  console.error(
-    `[prisma-next build] CLI dist not found at ${cliDist}.\n` +
-      'Run `pnpm -F @prisma-next/cli build` first, or let pnpm schedule the build via the ' +
-      '`@prisma-next/cli` devDependency.',
-  );
-  console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
-}
+const shimDist = resolve(import.meta.dirname, '../dist');
 
 await rm(shimDist, { recursive: true, force: true });
-await cp(cliDist, shimDist, { recursive: true });
+await mkdir(shimDist, { recursive: true });
 
-// chmod the two executable entry points. cp preserves mode bits on most
-// filesystems, but we re-apply 0o755 explicitly to defend against filesystems
-// (e.g. some CI sandboxes, Windows-backed FAT/NTFS) that drop the execute bit.
-await chmod(resolve(shimDist, 'cli.js'), 0o755);
-await chmod(resolve(shimDist, 'cli.mjs'), 0o755);
+const cli = resolve(shimDist, 'cli.js');
+await writeFile(cli, LAUNCHER);
+// `cp` preserved mode bits before; a freshly written file needs the execute
+// bit applied, and some filesystems (CI sandboxes, Windows-backed FAT/NTFS)
+// drop it regardless.
+await chmod(cli, 0o755);
 
-console.log(`[prisma-next build] Copied ${cliDist} → ${shimDist}`);
+console.log(`[prisma-next build] Wrote ${cli}`);
