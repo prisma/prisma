@@ -7,9 +7,9 @@
  * Spec: agent-os/specs/2026-02-15-runtime-dx-ir-shaped-contract-mappings-on-executioncontext/spec.md
  */
 
-import { domainModelsAtDefaultNamespace } from '@prisma-next/contract/types';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { blindCast } from '@prisma-next/utils/casts';
+import { domainModelsAtDefaultNamespace } from '@prisma/orm-postgres/contract/types';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
+import { blindCast } from '@prisma/orm-postgres/utils/casts';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from '../src/prisma/contract.d';
 import contractJson from '../src/prisma/contract.json' with { type: 'json' };

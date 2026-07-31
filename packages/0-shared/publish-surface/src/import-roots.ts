@@ -174,6 +174,7 @@ function facadeEntrypoint(facade: ShellName, name: string, subpath: string): str
     // A `root: false` forward covers subpaths only — the facade's own code
     // already owns the bare entry name.
     if (subpath === '' && reexport.root === false) return undefined;
+    if (reexport.subpaths !== undefined && !reexport.subpaths.includes(subpath)) return undefined;
     return joinEntrypoint(facade, reexport.entry, subpath);
   }
   return undefined;

@@ -1,4 +1,4 @@
-import type { ResultType } from '@prisma-next/framework-components/runtime';
+import type { ResultType } from '@prisma/orm-postgres/components/runtime';
 import { expectTypeOf, test } from 'vitest';
 import { type enums, sql } from '../src/prisma-no-emit/context';
 

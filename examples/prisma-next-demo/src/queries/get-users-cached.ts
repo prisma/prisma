@@ -14,7 +14,7 @@
  * Subsequent calls with the same plan within the TTL window are
  * served from the cache without invoking the driver.
  */
-import { cacheAnnotation } from '@prisma-next/middleware-cache';
+import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
 import { db } from '../prisma/db';
 
 export async function getUsersCached(limit = 10, ttlMs = 60_000) {

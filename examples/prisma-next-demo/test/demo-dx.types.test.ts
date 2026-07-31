@@ -7,9 +7,9 @@
  * Spec: agent-os/specs/2026-02-15-runtime-dx-ir-shaped-contract-mappings-on-executioncontext/spec.md
  */
 
-import type { EnumMemberNames, EnumValues } from '@prisma-next/contract/enum-accessor';
-import type { ResultType } from '@prisma-next/framework-components/runtime';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import type { ResultType } from '@prisma/orm-postgres/components/runtime';
+import type { EnumMemberNames, EnumValues } from '@prisma/orm-postgres/contract/enum-accessor';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 import { expectTypeOf, test } from 'vitest';
 import type { Contract, FieldOutputTypes, TypeMaps } from '../src/prisma/contract.d';
 import contractJson from '../src/prisma/contract.json' with { type: 'json' };

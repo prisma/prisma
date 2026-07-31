@@ -6,7 +6,7 @@
  * `meta` come from a real DSL build so the shapes match what the runtime
  * hands to middleware.
  */
-import type { AfterExecuteResult, SqlMiddlewareContext } from '@prisma-next/sql-runtime';
+import type { AfterExecuteResult, SqlMiddlewareContext } from '@prisma/orm-postgres/family-runtime';
 import { describe, expect, it } from 'vitest';
 import { db } from '../src/prisma/db';
 import { slowQueryWarning } from '../src/prisma/slow-query-warning';

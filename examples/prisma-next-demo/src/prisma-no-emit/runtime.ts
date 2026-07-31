@@ -1,7 +1,7 @@
-import pgvector from '@prisma-next/extension-pgvector/runtime';
-import { createCacheMiddleware } from '@prisma-next/middleware-cache';
-import postgres from '@prisma-next/postgres/runtime';
-import { budgets, type Runtime, type SqlMiddleware } from '@prisma-next/sql-runtime';
+import { createCacheMiddleware } from '@prisma/orm-extension-middleware-cache';
+import pgvector from '@prisma/orm-extension-pgvector/runtime';
+import { budgets, type Runtime, type SqlMiddleware } from '@prisma/orm-postgres/family-runtime';
+import postgres from '@prisma/orm-postgres/runtime';
 import { contract } from '../../prisma/contract';
 
 export async function getRuntime(

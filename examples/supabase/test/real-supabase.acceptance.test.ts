@@ -15,12 +15,12 @@
 
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import supabasePack from '@prisma-next/extension-supabase/pack';
-import { supabase } from '@prisma-next/extension-supabase/runtime';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import { createPostgresControlClient } from '@prisma-next/postgres/control';
-import type { SqlMiddleware } from '@prisma-next/sql-runtime';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import supabasePack from '@prisma/orm-extension-supabase/pack';
+import { supabase } from '@prisma/orm-extension-supabase/runtime';
+import { createPostgresControlClient } from '@prisma/orm-postgres/control';
+import type { SqlMiddleware } from '@prisma/orm-postgres/family-runtime';
+import { emitContractSpaceArtifacts } from '@prisma/orm-postgres/migration-tools/spaces';
+import { isStructuredError } from '@prisma/orm-postgres/utils/structured-error';
 import { timeouts, withClient } from '@repo/test-utils';
 import { SignJWT } from 'jose';
 import { join } from 'pathe';

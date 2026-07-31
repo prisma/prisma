@@ -8,10 +8,10 @@
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import pgvector from '@prisma-next/extension-pgvector/control';
-import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import { type ControlClient, createPostgresControlClient } from '@prisma-next/postgres/control';
+import pgvector from '@prisma/orm-extension-pgvector/control';
+import { type ControlClient, createPostgresControlClient } from '@prisma/orm-postgres/control';
+import { materialiseMigrationPackage } from '@prisma/orm-postgres/migration-tools/io';
+import { emitContractSpaceArtifacts } from '@prisma/orm-postgres/migration-tools/spaces';
 
 export interface TestControlClientOptions {
   readonly connection: string;

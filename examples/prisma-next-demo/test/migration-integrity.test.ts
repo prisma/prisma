@@ -8,9 +8,9 @@
 import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { loadContractSpaceAggregate } from '@prisma-next/migration-tools/aggregate';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { loadContractSpaceAggregate } from '@prisma/orm-postgres/migration-tools/aggregate';
+import { computeMigrationHash } from '@prisma/orm-postgres/migration-tools/hash';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';

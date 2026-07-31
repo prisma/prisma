@@ -1,5 +1,5 @@
-import { and, not, or } from '@prisma-next/sql-orm-client';
-import type { Runtime } from '@prisma-next/sql-runtime';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
+import { and, not, or } from '@prisma/orm-postgres/orm-client';
 import { createOrmClient } from './client';
 
 export async function ormClientGetDashboardUsers(

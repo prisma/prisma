@@ -7,15 +7,15 @@
  * `../../audit/src/control.ts` for the canonical wiring.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlControlExtensionDescriptor } from '@prisma-next/family-sql/control';
 import type {
   ContractSpace,
+  MigrationMetadata,
   MigrationPackage,
   MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@prisma/orm-postgres/components/control';
+import type { Contract } from '@prisma/orm-postgres/contract/types';
+import type { SqlControlExtensionDescriptor } from '@prisma/orm-postgres/family/control';
+import type { SqlStorage } from '@prisma/orm-postgres/family-contract/types';
 import baselineMetadata from '../migrations/20260601T0000_create_feature_flag/migration.json' with {
   type: 'json',
 };

@@ -5,7 +5,7 @@
  * instead of manual SQL and the stampMarker script.
  */
 
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { Pool } from 'pg';
 import { describe, expect, it } from 'vitest';

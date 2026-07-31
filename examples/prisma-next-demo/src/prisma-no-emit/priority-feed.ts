@@ -1,4 +1,4 @@
-import type { Runtime } from '@prisma-next/sql-runtime';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import { enums, sql } from './context';
 
 /**

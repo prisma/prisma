@@ -6,9 +6,9 @@
  * VP1 of the Runtime pipeline project.
  */
 
-import postgres from '@prisma-next/postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import type { Runtime } from '@prisma-next/sql-runtime';
+import { sql } from '@prisma/orm-postgres/builder/runtime';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
+import postgres from '@prisma/orm-postgres/runtime';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from '../src/prisma/contract';

@@ -3,13 +3,13 @@ import {
   createMongoRunnerDeps,
   extractDb,
   introspectSchema,
-} from '@prisma-next/adapter-mongo/control';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import mongoControlDriver from '@prisma-next/driver-mongo/control';
-import { createMongoFamilyInstance } from '@prisma-next/family-mongo/control';
-import { verifyMongoSchema } from '@prisma-next/family-mongo/schema-verify';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { MongoMigrationRunner } from '@prisma-next/target-mongo/control';
+} from '@prisma/orm-mongo/adapter/control';
+import { MongoDriverImpl } from '@prisma/orm-mongo/driver';
+import mongoControlDriver from '@prisma/orm-mongo/driver/control';
+import { createMongoFamilyInstance } from '@prisma/orm-mongo/family/control';
+import { verifyMongoSchema } from '@prisma/orm-mongo/family/schema-verify';
+import type { MongoContract } from '@prisma/orm-mongo/family-contract';
+import { MongoMigrationRunner } from '@prisma/orm-mongo/target/control';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

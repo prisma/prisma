@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
-import type { CachePayload } from '@prisma-next/middleware-cache';
-import { cacheAnnotation } from '@prisma-next/middleware-cache';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import type { CachePayload } from '@prisma/orm-extension-middleware-cache';
+import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
+import type { MongoQueryPlan } from '@prisma/orm-mongo/query-ast/execution';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { createClient } from '../src/db';
 import { seed } from '../src/seed';

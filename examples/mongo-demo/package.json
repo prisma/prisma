@@ -17,26 +17,13 @@
     "lint": "biome check . --error-on-warnings"
   },
   "dependencies": {
-    "@prisma-next/adapter-mongo": "workspace:0.16.0",
-    "@prisma-next/target-mongo": "workspace:0.16.0",
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/driver-mongo": "workspace:0.16.0",
-    "@prisma-next/middleware-cache": "workspace:0.16.0",
-    "@prisma-next/mongo": "workspace:0.16.0",
-    "@prisma-next/mongo-contract": "workspace:0.16.0",
-    "@prisma-next/mongo-orm": "workspace:0.16.0",
-    "@prisma-next/mongo-query-builder": "workspace:0.16.0",
-    "@prisma-next/mongo-query-ast": "workspace:0.16.0",
-    "@prisma-next/mongo-runtime": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0",
+    "@prisma/orm-extension-middleware-cache": "workspace:0.16.0",
+    "@prisma/orm-mongo": "workspace:0.16.0",
     "mongodb": "catalog:",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "@prisma-next/cli": "workspace:0.16.0",
-    "@prisma-next/family-mongo": "workspace:0.16.0",
-    "@prisma-next/mongo-contract-psl": "workspace:0.16.0",
     "@repo/test-utils": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",

@@ -1,4 +1,4 @@
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@prisma/orm-postgres/config';
 
 export default defineConfig({
   contract: './contract.prisma',

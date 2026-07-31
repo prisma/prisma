@@ -1,4 +1,4 @@
-import type { StorageTable } from '@prisma-next/sql-contract/types';
+import type { StorageTable } from '@prisma/orm-postgres/family-contract/types';
 import type { Contract } from '../prisma/contract.d';
 
 // Models resolve per-namespace from the domain plane (no flat top-level Models export).

@@ -1,8 +1,8 @@
-import { createCacheMiddleware } from '@prisma-next/middleware-cache';
-import postgres from '@prisma-next/postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import type { SqlDriver } from '@prisma-next/sql-relational-core/ast';
-import type { Runtime, SqlMiddleware } from '@prisma-next/sql-runtime';
+import { createCacheMiddleware } from '@prisma/orm-extension-middleware-cache';
+import { sql } from '@prisma/orm-postgres/builder/runtime';
+import type { Runtime, SqlMiddleware } from '@prisma/orm-postgres/family-runtime';
+import type { SqlDriver } from '@prisma/orm-postgres/relational-core/ast';
+import postgres from '@prisma/orm-postgres/runtime';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { ormClientAggregateUsers } from '../src/orm-client/aggregate-users';

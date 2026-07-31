@@ -3,7 +3,7 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@prisma/orm-postgres/relational-core/ast';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../src/prisma/db';
 

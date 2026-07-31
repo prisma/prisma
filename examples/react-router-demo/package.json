@@ -19,15 +19,7 @@
     "lint:fix": "biome check --write ."
   },
   "dependencies": {
-    "@prisma-next/adapter-postgres": "workspace:0.16.0",
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/family-sql": "workspace:0.16.0",
-    "@prisma-next/postgres": "workspace:0.16.0",
-    "@prisma-next/sql-contract": "workspace:0.16.0",
-    "@prisma-next/sql-contract-psl": "workspace:0.16.0",
-    "@prisma-next/sql-contract-ts": "workspace:0.16.0",
-    "@prisma-next/sql-runtime": "workspace:0.16.0",
-    "@prisma-next/target-postgres": "workspace:0.16.0",
+    "@prisma/orm-postgres": "workspace:0.16.0",
     "@react-router/node": "^8.1.0",
     "@react-router/serve": "^8.1.0",
     "dotenv": "^17.4.2",
@@ -38,13 +30,10 @@
     "react-router": "^8.1.0"
   },
   "devDependencies": {
-    "@prisma-next/cli": "workspace:0.16.0",
-    "@prisma-next/emitter": "workspace:0.16.0",
-    "@repo/test-utils": "workspace:0.16.0",
-    "@repo/tsconfig": "workspace:0.16.0",
-    "@prisma-next/vite-plugin-contract-emit": "workspace:0.16.0",
     "@prisma/dev": "catalog:",
     "@react-router/dev": "^8.1.0",
+    "@repo/test-utils": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "@types/react": "^19.2.17",

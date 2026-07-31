@@ -1,7 +1,7 @@
-import pgvector from '@prisma-next/extension-pgvector/runtime';
-import postgres from '@prisma-next/postgres/runtime';
-import { orm } from '@prisma-next/sql-orm-client';
-import type { Runtime } from '@prisma-next/sql-runtime';
+import pgvector from '@prisma/orm-extension-pgvector/runtime';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
+import { orm } from '@prisma/orm-postgres/orm-client';
+import postgres from '@prisma/orm-postgres/runtime';
 import { contract } from '../../prisma/contract';
 import { PostCollection, UserCollection } from '../orm-client/collections';
 

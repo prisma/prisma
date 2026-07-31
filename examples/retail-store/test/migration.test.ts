@@ -1,4 +1,4 @@
-import { MongoContractView } from '@prisma-next/family-mongo/ir';
+import { MongoContractView } from '@prisma/orm-mongo/family/ir';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

@@ -1,4 +1,4 @@
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { Contract } from '../prisma/contract.d';

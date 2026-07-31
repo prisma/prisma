@@ -53,6 +53,17 @@ export interface ShellReexportMapping {
    * `<entry>/x` should forward. Defaults to true.
    */
   readonly root?: boolean;
+  /**
+   * The subpaths of `package` this entry forwards, without the `./` prefix.
+   * Omitted forwards every subpath the package exports.
+   *
+   * Forwarding a whole package costs one published entrypoint per subpath it
+   * exports, which is the right price for a surface an application uses as a
+   * whole. It is the wrong price for a large tooling package a facade needs a
+   * corner of: listing the subpaths keeps the rest of that package off the
+   * published surface, so it stays free to change.
+   */
+  readonly subpaths?: readonly string[];
 }
 
 export interface ShellDefinition {
@@ -144,11 +155,19 @@ const FACADE_BINS = { 'prisma-next': '@prisma/orm-toolchain/bin/prisma-next' } a
  * Entry names follow the name the platform shell gives the same package, so
  * one internal package reads the same way wherever it is reached from.
  *
- * A republished package brings its whole subpath surface with it, so the cost
- * of an entry is its export count, not one. Nothing goes in here that no
- * application reaches: `@prisma-next/migration-tools` is 17 subpaths whose
- * only consumers are extension packs and migration-tooling test harnesses,
- * and ADR 242 has both of those build against the platform packages.
+ * A republished package brings its whole subpath surface with it unless the
+ * entry lists `subpaths`, so the cost of an entry is its export count, not
+ * one. Nothing goes in here that no application reaches.
+ *
+ * `migration-tools` is listed by subpath rather than whole. An application
+ * does reach it — a project that checks its own migrations are intact, or
+ * that stages an extension's pinned contract-space artifacts before `db
+ * init`, reads and writes the on-disk migration format, and under a
+ * facade-only install there is no other published name for it. But it is a
+ * 17-subpath tooling package whose remaining surface (the graph, the
+ * pathfinder, ref resolution, the ledger) is the CLI's own working material,
+ * and publishing that would freeze it. The five listed here are what the
+ * repository's own consumers reach.
  */
 const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
   { package: '@prisma-next/contract', entry: 'contract' },
@@ -157,6 +176,11 @@ const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
   {
     package: '@prisma-next/vite-plugin-contract-emit',
     entry: 'vite-plugin-contract-emit',
+  },
+  {
+    package: '@prisma-next/migration-tools',
+    entry: 'migration-tools',
+    subpaths: ['aggregate', 'contract-snapshot-store', 'hash', 'io', 'spaces'],
   },
 ];
 

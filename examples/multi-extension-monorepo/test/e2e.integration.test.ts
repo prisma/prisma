@@ -57,10 +57,10 @@
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { MigrationPackage } from '@prisma-next/framework-components/control';
-import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import { type ControlClient, createPostgresControlClient } from '@prisma-next/postgres/control';
+import type { MigrationPackage } from '@prisma/orm-postgres/components/control';
+import { type ControlClient, createPostgresControlClient } from '@prisma/orm-postgres/control';
+import { materialiseMigrationPackage } from '@prisma/orm-postgres/migration-tools/io';
+import { emitContractSpaceArtifacts } from '@prisma/orm-postgres/migration-tools/spaces';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { APP_USER_TABLE } from '../app/src/constants';

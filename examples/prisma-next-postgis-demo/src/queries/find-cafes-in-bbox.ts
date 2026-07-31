@@ -1,4 +1,4 @@
-import { bboxPolygon } from '@prisma-next/extension-postgis/geojson';
+import { bboxPolygon } from '@prisma/orm-extension-postgis/geojson';
 import { db } from '../prisma/db';
 
 /**

@@ -1,5 +1,5 @@
-import supabasePack from '@prisma-next/extension-supabase/pack';
-import { defineConfig } from '@prisma-next/postgres/config';
+import supabasePack from '@prisma/orm-extension-supabase/pack';
+import { defineConfig } from '@prisma/orm-postgres/config';
 
 export default defineConfig({
   contract: './src/contract.prisma',

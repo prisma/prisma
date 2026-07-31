@@ -8,8 +8,8 @@
  * contract`, so a divergence between authoring and emission is caught.
  */
 
-import type { EnumValues, NamespacedEnums } from '@prisma-next/contract/enum-accessor';
-import type { DefaultModelRow } from '@prisma-next/mongo-orm';
+import type { EnumValues, NamespacedEnums } from '@prisma/orm-mongo/contract/enum-accessor';
+import type { DefaultModelRow } from '@prisma/orm-mongo/orm';
 import { expectTypeOf, test } from 'vitest';
 import type { Contract, FieldOutputTypes } from '../src/contract';
 

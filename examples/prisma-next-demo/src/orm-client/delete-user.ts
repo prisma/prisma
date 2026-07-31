@@ -1,5 +1,5 @@
-import type { DefaultModelRow } from '@prisma-next/sql-orm-client';
-import type { Runtime } from '@prisma-next/sql-runtime';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
+import type { DefaultModelRow } from '@prisma/orm-postgres/orm-client';
 import type { Contract } from '../prisma/contract.d';
 import { createOrmClient } from './client';
 

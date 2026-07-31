@@ -1,4 +1,4 @@
-import { point, polygon } from '@prisma-next/extension-postgis/geojson';
+import { point, polygon } from '@prisma/orm-extension-postgis/geojson';
 import Link from 'next/link';
 import { findCafesInBbox } from '../src/queries/find-cafes-in-bbox';
 import { findCafesInNeighborhood } from '../src/queries/find-cafes-in-neighborhood';

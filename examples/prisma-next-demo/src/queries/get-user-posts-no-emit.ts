@@ -1,4 +1,4 @@
-import type { Runtime } from '@prisma-next/sql-runtime';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import { sql } from '../prisma-no-emit/context';
 
 export async function getUserPosts(userId: string, runtime: Runtime) {

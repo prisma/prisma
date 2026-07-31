@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
-import { createMongoRunnerDeps, extractDb } from '@prisma-next/adapter-mongo/control';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import mongoControlDriver from '@prisma-next/driver-mongo/control';
-import { createMongoFamilyInstance } from '@prisma-next/family-mongo/control';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { deserializeMongoOps, MongoMigrationRunner } from '@prisma-next/target-mongo/control';
+import { createMongoRunnerDeps, extractDb } from '@prisma/orm-mongo/adapter/control';
+import { MongoDriverImpl } from '@prisma/orm-mongo/driver';
+import mongoControlDriver from '@prisma/orm-mongo/driver/control';
+import { createMongoFamilyInstance } from '@prisma/orm-mongo/family/control';
+import type { MongoContract } from '@prisma/orm-mongo/family-contract';
+import { deserializeMongoOps, MongoMigrationRunner } from '@prisma/orm-mongo/target/control';
 import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

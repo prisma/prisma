@@ -1,4 +1,4 @@
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@prisma/orm-postgres/config';
 
 // Showcase fixture config — a deliberately comprehensive migration graph that
 // exercises every shape the `migration graph` renderer handles: a linear spine,

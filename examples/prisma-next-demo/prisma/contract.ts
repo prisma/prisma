@@ -1,5 +1,5 @@
-import pgvector from '@prisma-next/extension-pgvector/pack';
-import { defineContract, enumType, member, rel } from '@prisma-next/postgres/contract-builder';
+import pgvector from '@prisma/orm-extension-pgvector/pack';
+import { defineContract, enumType, member, rel } from '@prisma/orm-postgres/contract-builder';
 
 const pgText = { codecId: 'pg/text@1', nativeType: 'text' } as const;
 

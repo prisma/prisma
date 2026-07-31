@@ -1,4 +1,4 @@
-import { prismaVitePlugin } from '@prisma-next/vite-plugin-contract-emit';
+import { prismaVitePlugin } from '@prisma/orm-postgres/vite-plugin-contract-emit';
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 

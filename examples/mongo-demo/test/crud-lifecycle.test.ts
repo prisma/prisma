@@ -1,5 +1,5 @@
-import mongo from '@prisma-next/mongo/runtime';
-import { MongoFieldFilter } from '@prisma-next/mongo-query-ast/execution';
+import { MongoFieldFilter } from '@prisma/orm-mongo/query-ast/execution';
+import mongo from '@prisma/orm-mongo/runtime';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

@@ -1,6 +1,6 @@
-import type { DefaultModelRow } from '@prisma-next/sql-orm-client';
-import type { Runtime } from '@prisma-next/sql-runtime';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
+import type { DefaultModelRow } from '@prisma/orm-postgres/orm-client';
+import { blindCast } from '@prisma/orm-postgres/utils/casts';
 import type { Contract } from '../prisma/contract.d';
 import { createOrmClient } from './client';
 

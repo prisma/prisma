@@ -13,8 +13,8 @@
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import pgvectorPack from '@prisma-next/extension-pgvector/control';
-import { createPostgresControlClient } from '@prisma-next/postgres/control';
+import pgvectorPack from '@prisma/orm-extension-pgvector/control';
+import { createPostgresControlClient } from '@prisma/orm-postgres/control';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';

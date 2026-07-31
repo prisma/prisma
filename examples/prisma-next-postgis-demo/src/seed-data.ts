@@ -4,7 +4,7 @@
  * so the spatial relationships in the README narrative actually hold.
  */
 
-import { bboxPolygon, point, polygon } from '@prisma-next/extension-postgis/geojson';
+import { bboxPolygon, point, polygon } from '@prisma/orm-extension-postgis/geojson';
 
 export const cafes = [
   {

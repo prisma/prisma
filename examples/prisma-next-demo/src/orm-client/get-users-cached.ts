@@ -18,8 +18,8 @@
  * such risks.
  */
 
-import { cacheAnnotation } from '@prisma-next/middleware-cache';
-import type { Runtime } from '@prisma-next/sql-runtime';
+import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import { createOrmClient } from './client';
 
 export interface CachedListOptions {

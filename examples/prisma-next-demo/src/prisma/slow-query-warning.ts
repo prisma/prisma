@@ -7,7 +7,7 @@
  * `rowCount` for the run. Registered on the runtime in `src/prisma/db.ts`
  * via the `middleware: [...]` option.
  */
-import type { SqlMiddleware } from '@prisma-next/sql-runtime';
+import type { SqlMiddleware } from '@prisma/orm-postgres/family-runtime';
 
 export interface SlowQueryWarningOptions {
   /** Latency above this many milliseconds logs a warning. Default: 250. */

@@ -6,13 +6,13 @@ import {
   MongoMatchStage,
   type MongoQueryPlan,
   RawUpdateManyCommand,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@prisma/orm-mongo/query-ast/execution';
 import {
   dataTransform,
   Migration,
   MigrationCLI,
   setValidation,
-} from '@prisma-next/target-mongo/migration';
+} from '@prisma/orm-mongo/target/migration';
 import type { Contract as Start } from '../../snapshots/977a060afe52c4a56f93f2f33d65b8b6b4cc4ded04d16fe6b4f8e7e9e61192d3/contract';
 import startContract from '../../snapshots/977a060afe52c4a56f93f2f33d65b8b6b4cc4ded04d16fe6b4f8e7e9e61192d3/contract.json' with {
   type: 'json',

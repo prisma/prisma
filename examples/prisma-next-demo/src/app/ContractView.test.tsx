@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { blindCast } from '@prisma-next/utils/casts';
+import { UNBOUND_NAMESPACE_ID } from '@prisma/orm-postgres/components/ir';
+import { blindCast } from '@prisma/orm-postgres/utils/casts';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from '../prisma/contract.d';

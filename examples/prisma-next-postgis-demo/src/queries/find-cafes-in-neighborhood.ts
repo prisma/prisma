@@ -1,4 +1,4 @@
-import type { Geometry } from '@prisma-next/extension-postgis/codec-types';
+import type { Geometry } from '@prisma/orm-extension-postgis/codec-types';
 import { db } from '../prisma/db';
 
 /**

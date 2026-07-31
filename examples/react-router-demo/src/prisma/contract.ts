@@ -1,4 +1,4 @@
-import { defineContract, rel } from '@prisma-next/postgres/contract-builder';
+import { defineContract, rel } from '@prisma/orm-postgres/contract-builder';
 
 export const contract = defineContract({}, ({ field, model }) => {
   const User = model('User', {

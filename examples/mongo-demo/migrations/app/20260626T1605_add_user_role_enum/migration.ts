@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node
-import { collMod, Migration, MigrationCLI } from '@prisma-next/target-mongo/migration';
+import { collMod, Migration, MigrationCLI } from '@prisma/orm-mongo/target/migration';
 import type { Contract as End } from '../../snapshots/62671fbf016c515d808ac613743fddbf3db80384c1997251eac9d6f5fc063590/contract';
 import endContract from '../../snapshots/62671fbf016c515d808ac613743fddbf3db80384c1997251eac9d6f5fc063590/contract.json' with {
   type: 'json',

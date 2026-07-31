@@ -136,15 +136,30 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
       );
     }
     const hasSourceRootExport = Object.hasOwn(source.exports, '.');
-    if (mapping.root !== false && !hasSourceRootExport) {
+    if (mapping.root !== false && mapping.subpaths === undefined && !hasSourceRootExport) {
       // No root export upstream: forward the sibling shell's synthesized
       // package-level aggregate, which carries no default export.
       const entryFile = addEntry(mapping.entry, `${mapping.entry}.ts`);
       writeFileSync(entryFile, `export * from '${mapping.package}';\n`);
     }
+    const forwarded = mapping.subpaths;
+    if (forwarded !== undefined) {
+      const available = new Set(
+        Object.keys(source.exports)
+          .filter((subpath) => subpath.startsWith('./'))
+          .map((subpath) => subpath.slice(2)),
+      );
+      const missing = forwarded.filter((subpath) => !available.has(subpath));
+      if (missing.length > 0) {
+        throw new ShellConfigError(
+          `${shellName} forwards ${mapping.package} subpath(s) ${missing.join(', ')}, which that package does not export`,
+        );
+      }
+    }
     for (const [subpath, value] of Object.entries(source.exports)) {
       if (subpath === './package.json') continue;
       if (subpath === '.' && mapping.root === false) continue;
+      if (forwarded !== undefined && !forwarded.includes(subpath.slice(2))) continue;
       if (excludedSubpaths.some((pattern) => pattern.test(subpath))) continue;
       const distFile = resolveExportTarget(value);
       if (distFile === undefined) {

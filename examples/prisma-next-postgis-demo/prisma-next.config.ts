@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import postgis from '@prisma-next/extension-postgis/control';
-import { defineConfig } from '@prisma-next/postgres/config';
+import postgis from '@prisma/orm-extension-postgis/control';
+import { defineConfig } from '@prisma/orm-postgres/config';
 
 const databaseUrl = process.env['DATABASE_URL'];
 if (!databaseUrl) {

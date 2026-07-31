@@ -7,8 +7,8 @@
 
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import postgis from '@prisma-next/extension-postgis/control';
-import { type ControlClient, createPostgresControlClient } from '@prisma-next/postgres/control';
+import postgis from '@prisma/orm-extension-postgis/control';
+import { type ControlClient, createPostgresControlClient } from '@prisma/orm-postgres/control';
 import pg from 'pg';
 
 export const TEST_DATABASE_URL =
