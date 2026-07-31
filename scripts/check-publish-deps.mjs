@@ -145,21 +145,6 @@ const DECLARATION_FILE_RE = /\.d\.(?:m|c)?ts$/;
 
 const NODE_BUILTINS = new Set(builtinModules);
 
-// Declaration files that name a module the owning package cannot legitimately
-// declare, so the gate stays green while the underlying decision is open.
-// Every entry is a bug, not a blessed pattern — the gate prints the list on
-// each run so it stays visible.
-//
-// @prisma-next/sql-runtime publishes a `./test/utils` subpath whose module
-// graph reaches `@prisma-next/test-utils`, a `private: true` workspace
-// package that is never published. The subpath is therefore already broken
-// for external consumers at runtime, not only at type level, and no manifest
-// edit can fix it — the fix is to stop publishing the subpath (or to publish
-// test-utils), which changes the package's public surface.
-const DECLARATION_DEP_EXEMPTIONS = /** @type {Record<string, string[]>} */ ({
-  '@prisma-next/sql-runtime': ['dist/test/utils.d.mts'],
-});
-
 /**
  * Every module specifier a declaration file names — imports, re-exports,
  * `import(...)` types, and `/// <reference types="..." />` directives.
@@ -272,20 +257,18 @@ export function findDeclarationDepViolations({ pkgJson, declarations, shipsOwnTy
       return deps && typeof deps === 'object' ? Object.keys(deps) : [];
     }),
   );
-  const exempt = new Set(DECLARATION_DEP_EXEMPTIONS[String(pkgJson.name)] ?? []);
   const entryRoots = publishedEntryRoots(pkgJson);
   const violations = [];
   const seen = new Set();
 
   for (const [file, text] of declarations) {
-    if (exempt.has(file)) continue;
     if (!entryRoots.has(file.split('/')[0])) continue;
     for (const spec of moduleSpecifiersIn(text)) {
       const name = packageNameFromSpecifier(spec);
       // A package may reference itself through its own `exports` map.
       if (name === null || name === pkgJson.name) continue;
 
-      const key = `${file} ${name}`;
+      const key = `${file} ${name}`;
       if (seen.has(key)) continue;
       seen.add(key);
 
@@ -520,7 +503,6 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
         '\nOK — no workspace:/catalog: leaks, no @prisma-next/* pin violations, and no undeclared\n' +
           `     declaration dependencies in ${dirs.length} publishable packages.\n`,
       );
-      reportExemptions(stderrWrite);
     } else {
       stderrWrite(
         `\nFAIL — ${offenders.length} publishable package(s) have publish-time violations:\n`,
@@ -551,27 +533,11 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
           '         emitted .d.mts rather than imported from, so a missing one usually shows\n' +
           '         up as inlined types plus a bare side-effect import.\n',
       );
-      reportExemptions(stderrWrite);
     }
 
     return offenders.length === 0 ? 0 : 1;
   } finally {
     rm(dest);
-  }
-}
-
-/**
- * Prints the declaration-dependency exemptions so a known-broken published
- * surface can never go quiet just because the gate is green.
- *
- * @param {(s: string) => void} write
- */
-function reportExemptions(write) {
-  const entries = Object.entries(DECLARATION_DEP_EXEMPTIONS);
-  if (entries.length === 0) return;
-  write('\n  Declaration-dependency exemptions in force (each one is an open bug):\n');
-  for (const [pkg, files] of entries) {
-    write(`    ${pkg}: ${files.join(', ')}\n`);
   }
 }
 

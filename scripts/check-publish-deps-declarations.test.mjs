@@ -204,15 +204,22 @@ describe('findDeclarationDepViolations', () => {
     );
   });
 
-  it('honours the recorded exemption for the sql-runtime test-helper subpath', () => {
-    // Open bug: that subpath's module graph reaches `@prisma-next/test-utils`,
-    // a private package that is never published, so no manifest edit fixes it.
+  it('flags a private workspace package like any other undeclared module', () => {
+    // `@prisma-next/test-utils` is `private: true` and never published, so a
+    // shipped declaration naming it can never resolve for a consumer.
     assert.deepEqual(
       check(
-        { name: '@prisma-next/sql-runtime' },
+        { name: '@prisma-next/sql-runtime', devDependencies: { '@prisma-next/test-utils': '*' } },
         { 'dist/test/utils.d.mts': 'import { X } from "@prisma-next/test-utils";' },
       ),
-      [],
+      [
+        {
+          file: 'dist/test/utils.d.mts',
+          spec: '@prisma-next/test-utils',
+          kind: 'undeclared',
+          needs: '@prisma-next/test-utils',
+        },
+      ],
     );
   });
 });
