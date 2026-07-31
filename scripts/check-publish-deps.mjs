@@ -145,6 +145,12 @@ const DECLARATION_FILE_RE = /\.d\.(?:m|c)?ts$/;
 
 const NODE_BUILTINS = new Set(builtinModules);
 
+// Stands for the tarball root in the entry-root set. A package whose entry
+// point has no directory component (`"types": "./index.d.ts"`) publishes from
+// the root itself; without an explicit marker its roots come out empty and
+// every declaration in the tarball goes unchecked.
+const PACKAGE_ROOT = '.';
+
 /**
  * Every module specifier a declaration file names — imports, re-exports,
  * `import(...)` types, and `/// <reference types="..." />` directives.
@@ -198,7 +204,10 @@ export function typesPackageFor(name) {
 
 /**
  * The top-level directories a package's published entry points live in —
- * every `exports` target plus `types`/`typings`/`main`/`module`.
+ * every `exports` target plus `types`/`typings`/`main`/`module`. An entry with
+ * no directory component (`"types": "./index.d.ts"`) yields
+ * {@link PACKAGE_ROOT}, so a package that publishes from the tarball root is
+ * checked rather than silently skipped.
  *
  * A tarball also ships `src/` so declaration maps can resolve to sources,
  * but nothing in a consumer's module graph reaches those files: no entry
@@ -224,10 +233,33 @@ export function publishedEntryRoots(pkgJson) {
 
   const roots = new Set();
   for (const target of targets) {
-    const [root] = target.replace(/^\.\//, '').split('/');
-    if (root && root.includes('.') === false) roots.add(root);
+    const normalized = target.replace(/^\.\//, '');
+    if (normalized === '') continue;
+    const slash = normalized.indexOf('/');
+    if (slash !== -1) {
+      roots.add(normalized.slice(0, slash));
+      continue;
+    }
+    // No directory component, so the entry sits at the tarball root. The
+    // manifest self-reference is not a code entry and does not put the root
+    // in scope on its own.
+    if (normalized === 'package.json') continue;
+    roots.add(PACKAGE_ROOT);
   }
   return roots;
+}
+
+/**
+ * The tarball-relative directory a declaration file lives in, using
+ * {@link PACKAGE_ROOT} for a file with no directory component so it can be
+ * compared against {@link publishedEntryRoots}.
+ *
+ * @param {string} file
+ * @returns {string}
+ */
+function declarationRoot(file) {
+  const slash = file.indexOf('/');
+  return slash === -1 ? PACKAGE_ROOT : file.slice(0, slash);
 }
 
 /**
@@ -262,7 +294,7 @@ export function findDeclarationDepViolations({ pkgJson, declarations, shipsOwnTy
   const seen = new Set();
 
   for (const [file, text] of declarations) {
-    if (!entryRoots.has(file.split('/')[0])) continue;
+    if (!entryRoots.has(declarationRoot(file))) continue;
     for (const spec of moduleSpecifiersIn(text)) {
       const name = packageNameFromSpecifier(spec);
       // A package may reference itself through its own `exports` map.

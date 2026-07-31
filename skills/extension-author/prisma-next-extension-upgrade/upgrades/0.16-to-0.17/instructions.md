@@ -666,7 +666,7 @@ After the migration, run the extension package's typecheck, lint, and tests. Ver
 
 If your extension's `package.json` declares `@types/pg`, act on it. `pg` carries no types of its own, so two `@types/pg` copies in the tree give `pg.Client` and `pg.Pool` two distinct identities. Any call that hands your own client or pool to a Prisma Next API — `new PostgresControlDriver(client)`, a driver `connect: { pool }` — then fails:
 
-```
+```text
 Argument of type 'Client' is not assignable to parameter of type 'Client'.
   Type 'Client' is missing the following properties from type 'Client': connection, setTypeParser, getTypeParser
 ```

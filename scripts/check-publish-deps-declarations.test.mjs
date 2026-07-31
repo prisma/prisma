@@ -81,7 +81,7 @@ describe('publishedEntryRoots', () => {
     );
   });
 
-  it('ignores bare file targets such as the package.json self-reference', () => {
+  it('ignores the package.json self-reference, which is not a code entry', () => {
     assert.deepEqual(
       publishedEntryRoots({ exports: { './package.json': './package.json' } }),
       new Set(),
@@ -92,6 +92,16 @@ describe('publishedEntryRoots', () => {
     assert.deepEqual(
       publishedEntryRoots({ exports: { '.': './dist/index.mjs', './raw': './lib/raw.js' } }),
       new Set(['dist', 'lib']),
+    );
+  });
+
+  it('yields the package root for an entry with no directory component', () => {
+    assert.deepEqual(
+      publishedEntryRoots({
+        types: './index.d.ts',
+        exports: { '.': './index.js', './package.json': './package.json' },
+      }),
+      new Set(['.']),
     );
   });
 });
@@ -169,6 +179,44 @@ describe('findDeclarationDepViolations', () => {
         shipsOwnTypes: () => null,
       }),
       [],
+    );
+  });
+
+  it('checks a package that publishes from the tarball root', () => {
+    // A root-level entry has no directory component. When that produced an
+    // empty root set, the lookup matched nothing and every declaration in the
+    // tarball went unchecked — a green result that inspected no files.
+    assert.deepEqual(
+      findDeclarationDepViolations({
+        pkgJson: {
+          name: '@scope/rooted',
+          types: './index.d.ts',
+          exports: { '.': './index.js', './package.json': './package.json' },
+          devDependencies: { arktype: '^2.2.2' },
+        },
+        declarations: new Map([['index.d.ts', 'import "arktype";']]),
+        shipsOwnTypes: () => true,
+      }),
+      [{ file: 'index.d.ts', spec: 'arktype', kind: 'undeclared', needs: 'arktype' }],
+    );
+  });
+
+  it('still scopes to subdirectories when a package publishes from both', () => {
+    assert.deepEqual(
+      findDeclarationDepViolations({
+        pkgJson: {
+          name: '@scope/mixed',
+          types: './index.d.ts',
+          exports: { '.': './index.js', './deep': './dist/deep.mjs' },
+        },
+        declarations: new Map([
+          ['index.d.ts', 'import "rooted-gone";'],
+          ['dist/deep.d.mts', 'import "nested-gone";'],
+          ['src/internal.d.ts', 'import "ignored";'],
+        ]),
+        shipsOwnTypes: () => true,
+      }).map((v) => `${v.file}:${v.spec}`),
+      ['index.d.ts:rooted-gone', 'dist/deep.d.mts:nested-gone'],
     );
   });
 
