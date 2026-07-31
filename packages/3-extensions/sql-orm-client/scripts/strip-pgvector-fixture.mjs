@@ -26,14 +26,14 @@ if (!target) {
 
 const source = readFileSync(target, 'utf8');
 
-const importBlock = [
-  "import type { QueryOperationTypes as PgAdapterQueryOps } from '@internal/adapter-postgres/operation-types';",
-  'import type {',
-  '  CodecTypes as PgVectorTypes,',
-  '  Vector,',
-  "} from '@internal/extension-pgvector/codec-types';",
-  "import type { QueryOperationTypes as PgVectorQueryOperationTypes } from '@internal/extension-pgvector/operation-types';",
-].join('\n');
+/**
+ * Matched as a pattern rather than exact text: the emitter wraps a named-import
+ * list only when the line would be too long, so whether the pgvector codec
+ * import spans one line or four depends on how long its package name happens to
+ * be. That is not something this script should care about.
+ */
+const importBlock =
+  /import type \{ QueryOperationTypes as PgAdapterQueryOps \} from '@internal\/adapter-postgres\/operation-types';\nimport type \{[\s\S]*?\} from '@internal\/extension-pgvector\/codec-types';\nimport type \{ QueryOperationTypes as PgVectorQueryOperationTypes \} from '@internal\/extension-pgvector\/operation-types';/;
 
 const replacement = [
   "import type { QueryOperationTypes as PgAdapterQueryOps } from '@internal/adapter-postgres/operation-types';",
@@ -43,7 +43,7 @@ const replacement = [
   'type PgVectorQueryOperationTypes<_C> = object;',
 ].join('\n');
 
-if (!source.includes(importBlock)) {
+if (!importBlock.test(source)) {
   console.error(`strip-pgvector-fixture: import block not found in ${target}; refusing to write.`);
   exit(1);
 }

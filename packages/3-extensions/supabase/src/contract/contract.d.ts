@@ -17,10 +17,7 @@ import type {
   Varchar,
 } from '@internal/target-postgres/codec-types';
 
-import type {
-  ContractWithTypeMaps,
-  TypeMaps as TypeMapsType,
-} from '@internal/sql-contract/types';
+import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';
 import type {
   Contract as ContractType,
   ExecutionHashBase,
