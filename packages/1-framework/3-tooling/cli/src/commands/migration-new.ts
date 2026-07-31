@@ -3,9 +3,13 @@
  * for manual authoring.
  *
  * The planner's `emptyMigration(context)` returns a
- * `MigrationPlanWithAuthoringSurface`, whose `renderTypeScript()` produces
- * the target-appropriate empty stub. The CLI writes the returned source
- * verbatim.
+ * `MigrationPlanWithAuthoringSurface`, whose `renderTypeScript(resolver)`
+ * produces the target-appropriate empty stub. The CLI writes the returned
+ * source verbatim.
+ *
+ * The resolver is the one this project's own manifest implies, so the
+ * scaffold names packages the project can resolve — the same resolver
+ * `contract emit` hands to the emitter (ADR 242).
  */
 
 import { readFile } from 'node:fs/promises';
