@@ -5225,30 +5225,6 @@ importers:
       '@prisma-next/vite-plugin-contract-emit':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/3-tooling/vite-plugin-contract-emit
-      '@prisma/orm-extension-pgvector':
-        specifier: workspace:0.16.0
-        version: link:../../packages/9-public/@prisma/orm-extension-pgvector
-      '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
-        version: link:../../packages/9-public/@prisma/orm-family-sql
-      '@prisma/orm-framework':
-        specifier: workspace:0.16.0
-        version: link:../../packages/9-public/@prisma/orm-framework
-      '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
-        version: link:../../packages/9-public/@prisma/orm-mongo
-      '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/9-public/@prisma/orm-postgres
-      '@prisma/orm-target-mongo':
-        specifier: workspace:0.16.0
-        version: link:../../packages/9-public/@prisma/orm-target-mongo
-      '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/9-public/@prisma/orm-target-postgres
-      '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
-        version: link:../../packages/9-public/@prisma/orm-toolchain
       arktype:
         specifier: 'catalog:'
         version: 2.2.3
@@ -5304,6 +5280,18 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.0(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+
+  test/integration/test/cli-journeys:
+    dependencies:
+      '@prisma/orm-extension-pgvector':
+        specifier: workspace:0.16.0
+        version: link:../../../../packages/9-public/@prisma/orm-extension-pgvector
+      '@prisma/orm-mongo':
+        specifier: workspace:0.16.0
+        version: link:../../../../packages/9-public/@prisma/orm-mongo
+      '@prisma/orm-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../../../packages/9-public/@prisma/orm-postgres
 
   test/integration/test/fixtures/cli/cli-e2e-test-app:
     dependencies:
@@ -5415,6 +5403,18 @@ importers:
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../../../../../packages/1-framework/0-foundation/utils
+      '@prisma/orm-extension-pgvector':
+        specifier: workspace:0.16.0
+        version: link:../../../../../../packages/9-public/@prisma/orm-extension-pgvector
+      '@prisma/orm-mongo':
+        specifier: workspace:0.16.0
+        version: link:../../../../../../packages/9-public/@prisma/orm-mongo
+      '@prisma/orm-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../../../../../packages/9-public/@prisma/orm-postgres
+      '@prisma/orm-toolchain':
+        specifier: workspace:0.16.0
+        version: link:../../../../../../packages/9-public/@prisma/orm-toolchain
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.4

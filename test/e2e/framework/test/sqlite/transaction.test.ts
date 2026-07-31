@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
-import sqlite from '@prisma-next/sqlite/runtime';
+import sqlite from '@prisma/orm-sqlite/runtime';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Contract } from './fixtures/generated/contract.d';
@@ -49,12 +49,7 @@ describe('transaction e2e via sqlite() facade', { timeout: timeouts.databaseOper
     handle = setupHandle();
     // Schema and seed via the raw DatabaseSync handle before connecting the facade.
     const { rawDb, db } = handle;
-    // Deserialize the contract for schema creation (mirrors utils.ts approach).
-    const { TestSqlContractSerializer } = await import(
-      '../../../../../packages/2-sql/9-family/test/test-sql-contract-serializer'
-    );
-    const contract = new TestSqlContractSerializer().deserializeContract(contractJson) as Contract;
-    createSchema(rawDb, contract);
+    createSchema(rawDb, db.contract);
     seedData(rawDb);
     // Connect the facade and warm up the runtime before any transactions.
     // SQLite uses a single connection; contract verification acquires its own

@@ -24,15 +24,17 @@ import {
 import { rm } from 'node:fs/promises';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@prisma/orm-toolchain/cli/commands/contract-emit';
-import { createMigrateCommand } from '@prisma/orm-toolchain/cli/commands/migrate';
-import { createMigrationNewCommand } from '@prisma/orm-toolchain/cli/commands/migration-new';
-import { createMigrationPlanCommand } from '@prisma/orm-toolchain/cli/commands/migration-plan';
-import { createMigrationStatusCommand } from '@prisma/orm-toolchain/cli/commands/migration-status';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import {
+  createContractEmitCommand,
+  createMigrateCommand,
+  createMigrationNewCommand,
+  createMigrationPlanCommand,
+  createMigrationStatusCommand,
+} from '../utils/cli-commands';
 import {
   executeCommand,
   fixtureAppDir,

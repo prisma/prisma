@@ -3,23 +3,22 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
-import sqliteAdapter from '@prisma-next/adapter-sqlite/runtime';
-import sqliteDriver from '@prisma-next/driver-sqlite/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { sql as sqlBuilder } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
+import sqliteAdapter from '@prisma/orm-sqlite/adapter/runtime';
+import { sql as sqlBuilder } from '@prisma/orm-sqlite/builder/runtime';
+import type { Db } from '@prisma/orm-sqlite/builder/types';
+import { instantiateExecutionStack } from '@prisma/orm-sqlite/components/execution';
+import { UNBOUND_NAMESPACE_ID } from '@prisma/orm-sqlite/components/ir';
+import sqliteDriver from '@prisma/orm-sqlite/driver/runtime';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   type Log,
   type Runtime,
-} from '@prisma-next/sql-runtime';
-import { SqliteRuntimeImpl } from '@prisma-next/sqlite/runtime';
-import sqliteTarget from '@prisma-next/target-sqlite/runtime';
+} from '@prisma/orm-sqlite/family-runtime';
+import { SqliteRuntimeImpl } from '@prisma/orm-sqlite/runtime';
+import sqliteTarget, { SqliteContractSerializer } from '@prisma/orm-sqlite/target/runtime';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 import type { Contract } from './fixtures/generated/contract.d';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -33,7 +32,7 @@ interface Harness {
 
 async function buildHarness(log: Log): Promise<Harness> {
   const contractJson = JSON.parse(readFileSync(contractJsonPath, 'utf-8')) as unknown;
-  const contract = new SqlContractSerializer().deserializeContract(contractJson) as Contract;
+  const contract = new SqliteContractSerializer().deserializeContract(contractJson) as Contract;
 
   const testDir = mkdtempSync(join(tmpdir(), 'prisma-sqlite-verify-marker-'));
   const dbPath = join(testDir, 'test.db');
@@ -105,7 +104,7 @@ describe('sqlite runtime verify-marker: missing marker table', {
 
   it('logs warn and proceeds when the marker table is absent', async () => {
     const contractJson = JSON.parse(readFileSync(contractJsonPath, 'utf-8')) as unknown;
-    const contract = new SqlContractSerializer().deserializeContract(contractJson) as Contract;
+    const contract = new SqliteContractSerializer().deserializeContract(contractJson) as Contract;
     const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() } satisfies Log;
 
     harness = await buildHarness(log);

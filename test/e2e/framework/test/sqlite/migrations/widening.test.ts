@@ -1,7 +1,7 @@
-import { datetimeColumn } from '@prisma-next/adapter-sqlite/column-types';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
+import { datetimeColumn } from '@prisma/orm-sqlite/adapter/column-types';
+import { defineContract, field, model } from '@prisma/orm-sqlite/contract-builder';
 import { describe, expect, it } from 'vitest';
-import { applyMigration, int, pack, text } from './harness';
+import { applyMigration, int, text } from './harness';
 
 describe('SQLite Migration E2E - Widening operations (recreate-table)', () => {
   const WIDENING = { allowedOperationClasses: ['additive', 'widening'] } as const;
@@ -10,11 +10,9 @@ describe('SQLite Migration E2E - Widening operations (recreate-table)', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text, bio: text } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), name: text, bio: text.optional() } }),
           },
@@ -40,13 +38,11 @@ describe('SQLite Migration E2E - Widening operations (recreate-table)', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: {
             Setting: model('Setting', { fields: { id: int.id(), status: text.default('draft') } }),
           },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             Setting: model('Setting', { fields: { id: int.id(), status: text.default('active') } }),
           },
@@ -76,7 +72,6 @@ describe('SQLite Migration E2E - Widening operations (recreate-table)', () => {
     await applyMigration(
       {
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', {
               fields: {
@@ -107,7 +102,6 @@ describe('SQLite Migration E2E - Widening operations (recreate-table)', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: {
             User: model('User', {
               fields: { id: int.id(), nickname: text.default('old') },
@@ -115,7 +109,6 @@ describe('SQLite Migration E2E - Widening operations (recreate-table)', () => {
           },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', {
               fields: { id: int.id(), nickname: text.default("It's") },
@@ -140,11 +133,9 @@ describe('SQLite Migration E2E - Widening operations (recreate-table)', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text, email: text } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), name: text, email: text.optional() } }),
           },

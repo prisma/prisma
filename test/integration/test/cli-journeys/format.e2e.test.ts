@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { format } from '@prisma/orm-framework/psl-parser/format';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import { format } from '../utils/cli-commands';
 import { withTempDir } from '../utils/cli-test-helpers';
 import { runFormatWithConfig, setupJourney } from '../utils/journey-test-helpers';
 

@@ -178,6 +178,25 @@ export function setupJourney(options: JourneySetupOptions): JourneyContext {
   const configPath = join(testDir, 'prisma-next.config.ts');
   writeFileSync(configPath, configContent, 'utf-8');
 
+  // The journey's project states the one package it installs, the way a user's
+  // does. Emission reads the nearest manifest to decide which package names
+  // generated files carry, so without this the project would inherit the
+  // shared fixture app's, which lists far more than any application would.
+  writeFileSync(
+    join(testDir, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'journey-app',
+        private: true,
+        type: 'module',
+        dependencies: { '@prisma/orm-postgres': 'workspace:0.16.0' },
+      },
+      null,
+      2,
+    )}\n`,
+    'utf-8',
+  );
+
   return { testDir, configPath, outputDir };
 }
 

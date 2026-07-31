@@ -18,7 +18,6 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { printPsl } from '@prisma/orm-framework/psl-printer';
 import postgresAdapterDescriptor from '@prisma/orm-postgres/adapter/control';
 import { createControlStack } from '@prisma/orm-postgres/components/control';
 import { type Contract, coreHash, profileHash } from '@prisma/orm-postgres/contract/types';
@@ -30,6 +29,7 @@ import { postgresCreateNamespace } from '@prisma/orm-postgres/target/types';
 import { applicationDomainOf, withClient } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
+import { printPsl } from '../utils/cli-commands';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
   type JourneyContext,

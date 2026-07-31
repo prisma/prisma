@@ -67,14 +67,6 @@
     "@prisma-next/target-sqlite": "workspace:0.16.0",
     "@prisma-next/utils": "workspace:0.16.0",
     "@prisma-next/vite-plugin-contract-emit": "workspace:0.16.0",
-    "@prisma/orm-extension-pgvector": "workspace:0.16.0",
-    "@prisma/orm-family-sql": "workspace:0.16.0",
-    "@prisma/orm-framework": "workspace:0.16.0",
-    "@prisma/orm-mongo": "workspace:0.16.0",
-    "@prisma/orm-postgres": "workspace:0.16.0",
-    "@prisma/orm-target-mongo": "workspace:0.16.0",
-    "@prisma/orm-target-postgres": "workspace:0.16.0",
-    "@prisma/orm-toolchain": "workspace:0.16.0",
     "arktype": "catalog:"
   },
   "devDependencies": {

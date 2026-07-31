@@ -1,6 +1,6 @@
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
+import { defineContract, field, model } from '@prisma/orm-sqlite/contract-builder';
 import { describe, expect, it } from 'vitest';
-import { applyMigration, int, integerColumn, pack, text } from './harness';
+import { applyMigration, int, integerColumn, text } from './harness';
 
 // ---------------------------------------------------------------------------
 // From empty schema
@@ -11,7 +11,6 @@ describe('SQLite Migration E2E - From empty schema', () => {
     await applyMigration(
       {
         destination: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text } }) },
         }),
       },
@@ -25,7 +24,6 @@ describe('SQLite Migration E2E - From empty schema', () => {
     await applyMigration(
       {
         destination: defineContract({
-          ...pack,
           models: { Item: model('Item', { fields: { id: int.id(), value: text.optional() } }) },
         }),
       },
@@ -44,7 +42,6 @@ describe('SQLite Migration E2E - From empty schema', () => {
     await applyMigration(
       {
         destination: defineContract({
-          ...pack,
           models: {
             Setting: model('Setting', {
               fields: {
@@ -78,7 +75,6 @@ describe('SQLite Migration E2E - From empty schema', () => {
     await applyMigration(
       {
         destination: defineContract({
-          ...pack,
           models: {
             Account: model('Account', {
               fields: { id: int.id(), email: text.unique(), username: text.unique() },
@@ -108,7 +104,7 @@ describe('SQLite Migration E2E - From empty schema', () => {
     }));
 
     await applyMigration(
-      { destination: defineContract({ ...pack, models: { Author, Post } }) },
+      { destination: defineContract({ models: { Author, Post } }) },
       async ({ driver }) => {
         await driver.query('INSERT INTO "Author" (id, name) VALUES (?, ?)', [1, 'Alice']);
         await driver.query('INSERT INTO "Post" (id, title, author_id) VALUES (?, ?, ?)', [
@@ -136,7 +132,7 @@ describe('SQLite Migration E2E - From empty schema', () => {
     }));
 
     await applyMigration(
-      { destination: defineContract({ ...pack, models: { Category, Post } }) },
+      { destination: defineContract({ models: { Category, Post } }) },
       async ({ driver }) => {
         await driver.query('INSERT INTO "Category" (id, name) VALUES (?, ?)', [1, 'Tech']);
         await driver.query('INSERT INTO "Post" (id, title, category_id) VALUES (?, ?, ?)', [
@@ -158,7 +154,6 @@ describe('SQLite Migration E2E - From empty schema', () => {
     await applyMigration(
       {
         destination: defineContract({
-          ...pack,
           models: {
             Event: model('Event', {
               fields: { id: int.id(), name: text, date: text, location: text.optional() },
@@ -191,11 +186,9 @@ describe('SQLite Migration E2E - Schema evolution', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), name: text, bio: text.optional() } }),
           },
@@ -211,11 +204,9 @@ describe('SQLite Migration E2E - Schema evolution', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', {
               fields: { id: int.id(), name: text, status: text.default('active') },
@@ -243,8 +234,8 @@ describe('SQLite Migration E2E - Schema evolution', () => {
 
     await applyMigration(
       {
-        origin: defineContract({ ...pack, models: { User: UserModel } }),
-        destination: defineContract({ ...pack, models: { User: UserModel, Post: PostModel } }),
+        origin: defineContract({ models: { User: UserModel } }),
+        destination: defineContract({ models: { User: UserModel, Post: PostModel } }),
       },
       async ({ schema }) => {
         expect(schema.tables['User']).toBeDefined();
@@ -257,11 +248,9 @@ describe('SQLite Migration E2E - Schema evolution', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), email: text } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), email: text } }).sql((ctx) => ({
               indexes: [ctx.constraints.index([ctx.cols.email], { name: 'idx_users_email' })],
@@ -281,11 +270,9 @@ describe('SQLite Migration E2E - Schema evolution', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), email: text } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', {
               fields: {

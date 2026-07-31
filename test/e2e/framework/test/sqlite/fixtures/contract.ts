@@ -3,8 +3,8 @@ import {
   integerColumn,
   jsonColumn,
   textColumn,
-} from '@prisma-next/adapter-sqlite/column-types';
-import { defineContract, field, model, rel } from '@prisma-next/sqlite/contract-builder';
+} from '@prisma/orm-sqlite/adapter/column-types';
+import { defineContract, field, model, rel } from '@prisma/orm-sqlite/contract-builder';
 
 const User = model('User', {
   fields: {

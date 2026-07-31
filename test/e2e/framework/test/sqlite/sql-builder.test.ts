@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { JsonValue } from '@prisma-next/adapter-sqlite/codec-types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { JsonValue } from '@prisma/orm-sqlite/adapter/codec-types';
+import { UNBOUND_NAMESPACE_ID } from '@prisma/orm-sqlite/components/ir';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { Contract } from './fixtures/generated/contract.d';
