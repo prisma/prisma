@@ -65,7 +65,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
@@ -77,6 +77,33 @@ import {
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const biome = join(repoRoot, 'node_modules', '.bin', 'biome');
+
+/**
+ * The workspace modules the temp config below needs, as absolute `file://`
+ * URLs into the live sources.
+ *
+ * Bare specifiers would be resolved from the example the temp config is written
+ * into, and an example depends on one published `@prisma/orm-*` package and
+ * nothing else — it has no reason to resolve the workspace internals a
+ * regeneration script happens to want. Naming the files directly keeps this
+ * script's needs out of the examples' dependencies. Same reasoning, and the
+ * same shape, as the fixture config in
+ * `packages/3-targets/6-adapters/postgres/test/migrations/render-typescript.roundtrip.test.ts`.
+ */
+const workspaceModule = (relativePath) => pathToFileURL(resolve(repoRoot, relativePath)).href;
+
+const sqlContractPslProvider = workspaceModule(
+  'packages/2-sql/2-authoring/contract-psl/src/exports/provider.ts',
+);
+const mongoContractPslProvider = workspaceModule(
+  'packages/2-mongo-family/2-authoring/contract-psl/src/exports/provider.ts',
+);
+const targetPostgresPack = workspaceModule(
+  'packages/3-targets/3-targets/postgres/src/exports/pack.ts',
+);
+const targetPostgresTypes = workspaceModule(
+  'packages/3-targets/3-targets/postgres/src/exports/types.ts',
+);
 
 // Some example configs guard against a missing DATABASE_URL at module load time.
 // Contract emit and migration serialization don't actually connect to the DB, but
@@ -272,9 +299,9 @@ function rewriteContractSnapshotSpecifiers(source, snapshotsImportPath, toHash, 
 function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
   if (contractFamily === 'sql') {
     return (
-      `import { prismaContract } from '@internal/sql-contract-psl/provider';\n` +
-      `import postgresPackRef from '@internal/target-postgres/pack';\n` +
-      `import { postgresCreateNamespace } from '@internal/target-postgres/types';\n` +
+      `import { prismaContract } from '${sqlContractPslProvider}';\n` +
+      `import postgresPackRef from '${targetPostgresPack}';\n` +
+      `import { postgresCreateNamespace } from '${targetPostgresTypes}';\n` +
       `import realConfig from '${realConfigAbsPath}';\n\n` +
       'export default {\n' +
       '  ...realConfig,\n' +
@@ -287,7 +314,7 @@ function buildTempConfigSource(schemaSrc, realConfigAbsPath, contractFamily) {
   }
   // Default: mongo
   return (
-    `import { mongoContract } from '@internal/mongo-contract-psl/provider';\n` +
+    `import { mongoContract } from '${mongoContractPslProvider}';\n` +
     `import realConfig from '${realConfigAbsPath}';\n\n` +
     'export default {\n' +
     '  ...realConfig,\n' +
