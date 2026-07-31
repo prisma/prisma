@@ -6,12 +6,14 @@ import {
   type AnyExpression,
   type AnyParamRef,
   BinaryExpr,
+  CodecJsonValueProjection,
   type CodecRef,
   ColumnRef,
   DerivedTableSource,
   EqColJoinOn,
   JoinAst,
   JsonArrayAggExpr,
+  JsonDocumentProjection,
   JsonObjectExpr,
   LiteralExpr,
   NativeJsonValueProjection,
@@ -25,6 +27,8 @@ import {
   TableSource,
   WindowFuncExpr,
 } from '@prisma-next/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import { resolveIncludeRelation } from '../src/collection-contract';
 import { compileSelect, compileSelectWithIncludes } from '../src/query-plan-select';
@@ -33,6 +37,12 @@ import { bindWhereExpr } from '../src/where-binding';
 import { baseContract, createCollection, createCollectionFor } from './collection-fixtures';
 import { buildMixedPolyContract, buildStiPolyContract, isSelectAst } from './helpers';
 import { unboundTables } from './unbound-tables';
+
+function codecRefFor(table: string, column: string): CodecRef {
+  const ref = codecRefForStorageColumn(baseContract.storage, 'public', table, column);
+  if (ref === undefined) throw new InternalError(`no codec ref for ${table}.${column}`);
+  return ref;
+}
 
 function codecForColumn(table: string, column: string): string {
   const columnMeta = (
@@ -575,11 +585,11 @@ describe('compileSelectWithIncludes', () => {
           JsonObjectExpr.fromEntries([
             JsonObjectExpr.entry(
               'recent',
-              new NativeJsonValueProjection(ColumnRef.of('posts__combine__recent', 'posts')),
+              new JsonDocumentProjection(ColumnRef.of('posts__combine__recent', 'posts')),
             ),
             JsonObjectExpr.entry(
               'total',
-              new NativeJsonValueProjection(ColumnRef.of('posts__combine__total', 'posts')),
+              new JsonDocumentProjection(ColumnRef.of('posts__combine__total', 'posts')),
             ),
           ]),
         ),
@@ -709,15 +719,21 @@ describe('M:N include correlated subquery', () => {
       ProjectionItem.of(
         'tags',
         JsonArrayAggExpr.of(
-          new NativeJsonValueProjection(
+          new JsonDocumentProjection(
             JsonObjectExpr.fromEntries([
               JsonObjectExpr.entry(
                 'id',
-                new NativeJsonValueProjection(ColumnRef.of('tags__rows', 'id')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('tags__rows', 'id'),
+                  codecRefFor('tags', 'id'),
+                ),
               ),
               JsonObjectExpr.entry(
                 'name',
-                new NativeJsonValueProjection(ColumnRef.of('tags__rows', 'name')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('tags__rows', 'name'),
+                  codecRefFor('tags', 'name'),
+                ),
               ),
             ]),
           ),
@@ -786,19 +802,28 @@ describe('M:N include correlated subquery', () => {
       ProjectionItem.of(
         'related',
         JsonArrayAggExpr.of(
-          new NativeJsonValueProjection(
+          new JsonDocumentProjection(
             JsonObjectExpr.fromEntries([
               JsonObjectExpr.entry(
                 'id',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'id')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'id'),
+                  codecRefFor('projects', 'id'),
+                ),
               ),
               JsonObjectExpr.entry(
                 'name',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'name')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'name'),
+                  codecRefFor('projects', 'name'),
+                ),
               ),
               JsonObjectExpr.entry(
                 'tenant_id',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'tenant_id')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'tenant_id'),
+                  codecRefFor('projects', 'tenant_id'),
+                ),
               ),
             ]),
           ),
@@ -916,19 +941,28 @@ describe('M:N include correlated subquery', () => {
       ProjectionItem.of(
         'related',
         JsonArrayAggExpr.of(
-          new NativeJsonValueProjection(
+          new JsonDocumentProjection(
             JsonObjectExpr.fromEntries([
               JsonObjectExpr.entry(
                 'id',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'id')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'id'),
+                  codecRefFor('projects', 'id'),
+                ),
               ),
               JsonObjectExpr.entry(
                 'name',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'name')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'name'),
+                  codecRefFor('projects', 'name'),
+                ),
               ),
               JsonObjectExpr.entry(
                 'tenant_id',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'tenant_id')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'tenant_id'),
+                  codecRefFor('projects', 'tenant_id'),
+                ),
               ),
             ]),
           ),
@@ -967,23 +1001,32 @@ describe('M:N include correlated subquery', () => {
       ProjectionItem.of(
         'related',
         JsonArrayAggExpr.of(
-          new NativeJsonValueProjection(
+          new JsonDocumentProjection(
             JsonObjectExpr.fromEntries([
               JsonObjectExpr.entry(
                 'id',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'id')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'id'),
+                  codecRefFor('projects', 'id'),
+                ),
               ),
               JsonObjectExpr.entry(
                 'name',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'name')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'name'),
+                  codecRefFor('projects', 'name'),
+                ),
               ),
               JsonObjectExpr.entry(
                 'tenant_id',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'tenant_id')),
+                new CodecJsonValueProjection(
+                  ColumnRef.of('related__rows', 'tenant_id'),
+                  codecRefFor('projects', 'tenant_id'),
+                ),
               ),
               JsonObjectExpr.entry(
                 'related',
-                new NativeJsonValueProjection(ColumnRef.of('related__rows', 'related')),
+                new JsonDocumentProjection(ColumnRef.of('related__rows', 'related')),
               ),
             ]),
           ),

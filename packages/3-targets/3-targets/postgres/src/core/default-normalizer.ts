@@ -221,9 +221,10 @@ export function parsePostgresDefault(
   if (NUMERIC_PATTERN.test(trimmed)) {
     const num = Number(trimmed);
     if (!Number.isFinite(num)) return undefined;
-    if (isBigInt && !Number.isSafeInteger(num)) {
-      return { kind: 'literal', value: trimmed };
-    }
+    // int8's canonical JSON is decimal text across the whole signed 64-bit
+    // range, so an introspected default is read as text rather than as a
+    // number that would round past 2^53.
+    if (isBigInt) return { kind: 'literal', value: trimmed };
     return { kind: 'literal', value: num };
   }
 
@@ -236,13 +237,6 @@ export function parsePostgresDefault(
       } catch {
         // Keep legacy behavior for malformed/non-JSON string content.
       }
-    }
-    if (isBigInt && NUMERIC_PATTERN.test(unescaped)) {
-      const num = Number(unescaped);
-      if (Number.isSafeInteger(num)) {
-        return { kind: 'literal', value: num };
-      }
-      return { kind: 'literal', value: unescaped };
     }
     return { kind: 'literal', value: unescaped };
   }

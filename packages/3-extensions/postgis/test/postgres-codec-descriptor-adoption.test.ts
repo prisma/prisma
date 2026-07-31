@@ -29,7 +29,6 @@ describe('PostGIS PostgreSQL codec descriptor adoption', () => {
 
     expect(postgisGeometryDescriptor.nativeTypeFor(unparameterizedRef)).toBe('geometry');
     expect(postgisGeometryDescriptor.nativeTypeFor(constrainedRef)).toBe('geometry');
-    expect(postgisGeometryDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('geometry');
     expect(postgisGeometryDescriptor.projectJson(expression, unparameterizedRef)).toBe(expression);
     expect(postgisGeometryDescriptor.projectJson(expression, constrainedRef)).toBe(expression);
 

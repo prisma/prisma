@@ -131,7 +131,7 @@ function buildInsertAst(row: {
   dates: Date[] | null;
   bytes: Uint8Array[] | null;
   decimals: string[] | null;
-  bigints: number[] | null;
+  bigints: bigint[] | null;
 }): InsertAst {
   return InsertAst.into(TABLE).withRows([
     {
@@ -312,10 +312,10 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
   }, async () => {
     const contract = getContract();
 
-    // int8 values are numbers in JS; pg returns int8 array elements as strings to
-    // avoid precision loss. The element codec is a passthrough, so decoded elements
-    // are string representations.
-    const bigints = [12345678, 9876543];
+    // int8 spans the full signed 64-bit range, so the element codec carries
+    // application values as `bigint` and reads the decimal string `pg` returns
+    // for each element.
+    const bigints = [12345678n, 9876543n];
 
     await runtime!
       .execute(
@@ -329,10 +329,10 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(400), contract)).toArray();
 
     expect(rows).toHaveLength(1);
-    const row = rows[0] as unknown as { bigints: string[] };
+    const row = rows[0] as unknown as { bigints: bigint[] };
     expect(row.bigints).toHaveLength(2);
-    expect(row.bigints[0]).toBe('12345678');
-    expect(row.bigints[1]).toBe('9876543');
+    expect(row.bigints[0]).toBe(12345678n);
+    expect(row.bigints[1]).toBe(9876543n);
   });
 
   it('passes NULL elements through the decode loop unchanged', {
@@ -367,12 +367,12 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(501), contract)).toArray();
 
     expect(rows).toHaveLength(1);
-    // pg returns int8 array elements as strings; null elements are null.
-    const row = rows[0] as unknown as { bigints: (string | null)[] };
+    // Elements decode through the int8 codec to `bigint`; null elements stay null.
+    const row = rows[0] as unknown as { bigints: (bigint | null)[] };
     expect(row.bigints).toHaveLength(3);
-    expect(row.bigints[0]).toBe('1');
+    expect(row.bigints[0]).toBe(1n);
     expect(row.bigints[1]).toBeNull();
-    expect(row.bigints[2]).toBe('3');
+    expect(row.bigints[2]).toBe(3n);
   });
 });
 

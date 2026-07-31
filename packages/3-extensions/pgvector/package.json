@@ -34,6 +34,7 @@
   "devDependencies": {
     "@prisma-next/adapter-postgres": "workspace:0.16.0",
     "@prisma-next/cli": "workspace:0.16.0",
+    "@prisma-next/driver-postgres": "workspace:0.16.0",
     "@prisma-next/operations": "workspace:0.16.0",
     "@prisma-next/postgres": "workspace:0.16.0",
     "@prisma-next/sql-contract-ts": "workspace:0.16.0",

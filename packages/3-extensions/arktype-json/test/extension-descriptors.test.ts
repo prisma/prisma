@@ -31,15 +31,9 @@ describe('arktypeJsonRuntimeDescriptor', () => {
     expect(codecDescriptors).toContain(arktypeJsonDescriptor);
   });
 
-  it('extractCodecLookup over the runtime descriptor resolves arktype/json@1 metadata', () => {
+  it('extractCodecLookup over the runtime descriptor resolves arktype/json@1 target types and renderers', () => {
     const lookup = extractCodecLookup([arktypeJsonRuntimeDescriptor]);
-    const meta = lookup.metaFor(ARKTYPE_JSON_CODEC_ID) as
-      | {
-          readonly db?: { readonly sql?: { readonly postgres?: { readonly nativeType?: string } } };
-        }
-      | undefined;
     expect(lookup.targetTypesFor(ARKTYPE_JSON_CODEC_ID)).toEqual(['jsonb']);
-    expect(meta?.db?.sql?.postgres?.nativeType).toBe('jsonb');
     expect(
       lookup.renderOutputTypeFor(ARKTYPE_JSON_CODEC_ID, {
         expression: '{ name: string }',

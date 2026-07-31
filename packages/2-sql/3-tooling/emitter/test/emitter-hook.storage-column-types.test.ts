@@ -16,7 +16,6 @@ function vectorCodecLookup(): CodecLookup {
   return {
     get: () => undefined,
     targetTypesFor: () => undefined,
-    metaFor: () => undefined,
     renderOutputTypeFor: (id, params) =>
       id === 'pg/vector@1' ? `Vector<${params['length']}>` : undefined,
     renderInputTypeFor: (id, params) =>
@@ -813,7 +812,6 @@ describe('StorageColumnTypes', () => {
     const fallbackLookup: CodecLookup = {
       get: () => undefined,
       targetTypesFor: () => undefined,
-      metaFor: () => undefined,
       renderOutputTypeFor: (id) => (id === NON_IDENTITY_CODEC_ID ? 'Level' : undefined),
       // Returns undefined for every value, forcing the codec-output fallback.
       renderValueLiteralFor: () => undefined,
@@ -934,7 +932,6 @@ describe('StorageColumnTypes', () => {
       return {
         get: () => undefined,
         targetTypesFor: () => undefined,
-        metaFor: () => undefined,
         renderOutputTypeFor: () => undefined,
         renderValueLiteralFor: (id, value) =>
           id === 'pg/enum@1' ? renderTsLiteral(value) : undefined,

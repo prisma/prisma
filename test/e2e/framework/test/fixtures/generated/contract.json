@@ -812,7 +812,7 @@
                   "codecId": "pg/int8@1",
                   "default": {
                     "kind": "literal",
-                    "value": 9007199254740991
+                    "value": "9007199254740991"
                   },
                   "nativeType": "int8",
                   "nullable": false
@@ -1096,7 +1096,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "cecd9cfc7e5a5102f2f73a02f9e58aac2643d5249308de9bed711b45f5d83fbe"
+    "storageHash": "38192768d53e3f5c573856534541b506a6382492220cf6476a89505a76d2084b"
   },
   "execution": {
     "executionHash": "5629682c0d69cfa236e08de82a20c1a4fdcf1163a78ac2f17ffaf993caf4f8f4",

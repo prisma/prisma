@@ -204,7 +204,6 @@ describe('defineConfig', () => {
       codecLookup: {
         get: () => undefined,
         targetTypesFor: () => undefined,
-        metaFor: () => undefined,
         renderOutputTypeFor: () => undefined,
       },
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },

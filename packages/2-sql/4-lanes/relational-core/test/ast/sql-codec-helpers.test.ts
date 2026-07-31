@@ -120,17 +120,17 @@ describe('sql-codec-helpers', () => {
     expect(await codec.decode(instant, {})).toBe(instant);
   });
 
-  it('serializes timestamps to ISO strings for the JSON contract', () => {
+  it('serializes timestamps to zone-less ISO strings for the JSON contract', () => {
     const codec = sqlTimestampDescriptor.factory({})({ name: 'test' });
     const instant = new Date('2024-01-15T10:30:00Z');
-    expect(codec.encodeJson(instant)).toBe('2024-01-15T10:30:00.000Z');
-    expect(codec.decodeJson('2024-01-15T10:30:00.000Z')).toEqual(instant);
+    expect(codec.encodeJson(instant)).toBe('2024-01-15T10:30:00.000');
+    expect(codec.decodeJson('2024-01-15T10:30:00.000')).toEqual(instant);
   });
 
   it('throws on invalid JSON input for timestamp codecs', () => {
     const codec = sqlTimestampDescriptor.factory({})({ name: 'test' });
     expect(() => codec.decodeJson(42)).toThrow(/Expected ISO date string/);
-    expect(() => codec.decodeJson('not-a-date')).toThrow(/Invalid ISO date string/);
+    expect(() => codec.decodeJson('not-a-date')).toThrow(/Expected a zone-less ISO date-time/);
   });
 
   describe('renderOutputType', () => {

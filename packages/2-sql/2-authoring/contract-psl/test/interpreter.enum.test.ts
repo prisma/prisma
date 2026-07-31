@@ -79,7 +79,6 @@ const testCodecLookup: CodecLookup = {
   targetTypesFor(id: string): readonly string[] | undefined {
     return targetTypesById[id];
   },
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 

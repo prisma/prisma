@@ -19,7 +19,7 @@
     "@prisma-next/contract": "workspace:0.16.0",
     "@prisma-next/framework-components": "workspace:0.16.0",
     "@prisma-next/utils": "workspace:0.16.0",
-    "uniku": "^0.3.0"
+    "uniku": "^0.4.3"
   },
   "devDependencies": {
     "@prisma-next/tsconfig": "workspace:0.16.0",

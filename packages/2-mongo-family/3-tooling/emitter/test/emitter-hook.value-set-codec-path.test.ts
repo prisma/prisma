@@ -15,7 +15,6 @@ const LEVEL_BY_INDEX = ['low', 'high', 'urgent'] as const;
 const nonIdentityCodecLookup: CodecLookup = {
   get: () => undefined,
   targetTypesFor: (id) => (id === NON_IDENTITY_CODEC_ID ? ['string'] : undefined),
-  metaFor: () => undefined,
   renderOutputTypeFor: (id) => (id === NON_IDENTITY_CODEC_ID ? 'Level' : undefined),
   renderValueLiteralFor: (id, value) => {
     if (id !== NON_IDENTITY_CODEC_ID || typeof value !== 'number') return undefined;

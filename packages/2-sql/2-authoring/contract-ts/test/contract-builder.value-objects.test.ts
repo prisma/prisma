@@ -50,7 +50,6 @@ describe('value objects in contract definition builder', () => {
         };
       },
       targetTypesFor: (id) => (id === 'pg/jsonb@1' ? ['jsonb'] : undefined),
-      metaFor: () => undefined,
       renderOutputTypeFor: () => undefined,
     };
 

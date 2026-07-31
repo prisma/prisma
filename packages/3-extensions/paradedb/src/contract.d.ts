@@ -38,9 +38,11 @@ export type ProfileHash =
 export type CodecTypes = PgTypes;
 export type LaneCodecTypes = CodecTypes;
 export type QueryOperationTypes = PgAdapterQueryOps<CodecTypes>;
-type DefaultLiteralValue<CodecId extends string, _Encoded> = CodecId extends keyof CodecTypes
-  ? CodecTypes[CodecId]['output']
-  : _Encoded;
+type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyof CodecTypes
+  ? Encoded extends CodecTypes[CodecId]['json']
+    ? Encoded
+    : CodecTypes[CodecId]['json']
+  : Encoded;
 
 export type FieldOutputTypes = { readonly public: Record<string, never> };
 export type FieldInputTypes = { readonly public: Record<string, never> };

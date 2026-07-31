@@ -7241,7 +7241,7 @@
                   "codecId": "pg/int8@1",
                   "default": {
                     "kind": "literal",
-                    "value": 0
+                    "value": "0"
                   },
                   "nativeType": "int8",
                   "nullable": false
@@ -8080,7 +8080,7 @@
                   "codecId": "pg/int8@1",
                   "default": {
                     "kind": "literal",
-                    "value": 0
+                    "value": "0"
                   },
                   "nativeType": "int8",
                   "nullable": false
@@ -8204,7 +8204,7 @@
                   "codecId": "pg/int8@1",
                   "default": {
                     "kind": "literal",
-                    "value": 0
+                    "value": "0"
                   },
                   "nativeType": "int8",
                   "nullable": false
@@ -8370,7 +8370,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "575237c8f346d182719b83fe1b29b4e1634fd130be638bc8e78472a6139bdaef",
+    "storageHash": "3fc02fc59de32d9aefb403a8a4d164d85c34dd2b3734c07e03cfdae225cf8438",
     "types": {
       "CreatedAt": {
         "codecId": "pg/timestamp@1",

@@ -328,6 +328,209 @@ changes:
         - "ConfigValidationError"
         - "DomainNamespaceResolutionError"
       anyMatch: true
+  - id: pg-int8-application-values-are-bigint
+    summary: |
+      `pg/int8@1` carries `bigint` application values where it carried `number`. A JS `number`
+      cannot represent the whole signed 64-bit range, so any value past 2^53 was already being
+      silently rounded. Every read of an `int8` column now yields a `bigint`, and every value
+      compared against one must be a `bigint` literal. `count()` is the widest instance: it
+      resolves to `pg/int8@1`, so a counted column's row type is `bigint` and a `having`
+      comparison reads `fns.gt(fns.count(), 5n)`. Update row-type annotations, comparison
+      literals, and any arithmetic that mixes a counted value with a `number` — TypeScript will
+      not implicitly convert between the two, so `pnpm typecheck` locates every site.
+      A contract's `int8` literal defaults are also emitted as decimal strings rather than JSON
+      numbers; re-emit to pick that up.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "fns.count("
+        - "pg/int8@1"
+        - "int8Column"
+      anyMatch: true
+  - id: pg-interval-values-are-structured-durations
+    summary: |
+      Reading a `pg/interval@1` column returns `{ months, days, micros }` — the three fields
+      PostgreSQL stores — where it returned a `JSON.stringify` of the driver's component object
+      such as `{"days":1}`. `months` and `days` are `number`; `micros` is `bigint`, because
+      PostgreSQL stores it as a 64-bit integer. Writing takes the same object. Replace any
+      parsing of the old string with field access, and replace interval literals with the object
+      (`{ months: 0, days: 1, micros: 0n }` for one day). The three fields stay independent
+      because a month has no fixed length: one month and thirty days are different values and
+      neither converts to the other. Serialized form is unchanged in kind but not in spelling —
+      a contract holds the ISO-8601 duration string (`P1M`, `P1Y2M3DT4H5M6S`, `PT0S`), so
+      re-emit; `micros` past microsecond resolution rounds as PostgreSQL rounds.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "pg/interval@1"
+        - "intervalColumn"
+      anyMatch: true
+  - id: codec-json-forms-are-canonical
+    summary: |
+      Several codecs' JSON representation changed so a value survives the round trip through a
+      contract. `pg/numeric@1` and `sqlite/bigint@1` are decimal text where they were JSON
+      numbers — `9007199254740993` reached JSON as `…992` before, and arbitrary-precision
+      decimals lost their tail. `pg/bytea@1` is base64 where it was PostgreSQL's `\x`-prefixed
+      hex. `sqlite/blob@1` is uppercase hexadecimal where it was base64. `sqlite/bigint@1`
+      additionally accepts values it previously refused outright: half of SQLite's INTEGER range
+      had no JSON representation at all.
+      This now reaches **reads**, not only contract literals. A query that returns JSON — an
+      `.include()`'s nested rows, an aggregated child row set — projects each column through its
+      codec, so these codecs' values arrive in the forms above where they previously arrived in
+      whatever the database's own JSON conversion produced. Nine codecs project non-identically:
+      `pg/numeric@1`, `pg/int8@1`, `pg/bytea@1`, `pg/interval@1`, `pg/timestamptz@1`,
+      `pg/vector@1`, `sqlite/bigint@1`, `sqlite/blob@1` and `sqlite/json@1`. If you read such a
+      column out of an include and parse or compare its raw JSON yourself — rather than letting
+      the ORM decode it — update that code to the new form.
+      Run `prisma-next contract emit` to regenerate
+      `contract.json` / `contract.d.ts`; any literal default on one of these codecs changes
+      spelling, and with it the `storageHash`. Code that reads such a default out of a contract,
+      or that hand-writes one, must use the new form.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,json,d.ts}"
+      contains:
+        - "pg/numeric@1"
+        - "pg/bytea@1"
+        - "pg/int8@1"
+        - "pg/interval@1"
+        - "pg/timestamptz@1"
+        - "pg/vector@1"
+        - "sqlite/bigint@1"
+        - "sqlite/blob@1"
+        - "sqlite/json@1"
+      anyMatch: true
+  - id: float-json-requires-extra-float-digits-at-least-one
+    summary: |
+      The canonical JSON of `pg/float4@1`, `pg/float8@1`, `pg/float@1` and `pg/vector@1` holds
+      only where the PostgreSQL session's `extra_float_digits` is 1 or above. That is the default
+      from PostgreSQL 12 onward, so most deployments already satisfy it — but a connection that
+      sets the GUC to 0 or below reverts to a fixed digit count and truncates: `1/3` reads back
+      as `0.333333333333333` rather than `0.3333333333333333`, and the value no longer
+      round-trips. Check any connection string, pool `options`, server config or proxy that sets
+      `extra_float_digits` and remove settings of 0 or below.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs,json,toml,yaml,yml,env}"
+      contains:
+        - "extra_float_digits"
+      anyMatch: true
+  - id: sqlite-real-rejects-non-finite-values
+    summary: |
+      `sqlite/real@1` rejects infinities and `NaN` on both the encode and decode sides. JSON has
+      no spelling for either, and SQLite renders an infinity as `9.0e+999`, which reads back as
+      `Infinity` rather than failing — so a non-finite value used to pass through and corrupt the
+      value silently. Guard any computation that can produce a non-finite float before writing it
+      to a `REAL` column, or store it in a column whose codec admits it.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "sqlite/real@1"
+        - "realColumn"
+      anyMatch: true
+  - id: pg-timestamptz-json-is-utc-iso
+    summary: |
+      `pg/timestamptz@1`'s canonical JSON is a UTC ISO-8601 timestamp with an explicit `+00:00`
+      offset, constructed by the projection rather than inherited from the session. The form
+      previously followed the connection's `DateStyle` and `TimeZone`, so the same stored instant
+      read back differently on two connections, and under a non-ISO `DateStyle` could fail to
+      parse at all. Nothing to change if you decode through the ORM. If you read a timestamptz out
+      of database-produced JSON yourself it is now always `YYYY-MM-DDTHH:MM:SS.mmm+00:00`: drop any
+      session-dependent parsing, and drop any `SET DateStyle` / `SET TimeZone` you added to
+      stabilise it.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,sql}"
+      contains:
+        - "pg/timestamptz@1"
+        - "timestamptzColumn"
+        - "DateStyle"
+      anyMatch: true
+  - id: sqlite-json-documents-survive-nesting
+    summary: |
+      A `sqlite/json@1` column read through a nested `.include()` arrives as a parsed document
+      where it previously arrived as a string containing JSON. SQLite carries "this text is JSON"
+      as a subtype on the value, and that subtype does not survive a derived table — which every
+      include's child row set passes through — so a document came back double-encoded. The
+      projection retags it at the boundary that consumes it. A `sqlite/text@1` column whose
+      characters happen to look like JSON is unaffected and still arrives as a string: the retag
+      follows the column's codec, not its content. Remove any `JSON.parse` you added to compensate
+      for the double encoding.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "sqlite/json@1"
+        - "jsonColumn"
+      anyMatch: true
+  - id: sqlite-blob-null-is-distinct-from-empty
+    summary: |
+      A `NULL` `sqlite/blob@1` column read through database-produced JSON is `null`, where it
+      previously became an empty `Uint8Array`. SQLite's `hex(NULL)` is the empty string, which is
+      also the hex of a zero-length blob, so absence and emptiness were the same value and nothing
+      raised. If your code distinguishes "no blob" from "empty blob" — and especially if it worked
+      around the old behaviour by treating a zero-length blob as absent — that check now needs to
+      test for `null`.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "sqlite/blob@1"
+        - "blobColumn"
+      anyMatch: true
+  - id: sql-float-rejects-non-finite-values
+    summary: |
+      `sql/float@1` rejects infinities and `NaN` in both JSON directions, matching
+      `sqlite/real@1`. Its `decodeJson` previously performed no check at all, and a database can
+      hold a non-finite float and spells it as a *string* in JSON — PostgreSQL emits `"NaN"` — so
+      the codec handed back a string typed as `number`, silently. Guard any computation that can
+      produce a non-finite float before writing it to a `sql/float@1` column, or use
+      `pg/numeric@1`, whose application value is text and which admits all three.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "sql/float@1"
+        - "sqlFloatColumn"
+      anyMatch: true
+  - id: explicit-codec-refs-need-readable-type-params
+    summary: |
+      A codec ref supplied explicitly — `sql.value(v, { codec: { codecId: 'pg/enum@1' } })` and
+      the other surfaces that take a bare `codecId` — must carry `typeParams` the codec's schema
+      accepts when that codec is parameterized. For `pg/enum@1` that means
+      `typeParams: { typeName: '<enum type>' }`. Such a ref never passes contract validation, so
+      the omission used to surface as a static `text` native type — correct only because
+      PostgreSQL implicitly casts text to an enum, and wrong for any parameterized codec whose
+      type is not text-compatible. It now fails at lowering instead. The failure currently
+      surfaces as a params-validation error rather than a message naming the surface that produced
+      it; that diagnostic is tracked as
+      [TML-3114](https://linear.app/prisma-company/issue/TML-3114). Add the `typeParams` your
+      column declares, or drop the explicit codec and let the column's own codec resolve.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "codec: { codecId"
+        - "pg/enum@1"
+      anyMatch: true
+  - id: sql-timestamp-json-is-utc-not-local
+    summary: |
+      **`sql/timestamp@1` now reads a zone-less timestamp as UTC where it read it in the running
+      process's local zone.** This is an interpretation change, not a formatting one, and it is the
+      dangerous half: `new Date('2026-01-02T03:04:05')` resolves in the local zone, so the same
+      stored value used to decode to a different instant on a machine in `Europe/Berlin` than on one
+      in `UTC` — shifted by the offset, silently. It now resolves as UTC on every machine.
+      If you compensated for the old shift anywhere downstream — adding the offset back, forcing
+      `TZ=UTC` on the process, normalising after decode — **remove that compensation**, or it now
+      double-corrects and the instant is wrong by twice the offset. Nothing raises: the value is
+      plausible, just wrong. If you ran with `TZ=UTC` there was no shift to compensate for and
+      nothing to change.
+      The JSON form changes with it: `encodeJson` emits `2026-01-02T03:04:05.678` where it emitted
+      `2026-01-02T03:04:05.678Z`. A `timestamp` carries no zone, so the trailing `Z` claimed one it
+      did not have; `decodeJson` now rejects an offset-bearing string outright rather than
+      reinterpreting it, since this codec cannot reproduce an offset it was handed. Update any
+      hand-written JSON, fixture or comparison that spells the old form.
+      `pg/timestamp@1` is unaffected — it already read as UTC and already emitted the zone-less
+      form.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts,json}"
+      contains:
+        - "sql/timestamp@1"
+        - "sqlTimestampColumn"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — User upgrade instructions
@@ -441,3 +644,76 @@ If application code, tests, or operational scripts hard-code physical index name
 ## Incidental dependency and lint-config bumps
 
 Routine dev-dependency bumps and biome `$schema` version alignment in `examples/` (dependabot `dev-deps` group, PR #1058) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
+
+## Incidental dependency bumps in examples
+
+Routine runtime dependency bumps in `examples/` (dependabot `runtime-deps` group, PR #1065) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
+
+## Incidental example dependency bumps (react-router 8)
+
+The `react-router-demo` example moves its `react-router`, `@react-router/dev`, `@react-router/node`, and `@react-router/serve` dependencies from 7.x to 8.x. This is an example-local framework upgrade and requires no Prisma Next-specific upgrade action; the Prisma Next surfaces the example uses are unchanged.
+
+## `pg-int8-application-values-are-bigint`
+
+An `int8` is a signed 64-bit integer; a JS `number` holds integers exactly only to 2^53. The codec previously handed you a `number`, so anything larger was already wrong by the time your code saw it. It now hands you a `bigint`.
+
+TypeScript does not implicitly convert between `number` and `bigint`, so `pnpm typecheck` finds every affected site. Three shapes recur:
+
+- **Row-type annotations.** A counted column is `bigint`: `SqlQueryPlan<{ name: string; postCount: bigint }>`.
+- **Comparison literals.** `fns.gt(fns.count(), 5)` becomes `fns.gt(fns.count(), 5n)`.
+- **Values read from a driver.** A raw `pg` query returns an `int8` as a decimal *string*; convert with `BigInt(row.id)` rather than annotating it `number`.
+
+Arithmetic mixing the two throws at runtime rather than coercing, so a site that typechecks after a cast is worth reading again.
+
+## `pg-interval-values-are-structured-durations`
+
+An interval is not a duration. PostgreSQL stores three independent fields — months, days and microseconds — because a month has no fixed length, so `{ months: 1 }` and `{ days: 30 }` are different intervals and neither can be converted into the other. The application value is now those three fields, so reading an interval hands you numbers to compute with rather than a string to parse.
+
+```ts
+// before
+const gap: string = row.gap;              // "{\"days\":1}"
+
+// after
+const gap = row.gap;                      // { months: 0, days: 1, micros: 0n }
+const totalDays = gap.days + gap.months * 30;   // your calendar rule, not ours
+```
+
+The representation is separate from the value, as it is for `pg/bytea@1` (a `Uint8Array` carried as base64) and `pg/int8@1` (a `bigint` carried as decimal text). A contract holds the ISO-8601 duration string, so re-emit to pick up the spelling — `P1M`, `P1Y2M3DT4H5M6S`, `PT0S` for zero, each component carrying its own sign.
+
+Two details worth knowing:
+
+- **The ISO rendering normalises where the value does not.** Thirteen months render as `P1Y1M` and read back as `{ months: 13 }`. The value keeps what you gave it.
+- **Fractional seconds round.** PostgreSQL rounds past microsecond resolution rather than truncating — `1.1234567` seconds is `1.123457` — and both paths into the value now agree with it.
+
+## `codec-json-forms-are-canonical`
+
+The rule these follow is that a value written through a codec and read back must be the same value. Where a codec's JSON form could not carry its own range, the form changed rather than the range being quietly clipped.
+
+Re-emit first (`prisma-next contract emit`), then reconcile any code that reads or writes one of these forms directly. Literal defaults are where this most often surfaces: an `int8` default of `0` is now `"0"` in `contract.json`, and the `storageHash` moves with it.
+
+The second place it surfaces is reads. A query that returns JSON projects each column through its codec, so a column whose codec is one of the nine listed above arrives in that codec's canonical form rather than in whatever the database's own JSON conversion produced. Decoding through the ORM needs no change — the codec's `decodeJson` is the other half of the same pair, and the two moved together. What needs checking is code that bypasses the ORM's decoding: a raw query that reads an aggregated JSON column and parses it itself, a comparison against a hand-written JSON string, a snapshot of database-produced JSON.
+
+Where a form is a strict improvement in range, nothing downstream breaks by widening. Where a form changes spelling — `bytea` from `\x`-hex to base64, `sqlite/blob@1` from base64 to uppercase hex — a hand-written comparison is the thing that breaks, and it breaks loudly rather than silently.
+
+## `sql-timestamp-json-is-utc-not-local`
+
+The formatting change is easy to see and easy to fix. The interpretation change is neither, so take it first.
+
+A `timestamp` column carries no time zone. Its JSON form is therefore a zone-less string, and something has to decide which instant that string denotes. `sql/timestamp@1` used to hand the string to `new Date(...)`, which resolves a zone-less form **in the zone the process happens to be running in**. The same stored value decoded to a different instant depending on where the code ran, and it decoded silently — a `Date` is a `Date`, whichever instant it holds.
+
+It now resolves as UTC, unconditionally, and `encodeJson` writes UTC. The pair round-trips on any machine.
+
+The migration hazard is compensation you may already have in place:
+
+- If you added an offset back after decoding, **remove it.** It now double-corrects, and the result is wrong by twice your offset.
+- If you set `TZ=UTC` on the process specifically to stabilise these values, you can drop that — though leaving it costs nothing, since UTC was already the case it produced.
+- If you normalised timestamps after reading them, check whether the normalisation is still doing anything.
+
+None of these fail loudly. A doubled offset produces a timestamp that parses, compares and serialises perfectly well and denotes the wrong moment, which is why this entry leads with the interpretation rather than the dropped `Z`.
+
+Two smaller consequences follow:
+
+- `encodeJson` emits `2026-01-02T03:04:05.678` rather than `2026-01-02T03:04:05.678Z`. Update fixtures, snapshots and hand-written comparisons.
+- `decodeJson` rejects an offset-bearing string instead of reinterpreting it. The codec cannot reproduce an offset, so accepting one would decode a value it could never encode back.
+
+`pg/timestamp@1` needs no attention: it already read as UTC and already emitted the zone-less form, and this change brings the generic codec into line with it.

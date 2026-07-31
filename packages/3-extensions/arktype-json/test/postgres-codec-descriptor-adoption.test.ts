@@ -41,7 +41,6 @@ describe('arktype-json PostgreSQL codec descriptor adoption', () => {
     const expression = ColumnRef.of('products', 'details');
 
     expect(arktypeJsonDescriptor.nativeTypeFor(ref)).toBe('jsonb');
-    expect(arktypeJsonDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('jsonb');
     expect(arktypeJsonDescriptor.projectJson(expression, ref)).toBe(expression);
 
     const codec = column.codecFactory({ name: 'details' });

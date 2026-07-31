@@ -5,7 +5,6 @@ import {
   CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
-  type CodecMeta,
   type CodecRef,
 } from '@prisma-next/framework-components/codec';
 import {
@@ -91,18 +90,11 @@ class GenericVectorDescriptor extends CodecDescriptorImpl<VectorParams> {
   override readonly codecId = 'demo/vector@1' as const;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['vector'] as const;
-  override readonly meta = {
-    db: { sql: { postgres: { nativeType: 'vector' } } },
-  } satisfies CodecMeta;
   override readonly paramsSchema = vectorParamsSchema;
   readonly extensionOnly = 'wrapped-only' as const;
 
   extensionOnlyMethod(): 'wrapped-only' {
     return this.extensionOnly;
-  }
-
-  override metaFor(params: VectorParams): CodecMeta {
-    return { db: { sql: { postgres: { nativeType: `vector(${params.length})` } } } };
   }
 
   override renderOutputType(params: VectorParams): string {
@@ -293,10 +285,6 @@ describe('postgresCodec', () => {
     expect(descriptor.targetTypes).toBe(genericVectorDescriptor.targetTypes);
     expect(descriptor.paramsSchema).toBe(genericVectorDescriptor.paramsSchema);
     expect(descriptor.isParameterized).toBe(genericVectorDescriptor.isParameterized);
-    expect(descriptor.meta).toBe(genericVectorDescriptor.meta);
-    expect(descriptor.metaFor?.({ length: 6 })).toEqual(
-      genericVectorDescriptor.metaFor({ length: 6 }),
-    );
     expect(descriptor.renderOutputType?.({ length: 6 })).toBe('Vector<6>');
     expect(descriptor.renderInputType?.({ length: 6 })).toBe(
       'ReadonlyArray<number> & { length: 6 }',

@@ -80,7 +80,6 @@ const testCodecLookup: CodecLookup = {
     if (id === MONGO_INT_CODEC_ID) return ['int'];
     return undefined;
   },
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 

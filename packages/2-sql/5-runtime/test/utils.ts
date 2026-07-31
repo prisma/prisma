@@ -4,11 +4,7 @@ import {
   coreHash,
   profileHash,
 } from '@prisma-next/contract/types';
-import type {
-  CodecDescriptor,
-  CodecMeta,
-  CodecTrait,
-} from '@prisma-next/framework-components/codec';
+import type { CodecDescriptor, CodecTrait } from '@prisma-next/framework-components/codec';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import {
   instantiateExecutionStack,
@@ -221,7 +217,7 @@ export function buildTestContractCodecs(
 
 /**
  * Synthesize `CodecDescriptor`s from a codec array of non-parameterized codec instances. Test-only: the production synthesis bridge was retired under TML-2357. Lets the existing `createTestAdapterDescriptor` pattern keep wrapping a stub `Adapter` (whose `__codecs` slot still exposes the codec set) into the descriptor-list shape that `SqlStaticContributions.codecs:` now expects. The `Codec` instances carry
- * `traits`/`targetTypes`/`meta` via the SQL family extension; the structural narrow reads those fields directly.
+ * `traits`/`targetTypes` via the SQL family extension; the structural narrow reads those fields directly.
  */
 export function descriptorsFromCodecs(
   codecs: ReadonlyArray<Codec<string>>,
@@ -249,7 +245,6 @@ export function descriptorsFromCodecs(
     const legacy = instance as {
       readonly traits?: readonly CodecTrait[];
       readonly targetTypes?: readonly string[];
-      readonly meta?: CodecMeta;
     };
     descriptors.push({
       codecId: instance.id,
@@ -258,7 +253,6 @@ export function descriptorsFromCodecs(
       paramsSchema: acceptAnyParamsSchema,
       isParameterized: true,
       factory: () => () => instance,
-      ...(legacy.meta !== undefined ? { meta: legacy.meta } : {}),
     });
   }
   return descriptors;

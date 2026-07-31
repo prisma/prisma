@@ -93,9 +93,13 @@ describe('codecs-class', () => {
     it('id proxies through the descriptor', () => {
       expect(codec.id).toBe(PG_INT8_CODEC_ID);
     });
-    it('encodes and decodes number values verbatim', async () => {
-      expect(await codec.encode(9_999_999_999, callCtx)).toBe(9_999_999_999);
-      expect(await codec.decode(9_999_999_999, callCtx)).toBe(9_999_999_999);
+    it('encodes to decimal text and decodes the wire string to bigint', async () => {
+      expect(await codec.encode(9_999_999_999n, callCtx)).toBe('9999999999');
+      expect(await codec.decode('9999999999', callCtx)).toBe(9_999_999_999n);
+    });
+    it('carries a value past the safe-integer range', async () => {
+      expect(await codec.encode(9007199254740993n, callCtx)).toBe('9007199254740993');
+      expect(await codec.decode('9007199254740993', callCtx)).toBe(9007199254740993n);
     });
   });
 
@@ -235,7 +239,7 @@ describe('codecs-class', () => {
     it('exposes equality-order traits and the date target/native types', () => {
       expect(pgDateDescriptor.traits).toEqual(['equality', 'order']);
       expect(pgDateDescriptor.targetTypes).toEqual(['date']);
-      expect(pgDateDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('date');
+      expect(pgDateDescriptor.nativeTypeFor({ codecId: pgDateDescriptor.codecId })).toBe('date');
     });
   });
 
@@ -359,16 +363,20 @@ describe('codecs-class', () => {
       expect(codec.id).toBe(PG_INTERVAL_CODEC_ID);
     });
 
-    it('encodes string verbatim', async () => {
-      expect(await codec.encode('1 day', callCtx)).toBe('1 day');
+    it('writes the value as the ISO duration PostgreSQL accepts', async () => {
+      expect(await codec.encode({ months: 0, days: 1, micros: 0n }, callCtx)).toBe('P1D');
     });
 
-    it('decodes string verbatim', async () => {
-      expect(await codec.decode('1 day', callCtx)).toBe('1 day');
+    it('reads a text wire value into the three fields', async () => {
+      expect(await codec.decode('P0Y1M', callCtx)).toEqual({ months: 1, days: 0, micros: 0n });
     });
 
-    it('decodes object form to JSON string', async () => {
-      expect(await codec.decode({ days: 1 } as unknown as string, callCtx)).toBe('{"days":1}');
+    it('reads the driver component object into the three fields', async () => {
+      expect(await codec.decode({ days: 1 } as unknown as string, callCtx)).toEqual({
+        months: 0,
+        days: 1,
+        micros: 0n,
+      });
     });
   });
 
@@ -473,30 +481,44 @@ describe('codecs-class', () => {
       expect(pgInetDescriptor.codecId).toBe(PG_INET_CODEC_ID);
     });
 
-    it('exposes nativeType meta keyed under db.sql.postgres', () => {
-      expect(pgTextDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('text');
-      expect(pgInt4Descriptor.meta?.db?.sql?.postgres?.nativeType).toBe('integer');
-      expect(pgInt2Descriptor.meta?.db?.sql?.postgres?.nativeType).toBe('smallint');
-      expect(pgInt8Descriptor.meta?.db?.sql?.postgres?.nativeType).toBe('bigint');
-      expect(pgFloat4Descriptor.meta?.db?.sql?.postgres?.nativeType).toBe('real');
-      expect(pgFloat8Descriptor.meta?.db?.sql?.postgres?.nativeType).toBe('double precision');
-      expect(pgBoolDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('boolean');
-      expect(pgNumericDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('numeric');
-      expect(pgTimestampDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe(
+    it('states its PostgreSQL native type', () => {
+      expect(pgTextDescriptor.nativeTypeFor({ codecId: pgTextDescriptor.codecId })).toBe('text');
+      expect(pgInt4Descriptor.nativeTypeFor({ codecId: pgInt4Descriptor.codecId })).toBe('integer');
+      expect(pgInt2Descriptor.nativeTypeFor({ codecId: pgInt2Descriptor.codecId })).toBe(
+        'smallint',
+      );
+      expect(pgInt8Descriptor.nativeTypeFor({ codecId: pgInt8Descriptor.codecId })).toBe('bigint');
+      expect(pgFloat4Descriptor.nativeTypeFor({ codecId: pgFloat4Descriptor.codecId })).toBe(
+        'real',
+      );
+      expect(pgFloat8Descriptor.nativeTypeFor({ codecId: pgFloat8Descriptor.codecId })).toBe(
+        'double precision',
+      );
+      expect(pgBoolDescriptor.nativeTypeFor({ codecId: pgBoolDescriptor.codecId })).toBe('boolean');
+      expect(pgNumericDescriptor.nativeTypeFor({ codecId: pgNumericDescriptor.codecId })).toBe(
+        'numeric',
+      );
+      expect(pgTimestampDescriptor.nativeTypeFor({ codecId: pgTimestampDescriptor.codecId })).toBe(
         'timestamp without time zone',
       );
-      expect(pgTimestamptzDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe(
-        'timestamp with time zone',
+      expect(
+        pgTimestamptzDescriptor.nativeTypeFor({ codecId: pgTimestamptzDescriptor.codecId }),
+      ).toBe('timestamp with time zone');
+      expect(pgTimeDescriptor.nativeTypeFor({ codecId: pgTimeDescriptor.codecId })).toBe('time');
+      expect(pgTimetzDescriptor.nativeTypeFor({ codecId: pgTimetzDescriptor.codecId })).toBe(
+        'timetz',
       );
-      expect(pgTimeDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('time');
-      expect(pgTimetzDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('timetz');
-      expect(pgBitDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('bit');
-      expect(pgVarbitDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('bit varying');
-      expect(pgIntervalDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('interval');
-      expect(pgJsonDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('json');
-      expect(pgJsonbDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('jsonb');
-      expect(pgUuidDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('uuid');
-      expect(pgInetDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('inet');
+      expect(pgBitDescriptor.nativeTypeFor({ codecId: pgBitDescriptor.codecId })).toBe('bit');
+      expect(pgVarbitDescriptor.nativeTypeFor({ codecId: pgVarbitDescriptor.codecId })).toBe(
+        'bit varying',
+      );
+      expect(pgIntervalDescriptor.nativeTypeFor({ codecId: pgIntervalDescriptor.codecId })).toBe(
+        'interval',
+      );
+      expect(pgJsonDescriptor.nativeTypeFor({ codecId: pgJsonDescriptor.codecId })).toBe('json');
+      expect(pgJsonbDescriptor.nativeTypeFor({ codecId: pgJsonbDescriptor.codecId })).toBe('jsonb');
+      expect(pgUuidDescriptor.nativeTypeFor({ codecId: pgUuidDescriptor.codecId })).toBe('uuid');
+      expect(pgInetDescriptor.nativeTypeFor({ codecId: pgInetDescriptor.codecId })).toBe('inet');
     });
 
     it('exposes traits and targetTypes for each codec', () => {

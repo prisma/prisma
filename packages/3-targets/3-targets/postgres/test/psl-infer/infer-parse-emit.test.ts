@@ -77,7 +77,6 @@ const target = {
 const codecLookup: CodecLookup = {
   get: () => undefined,
   targetTypesFor: () => undefined,
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
   descriptorFor: () => undefined,
 };
