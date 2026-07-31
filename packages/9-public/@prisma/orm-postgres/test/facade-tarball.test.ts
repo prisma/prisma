@@ -61,9 +61,7 @@ describe('an application that installs only the Postgres facade', () => {
         './relational-core',
         './family-runtime',
         './family/control',
-        './driver/control',
         './utils/casts',
-        './migration-tools/io',
         './vite-plugin-contract-emit',
       ]),
     );
@@ -177,9 +175,7 @@ describe('the Postgres facade alongside its platform shells', () => {
         ['family-runtime', '@prisma/orm-family-sql/runtime', 'withTransaction'],
         ['relational-core/ast', '@prisma/orm-family-sql/relational-core/ast', 'SelectAst'],
         ['family/control', '@prisma/orm-family-sql/family/control', 'default'],
-        ['driver/control', '@prisma/orm-target-postgres/driver/control', 'default'],
         ['utils/casts', '@prisma/orm-framework/utils/casts', 'castAs'],
-        ['migration-tools/io', '@prisma/orm-toolchain/migration-tools/io', 'materialiseMigrationPackage'],
       ];
       for (const [subpath, platform, name] of pairs) {
         const viaFacade = await import('@prisma/orm-postgres/' + subpath);

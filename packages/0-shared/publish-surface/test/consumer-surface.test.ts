@@ -85,13 +85,23 @@ function anyFacadeCarries(specifier: string): boolean {
 /**
  * Internal packages an example imports that no facade republishes.
  *
- * `@prisma-next/test-utils` is not a gap in the published surface: it is the
- * repository's own test helper, has no published counterpart by design, and
- * is a devDependency of the example test files that use it. It is the only
- * name that belongs here — anything else appearing in this list is a package
- * a real application would be unable to import.
+ * Neither entry is a package a real application would be unable to import;
+ * anything else appearing in this list is.
+ *
+ * - `@prisma-next/test-utils` is the repository's own test helper. It has no
+ *   published counterpart by design, and is a devDependency of the example
+ *   test files that use it.
+ * - `@prisma-next/migration-tools` is published, as
+ *   `@prisma/orm-toolchain/migration-tools`, and reached at the platform root
+ *   rather than through a facade. Its consumers here are extension packs and
+ *   migration-tooling test harnesses, both of which ADR 242 has building
+ *   against the platform packages. Republishing it would add its 17 subpaths
+ *   to all three facades for surfaces no application reaches.
  */
-const notCarriedByAnyFacade: readonly string[] = ['@prisma-next/test-utils'];
+const notCarriedByAnyFacade: readonly string[] = [
+  '@prisma-next/migration-tools',
+  '@prisma-next/test-utils',
+];
 
 describe('the published surface against the applications that will consume it', () => {
   const specifiers = [...consumerSpecifiers()].sort();

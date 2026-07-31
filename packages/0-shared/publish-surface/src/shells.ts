@@ -138,17 +138,22 @@ const FACADE_BINS = { 'prisma-next': '@prisma/orm-toolchain/bin/prisma-next' } a
  * An application depends on one facade and nothing else (ADR 242), so
  * everything it reaches — hand-written and generated alike — has to have a
  * name under the facade. These are the target-agnostic ones: the contract and
- * component surfaces emitted files import, the shared helpers, the migration
- * tooling a scripted migration drives, and the Vite plugin.
+ * component surfaces emitted files import, the shared helpers, and the Vite
+ * plugin.
  *
  * Entry names follow the name the platform shell gives the same package, so
  * one internal package reads the same way wherever it is reached from.
+ *
+ * A republished package brings its whole subpath surface with it, so the cost
+ * of an entry is its export count, not one. Nothing goes in here that no
+ * application reaches: `@prisma-next/migration-tools` is 17 subpaths whose
+ * only consumers are extension packs and migration-tooling test harnesses,
+ * and ADR 242 has both of those build against the platform packages.
  */
 const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
   { package: '@prisma-next/contract', entry: 'contract' },
   { package: '@prisma-next/framework-components', entry: 'components' },
   { package: '@prisma-next/utils', entry: 'utils' },
-  { package: '@prisma-next/migration-tools', entry: 'migration-tools' },
   {
     package: '@prisma-next/vite-plugin-contract-emit',
     entry: 'vite-plugin-contract-emit',
@@ -164,10 +169,16 @@ const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
  * contracts reference; `runtime` is the family runtime an application drives
  * queries through.
  *
- * Three entries take a qualified name because the facade's own wiring already
- * owns the plain one: `family-contract`, `family-runtime`, and — for `target`
- * and `familyPack`, whose plain names the facade publishes as its own target
- * and family packs — a subpaths-only forward.
+ * `family-contract` and `family-runtime` take a qualified name because the
+ * facade's own `contract` and `runtime` are different modules. `target` and
+ * `familyPack` forward subpaths only, so that a facade which publishes its own
+ * `./target` or `./family` pack keeps that name for its own module; where a
+ * facade publishes neither, the plain name simply stays free.
+ *
+ * `driver` is per-family rather than universal: a facade wires its own driver,
+ * so the only applications that name one are those driving a migration runner
+ * themselves, which today is Mongo. The SQL facades leave it out rather than
+ * publish a surface nothing reaches.
  */
 function facadeReexports(options: {
   readonly family: string;
@@ -175,7 +186,7 @@ function facadeReexports(options: {
   readonly runtime: string;
   readonly target: string;
   readonly adapter: string;
-  readonly driver: string;
+  readonly driver?: string;
   readonly queryBuilders: readonly ShellReexportMapping[];
 }): ShellReexportMapping[] {
   return [
@@ -185,7 +196,7 @@ function facadeReexports(options: {
     { package: options.runtime, entry: 'family-runtime' },
     { package: options.target, entry: 'target', root: false },
     { package: options.adapter, entry: 'adapter' },
-    { package: options.driver, entry: 'driver' },
+    ...(options.driver === undefined ? [] : [{ package: options.driver, entry: 'driver' }]),
     ...options.queryBuilders,
   ];
 }
@@ -197,7 +208,14 @@ const SQL_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
   { package: '@prisma-next/sql-relational-core', entry: 'relational-core' },
 ];
 
-/** The Mongo family's query surfaces. */
+/**
+ * The Mongo family's query surfaces.
+ *
+ * `orm` is one subpath, and carries `DefaultModelRow` — the type an
+ * application names when it writes a function over a query result. That is
+ * the same surface the SQL facades carry as `orm-client`, which application
+ * source in the SQLite example uses directly.
+ */
 const MONGO_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
   { package: '@prisma-next/mongo-orm', entry: 'orm' },
   { package: '@prisma-next/mongo-query-builder', entry: 'query-builder' },
@@ -541,7 +559,6 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         runtime: '@prisma-next/sql-runtime',
         target: '@prisma-next/target-postgres',
         adapter: '@prisma-next/adapter-postgres',
-        driver: '@prisma-next/driver-postgres',
         queryBuilders: SQL_QUERY_REEXPORTS,
       }),
       forwardedBins: FACADE_BINS,
@@ -559,7 +576,6 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
         runtime: '@prisma-next/sql-runtime',
         target: '@prisma-next/target-sqlite',
         adapter: '@prisma-next/adapter-sqlite',
-        driver: '@prisma-next/driver-sqlite',
         queryBuilders: SQL_QUERY_REEXPORTS,
       }),
       forwardedBins: FACADE_BINS,

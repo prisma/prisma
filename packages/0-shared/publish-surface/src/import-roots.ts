@@ -196,13 +196,32 @@ export function resolveImportSpecifier(specifier: string, root: ImportRoot): str
   const owner = owningShell(specifier, name);
   const published = joinEntrypoint(owner.shell, owner.entry, subpath);
   if (!directDependencyShells(root).has(owner.shell)) {
-    throw new ImportRootError(
-      `${specifier} resolves to ${published}, which an application on the ` +
-        `${describe(root)} import root does not depend on directly. ` +
-        'Emitted code may name only direct dependencies (ADR 242).',
-    );
+    throw new ImportRootError(unreachableUnder(specifier, published, root));
   }
   return published;
+}
+
+/**
+ * Why a specifier has no name under `root`.
+ *
+ * The facade wording deliberately does not say "not a direct dependency":
+ * under ADR 242 the answer to that is never "install the platform package
+ * too", it is that the facade has to republish the surface.
+ */
+function unreachableUnder(specifier: string, published: string, root: ImportRoot): string {
+  if (root.mode === 'facade') {
+    return (
+      `${specifier} has no name under ${root.facade}: the facade does not ` +
+      `republish ${published}. An application installs one facade and nothing ` +
+      'else, so every surface it reaches has to be one of that facade’s own ' +
+      'entrypoints (ADR 242).'
+    );
+  }
+  return (
+    `${specifier} resolves to ${published}, which an application on the ` +
+    `${describe(root)} import root does not depend on directly. ` +
+    'Emitted code may name only direct dependencies (ADR 242).'
+  );
 }
 
 export function createImportSpecifierResolver(root: ImportRoot): ImportSpecifierResolver {

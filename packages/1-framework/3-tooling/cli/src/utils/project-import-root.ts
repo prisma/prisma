@@ -18,6 +18,7 @@ import {
   internalImportRoot,
 } from '@prisma-next/publish-surface/import-roots';
 import { dirname, join, resolve } from 'pathe';
+import { errorRuntime } from './cli-errors';
 
 const DEPENDENCY_FIELDS = ['dependencies', 'devDependencies'] as const;
 
@@ -25,20 +26,38 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** The nearest `package.json` at or above `from`, or `undefined` if there is none. */
+/**
+ * The nearest `package.json` at or above `from`, or `undefined` if there is
+ * none. The nearest one wins: a package inside a workspace states its own
+ * dependencies, and the workspace root's are somebody else's.
+ *
+ * @throws {CliStructuredError} when the manifest exists but is not readable
+ * as JSON — otherwise emission would fail with a bare `SyntaxError` that does
+ * not say which file is broken.
+ */
 function nearestManifest(from: string): Record<string, unknown> | undefined {
   let dir = from;
   while (true) {
+    const path = join(dir, 'package.json');
     let raw: string;
     try {
-      raw = readFileSync(join(dir, 'package.json'), 'utf8');
+      raw = readFileSync(path, 'utf8');
     } catch {
       const parent = dirname(dir);
       if (parent === dir) return undefined;
       dir = parent;
       continue;
     }
-    const parsed: unknown = JSON.parse(raw);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (cause) {
+      throw errorRuntime(`Failed to parse ${path}`, {
+        why: `\`${path}\` is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`,
+        fix: `Fix the JSON syntax in \`${path}\` (a missing comma or unbalanced brace is the most common cause), then re-run the command. Emission reads it to decide which package names generated files should import.`,
+        meta: { path },
+      });
+    }
     return isRecord(parsed) ? parsed : undefined;
   }
 }

@@ -1,5 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { CliStructuredError } from '@prisma-next/errors/control';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -48,6 +49,44 @@ describe('projectImportRoot', () => {
     expect(projectImportRoot(join(nested, 'prisma-next.config.ts'))).toEqual({
       mode: 'facade',
       facade: '@prisma/orm-mongo',
+    });
+  });
+
+  it('stops at the nearest manifest, not the outermost', () => {
+    // A package inside a workspace states its own dependencies; the
+    // workspace root's belong to somebody else and would emit names this
+    // project cannot resolve.
+    writeManifest({ '@prisma/orm-mongo': '0.16.0' });
+    const inner = join(project, 'packages', 'app');
+    mkdirSync(inner, { recursive: true });
+    writeFileSync(
+      join(inner, 'package.json'),
+      JSON.stringify({ name: 'inner', dependencies: { '@prisma/orm-postgres': '0.16.0' } }),
+    );
+
+    expect(projectImportRoot(join(inner, 'prisma-next.config.ts'))).toEqual({
+      mode: 'facade',
+      facade: '@prisma/orm-postgres',
+    });
+  });
+
+  it('names the file when a manifest on the way up is not valid JSON', () => {
+    const configPath = join(project, 'prisma-next.config.ts');
+    writeFileSync(join(project, 'package.json'), '{ name: "app" }');
+    writeFileSync(configPath, 'export default {};');
+
+    let thrown: unknown;
+    try {
+      projectImportRoot(configPath);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(CliStructuredError);
+    expect(thrown).toMatchObject({
+      message: `Failed to parse ${join(project, 'package.json')}`,
+      why: expect.stringContaining('not valid JSON'),
+      meta: { path: join(project, 'package.json') },
     });
   });
 });

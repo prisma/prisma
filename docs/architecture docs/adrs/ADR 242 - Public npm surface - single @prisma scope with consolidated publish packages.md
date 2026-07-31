@@ -46,10 +46,12 @@ That holds only if the facade has a name for everything an application reaches, 
 | its own wiring: client, config, contract builder, migrations | `@prisma/orm-postgres/{runtime,config,contract-builder,migration}` |
 | the types generated files import | `.../{contract,components,family-contract,target,adapter}` |
 | the family's runtime and query surfaces | `.../{family-runtime,orm-client,builder,relational-core}` |
-| the family's control plane and IR, and the driver | `.../{family,driver}` |
-| shared helpers, migration tooling, the Vite plugin | `.../{utils,migration-tools,vite-plugin-contract-emit}` |
+| the family's control plane and IR | `.../family` |
+| shared helpers and the Vite plugin | `.../{utils,vite-plugin-contract-emit}` |
 
 Each of those is a re-export of the platform package that owns the module, never a copy — the identity rule below governs the facade exactly as it governs a platform shell. Where the facade's own wiring already owns a name, the republished surface takes a qualified one: `runtime` is the facade's Postgres client and `family-runtime` is the SQL family's.
+
+A republished package brings its whole subpath surface, so the list is what applications reach and no more. Migration tooling and, on the SQL side, the driver stay out: their consumers are extension packs and migration-tooling harnesses, which build against the platform packages anyway, and adding them would publish dozens of subpaths that no application imports.
 
 The `prisma-next` command arrives the same way. A package manager puts only a package's *direct* dependencies on `PATH`, so the toolchain's bin is not runnable from an install that reaches the toolchain transitively. Each facade therefore declares its own `prisma-next` bin: a one-line launcher that runs the toolchain's single published copy of the program.
 

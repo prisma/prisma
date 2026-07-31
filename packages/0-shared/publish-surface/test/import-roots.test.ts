@@ -77,7 +77,24 @@ describe('resolveImportSpecifier', () => {
       ).toThrow(ImportRootError);
       expect(() =>
         resolveImportSpecifier('@prisma-next/cli/migration-cli', postgresFacade),
-      ).toThrow(/does not depend on directly/);
+      ).toThrow(/has no name under @prisma\/orm-postgres/);
+    });
+
+    it('does not tell the reader to install the platform package instead', () => {
+      // Under a facade the answer is never "add @prisma/orm-family-sql to your
+      // dependencies" — that is the shape ADR 242 exists to prevent — so the
+      // message says the facade has no name for the module.
+      const message = (() => {
+        try {
+          resolveImportSpecifier('@prisma-next/family-sql', postgresFacade);
+          return '';
+        } catch (error) {
+          return error instanceof Error ? error.message : String(error);
+        }
+      })();
+
+      expect(message).toMatch(/does not republish @prisma\/orm-family-sql\/family/);
+      expect(message).not.toMatch(/depend on directly/);
     });
 
     it('refuses another database facade', () => {
@@ -95,7 +112,7 @@ describe('resolveImportSpecifier', () => {
         '@prisma/orm-postgres/target/migration',
       );
       expect(() => resolveImportSpecifier('@prisma-next/target-postgres', postgresFacade)).toThrow(
-        /@prisma\/orm-target-postgres\/target, which an application on the facade/,
+        /has no name under @prisma\/orm-postgres/,
       );
     });
 
