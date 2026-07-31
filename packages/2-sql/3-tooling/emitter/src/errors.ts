@@ -2,6 +2,7 @@ import type { StructuredError, StructuredErrorOptions } from '@internal/utils/st
 import { structuredError } from '@internal/utils/structured-error';
 
 type SqlEmitterErrorCode =
+  | 'CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS'
   | 'CONTRACT.NAME_DUPLICATE'
   | 'CONTRACT.NAMESPACE_INVALID'
   | 'CONTRACT.TYPE_UNKNOWN'

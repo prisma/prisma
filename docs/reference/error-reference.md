@@ -153,6 +153,10 @@ The migration-file CLI (`prisma-next migration`) received a flag it does not rec
 
 A builder or helper on the contract-authoring surface is called with a bad argument: a composed authoring helper receives too many arguments or a malformed trailing options object, `field.sql({ id })` / `field.sql({ unique })` is used without a matching inline `.id(...)` / `.unique(...)` declaration, `model("Name", ...)` is called without a model definition, a nanoid ID generator is given a size outside 2–255, or an authored index combines its cross-field parameters invalidly (fields and an expression together or neither, an expression without `name:`/`map:`, or `map:` combined with `name:`). Also raised when a contract targets SQLite and declares an expression or partial index — SQLite's namespace construction rejects `expression:`/`where:` because the target does not support them. Raised while authoring/building the contract, before emit. Meta: varies per site.
 
+### CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS
+
+The SQL emitter cannot name one result type for an aggregate: two trait-matching aggregate descriptors both claim a contributed codec, or a descriptor whose result reuses its input's codec also answers calls that carry no input. Raised while generating `contract.d.ts`, so the emitted types can never disagree with what the runtime registry resolves. Meta: `operation`, `codecId`, `traits`.
+
 ### CONTRACT.CODEC_DESCRIPTOR_MISSING
 
 The control plane resolves a codec referenced by the contract (a `CodecRef.codecId`) against the contract's pack stack and finds no registered codec descriptor for that id. Hit during control-plane operations (emit, migration tooling) when a contract references a codec no composed pack provides. Meta: `codecId`.

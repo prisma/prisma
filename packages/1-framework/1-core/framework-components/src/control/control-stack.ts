@@ -69,6 +69,8 @@ export interface ControlStack<
   readonly queryOperationTypeImports: ReadonlyArray<TypesImportSpec>;
   readonly extensionIds: ReadonlyArray<string>;
   readonly codecLookup: CodecRegistry;
+  /** Every codec descriptor the composed components contribute — the set an emitted type surface may resolve against, which is not always the set a target's own registry holds. */
+  readonly codecDescriptors: ReadonlyArray<AnyCodecDescriptor>;
   /** Every aggregate overload the composed components declare, validated for shape and single ownership at assembly. */
   readonly aggregateDescriptors: ReadonlyArray<AggregateDescriptor>;
   readonly authoringContributions: AssembledAuthoringContributions;
@@ -388,6 +390,17 @@ export function collectAggregateDescriptors(
   return collected;
 }
 
+/**
+ * Flatten the codec descriptors the composed components contribute.
+ *
+ * A component may know a codec and still withhold it — an adapter that cannot name a codec's emitted type contributes the rest without it — so the contributed set is not always the set some component's own registry holds. Consumers whose output must agree with what the runtime resolves read this list rather than any one component's registry.
+ */
+export function collectCodecDescriptors(
+  descriptors: ReadonlyArray<Pick<ComponentMetadata, 'types'>>,
+): ReadonlyArray<AnyCodecDescriptor> {
+  return descriptors.flatMap((descriptor) => descriptor.types?.codecTypes?.codecDescriptors ?? []);
+}
+
 export function extractCodecLookup(
   descriptors: ReadonlyArray<Pick<ComponentMetadata & { id: string }, 'types' | 'id'>>,
 ): CodecRegistry {
@@ -618,6 +631,7 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     queryOperationTypeImports: extractQueryOperationTypeImports(allDescriptors),
     extensionIds: extractComponentIds(family, target, adapter, orderedExtensions),
     codecLookup,
+    codecDescriptors: collectCodecDescriptors(allDescriptors),
     aggregateDescriptors: collectAggregateDescriptors(allDescriptors),
     authoringContributions,
     scalarTypes: [...collectScalarTypeConstructors(authoringContributions.type).keys()],
