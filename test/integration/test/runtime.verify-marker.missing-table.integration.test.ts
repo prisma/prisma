@@ -7,7 +7,7 @@ import { sql } from '@prisma-next/sql-builder/runtime';
 import type { Log } from '@prisma-next/sql-runtime';
 import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { contract } from './sql-builder/fixtures/contract';

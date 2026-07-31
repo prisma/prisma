@@ -4,7 +4,7 @@ import {
   type PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
 } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf, createDevDatabase } from '@prisma-next/test-utils';
+import { applicationDomainOf, createDevDatabase } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   createDriver,

@@ -4,7 +4,7 @@ import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import type { SqlStorage as SqlStorageType } from '@prisma-next/sql-contract/types';
 import { SqlStorage, type SqlStorageInput, StorageTable } from '@prisma-next/sql-contract/types';
 import type { TableSource } from '@prisma-next/sql-relational-core/ast';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { PostgresSchema } from '../../../3-targets/3-targets/postgres/src/core/postgres-schema';
 import { SqliteDatabase } from '../../../3-targets/3-targets/sqlite/src/core/sqlite-unbound-database';

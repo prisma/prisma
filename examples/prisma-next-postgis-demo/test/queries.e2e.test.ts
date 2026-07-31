@@ -8,7 +8,7 @@
 
 import { point, polygon } from '@prisma-next/extension-postgis/geojson';
 import type { Runtime } from '@prisma-next/sql-runtime';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { db } from '../src/prisma/db';
 import { findCafesInBbox } from '../src/queries/find-cafes-in-bbox';

@@ -17,7 +17,7 @@ import { assembleAuthoringContributions } from '@prisma-next/framework-component
 import { buildSymbolTable } from '@prisma-next/psl-parser';
 import { parse } from '@prisma-next/psl-parser/syntax';
 import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import { createSqlContract } from '@prisma-next/test-utils';
+import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,

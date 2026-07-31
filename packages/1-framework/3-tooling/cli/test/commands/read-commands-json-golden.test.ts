@@ -7,7 +7,7 @@ import { writeContractSnapshot } from '@prisma-next/migration-tools/contract-sna
 import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
 import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

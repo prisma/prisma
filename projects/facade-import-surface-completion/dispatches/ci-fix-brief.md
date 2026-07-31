@@ -78,7 +78,7 @@ The init-journey test scaffolds a fresh mongo template, writes a `check-objectid
 Update the import shape to `@prisma-next/mongo/bson` and verify with the local test run:
 
 ```bash
-pnpm --filter @prisma-next/integration-tests run test test/cli-journeys/init-journey.e2e.test.ts
+pnpm --filter integration-tests run test test/cli-journeys/init-journey.e2e.test.ts
 ```
 
 **Likely-flake failures in the same job log:**
@@ -109,7 +109,7 @@ The local gates that the QA report ran clean at `c5cdb597e` should still pass at
 3. `pnpm typecheck` — green
 4. `pnpm fixtures:check` — green
 5. `pnpm lint:deps` — green
-6. `pnpm --filter @prisma-next/integration-tests run test test/cli-journeys/init-journey.e2e.test.ts` — green (after the ObjectId fix)
+6. `pnpm --filter integration-tests run test test/cli-journeys/init-journey.e2e.test.ts` — green (after the ObjectId fix)
 
 If the CI workflow fix needs running `pnpm typecheck:packages` without prior `pnpm build`, verify locally too: `rm -rf packages/*/dist packages/*/*/dist && pnpm install --frozen-lockfile && pnpm typecheck:packages`. If THAT succeeds with your fix, the CI fix is real.
 

@@ -22,7 +22,7 @@ import {
   type SqlRuntimeExtensionInstance,
 } from '@prisma-next/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { setupTestDatabase } from '../utils';

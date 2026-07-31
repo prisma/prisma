@@ -11,7 +11,7 @@ import {
 } from '@prisma-next/migration-tools/io';
 import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
 import { findLeaf, findPath, reconstructGraph } from '@prisma-next/migration-tools/migration-graph';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 function createTableOp(table: string): MigrationPlanOperation {

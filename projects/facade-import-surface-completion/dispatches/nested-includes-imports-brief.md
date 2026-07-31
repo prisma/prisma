@@ -104,7 +104,7 @@ Signed-off-by: Will Madden <madden@prisma.io>'
 
 After the commit:
 
-1. `pnpm typecheck` — must exit 0 (the @prisma-next/integration-tests block should be gone).
+1. `pnpm typecheck` — must exit 0 (the integration-tests block should be gone).
 2. `pnpm fixtures:check` — must exit 0.
 3. `pnpm lint:deps` — must exit 0.
 

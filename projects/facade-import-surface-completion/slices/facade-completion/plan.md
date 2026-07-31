@@ -372,7 +372,7 @@ D5e's stated scope (cross-package type threading + authoring-layer changes + dis
 **"Done when":**
 
 - [ ] D5d landed (✓ before dispatch — partial, but the two contract migrations are committed).
-- [ ] `pnpm typecheck --filter @prisma-next/mongo --filter @prisma-next/mongo-contract-ts --filter @prisma-next/integration-tests` all pass.
+- [ ] `pnpm typecheck --filter @prisma-next/mongo --filter @prisma-next/mongo-contract-ts --filter integration-tests` all pass.
 - [ ] `pnpm test --filter @prisma-next/mongo` passes — including new positive + regression type assertions in `define-contract.test-d.ts`.
 - [ ] `pnpm test:integration test/mongo-runtime/query-builder.test.ts` passes (the previously-blocked migration now typechecks AND `expectTypeOf<PlanRow>` resolves correctly).
 - [ ] `pnpm test:integration test/mongo/` covers the F3 fixture using the facade form.

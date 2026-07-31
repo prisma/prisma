@@ -1,8 +1,8 @@
 import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
 import { type ContractModel, type ContractRelation, crossRef } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { createContract } from '@prisma-next/test-utils';
 import { blindCast } from '@prisma-next/utils/casts';
+import { createContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { composeSqlEntityKinds } from '../src/entity-kinds';

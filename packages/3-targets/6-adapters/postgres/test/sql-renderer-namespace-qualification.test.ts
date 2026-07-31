@@ -11,7 +11,7 @@ import {
 } from '@prisma-next/sql-relational-core/ast';
 import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
 import { PostgresSchema } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { renderLoweredSql } from '../src/core/sql-renderer';
 import type { PostgresContract } from '../src/core/types';

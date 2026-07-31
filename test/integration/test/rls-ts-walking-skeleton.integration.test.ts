@@ -43,7 +43,7 @@ import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
 import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
 import { isPostgresSchema, PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const testTimeout = timeouts.spinUpPpgDev;

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { createContractInferCommand } from '@prisma-next/cli/commands/contract-infer';
 import { createDbSchemaCommand } from '@prisma-next/cli/commands/db-schema';
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

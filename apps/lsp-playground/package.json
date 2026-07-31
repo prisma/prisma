@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/lsp-playground",
+  "name": "lsp-playground",
   "version": "0.16.0",
   "private": true,
   "type": "module",
@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@prisma-next/cli": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "@types/ws": "^8.5.13",
     "puppeteer-core": "^25.3.0",

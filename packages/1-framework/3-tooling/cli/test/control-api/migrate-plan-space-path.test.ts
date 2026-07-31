@@ -2,7 +2,7 @@ import type { Contract } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { createAggregateContractSpace } from '@prisma-next/migration-tools/aggregate';
 import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { createSqlContract } from '@prisma-next/test-utils';
+import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { planSpacePath } from '../../src/control-api/operations/migrate';
 

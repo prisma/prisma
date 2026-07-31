@@ -1,4 +1,4 @@
-# @prisma-next/lsp-playground (private)
+# lsp-playground (private)
 
 A throwaway dev playground that opens a `.psl` file in a browser Monaco editor wired to the Prisma Next language server (`prisma-next lsp --stdio`) for live PSL diagnostics, folding ranges, whole-document formatting, and server-driven semantic tokens.
 
@@ -8,7 +8,7 @@ It is a private, unpublished `apps/` package — not part of the framework build
 
 ```bash
 # 1. Build the playground dependency closure once so the bridge can spawn the built CLI and generated configs can import workspace packages:
-pnpm --filter @prisma-next/lsp-playground... run --if-present build
+pnpm --filter lsp-playground... run --if-present build
 
 # 2a. Open a blank scratch schema (no file needed):
 psl-playground
@@ -17,7 +17,7 @@ psl-playground
 psl-playground path/to/schema.psl
 
 # During repository development, the package script is equivalent:
-pnpm --filter @prisma-next/lsp-playground start path/to/schema.psl
+pnpm --filter lsp-playground start path/to/schema.psl
 ```
 
 The PSL file is **optional**. With no argument — or a path that does not yet exist — the playground opens a writable scratch schema under `.playground/` so you can start authoring immediately. Then open the printed `http://localhost:5295/` URL; parse diagnostics update live as you edit, folding controls are available in the editor gutter, semantic highlighting is requested through the language client, and the header's **Format** button sends `textDocument/formatting` to the language server.
@@ -56,7 +56,7 @@ Keep PSL meaning in `@prisma-next/language-server`. If semantic-token traffic is
 
 Use this path when changing the language server, playground wiring, or docs for editor features. The visual checks require a browser; a headless JSON-RPC smoke can prove the bridge returns token data, but it cannot prove Monaco theme rendering.
 
-1. Build the dependency closure with `pnpm --filter @prisma-next/lsp-playground... run --if-present build`.
+1. Build the dependency closure with `pnpm --filter lsp-playground... run --if-present build`.
 2. Create or choose a representative PSL file that includes a namespace, models, a composite type, a `types` block, attributes, strings, numbers, booleans, and a comment. For example:
 
 ```psl
@@ -86,7 +86,7 @@ types {
 }
 ```
 
-3. Start the playground with `pnpm --filter @prisma-next/lsp-playground start path/to/schema.psl` (or `psl-playground path/to/schema.psl` when using the package binary) and open the printed `http://localhost:5295/` URL.
+3. Start the playground with `pnpm --filter lsp-playground start path/to/schema.psl` (or `psl-playground path/to/schema.psl` when using the package binary) and open the printed `http://localhost:5295/` URL.
 4. Confirm the browser console logs `Connected to language server` and the Network tab shows the `/psl` WebSocket connected.
 5. Confirm semantic highlighting is server-driven: declarations, field names, attributes, literals, comments, and type references receive semantic styling after the LSP connection initializes. In the Network/WebSocket frames or language-server logs, confirm `textDocument/semanticTokens/full` or `textDocument/semanticTokens/range` requests are sent; there should be no playground-local PSL tokenization code involved.
 6. Edit the document by adding a field such as `enabled Boolean @default(false)` or renaming a model/type reference. Confirm semantic highlighting refreshes after the edit and diagnostics still update live.

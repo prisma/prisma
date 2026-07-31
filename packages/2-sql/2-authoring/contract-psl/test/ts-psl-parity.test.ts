@@ -8,7 +8,7 @@ import type {
 import { defineIndexTypes } from '@prisma-next/sql-contract/index-types';
 import type { ForeignKey, SqlStorage } from '@prisma-next/sql-contract/types';
 import { defineContract, field, model, rel } from '@prisma-next/sql-contract-ts/contract-builder';
-import { countSemanticLines } from '@prisma-next/test-utils/semantic-lines';
+import { countSemanticLines } from '@repo/test-utils/semantic-lines';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';

@@ -6,8 +6,8 @@ import {
   type StorageTable,
   StorageValueSet,
 } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
 import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import {

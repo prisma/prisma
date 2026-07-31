@@ -1,6 +1,6 @@
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { createContract } from '@prisma-next/test-utils';
 import { blindCast } from '@prisma-next/utils/casts';
+import { createContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { col, fk, table } from '../src/factories';

@@ -1,7 +1,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { timeouts } from '@prisma-next/test-utils';
 import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { loadContractFromTs } from '../src/load-ts-contract';
 

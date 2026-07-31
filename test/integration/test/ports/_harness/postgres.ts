@@ -8,7 +8,7 @@ import postgres from '@prisma-next/postgres/runtime';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import postgresTargetControl from '@prisma-next/target-postgres/control';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 
 /**
  * Generic Postgres harness for ported tests.

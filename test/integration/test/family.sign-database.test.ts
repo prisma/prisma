@@ -13,8 +13,8 @@ import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import { seedTestMarker } from '@prisma-next/sql-runtime/test/utils';
 import postgres from '@prisma-next/target-postgres/control';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import type { DevDatabase } from '@prisma-next/test-utils';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import type { DevDatabase } from '@repo/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { bootstrapPostgresSignMarkerTables } from './postgres-bootstrap';
 

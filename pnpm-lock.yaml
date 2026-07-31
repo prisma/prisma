@@ -76,7 +76,7 @@ importers:
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:packages/1-framework/3-tooling/migration
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:packages/0-config/tsconfig
       '@types/node':
@@ -182,7 +182,7 @@ importers:
       '@prisma-next/cli':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/3-tooling/cli
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
@@ -234,18 +234,18 @@ importers:
       '@prisma-next/target-postgres':
         specifier: workspace:0.16.0
         version: link:../../packages/3-targets/3-targets/postgres
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../test/utils
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../packages/0-config/tsconfig
       '@prisma/compute-sdk':
         specifier: ^0.36.0
         version: 0.36.0(@prisma/management-api-sdk@1.49.0)(encoding@0.1.13)(rollup@4.59.0)
       '@prisma/management-api-sdk':
         specifier: ^1.47.0
         version: 1.49.0
+      '@repo/test-utils':
+        specifier: workspace:0.16.0
+        version: link:../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../packages/0-config/tsconfig
       '@types/bun':
         specifier: ^1.2.18
         version: 1.3.14
@@ -322,15 +322,15 @@ importers:
       '@prisma-next/sql-contract-emitter':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/3-tooling/emitter
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../test/utils
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../packages/0-config/tsconfig
       '@prisma/dev':
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.0(@types/node@25.9.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+      '@repo/test-utils':
+        specifier: workspace:0.16.0
+        version: link:../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../packages/0-config/tsconfig
       '@size-limit/file':
         specifier: ^12.1.0
         version: 12.1.0(size-limit@12.1.0(jiti@2.7.0))
@@ -371,7 +371,7 @@ importers:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
@@ -450,10 +450,10 @@ importers:
       '@prisma-next/mongo-contract-psl':
         specifier: workspace:0.16.0
         version: link:../../packages/2-mongo-family/2-authoring/contract-psl
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
@@ -520,10 +520,10 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../packages/3-targets/3-targets/postgres
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
@@ -593,10 +593,10 @@ importers:
       '@prisma-next/sql-contract-emitter':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/3-tooling/emitter
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
@@ -633,7 +633,7 @@ importers:
       '@cloudflare/workers-types':
         specifier: 4.20260702.1
         version: 4.20260702.1
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
@@ -727,12 +727,6 @@ importers:
       '@prisma-next/sql-contract-emitter':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/3-tooling/emitter
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../test/utils
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../packages/0-config/tsconfig
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/utils
@@ -742,6 +736,12 @@ importers:
       '@prisma/dev':
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.0(@types/node@25.9.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+      '@repo/test-utils':
+        specifier: workspace:0.16.0
+        version: link:../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../packages/0-config/tsconfig
       '@testing-library/jest-dom':
         specifier: ^6.9.1
         version: 6.9.1
@@ -791,7 +791,7 @@ importers:
         specifier: ^17.4.2
         version: 17.4.2
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
@@ -873,10 +873,10 @@ importers:
       '@prisma-next/cli':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/3-tooling/cli
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/leaflet':
@@ -964,12 +964,6 @@ importers:
       '@prisma-next/emitter':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/3-tooling/emitter
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../test/utils
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../packages/0-config/tsconfig
       '@prisma-next/vite-plugin-contract-emit':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/3-tooling/vite-plugin-contract-emit
@@ -979,6 +973,12 @@ importers:
       '@react-router/dev':
         specifier: ^8.1.0
         version: 8.3.0(@react-router/serve@8.3.0(react-router@8.3.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(typescript@5.9.3))(react-router@8.3.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(typescript@5.9.3)(vite@8.1.0(@types/node@25.9.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))(wrangler@4.112.0)
+      '@repo/test-utils':
+        specifier: workspace:0.16.0
+        version: link:../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.4
@@ -1106,10 +1106,10 @@ importers:
       '@prisma-next/mongo-contract-psl':
         specifier: workspace:0.16.0
         version: link:../../packages/2-mongo-family/2-authoring/contract-psl
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
@@ -1179,15 +1179,15 @@ importers:
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/3-tooling/migration
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../test/utils
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../packages/0-config/tsconfig
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/utils
+      '@repo/test-utils':
+        specifier: workspace:0.16.0
+        version: link:../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.4
@@ -1211,7 +1211,7 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../0-shared/publish-surface
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../tsconfig
       es-module-lexer:
@@ -1232,7 +1232,7 @@ importers:
 
   packages/0-shared/publish-surface:
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
       tsdown:
@@ -1257,10 +1257,10 @@ importers:
         specifier: 'catalog:'
         version: 2.2.3
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1275,10 +1275,10 @@ importers:
 
   packages/1-framework/0-foundation/utils:
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1309,10 +1309,10 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1334,10 +1334,10 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../0-foundation/utils
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1371,10 +1371,10 @@ importers:
         specifier: 'catalog:'
         version: 2.2.3
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1393,13 +1393,13 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../0-foundation/utils
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1418,10 +1418,10 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../0-foundation/utils
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1443,10 +1443,10 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../0-foundation/utils
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1474,10 +1474,10 @@ importers:
         specifier: ^0.4.3
         version: 0.4.3
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1505,10 +1505,10 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../0-foundation/utils
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1536,10 +1536,10 @@ importers:
       '@prisma-next/psl-parser':
         specifier: workspace:0.16.0
         version: link:../psl-parser
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@standard-schema/spec':
@@ -1654,13 +1654,13 @@ importers:
       '@prisma-next/sql-runtime':
         specifier: workspace:0.16.0
         version: link:../../../2-sql/5-runtime
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@types/node':
@@ -1697,13 +1697,13 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@types/node':
@@ -1740,13 +1740,13 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@types/node':
@@ -1789,13 +1789,13 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../../0-shared/publish-surface
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@types/node':
@@ -1841,13 +1841,13 @@ importers:
         specifier: 'catalog:'
         version: 1.0.12
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@types/node':
@@ -1884,13 +1884,13 @@ importers:
         specifier: ^3.9.6
         version: 3.9.6
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1918,10 +1918,10 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@types/node':
@@ -1952,13 +1952,13 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -1992,13 +1992,13 @@ importers:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2017,10 +2017,10 @@ importers:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2069,10 +2069,10 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2112,13 +2112,13 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2152,13 +2152,13 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../../0-shared/publish-surface
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2186,13 +2186,13 @@ importers:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2226,13 +2226,13 @@ importers:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2281,13 +2281,13 @@ importers:
       '@prisma-next/target-mongo':
         specifier: workspace:0.16.0
         version: link:../../../3-mongo-target/1-mongo-target
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       mongodb:
@@ -2324,10 +2324,10 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2352,10 +2352,10 @@ importers:
         specifier: workspace:0.16.0
         version: link:../mongo-wire
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       mongodb:
@@ -2383,10 +2383,10 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2444,13 +2444,13 @@ importers:
       '@prisma-next/target-mongo':
         specifier: workspace:0.16.0
         version: link:../../3-mongo-target/1-mongo-target
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       mongodb:
@@ -2517,13 +2517,13 @@ importers:
       '@prisma-next/mongo-contract-ts':
         specifier: workspace:0.16.0
         version: link:../2-authoring/contract-ts
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       tsdown:
@@ -2554,13 +2554,13 @@ importers:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2575,13 +2575,13 @@ importers:
 
   packages/2-sql/1-core/errors:
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2609,13 +2609,13 @@ importers:
       '@prisma-next/emitter':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/3-tooling/emitter
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2640,13 +2640,13 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2689,13 +2689,13 @@ importers:
       '@prisma-next/contract-authoring':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/2-authoring/contract
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       arktype:
@@ -2741,13 +2741,13 @@ importers:
         specifier: ^9.6.0
         version: 9.6.0
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@types/pg':
@@ -2787,13 +2787,13 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../../0-shared/publish-surface
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2817,10 +2817,10 @@ importers:
       '@prisma-next/sql-contract':
         specifier: workspace:0.16.0
         version: link:../../1-core/contract
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2866,13 +2866,13 @@ importers:
       '@prisma-next/sql-contract-ts':
         specifier: workspace:0.16.0
         version: link:../../2-authoring/contract-ts
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -2915,18 +2915,18 @@ importers:
       '@prisma-next/target-postgres':
         specifier: workspace:0.16.0
         version: link:../../../3-targets/3-targets/postgres
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsdown
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
+      '@repo/test-utils':
+        specifier: workspace:0.16.0
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -2967,13 +2967,13 @@ importers:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       '@types/pg':
@@ -3052,13 +3052,13 @@ importers:
       '@prisma-next/sql-contract-psl':
         specifier: workspace:0.16.0
         version: link:../2-authoring/contract-psl
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       '@types/pluralize':
@@ -3113,18 +3113,18 @@ importers:
       '@prisma-next/sql-contract':
         specifier: workspace:0.16.0
         version: link:../../2-sql/1-core/contract
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../../test/utils
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../0-config/tsdown
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../1-framework/0-foundation/utils
+      '@repo/test-utils':
+        specifier: workspace:0.16.0
+        version: link:../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -3144,10 +3144,10 @@ importers:
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../1-framework/0-foundation/contract
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       tsdown:
@@ -3220,13 +3220,13 @@ importers:
       '@prisma-next/psl-parser':
         specifier: workspace:0.14.0
         version: link:../../1-framework/2-authoring/psl-parser
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       mongodb:
@@ -3296,13 +3296,13 @@ importers:
       '@prisma-next/target-postgres':
         specifier: workspace:0.16.0
         version: link:../../3-targets/3-targets/postgres
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       tsdown:
@@ -3378,13 +3378,13 @@ importers:
       '@prisma-next/sql-contract-ts':
         specifier: workspace:0.16.0
         version: link:../../2-sql/2-authoring/contract-ts
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       tsdown:
@@ -3457,13 +3457,13 @@ importers:
       '@prisma-next/sql-contract-ts':
         specifier: workspace:0.16.0
         version: link:../../2-sql/2-authoring/contract-ts
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       tsdown:
@@ -3545,13 +3545,13 @@ importers:
       '@prisma-next/sql-schema-ir':
         specifier: workspace:0.16.0
         version: link:../../2-sql/1-core/schema-ir
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       '@types/pg':
@@ -3618,13 +3618,13 @@ importers:
       '@prisma-next/target-postgres':
         specifier: workspace:0.16.0
         version: link:../../3-targets/3-targets/postgres
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       '@types/pg':
@@ -3700,13 +3700,13 @@ importers:
       '@prisma-next/psl-parser':
         specifier: workspace:0.14.0
         version: link:../../1-framework/2-authoring/psl-parser
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       tsdown:
@@ -3800,13 +3800,13 @@ importers:
       '@prisma-next/sql-contract-psl':
         specifier: workspace:0.16.0
         version: link:../../2-sql/2-authoring/contract-psl
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       '@types/pg':
@@ -3897,13 +3897,13 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../0-shared/publish-surface
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       mongodb:
@@ -3991,13 +3991,13 @@ importers:
       '@prisma-next/psl-parser':
         specifier: workspace:0.16.0
         version: link:../../1-framework/2-authoring/psl-parser
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       mongodb:
@@ -4034,13 +4034,13 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../1-framework/0-foundation/utils
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
       mongodb:
@@ -4122,13 +4122,13 @@ importers:
       '@prisma-next/sql-contract-psl':
         specifier: workspace:0.16.0
         version: link:../../../2-sql/2-authoring/contract-psl
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -4192,13 +4192,13 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../../0-shared/publish-surface
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -4274,13 +4274,13 @@ importers:
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/3-tooling/migration
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       pathe:
@@ -4359,13 +4359,13 @@ importers:
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/3-tooling/migration
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       pathe:
@@ -4423,13 +4423,13 @@ importers:
       '@electric-sql/pglite-socket':
         specifier: 0.2.7
         version: 0.2.7(@electric-sql/pglite-age@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pg_hashids@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pg_ivm@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pg_textsearch@0.0.6(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pg_uuidv7@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pgtap@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pgvector@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite@0.5.4)
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       '@types/pg':
@@ -4478,13 +4478,13 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../../../test/utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -4515,15 +4515,15 @@ importers:
       '@prisma-next/extension-arktype-json':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/arktype-json
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsdown
       '@prisma/orm-target-postgres':
         specifier: workspace:0.16.0
         version: link:../orm-target-postgres
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -4540,10 +4540,10 @@ importers:
       '@prisma-next/middleware-cache':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/middleware-cache
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -4571,10 +4571,10 @@ importers:
       '@prisma-next/extension-paradedb':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/paradedb
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -4608,15 +4608,15 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../../0-shared/publish-surface
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsdown
       '@prisma/orm-target-postgres':
         specifier: workspace:0.16.0
         version: link:../orm-target-postgres
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -4648,15 +4648,15 @@ importers:
       '@prisma-next/extension-postgis':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/postgis
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsdown
       '@prisma/orm-target-postgres':
         specifier: workspace:0.16.0
         version: link:../orm-target-postgres
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -4694,15 +4694,15 @@ importers:
       '@prisma-next/extension-supabase':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/supabase
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsdown
       '@prisma/orm-target-postgres':
         specifier: workspace:0.16.0
         version: link:../orm-target-postgres
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -4770,10 +4770,10 @@ importers:
       '@prisma-next/mongo-wire':
         specifier: workspace:0.16.0
         version: link:../../../2-mongo-family/6-transport/mongo-wire
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -4846,10 +4846,10 @@ importers:
       '@prisma-next/sql-schema-ir':
         specifier: workspace:0.16.0
         version: link:../../../2-sql/1-core/schema-ir
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -4907,15 +4907,15 @@ importers:
       '@prisma-next/ts-render':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/1-core/ts-render
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsdown
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -4950,10 +4950,10 @@ importers:
       '@prisma-next/mongo':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/mongo
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -4990,10 +4990,10 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../../0-shared/publish-surface
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -5027,10 +5027,10 @@ importers:
       '@prisma-next/sqlite':
         specifier: workspace:0.16.0
         version: link:../../../3-extensions/sqlite
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -5070,10 +5070,10 @@ importers:
       '@prisma-next/target-mongo':
         specifier: workspace:0.16.0
         version: link:../../../3-mongo-target/1-mongo-target
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -5119,10 +5119,10 @@ importers:
       '@prisma-next/target-postgres':
         specifier: workspace:0.16.0
         version: link:../../../3-targets/3-targets/postgres
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -5162,10 +5162,10 @@ importers:
       '@prisma-next/target-sqlite':
         specifier: workspace:0.16.0
         version: link:../../../3-targets/3-targets/sqlite
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
+      '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
       tsdown:
@@ -5262,15 +5262,15 @@ importers:
       '@prisma-next/publish-surface':
         specifier: workspace:0.16.0
         version: link:../../../0-shared/publish-surface
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../../0-config/tsdown
       '@prisma-next/vite-plugin-contract-emit':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/3-tooling/vite-plugin-contract-emit
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -5404,9 +5404,6 @@ importers:
       '@prisma-next/ids':
         specifier: workspace:0.16.0
         version: link:../../../packages/1-framework/2-authoring/ids
-      '@prisma-next/integration-tests':
-        specifier: workspace:0.16.0
-        version: link:../../integration
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:../../../packages/1-framework/3-tooling/migration
@@ -5446,19 +5443,22 @@ importers:
       '@prisma-next/target-sqlite':
         specifier: workspace:0.16.0
         version: link:../../../packages/3-targets/3-targets/sqlite
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../../utils
       arktype:
         specifier: 'catalog:'
         version: 2.2.3
-    devDependencies:
-      '@prisma-next/tsconfig':
+      integration-tests:
         specifier: workspace:0.16.0
-        version: link:../../../packages/0-config/tsconfig
+        version: link:../../integration
+    devDependencies:
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../../packages/1-framework/0-foundation/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.4
@@ -5631,10 +5631,10 @@ importers:
       '@prisma-next/mongo-lowering':
         specifier: workspace:0.16.0
         version: link:../../packages/2-mongo-family/6-transport/mongo-lowering
-      '@prisma-next/test-utils':
+      '@repo/test-utils':
         specifier: workspace:0.16.0
         version: link:../utils
-      '@prisma-next/tsconfig':
+      '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
       '@types/pg':
@@ -5824,15 +5824,15 @@ importers:
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/utils
     devDependencies:
-      '@prisma-next/tsconfig':
-        specifier: workspace:0.16.0
-        version: link:../../packages/0-config/tsconfig
-      '@prisma-next/tsdown':
-        specifier: workspace:0.16.0
-        version: link:../../packages/0-config/tsdown
       '@prisma/dev':
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.0(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+      '@repo/tsconfig':
+        specifier: workspace:0.16.0
+        version: link:../../packages/0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.16.0
+        version: link:../../packages/0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
         version: 8.20.0

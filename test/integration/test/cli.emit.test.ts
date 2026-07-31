@@ -9,7 +9,7 @@ import {
   extractComponentIds,
 } from '@prisma-next/framework-components/control';
 import { sqlEmission } from '@prisma-next/sql-contract-emitter';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getSqlDescriptorBundle } from '../utils/framework-components';
 

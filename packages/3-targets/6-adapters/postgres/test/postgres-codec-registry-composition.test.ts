@@ -22,7 +22,7 @@ import {
 import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
 import postgresTargetControlDescriptor from '@prisma-next/target-postgres/control';
 import postgresRuntimeTargetDescriptor from '@prisma-next/target-postgres/runtime';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createPostgresAdapter } from '../src/core/adapter';

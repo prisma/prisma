@@ -27,7 +27,7 @@ import {
 } from '@prisma-next/target-sqlite/op-factory-call';
 import { TypeScriptRenderableSqliteMigration } from '@prisma-next/target-sqlite/planner-produced-sqlite-migration';
 import { renderOps } from '@prisma-next/target-sqlite/render-ops';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createSqliteBuiltinCodecLookup } from '../../src/core/codec-lookup';

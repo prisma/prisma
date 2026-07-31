@@ -8,8 +8,8 @@ import { buildSymbolTable, type SymbolTable } from '@prisma-next/psl-parser';
 import type { FormatOptions } from '@prisma-next/psl-parser/format';
 import type { PslInterpretCapable } from '@prisma-next/psl-parser/interpret';
 import { type ParseDiagnostic, parse } from '@prisma-next/psl-parser/syntax';
-import { timeouts } from '@prisma-next/test-utils';
 import { notOk, ok } from '@prisma-next/utils/result';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {

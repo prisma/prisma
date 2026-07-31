@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { countSemanticLines } from '@prisma-next/test-utils/semantic-lines';
+import { countSemanticLines } from '@repo/test-utils/semantic-lines';
 import { describe, expect, it } from 'vitest';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

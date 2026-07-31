@@ -4,7 +4,7 @@ import type { ContractModelBase, ContractValueObject } from '../../src/domain-ty
 
 /**
  * Single-namespace application-domain authoring convenience for this package's
- * own tests. The shared copy lives in `@prisma-next/test-utils`, but the
+ * own tests. The shared copy lives in `@repo/test-utils`, but the
  * foundation `contract` package cannot depend on test-utils (test-utils depends
  * on contract), so the helper is duplicated here to keep package boundaries
  * one-way.

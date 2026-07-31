@@ -8,7 +8,7 @@ import {
   StorageValueSet,
 } from '@prisma-next/sql-contract/types';
 import { SqlCheckConstraintIR, SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { planIssues } from '../../src/core/migrations/issue-planner';
 import { checkConstraintPlanCallStrategy } from '../../src/core/migrations/planner-strategies';

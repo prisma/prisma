@@ -27,9 +27,9 @@
     "vscode-languageserver-textdocument": "catalog:"
   },
   "devDependencies": {
-    "@prisma-next/test-utils": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
+    "@repo/tsdown": "workspace:0.16.0",
     "@types/node": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",

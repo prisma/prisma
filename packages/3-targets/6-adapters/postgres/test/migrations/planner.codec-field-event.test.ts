@@ -11,8 +11,8 @@ import {
   PostgresNamespaceSchemaNode,
   postgresCreateNamespace,
 } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
-import { expectNarrowedType } from '@prisma-next/test-utils/typed-expectations';
+import { applicationDomainOf } from '@repo/test-utils';
+import { expectNarrowedType } from '@repo/test-utils/typed-expectations';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';

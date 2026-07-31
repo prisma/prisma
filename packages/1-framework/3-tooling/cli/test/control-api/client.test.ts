@@ -13,9 +13,9 @@ import type {
   VerifyDatabaseSchemaResult,
 } from '@prisma-next/framework-components/control';
 import type { EmissionSpi } from '@prisma-next/framework-components/emission';
-import { timeouts } from '@prisma-next/test-utils';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { notOk, ok } from '@prisma-next/utils/result';
+import { timeouts } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@prisma-next/emitter', () => ({

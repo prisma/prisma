@@ -14,7 +14,7 @@ import {
   packShellAtVersion,
   runInScratch,
   tryInstallShells,
-} from '@prisma-next/tsdown/shell-testkit';
+} from '@repo/tsdown/shell-testkit';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..');

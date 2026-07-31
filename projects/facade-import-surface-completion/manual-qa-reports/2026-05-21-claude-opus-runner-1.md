@@ -10,7 +10,7 @@
 
 ❌ **Fail.** The PR HEAD is not merge-ready: the standard pre-QA gate (`pnpm typecheck && pnpm test:packages && pnpm fixtures:check`) is **red on two independent counts** introduced by PR commits:
 
-- **F-1 ⚠️ High** — `pnpm typecheck` fails in `@prisma-next/e2e-tests`. Commit `308873659` migrated `test/e2e/framework/test/sqlite/{fixtures/contract.ts,migrations/harness.ts}` to import from `@prisma-next/sqlite/contract-builder` but did not add `@prisma-next/sqlite` to `test/e2e/framework/package.json`'s dependencies (the commit message even brags about doing this for `test/integration` — it was missed here).
+- **F-1 ⚠️ High** — `pnpm typecheck` fails in `e2e-tests`. Commit `308873659` migrated `test/e2e/framework/test/sqlite/{fixtures/contract.ts,migrations/harness.ts}` to import from `@prisma-next/sqlite/contract-builder` but did not add `@prisma-next/sqlite` to `test/e2e/framework/package.json`'s dependencies (the commit message even brags about doing this for `test/integration` — it was missed here).
 - **F-2 ⚠️ High** — `pnpm fixtures:check` fails because commit `7d9116a3b` (`refactor(@prisma-next/sql-orm-client): move pgvector-dependent tests to integration`) wrote an `emit` script with the wrong relative path (`cd ../../../../test/integration` from a directory only 3 levels deep — should be `cd ../../../test/integration`).
 
 Both are 🔧 fix-in-PR. All 8 user-facing scenarios (1–8) dispatched and observed the loaded promises of TML-2526 work end-to-end: the renderer flips to façade specifiers (S1/S2), the `mongo` `.` barrel is gone (S3), the in-tree TML-2633 carve-out comments are honest about the symptom (S4), pre-existing `target-*/migration` imports still work (S5), tree-shaking is clean (S6), and user-facing prose teaches façade form (S7). Six additional 📝 follow-ups surface diagnostic-copy gaps, script-quality drift, and one discoverability question for postgres enums via the TS contract-builder.
@@ -19,7 +19,7 @@ The merge-blocking work is the two ⚠️ High items. The 📝 follow-ups can ro
 
 ## Findings
 
-### F-1 — ⚠️ High — `pnpm typecheck` red on PR HEAD: `@prisma-next/e2e-tests` package.json missing `@prisma-next/sqlite` dependency
+### F-1 — ⚠️ High — `pnpm typecheck` red on PR HEAD: `e2e-tests` package.json missing `@prisma-next/sqlite` dependency
 
 **Scenario:** Pre-flight gate (`drive/qa/README.md § Standard pre-QA gate`)
 **Step:** Pre-flight step 1
@@ -27,12 +27,12 @@ The merge-blocking work is the two ⚠️ High items. The 📝 follow-ups can ro
 
 **Observed:**
 ```
-@prisma-next/e2e-tests:typecheck: test/sqlite/fixtures/contract.ts(7,51): error TS2307: Cannot find module '@prisma-next/sqlite/contract-builder' or its corresponding type declarations.
-@prisma-next/e2e-tests:typecheck: test/sqlite/migrations/harness.ts(21,23): error TS2307: Cannot find module '@prisma-next/sqlite/contract-builder' or its corresponding type declarations.
-@prisma-next/e2e-tests:typecheck: test/sqlite/migrations/harness.ts(38,31): error TS2304: Cannot find name 'sqlFamilyPack'.
-@prisma-next/e2e-tests:typecheck: test/sqlite/migrations/harness.ts(38,54): error TS2304: Cannot find name 'sqlitePack'.
-@prisma-next/e2e-tests:typecheck:  ELIFECYCLE  Command failed with exit code 2.
- ERROR  @prisma-next/e2e-tests#typecheck: command (.../test/e2e/framework) /Users/wmadden/.nodenv/versions/24.13.0/bin/pnpm run typecheck exited (2)
+e2e-tests:typecheck: test/sqlite/fixtures/contract.ts(7,51): error TS2307: Cannot find module '@prisma-next/sqlite/contract-builder' or its corresponding type declarations.
+e2e-tests:typecheck: test/sqlite/migrations/harness.ts(21,23): error TS2307: Cannot find module '@prisma-next/sqlite/contract-builder' or its corresponding type declarations.
+e2e-tests:typecheck: test/sqlite/migrations/harness.ts(38,31): error TS2304: Cannot find name 'sqlFamilyPack'.
+e2e-tests:typecheck: test/sqlite/migrations/harness.ts(38,54): error TS2304: Cannot find name 'sqlitePack'.
+e2e-tests:typecheck:  ELIFECYCLE  Command failed with exit code 2.
+ ERROR  e2e-tests#typecheck: command (.../test/e2e/framework) /Users/wmadden/.nodenv/versions/24.13.0/bin/pnpm run typecheck exited (2)
 ```
 
 **Expected (per script):** `pnpm typecheck` exits 0 against the PR HEAD.

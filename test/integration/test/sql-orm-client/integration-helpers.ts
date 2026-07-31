@@ -3,7 +3,7 @@ import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import { Collection } from '@prisma-next/sql-orm-client';
 import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
 import type { SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { withReturningCapability } from './collection-fixtures';
 import { getTestContext, getTestContract, type TestContract } from './helpers';
 import {

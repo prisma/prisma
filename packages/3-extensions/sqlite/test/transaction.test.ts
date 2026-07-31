@@ -2,7 +2,7 @@ import type { Contract } from '@prisma-next/contract/types';
 import { coreHash, profileHash } from '@prisma-next/contract/types';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
 import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 // No third-party mocks needed: node:sqlite (built-in) drives the real driver.

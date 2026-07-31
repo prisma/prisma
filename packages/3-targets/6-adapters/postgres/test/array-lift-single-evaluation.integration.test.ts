@@ -24,7 +24,7 @@ import {
   SelectAst,
 } from '@prisma-next/sql-relational-core/ast';
 import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import { createContract, createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createContract, createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { renderLoweredSql } from '../src/core/sql-renderer';
 import type { PostgresContract } from '../src/core/types';

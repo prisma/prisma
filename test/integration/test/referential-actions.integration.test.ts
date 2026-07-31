@@ -10,7 +10,7 @@ import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import postgres from '@prisma-next/target-postgres/control';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
 import { PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import type { Client } from 'pg';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 

@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { createPostgresControlClient } from '@prisma-next/postgres/control';
-import { withClient } from '@prisma-next/test-utils';
+import { withClient } from '@repo/test-utils';
 import { join } from 'pathe';
 import contractJson from '../src/prisma/contract.json' with { type: 'json' };
 

@@ -7,7 +7,7 @@ import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
 import { orm as sqlOrm } from '@prisma-next/sql-orm-client';
 import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
 import postgresTarget from '@prisma-next/target-postgres/runtime';
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 import { describeWithMongoDB } from '../mongo/setup';

@@ -51,8 +51,8 @@ import {
 } from '@prisma-next/sql-relational-core/ast';
 import type { AnyPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
 import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import { createContract } from '@prisma-next/test-utils';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { createContract } from '@repo/test-utils';
 import { renderLoweredSql } from '../../src/core/sql-renderer';
 import type { PostgresContract } from '../../src/core/types';
 

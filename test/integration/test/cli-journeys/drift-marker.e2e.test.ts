@@ -16,7 +16,7 @@
  *      Recovery via db sign.
  */
 
-import { withClient } from '@prisma-next/test-utils';
+import { withClient } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {

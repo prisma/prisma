@@ -21,7 +21,7 @@ logically, or has multiple top-level `describe` blocks splittable by functionali
 - **Identify logical groupings** — by functionality (`basic`, `errors`, `structure`, `generation`),
   feature area (`joins`, `projections`, `includes`), or test type (`unit`, `integration`,
   `edge-cases`). **Integration tests that depend on multiple packages** belong in
-  `@prisma-next/integration-tests` to avoid cyclic dependencies (e.g. tests using both
+  `integration-tests` to avoid cyclic dependencies (e.g. tests using both
   `sql-contract-ts` and `sql-query`).
 - **Use descriptive names** — suffix by category (`.basic.test.ts`, `.errors.test.ts`,
   `.structure.test.ts`), prefix by feature area (`runtime.joins.test.ts`), keep the base name

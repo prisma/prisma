@@ -1,3 +1,3 @@
-import { defineShellConfig } from '@prisma-next/tsdown/shell-build';
+import { defineShellConfig } from '@repo/tsdown/shell-build';
 
 export default defineShellConfig('@prisma/orm-extension-postgis');

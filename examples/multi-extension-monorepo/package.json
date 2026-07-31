@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/example-multi-extension-monorepo",
+  "name": "multi-extension-monorepo",
   "version": "0.16.0",
   "private": true,
   "type": "module",
@@ -27,8 +27,8 @@
     "@prisma-next/target-postgres": "workspace:0.16.0"
   },
   "devDependencies": {
-    "@prisma-next/test-utils": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

@@ -1,5 +1,5 @@
 import type { PreparedExecuteRequest } from '@prisma-next/sql-relational-core/ast';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import type { Client, Pool } from 'pg';
 import { describe, expect, it } from 'vitest';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';

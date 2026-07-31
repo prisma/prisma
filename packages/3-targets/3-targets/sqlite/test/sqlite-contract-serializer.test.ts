@@ -2,7 +2,7 @@ import { effectiveControlPolicy } from '@prisma-next/contract/types';
 import { SqlContractSerializerBase } from '@prisma-next/family-sql/ir';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage, StorageColumn, StorageTable } from '@prisma-next/sql-contract/types';
-import { createSqlContract } from '@prisma-next/test-utils';
+import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import sqliteControlTargetDescriptor from '../src/core/control-target';
 import { SqliteContractSerializer } from '../src/core/sqlite-contract-serializer';

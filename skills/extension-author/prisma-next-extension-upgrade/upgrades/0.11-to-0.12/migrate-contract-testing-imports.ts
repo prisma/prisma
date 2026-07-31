@@ -1,10 +1,10 @@
 /**
  * Rewrites test-only imports from the removed `@prisma-next/contract/testing`
- * subpath to `@prisma-next/test-utils`.
+ * subpath to `@repo/test-utils`.
  *
  * Background: starting at 0.12 the contract test factories (`createContract`,
  * `createSqlContract`, `DUMMY_HASH`, `applicationDomainOf`, …) live in
- * `@prisma-next/test-utils`. The `@prisma-next/contract/testing` export was
+ * `@repo/test-utils`. The `@prisma-next/contract/testing` export was
  * removed from `@prisma-next/contract`.
  *
  * Behaviour:
@@ -12,7 +12,7 @@
  *   `dist`, and `build`.
  * - Rewrites every `.ts` / `.tsx` file whose source contains
  *   `@prisma-next/contract/testing`.
- * - Idempotent: files already importing from `@prisma-next/test-utils` are
+ * - Idempotent: files already importing from `@repo/test-utils` are
  *   left untouched.
  *
  * Flags:
@@ -23,7 +23,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const FROM = '@prisma-next/contract/testing';
-const TO = '@prisma-next/test-utils';
+const TO = '@repo/test-utils';
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build']);
 

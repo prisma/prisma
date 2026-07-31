@@ -19,8 +19,8 @@
     "@prisma-next/contract": "workspace:0.16.0",
     "@prisma-next/sql-builder": "workspace:0.16.0",
     "@prisma-next/sql-contract": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
+    "@repo/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

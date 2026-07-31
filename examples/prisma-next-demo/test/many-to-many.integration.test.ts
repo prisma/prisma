@@ -2,7 +2,7 @@ import postgres from '@prisma-next/postgres/runtime';
 import { sql } from '@prisma-next/sql-builder/runtime';
 import type { DefaultModelRow } from '@prisma-next/sql-orm-client';
 import type { Runtime } from '@prisma-next/sql-runtime';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createOrmClient } from '../src/orm-client/client';
 import { ormClientConnectPostTags } from '../src/orm-client/connect-post-tags';

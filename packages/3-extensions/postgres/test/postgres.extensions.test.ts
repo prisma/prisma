@@ -1,6 +1,6 @@
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import type { SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import postgres from '../src/runtime/postgres';
 

@@ -122,12 +122,12 @@ export function scanScope(scanDir, scope) {
 }
 
 /**
- * `@prisma-next/tsconfig` is excluded: it is a TypeScript config consumed via
+ * `@repo/tsconfig` is excluded: it is a TypeScript config consumed via
  * `extends`, never imported, and it has no published counterpart. Every other
  * internal package in a consumer's manifest is one a real application would
  * not have.
  */
-const MANIFEST_EXEMPT = new Set(['@prisma-next/tsconfig']);
+const MANIFEST_EXEMPT = new Set(['@repo/tsconfig']);
 
 const MANIFEST_FIELDS = ['dependencies', 'devDependencies'];
 

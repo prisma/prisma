@@ -17,7 +17,7 @@ import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
 import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import { applicationDomainOf, timeouts } from '@prisma-next/test-utils';
+import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import {

@@ -1,6 +1,6 @@
 import type { Contract } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { createSqlContract } from '@prisma-next/test-utils';
+import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createAggregateContractSpace } from '../../src/aggregate/aggregate';
 import type { IntegritySpaceState } from '../../src/aggregate/check-integrity';

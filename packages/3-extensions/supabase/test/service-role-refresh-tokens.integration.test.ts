@@ -14,7 +14,7 @@
  */
 
 import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import supabasePack from '../src/exports/pack';
 import supabase from '../src/runtime/supabase';

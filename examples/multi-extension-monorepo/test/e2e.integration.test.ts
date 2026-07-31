@@ -61,7 +61,7 @@ import type { MigrationPackage } from '@prisma-next/framework-components/control
 import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
 import { type ControlClient, createPostgresControlClient } from '@prisma-next/postgres/control';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { APP_USER_TABLE } from '../app/src/constants';
 import appContractJson from '../app/src/contract.json' with { type: 'json' };

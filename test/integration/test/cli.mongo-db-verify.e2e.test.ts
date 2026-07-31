@@ -5,7 +5,7 @@ import { createDbVerifyCommand } from '@prisma-next/cli/commands/db-verify';
 import { coreHash, crossRef, profileHash } from '@prisma-next/contract/types';
 import { MongoControlDriver } from '@prisma-next/driver-mongo/control';
 import { MongoCollection, type MongoContract, MongoIndex } from '@prisma-next/mongo-contract';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';

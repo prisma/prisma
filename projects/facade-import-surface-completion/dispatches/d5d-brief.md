@@ -63,7 +63,7 @@ Fix as your first commit. Should be a 4-line diff.
 - [ ] `packages/3-extensions/postgis/src/contract.ts` ditto.
 - [ ] Moved mongo-runtime query-builder test uses `@prisma-next/mongo/contract-builder` and has no `family`/`target` args + workaround comment removed.
 - [ ] `pnpm install` ran cleanly; lockfile reflects new deps.
-- [ ] `pnpm typecheck --filter @prisma-next/extension-pgvector --filter @prisma-next/extension-postgis --filter @prisma-next/mongo-runtime --filter @prisma-next/integration-tests` all pass.
+- [ ] `pnpm typecheck --filter @prisma-next/extension-pgvector --filter @prisma-next/extension-postgis --filter @prisma-next/mongo-runtime --filter integration-tests` all pass.
 - [ ] `pnpm test --filter @prisma-next/extension-pgvector --filter @prisma-next/extension-postgis --filter @prisma-next/mongo-runtime` all pass.
 - [ ] `pnpm test:integration` for the touched mongo-runtime test (run by path) passes.
 - [ ] `pnpm lint:deps` clean (no new layering violations introduced by the new pgvector → postgres / postgis → postgres facade deps).

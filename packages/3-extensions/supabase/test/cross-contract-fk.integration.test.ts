@@ -29,7 +29,7 @@ import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces'
 import { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
 import postgres from '@prisma-next/target-postgres/control';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AuthUser } from '../src/exports/contract';
 import supabasePack from '../src/exports/pack';

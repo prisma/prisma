@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { loadContractSpaceAggregate } from '@prisma-next/migration-tools/aggregate';
 import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { Contract } from '../src/prisma/contract';

@@ -1,4 +1,4 @@
-// Deliberately not `@prisma-next/tsdown`: the shell build lives in that
+// Deliberately not `@repo/tsdown`: the shell build lives in that
 // package and reads this package's table, so depending on it here would make
 // the two packages depend on each other and turbo would refuse to order the
 // build. The settings below are the shared base minus the parts this package

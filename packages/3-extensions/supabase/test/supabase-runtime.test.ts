@@ -21,7 +21,7 @@ import {
   createSqlExecutionStack,
   withTransaction,
 } from '@prisma-next/sql-runtime';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../2-sql/1-core/contract/test/test-support';
 import type { SupabaseRoleBinding } from '../src/runtime/supabase-runtime';

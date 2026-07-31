@@ -27,11 +27,11 @@
     "ts-toolbelt": "^9.6.0"
   },
   "devDependencies": {
-    "@prisma-next/test-utils": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "@types/pg": "catalog:",
     "pg": "catalog:",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

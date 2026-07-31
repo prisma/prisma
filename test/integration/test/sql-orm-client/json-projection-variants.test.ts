@@ -15,7 +15,7 @@ import {
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
 import { isPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 import {

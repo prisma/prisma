@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/tsdown",
+  "name": "@repo/tsdown",
   "type": "module",
   "private": true,
   "sideEffects": false,
@@ -8,7 +8,7 @@
   "license": "MIT",
   "devDependencies": {
     "@prisma-next/publish-surface": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "es-module-lexer": "^2.3.1",
     "tsdown": "catalog:",
     "typescript": "catalog:"

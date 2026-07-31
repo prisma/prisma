@@ -34,8 +34,8 @@ import {
   UpdateAst,
   WindowFuncExpr,
 } from '@prisma-next/sql-relational-core/ast';
-import { applicationDomainOf } from '@prisma-next/test-utils';
-import { litParams } from '@prisma-next/test-utils/lowered-params';
+import { applicationDomainOf } from '@repo/test-utils';
+import { litParams } from '@repo/test-utils/lowered-params';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createSqliteAdapter } from '../src/core/adapter';

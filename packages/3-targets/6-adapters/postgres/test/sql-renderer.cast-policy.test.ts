@@ -18,7 +18,7 @@ import {
   postgresCodec,
 } from '@prisma-next/target-postgres/codec-descriptor';
 import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { renderLoweredSql } from '../src/core/sql-renderer';

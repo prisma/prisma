@@ -7,7 +7,7 @@ import { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-
 import { createRefCommand } from '@prisma-next/cli/commands/ref';
 import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
 import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {

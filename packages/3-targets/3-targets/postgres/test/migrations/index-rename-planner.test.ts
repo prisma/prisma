@@ -16,7 +16,7 @@ import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import type { IndexInput } from '@prisma-next/sql-contract/types';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
 import type { SqlIndexIRInput } from '@prisma-next/sql-schema-ir/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { PostgresSchema } from '../../src/core/postgres-schema';

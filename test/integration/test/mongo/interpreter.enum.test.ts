@@ -11,7 +11,7 @@ import {
 } from '@prisma-next/mongo-contract-psl';
 import { buildSymbolTable } from '@prisma-next/psl-parser';
 import { parse } from '@prisma-next/psl-parser/syntax';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 const authoringContributions = {

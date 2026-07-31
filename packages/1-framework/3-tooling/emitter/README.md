@@ -176,7 +176,7 @@ const result = await emit(contract, {
 
 ## Test Utilities
 
-When writing tests that create `Contract` objects, use the factory helpers from `@prisma-next/test-utils` or this package’s `test/utils` (`createTestContract`):
+When writing tests that create `Contract` objects, use the factory helpers from `@repo/test-utils` or this package’s `test/utils` (`createTestContract`):
 
 ```typescript
 import { createTestContract } from './test/utils';

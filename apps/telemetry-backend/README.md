@@ -1,4 +1,4 @@
-# `@prisma-next/telemetry-backend`
+# `telemetry-backend`
 
 A telemetry HTTP service that receives Prisma Next CLI events, validates them
 with arktype, and inserts them into Postgres through Prisma Next itself
@@ -85,10 +85,10 @@ The Postgres schema is the model authored in `src/prisma/contract.prisma`
 
 ```bash
 pnpm install
-pnpm --filter @prisma-next/telemetry-backend emit       # refresh contract.json / contract.d.ts
-pnpm --filter @prisma-next/telemetry-backend test       # vitest, spins up @prisma/dev Postgres
-pnpm --filter @prisma-next/telemetry-backend typecheck
-pnpm --filter @prisma-next/telemetry-backend lint
+pnpm --filter telemetry-backend emit       # refresh contract.json / contract.d.ts
+pnpm --filter telemetry-backend test       # vitest, spins up @prisma/dev Postgres
+pnpm --filter telemetry-backend typecheck
+pnpm --filter telemetry-backend lint
 ```
 
 To start the Bun server against a Postgres of your choice:
@@ -96,7 +96,7 @@ To start the Bun server against a Postgres of your choice:
 ```bash
 DATABASE_URL=postgres://postgres:postgres@localhost:5433/telemetry \
   PORT=8080 \
-  pnpm --filter @prisma-next/telemetry-backend start
+  pnpm --filter telemetry-backend start
 ```
 
 For Node-only test harnesses, the equivalent `node:http` entrypoint is:
@@ -104,7 +104,7 @@ For Node-only test harnesses, the equivalent `node:http` entrypoint is:
 ```bash
 DATABASE_URL=postgres://postgres:postgres@localhost:5433/telemetry \
   PORT=8080 \
-  pnpm --filter @prisma-next/telemetry-backend start:node
+  pnpm --filter telemetry-backend start:node
 ```
 
 The repository ships a `docker-compose.yaml` at its root that exposes

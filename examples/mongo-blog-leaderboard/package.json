@@ -19,7 +19,7 @@
     "mongodb": "catalog:"
   },
   "devDependencies": {
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "mongodb-memory-server": "catalog:",
     "tsx": "catalog:",

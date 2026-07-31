@@ -5,7 +5,7 @@ import { createControlStack } from '@prisma-next/framework-components/control';
 import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
 import postgres from '@prisma-next/target-postgres/control';
 import { PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
-import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 /**

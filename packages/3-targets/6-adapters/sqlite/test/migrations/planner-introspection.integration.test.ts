@@ -16,7 +16,7 @@ import { SqlStorage, type StorageColumn, type StorageTable } from '@prisma-next/
 import { PrimaryKey } from '@prisma-next/sql-schema-ir/types';
 import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
 import { createSqliteMigrationPlanner } from '@prisma-next/target-sqlite/planner';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createSqliteBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../../src/core/control-adapter';

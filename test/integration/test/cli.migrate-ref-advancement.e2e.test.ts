@@ -7,7 +7,7 @@ import type { MigrateResult } from '@prisma-next/cli/commands/migrate';
 import { createMigrateCommand } from '@prisma-next/cli/commands/migrate';
 import { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-plan';
 import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   appendImplicitMigrationPlanFrom,

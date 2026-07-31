@@ -46,7 +46,7 @@ Our D5 commit `d7a4ac070` (`refactor(@prisma-next/sql-builder): move playground 
 
 The moved `collection-mutation-defaults.test.ts` does `import { unboundTables } from './unbound-tables';` (line 10). The `unbound-tables.ts` file is **not** at the integration location — it's still at `packages/3-extensions/sql-orm-client/test/unbound-tables.ts` (and several other locations, all identical blobs per `git ls-tree`).
 
-Result: `@prisma-next/integration-tests` typecheck fails with `Cannot find module './unbound-tables'`.
+Result: `integration-tests` typecheck fails with `Cannot find module './unbound-tables'`.
 
 ## Fix 1 — restore TML-2520 storage shape in package-level helpers.ts
 
@@ -86,7 +86,7 @@ Target: all 4 previously failing test files (`collection-contract`, `collection-
 
 **Validate:**
 ```bash
-pnpm --filter @prisma-next/integration-tests run typecheck
+pnpm --filter integration-tests run typecheck
 ```
 Target: the `Cannot find module './unbound-tables'` error in `test/integration/test/sql-orm-client/collection-mutation-defaults.test.ts` is gone.
 
@@ -140,7 +140,7 @@ GREEN / YELLOW / RED
 - File created: yes / no
 - Bytes/lines: <N>
 - Commit: <sha>
-- Validation: `pnpm --filter @prisma-next/integration-tests run typecheck` <green/red>
+- Validation: `pnpm --filter integration-tests run typecheck` <green/red>
 
 ## Final pre-flight
 - typecheck: green / red (full output for any remaining errors)

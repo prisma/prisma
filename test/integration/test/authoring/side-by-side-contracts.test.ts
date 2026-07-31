@@ -21,7 +21,7 @@ import postgres from '@prisma-next/target-postgres/control';
 import postgresPackRef from '@prisma-next/target-postgres/pack';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
 import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { emit } from '../../utils/emit';

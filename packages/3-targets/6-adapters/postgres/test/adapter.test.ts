@@ -38,7 +38,7 @@ import {
   WindowFuncExpr,
 } from '@prisma-next/sql-relational-core/ast';
 import { PostgresSchema } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf, timeouts } from '@prisma-next/test-utils';
+import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createPostgresAdapter } from '../src/core/adapter';

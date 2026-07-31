@@ -1,7 +1,7 @@
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import { SelectAst, TableSource } from '@prisma-next/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 import { SignJWT } from 'jose';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

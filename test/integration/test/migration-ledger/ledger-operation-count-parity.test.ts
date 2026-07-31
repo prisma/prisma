@@ -20,7 +20,7 @@ import type { MongoContract } from '@prisma-next/mongo-contract';
 import { MongoMigrationRunner, serializeMongoOps } from '@prisma-next/target-mongo/control';
 import { createCollection, createIndex } from '@prisma-next/target-mongo/migration';
 import type { PostgresPlanTargetDetails } from '@prisma-next/target-postgres/planner-target-details';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';

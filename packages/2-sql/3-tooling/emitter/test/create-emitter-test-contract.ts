@@ -5,7 +5,7 @@ import {
   profileHash,
   UNBOUND_DOMAIN_NAMESPACE_ID,
 } from '@prisma-next/contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { normalizeRootSqlStorage } from './sql-storage-fixture';
 
 export function createEmitterTestContract(

@@ -5,7 +5,7 @@ import mongoControlDriver from '@prisma-next/driver-mongo/control';
 import { createMongoFamilyInstance } from '@prisma-next/family-mongo/control';
 import type { MongoContract } from '@prisma-next/mongo-contract';
 import { deserializeMongoOps, MongoMigrationRunner } from '@prisma-next/target-mongo/control';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { resolve } from 'pathe';

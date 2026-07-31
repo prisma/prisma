@@ -13,7 +13,7 @@ A published shell cannot declare dependencies on private workspace packages, so 
 - **One entrypoint per internal package**, named from the canonical mapping (e.g. `packages/2-sql/5-runtime` → `@prisma/orm-family-sql/runtime`).
 - **Within a shell: code-splitting, not duplication.** Entrypoints that share internal modules must share chunks (rolldown/tsdown multi-entry splitting), or `instanceof`/registry identity breaks inside a single install.
 - **Across shells: externalize and rewrite.** When bundling `orm-family-sql`, imports of framework internals rewrite to `@prisma/orm-framework/<entrypoint>` and are marked external. Cross-shell references become real published-package deps (exact lockstep version).
-- **Canonical mapping as data.** One module holds the internal-package → (shell, entrypoint) table; shell build configs, and later the emitter (TML-3123) and lint (TML-3124), consume it. Home: `packages/0-config/tsdown` (extend `@prisma-next/tsdown`'s `defineConfig` with a shell mode) or a sibling module there.
+- **Canonical mapping as data.** One module holds the internal-package → (shell, entrypoint) table; shell build configs, and later the emitter (TML-3123) and lint (TML-3124), consume it. Home: `packages/0-config/tsdown` (extend `@repo/tsdown`'s `defineConfig` with a shell mode) or a sibling module there.
 - Type declarations follow the same mapping (`.d.mts` per entrypoint, cross-shell imports pointing at published names).
 
 ## Dispatches

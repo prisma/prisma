@@ -11,7 +11,7 @@ import {
 import { createControlStack, issueOutcome } from '@prisma-next/framework-components/control';
 import { MongoCollection, type MongoContract, MongoIndex } from '@prisma-next/mongo-contract';
 import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
-import { applicationDomainOf, timeouts } from '@prisma-next/test-utils';
+import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

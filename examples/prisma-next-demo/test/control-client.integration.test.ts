@@ -6,7 +6,7 @@
  */
 
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { Pool } from 'pg';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from '../src/prisma/contract.d';

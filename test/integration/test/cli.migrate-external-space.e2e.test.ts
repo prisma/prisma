@@ -29,7 +29,7 @@ import type { MigrateResult } from '@prisma-next/cli/commands/migrate';
 import { createMigrateCommand } from '@prisma-next/cli/commands/migrate';
 import { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-plan';
 import { storageHashHex } from '@prisma-next/framework-components/control';
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   TEST_EXTERNAL_HEAD_HASH,

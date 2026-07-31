@@ -1,6 +1,6 @@
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import type { SqlMiddleware } from '@prisma-next/sql-runtime';
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Only mock the third-party pg boundary. Real drivers, adapters, and runtimes

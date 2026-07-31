@@ -1,6 +1,6 @@
 import type { Contract } from '@prisma-next/contract/types';
 import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 import { createAggregateContractSpace } from '../src/aggregate/aggregate';
 import type { AggregateContractSpace } from '../src/aggregate/types';
 import { EMPTY_CONTRACT_HASH } from '../src/constants';

@@ -26,7 +26,7 @@ describe('rewriteWorkspaceDeps', () => {
         arktype: '^2.1.29',
       },
       devDependencies: {
-        '@prisma-next/tsconfig': 'workspace:*',
+        '@repo/tsconfig': 'workspace:*',
       },
     };
     rewriteWorkspaceDeps(pkg, '0.8.0');
@@ -36,7 +36,7 @@ describe('rewriteWorkspaceDeps', () => {
       arktype: '^2.1.29',
     });
     assert.deepEqual(pkg.devDependencies, {
-      '@prisma-next/tsconfig': 'workspace:0.8.0',
+      '@repo/tsconfig': 'workspace:0.8.0',
     });
   });
 

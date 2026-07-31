@@ -4,7 +4,7 @@ import { verifySqlSchemaByDiff } from '@prisma-next/family-sql/diff';
 import { issueOutcome } from '@prisma-next/framework-components/control';
 import type { SqlStorage as SqlStorageType } from '@prisma-next/sql-contract/types';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { diffPostgresSchema } from '../../src/core/migrations/diff-database-schema';
 import { PostgresSchema } from '../../src/core/postgres-schema';

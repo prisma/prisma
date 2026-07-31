@@ -9,7 +9,7 @@ import { defineContract, field, model } from '@prisma-next/postgres/contract-bui
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import postgres from '@prisma-next/target-postgres/control';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 describe('family instance schemaVerify', () => {

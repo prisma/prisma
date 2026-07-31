@@ -88,7 +88,7 @@ function anyFacadeCarries(specifier: string): boolean {
  * Neither entry is a package a real application would be unable to import;
  * anything else appearing in this list is.
  *
- * - `@prisma-next/test-utils` is the repository's own test helper. It has no
+ * - `@repo/test-utils` is the repository's own test helper. It has no
  *   published counterpart by design, and is a devDependency of the example
  *   test files that use it.
  * - `@prisma-next/migration-tools` is published, as
@@ -100,7 +100,7 @@ function anyFacadeCarries(specifier: string): boolean {
  */
 const notCarriedByAnyFacade: readonly string[] = [
   '@prisma-next/migration-tools',
-  '@prisma-next/test-utils',
+  '@repo/test-utils',
 ];
 
 describe('the published surface against the applications that will consume it', () => {

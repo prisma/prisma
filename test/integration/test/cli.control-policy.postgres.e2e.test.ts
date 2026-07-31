@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { createDbVerifyCommand } from '@prisma-next/cli/commands/db-verify';
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

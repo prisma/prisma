@@ -12,7 +12,6 @@ import arktypeJsonRuntime from '@prisma-next/extension-arktype-json/runtime';
 import pgvector from '@prisma-next/extension-pgvector/control';
 import pgvectorRuntime from '@prisma-next/extension-pgvector/runtime';
 import sql from '@prisma-next/family-sql/control';
-import { createTestRuntimeFromClient } from '@prisma-next/integration-tests/test/utils';
 import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
 import { sql as sqlBuilder } from '@prisma-next/sql-builder/runtime';
@@ -20,7 +19,8 @@ import type { Db } from '@prisma-next/sql-builder/types';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import { createStubAdapter, createTestContext } from '@prisma-next/sql-runtime/test/utils';
 import postgres from '@prisma-next/target-postgres/control';
-import { withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { withClient, withDevDatabase } from '@repo/test-utils';
+import { createTestRuntimeFromClient } from 'integration-tests/test/utils';
 import type { Client } from 'pg';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 

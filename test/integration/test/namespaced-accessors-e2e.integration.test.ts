@@ -23,7 +23,7 @@ import postgres from '@prisma-next/postgres/runtime';
 import type { ForeignKey, SqlStorage } from '@prisma-next/sql-contract/types';
 import type { Runtime } from '@prisma-next/sql-runtime';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { Client } from 'pg';
 import { describe, expect, it } from 'vitest';
 import { contract } from './namespaced-accessors/fixtures/contract';

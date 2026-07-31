@@ -12,7 +12,7 @@ import {
 } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { sqlEmission } from '@prisma-next/sql-contract-emitter';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getSqlDescriptorBundle } from '../utils/framework-components';
 

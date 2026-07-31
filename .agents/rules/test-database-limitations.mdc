@@ -8,7 +8,7 @@ alwaysApply: false
 
 ## Overview
 
-Test databases created via `withDevDatabase()` from `@prisma-next/test-utils` use **pglite** (an in-memory PostgreSQL implementation via `@prisma/dev`). Pglite does **not support PostgreSQL extensions** like `pgvector`, `pg_trgm`, etc.
+Test databases created via `withDevDatabase()` from `@repo/test-utils` use **pglite** (an in-memory PostgreSQL implementation via `@prisma/dev`). Pglite does **not support PostgreSQL extensions** like `pgvector`, `pg_trgm`, etc.
 
 ## The Problem
 

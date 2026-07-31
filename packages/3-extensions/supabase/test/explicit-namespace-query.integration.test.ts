@@ -29,7 +29,7 @@ import sql from '@prisma-next/family-sql/control';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
 import type { SqlMiddleware } from '@prisma-next/sql-runtime';
 import postgres from '@prisma-next/target-postgres/control';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import supabasePack from '../src/exports/pack';
 import contractJson from './fixtures/example-app/contract.json' with { type: 'json' };

@@ -1,5 +1,5 @@
 import type { PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
-import { createDevDatabase } from '@prisma-next/test-utils';
+import { createDevDatabase } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   controlAdapter,

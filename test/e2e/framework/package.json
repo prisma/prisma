@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/e2e-tests",
+  "name": "e2e-tests",
   "version": "0.16.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "devDependencies": {
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "@prisma-next/utils": "workspace:0.16.0",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
@@ -34,7 +34,7 @@
     "@prisma-next/family-sql": "workspace:0.16.0",
     "@prisma-next/framework-components": "workspace:0.16.0",
     "@prisma-next/ids": "workspace:0.16.0",
-    "@prisma-next/integration-tests": "workspace:0.16.0",
+    "integration-tests": "workspace:0.16.0",
     "@prisma-next/migration-tools": "workspace:0.16.0",
     "@prisma-next/postgres": "workspace:0.16.0",
     "@prisma-next/sql-builder": "workspace:0.16.0",
@@ -48,7 +48,7 @@
     "@prisma-next/sqlite": "workspace:0.16.0",
     "@prisma-next/target-postgres": "workspace:0.16.0",
     "@prisma-next/target-sqlite": "workspace:0.16.0",
-    "@prisma-next/test-utils": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.16.0",
     "arktype": "catalog:"
   }
 }

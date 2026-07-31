@@ -37,7 +37,7 @@ import {
 import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
 import sqliteTargetControlDescriptor from '@prisma-next/target-sqlite/control';
 import sqliteRuntimeTargetDescriptor from '@prisma-next/target-sqlite/runtime';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createSqliteAdapter } from '../src/core/adapter';

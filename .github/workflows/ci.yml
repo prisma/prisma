@@ -345,7 +345,7 @@ jobs:
           } >> "$GITHUB_ENV"
       - name: Run the real-Supabase acceptance harness
         if: needs.changes.outputs.inert != 'true'
-        run: pnpm --filter @prisma-next/example-supabase test test/real-supabase.acceptance.test.ts
+        run: pnpm --filter supabase-example test test/real-supabase.acceptance.test.ts
 
   coverage:
     name: Coverage

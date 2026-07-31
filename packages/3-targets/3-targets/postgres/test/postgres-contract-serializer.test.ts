@@ -19,8 +19,8 @@ import {
   type StorageTypeInstance,
   toStorageTypeInstance,
 } from '@prisma-next/sql-contract/types';
-import { createSqlContract } from '@prisma-next/test-utils';
 import { blindCast } from '@prisma-next/utils/casts';
+import { createSqlContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';

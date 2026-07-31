@@ -56,7 +56,7 @@ The fix per the architectural layering principle: extension-pack composition tes
 
 - Drop `@prisma-next/extension-pgvector` from `devDependencies`.
 - Likely also drop `@prisma-next/cli`, `@prisma-next/family-sql`, `@prisma-next/adapter-postgres`, `@prisma-next/driver-postgres`, `@prisma-next/target-postgres` from devDeps IF the only consumer was the moved tests. Verify by checking what's still left in `packages/3-extensions/sql-orm-client/{src,test}/` that imports them.
-- Keep `@prisma-next/sql-contract-ts` and `@prisma-next/test-utils` if any remaining source/tests need them.
+- Keep `@prisma-next/sql-contract-ts` and `@repo/test-utils` if any remaining source/tests need them.
 
 **Important:** sql-orm-client may have OTHER tests in `test/` that don't use pgvector (e.g. core ORM client functionality tests). Those stay in `packages/3-extensions/sql-orm-client/test/`. Inspect each remaining test file's imports before deciding.
 
@@ -74,7 +74,7 @@ The fix per the architectural layering principle: extension-pack composition tes
 ### `test/integration/` updates
 
 - The moved files need to typecheck and run from their new location.
-- `test/integration/package.json` may already have all the necessary deps (it deps on every facade + every extension pack); verify with `pnpm install` + `pnpm typecheck --filter @prisma-next/integration-tests`.
+- `test/integration/package.json` may already have all the necessary deps (it deps on every facade + every extension pack); verify with `pnpm install` + `pnpm typecheck --filter integration-tests`.
 - If any moved file imports from `./` relative paths that no longer resolve, fix the imports.
 
 ## How to work
@@ -113,7 +113,7 @@ The fix per the architectural layering principle: extension-pack composition tes
    pnpm typecheck --filter @prisma-next/sql-builder
    pnpm typecheck --filter @prisma-next/sql-orm-client
    pnpm typecheck --filter @prisma-next/mongo-runtime
-   pnpm typecheck --filter @prisma-next/integration-tests
+   pnpm typecheck --filter integration-tests
    ```
 
    None should fail. If any of the three packages errors with `Cyclic dependency detected`, the cycle isn't fully broken — investigate.

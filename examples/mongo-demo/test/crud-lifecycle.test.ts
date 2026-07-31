@@ -1,6 +1,6 @@
 import mongo from '@prisma-next/mongo/runtime';
 import { MongoFieldFilter } from '@prisma-next/mongo-query-ast/execution';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

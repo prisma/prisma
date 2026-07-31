@@ -104,7 +104,7 @@ on a cf-worker bundle, read the unminified metafile (`*.worker.mjs.meta.json`).
 pnpm test
 ```
 
-Postgres tests boot PGlite via `@prisma-next/test-utils.createDevDatabase`.
+Postgres tests boot PGlite via `@repo/test-utils.createDevDatabase`.
 Mongo tests boot `mongodb-memory-server` (downloads a `mongod` binary on first
 run). On unsupported host distros (e.g. NixOS) the Mongo tests will fail
 because the binary downloader has no matching artefact — this is an upstream

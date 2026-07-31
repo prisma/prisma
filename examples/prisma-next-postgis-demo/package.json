@@ -45,8 +45,8 @@
   },
   "devDependencies": {
     "@prisma-next/cli": "workspace:0.16.0",
-    "@prisma-next/test-utils": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "@types/leaflet": "^1.9.12",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

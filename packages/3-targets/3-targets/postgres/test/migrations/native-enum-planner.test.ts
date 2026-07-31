@@ -22,7 +22,7 @@ import type {
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { coordinateKey } from '@prisma-next/framework-components/ir';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
 import { coalesceSubtreeIssues, planIssues } from '../../src/core/migrations/issue-planner';

@@ -1,5 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": ["@prisma-next/tsconfig/prod"],
+  "extends": ["@repo/tsconfig/prod"],
   "compilerOptions": {}
 }

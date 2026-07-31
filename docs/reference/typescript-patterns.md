@@ -1179,7 +1179,7 @@ Object.assign(mockedFamily, config.family, {
 
 **Pattern**: Common patterns in test files should be extracted into helper functions with JSDoc comments explaining their purpose.
 
-**Use `@prisma-next/test-utils` for generic shared helpers** - Check the shared package first before creating new helpers. Note that `@prisma-next/test-utils` has zero dependencies on other `@prisma-next/*` packages to avoid circular dependencies. For runtime-specific utilities, use `@prisma-next/runtime/test/utils`. For contract-related utilities in E2E tests, use `e2e-tests/test/utils.ts`.
+**Use `@repo/test-utils` for generic shared helpers** - Check the shared package first before creating new helpers. Note that `@repo/test-utils` has zero dependencies on other `@prisma-next/*` packages to avoid circular dependencies. For runtime-specific utilities, use `@prisma-next/runtime/test/utils`. For contract-related utilities in E2E tests, use `e2e-tests/test/utils.ts`.
 
 **❌ WRONG: Repeated pattern throughout test file or creating helpers that already exist**
 
@@ -1198,7 +1198,7 @@ async function setupDatabase(...) { /* ... */ }
 **✅ CORRECT: Use shared utilities from appropriate locations**
 
 ```typescript
-import { withDevDatabase, withClient } from '@prisma-next/test-utils';
+import { withDevDatabase, withClient } from '@repo/test-utils';
 import {
   executePlanAndCollect,
   setupE2EDatabase,

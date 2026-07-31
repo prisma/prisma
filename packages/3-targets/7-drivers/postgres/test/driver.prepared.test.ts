@@ -1,6 +1,6 @@
 import { SqlQueryError } from '@prisma-next/sql-errors';
 import type { PreparedExecuteRequest } from '@prisma-next/sql-relational-core/ast';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import type { Client } from 'pg';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createBoundDriverFromBinding, type PostgresBinding } from '../src/postgres-driver';

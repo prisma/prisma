@@ -3,7 +3,7 @@
  *
  * `representativePlans` is consumed on both sides of the projection seam: the
  * emission assertions beside this file read the variants out of the plan, and
- * the renderer tests in `@prisma-next/integration-tests` render the same plans
+ * the renderer tests in `integration-tests` render the same plans
  * to SQL. It lives in a helper rather than in either test so neither imports
  * the other's suites.
  */

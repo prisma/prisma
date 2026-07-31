@@ -1,4 +1,4 @@
-import { createSqlContract } from '@prisma-next/test-utils';
+import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { resolveRecordedPath } from '../../../src/aggregate/strategies/resolve-recorded-path';
 import type { AggregateContractSpace } from '../../../src/aggregate/types';

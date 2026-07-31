@@ -9,7 +9,7 @@ import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import { seedTestMarker } from '@prisma-next/sql-runtime/test/utils';
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import testContractSpaceExtension from './contract-space-fixture/control';
 import { bootstrapPostgresSignMarkerTables } from './postgres-bootstrap';

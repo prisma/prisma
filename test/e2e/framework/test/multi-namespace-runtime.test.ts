@@ -16,7 +16,7 @@ import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
 import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
 import { PostgresSchema } from '@prisma-next/target-postgres/types';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { Pool } from 'pg';
 import { describe, expect, it } from 'vitest';
 import { createControlClientForTests, withE2eMigrationsDir } from './utils';

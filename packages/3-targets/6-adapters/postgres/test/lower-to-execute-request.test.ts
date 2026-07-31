@@ -8,7 +8,7 @@ import { postgresCodec } from '@prisma-next/target-postgres/codec-descriptor';
 import { jsonb, pgTable, text } from '@prisma-next/target-postgres/contract-free';
 import { PostgresCreateTable } from '@prisma-next/target-postgres/ddl';
 import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   createPostgresBuiltinCodecLookup,

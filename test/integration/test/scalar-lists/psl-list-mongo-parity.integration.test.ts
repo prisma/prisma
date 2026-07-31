@@ -15,8 +15,8 @@ import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/
 import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
 import { type MongoTargetContract, mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
 import postgres from '@prisma-next/target-postgres/control';
-import { timeouts } from '@prisma-next/test-utils';
 import type { JsonObject } from '@prisma-next/utils/json';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';

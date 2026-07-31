@@ -57,7 +57,7 @@ export function createContractFile(testDir: string): string {
   const contractPath = join(testDir, 'contract.ts');
   writeFileSync(
     contractPath,
-    `import { int4Column, textColumn } from '@prisma-next/test-utils/column-descriptors';
+    `import { int4Column, textColumn } from '@repo/test-utils/column-descriptors';
 import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
 
 const contractObj = defineContract({
@@ -271,7 +271,7 @@ export async function setupDbTestFixture(
   options: DbTestFixtureOptions,
 ): Promise<{ testSetup: ReturnType<typeof setupTestDirectoryFromFixtures>; configPath: string }> {
   const { connectionString, createTempDir, fixtureSubdir, schemaSql } = options;
-  const { withClient } = await import('@prisma-next/test-utils');
+  const { withClient } = await import('@repo/test-utils');
 
   // Run schema SQL if provided
   if (schemaSql) {

@@ -2,7 +2,7 @@ import { coreHash } from '@prisma-next/contract/types';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
 import type { SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
 import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import sqlite from '../src/runtime/sqlite';
 

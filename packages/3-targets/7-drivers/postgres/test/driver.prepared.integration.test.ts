@@ -1,5 +1,5 @@
 import type { SqlConnection, SqlQueryable } from '@prisma-next/sql-relational-core/ast';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
 

@@ -40,12 +40,7 @@ import {
   decodeRow,
 } from '@prisma-next/sql-runtime/test/utils';
 import postgresRuntimeTargetDescriptor from '@prisma-next/target-postgres/runtime';
-import {
-  applicationDomainOf,
-  createDevDatabase,
-  timeouts,
-  withClient,
-} from '@prisma-next/test-utils';
+import { applicationDomainOf, createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../../2-sql/1-core/contract/test/test-support';
 import postgresRuntimeAdapterDescriptorFull from '../src/exports/runtime';

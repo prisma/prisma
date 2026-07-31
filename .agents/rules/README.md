@@ -129,7 +129,7 @@ Rules below are listed by bare filename; the canonical file is `.agents/rules/<n
 - `family-instance-domain-actions.mdc` — Family instance domain actions (inline core logic, import helper functions)
 - `storage-type-hooks.mdc` — Codec-owned storage type hooks (avoid enum fields in shared IR)
 - `capabilities-ownership.mdc` — Capabilities are adapter-reported; contracts declare requirements
-- `tsdown-config-package-source-only.mdc` — Keep `@prisma-next/tsdown` exports source-only (no `.js` workaround files)
+- `tsdown-config-package-source-only.mdc` — Keep `@repo/tsdown` exports source-only (no `.js` workaround files)
 
 ## Git, CI & workflow
 - `running-tests.mdc` — How to run tests (and other slow verification commands): save output to a file once, read the file; don't re-run to grep different lines

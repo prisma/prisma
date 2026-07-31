@@ -34,7 +34,7 @@ import {
   jsonDocumentRetag,
   sqliteCodecDescriptorRegistry,
 } from '@prisma-next/target-sqlite/codecs';
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { renderLoweredSql } from '../src/core/adapter';
 import type { SqliteContract } from '../src/core/types';

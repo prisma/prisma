@@ -1,4 +1,4 @@
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { defineConfig } from 'vitest/config';
 
 // Types-only package: SQL Schema IR types for schema introspection and verification

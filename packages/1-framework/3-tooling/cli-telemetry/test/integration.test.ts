@@ -1,7 +1,7 @@
 import { fork } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { ParentToSenderPayload } from '../src/payload';
@@ -306,7 +306,7 @@ describe('cli-telemetry end-to-end — failure modes are silent', () => {
     },
     // The sender's idle-exit timeout is ~3s (REQUEST_TIMEOUT_MS × 2).
     // `databaseOperation` (5s base, scaled by `TEST_TIMEOUT_MULTIPLIER`)
-    // is the closest semantic helper exposed by `@prisma-next/test-utils`
+    // is the closest semantic helper exposed by `@repo/test-utils`
     // for an end-to-end operation that should finish within a few
     // seconds; on CI with `TEST_TIMEOUT_MULTIPLIER=2` it becomes 10s,
     // matching the previous hardcoded value.

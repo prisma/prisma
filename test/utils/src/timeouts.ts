@@ -29,7 +29,7 @@ function getMultiplier(): number {
  *
  * @example
  * ```typescript
- * import { spinUpPpgDev, typeScriptCompilation } from '@prisma-next/test-utils';
+ * import { spinUpPpgDev, typeScriptCompilation } from '@repo/test-utils';
  *
  * describe('my test', { timeout: timeouts.spinUpPpgDev }, () => {
  *   // ...

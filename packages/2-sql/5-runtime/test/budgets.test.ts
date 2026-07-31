@@ -11,7 +11,7 @@ import {
   TableSource,
 } from '@prisma-next/sql-relational-core/ast';
 import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { budgets } from '../src/middleware/budgets';
 import type { SqlMiddlewareContext } from '../src/middleware/sql-middleware';

@@ -20,7 +20,7 @@
     "dotenv": "^17.4.2"
   },
   "devDependencies": {
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

@@ -35,7 +35,7 @@ import { createMigrationShowCommand } from '@prisma-next/cli/commands/migration-
 import { createMigrationStatusCommand } from '@prisma-next/cli/commands/migration-status';
 import { createRefCommand } from '@prisma-next/cli/commands/ref';
 import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import type { Command } from 'commander';
 import { isAbsolute, join, resolve } from 'pathe';
 import { afterAll, beforeAll } from 'vitest';

@@ -20,7 +20,7 @@ import postgres from '@prisma-next/target-postgres/control';
 import postgresRuntimeTarget, {
   PostgresContractSerializer,
 } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, expectTypeOf, it } from 'vitest';
 import type { Contract } from '../sql-orm-client/fixtures/scalar-lists/generated/contract';
 import contractJson from '../sql-orm-client/fixtures/scalar-lists/generated/contract.json' with {

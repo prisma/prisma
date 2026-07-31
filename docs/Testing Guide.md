@@ -81,7 +81,7 @@ it('emits contract and executes query', async () => {
 **Example:**
 ```typescript
 // test/e2e/framework/test/runtime.e2e.test.ts
-import { withDevDatabase, withClient } from '@prisma-next/test-utils';
+import { withDevDatabase, withClient } from '@repo/test-utils';
 import {
   setupE2EDatabase,
   createTestRuntimeFromClient,
@@ -231,13 +231,13 @@ Good test helpers:
 ### Helper Examples from Codebase
 
 **Test utilities are organized across multiple locations to avoid circular dependencies:**
-- **`@prisma-next/test-utils`**: Generic database and async iterable utilities with zero dependencies on other `@prisma-next/*` packages
+- **`@repo/test-utils`**: Generic database and async iterable utilities with zero dependencies on other `@prisma-next/*` packages
 - **`@prisma-next/runtime/test/utils`**: Runtime-specific test utilities (plan execution, runtime creation, contract markers)
 - **`test/e2e/framework/test/utils.ts`**: Contract-related utilities for E2E tests (contract loading, emission verification)
 
 #### Shared Test Utilities
 
-**Note**: The `@prisma-next/test-utils` package has zero dependencies on other `@prisma-next/*` packages. For runtime-specific utilities, import from `@prisma-next/sql-runtime/test/utils`. For contract-related utilities in E2E tests, import from `test/e2e/framework/test/utils.ts`.
+**Note**: The `@repo/test-utils` package has zero dependencies on other `@prisma-next/*` packages. For runtime-specific utilities, import from `@prisma-next/sql-runtime/test/utils`. For contract-related utilities in E2E tests, import from `test/e2e/framework/test/utils.ts`.
 
 ```typescript
 // Import from generic utilities
@@ -246,7 +246,7 @@ import {
   withClient,
   collectAsync,
   drainAsyncIterable,
-} from '@prisma-next/test-utils';
+} from '@repo/test-utils';
 
 // Import from runtime-specific utilities
 import {
@@ -284,7 +284,7 @@ await setupE2EDatabase(client, contract, async (c) => {
 const runtime = createTestRuntimeFromClient(contract, client, adapter);
 ```
 
-**Architecture**: The base functions in `@prisma-next/test-utils` accept dependencies as parameters (e.g., `validateContractFn`, `markerStatements`). Wrapper files in consuming packages inject these dependencies, preventing cyclic dependencies and keeping test utilities lightweight.
+**Architecture**: The base functions in `@repo/test-utils` accept dependencies as parameters (e.g., `validateContractFn`, `markerStatements`). Wrapper files in consuming packages inject these dependencies, preventing cyclic dependencies and keeping test utilities lightweight.
 
 #### Package-Specific Helpers
 
@@ -490,11 +490,11 @@ const literalExpr: LiteralExpr = { kind: 'literal', value: 'test' };
 
 ### Contract Factory Functions
 
-When creating `Contract` values in tests, use `createContract` from `@prisma-next/test-utils` (or a local helper such as `createTestContract` in package test `utils`) instead of manual object creation:
+When creating `Contract` values in tests, use `createContract` from `@repo/test-utils` (or a local helper such as `createTestContract` in package test `utils`) instead of manual object creation:
 
 ```typescript
 // ✅ CORRECT: Use factory function
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 
 const contract = createContract({
   storage: {
@@ -759,12 +759,12 @@ expect(() => buildPlan(contract, node)).toThrow(
 
 ## Common Mistakes and Corrections
 
-### Importing from `@prisma-next/test-utils` directly
+### Importing from `@repo/test-utils` directly
 
-**❌ WRONG: Importing directly from `@prisma-next/test-utils`**
+**❌ WRONG: Importing directly from `@repo/test-utils`**
 
 ```typescript
-import { executePlanAndCollect } from '@prisma-next/test-utils';
+import { executePlanAndCollect } from '@repo/test-utils';
 ```
 
 **✅ CORRECT: Import from package-specific wrapper files**
@@ -777,7 +777,7 @@ import { executePlanAndCollect } from '@prisma-next/runtime/test/utils';
 import { executePlanAndCollect } from './utils';
 ```
 
-**Why?** The `@prisma-next/test-utils` package uses dependency injection with no dependencies on other `@prisma-next` packages. Wrapper files inject dependencies to prevent cyclic dependencies and enable proper type inference.
+**Why?** The `@repo/test-utils` package uses dependency injection with no dependencies on other `@prisma-next` packages. Wrapper files inject dependencies to prevent cyclic dependencies and enable proper type inference.
 
 ### Type inference in `executePlanAndCollect`
 
@@ -1102,10 +1102,10 @@ Vitest config for MongoDB tests must set:
 - `testTimeout` and `hookTimeout` to `timeouts.spinUpDbServer` (30s base, scalable via `TEST_TIMEOUT_MULTIPLIER`)
 - `fileParallelism: false` — MongoDB tests cannot run in parallel within a single file
 
-Timeouts are available from `@prisma-next/test-utils`:
+Timeouts are available from `@repo/test-utils`:
 
 ```typescript
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 ```
 
 ### Where tests live

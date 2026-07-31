@@ -4,7 +4,7 @@ import sql from '@prisma-next/family-sql/control';
 import { createControlStack } from '@prisma-next/framework-components/control';
 import postgres from '@prisma-next/target-postgres/control';
 import { PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
-import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 describe('family instance introspect', () => {

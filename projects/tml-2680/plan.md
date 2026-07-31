@@ -58,7 +58,7 @@ The rename breaks workspace-wide typecheck unless every consumer is updated in t
 - `pnpm --filter @prisma-next/sqlite typecheck` green.
 - `pnpm --filter @prisma-next/postgres test typecheck` green.
 - `pnpm test:packages` green (broader workspace not broken).
-- **`pnpm -r typecheck` green** — explicitly catches downstream consumers (`@prisma-next/integration-tests`, `@prisma-next/e2e-tests`, `prisma-next-demo`) that `pnpm test:packages` does not run.
+- **`pnpm -r typecheck` green** — explicitly catches downstream consumers (`integration-tests`, `e2e-tests`, `prisma-next-demo`) that `pnpm test:packages` does not run.
 - New test cases (skip-when-false, one-shot semantics) passing.
 - `pnpm lint:deps` clean (no new layering violations).
 

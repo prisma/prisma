@@ -41,7 +41,7 @@ const DEFAULT_SQL_STORAGE = {
 
 /**
  * Contract authoring convenience for this package's own tests. The shared copy
- * lives in `@prisma-next/test-utils`, but the foundation `contract` package
+ * lives in `@repo/test-utils`, but the foundation `contract` package
  * cannot depend on test-utils (test-utils depends on contract), so the helper
  * is duplicated here to keep package boundaries one-way.
  */

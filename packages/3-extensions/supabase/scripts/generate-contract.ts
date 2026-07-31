@@ -39,7 +39,7 @@ import {
   PostgresNamespaceSchemaNode,
   PostgresTableSchemaNode,
 } from '@prisma-next/target-postgres/types';
-import { createDevDatabase } from '@prisma-next/test-utils';
+import { createDevDatabase } from '@repo/test-utils';
 import { Client } from 'pg';
 import { SupabaseRole } from '../src/contract/roles';
 import { setUpSupabaseMockSchema } from '../test/fixtures/supabase-reference/set-up-mock-schema';

@@ -12,8 +12,8 @@ import { type Contract, coreHash, profileHash } from '@prisma-next/contract/type
 import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
 import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
 import { coalesceSubtreeIssues, planIssues } from '../../src/core/migrations/issue-planner';

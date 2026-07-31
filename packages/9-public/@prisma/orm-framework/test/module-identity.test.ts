@@ -20,7 +20,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { publicShells, type ShellName } from '@prisma-next/publish-surface/shells';
-import { installShells, packShell, runInScratch } from '@prisma-next/tsdown/shell-testkit';
+import { installShells, packShell, runInScratch } from '@repo/tsdown/shell-testkit';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..');

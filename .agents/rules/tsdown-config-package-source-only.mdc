@@ -1,9 +1,9 @@
 ---
-description: Keep @prisma-next/tsdown source-only exports
+description: Keep @repo/tsdown source-only exports
 alwaysApply: false
 ---
 
-# @prisma-next/tsdown source-only policy
+# @repo/tsdown source-only policy
 
 The package `packages/0-config/tsdown` is source-only and must not add emitted JavaScript artifacts to work around runtime config loading.
 

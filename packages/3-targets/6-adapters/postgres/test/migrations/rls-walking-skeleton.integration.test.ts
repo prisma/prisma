@@ -10,7 +10,7 @@ import {
   PostgresRole,
   PostgresSchema,
 } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   controlAdapter,

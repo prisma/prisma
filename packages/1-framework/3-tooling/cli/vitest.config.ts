@@ -1,4 +1,4 @@
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -44,7 +44,7 @@ export default defineConfig({
         'src/utils/terminal-ui.ts',
         'src/utils/shutdown.ts',
         // Command files — Commander.js setup and delegation to family instance,
-        // tested via e2e tests in @prisma-next/integration-tests (test/integration/test/cli.*.e2e.test.ts)
+        // tested via e2e tests in integration-tests (test/integration/test/cli.*.e2e.test.ts)
         'src/commands/contract-emit.ts',
         'src/commands/db-init.ts',
         'src/commands/db-introspect.ts',

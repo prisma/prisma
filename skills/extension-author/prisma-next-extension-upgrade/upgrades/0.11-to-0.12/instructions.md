@@ -67,7 +67,7 @@ changes:
     script: ./regenerate-extension-public-baseline.ts
   - id: domain-plane-spi-and-testing-subpath
     summary: |
-      Contract SPI is namespaced: read models/value objects through `contract.domain.namespaces.<ns>` (helpers: `domainModelsAtDefaultNamespace(contract.domain)`, `ContractModelDefinitions`) instead of flat `contract.models`. The `@prisma-next/contract/testing` subpath export was removed — test factories (`createContract`, `createSqlContract`, `DUMMY_HASH`, `applicationDomainOf`) now live in `@prisma-next/test-utils`. Run the colocated import codemod and update SPI consumption to the namespaced contract shape.
+      Contract SPI is namespaced: read models/value objects through `contract.domain.namespaces.<ns>` (helpers: `domainModelsAtDefaultNamespace(contract.domain)`, `ContractModelDefinitions`) instead of flat `contract.models`. The `@prisma-next/contract/testing` subpath export was removed — test factories (`createContract`, `createSqlContract`, `DUMMY_HASH`, `applicationDomainOf`) now live in `@repo/test-utils`. Run the colocated import codemod and update SPI consumption to the namespaced contract shape.
     detection:
       glob: "**/*.{ts,tsx}"
       contains:
@@ -608,7 +608,7 @@ Starting at the 0.12 release, two SPI changes affect extension authors:
 
 1. **Namespaced domain plane** — stop reading flat `contract.models` / `contract.valueObjects`. Models and value objects live under `contract.domain.namespaces.<ns>`. Use `domainModelsAtDefaultNamespace(contract.domain)` (reads the contract's sole namespace; throws on a multi-namespace contract — select explicitly per TML-2550) and `ContractModelDefinitions<C>` from `@prisma-next/contract/types` for typed access. Storage remains under `contract.storage.namespaces.<ns>` (unchanged shape).
 
-2. **Removed `@prisma-next/contract/testing` subpath** — test factories moved to `@prisma-next/test-utils`. Add `@prisma-next/test-utils` to your extension's `devDependencies` at the same version pin as your other `@prisma-next/*` packages if it is not already present.
+2. **Removed `@prisma-next/contract/testing` subpath** — test factories moved to `@repo/test-utils`. Add `@repo/test-utils` to your extension's `devDependencies` at the same version pin as your other `@prisma-next/*` packages if it is not already present.
 
 ### Migrate test imports
 
@@ -618,7 +618,7 @@ Run the colocated codemod from your extension root:
 pnpm exec tsx ./migrate-contract-testing-imports.ts
 ```
 
-It rewrites every `@prisma-next/contract/testing` import to `@prisma-next/test-utils`. Use `--check` for a dry-run:
+It rewrites every `@prisma-next/contract/testing` import to `@repo/test-utils`. Use `--check` for a dry-run:
 
 ```bash
 pnpm exec tsx ./migrate-contract-testing-imports.ts --check
@@ -628,10 +628,10 @@ Exports are unchanged — only the package path moves:
 
 ```diff
 -import { createContract, createSqlContract } from '@prisma-next/contract/testing';
-+import { createContract, createSqlContract } from '@prisma-next/test-utils';
++import { createContract, createSqlContract } from '@repo/test-utils';
 ```
 
-Subpath imports such as `@prisma-next/test-utils/typed-expectations` were already on `@prisma-next/test-utils` and are unaffected.
+Subpath imports such as `@repo/test-utils/typed-expectations` were already on `@repo/test-utils` and are unaffected.
 
 ### Update SPI reads to the namespaced domain shape
 

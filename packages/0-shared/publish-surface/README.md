@@ -19,7 +19,7 @@ The canonical map from internal workspace packages to the published `@prisma/orm
 
   `importRootForDependencies` picks the root from a project's own dependency names, which is how the CLI decides what to emit for a project (`@prisma-next/cli`'s `projectImportRoot` reads the manifest next to the config file). Nothing configures the root separately: the manifest already states which packages are installed, and a second setting could only disagree with it.
 
-Two consumers read this table and nothing copies it: the shell build (`@prisma-next/tsdown/shell-build`), which turns each mapping into a generated entrypoint, and the CLI, which turns a project's manifest into a resolver.
+Two consumers read this table and nothing copies it: the shell build (`@repo/tsdown/shell-build`), which turns each mapping into a generated entrypoint, and the CLI, which turns a project's manifest into a resolver.
 
 Emission itself does **not** read it. The contract emitters, the targets' migration renderers, and `prisma-next init` each receive an opaque `ImportSpecifierResolver` — a `(specifier) => string` declared in `@prisma-next/framework-components/emission` — and never learn what the published names are. That keeps `packages/1-framework` free of family and target vocabulary, and keeps this package out of every published bundle. Whoever chooses the root builds the resolver here and passes it in.
 

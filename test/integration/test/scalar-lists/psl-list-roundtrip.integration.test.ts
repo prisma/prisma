@@ -22,7 +22,7 @@ import {
 } from '@prisma-next/sql-relational-core/ast';
 import { planFromAst } from '@prisma-next/sql-relational-core/plan';
 import postgres from '@prisma-next/target-postgres/control';
-import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestRuntimeFromClient } from '../utils';
 import {

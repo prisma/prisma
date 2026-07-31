@@ -20,7 +20,7 @@ import {
 } from '@prisma-next/sql-relational-core/ast';
 import postgresPack from '@prisma-next/target-postgres/pack';
 import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createPostgresAdapter } from '../../src/core/adapter';
 import type { PostgresContract } from '../../src/core/types';

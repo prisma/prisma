@@ -11,7 +11,7 @@ import type {
   PostgresDatabaseSchemaNode,
   PostgresTableSchemaNode,
 } from '@prisma-next/target-postgres/types';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import {

@@ -17,8 +17,8 @@ import {
 import { col, lit } from '@prisma-next/sql-relational-core/contract-free';
 import { PostgresCreateTable } from '@prisma-next/target-postgres/ddl';
 import { PostgresSchema } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
 import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresAdapter, postgresRawCodecInferer } from '../src/core/adapter';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';

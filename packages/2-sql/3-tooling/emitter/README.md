@@ -23,7 +23,7 @@ This package provides the SQL-specific emitter hook implementation for the Prism
   - `@prisma-next/sql-contract` (SQL contract type definitions)
 - **Depended on by**:
   - `@prisma-next/cli` (uses for contract emission)
-  - `@prisma-next/integration-tests` (uses for contract emission tests)
+  - `integration-tests` (uses for contract emission tests)
 
 ## Architecture
 

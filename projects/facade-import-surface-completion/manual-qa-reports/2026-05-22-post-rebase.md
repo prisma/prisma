@@ -24,14 +24,14 @@ No new merge-blocking findings. One ℹ️ Note about the test:packages flakes (
 | 1 | `git rev-parse HEAD` | ✅ `a08ed1437` (descendant of brief target `c5cdb597e`) | Brief explicitly accepts `a08ed1437` as a brief-only addition. |
 | 2 | `git status --porcelain` (initial) | ⚠️ 6 untracked entries (3 pairs of `examples/*/prisma/contract.{json,d.ts}`) | Leftover artefacts from prior runs / fixtures emit. Cleared at runner start so scenarios begin from a clean tree. |
 | 3 | `pnpm install --frozen-lockfile` | ✅ exit 0 | |
-| 4 | `pnpm typecheck` | ✅ exit 0 (137/137 turbo tasks) | **F-1 oracle: RESOLVED.** No `@prisma-next/e2e-tests:typecheck` errors. |
+| 4 | `pnpm typecheck` | ✅ exit 0 (137/137 turbo tasks) | **F-1 oracle: RESOLVED.** No `e2e-tests:typecheck` errors. |
 | 5 | `pnpm test:packages` | ⚠️ exit 1 (2 unrelated failures, 8894 passed) | Failures: telemetry-backend `Gemini CLI` env-dependent test; adapter-postgres `planner.reconciliation.integration.test.ts` PGlite/`Client has encountered a connection error and is not queryable` — both are the tolerable env/PGlite flakes the brief calls out. |
 | 6 | `pnpm fixtures:check` | ✅ exit 0 | **F-2 oracle: RESOLVED.** All `*emit` scripts (including the previously-broken `@prisma-next/sql-orm-client` script) succeed. |
 | 7 | `pnpm lint:deps` | ✅ exit 0 | "no dependency violations found (978 modules, 2007 dependencies cruised)"; `@prisma-next/target-*` framework-import lint clean; APP_SPACE_ID canonical-source check clean. |
 
 ## F-1 / F-2 validation (post-rebase)
 
-- **F-1 — `@prisma-next/e2e-tests` package.json missing `@prisma-next/sqlite` dep — RESOLVED.** `pnpm typecheck` for `@prisma-next/e2e-tests` now exits 0 (cached via Turbo on this run; verified by Turbo's "137 successful, 137 total" rollup).
+- **F-1 — `e2e-tests` package.json missing `@prisma-next/sqlite` dep — RESOLVED.** `pnpm typecheck` for `e2e-tests` now exits 0 (cached via Turbo on this run; verified by Turbo's "137 successful, 137 total" rollup).
 - **F-2 — `@prisma-next/sql-orm-client` emit script wrong `cd` depth — RESOLVED.** `pnpm fixtures:check` now exits 0 end-to-end; the previously-broken emit script in `packages/3-extensions/sql-orm-client/package.json` no longer overshoots the repo root.
 
 ## Per-scenario results

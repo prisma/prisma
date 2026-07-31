@@ -46,8 +46,8 @@
     "@prisma-next/language-server": "workspace:0.16.0",
     "@prisma-next/migration-tools": "workspace:0.16.0",
     "@prisma-next/publish-surface": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
+    "@repo/tsdown": "workspace:0.16.0",
     "@prisma-next/vite-plugin-contract-emit": "workspace:0.16.0",
     "tsdown": "catalog:",
     "typescript": "catalog:"

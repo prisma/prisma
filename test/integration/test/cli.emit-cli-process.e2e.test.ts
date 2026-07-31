@@ -7,7 +7,7 @@ import { loadContractFromTs } from '@prisma-next/cli';
 import type { Contract, StorageHashBase } from '@prisma-next/contract/types';
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { setupIntegrationTestDirectoryFromFixtures } from './utils/cli-test-helpers';
 

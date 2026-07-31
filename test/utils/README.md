@@ -1,4 +1,4 @@
-# @prisma-next/test-utils
+# @repo/test-utils
 
 Shared test utilities for Prisma Next test suites.
 
@@ -79,7 +79,7 @@ Adapter-agnostic column type descriptors for test fixtures. These match common P
 
 **Usage:**
 ```typescript
-import { int4Column, textColumn } from '@prisma-next/test-utils/column-descriptors';
+import { int4Column, textColumn } from '@repo/test-utils/column-descriptors';
 import type { TargetPackRef } from '@prisma-next/contract/framework-components';
 import sqlFamily from '@prisma-next/family-sql/pack';
 import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
@@ -121,7 +121,7 @@ Adapter-agnostic operation type descriptors for type-level test fixtures. These 
 
 **Usage:**
 ```typescript
-import type { PgVectorOperations, CombinedTestOperations } from '@prisma-next/test-utils/operation-descriptors';
+import type { PgVectorOperations, CombinedTestOperations } from '@repo/test-utils/operation-descriptors';
 import type { ColumnBuilder, OperationsForTypeId } from '@prisma-next/sql-relational-core/types';
 
 // Use in type-level tests
@@ -149,7 +149,7 @@ Centralized timeout values with environment variable support. All timeouts respe
 
 **Usage:**
 ```typescript
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 
 beforeAll(async () => {
   // Database setup
@@ -172,7 +172,7 @@ Type-safe assertion helpers that wrap Vitest's `expect` API.
 
 **Usage:**
 ```typescript
-import { expectDefined, expectNarrowedType } from '@prisma-next/test-utils/typed-expectations';
+import { expectDefined, expectNarrowedType } from '@repo/test-utils/typed-expectations';
 
 it('handles defined values', () => {
   const value: string | undefined = getValue();
@@ -203,10 +203,10 @@ it('narrows optional properties', () => {
 
 ### Why?
 
-When Vitest loads a `vitest.config.ts` file, it imports the config module. If the config imports from the main `@prisma-next/test-utils` export, and that export includes utilities that import `vitest`, it creates a circular dependency:
+When Vitest loads a `vitest.config.ts` file, it imports the config module. If the config imports from the main `@repo/test-utils` export, and that export includes utilities that import `vitest`, it creates a circular dependency:
 
 1. Vitest tries to load `vitest.config.ts`
-2. Config imports from `@prisma-next/test-utils` (main export)
+2. Config imports from `@repo/test-utils` (main export)
 3. Main export includes utilities that import `vitest`
 4. This causes "Vitest failed to access its internal state" error
 
@@ -241,10 +241,10 @@ When Vitest loads a `vitest.config.ts` file, it imports the config module. If th
 4. **Import from separate path**: Test files import from the separate path:
    ```typescript
    // ✅ CORRECT
-   import { expectDefined } from '@prisma-next/test-utils/typed-expectations';
+   import { expectDefined } from '@repo/test-utils/typed-expectations';
    
    // ❌ WRONG: Don't import from main export
-   import { expectDefined } from '@prisma-next/test-utils';
+   import { expectDefined } from '@repo/test-utils';
    ```
 
 ### When to Use This Pattern
@@ -275,7 +275,7 @@ import {
   teardownTestDatabase,
   collectAsync,
   drainAsyncIterable,
-} from '@prisma-next/test-utils';
+} from '@repo/test-utils';
 
 // Use with dev database
 await withDevDatabase(async ({ connectionString }) => {

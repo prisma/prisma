@@ -9,7 +9,7 @@ import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
 import { reconstructGraph } from '@prisma-next/migration-tools/migration-graph';
 import type { OnDiskMigrationPackage } from '@prisma-next/migration-tools/package';
 import type { Refs } from '@prisma-next/migration-tools/refs';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   assertFromIsGraphNode,

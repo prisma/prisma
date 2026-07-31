@@ -12,7 +12,7 @@ import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/cano
 import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import { sqlEmission } from '@prisma-next/sql-contract-emitter';
 import postgres from '@prisma-next/target-postgres/control';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { emit } from '../utils/emit';
 import { createIntegrationTestDir } from './utils/cli-test-helpers';

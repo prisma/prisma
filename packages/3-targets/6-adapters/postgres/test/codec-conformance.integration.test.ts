@@ -15,7 +15,7 @@
 
 import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
 import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { postgresConformanceCases } from './codec-conformance/cases';
 import type { ConformanceConnection } from './codec-conformance/harness';

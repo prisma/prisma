@@ -294,7 +294,7 @@ The specifier value applies only when the loaded contract omits `defaultControlP
 
 ## Testing
 
-Unit tests for the authoring DSL live in this package. Broader integration tests that span authoring, emission, CLI, and runtime packages live in `@prisma-next/integration-tests`.
+Unit tests for the authoring DSL live in this package. Broader integration tests that span authoring, emission, CLI, and runtime packages live in `integration-tests`.
 
 ## Migration Notes
 

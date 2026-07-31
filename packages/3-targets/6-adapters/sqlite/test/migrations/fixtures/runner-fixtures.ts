@@ -26,7 +26,7 @@ import { buildControlTableBootstrapQueries } from '@prisma-next/target-sqlite/co
 import sqliteTargetDescriptor, { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
 import type { SqliteDdlNode } from '@prisma-next/target-sqlite/ddl';
 import type { SqlitePlanTargetDetails } from '@prisma-next/target-sqlite/planner-target-details';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { createSqliteBuiltinCodecLookup } from '../../../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../../../src/core/control-adapter';
 import type { SqliteContract } from '../../../src/core/types';

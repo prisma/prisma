@@ -7,7 +7,7 @@ import { errorUnexpected } from '@prisma-next/errors/control';
 import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
 import type { ControlStack } from '@prisma-next/framework-components/control';
 import * as control from '@prisma-next/framework-components/control';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { resolveConfigInputs } from '../src/config-resolution';

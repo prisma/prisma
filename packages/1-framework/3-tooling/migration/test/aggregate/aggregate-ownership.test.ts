@@ -1,5 +1,5 @@
 import type { Contract } from '@prisma-next/contract/types';
-import { createSqlContract } from '@prisma-next/test-utils';
+import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createContractSpaceAggregate } from '../../src/aggregate/aggregate';
 import type { AggregateContractSpace, ContractSpaceAggregate } from '../../src/aggregate/types';

@@ -25,7 +25,7 @@ import {
   PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
 } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf, createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { applicationDomainOf, createDevDatabase, timeouts } from '@repo/test-utils';
 import { createPostgresBuiltinCodecLookup } from '../../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../../src/core/control-adapter';
 import type { PostgresContract } from '../../../src/core/types';

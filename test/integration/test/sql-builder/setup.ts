@@ -12,8 +12,8 @@ import {
   type Runtime,
 } from '@prisma-next/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
 import { blindCast } from '@prisma-next/utils/casts';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { Client } from 'pg';
 import { afterAll, beforeAll } from 'vitest';
 import { setupTestDatabase } from '../utils';

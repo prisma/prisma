@@ -28,7 +28,7 @@ If grep finds any consumer of the `pack` export, STOP and report — that change
 
 **Commit body:** explain that `sqlFamilyPack`/`sqlitePack` were never imported (the body uses the matching `*Descriptor` symbols), no consumer used the export, and this typecheck error existed pre-rebase on `origin/main` too.
 
-**Validation:** `pnpm --filter @prisma-next/e2e-tests run typecheck` returns clean.
+**Validation:** `pnpm --filter e2e-tests run typecheck` returns clean.
 
 ## Fix 2 — align pgvector stub id with contract extension pack
 
@@ -89,7 +89,7 @@ GREEN / YELLOW / RED
 - Pre-grep consumer check: <none found / found N consumers>
 - Action taken: deleted line / added imports (with rationale)
 - Commit: <sha>
-- Validation: `pnpm --filter @prisma-next/e2e-tests run typecheck` <green/red>
+- Validation: `pnpm --filter e2e-tests run typecheck` <green/red>
 
 ## Fix 2 — helpers.ts pgvector stub id
 - Route chosen: A / B (with rationale if not A)

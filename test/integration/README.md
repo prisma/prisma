@@ -1,4 +1,4 @@
-# @prisma-next/integration-tests
+# integration-tests
 
 Integration tests for Prisma Next that verify end-to-end behavior across packages.
 

@@ -1,5 +1,5 @@
 import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
-import { int4Column, textColumn } from '@prisma-next/test-utils/column-descriptors';
+import { int4Column, textColumn } from '@repo/test-utils/column-descriptors';
 // @ts-expect-error - This import is intentionally disallowed for testing
 // biome-ignore lint/correctness/noUnusedImports: Intentionally unused for testing disallowed imports
 import { something } from 'some-other-package';

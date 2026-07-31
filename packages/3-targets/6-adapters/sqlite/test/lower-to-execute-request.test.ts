@@ -11,7 +11,7 @@ import {
 import { jsonText, sqliteTable, text } from '@prisma-next/target-sqlite/contract-free';
 import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
 import { SqliteCreateTable } from '@prisma-next/target-sqlite/ddl';
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   createSqliteBuiltinCodecLookup,

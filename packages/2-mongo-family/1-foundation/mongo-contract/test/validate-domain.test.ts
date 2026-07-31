@@ -7,7 +7,7 @@ import {
   type DomainContractShape,
   validateContractDomain,
 } from '@prisma-next/contract/validate-domain';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 function crossRef(model: string, namespace: string = UNBOUND_DOMAIN_NAMESPACE_ID) {

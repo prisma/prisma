@@ -27,7 +27,7 @@ import { printPsl } from '@prisma-next/psl-printer';
 import { SqlStorage } from '@prisma-next/sql-contract/types';
 import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
 import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf, withClient } from '@prisma-next/test-utils';
+import { applicationDomainOf, withClient } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';

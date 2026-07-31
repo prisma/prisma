@@ -15,8 +15,8 @@
  */
 
 import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type {
   ConformanceConnection,

@@ -1,7 +1,7 @@
 import pgvector from '@prisma-next/extension-pgvector/runtime';
 import postgres from '@prisma-next/postgres/runtime';
 import type { Runtime } from '@prisma-next/sql-runtime';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { contract } from '../prisma/contract';
 import { sql } from '../src/prisma-no-emit/context';

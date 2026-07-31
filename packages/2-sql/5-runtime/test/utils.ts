@@ -31,8 +31,8 @@ import type {
 } from '@prisma-next/sql-relational-core/ast';
 import { SelectAst as SelectAstCtor, TableSource } from '@prisma-next/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { applicationDomainOf, collectAsync, drainAsyncIterable } from '@prisma-next/test-utils';
 import { ifDefined } from '@prisma-next/utils/defined';
+import { applicationDomainOf, collectAsync, drainAsyncIterable } from '@repo/test-utils';
 import type { Client } from 'pg';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { createExecutionContext, createSqlExecutionStack } from '../src/exports';
@@ -497,7 +497,7 @@ export {
   type DevDatabase,
   teardownTestDatabase,
   withClient,
-} from '@prisma-next/test-utils';
+} from '@repo/test-utils';
 
 // Re-export decode helpers so cross-package tests can exercise the row-decode
 // path (e.g. RUNTIME.DECODE_FAILED for a malformed many-element) without going

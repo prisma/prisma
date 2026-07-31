@@ -9,7 +9,7 @@
 import postgres from '@prisma-next/postgres/runtime';
 import { sql } from '@prisma-next/sql-builder/runtime';
 import type { Runtime } from '@prisma-next/sql-runtime';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from '../src/prisma/contract';
 import contractJson from '../src/prisma/contract.json' with { type: 'json' };

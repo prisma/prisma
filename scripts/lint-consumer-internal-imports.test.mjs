@@ -184,9 +184,9 @@ describe('scanManifests', () => {
     assert.deepEqual(scanManifests(repo, { path: 'examples' }), []);
   });
 
-  it('exempts @prisma-next/tsconfig, which is consumed via extends and never imported', () => {
+  it('exempts @repo/tsconfig, which is consumed via extends and never imported', () => {
     manifest('examples/app/package.json', {
-      devDependencies: { '@prisma-next/tsconfig': 'workspace:*' },
+      devDependencies: { '@repo/tsconfig': 'workspace:*' },
     });
     commitAll('tsconfig only');
 

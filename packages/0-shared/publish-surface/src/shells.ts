@@ -5,7 +5,7 @@
  * to `@prisma/<shell>/<entry>` and each internal subpath `./x` maps to
  * `@prisma/<shell>/<entry>/x`.
  *
- * Consumed by the shell build (`@prisma-next/tsdown/shell-build`), by the
+ * Consumed by the shell build (`@repo/tsdown/shell-build`), by the
  * emitters' import-root resolution (`./import-roots`), and later by the
  * publish-surface lint (TML-3124).
  */

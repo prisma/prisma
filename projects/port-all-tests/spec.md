@@ -50,7 +50,7 @@ Porting is executed by fleets of implementer sub-agents (≤10 source files per 
 ## Place in the larger world
 
 - **Sources**: `/tmp/prisma` (SHA `a6d01554528e016bea1467a072776b0e2b94dcba`) and `/tmp/prisma-engines` (SHA `e922089b7d7502aff4249d5da3420f6fa55fc6ad`). Shallow clones; if a checkout is recreated, it must be pinned to the same SHA so the accounting ledger stays stable.
-- **Target package**: `@prisma-next/integration-tests` (`test/integration/`), whose vitest config includes `test/**/*.test.ts` and already carries the two self-contained DB harnesses this project relies on: PGlite via `@prisma-next/test-utils` (`withDevDatabase`, `withClient`, single-connection constraint, `retry: 2` CI flakiness policy) and MongoDB via `mongodb-memory-server` (`MongoMemoryReplSet`, `fileParallelism: false`, `timeouts.spinUpMongoMemoryServer`).
+- **Target package**: `integration-tests` (`test/integration/`), whose vitest config includes `test/**/*.test.ts` and already carries the two self-contained DB harnesses this project relies on: PGlite via `@repo/test-utils` (`withDevDatabase`, `withClient`, single-connection constraint, `retry: 2` CI flakiness policy) and MongoDB via `mongodb-memory-server` (`MongoMemoryReplSet`, `fileParallelism: false`, `timeouts.spinUpMongoMemoryServer`).
 - **Surface mapping** (which prisma-next public API each upstream surface ports onto):
 
   | Upstream surface | prisma-next target surface |

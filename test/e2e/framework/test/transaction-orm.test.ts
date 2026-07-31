@@ -6,7 +6,7 @@ import pgvector from '@prisma-next/extension-pgvector/runtime';
 import postgres from '@prisma-next/postgres/runtime';
 import type { Runtime } from '@prisma-next/sql-runtime';
 import type { Varchar } from '@prisma-next/target-postgres/codec-types';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from './fixtures/generated/contract.d';
 import { runDbInit } from './utils';

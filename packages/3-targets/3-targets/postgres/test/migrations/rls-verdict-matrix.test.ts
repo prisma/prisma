@@ -11,7 +11,7 @@ import type { ControlPolicy } from '@prisma-next/contract/types';
 import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
 import { verifySqlSchemaByDiff } from '@prisma-next/family-sql/diff';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { diffPostgresSchema } from '../../src/core/migrations/diff-database-schema';
 import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';

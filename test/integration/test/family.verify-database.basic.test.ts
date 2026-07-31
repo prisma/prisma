@@ -17,7 +17,7 @@ import { sqlEmission } from '@prisma-next/sql-contract-emitter';
 import { seedTestMarker } from '@prisma-next/sql-runtime/test/utils';
 import postgres from '@prisma-next/target-postgres/control';
 import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { emit } from '../utils/emit';
 import { bootstrapPostgresSignMarkerTables } from './postgres-bootstrap';

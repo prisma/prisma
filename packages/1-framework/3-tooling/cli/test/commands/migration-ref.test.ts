@@ -20,7 +20,7 @@ import {
   resolveRef,
   writeRef,
 } from '@prisma-next/migration-tools/refs';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 const HASH_A = `${'a'.repeat(64)}`;

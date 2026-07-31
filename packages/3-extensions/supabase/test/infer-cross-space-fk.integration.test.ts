@@ -32,7 +32,7 @@ import sql from '@prisma-next/family-sql/control';
 import { flatPslModels } from '@prisma-next/framework-components/psl-ast';
 import { printPsl } from '@prisma-next/psl-printer';
 import postgres from '@prisma-next/target-postgres/control';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import supabasePack from '../src/exports/pack';
 import { setUpSupabaseMockSchema } from './fixtures/supabase-reference/set-up-mock-schema';

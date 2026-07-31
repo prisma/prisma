@@ -9,7 +9,7 @@
 
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import { runContractEmitWithConfig, setupJourney } from '../utils/journey-test-helpers';
