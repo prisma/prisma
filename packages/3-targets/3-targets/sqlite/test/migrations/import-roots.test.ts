@@ -1,3 +1,5 @@
+import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import {
   createImportSpecifierResolver,
   type ImportRoot,
@@ -8,18 +10,48 @@ import {
 } from '@prisma-next/publish-surface/import-roots';
 import { describe, expect, it } from 'vitest';
 import { DropTableCall } from '../../src/core/migrations/op-factory-call';
+import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';
 import { renderCallsToTypeScript } from '../../src/core/migrations/render-typescript';
 
 const sqliteFacade: ImportRoot = { mode: 'facade', facade: '@prisma/orm-sqlite' };
 const platform: ImportRoot = { mode: 'platform' };
 
+const FROM_HASH = 'a'.repeat(64);
+const TO_HASH = 'b'.repeat(64);
+
+const stubLowerer: ExecuteRequestLowerer = {
+  lower: () => {
+    throw new Error('lower() called while scaffolding an empty migration');
+  },
+  lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
+};
+
 function render(root: ImportRoot): string {
   return renderCallsToTypeScript([new DropTableCall('stale')], {
-    from: 'a'.repeat(64),
-    to: 'b'.repeat(64),
+    from: FROM_HASH,
+    to: TO_HASH,
     snapshotsImportPath: '../../snapshots',
     resolveImportSpecifier: createImportSpecifierResolver(root),
   });
+}
+
+/**
+ * The empty plan `migration new` scaffolds from, so the assertions below run
+ * through `MigrationPlanWithAuthoringSurface.renderTypeScript` — the seam the
+ * CLI actually uses — rather than calling the renderer directly.
+ */
+function scaffold(root: ImportRoot): string {
+  return createSqliteMigrationPlanner(stubLowerer)
+    .emptyMigration(
+      {
+        packageDir: '/tmp/migration-pkg',
+        fromHash: FROM_HASH,
+        toHash: TO_HASH,
+        snapshotsImportPath: '../../snapshots',
+      },
+      APP_SPACE_ID,
+    )
+    .renderTypeScript(createImportSpecifierResolver(root));
 }
 
 /** Snapshot imports are relative paths, which no import root governs. */
@@ -73,5 +105,21 @@ describe('emitted migration files under each import root', () => {
     expect(
       createImportSpecifierResolver(sqliteFacade)('@prisma-next/target-sqlite/migration'),
     ).toBe('@prisma/orm-sqlite/target/migration');
+  });
+});
+
+describe('the empty migration `migration new` scaffolds', () => {
+  it('names the workspace package under the internal root', () => {
+    expect(packageImports(scaffold(internalImportRoot))).toEqual(['@prisma-next/sqlite/migration']);
+  });
+
+  it('names the published facade under the facade root', () => {
+    expect(packageImports(scaffold(sqliteFacade))).toEqual(['@prisma/orm-sqlite/migration']);
+  });
+
+  it('imports nothing the application would not depend on directly', () => {
+    for (const root of [internalImportRoot, sqliteFacade]) {
+      expect(transitiveImports(scaffold(root), root)).toEqual([]);
+    }
   });
 });

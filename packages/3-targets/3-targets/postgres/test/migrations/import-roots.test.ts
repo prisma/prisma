@@ -1,3 +1,5 @@
+import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import {
   createImportSpecifierResolver,
   type ImportRoot,
@@ -13,6 +15,7 @@ import {
   CreateSchemaCall,
   CreateTableCall,
 } from '../../src/core/migrations/op-factory-call';
+import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { renderCallsToTypeScript } from '../../src/core/migrations/render-typescript';
 
 const postgresFacade: ImportRoot = { mode: 'facade', facade: '@prisma/orm-postgres' };
@@ -20,6 +23,13 @@ const platform: ImportRoot = { mode: 'platform' };
 
 const FROM_HASH = 'a'.repeat(64);
 const TO_HASH = 'b'.repeat(64);
+
+const stubLowerer: ExecuteRequestLowerer = {
+  lower: () => {
+    throw new Error('lower() called while scaffolding an empty migration');
+  },
+  lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
+};
 
 function render(root: ImportRoot): string {
   return renderCallsToTypeScript(
@@ -40,6 +50,25 @@ function render(root: ImportRoot): string {
       resolveImportSpecifier: createImportSpecifierResolver(root),
     },
   );
+}
+
+/**
+ * The empty plan `migration new` scaffolds from, so the assertions below run
+ * through `MigrationPlanWithAuthoringSurface.renderTypeScript` — the seam the
+ * CLI actually uses — rather than calling the renderer directly.
+ */
+function scaffold(root: ImportRoot): string {
+  return createPostgresMigrationPlanner(stubLowerer)
+    .emptyMigration(
+      {
+        packageDir: '/tmp/migration-pkg',
+        fromHash: FROM_HASH,
+        toHash: TO_HASH,
+        snapshotsImportPath: '../../snapshots',
+      },
+      APP_SPACE_ID,
+    )
+    .renderTypeScript(createImportSpecifierResolver(root));
 }
 
 /** Snapshot imports are relative paths, which no import root governs. */
@@ -120,5 +149,23 @@ describe('emitted migration files under each import root', () => {
     expect(
       createImportSpecifierResolver(postgresFacade)('@prisma-next/target-postgres/migration'),
     ).toBe('@prisma/orm-postgres/target/migration');
+  });
+});
+
+describe('the empty migration `migration new` scaffolds', () => {
+  it('names the workspace package under the internal root', () => {
+    expect(packageImports(scaffold(internalImportRoot))).toEqual([
+      '@prisma-next/postgres/migration',
+    ]);
+  });
+
+  it('names the published facade under the facade root', () => {
+    expect(packageImports(scaffold(postgresFacade))).toEqual(['@prisma/orm-postgres/migration']);
+  });
+
+  it('imports nothing the application would not depend on directly', () => {
+    for (const root of [internalImportRoot, postgresFacade]) {
+      expect(transitiveImports(scaffold(root), root)).toEqual([]);
+    }
   });
 });
