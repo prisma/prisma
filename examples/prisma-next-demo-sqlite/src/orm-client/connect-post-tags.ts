@@ -1,6 +1,6 @@
-import type { DefaultModelRow } from '@prisma-next/sql-orm-client';
-import type { Runtime } from '@prisma-next/sql-runtime';
-import { castAs } from '@prisma-next/utils/casts';
+import type { DefaultModelRow } from '@prisma/orm-sqlite/orm-client';
+import type { SqliteRuntime } from '@prisma/orm-sqlite/runtime';
+import { castAs } from '@prisma/orm-sqlite/utils/casts';
 import type { Contract } from '../prisma/contract.d';
 import { createOrmClient } from './client';
 
@@ -15,7 +15,7 @@ type TagId = DefaultModelRow<Contract, 'Tag'>['id'];
 export async function ormClientConnectPostTags(
   postId: string,
   tagIds: readonly string[],
-  runtime: Runtime,
+  runtime: SqliteRuntime,
 ) {
   const db = createOrmClient(runtime);
   return db.Post.where({ id: castAs<PostId>(postId) })

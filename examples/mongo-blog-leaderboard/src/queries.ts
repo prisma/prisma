@@ -1,4 +1,4 @@
-import { acc } from '@prisma-next/mongo-query-builder';
+import { acc } from '@prisma/orm-mongo/query-builder';
 import type { Db } from './db';
 
 type Runtime = Awaited<ReturnType<Db['runtime']>>;

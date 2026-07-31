@@ -1,20 +1,17 @@
 /**
  * Test utilities using the programmatic control client and runtime.
  *
- * This demonstrates how to use `createControlClient` for test database setup
- * and the runtime for data operations, instead of manual SQL and stampMarker.
+ * This demonstrates how to use `createPostgresControlClient` for test database
+ * setup and the runtime for data operations, instead of manual SQL and
+ * stampMarker.
  */
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { type ControlClient, createControlClient } from '@prisma-next/cli/control-api';
-import postgresDriver from '@prisma-next/driver-postgres/control';
 import pgvector from '@prisma-next/extension-pgvector/control';
-import sql from '@prisma-next/family-sql/control';
 import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import postgres from '@prisma-next/target-postgres/control';
+import { type ControlClient, createPostgresControlClient } from '@prisma-next/postgres/control';
 
 export interface TestControlClientOptions {
   readonly connection: string;
@@ -27,11 +24,7 @@ export interface TestControlClientOptions {
  * a default connection in options.
  */
 export function createPrismaNextControlClient(options: TestControlClientOptions): ControlClient {
-  return createControlClient({
-    family: sql,
-    target: postgres,
-    adapter: postgresAdapter,
-    driver: postgresDriver,
+  return createPostgresControlClient({
     extensions: [pgvector],
     connection: options.connection,
   });

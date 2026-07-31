@@ -13,23 +13,15 @@
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import postgresAdapterDescriptor from '@prisma-next/adapter-postgres/control';
-import postgresDriverDescriptor from '@prisma-next/driver-postgres/control';
 import pgvectorPack from '@prisma-next/extension-pgvector/control';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { createPostgresControlClient } from '@prisma-next/postgres/control';
+import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
-import type { Contract } from '../src/prisma/contract.d';
 import contractJson from '../src/prisma/contract.json' with { type: 'json' };
 
 const DEMO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const APP_MIGRATIONS_DIR = join(DEMO_ROOT, 'migrations', 'app');
-
-const contract = new PostgresContractSerializer().deserializeContract(contractJson) as Contract;
 
 interface OpsJsonStep {
   readonly sql: string;
@@ -61,13 +53,12 @@ describe('demo migration replay (dev database)', () => {
     'replaying the full chain produces a schema that verifies against the contract',
     async () => {
       await withDevDatabase(async ({ connectionString }) => {
-        const driver = await postgresDriverDescriptor.create(connectionString);
-        try {
+        await withClient(connectionString, async (client) => {
           for (const { dirName, ops } of loadChainInOrder()) {
             for (const op of ops) {
               for (const step of op.execute) {
                 try {
-                  await driver.query(step.sql, [...(step.params ?? [])]);
+                  await client.query(step.sql, [...(step.params ?? [])]);
                 } catch (error) {
                   throw new Error(
                     `replay failed at ${dirName} / ${op.id}: ${(error as Error).message}\n${step.sql}`,
@@ -78,20 +69,20 @@ describe('demo migration replay (dev database)', () => {
           }
 
           // `kind` is a text column with a CHECK constraint — never a native enum.
-          const kindType = await driver.query<{ udt_name: string }>(
+          const kindType = await client.query<{ udt_name: string }>(
             `SELECT udt_name FROM information_schema.columns
              WHERE table_schema = 'public' AND table_name = 'user' AND column_name = 'kind'`,
           );
           expect(kindType.rows).toEqual([{ udt_name: 'text' }]);
 
-          const nativeEnums = await driver.query<{ typname: string }>(
+          const nativeEnums = await client.query<{ typname: string }>(
             `SELECT t.typname FROM pg_type t
              JOIN pg_namespace n ON n.oid = t.typnamespace
              WHERE t.typtype = 'e' AND n.nspname = 'public'`,
           );
           expect(nativeEnums.rows).toEqual([]);
 
-          const check = await driver.query<{ def: string }>(
+          const check = await client.query<{ def: string }>(
             `SELECT pg_get_constraintdef(c.oid) AS def
              FROM pg_constraint c
              JOIN pg_class t ON t.oid = c.conrelid
@@ -102,32 +93,22 @@ describe('demo migration replay (dev database)', () => {
           expect(check.rows).toHaveLength(1);
           expect(check.rows[0]?.def).toContain('admin');
           expect(check.rows[0]?.def).toContain('user');
+        });
 
-          // Full schema verification against the current contract.
-          const controlStack = createControlStack({
-            family: sqlFamilyDescriptor,
-            target: postgresTargetDescriptor,
-            adapter: postgresAdapterDescriptor,
-            driver: postgresDriverDescriptor,
-            extensions: [pgvectorPack],
-          });
-          const familyInstance = sqlFamilyDescriptor.create(controlStack);
-          const schema = await familyInstance.introspect({ driver, contract });
-          const verifyResult = familyInstance.verifySchema({
-            contract,
-            schema,
+        // Full schema verification against the current contract.
+        const controlClient = createPostgresControlClient({
+          connection: connectionString,
+          extensions: [pgvectorPack],
+        });
+        try {
+          const verifyResult = await controlClient.schemaVerify({
+            contract: contractJson,
             strict: false,
-            frameworkComponents: [
-              postgresTargetDescriptor,
-              postgresAdapterDescriptor,
-              postgresDriverDescriptor,
-              pgvectorPack,
-            ],
           });
           expect(verifyResult.schema.issues).toEqual([]);
           expect(verifyResult.ok).toBe(true);
         } finally {
-          await driver.close();
+          await controlClient.close();
         }
       }, {});
     },

@@ -1,5 +1,5 @@
-import { datetimeColumn, textColumn } from '@prisma-next/adapter-sqlite/column-types';
-import { defineContract, rel } from '@prisma-next/sqlite/contract-builder';
+import { datetimeColumn, textColumn } from '@prisma/orm-sqlite/adapter/column-types';
+import { defineContract, rel } from '@prisma/orm-sqlite/contract-builder';
 
 export const contract = defineContract({}, ({ field, model }) => {
   const User = model('User', {

@@ -1,6 +1,6 @@
 # Prisma Next Demo (SQLite)
 
-A minimal runnable demo showing how to use `@prisma-next/sqlite`. Covers a
+A minimal runnable demo showing how to use `@prisma/orm-sqlite`. Covers a
 simple read + a relational read + a write through both the ORM client and
 the SQL builder + an atomic check-then-act transaction (per-user post quota)
 + the full many-to-many ORM API (`Post ↔ Tag` via the `PostTag` junction):
@@ -9,7 +9,7 @@ nested `connect`/`disconnect`/`create` writes.
 
 End-to-end SQLite coverage (codecs, runtime, migrations, ORM/SQL builder
 semantics) lives in `test/e2e/framework/test/sqlite/` and the
-`@prisma-next/sql-orm-client` / `@prisma-next/sql-builder` integration
+`@prisma/orm-sqlite/orm-client` / `@prisma/orm-sqlite/builder` integration
 suites — this example deliberately doesn't duplicate it.
 
 ## Setup

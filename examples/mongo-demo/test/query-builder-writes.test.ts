@@ -1,14 +1,4 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { mongoQuery } from '@prisma-next/mongo-query-builder';
-import {
-  createMongoExecutionContext,
-  createMongoExecutionStack,
-  createMongoRuntime,
-  type MongoRuntime,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
+import mongo from '@prisma-next/mongo/runtime';
 import { timeouts } from '@prisma-next/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
@@ -16,16 +6,15 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Contract } from '../src/contract';
 import contractJson from '../src/contract.json' with { type: 'json' };
 
-const contract = new MongoContractSerializer().deserializeContract<Contract>(contractJson);
+const mongoDb = mongo<Contract>({ contractJson });
 
-const q = mongoQuery<Contract>({ contractJson: contract });
+const q = mongoDb.query;
 
 describe('query-builder write terminals (integration)', {
   timeout: timeouts.spinUpMongoMemoryServer,
 }, () => {
   let replSet: MongoMemoryReplSet;
   let client: MongoClient;
-  let runtime: MongoRuntime;
   const dbName = 'qb_writes_test';
 
   beforeAll(async () => {
@@ -35,13 +24,7 @@ describe('query-builder write terminals (integration)', {
     client = new MongoClient(replSet.getUri());
     await client.connect();
 
-    const stack = createMongoExecutionStack({
-      target: mongoRuntimeTarget,
-      adapter: mongoRuntimeAdapter,
-    });
-    const context = createMongoExecutionContext({ contract, stack });
-    const driver = await createMongoDriver(replSet.getUri(), dbName);
-    runtime = createMongoRuntime({ context, driver });
+    await mongoDb.connect({ uri: replSet.getUri(), dbName });
   }, timeouts.spinUpMongoMemoryServer);
 
   beforeEach(async () => {
@@ -49,7 +32,7 @@ describe('query-builder write terminals (integration)', {
   });
 
   afterAll(async () => {
-    await Promise.allSettled([runtime?.close(), client?.close(), replSet?.stop()]);
+    await Promise.allSettled([mongoDb.close(), client?.close(), replSet?.stop()]);
   }, timeouts.spinUpMongoMemoryServer);
 
   const db = () => client.db(dbName);
@@ -71,7 +54,7 @@ describe('query-builder write terminals (integration)', {
         bio: null,
         address: null,
       });
-      const rows = await runtime.execute(plan);
+      const rows = await mongoDb.execute(plan);
       expect(rows).toHaveLength(1);
 
       const all = await usersCol().find().toArray();
@@ -88,7 +71,7 @@ describe('query-builder write terminals (integration)', {
         .from('users')
         .match((f) => f.bio.eq(null))
         .updateMany((f) => [f.bio.set('filled')]);
-      const rows = await runtime.execute(plan);
+      const rows = await mongoDb.execute(plan);
       expect(rows).toHaveLength(1);
 
       const all = await usersCol().find().toArray();
@@ -101,7 +84,7 @@ describe('query-builder write terminals (integration)', {
         .from('users')
         .match((f) => f.name.eq('Alice'))
         .deleteOne();
-      await runtime.execute(plan);
+      await mongoDb.execute(plan);
 
       const remaining = await usersCol().find().toArray();
       expect(remaining).toHaveLength(1);
@@ -114,7 +97,7 @@ describe('query-builder write terminals (integration)', {
         { name: 'Bob', email: 'b@e.com', bio: null },
       );
       const plan = q.from('users').updateAll((f) => [f.bio.set('all-updated')]);
-      await runtime.execute(plan);
+      await mongoDb.execute(plan);
 
       const all = await usersCol().find().toArray();
       expect(all.every((d) => d['bio'] === 'all-updated')).toBe(true);
@@ -125,7 +108,7 @@ describe('query-builder write terminals (integration)', {
         { name: 'Alice', email: 'a@e.com', bio: null, address: null },
         { name: 'Bob', email: 'b@e.com', bio: null, address: null },
       ]);
-      const rows = await runtime.execute(plan);
+      const rows = await mongoDb.execute(plan);
       expect(rows).toHaveLength(1);
 
       const all = await usersCol().find().toArray();
@@ -143,7 +126,7 @@ describe('query-builder write terminals (integration)', {
         .from('users')
         .match((f) => f.name.eq('Alice'))
         .findOneAndUpdate((f) => [f.bio.set('updated')], { returnDocument: 'after' });
-      const rows = await runtime.execute(plan);
+      const rows = await mongoDb.execute(plan);
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ name: 'Alice', bio: 'updated' });
     });
@@ -154,7 +137,7 @@ describe('query-builder write terminals (integration)', {
         .from('users')
         .match((f) => f.name.eq('Alice'))
         .findOneAndUpdate((f) => [f.bio.set('changed')], { returnDocument: 'before' });
-      const rows = await runtime.execute(plan);
+      const rows = await mongoDb.execute(plan);
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ bio: 'original', name: 'Alice' });
 
@@ -168,7 +151,7 @@ describe('query-builder write terminals (integration)', {
         .from('users')
         .match((f) => f.name.eq('Alice'))
         .findOneAndDelete();
-      const rows = await runtime.execute(plan);
+      const rows = await mongoDb.execute(plan);
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ name: 'Alice' });
 
@@ -181,7 +164,7 @@ describe('query-builder write terminals (integration)', {
         (f) => f.email.eq('new@e.com'),
         (f) => [f.name.set('New User'), f.email.set('new@e.com'), f.bio.set(null)],
       );
-      const rows = await runtime.execute(plan);
+      const rows = await mongoDb.execute(plan);
       expect(rows).toHaveLength(1);
       const result = rows[0] as unknown as Record<string, unknown>;
       expect(result['upsertedCount']).toBe(1);
@@ -197,7 +180,7 @@ describe('query-builder write terminals (integration)', {
         (f) => f.email.eq('a@e.com'),
         (f) => [f.bio.set('upserted')],
       );
-      const rows = await runtime.execute(plan);
+      const rows = await mongoDb.execute(plan);
       expect(rows).toHaveLength(1);
       const result = rows[0] as unknown as Record<string, unknown>;
       expect(result['modifiedCount']).toBe(1);
@@ -222,7 +205,7 @@ describe('query-builder write terminals (integration)', {
         .match((f) => f.bio.eq(null))
         .updateMany((f) => [f.stage.set({ bio: f.name.node })]);
 
-      await runtime.execute(plan);
+      await mongoDb.execute(plan);
 
       const all = await usersCol().find().sort({ name: 1 }).toArray();
       expect(all).toMatchObject([
@@ -237,7 +220,7 @@ describe('query-builder write terminals (integration)', {
         .from('users')
         .match((f) => f.name.eq('Alice'))
         .updateOne((f) => [f.bio.set('classic')]);
-      await runtime.execute(plan);
+      await mongoDb.execute(plan);
 
       const doc = await usersCol().findOne({ name: 'Alice' });
       expect(doc).toMatchObject({ bio: 'classic' });
@@ -246,7 +229,7 @@ describe('query-builder write terminals (integration)', {
     it('merge into a sibling collection', async () => {
       await seed({ name: 'Alice', email: 'a@e.com' });
       const plan = q.from('users').merge({ into: 'users_archive' });
-      await runtime.execute(plan);
+      await mongoDb.execute(plan);
 
       const archived = await db().collection('users_archive').find().toArray();
       expect(archived).toHaveLength(1);
@@ -256,7 +239,7 @@ describe('query-builder write terminals (integration)', {
     it('out to a fresh collection', async () => {
       await seed({ name: 'Alice', email: 'a@e.com' });
       const plan = q.from('users').out('users_snapshot');
-      await runtime.execute(plan);
+      await mongoDb.execute(plan);
 
       const snapshot = await db().collection('users_snapshot').find().toArray();
       expect(snapshot).toHaveLength(1);

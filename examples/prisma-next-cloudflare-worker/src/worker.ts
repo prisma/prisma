@@ -1,4 +1,4 @@
-import { withTransaction } from '@prisma-next/sql-runtime';
+import { withTransaction } from '@prisma/orm-postgres/family-runtime';
 import { Client } from 'pg';
 import { createOrmClient } from './orm-client/client';
 import { db } from './prisma/db';

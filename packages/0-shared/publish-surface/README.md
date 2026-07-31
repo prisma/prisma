@@ -6,7 +6,7 @@ The canonical map from internal workspace packages to the published `@prisma/orm
 
 ## Responsibilities
 
-- **`./shells`** — the mapping table. Every internal package belongs to exactly one published shell and becomes a subpath entrypoint of it: `@prisma-next/<pkg>/<sub>` → `@prisma/<shell>/<entry>/<sub>`. Facades additionally republish selected sibling surfaces so an application that installed one package can still import everything its generated code names.
+- **`./shells`** — the mapping table. Every internal package belongs to exactly one published shell and becomes a subpath entrypoint of it: `@prisma-next/<pkg>/<sub>` → `@prisma/<shell>/<entry>/<sub>`. Facades additionally republish sibling surfaces, because an application depends on one facade and nothing else: everything it names — its generated files, its query code, its migration scripts — has to have a name under the facade. Republished entries keep the name the platform shell gives the same package, except where the facade's own wiring already owns it (`family-runtime` for the family's runtime, `family-contract` for its contract, since `runtime` and `contract` are the facade's own).
 - **`./import-roots`** — turns an internal specifier into the name generated code should carry, given how the application installed Prisma Next:
 
   | Root | `@prisma-next/sql-contract/types` becomes |
@@ -17,9 +17,11 @@ The canonical map from internal workspace packages to the published `@prisma/orm
 
   Resolution refuses to produce a name the application does not depend on **directly**. A package manager puts a package's own dependencies in that package's `node_modules`, so a generated file importing a transitively installed package fails to resolve at run time even though the files are on disk. `resolveImportSpecifier` throws rather than emit one.
 
-One consumer reads this table today and nothing copies it: the shell build (`@prisma-next/tsdown/shell-build`), which turns each mapping into a generated entrypoint.
+  `importRootForDependencies` picks the root from a project's own dependency names, which is how the CLI decides what to emit for a project (`@prisma-next/cli`'s `projectImportRoot` reads the manifest next to the config file). Nothing configures the root separately: the manifest already states which packages are installed, and a second setting could only disagree with it.
 
-Emission does **not** read it. The contract emitters, the targets' migration renderers, and `prisma-next init` each receive an opaque `ImportSpecifierResolver` — a `(specifier) => string` declared in `@prisma-next/framework-components/emission` — and never learn what the published names are. That keeps `packages/1-framework` free of family and target vocabulary, and keeps this package out of every published bundle. Whoever chooses the root builds the resolver here and passes it in; today that is only tests, because the default root leaves specifiers unchanged.
+Two consumers read this table and nothing copies it: the shell build (`@prisma-next/tsdown/shell-build`), which turns each mapping into a generated entrypoint, and the CLI, which turns a project's manifest into a resolver.
+
+Emission itself does **not** read it. The contract emitters, the targets' migration renderers, and `prisma-next init` each receive an opaque `ImportSpecifierResolver` — a `(specifier) => string` declared in `@prisma-next/framework-components/emission` — and never learn what the published names are. That keeps `packages/1-framework` free of family and target vocabulary, and keeps this package out of every published bundle. Whoever chooses the root builds the resolver here and passes it in.
 
 ## Why the name is declared, not read from disk
 

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { defineConfig } from '@prisma-next/sqlite/config';
+import { defineConfig } from '@prisma/orm-sqlite/config';
 
 export default defineConfig({
   contract: './prisma/contract.ts',

@@ -1,6 +1,6 @@
 # prisma-next-cloudflare-worker
 
-End-to-end example for the `@prisma-next/postgres/serverless` facade, running on a Cloudflare Worker against a Hyperdrive-fronted Postgres origin.
+End-to-end example for the `@prisma/orm-postgres/serverless` facade, running on a Cloudflare Worker against a Hyperdrive-fronted Postgres origin.
 
 This example mirrors `examples/prisma-next-demo` (the Node demo), minus pgvector — the Worker example exists to exercise the per-request `postgresServerless` lifecycle, not vector search.
 
@@ -110,7 +110,7 @@ Total Upload: 1289.96 KiB / gzip: 254.14 KiB
 
 (254 KiB compressed, well under the 1 MB AC-19 budget.)
 
-The bundle includes `pg`, `pg-protocol`, `pg-types`, `pg-cursor`, `pg-pool` (statically imported by `@prisma-next/driver-postgres` even though `postgresServerless` does not construct a `Pool` at runtime), `pg-cloudflare` (auto-pulled by `pg` when `navigator.userAgent === 'Cloudflare-Workers'`), and `@cloudflare/unenv-preset` polyfills.
+The bundle includes `pg`, `pg-protocol`, `pg-types`, `pg-cursor`, `pg-pool` (statically imported by `@prisma/orm-postgres/driver` even though `postgresServerless` does not construct a `Pool` at runtime), `pg-cloudflare` (auto-pulled by `pg` when `navigator.userAgent === 'Cloudflare-Workers'`), and `@cloudflare/unenv-preset` polyfills.
 
 ## Cold-start benchmark (AC-20 / TC-23)
 

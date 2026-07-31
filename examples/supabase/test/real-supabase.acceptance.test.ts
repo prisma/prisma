@@ -15,15 +15,11 @@
 
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { createControlClient } from '@prisma-next/cli/control-api';
-import postgresDriver from '@prisma-next/driver-postgres/control';
 import supabasePack from '@prisma-next/extension-supabase/pack';
 import { supabase } from '@prisma-next/extension-supabase/runtime';
-import sql from '@prisma-next/family-sql/control';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
+import { createPostgresControlClient } from '@prisma-next/postgres/control';
 import type { SqlMiddleware } from '@prisma-next/sql-runtime';
-import postgres from '@prisma-next/target-postgres/control';
 import { timeouts, withClient } from '@prisma-next/test-utils';
 import { isStructuredError } from '@prisma-next/utils/structured-error';
 import { SignJWT } from 'jose';
@@ -75,13 +71,7 @@ async function runDbInit(connectionString: string, migrationsDir: string): Promi
     headRef: { hash: space.headRef.hash, invariants: [...space.headRef.invariants] },
   });
 
-  const client = createControlClient({
-    family: sql,
-    target: postgres,
-    adapter: postgresAdapter,
-    driver: postgresDriver,
-    extensions: [supabasePack],
-  });
+  const client = createPostgresControlClient({ extensions: [supabasePack] });
 
   try {
     await client.connect(connectionString);

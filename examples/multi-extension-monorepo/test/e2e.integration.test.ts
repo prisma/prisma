@@ -1,7 +1,7 @@
 /**
  * Multi-extension monorepo end-to-end against PGlite.
  *
- * Drives the CLI aggregate `db init` flow (`executeDbInit`) against
+ * Drives the aggregate `db init` flow (`ControlClient.dbInit`) against
  * PGlite (via `createDevDatabase`) with **two** internal extension
  * packages (`audit`, `feature-flags`) plus the application's own
  * contract. The structurally novel property under test here is
@@ -19,7 +19,7 @@
  *      `migrations/feature-flags/`.
  *
  *   2. **Planning across three spaces.** Calling
- *      `executeDbInit` with `mode: 'plan'` produces a plan whose ops
+ *      `dbInit` with `mode: 'plan'` produces a plan whose ops
  *      are ordered alphabetically by space id (extensions first, app
  *      last) per `concatenateSpaceApplyInputs`. The audit
  *      `CREATE TABLE audit_event` op precedes the feature-flags
@@ -57,20 +57,11 @@
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import postgresAdapterDescriptor from '@prisma-next/adapter-postgres/control';
-import { executeDbInit } from '@prisma-next/cli/control-api';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriverDescriptor from '@prisma-next/driver-postgres/control';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
-import {
-  createControlStack,
-  type MigrationPackage,
-} from '@prisma-next/framework-components/control';
+import type { MigrationPackage } from '@prisma-next/framework-components/control';
 import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
 import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { type ControlClient, createPostgresControlClient } from '@prisma-next/postgres/control';
+import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { APP_USER_TABLE } from '../app/src/constants';
 import appContractJson from '../app/src/contract.json' with { type: 'json' };
@@ -122,39 +113,13 @@ const featureFlagsContract = featureFlagsContractSpace.contractJson;
 const FEATURE_FLAGS_STORAGE_HASH = featureFlagsContractSpace.headRef.hash;
 const featureFlagsHeadRef = featureFlagsContractSpace.headRef;
 
-function buildControlStack(declarationOrder: 'natural' | 'reverse') {
+function createClient(connection: string, declarationOrder: 'natural' | 'reverse'): ControlClient {
   const extensions =
     declarationOrder === 'natural'
       ? [auditExtensionDescriptor, featureFlagsExtensionDescriptor]
       : [featureFlagsExtensionDescriptor, auditExtensionDescriptor];
-  return createControlStack({
-    family: sqlFamilyDescriptor,
-    target: postgresTargetDescriptor,
-    adapter: postgresAdapterDescriptor,
-    driver: postgresDriverDescriptor,
-    extensions,
-  });
+  return createPostgresControlClient({ connection, extensions });
 }
-
-function buildFamilyInstance(declarationOrder: 'natural' | 'reverse') {
-  return sqlFamilyDescriptor.create(buildControlStack(declarationOrder));
-}
-
-function buildControlAdapter(declarationOrder: 'natural' | 'reverse') {
-  return postgresAdapterDescriptor.create(buildControlStack(declarationOrder));
-}
-
-const appContract = buildFamilyInstance('natural').deserializeContract(
-  appContractJson,
-) as Contract<SqlStorage>;
-
-const frameworkComponents = [
-  postgresTargetDescriptor,
-  postgresAdapterDescriptor,
-  postgresDriverDescriptor,
-  auditExtensionDescriptor,
-  featureFlagsExtensionDescriptor,
-] as const;
 
 interface TestProject {
   readonly projectRoot: string;
@@ -193,7 +158,7 @@ describe.sequential('multi-extension-monorepo end-to-end (PGlite)', {
   timeout: timeouts.spinUpPpgDev,
 }, () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>>;
-  let driver: Awaited<ReturnType<typeof postgresDriverDescriptor.create>> | undefined;
+  let client: ControlClient | undefined;
   let project: TestProject | undefined;
 
   beforeAll(async () => {
@@ -205,16 +170,17 @@ describe.sequential('multi-extension-monorepo end-to-end (PGlite)', {
   }, timeouts.spinUpPpgDev);
 
   beforeEach(async () => {
-    driver = await postgresDriverDescriptor.create(database.connectionString);
-    await driver.query('drop schema if exists public cascade');
-    await driver.query('drop schema if exists prisma_contract cascade');
-    await driver.query('create schema public');
+    await withClient(database.connectionString, async (pg) => {
+      await pg.query('drop schema if exists public cascade');
+      await pg.query('drop schema if exists prisma_contract cascade');
+      await pg.query('create schema public');
+    });
   }, timeouts.spinUpPpgDev);
 
   afterEach(async () => {
-    if (driver) {
-      await driver.close();
-      driver = undefined;
+    if (client) {
+      await client.close();
+      client = undefined;
     }
     if (project) {
       await rm(project.projectRoot, { recursive: true, force: true });
@@ -267,17 +233,11 @@ describe.sequential('multi-extension-monorepo end-to-end (PGlite)', {
   it('mode=plan produces a plan across spaces ordered alphabetically (extensions first, app last)', async () => {
     project = await setupTestProject();
 
-    const result = await executeDbInit({
-      driver: driver!,
-      adapter: buildControlAdapter('natural'),
-      familyInstance: buildFamilyInstance('natural'),
-      contract: appContract,
+    client = createClient(database.connectionString, 'natural');
+    const result = await client.dbInit({
+      contract: appContractJson,
       mode: 'plan',
-      migrations: postgresTargetDescriptor.migrations,
-      frameworkComponents: [...frameworkComponents],
       migrationsDir: project.migrationsDir,
-      targetId: 'postgres',
-      extensions: [auditExtensionDescriptor, featureFlagsExtensionDescriptor],
     });
 
     if (!result.ok) {
@@ -303,17 +263,11 @@ describe.sequential('multi-extension-monorepo end-to-end (PGlite)', {
   it('mode=apply: three spaces apply atomically; markers + round-trips OK', async () => {
     project = await setupTestProject();
 
-    const result = await executeDbInit({
-      driver: driver!,
-      adapter: buildControlAdapter('natural'),
-      familyInstance: buildFamilyInstance('natural'),
-      contract: appContract,
+    client = createClient(database.connectionString, 'natural');
+    const result = await client.dbInit({
+      contract: appContractJson,
       mode: 'apply',
-      migrations: postgresTargetDescriptor.migrations,
-      frameworkComponents: [...frameworkComponents],
       migrationsDir: project.migrationsDir,
-      targetId: 'postgres',
-      extensions: [auditExtensionDescriptor, featureFlagsExtensionDescriptor],
     });
 
     if (!result.ok) {
@@ -322,88 +276,84 @@ describe.sequential('multi-extension-monorepo end-to-end (PGlite)', {
       );
     }
 
-    const markers = await driver!.query<{
-      space: string;
-      core_hash: string;
-      invariants: readonly string[];
-    }>('select space, core_hash, invariants from prisma_contract.marker order by space');
-    const markerBySpace = new Map(markers.rows.map((row) => [row.space, row]));
+    await withClient(database.connectionString, async (pg) => {
+      const markers = await pg.query<{
+        space: string;
+        core_hash: string;
+        invariants: readonly string[];
+      }>('select space, core_hash, invariants from prisma_contract.marker order by space');
+      const markerBySpace = new Map(markers.rows.map((row) => [row.space, row]));
 
-    expect([...markerBySpace.keys()].sort()).toEqual(
-      ['app', AUDIT_SPACE_ID, FEATURE_FLAGS_SPACE_ID].sort(),
-    );
+      expect([...markerBySpace.keys()].sort()).toEqual(
+        ['app', AUDIT_SPACE_ID, FEATURE_FLAGS_SPACE_ID].sort(),
+      );
 
-    expect(markerBySpace.get('app')?.core_hash).toBe(APP_CONTRACT_HASH_VALUE);
-    expect(markerBySpace.get(AUDIT_SPACE_ID)?.core_hash).toBe(AUDIT_STORAGE_HASH);
-    expect(markerBySpace.get(FEATURE_FLAGS_SPACE_ID)?.core_hash).toBe(FEATURE_FLAGS_STORAGE_HASH);
+      expect(markerBySpace.get('app')?.core_hash).toBe(APP_CONTRACT_HASH_VALUE);
+      expect(markerBySpace.get(AUDIT_SPACE_ID)?.core_hash).toBe(AUDIT_STORAGE_HASH);
+      expect(markerBySpace.get(FEATURE_FLAGS_SPACE_ID)?.core_hash).toBe(FEATURE_FLAGS_STORAGE_HASH);
 
-    expect([...(markerBySpace.get(AUDIT_SPACE_ID)?.invariants ?? [])].sort()).toEqual(
-      [...auditHeadRef.invariants].sort(),
-    );
-    expect([...(markerBySpace.get(FEATURE_FLAGS_SPACE_ID)?.invariants ?? [])].sort()).toEqual(
-      [...featureFlagsHeadRef.invariants].sort(),
-    );
+      expect([...(markerBySpace.get(AUDIT_SPACE_ID)?.invariants ?? [])].sort()).toEqual(
+        [...auditHeadRef.invariants].sort(),
+      );
+      expect([...(markerBySpace.get(FEATURE_FLAGS_SPACE_ID)?.invariants ?? [])].sort()).toEqual(
+        [...featureFlagsHeadRef.invariants].sort(),
+      );
 
-    const auditTable = await driver!.query<{ exists: boolean }>(
-      `select to_regclass('public."${AUDIT_EVENT_TABLE}"') is not null as exists`,
-    );
-    expect(auditTable.rows[0]?.exists).toBe(true);
+      const auditTable = await pg.query<{ exists: boolean }>(
+        `select to_regclass('public."${AUDIT_EVENT_TABLE}"') is not null as exists`,
+      );
+      expect(auditTable.rows[0]?.exists).toBe(true);
 
-    const featureFlagsTable = await driver!.query<{ exists: boolean }>(
-      `select to_regclass('public."${FEATURE_FLAG_TABLE}"') is not null as exists`,
-    );
-    expect(featureFlagsTable.rows[0]?.exists).toBe(true);
+      const featureFlagsTable = await pg.query<{ exists: boolean }>(
+        `select to_regclass('public."${FEATURE_FLAG_TABLE}"') is not null as exists`,
+      );
+      expect(featureFlagsTable.rows[0]?.exists).toBe(true);
 
-    const appTable = await driver!.query<{ exists: boolean }>(
-      `select to_regclass('public."${APP_USER_TABLE}"') is not null as exists`,
-    );
-    expect(appTable.rows[0]?.exists).toBe(true);
+      const appTable = await pg.query<{ exists: boolean }>(
+        `select to_regclass('public."${APP_USER_TABLE}"') is not null as exists`,
+      );
+      expect(appTable.rows[0]?.exists).toBe(true);
 
-    await driver!.query(
-      `insert into public."${AUDIT_EVENT_TABLE}" ("id", "actor", "action") values ($1, $2, $3)`,
-      ['evt-1', 'alice', 'login'],
-    );
-    const auditRows = await driver!.query<{ id: string; actor: string; action: string }>(
-      `select "id", "actor", "action" from public."${AUDIT_EVENT_TABLE}"`,
-    );
-    expect(auditRows.rows.length).toBe(1);
-    expect(auditRows.rows[0]?.actor).toBe('alice');
+      await pg.query(
+        `insert into public."${AUDIT_EVENT_TABLE}" ("id", "actor", "action") values ($1, $2, $3)`,
+        ['evt-1', 'alice', 'login'],
+      );
+      const auditRows = await pg.query<{ id: string; actor: string; action: string }>(
+        `select "id", "actor", "action" from public."${AUDIT_EVENT_TABLE}"`,
+      );
+      expect(auditRows.rows.length).toBe(1);
+      expect(auditRows.rows[0]?.actor).toBe('alice');
 
-    await driver!.query(
-      `insert into public."${FEATURE_FLAG_TABLE}" ("key", "enabled") values ($1, $2)`,
-      ['dark-mode', true],
-    );
-    const featureFlagsRows = await driver!.query<{ key: string; enabled: boolean }>(
-      `select "key", "enabled" from public."${FEATURE_FLAG_TABLE}"`,
-    );
-    expect(featureFlagsRows.rows.length).toBe(1);
-    expect(featureFlagsRows.rows[0]?.enabled).toBe(true);
+      await pg.query(
+        `insert into public."${FEATURE_FLAG_TABLE}" ("key", "enabled") values ($1, $2)`,
+        ['dark-mode', true],
+      );
+      const featureFlagsRows = await pg.query<{ key: string; enabled: boolean }>(
+        `select "key", "enabled" from public."${FEATURE_FLAG_TABLE}"`,
+      );
+      expect(featureFlagsRows.rows.length).toBe(1);
+      expect(featureFlagsRows.rows[0]?.enabled).toBe(true);
 
-    await driver!.query(`insert into public."${APP_USER_TABLE}" ("id", "email") values ($1, $2)`, [
-      'user-1',
-      'alice@example.com',
-    ]);
-    const appRows = await driver!.query<{ id: string; email: string }>(
-      `select "id", "email" from public."${APP_USER_TABLE}"`,
-    );
-    expect(appRows.rows.length).toBe(1);
-    expect(appRows.rows[0]?.email).toBe('alice@example.com');
+      await pg.query(`insert into public."${APP_USER_TABLE}" ("id", "email") values ($1, $2)`, [
+        'user-1',
+        'alice@example.com',
+      ]);
+      const appRows = await pg.query<{ id: string; email: string }>(
+        `select "id", "email" from public."${APP_USER_TABLE}"`,
+      );
+      expect(appRows.rows.length).toBe(1);
+      expect(appRows.rows[0]?.email).toBe('alice@example.com');
+    });
   });
 
   it('marker hashes are independent of `extensions` declaration order', async () => {
     project = await setupTestProject();
 
-    const result = await executeDbInit({
-      driver: driver!,
-      adapter: buildControlAdapter('reverse'),
-      familyInstance: buildFamilyInstance('reverse'),
-      contract: appContract,
+    client = createClient(database.connectionString, 'reverse');
+    const result = await client.dbInit({
+      contract: appContractJson,
       mode: 'apply',
-      migrations: postgresTargetDescriptor.migrations,
-      frameworkComponents: [...frameworkComponents],
       migrationsDir: project.migrationsDir,
-      targetId: 'postgres',
-      extensions: [featureFlagsExtensionDescriptor, auditExtensionDescriptor],
     });
 
     if (!result.ok) {
@@ -412,14 +362,16 @@ describe.sequential('multi-extension-monorepo end-to-end (PGlite)', {
       );
     }
 
-    const markers = await driver!.query<{
-      space: string;
-      core_hash: string;
-    }>('select space, core_hash from prisma_contract.marker order by space');
-    const markerBySpace = new Map(markers.rows.map((row) => [row.space, row]));
+    await withClient(database.connectionString, async (pg) => {
+      const markers = await pg.query<{
+        space: string;
+        core_hash: string;
+      }>('select space, core_hash from prisma_contract.marker order by space');
+      const markerBySpace = new Map(markers.rows.map((row) => [row.space, row]));
 
-    expect(markerBySpace.get(AUDIT_SPACE_ID)?.core_hash).toBe(AUDIT_STORAGE_HASH);
-    expect(markerBySpace.get(FEATURE_FLAGS_SPACE_ID)?.core_hash).toBe(FEATURE_FLAGS_STORAGE_HASH);
-    expect(markerBySpace.get('app')?.core_hash).toBe(APP_CONTRACT_HASH_VALUE);
+      expect(markerBySpace.get(AUDIT_SPACE_ID)?.core_hash).toBe(AUDIT_STORAGE_HASH);
+      expect(markerBySpace.get(FEATURE_FLAGS_SPACE_ID)?.core_hash).toBe(FEATURE_FLAGS_STORAGE_HASH);
+      expect(markerBySpace.get('app')?.core_hash).toBe(APP_CONTRACT_HASH_VALUE);
+    });
   });
 });

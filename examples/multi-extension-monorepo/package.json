@@ -18,7 +18,6 @@
     "@prisma-next/adapter-postgres": "workspace:0.16.0",
     "@prisma-next/cli": "workspace:0.16.0",
     "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/driver-postgres": "workspace:0.16.0",
     "@prisma-next/family-sql": "workspace:0.16.0",
     "@prisma-next/framework-components": "workspace:0.16.0",
     "@prisma-next/migration-tools": "workspace:0.16.0",

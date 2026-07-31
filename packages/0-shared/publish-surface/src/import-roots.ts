@@ -45,6 +45,41 @@ export const internalImportRoot: Extract<ImportRoot, { mode: 'internal' }> = { m
  */
 export type ImportSpecifierResolver = (specifier: string) => string;
 
+/**
+ * The import root an application's own dependency list expresses.
+ *
+ * Emission has to name packages the application can actually resolve, and the
+ * application already states which those are. Reading its manifest keeps the
+ * two from drifting and lets consumers move to published names one project at
+ * a time instead of behind a repository-wide switch.
+ *
+ * A project that names exactly one facade is on the facade root; one that
+ * names platform shells without a facade is a decomposed install; anything
+ * else — including a project with no `@prisma/orm-*` dependency at all — is on
+ * the internal root, which emits workspace names unchanged.
+ *
+ * @throws {ImportRootError} when the project depends on two facades, which no
+ * single generated file can be emitted for.
+ */
+export function importRootForDependencies(dependencies: Iterable<string>): ImportRoot {
+  const named = new Set(dependencies);
+  const facades: ShellName[] = [];
+  let hasPlatform = false;
+  for (const [shell, definition] of publicShells) {
+    if (!named.has(shell)) continue;
+    if (definition.kind === 'facade') facades.push(shell);
+    if (definition.kind === 'platform') hasPlatform = true;
+  }
+  if (facades.length > 1) {
+    throw new ImportRootError(
+      `an application may depend on only one database facade, but this one depends on ${facades.join(' and ')}`,
+    );
+  }
+  const [facade] = facades;
+  if (facade !== undefined) return { mode: 'facade', facade };
+  return hasPlatform ? { mode: 'platform' } : internalImportRoot;
+}
+
 interface OwningShell {
   readonly shell: ShellName;
   readonly entry: string;

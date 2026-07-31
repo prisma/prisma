@@ -1,4 +1,4 @@
-import type { Runtime } from '@prisma-next/sql-runtime';
+import type { SqliteRuntime } from '@prisma/orm-sqlite/runtime';
 import { createOrmClient } from './client';
 
 /**
@@ -13,7 +13,7 @@ import { createOrmClient } from './client';
 export async function ormClientGetPostsByTagFilter(
   mode: 'some' | 'none' | 'every',
   label: string,
-  runtime: Runtime,
+  runtime: SqliteRuntime,
 ) {
   const db = createOrmClient(runtime);
 

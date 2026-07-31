@@ -133,24 +133,77 @@ export type ShellName =
 const FACADE_BINS = { 'prisma-next': '@prisma/orm-toolchain/bin/prisma-next' } as const;
 
 /**
- * Contract surfaces every facade republishes, so generated contract files
- * import only a package the application depends on directly. `family` is
- * the facade's own family contract package (`@prisma-next/sql-contract` or
- * `@prisma-next/mongo-contract`); `target` and `adapter` carry the codec
- * and operation types that emitted contracts reference.
+ * Surfaces every facade republishes regardless of family.
  *
- * `target` forwards subpaths only: the facades already publish `./target`
- * as their own target pack.
+ * An application depends on one facade and nothing else (ADR 242), so
+ * everything it reaches — hand-written and generated alike — has to have a
+ * name under the facade. These are the target-agnostic ones: the contract and
+ * component surfaces emitted files import, the shared helpers, the migration
+ * tooling a scripted migration drives, and the Vite plugin.
+ *
+ * Entry names follow the name the platform shell gives the same package, so
+ * one internal package reads the same way wherever it is reached from.
  */
-function facadeReexports(family: string, target: string, adapter: string): ShellReexportMapping[] {
+const COMMON_FACADE_REEXPORTS: readonly ShellReexportMapping[] = [
+  { package: '@prisma-next/contract', entry: 'contract' },
+  { package: '@prisma-next/framework-components', entry: 'components' },
+  { package: '@prisma-next/utils', entry: 'utils' },
+  { package: '@prisma-next/migration-tools', entry: 'migration-tools' },
+  {
+    package: '@prisma-next/vite-plugin-contract-emit',
+    entry: 'vite-plugin-contract-emit',
+  },
+];
+
+/**
+ * The per-database part of a facade's republished surface.
+ *
+ * `family` is the family's contract package (`@prisma-next/sql-contract` or
+ * `@prisma-next/mongo-contract`) and `familyPack` its control-plane and IR
+ * pack; `target` and `adapter` carry the codec and operation types emitted
+ * contracts reference; `runtime` is the family runtime an application drives
+ * queries through.
+ *
+ * Three entries take a qualified name because the facade's own wiring already
+ * owns the plain one: `family-contract`, `family-runtime`, and — for `target`
+ * and `familyPack`, whose plain names the facade publishes as its own target
+ * and family packs — a subpaths-only forward.
+ */
+function facadeReexports(options: {
+  readonly family: string;
+  readonly familyPack: string;
+  readonly runtime: string;
+  readonly target: string;
+  readonly adapter: string;
+  readonly driver: string;
+  readonly queryBuilders: readonly ShellReexportMapping[];
+}): ShellReexportMapping[] {
   return [
-    { package: '@prisma-next/contract', entry: 'contract' },
-    { package: '@prisma-next/framework-components', entry: 'components' },
-    { package: family, entry: 'family-contract' },
-    { package: target, entry: 'target', root: false },
-    { package: adapter, entry: 'adapter' },
+    ...COMMON_FACADE_REEXPORTS,
+    { package: options.family, entry: 'family-contract' },
+    { package: options.familyPack, entry: 'family', root: false },
+    { package: options.runtime, entry: 'family-runtime' },
+    { package: options.target, entry: 'target', root: false },
+    { package: options.adapter, entry: 'adapter' },
+    { package: options.driver, entry: 'driver' },
+    ...options.queryBuilders,
   ];
 }
+
+/** The SQL family's query surfaces, republished by both SQL facades. */
+const SQL_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
+  { package: '@prisma-next/sql-orm-client', entry: 'orm-client' },
+  { package: '@prisma-next/sql-builder', entry: 'builder' },
+  { package: '@prisma-next/sql-relational-core', entry: 'relational-core' },
+];
+
+/** The Mongo family's query surfaces. */
+const MONGO_QUERY_REEXPORTS: readonly ShellReexportMapping[] = [
+  { package: '@prisma-next/mongo-orm', entry: 'orm' },
+  { package: '@prisma-next/mongo-query-builder', entry: 'query-builder' },
+  { package: '@prisma-next/mongo-query-ast', entry: 'query-ast' },
+  { package: '@prisma-next/mongo-value', entry: 'value' },
+];
 
 export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
   ShellName,
@@ -482,11 +535,15 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       packages: [
         { dir: 'packages/3-extensions/postgres', name: '@prisma-next/postgres', entry: '' },
       ],
-      reexports: facadeReexports(
-        '@prisma-next/sql-contract',
-        '@prisma-next/target-postgres',
-        '@prisma-next/adapter-postgres',
-      ),
+      reexports: facadeReexports({
+        family: '@prisma-next/sql-contract',
+        familyPack: '@prisma-next/family-sql',
+        runtime: '@prisma-next/sql-runtime',
+        target: '@prisma-next/target-postgres',
+        adapter: '@prisma-next/adapter-postgres',
+        driver: '@prisma-next/driver-postgres',
+        queryBuilders: SQL_QUERY_REEXPORTS,
+      }),
       forwardedBins: FACADE_BINS,
     },
   ],
@@ -496,11 +553,15 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       dir: 'packages/9-public/@prisma/orm-sqlite',
       kind: 'facade',
       packages: [{ dir: 'packages/3-extensions/sqlite', name: '@prisma-next/sqlite', entry: '' }],
-      reexports: facadeReexports(
-        '@prisma-next/sql-contract',
-        '@prisma-next/target-sqlite',
-        '@prisma-next/adapter-sqlite',
-      ),
+      reexports: facadeReexports({
+        family: '@prisma-next/sql-contract',
+        familyPack: '@prisma-next/family-sql',
+        runtime: '@prisma-next/sql-runtime',
+        target: '@prisma-next/target-sqlite',
+        adapter: '@prisma-next/adapter-sqlite',
+        driver: '@prisma-next/driver-sqlite',
+        queryBuilders: SQL_QUERY_REEXPORTS,
+      }),
       forwardedBins: FACADE_BINS,
     },
   ],
@@ -510,11 +571,15 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
       dir: 'packages/9-public/@prisma/orm-mongo',
       kind: 'facade',
       packages: [{ dir: 'packages/3-extensions/mongo', name: '@prisma-next/mongo', entry: '' }],
-      reexports: facadeReexports(
-        '@prisma-next/mongo-contract',
-        '@prisma-next/target-mongo',
-        '@prisma-next/adapter-mongo',
-      ),
+      reexports: facadeReexports({
+        family: '@prisma-next/mongo-contract',
+        familyPack: '@prisma-next/family-mongo',
+        runtime: '@prisma-next/mongo-runtime',
+        target: '@prisma-next/target-mongo',
+        adapter: '@prisma-next/adapter-mongo',
+        driver: '@prisma-next/driver-mongo',
+        queryBuilders: MONGO_QUERY_REEXPORTS,
+      }),
       forwardedBins: FACADE_BINS,
     },
   ],

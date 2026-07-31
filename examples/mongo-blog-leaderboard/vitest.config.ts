@@ -1,5 +1,5 @@
-import { timeouts } from '@prisma-next/test-utils';
 import { defineConfig } from 'vitest/config';
+import { mongoMemoryServerTimeoutMs } from './test/timeouts';
 
 export default defineConfig({
   test: {
@@ -7,7 +7,7 @@ export default defineConfig({
     pool: 'threads',
     maxWorkers: 1,
     isolate: false,
-    testTimeout: timeouts.spinUpMongoMemoryServer,
-    hookTimeout: timeouts.spinUpMongoMemoryServer,
+    testTimeout: mongoMemoryServerTimeoutMs,
+    hookTimeout: mongoMemoryServerTimeoutMs,
   },
 });

@@ -1,4 +1,4 @@
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@prisma/orm-postgres/config';
 import { EXAMPLE_ROOT, loadLocalEnv } from './scripts/env';
 
 loadLocalEnv(EXAMPLE_ROOT);

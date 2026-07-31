@@ -1,5 +1,5 @@
-import postgresServerless from '@prisma-next/postgres/serverless';
-import { budgets, lints } from '@prisma-next/sql-runtime';
+import { budgets, lints } from '@prisma/orm-postgres/family-runtime';
+import postgresServerless from '@prisma/orm-postgres/serverless';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 

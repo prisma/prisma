@@ -151,21 +151,9 @@ importers:
       '@codingame/monaco-vscode-theme-service-override':
         specifier: ^25.1.2
         version: 25.1.2
-      '@prisma-next/adapter-postgres':
+      '@prisma-next/postgres':
         specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/6-adapters/postgres
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
-      '@prisma-next/family-sql':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/9-family
-      '@prisma-next/sql-contract-psl':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/2-authoring/contract-psl
-      '@prisma-next/target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/3-targets/postgres
+        version: link:../../packages/3-extensions/postgres
       monaco-editor:
         specifier: ^0.55.1
         version: 0.55.1
@@ -240,15 +228,6 @@ importers:
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
-      '@prisma-next/family-sql':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/9-family
-      '@prisma-next/framework-components':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/1-core/framework-components
       '@prisma-next/sql-contract':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/1-core/contract
@@ -385,34 +364,13 @@ importers:
 
   examples/mongo-blog-leaderboard:
     dependencies:
-      '@prisma-next/adapter-mongo':
+      '@prisma/orm-mongo':
         specifier: workspace:0.16.0
-        version: link:../../packages/3-mongo-target/2-mongo-adapter
-      '@prisma-next/contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/mongo':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-extensions/mongo
-      '@prisma-next/mongo-contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-mongo-family/1-foundation/mongo-contract
-      '@prisma-next/mongo-query-builder':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-mongo-family/5-query-builders/query-builder
-      '@prisma-next/utils':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/0-foundation/utils
+        version: link:../../packages/9-public/@prisma/orm-mongo
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
-      '@prisma-next/cli':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/3-tooling/cli
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../test/utils
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
@@ -540,9 +498,6 @@ importers:
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
       '@prisma-next/family-sql':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/9-family
@@ -589,9 +544,6 @@ importers:
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
       '@prisma-next/extension-paradedb':
         specifier: workspace:0.16.0
         version: link:../../packages/3-extensions/paradedb
@@ -665,39 +617,9 @@ importers:
 
   examples/prisma-next-cloudflare-worker:
     dependencies:
-      '@prisma-next/adapter-postgres':
+      '@prisma/orm-postgres':
         specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/6-adapters/postgres
-      '@prisma-next/contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
-      '@prisma-next/family-sql':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/9-family
-      '@prisma-next/postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-extensions/postgres
-      '@prisma-next/sql-builder':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/4-lanes/sql-builder
-      '@prisma-next/sql-contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/1-core/contract
-      '@prisma-next/sql-orm-client':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-extensions/sql-orm-client
-      '@prisma-next/sql-relational-core':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/4-lanes/relational-core
-      '@prisma-next/sql-runtime':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/5-runtime
-      '@prisma-next/target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/3-targets/postgres
+        version: link:../../packages/9-public/@prisma/orm-postgres
       arktype:
         specifier: 'catalog:'
         version: 2.2.3
@@ -711,15 +633,6 @@ importers:
       '@cloudflare/workers-types':
         specifier: 4.20260702.1
         version: 4.20260702.1
-      '@prisma-next/cli':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/3-tooling/cli
-      '@prisma-next/sql-contract-psl':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/2-authoring/contract-psl
-      '@prisma-next/test-utils':
-        specifier: workspace:0.16.0
-        version: link:../../test/utils
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
@@ -750,15 +663,9 @@ importers:
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
       '@prisma-next/extension-pgvector':
         specifier: workspace:0.16.0
         version: link:../../packages/3-extensions/pgvector
-      '@prisma-next/family-sql':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/9-family
       '@prisma-next/framework-components':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/1-core/framework-components
@@ -780,9 +687,6 @@ importers:
       '@prisma-next/sql-contract-psl':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/2-authoring/contract-psl
-      '@prisma-next/sql-contract-ts':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/2-authoring/contract-ts
       '@prisma-next/sql-orm-client':
         specifier: workspace:0.16.0
         version: link:../../packages/3-extensions/sql-orm-client
@@ -877,48 +781,9 @@ importers:
 
   examples/prisma-next-demo-sqlite:
     dependencies:
-      '@prisma-next/adapter-sqlite':
+      '@prisma/orm-sqlite':
         specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/6-adapters/sqlite
-      '@prisma-next/contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-sqlite':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/sqlite
-      '@prisma-next/family-sql':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/9-family
-      '@prisma-next/framework-components':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/1-core/framework-components
-      '@prisma-next/ids':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/2-authoring/ids
-      '@prisma-next/sql-builder':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/4-lanes/sql-builder
-      '@prisma-next/sql-contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/1-core/contract
-      '@prisma-next/sql-contract-ts':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/2-authoring/contract-ts
-      '@prisma-next/sql-orm-client':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-extensions/sql-orm-client
-      '@prisma-next/sql-relational-core':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/4-lanes/relational-core
-      '@prisma-next/sql-runtime':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/5-runtime
-      '@prisma-next/sqlite':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-extensions/sqlite
-      '@prisma-next/target-sqlite':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/3-targets/sqlite
+        version: link:../../packages/9-public/@prisma/orm-sqlite
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -926,21 +791,9 @@ importers:
         specifier: ^17.4.2
         version: 17.4.2
     devDependencies:
-      '@prisma-next/cli':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/3-tooling/cli
-      '@prisma-next/emitter':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/3-tooling/emitter
-      '@prisma-next/sql-contract-emitter':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/3-tooling/emitter
       '@prisma-next/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
-      '@prisma-next/utils':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/0-foundation/utils
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.4
@@ -959,9 +812,6 @@ importers:
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
       '@prisma-next/extension-postgis':
         specifier: workspace:0.16.0
         version: link:../../packages/3-extensions/postgis
@@ -1062,9 +912,6 @@ importers:
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
       '@prisma-next/family-sql':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/9-family
@@ -1295,15 +1142,9 @@ importers:
       '@prisma-next/contract':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/driver-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/7-drivers/postgres
       '@prisma-next/extension-supabase':
         specifier: workspace:0.16.0
         version: link:../../packages/3-extensions/supabase
-      '@prisma-next/family-sql':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/9-family
       '@prisma-next/postgres':
         specifier: workspace:0.16.0
         version: link:../../packages/3-extensions/postgres
@@ -1338,9 +1179,6 @@ importers:
       '@prisma-next/migration-tools':
         specifier: workspace:0.16.0
         version: link:../../packages/1-framework/3-tooling/migration
-      '@prisma-next/sql-contract-psl':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/2-authoring/contract-psl
       '@prisma-next/test-utils':
         specifier: workspace:0.16.0
         version: link:../../test/utils
@@ -1755,6 +1593,9 @@ importers:
       '@prisma-next/psl-printer':
         specifier: workspace:0.16.0
         version: link:../../2-authoring/psl-printer
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../../0-shared/publish-surface
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../0-foundation/utils
@@ -1798,9 +1639,6 @@ importers:
         specifier: ^10.0.0
         version: 10.0.0
     devDependencies:
-      '@prisma-next/publish-surface':
-        specifier: workspace:0.16.0
-        version: link:../../../0-shared/publish-surface
       '@prisma-next/sql-contract':
         specifier: workspace:0.16.0
         version: link:../../../2-sql/1-core/contract
@@ -5469,6 +5307,9 @@ importers:
       '@prisma-next/psl-printer':
         specifier: workspace:0.16.0
         version: link:../../1-framework/2-authoring/psl-printer
+      '@prisma-next/publish-surface':
+        specifier: workspace:0.16.0
+        version: link:../../0-shared/publish-surface
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../1-framework/0-foundation/utils

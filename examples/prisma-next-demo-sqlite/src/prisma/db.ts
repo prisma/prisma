@@ -1,4 +1,4 @@
-import sqlite from '@prisma-next/sqlite/runtime';
+import sqlite from '@prisma/orm-sqlite/runtime';
 import type { Contract } from './contract';
 import contractJson from './contract.json' with { type: 'json' };
 

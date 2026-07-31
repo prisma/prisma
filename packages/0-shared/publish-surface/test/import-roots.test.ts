@@ -7,6 +7,7 @@ import {
   type ImportRoot,
   ImportRootError,
   importedSpecifiers,
+  importRootForDependencies,
   internalImportRoot,
   platformEntrypointOf,
   resolveImportSpecifier,
@@ -178,6 +179,46 @@ describe('directDependencyShells', () => {
     expect(shells.has('@prisma/orm-toolchain')).toBe(true);
     expect(shells.has('@prisma/orm-extension-pgvector')).toBe(true);
     expect(shells.has('@prisma/orm-postgres')).toBe(false);
+  });
+});
+
+describe('importRootForDependencies', () => {
+  it('reads the facade an application installed', () => {
+    expect(importRootForDependencies(['@prisma/orm-postgres', 'pg', 'react'])).toEqual(
+      postgresFacade,
+    );
+    expect(importRootForDependencies(['@prisma/orm-mongo'])).toEqual(mongoFacade);
+  });
+
+  it('ignores extension packs, which every root allows', () => {
+    expect(
+      importRootForDependencies(['@prisma/orm-postgres', '@prisma/orm-extension-pgvector']),
+    ).toEqual(postgresFacade);
+  });
+
+  it('reads a decomposed install from the platform shells it names', () => {
+    expect(
+      importRootForDependencies(['@prisma/orm-framework', '@prisma/orm-target-postgres']),
+    ).toEqual(platform);
+  });
+
+  it('prefers the facade when a project also names a platform shell', () => {
+    // A facade's own dependencies are installable alongside it; the facade is
+    // still the name the application should be emitted against.
+    expect(importRootForDependencies(['@prisma/orm-postgres', '@prisma/orm-toolchain'])).toEqual(
+      postgresFacade,
+    );
+  });
+
+  it('falls back to the internal root when no published package is named', () => {
+    expect(importRootForDependencies(['@prisma-next/postgres', 'pg'])).toEqual(internalImportRoot);
+    expect(importRootForDependencies([])).toEqual(internalImportRoot);
+  });
+
+  it('refuses two facades, which no single generated file can be emitted for', () => {
+    expect(() => importRootForDependencies(['@prisma/orm-postgres', '@prisma/orm-sqlite'])).toThrow(
+      ImportRootError,
+    );
   });
 });
 

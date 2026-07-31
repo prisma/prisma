@@ -10,6 +10,7 @@ import { dirname, join } from 'pathe';
 import { errorContractConfigMissing, errorRuntime } from '../../utils/cli-errors';
 import { queueEmitByOutput } from '../../utils/emit-queue';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
+import { createProjectSpecifierResolver } from '../../utils/project-import-root';
 import { publishContractArtifactPair } from '../../utils/publish-contract-artifact-pair';
 import { validateContractDeps } from '../../utils/validate-contract-deps';
 import { enrichContract } from '../contract-enrichment';
@@ -264,6 +265,7 @@ export async function executeContractEmit(
         emit(deserializedContract, stack, config.family.emission, {
           outputJsonPath,
           serializeContract,
+          resolveImportSpecifier: createProjectSpecifierResolver(configPath),
           ...ifDefined('shouldPreserveEmpty', contractSerializer.shouldPreserveEmpty),
           ...ifDefined('sortStorage', contractSerializer.sortStorage),
         }),

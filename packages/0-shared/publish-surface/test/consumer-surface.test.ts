@@ -1,6 +1,6 @@
 /**
  * What the in-repo consumers need from the published surface, and what the
- * facades do not carry yet.
+ * facades do not carry.
  *
  * ADR 242 promises that an application installs one `@prisma/orm-<database>`
  * package and gets the stack. `examples/` and `apps/` are the check on that
@@ -11,12 +11,11 @@
  * everything they share (see
  * `packages/9-public/@prisma/orm-framework/test/module-identity.test.ts`).
  *
- * The list below is therefore the remaining work on the published surface,
- * expressed as code so it shrinks visibly and cannot silently grow. Each
- * entry is an internal package that some example imports and that no facade
- * republishes. Closing one is a `reexports` entry in `../src/shells`, or a
- * decision that the surface should not carry it — not a reason for the
- * example to keep the workspace name.
+ * The list below is therefore a hole in the published surface, expressed as
+ * code so it cannot silently grow. Each entry is an internal package that
+ * some example imports and that no facade republishes. Closing one is a
+ * `reexports` entry in `../src/shells`, or a decision that the surface should
+ * not carry it — not a reason for the example to keep the workspace name.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -86,34 +85,13 @@ function anyFacadeCarries(specifier: string): boolean {
 /**
  * Internal packages an example imports that no facade republishes.
  *
- * `@prisma-next/test-utils` is the one entry that is not a gap in the
- * published surface: it is the repository's own test helper, has no published
- * counterpart by design, and is a devDependency of the example test files
- * that use it. It is listed so the check stays exhaustive, and it is the one
- * entry that closing the others will not remove.
+ * `@prisma-next/test-utils` is not a gap in the published surface: it is the
+ * repository's own test helper, has no published counterpart by design, and
+ * is a devDependency of the example test files that use it. It is the only
+ * name that belongs here — anything else appearing in this list is a package
+ * a real application would be unable to import.
  */
-const notCarriedByAnyFacade: readonly string[] = [
-  '@prisma-next/cli',
-  '@prisma-next/driver-mongo',
-  '@prisma-next/driver-postgres',
-  '@prisma-next/family-mongo',
-  '@prisma-next/family-sql',
-  '@prisma-next/migration-tools',
-  '@prisma-next/mongo-orm',
-  '@prisma-next/mongo-query-ast',
-  '@prisma-next/mongo-query-builder',
-  '@prisma-next/mongo-runtime',
-  '@prisma-next/mongo-value',
-  '@prisma-next/sql-builder',
-  '@prisma-next/sql-contract-psl',
-  '@prisma-next/sql-contract-ts',
-  '@prisma-next/sql-orm-client',
-  '@prisma-next/sql-relational-core',
-  '@prisma-next/sql-runtime',
-  '@prisma-next/test-utils',
-  '@prisma-next/utils',
-  '@prisma-next/vite-plugin-contract-emit',
-];
+const notCarriedByAnyFacade: readonly string[] = ['@prisma-next/test-utils'];
 
 describe('the published surface against the applications that will consume it', () => {
   const specifiers = [...consumerSpecifiers()].sort();

@@ -1,15 +1,5 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { mongoOrm } from '@prisma-next/mongo-orm';
+import mongo from '@prisma-next/mongo/runtime';
 import { MongoFieldFilter } from '@prisma-next/mongo-query-ast/execution';
-import {
-  createMongoExecutionContext,
-  createMongoExecutionStack,
-  createMongoRuntime,
-  type MongoRuntime,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
 import { timeouts } from '@prisma-next/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
@@ -17,13 +7,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Contract } from '../src/contract';
 import contractJson from '../src/contract.json' with { type: 'json' };
 
-const contract = new MongoContractSerializer().deserializeContract<Contract>(contractJson);
-
 describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => {
   let replSet: MongoMemoryReplSet;
   let client: MongoClient;
-  let runtime: MongoRuntime;
   const dbName = 'crud_lifecycle_test';
+  const mongoDb = mongo<Contract>({ contractJson });
+  const orm = mongoDb.orm;
 
   beforeAll(async () => {
     replSet = await MongoMemoryReplSet.create({
@@ -32,13 +21,7 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
     client = new MongoClient(replSet.getUri());
     await client.connect();
 
-    const stack = createMongoExecutionStack({
-      target: mongoRuntimeTarget,
-      adapter: mongoRuntimeAdapter,
-    });
-    const context = createMongoExecutionContext({ contract, stack });
-    const driver = await createMongoDriver(replSet.getUri(), dbName);
-    runtime = createMongoRuntime({ context, driver });
+    await mongoDb.connect({ uri: replSet.getUri(), dbName });
   }, timeouts.spinUpMongoMemoryServer);
 
   beforeEach(async () => {
@@ -46,12 +29,10 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   afterAll(async () => {
-    await Promise.allSettled([runtime?.close(), client?.close(), replSet?.stop()]);
+    await Promise.allSettled([mongoDb.close(), client?.close(), replSet?.stop()]);
   }, timeouts.spinUpMongoMemoryServer);
 
   it('create → read → update → read → delete → read', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     const alice = await orm.users.create({
       name: 'Alice',
       email: 'alice@example.com',
@@ -89,8 +70,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('createAll → read → updateAll → read → deleteAll → read', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     const created = await orm.users.createAll([
       { name: 'Alice', email: 'alice@example.com', bio: null, role: 'reader', address: null },
       { name: 'Bob', email: 'bob@example.com', bio: null, role: 'reader', address: null },
@@ -129,8 +108,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('createAndCount returns inserted count', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     const count = await orm.users.createAndCount([
       { name: 'Alice', email: 'alice@example.com', bio: null, role: 'reader', address: null },
       { name: 'Bob', email: 'bob@example.com', bio: null, role: 'reader', address: null },
@@ -143,8 +120,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('updateAndCount returns modified count', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     await orm.users.createAll([
       { name: 'Alice', email: 'alice@example.com', bio: null, role: 'reader', address: null },
       { name: 'Bob', email: 'bob@example.com', bio: null, role: 'reader', address: null },
@@ -159,8 +134,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('deleteAndCount returns deleted count', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     await orm.users.createAll([
       { name: 'Alice', email: 'alice@example.com', bio: null, role: 'reader', address: null },
       { name: 'Bob', email: 'bob@example.com', bio: null, role: 'reader', address: null },
@@ -177,8 +150,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('upsert inserts when no match', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     const result = await orm.users.where(MongoFieldFilter.eq('email', 'new@example.com')).upsert({
       create: {
         name: 'New User',
@@ -204,7 +175,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('create and read user with embedded Address value object', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
     const address = { street: '789 Elm Blvd', city: 'Austin', zip: '73301', country: 'US' };
 
     const alice = await orm.users.create({
@@ -225,8 +195,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('create user with null address', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     const bob = await orm.users.create({
       name: 'Bob',
       email: 'bob@example.com',
@@ -243,7 +211,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('update embedded Address value object', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
     const original = { street: '100 First Ave', city: 'Seattle', zip: '98101', country: 'US' };
 
     await orm.users.create({
@@ -264,8 +231,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
   });
 
   it('upsert updates when match exists', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     await orm.users.create({
       name: 'Alice',
       email: 'alice@example.com',

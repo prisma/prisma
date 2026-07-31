@@ -50,6 +50,23 @@ describe('an application that installs only the Postgres facade', () => {
   it('resolves and imports every facade entrypoint', () => {
     const subpaths = importSubpaths(installedDir);
     expect(subpaths.length).toBeGreaterThan(60);
+    // The surfaces an application reaches for by hand, as opposed to the ones
+    // only generated files name. An application depends on the facade and
+    // nothing else, so a missing name here is a package it cannot import at
+    // all (ADR 242).
+    expect(subpaths).toEqual(
+      expect.arrayContaining([
+        './orm-client',
+        './builder',
+        './relational-core',
+        './family-runtime',
+        './family/control',
+        './driver/control',
+        './utils/casts',
+        './migration-tools/io',
+        './vite-plugin-contract-emit',
+      ]),
+    );
     const script = [
       `const subpaths = ${JSON.stringify(subpaths)};`,
       'for (const subpath of subpaths) {',
@@ -145,5 +162,33 @@ describe('the Postgres facade alongside its platform shells', () => {
       console.log('orm-client ok');
     `;
     expect(runInScratch(scratch, script)).toContain('orm-client ok');
+  });
+
+  // The entrypoints an application reaches for by hand. Each has to be the
+  // same module the platform shell publishes, not a second copy: the ORM
+  // client's collection registry, the runtime's middleware chain and the
+  // family's IR classes are all compared by reference.
+  it('shares one module instance for every hand-reached surface', () => {
+    const script = `
+      import { strict as assert } from 'node:assert';
+      const pairs = [
+        ['orm-client', '@prisma/orm-family-sql/orm-client', 'orm'],
+        ['builder/runtime', '@prisma/orm-family-sql/builder/runtime', 'sql'],
+        ['family-runtime', '@prisma/orm-family-sql/runtime', 'withTransaction'],
+        ['relational-core/ast', '@prisma/orm-family-sql/relational-core/ast', 'SelectAst'],
+        ['family/control', '@prisma/orm-family-sql/family/control', 'default'],
+        ['driver/control', '@prisma/orm-target-postgres/driver/control', 'default'],
+        ['utils/casts', '@prisma/orm-framework/utils/casts', 'castAs'],
+        ['migration-tools/io', '@prisma/orm-toolchain/migration-tools/io', 'materialiseMigrationPackage'],
+      ];
+      for (const [subpath, platform, name] of pairs) {
+        const viaFacade = await import('@prisma/orm-postgres/' + subpath);
+        const viaPlatform = await import(platform);
+        assert.equal(typeof viaFacade[name], typeof viaPlatform[name], subpath);
+        assert.equal(viaFacade[name], viaPlatform[name], subpath);
+      }
+      console.log('forwarded identity ok');
+    `;
+    expect(runInScratch(scratch, script)).toContain('forwarded identity ok');
   });
 });

@@ -15,17 +15,10 @@
     "lint": "biome check . --error-on-warnings"
   },
   "dependencies": {
-    "@prisma-next/adapter-mongo": "workspace:0.16.0",
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/mongo": "workspace:0.16.0",
-    "@prisma-next/mongo-contract": "workspace:0.16.0",
-    "@prisma-next/mongo-query-builder": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0",
+    "@prisma/orm-mongo": "workspace:0.16.0",
     "mongodb": "catalog:"
   },
   "devDependencies": {
-    "@prisma-next/cli": "workspace:0.16.0",
-    "@prisma-next/test-utils": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "mongodb-memory-server": "catalog:",

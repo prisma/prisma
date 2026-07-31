@@ -25,6 +25,7 @@
     "@prisma-next/migration-tools": "workspace:0.16.0",
     "@prisma-next/psl-parser": "workspace:0.16.0",
     "@prisma-next/psl-printer": "workspace:0.16.0",
+    "@prisma-next/publish-surface": "workspace:0.16.0",
     "@prisma-next/cli-telemetry": "workspace:0.16.0",
     "@prisma-next/utils": "workspace:0.16.0",
     "arktype": "^2.2.2",
