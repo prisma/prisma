@@ -219,6 +219,8 @@ A count is a `bigint` because a count is a cardinality: it is not capped at 2^53
 
 **SQLite differs on `avg`**, which is always real there and reads as a `number`; its integer sums are `bigint` like PostgreSQL's. A query written for both handles both.
 
+**`having(...)` is the exception, and stays a `number`.** A HAVING operand is compared inside SQL against the aggregate the database is computing — it never crosses a codec — so `having.count().gte(minUsers)` takes the plain number it always did. Only the aggregate's *result*, the value that reaches your code, carries its target's type.
+
 This isn't a typing bug — it's faithful to what the database returns. Coalesce client-side when you want zero-fill:
 
 ```typescript
@@ -365,7 +367,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 - [ ] Chose the right lane (ORM by default; `db.sql` for shapes the ORM doesn't express).
 - [ ] Used `.first()` / `.first({ pk })` for single-row reads — not `.all()`.
 - [ ] Coalesced `sum` / `avg` / `min` / `max` results at the consumption site when zero-fill is desired, with a zero of the aggregate's own type — did NOT coalesce `count()`, which is `bigint` and never null.
-- [ ] Compared and serialised aggregate results as what they are — `2n` not `2`, `String(count)` not bare `JSON.stringify`.
+- [ ] Compared and serialised aggregate *results* as what they are — `2n` not `2`, `String(count)` not bare `JSON.stringify` — while leaving `having(...)` operands as numbers, since those are compared inside SQL.
 - [ ] Expressed ranges as chained `.where(...)` clauses or a single `and(...)` clause — did NOT reach for a non-existent `.between(...)` operator.
 - [ ] For cursor pagination, used `.orderBy(...).cursor({ field: lastValue }).take(n).all()` — did NOT hand-write a `.where(p => p.field.lt(cursor))` workaround when the `.cursor()` API serves the same purpose.
 - [ ] For ORM combinators, imported `and` / `or` / `not` from the (currently internal) `@internal/sql-orm-client` and noted the façade gap to the user.

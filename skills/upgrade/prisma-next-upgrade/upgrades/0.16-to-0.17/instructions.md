@@ -597,10 +597,12 @@ changes:
       bites quietly: `count === 2` is false where `count` is `2n`, and `JSON.stringify` throws on a
       bigint. Sweep for `toBe(<number>)` / `=== <number>` / arithmetic against an aggregate result
       and switch to `2n` or the decimal string, and render bigints explicitly (`String(value)`)
-      wherever you serialise. Regenerate your contracts (`prisma-next contract emit`): the emitted
-      `contract.d.ts` gains an `AggregateTypes` block that types every aggregate per operation and
-      input codec, and the ORM and SQL builder both resolve their result types from it — a
-      contract emitted before 0.17 types aggregates as `never`.
+      wherever you serialise. `having(...)` operands are the exception and stay numbers — they are
+      compared inside SQL and never cross a codec. Regenerate your contracts
+      (`prisma-next contract emit`): the emitted `contract.d.ts` gains an `AggregateTypes` block
+      that types every aggregate per operation and input codec, and the ORM and SQL builder both
+      resolve their result types from it — against a contract emitted before 0.17 an aggregate
+      resolves to `never` in the ORM and to `unknown` in the SQL builder.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
@@ -639,13 +641,15 @@ Two failure modes are worth sweeping for, because neither announces itself:
 
 Arithmetic mixing a bigint with a number also throws (`2n + 1` is a `TypeError`); convert one side deliberately.
 
+`having(...)` is the one place that does not move. A HAVING operand is compared inside SQL against the aggregate the database is computing, so it never crosses a codec: `having.count().gte(2)` keeps the plain number it always took. Only the aggregate's *result* — the value that reaches your code — carries its target's type.
+
 Finally, regenerate your contracts:
 
 ```bash
 prisma-next contract emit
 ```
 
-The emitted `contract.d.ts` gains an `AggregateTypes` block — the settled result identity per operation and per input codec — and both the ORM client and the SQL builder resolve their aggregate result types from it. Aggregates typed against a contract emitted before 0.17 resolve to `never`, which surfaces as a type error at the call site rather than a wrong runtime value.
+The emitted `contract.d.ts` gains an `AggregateTypes` block — the settled result identity per operation and per input codec — and both the ORM client and the SQL builder resolve their aggregate result types from it. Against a contract emitted before 0.17 the block is absent, so an aggregate resolves to `never` in the ORM and to `unknown` in the SQL builder: a type error at the call site in the first case, an untyped value in the second, rather than a wrong runtime value in either.
 
 
 ## `strip-sha256-hash-prefixes`
