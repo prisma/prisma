@@ -48,6 +48,17 @@ Raised by TML-3123, resolved in analysis during its review, and **carried into T
 2. **Mongo migrations under `facade` mode.** Mongo emits three specifiers where SQL emits one, and the facade republishes contract surfaces but not the family migration base or the CLI. The asymmetry is an accident the code already flags as a follow-up. Fix: mirror the SQL targets — have `@prisma-next/target-mongo/migration` re-export `Migration` and `MigrationCLI`, collapsing the scaffold to one specifier. Mongo then works under all three roots with no change to the published facade surface.
 3. **`init` under `platform` mode.** `@prisma-next/<db>/runtime` is the facade's own wiring, not a re-export, so a decomposed scaffold is a different template rather than a renamed import. This is correct by construction: `init` is facade-only. Express it in the type (`internal | facade`) rather than as a runtime throw, and state it in the ADR.
 
+## Decided: `@prisma-next` disappears from the repo entirely
+
+**Operator decision, 2026-07-31.** Not just from consumer projects — from the private workspace packages too. An earlier version of this file recorded "internal names stay `@prisma-next/*`" as a non-goal; that was wrong and is reversed.
+
+Two pieces of work:
+
+1. **Consumer projects reach zero.** Every `examples/*`, everything under `apps/`, and the user-project-shaped test trees import published names only. The check that enforces this asserts **zero** — no committed count, no tolerance. Substrate suites whose job is to exercise internal packages directly (`test/integration/test/ports/**`, fixtures, the `sql-orm-client` and `sql-builder` suites) are outside its scope by definition, not by exemption; if that boundary is wrong the answer is to move those suites under `packages/**`, not to give the check a threshold.
+2. **The private packages get renamed** off `@prisma-next/*` to `@internal/*`. They are `private: true` and never published, so the scope is repo vocabulary only. `@internal` cannot be mistaken for a published `@prisma/*` name, and a package that leaked into a publish attempt would fail on an unowned scope rather than land somewhere plausible.
+
+The two sweeps rewrite imports and manifests across the same files, so they run in sequence rather than together.
+
 ## Decisions deferred to close-out (raised by delivery, need an ADR answer)
 
 1. **The framework/toolchain split does not currently achieve its stated purpose.** ADR 242 splits `orm-framework` from `orm-toolchain` so a deployed application's runtime graph never carries a compiler toolchain. In practice every facade and most extension packs hard-depend on `orm-toolchain`, inherited from internal packages (`@prisma-next/postgres` → `@prisma-next/cli`; families and targets → `emitter`/`migration-tools`/`cli`), and the facade needs it for the bin launcher regardless. Tree-shaking still trims deployed bundles, but the *structural* guarantee the ADR claims is not there. Either the internal dependencies move (the deferred emitter-placement decision, plus separating the CLI's runtime-facing surface from its tooling) or ADR 242's rationale is amended to claim only what holds.
