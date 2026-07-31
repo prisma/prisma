@@ -51,6 +51,92 @@ const maxOrdered: SqlAggregateDescriptor = {
   nullable: true,
 };
 
+const countAnything: SqlAggregateDescriptor = {
+  operation: 'count',
+  input: { kind: 'any' },
+  output: { kind: 'codec', codecId: 'lib/int8@1' },
+  nullable: false,
+};
+
+describe('buildSqlAggregateDescriptorRegistry — input-agnostic matching', () => {
+  it('answers a call carrying no input', () => {
+    const registry = buildSqlAggregateDescriptorRegistry([countAnything], codecs);
+
+    expect(registry.resolve('count')).toEqual({
+      operation: 'count',
+      output: { codecId: 'lib/int8@1' },
+      nullable: false,
+      lower: undefined,
+    });
+  });
+
+  it('answers a call carrying any input codec', () => {
+    const registry = buildSqlAggregateDescriptorRegistry([countAnything], codecs);
+
+    expect(registry.resolve('count', { codecId: 'lib/text@1' })?.output).toEqual({
+      codecId: 'lib/int8@1',
+    });
+    expect(registry.resolve('count', { codecId: 'ext/unregistered@1' })?.output).toEqual({
+      codecId: 'lib/int8@1',
+    });
+  });
+
+  it('yields to an exact codec match', () => {
+    const registry = buildSqlAggregateDescriptorRegistry(
+      [countAnything, { ...sumInt8, operation: 'count' }],
+      codecs,
+    );
+
+    expect(registry.resolve('count', { codecId: 'lib/int8@1' })?.output).toEqual({
+      codecId: 'lib/numeric@1',
+    });
+    expect(registry.resolve('count', { codecId: 'lib/int4@1' })?.output).toEqual({
+      codecId: 'lib/int8@1',
+    });
+  });
+
+  it('yields to a trait match', () => {
+    const registry = buildSqlAggregateDescriptorRegistry(
+      [countAnything, { ...sumNumeric, operation: 'count', output: { kind: 'self' } }],
+      codecs,
+    );
+
+    expect(registry.resolve('count', { codecId: 'lib/int4@1' })?.output).toEqual({
+      codecId: 'lib/int4@1',
+    });
+    expect(registry.resolve('count', { codecId: 'lib/text@1' })?.output).toEqual({
+      codecId: 'lib/int8@1',
+    });
+  });
+
+  it('yields to a no-input descriptor for a call carrying no input', () => {
+    const registry = buildSqlAggregateDescriptorRegistry(
+      [countAnything, { ...countRows, output: { kind: 'codec', codecId: 'lib/numeric@1' } }],
+      codecs,
+    );
+
+    expect(registry.resolve('count')?.output).toEqual({ codecId: 'lib/numeric@1' });
+    expect(registry.resolve('count', { codecId: 'lib/text@1' })?.output).toEqual({
+      codecId: 'lib/int8@1',
+    });
+  });
+
+  it('rejects a self output, there being no input it is guaranteed to have', () => {
+    expect(() =>
+      buildSqlAggregateDescriptorRegistry([{ ...countAnything, output: { kind: 'self' } }], codecs),
+    ).toThrow(/is not a valid SQL aggregate descriptor/);
+  });
+
+  it('claims its own ownership key', () => {
+    expect(() =>
+      buildSqlAggregateDescriptorRegistry([countAnything, countRows], codecs),
+    ).not.toThrow();
+    expect(() =>
+      buildSqlAggregateDescriptorRegistry([countAnything, { ...countAnything }], codecs),
+    ).toThrow(/Duplicate aggregate descriptor for 'count:any'/);
+  });
+});
+
 describe('buildSqlAggregateDescriptorRegistry — resolution', () => {
   it('resolves a no-input operation to its declared output codec', () => {
     const registry = buildSqlAggregateDescriptorRegistry([countRows], codecs);

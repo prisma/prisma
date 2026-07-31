@@ -2,6 +2,7 @@ export type {
   AggregateDescriptor,
   AggregateInputMatch,
   AggregateOutputCodec,
+  AnyInputAggregateDescriptor,
   NamedAggregateOutput,
   NoInputAggregateDescriptor,
   SelfAggregateOutput,
@@ -10,6 +11,7 @@ export type {
 export {
   aggregateDescriptorKey,
   isAggregateDescriptor,
+  isAnyInputAggregateDescriptor,
   isNoInputAggregateDescriptor,
 } from '../shared/aggregate-descriptor';
 export type { CapabilityMatrix } from '../shared/capabilities';

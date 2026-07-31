@@ -43,6 +43,10 @@ describe('aggregateDescriptorKey', () => {
     ).toBe('sum:codec:lib/int4@1');
   });
 
+  it('keys an input-agnostic match by operation alone', () => {
+    expect(aggregateDescriptorKey({ ...countRows, input: { kind: 'any' } })).toBe('count:any');
+  });
+
   it('keys a trait match by operation and trait', () => {
     expect(aggregateDescriptorKey(sumIntegers)).toBe('sum:trait:numeric');
   });
@@ -59,8 +63,18 @@ describe('isAggregateDescriptor', () => {
     expect(isAggregateDescriptor(countRows)).toBe(true);
   });
 
+  it('accepts an input-agnostic match', () => {
+    expect(isAggregateDescriptor({ ...countRows, input: { kind: 'any' } })).toBe(true);
+  });
+
   it('rejects a self output on an operation that consumes no input', () => {
     expect(isAggregateDescriptor({ ...countRows, output: { kind: 'self' } })).toBe(false);
+  });
+
+  it('rejects a self output on an input-agnostic match, which may have no input to reuse', () => {
+    expect(
+      isAggregateDescriptor({ ...countRows, input: { kind: 'any' }, output: { kind: 'self' } }),
+    ).toBe(false);
   });
 
   it('rejects an unknown input match kind', () => {

@@ -16,13 +16,15 @@ import { isCodecTrait } from './codec-types';
  * - `none` — the operation consumes no value (counting entries).
  * - `codec` — the value's codec id matches exactly.
  * - `trait` — the value's codec advertises the trait.
+ * - `any` — the operation's result does not depend on its input, so the descriptor answers calls with and without one (counting entries or non-null values).
  *
- * Exact codec matches win over trait matches during resolution.
+ * Resolution consults exact codec matches first, then traits, then input-agnostic matches; a `none` match answers only a call that carries no input.
  */
 export type AggregateInputMatch =
   | { readonly kind: 'none' }
   | { readonly kind: 'codec'; readonly codecId: string }
-  | { readonly kind: 'trait'; readonly trait: CodecTrait };
+  | { readonly kind: 'trait'; readonly trait: CodecTrait }
+  | { readonly kind: 'any' };
 
 /**
  * Result identity that names its codec outright. The optional `typeParams` resolver derives the result's type parameters from the input reference; it cannot change which codec id the result carries.
@@ -54,6 +56,12 @@ export interface NoInputAggregateDescriptor extends AggregateDescriptorBase {
   readonly output: NamedAggregateOutput;
 }
 
+/** Overload of an operation whose result does not depend on its input. It answers calls with and without an input, so — like a no-input overload — it names its result codec outright. */
+export interface AnyInputAggregateDescriptor extends AggregateDescriptorBase {
+  readonly input: { readonly kind: 'any' };
+  readonly output: NamedAggregateOutput;
+}
+
 /** Overload of an operation over values whose codec matches by id or by trait. */
 export interface ValueInputAggregateDescriptor extends AggregateDescriptorBase {
   readonly input:
@@ -67,7 +75,10 @@ export interface ValueInputAggregateDescriptor extends AggregateDescriptorBase {
  *
  * Each pair has exactly one contributor across a composed stack, so `count` over entries, `sum` over a numeric trait, and `sum` over one exact codec id are three independent descriptors that may come from three different components.
  */
-export type AggregateDescriptor = NoInputAggregateDescriptor | ValueInputAggregateDescriptor;
+export type AggregateDescriptor =
+  | NoInputAggregateDescriptor
+  | AnyInputAggregateDescriptor
+  | ValueInputAggregateDescriptor;
 
 /**
  * Ownership key of an `(operation, input)` pair. Two descriptors sharing a key are two contributors claiming one overload, which is a composition error.
@@ -76,6 +87,8 @@ export function aggregateDescriptorKey(descriptor: AggregateDescriptor): string 
   switch (descriptor.input.kind) {
     case 'none':
       return `${descriptor.operation}:none`;
+    case 'any':
+      return `${descriptor.operation}:any`;
     case 'codec':
       return `${descriptor.operation}:codec:${descriptor.input.codecId}`;
     case 'trait':
@@ -90,6 +103,13 @@ export function isNoInputAggregateDescriptor(
   return descriptor.input.kind === 'none';
 }
 
+/** Whether `descriptor` answers regardless of input — the fallback rung of resolution. */
+export function isAnyInputAggregateDescriptor(
+  descriptor: AggregateDescriptor,
+): descriptor is AnyInputAggregateDescriptor {
+  return descriptor.input.kind === 'any';
+}
+
 function isObjectLike(value: unknown): value is object {
   return typeof value === 'object' && value !== null;
 }
@@ -102,6 +122,7 @@ function isAggregateInputMatch(value: unknown): value is AggregateInputMatch {
   if (!isObjectLike(value) || !('kind' in value)) return false;
   switch (value.kind) {
     case 'none':
+    case 'any':
       return true;
     case 'codec':
       return 'codecId' in value && isNonEmptyString(value.codecId);
@@ -139,5 +160,6 @@ export function isAggregateDescriptor(value: unknown): value is AggregateDescrip
   if (!('nullable' in value) || typeof value.nullable !== 'boolean') return false;
   if (!('input' in value) || !isAggregateInputMatch(value.input)) return false;
   if (!('output' in value) || !isAggregateOutputCodec(value.output)) return false;
-  return value.input.kind !== 'none' || value.output.kind === 'codec';
+  const reusesAnInput = value.input.kind === 'codec' || value.input.kind === 'trait';
+  return reusesAnInput || value.output.kind === 'codec';
 }

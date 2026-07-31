@@ -2,6 +2,7 @@ import type { CodecRef, CodecTrait } from '@prisma-next/framework-components/cod
 import type { NamedAggregateOutput } from '@prisma-next/framework-components/components';
 import {
   aggregateDescriptorKey,
+  isAnyInputAggregateDescriptor,
   isNoInputAggregateDescriptor,
 } from '@prisma-next/framework-components/components';
 import { ifDefined } from '@prisma-next/utils/defined';
@@ -16,12 +17,17 @@ import type {
 } from './query-lane-context';
 
 interface OperationTable {
-  readonly noInput: ResolvedSqlAggregate | undefined;
+  /** What a call carrying no input resolves to: the no-input overload, else the input-agnostic one. */
+  readonly withoutInput: ResolvedSqlAggregate | undefined;
+  /** Per codec id, the overload settled from the exact and trait rungs. */
   readonly byCodecId: ReadonlyMap<string, SqlAggregateDescriptor>;
+  /** The input-agnostic overload, consulted for an input no exact or trait rung claims. */
+  readonly anyInput: SqlAggregateDescriptor | undefined;
 }
 
 interface OperationContributions {
   readonly noInput: SqlAggregateDescriptor | undefined;
+  readonly anyInput: SqlAggregateDescriptor | undefined;
   readonly exact: Map<string, SqlAggregateDescriptor>;
   readonly traits: Array<{
     readonly descriptor: SqlAggregateDescriptor;
@@ -30,7 +36,7 @@ interface OperationContributions {
 }
 
 function emptyContributions(): OperationContributions {
-  return { noInput: undefined, exact: new Map(), traits: [] };
+  return { noInput: undefined, anyInput: undefined, exact: new Map(), traits: [] };
 }
 
 function namedOutputRef(output: NamedAggregateOutput, input: CodecRef | undefined): CodecRef {
@@ -60,7 +66,7 @@ export function buildSqlAggregateDescriptorRegistry(
         `Contributed value ${describeCandidate(candidate)} is not a valid SQL aggregate descriptor.`,
         {
           why: 'Aggregate resolution reads a declared operation, input match, result codec, and nullability; a lowering hook, where present, must be callable.',
-          fix: 'Declare `operation`, `input` (`none` / `codec` / `trait`), `output` (`self` / `codec`), and `nullable` on the descriptor.',
+          fix: 'Declare `operation`, `input` (`none` / `any` / `codec` / `trait`), `output` (`self` / `codec`), and `nullable` on the descriptor.',
           meta: { descriptor: describeCandidate(candidate) },
         },
       );
@@ -89,6 +95,12 @@ export function buildSqlAggregateDescriptorRegistry(
           noInput: candidate,
         });
         break;
+      case 'any':
+        contributionsByOperation.set(candidate.operation, {
+          ...contributions,
+          anyInput: candidate,
+        });
+        break;
       case 'codec':
         contributions.exact.set(candidate.input.codecId, candidate);
         contributionsByOperation.set(candidate.operation, contributions);
@@ -103,8 +115,11 @@ export function buildSqlAggregateDescriptorRegistry(
   const tables = new Map<string, OperationTable>();
   for (const [operation, contributions] of contributionsByOperation) {
     tables.set(operation, {
-      noInput: resolveNoInput(operation, contributions.noInput),
+      withoutInput:
+        resolveWithoutInput(operation, contributions.noInput) ??
+        resolveWithoutInput(operation, contributions.anyInput),
       byCodecId: settleCodecMatches(operation, contributions, codecDescriptors),
+      anyInput: contributions.anyInput,
     });
   }
 
@@ -112,9 +127,9 @@ export function buildSqlAggregateDescriptorRegistry(
     resolve(operation: string, input?: CodecRef): ResolvedSqlAggregate | undefined {
       const table = tables.get(operation);
       if (table === undefined) return undefined;
-      if (input === undefined) return table.noInput;
+      if (input === undefined) return table.withoutInput;
 
-      const descriptor = table.byCodecId.get(input.codecId);
+      const descriptor = table.byCodecId.get(input.codecId) ?? table.anyInput;
       if (descriptor === undefined) return undefined;
 
       return {
@@ -133,11 +148,17 @@ export function buildSqlAggregateDescriptorRegistry(
   };
 }
 
-function resolveNoInput(
+/**
+ * Resolve the overload that answers a call carrying no input. Both kinds that qualify name their result codec outright, there being no input codec to reuse.
+ */
+function resolveWithoutInput(
   operation: string,
   descriptor: SqlAggregateDescriptor | undefined,
 ): ResolvedSqlAggregate | undefined {
-  if (descriptor === undefined || !isNoInputAggregateDescriptor(descriptor)) return undefined;
+  if (descriptor === undefined) return undefined;
+  if (!isNoInputAggregateDescriptor(descriptor) && !isAnyInputAggregateDescriptor(descriptor)) {
+    return undefined;
+  }
   return {
     operation,
     output: namedOutputRef(descriptor.output, undefined),
@@ -147,7 +168,7 @@ function resolveNoInput(
 }
 
 /**
- * Settle, per codec id, which descriptor claims it: the exact match where one exists, otherwise the single trait descriptor whose trait the codec advertises.
+ * Settle, per codec id, which descriptor claims it: the exact match where one exists, otherwise the single trait descriptor whose trait the codec advertises. A codec neither rung claims falls to the operation's input-agnostic overload at resolution.
  */
 function settleCodecMatches(
   operation: string,
