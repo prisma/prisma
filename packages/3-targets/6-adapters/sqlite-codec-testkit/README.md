@@ -6,7 +6,7 @@ Database-backed conformance harness for SQLite codec JSON projections.
 
 A codec descriptor's `projectJson()` renders SQL that reproduces `codec.encodeJson()` inside the database. This package runs that claim against a live SQLite: it stores a representative value in a column of the case's declared storage type, projects the stored column, executes the projection, and checks that the parsed result agrees with `encodeJson` and round-trips back through `decodeJson`.
 
-It is dev-only tooling, not a runtime dependency — extension authors install it to verify their own codec descriptors the same way the built-in SQLite adapter suite verifies its own.
+It is dev-only tooling, not a runtime dependency — extension authors install it to verify their own codec descriptors the same way this package's own `test/` suite verifies every built-in SQLite codec descriptor.
 
 ## Usage
 
@@ -32,6 +32,6 @@ const outcome = await runSqliteCodecProjection(connection, conformanceCase);
 
 ## Scope
 
-The harness, case types, and runner are the public API. It does not ship the built-in SQLite adapter's own case catalogue — that stays with the adapter's test suite as its own coverage, not general-purpose vocabulary.
+The harness, case types, and runner are the public API — the `dist`/`src` this package ships. The built-in SQLite codec catalogue is not part of that surface: it lives in this package's own `test/` directory (excluded from the published tarball by `files`), where it dogfoods the same harness an extension author consumes, rather than being general-purpose vocabulary.
 
 A SQLite codec descriptor carries no native type, so `storageType` states the column's declared SQLite type directly.

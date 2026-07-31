@@ -46,7 +46,7 @@ import type { JsonValue } from '@prisma-next/contract/types';
 import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/types';
 import type { CodecRef } from '@prisma-next/framework-components/codec';
 import { validateCodecTypeParams } from '@prisma-next/framework-components/codec';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import { SqlStorage } from '@prisma-next/sql-contract/types';
 import {
   ColumnRef,
   JsonObjectExpr,
@@ -57,7 +57,6 @@ import {
 } from '@prisma-next/sql-relational-core/ast';
 import type { AnySqliteCodecDescriptor } from '@prisma-next/target-sqlite/codec-descriptor';
 import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
-import { blindCast } from '@prisma-next/utils/casts';
 import { ifDefined } from '@prisma-next/utils/defined';
 
 /**
@@ -168,13 +167,10 @@ const DOCUMENT_KEY = 'value';
 function buildConformanceContract(): SqliteContract {
   const target = 'sqlite';
   const targetFamily = 'sql';
-  const rawStorage = { namespaces: {} };
-  const storage = blindCast<
-    SqlStorage,
-    'the harness only ever renders an unqualified table reference, so the full SqlStorage IR (constructed elsewhere via freezeNode) is never resolved through'
-  >({
-    ...rawStorage,
-    storageHash: computeStorageHash({ target, targetFamily, storage: rawStorage }),
+  const namespaces = {};
+  const storage = new SqlStorage({
+    namespaces,
+    storageHash: computeStorageHash({ target, targetFamily, storage: { namespaces } }),
   });
 
   return {
