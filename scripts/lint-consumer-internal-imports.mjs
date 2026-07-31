@@ -1,37 +1,40 @@
 #!/usr/bin/env node
 /**
- * Committed high-water-mark threshold for internal workspace imports in the
+ * Committed high-water-mark thresholds for internal workspace packages in the
  * consumer trees.
  *
  * ADR 242 makes an application depend on exactly one `@prisma/orm-*` facade
- * plus whatever extension packs it installs. The repository's own consumers —
- * `examples/`, `apps/`, `test/` — are the standing proof of that: every
- * `@prisma-next/*` specifier one of them still names is a place where the
- * published surface is not yet what a real user gets. The target is zero.
+ * plus whatever extension packs it installs. The repository's own consumers
+ * are the standing proof of that, and they can fall short of it in two ways,
+ * so each scope is measured twice:
  *
- * Counts lines naming an internal specifier (textual scan, not a compiler
- * diagnostic) at HEAD, per scope declared in
- * lint-consumer-internal-imports.config.json, and compares the count against a
- * `threshold` recorded in that same config:
+ *   - **imports** — lines naming an internal `@prisma-next/*` specifier.
+ *   - **manifests** — internal packages a consumer declares in its
+ *     `package.json` (`dependencies` + `devDependencies`). This is what ADR
+ *     242 actually claims: a consumer could import nothing internal and still
+ *     list a dozen internal packages, and its install would look nothing like
+ *     a real application's.
  *
- *   - count > threshold — an internal import was added; fail, and name the
- *     files it was added to.
+ * Both counts are compared against numbers recorded in
+ * lint-consumer-internal-imports.config.json:
+ *
+ *   - count > threshold — one was added; fail, and name where.
  *   - count < threshold — the scope improved; fail, and tell the author to
  *     lower the recorded threshold to lock in the reduction.
  *   - count === threshold — pass.
  *
- * There is no git merge-base or temporary worktree involved — the threshold is
- * just a number checked into the config, so the check works from any checkout
- * (shallow, detached, no origin/main) and the count may only ever shrink.
+ * There is no git merge-base or temporary worktree involved — the thresholds
+ * are numbers checked into the config, so the check works from any checkout
+ * (shallow, detached, no origin/main) and the counts may only ever shrink.
  *
  * This is not `lint-single-import-root.mjs`. That one forbids a consumer
  * naming *both* roots at once, which loads two copies of every module they
  * share; it is a correctness check and fails hard with no threshold. This one
- * forbids naming the internal root at all, and ratchets down to zero.
+ * forbids naming the internal root at all, and ratchets down.
  *
  * Exit codes:
- *   0 — every scope's count equals its recorded threshold
- *   1 — at least one scope's count differs from its threshold
+ *   0 — every scope's counts equal its recorded thresholds
+ *   1 — at least one count differs from its threshold
  *
  * The script uses process.cwd() as the git root (and reads its config relative
  * to that root) so tests can supply a temporary fixture repo by setting cwd on
@@ -118,12 +121,103 @@ export function scanScope(scanDir, scope) {
   return records;
 }
 
+/**
+ * `@prisma-next/tsconfig` is excluded: it is a TypeScript config consumed via
+ * `extends`, never imported, and it has no published counterpart. Every other
+ * internal package in a consumer's manifest is one a real application would
+ * not have.
+ */
+const MANIFEST_EXEMPT = new Set(['@prisma-next/tsconfig']);
+
+const MANIFEST_FIELDS = ['dependencies', 'devDependencies'];
+
+function isRecord(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** One record per internal package a consumer manifest in `scope` declares. */
+export function scanManifests(scanDir, scope) {
+  const listing = git(scanDir, 'ls-files', '--', scope.path);
+  const manifests = listing
+    .split('\n')
+    .filter(Boolean)
+    .filter((relPath) => /(^|\/)package\.json$/.test(relPath))
+    .filter((relPath) => !/(^|\/)node_modules\//.test(relPath));
+
+  const records = [];
+  for (const relPath of manifests) {
+    let parsed;
+    try {
+      parsed = JSON.parse(readFileSync(join(scanDir, relPath), 'utf-8'));
+    } catch {
+      continue;
+    }
+    if (!isRecord(parsed)) continue;
+    for (const field of MANIFEST_FIELDS) {
+      const declared = parsed[field];
+      if (!isRecord(declared)) continue;
+      for (const name of Object.keys(declared)) {
+        if (!name.startsWith(INTERNAL_SCOPE)) continue;
+        if (MANIFEST_EXEMPT.has(name)) continue;
+        records.push({ file: relPath, field, package: name });
+      }
+    }
+  }
+  return records;
+}
+
 /** The files a scope's records fall in, worst first, for a legible failure. */
 function byFile(records) {
   const counts = new Map();
   for (const record of records) counts.set(record.file, (counts.get(record.file) ?? 0) + 1);
   return [...counts].sort((a, b) => b[1] - a[1]);
 }
+
+/**
+ * Compares one measurement against its recorded threshold, printing the
+ * reading and, when they differ, what to do about it. Returns true on failure.
+ */
+function check({ scope, label, thresholdKey, records, unit, remedy }) {
+  const count = records.length;
+  const threshold = scope[thresholdKey];
+
+  console.log(
+    `lint:consumer-internal-imports: scope=${scope.path} ${label}=${count} threshold=${threshold}`,
+  );
+
+  if (count > threshold) {
+    console.error(
+      `lint:consumer-internal-imports: ${count - threshold} new ${unit} in ${scope.path}.`,
+    );
+    console.error(`  ${remedy}`);
+    for (const [file, fileCount] of byFile(records).slice(0, 10)) {
+      console.error(`    ${file} (${fileCount})`);
+    }
+    console.error(`  Find your additions: git diff origin/main -- ${scope.path}`);
+    console.error(
+      '  List all current sites: node scripts/lint-consumer-internal-imports.mjs --list',
+    );
+    console.error(
+      `  If genuinely unavoidable, raise "${thresholdKey}" to ${count} in scripts/lint-consumer-internal-imports.config.json with justification in review.`,
+    );
+    return true;
+  }
+
+  if (count < threshold) {
+    console.error(
+      `lint:consumer-internal-imports: scope=${scope.path} ${label} improved (${count} < ${threshold}).`,
+    );
+    console.error(
+      `  Lower "${thresholdKey}" to ${count} in scripts/lint-consumer-internal-imports.config.json to lock in the reduction.`,
+    );
+    return true;
+  }
+
+  return false;
+}
+
+const CONSUMER_RULE =
+  'A consumer depends on one @prisma/orm-* facade and its extension packs, nothing else.';
 
 function main() {
   const config = loadConfig(CONFIG_PATH);
@@ -132,46 +226,36 @@ function main() {
   let anyFailed = false;
 
   for (const scope of config.scopes) {
-    const records = scanScope(GIT_ROOT, scope);
-    const count = records.length;
-    const threshold = scope.threshold;
+    const imports = scanScope(GIT_ROOT, scope);
+    const manifests = scanManifests(GIT_ROOT, scope);
 
-    console.log(
-      `lint:consumer-internal-imports: scope=${scope.path} count=${count} threshold=${threshold}`,
-    );
+    anyFailed =
+      check({
+        scope,
+        label: 'imports',
+        thresholdKey: 'threshold',
+        records: imports,
+        unit: 'internal import line(s)',
+        remedy: CONSUMER_RULE,
+      }) || anyFailed;
+
+    anyFailed =
+      check({
+        scope,
+        label: 'manifest',
+        thresholdKey: 'manifestThreshold',
+        records: manifests,
+        unit: 'internal package(s) declared in a consumer manifest',
+        remedy: CONSUMER_RULE,
+      }) || anyFailed;
 
     if (list) {
-      for (const record of records) {
+      for (const record of imports) {
         console.log(`  ${record.file}:${record.line}: ${record.specifiers.join(', ')}`);
       }
-    }
-
-    if (count > threshold) {
-      anyFailed = true;
-      console.error(
-        `lint:consumer-internal-imports: ${count - threshold} new internal import line(s) in ${scope.path}.`,
-      );
-      console.error(
-        '  A consumer depends on one @prisma/orm-* facade and its extension packs, nothing else.',
-      );
-      for (const [file, fileCount] of byFile(records).slice(0, 10)) {
-        console.error(`    ${file} (${fileCount})`);
+      for (const record of manifests) {
+        console.log(`  ${record.file} ${record.field}: ${record.package}`);
       }
-      console.error(`  Find your additions: git diff origin/main -- ${scope.path}`);
-      console.error(
-        '  List all current sites: node scripts/lint-consumer-internal-imports.mjs --list',
-      );
-      console.error(
-        `  If genuinely unavoidable, raise "threshold" to ${count} in scripts/lint-consumer-internal-imports.config.json with justification in review.`,
-      );
-    } else if (count < threshold) {
-      anyFailed = true;
-      console.error(
-        `lint:consumer-internal-imports: scope=${scope.path} improved (count=${count} < threshold=${threshold}).`,
-      );
-      console.error(
-        `  Lower "threshold" to ${count} in scripts/lint-consumer-internal-imports.config.json to lock in the reduction.`,
-      );
     }
   }
 
