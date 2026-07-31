@@ -35,13 +35,31 @@ Every published package lives under the single `@prisma` scope. The full public 
 | `@prisma/orm-family-sql`, `@prisma/orm-family-mongo` | family domains |
 | `@prisma/orm-target-postgres`, `orm-target-sqlite`, `orm-target-mongo` | concrete targets, each exposing `/target`, `/adapter`, `/driver` entrypoints |
 
+## What an application depends on
+
+One facade, plus whatever extension packs it installs. Nothing else — not `@prisma/orm-family-sql`, not `@prisma/orm-toolchain`, even though the facade brings both in. Those arrive as the facade's own dependencies, and an application that names one directly is claiming a version contract it does not have.
+
+That holds only if the facade has a name for everything an application reaches, so it republishes each of them as one of its own entrypoints:
+
+| What the application reaches for | Facade entrypoint |
+|---|---|
+| its own wiring: client, config, contract builder, migrations | `@prisma/orm-postgres/{runtime,config,contract-builder,migration}` |
+| the types generated files import | `.../{contract,components,family-contract,target,adapter}` |
+| the family's runtime and query surfaces | `.../{family-runtime,orm-client,builder,relational-core}` |
+| the family's control plane and IR, and the driver | `.../{family,driver}` |
+| shared helpers, migration tooling, the Vite plugin | `.../{utils,migration-tools,vite-plugin-contract-emit}` |
+
+Each of those is a re-export of the platform package that owns the module, never a copy — the identity rule below governs the facade exactly as it governs a platform shell. Where the facade's own wiring already owns a name, the republished surface takes a qualified one: `runtime` is the facade's Postgres client and `family-runtime` is the SQL family's.
+
+The `prisma-next` command arrives the same way. A package manager puts only a package's *direct* dependencies on `PATH`, so the toolchain's bin is not runnable from an install that reaches the toolchain transitively. Each facade therefore declares its own `prisma-next` bin: a one-line launcher that runs the toolchain's single published copy of the program.
+
 ## Who each package is for
 
 The package boundary states the audience, so "is this public API?" needs no documentation lookup:
 
-- **App developers** touch the facades, the extensions, and the `prisma` bin. Nothing else appears in a tutorial.
-- **Generated code** imports only from packages the application directly depends on — never from transitive dependencies, which strict package managers refuse to resolve and which the application has no version contract with. The facade re-exports the contract surfaces as its own entrypoints (`@prisma/orm-postgres/contract`, `@prisma/orm-postgres/components`), and the emitter's import root defaults to the facade. A decomposed install (see below) configures the emitter to emit platform-package imports instead, since those are direct dependencies in that layout.
-- **Extension authors** build against the platform packages (`orm-framework`, the families, the targets), which they declare as ordinary dependencies of their extension.
+- **App developers** touch the facades, the extensions, and the `prisma` bin. Nothing else appears in a tutorial, and nothing else appears in an application's `package.json`.
+- **Generated code** imports only from packages the application directly depends on — never from transitive dependencies, which strict package managers refuse to resolve and which the application has no version contract with. The facade re-exports the contract surfaces as its own entrypoints (`@prisma/orm-postgres/contract`, `@prisma/orm-postgres/components`), and the emitter picks the import root by reading the application's own manifest: a project that depends on a facade is emitted against that facade, one that depends on the platform packages is emitted against those, and one that depends on neither keeps the names it already had. Nothing configures this, because the manifest already states it and a separate setting could only disagree with what is installed.
+- **Extension authors** build against the platform packages (`orm-framework`, the families, the targets), which they declare as ordinary dependencies of their extension. So do decomposed installs. Applications reach the same modules through their facade's entrypoints, so the two never end up with separate copies.
 - **Nobody** installs a private workspace package; they are not on npm.
 
 Platform package names are strict and symmetric: `orm-family-sql`, not `orm-sql`. These names are typed by tooling and generated code, not by humans running `npm install`, so regularity beats brevity.
@@ -57,6 +75,8 @@ import { myPooledAdapter } from './my-adapter' // replaces @prisma/orm-target-po
 ```
 
 Because the facade's dependencies are ordinary published packages pinned to one lockstep version, the decomposed install reproduces exactly the combination the facade would have provided, minus the part being replaced. (Versioning is lockstep repo-wide — one root version, `workspace:` pins, `scripts/set-version-utils` — and this ADR leaves that model untouched.)
+
+Decomposing means dropping the facade, not adding packages beside it: the platform packages become the application's direct dependencies and the emitter reads that from the manifest. Scaffolding a decomposed project is a different template rather than the same one under a different import root — `prisma-next init` writes an application around a facade's `runtime` entrypoint, which is that facade's own wiring code and has no counterpart in a layout that does the wiring itself.
 
 ## Why entrypoints, not bundles: module identity
 
@@ -78,6 +98,8 @@ So `@prisma/orm-family-sql` is a shell whose entrypoints map 1:1 onto the intern
 | `packages/1-framework/3-tooling/cli` | `@prisma/orm-toolchain/cli` (+ `bin`) |
 
 (The complete mapping lives in `docs/reference/Package Naming Conventions.md`.)
+
+A facade's republished entrypoints are the same rule applied twice: `@prisma/orm-postgres/family-runtime` and `@prisma/orm-family-sql/runtime` are two names for one module, because the facade forwards to the platform package rather than carrying its own copy. Only the facade's own wiring source is compiled into the facade.
 
 Internal packages keep their granularity — they remain the unit of code organization and of dependency-direction guardrails. The published shells are an outer skin, not a reorganization of the source tree.
 
@@ -146,6 +168,12 @@ Publishing the platform/internal packages under a separate scope was attractive 
 - A second org permanently doubles token, provenance, 2FA, and permission administration.
 
 The underlying itch — too many packages of unclear audience in one scope — is solved better by shrinking and structuring the published set, which this ADR does. Defensively registering the `@prisma-orm` org and leaving it empty is still worthwhile.
+
+### Letting an application name the platform packages too
+
+The facade would carry only its own wiring, and an application would install `@prisma/orm-family-sql` or `@prisma/orm-toolchain` alongside it whenever it needed the ORM client, the SQL builder, or migration tooling. Nothing would have to be republished, and the facade would stay genuinely thin.
+
+Rejected because it gives up the property the facade exists for. An application would again accumulate several Prisma dependencies whose correct combination it has to maintain by hand, and each one is a version contract it can get wrong: upgrading the facade without upgrading the family resolves to two copies of the SQL runtime, and the failure is silent — both copies type-check and behave identically in isolation, and the divergence only shows up as an `instanceof` that stops holding. Republishing costs the facade a generated re-export per surface and nothing at runtime, since a re-export is not a copy.
 
 ### Publishing every workspace package
 
