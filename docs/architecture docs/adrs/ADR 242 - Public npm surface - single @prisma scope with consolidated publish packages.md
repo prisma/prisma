@@ -15,7 +15,7 @@ An application that uses Prisma Next against Postgres installs **one** package:
 
 That facade pulls in everything else — the framework, the SQL family, the Postgres target, and the CLI tooling — as ordinary, exact-pinned npm dependencies:
 
-```
+```text
 @prisma/orm-postgres            facade: wiring + re-exports, installs the stack
 ├── @prisma/orm-framework       contracts, components, runtime core
 ├── @prisma/orm-family-sql      SQL-family contract, lanes, runtime
@@ -23,11 +23,11 @@ That facade pulls in everything else — the framework, the SQL family, the Post
 └── @prisma/orm-toolchain       CLI (bin), emitter, config-loader, LSP
 ```
 
-Every published package lives under the single `@prisma` scope. The full public surface is **17 packages** — 3 database facades, 6 extension packs, 6 platform packages, the `prisma` bin shim, and nothing else. Every other workspace package is `"private": true`: it exists for code organization and layering guardrails, and reaches npm only as a subpath entrypoint of a published package (for example, the SQL runtime is importable as `@prisma/orm-family-sql/runtime`).
+Every published package lives under the single `@prisma` scope. The full public surface is **17 packages** — 3 database facades, 6 extension packs, 7 platform packages, the `prisma` bin shim, and nothing else. Every other workspace package is `"private": true`: it exists for code organization and layering guardrails, and reaches npm only as a subpath entrypoint of a published package (for example, the SQL runtime is importable as `@prisma/orm-family-sql/runtime`).
 
 | Published package | Role |
 |---|---|
-| `prisma` | bin-only shim for `npx prisma ...` (ADR 211 mechanics) |
+| `prisma` | bin-only shim carrying the `prisma` command (ADR 211 mechanics) |
 | `@prisma/orm-postgres`, `orm-sqlite`, `orm-mongo` | database facades — an app installs exactly one |
 | `@prisma/orm-extension-postgis`, `-pgvector`, `-paradedb`, `-supabase`, `-arktype-json`, `-middleware-cache` | optional capability packs, additive installs |
 | `@prisma/orm-framework` | target-agnostic runtime: contract, components, authoring surface |
@@ -90,17 +90,19 @@ The consolidation boundaries follow the domain directories, and the dependency g
 - `@prisma/orm-framework` — layers `0-foundation`, `1-core`, `2-authoring`: everything application code and emitted contracts reach **at runtime**.
 - `@prisma/orm-toolchain` — layer `3-tooling`: the CLI, emitter, config-loader, language server, telemetry, and vite plugin, along with their heavy dependencies (esbuild, prettier, clipanion, vscode-languageserver).
 
-The split exists for deployment weight: a serverless bundle traces the runtime import graph and must not drag in a compiler toolchain. Keeping tooling in a separate package makes that property structural instead of relying on bundler tree-shaking.
+The split exists for deployment weight: a serverless bundle traces the runtime import graph and should not drag in a compiler toolchain.
+
+The split is a necessary condition for that, not yet a sufficient one. Packages in the runtime layers still reach tooling — the families and targets depend on the emitter and migration tooling, and the facades depend on the CLI to carry the `prisma` command — so today a deployed application's dependency graph does include `@prisma/orm-toolchain`, and bundle weight still relies on tree-shaking. Making the separation structural requires moving those runtime-bound surfaces out of the tooling layer, which is the emitter-placement question left open below. The package boundary is drawn where it will need to be; the dependencies have yet to follow it.
 
 ## The `prisma` bin
 
-The unscoped `prisma` package is a bin-only shim over `@prisma/orm-toolchain`'s CLI, using the mechanics of ADR 211: verbatim dist copy, mirrored runtime deps, a `bin` field, and no `exports`/`main`/`types` — it is an install vehicle for `npx prisma ...`, never an import target. Programmatic consumers import `@prisma/orm-toolchain` subpaths.
+The unscoped `prisma` package is a bin-only shim over `@prisma/orm-toolchain`'s CLI, using the mechanics of ADR 211: verbatim dist copy, mirrored runtime deps, a `bin` field, and no `exports`/`main`/`types` — it is a distribution vehicle for the `prisma` command, never an import target. Programmatic consumers import `@prisma/orm-toolchain` subpaths.
 
 ## Repository layout: `packages/9-public/`
 
 Publishability is a directory property. Every publishable package lives under `packages/9-public/`, extending the numbered-layer convention (`9` = the outermost, user-visible layer). Scoped packages nest under an `@prisma/` directory so the on-disk path mirrors the published name:
 
-```
+```text
 packages/9-public/
   prisma/                  # bin-only shim (unscoped)
   @prisma/
