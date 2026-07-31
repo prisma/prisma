@@ -1,9 +1,10 @@
-import type { CodecRef, CodecTrait } from '@prisma-next/framework-components/codec';
+import type { CodecRef } from '@prisma-next/framework-components/codec';
 import type { NamedAggregateOutput } from '@prisma-next/framework-components/components';
 import {
   aggregateDescriptorKey,
   isAnyInputAggregateDescriptor,
   isNoInputAggregateDescriptor,
+  settleAggregateOverloads,
 } from '@prisma-next/framework-components/components';
 import { ifDefined } from '@prisma-next/utils/defined';
 import { structuredError } from '@prisma-next/utils/structured-error';
@@ -25,20 +26,6 @@ interface OperationTable {
   readonly anyInput: SqlAggregateDescriptor | undefined;
 }
 
-interface OperationContributions {
-  readonly noInput: SqlAggregateDescriptor | undefined;
-  readonly anyInput: SqlAggregateDescriptor | undefined;
-  readonly exact: Map<string, SqlAggregateDescriptor>;
-  readonly traits: Array<{
-    readonly descriptor: SqlAggregateDescriptor;
-    readonly trait: CodecTrait;
-  }>;
-}
-
-function emptyContributions(): OperationContributions {
-  return { noInput: undefined, anyInput: undefined, exact: new Map(), traits: [] };
-}
-
 function namedOutputRef(output: NamedAggregateOutput, input: CodecRef | undefined): CodecRef {
   return frozenCodecRef({
     codecId: output.codecId,
@@ -56,7 +43,6 @@ export function buildSqlAggregateDescriptorRegistry(
   codecDescriptors: CodecDescriptorRegistry,
 ): SqlAggregateDescriptorRegistry {
   const validated: SqlAggregateDescriptor[] = [];
-  const contributionsByOperation = new Map<string, OperationContributions>();
   const claimedKeys = new Set<string>();
 
   for (const candidate of descriptors) {
@@ -86,40 +72,34 @@ export function buildSqlAggregateDescriptorRegistry(
     }
     claimedKeys.add(key);
     validated.push(candidate);
+  }
 
-    const contributions = contributionsByOperation.get(candidate.operation) ?? emptyContributions();
-    switch (candidate.input.kind) {
-      case 'none':
-        contributionsByOperation.set(candidate.operation, {
-          ...contributions,
-          noInput: candidate,
-        });
-        break;
-      case 'any':
-        contributionsByOperation.set(candidate.operation, {
-          ...contributions,
-          anyInput: candidate,
-        });
-        break;
-      case 'codec':
-        contributions.exact.set(candidate.input.codecId, candidate);
-        contributionsByOperation.set(candidate.operation, contributions);
-        break;
-      case 'trait':
-        contributions.traits.push({ descriptor: candidate, trait: candidate.input.trait });
-        contributionsByOperation.set(candidate.operation, contributions);
-        break;
-    }
+  const settled = settleAggregateOverloads(validated, codecDescriptors.values());
+  const ambiguity = settled.ambiguities[0];
+  if (ambiguity !== undefined) {
+    throw structuredError(
+      'RUNTIME.AMBIGUOUS_AGGREGATE_DESCRIPTOR',
+      `Ambiguous aggregate descriptors for '${ambiguity.operation}' over codec '${ambiguity.codecId}': traits ${ambiguity.traits.join(', ')} all claim it.`,
+      {
+        why: 'A codec advertising several claimed traits leaves the result codec undetermined.',
+        fix: `Contribute an exact descriptor for '${ambiguity.operation}' over '${ambiguity.codecId}', or narrow the overlapping trait contributions.`,
+        meta: {
+          operation: ambiguity.operation,
+          codecId: ambiguity.codecId,
+          traits: ambiguity.traits,
+        },
+      },
+    );
   }
 
   const tables = new Map<string, OperationTable>();
-  for (const [operation, contributions] of contributionsByOperation) {
+  for (const [operation, entry] of settled.operations) {
     tables.set(operation, {
       withoutInput:
-        resolveWithoutInput(operation, contributions.noInput) ??
-        resolveWithoutInput(operation, contributions.anyInput),
-      byCodecId: settleCodecMatches(operation, contributions, codecDescriptors),
-      anyInput: contributions.anyInput,
+        resolveWithoutInput(operation, entry.noInput) ??
+        resolveWithoutInput(operation, entry.anyInput),
+      byCodecId: entry.byCodecId,
+      anyInput: entry.anyInput,
     });
   }
 
@@ -165,42 +145,6 @@ function resolveWithoutInput(
     nullable: descriptor.nullable,
     lower: descriptor.lower,
   };
-}
-
-/**
- * Settle, per codec id, which descriptor claims it: the exact match where one exists, otherwise the single trait descriptor whose trait the codec advertises. A codec neither rung claims falls to the operation's input-agnostic overload at resolution.
- */
-function settleCodecMatches(
-  operation: string,
-  contributions: OperationContributions,
-  codecDescriptors: CodecDescriptorRegistry,
-): ReadonlyMap<string, SqlAggregateDescriptor> {
-  const byCodecId = new Map(contributions.exact);
-  if (contributions.traits.length === 0) return byCodecId;
-
-  for (const codecDescriptor of codecDescriptors.values()) {
-    if (byCodecId.has(codecDescriptor.codecId)) continue;
-
-    const matches = contributions.traits.filter((entry) =>
-      codecDescriptor.traits.includes(entry.trait),
-    );
-    if (matches.length > 1) {
-      const traits = matches.map((entry) => entry.trait);
-      throw structuredError(
-        'RUNTIME.AMBIGUOUS_AGGREGATE_DESCRIPTOR',
-        `Ambiguous aggregate descriptors for '${operation}' over codec '${codecDescriptor.codecId}': traits ${traits.join(', ')} all claim it.`,
-        {
-          why: 'A codec advertising several claimed traits leaves the result codec undetermined.',
-          fix: `Contribute an exact descriptor for '${operation}' over '${codecDescriptor.codecId}', or narrow the overlapping trait contributions.`,
-          meta: { operation, codecId: codecDescriptor.codecId, traits },
-        },
-      );
-    }
-    const match = matches[0];
-    if (match !== undefined) byCodecId.set(codecDescriptor.codecId, match.descriptor);
-  }
-
-  return byCodecId;
 }
 
 function describeCandidate(value: unknown): string {

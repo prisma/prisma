@@ -14,6 +14,13 @@ export {
   isAnyInputAggregateDescriptor,
   isNoInputAggregateDescriptor,
 } from '../shared/aggregate-descriptor';
+export type {
+  AggregateCodecTraits,
+  AggregateOverloadAmbiguity,
+  SettledAggregateOperation,
+  SettledAggregateOverloads,
+} from '../shared/aggregate-overloads';
+export { settleAggregateOverloads } from '../shared/aggregate-overloads';
 export type { CapabilityMatrix } from '../shared/capabilities';
 export { mergeCapabilityMatrices } from '../shared/capabilities';
 export type {
