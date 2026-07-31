@@ -514,6 +514,25 @@ changes:
         - "contract infer"
         - "@@rls"
       anyMatch: true
+  - id: postgres-packages-now-ship-types-pg
+    summary: |
+      `@prisma-next/postgres`, `@prisma-next/extension-supabase`, and
+      `@prisma-next/driver-postgres` re-export `pg` types from their published
+      declarations, so each now carries `@types/pg` in `dependencies` instead of
+      `devDependencies`. Extension authors previously had to add `@types/pg` to their own
+      devDependencies to compile against those declarations — that workaround is now the
+      hazard. `pg` ships no types of its own, so a second `@types/pg` copy at a different
+      version gives `pg.Client` / `pg.Pool` two identities, and handing your own client or
+      pool to a Prisma Next API stops compiling with `Argument of type 'Client' is not
+      assignable to parameter of type 'Client'` (`Type 'Client' is missing the following
+      properties from type 'Client': connection, setTypeParser, getTypeParser`). Drop
+      `@types/pg` from your extension and take it transitively, or pin it to the version
+      `@prisma-next/postgres` depends on.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "@types/pg"
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions
@@ -640,6 +659,21 @@ Review every `CodecRef` construction for a parameterized descriptor, including p
 When a parameterized descriptor intentionally supports an unparameterized column or contract reference, make its parameter type and Standard Schema accept the empty validated parameter object used during representative materialization. Express only genuinely absent fields as optional and preserve the existing unparameterized factory behavior; do not add a hidden default or change the codec encoded representation.
 
 After the migration, run the extension package's typecheck, lint, and tests. Verify its public codec ids, factories, column helpers, rendered types, SQL/wire behavior, `encodeJson` / `decodeJson`, runtime/control descriptor membership, and emitted contract behavior are unchanged apart from the descriptor types becoming PostgreSQL-specific.
+
+## `postgres-packages-now-ship-types-pg`
+
+`@prisma-next/postgres`, `@prisma-next/extension-supabase`, and `@prisma-next/driver-postgres` re-export `pg` types from their published `.d.mts` files, so each declares `@types/pg` under `dependencies` from 0.17. Compiling against those declarations no longer requires your extension to supply `@types/pg` itself.
+
+If your extension's `package.json` declares `@types/pg`, act on it. `pg` carries no types of its own, so two `@types/pg` copies in the tree give `pg.Client` and `pg.Pool` two distinct identities. Any call that hands your own client or pool to a Prisma Next API — `new PostgresControlDriver(client)`, a driver `connect: { pool }` — then fails:
+
+```
+Argument of type 'Client' is not assignable to parameter of type 'Client'.
+  Type 'Client' is missing the following properties from type 'Client': connection, setTypeParser, getTypeParser
+```
+
+The error names the same type on both sides; the two paths under `node_modules/.pnpm/@types+pg@<version>/` in the full message are what identify it.
+
+Prefer dropping `@types/pg` from your extension's `devDependencies` and taking it transitively, so its version tracks Prisma Next's. If you keep the entry — because your own code imports `pg` directly and you want the dependency explicit — pin it to the version `@prisma-next/postgres` depends on rather than a range that can resolve elsewhere.
 
 ## Incidental lint-config bumps
 
