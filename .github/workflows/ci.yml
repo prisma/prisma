@@ -120,6 +120,8 @@ jobs:
         run: pnpm lint:throws
       - name: Lint framework vocabulary
         run: pnpm lint:framework-vocabulary
+      - name: Lint consumer internal imports
+        run: pnpm lint:consumer-internal-imports
       - name: Check upgrade-instruction coverage
         run: pnpm check:upgrade-coverage --mode pr
       - name: Check error-reference completeness
