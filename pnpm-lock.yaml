@@ -3743,6 +3743,9 @@ importers:
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../1-framework/0-foundation/utils
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -3771,9 +3774,6 @@ importers:
       '@prisma-next/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
-      '@types/pg':
-        specifier: 'catalog:'
-        version: 8.20.0
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -3995,6 +3995,9 @@ importers:
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -4026,9 +4029,6 @@ importers:
       '@prisma-next/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
-      '@types/pg':
-        specifier: 'catalog:'
-        version: 8.20.0
       ci-info:
         specifier: ^4.3.1
         version: 4.4.0
@@ -4612,6 +4612,9 @@ importers:
       '@prisma-next/utils':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -4637,9 +4640,6 @@ importers:
       '@prisma-next/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
-      '@types/pg':
-        specifier: 'catalog:'
-        version: 8.20.0
       '@types/pg-cursor':
         specifier: ^2.4.6
         version: 2.7.2

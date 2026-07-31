@@ -23,6 +23,7 @@
     "@prisma-next/sql-operations": "workspace:0.16.0",
     "@prisma-next/sql-relational-core": "workspace:0.16.0",
     "@prisma-next/utils": "workspace:0.16.0",
+    "@types/pg": "catalog:",
     "arktype": "^2.2.2",
     "pg": "catalog:",
     "pg-cursor": "^2.21.0"
@@ -33,7 +34,6 @@
     "@prisma-next/test-utils": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
     "@prisma-next/tsdown": "workspace:0.16.0",
-    "@types/pg": "catalog:",
     "@types/pg-cursor": "^2.4.6",
     "pg-mem": "^3.0.5",
     "tsdown": "catalog:",
