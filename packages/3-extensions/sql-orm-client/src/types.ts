@@ -1,6 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { AnnotationValue, OperationKind } from '@internal/framework-components/runtime';
 import type {
+  ExtractAggregateTypes,
   ExtractCodecTypes,
   ExtractFieldOutputTypes,
   ExtractQueryOperationTypes,
@@ -551,6 +552,60 @@ export type VariantModelRow<
       : DefaultModelRow<TContract, ModelName, NsId>
     : DefaultModelRow<TContract, ModelName, NsId>;
 
+/**
+ * The value an aggregate hands the application, read from the contract's emitted aggregate map.
+ *
+ * The map is already settled per input codec — an exact overload having beaten a trait one at emit time — so resolution here is two lookups: the row for this input codec, else the row that answers any input; then that row's output codec, whose application type the codec map names. An operation the target does not declare over this input resolves to `never`, which is what makes an unavailable aggregate unsayable rather than merely wrong at runtime.
+ */
+type AggregateOperationOf<
+  TContract extends Contract<SqlStorage>,
+  Op extends string,
+> = Op extends keyof ExtractAggregateTypes<TContract>
+  ? ExtractAggregateTypes<TContract>[Op]
+  : never;
+
+type AggregateRowFor<TContract extends Contract<SqlStorage>, Op extends string, InputCodecId> = [
+  InputCodecId,
+] extends [never]
+  ? WithoutInputRow<AggregateOperationOf<TContract, Op>>
+  : InputCodecId extends keyof OperationRows<AggregateOperationOf<TContract, Op>>
+    ? OperationRows<AggregateOperationOf<TContract, Op>>[InputCodecId]
+    : AnyInputRow<AggregateOperationOf<TContract, Op>>;
+
+type OperationRows<Operation> = Operation extends { readonly byCodec: infer Rows } ? Rows : never;
+type AnyInputRow<Operation> = Operation extends { readonly anyInput: infer Row } ? Row : never;
+type WithoutInputRow<Operation> = Operation extends { readonly withoutInput: infer Row }
+  ? Row
+  : never;
+
+/** The application value an aggregate produces, `| null` where the target declares the result nullable. */
+export type AggregateResultFor<
+  TContract extends Contract<SqlStorage>,
+  Op extends string,
+  InputCodecId = never,
+> =
+  AggregateRowFor<TContract, Op, InputCodecId> extends {
+    readonly output: infer Output extends string;
+    readonly nullable: infer Nullable extends boolean;
+  }
+    ? Output extends keyof ExtractCodecTypes<TContract>
+      ? ExtractCodecTypes<TContract>[Output] extends { readonly output: infer Value }
+        ? Nullable extends true
+          ? Value | null
+          : Value
+        : never
+      : never
+    : never;
+
+/** The application value an aggregate over `FieldName` produces. */
+export type AggregateFieldResultFor<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  FieldName extends string,
+  NsId extends string = never,
+> = AggregateResultFor<TContract, Op, FieldCodecId<TContract, ModelName, FieldName, NsId>>;
+
 declare const aggregateResultBrand: unique symbol;
 
 export interface AggregateSelector<Result> {
@@ -570,19 +625,19 @@ export interface AggregateBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
 > {
-  count(): AggregateSelector<number>;
+  count(): AggregateSelector<AggregateResultFor<TContract, 'count'>>;
   sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
     field: FieldName,
-  ): AggregateSelector<number | null>;
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName>>;
   avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
     field: FieldName,
-  ): AggregateSelector<number | null>;
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName>>;
   min<FieldName extends NumericFieldNames<TContract, ModelName>>(
     field: FieldName,
-  ): AggregateSelector<number | null>;
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName>>;
   max<FieldName extends NumericFieldNames<TContract, ModelName>>(
     field: FieldName,
-  ): AggregateSelector<number | null>;
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName>>;
 }
 
 export type HavingComparisonMethods<T> = Pick<

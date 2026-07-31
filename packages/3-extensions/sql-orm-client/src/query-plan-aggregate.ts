@@ -1,5 +1,5 @@
-import type { Contract } from '@internal/contract/types';
-import type { SqlStorage } from '@internal/sql-contract/types';
+import type { Contract } from '@prisma-next/contract/types';
+import type { SqlStorage } from '@prisma-next/sql-contract/types';
 import {
   AggregateExpr,
   AndExpr,
@@ -12,9 +12,11 @@ import {
   OrExpr,
   ProjectionItem,
   SelectAst,
-} from '@internal/sql-relational-core/ast';
-import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
-import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+} from '@prisma-next/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import type { SqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
+import { resolveAggregateOutputCodec } from './aggregate-codecs';
 import { ormError } from './orm-errors';
 import { buildOrmQueryPlan, deriveParamsFromAst } from './query-plan-meta';
 import { tableSourceForContract } from './storage-resolution';
@@ -23,17 +25,12 @@ import { combineWhereExprs } from './where-utils';
 
 function toAggregateProjection(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
   selector: AggregateSelector<unknown>,
 ): { expr: AggregateExpr; codec: CodecRef | undefined } {
-  if (selector.fn === 'count') {
-    // count() returns a target-specific bigint; mapping isn't derivable here
-    // without target coupling, so we leave the codec slot empty.
-    return { expr: AggregateExpr.count(), codec: undefined };
-  }
-
-  if (!selector.column) {
+  if (selector.fn !== 'count' && !selector.column) {
     throw ormError(
       'ORM.AGGREGATE_SELECTOR_INVALID',
       `Aggregate selector "${selector.fn}" requires a field`,
@@ -43,20 +40,24 @@ function toAggregateProjection(
     );
   }
 
-  const expr = new AggregateExpr(selector.fn, ColumnRef.of(tableName, selector.column));
-  // min/max preserve the input column's type, so propagate the column codec.
-  // sum widens (int4 → int8 in Postgres) and avg → numeric; both need
-  // target+input-aware mapping that doesn't exist yet, so leave unstamped.
-  if (selector.fn === 'min' || selector.fn === 'max') {
-    const codec = codecRefForStorageColumn(
-      contract.storage,
-      namespaceId,
-      tableName,
-      selector.column,
-    );
-    return { expr, codec };
-  }
-  return { expr, codec: undefined };
+  const expr =
+    selector.column === undefined
+      ? AggregateExpr.count()
+      : new AggregateExpr(selector.fn, ColumnRef.of(tableName, selector.column));
+
+  // The result's codec is the target's to declare: `count` is a wide integer,
+  // `sum` widens or preserves per input, and `min`/`max` keep the column's own
+  // codec — all of which the aggregate registry answers per operation and input.
+  const codec = resolveAggregateOutputCodec({
+    aggregates,
+    contract,
+    namespaceId,
+    tableName,
+    fn: selector.fn,
+    column: selector.column,
+  });
+
+  return { expr, codec };
 }
 
 // ORM HAVING filters use literal binding (values inlined at plan-build time),
@@ -177,6 +178,7 @@ function validateGroupedHavingExpr(expr: AnyExpression): AnyExpression {
 
 export function compileAggregate(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
   filters: readonly AnyExpression[],
@@ -192,7 +194,13 @@ export function compileAggregate(
   }
 
   const projection: ProjectionItem[] = entries.map(([alias, selector]) => {
-    const { expr, codec } = toAggregateProjection(contract, namespaceId, tableName, selector);
+    const { expr, codec } = toAggregateProjection(
+      contract,
+      aggregates,
+      namespaceId,
+      tableName,
+      selector,
+    );
     return ProjectionItem.of(alias, expr, codec);
   });
   let ast = SelectAst.from(tableSourceForContract(contract, namespaceId, tableName)).withProjection(
@@ -209,6 +217,7 @@ export function compileAggregate(
 
 export function compileGroupedAggregate(
   contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   tableName: string,
   filters: readonly AnyExpression[],
@@ -240,7 +249,13 @@ export function compileGroupedAggregate(
       ),
     ),
     ...entries.map(([alias, selector]) => {
-      const { expr, codec } = toAggregateProjection(contract, namespaceId, tableName, selector);
+      const { expr, codec } = toAggregateProjection(
+        contract,
+        aggregates,
+        namespaceId,
+        tableName,
+        selector,
+      );
       return ProjectionItem.of(alias, expr, codec);
     }),
   ];

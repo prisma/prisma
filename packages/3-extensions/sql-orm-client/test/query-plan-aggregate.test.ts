@@ -28,6 +28,7 @@ import { describe, expect, it } from 'vitest';
 import { compileAggregate, compileGroupedAggregate } from '../src/query-plan';
 import { bindWhereExpr } from '../src/where-binding';
 import { baseContract } from './collection-fixtures';
+import { getTestAggregates } from './helpers';
 
 const defaultAggSpec = {
   totalViews: { kind: 'aggregate' as const, fn: 'sum' as const, column: 'views' },
@@ -36,6 +37,7 @@ const defaultAggSpec = {
 function compileWithHaving(having: AnyExpression) {
   return compileGroupedAggregate(
     baseContract,
+    getTestAggregates(),
     'public',
     'posts',
     [],
@@ -52,11 +54,11 @@ describe('query plan aggregate', () => {
   );
 
   it('rejects empty aggregate specs and selectors without required fields', () => {
-    expect(() => compileAggregate(baseContract, 'public', 'posts', [], {})).toThrow(
-      'aggregate() requires at least one aggregation selector',
-    );
     expect(() =>
-      compileAggregate(baseContract, 'public', 'posts', [], {
+      compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {}),
+    ).toThrow('aggregate() requires at least one aggregation selector');
+    expect(() =>
+      compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {
         totalViews: { kind: 'aggregate', fn: 'sum' },
       }),
     ).toThrow('Aggregate selector "sum" requires a field');
@@ -64,6 +66,7 @@ describe('query plan aggregate', () => {
     expect(() =>
       compileGroupedAggregate(
         baseContract,
+        getTestAggregates(),
         'public',
         'posts',
         [],
@@ -76,7 +79,16 @@ describe('query plan aggregate', () => {
     ).toThrow('groupBy() requires at least one field');
 
     expect(() =>
-      compileGroupedAggregate(baseContract, 'public', 'posts', [], ['user_id'], {}, undefined),
+      compileGroupedAggregate(
+        baseContract,
+        getTestAggregates(),
+        'public',
+        'posts',
+        [],
+        ['user_id'],
+        {},
+        undefined,
+      ),
     ).toThrow('groupBy().aggregate() requires at least one aggregation selector');
   });
 
@@ -88,6 +100,7 @@ describe('query plan aggregate', () => {
     expect(() =>
       compileGroupedAggregate(
         baseContract,
+        getTestAggregates(),
         'public',
         'posts',
         [],
@@ -103,6 +116,7 @@ describe('query plan aggregate', () => {
     expect(() =>
       compileGroupedAggregate(
         baseContract,
+        getTestAggregates(),
         'public',
         'posts',
         [],
@@ -118,6 +132,7 @@ describe('query plan aggregate', () => {
     expect(() =>
       compileGroupedAggregate(
         baseContract,
+        getTestAggregates(),
         'public',
         'posts',
         [],
@@ -130,6 +145,7 @@ describe('query plan aggregate', () => {
     expect(() =>
       compileGroupedAggregate(
         baseContract,
+        getTestAggregates(),
         'public',
         'posts',
         [],
@@ -143,6 +159,7 @@ describe('query plan aggregate', () => {
   it('keeps grouped aggregate HAVING expressions composed from aggregate metrics', () => {
     const plan = compileGroupedAggregate(
       baseContract,
+      getTestAggregates(),
       'public',
       'posts',
       [],
@@ -177,6 +194,7 @@ describe('query plan aggregate', () => {
   it('keeps grouped aggregate HAVING with OR expressions', () => {
     const plan = compileGroupedAggregate(
       baseContract,
+      getTestAggregates(),
       'public',
       'posts',
       [],
@@ -200,9 +218,16 @@ describe('query plan aggregate', () => {
   });
 
   it('keeps aggregate filters and params when lowering plain aggregate queries', () => {
-    const plan = compileAggregate(baseContract, 'public', 'posts', [filteredViews], {
-      totalViews: { kind: 'aggregate', fn: 'sum', column: 'views' },
-    });
+    const plan = compileAggregate(
+      baseContract,
+      getTestAggregates(),
+      'public',
+      'posts',
+      [filteredViews],
+      {
+        totalViews: { kind: 'aggregate', fn: 'sum', column: 'views' },
+      },
+    );
 
     expect(plan.ast.kind).toBe('select');
     const ast = plan.ast as SelectAst;
@@ -216,7 +241,7 @@ describe('query plan aggregate', () => {
   });
 
   it('stamps min/max ProjectionItem.codec from the underlying column', () => {
-    const plan = compileAggregate(baseContract, 'public', 'posts', [], {
+    const plan = compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {
       minViews: { kind: 'aggregate', fn: 'min', column: 'views' },
       maxViews: { kind: 'aggregate', fn: 'max', column: 'views' },
     });
@@ -227,8 +252,12 @@ describe('query plan aggregate', () => {
     expect(byAlias).toEqual({ minViews: 'pg/int4@1', maxViews: 'pg/int4@1' });
   });
 
-  it('leaves count/sum/avg ProjectionItem.codec undefined (deferred until target+widening-aware mapping)', () => {
-    const plan = compileAggregate(baseContract, 'public', 'posts', [], {
+  // The result codec is the target's answer per operation and input, not a
+  // rule the planner knows: over `pg/int4@1` PostgreSQL widens `sum` to
+  // `pg/int8@1` and takes `avg` to `pg/numeric@1`, while `count` is `pg/int8@1`
+  // whatever it counts.
+  it('stamps the resolved output codec on count, sum, and avg', () => {
+    const plan = compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {
       total: { kind: 'aggregate', fn: 'count' },
       sumViews: { kind: 'aggregate', fn: 'sum', column: 'views' },
       avgViews: { kind: 'aggregate', fn: 'avg', column: 'views' },
@@ -236,12 +265,17 @@ describe('query plan aggregate', () => {
 
     const ast = plan.ast as SelectAst;
     const byAlias = Object.fromEntries(ast.projection.map((p) => [p.alias, p.codec?.codecId]));
-    expect(byAlias).toEqual({ total: undefined, sumViews: undefined, avgViews: undefined });
+    expect(byAlias).toEqual({
+      total: 'pg/int8@1',
+      sumViews: 'pg/int8@1',
+      avgViews: 'pg/numeric@1',
+    });
   });
 
   it('stamps min/max codec on grouped aggregates too', () => {
     const plan = compileGroupedAggregate(
       baseContract,
+      getTestAggregates(),
       'public',
       'posts',
       [],

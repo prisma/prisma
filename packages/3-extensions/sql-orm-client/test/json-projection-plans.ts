@@ -1,3 +1,4 @@
+import { getTestAggregates } from './helpers';
 /**
  * The plans and the reader the JSON-projection tests share.
  *
@@ -66,7 +67,13 @@ export function representativePlans(): ReadonlyArray<readonly [string, SelectAst
   ] as const;
 
   return cases.map(([label, table, state]) => {
-    const plan = compileSelectWithIncludes(baseContract, 'public', table, state);
+    const plan = compileSelectWithIncludes(
+      baseContract,
+      getTestAggregates(),
+      'public',
+      table,
+      state,
+    );
     return [label, plan.ast as SelectAst] as const;
   });
 }

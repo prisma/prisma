@@ -1,7 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { getFieldToColumnMap } from './collection-contract';
-import type { AggregateBuilder, AggregateSelector, NumericFieldNames } from './types';
+import type { AggregateBuilder, AggregateSelector } from './types';
 
 export function createAggregateBuilder<
   TContract extends Contract<SqlStorage>,
@@ -21,16 +21,16 @@ export function createAggregateBuilder<
       };
     },
     sum(field) {
-      return createFieldAggregateSelector(fieldToColumn, field, 'sum');
+      return createFieldAggregateSelector(fieldToColumn, field as string, 'sum');
     },
     avg(field) {
-      return createFieldAggregateSelector(fieldToColumn, field, 'avg');
+      return createFieldAggregateSelector(fieldToColumn, field as string, 'avg');
     },
     min(field) {
-      return createFieldAggregateSelector(fieldToColumn, field, 'min');
+      return createFieldAggregateSelector(fieldToColumn, field as string, 'min');
     },
     max(field) {
-      return createFieldAggregateSelector(fieldToColumn, field, 'max');
+      return createFieldAggregateSelector(fieldToColumn, field as string, 'max');
     },
   };
 }
@@ -54,18 +54,17 @@ export function isAggregateSelector(value: unknown): value is AggregateSelector<
   );
 }
 
-function createFieldAggregateSelector<
-  TContract extends Contract<SqlStorage>,
-  ModelName extends string,
->(
+/**
+ * The selector's result type is the contract's to state — it varies by target, operation, and the field's own codec — so the builder erases it here and each method's declared return type names it.
+ */
+function createFieldAggregateSelector<Result>(
   fieldToColumn: Record<string, string>,
-  field: NumericFieldNames<TContract, ModelName>,
+  field: string,
   fn: 'sum' | 'avg' | 'min' | 'max',
-): AggregateSelector<number | null> {
-  const fieldName = field as string;
+): AggregateSelector<Result> {
   return {
     kind: 'aggregate',
     fn,
-    column: fieldToColumn[fieldName] ?? fieldName,
+    column: fieldToColumn[field] ?? field,
   };
 }

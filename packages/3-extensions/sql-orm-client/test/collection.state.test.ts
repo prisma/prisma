@@ -315,7 +315,7 @@ describe('Collection', () => {
         collection.aggregate((aggregate) => ({
           count: aggregate.count(),
         })),
-      ).resolves.toEqual({ count: 0 });
+      ).resolves.toEqual({ count: 0n });
     });
 
     it('createAndCount() returns 0 for empty payloads', async () => {

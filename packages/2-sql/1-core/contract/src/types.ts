@@ -254,6 +254,7 @@ export type ExtractStorageColumnTypes<T> = StorageColumnTypesOf<ExtractTypeMapsF
 export type ExtractStorageColumnInputTypes<T> = StorageColumnInputTypesOf<
   ExtractTypeMapsFromContract<T>
 >;
+export type ExtractAggregateTypes<T> = AggregateTypesOf<ExtractTypeMapsFromContract<T>>;
 
 export type ResolveCodecTypes<TContract, TTypeMaps> = [TTypeMaps] extends [never]
   ? ExtractCodecTypes<TContract>

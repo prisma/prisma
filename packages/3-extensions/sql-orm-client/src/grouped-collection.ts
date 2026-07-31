@@ -144,6 +144,7 @@ export class GroupedCollection<
     const compiled = mergeAnnotations(
       compileGroupedAggregate(
         this.contract,
+        this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.tableName,
         this.baseFilters,
@@ -165,8 +166,8 @@ export class GroupedCollection<
         this.modelName,
         row,
       );
-      for (const [alias, selector] of aggregateEntries) {
-        mapped[alias] = coerceAggregateValue(selector.fn, row[alias]);
+      for (const [alias] of aggregateEntries) {
+        mapped[alias] = row[alias];
       }
       return mapped;
     }) as Array<
@@ -235,29 +236,4 @@ function createHavingComparisonMethods<T extends number | null>(
       return buildBinaryExpr('lte', value);
     },
   };
-}
-
-function coerceAggregateValue(fn: string, value: unknown): unknown {
-  if (value === null) {
-    return null;
-  }
-
-  if (value === undefined) {
-    return fn === 'count' ? 0 : null;
-  }
-
-  if (typeof value === 'number') {
-    return value;
-  }
-
-  if (typeof value === 'bigint') {
-    return Number(value);
-  }
-
-  if (typeof value === 'string') {
-    const numeric = Number(value);
-    return Number.isNaN(numeric) ? value : numeric;
-  }
-
-  return value;
 }

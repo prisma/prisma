@@ -22,7 +22,6 @@ import { InternalError } from '@internal/utils/internal-error';
 import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import type { Simplify } from '@internal/utils/types';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
-import { normalizeAggregateResult } from './collection-aggregate-result';
 import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-column-mapping';
 import {
   assertReturningCapability,
@@ -97,7 +96,9 @@ import {
 } from './query-plan';
 import {
   type AggregateBuilder,
+  type AggregateFieldResultFor,
   type AggregateResult,
+  type AggregateResultFor,
   type AggregateSpec,
   type CollectionContext,
   type CollectionState,
@@ -127,6 +128,19 @@ import {
   type VariantNames,
 } from './types';
 import { normalizeWhereArg } from './where-interop';
+
+/**
+ * What an aggregate reads as when there is no row to read at all.
+ *
+ * SQL answers an empty input set itself — `count` collapses to zero, the rest
+ * to null — so this covers only the degenerate case of a result set with no
+ * row. Zero is a `bigint` because that is what both targets' `count` codecs
+ * decode to; a count is a cardinality, and cardinalities are not capped at
+ * 2^53.
+ */
+function emptyAggregateResult(fn: string): bigint | null {
+  return fn === 'count' ? 0n : null;
+}
 
 function applyCreateDefaults(
   ctx: CollectionContext<Contract<SqlStorage>>,
@@ -730,9 +744,9 @@ export class Collection<
    * // each user row: { ...user, posts: number }
    * ```
    */
-  count(): IncludeScalar<number> {
+  count(): IncludeScalar<AggregateResultFor<TContract, 'count'>> {
     this.#assertIncludeRefinementMode('count()');
-    return createIncludeScalar<number>('count', this.state);
+    return createIncludeScalar<AggregateResultFor<TContract, 'count'>>('count', this.state);
   }
 
   /**
@@ -748,10 +762,14 @@ export class Collection<
    */
   sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
     field: FieldName,
-  ): IncludeScalar<number | null> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName>> {
     this.#assertIncludeRefinementMode('sum()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<number | null>('sum', this.state, columnName);
+    return createIncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName>>(
+      'sum',
+      this.state,
+      columnName,
+    );
   }
 
   /**
@@ -767,10 +785,14 @@ export class Collection<
    */
   avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
     field: FieldName,
-  ): IncludeScalar<number | null> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName>> {
     this.#assertIncludeRefinementMode('avg()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<number | null>('avg', this.state, columnName);
+    return createIncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName>>(
+      'avg',
+      this.state,
+      columnName,
+    );
   }
 
   /**
@@ -785,10 +807,14 @@ export class Collection<
    */
   min<FieldName extends NumericFieldNames<TContract, ModelName>>(
     field: FieldName,
-  ): IncludeScalar<number | null> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName>> {
     this.#assertIncludeRefinementMode('min()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<number | null>('min', this.state, columnName);
+    return createIncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName>>(
+      'min',
+      this.state,
+      columnName,
+    );
   }
 
   /**
@@ -803,10 +829,14 @@ export class Collection<
    */
   max<FieldName extends NumericFieldNames<TContract, ModelName>>(
     field: FieldName,
-  ): IncludeScalar<number | null> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName>> {
     this.#assertIncludeRefinementMode('max()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<number | null>('max', this.state, columnName);
+    return createIncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName>>(
+      'max',
+      this.state,
+      columnName,
+    );
   }
 
   /**
@@ -1169,6 +1199,7 @@ export class Collection<
     const compiled = mergeAnnotations(
       compileAggregate(
         this.contract,
+        this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.tableName,
         this.state.filters,
@@ -1180,7 +1211,16 @@ export class Collection<
       this.ctx.runtime,
       compiled,
     ).toArray();
-    return normalizeAggregateResult(aggregateSpec, rows[0] ?? {});
+    // Values arrive decoded: the projection carries each aggregate's resolved
+    // output codec, so the runtime's decode pass has already turned the wire
+    // value into the application one. An absent alias means an empty input set,
+    // whose SQL answer for `count` is zero and for the rest is null.
+    const row = rows[0] ?? {};
+    const result: Record<string, unknown> = {};
+    for (const [alias, selector] of entries) {
+      result[alias] = row[alias] ?? emptyAggregateResult(selector.fn);
+    }
+    return result as AggregateResult<Spec>;
   }
 
   /**
