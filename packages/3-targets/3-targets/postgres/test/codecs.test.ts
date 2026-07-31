@@ -506,17 +506,17 @@ describe('adapter-postgres codecs', () => {
       { scalar: 'inet', nativeType: 'inet' },
     ];
 
-    it.each(postgresNativeTypeCases)('states the postgres native type for $scalar', ({
-      scalar,
-      nativeType,
-    }) => {
-      // Resolved through the registry rather than off the map, whose value type
-      // spans the SQL-base descriptors too — those carry no PostgreSQL native
-      // type, and none of these cases names one.
-      const codecId = descriptorByScalar[scalar].codecId;
-      const descriptor = postgresCodecDescriptorRegistry.descriptorFor(codecId);
-      expect(descriptor?.nativeTypeFor({ codecId })).toBe(nativeType);
-    });
+    it.each(postgresNativeTypeCases)(
+      'states the postgres native type for $scalar',
+      ({ scalar, nativeType }) => {
+        // Resolved through the registry rather than off the map, whose value type
+        // spans the SQL-base descriptors too — those carry no PostgreSQL native
+        // type, and none of these cases names one.
+        const codecId = descriptorByScalar[scalar].codecId;
+        const descriptor = postgresCodecDescriptorRegistry.descriptorFor(codecId);
+        expect(descriptor?.nativeTypeFor({ codecId })).toBe(nativeType);
+      },
+    );
 
     const paramsSchemaPresenceCases: ReadonlyArray<{
       scalar: ScalarName;

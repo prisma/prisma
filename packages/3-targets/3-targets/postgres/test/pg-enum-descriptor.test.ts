@@ -36,20 +36,16 @@ describe('PgEnumDescriptor (pg/enum@1) as a parameterized codec', () => {
     // do not carry a type name has no native type, and saying so is better than
     // naming one it does not have — the contract boundary rejects such a column
     // long before rendering, so nothing reachable relied on the fallback.
-    it.each([
-      undefined,
-      null,
-      'aal_level',
-      ['aal_level'],
-      { typeName: 42 },
-      {},
-    ])('rejects typeParams it cannot read a type name from: %s', (typeParams) => {
-      expect(() =>
-        pgEnumDescriptor.nativeTypeFor({
-          codecId: PG_ENUM_CODEC_ID,
-          typeParams: typeParams as never,
-        }),
-      ).toThrow();
-    });
+    it.each([undefined, null, 'aal_level', ['aal_level'], { typeName: 42 }, {}])(
+      'rejects typeParams it cannot read a type name from: %s',
+      (typeParams) => {
+        expect(() =>
+          pgEnumDescriptor.nativeTypeFor({
+            codecId: PG_ENUM_CODEC_ID,
+            typeParams: typeParams as never,
+          }),
+        ).toThrow();
+      },
+    );
   });
 });
