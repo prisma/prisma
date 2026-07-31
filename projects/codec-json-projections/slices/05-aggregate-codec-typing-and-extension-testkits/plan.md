@@ -71,6 +71,13 @@ Packaging first (the testkits are the home the aggregate matrices extend), then 
 - **Hands to:** Lossless ORM aggregates on both targets — the slice's headline behaviour.
 - **Focus:** The ORM cut, whole: planning, types, decode, and its expectation moves are one behavioural claim. Grep gates: `normalizeAggregateResult|coerceAggregateValue` returns nothing; no `Number(` bridge reappears in the decode path (F1).
 
+### Dispatch 6b: SQLite bigint aggregate lowering (added 2026-07-31, from D6 R2's halt)
+
+- **Outcome:** top-level SQLite aggregates whose output codec is `sqlite/bigint@1` (count, integer sum, min/max over bigint) are readable past 2^53: the descriptors gain the `lower` hook (unused since D2 by design) rendering `CAST(… AS TEXT)`, so the driver receives text instead of throwing `RangeError` on a wide INTEGER (`sqlite-driver.ts:76`, `stmt.iterate()` without big-integer reads); the previously-impossible top-level read is pinned as a test; the sqlite aggregate conformance suite covers the lowered form; any rendered-SQL snapshot moves are classified mechanical.
+- **Builds on:** D4's matrix (the surface), D2's lowering vocabulary (the mechanism), D6 R2's probe (`select cast(sum(c) as text)` → exact text, proven against `node:sqlite`).
+- **Hands to:** The lossless claim whole on both targets — what D6's review notes as its stated boundary.
+- **Focus:** The descriptor-owned fix only. NOT the driver's `setReadBigInts` (blast radius: every integer column's JS type); NOT the lane (D7). The decision record is `wip/unattended-decisions.md` entry 2.
+
 ### Dispatch 7: The sql-builder lane cut
 
 - **Outcome:** The sql-builder lane's aggregate functions resolve through the registry: the hardcoded `codecId: 'pg/int8@1'` in `expression.ts`/`runtime/functions.ts` is gone (grep gate: `'pg/int8@1'` appears nowhere outside `packages/3-targets`), `numericAgg` no longer propagates input codecs through widening, aggregate expressions populate the `codec` slot that `ProjectionItem.of` reads, and `test/integration/test/sql-builder/group-by.test.ts` asserts `2n` — the roadmap witness flips.
