@@ -1,4 +1,5 @@
-import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
+import { sqliteAggregateDescriptors } from '@prisma-next/target-sqlite/aggregates';
+import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
 
 // Exclude codecs that carry a renderOutputType: those emit named TypeScript types (e.g.
 // Char<N>, Varchar<N>) that are not listed in this adapter's typeImports and would
@@ -29,8 +30,9 @@ export const sqliteAdapterDescriptorMeta = {
   types: {
     codecTypes: {
       codecDescriptors: executionCodecDescriptors,
+      aggregateDescriptors: sqliteAggregateDescriptors,
       import: {
-        package: '@internal/adapter-sqlite/codec-types',
+        package: '@prisma-next/adapter-sqlite/codec-types',
         named: 'CodecTypes',
         alias: 'SqliteTypes',
       },
