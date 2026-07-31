@@ -1,6 +1,8 @@
-import type { Contract, JsonValue } from '@internal/contract/types';
-import { blindCast } from '@internal/utils/casts';
-import { InternalError } from '@internal/utils/internal-error';
+import type { Contract, JsonValue } from '@prisma-next/contract/types';
+import { blindCast } from '@prisma-next/utils/casts';
+import { InternalError } from '@prisma-next/utils/internal-error';
+import type { AggregateDescriptor } from '../shared/aggregate-descriptor';
+import { aggregateDescriptorKey, isAggregateDescriptor } from '../shared/aggregate-descriptor';
 import type { CapabilityMatrix } from '../shared/capabilities';
 import { mergeCapabilityMatrices } from '../shared/capabilities';
 import type { Codec } from '../shared/codec';
@@ -67,6 +69,8 @@ export interface ControlStack<
   readonly queryOperationTypeImports: ReadonlyArray<TypesImportSpec>;
   readonly extensionIds: ReadonlyArray<string>;
   readonly codecLookup: CodecRegistry;
+  /** Every aggregate overload the composed components declare, validated for shape and single ownership at assembly. */
+  readonly aggregateDescriptors: ReadonlyArray<AggregateDescriptor>;
   readonly authoringContributions: AssembledAuthoringContributions;
   /** Names of the top-level zero-arg type constructors in the assembled authoring namespace — the base scalars of the composed stack. */
   readonly scalarTypes: ReadonlyArray<string>;
@@ -345,6 +349,45 @@ export function assembleControlMutationDefaults(
   };
 }
 
+/**
+ * Collect every contributed {@link AggregateDescriptor} across the composed components, rejecting malformed shapes and second claims on one `(operation, input)` overload.
+ *
+ * Both planes read the same contribution slot: emission derives result types from these descriptors, and family runtimes build their resolution registry from them.
+ */
+export function collectAggregateDescriptors(
+  descriptors: ReadonlyArray<Pick<ComponentMetadata, 'types'> & { readonly id?: string }>,
+): ReadonlyArray<AggregateDescriptor> {
+  const collected: AggregateDescriptor[] = [];
+  const owners = new Map<string, string>();
+
+  for (const descriptor of descriptors) {
+    const descriptorId = descriptor.id ?? '<unknown>';
+    for (const contributed of descriptor.types?.codecTypes?.aggregateDescriptors ?? []) {
+      if (!isAggregateDescriptor(contributed)) {
+        throw new InternalError(
+          `Malformed aggregate descriptor contributed by "${descriptorId}". ` +
+            'A descriptor declares a non-empty `operation`, an `input` match of kind `none`/`codec`/`trait`, ' +
+            'an `output` of kind `self`/`codec`, and a boolean `nullable`; a `self` output needs an input to reuse.',
+        );
+      }
+
+      const key = aggregateDescriptorKey(contributed);
+      const existingOwner = owners.get(key);
+      if (existingOwner !== undefined) {
+        throw new InternalError(
+          `Duplicate aggregate descriptor for "${key}". ` +
+            `Descriptor "${descriptorId}" conflicts with "${existingOwner}". ` +
+            'Each operation/input pair can only have one provider.',
+        );
+      }
+      owners.set(key, descriptorId);
+      collected.push(contributed);
+    }
+  }
+
+  return collected;
+}
+
 export function extractCodecLookup(
   descriptors: ReadonlyArray<Pick<ComponentMetadata & { id: string }, 'types' | 'id'>>,
 ): CodecRegistry {
@@ -575,6 +618,7 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     queryOperationTypeImports: extractQueryOperationTypeImports(allDescriptors),
     extensionIds: extractComponentIds(family, target, adapter, orderedExtensions),
     codecLookup,
+    aggregateDescriptors: collectAggregateDescriptors(allDescriptors),
     authoringContributions,
     scalarTypes: [...collectScalarTypeConstructors(authoringContributions.type).keys()],
     controlMutationDefaults: assembleControlMutationDefaults(allDescriptors),

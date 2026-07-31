@@ -1,3 +1,17 @@
+export type {
+  AggregateDescriptor,
+  AggregateInputMatch,
+  AggregateOutputCodec,
+  NamedAggregateOutput,
+  NoInputAggregateDescriptor,
+  SelfAggregateOutput,
+  ValueInputAggregateDescriptor,
+} from '../shared/aggregate-descriptor';
+export {
+  aggregateDescriptorKey,
+  isAggregateDescriptor,
+  isNoInputAggregateDescriptor,
+} from '../shared/aggregate-descriptor';
 export type { CapabilityMatrix } from '../shared/capabilities';
 export { mergeCapabilityMatrices } from '../shared/capabilities';
 export type {
