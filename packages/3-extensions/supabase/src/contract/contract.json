@@ -5594,10 +5594,27 @@
                 },
                 {
                   "columns": [
+                    "friendly_name",
+                    "user_id"
+                  ],
+                  "name": "mfa_factors_user_friendly_name_unique",
+                  "unique": true,
+                  "where": "(TRIM(BOTH FROM friendly_name) <> ''::text)"
+                },
+                {
+                  "columns": [
                     "user_id"
                   ],
                   "name": "mfa_factors_user_id_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "user_id",
+                    "phone"
+                  ],
+                  "name": "unique_phone_factor_per_user",
+                  "unique": true
                 }
               ],
               "primaryKey": {
@@ -5787,7 +5804,16 @@
                   }
                 }
               ],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "expires_at"
+                  ],
+                  "name": "oauth_auth_pending_exp_idx",
+                  "unique": false,
+                  "where": "(status = 'pending'::auth.oauth_authorization_status)"
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -6049,6 +6075,23 @@
               "indexes": [
                 {
                   "columns": [
+                    "client_id"
+                  ],
+                  "name": "oauth_consents_active_client_idx",
+                  "unique": false,
+                  "where": "(revoked_at IS NULL)"
+                },
+                {
+                  "columns": [
+                    "user_id",
+                    "client_id"
+                  ],
+                  "name": "oauth_consents_active_user_client_idx",
+                  "unique": false,
+                  "where": "(revoked_at IS NULL)"
+                },
+                {
+                  "columns": [
                     "user_id",
                     "granted_at"
                   ],
@@ -6167,6 +6210,14 @@
                   "name": "one_time_tokens_token_hash_hash_idx",
                   "type": "hash",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "user_id",
+                    "token_type"
+                  ],
+                  "name": "one_time_tokens_user_id_token_type_key",
+                  "unique": true
                 }
               ],
               "primaryKey": {
@@ -6758,6 +6809,11 @@
               ],
               "indexes": [
                 {
+                  "expression": "lower(domain)",
+                  "name": "sso_domains_domain_idx",
+                  "unique": true
+                },
+                {
                   "columns": [
                     "sso_provider_id"
                   ],
@@ -6804,6 +6860,11 @@
               },
               "foreignKeys": [],
               "indexes": [
+                {
+                  "expression": "lower(resource_id)",
+                  "name": "sso_providers_resource_id_idx",
+                  "unique": true
+                },
                 {
                   "columns": [
                     "resource_id"
@@ -7042,6 +7103,59 @@
               },
               "foreignKeys": [],
               "indexes": [
+                {
+                  "columns": [
+                    "confirmation_token"
+                  ],
+                  "name": "confirmation_token_idx",
+                  "unique": true,
+                  "where": "((confirmation_token)::text !~ '^[0-9 ]*$'::text)"
+                },
+                {
+                  "columns": [
+                    "email_change_token_current"
+                  ],
+                  "name": "email_change_token_current_idx",
+                  "unique": true,
+                  "where": "((email_change_token_current)::text !~ '^[0-9 ]*$'::text)"
+                },
+                {
+                  "columns": [
+                    "email_change_token_new"
+                  ],
+                  "name": "email_change_token_new_idx",
+                  "unique": true,
+                  "where": "((email_change_token_new)::text !~ '^[0-9 ]*$'::text)"
+                },
+                {
+                  "columns": [
+                    "reauthentication_token"
+                  ],
+                  "name": "reauthentication_token_idx",
+                  "unique": true,
+                  "where": "((reauthentication_token)::text !~ '^[0-9 ]*$'::text)"
+                },
+                {
+                  "columns": [
+                    "recovery_token"
+                  ],
+                  "name": "recovery_token_idx",
+                  "unique": true,
+                  "where": "((recovery_token)::text !~ '^[0-9 ]*$'::text)"
+                },
+                {
+                  "columns": [
+                    "email"
+                  ],
+                  "name": "users_email_partial_key",
+                  "unique": true,
+                  "where": "(is_sso_user = false)"
+                },
+                {
+                  "expression": "instance_id, lower(email::text)",
+                  "name": "users_instance_id_email_idx",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "instance_id"
@@ -7294,6 +7408,13 @@
               "indexes": [
                 {
                   "columns": [
+                    "credential_id"
+                  ],
+                  "name": "webauthn_credentials_credential_id_key",
+                  "unique": true
+                },
+                {
+                  "columns": [
                     "user_id"
                   ],
                   "name": "webauthn_credentials_user_id_idx",
@@ -7542,7 +7663,15 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "name"
+                  ],
+                  "name": "bname",
+                  "unique": true
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -7620,7 +7749,16 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "name"
+                  ],
+                  "name": "buckets_analytics_unique_name_idx",
+                  "unique": true,
+                  "where": "(deleted_at IS NULL)"
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -7759,7 +7897,16 @@
                   }
                 }
               ],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "catalog_id",
+                    "name"
+                  ],
+                  "name": "idx_iceberg_namespaces_bucket_id",
+                  "unique": true
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -7879,7 +8026,24 @@
                   }
                 }
               ],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "location"
+                  ],
+                  "name": "idx_iceberg_tables_location",
+                  "unique": true
+                },
+                {
+                  "columns": [
+                    "catalog_id",
+                    "namespace_id",
+                    "name"
+                  ],
+                  "name": "idx_iceberg_tables_namespace_id",
+                  "unique": true
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -8036,7 +8200,20 @@
                     "bucket_id",
                     "name"
                   ],
+                  "name": "bucketid_objname",
+                  "unique": true
+                },
+                {
+                  "columns": [
+                    "bucket_id",
+                    "name"
+                  ],
                   "name": "idx_objects_bucket_id_name",
+                  "unique": false
+                },
+                {
+                  "expression": "bucket_id, lower(name)",
+                  "name": "idx_objects_bucket_id_name_lower",
                   "unique": false
                 },
                 {
@@ -8345,7 +8522,16 @@
                   }
                 }
               ],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "name",
+                    "bucket_id"
+                  ],
+                  "name": "vector_indexes_name_bucket_id_idx",
+                  "unique": true
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -8370,7 +8556,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3fc02fc59de32d9aefb403a8a4d164d85c34dd2b3734c07e03cfdae225cf8438",
+    "storageHash": "9241c85398daf30cf58953a6489fad3bbd27616aebe4075597acd3cfc51a0634",
     "types": {
       "CreatedAt": {
         "codecId": "pg/timestamp@1",

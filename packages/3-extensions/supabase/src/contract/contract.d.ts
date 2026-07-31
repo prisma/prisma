@@ -30,7 +30,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'3fc02fc59de32d9aefb403a8a4d164d85c34dd2b3734c07e03cfdae225cf8438'>;
+  StorageHashBase<'9241c85398daf30cf58953a6489fad3bbd27616aebe4075597acd3cfc51a0634'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -2360,9 +2360,20 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'mfa_factors_user_friendly_name_unique';
+                  readonly columns: readonly ['friendly_name', 'user_id'];
+                  readonly where: "(TRIM(BOTH FROM friendly_name) <> ''::text)";
+                  readonly unique: true;
+                },
+                {
                   readonly name: 'mfa_factors_user_id_idx';
                   readonly columns: readonly ['user_id'];
                   readonly unique: false;
+                },
+                {
+                  readonly name: 'unique_phone_factor_per_user';
+                  readonly columns: readonly ['user_id', 'phone'];
+                  readonly unique: true;
                 },
               ];
               foreignKeys: readonly [
@@ -2502,7 +2513,14 @@ type ContractBase = Omit<
                   readonly name: 'oauth_authorizations_authorization_code_key';
                 },
               ];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'oauth_auth_pending_exp_idx';
+                  readonly columns: readonly ['expires_at'];
+                  readonly where: "(status = 'pending'::auth.oauth_authorization_status)";
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [
                 {
                   readonly source: {
@@ -2710,6 +2728,18 @@ type ContractBase = Omit<
               ];
               indexes: readonly [
                 {
+                  readonly name: 'oauth_consents_active_client_idx';
+                  readonly columns: readonly ['client_id'];
+                  readonly where: '(revoked_at IS NULL)';
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'oauth_consents_active_user_client_idx';
+                  readonly columns: readonly ['user_id', 'client_id'];
+                  readonly where: '(revoked_at IS NULL)';
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'oauth_consents_user_order_idx';
                   readonly columns: readonly ['user_id', 'granted_at'];
                   readonly unique: false;
@@ -2806,6 +2836,11 @@ type ContractBase = Omit<
                   readonly columns: readonly ['token_hash'];
                   readonly unique: false;
                   readonly type: 'hash';
+                },
+                {
+                  readonly name: 'one_time_tokens_user_id_token_type_key';
+                  readonly columns: readonly ['user_id', 'token_type'];
+                  readonly unique: true;
                 },
               ];
               foreignKeys: readonly [
@@ -3303,6 +3338,11 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'sso_domains_domain_idx';
+                  readonly expression: 'lower(domain)';
+                  readonly unique: true;
+                },
+                {
                   readonly name: 'sso_domains_sso_provider_id_idx';
                   readonly columns: readonly ['sso_provider_id'];
                   readonly unique: false;
@@ -3359,6 +3399,11 @@ type ContractBase = Omit<
               };
               uniques: readonly [];
               indexes: readonly [
+                {
+                  readonly name: 'sso_providers_resource_id_idx';
+                  readonly expression: 'lower(resource_id)';
+                  readonly unique: true;
+                },
                 {
                   readonly name: 'sso_providers_resource_id_pattern_idx';
                   readonly columns: readonly ['resource_id'];
@@ -3593,6 +3638,47 @@ type ContractBase = Omit<
               ];
               indexes: readonly [
                 {
+                  readonly name: 'confirmation_token_idx';
+                  readonly columns: readonly ['confirmation_token'];
+                  readonly where: "((confirmation_token)::text !~ '^[0-9 ]*$'::text)";
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'email_change_token_current_idx';
+                  readonly columns: readonly ['email_change_token_current'];
+                  readonly where: "((email_change_token_current)::text !~ '^[0-9 ]*$'::text)";
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'email_change_token_new_idx';
+                  readonly columns: readonly ['email_change_token_new'];
+                  readonly where: "((email_change_token_new)::text !~ '^[0-9 ]*$'::text)";
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'reauthentication_token_idx';
+                  readonly columns: readonly ['reauthentication_token'];
+                  readonly where: "((reauthentication_token)::text !~ '^[0-9 ]*$'::text)";
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'recovery_token_idx';
+                  readonly columns: readonly ['recovery_token'];
+                  readonly where: "((recovery_token)::text !~ '^[0-9 ]*$'::text)";
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'users_email_partial_key';
+                  readonly columns: readonly ['email'];
+                  readonly where: '(is_sso_user = false)';
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'users_instance_id_email_idx';
+                  readonly expression: 'instance_id, lower(email::text)';
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'users_instance_id_idx';
                   readonly columns: readonly ['instance_id'];
                   readonly unique: false;
@@ -3791,6 +3877,11 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'webauthn_credentials_credential_id_key';
+                  readonly columns: readonly ['credential_id'];
+                  readonly unique: true;
+                },
+                {
                   readonly name: 'webauthn_credentials_user_id_idx';
                   readonly columns: readonly ['user_id'];
                   readonly unique: false;
@@ -3941,7 +4032,13 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id']; readonly name: 'buckets_pkey' };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'bname';
+                  readonly columns: readonly ['name'];
+                  readonly unique: true;
+                },
+              ];
               foreignKeys: readonly [];
             };
             readonly buckets_analytics: {
@@ -4003,7 +4100,14 @@ type ContractBase = Omit<
                 readonly name: 'buckets_analytics_pkey';
               };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'buckets_analytics_unique_name_idx';
+                  readonly columns: readonly ['name'];
+                  readonly where: '(deleted_at IS NULL)';
+                  readonly unique: true;
+                },
+              ];
               foreignKeys: readonly [];
             };
             readonly buckets_vectors: {
@@ -4099,7 +4203,13 @@ type ContractBase = Omit<
                 readonly name: 'iceberg_namespaces_pkey';
               };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'idx_iceberg_namespaces_bucket_id';
+                  readonly columns: readonly ['catalog_id', 'name'];
+                  readonly unique: true;
+                },
+              ];
               foreignKeys: readonly [
                 {
                   readonly source: {
@@ -4188,7 +4298,18 @@ type ContractBase = Omit<
                 readonly name: 'iceberg_tables_pkey';
               };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'idx_iceberg_tables_location';
+                  readonly columns: readonly ['location'];
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'idx_iceberg_tables_namespace_id';
+                  readonly columns: readonly ['catalog_id', 'namespace_id', 'name'];
+                  readonly unique: true;
+                },
+              ];
               foreignKeys: readonly [
                 {
                   readonly source: {
@@ -4323,8 +4444,18 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
+                  readonly name: 'bucketid_objname';
+                  readonly columns: readonly ['bucket_id', 'name'];
+                  readonly unique: true;
+                },
+                {
                   readonly name: 'idx_objects_bucket_id_name';
                   readonly columns: readonly ['bucket_id', 'name'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'idx_objects_bucket_id_name_lower';
+                  readonly expression: 'bucket_id, lower(name)';
                   readonly unique: false;
                 },
                 {
@@ -4592,7 +4723,13 @@ type ContractBase = Omit<
                 readonly name: 'vector_indexes_pkey';
               };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'vector_indexes_name_bucket_id_idx';
+                  readonly columns: readonly ['name', 'bucket_id'];
+                  readonly unique: true;
+                },
+              ];
               foreignKeys: readonly [
                 {
                   readonly source: {
