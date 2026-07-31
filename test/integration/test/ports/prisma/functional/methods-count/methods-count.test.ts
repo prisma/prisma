@@ -37,7 +37,7 @@ describe('ports/prisma/functional/methods-count', () => {
     () =>
       withCount(async ({ db }) => {
         const { count } = await db.public.User.aggregate((agg) => ({ count: agg.count() }));
-        expect(count).toBe(3);
+        expect(count).toBe(3n);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -59,7 +59,7 @@ describe('ports/prisma/functional/methods-count', () => {
         const { count } = await db.public.User.where({ age: 111 }).aggregate((agg) => ({
           count: agg.count(),
         }));
-        expect(count).toBe(1);
+        expect(count).toBe(1n);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -71,7 +71,7 @@ describe('ports/prisma/functional/methods-count', () => {
         const { count } = await db.public.User.where({ age: 111 }).aggregate((agg) => ({
           count: agg.count(),
         }));
-        expect(count).toBe(1);
+        expect(count).toBe(1n);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -81,7 +81,7 @@ describe('ports/prisma/functional/methods-count', () => {
     () =>
       withCount(async ({ db }) => {
         const { count } = await db.public.User.aggregate((agg) => ({ count: agg.count() }));
-        expect(count).toBe(3);
+        expect(count).toBe(3n);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -91,7 +91,7 @@ describe('ports/prisma/functional/methods-count', () => {
     () =>
       withCount(async ({ db }) => {
         const { count } = await db.public.User.aggregate((agg) => ({ count: agg.count() }));
-        expect(count).toBe(3);
+        expect(count).toBe(3n);
       }),
     timeouts.spinUpPpgDev,
   );

@@ -21,7 +21,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // Upstream test 2: aggregate with where: { AND: [downVotedUsers.every, upVotedUsers.every] }, _count: true
 //   → where((c) => and(c.downVotedUsers.every(...), c.upVotedUsers.every(...)))
 //     .aggregate((agg) => ({ _count: agg.count() }))
-//   Assertion: { _count: 1 }
+//   Assertion: { _count: 1n }
 
 function withIssue11974(fn: Parameters<typeof withPostgresPort<Contract>>[1]) {
   return withPostgresPort<Contract>({ contractJson }, fn);
@@ -65,7 +65,7 @@ describe('ports/prisma/functional/issues-11974', () => {
           ),
         ).aggregate((agg) => ({ _count: agg.count() }));
 
-        expect(response).toMatchObject({ _count: 1 });
+        expect(response).toMatchObject({ _count: 1n });
       }),
     timeouts.spinUpPpgDev,
   );

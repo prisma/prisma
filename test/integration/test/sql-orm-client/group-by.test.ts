@@ -26,8 +26,8 @@ describe('integration/groupBy', () => {
           (left, right) => Number(left.userId) - Number(right.userId),
         );
         expect(sorted).toEqual([
-          { userId: 1, count: 2 },
-          { userId: 2, count: 1 },
+          { userId: 1, count: 2n },
+          { userId: 2, count: 1n },
         ]);
         expect(runtime.executions).toHaveLength(1);
         expect(runtime.executions[0]?.sql.toLowerCase()).toContain('group by');
@@ -56,7 +56,7 @@ describe('integration/groupBy', () => {
             count: aggregate.count(),
           }));
 
-        expect(grouped).toEqual([{ userId: 1, count: 2 }]);
+        expect(grouped).toEqual([{ userId: 1, count: 2n }]);
         expect(runtime.executions).toHaveLength(1);
         const ast = runtime.executions[0]?.ast;
         expect(isSelectAst(ast)).toBe(true);
@@ -94,8 +94,10 @@ describe('integration/groupBy', () => {
           (left, right) => Number(left.userId) - Number(right.userId),
         );
         expect(sorted).toEqual([
-          { userId: 1, totalViews: 20, avgViews: 20 },
-          { userId: 2, totalViews: 30, avgViews: 30 },
+          // PostgreSQL's avg over integers is numeric, whose canonical form is
+          // a decimal string; the sum widens to int8 and reads as a bigint.
+          { userId: 1, totalViews: 20n, avgViews: '20.0000000000000000' },
+          { userId: 2, totalViews: 30n, avgViews: '30.0000000000000000' },
         ]);
       });
     },
