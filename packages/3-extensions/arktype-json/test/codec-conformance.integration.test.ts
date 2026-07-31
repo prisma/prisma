@@ -12,16 +12,16 @@
  * built-in codecs use.
  */
 
-import type { JsonValue } from '@internal/contract/types';
-import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
-import { createDevDatabase, timeouts } from '@repo/test-utils';
-import { type } from 'arktype';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { JsonValue } from '@prisma-next/contract/types';
+import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
 import type {
   ConformanceConnection,
   PostgresCodecConformanceCase,
-} from '../../../3-targets/6-adapters/postgres/test/codec-conformance/harness';
-import { runPostgresCodecProjection } from '../../../3-targets/6-adapters/postgres/test/codec-conformance/harness';
+} from '@prisma-next/postgres-codec-testkit';
+import { runPostgresCodecProjection } from '@prisma-next/postgres-codec-testkit';
+import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { type } from 'arktype';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { arktypeJsonColumn, arktypeJsonDescriptor } from '../src/core/arktype-json-codec';
 
 function schemaCase(
