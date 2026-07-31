@@ -1,4 +1,4 @@
-import { defineContract } from '@prisma-next/mongo/contract-builder';
+import { defineContract } from '@prisma/orm-mongo/contract-builder';
 
 /**
  * Minimal Mongo contract: a single `Note` model backed by the `notes`

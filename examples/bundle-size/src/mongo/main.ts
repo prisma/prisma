@@ -1,4 +1,4 @@
-import mongo from '@prisma-next/mongo/runtime';
+import mongo from '@prisma/orm-mongo/runtime';
 import { contract } from './contract';
 
 const db = mongo({ contract });

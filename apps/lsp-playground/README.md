@@ -29,7 +29,7 @@ Everything (editor + LSP) is served on the single port `5295`.
 The language server identifies schema documents from `prisma-next.config.ts` (`contract.source.inputs`), discovering a document's config by walking up from the document's own path. The playground resolves what the editor opens, and the config that sits above it, as follows:
 
 1. An **existing** file already inside a project (a `prisma-next.config.ts` is found walking up from it): open it in place under that config.
-2. Otherwise (no file, a non-existent path, or an existing file with no project config): **stage a copy** of the schema under `.playground/` and generate a **default-postgres** config beside it — the "without a config, assume default postgres" path. Staging is required because the server resolves the generated config's `@prisma-next/*` imports and discovers the config by walking up from the staged file.
+2. Otherwise (no file, a non-existent path, or an existing file with no project config): **stage a copy** of the schema under `.playground/` and generate a **default-postgres** config beside it — the "without a config, assume default postgres" path. Staging is required because the server resolves the generated config's `@prisma/orm-postgres` import and discovers the config by walking up from the staged file.
 
 There is no `--config` flag: the language server discovers config purely by walking up from each document, so it cannot be pointed at an arbitrary config path.
 
@@ -37,7 +37,7 @@ There is no `--config` flag: the language server discovers config purely by walk
 
 ```text
 Monaco editor + VS Code API shim  --LSP/WebSocket-->  ws bridge  --spawn+stdio-->  node cli.js lsp --stdio
-(monaco-languageclient + vscode-languageclient)       (vscode-ws-jsonrpc/server)   (@prisma-next/language-server)
+(monaco-languageclient + vscode-languageclient)       (vscode-ws-jsonrpc/server)   (@prisma/orm-toolchain/language-server)
 ```
 
 - `src/bridge.ts` — `ws` + `vscode-ws-jsonrpc/server` (`createServerProcess` + `forward`), adapted from the TypeFox example (MIT). Each browser WebSocket connection spawns `node <built-cli> lsp --stdio` and forwards JSON-RPC between the browser and the language server process.
@@ -50,7 +50,7 @@ The playground does not contain a PSL classifier. Semantic highlighting comes fr
 
 The client loads Monaco's VS Code theme service with the bundled Default Dark+ theme. A tiny local system extension contributes `semanticTokenScopes` for the `prisma` language so the server's standard semantic token types resolve to the theme's existing TextMate colors; it does not classify PSL or define a custom PSL color palette.
 
-Keep PSL meaning in `@prisma-next/language-server`. If semantic-token traffic is present but colors are not visually distinct in Monaco, prefer the smallest Monaco-side setting or theme adjustment that enables standard semantic highlighting; do not add a playground-local tokenizer, custom token legend, CodeMirror adapter, or duplicate request loop.
+Keep PSL meaning in `@prisma/orm-toolchain/language-server`. If semantic-token traffic is present but colors are not visually distinct in Monaco, prefer the smallest Monaco-side setting or theme adjustment that enables standard semantic highlighting; do not add a playground-local tokenizer, custom token legend, CodeMirror adapter, or duplicate request loop.
 
 ## Manual QA
 

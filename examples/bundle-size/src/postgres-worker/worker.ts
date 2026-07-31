@@ -1,4 +1,4 @@
-import postgresServerless from '@prisma-next/postgres/serverless';
+import postgresServerless from '@prisma/orm-postgres/serverless';
 import { contract } from '../postgres/contract';
 
 const db = postgresServerless({ contract });

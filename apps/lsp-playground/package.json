@@ -23,7 +23,7 @@
     "@codingame/monaco-vscode-textmate-service-override": "^25.1.2",
     "@codingame/monaco-vscode-theme-defaults-default-extension": "^34.1.3",
     "@codingame/monaco-vscode-theme-service-override": "^25.1.2",
-    "@prisma-next/postgres": "workspace:0.16.0",
+    "@prisma/orm-postgres": "workspace:0.16.0",
     "monaco-editor": "^0.55.1",
     "monaco-languageclient": "^10.7.0",
     "vscode": "npm:@codingame/monaco-vscode-extension-api@^25.1.2",
@@ -34,7 +34,6 @@
     "ws": "^8.21.1"
   },
   "devDependencies": {
-    "@prisma-next/cli": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@types/node": "catalog:",
     "@types/ws": "^8.5.13",

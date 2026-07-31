@@ -151,9 +151,9 @@ importers:
       '@codingame/monaco-vscode-theme-service-override':
         specifier: ^25.1.2
         version: 25.1.2
-      '@prisma-next/postgres':
+      '@prisma/orm-postgres':
         specifier: workspace:0.16.0
-        version: link:../../packages/3-extensions/postgres
+        version: link:../../packages/9-public/@prisma/orm-postgres
       monaco-editor:
         specifier: ^0.55.1
         version: 0.55.1
@@ -179,9 +179,6 @@ importers:
         specifier: ^8.21.1
         version: 8.21.1
     devDependencies:
-      '@prisma-next/cli':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/3-tooling/cli
       '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../packages/0-config/tsconfig
@@ -255,33 +252,12 @@ importers:
 
   examples/bundle-size:
     dependencies:
-      '@prisma-next/adapter-mongo':
+      '@prisma/orm-mongo':
         specifier: workspace:0.16.0
-        version: link:../../packages/3-mongo-target/2-mongo-adapter
-      '@prisma-next/adapter-postgres':
+        version: link:../../packages/9-public/@prisma/orm-mongo
+      '@prisma/orm-postgres':
         specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/6-adapters/postgres
-      '@prisma-next/contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/0-foundation/contract
-      '@prisma-next/mongo':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-extensions/mongo
-      '@prisma-next/mongo-contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-mongo-family/1-foundation/mongo-contract
-      '@prisma-next/postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-extensions/postgres
-      '@prisma-next/sql-contract':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/1-core/contract
-      '@prisma-next/target-mongo':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-mongo-target/1-mongo-target
-      '@prisma-next/target-postgres':
-        specifier: workspace:0.16.0
-        version: link:../../packages/3-targets/3-targets/postgres
+        version: link:../../packages/9-public/@prisma/orm-postgres
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
@@ -292,18 +268,6 @@ importers:
       '@cloudflare/workers-types':
         specifier: 4.20260702.1
         version: 4.20260702.1
-      '@prisma-next/cli':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/3-tooling/cli
-      '@prisma-next/emitter':
-        specifier: workspace:0.16.0
-        version: link:../../packages/1-framework/3-tooling/emitter
-      '@prisma-next/family-mongo':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-mongo-family/9-family
-      '@prisma-next/sql-contract-emitter':
-        specifier: workspace:0.16.0
-        version: link:../../packages/2-sql/3-tooling/emitter
       '@prisma/dev':
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.0(@types/node@25.9.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))

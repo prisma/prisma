@@ -81,7 +81,7 @@ function launch(socket: IWebSocket, options: BridgeOptions): void {
     // The LSP subprocess could not be spawned. Don't leave the client hanging
     // on a backend-less socket: report it and close the connection.
     console.error(
-      `Failed to spawn the language server (node ${options.cliEntry} lsp --stdio). Is @prisma-next/cli built?`,
+      `Failed to spawn the language server (node ${options.cliEntry} lsp --stdio). Has the workspace been built?`,
     );
     socket.dispose();
     return;

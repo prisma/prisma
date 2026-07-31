@@ -13,7 +13,7 @@ export const PLAYGROUND_DIR = join(packageRoot, '.playground');
  * This is the "without a config, assume default postgres" path.
  *
  * The config lives in `.playground/` (NOT the OS temp dir, NOT the user's
- * directory) for two reasons: (1) its `@prisma-next/*` imports resolve through
+ * directory) for two reasons: (1) its `@prisma/orm-postgres` import resolves through
  * the workspace `node_modules`, and (2) the language server discovers a
  * document's config by walking up from the document's own path, so the schema
  * the editor opens must live at or under this directory. Callers therefore
@@ -27,7 +27,7 @@ export async function generateDefaultPostgresConfig(absoluteSchemaPath: string):
   await mkdir(PLAYGROUND_DIR, { recursive: true });
   const configPath = join(PLAYGROUND_DIR, 'prisma-next.config.ts');
   const json = JSON.stringify(absoluteSchemaPath);
-  const contents = `import { defineConfig } from '@prisma-next/postgres/config';
+  const contents = `import { defineConfig } from '@prisma/orm-postgres/config';
 
 export default defineConfig({
   contract: ${json},
