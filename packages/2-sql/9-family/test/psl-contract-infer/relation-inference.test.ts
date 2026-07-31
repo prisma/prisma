@@ -108,8 +108,7 @@ describe('inferRelations', () => {
         uniques: [],
         indexes: [
           {
-            name: 'profile_user_id_idx',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'profile_user_id_idx' },
             columns: ['user_id'],
             where: undefined,
             unique: true,
@@ -157,8 +156,7 @@ describe('inferRelations', () => {
         uniques: [],
         indexes: [
           {
-            name: 'draft_active_user_idx',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'draft_active_user_idx' },
             columns: ['user_id'],
             where: undefined,
             unique: true,
@@ -210,8 +208,7 @@ describe('inferRelations', () => {
         uniques: [],
         indexes: [
           {
-            name: 'handle_user_name_idx',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'handle_user_name_idx' },
             columns: ['user_id', 'name'],
             where: undefined,
             unique: true,
@@ -578,8 +575,7 @@ describe('inferRelations', () => {
         uniques: [],
         indexes: [
           {
-            name: 'profile_user_id_plain_idx',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'profile_user_id_plain_idx' },
             columns: ['user_id'],
             where: undefined,
             unique: false,
@@ -634,8 +630,7 @@ describe('inferRelations', () => {
         // Same columns, reversed order: does not satisfy the FK's (tenant_id, user_id) order.
         indexes: [
           {
-            name: 'membership_user_tenant_idx',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'membership_user_tenant_idx' },
             columns: ['user_id', 'tenant_id'],
             where: undefined,
             unique: false,

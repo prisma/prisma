@@ -15,6 +15,7 @@ import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adap
 import type { MigrationOperationClass } from '@prisma-next/framework-components/control';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import { namingOfLiveName, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
@@ -40,8 +41,7 @@ const ADDITIVE_ONLY_POLICY = { allowedOperationClasses: ['additive'] as const };
 
 function contractPolicy(name: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    naming: namingOfLiveName(name),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
@@ -127,8 +127,7 @@ function actualSchema(options: {
             policies: (options.policies ?? []).map(
               (policy) =>
                 new PostgresPolicySchemaNode({
-                  name: policy.name,
-                  prefix: policy.prefix,
+                  naming: parseNaming(policy.name, policy.prefix),
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,

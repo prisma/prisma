@@ -28,7 +28,7 @@ describe('index naming at PSL lowering', () => {
     });
   }
 
-  it('unnamed @@index lowers managed with the default prefix and a content-hash wire name', () => {
+  it('unnamed @@index lowers wire-named with the default prefix and a content-hash wire name', () => {
     const result = interpret(`model Doc {
   id Int @id
   body String
@@ -85,7 +85,7 @@ describe('@@index matrix threading at PSL lowering', () => {
     });
   }
 
-  it('expression + name lowers a managed expression index', () => {
+  it('expression + name lowers a wire-named expression index', () => {
     const result = interpretMatrix(`model User {
   id    Int    @id
   email String

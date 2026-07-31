@@ -1,3 +1,8 @@
+import type { PreserveEmptyPredicate } from '@prisma-next/contract/hashing';
+import {
+  createPreserveEmptyPredicate,
+  type PathPattern,
+} from '@prisma-next/contract/hashing-utils';
 import type { Contract } from '@prisma-next/contract/types';
 import {
   SqlContractSerializerBase,
@@ -14,9 +19,12 @@ import {
   type Namespace,
   UNBOUND_NAMESPACE_ID,
 } from '@prisma-next/framework-components/ir';
+import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
 import type { SqlNamespaceInput, SqlStorage } from '@prisma-next/sql-contract/types';
 import { blindCast } from '@prisma-next/utils/casts';
+import { InternalError } from '@prisma-next/utils/internal-error';
 import type { JsonObject } from '@prisma-next/utils/json';
+import type { Type } from 'arktype';
 import { postgresAuthoringEntityTypes } from './authoring';
 import { PG_INT_CODEC_ID, PG_TEXT_CODEC_ID } from './codec-ids';
 import {
@@ -72,16 +80,70 @@ function collectStorageTypesHydrators(
   return registry;
 }
 
+/**
+ * The canonicalization walk drops a field whose value equals its type's
+ * default, which for a required field of an entity kind means the emitted
+ * contract fails that kind's own schema on the next read (a RESTRICTIVE
+ * policy's `permissive: false` is the live case). The set of fields that must
+ * survive is therefore the required keys of the registered entity kinds —
+ * read off the schemas rather than listed by hand, so a kind that gains a
+ * required field is covered the day it gains one.
+ */
+function requiredEntityFieldsSurviveDefaults(
+  kinds: readonly AnyEntityKindDescriptor[],
+): PreserveEmptyPredicate {
+  return createPreserveEmptyPredicate(
+    kinds.flatMap((kind) =>
+      requiredKeysOf(kind.schema).map(
+        (key): PathPattern => ['storage', 'namespaces', '*', 'entries', kind.kind, '*', key],
+      ),
+    ),
+  );
+}
+
+type SchemaProp = { readonly kind: string; readonly key: PropertyKey };
+
+function isSchemaPropList(value: unknown): value is readonly SchemaProp[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (prop) =>
+        prop !== null &&
+        (typeof prop === 'object' || typeof prop === 'function') &&
+        'kind' in prop &&
+        'key' in prop,
+    )
+  );
+}
+
+function requiredKeysOf(schema: Type<unknown>): readonly string[] {
+  const props = 'props' in schema ? schema.props : undefined;
+  if (!isSchemaPropList(props)) {
+    throw new InternalError(
+      'entity-kind schema does not expose arktype object props; the required-field preserve set cannot be derived',
+    );
+  }
+  return props.flatMap((prop) =>
+    prop.kind === 'required' && typeof prop.key === 'string' ? [prop.key] : [],
+  );
+}
+
 export class PostgresContractSerializer extends SqlContractSerializerBase<Contract<SqlStorage>> {
+  override shouldPreserveEmpty: PreserveEmptyPredicate;
+
   constructor(extraPackEntityKinds: readonly AnyEntityKindDescriptor[] = []) {
     const storageTypesHydrators = collectStorageTypesHydrators(postgresAuthoringEntityTypes);
-    super(storageTypesHydrators, [
+    const entityKinds = [
       policyEntityKind,
       roleEntityKind,
       rlsEnablementEntityKind,
       nativeEnumEntityKind,
       ...extraPackEntityKinds,
-    ]);
+    ];
+    super(storageTypesHydrators, entityKinds);
+    const preserveRequired = requiredEntityFieldsSurviveDefaults(entityKinds);
+    this.shouldPreserveEmpty = (path) =>
+      preserveRequired(path) || sqlContractCanonicalizationHooks.shouldPreserveEmpty(path);
   }
 
   protected override hydrateSqlNamespaceEntry(

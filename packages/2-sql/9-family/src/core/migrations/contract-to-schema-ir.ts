@@ -15,6 +15,7 @@ import {
   type StorageTypeInstance,
   type UniqueConstraint,
 } from '@prisma-next/sql-contract/types';
+import { namingOf } from '@prisma-next/sql-schema-ir/naming';
 import {
   RelationalSchemaNodeKind,
   type SqlAnnotations,
@@ -308,8 +309,7 @@ function convertIndex(
   tableColumns: readonly string[],
 ): SqlIndexIRInput {
   const base = {
-    name: index.name,
-    prefix: index.prefix,
+    naming: namingOf(index.name, index.prefix),
     where: index.where,
     unique: index.unique,
     partial: index.where !== undefined,

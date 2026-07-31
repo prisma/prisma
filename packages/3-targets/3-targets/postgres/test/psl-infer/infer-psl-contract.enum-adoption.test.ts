@@ -341,7 +341,7 @@ describe('single-namespace stopgap guard', () => {
     });
 
     expect(() => inferPostgresPslContract(multi)).toThrow(
-      /native enum adoption.*multiple schemas|multiple schemas.*native enum/i,
+      /adopting native enums or RLS policies with content across multiple schemas/,
     );
   });
 });

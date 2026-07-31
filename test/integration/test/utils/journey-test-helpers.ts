@@ -233,7 +233,7 @@ export const pslContractFixtures = {
     'contract-expression-authored-editedbody.prisma',
   ),
   'contract-rls-adopted': join(JOURNEY_FIXTURES_DIR, 'contract-rls-adopted.prisma'),
-  'contract-rls-managed': join(JOURNEY_FIXTURES_DIR, 'contract-rls-managed.prisma'),
+  'contract-rls-wire': join(JOURNEY_FIXTURES_DIR, 'contract-rls-wire.prisma'),
 } as const;
 
 export type PslContractVariant = keyof typeof pslContractFixtures;

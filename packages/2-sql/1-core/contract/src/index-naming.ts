@@ -7,7 +7,6 @@ import {
   assertWireNamePrefixLength,
   computeIndexContentHash,
   defaultIndexName,
-  formatWireName,
 } from '@prisma-next/sql-schema-ir/naming';
 import { contractError } from './contract-errors';
 import type { IndexInput } from './ir/sql-index';
@@ -21,34 +20,44 @@ export type AuthoredIndexElements =
   | { readonly columns?: never; readonly expression: string };
 
 /**
+ * The authored access method: options only exist as options *of a type*, so
+ * the pair is one two-arm union rather than two independent fields. An
+ * options bag without a type is therefore unrepresentable, the same way
+ * {@link AuthoredIndexElements} makes columns-with-expression
+ * unrepresentable.
+ */
+export type AuthoredIndexMethod =
+  | { readonly type: undefined; readonly options: undefined }
+  | { readonly type: string; readonly options: Record<string, unknown> | undefined };
+
+/**
  * An index as authored, before naming: `map` is an exact physical name
- * (adopted verbatim); `name` is a managed wire-name prefix. With neither,
- * the managed prefix defaults to `defaultIndexName(table, columns)`.
+ * (adopted verbatim); `name` is a wire-name prefix. With neither,
+ * the wire prefix defaults to `defaultIndexName(table, columns)`.
  * `where`, `unique`, `type`, and `options` participate in the content hash
  * alongside the elements.
  */
-export type AuthoredIndexInput = AuthoredIndexElements & {
-  readonly where: string | undefined;
-  readonly unique: boolean | undefined;
-  readonly map: string | undefined;
-  readonly name: string | undefined;
-  readonly type: string | undefined;
-  readonly options: Record<string, unknown> | undefined;
-};
+export type AuthoredIndexInput = AuthoredIndexElements &
+  AuthoredIndexMethod & {
+    readonly where: string | undefined;
+    readonly unique: boolean | undefined;
+    readonly map: string | undefined;
+    readonly name: string | undefined;
+  };
 
 const EXACT_NAME_BODY_PREAMBLE =
   "Drift detection compares the authored SQL text byte-for-byte against Postgres's reprinted form, which is only reliable when the text was captured by contract infer.";
 
 /**
- * Per-subject remediation: an index moves to managed naming via `name:`;
+ * Per-subject remediation: an index moves to wire naming via `name:`;
  * a policy has no such parameter — dropping `@@map` makes the block's head
- * the managed prefix.
+ * the wire prefix.
  */
 const EXACT_NAME_BODY_REMEDIATION = {
   index:
-    'For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
+    'For hand-authored definitions, use name: and let Prisma Next manage the physical name; to migrate an adopted object to wire naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
   policy:
-    "For hand-authored definitions, drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
+    "For hand-authored definitions, drop @@map and let the policy block's head name the policy; to migrate an adopted policy to wire naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
 } as const;
 
 /** What the user actually wrote, per subject: index `map:`, policy `@@map`. */
@@ -84,7 +93,7 @@ export function exactNameBodyWarning(
 
 /**
  * Lowers an authored index into the name-identified entity `contract.json`
- * persists: exact mode adopts `map` verbatim (no prefix, no hash); managed
+ * persists: exact mode adopts `map` verbatim (no prefix, no hash); wire
  * mode appends the content-hash suffix to the authored or default prefix.
  * The cross-field guards are the shared enforcement backstop for both
  * authoring surfaces (PSL pre-empts them with span-anchored diagnostics).
@@ -103,7 +112,7 @@ export function lowerAuthoredIndex(
   if (authored.map !== undefined && authored.name !== undefined) {
     throw contractError(
       'CONTRACT.ARGUMENT_INVALID',
-      `Index "${authored.map}" on table "${tableName}": map and name are mutually exclusive — map adopts an exact physical name, name is a managed prefix.`,
+      `Index "${authored.map}" on table "${tableName}": map and name are mutually exclusive — map adopts an exact physical name, name is a wire prefix.`,
     );
   }
   if (
@@ -114,6 +123,12 @@ export function lowerAuthoredIndex(
     throw contractError(
       'CONTRACT.ARGUMENT_INVALID',
       `Index on table "${tableName}": an expression index requires an explicit name (name:) or exact physical name (map:) — a default name cannot be derived from an expression.`,
+    );
+  }
+  if (authored.options !== undefined && authored.type === undefined) {
+    throw contractError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `Index on table "${tableName}": options requires an explicit type — an index with options but no type cannot round-trip through contract infer (the emitted type: would change the wire name).`,
     );
   }
 
@@ -129,8 +144,7 @@ export function lowerAuthoredIndex(
       }
     }
     const carried = {
-      name: authored.map,
-      prefix: undefined,
+      naming: { kind: 'exact' as const, name: authored.map },
       where: authored.where,
       unique,
       type: authored.type,
@@ -152,8 +166,7 @@ export function lowerAuthoredIndex(
     ...(authored.options !== undefined && { options: authored.options }),
   });
   const carried = {
-    name: formatWireName(prefix, hash),
-    prefix,
+    naming: { kind: 'wire' as const, prefix, hash },
     where: authored.where,
     unique,
     type: authored.type,

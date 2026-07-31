@@ -1,4 +1,5 @@
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { PostgresDatabaseSchemaNode } from '../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../src/core/schema-ir/postgres-namespace-schema-node';
@@ -80,8 +81,7 @@ describe('Postgres schema nodes carry no role/granularity of their own', () => {
     [
       'PostgresPolicySchemaNode',
       new PostgresPolicySchemaNode({
-        name: 'read_own_a1b2c3d4',
-        prefix: 'read_own',
+        naming: parseNaming('read_own_a1b2c3d4', 'read_own'),
         tableName: 'profiles',
         namespaceId: 'public',
         operation: 'select',

@@ -1,6 +1,7 @@
 import { asNamespaceId, coreHash, profileHash } from '@prisma-next/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import { namingOfLiveName, parseNaming } from '@prisma-next/sql-schema-ir/naming';
 import { SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/types';
 import { applicationDomainOf } from '@prisma-next/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -21,8 +22,7 @@ const SCHEMA_NAME = 'public';
 
 function makePolicy(name: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    naming: namingOfLiveName(name),
     tableName: TABLE_NAME,
     namespaceId: SCHEMA_NAME,
     operation: 'select',
@@ -264,8 +264,7 @@ describe('contractToPostgresDatabaseSchemaNode', () => {
 
   it('throws when a policy references a table absent from its namespace', () => {
     const orphan = new PostgresRlsPolicy({
-      name: 'read_orphan_deadbeef',
-      prefix: 'read_orphan',
+      naming: parseNaming('read_orphan_deadbeef', 'read_orphan'),
       tableName: 'missing_table',
       namespaceId: SCHEMA_NAME,
       operation: 'select',

@@ -100,7 +100,7 @@ Managed nodes still compare structured attributes so out-of-band structured drif
 
 ## Adoption and inference
 
-`contract infer` emits every index with **managed re-detection**: recompute the content hash from introspected (fully structured or reprinted) content; if the live name is `<prefix>_<that hash>`, emit `name: <prefix>` — our own databases re-infer to byte-identical managed contracts. Otherwise emit `map: "<live name>"` with the reprinted bodies verbatim. Policies always adopt as exact (`@@map`) — a reprinted predicate never re-hashes to the authored suffix. RLS enablement round-trips via `@@rls`. The acceptance bar is literal: infer → emit → verify = zero issues, plan = zero operations, on a database this toolchain has never seen.
+`contract infer` emits every index with **managed re-detection**: recompute the content hash from introspected (fully structured or reprinted) content; if the live name is `<prefix>_<that hash>`, emit `name: <prefix>` — our own databases re-infer to byte-identical managed contracts. Otherwise emit `map: "<live name>"` with the reprinted bodies verbatim (expression indexes usually land here — reprints add casts and parens — though a byte-identical reprint re-detects managed, which is equally sound). Policies always adopt as exact (`@@map`) by design: re-detection is not attempted for them. RLS enablement round-trips via `@@rls`. The acceptance bar is literal: infer → emit → verify = zero issues, plan = zero operations, on a database this toolchain has never seen.
 
 Hand-authoring a body under `map:` is allowed but produces false drift (authored text vs reprint) and draws an emit-time warning directing the user to `name:`.
 

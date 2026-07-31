@@ -2,6 +2,7 @@ import { type Contract, coreHash, profileHash } from '@prisma-next/contract/type
 import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
 import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { index } from '@prisma-next/sql-contract/factories';
 import { SqlStorage, type StorageColumn, type StorageTable } from '@prisma-next/sql-contract/types';
 import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
 import { createSqliteMigrationPlanner } from '@prisma-next/target-sqlite/planner';
@@ -143,7 +144,7 @@ describe('SQLite migration planner', () => {
           email: makeColumn({ nativeType: 'text', nullable: false }),
         },
         primaryKey: { columns: ['id'] },
-        indexes: [{ columns: ['email'], name: 'idx_users_email', unique: false }],
+        indexes: [index('idx_users_email', ['email'])],
       }),
     });
 
