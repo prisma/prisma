@@ -18,7 +18,7 @@
     "@standard-schema/spec": "^1.1.0",
     "arktype": "catalog:",
     "pathe": "^2.0.3",
-    "uniku": "^0.3.0"
+    "uniku": "^0.4.3"
   },
   "devDependencies": {
     "@prisma-next/config": "workspace:0.16.0",

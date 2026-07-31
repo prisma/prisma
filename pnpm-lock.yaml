@@ -4871,8 +4871,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       uniku:
-        specifier: ^0.3.0
-        version: 0.3.2
+        specifier: ^0.4.3
+        version: 0.4.3
     devDependencies:
       '@prisma-next/config':
         specifier: workspace:0.16.0
@@ -5220,7 +5220,7 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       prettier:
-        specifier: ^3.9.5
+        specifier: ^3.9.6
         version: 3.9.6
       string-width:
         specifier: ^8.2.2
@@ -10889,10 +10889,6 @@ packages:
   unenv@2.0.0-rc.24:
     resolution: {integrity: sha512-i7qRCmY42zmCwnYlh9H2SvLEypEFGye5iRmEMKjcGi7zk9UquigRjFtTLz0TYqr0ZGLZhaMHl/foy1bZR+Cwlw==}
 
-  uniku@0.3.2:
-    resolution: {integrity: sha512-+KesDkVak6YJG5kjkeqciTukDo9kzThuK5UFK+HtXzDbls0J5IuNXQ9mApyipyEuLVhVx61Uum8zljO73TBiiA==}
-    engines: {node: '>=20.19.0'}
-
   uniku@0.4.3:
     resolution: {integrity: sha512-ysuyrPk4xV9cOuJrQ9sPoqbGrf8PJG2PZEeRqs0JFPxhvusNrn0B26p3t7HLH6OGnQieDlDiVkuCWKkwPkUCoA==}
     engines: {node: '>=20.19.0'}
@@ -15957,10 +15953,6 @@ snapshots:
   unenv@2.0.0-rc.24:
     dependencies:
       pathe: 2.0.3
-
-  uniku@0.3.2:
-    dependencies:
-      '@noble/hashes': 2.2.0
 
   uniku@0.4.3:
     dependencies:
