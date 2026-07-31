@@ -1163,54 +1163,6 @@ describe('extractCodecLookup', () => {
     ]);
     expect(lookup.renderValueLiteralFor?.('a@1', 'val', 'output')).toBeUndefined();
   });
-
-  it('metaFor returns the static meta for a non-parameterized codec regardless of typeParams', () => {
-    const descriptorWithMeta: AnyCodecDescriptor = {
-      ...stubDescriptor('text@1'),
-      meta: { db: { sql: { postgres: { nativeType: 'text' } } } },
-    };
-    const lookup = extractCodecLookup([
-      { id: 'desc', types: { codecTypes: { codecDescriptors: [descriptorWithMeta] } } },
-    ]);
-    expect(lookup.metaFor('text@1')).toEqual({ db: { sql: { postgres: { nativeType: 'text' } } } });
-    expect(lookup.metaFor('text@1', { irrelevant: true })).toEqual({
-      db: { sql: { postgres: { nativeType: 'text' } } },
-    });
-  });
-
-  it('metaFor prefers the descriptor params-aware metaFor over static meta when typeParams is given', () => {
-    const enumDescriptor: AnyCodecDescriptor = {
-      ...stubDescriptor('pg/enum@1'),
-      meta: { db: { sql: { postgres: { nativeType: 'text' } } } },
-      metaFor: (typeParams: unknown) =>
-        typeParams !== null && typeof typeParams === 'object' && 'typeName' in typeParams
-          ? { db: { sql: { postgres: { nativeType: String(typeParams.typeName) } } } }
-          : undefined,
-    };
-    const lookup = extractCodecLookup([
-      { id: 'desc', types: { codecTypes: { codecDescriptors: [enumDescriptor] } } },
-    ]);
-    expect(lookup.metaFor('pg/enum@1', { typeName: 'auth.aal_level' })).toEqual({
-      db: { sql: { postgres: { nativeType: 'auth.aal_level' } } },
-    });
-    expect(lookup.metaFor('pg/enum@1')).toEqual({
-      db: { sql: { postgres: { nativeType: 'text' } } },
-    });
-  });
-
-  it('metaFor falls back to the static meta when the params-aware metaFor returns undefined', () => {
-    const enumDescriptor: AnyCodecDescriptor = {
-      ...stubDescriptor('pg/enum@1'),
-      meta: { db: { sql: { postgres: { nativeType: 'text' } } } },
-      metaFor: () => undefined,
-    };
-    const lookup = extractCodecLookup([
-      { id: 'desc', types: { codecTypes: { codecDescriptors: [enumDescriptor] } } },
-    ]);
-    expect(lookup.metaFor('pg/enum@1', { typeName: 'auth.aal_level' })).toEqual({
-      db: { sql: { postgres: { nativeType: 'text' } } },
-    });
-  });
 });
 
 describe('assembleControlMutationDefaults', () => {
@@ -1446,7 +1398,6 @@ describe('validateScalarTypeCodecIds', () => {
     const lookup: CodecLookup = {
       get: () => undefined,
       targetTypesFor: () => undefined,
-      metaFor: () => undefined,
       renderOutputTypeFor: () => undefined,
     };
     const errors = validateScalarTypeCodecIds(namespace, lookup);
@@ -1475,7 +1426,6 @@ describe('validateScalarTypeCodecIds', () => {
             }
           : undefined,
       targetTypesFor: (id: string) => (id === 'test/text@1' ? ['text'] : undefined),
-      metaFor: () => undefined,
       renderOutputTypeFor: () => undefined,
     };
     const errors = validateScalarTypeCodecIds(namespace, lookup);
@@ -1493,7 +1443,6 @@ describe('validateScalarTypeCodecIds', () => {
     const lookup: CodecLookup = {
       get: () => undefined,
       targetTypesFor: () => undefined,
-      metaFor: () => undefined,
       renderOutputTypeFor: () => undefined,
     };
     expect(validateScalarTypeCodecIds(namespace, lookup)).toEqual([]);

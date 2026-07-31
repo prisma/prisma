@@ -11,8 +11,8 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // and findMany" tests are non-portable.
 //
 // Prisma-next type differences from upstream Prisma Client:
-//   - BigInt  → string   (pg driver returns int8 as string; codec output type says
-//                         `number` but the runtime value is a string for int8)
+//   - BigInt  → bigint   (pg/int8@1 carries the full signed 64-bit range, which a
+//                         JS number cannot hold past 2^53)
 //   - Decimal → string   (pg/numeric@1 codec output is `string`, not Prisma.Decimal)
 //   - DateTime → Date    (same as Prisma)
 //   - Bytes   → Uint8Array (same as Prisma, but always a plain Uint8Array not Buffer)
@@ -98,7 +98,7 @@ describe('ports/prisma/functional/multiple-types', () => {
         await db.public.TestModel.create({
           string: 'str',
           int: 42,
-          bInt: 12345,
+          bInt: 12345n,
           float: 0.125,
           bytes: Uint8Array.from([1, 2, 3]),
           bool: true,
@@ -125,12 +125,12 @@ describe('ports/prisma/functional/multiple-types', () => {
           int: null,
           string: null,
         });
-        // bInt comes back as string (pg driver returns int8 as string)
+        // bInt comes back as bigint (pg/int8@1 codec output)
         // dec comes back as string (pg/numeric@1 codec output)
         expect(valuesRow).toMatchObject({
           string: 'str',
           int: 42,
-          bInt: '12345',
+          bInt: 12345n,
           float: 0.125,
           bytes: Uint8Array.from([1, 2, 3]),
           bool: true,

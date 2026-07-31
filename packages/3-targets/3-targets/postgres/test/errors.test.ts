@@ -59,13 +59,14 @@ describe('postgresError sites', () => {
     });
   });
 
-  it('pg/numeric encodeJson rejects a non-finite value as RUNTIME.ENCODE_FAILED', () => {
+  it('pg/numeric encodeJson rejects a non-numeral value as RUNTIME.ENCODE_FAILED', () => {
     const codec = pgNumericDescriptor.factory({ precision: 10, scale: 2 })({ name: 'test' });
     const error = catchError(() => codec.encodeJson('not-a-number'));
     expect(isStructuredError(error)).toBe(true);
     expect(error).toMatchObject({
       code: 'RUNTIME.ENCODE_FAILED',
-      message: 'pg/numeric@1 database JSON value must be a finite number',
+      message:
+        'pg/numeric@1 application value must be canonical numeric text: an optionally negated decimal numeral, or NaN, Infinity or -Infinity',
     });
   });
 

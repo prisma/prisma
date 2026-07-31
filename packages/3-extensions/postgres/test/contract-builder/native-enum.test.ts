@@ -303,7 +303,6 @@ describe('nativeEnum + pg.enum (TS native-enum authoring)', () => {
     const codecLookup: CodecLookup = {
       get: () => undefined,
       targetTypesFor: () => undefined,
-      metaFor: () => undefined,
       renderOutputTypeFor: () => undefined,
       renderValueLiteralFor: (id, value) =>
         id === 'pg/enum@1' ? pgEnumDescriptor.renderValueLiteral(value) : undefined,

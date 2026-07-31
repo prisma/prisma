@@ -13,7 +13,6 @@ function literalCodecLookup(): CodecLookup {
   return {
     get: () => undefined,
     targetTypesFor: () => undefined,
-    metaFor: () => undefined,
     renderOutputTypeFor: () => undefined,
     renderValueLiteralFor: (_id, value) =>
       typeof value === 'string'

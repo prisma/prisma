@@ -5,19 +5,24 @@ import {
   AndExpr,
   type AnyExpression,
   type AnyFromSource,
+  type AnyJsonValueProjection,
   type AstRewriter,
   BinaryExpr,
   type BinaryOp,
+  CodecJsonValueProjection,
+  type CodecRef,
   ColumnRef,
   DerivedTableSource,
   EqColJoinOn,
   JoinAst,
   JsonArrayAggExpr,
+  JsonDocumentProjection,
   JsonObjectExpr,
   LiteralExpr,
   NativeJsonValueProjection,
   OrderByItem,
   OrExpr,
+  type ProjectionExpr,
   ProjectionItem,
   SelectAst,
   SubqueryExpr,
@@ -50,6 +55,43 @@ type CursorOrderEntry = {
   readonly direction: 'asc' | 'desc';
   readonly value: unknown;
 };
+
+/**
+ * The rule for which JSON projection variant an include entry carries. Every
+ * site that puts a value into a `json_build_object` or a `json_agg` goes
+ * through here, and the renderers read the variant to decide how the value
+ * reaches JSON.
+ *
+ * - `codec`: the value is a column whose storage codec is known, so the
+ *   renderer can ask that codec's descriptor for the projection producing its
+ *   canonical JSON. The `CodecRef` is resolved at planning time by
+ *   `codecRefForStorageColumn` and carried on the `ProjectionItem` through
+ *   every wrap between the column and here.
+ * - `document`: the value is already a JSON document — a nested include's
+ *   correlated subquery, a combine branch, or the object a child row set is
+ *   aggregated from. Its parts were made canonical at the level that produced
+ *   them; this level only nests it.
+ * - `native`: the value has no codec identity. An aggregate is the case that
+ *   arises today: `COUNT(*)` and `SUM(col)` are computed, and the aggregate's
+ *   own result type is not the column's codec. Native is what a value with no
+ *   codec identity means, which is a different thing from defaulting a codec
+ *   to identity — that, the project forbids.
+ *
+ * A document never carries a codec and a codec-bearing column is never a
+ * document, so the first two cases cannot both apply.
+ */
+function jsonEntryProjection(
+  value: ProjectionExpr,
+  identity: { readonly codec?: CodecRef | undefined; readonly document?: boolean },
+): AnyJsonValueProjection {
+  if (identity.codec !== undefined) {
+    return new CodecJsonValueProjection(value, identity.codec);
+  }
+  if (identity.document === true) {
+    return new JsonDocumentProjection(value);
+  }
+  return new NativeJsonValueProjection(value);
+}
 
 function buildProjection(
   contract: Contract<SqlStorage>,
@@ -458,6 +500,16 @@ function buildNestedIncludeProjections(
 }
 
 /**
+ * The aliases a level's nested includes contribute. Each such subquery
+ * projects a JSON document — an object for a scalar include, an array of
+ * objects for a row include — which is what tells the enclosing level to nest
+ * the value rather than convert it.
+ */
+function documentAliasesOf(nestedProjections: ReadonlyArray<ProjectionItem>): ReadonlySet<string> {
+  return new Set(nestedProjections.map((item) => item.alias));
+}
+
+/**
  * Resolve the MTI variant joins + `variant_table__column` projection for an
  * include whose target model is polymorphic, mirroring the parent path in
  * `compileSelectWithIncludes`. The discriminator column and any STI
@@ -662,6 +714,8 @@ function buildIncludeChildRowsSelect(
 ): {
   readonly childRows: SelectAst;
   readonly childProjection: ReadonlyArray<ProjectionItem>;
+  /** Aliases in `childProjection` whose value is itself a JSON document. */
+  readonly documentAliases: ReadonlySet<string>;
   readonly rowsAlias: string;
   readonly aggregateOrderBy: ReadonlyArray<OrderByItem> | undefined;
 } {
@@ -855,6 +909,7 @@ function buildIncludeChildRowsSelect(
   return {
     childRows,
     childProjection,
+    documentAliases: documentAliasesOf(nestedProjections),
     rowsAlias,
     aggregateOrderBy,
   };
@@ -874,6 +929,7 @@ function buildDistinctNonLeafChildRowsSelect(options: {
 }): {
   readonly childRows: SelectAst;
   readonly childProjection: ReadonlyArray<ProjectionItem>;
+  readonly documentAliases: ReadonlySet<string>;
   readonly rowsAlias: string;
   readonly aggregateOrderBy: ReadonlyArray<OrderByItem> | undefined;
 } {
@@ -1059,6 +1115,7 @@ function buildDistinctNonLeafChildRowsSelect(options: {
   return {
     childRows,
     childProjection,
+    documentAliases: documentAliasesOf(outerNestedProjections),
     rowsAlias,
     aggregateOrderBy,
   };
@@ -1131,7 +1188,7 @@ function buildIncludeChildScalarSelect(
   if (!needsInnerScoping) {
     const aggregateExpr = buildIncludeAggregateExpr(scalar, childTableRef);
     const jsonObjectExpr = JsonObjectExpr.fromEntries([
-      JsonObjectExpr.entry('value', new NativeJsonValueProjection(aggregateExpr)),
+      JsonObjectExpr.entry('value', jsonEntryProjection(aggregateExpr, {})),
     ]);
     return SelectAst.from(
       tableSourceForContract(
@@ -1233,7 +1290,7 @@ function buildIncludeChildScalarSelect(
   // Outer aggregating SELECT over the shaped inner row set.
   const outerAggregateExpr = buildIncludeAggregateExpr(scalar, innerAlias);
   const outerJsonObjectExpr = JsonObjectExpr.fromEntries([
-    JsonObjectExpr.entry('value', new NativeJsonValueProjection(outerAggregateExpr)),
+    JsonObjectExpr.entry('value', jsonEntryProjection(outerAggregateExpr, {})),
   ]);
 
   return SelectAst.from(DerivedTableSource.as(innerAlias, inner)).withProjection([
@@ -1318,7 +1375,7 @@ function buildIncludeChildCombineSelect(
     compiledBranches.map((branch) =>
       JsonObjectExpr.entry(
         branch.name,
-        new NativeJsonValueProjection(ColumnRef.of(branch.alias, include.relationName)),
+        jsonEntryProjection(ColumnRef.of(branch.alias, include.relationName), { document: true }),
       ),
     ),
   );
@@ -1376,16 +1433,16 @@ function buildIncludeChildRowsAggregateSelect(
   parentSource: IncludeParentSource,
   include: IncludeExpr,
 ): SelectAst {
-  const { childRows, childProjection, rowsAlias, aggregateOrderBy } = buildIncludeChildRowsSelect(
-    contract,
-    parentSource,
-    include,
-  );
+  const { childRows, childProjection, documentAliases, rowsAlias, aggregateOrderBy } =
+    buildIncludeChildRowsSelect(contract, parentSource, include);
   const jsonObjectExpr = JsonObjectExpr.fromEntries(
     childProjection.map((item) =>
       JsonObjectExpr.entry(
         item.alias,
-        new NativeJsonValueProjection(ColumnRef.of(rowsAlias, item.alias)),
+        jsonEntryProjection(ColumnRef.of(rowsAlias, item.alias), {
+          codec: item.codec,
+          document: documentAliases.has(item.alias),
+        }),
       ),
     ),
   );
@@ -1393,7 +1450,7 @@ function buildIncludeChildRowsAggregateSelect(
     ProjectionItem.of(
       include.relationName,
       JsonArrayAggExpr.of(
-        new NativeJsonValueProjection(jsonObjectExpr),
+        jsonEntryProjection(jsonObjectExpr, { document: true }),
         'emptyArray',
         aggregateOrderBy,
       ),

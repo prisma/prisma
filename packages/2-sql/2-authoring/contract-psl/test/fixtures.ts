@@ -478,7 +478,6 @@ export const postgresCodecLookup: CodecLookup = {
     return { id } as ReturnType<CodecLookup['get']>;
   },
   targetTypesFor: (id: string) => targetTypesByCodecId[id],
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 

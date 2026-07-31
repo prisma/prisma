@@ -1,7 +1,7 @@
 /**
  * Codec descriptor interface (consumer surface) and abstract `CodecDescriptorImpl` base (codec-author surface).
  *
- * Consumers depend on the {@link CodecDescriptor} interface — it is the codec-id-keyed source of truth for static metadata (`traits`, `targetTypes`, `meta`) and registration concerns (`paramsSchema`; optional `renderOutputType`). The runtime `Codec` instance returned by `factory(params)(ctx)` carries only the conversion behavior.
+ * Consumers depend on the {@link CodecDescriptor} interface — it is the codec-id-keyed source of truth for static metadata (`traits`, `targetTypes`) and registration concerns (`paramsSchema`; optional `renderOutputType`). The runtime `Codec` instance returned by `factory(params)(ctx)` carries only the conversion behavior.
  *
  * Codec authors `extend` the {@link CodecDescriptorImpl} abstract class to declare their codec id, traits, target types, params schema, the `factory(params)` that materializes a typed `Codec<...>`, and (optionally) a `renderOutputType(params)` for the emit path.
  *
@@ -11,17 +11,12 @@
 import type { JsonValue } from '@prisma-next/contract/types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Codec } from './codec';
-import {
-  type CodecInstanceContext,
-  type CodecMeta,
-  type CodecTrait,
-  voidParamsSchema,
-} from './codec-types';
+import { type CodecInstanceContext, type CodecTrait, voidParamsSchema } from './codec-types';
 
 /**
  * Unified codec descriptor. Every codec in the framework registers through this shape — non-parameterized codecs use `P = void` and a constant factory that returns the same shared codec instance for every column; parameterized codecs use a non-empty `P` and a curried higher-order factory that returns a per-instance codec.
  *
- * The descriptor is the codec-id-keyed source of truth for static metadata (`traits`, `targetTypes`, `meta`) and registration concerns (`paramsSchema` for JSON-boundary validation; optional `renderOutputType` for the `contract.d.ts` emit path). The runtime `Codec` instance returned by `factory(params)(ctx)` carries only the conversion behavior.
+ * The descriptor is the codec-id-keyed source of truth for static metadata (`traits`, `targetTypes`) and registration concerns (`paramsSchema` for JSON-boundary validation; optional `renderOutputType` for the `contract.d.ts` emit path). The runtime `Codec` instance returned by `factory(params)(ctx)` carries only the conversion behavior.
  *
  * Whether a codec id "is parameterized" stops being a registration-time distinction — it's a property of `P` on the descriptor. The descriptor map indexes every descriptor by `codecId`; both `descriptorFor(codecId)` and `forColumn(table, column)` resolve through the same map without branching on parameterization.
  *
@@ -36,14 +31,10 @@ export interface CodecDescriptor<P = void> {
   readonly traits: readonly CodecTrait[];
   /** Database-native type names this codec handles (e.g. `['timestamptz']`). */
   readonly targetTypes: readonly string[];
-  /** Optional family-specific metadata (e.g. SQL-side `db.sql.postgres.nativeType`). */
-  readonly meta?: CodecMeta;
   /** Standard Schema validator for the factory's params. Validates JSON-sourced params at the contract boundary (PSL → IR; `contract.json` → runtime). For non-parameterized codecs (`P = void`), the schema validates `void`/`undefined` — the framework supplies no params at the call boundary. */
   readonly paramsSchema: StandardSchemaV1<P>;
   /** Whether this descriptor is parameterized — i.e. its `paramsSchema` is something other than the singleton `voidParamsSchema`. Consumers that need to gate column-aware dispatch read this directly rather than threading a free-floating `(codecId) => boolean` callback. */
   readonly isParameterized: boolean;
-  /** Optional params-aware metadata renderer. Computes this codec instance's `CodecMeta` from its `typeParams` (e.g. a per-instance identifier derived from an enum's declared member set). Optional; absent renderers cause `CodecLookup.metaFor` to fall back to the codec's static `meta`. Non-parameterized codecs typically omit it. */
-  readonly metaFor?: (params: P) => CodecMeta | undefined;
   /** Emit-path string renderer for `contract.d.ts`. Returns the TypeScript output type expression for given params (e.g. `Vector<1536>`). Optional; absent renderers cause the emitter to fall back to the codec's base output type. Non-parameterized codecs typically omit it. */
   readonly renderOutputType?: (params: P) => string | undefined;
   /** Emit-path string renderer for the `contract.d.ts` *input* position (create/update values). Returns the TypeScript input type expression for given params. Optional; absent renderers fall back to the codec's base input type. A codec supplies this when its write type is narrower than the generic codec input — e.g. an enum whose input should be the literal member union, not `string`. */
@@ -82,7 +73,6 @@ export abstract class CodecDescriptorImpl<TParams = void> implements CodecDescri
   abstract readonly codecId: string;
   abstract readonly traits: readonly CodecTrait[];
   abstract readonly targetTypes: readonly string[];
-  readonly meta?: CodecMeta;
 
   abstract readonly paramsSchema: StandardSchemaV1<TParams>;
 
@@ -90,9 +80,6 @@ export abstract class CodecDescriptorImpl<TParams = void> implements CodecDescri
   get isParameterized(): boolean {
     return this.paramsSchema !== voidParamsSchema;
   }
-
-  /** Optional params-aware metadata renderer. Computes this codec instance's `CodecMeta` from its `typeParams` (e.g. a per-instance identifier derived from an enum's declared member set). Non-parameterized codecs typically omit it. */
-  metaFor?(params: TParams): CodecMeta | undefined;
 
   /** Optional emit-path string renderer for `contract.d.ts`. Returns the TypeScript output type expression for the given params (e.g. `Vector<1536>`). Non-parameterized codecs typically omit it. */
   renderOutputType?(params: TParams): string | undefined;

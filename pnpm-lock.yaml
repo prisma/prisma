@@ -3321,6 +3321,12 @@ importers:
         specifier: ~2.2.2
         version: 2.2.3
     devDependencies:
+      '@prisma-next/adapter-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../3-targets/6-adapters/postgres
+      '@prisma-next/driver-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../3-targets/7-drivers/postgres
       '@prisma-next/sql-contract':
         specifier: workspace:0.16.0
         version: link:../../2-sql/1-core/contract
@@ -3577,6 +3583,9 @@ importers:
       '@prisma-next/cli':
         specifier: workspace:0.16.0
         version: link:../../1-framework/3-tooling/cli
+      '@prisma-next/driver-postgres':
+        specifier: workspace:0.16.0
+        version: link:../../3-targets/7-drivers/postgres
       '@prisma-next/operations':
         specifier: workspace:0.16.0
         version: link:../../1-framework/1-core/operations

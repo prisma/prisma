@@ -36,7 +36,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'cecd9cfc7e5a5102f2f73a02f9e58aac2643d5249308de9bed711b45f5d83fbe'>;
+  StorageHashBase<'38192768d53e3f5c573856534541b506a6382492220cf6476a89505a76d2084b'>;
 export type ExecutionHash =
   ExecutionHashBase<'5629682c0d69cfa236e08de82a20c1a4fdcf1163a78ac2f17ffaf993caf4f8f4'>;
 export type ProfileHash =
@@ -46,9 +46,11 @@ export type CodecTypes = PgTypes & ArktypeJsonTypes & PgVectorTypes;
 export type LaneCodecTypes = CodecTypes;
 export type QueryOperationTypes = PgAdapterQueryOps<CodecTypes> &
   PgVectorQueryOperationTypes<CodecTypes>;
-type DefaultLiteralValue<CodecId extends string, _Encoded> = CodecId extends keyof CodecTypes
-  ? CodecTypes[CodecId]['output']
-  : _Encoded;
+type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyof CodecTypes
+  ? Encoded extends CodecTypes[CodecId]['json']
+    ? Encoded
+    : CodecTypes[CodecId]['json']
+  : Encoded;
 
 export type FieldOutputTypes = {
   readonly public: {
@@ -473,7 +475,7 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly default: {
                     readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int8@1', 9007199254740991>;
+                    readonly value: DefaultLiteralValue<'pg/int8@1', '9007199254740991'>;
                   };
                 };
                 readonly metadata: {

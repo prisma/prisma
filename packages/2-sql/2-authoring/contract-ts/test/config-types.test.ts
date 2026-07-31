@@ -35,7 +35,6 @@ const stubContext: ContractSourceContext = {
   codecLookup: {
     get: () => undefined,
     targetTypesFor: () => undefined,
-    metaFor: () => undefined,
     renderOutputTypeFor: () => undefined,
   },
   controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },

@@ -159,7 +159,6 @@ const codecsById = new Map<string, AnyCodecDescriptor>([
 const codecLookup: CodecLookup = {
   get: () => undefined,
   targetTypesFor: () => undefined,
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
   descriptorFor: (id) => codecsById.get(id),
 };

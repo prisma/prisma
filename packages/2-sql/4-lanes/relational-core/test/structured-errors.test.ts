@@ -70,11 +70,20 @@ describe('relational-core structured error codes', () => {
   });
 
   it('unparseable timestamp database JSON raises RUNTIME.DECODE_FAILED', () => {
-    const error = capture(() => sqlTimestampDecodeJson('not-a-date'));
+    const error = capture(() => sqlTimestampDecodeJson('2024-13-01T00:00:00'));
     expect(isStructuredError(error)).toBe(true);
     expect(error).toMatchObject({
       code: 'RUNTIME.DECODE_FAILED',
-      message: 'Invalid ISO date string for sql/timestamp@1: not-a-date',
+      message: 'Invalid ISO date string for sql/timestamp@1: 2024-13-01T00:00:00',
+    });
+  });
+
+  it('offset-bearing timestamp database JSON raises RUNTIME.DECODE_FAILED', () => {
+    const error = capture(() => sqlTimestampDecodeJson('2024-01-15T10:30:00Z'));
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      meta: { codec: 'sql/timestamp@1' },
     });
   });
 

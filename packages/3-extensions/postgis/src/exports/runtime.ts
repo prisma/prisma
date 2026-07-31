@@ -9,7 +9,7 @@ const postgisRuntimeDescriptor: SqlRuntimeExtensionDescriptor<'postgres'> = {
   familyId: 'sql' as const,
   targetId: 'postgres' as const,
   // Expose the unified descriptor list so `extractCodecLookup` reads
-  // `targetTypes` / `meta` / `renderOutputType` directly off the
+  // `targetTypes` / `renderOutputType` directly off the
   // descriptors and materialises the representative `Codec` for the
   // SQL renderer's cast-policy lookup. Without it, the Postgres
   // adapter's runtime codec lookup would miss `pg/geometry@1` and

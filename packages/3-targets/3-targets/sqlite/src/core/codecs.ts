@@ -3,8 +3,7 @@
  *
  * Each codec ships as three artifacts:
  *
- * 1. A `SqliteXCodec` class extending {@link CodecImpl} that wraps the encode/decode/encodeJson/decodeJson conversions inline. SQLite's runtime conversions are simple enough that there is no shared helper module; the class bodies are the single source of truth. 2. A `SqliteXDescriptor` class extending {@link SqliteCodecDescriptor} declaring the codec id, traits, target types, params schema, and current scalar JSON projection. SQLite codecs do not carry
- * `meta` (no per-target native-type meta today) and are all non-parameterized. 3. A per-codec column helper (`sqliteXColumn`) that calls `descriptor.factory()` directly and packages the result into a {@link ColumnSpec} via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor` + `ColumnHelperForStrict` (every SQLite codec's resolved type is well-defined).
+ * 1. A `SqliteXCodec` class extending {@link CodecImpl} that wraps the encode/decode/encodeJson/decodeJson conversions inline. SQLite's runtime conversions are simple enough that there is no shared helper module; the class bodies are the single source of truth. 2. A `SqliteXDescriptor` class extending {@link SqliteCodecDescriptor} declaring the codec id, traits, target types, params schema, and canonical JSON projection. SQLite declares no per-target native type, and every SQLite codec is non-parameterized. 3. A per-codec column helper (`sqliteXColumn`) that calls `descriptor.factory()` directly and packages the result into a {@link ColumnSpec} via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor` + `ColumnHelperForStrict` (every SQLite codec's resolved type is well-defined).
  *
  * After TML-2357 this is the canonical source of SQLite codec metadata and runtime behaviour — the legacy `mkCodec` / `defineCodec` carriers (and the parallel `byScalar` / `codecDescriptorDefinitions` collection exports) retired with the deletion sweep.
  *
@@ -22,6 +21,11 @@ import {
   voidParamsSchema,
 } from '@prisma-next/framework-components/codec';
 import {
+  CaseExpr,
+  CastExpr,
+  FunctionCallExpr,
+  LiteralExpr,
+  NullCheckExpr,
   type ProjectionExpr,
   sqlCharDescriptor,
   sqlFloatDescriptor,
@@ -40,7 +44,94 @@ import {
 } from './codec-ids';
 import { sqliteError } from './errors';
 
+/**
+ * Projects the expression unchanged, for codecs whose canonical JSON is what
+ * SQLite's own JSON conversion already produces.
+ *
+ * Identity here is a claim about the target's behaviour, not an absence of one:
+ * the codec's conformance cases are what test it, including at the boundaries
+ * of the representation where a native conversion would be most likely to
+ * diverge.
+ */
 const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
+
+/**
+ * Projects an integer-valued expression as decimal text.
+ *
+ * The cast is part of the projected expression, so it applies before the JSON
+ * constructor sees the value: handed an INTEGER directly, the constructor emits
+ * a JSON number, and SQLite's 64-bit range does not survive being read back as
+ * a double. Casting the constructor's result would be too late.
+ */
+const decimalTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
+  CastExpr.as(expression, 'TEXT');
+
+/**
+ * Projects a BLOB as hexadecimal text.
+ *
+ * SQLite's JSON functions reject a BLOB argument outright, so the encoding has
+ * to replace the native conversion rather than post-process it. `hex()` emits
+ * uppercase and never wraps at any length, which is the spelling `encodeJson`
+ * pins.
+ *
+ * `hex(NULL)` is `''` rather than NULL, and `''` is the hex of an empty blob —
+ * so without the NULL check an absent blob and an empty one would both project
+ * as `''`, and `decodeJson` accepts `''` because zero hex pairs is a valid
+ * empty blob. The check keeps the two distinguishable.
+ */
+const hexJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
+  CaseExpr.of(
+    [{ condition: NullCheckExpr.isNull(expression), value: LiteralExpr.of(null) }],
+    FunctionCallExpr.of('hex', [expression]),
+  );
+
+const JSON_RETAG_FN = 'json' as const;
+
+/**
+ * Re-applies SQLite's JSON subtype to a document-valued expression.
+ *
+ * SQLite carries "this text is JSON" as a subtype on the value rather than in
+ * its type, and the subtype does not survive a derived table: a document that
+ * `json_object` produced arrives one level out as plain text, so the enclosing
+ * constructor embeds it as a *string containing JSON* rather than as a
+ * document. `json()` re-applies the subtype, which is what makes the value nest
+ * as a document again.
+ *
+ * The loss happens at the first derived-table boundary and does not compound, so
+ * a retag is needed where the document is consumed rather than at every level it
+ * passes through.
+ *
+ * Applying this twice is a no-op — SQLite's `json()` is idempotent, and the
+ * wrapper collapses rather than nesting so the rendered SQL says so too. It is
+ * safe on any valid JSON text, including scalars, and on NULL; it raises
+ * `malformed JSON` on text that is not JSON, which is the correct failure for a
+ * value that was never a document.
+ */
+export const jsonDocumentRetag = (expression: ProjectionExpr): ProjectionExpr =>
+  isJsonRetag(expression) ? expression : FunctionCallExpr.of(JSON_RETAG_FN, [expression]);
+
+/** Whether an expression is already a retag, so applying one again would only nest. */
+const isJsonRetag = (expression: ProjectionExpr): boolean =>
+  expression instanceof FunctionCallExpr &&
+  expression.fn === JSON_RETAG_FN &&
+  expression.args.length === 1;
+
+const DECIMAL_INTEGER = /^-?\d+$/;
+const UPPERCASE_HEX = /^(?:[0-9A-F]{2})*$/;
+
+/**
+ * JSON has no spelling for an infinity or a NaN, and SQLite renders one as
+ * `9.0e+999`, which reads back as `Infinity` rather than failing. A real is
+ * therefore carried only where it is finite.
+ */
+const finiteReal = (value: number, code: 'RUNTIME.ENCODE_FAILED' | 'RUNTIME.DECODE_FAILED') => {
+  if (!Number.isFinite(value)) {
+    throw sqliteError(code, 'sqlite/real@1 value must be a finite number', {
+      meta: { codecId: SQLITE_REAL_CODEC_ID, received: String(value) },
+    });
+  }
+  return value;
+};
 
 export const sqliteSqlCharDescriptor = sqliteCodec(sqlCharDescriptor, {
   jsonProjection: identityJsonProjection,
@@ -153,10 +244,19 @@ export class SqliteRealCodec extends CodecImpl<
     return wire;
   }
   encodeJson(value: number): JsonValue {
-    return value;
+    return finiteReal(value, 'RUNTIME.ENCODE_FAILED');
   }
   decodeJson(json: JsonValue): number {
-    return json as number;
+    if (typeof json !== 'number') {
+      throw sqliteError(
+        'RUNTIME.DECODE_FAILED',
+        'sqlite/real@1 database JSON value must be a number',
+        {
+          meta: { codecId: SQLITE_REAL_CODEC_ID, received: typeof json },
+        },
+      );
+    }
+    return finiteReal(json, 'RUNTIME.DECODE_FAILED');
   }
 }
 
@@ -194,25 +294,23 @@ export class SqliteBlobCodec extends CodecImpl<
     return wire;
   }
   encodeJson(value: Uint8Array): JsonValue {
-    return Buffer.from(value).toString('base64');
+    return Buffer.from(value).toString('hex').toUpperCase();
   }
   decodeJson(json: JsonValue): Uint8Array {
-    if (typeof json !== 'string') {
+    if (typeof json !== 'string' || !UPPERCASE_HEX.test(json)) {
       throw sqliteError(
         'RUNTIME.DECODE_FAILED',
-        'sqlite/blob@1 contract value must be a base64 string',
-        {
-          meta: { codecId: SQLITE_BLOB_CODEC_ID, received: typeof json },
-        },
+        'sqlite/blob@1 database JSON value must be uppercase hexadecimal text',
+        { meta: { codecId: SQLITE_BLOB_CODEC_ID, received: typeof json } },
       );
     }
-    return new Uint8Array(Buffer.from(json, 'base64'));
+    return new Uint8Array(Buffer.from(json, 'hex'));
   }
 }
 
 export class SqliteBlobDescriptor extends SqliteCodecDescriptor<void> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return hexJsonProjection(expression);
   }
   override readonly codecId = SQLITE_BLOB_CODEC_ID;
   override readonly traits = ['equality'] as const;
@@ -313,7 +411,7 @@ export class SqliteJsonCodec extends CodecImpl<
 
 export class SqliteJsonDescriptor extends SqliteCodecDescriptor<void> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return jsonDocumentRetag(expression);
   }
   override readonly codecId = SQLITE_JSON_CODEC_ID;
   override readonly traits = ['equality'] as const;
@@ -345,29 +443,14 @@ export class SqliteBigintCodec extends CodecImpl<
     return BigInt(wire);
   }
   encodeJson(value: bigint): JsonValue {
-    const number = Number(value);
-    if (!Number.isSafeInteger(number)) {
-      throw sqliteError(
-        'RUNTIME.ENCODE_FAILED',
-        'sqlite/bigint@1 database JSON value must be a safe integer',
-        { meta: { codecId: SQLITE_BIGINT_CODEC_ID, received: String(value) } },
-      );
-    }
-    return number;
+    return value.toString();
   }
   decodeJson(json: JsonValue): bigint {
-    if (typeof json !== 'number') {
+    if (typeof json !== 'string' || !DECIMAL_INTEGER.test(json)) {
       throw sqliteError(
         'RUNTIME.DECODE_FAILED',
-        'sqlite/bigint@1 database JSON value must be a number',
+        'sqlite/bigint@1 database JSON value must be a decimal string',
         { meta: { codecId: SQLITE_BIGINT_CODEC_ID, received: typeof json } },
-      );
-    }
-    if (!Number.isSafeInteger(json)) {
-      throw sqliteError(
-        'RUNTIME.DECODE_FAILED',
-        'sqlite/bigint@1 database JSON value must be a safe integer',
-        { meta: { codecId: SQLITE_BIGINT_CODEC_ID, received: json } },
       );
     }
     return BigInt(json);
@@ -376,7 +459,7 @@ export class SqliteBigintCodec extends CodecImpl<
 
 export class SqliteBigintDescriptor extends SqliteCodecDescriptor<void> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return decimalTextJsonProjection(expression);
   }
   override readonly codecId = SQLITE_BIGINT_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;

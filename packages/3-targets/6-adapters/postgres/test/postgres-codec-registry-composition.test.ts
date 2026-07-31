@@ -337,7 +337,7 @@ describe('PostgreSQL adapter codec registry composition', () => {
     ).toThrow(/Duplicate codec descriptor.*pg\/text@1/);
   });
 
-  it('keeps descriptor JSON projection hooks dormant and preserves JSON SQL', () => {
+  it('asks a composed descriptor how to project every JSON entry it owns', () => {
     let projectionCalls = 0;
     const descriptor = postgresDescriptor('app/json-hook@1', 'jsonb', () => {
       projectionCalls += 1;
@@ -362,10 +362,14 @@ describe('PostgreSQL adapter codec registry composition', () => {
     const runtime = runtimeAdapter.lower(ast, { contract });
     const control = controlAdapter.lower(ast, { contract });
 
+    // This descriptor's projection is the identity, so the SQL is unchanged —
+    // which is the point: a codec whose canonical JSON is its stored form
+    // renders as itself, and the renderer still had to ask to find that out.
+    // The call count is what says it asked, once per entry, on both paths.
     expect(runtime.sql).toBe(
       `SELECT json_build_object('value', "records"."document") AS "object", json_agg("records"."document") AS "array" FROM "records"`,
     );
     expect(control).toEqual(runtime);
-    expect(projectionCalls).toBe(0);
+    expect(projectionCalls).toBe(4);
   });
 });

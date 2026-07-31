@@ -11,6 +11,13 @@ import type { ExtractedCodecTypes, Resolve } from '../core/codec-type-map';
 
 export type CodecTypes = Resolve<ExtractedCodecTypes>;
 
+/**
+ * The application value of a `pg/interval@1` column. Re-exported here — the
+ * public origin of the codec type graph — because `CodecTypes` names it, and a
+ * consumer's emitted `.d.mts` must reach it through a public entry point rather
+ * than through a hash-named internal chunk (the `TS2742` family).
+ */
+export type { PgInterval } from '../core/codec-helpers';
 export type { JsonValue };
 
 type Branded<T, Shape extends Record<string, unknown>> = T & {

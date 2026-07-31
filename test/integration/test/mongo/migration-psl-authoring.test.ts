@@ -60,7 +60,6 @@ const mongoCodecLookup: CodecLookup = {
     const bsonType = bsonTypesByCodecId[id];
     return bsonType ? [bsonType] : undefined;
   },
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 

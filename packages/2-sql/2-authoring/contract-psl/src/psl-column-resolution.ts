@@ -392,8 +392,8 @@ export function instantiateFieldPreset(input: {
 /**
  * Result of a codec descriptor's `columnFromEntity` authoring hook — the
  * per-column params derived from the entity a type constructor's
- * `entityRefArg` resolved to. `nativeType` mirrors what the codec's own
- * params-aware `metaFor` derives from `typeParams` at render time, so the
+ * `entityRefArg` resolved to. `nativeType` mirrors what the codec descriptor's
+ * `nativeTypeFor` derives from the same `typeParams` at render time, so the
  * column's declared native type and the render-time cast agree.
  */
 interface EntityRefColumnFromEntityResult {

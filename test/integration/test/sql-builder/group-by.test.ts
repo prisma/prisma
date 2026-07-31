@@ -24,7 +24,7 @@ describe('integration: GROUP BY / HAVING', { timeout: timeouts.databaseOperation
         .public.posts.select('user_id')
         .select('cnt', (_f, fns) => fns.count())
         .groupBy('user_id')
-        .having((_f, fns) => fns.gt(fns.count(), 1))
+        .having((_f, fns) => fns.gt(fns.count(), 1n))
         .build(),
     );
     expect(rows).toHaveLength(1);
