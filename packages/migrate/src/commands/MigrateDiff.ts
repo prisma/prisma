@@ -23,6 +23,7 @@ import type { EngineArgs, EngineResults } from '../types'
 import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import { CaptureStdout } from '../utils/captureStdout'
 import { listMigrations } from '../utils/listMigrations'
+import { askToResetShadowDatabase, isShadowDatabaseNotEmptyError } from '../utils/shadow-database-consent'
 
 const debug = Debug('prisma:migrate:diff')
 
@@ -67,7 +68,8 @@ ${
   process.platform === 'win32' ? '' : '🔍 '
 }Compares the database schema from two arbitrary sources, and outputs the differences either as a human-readable summary (by default) or an executable script.
 
-${green(`prisma migrate diff`)} is a read-only command that does not write to your datasource(s).
+${green(`prisma migrate diff`)} does not write to the datasource(s) it compares.
+When a source is a migrations directory, the migration history is replayed into the shadow database configured in your Prisma config file, which is reset in the process.
 ${green(`prisma db execute`)} can be used to execute its ${green(`--script`)} output.
 
 The command takes a source ${green(`--from-...`)} and a destination ${green(`--to-...`)}.
@@ -269,42 +271,63 @@ ${bold('Examples')}
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
     }
-    const migrate = await Migrate.setup({
-      schemaEngineConfig: config,
-      baseDir,
-      schemaFilter,
-      extensions: config['extensions'],
-      resetShadowDatabase: args['--reset-shadow-database'],
-    })
-
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()
     const outputPath = args['--output']
     const isOutputDefined = Boolean(outputPath)
-    if (isOutputDefined) {
-      captureStdout.startCapture()
+
+    const runDiff = async (resetShadowDatabase: boolean): Promise<EngineResults.MigrateDiffOutput> => {
+      const migrate = await Migrate.setup({
+        schemaEngineConfig: config,
+        baseDir,
+        schemaFilter,
+        extensions: config['extensions'],
+        resetShadowDatabase,
+      })
+
+      if (isOutputDefined) {
+        captureStdout.startCapture()
+      }
+
+      try {
+        return await migrate.engine.migrateDiff({
+          from: from!,
+          to: to!,
+          script: args['--script'] || false, // default is false
+          exitCode: args['--exit-code'] ?? null,
+          filters: {
+            externalTables: config.tables?.external ?? [],
+            externalEnums: config.enums?.external ?? [],
+          },
+        })
+      } finally {
+        if (isOutputDefined) {
+          captureStdout.stopCapture()
+        }
+        // Stop engine
+        await migrate.stop()
+      }
     }
 
     let result: EngineResults.MigrateDiffOutput
     try {
-      result = await migrate.engine.migrateDiff({
-        from: from!,
-        to: to!,
-        script: args['--script'] || false, // default is false
-        exitCode: args['--exit-code'] ?? null,
-        filters: {
-          externalTables: config.tables?.external ?? [],
-          externalEnums: config.enums?.external ?? [],
-        },
-      })
-    } finally {
-      // Stop engine
-      await migrate.stop()
+      result = await runDiff(args['--reset-shadow-database'] ?? false)
+    } catch (e) {
+      // The engine refused to reset a shadow database that holds data. Asking the user is only
+      // this command's business when they have not already answered on the command line.
+      if (args['--reset-shadow-database'] || !isShadowDatabaseNotEmptyError(e)) {
+        throw e
+      }
+
+      if (!(await askToResetShadowDatabase(config.datasource))) {
+        throw e
+      }
+
+      result = await runDiff(true)
     }
 
     // Write output to file if --output is defined
     if (isOutputDefined) {
-      captureStdout.stopCapture()
       const diffOutput = captureStdout.getCapturedText()
       captureStdout.clearCaptureText()
       await fs.writeAsync(outputPath!, diffOutput.join('\n'))
