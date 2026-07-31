@@ -155,7 +155,7 @@ A builder or helper on the contract-authoring surface is called with a bad argum
 
 ### CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS
 
-The SQL emitter cannot name one result type for an aggregate: two trait-matching aggregate descriptors both claim a contributed codec, or a descriptor whose result reuses its input's codec also answers calls that carry no input. Raised while generating `contract.d.ts`, so the emitted types can never disagree with what the runtime registry resolves. Meta: `operation`, `codecId`, `traits`.
+The SQL emitter cannot name one result type for an aggregate: two trait-matching aggregate descriptors both claim a contributed codec, or a descriptor whose result reuses its input's codec also answers calls that carry no input. Raised while generating `contract.d.ts`, so the emitted types can never disagree with what the runtime registry resolves. Meta: `operation`; plus `codecId` and `traits` when two traits claim one codec, the contested codec being nameable only in that case.
 
 ### CONTRACT.CODEC_DESCRIPTOR_MISSING
 

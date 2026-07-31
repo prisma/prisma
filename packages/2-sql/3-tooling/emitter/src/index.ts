@@ -34,7 +34,9 @@ import { sqlEmitterError, sqlEmitterValidationError } from './errors';
 /**
  * Render the aggregate result map from the overloads the stack contributes, settled against the codecs it contributes.
  *
- * Trait fallbacks expand over the contributed codec set and nothing wider: a target may register codecs its adapter withholds, and typing an aggregate over one of those would advertise a result the runtime never resolves. Only the two rungs that name a codec are materialized; the input-agnostic overload stays a single row, which a consumer reads when no per-codec row claims its input.
+ * Every emitted row is keyed by a contributed codec, whichever rung settled it. Trait fallbacks reach only the contributed codecs to begin with, and an exact overload naming an uncontributed codec is dropped here — settling keeps such a row, because naming a codec id is a claim that stands on its own and the runtime honours it for whatever ref reaches it, but a target may register codecs its adapter withholds, and an emitted type over one of those would advertise availability no contract can use.
+ *
+ * Only the two rungs that name a codec are materialized; the input-agnostic overload stays a single row, which a consumer reads when no per-codec row claims its input.
  */
 function generateAggregateTypes(options?: GenerateContractTypesOptions): string {
   const descriptors = options?.aggregateDescriptors ?? [];
