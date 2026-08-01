@@ -23,7 +23,7 @@ Machine-readable versions of these lists live in `scripts/generate-contract.ts` 
 
 **Indexes:**
 
-- Partial (`WHERE`-predicated), expression, and unique non-constraint indexes are declared at full fidelity as exact-named (`map:`) entries — the transitional omission ended when `contract infer` gained the full index matrix (the functional-indexes work). The reference's partial unique indexes (`auth.users` token columns, `auth.mfa_factors`, `storage.buckets_analytics`), its partial non-unique `auth.oauth_*` indexes, and its `lower(...)` expression indexes all round-trip.
+- Partial (`WHERE`-predicated), expression, and unique non-constraint indexes are declared at full fidelity as exact-named (`map:`) entries — the transitional omission ended when `contract infer` gained the full index matrix (ADR 243). The reference's partial unique indexes (`auth.users` token columns, `auth.mfa_factors`, `storage.buckets_analytics`), its partial non-unique `auth.oauth_*` indexes, and its `lower(...)` expression indexes all round-trip.
 - `auth.one_time_tokens`' two `USING hash` indexes are declared (`@@index(..., type: "hash")`) — the postgres target registers `hash` as a built-in index type (TML-3037).
 - 17 foreign keys whose source columns have **no live FK-shaped backing index** are declared with `@relation(..., index: false)` — 16 where real Supabase does not index those FK columns at all, plus `auth.oauth_consents.client_id`, whose only live backing index is partial and therefore declared as its own exact `@@index` entry rather than satisfying the FK-derived managed expectation. (This PSL argument and the inferrer support for it shipped with this contract.)
 
