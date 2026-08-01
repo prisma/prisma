@@ -121,9 +121,14 @@ Wire-named nodes still compare structured attributes, so out-of-band structured 
 
 `contract infer` emits every index, and re-detects wire naming: it recomputes the content hash from the introspected content, and if the live name is `<prefix>_<that hash>`, it emits `name: <prefix>`. Otherwise it emits `map: "<live name>"` with the reprinted bodies verbatim.
 
-Re-detection succeeds whenever the introspected content is exactly recoverable, which covers every index whose content is structured — column lists, uniqueness, access method, options. Those re-infer to byte-identical contracts.
+Re-detection succeeds when the *hash inputs* are recovered exactly as they were hashed. That holds for an index whose content is structured — column lists, uniqueness, access method, options — **and** whose authored spelling survives introspection unchanged. Those re-infer to byte-identical contracts.
 
-It does **not** generally succeed for an index whose content includes a SQL body. Postgres reprints the body, the recomputed hash therefore differs from the one in the live name, and the index re-infers as `map:` even though we created it as `name:`. The round trip stays correct — the contract still signs the database with zero operations — but the authoring representation changes from wire-named to exact-named. A body that happens to reprint byte-identically does re-detect as wire-named, which is equally sound. There is one further benign case: an index authored with an explicit `type: "btree"` hashed that string, but introspection normalizes the default access method away, so it too re-infers as exact.
+Two things break the recovery, and both make the index re-infer as `map:` even though we created it as `name:`:
+
+- **A reprinted SQL body.** Postgres reprints expression and predicate text, so the recomputed hash differs from the one in the live name. A body that happens to reprint byte-identically does re-detect as wire-named, which is equally sound.
+- **A normalized-away spelling.** An index authored with an explicit `type: "btree"` hashed that string, but introspection reports the default access method as absent, so the recomputed tuple differs even though nothing about the index is structurally different.
+
+In both cases the round trip stays correct — the contract still signs the database with zero operations — but the authoring representation changes from wire-named to exact-named. Byte identity is therefore a property of the recoverable subset, not of everything structured.
 
 Policies always adopt as exact, through `@@map`, by design: a reprinted policy body cannot be shown to re-hash to its live suffix, so re-detection is not attempted. RLS enablement round-trips through `@@rls`.
 
