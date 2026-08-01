@@ -80,6 +80,8 @@ Future constructs like check and exclusion constraints may extend the scheme.
 - The method tag participates in the shorten rule's hash input to keep determinism
 
 > **Since name-identified indexes** ([ADR 243](<ADR 243 - Name-identified indexes and exact-name adoption.md>)): a secondary index's deterministic name is the wire-name *prefix*, not the final physical name — the lowering appends a content-hash suffix per [ADR 234](ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md) (e.g. `user_email_idx_46df9cad`). Constraint names (primary keys, uniques, foreign keys) keep using the deterministic name unhashed.
+>
+> The "User-provided names" rule below therefore reads differently for secondary indexes. An authored `name:` is a *prefix*, so it does not survive verbatim — the physical name is `<name>_<8hex>`. Only `map:` preserves a physical name verbatim, and a `map:`-named index carries no hash. Both spellings are still profile-only. The rename rule holds through wire-name pairing rather than through the generated-to-explicit transition: a changed prefix under an unchanged hash plans `ALTER INDEX … RENAME TO`.
 
 ### User-provided names
 

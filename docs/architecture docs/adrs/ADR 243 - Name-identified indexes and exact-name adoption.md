@@ -8,7 +8,7 @@ Related: [ADR 234 — Content-addressed wire names for Postgres-normalized objec
 
 Two decisions, one rule.
 
-**1. Every SQL index is name-identified.** ADR 234's content-addressed wire names extend from RLS policies to all index nodes — declared `@@index`es (unique indexes included) and FK-backing indexes. The user authors a prefix, or gets one derived from ADR 009's default names; lowering appends `_<8 hex of SHA-256(canonical content)>`; the schema differ pairs index nodes by name, not by column tuple. This unlocks index kinds whose defining content is a reprinted SQL body — expression (functional) indexes and partial (`WHERE`) indexes — which a tuple identity can never represent and a body comparison can never verify.
+**1. Every SQL index is name-identified.** ADR 234's content-addressed wire names extend from RLS policies to all index nodes — declared `@@index`es (unique indexes included) and FK-backing indexes. The user authors a prefix, or gets one derived from ADR 009's default names; lowering appends `_<8 hex of SHA-256(canonical content)>`; the schema differ pairs index nodes by name, not by column tuple. This unlocks index kinds whose defining content is a reprinted SQL body — expression (functional) indexes and partial (`WHERE`) indexes — which a tuple identity cannot represent at all, and which comparing *hand-authored* body text cannot verify, because the authored text and Postgres's reprint of it differ in casts, parentheses and whitespace. Comparing body text is not useless in general: decision 2 below relies on it, but only where both sides are reprints.
 
 Constraints — primary key, foreign key, unique, check — are outside the rule. A constraint is its own discrete entity, never a marker on an index ([ADR 161](<./ADR 161 - Explicit foreign key constraint and index configuration.md>), superseding note), and it is fully structured, so content comparison is already exact and no wire name is needed. An expression-unique is therefore a unique *index*, authored as `@@index(expression: …, unique: true)` — Postgres has no expression form of `ADD CONSTRAINT UNIQUE`, and `@@unique` remains the constraint surface, untouched.
 
@@ -28,7 +28,12 @@ type SqlObjectNaming =
 
 The four name-identified classes — the contract's `Index` and `PostgresRlsPolicy`, the schema IR's `SqlIndexIR` and `PostgresPolicySchemaNode` — take this union as constructor input. A name and prefix that disagree are therefore unconstructable.
 
-**Storage stays flat and derived.** The contract records `name` and an optional `prefix`; the hash is input-only and never stored, because it is recoverable from the name. `contract.json` is byte-identical to what it was before the union existed. Flat data becomes a union again only at the two places flat data genuinely arrives — deserialized contract JSON and the literal in a generated migration file — through one asserting helper.
+**Storage stays flat and derived.** The contract records `name` and an optional `prefix`; the hash is input-only and never stored, because it is recoverable from the name. Flat data becomes a union again only at the two places flat data genuinely arrives — deserialized contract JSON and the literal in a generated migration file — through one asserting helper.
+
+Two different baselines matter here, and they are easy to confuse:
+
+- **Against the contract shape before this ADR**, the shape changes and every storage hash moves: indexes gain a required `name`, an optional `prefix`, and the expression, predicate and uniqueness fields. Adopting this ADR requires re-emitting contracts and one widening migration. See Consequences.
+- **Against the contract shape before the naming union was introduced** — an internal refactor made while this work was in flight — nothing changes. The union is constructor input, not storage, so introducing it moved zero bytes in `contract.json`.
 
 The mode arm is named `wire`, not `managed`. ADR 224 binds `managed` to a control policy value (`managed`/`tolerated`/`external`/`observed`), and the two axes are orthogonal: a table can be control-`managed` while its index's naming is `exact`. One word naming two unrelated claims about the same object is a defect; `wire` matches this ADR's own vocabulary and ADR 234's title.
 
@@ -114,7 +119,11 @@ Wire-named nodes still compare structured attributes, so out-of-band structured 
 
 ## Adoption and inference
 
-`contract infer` emits every index, and re-detects wire naming: it recomputes the content hash from the introspected content, and if the live name is `<prefix>_<that hash>`, it emits `name: <prefix>`. Databases this toolchain created therefore re-infer to byte-identical contracts. Otherwise it emits `map: "<live name>"` with the reprinted bodies verbatim. Expression indexes usually land there, because reprints add casts and parentheses, though a byte-identical reprint does re-detect as wire-named, which is equally sound.
+`contract infer` emits every index, and re-detects wire naming: it recomputes the content hash from the introspected content, and if the live name is `<prefix>_<that hash>`, it emits `name: <prefix>`. Otherwise it emits `map: "<live name>"` with the reprinted bodies verbatim.
+
+Re-detection succeeds whenever the introspected content is exactly recoverable, which covers every index whose content is structured — column lists, uniqueness, access method, options. Those re-infer to byte-identical contracts.
+
+It does **not** generally succeed for an index whose content includes a SQL body. Postgres reprints the body, the recomputed hash therefore differs from the one in the live name, and the index re-infers as `map:` even though we created it as `name:`. The round trip stays correct — the contract still signs the database with zero operations — but the authoring representation changes from wire-named to exact-named. A body that happens to reprint byte-identically does re-detect as wire-named, which is equally sound. There is one further benign case: an index authored with an explicit `type: "btree"` hashed that string, but introspection normalizes the default access method away, so it too re-infers as exact.
 
 Policies always adopt as exact, through `@@map`, by design: a reprinted policy body cannot be shown to re-hash to its live suffix, so re-detection is not attempted. RLS enablement round-trips through `@@rls`.
 
