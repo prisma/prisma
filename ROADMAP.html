@@ -518,7 +518,7 @@
     <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Rewire the publishing pipeline — inside prisma/prisma and in the repositories connected to it</span><span class="pill open">Open</span></summary>
       <div class="body">
-        <p>prisma/prisma's release automation currently exists to publish Prisma 7. After the move it does two jobs: publish v8 from <code>main</code> and keep publishing v7 patches from the <code>v7</code> branch, without either disturbing the other. (Publish permissions on the <code>prisma</code> npm package are already in hand; what remains is configuration, including the per-package "trusted publishing" setup that lets CI publish without long-lived secrets.) Beyond the repository itself, workflows in several other repositories and open pull requests are wired into prisma/prisma's publishing today; each connection has to be found and re-pointed. The first concrete task is the inventory — a written list of every workflow that touches prisma/prisma's publishing, so the rewiring is a checklist instead of a surprise.</p>
+        <p>prisma/prisma's release automation currently exists to publish Prisma 7. After the move it does two jobs: publish v8 from <code>main</code> and keep publishing v7 patches from the <code>v7</code> branch, without either disturbing the other. (Publish permissions on the <code>prisma</code> npm package are already in hand, and the per-package "trusted publishing" setup that lets CI publish without long-lived secrets is done for all 17 v8 packages — what remains is the v7 side.) Beyond the repository itself, workflows in several other repositories and open pull requests are wired into prisma/prisma's publishing today; each connection has to be found and re-pointed. The first concrete task is the inventory — a written list of every workflow that touches prisma/prisma's publishing, so the rewiring is a checklist instead of a surprise.</p>
       </div>
     </details>
 
@@ -530,15 +530,9 @@
     </details>
 
     <details class="task">
-      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Restructure the npm package namespaces</span><span class="pill open">Open</span></summary>
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Restructure the npm package namespaces</span><span class="pill done">Landed</span></summary>
       <div class="body">
-        <p>The package-naming plan is revised; four pieces of work:</p>
-        <ul>
-          <li><strong>A new <code>@prisma-orm</code> npm namespace</strong> hosts everything that is internal today — the ~60 implementation packages published under <code>@internal/*</code> move there wholesale, and stay explicitly outside the supported surface.</li>
-          <li><strong>A small number of user-facing facade packages</strong> are established under <code>@prisma/*</code> — e.g. <code>@prisma/orm-postgres</code> — and those facades are the only supported import surface.</li>
-          <li><strong>OIDC trusted publishing for every new package</strong>: CI publishes both namespaces without long-lived npm tokens, configured per package as part of the pipeline rewiring above.</li>
-          <li><strong>Every <code>@internal/*</code> package is deprecated</strong> on npm with a notice pointing at its successor.</li>
-        </ul>
+        <p>Delivered, with one revision to the plan: no second namespace exists. Everything ships under the single <code>@prisma</code> scope — 17 published packages: three database facades (<code>@prisma/orm-postgres</code>, <code>@prisma/orm-sqlite</code>, <code>@prisma/orm-mongo</code>; an application depends on exactly one), six extension packs, seven platform packages the facades depend on, and the <code>prisma-next</code> bin shim (ADR 242). The ~60 internal implementation packages are not published at all — they are <code>private: true</code> and their code reaches npm bundled inside the platform packages, so the planned <code>@prisma-orm</code> namespace (and the deprecation sweep it would have required) became unnecessary. CI enforces the shape: publishability is a directory property (<code>packages/9-public/</code> and nothing else), every publishable manifest must declare the canonical repository (npm provenance verification depends on it), and the legacy <code>@prisma-next</code> name is lint-banned outside historical documents. All 17 packages publish via OIDC trusted publishing — no long-lived npm tokens — with provenance attestations, configured per package on npmjs.com.</p>
       </div>
     </details>
 
