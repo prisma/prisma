@@ -44,8 +44,8 @@ import type {
   NamespaceSymbol,
   PslExtensionBlock,
   PslSpan,
-  ResolvedAttribute,
   SymbolTable,
+  TypedFuncCall,
 } from '@prisma-next/psl-parser';
 import { nodePslSpan } from '@prisma-next/psl-parser';
 import type { SourceFile } from '@prisma-next/psl-parser/syntax';
@@ -55,15 +55,19 @@ import { ifDefined } from '@prisma-next/utils/defined';
 import { notOk, ok, type Result } from '@prisma-next/utils/result';
 import { deriveJsonSchema, derivePolymorphicJsonSchema } from './derive-json-schema';
 import {
-  getAttribute,
-  getMapName,
-  getNamedArgument,
-  getPositionalArgument,
-  lowerFirst,
-  parseIndexFieldList,
-  parseQuotedStringLiteral,
-  parseRelationAttribute,
-} from './psl-helpers';
+  baseModelSpec,
+  buildIndexModelSpec,
+  buildTextIndexModelSpec,
+  discriminatorModelSpec,
+  findFieldAttributeNode,
+  findModelAttributeNode,
+  interpretFieldAttribute,
+  interpretModelAttribute,
+  mapFieldSpec,
+  mapModelSpec,
+  relationFieldSpec,
+} from './mongo-attribute-specs';
+import { getAttribute, lowerFirst, type ParsedIndexField } from './psl-helpers';
 
 /**
  * Encode an authored enum value to its codec-encoded JSON form via the codec resolved by id from the
@@ -129,17 +133,52 @@ function fkRelationPairKey(declaringModel: string, targetModel: string): string 
   return `${declaringModel}::${targetModel}`;
 }
 
-function resolveFieldMappings(model: ModelSymbol): FieldMappings {
+function resolveFieldMappings(input: {
+  readonly model: ModelSymbol;
+  readonly sourceFile: SourceFile;
+  readonly sourceId: string;
+  readonly diagnostics: ContractSourceDiagnostic[];
+}): FieldMappings {
+  const { model, sourceFile, sourceId, diagnostics } = input;
   const pslNameToMapped = new Map<string, string>();
   for (const field of Object.values(model.fields)) {
-    const mapped = getMapName(field.attributes) ?? field.name;
+    const mapNode = findFieldAttributeNode(field, 'map');
+    const mapped =
+      (mapNode
+        ? interpretFieldAttribute({
+            node: mapNode,
+            spec: mapFieldSpec,
+            model,
+            field,
+            sourceFile,
+            sourceId,
+            diagnostics,
+          })?.name
+        : undefined) ?? field.name;
     pslNameToMapped.set(field.name, mapped);
   }
   return { pslNameToMapped };
 }
 
-function resolveCollectionName(model: ModelSymbol): string {
-  return getMapName(model.attributes) ?? lowerFirst(model.name);
+function resolveCollectionName(input: {
+  readonly model: ModelSymbol;
+  readonly sourceFile: SourceFile;
+  readonly sourceId: string;
+  readonly diagnostics: ContractSourceDiagnostic[];
+}): string {
+  const { model, sourceFile, sourceId, diagnostics } = input;
+  const mapNode = findModelAttributeNode(model, 'map');
+  const name = mapNode
+    ? interpretModelAttribute({
+        node: mapNode,
+        spec: mapModelSpec,
+        model,
+        sourceFile,
+        sourceId,
+        diagnostics,
+      })?.name
+    : undefined;
+  return name ?? lowerFirst(model.name);
 }
 
 interface MongoModelEntry {
@@ -165,6 +204,7 @@ function mongoCrossRef(modelName: string): CrossReference {
 
 function collectPolymorphismDeclarations(
   models: readonly ModelSymbol[],
+  sourceFile: SourceFile,
   sourceId: string,
   diagnostics: ContractSourceDiagnostic[],
 ): {
@@ -175,54 +215,53 @@ function collectPolymorphismDeclarations(
   const baseDeclarations = new Map<string, BaseDeclaration>();
 
   for (const model of models) {
-    for (const attr of model.attributes) {
-      if (attr.name === 'discriminator') {
-        const fieldName = getPositionalArgument(attr);
-        if (!fieldName) {
-          diagnostics.push({
-            code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-            message: `Model "${model.name}" @@discriminator requires a field name argument`,
-            sourceId,
-            span: attr.span,
-          });
-          continue;
-        }
+    const discNode = findModelAttributeNode(model, 'discriminator');
+    if (discNode) {
+      const parsed = interpretModelAttribute({
+        node: discNode,
+        spec: discriminatorModelSpec,
+        model,
+        sourceFile,
+        sourceId,
+        diagnostics,
+      });
+      if (parsed) {
+        const fieldName = parsed.field;
         const discField = model.fields[fieldName];
+        // Semantic check — stays: the discriminator field must be a String.
         if (discField && discField.typeName !== 'String') {
           diagnostics.push({
             code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
             message: `Discriminator field "${fieldName}" on model "${model.name}" must be of type String, but is "${discField.typeName}"`,
             sourceId,
-            span: attr.span,
+            span: nodePslSpan(discNode.syntax, sourceFile),
           });
-          continue;
+        } else {
+          discriminatorDeclarations.set(model.name, {
+            fieldName,
+            span: nodePslSpan(discNode.syntax, sourceFile),
+          });
         }
-        discriminatorDeclarations.set(model.name, { fieldName, span: attr.span });
       }
-      if (attr.name === 'base') {
-        const baseName = getPositionalArgument(attr, 0);
-        const rawValue = getPositionalArgument(attr, 1);
-        if (!baseName || !rawValue) {
-          diagnostics.push({
-            code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-            message: `Model "${model.name}" @@base requires two arguments: base model name and discriminator value`,
-            sourceId,
-            span: attr.span,
-          });
-          continue;
-        }
-        const value = parseQuotedStringLiteral(rawValue);
-        if (value === undefined) {
-          diagnostics.push({
-            code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-            message: `Model "${model.name}" @@base discriminator value must be a quoted string literal`,
-            sourceId,
-            span: attr.span,
-          });
-          continue;
-        }
-        const collectionName = resolveCollectionName(model);
-        baseDeclarations.set(model.name, { baseName, value, collectionName, span: attr.span });
+    }
+    const baseNode = findModelAttributeNode(model, 'base');
+    if (baseNode) {
+      const parsed = interpretModelAttribute({
+        node: baseNode,
+        spec: baseModelSpec,
+        model,
+        sourceFile,
+        sourceId,
+        diagnostics,
+      });
+      if (parsed) {
+        const collectionName = resolveCollectionName({ model, sourceFile, sourceId, diagnostics });
+        baseDeclarations.set(model.name, {
+          baseName: parsed.base,
+          value: parsed.value,
+          collectionName,
+          span: nodePslSpan(baseNode.syntax, sourceFile),
+        });
       }
     }
   }
@@ -240,6 +279,7 @@ function resolvePolymorphism(input: {
   modelNames: ReadonlySet<string>;
   indexSpans: Map<MongoIndex, PslSpan>;
   modelIndexesByName: Map<string, readonly MongoIndex[]>;
+  sourceFile: SourceFile;
   sourceId: string;
 }): {
   models: Record<string, MongoModelEntry>;
@@ -251,6 +291,7 @@ function resolvePolymorphism(input: {
     discriminatorDeclarations,
     baseDeclarations,
     modelNames,
+    sourceFile,
     sourceId,
     allModels: allModelViews,
     indexSpans,
@@ -277,7 +318,12 @@ function resolvePolymorphism(input: {
 
     const modelView = allModelViews.find((m) => m.name === modelName);
     const mappedDiscriminatorField = modelView
-      ? (resolveFieldMappings(modelView).pslNameToMapped.get(decl.fieldName) ?? decl.fieldName)
+      ? (resolveFieldMappings({
+          model: modelView,
+          sourceFile,
+          sourceId,
+          diagnostics,
+        }).pslNameToMapped.get(decl.fieldName) ?? decl.fieldName)
       : decl.fieldName;
 
     if (!Object.hasOwn(model.fields, mappedDiscriminatorField)) {
@@ -340,7 +386,7 @@ function resolvePolymorphism(input: {
     const baseModel = patched[baseDecl.baseName];
     const variantModelView = allModelViews.find((m) => m.name === variantName);
     if (!variantModelView) continue;
-    const hasExplicitMap = getMapName(variantModelView.attributes) !== undefined;
+    const hasExplicitMap = getAttribute(variantModelView.attributes, 'map') !== undefined;
 
     if (hasExplicitMap && baseModel && baseDecl.collectionName !== baseModel.storage.collection) {
       diagnostics.push({
@@ -365,7 +411,12 @@ function resolvePolymorphism(input: {
       };
     }
 
-    const variantCollectionName = resolveCollectionName(variantModelView);
+    const variantCollectionName = resolveCollectionName({
+      model: variantModelView,
+      sourceFile,
+      sourceId,
+      diagnostics,
+    });
     if (roots[variantCollectionName]?.model === variantName) {
       if (variantCollectionName === baseCollection && baseModel) {
         roots = { ...roots, [variantCollectionName]: mongoCrossRef(baseDecl.baseName) };
@@ -473,80 +524,104 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function parseIndexDirection(raw: string | undefined): MongoIndexKeyDirection {
-  if (!raw) return 1;
-  const stripped = raw.replace(/^["']/, '').replace(/["']$/, '');
-  const num = Number(stripped);
-  if (num === 1 || num === -1) return num;
-  if (['text', '2dsphere', '2d', 'hashed'].includes(stripped))
-    return stripped as MongoIndexKeyDirection;
-  return 1;
-}
-
-function parseNumericArg(raw: string | undefined): number | undefined {
-  if (!raw) return undefined;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : undefined;
-}
-
-function parseBooleanArg(raw: string | undefined): boolean | undefined {
-  if (raw === 'true') return true;
-  if (raw === 'false') return false;
-  return undefined;
-}
-
-function parseJsonArg(raw: string | undefined): Record<string, unknown> | undefined {
-  if (!raw) return undefined;
-  const stripped = raw.replace(/^["']/, '').replace(/["']$/, '').replace(/\\"/g, '"');
-  try {
-    const parsed = JSON.parse(stripped);
-    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-  } catch {
-    // not valid JSON
+// The spec's pinned `type` combinators already constrain the value to the exact
+// index-direction alphabet at runtime; normalize it to the Mongo key-direction
+// type, defaulting to ascending (1) when absent.
+function normalizeIndexType(value: number | string | undefined): MongoIndexKeyDirection {
+  switch (value) {
+    case -1:
+      return -1;
+    case 'text':
+      return 'text';
+    case '2dsphere':
+      return '2dsphere';
+    case '2d':
+      return '2d';
+    case 'hashed':
+      return 'hashed';
+    default:
+      return 1;
   }
-  return undefined;
 }
 
-function parseCollation(attr: ResolvedAttribute): CollationOptions | null | undefined {
-  const locale = stripQuotesHelper(getNamedArgument(attr, 'collationLocale'));
-  if (!locale) {
+// Map one interpreted `@@index`/`@@unique` field element to the same
+// `ParsedIndexField` shape the loop consumes. Discriminates the element union
+// structurally (a bare string field, a `wildcard(scope?)` call, or a
+// `field(sort:)` call) so no cast is needed; `args` values are `unknown` and
+// narrowed by comparison.
+function normalizeIndexField(element: string | TypedFuncCall): ParsedIndexField {
+  if (typeof element === 'string') {
+    return { name: element, isWildcard: false };
+  }
+  if (element.fn === 'wildcard') {
+    const scope = element.args['scope'];
+    return {
+      name: typeof scope === 'string' ? `${scope}.$**` : '$**',
+      isWildcard: true,
+    };
+  }
+  const sort = element.args['sort'];
+  return { name: element.fn, isWildcard: false, direction: sort === 'Desc' ? -1 : 1 };
+}
+
+// Interpreted collation named-args of an `@@index`/`@@unique`/`@@textIndex`.
+// Semantics from spec values: `undefined` when no collation arg is present,
+// `null` when some are present but `collationLocale` is absent (the semantic
+// "collationLocale is required" rule), otherwise the options.
+interface SpecCollationArgs {
+  readonly collationLocale?: string;
+  readonly collationStrength?: number;
+  readonly collationCaseLevel?: boolean;
+  readonly collationCaseFirst?: string;
+  readonly collationNumericOrdering?: boolean;
+  readonly collationAlternate?: string;
+  readonly collationMaxVariable?: string;
+  readonly collationBackwards?: boolean;
+  readonly collationNormalization?: boolean;
+}
+
+function buildCollationFromSpec(args: SpecCollationArgs): CollationOptions | null | undefined {
+  const locale = args.collationLocale;
+  if (locale === undefined) {
     const hasAnyCollationArg =
-      getNamedArgument(attr, 'collationStrength') != null ||
-      getNamedArgument(attr, 'collationCaseLevel') != null ||
-      getNamedArgument(attr, 'collationCaseFirst') != null ||
-      getNamedArgument(attr, 'collationNumericOrdering') != null ||
-      getNamedArgument(attr, 'collationAlternate') != null ||
-      getNamedArgument(attr, 'collationMaxVariable') != null ||
-      getNamedArgument(attr, 'collationBackwards') != null ||
-      getNamedArgument(attr, 'collationNormalization') != null;
+      args.collationStrength !== undefined ||
+      args.collationCaseLevel !== undefined ||
+      args.collationCaseFirst !== undefined ||
+      args.collationNumericOrdering !== undefined ||
+      args.collationAlternate !== undefined ||
+      args.collationMaxVariable !== undefined ||
+      args.collationBackwards !== undefined ||
+      args.collationNormalization !== undefined;
     return hasAnyCollationArg ? null : undefined;
   }
 
   const collation: CollationOptions = { locale };
-  const strength = parseNumericArg(getNamedArgument(attr, 'collationStrength'));
-  if (strength != null) collation.strength = strength;
-  const caseLevel = parseBooleanArg(getNamedArgument(attr, 'collationCaseLevel'));
-  if (caseLevel != null) collation.caseLevel = caseLevel;
-  const caseFirst = stripQuotesHelper(getNamedArgument(attr, 'collationCaseFirst'));
-  if (caseFirst != null) collation.caseFirst = caseFirst;
-  const numericOrdering = parseBooleanArg(getNamedArgument(attr, 'collationNumericOrdering'));
-  if (numericOrdering != null) collation.numericOrdering = numericOrdering;
-  const alternate = stripQuotesHelper(getNamedArgument(attr, 'collationAlternate'));
-  if (alternate != null) collation.alternate = alternate;
-  const maxVariable = stripQuotesHelper(getNamedArgument(attr, 'collationMaxVariable'));
-  if (maxVariable != null) collation.maxVariable = maxVariable;
-  const backwards = parseBooleanArg(getNamedArgument(attr, 'collationBackwards'));
-  if (backwards != null) collation.backwards = backwards;
-  const normalization = parseBooleanArg(getNamedArgument(attr, 'collationNormalization'));
-  if (normalization != null) collation.normalization = normalization;
+  if (args.collationStrength !== undefined) collation.strength = args.collationStrength;
+  if (args.collationCaseLevel !== undefined) collation.caseLevel = args.collationCaseLevel;
+  if (args.collationCaseFirst !== undefined) collation.caseFirst = args.collationCaseFirst;
+  if (args.collationNumericOrdering !== undefined)
+    collation.numericOrdering = args.collationNumericOrdering;
+  if (args.collationAlternate !== undefined) collation.alternate = args.collationAlternate;
+  if (args.collationMaxVariable !== undefined) collation.maxVariable = args.collationMaxVariable;
+  if (args.collationBackwards !== undefined) collation.backwards = args.collationBackwards;
+  if (args.collationNormalization !== undefined)
+    collation.normalization = args.collationNormalization;
   return collation;
 }
 
-function stripQuotesHelper(raw: string | undefined): string | undefined {
-  if (!raw) return undefined;
-  return raw.replace(/^["']/, '').replace(/["']$/, '');
+// Filter an interpreted `weights` json object down to its numeric entries — the
+// only weight values MongoDB accepts. `Record<string, unknown>` values are
+// narrowed by `typeof`, so no cast is needed. Returns `undefined` only when the
+// arg was absent; a present-but-empty object stays `{}` to match prior behavior.
+function extractWeights(
+  raw: Record<string, unknown> | undefined,
+): Record<string, number> | undefined {
+  if (raw === undefined) return undefined;
+  const weights: Record<string, number> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === 'number') weights[key] = value;
+  }
+  return weights;
 }
 
 function parseProjectionList(
@@ -573,6 +648,7 @@ function collectIndexes(
   fieldMappings: FieldMappings,
   modelNames: ReadonlySet<string>,
   sourceId: string,
+  sourceFile: SourceFile,
   diagnostics: ContractSourceDiagnostic[],
   indexSpans: Map<MongoIndex, PslSpan>,
 ): MongoIndex[] {
@@ -603,16 +679,79 @@ function collectIndexes(
     indexSpans.set(fieldUniqueIndex, uniqueAttr.span);
   }
 
-  for (const attr of pslModel.attributes) {
+  const specFieldNames = Object.keys(pslModel.fields);
+  const attributeNodes = Array.from(pslModel.node.attributes());
+
+  for (const [attrIndex, attr] of pslModel.attributes.entries()) {
     const isIndex = attr.name === 'index';
     const isUnique = attr.name === 'unique';
     const isTextIndex = attr.name === 'textIndex';
     if (!isIndex && !isUnique && !isTextIndex) continue;
 
-    const fieldsArg = getPositionalArgument(attr, 0);
-    if (!fieldsArg) continue;
-    const parsedFields = parseIndexFieldList(fieldsArg);
-    if (parsedFields.length === 0) continue;
+    // @@index/@@unique/@@textIndex all read arguments through their attribute
+    // spec. The two specs infer different named-arg shapes, so each branch
+    // interprets its own spec and fills the shared normalized values the
+    // index-shape logic below consumes.
+    let parsedFields: readonly ParsedIndexField[];
+    let typeValue: number | string | undefined;
+    let sparse: boolean | undefined;
+    let expireAfterSeconds: number | undefined;
+    let partialFilterExpression: Record<string, unknown> | undefined;
+    let includeArg: string | undefined;
+    let excludeArg: string | undefined;
+    let collation: CollationOptions | null | undefined;
+    let weights: Record<string, number> | undefined;
+    let default_language: string | undefined;
+    let language_override: string | undefined;
+
+    const node = attributeNodes[attrIndex];
+    if (node === undefined) continue;
+
+    if (isTextIndex) {
+      const parsed = interpretModelAttribute({
+        node,
+        spec: buildTextIndexModelSpec(specFieldNames),
+        model: pslModel,
+        sourceFile,
+        sourceId,
+        diagnostics,
+      });
+      if (parsed === undefined) continue;
+      parsedFields = parsed.fields.map(normalizeIndexField);
+      if (parsedFields.length === 0) continue;
+      typeValue = undefined;
+      sparse = undefined;
+      expireAfterSeconds = undefined;
+      partialFilterExpression = parsed.filter;
+      includeArg = parsed.include;
+      excludeArg = parsed.exclude;
+      collation = buildCollationFromSpec(parsed);
+      weights = extractWeights(parsed.weights);
+      default_language = parsed.language;
+      language_override = parsed.languageOverride;
+    } else {
+      const parsed = interpretModelAttribute({
+        node,
+        spec: buildIndexModelSpec(isUnique ? 'unique' : 'index', specFieldNames),
+        model: pslModel,
+        sourceFile,
+        sourceId,
+        diagnostics,
+      });
+      if (parsed === undefined) continue;
+      parsedFields = parsed.fields.map(normalizeIndexField);
+      if (parsedFields.length === 0) continue;
+      typeValue = parsed.type;
+      sparse = parsed.sparse;
+      expireAfterSeconds = parsed.expireAfterSeconds;
+      partialFilterExpression = parsed.filter;
+      includeArg = parsed.include;
+      excludeArg = parsed.exclude;
+      collation = buildCollationFromSpec(parsed);
+      weights = undefined;
+      default_language = parsed.default_language;
+      language_override = parsed.languageOverride;
+    }
 
     const hasWildcard = parsedFields.some((f) => f.isWildcard);
     const wildcardCount = parsedFields.filter((f) => f.isWildcard).length;
@@ -661,10 +800,9 @@ function collectIndexes(
       }
     }
 
-    const typeArg = getNamedArgument(attr, 'type');
     const defaultDirection: MongoIndexKeyDirection = isTextIndex
       ? 'text'
-      : parseIndexDirection(typeArg);
+      : normalizeIndexType(typeValue);
 
     if (
       hasWildcard &&
@@ -728,10 +866,6 @@ function collectIndexes(
     });
 
     const unique = isUnique ? true : undefined;
-    const sparse = isTextIndex ? undefined : parseBooleanArg(getNamedArgument(attr, 'sparse'));
-    const expireAfterSeconds = isTextIndex
-      ? undefined
-      : parseNumericArg(getNamedArgument(attr, 'expireAfterSeconds'));
 
     if (hasWildcard && expireAfterSeconds != null) {
       diagnostics.push({
@@ -742,11 +876,6 @@ function collectIndexes(
       });
       continue;
     }
-
-    const partialFilterExpression = parseJsonArg(getNamedArgument(attr, 'filter'));
-
-    const includeArg = getNamedArgument(attr, 'include');
-    const excludeArg = getNamedArgument(attr, 'exclude');
 
     if (includeArg != null && excludeArg != null) {
       diagnostics.push({
@@ -776,7 +905,6 @@ function collectIndexes(
           ? parseProjectionList(excludeArg, 0)
           : undefined;
 
-    const collation = parseCollation(attr);
     if (collation === null) {
       diagnostics.push({
         code: 'PSL_INVALID_INDEX',
@@ -786,23 +914,6 @@ function collectIndexes(
       });
       continue;
     }
-
-    const rawWeights = parseJsonArg(getNamedArgument(attr, 'weights'));
-    let weights: Record<string, number> | undefined;
-    if (rawWeights) {
-      weights = {};
-      for (const [k, v] of Object.entries(rawWeights)) {
-        if (typeof v === 'number') weights[k] = v;
-      }
-    }
-
-    const rawDefaultLang = isTextIndex
-      ? getNamedArgument(attr, 'language')
-      : getNamedArgument(attr, 'default_language');
-    const default_language = stripQuotesHelper(rawDefaultLang);
-
-    const rawLangOverride = getNamedArgument(attr, 'languageOverride');
-    const language_override = stripQuotesHelper(rawLangOverride);
 
     const index = new MongoIndex({
       keys,
@@ -1014,22 +1125,44 @@ export function interpretPslDocumentToMongoContract(
   const backrelationCandidates: BackrelationCandidate[] = [];
 
   for (const pslModel of allModels) {
-    const collectionName = resolveCollectionName(pslModel);
-    const fieldMappings = resolveFieldMappings(pslModel);
+    const collectionName = resolveCollectionName({
+      model: pslModel,
+      sourceFile,
+      sourceId,
+      diagnostics,
+    });
+    const fieldMappings = resolveFieldMappings({
+      model: pslModel,
+      sourceFile,
+      sourceId,
+      diagnostics,
+    });
 
     const fields: Record<string, ContractField> = {};
     const relations: Record<string, ContractReferenceRelation> = {};
 
     for (const field of Object.values(pslModel.fields)) {
       if (isRelationField(field, modelNames)) {
-        const relation = parseRelationAttribute(field.attributes);
+        const relationNode = findFieldAttributeNode(field, 'relation');
+        const relation = relationNode
+          ? interpretFieldAttribute({
+              node: relationNode,
+              spec: relationFieldSpec,
+              model: pslModel,
+              field,
+              sourceFile,
+              sourceId,
+              diagnostics,
+              resolveReferencedModel: () => allModels.find((m) => m.name === field.typeName),
+            })
+          : undefined;
 
         if (field.list || !(relation?.fields && relation?.references)) {
           backrelationCandidates.push({
             modelName: pslModel.name,
             fieldName: field.name,
             targetModelName: field.typeName,
-            ...ifDefined('relationName', relation?.relationName),
+            ...ifDefined('relationName', relation?.name),
             cardinality: field.list ? '1:N' : '1:1',
             field,
           });
@@ -1040,7 +1173,9 @@ export function interpretPslDocumentToMongoContract(
           const localMapped = relation.fields.map((f) => fieldMappings.pslNameToMapped.get(f) ?? f);
 
           const targetModel = allModels.find((m) => m.name === field.typeName);
-          const targetFieldMappings = targetModel ? resolveFieldMappings(targetModel) : undefined;
+          const targetFieldMappings = targetModel
+            ? resolveFieldMappings({ model: targetModel, sourceFile, sourceId, diagnostics })
+            : undefined;
           const targetMapped = relation.references.map(
             (f) => targetFieldMappings?.pslNameToMapped.get(f) ?? f,
           );
@@ -1058,7 +1193,7 @@ export function interpretPslDocumentToMongoContract(
             declaringModel: pslModel.name,
             fieldName: field.name,
             targetModel: field.typeName,
-            ...ifDefined('relationName', relation.relationName),
+            ...ifDefined('relationName', relation.name),
             localFields: localMapped,
             targetFields: targetMapped,
           });
@@ -1122,6 +1257,7 @@ export function interpretPslDocumentToMongoContract(
       fieldMappings,
       modelNames,
       sourceId,
+      sourceFile,
       diagnostics,
       indexSpans,
     );
@@ -1208,6 +1344,7 @@ export function interpretPslDocumentToMongoContract(
 
   const { discriminatorDeclarations, baseDeclarations } = collectPolymorphismDeclarations(
     allModels,
+    sourceFile,
     sourceId,
     diagnostics,
   );
@@ -1221,6 +1358,7 @@ export function interpretPslDocumentToMongoContract(
     modelNames,
     indexSpans,
     modelIndexesByName,
+    sourceFile,
     sourceId,
   });
 
@@ -1331,12 +1469,17 @@ export function interpretPslDocumentToMongoContract(
     storage: storageWithoutHash,
     ...mongoContractCanonicalizationHooks,
   });
-  const storage = new MongoStorage({
-    storageHash,
-    namespaces: {
-      [UNBOUND_NAMESPACE_ID]: unboundNamespace,
-    },
-  }) as Contract['storage'];
+  const storage = blindCast<
+    Contract['storage'],
+    'MongoStorage is the Mongo family concrete storage class constructed here; it structurally satisfies the Contract storage slot.'
+  >(
+    new MongoStorage({
+      storageHash,
+      namespaces: {
+        [UNBOUND_NAMESPACE_ID]: unboundNamespace,
+      },
+    }),
+  );
   const capabilities: Record<string, Record<string, boolean>> = {};
 
   const hasEnums = Object.keys(builtEnums).length > 0;
