@@ -25,6 +25,15 @@ yarn dlx prisma-next init
 
 This is the bootstrap path, and it is what this package exists for: a project with no Prisma Next dependencies yet still needs a way to run `init`. A project that already depends on a database facade (`@prisma/orm-postgres`, `@prisma/orm-sqlite`, `@prisma/orm-mongo`) gets the same `prisma-next` command from that facade and does not need this package as well.
 
+## Two package naming schemes, mid-transition
+
+You will see both `@prisma/orm-*` and `@prisma-next/*` names below, and the difference is real rather than an inconsistency in this document.
+
+- **`@prisma/orm-*`** is the naming scheme Prisma Next is moving to: one scope, a small published set, one database facade per project ([ADR 242](https://github.com/prisma/prisma-next/tree/main/docs/architecture%20docs/adrs)).
+- **`@prisma-next/*`** is the scheme currently on npm, and it is what `prisma-next init` still installs and what generated files still import.
+
+Every command and package name written in this README is the one that works today. Where a section names `@prisma-next/*`, that is deliberate: the switchover to `@prisma/orm-*` is separate work, and this README changes when it lands, not before.
+
 ## Quickstart
 
 In a project with a `package.json`:

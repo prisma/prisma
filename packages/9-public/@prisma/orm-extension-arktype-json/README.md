@@ -24,6 +24,8 @@ JSON-with-schema is deliberately a per-library extension — this pack covers ar
 
 ## Dependencies
 
-`@prisma/orm-framework` and `@prisma/orm-family-sql` at exact lockstep versions, plus `arktype`, which must be the same instance the application authors its schemas with.
+`@prisma/orm-framework` and `@prisma/orm-family-sql` at exact lockstep versions, plus `arktype` and `@standard-schema/spec`.
+
+`arktype` is an ordinary dependency, not a peer: a column carries its schema as a serialized form and the runtime rehydrates it from that, so this pack never compares schema objects with the copy an application authored against. The application's own `arktype` and this pack's may be separate instances.
 
 `@prisma/orm-target-postgres` is an exact-pinned **peer** dependency: the application supplies it, directly or through a facade, and everyone shares that one copy. A hard dependency would let an application upgrade the facade without upgrading this pack and end up with two target copies whose codec and operation registries have quietly diverged; as a peer that combination fails to install instead.
