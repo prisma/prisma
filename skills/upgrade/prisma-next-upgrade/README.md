@@ -6,7 +6,7 @@ An agent skill that upgrades a project consuming Prisma Next from one minor vers
 
 This skill is for **users** of Prisma Next — projects that depend on the public package API (`@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, etc.).
 
-If you are an extension author, install the [`prisma-next-extension-upgrade`](../../extension-author/prisma-next-extension-upgrade/SKILL.md) skill instead. If your repo contains both an app and an extension, install both.
+If you are an extension author, install the [`prisma-8-extension-upgrade`](../../extension-author/prisma-8-extension-upgrade/SKILL.md) skill instead. If your repo contains both an app and an extension, install both.
 
 ## Installation
 

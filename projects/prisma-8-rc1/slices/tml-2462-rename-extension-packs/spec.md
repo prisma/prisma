@@ -67,7 +67,7 @@ Three renames, all landing in one breaking PR, no compatibility aliases (per the
 - All example/app/test configs (`examples/`, `apps/`, `test/integration/`, `test/e2e/`), including raw-form fixture configs.
 - Regeneration of all contract artifacts, migrations, and snapshots via `pnpm fixtures:emit`.
 - Docs: ADR 004 + ADR 112 corrections, subsystem docs (Data Contract; Ecosystem Extensions & Packs), `docs/glossary.md`, `skills/prisma-next-contract`, `skills/prisma-next-debug`, `skills/DEVELOPING.md`.
-- Upgrade instructions for both consumers (`skills/upgrade/prisma-next-upgrade`) and extension authors (`skills/extension-author/prisma-next-extension-upgrade`), via the record-upgrade-instructions skill.
+- Upgrade instructions for both consumers (`skills/upgrade/prisma-next-upgrade`) and extension authors (`skills/extension-author/prisma-8-extension-upgrade`), via the record-upgrade-instructions skill.
 
 **Deliberately out:**
 

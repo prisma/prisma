@@ -5,7 +5,7 @@
 
 ## Goal
 
-Confirm whether our branch's 51 commits touched any `prisma-next-extension-upgrade/upgrades/<version>/` artefacts or other upgrade-instruction surfaces. PR #565 (`release/0.11.0`) will land soon and references `upgrades/0.10-to-0.11/` for the TML-2614 Mongo ownership change. If our branch also added upgrade-instruction artefacts (for a different version target), they may need to migrate when 565's bump lands.
+Confirm whether our branch's 51 commits touched any `prisma-8-extension-upgrade/upgrades/<version>/` artefacts or other upgrade-instruction surfaces. PR #565 (`release/0.11.0`) will land soon and references `upgrades/0.10-to-0.11/` for the TML-2614 Mongo ownership change. If our branch also added upgrade-instruction artefacts (for a different version target), they may need to migrate when 565's bump lands.
 
 The orchestrator's working assumption (unverified) is: the slice is purely additive (new facade subpaths + `defineContract` wraps + docs prose flips), so no upgrade instructions were added. This dispatch verifies that assumption.
 
@@ -15,13 +15,13 @@ The orchestrator's working assumption (unverified) is: the slice is purely addit
 2. List every file changed by our branch under upgrade-instruction-relevant paths:
    ```
    git diff --name-only $(git merge-base origin/main HEAD)..HEAD -- \
-     'prisma-next-extension-upgrade' \
+     'prisma-8-extension-upgrade' \
      '**/upgrades/' \
      '**/upgrade-*.md' \
      '**/UPGRADE.md'
    ```
 3. For each match: classify as `added` / `modified` / `deleted` (use `git log --name-status` on the file across our 51 commits) and record the version folder it lives in if any (e.g. `upgrades/0.10-to-0.11/`).
-4. Also scan our project-side artefacts at `projects/facade-import-surface-completion/**` for any references to upgrade instructions, version migration, or `prisma-next-extension-upgrade` (in spec.md, plan.md, slice/spec.md, etc.). Use `rg`.
+4. Also scan our project-side artefacts at `projects/facade-import-surface-completion/**` for any references to upgrade instructions, version migration, or `prisma-8-extension-upgrade` (in spec.md, plan.md, slice/spec.md, etc.). Use `rg`.
 5. Also scan all changed files for the strings `upgrade-instructions`, `0.10-to-`, `recordUpgrade`, `record-upgrade` across the diff body:
    ```
    git diff $(git merge-base origin/main HEAD)..HEAD | rg -i 'upgrade-instructions|0\.10-to-|recordUpgrade|record-upgrade'
@@ -44,7 +44,7 @@ COMPLETE
 
 ## Upgrade-instruction files touched by our branch
 - <list with classification (added/modified/deleted) + version folder>
-  - OR "none — our branch made no changes under prisma-next-extension-upgrade/ or any **/upgrades/ path"
+  - OR "none — our branch made no changes under prisma-8-extension-upgrade/ or any **/upgrades/ path"
 
 ## Project-side references to upgrade instructions
 - <list of files/lines under projects/facade-import-surface-completion/ mentioning upgrade-related concepts>

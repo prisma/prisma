@@ -14,7 +14,7 @@ These rules are load-bearing for the cluster. A new skill or a skill rewrite tha
 
 **Every CLI flag, command name, error code, config key, and file path you cite must be verified against the framework source before the sentence ships.** Authoring against an imagined tool surface — *"`migrate --dry-run` probably exists; it's standard"* — is how the most common defect class in this cluster gets in: a confidently-worded claim about an API that doesn't ship. The agent the skill teaches will not catch it (the skill is what the agent loads instead of re-deriving the API); reviewers catch it only if they happen to check.
 
-Verify *during* drafting, not at the end. The first draft of the `prisma-next-migration-review` pilot — written with the stated goal of "verify the tool surface before authoring" — still introduced three fabricated claims: a `--dry-run` flag on `migrate`, a "long-running operation" classifier that doesn't exist, and a destructive-op confirmation prompt on `migrate` (the prompt lives on `db update`). None of the three were caught by the author; all three were caught only by review. The lesson is that a final "verify pass" doesn't work — the verification step has to fire *at each tool-surface claim, while drafting it*, so the temptation to extrapolate from a similar command is gone before it leaves a trace in the file.
+Verify *during* drafting, not at the end. The first draft of the `prisma-8-migration-review` pilot — written with the stated goal of "verify the tool surface before authoring" — still introduced three fabricated claims: a `--dry-run` flag on `migrate`, a "long-running operation" classifier that doesn't exist, and a destructive-op confirmation prompt on `migrate` (the prompt lives on `db update`). None of the three were caught by the author; all three were caught only by review. The lesson is that a final "verify pass" doesn't work — the verification step has to fire *at each tool-surface claim, while drafting it*, so the temptation to extrapolate from a similar command is gone before it leaves a trace in the file.
 
 Use ripgrep against the framework source as you write. Verifying a flag:
 
@@ -50,9 +50,9 @@ Procedural workflow sections — *"step 1: run X; step 2: read Y; step 3: if Z, 
 
 **The carve-out.** Some operations are genuinely one-safe-path (data-loss-risk migrations, irreversible operations, security-critical sequences where the agent must not improvise). Those workflow sections may be procedural — explicitly say *"this is the one-safe-path case"* in the section header so future maintainers don't strip the steps thinking they're cargo-culted.
 
-#### Worked example — `prisma-next-migration-review`
+#### Worked example — `prisma-8-migration-review`
 
-The pilot rewrite of [`skills/prisma-next-migration-review/SKILL.md`](./prisma-next-migration-review/SKILL.md) is the canonical worked example for this principle in this cluster. Before that rewrite, the skill contained:
+The pilot rewrite of [`skills/prisma-8-migration-review/SKILL.md`](./prisma-8-migration-review/SKILL.md) is the canonical worked example for this principle in this cluster. Before that rewrite, the skill contained:
 
 - A five-step *"diamond convergence procedure"* for resolving concurrent migrations.
 - A four-step *"detect that main advanced"* workflow.
@@ -108,7 +108,7 @@ These are well-trodden but worth listing in one place:
 
 1. Read [`README.md`](./README.md) for the user-facing scope of the cluster.
 2. Read the [`skill-specialist` persona](https://github.com/prisma/ignite/blob/main/skills/.curated/drive-agent-personas/personas/skill-specialist.md) in the Ignite persona library — it's the canonical lens for skill-cluster work.
-3. Read [`skills/prisma-next-migration-review/SKILL.md`](./prisma-next-migration-review/SKILL.md) for the cluster's worked example of concepts-over-procedures.
+3. Read [`skills/prisma-8-migration-review/SKILL.md`](./prisma-8-migration-review/SKILL.md) for the cluster's worked example of concepts-over-procedures.
 4. Draft `SKILL.md`, **verifying each tool-surface claim against the framework source as you write it** (see *Verify the tool surface as you author* above for the ripgrep commands). The shape:
    - `description:` frontmatter as a matcher (CLI flags, error codes, feature names — all verified).
    - Preamble + canonical mental-model headline.

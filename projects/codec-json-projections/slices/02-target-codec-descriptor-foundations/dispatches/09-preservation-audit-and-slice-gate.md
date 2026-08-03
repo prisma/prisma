@@ -28,7 +28,7 @@ This is a preservation gate, not an invitation to improve adjacent code. Never a
 - Slice plan: `projects/codec-json-projections/slices/02-target-codec-descriptor-foundations/plan.md` § Dispatch 9 and Final slice gate.
 - Predecessor PR: `https://github.com/prisma/prisma-next/pull/1023`, merged as `6afaca04ebbc9d06050f0146cd53933ea6e8eb3a`.
 - Old stacked head/cutoff: `4557df26d9514ecb5afe8d9de4abe207df8c186b`.
-- Upgrade entry required in PR body: `skills/extension-author/prisma-next-extension-upgrade/upgrades/0.16-to-0.17/`.
+- Upgrade entry required in PR body: `skills/extension-author/prisma-8-extension-upgrade/upgrades/0.16-to-0.17/`.
 - Prototype patch: `projects/codec-json-projections/assets/postgres-numeric-prototype.patch.gz`; do not inspect via stash.
 - Current review artifact: `projects/codec-json-projections/reviews/code-review.md` — AC-1/2/3/5 PASS, AC-4/6/7 pending final audit.
 - Harness constraint: built-in search/grep/glob/find-path tools are forbidden. Use bounded terminal/bash `rg` and targeted `sed`/`cat` only.

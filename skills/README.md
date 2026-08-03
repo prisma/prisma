@@ -16,7 +16,7 @@ One package, eleven skills. Each skill is a `SKILL.md` with its own `description
 | `prisma-next-quickstart` | Adoption: greenfield projects and brownfield databases. |
 | `prisma-next-contract` | Contract authoring — PSL, TS builder, no-emit. |
 | `prisma-next-migrations` | Migration authoring — `db update`, `migration plan`, data transforms. |
-| `prisma-next-migration-review` | Deployment + concurrency — "what runs on merge?", diamond convergence. |
+| `prisma-8-migration-review` | Deployment + concurrency — "what runs on merge?", diamond convergence. |
 | `prisma-next-queries` | Queries — SQL DSL, Raw SQL, ORM client, TypedSQL. |
 | `prisma-next-supabase` | Supabase — the extension pack, RLS policy authoring, role-bound runtime (`asUser` / `asAnon` / `asServiceRole`), `auth.*` admin reads. |
 | `prisma-next-runtime` | Wiring `db.ts` — middleware, connection, environment. |

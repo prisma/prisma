@@ -18,7 +18,7 @@
 1. Every on-disk contract read in the CLI (`migration plan`, `migration new`, `migrate`, `migration show`, `db verify`) now routes through `familyInstance.validateContract` instead of `JSON.parse(...) as Contract`.
 2. `normaliseTypeEntry` in the SQL family core no longer silently re-stamps untagged codec triples — its permissive fallthrough was removed, and an untagged entry now throws a diagnostic naming the offending entry and its missing/unknown `kind`. The deserializer is strict for every code path simultaneously.
 3. The test-coverage gap is closed: per-`kind` snapshot-read fixtures (`codec-instance`, `postgres-enum`), a workspace lint (`pnpm lint:no-contract-cast`) that rejects `as Contract` in production code, a `.cursor/rules/` rule pair documenting the seam and the smell, and a new CI job (`Demo `migration plan` (no-op)`) that runs the demo's `migration:plan:check` against its checked-in history.
-4. Both upgrade-instruction skills (`prisma-next-upgrade` for end users; `prisma-next-extension-upgrade` for extension authors) ship a `0.9-to-0.10/` entry with a codemod (`stamp-storage-types-kind.ts`) that stamps the `kind` discriminator on every committed `*-contract.json` snapshot. This is a breaking change for any project (app or extension package) with committed migration history under 0.9; the codemod is the only supported path forward.
+4. Both upgrade-instruction skills (`prisma-next-upgrade` for end users; `prisma-8-extension-upgrade` for extension authors) ship a `0.9-to-0.10/` entry with a codemod (`stamp-storage-types-kind.ts`) that stamps the `kind` discriminator on every committed `*-contract.json` snapshot. This is a breaking change for any project (app or extension package) with committed migration history under 0.9; the codemod is the only supported path forward.
 
 **Why manual QA matters here.** The scripted fixtures + lint + CI job catch regressions of *the shapes the authors anticipated*. They don't catch: (a) whether real artefacts like the demo behave the way the synthetic fixtures suggest under the strict deserializer; (b) whether the strict-throw diagnostic is actually actionable when a human reads it cold; (c) whether the rule rewrites read coherently to a fresh developer or have stale "the validator does NOT normalize" language left behind; (d) whether the lint catches a planted regression in a real production file; (e) whether the literal CLI flow from the original bug report now succeeds; (f) whether the upgrade-instruction skills + codemods actually transform a real project's substrate correctly from the consumer's point of view (end-user app and extension package). Every scripted scenario below targets one of those gaps, and the exploratory charter probes the broader diagnostic surface for unknown unknowns.
 
@@ -36,7 +36,7 @@
 | 8 | Demo app boots and serves against a signed database **(judgement)** | The runtime contract-load path still works — we didn't accidentally break the product to fix the CLI | workspace | AC-4 (indirect) |
 | 9 | Exploratory: probe the contract-read diagnostic surface **(exploratory, charter)** | Surfaces unanticipated degradation modes and judges diagnostic quality across them | workspace | (no specific AC; charter) |
 | 10 | End-user upgrade journey via `prisma-next-upgrade` 0.9→0.10 entry | A real user with committed migration history under 0.9 can apply the codemod and successfully advance to 0.10 | workspace | (upgrade-instructions intent — end users) |
-| 11 | Extension-author upgrade journey via `prisma-next-extension-upgrade` 0.9→0.10 entry | An extension author can apply the codemod to seed migrations AND apply the source-level rules without their build / tests breaking | workspace | (upgrade-instructions intent — extension authors) |
+| 11 | Extension-author upgrade journey via `prisma-8-extension-upgrade` 0.9→0.10 entry | An extension author can apply the codemod to seed migrations AND apply the source-level rules without their build / tests breaking | workspace | (upgrade-instructions intent — extension authors) |
 
 > Scenarios marked **(negative control)** plant a violation, observe the gate fire, then restore. Scenarios marked **(judgement)** require runner evaluation against an explicit oracle that no test can assert. Scenarios marked **(exploratory)** are time-boxed charters with no scripted steps. Scenarios 10 and 11 are **upgrade-journey** reproductions — they exercise the breaking-change-mitigation surface (the codemods + prose) from the consumer's point of view.
 >
@@ -678,7 +678,7 @@ If you reverted via a different mechanism in step 1, restore accordingly — the
 
 ---
 
-## Scenario 11 — Extension-author upgrade journey via `prisma-next-extension-upgrade` 0.9→0.10 entry
+## Scenario 11 — Extension-author upgrade journey via `prisma-8-extension-upgrade` 0.9→0.10 entry
 
 **What you're proving from the extension author's seat:** an extension author with a 0.9 extension package — one that ships seed migrations under `packages/<extension>/migrations/` AND constructs `SqlStorage` instances programmatically in source — can read the extension-skill's prose, apply the codemod to seed migrations AND apply the source-level rules to their TypeScript, and end up with an extension whose typecheck + tests pass against 0.10.
 
@@ -710,7 +710,7 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 2. Read the extension-skill entry's prose:
    ```bash
-   $EDITOR skills/extension-author/prisma-next-extension-upgrade/upgrades/0.9-to-0.10/instructions.md
+   $EDITOR skills/extension-author/prisma-8-extension-upgrade/upgrades/0.9-to-0.10/instructions.md
    ```
    As an extension author reading this cold, can you (a) tell which files the JSON codemod will touch in your extension, (b) recognise the source-code shapes the rules describe (object-literal vs spread vs destructuring vs `new SqlStorage(...)` vs `new PostgresEnumType(...)`), (c) know what to do for an edge case the rules don't enumerate?
 
@@ -728,7 +728,7 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
    If the extension ships seed migrations, run the codemod with `--check` against the extension package root and confirm the dry-run output:
    ```bash
    cd packages/3-extensions/pgvector
-   tsx ../../../skills/extension-author/prisma-next-extension-upgrade/upgrades/0.9-to-0.10/stamp-storage-types-kind.ts --check
+   tsx ../../../skills/extension-author/prisma-8-extension-upgrade/upgrades/0.9-to-0.10/stamp-storage-types-kind.ts --check
    echo "exit=$?"
    ```
    If pgvector ships no seed snapshots that need stamping, this is a no-op (exit 0, all `OK …`). That's expected for an extension that doesn't yet have committed migration history in the old shape.

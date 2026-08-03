@@ -470,6 +470,27 @@ changes:
         - "codecs: () =>"
         - "SqlRuntimeExtensionDescriptor"
       anyMatch: true
+  - id: build-against-published-packages-not-workspace-names
+    summary: |
+      The `@prisma-next/*` packages are gone from the registry. Until 0.17 every workspace
+      package published, so a pack could depend on `@prisma-next/contract`,
+      `@prisma-next/sql-contract`, `@prisma-next/framework-components` and the rest directly —
+      and many do. From 0.17 the published surface is 17 `@prisma/*` packages and everything
+      else is private, so those dependencies no longer resolve.
+      Build against the platform packages instead: `@prisma/orm-framework` for contract,
+      components, errors and the PSL tooling; `@prisma/orm-family-sql` or
+      `@prisma/orm-family-mongo` for the family surfaces; `@prisma/orm-target-<db>` for the
+      target, adapter and driver your pack extends; `@prisma/orm-toolchain` for the emitter and
+      migration tooling. Each internal package became a subpath entrypoint of exactly one of
+      those, so the module you imported still exists under a new name — the mapping is one hop
+      and the symbols are unchanged. Declare the target shell your pack extends as a peer
+      dependency rather than a dependency, so an application cannot end up with two copies of
+      the target it is registered against.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - '"@prisma-next/'
+      anyMatch: true
 ---
 
 # 0.16 → 0.17 — Extension-author upgrade instructions

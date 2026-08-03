@@ -13,7 +13,7 @@ description: >-
 
 # Upgrade Prisma Next (user app)
 
-This skill upgrades a project that **consumes** Prisma Next via the public package API (`@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, etc.). If the project is itself a Prisma Next *extension*, use the `prisma-next-extension-upgrade` skill instead — or both, if the repo contains both an app and an extension package.
+This skill upgrades a project that **consumes** Prisma Next via the public package API (`@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, etc.). If the project is itself a Prisma Next *extension*, use the `prisma-8-extension-upgrade` skill instead — or both, if the repo contains both an app and an extension package.
 
 ## Step 0 — Ensure the skill is up to date
 
@@ -45,7 +45,7 @@ This skill applies when the project **consumes** Prisma Next:
 - `package.json` declares one or more `@internal/*` packages under `dependencies` / `devDependencies`, and
 - the package is *not* itself an extension (no `@internal/contract` (or other SPI) under `dependencies`/`peerDependencies`; name does not match `^@.*/extension-`; not referenced from a sibling app's `prisma-next.config.ts`).
 
-If the project also matches the extension-author role, install the `prisma-next-extension-upgrade` skill (`pnpm dlx skills add prisma/prisma-next/skills/extension-author --all`) and run **this** flow first, then that one in the same session. If detection is ambiguous, ask the user.
+If the project also matches the extension-author role, install the `prisma-8-extension-upgrade` skill (`pnpm dlx skills add prisma/prisma-next/skills/extension-author --all`) and run **this** flow first, then that one in the same session. If detection is ambiguous, ask the user.
 
 ## Version detection
 

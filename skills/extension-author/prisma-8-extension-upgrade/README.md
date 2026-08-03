@@ -1,4 +1,4 @@
-# prisma-next-extension-upgrade
+# prisma-8-extension-upgrade
 
 An agent skill that upgrades a Prisma Next **extension** package from one minor version to the next. The skill carries the per-step bump-install-instructions-check-pins-validate-commit flow plus the cumulative set of per-transition *upgrade instructions* (one directory per `(from-minor, to-minor)` pair).
 

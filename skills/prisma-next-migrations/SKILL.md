@@ -27,7 +27,7 @@ Once the contract changes, you choose how the change reaches the database. This 
 
 ## When Not to Use
 
-- User wants to know what migrations *will run on deploy* / on merge, or to manage refs and invariants → `prisma-next-migration-review`.
+- User wants to know what migrations *will run on deploy* / on merge, or to manage refs and invariants → `prisma-8-migration-review`.
 - User wants to edit the contract → `prisma-next-contract`.
 - User wants a deeper read of a single structured error envelope → `prisma-next-debug`.
 
@@ -138,7 +138,7 @@ If the `db` ref's pointer is itself missing and the hash isn't a graph node eith
 
 **Graph-node rule (plan time).** Any hash used as a `from` end — explicit `--from`, default `db` ref, or ref name — must already be a node in the on-disk migration graph once the graph is non-empty. The auto-baseline two-bundle emission is the one exception: it applies only on an **empty** graph with a non-null ref-resolved `from` and an available store entry. If the ref's pointer is missing and the hash isn't a graph node either, plan refuses with `MIGRATION.SNAPSHOT_MISSING` instead.
 
-**Apply-time complement.** `migrate` reads the live marker before DDL. If the marker hash is not a graph node, the command refuses with `MIGRATION.MARKER_MISMATCH` — catching drift the offline planner cannot see. This is separate from `MIGRATION.MARKER_NOT_IN_HISTORY`, which fires later during the runner's graph walk when the marker is off the path being traversed. See `prisma-next-migration-review` for the full diagnostic catalog.
+**Apply-time complement.** `migrate` reads the live marker before DDL. If the marker hash is not a graph node, the command refuses with `MIGRATION.MARKER_MISMATCH` — catching drift the offline planner cannot see. This is separate from `MIGRATION.MARKER_NOT_IN_HISTORY`, which fires later during the runner's graph walk when the marker is off the path being traversed. See `prisma-8-migration-review` for the full diagnostic catalog.
 
 `db` is a **default ref name**, not a reserved one. The framework overwrites it on the next dev cycle; you may `ref set db <hash>` explicitly and accept that a subsequent `db update` replaces it when run against the default URL.
 

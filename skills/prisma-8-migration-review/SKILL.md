@@ -1,5 +1,5 @@
 ---
-name: prisma-next-migration-review
+name: prisma-8-migration-review
 description: Review what Prisma Next migrations will run on merge or deploy, render the migration graph, resolve concurrent / diamond-convergence conflicts, and configure environment refs for CI. Use for "what migrations are going to run", "what runs on deploy", merge conflict, diamond convergence, concurrent migrations, migration status, ref management, staging, production, MIGRATION.DIVERGED, MIGRATION.NO_MARKER, MIGRATION.MARKER_NOT_IN_HISTORY, prisma migrate status, prisma migrate diff, prisma migrate resolve.
 ---
 

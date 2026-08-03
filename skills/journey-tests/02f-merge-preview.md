@@ -1,6 +1,6 @@
 # Journey 02f — "What's about to run on merge?"
 
-**Skills under test:** `prisma-next-migration-review`.
+**Skills under test:** `prisma-8-migration-review`.
 
 **Acceptance criterion:** AC5f.
 

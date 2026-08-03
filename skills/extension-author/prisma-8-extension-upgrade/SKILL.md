@@ -1,5 +1,5 @@
 ---
-name: prisma-next-extension-upgrade
+name: prisma-8-extension-upgrade
 description: >-
   Upgrade Prisma Next in your extension. Bumps every `@internal/*`
   dependency to the requested target (or npm `latest`), runs the

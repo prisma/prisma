@@ -129,7 +129,7 @@ A breaking change shipping in this release has a matching upgrade-instructions d
 **Recipe links must be absolute, tag-pinned URLs** — `https://github.com/prisma/prisma-next/blob/v$NEXT/...`. The notes file becomes the GitHub Release body via `--notes-file`, and the Release page does **not** reliably resolve repo-relative links, so a relative recipe path would publish as a dead migration link. Pinning to the release tag (`/blob/v$NEXT/`) means the link always resolves and never rots as the recipe tree evolves on `main`:
 
 - User-facing migrations: `https://github.com/prisma/prisma-next/blob/v$NEXT/skills/upgrade/prisma-next-upgrade/upgrades/<prev.minor>-to-<head.minor>/`
-- Extension-author migrations: `https://github.com/prisma/prisma-next/blob/v$NEXT/skills/extension-author/prisma-next-extension-upgrade/upgrades/<prev.minor>-to-<head.minor>/`
+- Extension-author migrations: `https://github.com/prisma/prisma-next/blob/v$NEXT/skills/extension-author/prisma-8-extension-upgrade/upgrades/<prev.minor>-to-<head.minor>/`
 
 A breaking change can affect one or both audiences — link whichever recipe directories exist.
 
