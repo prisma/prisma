@@ -4882,7 +4882,7 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1
       package-manager-detector:
-        specifier: ^1.7.0
+        specifier: ^1.8.0
         version: 1.8.0
       pathe:
         specifier: ^2.0.3
