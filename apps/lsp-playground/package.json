@@ -15,7 +15,7 @@
     "clean": "rm -rf dist coverage .playground"
   },
   "dependencies": {
-    "@codingame/monaco-vscode-api": "^25.1.2",
+    "@codingame/monaco-vscode-api": "^34.1.3",
     "@codingame/monaco-vscode-editor-service-override": "^25.1.2",
     "@codingame/monaco-vscode-files-service-override": "^25.1.2",
     "@codingame/monaco-vscode-keybindings-service-override": "^34.1.3",
