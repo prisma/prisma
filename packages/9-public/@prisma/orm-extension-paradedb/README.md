@@ -24,4 +24,6 @@ The current surface covers the `key_field` storage parameter. Per-field tokenize
 
 ## Dependencies
 
-`@prisma/orm-framework`, `@prisma/orm-family-sql`, and `@prisma/orm-toolchain` at exact lockstep versions, plus `arktype`. No target dependency: the index type is registered against the SQL family, and the Postgres adapter renders it.
+`@prisma/orm-framework`, `@prisma/orm-family-sql`, and `@prisma/orm-toolchain` at exact lockstep versions, plus `arktype`.
+
+`@prisma/orm-target-postgres` is an exact-pinned **peer** dependency, as it is for every Postgres extension pack: the application supplies it, directly or through a facade. Unlike its siblings this pack does not reach the target at run time — the index type is registered against the SQL family, and the Postgres adapter renders it — but it is still a pack that only works on Postgres, and stating that uniformly is what makes the install requirement legible.

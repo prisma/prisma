@@ -27,6 +27,7 @@
     "typescript": "catalog:"
   },
   "peerDependencies": {
+    "@prisma/orm-target-postgres": "workspace:0.16.0",
     "typescript": ">=5.9"
   },
   "peerDependenciesMeta": {
