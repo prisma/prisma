@@ -71,7 +71,7 @@ export interface ResolvedInitInputs {
    */
   readonly removePreviousFacade: string | null;
   /**
-   * Whether to run `npx skills add prisma/prisma#v<version>` at the
+   * Whether to run `npx skills add prisma/prisma-next#v<version>` at the
    * project level after install + emit. True by default; `--no-skill`
    * sets it to `false`. The skill is always project-level (never
    * user-level / global) so its version stays locked to the project's

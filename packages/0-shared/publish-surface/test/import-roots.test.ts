@@ -319,7 +319,7 @@ describe('buildOwnerIndex', () => {
 
     expect(() => buildOwnerIndex(duplicated)).toThrow(ImportRootError);
     expect(() => buildOwnerIndex(duplicated)).toThrow(
-      /@internal\/a is mapped to both @prisma\/orm-framework and @prisma\/orm-family-sql/,
+      /@prisma-next\/a is mapped to both @prisma\/orm-framework and @prisma\/orm-family-sql/,
     );
   });
 });
