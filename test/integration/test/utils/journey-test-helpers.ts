@@ -50,6 +50,7 @@ import {
   executeCommand,
   getExitCode,
   setupCommandMocks,
+  writeProjectManifest,
 } from './cli-test-helpers';
 
 // ---------------------------------------------------------------------------
@@ -178,24 +179,13 @@ export function setupJourney(options: JourneySetupOptions): JourneyContext {
   const configPath = join(testDir, 'prisma-next.config.ts');
   writeFileSync(configPath, configContent, 'utf-8');
 
-  // The journey's project states the one package it installs, the way a user's
-  // does. Emission reads the nearest manifest to decide which package names
-  // generated files carry, so without this the project would inherit the
-  // shared fixture app's, which lists far more than any application would.
-  writeFileSync(
-    join(testDir, 'package.json'),
-    `${JSON.stringify(
-      {
-        name: 'journey-app',
-        private: true,
-        type: 'module',
-        dependencies: { '@prisma/orm-postgres': 'workspace:0.16.0' },
-      },
-      null,
-      2,
-    )}\n`,
-    'utf-8',
-  );
+  // The journey's project says which import root it is on, rather than
+  // inheriting the fixture app's. These journeys drive the CLI against the
+  // workspace packages and assert the workspace names in what it writes, so
+  // the manifest names no published package — which is what tells emission to
+  // leave every specifier as authored. A journey that is specifically about
+  // facade behaviour overwrites this with a manifest of its own.
+  writeProjectManifest(testDir);
 
   return { testDir, configPath, outputDir };
 }

@@ -101,6 +101,23 @@ function setupMongoJourney(connectionString: string): JourneyCtx {
   const outputDir = join(testDir, 'output');
   mkdirSync(outputDir, { recursive: true });
   mkdirSync(join(testDir, 'migrations'), { recursive: true });
+  // Says which database this project is for. Without it the project inherits
+  // the fixture app's manifest, which carries every database these suites
+  // exercise and so answers no single import root.
+  writeFileSync(
+    join(testDir, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'mongo-invariants-app',
+        private: true,
+        type: 'module',
+        dependencies: { '@prisma/orm-mongo': 'workspace:0.16.0' },
+      },
+      null,
+      2,
+    )}\n`,
+    'utf-8',
+  );
 
   copyFileSync(join(FIXTURES_DIR, 'contract-base.ts'), join(testDir, 'contract.ts'));
 

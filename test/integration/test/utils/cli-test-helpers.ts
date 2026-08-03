@@ -28,12 +28,35 @@ export const fixtureAppDir = join(__dirname, '../fixtures/cli/cli-e2e-test-app')
 export const integrationFixtureAppDir = join(__dirname, '../fixtures/cli/cli-integration-test-app');
 
 /**
+ * Pins a generated test project to the workspace import root.
+ *
+ * Emission reads the nearest manifest to decide which package names generated
+ * files carry, so a project without one inherits whichever manifest happens to
+ * be above it. The fixture apps declare the published packages, because the
+ * journeys' emitted migrations import them and have to resolve — but these
+ * suites are not applications. They exercise the CLI against the workspace
+ * packages and assert the workspace names in what it writes. A manifest naming
+ * no published package says exactly that: emit every specifier as authored.
+ *
+ * Journey projects, which do stand in for a user's application, write their own
+ * manifest naming the one database package they install.
+ */
+export function writeProjectManifest(testDir: string): void {
+  writeFileSync(
+    join(testDir, 'package.json'),
+    `${JSON.stringify({ name: 'cli-test-project', private: true, type: 'module' }, null, 2)}\n`,
+    'utf-8',
+  );
+}
+
+/**
  * Creates a test directory within the fixture app directory.
  * The fixture app has the necessary dependencies, so jiti can resolve packages.
  */
 export function createTestDir(): string {
   const testDir = join(fixtureAppDir, `test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(testDir, { recursive: true });
+  writeProjectManifest(testDir);
   return testDir;
 }
 
@@ -47,6 +70,7 @@ export function createIntegrationTestDir(): string {
     `test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(testDir, { recursive: true });
+  writeProjectManifest(testDir);
   return testDir;
 }
 
@@ -96,6 +120,7 @@ export function setupTestDirectoryFromFixtures(
   replacements?: Record<string, string>,
 ) {
   const testDir = createTempDir();
+  writeProjectManifest(testDir);
   const outputDir = join(testDir, 'output');
   mkdirSync(outputDir, { recursive: true });
 

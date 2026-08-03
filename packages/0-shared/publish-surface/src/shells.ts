@@ -221,7 +221,7 @@ function facadeReexports(options: {
   readonly runtime: string;
   readonly target: string;
   readonly adapter: string;
-  readonly driver?: string;
+  readonly driver: string;
   readonly queryBuilders: readonly ShellReexportMapping[];
 }): ShellReexportMapping[] {
   return [
@@ -231,7 +231,7 @@ function facadeReexports(options: {
     { package: options.runtime, entry: 'family-runtime' },
     { package: options.target, entry: 'target', root: false },
     { package: options.adapter, entry: 'adapter' },
-    ...(options.driver === undefined ? [] : [{ package: options.driver, entry: 'driver' }]),
+    { package: options.driver, entry: 'driver' },
     ...options.queryBuilders,
   ];
 }

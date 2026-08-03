@@ -19,6 +19,10 @@
     "@internal/target-mongo": "workspace:0.16.0",
     "@internal/target-postgres": "workspace:0.16.0",
     "@internal/utils": "workspace:0.16.0",
+    "@prisma/orm-extension-pgvector": "workspace:0.16.0",
+    "@prisma/orm-mongo": "workspace:0.16.0",
+    "@prisma/orm-postgres": "workspace:0.16.0",
+    "@prisma/orm-toolchain": "workspace:0.16.0",
     "mongodb": "catalog:",
     "pg": "catalog:"
   },

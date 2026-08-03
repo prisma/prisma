@@ -1,5 +1,5 @@
 {
-  "name": "@internal/skill-review-fetch-phase",
+  "name": "@repo/skill-review-fetch-phase",
   "private": true,
   "type": "module",
   "version": "0.0.0",

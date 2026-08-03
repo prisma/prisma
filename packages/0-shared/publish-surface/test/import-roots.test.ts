@@ -116,6 +116,27 @@ describe('resolveImportSpecifier', () => {
       );
     });
 
+    it('forwards only the subpaths a bounded re-export lists', () => {
+      // `migration-tools` is forwarded by subpath: an application reads and
+      // writes the on-disk migration format, but the graph, the pathfinder and
+      // the ledger are the CLI's own working material and stay unpublished.
+      expect(resolveImportSpecifier('@internal/migration-tools/io', postgresFacade)).toBe(
+        '@prisma/orm-postgres/migration-tools/io',
+      );
+      expect(resolveImportSpecifier('@internal/migration-tools/spaces', postgresFacade)).toBe(
+        '@prisma/orm-postgres/migration-tools/spaces',
+      );
+      // A subpath outside the list has no facade name, so it falls through to
+      // the platform shell a facade-only application does not install.
+      expect(() =>
+        resolveImportSpecifier('@internal/migration-tools/graph', postgresFacade),
+      ).toThrow(/has no name under @prisma\/orm-postgres/);
+      // Nor does the bare package name, which the list cannot contain.
+      expect(() => resolveImportSpecifier('@internal/migration-tools', postgresFacade)).toThrow(
+        /has no name under @prisma\/orm-postgres/,
+      );
+    });
+
     it('rejects a non-facade shell as the facade', () => {
       expect(() =>
         resolveImportSpecifier('@internal/sql-contract/types', {
