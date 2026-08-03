@@ -95,6 +95,21 @@ describe('import roots and contract identity', () => {
     );
   });
 
+  it('names the platform packages under the platform root', async () => {
+    const decomposed = await emitFor(platform);
+
+    // `@prisma-next/sql-contract/types` stays as authored because the mock SPI
+    // contributes it as a finished import line rather than as a requirement.
+    // That is how the real seam works too: a family emitter resolves the
+    // specifiers in the text it hands over, and the framework emitter resolves
+    // the ones it assembles itself.
+    expect(importedSpecifiers(decomposed.contractDts).sort()).toEqual([
+      '@prisma-next/sql-contract/types',
+      '@prisma/orm-extension-arktype-json/codec-types',
+      '@prisma/orm-framework/contract/types',
+    ]);
+  });
+
   it('emits today’s specifiers when no root is supplied', async () => {
     const withoutOption = await emit(contract(), stack, spi);
     const withInternalRoot = await emitFor(internalImportRoot);

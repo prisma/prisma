@@ -16,7 +16,7 @@ import {
 } from '@prisma-next/framework-components/control';
 import {
   type ImportSpecifierResolver,
-  keepInternalSpecifiers,
+  resolveRequirementSpecifiers,
 } from '@prisma-next/framework-components/emission';
 import { detectScaffoldRuntime, shebangLineFor } from '@prisma-next/migration-tools/migration-ts';
 import { type ImportRequirement, renderImports } from '@prisma-next/ts-render';
@@ -98,13 +98,7 @@ function buildImports(calls: ReadonlyArray<OpFactoryCall>, meta: RenderMigration
       requirements.push(req);
     }
   }
-  const resolveImportSpecifier = meta.resolveImportSpecifier ?? keepInternalSpecifiers;
-  return renderImports(
-    requirements.map((req) => ({
-      ...req,
-      moduleSpecifier: resolveImportSpecifier(req.moduleSpecifier),
-    })),
-  );
+  return renderImports(resolveRequirementSpecifiers(requirements, meta.resolveImportSpecifier));
 }
 
 /**
