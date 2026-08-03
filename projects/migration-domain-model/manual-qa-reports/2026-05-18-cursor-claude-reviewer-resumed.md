@@ -3,7 +3,7 @@
 > **Script:** `projects/migration-domain-model/manual-qa.md` (commit `2591e1a9f` at run time)
 > **Runner:** `cursor-claude-reviewer-resumed` — same LLM session that ran M1–M7 R2 code review, now flipped to runner role. Not strictly fresh-eyes for the system; however, the QA script itself was authored by `drive-qa-plan` after the M7 R2 review and I had not seen it before this run.
 > **Environment:**
-> - Worktree: `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2546-review-migration-cli-commands-and-vocabulary/`
+> - Worktree: `<worktree for `tml-2546-review-migration-cli-commands-and-vocabulary`>/`
 > - Branch HEAD at start: `2591e1a9f` (`docs(qa): add manual QA script for migration CLI restructure`)
 > - Working tree at start: `M projects/migration-domain-model/plan.md` (orchestrator amendment, intentional uncommitted per M7 R2 reviewer note); untracked `projects/agile-agent-orchestration/` (workspace dir).
 > - Node: `v24.13.0` · pnpm: `10.27.0` · macOS (darwin 25.3.0).
@@ -214,7 +214,7 @@ Adding `--color` doesn't help. The action handler in `migration-graph.ts` checks
 **Observed:**
 PN-001 `where`:
 ```
-"where": "/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2546-review-migration-cli-commands-and-vocabulary/examples/prisma-8-demo/migrations/app/20260422T0742_migration"
+"where": "<worktree for `tml-2546-review-migration-cli-commands-and-vocabulary`>/examples/prisma-8-demo/migrations/app/20260422T0742_migration"
 ```
 PN-005 `where`:
 ```

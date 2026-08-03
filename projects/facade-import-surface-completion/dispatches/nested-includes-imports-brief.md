@@ -1,7 +1,7 @@
 # Fix nested-includes test imports — followup to commit 357805f2f
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD:** `56a22e22b`
 **Origin HEAD:** `9c0eb947b` (push still pending — was blocked by typecheck red)
 

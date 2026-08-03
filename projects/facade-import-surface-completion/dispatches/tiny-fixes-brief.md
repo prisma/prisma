@@ -1,7 +1,7 @@
 # Tiny fixes brief — harness.ts dead export + helpers.ts pgvector stub-id
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD:** `d6abfd518` (post-review-iteration force-pushed; PR #557 review-clean)
 
 Two scoped fixes. Both tiny. One push at the end.

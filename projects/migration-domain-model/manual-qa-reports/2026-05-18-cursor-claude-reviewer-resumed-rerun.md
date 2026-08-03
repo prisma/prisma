@@ -4,7 +4,7 @@
 > **Prior run:** [`2026-05-18-cursor-claude-reviewer-resumed.md`](./2026-05-18-cursor-claude-reviewer-resumed.md) — ❌ Fail with 2 ⚠️ High + 7 📝 Follow-ups + 2 script-quality follow-ups. All 9 system findings + 2 script-quality items + 5 reviewer-derivative findings (F8/F9/F10/F11/F12) have since landed across M7 R3, R4, R5 (all reviewer-SATISFIED). Reviewer-side code-review.md scoreboard: 9 PASS / 0 FAIL / 0 NOT VERIFIED.
 > **Runner:** `cursor-claude-reviewer-resumed-rerun` — same LLM session that did pass 1 + the R3–R5 reviewer rounds. Continuity-runner, not fresh-eyes.
 > **Environment:**
-> - Worktree: `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2546-review-migration-cli-commands-and-vocabulary/`
+> - Worktree: `<worktree for `tml-2546-review-migration-cli-commands-and-vocabulary`>/`
 > - Branch HEAD: `c4942308a` (M7 R5's last commit).
 > - Working tree at start: `M projects/migration-domain-model/plan.md` (intentional, per orchestrator note); untracked `projects/agile-agent-orchestration/` (workspace dir). One unexpected uncommitted item — see F-r1 below.
 > - Node: `v24.13.0` · pnpm: `10.27.0` · macOS (darwin 25.3.0).

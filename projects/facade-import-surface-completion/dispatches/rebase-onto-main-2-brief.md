@@ -1,7 +1,7 @@
 # Rebase brief — onto current origin/main + complete pre-flight + force-push
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Target:** current `origin/main`
 **Triggering signal:** GitHub shows the PR (#557) has merge conflicts; `origin/main` has advanced since the prior local rebase landed onto `cda126a56`.
 

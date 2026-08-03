@@ -32,7 +32,7 @@ e2e-tests:typecheck: test/sqlite/migrations/harness.ts(21,23): error TS2307: Can
 e2e-tests:typecheck: test/sqlite/migrations/harness.ts(38,31): error TS2304: Cannot find name 'sqlFamilyPack'.
 e2e-tests:typecheck: test/sqlite/migrations/harness.ts(38,54): error TS2304: Cannot find name 'sqlitePack'.
 e2e-tests:typecheck:  ELIFECYCLE  Command failed with exit code 2.
- ERROR  e2e-tests#typecheck: command (.../test/e2e/framework) /Users/wmadden/.nodenv/versions/24.13.0/bin/pnpm run typecheck exited (2)
+ ERROR  e2e-tests#typecheck: command (.../test/e2e/framework) pnpm run typecheck exited (2)
 ```
 
 **Expected (per script):** `pnpm typecheck` exits 0 against the PR HEAD.
@@ -60,7 +60,7 @@ Root cause analysis:
 packages/3-extensions/sql-orm-client emit$ cd ../../../../test/integration && node ../../packages/1-framework/3-tooling/cli/dist/cli.js contract emit --config test/sql-orm-client/fixtures/prisma-next.config.ts && cp test/sql-orm-client/fixtures/generated/contract.json ../../packages/3-extensions/sql-orm-client/test/fixtures/generated/
 packages/3-extensions/sql-orm-client emit: sh: line 0: cd: ../../../../test/integration: No such file or directory
 packages/3-extensions/sql-orm-client emit: Failed
-/Users/wmadden/.../packages/3-extensions/sql-orm-client:
+<repo root>:
  ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @internal/sql-orm-client@0.9.0 emit: `cd ../../../../test/integration && node ...`
 Exit status 1
  ELIFECYCLE  Command failed with exit code 1.

@@ -1,7 +1,7 @@
 # CI-fix brief — turn all 4 CI reds green on PR #557
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD:** `ceaa0d9ab` (origin and local aligned)
 **PR:** https://github.com/prisma/prisma-next/pull/557
 **CI workflow run:** `https://github.com/prisma/prisma-next/actions/runs/26270756097`

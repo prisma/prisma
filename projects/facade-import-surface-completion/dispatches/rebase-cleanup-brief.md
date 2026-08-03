@@ -1,7 +1,7 @@
 # Rebase-cleanup brief — fix two rebase-resolution misses on helpers.ts + missing unbound-tables.ts
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD:** `9ad36520f` (post-tiny-fixes force-pushed)
 
 ## What happened

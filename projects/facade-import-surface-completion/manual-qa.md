@@ -253,7 +253,7 @@ git status --porcelain
 1. Confirm the `exports` map has no `"."` entry:
 
    ```bash
-   cd /Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app
+   cd <worktree for `tml-2526-facades-must-re-export-everything-users-import-in-their-app`>
    jq '.exports | keys' packages/3-extensions/mongo/package.json
    ```
 
@@ -364,7 +364,7 @@ No repo-tree mutation; `git status --porcelain` (from the repo root) should stil
 1. Read the two workaround comments first — these are the oracle for the symptom:
 
    ```bash
-   cd /Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app
+   cd <worktree for `tml-2526-facades-must-re-export-everything-users-import-in-their-app`>
    sed -n '1,20p' test/integration/test/mongo/fixtures/contract.ts
    sed -n '1,20p' test/integration/test/mongo-runtime/query-builder.test.ts
    ```
@@ -605,7 +605,7 @@ No mutation. `git status --porcelain` should still be empty.
 2. Run esbuild with `--metafile`, resolving from the worktree's `node_modules`:
 
    ```bash
-   cd /Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app
+   cd <worktree for `tml-2526-facades-must-re-export-everything-users-import-in-their-app`>
    pnpm exec esbuild \
      --bundle \
      --platform=node \

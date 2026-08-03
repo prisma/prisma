@@ -1,7 +1,7 @@
 # Build-then-validate continuation brief
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD (local only):** `357805f2f`
 **Origin HEAD:** `9c0eb947b` (push pending)
 

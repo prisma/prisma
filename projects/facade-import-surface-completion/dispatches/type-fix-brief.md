@@ -1,7 +1,7 @@
 # Type-fix brief — resolve sql-orm-client type-d failures + push
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current state:** rebased onto `origin/main` (`cda126a566`) + force-pushed to `origin` at `394c62cfe`. CI is red on Type Check; you'll turn it green and push the fix.
 
 ## Investigation hand-off (already done — do NOT redo)

@@ -1,7 +1,7 @@
 # Rebase-onto-main-3 brief
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD:** `0f2b86d38`
 **Target base:** current `origin/main` (orchestrator just ran `git fetch origin main`; ~10 cli-telemetry + sql-builder commits ahead of our base)
 

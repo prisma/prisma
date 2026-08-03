@@ -1,7 +1,7 @@
 # QA re-run brief — scenarios 1, 2, 4 post-rebase
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Target HEAD:** the post-rebase-cleanup push (the rebase-cleanup dispatch resolved two reds the orchestrator initially classified as pre-existing — they were actually our own rebase-resolution misses; pre-flight is now fully green).
 
 **Target HEAD sha:** `c5cdb597e`

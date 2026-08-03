@@ -1,7 +1,7 @@
 # Rebase-continue brief — resolve nested-includes conflict + fix imports
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Rebase state:** paused at commit 30/71 (`d7a4ac070 refactor(@internal/sql-builder): move playground tests to integration, drop pgvector devDep`)
 
 ## What's happening (orchestrator triage, read-only confirmed)
