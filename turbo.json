@@ -8,6 +8,7 @@
         "migrations/**",
         "package.json",
         "tsconfig.json",
+        "tsconfig.prod.json",
         "tsdown.config.ts",
         "$TURBO_ROOT$/packages/0-config/tsdown/*.ts"
       ],
@@ -66,19 +67,19 @@
         "@prisma/orm-target-sqlite#build",
         "@prisma/orm-target-mongo#build"
       ],
-      "inputs": ["test/**", "dist/**"]
+      "inputs": ["test/**", "dist/**", "vitest.config.ts"]
     },
     "@prisma/orm-target-postgres#test": {
       "dependsOn": ["build", "^build"],
-      "inputs": ["test/**", "dist/**"]
+      "inputs": ["test/**", "dist/**", "vitest.config.ts"]
     },
     "@prisma/orm-postgres#test": {
       "dependsOn": ["build", "^build"],
-      "inputs": ["test/**", "dist/**"]
+      "inputs": ["test/**", "dist/**", "vitest.config.ts"]
     },
     "@prisma/orm-extension-pgvector#test": {
       "dependsOn": ["build", "^build", "@prisma/orm-postgres#build"],
-      "inputs": ["test/**", "dist/**"]
+      "inputs": ["test/**", "dist/**", "vitest.config.ts"]
     }
   }
 }
