@@ -71,7 +71,7 @@
     "lint:legacy-name": "node scripts/lint-legacy-name.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.4",
+    "@biomejs/biome": "2.5.5",
     "@cursor/sdk": "^1.0.24",
     "@internal/framework-components": "workspace:0.16.0",
     "@internal/migration-tools": "workspace:0.16.0",
@@ -82,13 +82,13 @@
     "dependency-cruiser": "^17.4.3",
     "gray-matter": "catalog:",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.8",
+    "lint-staged": "^17.2.0",
     "pathe": "^2.0.3",
-    "pkg-pr-new": "0.0.79",
-    "skills": "^1.5.19",
+    "pkg-pr-new": "0.0.80",
+    "skills": "^1.5.20",
     "tslib": "^2.8.1",
     "tsx": "catalog:",
-    "turbo": "^2.10.2",
+    "turbo": "^2.10.7",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

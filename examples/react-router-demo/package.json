@@ -25,8 +25,8 @@
     "dotenv": "^17.4.2",
     "isbot": "^5.2.0",
     "pg": "catalog:",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-router": "^8.1.0"
   },
   "devDependencies": {
