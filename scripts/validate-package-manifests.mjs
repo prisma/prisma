@@ -68,6 +68,35 @@ export function classifyPackage(pkgJson) {
   return null;
 }
 
+const REQUIRED_REPO_URL = 'https://github.com/prisma/prisma.git';
+
+/**
+ * Classifies a publishable `package.json` against the repository rule.
+ * npm provenance verification (OIDC Trusted Publishing) rejects a
+ * tarball whose `repository.url` does not match the repository the
+ * workflow runs in, so every publishable package must declare the
+ * object form with the canonical url and its own workspace directory.
+ *
+ * Pure / side-effect-free; exported for tests.
+ *
+ * @param {Record<string, unknown>} pkgJson
+ * @param {string} dir
+ * @returns {{ name: string; repository: unknown; reason: 'repository-missing' | 'repository-wrong' } | null}
+ */
+export function classifyRepository(pkgJson, dir) {
+  const name = typeof pkgJson.name === 'string' ? pkgJson.name : '<unnamed>';
+  const repository = pkgJson.repository;
+  if (repository === undefined || repository === null) {
+    return { name, repository, reason: 'repository-missing' };
+  }
+  const conforms =
+    typeof repository === 'object' &&
+    repository.type === 'git' &&
+    repository.url === REQUIRED_REPO_URL &&
+    repository.directory === dir;
+  return conforms ? null : { name, repository, reason: 'repository-wrong' };
+}
+
 function listPublishablePackageDirs() {
   const out = execFileSync('node', ['scripts/list-publishable-packages.mjs'], {
     encoding: 'utf-8',
@@ -122,6 +151,10 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
     if (offence) {
       offenders.push({ dir, ...offence });
     }
+    const repoOffence = classifyRepository(pkg, dir);
+    if (repoOffence) {
+      offenders.push({ dir, ...repoOffence });
+    }
   }
 
   if (json) {
@@ -131,26 +164,36 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
 
   if (offenders.length === 0) {
     stderrWrite(
-      `\nOK — all ${dirs.length} publishable packages declare "license": "${REQUIRED_LICENSE}".\n`,
+      `\nOK — all ${dirs.length} publishable packages declare "license": "${REQUIRED_LICENSE}" and the canonical "repository".\n`,
     );
     return 0;
   }
 
   stderrWrite(
-    `\nFAIL — ${offenders.length} of ${dirs.length} publishable package(s) fail the license declaration check:\n`,
+    `\nFAIL — ${offenders.length} manifest declaration problem(s) across ${dirs.length} publishable package(s):\n`,
   );
   for (const o of offenders) {
     if (o.reason === 'missing') {
       stderrWrite(`\n  ${o.name} (${o.dir})\n    no "license" field declared\n`);
-    } else {
+    } else if (o.reason === 'wrong') {
       stderrWrite(
         `\n  ${o.name} (${o.dir})\n    "license": ${JSON.stringify(o.license)} (expected "${REQUIRED_LICENSE}")\n`,
+      );
+    } else if (o.reason === 'repository-missing') {
+      stderrWrite(`\n  ${o.name} (${o.dir})\n    no "repository" field declared\n`);
+    } else {
+      stderrWrite(
+        `\n  ${o.name} (${o.dir})\n    "repository": ${JSON.stringify(o.repository)}\n` +
+          `    (expected { "type": "git", "url": "${REQUIRED_REPO_URL}", "directory": "${o.dir}" })\n`,
       );
     }
   }
   stderrWrite(
-    `\nAdd "license": "${REQUIRED_LICENSE}" to each package.json above. Internal packages\n` +
-      'that should not be published must instead set "private": true.\n',
+    `\nEvery publishable package must declare "license": "${REQUIRED_LICENSE}" and a\n` +
+      `"repository" object ({ "type": "git", "url": "${REQUIRED_REPO_URL}",\n` +
+      '"directory": <package dir> }) — npm provenance verification rejects tarballs\n' +
+      'without the matching repository url. Internal packages that should not be\n' +
+      'published must instead set "private": true.\n',
   );
   return 1;
 }

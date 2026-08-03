@@ -105,5 +105,10 @@
     "./utils/structured-error": "./dist/utils__structured-error.mjs",
     "./utils/types": "./dist/utils__types.mjs",
     "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-framework"
   }
 }

@@ -118,5 +118,10 @@
     "./publish-surface/shells": "./dist/publish-surface__shells.mjs",
     "./vite-plugin-contract-emit": "./dist/vite-plugin-contract-emit.mjs",
     "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-toolchain"
   }
 }
