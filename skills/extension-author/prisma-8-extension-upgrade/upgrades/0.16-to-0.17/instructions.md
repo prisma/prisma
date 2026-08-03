@@ -54,7 +54,7 @@ changes:
       contract snapshot was never part of migration identity, so converting the
       layout changes no migration's hash, and no extension-authoring SPI changes.
       To convert an existing extension repo, run the migrator once from a
-      checkout of the `prisma/prisma-next` repository at (or above) the version
+      checkout of the `prisma/prisma` repository at (or above) the version
       you're upgrading to, pointed at your extension's migrations root:
       `node scripts/migrate-migrations-layout.mjs <path-to-your-migrations-dir>`.
       Per migration package, it reads `migration.json`, write-if-absents the

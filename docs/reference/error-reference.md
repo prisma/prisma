@@ -113,7 +113,7 @@ A flag passed to `prisma-next init` has a value outside its allowed set (for exa
 
 ### CLI.INIT_SKILL_INSTALL_FAILED
 
-During `prisma-next init`, the project-level skills install (`npx skills add prisma/prisma-next#v<version>`) failed after a successful dependency install and emit. The scaffold stays on disk; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--no-skill`. Maps to init exit code 6 (SKILL_INSTALL_FAILED). Meta: `filesWritten`, `skillInstallCommand`, `cause`.
+During `prisma-next init`, the project-level skills install (`npx skills add prisma/prisma#v<version>`) failed after a successful dependency install and emit. The scaffold stays on disk; the user can fix the underlying issue (network, registry, PATH) and install manually, or re-run with `--no-skill`. Maps to init exit code 6 (SKILL_INSTALL_FAILED). Meta: `filesWritten`, `skillInstallCommand`, `cause`.
 
 ### CLI.INIT_STRICT_PROBE_WITHOUT_PROBE
 

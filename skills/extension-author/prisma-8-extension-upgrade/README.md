@@ -15,7 +15,7 @@ If you are a user of Prisma Next (your project imports `@internal/postgres`, `@i
 ### The skill (always-latest)
 
 ```bash
-npx skills add prisma/prisma-next/skills/extension-author --all
+npx skills add prisma/prisma/skills/extension-author --all
 ```
 
 `--all` skips the per-agent selection prompt and installs to every agent runtime the `skills` CLI detects. For a single-agent install, swap `--all` for `-a <agent>` (e.g. `-a claude-code`).

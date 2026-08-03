@@ -11,7 +11,7 @@ const exec = promisify(execFile);
  * upstream `skills add`. Each `SkillSource` joins this base with its
  * own subpath (and optional `#ref` for version-pinned clusters).
  */
-export const DEFAULT_SKILL_BASE = 'prisma/prisma-next';
+export const DEFAULT_SKILL_BASE = 'prisma/prisma';
 
 /**
  * One discovery scope inside the Prisma Next monorepo. The CLI emits

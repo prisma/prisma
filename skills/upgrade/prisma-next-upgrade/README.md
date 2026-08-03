@@ -11,7 +11,7 @@ If you are an extension author, install the [`prisma-8-extension-upgrade`](../..
 ## Installation
 
 ```bash
-pnpm dlx skills add prisma/prisma-next/skills/upgrade --all
+pnpm dlx skills add prisma/prisma/skills/upgrade --all
 ```
 
 `--all` skips the per-agent selection prompt and installs to every agent runtime the `skills` CLI detects on this machine. For a single-agent install, swap `--all` for `-a <agent>` (e.g. `-a claude-code`).

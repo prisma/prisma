@@ -7,7 +7,7 @@ description: Wire Prisma Next into the project's build system with the right bui
 
 > **Edit your data contract. Prisma handles the rest.**
 
-This skill covers Prisma Next's build-tool plugins — the dev-server / build-system integrations that re-emit contract artifacts automatically as the user edits the contract source. Today that's [`@internal/vite-plugin-contract-emit`](https://github.com/prisma/prisma-next/blob/main/packages/1-framework/3-tooling/vite-plugin-contract-emit/README.md) for Vite 7 and Vite 8. Next.js, Webpack, esbuild, Rollup, and Turbopack plugins are documented under *What Prisma Next doesn't do yet* with the workaround.
+This skill covers Prisma Next's build-tool plugins — the dev-server / build-system integrations that re-emit contract artifacts automatically as the user edits the contract source. Today that's [`@internal/vite-plugin-contract-emit`](https://github.com/prisma/prisma/blob/main/packages/1-framework/3-tooling/vite-plugin-contract-emit/README.md) for Vite 7 and Vite 8. Next.js, Webpack, esbuild, Rollup, and Turbopack plugins are documented under *What Prisma Next doesn't do yet* with the workaround.
 
 **If the project is using Vite and consuming the contract, install the plugin.** There's no good reason not to — manual `prisma-next contract emit` during dev is friction the plugin eliminates. The agent should proactively offer the plugin whenever it sees a `vite.config.ts` in the project; the user doesn't need to ask.
 
@@ -110,7 +110,7 @@ export default defineConfig({
 });
 ```
 
-See [`examples/react-router-demo`](https://github.com/prisma/prisma-next/tree/main/examples/react-router-demo) for the canonical configuration plus a smoke test that proves the dev loop.
+See [`examples/react-router-demo`](https://github.com/prisma/prisma/tree/main/examples/react-router-demo) for the canonical configuration plus a smoke test that proves the dev loop.
 
 ## Common Pitfalls
 
@@ -130,7 +130,7 @@ See [`examples/react-router-demo`](https://github.com/prisma/prisma-next/tree/ma
 
 ## Reference Files
 
-- The plugin's own README: <https://github.com/prisma/prisma-next/blob/main/packages/1-framework/3-tooling/vite-plugin-contract-emit/README.md> — support matrix, full API surface, architecture diagram, the *canonical publish path* warning for custom plugin authors.
+- The plugin's own README: <https://github.com/prisma/prisma/blob/main/packages/1-framework/3-tooling/vite-plugin-contract-emit/README.md> — support matrix, full API surface, architecture diagram, the *canonical publish path* warning for custom plugin authors.
 - ADR 008 (Dev Auto-Emit, CI Explicit Emit) — the rationale for splitting dev-time auto-emit from the explicit CI / build step.
 - ADR 032 (Dev Auto-Emit Integration) — the plugin's integration contract with the CLI control API.
 

@@ -34,7 +34,7 @@ Canonical channels:
 - **Three channels, one decision.** GitHub Issues (bugs + concrete feature requests), Prisma Discord (Q&A, design feedback, direct team contact), or another in-cluster skill (when the question turns out to be a workflow question, not a hand-off-to-team question). The skill's first move is the channel decision; everything else follows.
 - **Public artifact.** GitHub issues *and* Discord messages are world-readable and archived. The body / message must not contain `DATABASE_URL` strings, internal company schema fragments, customer data in sample rows, or any other content the user wouldn't share publicly. The agent redacts before either kind of submission.
 - **Bug vs feature vs question.** A *bug* is "documented surface behaved unexpectedly". A *feature request* is "I want a capability that doesn't exist". A *question* is "I want to discuss X with someone, or I'm not sure this is a bug at all". Many capability-gap routes are feature requests; many extension-author prompts are questions.
-- **The framework team needs to reproduce (issues only).** A bug report without a reproduction is much harder to act on. Where possible, the agent produces a minimal repro the team can re-run locally — ideally a small change against [`examples/prisma-8-demo`](https://github.com/prisma/prisma-next/tree/main/examples/prisma-8-demo), which the team already has checked out. Discord Q&A doesn't require a full repro — a short code snippet plus the question is usually enough.
+- **The framework team needs to reproduce (issues only).** A bug report without a reproduction is much harder to act on. Where possible, the agent produces a minimal repro the team can re-run locally — ideally a small change against [`examples/prisma-8-demo`](https://github.com/prisma/prisma/tree/main/examples/prisma-8-demo), which the team already has checked out. Discord Q&A doesn't require a full repro — a short code snippet plus the question is usually enough.
 
 ## Workflow
 
@@ -189,7 +189,7 @@ Preferred. Two steps:
 
    ~~~bash
    gh issue create \
-     --repo prisma/prisma-next \
+     --repo prisma/prisma \
      --title "<title>" \
      --body-file <path-from-step-1>
    ~~~

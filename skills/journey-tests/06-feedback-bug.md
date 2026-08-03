@@ -38,4 +38,4 @@ A `prisma-next init`-scaffolded project (any target).
 - [ ] Body contains all required fields named in the bug-report issue form (`Package and version`, `What happened?`, `What did you expect to happen?`, `Minimal reproduction`, `Environment`).
 - [ ] Title is in conventional-commit form.
 - [ ] User was prompted for confirmation before submission.
-- [ ] Issue submitted to `prisma/prisma-next` (verified by URL in the agent's response).
+- [ ] Issue submitted to `prisma/prisma` (verified by URL in the agent's response).

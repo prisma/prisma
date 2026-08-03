@@ -47,7 +47,7 @@ changes:
       `migrationHash` are unaffected — the contract snapshot was never part of
       migration identity, so converting the layout changes no migration's hash.
       To convert an existing project, run the migrator once per migrations root
-      from a checkout of the `prisma/prisma-next` repository at (or above) the
+      from a checkout of the `prisma/prisma` repository at (or above) the
       version you're upgrading to: `node scripts/migrate-migrations-layout.mjs
       [migrationsRoot...]` (with no arguments it auto-discovers every migrations
       root under the current directory). Per migration package, it reads

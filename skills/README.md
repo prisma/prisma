@@ -1,10 +1,10 @@
 # Prisma Next skills
 
-Agent skills for [Prisma Next](https://github.com/prisma/prisma-next) — a small set of `SKILL.md` files that teach an LLM agent how to operate Prisma Next end-to-end without re-deriving the API from documentation each time.
+Agent skills for [Prisma Next](https://github.com/prisma/prisma) — a small set of `SKILL.md` files that teach an LLM agent how to operate Prisma Next end-to-end without re-deriving the API from documentation each time.
 
 > **Edit your data contract. Prisma handles the rest.**
 >
-> **Install the version that matches your Prisma Next version.** Skills ship in lockstep with the Prisma Next CLI/runtime. If your project uses Prisma Next `0.8.0`, install from `prisma/prisma-next#v0.8.0` so the skill surface matches the runtime surface.
+> **Install the version that matches your Prisma Next version.** Skills ship in lockstep with the Prisma Next CLI/runtime. If your project uses Prisma Next `0.8.0`, install from `prisma/prisma#v0.8.0` so the skill surface matches the runtime surface.
 
 ## What's in the box
 
@@ -41,7 +41,7 @@ To install standalone (existing project or a new agent runtime added after `init
 # `--all` installs every skill in the cluster (the cluster works as a unit —
 # the router skill routes between the others) for every agent runtime the CLI
 # detects on this machine, without prompting per-skill or per-agent.
-pnpm dlx skills add prisma/prisma-next#v<your-prisma-next-version> --all
+pnpm dlx skills add prisma/prisma#v<your-prisma-next-version> --all
 ```
 
 The skill is always installed at the **project level** — there is no host-wide / global install path. The cluster's surface (commands it references, exit codes it expects, capability claims it makes) tracks the project's `@internal/*` version, and a global install would have to pick a single version for every project on the host. Pinning per-project keeps the skill, CLI, runtime, and extension packs coherent on every project the user works in.

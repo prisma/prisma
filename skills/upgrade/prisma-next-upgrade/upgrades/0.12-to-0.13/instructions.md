@@ -335,5 +335,5 @@ DO_NOT_TRACK=1
 ```
 
 Either variable takes effect immediately — no config file change needed. See
-[Telemetry](https://github.com/prisma/prisma-next/blob/main/docs/Telemetry.md) for
+[Telemetry](https://github.com/prisma/prisma/blob/main/docs/Telemetry.md) for
 what is collected and how to opt out permanently.

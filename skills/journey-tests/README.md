@@ -10,13 +10,13 @@ Cross-runtime automation against a moving model surface is its own research proj
 2. Install the user-facing skill cluster at the project level. The URL points at the `skills/` subpath of the Prisma Next repository, which is the same source `prisma-next init` uses. Contributor skills (which live under `skills-contrib/`) are *not* on upstream's priority-discovery allowlist and never reach end-users through this URL. `--all` installs every skill in the user-facing cluster to every detected agent without prompting (the cluster is meant to be installed as a unit):
 
    ```bash
-   pnpm dlx skills add prisma/prisma-next/skills#v<prisma-next-version> --all
+   pnpm dlx skills add prisma/prisma/skills#v<prisma-next-version> --all
    ```
 
    To test against an in-flight branch or commit instead of a tagged release:
 
    ```bash
-   pnpm dlx skills add prisma/prisma-next/skills#<branch-or-sha> --all
+   pnpm dlx skills add prisma/prisma/skills#<branch-or-sha> --all
    ```
 
    To test a local checkout, point the CLI at the `skills/` directory directly:

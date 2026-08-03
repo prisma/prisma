@@ -19,7 +19,7 @@ This skill upgrades a project that **consumes** Prisma Next via the public packa
 
 Before anything else, ensure this skill is installed at `@latest` and reload it. Bug fixes to *old* per-transition upgrade instructions ship in the latest skill release as part of its cumulative set; running against a stale skill can apply a known-broken translation.
 
-If the agent runtime supports an in-session refresh, perform it now. Otherwise, exit and ask the user to re-install (`pnpm dlx skills add prisma/prisma-next/skills/upgrade --all`), then re-invoke. The upgrade-skill subpath is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth, and the latest release fixes apply to every prior transition.
+If the agent runtime supports an in-session refresh, perform it now. Otherwise, exit and ask the user to re-install (`pnpm dlx skills add prisma/prisma/skills/upgrade --all`), then re-invoke. The upgrade-skill subpath is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth, and the latest release fixes apply to every prior transition.
 
 ## Pre-flight — extension compatibility
 
@@ -45,7 +45,7 @@ This skill applies when the project **consumes** Prisma Next:
 - `package.json` declares one or more `@internal/*` packages under `dependencies` / `devDependencies`, and
 - the package is *not* itself an extension (no `@internal/contract` (or other SPI) under `dependencies`/`peerDependencies`; name does not match `^@.*/extension-`; not referenced from a sibling app's `prisma-next.config.ts`).
 
-If the project also matches the extension-author role, install the `prisma-8-extension-upgrade` skill (`pnpm dlx skills add prisma/prisma-next/skills/extension-author --all`) and run **this** flow first, then that one in the same session. If detection is ambiguous, ask the user.
+If the project also matches the extension-author role, install the `prisma-8-extension-upgrade` skill (`pnpm dlx skills add prisma/prisma/skills/extension-author --all`) and run **this** flow first, then that one in the same session. If detection is ambiguous, ask the user.
 
 ## Version detection
 

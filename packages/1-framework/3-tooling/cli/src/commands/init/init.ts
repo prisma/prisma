@@ -207,7 +207,7 @@ export async function runInit(
   // and missing-on-disk-at-write-time is tolerated.
   const filesToDelete: string[] = inputs.reinit ? [...findStaleArtifacts(baseDir, schemaDir)] : [];
 
-  // `init` delegates the skill to `npx skills add prisma/prisma-next#v<version>`,
+  // `init` delegates the skill to `npx skills add prisma/prisma#v<version>`,
   // so a hand-rolled `.agents/skills/prisma-next/SKILL.md` in the project
   // would shadow the published package. Queue it for deletion on every
   // run (not gated on `--reinit`).

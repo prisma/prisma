@@ -4,7 +4,7 @@
 **Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD:** `ceaa0d9ab` (origin and local aligned)
 **PR:** https://github.com/prisma/prisma-next/pull/557
-**CI workflow run:** `https://github.com/prisma/prisma-next/actions/runs/26270756097`
+**CI workflow run:** `https://github.com/prisma/prisma/actions/runs/26270756097`
 
 The branch is mergeable (no conflicts) and DCO is green. Four CI checks are red:
 

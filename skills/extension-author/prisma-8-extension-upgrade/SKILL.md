@@ -25,7 +25,7 @@ Before doing anything else, ensure this skill is installed at `@latest` and relo
 Concretely: if the agent runtime supports an in-session refresh, perform it now. Otherwise, exit and ask the user to re-install:
 
 ```bash
-pnpm dlx skills add prisma/prisma-next/skills/extension-author --all
+pnpm dlx skills add prisma/prisma/skills/extension-author --all
 ```
 
 The extension-author skill subpath is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth and the latest release fixes apply to every prior transition.
@@ -40,7 +40,7 @@ This skill applies when the project **is** a Prisma Next extension. Heuristics:
 - the package's `name` matches `^@.*/extension-` (the in-tree convention used by `@internal/extension-pgvector`, etc.), or
 - the package is referenced as an `extensions` entry from a sibling app's `prisma-next.config.ts` in the same monorepo.
 
-If the project additionally consumes Prisma Next from its own app code, install the `prisma-next-upgrade` skill (`pnpm dlx skills add prisma/prisma-next/skills/upgrade --all`) and run the user flow first, then this flow in the same session.
+If the project additionally consumes Prisma Next from its own app code, install the `prisma-next-upgrade` skill (`pnpm dlx skills add prisma/prisma/skills/upgrade --all`) and run the user flow first, then this flow in the same session.
 
 If detection is ambiguous, ask the user which role to operate under.
 
@@ -63,7 +63,7 @@ Apply each step in order, fully: bump, install, run instructions, check pins, va
 
 ## Per-step flow
 
-This flow assumes you are an **external extension author** — your extension lives in its own repo and consumes `@internal/*` from npm. (Extensions inside the `prisma/prisma-next` monorepo itself are bumped via `pnpm bump-minor` / `scripts/set-version.ts`, which rewrites every `workspace:<X.Y.Z>` spec in lockstep with the root version; they do not run this skill.)
+This flow assumes you are an **external extension author** — your extension lives in its own repo and consumes `@internal/*` from npm. (Extensions inside the `prisma/prisma` monorepo itself are bumped via `pnpm bump-minor` / `scripts/set-version.ts`, which rewrites every `workspace:<X.Y.Z>` spec in lockstep with the root version; they do not run this skill.)
 
 For each `(from, to)` step in the chain:
 

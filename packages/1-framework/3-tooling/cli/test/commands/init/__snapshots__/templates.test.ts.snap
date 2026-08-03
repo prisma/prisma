@@ -33,7 +33,7 @@ Prisma Next setup is scaffolded in:
 - \`prisma/db.ts\`
 - \`src/lib/prisma.ts\`
 
-For provider-specific Prisma Next reference docs, see \`prisma-next.md\`. Prisma Next skills live in the upstream \`skills/\` directory: https://github.com/prisma/prisma-next/tree/main/skills.
+For provider-specific Prisma Next reference docs, see \`prisma-next.md\`. Prisma Next skills live in the upstream \`skills/\` directory: https://github.com/prisma/prisma/tree/main/skills.
 
 Node-based Prisma Next projects expect Node.js 24 LTS or newer.
 "
@@ -71,7 +71,7 @@ Prisma Next setup is scaffolded in:
 - \`prisma/db.ts\`
 - \`src/lib/prisma.ts\`
 
-For provider-specific Prisma Next reference docs, see \`prisma-next.md\`. Prisma Next skills live in the upstream \`skills/\` directory: https://github.com/prisma/prisma-next/tree/main/skills.
+For provider-specific Prisma Next reference docs, see \`prisma-next.md\`. Prisma Next skills live in the upstream \`skills/\` directory: https://github.com/prisma/prisma/tree/main/skills.
 
 Node-based Prisma Next projects expect Node.js 24 LTS or newer.
 "
