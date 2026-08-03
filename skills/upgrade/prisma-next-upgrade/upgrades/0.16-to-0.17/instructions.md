@@ -693,6 +693,10 @@ Routine runtime dependency bumps in `examples/` (dependabot `runtime-deps` group
 
 Routine runtime dependency bumps in `examples/` (dependabot `runtime-deps` group, PR #29872) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
 
+## Incidental dev-dependency bumps in examples (August 2026)
+
+Routine dev-dependency bumps in `examples/` (dependabot `dev-deps` group, PR #29877) require no Prisma Next-specific upgrade action; review and test the affected examples as with any routine dependency update.
+
 ## Incidental example dependency bumps (react-router 8)
 
 The `react-router-demo` example moves its `react-router`, `@react-router/dev`, `@react-router/node`, and `@react-router/serve` dependencies from 7.x to 8.x. This is an example-local framework upgrade and requires no Prisma Next-specific upgrade action; the Prisma Next surfaces the example uses are unchanged.
