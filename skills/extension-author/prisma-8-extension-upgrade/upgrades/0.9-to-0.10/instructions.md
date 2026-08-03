@@ -145,6 +145,6 @@ There is no codemod for this — extensions construct `SqlStorage` via too many 
 
 ### Validation
 
-After running the JSON codemod and applying the source-level rules above, run `pnpm typecheck && pnpm test` (or your extension's equivalent). `prisma-next-check-pins` should also pass — the pin set is unchanged for this transition; the breaking change is in runtime construction behaviour, not the dependency contract.
+After running the JSON codemod and applying the source-level rules above, run `pnpm typecheck && pnpm test` (or your extension's equivalent). `prisma-8-check-pins` should also pass — the pin set is unchanged for this transition; the breaking change is in runtime construction behaviour, not the dependency contract.
 
 If your extension ships seed migrations under `packages/<extension>/migrations/`, also run the codemod with `--check` against the project root to confirm the seed snapshots all stamp correctly. The user-facing skill's same codemod (under `prisma-next-upgrade/upgrades/0.9-to-0.10/`) operates on the user's app-space migrations; this skill's copy of the same script operates on your extension's seed migrations.

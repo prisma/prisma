@@ -14,7 +14,7 @@ npm install --save-dev @internal/extension-author-tools
 
 ## Tools
 
-### `prisma-next-check-pins`
+### `prisma-8-check-pins`
 
 CI guard for extension packages. Asserts that every `@internal/*` entry under the package's `peerDependencies` (and, optionally, `dependencies`) is pinned to an exact version, not a range.
 
@@ -23,7 +23,7 @@ This is the invariant the [`prisma-8-extension-upgrade`](../../../skills/extensi
 Run from the extension's repository root:
 
 ```bash
-pnpm exec prisma-next-check-pins
+pnpm exec prisma-8-check-pins
 ```
 
 Exit code is `0` if every `@internal/*` peerDep is exact, non-zero otherwise. Suitable for use in a GitHub Actions `run:` step, a pre-commit hook, or `package.json` `scripts.lint`.

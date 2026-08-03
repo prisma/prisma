@@ -564,7 +564,7 @@ Run the codemod in dry-run mode to confirm no committed manifest still carries t
 pnpm exec tsx ./strip-migration-labels-hints.ts --check
 ```
 
-`--check` lists every manifest that still needs fixing and exits non-zero if any remain, so wire it into your extension's CI alongside `prisma-next-check-pins`. A fully migrated tree reports `0 needing fix` and exits `0`.
+`--check` lists every manifest that still needs fixing and exits non-zero if any remain, so wire it into your extension's CI alongside `prisma-8-check-pins`. A fully migrated tree reports `0 needing fix` and exits `0`.
 
 ### Validation
 

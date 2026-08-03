@@ -6,7 +6,7 @@ description: >-
   per-transition upgrade instructions for the extension SPI (middleware
   lifecycle, codec / migration-tools / framework-components churn,
   seed-migration on-disk shape), verifies the pins are correctly exact
-  via `prisma-next-check-pins`, runs the extension's own typecheck and
+  via `prisma-8-check-pins`, runs the extension's own typecheck and
   tests, and commits each minor step on its own. Use when the user asks
   to "upgrade Prisma Next" in an extension package, or to update an
   extension's `@internal/*` deps to a new minor.
@@ -71,7 +71,7 @@ For each `(from, to)` step in the chain:
 
 2. **Install.** Run `pnpm install` (or the project's lockfile-managing command). The extension's source is now broken against the new SPI — the upgrade instructions for `<from> → <to>` exist to fix it.
 
-3. **Check pins.** Run `pnpm exec prisma-next-check-pins` (shipped by `@internal/extension-author-tools`). This sanity check asserts that every `@internal/*` entry across `dependencies`, `peerDependencies`, and `optionalDependencies` is a single exact-version string and that all entries share the same version. If the check fails, the bump step did not rewrite every spec — fix the offending entries and re-run before proceeding.
+3. **Check pins.** Run `pnpm exec prisma-8-check-pins` (shipped by `@internal/extension-author-tools`). This sanity check asserts that every `@internal/*` entry across `dependencies`, `peerDependencies`, and `optionalDependencies` is a single exact-version string and that all entries share the same version. If the check fails, the bump step did not rewrite every spec — fix the offending entries and re-run before proceeding.
 
 4. **Read the upgrade instructions.** Load `upgrades/<from>-to-<to>/instructions.md` from this skill package. Parse the YAML frontmatter and pay particular attention to its `changes[]` array.
 
@@ -102,10 +102,10 @@ Move on to the next step. Repeat.
 
 Prisma Next extensions pin every `@internal/*` dependency to a single **exact** version (no `^`, no `~`, no range, no wildcard, no `workspace:` specifier in the published `package.json`). All `@internal/*` entries share the same version. The pin advances only after a successful upgrade run against the new minor.
 
-`prisma-next-check-pins` (shipped by `@internal/extension-author-tools` — install with `pnpm add -D @internal/extension-author-tools`) enforces the rule. Run it locally with:
+`prisma-8-check-pins` (shipped by `@internal/extension-author-tools` — install with `pnpm add -D @internal/extension-author-tools`) enforces the rule. Run it locally with:
 
 ```bash
-pnpm exec prisma-next-check-pins
+pnpm exec prisma-8-check-pins
 ```
 
 Wire it into the extension's CI alongside the build/test step so an accidental range pin fails the PR before it lands.

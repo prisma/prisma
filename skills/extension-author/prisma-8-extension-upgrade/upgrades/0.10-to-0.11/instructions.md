@@ -267,7 +267,7 @@ Walk every `.ts` / `.tsx` file matched by the `detection.glob` above. For each c
 
 ### Validation
 
-After applying the rules above, run `pnpm typecheck && pnpm test` (or your extension's equivalent). `prisma-next-check-pins` should also pass — the pin set is unchanged for this transition; the breaking change is in the `InsertAst` builder method surface, not the dependency contract.
+After applying the rules above, run `pnpm typecheck && pnpm test` (or your extension's equivalent). `prisma-8-check-pins` should also pass — the pin set is unchanged for this transition; the breaking change is in the `InsertAst` builder method surface, not the dependency contract.
 
 ## Validation by execution
 

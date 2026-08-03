@@ -46,7 +46,7 @@ const CLI_BIN = join(WORKSPACE_ROOT, 'packages/1-framework/3-tooling/cli/dist/cl
  *  1. Path length. pnpm's content-addressable store encodes the **absolute**
  *     tarball path into the cached index filenames (using `+` as separator).
  *     A cache dir deep inside a long worktree path (e.g.
- *     `…/prisma-next-ws/worktrees/tml-2486-…/`) overflows the OS filename
+ *     `…/prisma-8-ws/worktrees/tml-2486-…/`) overflows the OS filename
  *     limit (`ENAMETOOLONG`). A short, stable prefix keeps things under
  *     the 255-char limit.
  *  2. Cross-run reuse. Repeated test runs hit the cache instead of repacking
@@ -193,7 +193,7 @@ export async function createJourneyProject(
 /** Minimal `package.json` that satisfies init's precondition: a project root must already exist before init can attach to it. */
 function writeMinimalPackageJson(dir: string): void {
   const pkg = {
-    name: 'prisma-next-journey-fixture',
+    name: 'prisma-8-journey-fixture',
     version: '0.0.0',
     private: true,
     type: 'module',

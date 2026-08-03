@@ -20,7 +20,7 @@
 //      all fail. Combined with the `workspace:<X.Y.Z>` literal-version
 //      form in the source manifests, this is the mechanism that gives
 //      every published `@internal/*` package an exact pin on its
-//      siblings, which is what `prisma-next-check-pins` exploits on the
+//      siblings, which is what `prisma-8-check-pins` exploits on the
 //      consumer side.
 //
 // Usage:
@@ -177,7 +177,7 @@ export function packAll(destDir) {
 function tarballNameFor(pkgName, version) {
   // Mirrors pnpm pack's default naming: `<name>-<version>.tgz` with the
   // package's `/` rewritten to `-` and the leading scope `@` dropped.
-  // (e.g. `@internal/foo@1.2.3` → `prisma-next-foo-1.2.3.tgz`).
+  // (e.g. `@internal/foo@1.2.3` → `internal-foo-1.2.3.tgz`).
   return `${pkgName.replace(/^@/, '').replace(/\//g, '-')}-${version}.tgz`;
 }
 

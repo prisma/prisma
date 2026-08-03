@@ -57,7 +57,7 @@ describe('findNearestConfigPathForFile', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'prisma-next-config-path-for-file-')));
+    tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'prisma-8-config-path-for-file-')));
   });
 
   afterEach(() => {
@@ -87,7 +87,7 @@ describe('loadConfigForFile', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'prisma-next-config-for-file-')));
+    tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'prisma-8-config-for-file-')));
   });
 
   afterEach(() => {
@@ -149,7 +149,7 @@ describe('loadConfig', () => {
 
   beforeEach(() => {
     originalCwd = process.cwd();
-    tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'prisma-next-config-')));
+    tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'prisma-8-config-')));
   });
 
   afterEach(() => {

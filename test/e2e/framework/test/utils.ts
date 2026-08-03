@@ -122,7 +122,7 @@ async function materialisePgvectorPinnedArtifacts(migrationsDir: string): Promis
 export async function withE2eMigrationsDir<T>(
   callback: (migrationsDir: string) => Promise<T>,
 ): Promise<T> {
-  const migrationsDir = await mkdtemp(join(tmpdir(), 'prisma-next-e2e-migrations-'));
+  const migrationsDir = await mkdtemp(join(tmpdir(), 'prisma-8-e2e-migrations-'));
   try {
     await materialisePgvectorPinnedArtifacts(migrationsDir);
     return await callback(migrationsDir);

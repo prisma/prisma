@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const BIN_PATH = join(HERE, '..', 'bin', 'prisma-next-check-pins.mjs');
+const BIN_PATH = join(HERE, '..', 'bin', 'prisma-8-check-pins.mjs');
 
 let scratchDir;
 
@@ -31,7 +31,7 @@ function runCheck() {
   });
 }
 
-describe('prisma-next-check-pins — pass cases', () => {
+describe('prisma-8-check-pins — pass cases', () => {
   it('exits 0 silently when every @internal/* dep is a single exact version', () => {
     writePackageJson({
       name: 'fixture-exact-pin',
@@ -97,7 +97,7 @@ describe('prisma-next-check-pins — pass cases', () => {
   });
 });
 
-describe('prisma-next-check-pins — exact-version rule violations', () => {
+describe('prisma-8-check-pins — exact-version rule violations', () => {
   for (const spec of ['^0.7.0', '~0.7.0', '>=0.7.0', '0.7.x', '*', 'x']) {
     it(`rejects non-exact spec ${JSON.stringify(spec)}`, () => {
       writePackageJson({
@@ -125,7 +125,7 @@ describe('prisma-next-check-pins — exact-version rule violations', () => {
   }
 });
 
-describe('prisma-next-check-pins — single-version rule violations', () => {
+describe('prisma-8-check-pins — single-version rule violations', () => {
   it('rejects two @internal/* deps pinned to different exact versions', () => {
     writePackageJson({
       name: 'fixture-mismatched',
@@ -153,7 +153,7 @@ describe('prisma-next-check-pins — single-version rule violations', () => {
   });
 });
 
-describe('prisma-next-check-pins — error output shape', () => {
+describe('prisma-8-check-pins — error output shape', () => {
   it('names the dep field, package, observed spec, and rule for each violation', () => {
     writePackageJson({
       name: 'fixture-error-shape',

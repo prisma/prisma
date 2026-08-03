@@ -65,7 +65,7 @@ Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma-next.config.ts` a
 
 ### CLI.CONFIG_ARG_MISSING_PATH
 
-The migration-file CLI (`prisma-next-migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
+The migration-file CLI (`prisma-next migration`) received `--config` without a path argument — either a bare trailing `--config`, or `--config` immediately followed by another flag (e.g. `--config --dry-run`). The CLI fails fast instead of consuming the next flag as the config path or silently falling back to default config discovery. Meta: `nextToken` (present only when another flag followed `--config`).
 
 ### CLI.FILE_NOT_FOUND
 
@@ -145,7 +145,7 @@ Catch-all for an unanticipated failure inside a CLI command — an unclassified 
 
 ### CLI.UNKNOWN_FLAG
 
-The migration-file CLI (`prisma-next-migration`) received a flag it does not recognise; wraps clipanion's unknown-syntax error at the parser boundary so consumers can build "did you mean" suggestions from meta instead of parsing the message. Meta: `flag`, `knownFlags`.
+The migration-file CLI (`prisma-next migration`) received a flag it does not recognise; wraps clipanion's unknown-syntax error at the parser boundary so consumers can build "did you mean" suggestions from meta instead of parsing the message. Meta: `flag`, `knownFlags`.
 
 ## CONTRACT
 

@@ -19,7 +19,7 @@ function readPackageJson() {
   try {
     return JSON.parse(readFileSync(path, 'utf8'));
   } catch (err) {
-    stderr.write(`prisma-next-check-pins: cannot read package.json at ${path}: ${err.message}\n`);
+    stderr.write(`prisma-8-check-pins: cannot read package.json at ${path}: ${err.message}\n`);
     exit(2);
   }
 }
@@ -76,7 +76,7 @@ function main() {
     exit(0);
   }
   const pkgName = typeof pkg.name === 'string' ? pkg.name : '<unnamed>';
-  stderr.write(`prisma-next-check-pins: ${violations.length} violation(s) in ${pkgName}\n`);
+  stderr.write(`prisma-8-check-pins: ${violations.length} violation(s) in ${pkgName}\n`);
   for (const v of violations) {
     stderr.write(`  ${v.field}.${v.name} = ${JSON.stringify(v.spec)} — ${v.message}\n`);
   }

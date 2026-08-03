@@ -1,6 +1,6 @@
 ---
 name: record-gotchas
-description: Capture surprises, workarounds, and rough edges hit while *consuming* the public surface of Prisma Next, Prisma Compute, or Prisma Postgres — anything a real user of these products would experience. Fires whenever an operator (or agent) writes a workaround, hits a surprising failure mode, or finds undocumented behaviour while using one of these three products from the outside (extension authoring, example apps, integration tests, customer reproductions, internal demos, manual repros). Does NOT fire on bugs in code the operator's own team maintains — those are normal product-backlog bugs. In product-team repos (e.g. `prisma-next-ws`), surfaces the gotcha and offers the operator three paths (capture-as-gotcha, file a normal bug, or note-and-move-on). Outside product-team repos (pet projects, hackathon entries, customer codebases), silent-captures into the project's gotchas log AND a Triage-state Linear ticket in the matching gotchas project — no operator escalation. Do not skip the recording step.
+description: Capture surprises, workarounds, and rough edges hit while *consuming* the public surface of Prisma Next, Prisma Compute, or Prisma Postgres — anything a real user of these products would experience. Fires whenever an operator (or agent) writes a workaround, hits a surprising failure mode, or finds undocumented behaviour while using one of these three products from the outside (extension authoring, example apps, integration tests, customer reproductions, internal demos, manual repros). Does NOT fire on bugs in code the operator's own team maintains — those are normal product-backlog bugs. In product-team repos (e.g. `prisma-8-ws`), surfaces the gotcha and offers the operator three paths (capture-as-gotcha, file a normal bug, or note-and-move-on). Outside product-team repos (pet projects, hackathon entries, customer codebases), silent-captures into the project's gotchas log AND a Triage-state Linear ticket in the matching gotchas project — no operator escalation. Do not skip the recording step.
 ---
 
 # Record a gotcha
@@ -37,7 +37,7 @@ The trigger depends on the *role* the operator is wearing in the moment, not on 
 | Adding a feature to PN's runtime | Maintaining | No |
 | Refactoring an internal package | Maintaining | No |
 
-**Worked example.** You change `schema.prisma`, run `prisma-next migration plan`, and the CLI reports *"No changes detected"* — because the contract was stale and you hadn't run `contract emit`. The CLI's mental model didn't match yours; a real user would hit this. That's a gotcha, even though you're sitting in `prisma-next-ws` and could fix it: you were *consuming* the migration workflow, not maintaining it.
+**Worked example.** You change `schema.prisma`, run `prisma-next migration plan`, and the CLI reports *"No changes detected"* — because the contract was stale and you hadn't run `contract emit`. The CLI's mental model didn't match yours; a real user would hit this. That's a gotcha, even though you're sitting in `prisma-8-ws` and could fix it: you were *consuming* the migration workflow, not maintaining it.
 
 **Ambiguous cases default to capture.** If you can't tell which role you were in, capture the gotcha. The team filters at triage.
 
@@ -77,7 +77,7 @@ If you find yourself wanting to file a gotcha for a fourth product (Eclipse, Sla
 
 **Where to record locally**, in priority order:
 
-1. If `docs/prisma-next-gotchas.md`, `docs/compute-gotchas.md`, or `docs/ppg-gotchas.md` exist — append to the matching one.
+1. If `docs/prisma-8-gotchas.md`, `docs/compute-gotchas.md`, or `docs/ppg-gotchas.md` exist — append to the matching one.
 2. Otherwise, append to `gotchas.md` at the repo root. Create it (using the bootstrap template below) if missing.
 
 ---
@@ -86,7 +86,7 @@ If you find yourself wanting to file a gotcha for a fourth product (Eclipse, Sla
 
 How the agent behaves when the trigger fires depends on **which repo it's in**:
 
-- **Product-team repo** (e.g. `prisma-next-ws`, the Compute workspace, the PPg workspace) → **surface the gotcha and offer three paths.** The operator is likely on the affected product's team and is in a position to decide whether this is gotcha-worthy, a regular bug, or already known. Don't capture silently — ask.
+- **Product-team repo** (e.g. `prisma-8-ws`, the Compute workspace, the PPg workspace) → **surface the gotcha and offer three paths.** The operator is likely on the affected product's team and is in a position to decide whether this is gotcha-worthy, a regular bug, or already known. Don't capture silently — ask.
 - **Any other repo** (customer pet projects, hackathon entries, internal demos, sandbox repos) → **silent capture.** Run the gotcha workflow without escalating. The operator is consuming the product as an outsider; the dogfood signal is exactly the friction they would otherwise not formalize.
 
 If you can't tell which kind of repo you're in, treat it as "other" — silent capture is the safer default for a dogfood pipeline.
@@ -349,7 +349,7 @@ If the entry was wrong (rather than fixed), mark it `**Superseded — see <new-e
 - **Filing without searching for duplicates first.** The gotchas projects fill up fast; duplicate tickets dilute the signal.
 - **Recording your own misunderstanding as a product gotcha.** If the docs already cover it, skip. (Honest self-test: would you file a public ticket about this? If no, don't write a gotcha either.)
 - **Burying the workaround in a deeply-nested code comment** instead of the gotcha file. Code comments are for readers of that file. The gotcha file is for the next operator who hits the same trap from a different code path.
-- **Silent-capturing in a product-team repo.** In `prisma-next-ws` (and the Compute / PPg equivalents), surface the gotcha and let the operator pick the path. They may be about to file it as a normal bug or fix it directly.
+- **Silent-capturing in a product-team repo.** In `prisma-8-ws` (and the Compute / PPg equivalents), surface the gotcha and let the operator pick the path. They may be about to file it as a normal bug or fix it directly.
 - **Editing existing entries to "improve" them.** Append-mostly. If an entry is wrong, mark it `**Superseded**` and add a new entry; don't rewrite the original.
 - **Filing in the wrong project.** PN bugs go to PN, Compute bugs to Compute, PPg bugs to PPg. If straddling, pick one and mention the second in the body — don't file in two.
 - **Skipping the version field.** The team uses `Version` to know which release to test against when triaging. Without it, the ticket sits.
@@ -359,6 +359,6 @@ If the entry was wrong (rather than fixed), mark it `**Superseded — see <new-e
 
 ## Optional: promote operational lessons into skills
 
-If your repo has operational skills that prescribe how to use one of the three products (e.g. `compute-deploy-nextjs`, `prisma-next-nextjs-app`, or anything similar), and your gotcha changes how someone *should* do the underlying task, also fold the prescriptive lesson into the matching skill — the gotcha is the *forensic* record (what bit us); the skill is the *prescriptive* record (how to avoid it).
+If your repo has operational skills that prescribe how to use one of the three products (e.g. `compute-deploy-nextjs`, `prisma-8-nextjs-app`, or anything similar), and your gotcha changes how someone *should* do the underlying task, also fold the prescriptive lesson into the matching skill — the gotcha is the *forensic* record (what bit us); the skill is the *prescriptive* record (how to avoid it).
 
-In product-team repos like `prisma-next-ws`, prescriptive skills for the team's own product often live elsewhere (developer docs, contributing guides, IDE rules). The principle is the same: where there's a durable prescriptive home for the lesson, cross-link from it back to the gotcha entry.
+In product-team repos like `prisma-8-ws`, prescriptive skills for the team's own product often live elsewhere (developer docs, contributing guides, IDE rules). The principle is the same: where there's a durable prescriptive home for the lesson, cross-link from it back to the gotcha entry.

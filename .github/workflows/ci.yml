@@ -122,6 +122,8 @@ jobs:
         run: pnpm lint:framework-vocabulary
       - name: Lint consumer internal imports
         run: pnpm lint:consumer-internal-imports
+      - name: Lint the legacy product name
+        run: pnpm lint:legacy-name
       - name: Check upgrade-instruction coverage
         run: pnpm check:upgrade-coverage --mode pr
       - name: Check error-reference completeness

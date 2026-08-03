@@ -22,7 +22,7 @@ describe('emit command functionality', () => {
   beforeEach(() => {
     outputDir = join(
       tmpdir(),
-      `prisma-next-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      `prisma-8-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
     mkdirSync(outputDir, { recursive: true });
   });
@@ -115,7 +115,7 @@ describe('emit command functionality', () => {
   it(
     'creates output directory if it does not exist',
     async () => {
-      const newOutputDir = join(tmpdir(), `prisma-next-test-new-${Date.now()}`);
+      const newOutputDir = join(tmpdir(), `prisma-8-test-new-${Date.now()}`);
       const contractPath = join(fixturesDir, 'valid-contract.ts');
       const contract = await loadContractFromTs(contractPath);
       const { codecTypeImports, extensionIds } = buildEmitterArtifacts();

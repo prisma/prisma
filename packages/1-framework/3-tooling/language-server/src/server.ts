@@ -520,7 +520,7 @@ export function createServer(connection: Connection): LanguageServer {
         .sendRequest(RegistrationRequest.type, {
           registrations: [
             {
-              id: 'prisma-next-config-watcher',
+              id: 'prisma-8-config-watcher',
               method: DidChangeWatchedFilesNotification.type.method,
               registerOptions: { watchers: [{ globPattern: watchedConfigGlob }] },
             },

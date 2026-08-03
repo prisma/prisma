@@ -60,7 +60,7 @@ describe('contract.d.ts imports resolution', () => {
   const workspaceRoot = join(__dirname, '../../..');
 
   beforeEach(async () => {
-    testDir = join(tmpdir(), `prisma-next-imports-test-${randomUUID()}`);
+    testDir = join(tmpdir(), `prisma-8-imports-test-${randomUUID()}`);
     await mkdir(testDir, { recursive: true });
   });
 

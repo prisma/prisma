@@ -54,4 +54,4 @@ While at it, scan any seed `migration.ts` doc-comments in your extension for sta
 
 ### Validation
 
-After running the script and applying the source-level rules above, run `pnpm typecheck && pnpm test` (or your extension's own equivalent). `prisma-next-check-pins` should also pass, since it does not look at `MigrationMetadata` shape.
+After running the script and applying the source-level rules above, run `pnpm typecheck && pnpm test` (or your extension's own equivalent). `prisma-8-check-pins` should also pass, since it does not look at `MigrationMetadata` shape.

@@ -3,13 +3,13 @@
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
-  "description": "CLI tools that pair with the prisma-8-extension-upgrade agent skill — including `prisma-next-check-pins`, the CI guard that asserts every `@internal/*` peerDep on an extension package is exact-version-pinned. Future tools for extension authors employing the upgrade skill ship from this package.",
+  "description": "CLI tools that pair with the prisma-8-extension-upgrade agent skill — including `prisma-8-check-pins`, the CI guard that asserts every `@internal/*` peerDep on an extension package is exact-version-pinned. Future tools for extension authors employing the upgrade skill ship from this package.",
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "bin": {
-    "prisma-next-check-pins": "./bin/prisma-next-check-pins.mjs"
+    "prisma-8-check-pins": "./bin/prisma-8-check-pins.mjs"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs"
