@@ -121,7 +121,7 @@ describe('classifyRepository', () => {
 
   it('flags a wrong url — npm provenance verification rejects the tarball', () => {
     const pkg = conforming();
-    pkg.repository.url = 'https://github.com/prisma/prisma-next.git';
+    pkg.repository.url = 'https://github.com/prisma/some-other-repo.git';
     assert.equal(classifyRepository(pkg, dir).reason, 'repository-wrong');
   });
 
