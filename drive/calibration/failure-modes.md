@@ -514,6 +514,57 @@ Patterns to **catch** the F-family modes live in [`grep-library.md`](./grep-libr
 
 **Reference incident.** 2026-07-02→06, native-postgres-enums (PR #906). Round 1: `CodecRef.nativeType` flagged ("SQL-specific, cannot live in the framework domain") — fixed by moving the cast to a codec hook placed on the *framework* `CodecDescriptor`. Round 2: the hook flagged ("NATIVETYPE CANNOT BE REFERENCED IN THE FRAMEWORK DOMAIN") — relocated, but a new framework type (`AuthoringEntityRefResolution`) kept `nativeType` + a `valueSetEnforcement` strategy string-enum under a grandfathering argument. Round 3: both flagged, plus derivation logic (`deriveValueSet`) in framework core. Three rounds, one class. Operator intervention produced the class-sweep rule, the vocabulary ratchet, and this entry.
 
+### F27. Mid-merge `git checkout` silently discards MERGE_HEAD; the "merge" commits with one parent
+
+**Symptom.** An agent resolving merge conflicts runs `git checkout <ref> -- <path>` (or an equivalent tree-reset) mid-merge, which drops `.git/MERGE_HEAD`. The subsequent `git commit` produces an ordinary single-parent commit that *looks* like a merge — merge-shaped message, conflict-resolution diff — but records no second parent. History silently loses the merged branch; a later `git merge` of the same branch replays already-resolved conflicts.
+
+**Detection signal.**
+
+- `git cat-file -p <sha>` shows one `parent` line under a "Merge …" subject.
+- `git merge-base --is-ancestor <merged-branch> <result>` exits non-zero.
+- The agent's report says "merged X into Y" without pasting verification output.
+
+**Mitigation.**
+
+- Acceptance criterion for any dispatched merge: the report must include the **printed output** of `git merge-base --is-ancestor <merged-ref> HEAD && echo ancestor-ok`. A claim without the printed check is not a merge.
+- Brief rule: during conflict resolution use `git checkout --ours/--theirs -- <path>` or edit in place; never a bare `git checkout <ref> -- .` sweep, and never `git checkout <branch>` while a merge is in progress.
+
+**Reference incident.** 2026-08, public-npm-surface rename consolidation: a subagent's "merge" of the rename branch had one parent (mid-merge checkout discarded MERGE_HEAD). Caught by the ancestor check before the branch was folded into the delivery PR; re-merged properly.
+
+### F28. Test file written for a runner no suite invokes — coverage that never runs
+
+**Symptom.** A test file imports a framework (e.g. vitest) but no configured suite executes it: the root vitest config only loads `packages/**` projects, and the node-test script list doesn't name it. CI is green, the file reads as coverage, and it rots — the code under test grows seams the stubs don't cover, and nobody notices because the assertions never execute.
+
+**Detection signal.**
+
+- `scripts/*.test.mjs` importing `vitest` (root vitest doesn't load `scripts/`): `grep -l "from 'vitest'" scripts/*.test.mjs`, then check each against the `test:scripts` list in `package.json`.
+- A test file whose stubs reference an io-seam shape that the implementation has since outgrown.
+- Converting or first-running such a file immediately fails on drifted stubs — that failure is the proof it never ran.
+
+**Mitigation.**
+
+- Script tests use `node:test` + `node:assert` and are added to the `test:scripts` list in the same commit that creates the file.
+- When touching any script's test, confirm the file actually executes in `pnpm test:scripts` output (its describe blocks appear), not just that the suite is green.
+- New-check protocol (plant a violation, watch it fail) applies to tests too: break one assertion once and watch the suite go red before trusting it.
+
+**Reference incident.** 2026-08, public-npm-surface close-out: `validate-package-manifests.test.mjs` and `check-publish-deps.test.mjs` were vitest-based and ran in no suite. Conversion to `node:test` immediately exposed that `check-publish-deps.test.mjs`'s io stub predated two seam legs (`readPackedDeclarations`, `dependencyShipsOwnTypes`) — the tests had been broken, invisibly, since that seam grew.
+
+### F29. Cancelled dispatch treated as cancelled scope
+
+**Symptom.** The operator cancels a *dispatch* (an in-flight agent run, a slice attempt, a PR), and the orchestrator drops the *work it carried* from the delivery plan. The requirement silently disappears; the project reports done while a spec-level invariant is unmet.
+
+**Detection signal.**
+
+- A consolidation/delivery PR whose diff lacks a change the spec's DoD names, where that change last lived in a cancelled branch/dispatch.
+- Any "the operator cancelled X" in a status narrative without a following sentence saying where X's scope went.
+
+**Mitigation.**
+
+- Cancelling a dispatch cancels the *attempt*, never the *scope*. On any cancellation, the orchestrator immediately re-homes the carried work: into another slice, a new dispatch, or an explicit operator question "is the requirement itself dropped?"
+- DoD verification at delivery runs against the spec, not against the surviving branches.
+
+**Reference incident.** 2026-08, public-npm-surface switchover: the operator cancelled the switchover-slice dispatch; the privatization flip it carried (64 manifests → `private: true`) was silently dropped from the consolidated delivery PR, which merged with every internal package still publishable. Caught by the operator post-merge; fixed in an emergency PR plus a two-direction publishability lint so the class cannot recur.
+
 ## Slice-shape scope traps
 
 Patterns that have produced scope creep in the past — catch these at triage or slice-spec time, not at execution time.

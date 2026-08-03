@@ -110,8 +110,14 @@ async function worker() {
   for (;;) {
     const pkg = queue.shift();
     if (!pkg) return;
-    const result = await publishOne(pkg);
-    const { ok, alreadyPublished } = classifyPublishResult(result);
+    let result = await publishOne(pkg);
+    let classification = classifyPublishResult(result);
+    if (!classification.ok && classification.retryable) {
+      console.log(`retrying ${result.name} after transient publish failure (exit ${result.code})`);
+      result = await publishOne(pkg);
+      classification = classifyPublishResult(result);
+    }
+    const { ok, alreadyPublished } = classification;
     completed += 1;
     if (alreadyPublished) alreadyPublishedCount += 1;
     const status = alreadyPublished ? '↺' : ok ? '✓' : '✗';
