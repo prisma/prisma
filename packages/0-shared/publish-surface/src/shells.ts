@@ -7,7 +7,7 @@
  *
  * Consumed by the shell build (`@repo/tsdown/shell-build`), by the
  * emitters' import-root resolution (`./import-roots`), and later by the
- * publish-surface lint (TML-3124).
+ * publish-surface lint.
  */
 
 /**
@@ -670,6 +670,13 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           entry: '',
         },
       ],
+      // ParadeDB registers its index type against the SQL family rather than
+      // reaching the target at run time, so unlike its siblings it has no
+      // shared registry to keep single-instance. It declares the peer anyway:
+      // every Postgres extension pack states the same install requirement, and
+      // a pack that quietly did not would read as a pack that works without
+      // Postgres.
+      peerShells: ['@prisma/orm-target-postgres'],
     },
   ],
   [

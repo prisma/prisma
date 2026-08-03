@@ -10,7 +10,7 @@ Applications receive it as an exact-pinned dependency of `@prisma/orm-mongo`; ap
 | --- | --- |
 | `/target` | target descriptor: migration, pack, runtime, control |
 | `/adapter` | Mongo adapter: codecs, codec ids, runtime wiring |
-| `/driver` | `mongodb`-based driver: control and runtime |
+| `/driver` | `mongodb`-based driver, plus `/driver/control` |
 
 A bare namespace import (e.g. `@prisma/orm-target-mongo/adapter`) aggregates that layer's full surface; deeper paths select individual modules.
 

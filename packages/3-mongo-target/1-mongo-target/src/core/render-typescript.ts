@@ -4,7 +4,7 @@ import {
 } from '@internal/framework-components/control';
 import {
   type ImportSpecifierResolver,
-  keepInternalSpecifiers,
+  resolveRequirementSpecifiers,
 } from '@internal/framework-components/emission';
 import { detectScaffoldRuntime, shebangLineFor } from '@internal/migration-tools/migration-ts';
 import { type ImportRequirement, renderImports } from '@internal/ts-render';
@@ -102,13 +102,7 @@ function buildImports(calls: ReadonlyArray<OpFactoryCall>, meta: RenderMigration
       requirements.push(req);
     }
   }
-  const resolveImportSpecifier = meta.resolveImportSpecifier ?? keepInternalSpecifiers;
-  return renderImports(
-    requirements.map((req) => ({
-      ...req,
-      moduleSpecifier: resolveImportSpecifier(req.moduleSpecifier),
-    })),
-  );
+  return renderImports(resolveRequirementSpecifiers(requirements, meta.resolveImportSpecifier));
 }
 
 /**

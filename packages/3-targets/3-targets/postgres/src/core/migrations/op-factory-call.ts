@@ -110,10 +110,9 @@ type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
 // `import … from '@internal/sql-relational-core/contract-free'` fails
 // ESM resolution at runtime in user migrations even though pnpm has the
 // transitive package on disk.
-//
 // This is the authored name. `render-typescript.ts` maps it to whatever the
-// consuming application's import root calls it (TML-3123), once over the
-// whole assembled import list.
+// consuming application's import root calls it, once over the whole assembled
+// import list.
 const POSTGRES_MIGRATION_FACADE = '@internal/postgres/migration';
 
 abstract class PostgresOpFactoryCallNode extends TsExpression implements FrameworkOpFactoryCall {

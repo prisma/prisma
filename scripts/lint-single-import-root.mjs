@@ -23,8 +23,8 @@
  * Exits 1 listing every mixed package; exits 0 otherwise.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { extname, join, relative } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { extname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const CONSUMER_ROOTS = ['examples', 'apps', 'test'];
@@ -48,13 +48,16 @@ const MODULE_SPECIFIER = /\b(?:from|import)\s*\(?\s*(['"])([^'"\n]+)\1/g;
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 
+// The directory listing already reports each entry's kind, so nothing here
+// stats a path separately. A separate stat would throw on a dangling symlink
+// or on a file deleted between the listing and the stat, and abort the whole
+// lint over one entry it was never going to read.
 function* walkFiles(dir) {
-  for (const entry of readdirSync(dir)) {
-    if (EXCLUDED_DIRECTORIES.has(entry)) continue;
-    const full = join(dir, entry);
-    const stat = statSync(full);
-    if (stat.isDirectory()) yield* walkFiles(full);
-    else if (stat.isFile() && INCLUDED_EXTENSIONS.has(extname(full))) yield full;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (EXCLUDED_DIRECTORIES.has(entry.name)) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) yield* walkFiles(full);
+    else if (entry.isFile() && INCLUDED_EXTENSIONS.has(extname(full))) yield full;
   }
 }
 
@@ -66,22 +69,24 @@ function* walkFiles(dir) {
 function* walkPackages(dir) {
   let entries;
   try {
-    entries = readdirSync(dir);
+    entries = readdirSync(dir, { withFileTypes: true });
   } catch {
     return;
   }
-  if (entries.includes('package.json')) yield dir;
+  if (entries.some((entry) => entry.name === 'package.json')) yield dir;
   for (const entry of entries) {
-    if (EXCLUDED_DIRECTORIES.has(entry)) continue;
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) yield* walkPackages(full);
+    if (EXCLUDED_DIRECTORIES.has(entry.name)) continue;
+    if (entry.isDirectory()) yield* walkPackages(join(dir, entry.name));
   }
 }
 
 /** Files belonging to `pkg` itself: those under no nearer package directory. */
 function ownFiles(pkg, allPackages) {
-  const nested = allPackages.filter((other) => other !== pkg && other.startsWith(`${pkg}/`));
-  return [...walkFiles(pkg)].filter((file) => !nested.some((dir) => file.startsWith(`${dir}/`)));
+  // `sep`, not `/`: every path here comes from `join`, so on Windows a
+  // hardcoded `/` would match nothing and every nested package's files would
+  // be attributed to its parent as well.
+  const nested = allPackages.filter((other) => other !== pkg && other.startsWith(pkg + sep));
+  return [...walkFiles(pkg)].filter((file) => !nested.some((dir) => file.startsWith(dir + sep)));
 }
 
 /**

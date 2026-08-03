@@ -85,10 +85,6 @@ const ALLOWED = [
     why: 'the roadmap narrates the move out of the old repository, so naming it is the point of the sentence',
     matches: (relPath) => /^ROADMAP\.(?:md|html)$/.test(relPath),
   },
-  {
-    why: "this check's own tests, which plant the occurrences it has to catch",
-    matches: (relPath) => relPath === 'scripts/lint-legacy-name.test.mjs',
-  },
 ];
 
 const SKIP_PATH = /(^|\/)(node_modules|dist|dist-tsc|dist-tsc-prod|coverage|\.turbo)\//;

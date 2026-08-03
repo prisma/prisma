@@ -14,6 +14,12 @@ import { defineConfig } from './base.ts';
 /** A shell build configuration or mapping-table inconsistency. */
 class ShellConfigError extends Error {}
 
+/**
+ * Peers every shell declares by hand rather than deriving from the packages it
+ * bundles: `validateShellManifest` neither expects nor rejects these.
+ */
+const handWrittenPeers = new Set(['typescript']);
+
 interface InternalPackage {
   readonly name: string;
   readonly dir: string;
@@ -68,12 +74,12 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     // `.d.mts` at the dist root (with hash-renaming on basename collisions),
     // away from its `.mjs` sibling. `__` maps back to `/` in the generated
     // exports map (see `shellExports`).
-    const flatName = entryName.replaceAll('/', '__');
+    const flatName = flatEntryName(entryName);
     if (entry[flatName] !== undefined) {
       throw new ShellConfigError(`duplicate shell entry name "${entryName}" in ${shellName}`);
     }
-    entry[flatName] = `src-gen/${fileName.replaceAll('/', '__')}`;
-    return join(srcDir, fileName.replaceAll('/', '__'));
+    entry[flatName] = `src-gen/${flatEntryName(fileName)}`;
+    return join(srcDir, flatEntryName(fileName));
   };
 
   const aggregates = new Map<string, Map<string, string[]>>();
@@ -281,7 +287,9 @@ function assertAggregatesComplete(
 ): void {
   const problems: string[] = [];
   for (const [entryName, expected] of aggregates) {
-    const distFile = join(shellDir, 'dist', `${entryName}.mjs`);
+    // Build outputs carry the flat name `addEntry` assigned, not the
+    // `/`-separated public one.
+    const distFile = join(shellDir, 'dist', `${flatEntryName(entryName)}.mjs`);
     const actual = new Set(moduleExports(`${shellName}/${entryName}`, distFile));
     for (const [name, specifiers] of expected) {
       if (!actual.has(name)) {
@@ -434,10 +442,22 @@ function validateShellManifest(
         continue;
       }
       const existing = expectedDeps.get(dep);
-      if (existing === undefined || range === 'catalog:') expectedDeps.set(dep, range);
+      if (existing === undefined || range === 'catalog:') {
+        expectedDeps.set(dep, range);
+        continue;
+      }
+      // `catalog:` is the repo-wide pin, so it outranks a literal range.
+      // Two different literal ranges have no ordering between them: picking
+      // one silently would publish a shell whose range contradicts what one
+      // of its bundled packages asked for.
+      if (existing !== 'catalog:' && existing !== range) {
+        throw new ShellConfigError(
+          `${shellName} bundles packages that ask for conflicting ranges of ${dep}: "${existing}" and "${range}"`,
+        );
+      }
     }
     for (const [dep, range] of Object.entries(pkg.peerDependencies)) {
-      if (dep === 'typescript') continue;
+      if (handWrittenPeers.has(dep)) continue;
       // An extension's peer on an internal adapter package becomes a peer on
       // the published target shell that carries it (ADR 242).
       if (dep.startsWith('@internal/')) {
@@ -492,6 +512,11 @@ function validateShellManifest(
       );
     }
   }
+  for (const dep of Object.keys(actualPeers)) {
+    if (handWrittenPeers.has(dep)) continue;
+    if (!expectedPeers.has(dep))
+      errors.push(`peerDependencies["${dep}"] is not needed by any bundled internal package`);
+  }
   if (errors.length > 0) {
     throw new ShellConfigError(
       `${shellName} package.json is out of sync with its internal packages:\n  ${errors.join('\n  ')}`,
@@ -507,6 +532,14 @@ function findRepoRoot(from: string): string {
     if (parent === dir) throw new ShellConfigError(`could not find repository root above ${from}`);
     dir = parent;
   }
+}
+
+/**
+ * The flat, `__`-separated form of a `/`-separated entry or file name. Build
+ * outputs are named after this, and `shellExports` maps it back.
+ */
+function flatEntryName(name: string): string {
+  return name.replaceAll('/', '__');
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

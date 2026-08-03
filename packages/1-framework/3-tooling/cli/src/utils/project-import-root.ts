@@ -26,14 +26,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** The error codes that mean "no manifest here", as opposed to "cannot read it". */
+const MANIFEST_ABSENT_CODES = new Set(['ENOENT', 'ENOTDIR']);
+
+function errorCode(error: unknown): string | undefined {
+  if (!isRecord(error)) return undefined;
+  const code = error['code'];
+  return typeof code === 'string' ? code : undefined;
+}
+
 /**
  * The nearest `package.json` at or above `from`, or `undefined` if there is
  * none. The nearest one wins: a package inside a workspace states its own
  * dependencies, and the workspace root's are somebody else's.
  *
- * @throws {CliStructuredError} when the manifest exists but is not readable
- * as JSON — otherwise emission would fail with a bare `SyntaxError` that does
- * not say which file is broken.
+ * @throws {CliStructuredError} when a manifest is there but cannot be used —
+ * unreadable, not valid JSON, or not a JSON object. Only "there is no manifest
+ * at this level" continues the walk up; treating a permissions failure that
+ * way would silently emit against the wrong project's dependencies.
  */
 function nearestManifest(from: string): Record<string, unknown> | undefined {
   let dir = from;
@@ -42,7 +52,14 @@ function nearestManifest(from: string): Record<string, unknown> | undefined {
     let raw: string;
     try {
       raw = readFileSync(path, 'utf8');
-    } catch {
+    } catch (cause) {
+      if (!MANIFEST_ABSENT_CODES.has(errorCode(cause) ?? '')) {
+        throw errorRuntime(`Failed to read ${path}`, {
+          why: `\`${path}\` exists but could not be read: ${cause instanceof Error ? cause.message : String(cause)}`,
+          fix: `Make \`${path}\` readable, then re-run the command. Emission reads it to decide which package names generated files should import.`,
+          meta: { path },
+        });
+      }
       const parent = dirname(dir);
       if (parent === dir) return undefined;
       dir = parent;
@@ -58,7 +75,14 @@ function nearestManifest(from: string): Record<string, unknown> | undefined {
         meta: { path },
       });
     }
-    return isRecord(parsed) ? parsed : undefined;
+    if (!isRecord(parsed)) {
+      throw errorRuntime(`Failed to read ${path}`, {
+        why: `\`${path}\` is valid JSON but not a JSON object, so it states no dependencies.`,
+        fix: `Make \`${path}\` a JSON object with the usual manifest fields, then re-run the command. Emission reads it to decide which package names generated files should import.`,
+        meta: { path },
+      });
+    }
+    return parsed;
   }
 }
 

@@ -130,8 +130,11 @@ export function scanScope(scanDir, scopePath) {
     let content;
     try {
       content = readFileSync(join(scanDir, relPath), 'utf-8');
-    } catch {
-      continue;
+    } catch (cause) {
+      // A tracked file this cannot read is a file it cannot clear, and
+      // silently not scanning one is indistinguishable from scanning it and
+      // finding nothing.
+      throw new Error(`${relPath} is tracked but could not be read`, { cause });
     }
     for (const match of findMatchingLines(content)) {
       records.push({ file: relPath, ...match });
@@ -163,10 +166,15 @@ export function scanManifests(scanDir, scopePath) {
     let parsed;
     try {
       parsed = JSON.parse(readFileSync(join(scanDir, relPath), 'utf-8'));
-    } catch {
-      continue;
+    } catch (cause) {
+      // Skipping would report a manifest nobody could read as one declaring
+      // nothing, so a file broken by an edit would pass the check that exists
+      // to read it.
+      throw new Error(`${relPath} could not be read as JSON`, { cause });
     }
-    if (!isRecord(parsed)) continue;
+    if (!isRecord(parsed)) {
+      throw new Error(`${relPath} is valid JSON but not a JSON object`);
+    }
     if (typeof parsed.name === 'string' && parsed.name.startsWith(INTERNAL_SCOPE)) {
       records.push({ file: relPath, field: 'name', package: parsed.name });
     }

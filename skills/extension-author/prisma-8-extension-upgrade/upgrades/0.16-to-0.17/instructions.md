@@ -516,9 +516,9 @@ changes:
       anyMatch: true
   - id: build-against-published-packages-not-workspace-names
     summary: |
-      The `@prisma-next/*` packages are gone from the registry. Until 0.17 every workspace
-      package published, so a pack could depend on `@prisma-next/contract`,
-      `@prisma-next/sql-contract`, `@prisma-next/framework-components` and the rest directly
+      The `@internal/*` packages are gone from the registry. Until 0.17 every workspace
+      package published, so a pack could depend on `@internal/contract`,
+      `@internal/sql-contract`, `@internal/framework-components` and the rest directly
       — and many do. From 0.17 the published surface is 17 `@prisma/*` packages and
       everything else is private and renamed, so those dependencies no longer resolve.
       Build against the platform packages instead: `@prisma/orm-framework` for contract,
@@ -533,7 +533,7 @@ changes:
     detection:
       glob: "**/package.json"
       contains:
-        - '"@prisma-next/'
+        - '"@internal/'
       anyMatch: true
 ---
 

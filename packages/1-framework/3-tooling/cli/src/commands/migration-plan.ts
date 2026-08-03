@@ -374,6 +374,11 @@ async function executeMigrationPlanCommand(
     };
   }
 
+  // Before the seed phase, which is the first thing here that writes: an
+  // unreadable or contradictory project manifest fails the command outright
+  // rather than after artifacts are already on disk.
+  const resolveImportSpecifier = createProjectSpecifierResolver(options.config);
+
   // Phase 1 — seed: unconditionally re-emit per-space pinned artifacts
   // (contract.json / contract.d.ts / refs/head.json) and materialise any
   // descriptor-shipped migration packages not yet on disk. Runs before
@@ -475,7 +480,6 @@ async function executeMigrationPlanCommand(
 
   try {
     const planner = migrations.createPlanner(controlAdapter);
-    const resolveImportSpecifier = createProjectSpecifierResolver(options.config);
 
     if (
       isAutoBaseline &&

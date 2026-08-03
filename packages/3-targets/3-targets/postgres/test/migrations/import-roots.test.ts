@@ -128,7 +128,8 @@ describe('emitted migration files under each import root', () => {
   // because the emitted constant names the facade's alias rather than the
   // module that alias points at.
   //
-  // Two ways to close it, both for TML-3126 because both ride with the flip:
+  // Two ways to close it, both of which have to land with the switch to
+  // published names because both change what emission writes by default:
   // (a) record entrypoint aliases in `@internal/publish-surface` — "this
   //     facade subpath is a pure re-export of that target subpath" —
   //     consulted when direct resolution lands outside the root's direct

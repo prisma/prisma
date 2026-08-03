@@ -93,7 +93,7 @@ describe('emitted migration files under each import root', () => {
   // the module behind it is platform-owned and resolves under every root (see
   // the next case). Only the alias the scaffold names has no platform form.
   // The two candidate fixes are recorded on the Postgres equivalent; both
-  // ride with TML-3126.
+  // have to land with the switch to published names.
   it('refuses the platform root, which has no name for the facade alias', () => {
     expect(() => render(platform)).toThrow(ImportRootError);
   });

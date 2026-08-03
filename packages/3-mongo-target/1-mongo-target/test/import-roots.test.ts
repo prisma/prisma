@@ -70,6 +70,19 @@ describe('emitted migration files under each import root', () => {
     expect(packageImports(render(platform))).toEqual(['@prisma/orm-target-mongo/target/migration']);
   });
 
+  it('leaves the relative snapshot imports alone', () => {
+    const relative = importedSpecifiers(render(mongoFacade))
+      .filter((specifier) => specifier.startsWith('.'))
+      .sort();
+
+    expect(relative).toEqual([
+      `../../snapshots/${FROM_HASH}/contract`,
+      `../../snapshots/${FROM_HASH}/contract.json`,
+      `../../snapshots/${TO_HASH}/contract`,
+      `../../snapshots/${TO_HASH}/contract.json`,
+    ]);
+  });
+
   it('imports nothing the application would not depend on directly', () => {
     for (const root of [internalImportRoot, mongoFacade, platform]) {
       expect(transitiveImports(render(root), root)).toEqual([]);

@@ -6,6 +6,7 @@ import { after, before, describe, test } from 'node:test';
 import { findMixedPackages, main } from './lint-single-import-root.mjs';
 
 let base;
+let emptyTree;
 
 function pkg(relativeDir, files) {
   const dir = join(base, relativeDir);
@@ -19,6 +20,7 @@ function pkg(relativeDir, files) {
 
 before(() => {
   base = mkdtempSync(join(tmpdir(), 'single-import-root-'));
+  emptyTree = mkdtempSync(join(tmpdir(), 'single-import-root-empty-'));
 
   pkg('examples/published-only', {
     'src/db.ts': "import postgres from '@prisma/orm-postgres/runtime';",
@@ -36,6 +38,7 @@ before(() => {
 
 after(() => {
   rmSync(base, { recursive: true, force: true });
+  rmSync(emptyTree, { recursive: true, force: true });
 });
 
 describe('findMixedPackages', () => {
@@ -71,6 +74,6 @@ describe('main(baseDir)', () => {
   });
 
   test('passes on a tree with no consumer roots at all', () => {
-    assert.equal(main(mkdtempSync(join(tmpdir(), 'single-import-root-empty-'))), 0);
+    assert.equal(main(emptyTree), 0);
   });
 });
