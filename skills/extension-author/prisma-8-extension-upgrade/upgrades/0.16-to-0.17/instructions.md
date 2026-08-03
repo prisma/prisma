@@ -514,11 +514,30 @@ changes:
         - "contract infer"
         - "@@rls"
       anyMatch: true
+  - id: postgres-packages-now-ship-types-pg
+    summary: |
+      `@internal/postgres`, `@internal/extension-supabase`, and
+      `@internal/driver-postgres` re-export `pg` types from their published
+      declarations, so each now carries `@types/pg` in `dependencies` instead of
+      `devDependencies`. Extension authors previously had to add `@types/pg` to their own
+      devDependencies to compile against those declarations — that workaround is now the
+      hazard. `pg` ships no types of its own, so a second `@types/pg` copy at a different
+      version gives `pg.Client` / `pg.Pool` two identities, and handing your own client or
+      pool to a Prisma Next API stops compiling with `Argument of type 'Client' is not
+      assignable to parameter of type 'Client'` (`Type 'Client' is missing the following
+      properties from type 'Client': connection, setTypeParser, getTypeParser`). Drop
+      `@types/pg` from your extension and take it transitively, or pin it to the version
+      `@internal/postgres` depends on.
+    detection:
+      glob: "**/package.json"
+      contains:
+        - "@types/pg"
+      anyMatch: true
   - id: build-against-published-packages-not-workspace-names
     summary: |
-      The `@prisma-next/*` packages are gone from the registry. Until 0.17 every
-      workspace package published, so a pack could depend on `@prisma-next/contract`,
-      `@prisma-next/sql-contract`, `@prisma-next/framework-components` and the rest
+      The `@internal/*` packages are gone from the registry. Until 0.17 every
+      workspace package published, so a pack could depend on `@internal/contract`,
+      `@internal/sql-contract`, `@internal/framework-components` and the rest
       directly — and many do. From 0.17 the published surface is 17 `@prisma/*`
       packages and everything else is private and renamed, so those dependencies no
       longer resolve.
@@ -534,7 +553,7 @@ changes:
     detection:
       glob: "**/package.json"
       contains:
-        - '"@prisma-next/'
+        - '"@internal/'
       anyMatch: true
 ---
 
@@ -628,7 +647,7 @@ Both the class constructor and the arktype `IndexSchema` reject the 0.16 shape. 
 
 ### Committed contract spaces
 
-Re-emit your pack's contract space with the upgraded toolchain (`build:contract-space`, or your generator script à la `contract:generate`): every contract that declares indexes gets the new entry shape and a new storage hash, and wire-named index physical names gain the `_<8hex>` content-hash suffix. Databases your pack maintains (acceptance harnesses, reference instances) converge via a renames-only widening plan — see the user-skill `indexes-are-name-identified` entry for that flow. Expression and partial indexes are authorable from 0.17 (PSL `@@index(expression:/where:/unique:/type:/name: xor map:)`, TS `constraints.index` with the same matrix); declare them with `name:` for wire names, or `map:` for infer-captured exact names — hand-authoring a body under `map:` warns (`PN_EXACT_NAME_BODY_COMPARISON`) because drift detection byte-compares the authored text against Postgres's reprint. Live indexes you choose not to declare stay tolerated under an `external` control policy.
+Re-emit your pack's contract space with the upgraded toolchain (`build:contract-space`, or your generator script à la `contract:generate`): every contract that declares indexes gets the new entry shape and a new storage hash, and wire-named index physical names gain the `_<8hex>` content-hash suffix. Databases your pack maintains (acceptance harnesses, reference instances) converge via a renames-only widening plan — see the user-skill `indexes-are-name-identified` entry for that flow. Expression and partial indexes are authorable from 0.17 (PSL `@@index(expression:/where:/unique:/type:/name: xor map:)`, TS `constraints.index` with the same matrix); declare them with `name:` for wire names, or `map:` for infer-captured exact names — hand-authoring a body under `map:` warns (`PN_EXACT_NAME_BODY_COMPARISON`) because drift detection byte-compares the authored text against Postgres's reprint. Live indexes you choose not to declare stay tolerated under an `external` control policy. The rules behind all of this — why an index is identified by its name, when the two naming modes apply, and what re-inference does to each — are decided in ADR 243, "Name-identified indexes and exact-name adoption".
 
 ## `rls-policy-migration-literal-carries-the-naming-union`
 
@@ -662,6 +681,21 @@ Review every `CodecRef` construction for a parameterized descriptor, including p
 When a parameterized descriptor intentionally supports an unparameterized column or contract reference, make its parameter type and Standard Schema accept the empty validated parameter object used during representative materialization. Express only genuinely absent fields as optional and preserve the existing unparameterized factory behavior; do not add a hidden default or change the codec encoded representation.
 
 After the migration, run the extension package's typecheck, lint, and tests. Verify its public codec ids, factories, column helpers, rendered types, SQL/wire behavior, `encodeJson` / `decodeJson`, runtime/control descriptor membership, and emitted contract behavior are unchanged apart from the descriptor types becoming PostgreSQL-specific.
+
+## `postgres-packages-now-ship-types-pg`
+
+`@internal/postgres`, `@internal/extension-supabase`, and `@internal/driver-postgres` re-export `pg` types from their published `.d.mts` files, so each declares `@types/pg` under `dependencies` from 0.17. Compiling against those declarations no longer requires your extension to supply `@types/pg` itself.
+
+If your extension's `package.json` declares `@types/pg`, act on it. `pg` carries no types of its own, so two `@types/pg` copies in the tree give `pg.Client` and `pg.Pool` two distinct identities. Any call that hands your own client or pool to a Prisma Next API — `new PostgresControlDriver(client)`, a driver `connect: { pool }` — then fails:
+
+```text
+Argument of type 'Client' is not assignable to parameter of type 'Client'.
+  Type 'Client' is missing the following properties from type 'Client': connection, setTypeParser, getTypeParser
+```
+
+The error names the same type on both sides; the two paths under `node_modules/.pnpm/@types+pg@<version>/` in the full message are what identify it.
+
+Prefer dropping `@types/pg` from your extension's `devDependencies` and taking it transitively, so its version tracks Prisma Next's. If you keep the entry — because your own code imports `pg` directly and you want the dependency explicit — pin it to the version `@internal/postgres` depends on rather than a range that can resolve elsewhere.
 
 ## Incidental lint-config bumps
 

@@ -25,6 +25,7 @@ interface InternalPackage {
   readonly dir: string;
   readonly absDir: string;
   readonly entry: string;
+  readonly published: boolean;
   readonly shell: ShellName;
   readonly exports: Record<string, unknown>;
   readonly dependencies: Record<string, string>;
@@ -84,6 +85,10 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
 
   const aggregates = new Map<string, Map<string, string[]>>();
   for (const pkg of internals) {
+    // Bundled-but-unpublished: the shell owns the code, so dependency
+    // resolution below still treats it as internal to this shell, but it
+    // names no entrypoint.
+    if (!pkg.published) continue;
     const aggregated: { specifier: string; distFile: string }[] = [];
     let hasRootExport = false;
     for (const [subpath, value] of Object.entries(pkg.exports)) {
@@ -397,6 +402,7 @@ function readAllInternalPackages(repoRoot: string): Map<string, InternalPackage>
         dir: mapping.dir,
         absDir,
         entry: mapping.entry,
+        published: mapping.published !== false,
         shell: shellName,
         exports: recordField(manifest, 'exports'),
         dependencies: stringRecordField(manifest, 'dependencies'),

@@ -40,6 +40,16 @@ export interface ShellPackageMapping {
    * own name.
    */
   readonly entry: string;
+  /**
+   * Whether the package contributes entrypoints. Defaults to true.
+   *
+   * Set false for code that belongs in this shell's bundle but that nothing
+   * imports by name — the shell still owns it, so a sibling depending on it
+   * resolves within the shell rather than across one, but no `exports` entry
+   * is published and the module is reached only through whatever already
+   * pulls it in.
+   */
+  readonly published?: boolean;
 }
 
 export interface ShellReexportMapping {
@@ -334,10 +344,16 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           name: '@internal/emitter',
           entry: 'emitter',
         },
+        // Bundled, not published. Editors reach the language server by
+        // spawning `prisma-next lsp` and talking to it over stdio, never by
+        // importing it, so a module entrypoint would be surface with no
+        // importer. The CLI depends on it, so the shell still carries the
+        // code — it just does not name it.
         {
           dir: 'packages/1-framework/3-tooling/language-server',
           name: '@internal/language-server',
           entry: 'language-server',
+          published: false,
         },
         {
           dir: 'packages/1-framework/3-tooling/migration',

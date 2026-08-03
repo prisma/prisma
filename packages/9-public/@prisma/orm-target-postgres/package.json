@@ -19,6 +19,7 @@
     "@prisma/orm-framework": "workspace:0.16.0",
     "@prisma/orm-toolchain": "workspace:0.16.0",
     "@standard-schema/spec": "^1.1.0",
+    "@types/pg": "catalog:",
     "arktype": "^2.2.2",
     "pathe": "^2.0.3",
     "pg": "catalog:",

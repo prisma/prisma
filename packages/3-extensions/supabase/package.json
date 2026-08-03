@@ -39,6 +39,7 @@
     "@internal/sql-schema-ir": "workspace:0.16.0",
     "@internal/utils": "workspace:0.16.0",
     "@standard-schema/spec": "^1.1.0",
+    "@types/pg": "catalog:",
     "arktype": "^2.2.2"
   },
   "devDependencies": {
@@ -50,7 +51,6 @@
     "@repo/test-utils": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
-    "@types/pg": "catalog:",
     "tsdown": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",

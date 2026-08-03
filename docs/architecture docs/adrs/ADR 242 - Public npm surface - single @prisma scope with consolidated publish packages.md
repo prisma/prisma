@@ -162,7 +162,8 @@ packages/9-public/
 
 1. **Emitter placement.** The emitter sits in the tooling layer, but the SQL family and config-loader depend on it and emitted contracts import it. Either it moves into `orm-framework`, or its type-only surface is split from its code-generating surface. Requires an inventory of what emitted code actually uses.
 2. **The `prisma` name.** The shorter `prisma` name is currently published by the classic Prisma ORM. Until the succession is coordinated, the shim and the command both ship as `prisma-next`. Renaming them is a pre-RC roadmap task on its own; nothing else in this ADR depends on the outcome.
-3. **Language-server distribution.** It ships inside `orm-toolchain`. If the VS Code extension needs a standalone artifact, that is a build output of the extension, not an additional npm package.
+
+Language-server distribution was a third deferred question and is settled: the language server ships inside `orm-toolchain` as code, and publishes no module entrypoint of its own. An editor reaches it by spawning `prisma-next lsp` and speaking the protocol over stdio, which is how a language server is consumed — nothing imports it. A published entrypoint would have been surface with no importer, and the split from the CLI was for code organization rather than API. If a VS Code extension needs a standalone artifact, that is a build output of the extension, not an additional published package.
 
 ## Alternatives considered
 

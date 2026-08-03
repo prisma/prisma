@@ -19,6 +19,7 @@
     "@prisma/orm-framework": "workspace:0.16.0",
     "@prisma/orm-target-postgres": "workspace:0.16.0",
     "@prisma/orm-toolchain": "workspace:0.16.0",
+    "@types/pg": "catalog:",
     "pathe": "^2.0.3",
     "pg": "catalog:"
   },

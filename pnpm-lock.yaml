@@ -2459,16 +2459,20 @@ importers:
         version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.0(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
 
   packages/2-sql/4-lanes/query-builder:
-    devDependencies:
+    dependencies:
       '@internal/contract':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/contract
-      '@internal/sql-builder':
-        specifier: workspace:0.16.0
-        version: link:../sql-builder
       '@internal/sql-contract':
         specifier: workspace:0.16.0
         version: link:../../1-core/contract
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
+    devDependencies:
+      '@internal/sql-builder':
+        specifier: workspace:0.16.0
+        version: link:../sql-builder
       '@repo/tsconfig':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsconfig
@@ -3178,6 +3182,9 @@ importers:
       '@internal/utils':
         specifier: workspace:0.16.0
         version: link:../../1-framework/0-foundation/utils
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -3206,9 +3213,6 @@ importers:
       '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
-      '@types/pg':
-        specifier: 'catalog:'
-        version: 8.20.0
       tsdown:
         specifier: 'catalog:'
         version: 0.22.12(tsx@4.23.1)(typescript@5.9.3)
@@ -3430,6 +3434,9 @@ importers:
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -3461,9 +3468,6 @@ importers:
       '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../0-config/tsdown
-      '@types/pg':
-        specifier: 'catalog:'
-        version: 8.20.0
       ci-info:
         specifier: ^4.3.1
         version: 4.4.0
@@ -4059,6 +4063,9 @@ importers:
       '@internal/utils':
         specifier: workspace:0.16.0
         version: link:../../../1-framework/0-foundation/utils
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -4084,9 +4091,6 @@ importers:
       '@repo/tsdown':
         specifier: workspace:0.16.0
         version: link:../../../0-config/tsdown
-      '@types/pg':
-        specifier: 'catalog:'
-        version: 8.20.0
       '@types/pg-cursor':
         specifier: ^2.4.6
         version: 2.7.2
@@ -4336,6 +4340,9 @@ importers:
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -4632,6 +4639,9 @@ importers:
       '@prisma/orm-toolchain':
         specifier: workspace:0.16.0
         version: link:../orm-toolchain
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
@@ -4752,6 +4762,9 @@ importers:
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.20.0
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
@@ -14856,7 +14869,7 @@ snapshots:
 
   postcss@8.4.31:
     dependencies:
-      nanoid: 3.3.15
+      nanoid: 3.3.16
       picocolors: 1.1.1
       source-map-js: 1.2.1
 

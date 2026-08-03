@@ -95,7 +95,6 @@
     "./emitter": "./dist/emitter.mjs",
     "./emitter/domain-type-generation": "./dist/emitter__domain-type-generation.mjs",
     "./emitter/type-expression-safety": "./dist/emitter__type-expression-safety.mjs",
-    "./language-server": "./dist/language-server.mjs",
     "./migration-tools": "./dist/migration-tools.mjs",
     "./migration-tools/aggregate": "./dist/migration-tools__aggregate.mjs",
     "./migration-tools/constants": "./dist/migration-tools__constants.mjs",

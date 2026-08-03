@@ -23,6 +23,7 @@
     "@internal/sql-operations": "workspace:0.16.0",
     "@internal/sql-relational-core": "workspace:0.16.0",
     "@internal/utils": "workspace:0.16.0",
+    "@types/pg": "catalog:",
     "arktype": "^2.2.2",
     "pg": "catalog:",
     "pg-cursor": "^2.21.0"
@@ -33,7 +34,6 @@
     "@repo/test-utils": "workspace:0.16.0",
     "@repo/tsconfig": "workspace:0.16.0",
     "@repo/tsdown": "workspace:0.16.0",
-    "@types/pg": "catalog:",
     "@types/pg-cursor": "^2.4.6",
     "pg-mem": "^3.0.5",
     "tsdown": "catalog:",
