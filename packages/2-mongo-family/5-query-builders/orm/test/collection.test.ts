@@ -571,6 +571,16 @@ describe('MongoCollection write methods', () => {
         expect(assigneeRef.codecId).toBe('mongo/objectId@1');
       }
     });
+
+    it('attaches a result shape decoding insertedId via the _id codec', async () => {
+      const executor = createMockExecutor([{ insertedId: 'id' }]);
+      const col = createMongoCollection(contract, 'User', executor);
+      await col.create(defaultUserData);
+      expect(executor.lastPlan!.resultShape).toEqual({
+        kind: 'document',
+        fields: { insertedId: { kind: 'leaf', codecId: 'mongo/objectId@1', nullable: false } },
+      });
+    });
   });
 
   describe('createAll()', () => {
@@ -588,6 +598,24 @@ describe('MongoCollection write methods', () => {
         { _id: 'id-1', ...defaultUserData },
         { _id: 'id-2', ...defaultUserData, name: 'Bob', email: 'b@b.c' },
       ]);
+    });
+
+    it('attaches a result shape decoding each insertedId via the _id codec', async () => {
+      const executor = createMockExecutor([{ insertedIds: ['id-1'], insertedCount: 1 }]);
+      const col = createMongoCollection(contract, 'User', executor);
+      for await (const _row of col.createAll([defaultUserData])) {
+        // drain
+      }
+      expect(executor.lastPlan!.resultShape).toEqual({
+        kind: 'document',
+        fields: {
+          insertedIds: {
+            kind: 'array',
+            nullable: false,
+            element: { kind: 'leaf', codecId: 'mongo/objectId@1', nullable: false },
+          },
+        },
+      });
     });
   });
 
@@ -650,6 +678,22 @@ describe('MongoCollection write methods', () => {
         const nameRef = update['$set']!['name']!;
         expect(nameRef).toBeInstanceOf(MongoParamRef);
         expect(nameRef.codecId).toBe('mongo/string@1');
+      }
+    });
+
+    it('attaches the model result shape so the returned document decodes like a read', async () => {
+      const executor = createMockExecutor([{ _id: 'id-1', name: 'Updated', email: 'a@b.c' }]);
+      const col = createMongoCollection(contract, 'User', executor);
+      await col.where(MongoFieldFilter.eq('_id', 'id-1')).update({ name: 'Updated' });
+      const shape = executor.lastPlan!.resultShape;
+      expect(shape).toBeDefined();
+      expect(shape!.kind).toBe('document');
+      if (shape!.kind === 'document') {
+        expect(shape!.fields['_id']).toEqual({
+          kind: 'leaf',
+          codecId: 'mongo/objectId@1',
+          nullable: false,
+        });
       }
     });
   });
@@ -860,6 +904,15 @@ describe('MongoCollection write methods', () => {
       const result = await col.where(MongoFieldFilter.eq('_id', 'none')).delete();
       expect(result).toBeNull();
     });
+
+    it('attaches the model result shape so the returned document decodes like a read', async () => {
+      const executor = createMockExecutor([{ _id: 'id-1', name: 'Alice', email: 'a@b.c' }]);
+      const col = createMongoCollection(contract, 'User', executor);
+      await col.where(MongoFieldFilter.eq('_id', 'id-1')).delete();
+      const shape = executor.lastPlan!.resultShape;
+      expect(shape).toBeDefined();
+      expect(shape!.kind).toBe('document');
+    });
   });
 
   describe('deleteAndCount()', () => {
@@ -887,6 +940,18 @@ describe('MongoCollection write methods', () => {
       });
       expect(result).toEqual({ _id: 'new-id', name: 'Alice', email: 'a@b.c' });
       expect(executor.lastCommand!.kind).toBe('findOneAndUpdate');
+    });
+
+    it('attaches the model result shape so the returned document decodes like a read', async () => {
+      const executor = createMockExecutor([{ _id: 'new-id', name: 'Alice', email: 'a@b.c' }]);
+      const col = createMongoCollection(contract, 'User', executor);
+      await col.where(MongoFieldFilter.eq('email', 'a@b.c')).upsert({
+        create: defaultUserData,
+        update: { name: 'Alice Updated' },
+      });
+      const shape = executor.lastPlan!.resultShape;
+      expect(shape).toBeDefined();
+      expect(shape!.kind).toBe('document');
     });
 
     it('throws without .where()', async () => {
