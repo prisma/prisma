@@ -539,8 +539,9 @@ changes:
       workspace package published, so a pack could depend on `@internal/contract`,
       `@internal/sql-contract`, `@internal/framework-components` and the rest
       directly — and many do. From 0.17 the published surface is 17 `@prisma/*`
-      packages and everything else is private and renamed, so those dependencies no
-      longer resolve.
+      packages and everything else carries `"private": true` in its manifest, so
+      those dependencies no longer resolve anywhere: a stale name fails at install
+      time rather than resolving to an outdated artifact left on the registry.
       Build against the platform packages instead: `@prisma/orm-framework` for contract,
       components, errors and the PSL tooling; `@prisma/orm-family-sql` or
       `@prisma/orm-family-mongo` for the family surfaces; `@prisma/orm-target-<db>` for the
