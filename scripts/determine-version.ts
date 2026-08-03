@@ -30,7 +30,11 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'pathe';
 import { assertCanonicalBase } from './determine-version-utils.ts';
 
-const PACKAGE_NAME = process.argv[2] ?? '@internal/contract';
+// `prisma-next` has the longest publish history (it carries dev builds from
+// the pre-monorepo repository), so its `dev` dist-tag is the high-water mark
+// for the build counter. Counting from any younger package would re-issue a
+// `<base>-dev.N` that npm already holds for the shim and fail the publish.
+const PACKAGE_NAME = process.argv[2] ?? 'prisma-next';
 
 interface VersionResult {
   version: string;
