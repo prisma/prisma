@@ -8,32 +8,22 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // (postgres matrix entry; mysql/cockroachdb/postgres — we port postgres).
 //
 // Subject: BigInt ids that exceed Number.MAX_SAFE_INTEGER keep precision when
-// returned via relation-join (include) queries.
+// returned via relation-join (include) queries. Upstream pins
+// `relationLoadStrategy: 'join'`; prisma-next has no strategy selector, and
+// `.include()` is its relation-join read, so the subject ports onto `.include()`.
 //
-// prisma-next int8 codec: BigInt primary-key values beyond MAX_SAFE_INTEGER lose
-// precision when they flow through the ORM's include/relation-join path. The
-// direct scalar fields (e.g., post.id, post.authorId from the post's own row)
-// appear to receive the value from pglite via JSON text and are returned as the
-// imprecise float64 number (312590077454712800 instead of 312590077454712834).
-// The included relation's id field (author.id returned from the join) also loses
-// precision. This is the exact regression the upstream issue documents.
-//
-// Sending the BigInt value as a decimal string cast to number (test files are
-// cast-exempt per the brief) avoids JS-side precision loss during encoding, but
-// the read-back from pglite (which returns int8 as a JSON number for the relation
-// include path) still loses precision. → it.fails for both tests.
+// prisma-next pg/int8@1 carries `bigint` application values, so the upstream
+// BigInt ids and their assertions port across directly. Both tests were
+// `it.fails` while int8 read back through the include path as an imprecise
+// float64; lossless JSON projection (#29844) closed that gap.
 //
 // Dispositions:
-//   'preserves BigInt precision in relationJoins queries'        → it.fails (int8 precision loss in include)
-//   'preserves BigInt precision in nested relationJoins queries' → it.fails (int8 precision loss in include)
+//   'preserves BigInt precision in relationJoins queries'        → PORTED (passing)
+//   'preserves BigInt precision in nested relationJoins queries' → PORTED (passing)
 
 // BigInt IDs that exceed Number.MAX_SAFE_INTEGER (2^53 - 1 = 9007199254740991).
-// Send as decimal string cast to number (test files are cast-exempt);
-// pglite may receive the string but may return a number with precision loss.
-const USER_ID_STR = '312590077454712834';
-const POST_ID_STR = '412590077454712834';
-const USER_ID = USER_ID_STR as unknown as number;
-const POST_ID = POST_ID_STR as unknown as number;
+const USER_ID = BigInt('312590077454712834');
+const POST_ID = BigInt('412590077454712834');
 
 function withBigIntRelationJoins(fn: Parameters<typeof withPostgresPort<Contract>>[1]) {
   return withPostgresPort<Contract>({ contractJson }, async (ctx) => {
@@ -44,22 +34,22 @@ function withBigIntRelationJoins(fn: Parameters<typeof withPostgresPort<Contract
 }
 
 describe('ports/prisma/functional/issues-29010-bigint-precision-relation-joins', () => {
-  it.fails(
+  it(
     'preserves BigInt precision in relationJoins queries',
     () =>
       withBigIntRelationJoins(async ({ db }) => {
         const user = await db.public.User.where({ id: USER_ID }).include('posts').first();
 
         expect(user).not.toBeNull();
-        expect(user!.id).toBe(USER_ID_STR);
+        expect(user!.id).toBe(USER_ID);
         expect(user!.posts).toHaveLength(1);
-        expect(user!.posts[0]!['id']).toBe(POST_ID_STR);
-        expect(user!.posts[0]!['authorId']).toBe(USER_ID_STR);
+        expect(user!.posts[0]!['id']).toBe(POST_ID);
+        expect(user!.posts[0]!['authorId']).toBe(USER_ID);
       }),
     timeouts.spinUpPpgDev,
   );
 
-  it.fails(
+  it(
     'preserves BigInt precision in nested relationJoins queries',
     () =>
       withBigIntRelationJoins(async ({ db }) => {
@@ -68,11 +58,11 @@ describe('ports/prisma/functional/issues-29010-bigint-precision-relation-joins',
           .first();
 
         expect(post).not.toBeNull();
-        expect(post!.id).toBe(POST_ID_STR);
-        expect(post!.authorId).toBe(USER_ID_STR);
-        expect(post!.author['id']).toBe(USER_ID_STR);
+        expect(post!.id).toBe(POST_ID);
+        expect(post!.authorId).toBe(USER_ID);
+        expect(post!.author['id']).toBe(USER_ID);
         expect(post!.author.posts).toHaveLength(1);
-        expect(post!.author.posts[0]!['id']).toBe(POST_ID_STR);
+        expect(post!.author.posts[0]!['id']).toBe(POST_ID);
       }),
     timeouts.spinUpPpgDev,
   );

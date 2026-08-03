@@ -10,9 +10,8 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // concurrent queries. The `$transaction([...])` array-batch form has no prisma-next
 // equivalent and remains non-ported.
 //
-// prisma-next int8 codec: input typed as `number` (test files are cast-exempt);
-// pg driver returns int8 as string to avoid precision loss, so output assertions
-// use the string form.
+// prisma-next pg/int8@1 carries `bigint` application values, so the upstream
+// BigInt literals port across directly on both the write and the read side.
 //
 // Dispositions:
 //   'findUnique bigint with Promise.all' → PORTED (passing)
@@ -20,12 +19,8 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //   'findFirst bigint with Promise.all' → PORTED (passing)
 //   'findFirst bigint with $transaction([...])' → non-ported (no array-batch surface)
 
-// Upstream uses BigInt literals; pg/int8@1 input is typed `number` — cast in test.
-const bigint1 = BigInt('354789435768435687') as unknown as number;
-const bigint2 = BigInt('873547358945943556') as unknown as number;
-// pg returns int8 as string
-const bigint1Str = '354789435768435687';
-const bigint2Str = '873547358945943556';
+const bigint1 = BigInt('354789435768435687');
+const bigint2 = BigInt('873547358945943556');
 
 function withBatchingBigint(fn: Parameters<typeof withPostgresPort<Contract>>[1]) {
   return withPostgresPort<Contract>({ contractJson }, fn);
@@ -46,7 +41,7 @@ describe('ports/prisma/functional/batching-bigint', () => {
           db.public.Resource.where({ bigint: bigint2 }).select('bigint').all(),
         ]);
 
-        expect([r1[0], r2[0]]).toMatchObject([{ bigint: bigint1Str }, { bigint: bigint2Str }]);
+        expect([r1[0], r2[0]]).toMatchObject([{ bigint: bigint1 }, { bigint: bigint2 }]);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -65,7 +60,7 @@ describe('ports/prisma/functional/batching-bigint', () => {
           db.public.Resource.where({ bigint: bigint2 }).select('bigint').all(),
         ]);
 
-        expect([r1[0], r2[0]]).toMatchObject([{ bigint: bigint1Str }, { bigint: bigint2Str }]);
+        expect([r1[0], r2[0]]).toMatchObject([{ bigint: bigint1 }, { bigint: bigint2 }]);
       }),
     timeouts.spinUpPpgDev,
   );
