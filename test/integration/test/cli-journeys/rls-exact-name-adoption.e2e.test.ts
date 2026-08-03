@@ -1,7 +1,7 @@
 /**
  * A live policy with a human-readable exact name
  * is adopted via `@@map` (body text = the live reprint), verifies clean, and
- * replacing `@@map` with the plain managed head converges through EXACTLY
+ * replacing `@@map` with the plain wire-named head converges through EXACTLY
  * one `ALTER POLICY … RENAME` (content pairing) — no drop, no
  * create — after which verify is clean under the wire name.
  */
@@ -44,7 +44,7 @@ const ADOPTED_SCHEMA = `
 // RLS hash tuple is a stability commitment (any tuple change re-suffixes every
 // wire name), and a recomputed expectation would move together with a tuple
 // regression instead of catching it.
-const MANAGED_NAME = 'tenant_read_f8d5e783';
+const WIRE_NAME = 'tenant_read_f8d5e783';
 
 interface PlannedOp {
   readonly id: string;
@@ -61,13 +61,13 @@ function readPlannedOps(ctx: JourneyContext): readonly PlannedOp[] {
 }
 
 withTempDir(({ createTempDir }) => {
-  describe('exact-named policy adoption converges to managed via one rename', () => {
+  describe('exact-named policy adoption converges to wire naming via one rename', () => {
     const db = useDevDatabase({
       onReady: (cs) => withClient(cs, (client) => client.query(ADOPTED_SCHEMA)),
     });
 
     it(
-      'adopt via @@map → verify clean → swap to managed head → renames-only plan → apply → verify clean',
+      'adopt via @@map → verify clean → swap to wire-named head → renames-only plan → apply → verify clean',
       async () => {
         const ctx: JourneyContext = setupJourney({
           connectionString: db.connectionString,
@@ -98,16 +98,15 @@ withTempDir(({ createTempDir }) => {
           migrationsApplied: 0,
         });
 
-        // swap to managed: replace @@map with the plain managed head (body verbatim).
-        swapPslContract(ctx, 'contract-rls-managed');
-        const emitManaged = await runContractEmit(ctx);
-        expect(
-          emitManaged.exitCode,
-          `swap to managed: emit\n${stripAnsi(emitManaged.stderr)}`,
-        ).toBe(0);
+        // swap to wire naming: replace @@map with the plain wire-named head (body verbatim).
+        swapPslContract(ctx, 'contract-rls-wire');
+        const emitWire = await runContractEmit(ctx);
+        expect(emitWire.exitCode, `swap to wire naming: emit\n${stripAnsi(emitWire.stderr)}`).toBe(
+          0,
+        );
 
         // plan rename: the widening plan is exactly one ALTER POLICY … RENAME.
-        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'adopt-managed-name']);
+        const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'adopt-wire-name']);
         expect(plan.exitCode, `plan rename: migration plan\n${stripAnsi(plan.stderr)}`).toBe(0);
         const ops = readPlannedOps(ctx);
         expect(
@@ -121,18 +120,15 @@ withTempDir(({ createTempDir }) => {
           {
             id: `rlsPolicy.public.user.${EXACT_NAME}.rename`,
             operationClass: 'widening',
-            sql: `ALTER POLICY "${EXACT_NAME}" ON "public"."user" RENAME TO "${MANAGED_NAME}"`,
+            sql: `ALTER POLICY "${EXACT_NAME}" ON "public"."user" RENAME TO "${WIRE_NAME}"`,
           },
         ]);
 
         // apply: run the rename and verify clean under the wire name.
         const apply = await runMigrate(ctx);
         expect(apply.exitCode, `apply: migration apply\n${stripAnsi(apply.stderr)}`).toBe(0);
-        const verifyManaged = await runDbVerify(ctx);
-        expect(
-          verifyManaged.exitCode,
-          `apply: verify clean\n${stripAnsi(verifyManaged.stderr)}`,
-        ).toBe(0);
+        const verifyWire = await runDbVerify(ctx);
+        expect(verifyWire.exitCode, `apply: verify clean\n${stripAnsi(verifyWire.stderr)}`).toBe(0);
       },
       timeouts.spinUpPpgDev,
     );

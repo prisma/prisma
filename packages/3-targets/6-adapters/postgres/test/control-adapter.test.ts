@@ -984,8 +984,7 @@ describe('PostgresControlAdapter', () => {
 
       expect(tablesOf(result)['user']?.indexes).toEqual([
         new SqlIndexIR({
-          name: 'user_name_idx',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'user_name_idx' },
           columns: ['name'],
           where: undefined,
           unique: false,
@@ -1060,8 +1059,7 @@ describe('PostgresControlAdapter', () => {
 
       expect(tablesOf(result)['user']?.indexes).toEqual([
         new SqlIndexIR({
-          name: 'user_email_tenant_idx',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'user_email_tenant_idx' },
           columns: ['email', 'tenant_id'],
           where: undefined,
           unique: false,
@@ -1163,8 +1161,7 @@ describe('PostgresControlAdapter', () => {
       // The partial-index predicate rides along as `where`.
       expect(tablesOf(result)['user']?.indexes).toEqual([
         new SqlIndexIR({
-          name: 'user_idx',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'user_idx' },
           expression: 'lower(email), id',
           where: '(id > 0)',
           unique: false,

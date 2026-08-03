@@ -50,6 +50,7 @@ import {
 import {
   applyFkDefaults,
   type CheckConstraintInput,
+  Index,
   type SqlNamespaceInput,
   SqlStorage,
   type SqlStorageInput,
@@ -930,10 +931,10 @@ export function buildSqlContractFromDefinition(
       const declaredIndexes = (semanticModel.indexes ?? []).map((i) =>
         lowerAuthoredIndex(
           tableName,
-          // The blind cast defers the columns-xor-expression decision to
-          // lowerAuthoredIndex's runtime guard, which owns the diagnostic
-          // for the neither/both cases.
-          blindCast<AuthoredIndexInput, 'columns-xor-expression enforced by lowerAuthoredIndex'>({
+          blindCast<
+            AuthoredIndexInput,
+            'the definition tree already carries both unions; the spread loses the correlation, and lowerAuthoredIndex re-checks at runtime'
+          >({
             ...ifDefined('columns', i.columns),
             ...ifDefined('expression', i.expression),
             where: i.where,
@@ -970,7 +971,10 @@ export function buildSqlContractFromDefinition(
         columns,
         ...ifDefined('control', semanticModel.control),
         uniques,
-        indexes,
+        // Constructed here rather than left as input: the `table` entity
+        // kind's hydration tells an authored index from a stored one by
+        // whether it is already an Index.
+        indexes: indexes.map((i) => new Index(i)),
         foreignKeys,
         ...(primaryKey ? { primaryKey } : {}),
         ...(checksForTable.length > 0 ? { checks: checksForTable } : {}),

@@ -205,6 +205,16 @@ A small record stored in the database that tracks which contract the database is
 
 A unique name that identifies an extension. Namespaces keep extensions from colliding with each other and with built-in features. You'll see them in PSL constructor expressions (`pgvector.Vector(...)`), in the contract (`extensions.pgvector`), and in capability names (`pgvector.ivfflat`).
 
+### Naming Mode
+
+Where a database object's name comes from. An object is **wire-named** when Prisma Next derives the name (see [wire name](#wire-name)), or **exact-named** when you supply the name and Prisma Next adopts it verbatim — `map:` on an index, `@@map` on an RLS policy block. The two modes differ in how drift is detected: a wire name commits to the object's content, so comparing names is comparing content; an exact name says nothing about content, so the body is compared byte-for-byte against the database's own reprint.
+
+Naming mode is independent of [control policy](architecture%20docs/adrs/ADR%20224%20-%20Control%20Policy%20—%20framework-locked%20vocabulary%20and%20family-owned%20dispatch.md), which answers a different question: whether Prisma Next may write to the object at all.
+
+### Wire Name
+
+The name Prisma Next derives for an object it names itself: your prefix, an underscore, and eight hex characters of a hash over the object's content — `user_email_idx_46df9cad`. Because the suffix is content-addressed, an unchanged definition always produces the same name, and a name match is a content match. Renaming the prefix while leaving the definition alone keeps the suffix, which is how a rename is recognized as a rename rather than a drop and a create. See [ADR 234](architecture%20docs/adrs/ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md).
+
 ---
 
 ## Migration & Database Lifecycle

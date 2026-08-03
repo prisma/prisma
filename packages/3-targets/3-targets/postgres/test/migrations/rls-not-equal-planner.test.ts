@@ -37,14 +37,13 @@ const NO_DESTRUCTIVE_POLICY = { allowedOperationClasses: ['additive', 'widening'
 
 function exactPolicy(using: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name: EXACT_NAME,
+    naming: { kind: 'exact', name: EXACT_NAME },
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
     roles: ['app_user'],
     using,
     permissive: true,
-    prefix: undefined,
     withCheck: undefined,
   });
 }
@@ -116,14 +115,13 @@ function actualSchema(
             rlsEnabled: true,
             policies: [
               new PostgresPolicySchemaNode({
-                name: livePolicy.name,
+                naming: { kind: 'exact', name: livePolicy.name },
                 tableName: livePolicy.tableName,
                 namespaceId: 'public',
                 operation: livePolicy.operation,
                 roles: [...livePolicy.roles],
                 using: livePolicy.using,
                 permissive: livePolicy.permissive,
-                prefix: undefined,
                 withCheck: undefined,
                 dependsOn: undefined,
               }),

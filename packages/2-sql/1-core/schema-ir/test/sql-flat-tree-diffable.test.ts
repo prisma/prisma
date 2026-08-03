@@ -15,8 +15,7 @@ describe('flat tree diffability (SqlSchemaIR / SqlTableIR)', () => {
     uniques: [{ columns: ['email'] }],
     indexes: [
       {
-        name: 'users_email_idx',
-        prefix: undefined,
+        naming: { kind: 'exact', name: 'users_email_idx' },
         columns: ['email'],
         where: undefined,
         unique: false,

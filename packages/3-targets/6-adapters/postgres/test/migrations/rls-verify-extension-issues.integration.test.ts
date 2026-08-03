@@ -3,7 +3,7 @@ import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import { APP_SPACE_ID, issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
-import { normalizeSqlBody } from '@internal/sql-schema-ir/naming';
+import { normalizeSqlBody, parseNaming } from '@internal/sql-schema-ir/naming';
 import { computeContentHash } from '@internal/target-postgres/rls-canonicalize';
 import {
   PostgresRlsEnablement,
@@ -38,8 +38,7 @@ const POLICY_HASH = computeContentHash({
 });
 
 const policy = new PostgresRlsPolicy({
-  name: `${POLICY_PREFIX}_${POLICY_HASH}`,
-  prefix: POLICY_PREFIX,
+  naming: parseNaming(`${POLICY_PREFIX}_${POLICY_HASH}`, POLICY_PREFIX),
   tableName: TABLE_NAME,
   namespaceId: 'public',
   operation: 'select',

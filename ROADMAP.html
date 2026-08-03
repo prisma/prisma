@@ -196,18 +196,18 @@
     <div class="statusline">
       <span class="item"><span class="k">Ships</span> <span class="v teal">July 31</span></span>
       <span class="item"><span class="k">Health</span> <span class="v ok">On track</span></span>
-      <span class="item"><span class="k">Updated</span> <span class="v">July 23</span></span>
+      <span class="item"><span class="k">Updated</span> <span class="v">July 30</span></span>
       <span class="item"><span class="k">Scoreboard</span> <span class="v link"><a href="https://github.com/prisma/prisma-next/pull/1000">450 proven · 500 unproven · 30 experimental · 250 not in 8.0</a></span></span>
     </div>
     <div class="progress">
-      <p class="cap">Work on this page: <b>34 tasks</b> — 6 done, 11 in flight, 17 not started</p>
-      <div class="bar" role="img" aria-label="34 tasks: 6 done, 11 in flight, 17 not started">
-        <div class="done" style="width: 18%"></div>
-        <div class="flight" style="width: 32%"></div>
+      <p class="cap">Work on this page: <b>35 tasks</b> — 7 done, 11 in flight, 17 not started</p>
+      <div class="bar" role="img" aria-label="35 tasks: 7 done, 11 in flight, 17 not started">
+        <div class="done" style="width: 20%"></div>
+        <div class="flight" style="width: 31%"></div>
       </div>
       <div class="legend">
-        <span><span class="dot" style="background: var(--good)"></span><b>5</b> done</span>
-        <span><span class="dot" style="background: var(--accent)"></span><b>12</b> in flight</span>
+        <span><span class="dot" style="background: var(--good)"></span><b>7</b> done</span>
+        <span><span class="dot" style="background: var(--accent)"></span><b>11</b> in flight</span>
         <span><span class="dot" style="background: var(--open-bg); outline: 1px solid var(--line-strong); outline-offset: -1px;"></span><b>17</b> not started</span>
       </div>
       <p class="cap" style="margin-top: 16px;"><a href="https://github.com/prisma/prisma-next/pull/1000">Feature scoreboard</a>: <b>~1,230 cells</b> (~326 features × 3 databases) — 450 proven, 500 unproven, 30 experimental, 250 not in 8.0</p>
@@ -254,7 +254,7 @@
       <li>
         <span class="n">4</span>
         <span class="what"><a href="#req4">The release's claims must be proven</a>
-          <span class="note">"It works" and "you can migrate incrementally" each need a runnable receipt.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="6 tasks: 1 done · 3 in flight · 2 not started"><span class="d" style="width: 16.7%"></span><span class="f" style="width: 50.0%"></span></span><span class="minicount">1 done · 3 in flight · 2 not started</span></span></span>
+          <span class="note">"It works" and "you can migrate incrementally" each need a runnable receipt.</span><span class="mini" aria-hidden="false"><span class="minibar" role="img" aria-label="7 tasks: 2 done · 3 in flight · 2 not started"><span class="d" style="width: 28.6%"></span><span class="f" style="width: 42.9%"></span></span><span class="minicount">2 done · 3 in flight · 2 not started</span></span></span>
         <span class="owner">Everyone</span>
         <span class="pill flight">Scoreboard drafted</span>
       </li>
@@ -488,6 +488,13 @@
     </details>
 
     <details class="task">
+      <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Expression, partial, and unique indexes — authorable, name-identified, adoptable</span><span class="pill done">Landed</span></summary>
+      <div class="body">
+        <p>Prisma 8 can now author the indexes real Postgres databases actually carry: expression indexes (<code>@@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq")</code> — the exact shape Cipherstash's encrypted-search EQL extension needs), partial (<code>where:</code>) and unique variants, access methods, and storage options — in PSL and the TypeScript authoring path alike. Indexes and row-level-security policies became name-identified entities: a wire-named object's physical name ends in a content hash, so a body edit converges as create + drop while a pure rename converges as a single <code>ALTER INDEX … RENAME</code>; <code>map:</code> adopts an existing physical name verbatim. <code>contract infer</code> emits every live index and policy at full fidelity, so an existing database can be adopted and signed exactly as it stands — and converted to wire naming later by nothing but renames. (<a href="https://github.com/prisma/prisma-next/pull/1047">#1047</a>, <a href="https://github.com/prisma/prisma-next/pull/1048">#1048</a>, <a href="https://github.com/prisma/prisma-next/pull/1050">#1050</a>, <a href="https://github.com/prisma/prisma/pull/29808">#29808</a>)</p>
+      </div>
+    </details>
+
+    <details class="task">
       <summary><svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="t">Adopting an existing database round-trips cleanly</span><span class="pill done">Landed</span></summary>
       <div class="body">
         <p>The adoption path had a credibility problem: deriving a schema from a live database produced output that Prisma 8's own tooling then rejected or flagged as drifted — a user had independently written a 260-line repair script to fix our output, and it matched the workaround script in our own repository. Seven distinct defects were fixed, and the whole loop (read the database → derive the schema → emit the contract → verify the database matches) now runs as an automated test against live databases. This is the foundation the side-by-side proof builds on.</p>
@@ -652,6 +659,7 @@
   <section class="landed">
     <h2>Recently landed</h2>
     <ul>
+      <li><strong>Expression, partial, and unique indexes landed end-to-end</strong> — authorable in PSL and TypeScript, name-identified (a wire name carries a content-hash suffix; <code>map:</code> adopts the live name verbatim), and emitted at full fidelity by <code>contract infer</code> so existing databases adopt cleanly (requirement 4).</li>
       <li><strong>One error-code scheme, delivered end-to-end</strong> — every published error is a structural envelope with a dotted code; the ORM and contract-authoring planes' codeless throws were swept onto it; the 221-code reference page ships with a CI check that keeps it complete (requirement 3).</li>
       <li><strong>Contract snapshots deduplicated into one content-addressed store</strong> — migration folders stopped carrying full contract copies, ref-paired snapshots folded in too, closing the migrations-folder layout ahead of the freeze (requirement 3).</li>
       <li><strong>Hashes lost their <code>sha256:</code> prefix</strong> — the textual form of every content hash froze without the redundant algorithm tag (requirement 3).</li>

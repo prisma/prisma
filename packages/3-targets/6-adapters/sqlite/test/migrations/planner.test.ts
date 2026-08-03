@@ -2,6 +2,7 @@ import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { index } from '@internal/sql-contract/factories';
 import { SqlStorage, type StorageColumn, type StorageTable } from '@internal/sql-contract/types';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
@@ -143,7 +144,7 @@ describe('SQLite migration planner', () => {
           email: makeColumn({ nativeType: 'text', nullable: false }),
         },
         primaryKey: { columns: ['id'] },
-        indexes: [{ columns: ['email'], name: 'idx_users_email', unique: false }],
+        indexes: [index('idx_users_email', ['email'])],
       }),
     });
 

@@ -24,8 +24,7 @@ import { classifySqlDiffIssue, computeSqlDiffVerdict } from '../src/core/diff/sc
 const table = new SqlTableIR({ name: 't', columns: {}, foreignKeys: [], uniques: [], indexes: [] });
 const column = new SqlColumnIR({ name: 'c', nativeType: 'int4', nullable: false });
 const index = new SqlIndexIR({
-  name: 't_c_idx',
-  prefix: undefined,
+  naming: { kind: 'exact', name: 't_c_idx' },
   columns: ['c'],
   where: undefined,
   unique: false,

@@ -28,7 +28,7 @@ import {
   testTimeout,
 } from './fixtures/runner-fixtures';
 
-const MANAGED_NAME = `doc_tags_gin_${computeIndexContentHash({
+const WIRE_NAME = `doc_tags_gin_${computeIndexContentHash({
   columns: ['tags'],
   unique: false,
   type: 'gin',
@@ -56,7 +56,7 @@ function buildContract(): Contract<SqlStorage> {
                 uniques: [],
                 indexes: [
                   {
-                    name: MANAGED_NAME,
+                    name: WIRE_NAME,
                     prefix: 'doc_tags_gin',
                     columns: ['tags'],
                     unique: false,
@@ -153,7 +153,7 @@ describe.sequential('boolean reloption round trip', () => {
   }, async () => {
     await driver!.query('CREATE TABLE doc (id int PRIMARY KEY, tags jsonb NOT NULL)');
     await driver!.query(
-      `CREATE INDEX "${MANAGED_NAME}" ON doc USING gin (tags) WITH (fastupdate = false)`,
+      `CREATE INDEX "${WIRE_NAME}" ON doc USING gin (tags) WITH (fastupdate = false)`,
     );
 
     const contract = buildContract();

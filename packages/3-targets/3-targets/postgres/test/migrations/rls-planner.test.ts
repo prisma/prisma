@@ -18,6 +18,7 @@ import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { namingOfLiveName, parseNaming } from '@internal/sql-schema-ir/naming';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
@@ -52,8 +53,7 @@ function makePolicy(
   namespaceId: string = SCHEMA_NAME,
 ): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    naming: namingOfLiveName(name),
     tableName,
     namespaceId,
     operation: 'select',
@@ -137,8 +137,7 @@ function buildContractWith(
 
 function policyNode(policy: PostgresRlsPolicy): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    name: policy.name,
-    prefix: policy.prefix,
+    naming: parseNaming(policy.name, policy.prefix),
     tableName: policy.tableName,
     namespaceId: policy.namespaceId,
     operation: policy.operation,

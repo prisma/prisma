@@ -14,7 +14,7 @@ import { executeCommand, getExitCode, setupCommandMocks } from '../../../../util
 //
 // prisma-next #1047 ("Every SQL index is name-identified") hard-errors when an
 // index-name prefix exceeds 54 characters (Postgres identifiers cap at 63; the
-// managed wire name appends a 9-character content-hash suffix). The mapped
+// wire name appends a 9-character content-hash suffix). The mapped
 // explicit join table `CategoriesOnPostsManyToMany_AtAtMap` gets a prisma-next
 // auto-generated index over its FK columns whose prefix is
 //   CategoriesOnPostsManyToMany_AtAtMap_categoryId_AtMap_idx   (55 chars)

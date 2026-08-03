@@ -36,7 +36,7 @@ const ROADMAP_TASK = 'ROADMAP.md § 3, "Decide the config filename and the comma
  * Allowances are tested against a single occurrence — the text before and
  * after it — rather than the whole line, because one line can hold both an
  * allowed and a disallowed use. `prisma-next contract emit` inside a comment
- * that also names `@prisma-next/cli` must fail on the second without the first
+ * that also names `@internal/cli` must fail on the second without the first
  * excusing it.
  *
  * Order does not matter — an occurrence needs only one allowance to pass.
@@ -84,6 +84,10 @@ const ALLOWED = [
   {
     why: 'the roadmap narrates the move out of the old repository, so naming it is the point of the sentence',
     matches: (relPath) => /^ROADMAP\.(?:md|html)$/.test(relPath),
+  },
+  {
+    why: "this check's own tests, which plant the occurrences it has to catch",
+    matches: (relPath) => relPath === 'scripts/lint-legacy-name.test.mjs',
   },
 ];
 

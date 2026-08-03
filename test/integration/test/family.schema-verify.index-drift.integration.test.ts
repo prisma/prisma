@@ -10,7 +10,7 @@
  * packages/2-sql/1-core/contract/test/index-naming.test.ts.
  *
  * An out-of-band `ALTER INDEX … SET (fillfactor = 70)` on a
- * managed index is real drift: the live options bag no longer matches the
+ * wire-named index is real drift: the live options bag no longer matches the
  * contract and verify reports the index not-equal.
  */
 
@@ -122,7 +122,7 @@ describe('index drift', () => {
     );
   });
 
-  describe('out-of-band storage-parameter change on a managed index', () => {
+  describe('out-of-band storage-parameter change on a wire-named index', () => {
     it(
       'verifies clean before the ALTER and reports the index not-equal after it',
       async () => {

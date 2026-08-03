@@ -11,12 +11,6 @@ export function validateIndexTypes(
   for (const [namespaceId, ns] of Object.entries(contract.storage.namespaces)) {
     for (const [tableName, table] of Object.entries(ns.entries.table ?? {})) {
       for (const index of table.indexes) {
-        if (index.type === undefined && index.options !== undefined) {
-          throw new ContractValidationError(
-            `Namespace "${namespaceId}" table "${tableName}" index "${index.name}" has options without a type`,
-            'storage',
-          );
-        }
         if (index.type === undefined) continue;
         const entry = indexTypeRegistry.get(index.type);
         if (entry === undefined) {

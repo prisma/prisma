@@ -8,6 +8,7 @@ import {
   primaryKey,
   unique,
 } from '@internal/sql-relational-core/contract-free';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { TsExpression } from '@internal/ts-render';
 import { describe, expect, it } from 'vitest';
 import * as opFactoryCalls from '../../src/core/migrations/op-factory-call';
@@ -155,8 +156,7 @@ describe('renderCallsToTypeScript (postgres)', () => {
 
 describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
   const policy = new PostgresRlsPolicy({
-    name: 'p_ab12cd34',
-    prefix: 'p',
+    naming: parseNaming('p_ab12cd34', 'p'),
     tableName: 'note',
     namespaceId: 'public',
     operation: 'select',

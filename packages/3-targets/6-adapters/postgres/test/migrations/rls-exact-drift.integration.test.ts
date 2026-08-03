@@ -4,13 +4,14 @@
  * destructive-allowed plan replaces the policy (drop before create under the
  * same name); without the destructive allowance the plan fails with the
  * disallowed-call conflict naming the policy. The contrast case: the same
- * out-of-band body edit on a MANAGED policy stays invisible to `isEqualTo`
+ * out-of-band body edit on a WIRE-NAMED policy stays invisible to `isEqualTo`
  * — hash identity, a deliberate property (the wire name commits to the
- * content, so a same-named managed policy is by definition unchanged).
+ * content, so a same-named wire-named policy is by definition unchanged).
  */
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import { APP_SPACE_ID, issueOutcome } from '@internal/framework-components/control';
 import { SqlStorage } from '@internal/sql-contract/types';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import postgresTargetDescriptor from '@internal/target-postgres/control';
 import { computeContentHash } from '@internal/target-postgres/rls-canonicalize';
 import {
@@ -38,7 +39,7 @@ const ALL_CLASSES_POLICY = {
 };
 const NO_DESTRUCTIVE_POLICY = { allowedOperationClasses: ['additive', 'widening'] as const };
 
-const MANAGED_NAME = `tenant_read_${computeContentHash({
+const WIRE_NAME = `tenant_read_${computeContentHash({
   using: BODY,
   roles: ['app_user'],
   operation: 'select',
@@ -70,8 +71,7 @@ function buildContract(policyName: string, prefix?: string): Contract<SqlStorage
             },
             policy: {
               [policyName]: new PostgresRlsPolicy({
-                name: policyName,
-                prefix,
+                naming: parseNaming(policyName, prefix),
                 tableName: 'user',
                 namespaceId: 'public',
                 operation: 'select',
@@ -216,12 +216,12 @@ describe.sequential('out-of-band body drift on an exact-named policy', () => {
     );
   });
 
-  it('the same body drift on a MANAGED policy stays invisible to isEqualTo (hash identity — deliberate)', {
+  it('the same body drift on a WIRE-NAMED policy stays invisible to isEqualTo (hash identity — deliberate)', {
     timeout: testTimeout,
   }, async () => {
-    await createLivePolicy(driver!, MANAGED_NAME);
-    await driver!.query(`ALTER POLICY "${MANAGED_NAME}" ON "user" USING (tenant_id = 2)`);
-    const contract = buildContract(MANAGED_NAME, 'tenant_read');
+    await createLivePolicy(driver!, WIRE_NAME);
+    await driver!.query(`ALTER POLICY "${WIRE_NAME}" ON "user" USING (tenant_id = 2)`);
+    const contract = buildContract(WIRE_NAME, 'tenant_read');
 
     const result = familyInstance.verifySchema({
       contract,

@@ -27,7 +27,7 @@ import type {
 import { issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import { parseWireName } from '@internal/sql-schema-ir/naming';
+import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { SqlIndexIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
@@ -398,8 +398,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * wire names, grouped by `(schema, table, hash)`; missing nodes iterated
    * in sorted-name order consume the sorted-name-first candidate.
    *
-   * Content pairing (exact→managed convergence), after hash pairing has
-   * consumed its matches: the remaining managed-missing nodes
+   * Content pairing (exact→wire convergence), after hash pairing has
+   * consumed its matches: the remaining wire-named-missing nodes
    * (`prefix` defined) against the remaining extras of any name shape,
    * paired iff content-equal (columns ordered-strict both-defined-or-
    * both-undefined, `unique`/`type` strict, `options` loose, bodies
@@ -527,9 +527,9 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * Rename post-pass (the index pass's structure): hash pairing pairs a
    * `not-found` and a `not-expected` policy on the SAME table whose
    * wire-name content hashes match but prefixes differ (prefix-only rename);
-   * content pairing then pairs remaining managed-missing policies against remaining
+   * content pairing then pairs remaining wire-named-missing policies against remaining
    * extras of any name shape by verbatim content (the node-owned `contentEquals` —
-   * exact→managed adoption). Multi-candidate groups pair deterministically
+   * exact→wire adoption). Multi-candidate groups pair deterministically
    * by sorted name; leftovers proceed as create/drop; an exact-named
    * missing policy never content-pairs.
    *
@@ -562,7 +562,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     for (const issue of filteredDiffIssues) {
       // 'not-equal' is reachable for exact-named (prefix-absent) policies:
       // their isEqualTo compares content, so a same-named live policy with a
-      // drifted body pairs by name and fails equality. Managed policies never
+      // drifted body pairs by name and fails equality. Wire-named policies never
       // produce it — the wire name encodes the body hash, so name-equality is
       // body-equality.
       if (issueOutcome(issue) === 'not-equal') {
@@ -645,9 +645,9 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         );
       }
 
-      // Content pairing (exact→managed convergence), after hash pairing
+      // Content pairing (exact→wire convergence), after hash pairing
       // has consumed its matches: a
-      // remaining managed-missing policy pairs with a remaining
+      // remaining wire-named-missing policy pairs with a remaining
       // extra of ANY name shape when the content matches verbatim
       // (the node-owned `contentEquals` — not the normalized hash tuple). This is how
       // replacing `@@map` with the plain head converges as one
@@ -901,8 +901,7 @@ function gradePolicyReplacement(
  */
 function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name: node.name,
-    prefix: node.prefix,
+    naming: namingOf(node.name, node.prefix),
     tableName: node.tableName,
     namespaceId: node.namespaceId,
     operation: node.operation,

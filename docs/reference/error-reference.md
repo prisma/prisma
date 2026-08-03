@@ -171,7 +171,7 @@ A field's default declaration is invalid: `defaultSql` is used on an enum field,
 
 ### CONTRACT.ENTITY_KIND_INVALID
 
-An entity attached to the contract declares a framework-managed namespace entry kind (`table` or `valueSet`), which only the framework itself may mint. Raised while building a SQL contract with pack-contributed entities. Meta: `entityKind`, `namespaceId`.
+An entity attached to the contract declares a framework-wire namespace entry kind (`table` or `valueSet`), which only the framework itself may mint. Raised while building a SQL contract with pack-contributed entities. Meta: `entityKind`, `namespaceId`.
 
 ### CONTRACT.ENTITY_KIND_UNKNOWN
 

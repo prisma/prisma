@@ -2,6 +2,7 @@ import type { ContractToSchemaIROptions } from '@internal/family-sql/control';
 import { contractNamespaceToSchemaIR } from '@internal/family-sql/control';
 import type { SchemaNodeRef } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { namingOf } from '@internal/sql-schema-ir/naming';
 import {
   PrimaryKey,
   RelationalSchemaNodeKind,
@@ -59,8 +60,7 @@ function columnDependsOn(
 
 function toPolicyNode(policy: PostgresRlsPolicy, namespaceId: string): PostgresPolicySchemaNode {
   return new PostgresPolicySchemaNode({
-    name: policy.name,
-    prefix: policy.prefix,
+    naming: namingOf(policy.name, policy.prefix),
     tableName: policy.tableName,
     namespaceId,
     operation: policy.operation,
@@ -195,8 +195,7 @@ export function contractToPostgresDatabaseSchemaNode(
       );
       const indexes = sqlTable.indexes.map((i) => {
         const base = {
-          name: i.name,
-          prefix: i.prefix,
+          naming: namingOf(i.name, i.prefix),
           where: i.where,
           unique: i.unique,
           partial: i.partial,

@@ -210,43 +210,6 @@ function applyDefaultOmissions(
   });
 }
 
-function rlsModelAttribute(): PslModel['attributes'][number] {
-  return { kind: 'attribute', target: 'model', name: 'rls', args: [], span: SYNTHETIC_SPAN };
-}
-
-/**
- * Marks every model backed by an RLS-enabled table with `@@rls` — an
- * argument-less model attribute (no policies authored) that only records
- * `ENABLE ROW LEVEL SECURITY`, matching what `db verify` observes live.
- * Every `auth`/`storage` table in a real Supabase instance has RLS enabled;
- * without this a verify comparison sees the contract's implicit
- * `rlsEnabled: false` against the live `true` and reports every such table
- * `not-equal`. Real Supabase policies are not captured — authoring the
- * policy set itself is out of scope here (see the RLS unification project).
- */
-function applyRlsEnablement(
-  namespace: PslNamespace,
-  rlsEnabledTables: ReadonlySet<string>,
-): PslNamespace {
-  let changed = false;
-  const models = namespace.models.map((model) => {
-    if (!rlsEnabledTables.has(tableNameOfModel(model))) return model;
-    changed = true;
-    return { ...model, attributes: [...model.attributes, rlsModelAttribute()] };
-  });
-  if (!changed) return namespace;
-  return makePslNamespace({
-    kind: 'namespace',
-    name: namespace.name,
-    entries: makePslNamespaceEntries(
-      models,
-      namespace.compositeTypes,
-      namespacePslExtensionBlocks(namespace),
-    ),
-    span: namespace.span,
-  });
-}
-
 function mapModelAttribute(tableName: string): PslModel['attributes'][number] {
   return {
     kind: 'attribute',
@@ -460,15 +423,10 @@ async function introspectSchema(
     );
   }
 
-  const rlsEnabledTables = new Set(
-    Object.values(tree.namespaces[schemaName]?.tables ?? {})
-      .filter((table) => table.rlsEnabled)
-      .map((table) => table.name),
-  );
-
+  // `@@rls` is emitted natively by `inferPslContract` from each table node's
+  // `rlsEnabled` — no out-of-band appender needed.
   const defaultsFixed = applyDefaultOmissions(namespace, DEFAULT_OMISSIONS[schemaName] ?? {});
-  const rlsFixed = applyRlsEnablement(defaultsFixed, rlsEnabledTables);
-  return { namespace: rlsFixed, types: ast.types?.declarations ?? [] };
+  return { namespace: defaultsFixed, types: ast.types?.declarations ?? [] };
 }
 
 async function main(): Promise<void> {

@@ -843,18 +843,22 @@ export type IndexConstraintElements<FieldNames extends readonly string[] = reado
       readonly expression: string;
     };
 
+/** Options only exist as options of a type, so the pair is one union. */
+export type IndexConstraintMethod =
+  | { readonly type?: undefined; readonly options?: undefined }
+  | { readonly type: string; readonly options?: Record<string, unknown> };
+
 export type IndexConstraint<
   FieldNames extends readonly string[] = readonly string[],
   Name extends string | undefined = string | undefined,
-> = IndexConstraintElements<FieldNames> & {
-  readonly kind: 'index';
-  readonly where?: string;
-  readonly unique?: boolean;
-  readonly name?: Name;
-  readonly map?: string;
-  readonly type?: string;
-  readonly options?: Record<string, unknown>;
-};
+> = IndexConstraintElements<FieldNames> &
+  IndexConstraintMethod & {
+    readonly kind: 'index';
+    readonly where?: string;
+    readonly unique?: boolean;
+    readonly name?: Name;
+    readonly map?: string;
+  };
 
 export type ForeignKeyConstraint<
   SourceFieldNames extends readonly string[] = readonly string[],

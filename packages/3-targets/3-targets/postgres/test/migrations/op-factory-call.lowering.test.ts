@@ -1,6 +1,7 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { col, lit } from '@internal/sql-relational-core/contract-free';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import {
   columnExistsAst,
@@ -913,8 +914,7 @@ describe('DisableRowLevelSecurityCall', () => {
 
 function makePolicy(): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name: 'post_owner_a1b2c3d4',
-    prefix: 'post_owner',
+    naming: parseNaming('post_owner_a1b2c3d4', 'post_owner'),
     tableName: 'post',
     namespaceId: 'public',
     operation: 'select',
@@ -961,8 +961,7 @@ describe('CreatePostgresRlsPolicyCall', () => {
     expect(call.renderTypeScript()).toBe(
       [
         'this.createRlsPolicy({ schema: "public", table: "post", policy: {',
-        '  name: "post_owner_a1b2c3d4",',
-        '  prefix: "post_owner",',
+        '  naming: { kind: "wire", prefix: "post_owner", hash: "a1b2c3d4" },',
         '  tableName: "post",',
         '  namespaceId: "public",',
         '  operation: "select",',
@@ -975,13 +974,12 @@ describe('CreatePostgresRlsPolicyCall', () => {
     expect(call.importRequirements()).toEqual([]);
   });
 
-  it('renders an exact policy literal with no prefix key', () => {
+  it('renders an exact policy literal as the exact naming arm', () => {
     const call = new CreatePostgresRlsPolicyCall(
       'public',
       'post',
       new PostgresRlsPolicy({
-        name: 'Tenant members can read',
-        prefix: undefined,
+        naming: parseNaming('Tenant members can read', undefined),
         tableName: 'post',
         namespaceId: 'public',
         operation: 'select',
@@ -994,7 +992,7 @@ describe('CreatePostgresRlsPolicyCall', () => {
     expect(call.renderTypeScript()).toBe(
       [
         'this.createRlsPolicy({ schema: "public", table: "post", policy: {',
-        '  name: "Tenant members can read",',
+        '  naming: { kind: "exact", name: "Tenant members can read" },',
         '  tableName: "post",',
         '  namespaceId: "public",',
         '  operation: "select",',

@@ -1,3 +1,4 @@
+import { canonicalizeContractToObject } from '@internal/contract/hashing';
 import type { Contract } from '@internal/contract/types';
 import { effectiveControlPolicy } from '@internal/contract/types';
 import { SqlContractSerializerBase, type SqlEntityHydrationFactory } from '@internal/family-sql/ir';
@@ -369,6 +370,30 @@ describe('role + policy round-trip', () => {
       },
     };
   }
+
+  it('permissive: false survives canonicalization (default-omission must not drop it)', () => {
+    const serializer = new PostgresContractSerializer();
+    const contract = blindCast<Contract, 'test contract shape is structurally a Contract'>(
+      makeContractWithRolesAndPolicies(),
+    );
+    const canonical = canonicalizeContractToObject(contract, {
+      serializeContract: (c) => serializer.serializeContract(blindCast<never, 'test'>(c)),
+      shouldPreserveEmpty: serializer.shouldPreserveEmpty,
+      sortStorage: serializer.sortStorage,
+    });
+    const storage = blindCast<
+      {
+        namespaces: Record<
+          string,
+          { entries: { policy: Record<string, { permissive?: boolean }> } }
+        >;
+      },
+      'canonical storage shape'
+    >(canonical['storage']);
+    const policies = storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.policy;
+    expect(policies?.['posts_select_own_a1b2c3d4']?.permissive).toBe(true);
+    expect(policies?.['posts_insert_restrictive_b5c6d7e8']?.permissive).toBe(false);
+  });
 
   it('preserves role + policy entries through serialize → deserialize', () => {
     const serializer = new PostgresContractSerializer();

@@ -244,7 +244,7 @@ Then run the snippet from *Your first arc* above against the `User` model. When 
 
 ## Workflow — Brownfield-DB (existing database, no contract)
 
-The concept: against an existing database with no PN contract, `contract infer` walks the live schema (tables, columns, indexes, constraints) and writes a PSL contract that describes it. The result is a *starting point*, not the final contract — review and clean it up, then `db sign` to record the current contract hash as the marker (instead of letting `db init` try to recreate the schema from scratch).
+The concept: against an existing database with no PN contract, `contract infer` walks the live schema (tables, columns, indexes — including expression and partial ones — constraints, and RLS enablement + policies) and writes a PSL contract that describes it. The result is a *starting point*, not the final contract — review and clean it up, then `db sign` to record the current contract hash as the marker (instead of letting `db init` try to recreate the schema from scratch).
 
 ```bash
 mkdir my-app && cd my-app

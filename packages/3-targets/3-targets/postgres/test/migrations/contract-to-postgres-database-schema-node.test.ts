@@ -1,6 +1,7 @@
 import { asNamespaceId, coreHash, profileHash } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { namingOfLiveName, parseNaming } from '@internal/sql-schema-ir/naming';
 import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -21,8 +22,7 @@ const SCHEMA_NAME = 'public';
 
 function makePolicy(name: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    naming: namingOfLiveName(name),
     tableName: TABLE_NAME,
     namespaceId: SCHEMA_NAME,
     operation: 'select',
@@ -264,8 +264,7 @@ describe('contractToPostgresDatabaseSchemaNode', () => {
 
   it('throws when a policy references a table absent from its namespace', () => {
     const orphan = new PostgresRlsPolicy({
-      name: 'read_orphan_deadbeef',
-      prefix: 'read_orphan',
+      naming: parseNaming('read_orphan_deadbeef', 'read_orphan'),
       tableName: 'missing_table',
       namespaceId: SCHEMA_NAME,
       operation: 'select',

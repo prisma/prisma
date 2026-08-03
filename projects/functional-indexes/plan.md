@@ -49,10 +49,10 @@ The identity switch, done entirely beneath the authoring surface (existing `@@in
 ### 4 — `infer-round-trip`
 
 - D8 in full: index managed re-detection (recompute-and-match), `map:` fallback, policy block emission (head sanitization + dedup, `@@map` always, verbatim bodies), `@@rls` emission.
-- Slice-1 carry-over (dispatch-3 review): the authoring-time duplicate-content index guard (`validateStorageSemantics`) rejects byte-identical twins under different names. Legal in Postgres, so a database carrying them must still be signable — key the guard by name for exact-mode indexes (or equivalent) when infer starts emitting them.
-- Slice-1 carry-over: infer currently skips expression-carrying AND `where`-carrying index nodes (self-consistency — no authoring surface could hold the bodies); both skip sites are comment-marked for this slice. The Supabase reference contract re-adopts its partial indexes here.
+- Slice-1 carry-over (dispatch-3 review): the authoring-time duplicate-content index guard (`validateStorageSemantics`) rejects byte-identical twins under different names. Legal in Postgres, so a database carrying them must still be signable — key the guard by name for exact-mode indexes (or equivalent) when infer starts emitting them. **Landed** in `74117e56f` (exact entries name-identified; the named-object check carries name collisions).
+- Slice-1 carry-over: infer currently skips expression-carrying AND `where`-carrying index nodes (self-consistency — no authoring surface could hold the bodies); both skip sites are comment-marked for this slice. The Supabase reference contract re-adopts its partial indexes here. **Landed** in `8951c1345` (gates deleted, full-matrix emission) and `d4fe1f5eb` (Supabase re-adoption).
 - DoD-2 sign-the-database e2e, DoD-3 transition e2e, DoD-4 upgrade e2e; scenario A coverage completes the A–J matrix (DoD-5 sweep test list checked off here).
-- Release-notes draft for the breaking change + upgrade instructions (per the `record-upgrade-instructions` skill).
+- Release-notes draft for the breaking change + upgrade instructions (per the `record-upgrade-instructions` skill). **Deviation record:** the upgrade-instruction entries are complete (both skill clusters, 0.16-to-0.17); the committed `docs/releases/v0.17.0.md` is deliberately NOT authored in this slice — repo convention authors it at release-cut time via the `draft-release-notes` skill, which enumerates all merged PRs (spec § 7).
 
 ## Close-out (required)
 

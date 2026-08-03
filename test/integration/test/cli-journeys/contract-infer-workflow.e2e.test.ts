@@ -28,6 +28,11 @@ const CREATE_USER_TABLE = `
     id int4 PRIMARY KEY,
     email text NOT NULL
   );
+  CREATE ROLE workflow_app_user;
+  ALTER TABLE "user" ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY user_self_read ON "user"
+    AS PERMISSIVE FOR SELECT TO workflow_app_user
+    USING (id = 1);
 `;
 
 withTempDir(({ createTempDir }) => {
@@ -47,7 +52,7 @@ withTempDir(({ createTempDir }) => {
 
         swapPslContract(ctx, 'contract-additive');
         const stalePsl = readFileSync(join(ctx.testDir, 'contract.prisma'), 'utf-8');
-        expect(stalePsl, 'AB.pre: stale psl differs from db').toContain('name');
+        expect(stalePsl, 'AB.pre: stale psl differs from db').toMatch(/\bname\s+String/);
 
         const infer = await runContractInfer(ctx);
         expect(infer.exitCode, `AB.01: contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
@@ -56,7 +61,7 @@ withTempDir(({ createTempDir }) => {
         );
         const inferredPsl = readFileSync(join(ctx.testDir, 'contract.prisma'), 'utf-8');
         expect(inferredPsl, 'AB.01: inferred psl includes pragma').toContain('// use prisma-next');
-        expect(inferredPsl, 'AB.01: infer removes stale field').not.toContain('name');
+        expect(inferredPsl, 'AB.01: infer removes stale field').not.toMatch(/\bname\s+String/);
         expect(inferredPsl, 'AB.01: infer keeps live field').toContain('email String');
 
         const emit = await runContractEmit(ctx);

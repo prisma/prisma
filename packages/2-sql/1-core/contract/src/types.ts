@@ -54,6 +54,7 @@ export {
   UniqueConstraint,
   type UniqueConstraintInput,
 } from './ir/unique-constraint';
+export { indexInputFromSerialized, type SerializedIndex } from './serialized-index';
 
 export type ForeignKeyOptions = {
   readonly name?: string;

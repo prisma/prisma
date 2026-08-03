@@ -44,7 +44,7 @@ function defineTestContract<
 }
 
 describe('index naming at TS lowering', () => {
-  it('unnamed index lowers managed with the default prefix and a content-hash wire name', () => {
+  it('unnamed index lowers wire-named with the default prefix and a content-hash wire name', () => {
     const contract = defineTestContract({
       models: {
         User: model('User', {
@@ -69,7 +69,7 @@ describe('index naming at TS lowering', () => {
     ]);
   });
 
-  it('named index lowers managed with the authored name as prefix', () => {
+  it('named index lowers wire-named with the authored name as prefix', () => {
     const contract = defineTestContract({
       models: {
         User: model('User', {
@@ -131,7 +131,7 @@ describe('index naming at TS lowering', () => {
     ]);
   });
 
-  it('FK-backing index materializes managed with the default FK-index name as prefix', () => {
+  it('FK-backing index materializes wire-named with the default FK-index name as prefix', () => {
     const User = model('User', {
       fields: {
         id: field.column(int4Column).id(),
@@ -181,7 +181,7 @@ describe('index naming at TS lowering', () => {
 });
 
 describe('constraints.index — full matrix', () => {
-  it('the expression overload lowers a managed expression index', () => {
+  it('the expression overload lowers a wire-named expression index', () => {
     const contract = defineTestContract({
       models: {
         User: model('User', {
