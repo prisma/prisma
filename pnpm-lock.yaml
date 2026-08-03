@@ -149,8 +149,8 @@ importers:
         specifier: ^34.1.3
         version: 34.1.3
       '@codingame/monaco-vscode-theme-service-override':
-        specifier: ^25.1.2
-        version: 25.1.2
+        specifier: ^34.1.3
+        version: 34.1.3
       '@prisma-next/adapter-postgres':
         specifier: workspace:0.16.0
         version: link:../../packages/3-targets/6-adapters/postgres
@@ -5658,6 +5658,9 @@ packages:
 
   '@codingame/monaco-vscode-theme-service-override@25.1.2':
     resolution: {integrity: sha512-hsTwl6YYTiheFuQMmCmiEGLIdIdgYaf8Z85XWyxe6YgPtDaYGnp0fGSOXKA9/bf0JtuynzoLKtUUfDupK/A7Tw==}
+
+  '@codingame/monaco-vscode-theme-service-override@34.1.3':
+    resolution: {integrity: sha512-WmIngP/zi1c3rXOpqfu2fzB6CLbQ386yoRXNWBecNptf9DawrKcw40ZEqPhdt5MWts8BPYLFxYQaGWOB6cEt/Q==}
 
   '@codingame/monaco-vscode-view-banner-service-override@25.1.2':
     resolution: {integrity: sha512-zhujHd1PQ6rRXsC2OQGrx/282G2v3lpPFl9heDFGKzpdj5119SgcW+B9p/MwJ1qF3LJpuRRgefNiQtqC/KT1eA==}
@@ -11261,6 +11264,11 @@ snapshots:
     dependencies:
       '@codingame/monaco-vscode-api': 25.1.2
       '@codingame/monaco-vscode-files-service-override': 25.1.2
+
+  '@codingame/monaco-vscode-theme-service-override@34.1.3':
+    dependencies:
+      '@codingame/monaco-vscode-api': 34.1.3
+      '@codingame/monaco-vscode-files-service-override': 34.1.3
 
   '@codingame/monaco-vscode-view-banner-service-override@25.1.2':
     dependencies:
