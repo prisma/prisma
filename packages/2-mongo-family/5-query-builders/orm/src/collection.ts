@@ -16,13 +16,16 @@ import type {
 } from '@internal/mongo-contract';
 import type {
   AnyMongoCommand,
+  MongoFieldShape,
   MongoFilterExpr,
   MongoQueryPlan,
+  MongoResultShape,
 } from '@internal/mongo-query-ast/execution';
 import {
   DeleteManyCommand,
   FindOneAndDeleteCommand,
   FindOneAndUpdateCommand,
+  freezeMongoResultShape,
   InsertManyCommand,
   InsertOneCommand,
   isMongoFilterExpr,
@@ -30,9 +33,14 @@ import {
   MongoFieldFilter,
   UpdateManyCommand,
 } from '@internal/mongo-query-ast/execution';
+import {
+  contractFieldToMongoFieldShape,
+  contractModelToMongoResultShape,
+} from '@internal/mongo-query-builder';
 import type { MongoValue } from '@internal/mongo-value';
 import { MongoParamRef } from '@internal/mongo-value';
 import { blindCast, castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import type { MongoIncludeExpr } from './collection-state';
 import { emptyCollectionState, type MongoCollectionState } from './collection-state';
@@ -350,10 +358,10 @@ class MongoCollectionImpl<
     );
     const document = this.#toDocument(normalized);
     const command = new InsertOneCommand(this.#collectionName, document);
-    const results = await this.#drainPlan(command);
+    const results = await this.#drainPlan(command, this.#insertOneResultShape());
     const insertedId = blindCast<
       { insertedId: unknown },
-      'InsertOneCommand runtime result exposes the server-assigned insertedId'
+      'InsertOneCommand runtime result exposes the server-assigned insertedId, decoded via the _id codec'
     >(results[0]).insertedId;
     return blindCast<
       IncludedRow<TContract, ModelName, TIncludes>,
@@ -379,10 +387,10 @@ class MongoCollectionImpl<
       );
       const documents = normalizedRows.map((d) => self.#toDocument(d));
       const command = new InsertManyCommand(self.#collectionName, documents);
-      const results = await self.#drainPlan(command);
+      const results = await self.#drainPlan(command, self.#insertManyResultShape());
       const insertedIds = blindCast<
         { insertedIds: readonly unknown[] },
-        'InsertManyCommand runtime result exposes insertedIds in input order'
+        'InsertManyCommand runtime result exposes insertedIds in input order, decoded via the _id codec'
       >(results[0]).insertedIds;
       for (let i = 0; i < normalizedRows.length; i++) {
         yield blindCast<
@@ -427,13 +435,13 @@ class MongoCollectionImpl<
     const filter = this.#mergeFilters();
     const updateDoc = this.#resolveUpdateDoc(dataOrCallback);
     const command = new FindOneAndUpdateCommand(this.#collectionName, filter, updateDoc, false);
-    const results = await this.#drainPlan(command);
+    const results = await this.#drainPlan(command, this.#modelResultShape());
     const result = results[0];
     return result === undefined
       ? null
       : blindCast<
           IncludedRow<TContract, ModelName, TIncludes>,
-          'FindOneAndUpdateCommand plan has no resultShape; collection update exposes its raw driver document as IncludedRow'
+          'FindOneAndUpdateCommand plan carries the model resultShape; the runtime decodes the returned document like a read'
         >(result);
   }
 
@@ -487,13 +495,13 @@ class MongoCollectionImpl<
     this.#rejectIncludes('delete');
     const filter = this.#mergeFilters();
     const command = new FindOneAndDeleteCommand(this.#collectionName, filter);
-    const results = await this.#drainPlan(command);
+    const results = await this.#drainPlan(command, this.#modelResultShape());
     const result = results[0];
     return result === undefined
       ? null
       : blindCast<
           IncludedRow<TContract, ModelName, TIncludes>,
-          'FindOneAndDeleteCommand plan has no resultShape; collection delete exposes its raw driver document as IncludedRow'
+          'FindOneAndDeleteCommand plan carries the model resultShape; the runtime decodes the returned document like a read'
         >(result);
   }
 
@@ -600,10 +608,10 @@ class MongoCollectionImpl<
     }
 
     const command = new FindOneAndUpdateCommand(this.#collectionName, filter, updateDoc, true);
-    const results = await this.#drainPlan(command);
+    const results = await this.#drainPlan(command, this.#modelResultShape());
     return blindCast<
       IncludedRow<TContract, ModelName, TIncludes>,
-      'FindOneAndUpdateCommand upsert plan has no resultShape; collection upsert exposes its raw driver document as IncludedRow'
+      'FindOneAndUpdateCommand upsert plan carries the model resultShape; the runtime decodes the returned document like a read'
     >(results[0]);
   }
 
@@ -656,12 +664,17 @@ class MongoCollectionImpl<
     );
   }
 
-  #wrapCommand(command: AnyMongoCommand): MongoQueryPlan<unknown> {
-    return { collection: this.#collectionName, command, meta: this.#planMeta() };
+  #wrapCommand(command: AnyMongoCommand, resultShape?: MongoResultShape): MongoQueryPlan<unknown> {
+    return {
+      collection: this.#collectionName,
+      command,
+      meta: this.#planMeta(),
+      ...ifDefined('resultShape', resultShape),
+    };
   }
 
-  async #drainPlan(command: AnyMongoCommand): Promise<unknown[]> {
-    const plan = this.#wrapCommand(command);
+  async #drainPlan(command: AnyMongoCommand, resultShape?: MongoResultShape): Promise<unknown[]> {
+    const plan = this.#wrapCommand(command, resultShape);
     const result = this.#executor.execute(plan);
     const rows: unknown[] = [];
     for await (const row of result) {
@@ -676,6 +689,38 @@ class MongoCollectionImpl<
       'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
     >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
     return model?.fields ?? {};
+  }
+
+  #idFieldShape(): MongoFieldShape {
+    const idField = this.#modelFields()['_id'];
+    return idField
+      ? contractFieldToMongoFieldShape(idField)
+      : Object.freeze({ kind: 'unknown' as const });
+  }
+
+  #insertOneResultShape(): MongoResultShape {
+    return freezeMongoResultShape({
+      kind: 'document',
+      fields: { insertedId: this.#idFieldShape() },
+    });
+  }
+
+  #insertManyResultShape(): MongoResultShape {
+    return freezeMongoResultShape({
+      kind: 'document',
+      fields: { insertedIds: { kind: 'array', nullable: false, element: this.#idFieldShape() } },
+    });
+  }
+
+  #modelResultShape(): MongoResultShape {
+    const model = blindCast<
+      MongoModelDefinition | undefined,
+      'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
+    >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
+    if (!model) {
+      return Object.freeze({ kind: 'unknown' as const });
+    }
+    return contractModelToMongoResultShape(model);
   }
 
   #compileWhereObject(data: Record<string, unknown>): MongoFilterExpr[] {
