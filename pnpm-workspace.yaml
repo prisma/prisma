@@ -23,7 +23,7 @@ catalog:
   mongodb: ^7.4.0
   mongodb-memory-server: 11.2.0
   pg: 8.22.0
-  tsdown: 0.22.12
+  tsdown: 0.22.14
   tsx: ^4.23.0
   typescript: 5.9.3
   vite: 8.1.0
