@@ -17,6 +17,16 @@ function writeManifest(dependencies: Record<string, string>): string {
   return configPath;
 }
 
+/** The error `run` throws, so the structured fields can be matched as a whole. */
+function caught(run: () => unknown): unknown {
+  try {
+    run();
+  } catch (error) {
+    return error;
+  }
+  throw new Error('expected the call to throw');
+}
+
 beforeEach(() => {
   project = mkdtempSync(join(tmpdir(), 'pn-project-import-root-'));
 });
@@ -75,17 +85,62 @@ describe('projectImportRoot', () => {
     writeFileSync(join(project, 'package.json'), '{ name: "app" }');
     writeFileSync(configPath, 'export default {};');
 
-    let thrown: unknown;
-    try {
-      projectImportRoot(configPath);
-    } catch (error) {
-      thrown = error;
-    }
+    const thrown = caught(() => projectImportRoot(configPath));
 
     expect(thrown).toBeInstanceOf(CliStructuredError);
     expect(thrown).toMatchObject({
       message: `Failed to parse ${join(project, 'package.json')}`,
       why: expect.stringContaining('not valid JSON'),
+      meta: { path: join(project, 'package.json') },
+    });
+  });
+
+  it('reads the facade from devDependencies as well as dependencies', () => {
+    const configPath = join(project, 'prisma-next.config.ts');
+    writeFileSync(
+      join(project, 'package.json'),
+      JSON.stringify({ name: 'app', devDependencies: { '@prisma/orm-sqlite': '0.16.0' } }),
+    );
+    writeFileSync(configPath, 'export default {};');
+
+    expect(projectImportRoot(configPath)).toEqual({
+      mode: 'facade',
+      facade: '@prisma/orm-sqlite',
+    });
+  });
+
+  it('stays on the internal root when no manifest exists anywhere above the config', () => {
+    // `mkdtemp` under the OS temp dir has no manifest above it, so the walk
+    // reaches the filesystem root without finding one.
+    const configPath = join(project, 'prisma-next.config.ts');
+    writeFileSync(configPath, 'export default {};');
+
+    expect(projectImportRoot(configPath)).toEqual({ mode: 'internal' });
+  });
+
+  it('rejects a manifest that is valid JSON but not an object', () => {
+    const configPath = join(project, 'prisma-next.config.ts');
+    writeFileSync(join(project, 'package.json'), '["not", "a", "manifest"]');
+    writeFileSync(configPath, 'export default {};');
+
+    expect(() => projectImportRoot(configPath)).toThrow(CliStructuredError);
+    expect(caught(() => projectImportRoot(configPath))).toMatchObject({
+      message: `Failed to read ${join(project, 'package.json')}`,
+      why: expect.stringContaining('not a JSON object'),
+      meta: { path: join(project, 'package.json') },
+    });
+  });
+
+  it('reports an unreadable manifest instead of walking past it', () => {
+    // A directory named `package.json` makes `readFileSync` fail with EISDIR,
+    // which is a read failure rather than "there is no manifest here".
+    const configPath = join(project, 'prisma-next.config.ts');
+    mkdirSync(join(project, 'package.json'));
+    writeFileSync(configPath, 'export default {};');
+
+    expect(() => projectImportRoot(configPath)).toThrow(CliStructuredError);
+    expect(caught(() => projectImportRoot(configPath))).toMatchObject({
+      why: expect.stringContaining('could not be read'),
       meta: { path: join(project, 'package.json') },
     });
   });
