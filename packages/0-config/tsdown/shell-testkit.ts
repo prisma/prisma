@@ -238,14 +238,15 @@ function shellMapModules(installedPackageDir: string): ReadonlySet<string> {
 
 /**
  * Internal package names that published dists still carry as *string
- * constants* (not import specifiers), recorded as of TML-3122.
+ * constants* (not import specifiers), recorded when the shells were first
+ * published.
  *
  * Most are emitter input: the specifiers the emitter and the migration
  * renderers hand to their import-specifier resolver before writing a user's
- * generated contract and migration files. TML-3123 made that resolution
- * configurable but left the default returning them unchanged, so the
- * constants necessarily remain in the dist; the flip to a published default
- * retires them. The rest name internal packages inside diagnostics,
+ * generated contract and migration files. That resolution is configurable, but
+ * its default still returns them unchanged, so the constants necessarily
+ * remain in the dist; changing the default to the published names retires
+ * them. The rest name internal packages inside diagnostics,
  * config-validation messages, and telemetry identifiers, which go away with
  * the `@prisma-next/*` names themselves.
  *

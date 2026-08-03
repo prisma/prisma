@@ -169,8 +169,10 @@ export async function runInit(
   // The one place `init` decides which package names the scaffold carries.
   // Everything downstream — the files below and the dependency `runInstall`
   // adds — resolves through this, so the imports written and the package
-  // installed cannot disagree. TML-3126 replaces the constant with a real
-  // root; until then it leaves every specifier as authored.
+  // installed cannot disagree. It is a constant for now, leaving every
+  // specifier as authored, because the name `runInstall` adds and the name the
+  // scaffold imports have to change in the same step; replacing it with a real
+  // import root is that step.
   const resolveImportSpecifier = keepInternalSpecifiers;
 
   const filesToWrite: FileEntry[] = [

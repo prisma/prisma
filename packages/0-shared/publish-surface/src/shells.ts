@@ -7,7 +7,7 @@
  *
  * Consumed by the shell build (`@prisma-next/tsdown/shell-build`), by the
  * emitters' import-root resolution (`./import-roots`), and later by the
- * publish-surface lint (TML-3124).
+ * publish-surface lint.
  */
 
 /**

@@ -261,7 +261,7 @@ async function resolveRemovePreviousFacade(opts: {
   // reads a `package.json` an *earlier* `init` wrote, possibly against a
   // different root. Once more than one root can reach a user's project this
   // has to look for every name a previous run could have installed, not the
-  // one this run would write (TML-3126).
+  // one this run would write.
   const otherFacade = targetPackageName(otherTarget);
   let parsed: Record<string, unknown>;
   try {
