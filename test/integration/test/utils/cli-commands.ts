@@ -22,3 +22,8 @@ export { createMigrationPlanCommand } from '@internal/cli/commands/migration-pla
 export { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
 export { format } from '@internal/psl-parser/format';
 export { printPsl } from '@internal/psl-printer';
+// The hashing a journey re-computes to check what the CLI wrote. Same reason as
+// the commands above: one copy, so the hash the test computes is the hash the
+// command computed.
+export { computeIndexContentHash, normalizeSqlBody } from '@internal/sql-schema-ir/naming';
+export { computeContentHash } from '@internal/target-postgres/rls-canonicalize';
