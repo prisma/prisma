@@ -23,11 +23,11 @@ That facade pulls in everything else — the framework, the SQL family, the Post
 └── @prisma/orm-toolchain       CLI (bin), emitter, config-loader, LSP
 ```
 
-Every published package lives under the single `@prisma` scope. The full public surface is **17 packages** — 3 database facades, 6 extension packs, 7 platform packages, the `prisma` bin shim, and nothing else. Every other workspace package is `"private": true`: it exists for code organization and layering guardrails, and reaches npm only as a subpath entrypoint of a published package (for example, the SQL runtime is importable as `@prisma/orm-family-sql/runtime`).
+Every published package lives under the single `@prisma` scope, apart from the unscoped bin shim. The full public surface is **17 packages** — 3 database facades, 6 extension packs, 7 platform packages, the bin shim, and nothing else. Every other workspace package is `"private": true`: it exists for code organization and layering guardrails, and reaches npm only as a subpath entrypoint of a published package (for example, the SQL runtime is importable as `@prisma/orm-family-sql/runtime`).
 
 | Published package | Role |
 |---|---|
-| `prisma` | bin-only shim carrying the `prisma` command (ADR 211 mechanics) |
+| `prisma-next` | bin-only shim carrying the `prisma-next` command (ADR 211 mechanics) |
 | `@prisma/orm-postgres`, `orm-sqlite`, `orm-mongo` | database facades — an app installs exactly one |
 | `@prisma/orm-extension-postgis`, `-pgvector`, `-paradedb`, `-supabase`, `-arktype-json`, `-middleware-cache` | optional capability packs, additive installs |
 | `@prisma/orm-framework` | target-agnostic runtime: contract, components, authoring surface |
@@ -51,7 +51,9 @@ That holds only if the facade has a name for everything an application reaches, 
 
 Each of those is a re-export of the platform package that owns the module, never a copy — the identity rule below governs the facade exactly as it governs a platform shell. Where the facade's own wiring already owns a name, the republished surface takes a qualified one: `runtime` is the facade's Postgres client and `family-runtime` is the SQL family's.
 
-A republished package brings its whole subpath surface, so the list is what applications reach and no more. Migration tooling and, on the SQL side, the driver stay out: their consumers are extension packs and migration-tooling harnesses, which build against the platform packages anyway, and adding them would publish dozens of subpaths that no application imports.
+A republished package brings its whole subpath surface, so the list is what applications reach and no more. Two platform surfaces stay out: the toolchain's migration-tooling package (`@prisma/orm-toolchain/migration-tools`) and the target's driver (`@prisma/orm-target-postgres/driver`). Their consumers are extension packs and migration-tooling harnesses, which build against the platform packages anyway, and republishing them would add dozens of subpaths that no application imports.
+
+The facade's own `/migration` entrypoint in the table above is not that surface. It is the facade's own wiring — the small helper a scaffolded migration file imports — and it does not republish the toolchain's migration tooling.
 
 The `prisma-next` command arrives the same way. A package manager puts only a package's *direct* dependencies on `PATH`, so the toolchain's bin is not runnable from an install that reaches the toolchain transitively. Each facade therefore declares its own `prisma-next` bin: a one-line launcher that runs the toolchain's single published copy of the program.
 
@@ -59,7 +61,7 @@ The `prisma-next` command arrives the same way. A package manager puts only a pa
 
 The package boundary states the audience, so "is this public API?" needs no documentation lookup:
 
-- **App developers** touch the facades, the extensions, and the `prisma` bin. Nothing else appears in a tutorial, and nothing else appears in an application's `package.json`.
+- **App developers** touch the facades, the extensions, and the `prisma-next` bin. Nothing else appears in a tutorial, and nothing else appears in an application's `package.json`.
 - **Generated code** imports only from packages the application directly depends on — never from transitive dependencies, which strict package managers refuse to resolve and which the application has no version contract with. The facade re-exports the contract surfaces as its own entrypoints (`@prisma/orm-postgres/contract`, `@prisma/orm-postgres/components`), and the emitter picks the import root by reading the application's own manifest: a project that depends on a facade is emitted against that facade, one that depends on the platform packages is emitted against those, and one that depends on neither keeps the names it already had. Nothing configures this, because the manifest already states it and a separate setting could only disagree with what is installed.
 - **Extension authors** build against the platform packages (`orm-framework`, the families, the targets), which they declare as ordinary dependencies of their extension. So do decomposed installs. Applications reach the same modules through their facade's entrypoints, so the two never end up with separate copies.
 - **Nobody** installs a private workspace package; they are not on npm.
@@ -116,11 +118,13 @@ The consolidation boundaries follow the domain directories, and the dependency g
 
 The split exists for deployment weight: a serverless bundle traces the runtime import graph and should not drag in a compiler toolchain.
 
-The split is a necessary condition for that, not yet a sufficient one. Packages in the runtime layers still reach tooling — the families and targets depend on the emitter and migration tooling, and the facades depend on the CLI to carry the `prisma` command — so today a deployed application's dependency graph does include `@prisma/orm-toolchain`, and bundle weight still relies on tree-shaking. Making the separation structural requires moving those runtime-bound surfaces out of the tooling layer, which is the emitter-placement question left open below. The package boundary is drawn where it will need to be; the dependencies have yet to follow it.
+The split is a necessary condition for that, not yet a sufficient one. Packages in the runtime layers still reach tooling — the families and targets depend on the emitter and migration tooling, and the facades depend on the CLI to carry the `prisma-next` command — so today a deployed application's dependency graph does include `@prisma/orm-toolchain`, and bundle weight still relies on tree-shaking. Making the separation structural requires moving those runtime-bound surfaces out of the tooling layer, which is the emitter-placement question left open below. The package boundary is drawn where it will need to be; the dependencies have yet to follow it.
 
-## The `prisma` bin
+## The `prisma-next` bin
 
-The unscoped `prisma` package is a bin-only shim over `@prisma/orm-toolchain`'s CLI, using the mechanics of ADR 211: verbatim dist copy, mirrored runtime deps, a `bin` field, and no `exports`/`main`/`types` — it is a distribution vehicle for the `prisma` command, never an import target. Programmatic consumers import `@prisma/orm-toolchain` subpaths.
+The unscoped `prisma-next` package is a bin-only shim over `@prisma/orm-toolchain`'s CLI, using the mechanics of ADR 211: verbatim dist copy, mirrored runtime deps, a `bin` field, and no `exports`/`main`/`types` — it is a distribution vehicle for the `prisma-next` command, never an import target. Programmatic consumers import `@prisma/orm-toolchain` subpaths.
+
+The command ships as `prisma-next` everywhere today: the shim package, its `bin` field, and each facade's own launcher all use that one name. Taking over the shorter `prisma` name is a separate, pre-RC roadmap task, tracked as a deferred decision below; nothing in this ADR depends on it landing.
 
 ## Repository layout: `packages/9-public/`
 
@@ -128,7 +132,7 @@ Publishability is a directory property. Every publishable package lives under `p
 
 ```text
 packages/9-public/
-  prisma/                  # bin-only shim (unscoped)
+  prisma-next/             # bin-only shim (unscoped)
   @prisma/
     orm-postgres/          # facades (wiring code lives here)
     orm-sqlite/
@@ -157,7 +161,7 @@ packages/9-public/
 ## Deferred decisions
 
 1. **Emitter placement.** The emitter sits in the tooling layer, but the SQL family and config-loader depend on it and emitted contracts import it. Either it moves into `orm-framework`, or its type-only surface is split from its code-generating surface. Requires an inventory of what emitted code actually uses.
-2. **The `prisma` name.** The shim's target name is currently published by the classic Prisma ORM. Until the succession is coordinated, the shim ships under an interim name; nothing else in this ADR depends on the outcome.
+2. **The `prisma` name.** The shorter `prisma` name is currently published by the classic Prisma ORM. Until the succession is coordinated, the shim and the command both ship as `prisma-next`. Renaming them is a pre-RC roadmap task on its own; nothing else in this ADR depends on the outcome.
 3. **Language-server distribution.** It ships inside `orm-toolchain`. If the VS Code extension needs a standalone artifact, that is a build output of the extension, not an additional npm package.
 
 ## Alternatives considered
