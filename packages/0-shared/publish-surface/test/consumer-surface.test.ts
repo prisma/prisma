@@ -22,7 +22,11 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { createImportSpecifierResolver, type ImportRoot } from '../src/import-roots';
+import {
+  createImportSpecifierResolver,
+  type ImportRoot,
+  importedSpecifiers,
+} from '../src/import-roots';
 import { publicShells, type ShellName } from '../src/shells';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
@@ -41,8 +45,6 @@ const EXCLUDED_DIRECTORIES = new Set([
   '.turbo',
   'build',
 ]);
-const MODULE_SPECIFIER = /\b(?:from|import)\s*\(?\s*(['"])([^'"\n]+)\1/g;
-
 function* walk(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
     if (EXCLUDED_DIRECTORIES.has(entry)) continue;
@@ -56,8 +58,8 @@ function consumerSpecifiers(): ReadonlySet<string> {
   const specifiers = new Set<string>();
   for (const root of consumerRoots) {
     for (const file of walk(join(repoRoot, root))) {
-      for (const [, , specifier] of readFileSync(file, 'utf8').matchAll(MODULE_SPECIFIER)) {
-        if (specifier?.startsWith('@prisma-next/')) specifiers.add(specifier);
+      for (const specifier of importedSpecifiers(readFileSync(file, 'utf8'))) {
+        if (specifier.startsWith('@prisma-next/')) specifiers.add(specifier);
       }
     }
   }

@@ -440,4 +440,27 @@ describe('transitiveImports', () => {
   it('accepts a genuinely import-free source', () => {
     expect(transitiveImports('export type X = 1;', postgresFacade)).toEqual([]);
   });
+
+  it('accepts a source whose only "import" is prose in a comment', () => {
+    const source = [
+      '// Generated code must not import internals.',
+      '// The emitter will import the contract types it needs.',
+      '/* Nothing here imports anything; the word import is prose. */',
+      'export type X = 1;',
+    ].join('\n');
+
+    expect(transitiveImports(source, postgresFacade)).toEqual([]);
+  });
+
+  it('accepts prose that names both keywords without a quoted specifier', () => {
+    const source = '// Consumers import from the facade, never from a transitive dependency.\n';
+
+    expect(transitiveImports(source, postgresFacade)).toEqual([]);
+  });
+
+  it('still refuses a bare side-effect import it could not read', () => {
+    expect(() =>
+      transitiveImports('import `@prisma-next/postgres/runtime`;', postgresFacade),
+    ).toThrow(/pass vacuously/);
+  });
 });

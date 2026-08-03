@@ -258,8 +258,20 @@ export function createScaffoldSpecifierResolver(root: ScaffoldImportRoot): Impor
 // quoting in the renderers cannot silently empty the scan.
 const MODULE_SPECIFIER = /\b(?:from|import)\s*\(?\s*(['"])([^'"\n]+)\1/g;
 
-/** True when `source` contains anything that looks like an import at all. */
-const HAS_IMPORT_SYNTAX = /(?:^|[\s(;])import[\s(]/;
+/**
+ * True when `source` contains module syntax that must carry a quoted
+ * specifier: `import '<s>'`, `import('<s>')`, or an import/export clause
+ * followed by `from '<s>'`.
+ *
+ * Deliberately independent of {@link MODULE_SPECIFIER} — it exists to notice
+ * when that scanner has stopped matching, so it accepts any quote character,
+ * including the backtick a renderer must never emit. It does still require a
+ * quote: the word "import" on its own appears in prose and comments all the
+ * time, and treating that as module syntax made the check below fire on files
+ * that have no imports at all.
+ */
+const HAS_IMPORT_SYNTAX =
+  /(?:^|[\s(;}])import\s*[('"`]|(?:^|[\s;}])(?:import|export)\b[\w$*,{}\s]*?\bfrom\s*['"`]/;
 
 /** The module specifiers a generated source file names. */
 export function importedSpecifiers(source: string): string[] {
