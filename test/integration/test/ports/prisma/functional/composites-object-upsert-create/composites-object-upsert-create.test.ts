@@ -13,10 +13,11 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //
 // prisma-next: `.where({ _id }).upsert({ create, update: {} })`.
 //
-// Like create(), upsert() returns the input merged with the wire-level `_id`
-// (an ObjectId instance, not the decoded hex string) and does NOT re-read the
-// stored document — so the shape is asserted via toMatchObject (content/country)
-// plus `_id instanceof ObjectId`, exactly as the create port does.
+// Like create(), upsert() returns the input merged with the server-assigned
+// `_id` and does NOT re-read the stored document — so the shape is asserted via
+// toMatchObject (content/country) plus `_id`, exactly as the create port does.
+// Upstream asserts `id: expect.any(String)`; prisma-next decodes write results
+// through the same codecs as reads (#29879), so `_id` is a hex string here too.
 //
 // Upstream "set null" for the required variant throws at runtime; in prisma-next the
 // required constraint is enforced at the type level (@ts-expect-error holds) and
@@ -53,7 +54,7 @@ describe('ports/prisma/functional/composites/object/upsert-create', () => {
               upvotes: [{ userId: '10', vote: true }],
             },
           });
-          expect(comment._id).toBeInstanceOf(ObjectId);
+          expect(comment._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );

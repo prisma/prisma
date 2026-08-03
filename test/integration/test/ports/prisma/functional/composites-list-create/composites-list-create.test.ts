@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongodb';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withMongoPort } from '../../../_harness/mongo';
 import type { Contract } from './_fixture/generated/contract';
@@ -45,7 +44,7 @@ describe('ports/prisma/functional/composites/list/create', () => {
             },
           ],
         });
-        expect(comment._id).toBeInstanceOf(ObjectId);
+        expect(comment._id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -73,7 +72,7 @@ describe('ports/prisma/functional/composites/list/create', () => {
             },
           ],
         });
-        expect(comment._id).toBeInstanceOf(ObjectId);
+        expect(comment._id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -135,7 +134,7 @@ describe('ports/prisma/functional/composites/list/create', () => {
             },
           ],
         });
-        expect(comment._id).toBeInstanceOf(ObjectId);
+        expect(comment._id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );

@@ -67,7 +67,7 @@ describe('ports/prisma/functional/composites/list/upsert-update', () => {
           contents: [{ text: 'Goodbye World', upvotes: [{ userId: '42', vote: false }] }],
           country: 'Mars',
         });
-        expect(comment._id).toBeInstanceOf(ObjectId);
+        expect(comment._id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );

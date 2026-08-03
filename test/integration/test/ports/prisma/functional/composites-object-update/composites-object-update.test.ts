@@ -63,7 +63,7 @@ describe('ports/prisma/functional/composites/object/update', () => {
               upvotes: [{ userId: '42', vote: false }],
             },
           });
-          expect(comment?._id).toBeInstanceOf(ObjectId);
+          expect(comment?._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
@@ -91,7 +91,7 @@ describe('ports/prisma/functional/composites/object/update', () => {
               upvotes: [{ userId: '42', vote: false }],
             },
           });
-          expect(comment?._id).toBeInstanceOf(ObjectId);
+          expect(comment?._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
@@ -173,7 +173,7 @@ describe('ports/prisma/functional/composites/object/update', () => {
               ],
             },
           });
-          expect(comment?._id).toBeInstanceOf(ObjectId);
+          expect(comment?._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
@@ -203,7 +203,7 @@ describe('ports/prisma/functional/composites/object/update', () => {
               upvotes: [{ userId: '42', vote: false }],
             },
           });
-          expect(comment?._id).toBeInstanceOf(ObjectId);
+          expect(comment?._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
@@ -255,7 +255,7 @@ describe('ports/prisma/functional/composites/object/update', () => {
             content: null,
             country: 'France',
           });
-          expect(comment?._id).toBeInstanceOf(ObjectId);
+          expect(comment?._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
@@ -343,7 +343,7 @@ describe('ports/prisma/functional/composites/object/update', () => {
             content: null,
             country: 'France',
           });
-          expect(comment?._id).toBeInstanceOf(ObjectId);
+          expect(comment?._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
