@@ -20,6 +20,7 @@ Legend:
 | `Decimal` scalar (maps to string / text) | ✅ | 🟡 | — | `test/integration/test/scalar-lists/psl-list-roundtrip.integration.test.ts` (`DateTime[]/Bytes[]/Decimal[] … round-trip element values`) |
 | `DateTime` scalar | 🟡 | ✅ | 🟡 | `test/e2e/framework/test/sqlite/sql-builder.test.ts` (`datetime survives insert and select`) |
 | `Json` scalar (jsonb / json) | ✅ | ✅ | — | `test/e2e/framework/test/dml.test.ts` (`supports typed jsonb/json values`); `test/e2e/framework/test/sqlite/sql-builder.test.ts` (`json survives insert and select`) |
+| `Uint8Array` values nested in `Json` serialize as base64 | ❌ | 🟡 | — | `test/integration/test/ports/prisma/functional/issues-29267-uint8array-in-json/issues-29267-uint8array-in-json.test.ts` |
 | `Bytes` scalar | 🟡 | 🟡 | — | |
 | `ObjectId` scalar (Mongo `_id`) | — | — | ✅ | `test/integration/test/mongo/orm.test.ts` |
 | Scalar-list columns (`String[]`, `Int[]`, …) | ✅ | — | ✅ | `test/integration/test/scalar-lists/orm-list-read.integration.test.ts`; `test/integration/test/scalar-lists/psl-list-mongo-parity.integration.test.ts` |

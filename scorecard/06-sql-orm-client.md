@@ -25,12 +25,14 @@ Legend:
 | `createAll` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/create.test.ts`; `test/e2e/framework/test/sqlite/orm.test.ts` (`createAll`) |
 | `createAndCount` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/create.test.ts` (`createAndCount`) |
 | `update` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/update.test.ts`; `test/e2e/framework/test/sqlite/orm.test.ts` (`update`) |
+| Empty-data `update` returns the matched row | ❌ | 🟡 | — | `test/integration/test/ports/prisma/functional/extended-where/extended-where.test.ts` (`update with where 1 unique (PK)`) |
 | `updateAll` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/update.test.ts` (`updateAll`) |
 | `updateAndCount` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/update.test.ts` (`updateAndCount`) |
 | `delete` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/delete.test.ts` (`delete`) |
 | `deleteAll` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/delete.test.ts` (`deleteAll`) |
 | `deleteAndCount` | ✅ | ✅ | — | `test/integration/test/sql-orm-client/delete.test.ts` (`deleteAndCount`); `test/e2e/framework/test/sqlite/orm.test.ts` (`deleteAndCount`) |
 | `upsert` (conflict fallback + explicit criteria) | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/upsert.test.ts` |
+| Mutation result reload by `Bytes` primary/unique key | ❌ | 🟡 | — | `test/integration/test/ports/prisma/functional/bytes-upsert/bytes-upsert.test.ts`; `test/integration/test/ports/prisma/functional/issues-27455-bytes-id/issues-27455-bytes-id.test.ts` |
 | `aggregate(spec)` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/aggregate.test.ts` |
 | `groupBy` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/group-by.test.ts` (`groupBy().aggregate() returns grouped counts`) |
 | `GroupedCollection.having` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/group-by.test.ts` (`having((having) => having.count().gt(1))`) |

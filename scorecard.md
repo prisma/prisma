@@ -21,16 +21,16 @@ Each row names exactly one capability. Where an operator/command/stage set was p
 | Category | Feature rows |
 | --- | --- |
 | [Targets & connection](scorecard/01-targets-and-connection.md) | 14 |
-| [Types & values](scorecard/02-types-and-values.md) | 14 |
+| [Types & values](scorecard/02-types-and-values.md) | 15 |
 | [PSL schema language](scorecard/03-psl-schema-language.md) | 44 |
-| [Contract emission & authoring](scorecard/04-contract-emission-and-authoring.md) | 12 |
+| [Contract emission & authoring](scorecard/04-contract-emission-and-authoring.md) | 14 |
 | [SQL query builder](scorecard/05-sql-query-builder.md) | 46 |
-| [SQL ORM client](scorecard/06-sql-orm-client.md) | 50 |
-| [MongoDB query & ORM](scorecard/07-mongodb-query-and-orm.md) | 80 |
-| [Relations](scorecard/08-relations.md) | 19 |
+| [SQL ORM client](scorecard/06-sql-orm-client.md) | 51 |
+| [MongoDB query & ORM](scorecard/07-mongodb-query-and-orm.md) | 81 |
+| [Relations](scorecard/08-relations.md) | 20 |
 | [Filtering](scorecard/09-filtering.md) | 24 |
 | [Ordering & pagination](scorecard/10-ordering-and-pagination.md) | 11 |
-| [Aggregation & grouping](scorecard/11-aggregation-and-grouping.md) | 19 |
+| [Aggregation & grouping](scorecard/11-aggregation-and-grouping.md) | 20 |
 | [Nested writes & atomic ops](scorecard/12-nested-writes-and-atomic-ops.md) | 25 |
 | [Raw & typed SQL](scorecard/13-raw-and-typed-sql.md) | 9 |
 | [Transactions](scorecard/14-transactions.md) | 9 |
@@ -50,12 +50,12 @@ Group structure (30 groups): Targets & connection; Types & values; PSL schema la
 
 Verdicts are computed per feature row across the three DB columns; the tallies below count individual non-`—` cells.
 
-Across 585 atomic feature rows (one capability each), spanning 1,755 per-database cells (585 rows × 3 databases): `✅` 415, `🟡` 484, `🧪` 12, `❌` 237 (and 607 `—` n/a cells).
+Across 592 atomic feature rows (one capability each), spanning 1,776 per-database cells (592 rows × 3 databases): `✅` 415, `🟡` 488, `🧪` 12, `❌` 243 (and 618 `—` n/a cells).
 
 Per-database tallies:
 
 | Database | ✅ | 🟡 | 🧪 | ❌ | — |
 | --- | --- | --- | --- | --- | --- |
-| Postgres | 221 | 136 | 4 | 105 | 119 |
-| SQLite | 85 | 231 | 4 | 98 | 167 |
-| MongoDB | 109 | 117 | 4 | 34 | 321 |
+| Postgres | 221 | 136 | 4 | 111 | 120 |
+| SQLite | 85 | 235 | 4 | 97 | 171 |
+| MongoDB | 109 | 117 | 4 | 35 | 327 |

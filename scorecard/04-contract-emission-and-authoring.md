@@ -18,8 +18,10 @@ Legend:
 | `rel` (TS builder) | 🟡 | 🟡 | 🟡 | |
 | `enumType` (enum authoring) | 🟡 | 🟡 | 🟡 | |
 | `member` (enum authoring) | 🟡 | 🟡 | 🟡 | |
+| Postgres enum-array constraint emission | ❌ | — | — | `test/integration/test/ports/prisma/functional/enum-array/enum-array.test.ts` |
 | `valueObject` (embedded type authoring) | 🟡 | 🟡 | ✅ | `test/integration/test/value-objects/value-objects.integration.test.ts` |
 | `index(...)` authoring | 🟡 | 🟡 | ✅ | `test/integration/test/mongo/migration-psl-authoring.test.ts` |
+| Generated Postgres index names respect identifier length limits | ❌ | — | — | `test/integration/test/ports/prisma/functional/relation-mode-gh-m-to-n/emit-map.test.ts` |
 | Contract emit (`contract.json` + `contract.d.ts`) | ✅ | 🟡 | 🟡 | `test/e2e/framework/test/runtime.basic.test.ts` (`emits contract and verifies it matches on-disk artifacts`, then runs the emitted contract against PGlite) |
 | PSL parse (green/red tree, typed AST) | 🟡 | 🟡 | 🟡 | |
 | Callback-mode TS authoring terseness | 🟡 | 🟡 | 🟡 | |
