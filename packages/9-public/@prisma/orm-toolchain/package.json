@@ -59,6 +59,9 @@
   "peerDependenciesMeta": {
     "typescript": {
       "optional": true
+    },
+    "vite": {
+      "optional": true
     }
   },
   "exports": {
