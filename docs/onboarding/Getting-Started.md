@@ -6,7 +6,7 @@
   - `pnpm build`
   - `pnpm test:packages`
 - Run the demo:
-  - `cd examples/prisma-next-demo`
-  - follow `[examples/prisma-next-demo/README.md](../../examples/prisma-next-demo/README.md)`
+  - `cd examples/prisma-8-demo`
+  - follow `[examples/prisma-8-demo/README.md](../../examples/prisma-8-demo/README.md)`
 - Working in a Cursor cloud agent? See [Cursor Cloud Agents](./[Cursor-Cloud-Agents.md](http://Cursor-Cloud-Agents.md)).
 

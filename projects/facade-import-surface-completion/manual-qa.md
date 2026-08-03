@@ -56,7 +56,7 @@
 
 **Covers:** AC-2, AC-4
 
-**Isolation:** `workspace` (writes a tracked `migrations/` directory inside `examples/prisma-next-demo-sqlite/`).
+**Isolation:** `workspace` (writes a tracked `migrations/` directory inside `examples/prisma-8-demo-sqlite/`).
 
 **Oracle:**
 - The freshly-rendered `migrations/<timestamp>_qa-initial/migration.ts` file's `import` lines reference **only** `@internal/sqlite/migration` (and possibly relative imports of the sibling `ops.json` / `end-contract.json`); no `@internal/target-sqlite/*` and no `@internal/family-sql/*` specifiers appear.
@@ -64,14 +64,14 @@
 
 **Preconditions:**
 - Pre-flight gate green.
-- `examples/prisma-next-demo-sqlite/migrations/` does not exist at start (`ls examples/prisma-next-demo-sqlite/migrations 2>&1` returns "No such file or directory").
+- `examples/prisma-8-demo-sqlite/migrations/` does not exist at start (`ls examples/prisma-8-demo-sqlite/migrations 2>&1` returns "No such file or directory").
 
 ### Steps
 
 1. From the worktree root, change into the SQLite demo:
 
    ```bash
-   cd examples/prisma-next-demo-sqlite
+   cd examples/prisma-8-demo-sqlite
    ```
 
 2. Read the façade-form sources the user would have written. These are tracked files — confirm with `git show HEAD:prisma-next.config.ts | head -20` and `git show HEAD:prisma/contract.ts | head -20`. The runner is looking at:
@@ -510,7 +510,7 @@ No repo-tree mutation.
 **Isolation:** `read-only` (no mutation; reads tracked example migrations and runs typecheck against them).
 
 **Oracle:**
-- The example's existing rendered migrations live at `examples/prisma-next-demo/migrations/app/*/migration.ts` and import `@internal/target-postgres/migration` — these were rendered *before* the renderer flip and are the in-repo stand-in for "a user's existing migration on disk."
+- The example's existing rendered migrations live at `examples/prisma-8-demo/migrations/app/*/migration.ts` and import `@internal/target-postgres/migration` — these were rendered *before* the renderer flip and are the in-repo stand-in for "a user's existing migration on disk."
 - The internal `@internal/target-postgres/migration` subpath continues to export the symbols those files reference (`Migration`, `MigrationCLI`, `addForeignKey`, `createIndex`, `createTable`, `rawSql`, etc.).
 - `pnpm typecheck` against the example is clean.
 - `pnpm prisma-next migration list` (or the equivalent inspection command — see step 3) accepts the migrations and reports them in topological order without complaint.
@@ -523,7 +523,7 @@ No repo-tree mutation.
 1. From the repo root, confirm the existing rendered migrations still pin the `target-*` specifier (so they actually exercise the backwards-compat path; if they had been re-rendered, the scenario degenerates):
 
    ```bash
-   grep -h "^import" examples/prisma-next-demo/migrations/app/*/migration.ts | sort -u
+   grep -h "^import" examples/prisma-8-demo/migrations/app/*/migration.ts | sort -u
    ```
 
 2. Confirm the internal `target-postgres` `/migration` subpath still exists and re-exports the named symbols those migrations import:
@@ -535,7 +535,7 @@ No repo-tree mutation.
 3. Typecheck the example end-to-end:
 
    ```bash
-   cd examples/prisma-next-demo
+   cd examples/prisma-8-demo
    pnpm typecheck
    ```
 

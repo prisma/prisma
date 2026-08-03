@@ -100,7 +100,7 @@ Each dispatch's full brief is assembled at delegation time per [`brief-disciplin
 
 ### D2 — Upgrade-instructions entry + codemod (user-skill side, applied to demo)
 
-**Outcome.** New `skills/upgrade/prisma-next-upgrade/upgrades/0.9-to-0.10/instructions.md` with one entry describing the strict-deserializer breaking change for end users. The entry's codemod (file under the same directory) transforms pre-strict on-disk contract snapshots (untagged codec triples) to post-strict shape (tagged `kind: 'codec-instance'`). Apply the codemod to `examples/prisma-next-demo/migrations/app/**/*.json` in-place to produce the demo's PR-branch substrate state. Validation-by-execution: reverting + re-running the codemod reproduces the substrate state.
+**Outcome.** New `skills/upgrade/prisma-next-upgrade/upgrades/0.9-to-0.10/instructions.md` with one entry describing the strict-deserializer breaking change for end users. The entry's codemod (file under the same directory) transforms pre-strict on-disk contract snapshots (untagged codec triples) to post-strict shape (tagged `kind: 'codec-instance'`). Apply the codemod to `examples/prisma-8-demo/migrations/app/**/*.json` in-place to produce the demo's PR-branch substrate state. Validation-by-execution: reverting + re-running the codemod reproduces the substrate state.
 
 **Scope (out).** Extension-skill mirror (D3); manual-QA scenarios for the upgrade journey (D4); demo-regen-from-scratch (Option B — explicitly rejected).
 
@@ -116,7 +116,7 @@ Each dispatch's full brief is assembled at delegation time per [`brief-disciplin
 **Done when.**
 
 - [ ] `skills/upgrade/prisma-next-upgrade/upgrades/0.9-to-0.10/` directory exists with `instructions.md` + codemod
-- [ ] Demo migrations under `examples/prisma-next-demo/migrations/app/**/*.json` validate under the strict deserializer
+- [ ] Demo migrations under `examples/prisma-8-demo/migrations/app/**/*.json` validate under the strict deserializer
 - [ ] `pnpm check:upgrade-coverage --mode pr` exits 0
 - [ ] Validation-by-execution: from a clean revert of the demo's untagged shape, running the codemod's `--apply` produces a diff identical to the PR-branch state
 - [ ] `pnpm prisma-next migration plan` against the demo is a no-op (TC-6 verified)

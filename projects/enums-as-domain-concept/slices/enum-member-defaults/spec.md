@@ -69,7 +69,7 @@ literal default in an alter/set-default op, that is a halt-and-report, not silen
 scope growth.)
 
 **4. Demo:** `@default(Low)` on the demo's `priority Priority` field
-(`examples/prisma-next-demo/src/prisma/contract.prisma`); re-emit; a migration adding
+(`examples/prisma-8-demo/src/prisma/contract.prisma`); re-emit; a migration adding
 the column default (set-default op per the migration-folder convention); the demo's
 type tests assert the TS surface's members-only constraint compiles/rejects through
 the emitted workflow where applicable.

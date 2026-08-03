@@ -25,7 +25,7 @@ authoring source path and — via `deriveOutputPath()` — the default emit outp
 had diverged. The fix sets `outputPath` explicitly to decouple the two.
 
 - `examples/paradedb-demo/prisma-next.config.ts` and
-  `examples/prisma-next-demo-sqlite/prisma-next.config.ts`: add `outputPath: './src/prisma'`.
+  `examples/prisma-8-demo-sqlite/prisma-next.config.ts`: add `outputPath: './src/prisma'`.
 - `@internal/sqlite` `defineConfig`: accept `outputPath` (postgres and mongo already did),
   mirroring postgres, with tests — the one enabling change needed so the sqlite example could
   be fixed config-only.

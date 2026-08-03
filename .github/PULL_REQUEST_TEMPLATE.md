@@ -21,7 +21,7 @@ Before you submit:
 <!-- List the suites you ran. Examples:
      - `pnpm typecheck && pnpm lint && pnpm test:packages`
      - `pnpm test:integration` (because the change touches the SQL runtime)
-     - Manual: ran the prisma-next-demo and verified <X> -->
+     - Manual: ran the prisma-8-demo and verified <X> -->
 
 ## Skill update
 

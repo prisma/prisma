@@ -1,8 +1,8 @@
-# prisma-next-cloudflare-worker
+# prisma-8-cloudflare-worker
 
 End-to-end example for the `@prisma/orm-postgres/serverless` facade, running on a Cloudflare Worker against a Hyperdrive-fronted Postgres origin.
 
-This example mirrors `examples/prisma-next-demo` (the Node demo), minus pgvector — the Worker example exists to exercise the per-request `postgresServerless` lifecycle, not vector search.
+This example mirrors `examples/prisma-8-demo` (the Node demo), minus pgvector — the Worker example exists to exercise the per-request `postgresServerless` lifecycle, not vector search.
 
 ## What this example demonstrates
 
@@ -29,7 +29,7 @@ Routes implemented in [`src/worker.ts`](src/worker.ts):
 ## Layout
 
 ```
-examples/prisma-next-cloudflare-worker/
+examples/prisma-8-cloudflare-worker/
 ├── src/prisma/contract.prisma                # Demo schema minus pgvector
 ├── src/
 │   ├── worker.ts                       # `fetch` handler — all routes
@@ -61,7 +61,7 @@ examples/prisma-next-cloudflare-worker/
 ### One-time bootstrap
 
 ```bash
-cd examples/prisma-next-cloudflare-worker
+cd examples/prisma-8-cloudflare-worker
 pnpm emit                        # generate src/prisma/contract.{json,d.ts}
 cp .env.example .env             # gitignored
 ```
@@ -134,7 +134,7 @@ pnpm test                        # vitest run --config vitest.config.ts
 
 The test's `globalSetup` (`test/global-setup.ts`) reads `.env`, asserts the container is reachable, applies the schema (idempotent — uses the same `prisma-next db init` as the dev workflow), truncates and reseeds. There is no per-test isolation: the suite is read-mostly, the `/tx/commit` test mutates `Bob`'s display name and the next test's reseed restores it on the next `pnpm test`.
 
-The canonical workspace invocation is `pnpm test:examples --filter prisma-next-cloudflare-worker` from the repo root (depends on the container being up — that's a local-dev precondition, not a CI one).
+The canonical workspace invocation is `pnpm test:examples --filter prisma-8-cloudflare-worker` from the repo root (depends on the container being up — that's a local-dev precondition, not a CI one).
 
 ### `pg` resolution under Vite 8
 
@@ -142,14 +142,14 @@ The canonical workspace invocation is `pnpm test:examples --filter prisma-next-c
 
 ### Why not `prisma dev`?
 
-The first attempt at the local origin used `@prisma/dev` (PGlite-backed Postgres reachable over TCP) — same pattern as `examples/prisma-next-demo` for everything else. It hung in both `wrangler dev` and `vitest-pool-workers`: every DB-touching route would call `pg.Client.connect()` through miniflare's Hyperdrive emulator, the `pg-cloudflare` socket reported "Connection terminated unexpectedly", and the runtime never recovered. The hang reproduces in plain `wrangler dev`, so it's not a test-infra problem — it appears to be specific to PGlite's TCP shim interacting with `pg-cloudflare`'s socket layer in `workerd`. The third sub-issue in [`cloudflare/workers-sdk#12984`](https://github.com/cloudflare/workers-sdk/issues/12984) ("Cannot perform I/O on behalf of a different Durable Object") may be the same root cause; upstream PR #13062 covers the bundling regressions but not this one.
+The first attempt at the local origin used `@prisma/dev` (PGlite-backed Postgres reachable over TCP) — same pattern as `examples/prisma-8-demo` for everything else. It hung in both `wrangler dev` and `vitest-pool-workers`: every DB-touching route would call `pg.Client.connect()` through miniflare's Hyperdrive emulator, the `pg-cloudflare` socket reported "Connection terminated unexpectedly", and the runtime never recovered. The hang reproduces in plain `wrangler dev`, so it's not a test-infra problem — it appears to be specific to PGlite's TCP shim interacting with `pg-cloudflare`'s socket layer in `workerd`. The third sub-issue in [`cloudflare/workers-sdk#12984`](https://github.com/cloudflare/workers-sdk/issues/12984) ("Cannot perform I/O on behalf of a different Durable Object") may be the same root cause; upstream PR #13062 covers the bundling regressions but not this one.
 
 The M1 audit's "this works in `wrangler dev`" claim was empirically validated against a real Postgres on `localhost`, not against `prisma dev` — so the audit's conclusion still holds for real-Postgres origins. M3 uses Docker Postgres for that reason. The PPg-on-Workers story will pick back up in M4 against a real deployed Hyperdrive + PPg.
 
 ## Troubleshooting
 
 - **`pnpm db:up` fails with `Cannot connect to the Docker daemon`.** Start your container runtime (Docker Desktop, OrbStack, …) and retry.
-- **`pnpm db:init` fails with a connection error.** Confirm `pnpm db:up` succeeded and the container is healthy: `docker compose ps`. Port 5433 (not 5432) — port collision with `examples/prisma-next-demo`'s Postgres.app would surface here.
+- **`pnpm db:init` fails with a connection error.** Confirm `pnpm db:up` succeeded and the container is healthy: `docker compose ps`. Port 5433 (not 5432) — port collision with `examples/prisma-8-demo`'s Postgres.app would surface here.
 - **`wrangler dev` boots but `/orm/users` returns `500 / connection error`.** The container probably stopped (or you forgot `pnpm db:up`). `pnpm db:reset` brings everything back from a clean slate.
 - **Bundle includes `pg-cloudflare` even though I'm running on Node.** Expected — `pg` static-imports `pg-cloudflare` via `lib/stream.js`, and runtime detection (`navigator.userAgent === 'Cloudflare-Workers'`) picks the right socket implementation.
 
@@ -159,4 +159,4 @@ The M1 audit's "this works in `wrangler dev`" claim was empirically validated ag
 - **Isolate memory** — large result sets bound through cursor by default (`postgresServerless` enables cursor unconditionally). For ORM `findMany`-style operations the result set is materialised; size your `take(...)` accordingly.
 - **`pg.Pool` not used** — the serverless facade routes through `PostgresDirectDriverImpl` (`pgClient` binding kind). No connection pooling within the isolate; that's Hyperdrive's job in production.
 - **Production `id`** — the committed `wrangler.jsonc` has a zero-stuffed Hyperdrive `id`. Deploy will fail until a real id is wired in (M4).
-- **Class-table-inheritance ORM queries** — the schema declares `Bug` and `Feature` as `@@base(Task)` discriminator variants for parity with `examples/prisma-next-demo`. The earlier `column "bug.id" does not exist` failure is now resolved: the emitted contract materialises the base-PK link column (`bug.id` / `feature.id`) on each variant table, so the variant join the ORM emits resolves. These queries are not yet exercised by this worker's routes or integration test; `examples/prisma-next-demo` covers the polymorphic-include path end-to-end.
+- **Class-table-inheritance ORM queries** — the schema declares `Bug` and `Feature` as `@@base(Task)` discriminator variants for parity with `examples/prisma-8-demo`. The earlier `column "bug.id" does not exist` failure is now resolved: the emitted contract materialises the base-PK link column (`bug.id` / `feature.id`) on each variant table, so the variant join the ORM emits resolves. These queries are not yet exercised by this worker's routes or integration test; `examples/prisma-8-demo` covers the polymorphic-include path end-to-end.

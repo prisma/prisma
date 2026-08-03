@@ -1,4 +1,4 @@
-# prisma-next-postgis-demo
+# prisma-8-postgis-demo
 
 A small, self-contained example showing how to use the
 **[`@internal/extension-postgis`](../../packages/3-extensions/postgis)**
@@ -46,7 +46,7 @@ relationships in the queries actually hold.
 # 2. Build the workspace dependencies (the postgis extension and friends).
 #    The `^...` filter builds the demo's deps but not the demo itself,
 #    so it runs before `pnpm emit` has produced the contract.
-pnpm --filter "prisma-next-postgis-demo^..." build
+pnpm --filter "prisma-8-postgis-demo^..." build
 
 # 3. Copy the env template
 cp .env.example .env

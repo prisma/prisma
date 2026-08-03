@@ -76,7 +76,7 @@ Implementer tier: sonnet-mid; reviewer: opus.
 - **Hands to:** the slice-DoD — the new mechanism live through the product path.
   Closes the slice; hands to TML-2855 (PSL `@default(member)` now has a real PSL enum
   field) and TML-2853 (cutover = rename + migrate + delete).
-- **Focus:** `examples/prisma-next-demo` — `src/prisma/contract.prisma`, `pnpm emit`,
+- **Focus:** `examples/prisma-8-demo` — `src/prisma/contract.prisma`, `pnpm emit`,
   the migration-folder convention (`migrations/app/<stamp>_<name>/` — confirm the CLI
   flow produces it; hand-author only what the convention requires, spec open
   question 3), `src/main.ts` subcommand. Stage only named files; verify

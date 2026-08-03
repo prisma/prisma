@@ -155,7 +155,7 @@ PR boundary with Phase C if diff is small enough; otherwise its own.
 
 36. **T0.D.2 — Negative type tests at the per-target descriptor record layer.** `packages/3-targets/3-targets/postgres/test/typed-descriptor-flow.test-d.ts` (and analogous in sqlite/pgvector). Assert each descriptor record entry's full type.
 
-37. **T0.D.3 — Negative type tests at the no-emit authoring chain.** `examples/prisma-next-demo/test/no-emit-typed-flow.test-d.ts`. `field.uuidv4()` returns typed field spec; query expression typechecks; `fns.eq(f.id, 1234: number)` fails.
+37. **T0.D.3 — Negative type tests at the no-emit authoring chain.** `examples/prisma-8-demo/test/no-emit-typed-flow.test-d.ts`. `field.uuidv4()` returns typed field spec; query expression typechecks; `fns.eq(f.id, 1234: number)` fails.
 
 38. **T0.D.4 — Closing-grep verification.** Zero hits across `packages/ test/ examples/ docs/` (excluding `projects/**` and `wip/**`) for: `mkCodec`, `defineCodec\(`, `defineCodecGroup`, `defineCodecBundle`, `CodecDefBuilder`, `CodecDefBuilderImpl`, `ExtractDescriptorCodecTypes`, `byScalar`, `dataTypes` (the target-codec export — disambiguate by context), `sqlCodecDefinitions`, `codecDescriptorDefinitions`. The deletion is the forcing function.
 

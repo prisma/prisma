@@ -1,4 +1,4 @@
-# Gotchas — `prisma-next-postgis-demo`
+# Gotchas — `prisma-8-postgis-demo`
 
 A running log of surprises, workarounds, and undocumented behaviour hit while
 using **Prisma Next** in this demo. Each entry is mirrored as a Triage-state
@@ -44,7 +44,7 @@ pnpm db:init
 Revert criterion: drop the manual step once the demo's README adds it (or a `db:plan` script is wired into `package.json`), AND the verifier's remediation names the real command.
 
 **Reproduction.**
-1. `pnpm --filter "prisma-next-postgis-demo^..." build && cp .env.example .env && pnpm db:up`
+1. `pnpm --filter "prisma-8-postgis-demo^..." build && cp .env.example .env && pnpm db:up`
 2. `pnpm emit`
 3. `pnpm db:init` — fails with `PN-MIG-5001`.
 4. Re-run after `pnpm exec prisma-next migration plan` — succeeds.

@@ -128,7 +128,7 @@ graph TD
 
 ## Examples
 
-- `examples/prisma-next-demo` — plain Vite + React SPA, covers TS-first and PSL-first contracts. Run `pnpm dev`, edit `prisma/contract.ts`, watch the artifacts regenerate.
+- `examples/prisma-8-demo` — plain Vite + React SPA, covers TS-first and PSL-first contracts. Run `pnpm dev`, edit `prisma/contract.ts`, watch the artifacts regenerate.
 - `examples/react-router-demo` — React Router v7 Framework Mode (SSR). The plugin runs alongside `@react-router/dev/vite`; a `loader` and an `action` exercise the Prisma Next runtime on the server, and a smoke test proves a PSL edit re-emits the contract without a manual command. See `examples/react-router-demo/test/react-router.smoke.e2e.test.ts` for the validation flow.
 
 ## Related

@@ -196,7 +196,7 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 
 **Intent.** Migrate every user-authored TS file in `examples/` (and the two extension-pack `src/contract.ts` files) to façade form. Two surfaces:
 
-- **`examples/<app>/prisma-next.config.ts`** — verbose → façade (`@internal/{postgres,sqlite,mongo}/config`). Per D0's inventory: `react-router-demo` + `prisma-next-demo-sqlite` definitely verbose; spot-check `paradedb-demo`, `prisma-next-postgis-demo`, `retail-store`.
+- **`examples/<app>/prisma-next.config.ts`** — verbose → façade (`@internal/{postgres,sqlite,mongo}/config`). Per D0's inventory: `react-router-demo` + `prisma-8-demo-sqlite` definitely verbose; spot-check `paradedb-demo`, `prisma-8-postgis-demo`, `retail-store`.
 - **`examples/<app>/prisma/contract.ts`** + **`packages/3-extensions/{pgvector,postgis}/src/contract.ts`** — drop `import sqlFamily from '@internal/family-sql/pack'` + `import postgresPack from '@internal/target-postgres/pack'`; drop `family` / `target` from the `defineContract` call. Extension packs that ship a contract count as user-authored TS for this purpose.
 
 For Mongo examples, opportunistically apply the now-available `extensions` / `migrations` fields only if the example needs them. Verify `pnpm typecheck` per example after migration.
@@ -204,7 +204,7 @@ For Mongo examples, opportunistically apply the now-available `extensions` / `mi
 **Files in play.**
 
 - All `examples/*/prisma-next.config.ts` files (per D0 inventory, 13 files).
-- All `examples/*/prisma/contract.ts` files (per D0 grep, 4 files: `paradedb-demo`, `prisma-next-demo-sqlite`, `prisma-next-demo`, `react-router-demo`).
+- All `examples/*/prisma/contract.ts` files (per D0 grep, 4 files: `paradedb-demo`, `prisma-8-demo-sqlite`, `prisma-8-demo`, `react-router-demo`).
 - ~~`packages/3-extensions/pgvector/src/contract.ts`, `packages/3-extensions/postgis/src/contract.ts`~~ (**dropped post-D5a R1**: Turbo build cycle `postgres → sql-builder → extension-pgvector → would-be postgres` makes the migration impossible without architectural refactor. Folded into A7's extension-pack exemption; see spec § A7 for details and the `@internal/postgres-contract` extraction follow-up option).
 - `packages/3-extensions/sql-orm-client/test/fixtures/contract.ts` (test fixture — only migrate if doing so doesn't break the test's intent; if the fixture deliberately exercises the verbose form, leave + add a comment).
 - Any `examples/*/scripts/*.ts` or `examples/*/test/utils/*.ts` that imports from `@internal/cli/control-api`, `@internal/target-*/control`, etc. — verified by grep; in scope if the façade now exposes the equivalent surface (`createSqliteControlClient`, `createMongoControlClient`, `createPostgresControlClient`).

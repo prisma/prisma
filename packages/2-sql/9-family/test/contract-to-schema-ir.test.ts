@@ -266,7 +266,7 @@ describe('contractToSchemaIR', () => {
   });
 
   it('resolves typeRef against storage.types before expanding native type', () => {
-    // Regression: `post.embedding` in prisma-next-demo stores a bare
+    // Regression: `post.embedding` in prisma-8-demo stores a bare
     // `{ nativeType: 'vector', typeRef: 'Embedding1536' }`; the parameter
     // metadata lives on the named `storage.types` entry. If the IR
     // conversion doesn't resolve `typeRef`, it emits `"vector"` while

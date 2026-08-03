@@ -24,7 +24,7 @@ pnpm add @internal/extension-postgis
 
 ## Quick start
 
-A complete five-step example — see [`examples/prisma-next-postgis-demo`](../../../examples/prisma-next-postgis-demo) for the full version with a seeded database, a Next.js UI, and e2e tests.
+A complete five-step example — see [`examples/prisma-8-postgis-demo`](../../../examples/prisma-8-postgis-demo) for the full version with a seeded database, a Next.js UI, and e2e tests.
 
 **1. Register the extension in `prisma-next.config.ts`:**
 
@@ -268,7 +268,7 @@ import type { OperationTypes, QueryOperationTypes } from '@internal/extension-po
 
 ## Demo
 
-The end-to-end demo in [`examples/prisma-next-postgis-demo`](../../../examples/prisma-next-postgis-demo) walks through:
+The end-to-end demo in [`examples/prisma-8-postgis-demo`](../../../examples/prisma-8-postgis-demo) walks through:
 
 - Schema with three geometry shapes (`Point`, `LineString`, `Polygon`).
 - Seeded data (five SF cafes, two delivery routes, three neighborhood polygons).

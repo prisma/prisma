@@ -86,7 +86,7 @@ try {
 3. **No database execution tests**: There are currently no tests that execute queries with pgvector against a real database. This is acceptable because:
    - Lowering tests verify SQL generation is correct
    - Codec tests verify encode/decode logic
-   - The extension is tested in production use cases (e.g., `examples/prisma-next-demo/scripts/seed.ts`)
+   - The extension is tested in production use cases (e.g., `examples/prisma-8-demo/scripts/seed.ts`)
 
 ## When to Use Each Approach
 

@@ -39,8 +39,8 @@ The rename breaks workspace-wide typecheck unless every consumer is updated in t
 - `test/integration/test/value-objects/value-objects.e2e.test.ts`, `test/integration/test/sql-orm-client/runtime-helpers.ts`, `test/integration/test/sql-builder/setup.ts`, `test/integration/test/rewriting-middleware.integration.test.ts`, `test/integration/test/cross-package/middleware-cache.test.ts` — literal-replacement only.
 - `test/e2e/framework/test/sqlite/runtime.verify-marker.missing-table.test.ts` — drop the `RuntimeVerifyOptions` import; same semantic re-targeting as the integration counterpart.
 - `test/e2e/framework/test/sqlite/utils.ts` — literal replacement.
-- `examples/prisma-next-demo/src/prisma-no-emit/runtime.ts` — production-shaped example code; replace the literal so adopters reading the demo see the new API.
-- `examples/prisma-next-demo/test/sql-dsl.integration.test.ts`, `examples/prisma-next-demo/test/repositories.integration.test.ts` — literal replacement.
+- `examples/prisma-8-demo/src/prisma-no-emit/runtime.ts` — production-shaped example code; replace the literal so adopters reading the demo see the new API.
+- `examples/prisma-8-demo/test/sql-dsl.integration.test.ts`, `examples/prisma-8-demo/test/repositories.integration.test.ts` — literal replacement.
 
 ### JSDoc cleanup adjacent to the rename
 
@@ -58,7 +58,7 @@ The rename breaks workspace-wide typecheck unless every consumer is updated in t
 - `pnpm --filter @internal/sqlite typecheck` green.
 - `pnpm --filter @internal/postgres test typecheck` green.
 - `pnpm test:packages` green (broader workspace not broken).
-- **`pnpm -r typecheck` green** — explicitly catches downstream consumers (`integration-tests`, `e2e-tests`, `prisma-next-demo`) that `pnpm test:packages` does not run.
+- **`pnpm -r typecheck` green** — explicitly catches downstream consumers (`integration-tests`, `e2e-tests`, `prisma-8-demo`) that `pnpm test:packages` does not run.
 - New test cases (skip-when-false, one-shot semantics) passing.
 - `pnpm lint:deps` clean (no new layering violations).
 

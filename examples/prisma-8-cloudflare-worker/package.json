@@ -1,5 +1,5 @@
 {
-  "name": "prisma-next-cloudflare-worker",
+  "name": "prisma-8-cloudflare-worker",
   "private": true,
   "type": "module",
   "engines": {

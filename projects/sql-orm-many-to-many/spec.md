@@ -43,7 +43,7 @@ The whole project hangs off one new primitive: a uniform **`through` descriptor*
 
 After the runtime core (slices 0–3) shipped, scope expanded to **demonstrate the M:N API end-to-end in the example apps** — and that surfaced a real authoring-surface gap. These are slices 4–6 (see the plan):
 
-- **Demo examples** (previously implicit, now explicit scope). The SQLite demo (`examples/prisma-next-demo-sqlite`, TS-authored) demonstrates include / filter / nested-write M:N — **done** (slice 4 / TML-2790).
+- **Demo examples** (previously implicit, now explicit scope). The SQLite demo (`examples/prisma-8-demo-sqlite`, TS-authored) demonstrates include / filter / nested-write M:N — **done** (slice 4 / TML-2790).
 - **PSL many-to-many authoring** (newly in scope — slice 5 / TML-2794). The navigable M:N API is authorable **only via the TS contract builder** (`rel.manyToMany`); PSL emits only `1:N`/`N:1` and routes M:N to explicit junction models. Teaching PSL to lower a junction to `cardinality:'N:M'` + `through` completes the authoring surface. _(Framework-scoped — may be promoted to its own project at pickup.)_
 - **PG demo examples + dual-mode reconciliation** (slice 6 / TML-2795, **blocked by slice 5**). The PG demo emits from PSL, so it can't show M:N until slice 5 lands; it also carries pre-existing dual-mode contract drift (stale TS source) to reconcile.
 

@@ -66,14 +66,14 @@ Add the missing façade subpaths (postgres `/migration`; mongo `/control` + `/bs
 
 Every `examples/<app>/prisma/contract.ts` AND every `packages/3-extensions/{pgvector,postgis}/src/contract.ts` migrates to the wrapped `defineContract` (drops `import sqlFamily from '@internal/family-sql/pack'` + `import postgresPack from '@internal/target-postgres/pack'`; passes only the extension-specific scaffold). Extension packs that bundle a contract are user-authored TS the same way example apps are.
 
-All 13 `prisma-next.config.ts` files migrate to façade form (verified by repo-wide grep during D0 — only `react-router-demo` and `prisma-next-demo-sqlite` carry verbose-form imports as of research; `paradedb-demo` and `prisma-next-postgis-demo` also need spot-checks):
+All 13 `prisma-next.config.ts` files migrate to façade form (verified by repo-wide grep during D0 — only `react-router-demo` and `prisma-8-demo-sqlite` carry verbose-form imports as of research; `paradedb-demo` and `prisma-8-postgis-demo` also need spot-checks):
 
-- `prisma-next-demo-sqlite/prisma-next.config.ts` — verbose → `@internal/sqlite/config`.
+- `prisma-8-demo-sqlite/prisma-next.config.ts` — verbose → `@internal/sqlite/config`.
 - `react-router-demo/prisma-next.config.ts` — verbose → `@internal/postgres/config`.
 - `paradedb-demo/prisma-next.config.ts` — verify; migrate if verbose (with `extensions: [paradedb]`).
-- `prisma-next-postgis-demo/prisma-next.config.ts` — verify; migrate if verbose.
-- `prisma-next-demo/prisma-next.config.ts` — already façade-form; verify clean.
-- `prisma-next-cloudflare-worker/prisma-next.config.ts` — verify clean.
+- `prisma-8-postgis-demo/prisma-next.config.ts` — verify; migrate if verbose.
+- `prisma-8-demo/prisma-next.config.ts` — already façade-form; verify clean.
+- `prisma-8-cloudflare-worker/prisma-next.config.ts` — verify clean.
 - `cipherstash-integration/prisma-next.config.ts` — already façade-form; verify.
 - `mongo-demo/prisma-next.config.ts` — already façade-form; verify; add `extensions`/`migrations` if it has any (likely none).
 - `mongo-blog-leaderboard/prisma-next.config.ts` — verify.

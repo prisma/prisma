@@ -148,7 +148,7 @@ ERR: No "exports" main defined in /…/examples/mongo-demo/node_modules/@interna
 **Step:** Step 2 (read façade-form sources)
 **Oracle:** `skills/prisma-next-contract/SKILL.md` line 45: "Never reach into `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` from user code."
 
-**Observed:** `examples/prisma-next-demo-sqlite/prisma/contract.ts` opens with:
+**Observed:** `examples/prisma-8-demo-sqlite/prisma/contract.ts` opens with:
 ```ts
 import { datetimeColumn, textColumn } from '@internal/adapter-sqlite/column-types';
 import { defineContract, rel } from '@internal/sqlite/contract-builder';
@@ -216,7 +216,7 @@ Total wallclock: ~28 minutes (excluding the brief shell-session hang at the star
 
 **What was tried:**
 - **Postgres enum field via TS contract-builder.** Naïve destructure `({ field, model, enumType })` and `field.enum(Status)` both error out — see F-9.
-- **Read of existing `examples/prisma-next-postgis-demo/prisma/contract.json`** to look for emitted enum shapes — confirms enums do exist in the contract IR; the TS authoring path for them is unclear.
+- **Read of existing `examples/prisma-8-postgis-demo/prisma/contract.json`** to look for emitted enum shapes — confirms enums do exist in the contract IR; the TS authoring path for them is unclear.
 
 **What surprised me:**
 - Tree-shaking (S6) is *extremely* clean — the bundle is 298 bytes containing literally `import {…} from 'mongodb'; console.log(new ObjectId().toString());`. The `/bson` subpath is doing the bare-minimum-shim job perfectly. This is a strong positive signal for AC-8.
@@ -236,7 +236,7 @@ Each AC inherits its worst-severity finding from any covering scenario. Pre-flig
 | AC-3 — `@internal/mongo` `/control` + `/bson` + widened `/config` | 3, 6, 7 | ✅ pass | `/bson` subpath resolves and tree-shakes cleanly. |
 | AC-4 — Each façade's `/contract-builder` pre-binds family + target; postgres + sqlite inference preserved | 1, 2, 7, 8 | ✅ pass (with 📝 F-9) | S1 + S2 confirm typechecks of demo contract.ts. F-9 surfaces a postgres-enum ergonomic gap (likely out of TML-2526 scope). |
 | AC-5 — Breaking change: `@internal/mongo` `.` barrel is gone | 3 | ✅ pass (with 📝 F-3) | Bare import rejects (TS + Node runtime). F-3 surfaces diagnostic copy quality. |
-| AC-6 — Backwards-compat: existing rendered migrations on `target-*/migration` continue to work | 5 | ✅ pass | `examples/prisma-next-demo` typechecks; `pnpm prisma-next migration list/check` both happy. |
+| AC-6 — Backwards-compat: existing rendered migrations on `target-*/migration` continue to work | 5 | ✅ pass | `examples/prisma-8-demo` typechecks; `pnpm prisma-next migration list/check` both happy. |
 | AC-7 — Mongo wrap regression carve-out (TML-2633) documented + matching symptom | 4, 7 | ✅ pass (with 📝 F-6) | In-tree comments name TML-2633 + describe symptom. F-6 surfaces scratch-contract mis-fit. |
 | AC-8 — Tree-shaking: façade subpaths are independent entrypoints | 6 | ✅ pass | esbuild bundle of `ObjectId`-only consumer is 298 bytes; only `bson.mjs` pulled in. |
 

@@ -49,8 +49,8 @@ The rename is breaking; every workspace package that constructs a runtime or imp
 - `test/integration/test/value-objects/value-objects.e2e.test.ts`, `test/integration/test/sql-orm-client/runtime-helpers.ts`, `test/integration/test/sql-builder/setup.ts`, `test/integration/test/rewriting-middleware.integration.test.ts`, `test/integration/test/cross-package/middleware-cache.test.ts` — literal-replacement sites.
 - `test/e2e/framework/test/sqlite/runtime.verify-marker.missing-table.test.ts` — imports `RuntimeVerifyOptions` (must drop), pins the old throw behaviour (same semantic re-targeting as the integration counterpart). Stays; complementary at the e2e layer.
 - `test/e2e/framework/test/sqlite/utils.ts` — literal replacement.
-- `examples/prisma-next-demo/src/prisma-no-emit/runtime.ts` — **production-shaped example code**. Replacing the literal is high-leverage: this is what readers learning the framework see.
-- `examples/prisma-next-demo/test/sql-dsl.integration.test.ts`, `examples/prisma-next-demo/test/repositories.integration.test.ts` — literal replacement.
+- `examples/prisma-8-demo/src/prisma-no-emit/runtime.ts` — **production-shaped example code**. Replacing the literal is high-leverage: this is what readers learning the framework see.
+- `examples/prisma-8-demo/test/sql-dsl.integration.test.ts`, `examples/prisma-8-demo/test/repositories.integration.test.ts` — literal replacement.
 
 ### Docs
 

@@ -214,7 +214,7 @@ Adding `--color` doesn't help. The action handler in `migration-graph.ts` checks
 **Observed:**
 PN-001 `where`:
 ```
-"where": "/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2546-review-migration-cli-commands-and-vocabulary/examples/prisma-next-demo/migrations/app/20260422T0742_migration"
+"where": "/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2546-review-migration-cli-commands-and-vocabulary/examples/prisma-8-demo/migrations/app/20260422T0742_migration"
 ```
 PN-005 `where`:
 ```
@@ -307,5 +307,5 @@ These are candidate scenarios for a future QA round if time permits.
 
 ### `drive/qa/README.md` candidates (surface to orchestrator; do not edit here)
 
-- **Demo state gotcha**: the `examples/prisma-next-demo` ships with `extensions: [pgvector]` but no `migrations/pgvector/` directory. Several offline read-only commands (`migration show`, anything else that goes through `buildContractSpaceAggregate`) fail with `PN-MIG-5001` until the user runs `migrate` to materialise the extension space. QA scenarios that target those commands should either run `migrate` first OR temporarily strip the extension. Worth a substrate note in `drive/qa/README.md § Substrate locations` and possibly a "Demo state gotcha" subsection under § Known coverage-gate gaps.
+- **Demo state gotcha**: the `examples/prisma-8-demo` ships with `extensions: [pgvector]` but no `migrations/pgvector/` directory. Several offline read-only commands (`migration show`, anything else that goes through `buildContractSpaceAggregate`) fail with `PN-MIG-5001` until the user runs `migrate` to materialise the extension space. QA scenarios that target those commands should either run `migrate` first OR temporarily strip the extension. Worth a substrate note in `drive/qa/README.md § Substrate locations` and possibly a "Demo state gotcha" subsection under § Known coverage-gate gaps.
 - **Non-TTY auto-JSON**: every command run via `pnpm exec` from a non-TTY shell (which includes CI, Cursor agent shell, etc.) auto-enables `--json`. QA scenarios that expect to see human-readable output need either an explicit `--no-json` (if it exists) or a script-and-environment that detect the auto-JSON behavior. Worth a note under § Substrate locations or a new § Output-mode considerations.

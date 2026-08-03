@@ -76,7 +76,7 @@ Three renames, all landing in one breaking PR, no compatibility aliases (per the
 - `db: { connection }` (adding `db: string` later is additive), `migrations.dir`, `formatter.indent` — audited, freeze-safe as-is.
 - `family`/`target`/`adapter`/`driver` wiring keys — surface-documentation question, not a rename.
 - Historical records keep the old spelling: `CHANGELOG.md`, `docs/releases/*`, past upgrade instructions, `projects/` archives.
-- Replay fixture chains (`examples/prisma-next-demo/fixtures/**`) and `apps/telemetry-backend` snapshot files keep old-key contracts: they have no regen mechanism, are hash-keyed so old snapshots are only reachable by old hashes, and are never deserialized by green suites (reviewer-verified). Re-anchoring is TML-3082 (replay regen tool) and TML-3083 (telemetry hash-advance). Ratified deviation from the "no literal remains" DoD line, 2026-07-23.
+- Replay fixture chains (`examples/prisma-8-demo/fixtures/**`) and `apps/telemetry-backend` snapshot files keep old-key contracts: they have no regen mechanism, are hash-keyed so old snapshots are only reachable by old hashes, and are never deserialized by green suites (reviewer-verified). Re-anchoring is TML-3082 (replay regen tool) and TML-3083 (telemetry hash-advance). Ratified deviation from the "no literal remains" DoD line, 2026-07-23.
 
 ## Contract impact
 

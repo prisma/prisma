@@ -145,15 +145,15 @@ const CHAINS = [
     contractFamily: 'mongo',
   },
   {
-    exampleDir: 'examples/prisma-next-demo',
+    exampleDir: 'examples/prisma-8-demo',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/prisma-next-demo/prisma-next.config.ts',
+    realConfigPath: 'examples/prisma-8-demo/prisma-next.config.ts',
     contractFamily: 'sql',
   },
   {
-    exampleDir: 'examples/prisma-next-postgis-demo',
+    exampleDir: 'examples/prisma-8-postgis-demo',
     migrationsDir: 'migrations/app',
-    realConfigPath: 'examples/prisma-next-postgis-demo/prisma-next.config.ts',
+    realConfigPath: 'examples/prisma-8-postgis-demo/prisma-next.config.ts',
     contractFamily: 'sql',
   },
 ];

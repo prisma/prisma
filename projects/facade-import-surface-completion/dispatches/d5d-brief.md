@@ -18,7 +18,7 @@ D5d is the **final code dispatch** before D6 docs sweep. Scope is tight: migrate
 5. Quick orientation reads:
    - `packages/3-extensions/pgvector/src/contract.ts` — current verbose form.
    - `packages/3-extensions/postgis/src/contract.ts` — current verbose form.
-   - One already-migrated example for reference: `examples/prisma-next-postgis-demo/prisma/contract.ts` (verify form after D5a R1 commit `903c9bc40`).
+   - One already-migrated example for reference: `examples/prisma-8-postgis-demo/prisma/contract.ts` (verify form after D5a R1 commit `903c9bc40`).
    - The facade's `defineContract` to know the target shape: `packages/3-extensions/postgres/src/contract/define-contract.ts`.
 
 ## Scope

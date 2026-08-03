@@ -40,7 +40,7 @@ export default {
 
 Cloudflare Workers + [Hyperdrive](https://developers.cloudflare.com/hyperdrive/) is the primary tested path. Hyperdrive is Cloudflare's managed Postgres connection pooler at the edge: the Worker connects to it with the standard Postgres wire protocol via the `pg` library, Hyperdrive terminates that connection at the edge and pools connections to your origin Postgres. The Worker reads the connection string off `env.HYPERDRIVE.connectionString`.
 
-A complete worked example lives at `examples/prisma-next-cloudflare-worker/`. This section documents the pattern; the example documents the example.
+A complete worked example lives at `examples/prisma-8-cloudflare-worker/`. This section documents the pattern; the example documents the example.
 
 ### Architecture
 
@@ -109,7 +109,7 @@ This goes in `.env`, not `.dev.vars`. `.dev.vars` is for runtime worker secrets;
 
 ### Worker code shape
 
-Module-scope construction; per-request runtime acquisition; three query surfaces; cursor streaming. The full file is `examples/prisma-next-cloudflare-worker/src/worker.ts`.
+Module-scope construction; per-request runtime acquisition; three query surfaces; cursor streaming. The full file is `examples/prisma-8-cloudflare-worker/src/worker.ts`.
 
 #### Module scope
 
@@ -213,7 +213,7 @@ The cursor default is the inverse of the long-lived `postgres()` facade's defaul
 
 ### Wiring the ORM client
 
-`createOrmClient(runtime)` is the existing pattern from `examples/prisma-next-demo/src/orm-client/`; the per-request facade reuses it unchanged:
+`createOrmClient(runtime)` is the existing pattern from `examples/prisma-8-demo/src/orm-client/`; the per-request facade reuses it unchanged:
 
 ```ts
 // src/orm-client/client.ts
@@ -279,7 +279,7 @@ The existing migration commands accept a connection string (typically via `DATAB
 
 ## Validating end-to-end
 
-The `examples/prisma-next-cloudflare-worker/` example provides a `vitest-pool-workers` integration test that boots the Worker under `workerd`, points the Hyperdrive binding at a local Docker Postgres, and exercises SQL DSL, ORM, transactions, and cursor streaming. That suite is the canonical "does my pattern work end-to-end" reference and is the one you should mirror when bootstrapping your own deployment.
+The `examples/prisma-8-cloudflare-worker/` example provides a `vitest-pool-workers` integration test that boots the Worker under `workerd`, points the Hyperdrive binding at a local Docker Postgres, and exercises SQL DSL, ORM, transactions, and cursor streaming. That suite is the canonical "does my pattern work end-to-end" reference and is the one you should mirror when bootstrapping your own deployment.
 
 The example is intentionally minimal — minimum schema, minimum routes — so you can compare your setup against it side-by-side. See its README for the local-dev workflow (`pnpm db:up` / `pnpm db:init` / `pnpm seed` / `pnpm dev`) and the bundle-size / cold-start measurements.
 
@@ -289,4 +289,4 @@ The example is intentionally minimal — minimum schema, minimum routes — so y
 - [ADR 159 — Runtime Driver Lifecycle](./architecture%20docs/adrs/ADR%20159%20-%20Driver%20Terminology%20and%20Lifecycle.md) — how the underlying driver lifecycle works (both facades inherit it unchanged).
 - [Architecture Overview](./Architecture%20Overview.md) — Prisma Next's broader plane / target / adapter / driver model.
 - [Cloudflare Hyperdrive docs](https://developers.cloudflare.com/hyperdrive/) — Hyperdrive setup, configuration, and observability.
-- The example: `examples/prisma-next-cloudflare-worker/` (in this repo).
+- The example: `examples/prisma-8-cloudflare-worker/` (in this repo).

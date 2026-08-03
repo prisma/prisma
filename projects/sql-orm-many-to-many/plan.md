@@ -53,7 +53,7 @@ Slice 0 is a hard gate, not a stylistic choice: until the contract validates an 
 Added 2026-06-02 after the runtime core (0–3) shipped: while adding M:N **demo examples** we found the navigable M:N API is authorable **only via the TS contract builder** (`rel.manyToMany`), not PSL — so the PG demo (PSL-emitted) can't yet show it. These slices close that gap. Each is its own slice spec under `slices/`.
 
 - **Slice `04-sqlite-demo-examples`** — Linear: [TML-2790](https://linear.app/prisma-company/issue/TML-2790) — **DONE.**
-  - **Outcome:** the SQLite demo (`examples/prisma-next-demo-sqlite`, TS-authored) demonstrates the full M:N API: `Post ↔ Tag` via `PostTag`, with include / `some`/`none`/`every` filter / nested `connect`/`disconnect`/`create` ORM modules + CLI commands + seed, smoke-tested end-to-end.
+  - **Outcome:** the SQLite demo (`examples/prisma-8-demo-sqlite`, TS-authored) demonstrates the full M:N API: `Post ↔ Tag` via `PostTag`, with include / `some`/`none`/`every` filter / nested `connect`/`disconnect`/`create` ORM modules + CLI commands + seed, smoke-tested end-to-end.
   - **Builds on:** slices 0–3 (the runtime M:N feature).
   - **Hands to:** a worked reference for the M:N ORM API (the PG demo, slice 6, mirrors it once unblocked).
 
@@ -64,7 +64,7 @@ Added 2026-06-02 after the runtime core (0–3) shipped: while adding M:N **demo
   - **Focus:** `packages/2-sql/2-authoring/contract-psl/src/psl-relation-resolution.ts` (today emits only `N:1`/`1:N`) + the PSL→RelationNode lowering; recognise/collapse the junction into a `through` relation. **Likely large — re-check slice-INVEST at pickup; may warrant promotion to its own project.**
 
 - **Slice `06-pg-demo-examples`** — Linear: [TML-2795](https://linear.app/prisma-company/issue/TML-2795) — **planned, blocked by slice 5.**
-  - **Outcome:** the PG demo (`examples/prisma-next-demo`) demonstrates the M:N API (mirroring slice 4), AND its pre-existing dual-mode contract drift (stale TS source / missing TS-builder discriminator authoring) is reconciled.
+  - **Outcome:** the PG demo (`examples/prisma-8-demo`) demonstrates the M:N API (mirroring slice 4), AND its pre-existing dual-mode contract drift (stale TS source / missing TS-builder discriminator authoring) is reconciled.
   - **Builds on:** slice 5 (PSL M:N authoring — the PG demo emits from PSL); slice 4 (the example shape to mirror).
   - **Hands to:** M:N demonstrated in both demos; dual-mode green.
   - **Focus:** add `Post ↔ Tag` M:N to the PSL source + example modules/CLI/seed/tests; resolve dual-mode (`test:dual-mode` is currently red on the TS leg — fix the TS source or drop it). The dual-mode-drift half is independent of slice 5 and can start first.

@@ -81,7 +81,7 @@ export async function initTestDatabase(options: {
 
   const ownsMigrationsDir = options.migrationsDir === undefined;
   const migrationsDir =
-    options.migrationsDir ?? mkdtempSync(join(tmpdir(), 'prisma-next-demo-migrations-'));
+    options.migrationsDir ?? mkdtempSync(join(tmpdir(), 'prisma-8-demo-migrations-'));
   try {
     if (ownsMigrationsDir) {
       mkdirSync(migrationsDir, { recursive: true });

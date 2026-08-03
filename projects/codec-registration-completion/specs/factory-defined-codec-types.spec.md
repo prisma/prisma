@@ -161,7 +161,7 @@ Type derivations needed by the framework compute *from* the descriptor's factory
 
 `vector(1536)`'s declared column resolves to `Vector<1536>` at the type level (literal preserved). `arktypeJson(productSchema)`'s declared column resolves to the schema's inferred output. Tests cover both cases.
 
-**Verification.** `*.test-d.ts` constructive tests on `examples/prisma-next-demo` or an equivalent no-emit fixture. Both positive (correct types compile) and negative (wrong types fail) cases.
+**Verification.** `*.test-d.ts` constructive tests on `examples/prisma-8-demo` or an equivalent no-emit fixture. Both positive (correct types compile) and negative (wrong types fail) cases.
 
 ### AC-4. Column helpers are derivatives or eliminated
 

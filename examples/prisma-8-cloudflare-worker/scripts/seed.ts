@@ -1,7 +1,7 @@
 /**
  * Seeds the demo schema with users, posts, and tasks.
  *
- * Mirrors examples/prisma-next-demo/scripts/seed.ts minus the pgvector
+ * Mirrors examples/prisma-8-demo/scripts/seed.ts minus the pgvector
  * embeddings (this example exercises the per-request facade, not vectors).
  */
 

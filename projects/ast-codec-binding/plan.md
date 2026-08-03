@@ -167,7 +167,7 @@ Cross-package grep before declaring M3c done: `rg 'forCodecId|parameterizedRepre
 - `packages/3-targets/3-targets/postgres/src/core/migrations/operations/data-transform-ast.ts` and its `AST_BOUND_SENTINEL` re-export.
 - `packages/3-targets/3-targets/postgres/src/core/migrations/postgres-migration.ts` `dataTransformAst` instance method.
 - `runner.ts` `resolveStep` AST-bound branch and the `destinationContract` parameter threading on `runExecuteSteps` / `runExpectationSteps` / `expectationsAreSatisfied`.
-- The `examples/prisma-next-demo/migrations/app/20260511T1800_vector-backfill-ast/` demo directory.
+- The `examples/prisma-8-demo/migrations/app/20260511T1800_vector-backfill-ast/` demo directory.
 - `packages/3-targets/6-adapters/postgres/test/migrations/data-transform-ast.test.ts` and `runner.ast-steps.integration.test.ts`.
 
 **Documented in close-out.**

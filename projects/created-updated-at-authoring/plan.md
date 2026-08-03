@@ -120,7 +120,7 @@ Delete the attribute-based path that's now superseded by the preset surface, plu
   - `packages/2-sql/2-authoring/contract-ts/test/contract-builder.contract-definition.test.ts:242-369` — same. Satisfies TC4.
 - [ ] Update examples and templates:
   - `examples/react-router-demo/prisma/contract.ts` lines 24, 33 (TS) and `contract.prisma` line 4 (PSL).
-  - `examples/prisma-next-demo/prisma/contract.ts` lines 32, 43.
+  - `examples/prisma-8-demo/prisma/contract.ts` lines 32, 43.
   - `packages/1-framework/3-tooling/cli/src/commands/init/templates/code-templates.ts` lines 116, 125, 164, 177. Satisfies TC9.
 - [ ] Update documentation in **one canonical location**:
   - `docs/products/psl/README.md` becomes the canonical reference. Lists `temporal.createdAt()`, `temporal.updatedAt()`, `@default(now())`. Documents the namespace exemption, the field-preset dispatch path, and the `@updatedAt` removal with migration hint.

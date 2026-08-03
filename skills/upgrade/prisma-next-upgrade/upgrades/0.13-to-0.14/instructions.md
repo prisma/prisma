@@ -130,8 +130,8 @@ changes:
 <!--
 TML-2867: codec-routed DDL defaults. The migration planner now resolves each plan
 operation lazily (operations are `Promise<Op>[]`), and DDL execute steps carry a
-`params` array. The example migration fixtures (`prisma-next-demo`,
-`prisma-next-postgis-demo`) were regenerated to reflect the added `params` field.
+`params` array. The example migration fixtures (`prisma-8-demo`,
+`prisma-8-postgis-demo`) were regenerated to reflect the added `params` field.
 No user-side API change. Incidental substrate diff only.
 -->
 
@@ -146,7 +146,7 @@ until the cutover, so only `enumType`-authored contracts exercise it, and
 action — the examples/ diff is the new feature's demonstration. Incidental
 substrate diff only.
 
-TML-2838: the PGlite-backed example apps (`prisma-next-demo`, `react-router-demo`,
+TML-2838: the PGlite-backed example apps (`prisma-8-demo`, `react-router-demo`,
 `supabase`, `bundle-size`, `multi-extension-monorepo`) switched their vitest
 `pool` from `threads` to `forks` and pass `--no-memory-protection-keys`. Running
 PGlite (WebAssembly) across vitest worker threads intermittently aborts on Linux
@@ -414,7 +414,7 @@ A database created under 0.13 still has the native enum type and columns typed w
 
 Because the contract hash does not change (the schema conversion in step 1 and the emitted contract are the end state), scaffold the migration as a data-only edge on the current hash: `prisma-next migration new --name convert-<type>-to-value-set --from <current-storage-hash>`, give the ALTER op `operationClass: 'data'`, and self-emit by running the scaffolded `migration.ts`. The `DROP TYPE` has no op builder — express it as an inline `rawSql` op.
 
-A complete worked example ships in the Prisma Next repo: `examples/prisma-next-demo/migrations/app/20260611T1856_convert_user_type_to_value_set/migration.ts` — three ops (data-class ALTER … USING, `addCheckConstraint`, rawSql `DROP TYPE`), each with pre/postchecks that make replay idempotent.
+A complete worked example ships in the Prisma Next repo: `examples/prisma-8-demo/migrations/app/20260611T1856_convert_user_type_to_value_set/migration.ts` — three ops (data-class ALTER … USING, `addCheckConstraint`, rawSql `DROP TYPE`), each with pre/postchecks that make replay idempotent.
 
 Note: `prisma-next contract infer` **refuses** databases containing native enum types — it names each offending type and points at this conversion. Convert the database first, then infer.
 
@@ -506,7 +506,7 @@ contract shape changes. No consumer action required. Incidental substrate diff o
 -->
 
 <!--
-TML-2853 (PR #829): regenerate the `prisma-next-demo` example migration chain into
+TML-2853 (PR #829): regenerate the `prisma-8-demo` example migration chain into
 the new value-set representation, recovering work that #817 (the user-facing
 `enum-becomes-domain-concept` cutover, already in main) left undone in the example.
 The committed chain previously created `user_type` as a native `CREATE TYPE … AS ENUM`
@@ -517,7 +517,7 @@ history in which the initial migration creates `user.kind` as a `text` column wi
 `convert_user_type_to_value_set` self-edge are removed. The remaining incremental
 milestones (displayName, MTI variant link columns, `post.priority` value-set + default)
 are preserved so the chain still demonstrates the incremental migration CLI. Diff is
-`examples/prisma-next-demo/migrations/**` only. No NEW consumer action beyond the
+`examples/prisma-8-demo/migrations/**` only. No NEW consumer action beyond the
 existing `enum-becomes-domain-concept` entry above. Incidental substrate diff only.
 -->
 

@@ -105,7 +105,7 @@ async function writeMigrationPackage(dir, { from, to, ts }) {
 /**
  * Two-migration app-space chain plus a one-package extension space with a
  * per-space head contract, mirroring the shapes in
- * `examples/prisma-next-demo/migrations`. Returns the hashes used so tests
+ * `examples/prisma-8-demo/migrations`. Returns the hashes used so tests
  * can locate the resulting store entries.
  */
 async function buildFixture(root) {

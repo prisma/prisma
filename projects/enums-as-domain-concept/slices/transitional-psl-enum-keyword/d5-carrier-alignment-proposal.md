@@ -71,7 +71,7 @@ workstream; references must therefore carry the coordinate's kind string, full s
 
 **Timing.** `main` has zero persisted `ValueSetRef` instances. PR #805 (TML-2882,
 unmerged branch) writes the first ones into `storageHash`-covered wire:
-`examples/prisma-next-demo/src/prisma/contract.json` (the `priority` column ref, the
+`examples/prisma-8-demo/src/prisma/contract.json` (the `priority` column ref, the
 `post_priority_check` ref, the domain field ref) and the migration's frozen
 `end-contract.json`. Fixing the shape before #805 merges is a branch-internal
 regenerate; after, it is a wire-format break.
@@ -148,8 +148,8 @@ guard that the one-vocabulary rule holds at the carrier).
 
 ### Regenerated artifacts (branch-internal hash churn, pre-merge)
 
-- `examples/prisma-next-demo/src/prisma/contract.json` + `contract.d.ts` (re-emit).
-- `examples/prisma-next-demo/migrations/app/20260610T0000_add_priority_enum/`
+- `examples/prisma-8-demo/src/prisma/contract.json` + `contract.d.ts` (re-emit).
+- `examples/prisma-8-demo/migrations/app/20260610T0000_add_priority_enum/`
   frozen contracts (`end-contract.json` / `end-contract.d.ts`) via the migration
   flow — never hand-edited.
 - Expected wire delta, exhaustively: every persisted ref object changes

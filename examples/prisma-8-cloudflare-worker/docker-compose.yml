@@ -1,14 +1,14 @@
 # Local Postgres origin for the Cloudflare Worker example.
 #
 # Port 5433 (not the default 5432) so this doesn't clash with
-# `examples/prisma-next-demo`'s Postgres.app expectation on the standard port.
+# `examples/prisma-8-demo`'s Postgres.app expectation on the standard port.
 #
 # Bring it up with `pnpm db:up`. Schema/seed via `pnpm db:init && pnpm seed`.
 # The matching connection string for `.env` is in `.env.example`.
 services:
   postgres:
     image: postgres:16
-    container_name: prisma-next-cloudflare-worker-pg
+    container_name: prisma-8-cloudflare-worker-pg
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

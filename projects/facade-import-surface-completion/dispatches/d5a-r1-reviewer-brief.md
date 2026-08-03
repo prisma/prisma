@@ -8,7 +8,7 @@
 
 **New commits this round (1 commit):**
 
-- `903c9bc40` — `feat(examples): migrate to facade config + contract-builder form` — 9 files / -99/+22. Migrates 3 example configs (`paradedb-demo`, `prisma-next-demo-sqlite`, `react-router-demo`) + 4 example contracts (same three + `prisma-next-demo`) + the postgis-demo `test-database.ts` helper to facade form; updates `pnpm-lock.yaml` to reflect the dep changes.
+- `903c9bc40` — `feat(examples): migrate to facade config + contract-builder form` — 9 files / -99/+22. Migrates 3 example configs (`paradedb-demo`, `prisma-8-demo-sqlite`, `react-router-demo`) + 4 example contracts (same three + `prisma-8-demo`) + the postgis-demo `test-database.ts` helper to facade form; updates `pnpm-lock.yaml` to reflect the dep changes.
 
 **Mid-dispatch scope shift** (orchestrator-landed; see § D5a R1 orchestrator note for the full context):
 
@@ -38,7 +38,7 @@
 
 - **Working-tree cleanliness.** Implementer reported reverting cleanly after the cycle discovery. Verify `git status` is clean (modulo orchestrator's spec/plan updates which orchestrator will commit post-review).
 
-- **Mongo example coverage.** Multi-extension-monorepo + retail-store + mongo-demo + mongo-blog-leaderboard + cloudflare-worker + cipherstash-integration + prisma-next-postgis-demo + prisma-next-demo + multi-extension-monorepo/app + multi-extension-monorepo/packages/{audit,feature-flags} — these 10 configs were **not** in the implementer's commit but were on the brief's "13 configs" list. Verify they were already on facade form **before** D5a started (orchestrator's check showed they were; D0's inventory over-counted). Spot-check one or two to confirm.
+- **Mongo example coverage.** Multi-extension-monorepo + retail-store + mongo-demo + mongo-blog-leaderboard + cloudflare-worker + cipherstash-integration + prisma-8-postgis-demo + prisma-8-demo + multi-extension-monorepo/app + multi-extension-monorepo/packages/{audit,feature-flags} — these 10 configs were **not** in the implementer's commit but were on the brief's "13 configs" list. Verify they were already on facade form **before** D5a started (orchestrator's check showed they were; D0's inventory over-counted). Spot-check one or two to confirm.
 
 ## Acceptance bar for SATISFIED (D5a)
 

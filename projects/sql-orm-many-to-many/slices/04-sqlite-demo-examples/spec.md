@@ -4,7 +4,7 @@ _Parent project: `projects/sql-orm-many-to-many/`. Linear: [TML-2790](https://li
 
 ## At a glance
 
-Demonstrate the M:N ORM API end-to-end in the **SQLite** demo (`examples/prisma-next-demo-sqlite`, TS-authored — the only demo that can author M:N today, since the PG demo emits from PSL). Worked reference for include / filter / nested-write through a junction.
+Demonstrate the M:N ORM API end-to-end in the **SQLite** demo (`examples/prisma-8-demo-sqlite`, TS-authored — the only demo that can author M:N today, since the PG demo emits from PSL). Worked reference for include / filter / nested-write through a junction.
 
 ## Chosen design (as shipped)
 

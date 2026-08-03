@@ -750,7 +750,7 @@ describe('planner — type and nullability change behavior', () => {
   });
 });
 
-// --- Comprehensive incremental migration test (prisma-next-demo-like contract) ---
+// --- Comprehensive incremental migration test (prisma-8-demo-like contract) ---
 
 function createAdapterHooksComponent(): TargetBoundComponentDescriptor<'sql', string> {
   const parameterizedTypeHooks: CodecControlHooks = {

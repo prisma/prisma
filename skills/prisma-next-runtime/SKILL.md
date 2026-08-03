@@ -165,7 +165,7 @@ export const db = postgres<Contract>({
 
 The concept: lints catch authoring mistakes that survive type-check (e.g. `DELETE` without a `WHERE`, `SELECT` without a `LIMIT` on a large table); budgets enforce row-count and latency ceilings at runtime. Both surface findings through the structured-error envelope so an agent can branch on the code.
 
-These ship in the underlying SQL runtime package (`@internal/sql-runtime`) and are *not* yet re-exported from the postgres façade — see *What Prisma Next doesn't do yet*. The example apps under `examples/prisma-next-demo/src/prisma/db.ts` show the canonical import.
+These ship in the underlying SQL runtime package (`@internal/sql-runtime`) and are *not* yet re-exported from the postgres façade — see *What Prisma Next doesn't do yet*. The example apps under `examples/prisma-8-demo/src/prisma/db.ts` show the canonical import.
 
 ```typescript
 import postgres from '@internal/postgres/runtime';

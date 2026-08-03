@@ -91,7 +91,7 @@ mongodb-memory-server 11.1.0→11.2.0. Touches examples/ only via
 package.json version fields; no runtime, contract, or public-API change.
 
 TML-2838: regenerates example-app migration snapshots via pnpm
-fixtures:emit. The prisma-next-demo initial migration was updated from
+fixtures:emit. The prisma-8-demo initial migration was updated from
 the removed standalone createTable function to this.createTable({...})
 (the base-class method introduced by the planner-create-table-adopts-ddl-ast
 refactor). The ops.json snapshots are regenerated accordingly. No
@@ -99,7 +99,7 @@ user-side action required.
 
 TML-2843: `@internal/sqlite` gained an additive facade transaction
 API (`db.transaction(async (tx) => …)`) demonstrated in
-`examples/prisma-next-demo-sqlite`. No user action required; incidental
+`examples/prisma-8-demo-sqlite`. No user action required; incidental
 substrate diff.
 
 Release bump 0.13.0 (#789): version-number changes across all workspace

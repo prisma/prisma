@@ -4,7 +4,7 @@ _Parent project: `projects/sql-orm-many-to-many/`. Linear: [TML-2795](https://li
 
 ## At a glance
 
-Bring the M:N demo examples to the **PG** demo (`examples/prisma-next-demo`), mirroring the SQLite demo (slice 4), and reconcile the demo's pre-existing **dual-mode contract drift**. The PG demo emits from PSL, so its M:N examples can't exist until PSL can author M:N (slice 5).
+Bring the M:N demo examples to the **PG** demo (`examples/prisma-8-demo`), mirroring the SQLite demo (slice 4), and reconcile the demo's pre-existing **dual-mode contract drift**. The PG demo emits from PSL, so its M:N examples can't exist until PSL can author M:N (slice 5).
 
 ## Chosen design
 

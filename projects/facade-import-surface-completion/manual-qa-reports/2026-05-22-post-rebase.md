@@ -39,7 +39,7 @@ No new merge-blocking findings. One ℹ️ Note about the test:packages flakes (
 ### Scenario 1 — Author a fresh SQLite migration via the façade (AC-2, AC-4)
 
 **What I did:**
-- Verified `examples/prisma-next-demo-sqlite/migrations/` did not exist at start.
+- Verified `examples/prisma-8-demo-sqlite/migrations/` did not exist at start.
 - Read tracked sources: `prisma-next.config.ts` opens with `import { defineConfig } from '@internal/sqlite/config';`. `prisma/contract.ts` opens with `import { defineContract, rel } from '@internal/sqlite/contract-builder';` and the `defineContract(...)` call has no `family:` / `target:` argument.
 - Ran `pnpm prisma-next contract emit` (exit 0; produced `prisma/contract.json` + `prisma/contract.d.ts`).
 - Ran `pnpm prisma-next migration plan --name qa-initial` (exit 0; reported `"summary": "Planned 3 operation(s)"`).
@@ -194,13 +194,13 @@ Total wallclock: ~10 minutes (no `pnpm install && pnpm build && pnpm install` cy
 
 ## Working-tree hygiene at exit
 
-`git status --porcelain` at end shows only `projects/facade-import-surface-completion/manual-qa-reports/artefacts/` (this report's S4 probe artefacts) and the new report file itself. All scenario scratch (`test/integration/qa-probe-s4/`, `wip/qa-rerun/`) removed; all scenario-emitted files (`examples/prisma-next-demo-sqlite/{migrations,prisma/contract.{json,d.ts}}`, `examples/react-router-demo/{migrations,prisma/contract.{json,d.ts}}`) removed; pre-existing leftovers from prior fixtures-emit runs (`examples/paradedb-demo/prisma/contract.{json,d.ts}` and the three demo example contract emits) cleared at runner start so the working tree begins from a clean slate. No commits made by the runner.
+`git status --porcelain` at end shows only `projects/facade-import-surface-completion/manual-qa-reports/artefacts/` (this report's S4 probe artefacts) and the new report file itself. All scenario scratch (`test/integration/qa-probe-s4/`, `wip/qa-rerun/`) removed; all scenario-emitted files (`examples/prisma-8-demo-sqlite/{migrations,prisma/contract.{json,d.ts}}`, `examples/react-router-demo/{migrations,prisma/contract.{json,d.ts}}`) removed; pre-existing leftovers from prior fixtures-emit runs (`examples/paradedb-demo/prisma/contract.{json,d.ts}` and the three demo example contract emits) cleared at runner start so the working tree begins from a clean slate. No commits made by the runner.
 
 ## Surfaced for orchestrator attention
 
 - **The prior report's 📝 Follow-up backlog (F-3 → F-9) is not re-validated here.** The brief explicitly carves them out of this re-run's scope; they remain open per the prior report's disposition.
 - **F-4 (script wayfinding `migrations/<timestamp>_qa-initial/` vs actual `migrations/app/<timestamp>_qa_initial/`)** still applies post-rebase — the actual rendered path remains under `migrations/app/` with the underscore separator. Not re-filed (the brief says "follow the actual rendered output and file a finding; do not edit the script", and the prior report's F-4 already captures this against `drive-qa-plan`).
-- **Prior F-7 (SQLite contract.ts also imports from `@internal/adapter-sqlite/column-types`)** is unchanged in the post-rebase tree — `examples/prisma-next-demo-sqlite/prisma/contract.ts` still has both imports. Out of this re-run's scope; surfaced for orchestrator continuity.
+- **Prior F-7 (SQLite contract.ts also imports from `@internal/adapter-sqlite/column-types`)** is unchanged in the post-rebase tree — `examples/prisma-8-demo-sqlite/prisma/contract.ts` still has both imports. Out of this re-run's scope; surfaced for orchestrator continuity.
 
 ---
 

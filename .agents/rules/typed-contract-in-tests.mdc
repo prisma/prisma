@@ -110,6 +110,6 @@ export type { CodecTypes };
 
 - ✅ Integration tests with contract fixtures
 - ✅ E2E tests with contract fixtures  
-- ✅ Example app tests (e.g., `prisma-next-demo/test/`)
+- ✅ Example app tests (e.g., `prisma-8-demo/test/`)
 - ❌ Unit tests that create contracts inline (use test-utils column helpers instead)
 - ❌ Tests that intentionally test generic contract handling

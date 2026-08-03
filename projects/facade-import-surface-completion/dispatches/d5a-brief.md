@@ -38,22 +38,22 @@ Migrate every user-authored TS file under `examples/` (and the two extension-pac
   - `examples/multi-extension-monorepo/packages/audit/prisma-next.config.ts`
   - `examples/retail-store/prisma-next.config.ts`
   - `examples/mongo-demo/prisma-next.config.ts`
-  - `examples/prisma-next-demo-sqlite/prisma-next.config.ts`
-  - `examples/prisma-next-cloudflare-worker/prisma-next.config.ts`
+  - `examples/prisma-8-demo-sqlite/prisma-next.config.ts`
+  - `examples/prisma-8-cloudflare-worker/prisma-next.config.ts`
   - `examples/cipherstash-integration/prisma-next.config.ts`
   - `examples/paradedb-demo/prisma-next.config.ts`
   - `examples/react-router-demo/prisma-next.config.ts`
   - `examples/mongo-blog-leaderboard/prisma-next.config.ts`
-  - `examples/prisma-next-demo/prisma-next.config.ts`
-  - `examples/prisma-next-postgis-demo/prisma-next.config.ts`
+  - `examples/prisma-8-demo/prisma-next.config.ts`
+  - `examples/prisma-8-postgis-demo/prisma-next.config.ts`
 
-  Migration pattern: replace verbose `defineConfig` imports (`@internal/cli`, `@internal/family-{sql,mongo}/control`, `@internal/target-{postgres,sqlite,mongo}/control`, etc.) with the facade form (`@internal/{postgres,sqlite,mongo}/config`'s `defineConfig`). Mirror the pattern from any example already migrated (e.g. `prisma-next-demo` was D0-migrated; verify shape).
+  Migration pattern: replace verbose `defineConfig` imports (`@internal/cli`, `@internal/family-{sql,mongo}/control`, `@internal/target-{postgres,sqlite,mongo}/control`, etc.) with the facade form (`@internal/{postgres,sqlite,mongo}/config`'s `defineConfig`). Mirror the pattern from any example already migrated (e.g. `prisma-8-demo` was D0-migrated; verify shape).
 
 - **4 `examples/*/prisma/contract.ts` files**:
-  - `examples/prisma-next-demo-sqlite/prisma/contract.ts`
+  - `examples/prisma-8-demo-sqlite/prisma/contract.ts`
   - `examples/paradedb-demo/prisma/contract.ts`
   - `examples/react-router-demo/prisma/contract.ts`
-  - `examples/prisma-next-demo/prisma/contract.ts`
+  - `examples/prisma-8-demo/prisma/contract.ts`
 
   Migration pattern:
   - Replace `import { defineContract } from '@internal/sql-contract-ts/contract-builder'` (or similar) with `import { defineContract } from '@internal/{postgres,sqlite}/contract-builder'`.
@@ -73,7 +73,7 @@ Migrate every user-authored TS file under `examples/` (and the two extension-pac
 
 - `examples/multi-extension-monorepo/test/multi-space.e2e.integration.test.ts` — imports `postgresAdapterDescriptor` from `@internal/adapter-postgres/control`, `executeDbInit` from `@internal/cli/control-api`, `postgresDriverDescriptor` from `@internal/driver-postgres/control`, `sqlFamilyDescriptor` from `@internal/family-sql/control`, `postgresTargetDescriptor` from `@internal/target-postgres/control`. The slice plan's original D5 scope note covers this: "in scope if the façade now exposes the equivalent surface (`createSqliteControlClient`, `createMongoControlClient`, `createPostgresControlClient`)". Verify what the facade `/control` exports and migrate if equivalent; otherwise leave + note in your structured return for D5b consideration.
 
-- `examples/prisma-next-postgis-demo/test/utils/test-database.ts` — same investigate-then-migrate treatment.
+- `examples/prisma-8-postgis-demo/test/utils/test-database.ts` — same investigate-then-migrate treatment.
 
 ### Out of scope for D5a (D5b will handle)
 

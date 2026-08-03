@@ -112,7 +112,7 @@ limitation, not a regression in the example.
 
 The cf-worker entries are bundle-only: there is no miniflare runtime test in
 this example. The Cloudflare Workers + Prisma Next functional coverage lives
-in [`examples/prisma-next-cloudflare-worker`](../prisma-next-cloudflare-worker/)
+in [`examples/prisma-8-cloudflare-worker`](../prisma-8-cloudflare-worker/)
 which runs against `@cloudflare/vitest-pool-workers`.
 
 ## CI reporting

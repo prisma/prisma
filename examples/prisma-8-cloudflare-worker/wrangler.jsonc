@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "prisma-next-cloudflare-worker",
+  "name": "prisma-8-cloudflare-worker",
   "main": "src/worker.ts",
   "compatibility_date": "2025-07-18",
   "compatibility_flags": ["nodejs_compat"],

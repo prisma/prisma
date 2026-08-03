@@ -54,7 +54,7 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
   - **In the config (façade and core):** `extensions: [pgvector]` — array of *control* descriptors imported from `@internal/extension-<name>/control`.
   - **In the TS builder's `defineContract` (only when authoring `contract.ts`):** `extensions: { pgvector }` — record of *pack* descriptors imported from `@internal/extension-<name>/pack`.
 - **Contract space.** Every package that emits a contract owns its own *contract space* — a `prisma-next.config.ts` at package root, a contract source, the colocated emitted artefacts, and a `migrations/` directory. **There are two intentional on-disk layouts**, picked by whether the contract space is the consuming application or a contract-space package (an extension, an internal aggregate-root package, etc.):
-  - **Application layout** (what you use when building an *app*). `prisma-next.config.ts` at repo root; `src/prisma/contract.{prisma,ts}`; `src/prisma/contract.{json,d.ts}` colocated; `src/prisma/db.ts` colocated; migrations under `migrations/app/<timestamp>_<slug>/`. The `app/` segment is the consuming application's space-id; extension space-ids land in sibling `migrations/<extension-space-id>/` directories that the extension packages manage. This is what `examples/prisma-next-demo` uses. `prisma-next init` currently scaffolds something different (`prisma/...` at repo root) — that's a defect (TML-2532); the canonical layout is what every command actually expects to see.
+  - **Application layout** (what you use when building an *app*). `prisma-next.config.ts` at repo root; `src/prisma/contract.{prisma,ts}`; `src/prisma/contract.{json,d.ts}` colocated; `src/prisma/db.ts` colocated; migrations under `migrations/app/<timestamp>_<slug>/`. The `app/` segment is the consuming application's space-id; extension space-ids land in sibling `migrations/<extension-space-id>/` directories that the extension packages manage. This is what `examples/prisma-8-demo` uses. `prisma-next init` currently scaffolds something different (`prisma/...` at repo root) — that's a defect (TML-2532); the canonical layout is what every command actually expects to see.
   - **Contract-space-package layout** (what you use when *publishing* a contract-space package — extensions, internal monorepo packages). `prisma-next.config.ts` at package root; `src/contract.{prisma,ts}` directly (no `prisma/` subdir); `src/contract.{json,d.ts}` colocated; `migrations/<timestamp>_<slug>/` directly under `migrations/` (no `<space-id>` segment — the package *is* a single space). Documented in `.cursor/rules/contract-space-package-layout.mdc` and ADR 212.
 
   Both layouts let `defineConfig`'s `contract:` path point at the source; the framework derives everything else (emit output, migration root) from there. Pick the layout that matches what you're building and stick with it — don't mix.
@@ -188,7 +188,7 @@ Emit. The named-type lowering puts `vector(1536)` on the column and the type map
 
 If you reference `pgvector.*` without registering the pack in the config, emit fails with `PN-CLI-4011` and `meta.missingExtensions: ['pgvector']`. The envelope's `fix` text says *"Add the missing extension descriptors to `extensions` in prisma-next.config.ts"* — that field name matches the façade.
 
-For canonical worked examples covering single and multi-extension setups, read `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-next-postgis-demo/prisma-next.config.ts`.
+For canonical worked examples covering single and multi-extension setups, read `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-8-postgis-demo/prisma-next.config.ts`.
 
 ## Workflow — Polymorphism (`@@discriminator` / `@@base`)
 
@@ -247,7 +247,7 @@ model User {
 
 Emitted `contract.json` carries `domain.namespaces.<ns>.valueObjects.Address` with its field descriptors, and the `address` column lands as `codecId: "pg/jsonb@1"` / `nativeType: "jsonb"` in `storage`.
 
-Canonical worked example: `examples/prisma-next-demo/src/prisma/contract.prisma`.
+Canonical worked example: `examples/prisma-8-demo/src/prisma/contract.prisma`.
 
 ## Workflow — Enums
 
@@ -266,7 +266,7 @@ model User {
 }
 ```
 
-Canonical worked example: `examples/prisma-next-demo/src/prisma/contract.prisma`.
+Canonical worked example: `examples/prisma-8-demo/src/prisma/contract.prisma`.
 
 ## Workflow — Namespaces (Postgres schemas)
 
@@ -359,7 +359,7 @@ pnpm prisma-next contract emit
 1. **Forgetting to re-emit after an edit.** `contract.json` and `contract.d.ts` go stale; downstream typecheck and `migration plan` see the old shape. Re-emit, or install the Vite plugin (`prisma-next-build`).
 2. **Editing the emitted artefacts.** `contract.json` and `contract.d.ts` are emitted; edits there round-trip away on the next emit. Edit the source.
 3. **Wrong factory/import path for the TS builder.** `defineContract`, `field`, `model`, `rel` come from `@internal/postgres/contract-builder` (or `@internal/mongo/contract-builder`). Outside the callback overload, the available field constructors are `field.column(...)`, `field.generated(...)`, `field.namedType(...)`.
-4. **Reaching into internal packages from user code.** User-authored files (`prisma-next.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@internal/<target>/<subpath>` and `@internal/extension-<name>/<subpath>`. Imports from `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma Next doesn't do yet* and route to `prisma-next-feedback`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-next-postgis-demo/prisma-next.config.ts`.
+4. **Reaching into internal packages from user code.** User-authored files (`prisma-next.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@internal/<target>/<subpath>` and `@internal/extension-<name>/<subpath>`. Imports from `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma Next doesn't do yet* and route to `prisma-next-feedback`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-8-postgis-demo/prisma-next.config.ts`.
 5. **Confusing the config `extensions` with the TS builder's `extensions`.** Same packs, two surfaces, one field name but two shapes: `defineConfig({ extensions: [pgvector] })` (array of *control* descriptors from `@internal/extension-<name>/control`) versus `defineContract({ extensions: { pgvector } })` (record of *pack* descriptors from `@internal/extension-<name>/pack`).
 6. **Renaming a field and expecting the planner to detect it.** Prisma Next has no in-contract rename hint; the planner sees a destructive drop+add. Hand-edit `migration.ts` after `migration plan` (see `prisma-next-migrations`), or use the keep-then-drop two-migration pattern.
 
@@ -378,7 +378,7 @@ pnpm prisma-next contract emit
 - PSL feature surface and what the interpreter accepts: `packages/2-sql/2-authoring/contract-psl/README.md`.
 - TS builder surface and the callback-helper vocabulary: `packages/2-sql/2-authoring/contract-ts/README.md`.
 - Layouts (where `contract.prisma`, `contract.json`, `contract.d.ts`, and `migrations/` live):
-  - **App layout** (`src/prisma/...` + `migrations/app/...`) — what `examples/prisma-next-demo` demonstrates; the canonical shape consuming applications use.
+  - **App layout** (`src/prisma/...` + `migrations/app/...`) — what `examples/prisma-8-demo` demonstrates; the canonical shape consuming applications use.
   - **Contract-space-package layout** (`src/contract.{prisma,ts}` directly, `migrations/<timestamp>_<slug>/` without a space-id segment) — for extensions and aggregate-root packages, documented in `.cursor/rules/contract-space-package-layout.mdc` and ADR 212.
 
 ## Checklist

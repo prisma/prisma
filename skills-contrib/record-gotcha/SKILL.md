@@ -209,7 +209,7 @@ Used in `gotchas.md` (or the matching per-product file).
 **Filed upstream:** [TML-XXXX](https://linear.app/prisma-company/issue/TML-XXXX) — *"<ticket title>"*
 **Product:** Prisma Next | Prisma Compute | Prisma Postgres
 **Version:** <package version, CLI version, or commit SHA>
-**First hit:** <one-line context, e.g. "authoring a new extension pack", or "examples/prisma-next-demo migration plan">
+**First hit:** <one-line context, e.g. "authoring a new extension pack", or "examples/prisma-8-demo migration plan">
 **Cost:** <only if material — "20 minutes of brownout", "3 hours debugging", etc. Skip if <30 min.>
 
 **Symptom.** <quoted error / log line / observed behaviour, verbatim where possible>
@@ -305,7 +305,7 @@ The capture workflow is documented in [`.agents/skills/record-gotcha/SKILL.md`](
 > **Filed upstream:** [TML-XXXX](https://linear.app/prisma-company/issue/TML-XXXX)
 > **Product:** Prisma Next
 > **Version:** `@internal/cli@<version>`
-> **First hit:** `examples/prisma-next-demo`, changing the schema while iterating on a demo
+> **First hit:** `examples/prisma-8-demo`, changing the schema while iterating on a demo
 > **Cost:** ~15 minutes
 >
 > **Symptom.** Edited `schema.prisma`, ran `pnpm prisma-next migration plan`, got `✔ No changes detected` with `from` and `to` hashes equal. No warning, no indication that the contract was out of date.
@@ -314,7 +314,7 @@ The capture workflow is documented in [`.agents/skills/record-gotcha/SKILL.md`](
 >
 > **Workaround.** Run `pnpm prisma-next contract emit` before `migration plan` whenever the schema has changed. Or wire `emit` into your dev script.
 >
-> **Reproduction.** Edit `schema.prisma` in `examples/prisma-next-demo`, run `pnpm prisma-next migration plan` without re-emitting. Observe the spurious "No changes detected".
+> **Reproduction.** Edit `schema.prisma` in `examples/prisma-8-demo`, run `pnpm prisma-next migration plan` without re-emitting. Observe the spurious "No changes detected".
 
 Why it's good: symptom-led title, version captured, cost surfaced, cause cites the underlying mechanism, workaround is concrete, repro steps are minimal.
 

@@ -72,7 +72,7 @@ These four cases anchor the acceptance criteria. If any can't be expressed clean
 
 ### Case E — Emit-path `contract.d.ts` typed `TypeMaps` derivation
 
-**Setup.** `pnpm emit` runs against `examples/prisma-next-demo`. The emitter walks the descriptors registered through the unified `codecs:` slot, derives per-codec-id `{input, output, traits}` shapes, and writes them into `contract.d.ts`'s `TypeMaps` projection.
+**Setup.** `pnpm emit` runs against `examples/prisma-8-demo`. The emitter walks the descriptors registered through the unified `codecs:` slot, derives per-codec-id `{input, output, traits}` shapes, and writes them into `contract.d.ts`'s `TypeMaps` projection.
 
 **Expected behavior.** Generated `TypeMaps` projection has correct per-codec-id shapes:
 ```typescript
@@ -132,7 +132,7 @@ Per-package descriptor records preserve each entry's full descriptor type by inf
 
 ### AC-0.3. No-emit authoring chain types end-to-end
 
-The no-emit authoring chain (using `examples/prisma-next-demo/prisma/contract.ts` + `prisma-no-emit/context.ts` as the reference shape) types every step:
+The no-emit authoring chain (using `examples/prisma-8-demo/prisma/contract.ts` + `prisma-no-emit/context.ts` as the reference shape) types every step:
 
 - `field.uuidv4()` returns a field spec whose codec generic is `Codec<'pg/uuid@1', ..., Buffer, string>`.
 - `defineContract({target: postgresPack, family: sqlFamily, extensionPacks: {pgvector}}, ...)` produces a contract type carrying per-column codec types (e.g. `User.fields.id` → `pg/uuid@1` codec; `Post.fields.embedding` → `pg/vector@1` codec).
@@ -204,4 +204,4 @@ The contract-level `ExtractCodecTypes<T>` in `sql/1-core/contract/src/types.ts` 
 - Parent spec: [`spec.md`](../spec.md) — TML-2357 canonical spec; this sub-spec is a precondition for AC-1 / AC-2 / AC-3 / AC-7.
 - [`wip/unattended-decisions.md` Decision #11](../../../wip/unattended-decisions.md) — diagnosis of the M2 R4 type-system failure that surfaced this problem.
 - [`packages/2-sql/4-lanes/relational-core/src/ast/codec-types.ts:587-593`](../../../packages/2-sql/4-lanes/relational-core/src/ast/codec-types.ts) — current `defineCodec` declaration, where the variance erasure happens.
-- [`examples/prisma-next-demo/prisma/contract.ts`](../../../examples/prisma-next-demo/prisma/contract.ts), [`examples/prisma-next-demo/src/prisma-no-emit/context.ts`](../../../examples/prisma-next-demo/src/prisma-no-emit/context.ts) — reference no-emit authoring chain.
+- [`examples/prisma-8-demo/prisma/contract.ts`](../../../examples/prisma-8-demo/prisma/contract.ts), [`examples/prisma-8-demo/src/prisma-no-emit/context.ts`](../../../examples/prisma-8-demo/src/prisma-no-emit/context.ts) — reference no-emit authoring chain.
