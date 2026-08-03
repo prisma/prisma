@@ -77,7 +77,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
           },
         ],
       });
-      expect(comment?._id).toBeInstanceOf(ObjectId);
+      expect(comment?._id).toEqual(expect.any(String));
     }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -104,7 +104,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
           },
         ],
       });
-      expect(comment?._id).toBeInstanceOf(ObjectId);
+      expect(comment?._id).toEqual(expect.any(String));
     }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -163,7 +163,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
           },
         ],
       });
-      expect(comment?._id).toBeInstanceOf(ObjectId);
+      expect(comment?._id).toEqual(expect.any(String));
     }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -184,7 +184,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
           { text: 'Goodbye World', upvotes: [] },
         ],
       });
-      expect(comment?._id).toBeInstanceOf(ObjectId);
+      expect(comment?._id).toEqual(expect.any(String));
     }),
     timeouts.spinUpMongoMemoryServer,
   );

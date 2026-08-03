@@ -103,11 +103,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 - [x] `all fields are null` — creates empty record, asserts queryRaw equals findMany with all nulls [providers: exclude:mongodb] → ports/prisma/functional/multiple-types/multiple-types.test.ts
 
 ### packages/client/tests/functional/mysql-bit-type/tests.ts
-- [ ] `bytes field > all bytes` — creates row with 8-byte uint64, asserts result.uint64 equals input bytes [providers: mysql-only]
-- [ ] `bytes field > empty byte array` — creates row with empty byte array, asserts result padded to 8 zero bytes [providers: mysql-only]
-- [ ] `bytes field > too many bytes` — creating with 9 bytes rejects with out-of-range/too-long error [providers: mysql-only]
-- [ ] `boolean fields` — creates row bool1 true / bool2 false, asserts result matches [providers: mysql-only]
-- [ ] `raw query` — `$queryRaw SELECT b'1' AS bit` returns Uint8Array [1] [providers: mysql-only]
+- [x] `bytes field > all bytes` — creates row with 8-byte uint64, asserts result.uint64 equals input bytes [providers: mysql-only] → non-ported
+- [x] `bytes field > empty byte array` — creates row with empty byte array, asserts result padded to 8 zero bytes [providers: mysql-only] → non-ported
+- [x] `bytes field > too many bytes` — creating with 9 bytes rejects with out-of-range/too-long error [providers: mysql-only] → non-ported
+- [x] `boolean fields` — creates row bool1 true / bool2 false, asserts result matches [providers: mysql-only] → non-ported
+- [x] `raw query` — `$queryRaw SELECT b'1' AS bit` returns Uint8Array [1] [providers: mysql-only] → non-ported
 
 ### packages/client/tests/functional/naming-conflict/built-in-types-vs-enum/tests.ts
 - [x] `allows to create enum with conflicting name` — creates enumHolder with value 'ONE', asserts value is 'ONE' and type is `'ONE'|'TWO'` [providers: postgres,mysql,mongodb,cockroach] (enumName axis: all builtInNames) → non-ported (whole enumName axis, 67 name-cases; per-case entries in non-ported.md)
@@ -160,15 +160,15 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 - [ ] `Prisma.dmmf in JS client > exports Prisma.dmmf (default)` — asserts Prisma.dmmf matches snapshot; only runs when generatorType is prisma-client-js (describeIf) [providers: all, skipDb]
 
 ### packages/client/tests/functional/prisma-promise/tests.ts
-- [ ] `%s > repeated calls to .then` `[each]` — for each operation (create, createMany[non-sqlite], findMany, findFirst, findUnique, findUniqueOrThrow, findFirstOrThrow, update, updateMany, delete, deleteMany, aggregate, count, $queryRaw/$queryRawUnsafe/$executeRaw/$executeRawUnsafe[non-mongodb], $runCommandRaw[mongodb]), asserts two `.then()` calls give strictEqual result [providers: all]
-- [ ] `%s > repeated calls to .catch` `[each]` — asserts two `.catch()` calls give strictEqual result [providers: all]
-- [ ] `%s > repeated calls to .finally` `[each]` — asserts two `.finally()` calls give strictEqual result [providers: all]
-- [ ] `%s > repeated mixed calls to .then, .catch, .finally` `[each]` — asserts mixed chaining orders give strictEqual result [providers: all]
-- [ ] `%s > fluent promises should have promise properties` `[each]` — asserts 'then'/'finally'/'catch' present on the returned PrismaPromise [providers: all]
+- [x] `%s > repeated calls to .then` `[each]` — for each operation (create, createMany[non-sqlite], findMany, findFirst, findUnique, findUniqueOrThrow, findFirstOrThrow, update, updateMany, delete, deleteMany, aggregate, count, $queryRaw/$queryRawUnsafe/$executeRaw/$executeRawUnsafe[non-mongodb], $runCommandRaw[mongodb]), asserts two `.then()` calls give strictEqual result [providers: all] → non-ported
+- [x] `%s > repeated calls to .catch` `[each]` — asserts two `.catch()` calls give strictEqual result [providers: all] → non-ported
+- [x] `%s > repeated calls to .finally` `[each]` — asserts two `.finally()` calls give strictEqual result [providers: all] → non-ported
+- [x] `%s > repeated mixed calls to .then, .catch, .finally` `[each]` — asserts mixed chaining orders give strictEqual result [providers: all] → non-ported
+- [x] `%s > fluent promises should have promise properties` `[each]` — asserts 'then'/'finally'/'catch' present on the returned PrismaPromise [providers: all] → non-ported
 
 ### packages/client/tests/functional/query-error-logging/tests.ts
-- [ ] `findUniqueOrThrown when error thrown` — findUniqueOrThrow rejects with P2025 PrismaClientKnownRequestError; asserts exactly one error LogEvent captured via `$on('error')`, message contains "operation failed because it depends on... required but not found", target contains `user.findUniqueOrThrow` [providers: all]
-- [ ] `findFirstOrThrow when error thrown` — findFirstOrThrow rejects with P2025; asserts one error LogEvent, same message, target contains `user.findFirstOrThrow` [providers: all]
+- [x] `findUniqueOrThrown when error thrown` — findUniqueOrThrow rejects with P2025 PrismaClientKnownRequestError; asserts exactly one error LogEvent captured via `$on('error')`, message contains "operation failed because it depends on... required but not found", target contains `user.findUniqueOrThrow` [providers: all] → non-ported
+- [x] `findFirstOrThrow when error thrown` — findFirstOrThrow rejects with P2025; asserts one error LogEvent, same message, target contains `user.findFirstOrThrow` [providers: all] → non-ported
 
 ### packages/client/tests/functional/query-validation/tests.ts
 - [x] `include and select are used at the same time` — findMany with both select+include rejects with inline-snapshot error "Please either use include or select, but not both" [providers: all] → non-ported
@@ -195,31 +195,31 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 - [ ] `columns with _bin collation return strings, not Uint8Array` — after altering char/varchar/text columns to utf8mb4_bin and creating a user, `$queryRaw` returns those columns as string 'hello' (not Uint8Array) [providers: mysql-only]
 
 ### packages/client/tests/functional/raw-queries/send-type-hints/tests.ts
-- [ ] `Uint8Array ($queryRaw)` — INSERT binary via `$queryRaw` template (MySQL vs quoted-identifier branch), findUnique returns binary equal to Uint8Array [1,2,3] [providers: exclude:mongodb]
-- [ ] `Uint8Array ($executeRaw)` — same insert via `$executeRaw` template, findUnique binary equals Uint8Array [1,2,3] [providers: exclude:mongodb]
-- [ ] `Uint8Array ($queryRaw + Prisma.sql)` — insert via `$queryRaw(Prisma.sql...)`, binary round-trips [providers: exclude:mongodb]
-- [ ] `Uint8Array ($executeRaw + Prisma.sql)` — insert via `$executeRaw(Prisma.sql...)`, binary round-trips [providers: exclude:mongodb]
+- [x] `Uint8Array ($queryRaw)` — INSERT binary via `$queryRaw` template (MySQL vs quoted-identifier branch), findUnique returns binary equal to Uint8Array [1,2,3] [providers: exclude:mongodb] → non-ported
+- [x] `Uint8Array ($executeRaw)` — same insert via `$executeRaw` template, findUnique binary equals Uint8Array [1,2,3] [providers: exclude:mongodb] → non-ported
+- [x] `Uint8Array ($queryRaw + Prisma.sql)` — insert via `$queryRaw(Prisma.sql...)`, binary round-trips [providers: exclude:mongodb] → non-ported
+- [x] `Uint8Array ($executeRaw + Prisma.sql)` — insert via `$executeRaw(Prisma.sql...)`, binary round-trips [providers: exclude:mongodb] → non-ported
 
 ### packages/client/tests/functional/raw-queries/typed-results-advanced-and-native-types/tests.ts
 - [ ] `query model with multiple fields` — create testModel with json, string_list, bInt_list, date, time; `$queryRaw SELECT *` returns json object, string list, bigint list (asserted individually as -1234/1234), date normalized to midnight, time to 1970 epoch date [providers: postgres,cockroach]
 
 ### packages/client/tests/functional/raw-queries/typed-results/tests.ts
-- [ ] `simple expression` — `$queryRaw SELECT 1 + 1` returns 2 [providers: exclude:mongodb]
-- [ ] `query model with multiple types` — create testModel with all scalar types; `$queryRaw SELECT *` returns full shape; bool is 1 for js_d1/mysql else true, dec is number for js_d1 else Decimal; bInt is number for js_d1 else bigint 12345 [providers: exclude:mongodb]
-- [ ] `query model with a BigInt = 2147483647 (i32)` — bInt round-trips as bigint (or number for js_d1) [providers: exclude:mongodb]
-- [ ] `query model with a BigInt = -2147483647 (-i32)` — bInt round-trips as bigint (or number for js_d1) [providers: exclude:mongodb]
-- [ ] `query model with a BigInt = MAX_SAFE_INTEGER` — bInt 9007199254740991 round-trips as bigint (or number for js_d1) [providers: exclude:mongodb]
-- [ ] `query model with a BigInt = -MAX_SAFE_INTEGER` — bInt -9007199254740991 round-trips as bigint (or number for js_d1) [providers: exclude:mongodb]
-- [ ] `when BigInt value is not a safe integer > query model with a BigInt = MAX_SAFE_INTEGER + MAX_SAFE_INTEGER > BigInt is natively supported` — [testIf isBigIntNativelySupported] create bInt=2*MAX_SAFE, result equals bigint 18014398509481982n [providers: exclude:mongodb]
-- [ ] `when BigInt value is not a safe integer > query model with a BigInt = MAX_SAFE_INTEGER + MAX_SAFE_INTEGER > BigInt is not natively supported` — [testIf !isBigIntNativelySupported, js_d1] create rejects "Invalid Int64-encoded value received: 18014398509481982" [providers: exclude:mongodb]
-- [ ] `when BigInt value is not a safe integer > query model with a BigInt = -(MAX_SAFE_INTEGER + MAX_SAFE_INTEGER) > BigInt is natively supported` — [describe.skip][testIf] create rejects with driver-adapter-specific out-of-range messages (libsql/neon/pg/planetscale branches) [providers: exclude:mongodb]
-- [ ] `when BigInt value is not a safe integer > query model with a BigInt = -(MAX_SAFE_INTEGER + MAX_SAFE_INTEGER) > BigInt is not natively supported` — [describe.skip][testIf] create rejects "Invalid Int64-encoded value received: -18014398509481982" [providers: exclude:mongodb]
+- [x] `simple expression` — `$queryRaw SELECT 1 + 1` returns 2 [providers: exclude:mongodb] → non-ported
+- [x] `query model with multiple types` — create testModel with all scalar types; `$queryRaw SELECT *` returns full shape; bool is 1 for js_d1/mysql else true, dec is number for js_d1 else Decimal; bInt is number for js_d1 else bigint 12345 [providers: exclude:mongodb] → non-ported
+- [x] `query model with a BigInt = 2147483647 (i32)` — bInt round-trips as bigint (or number for js_d1) [providers: exclude:mongodb] → non-ported
+- [x] `query model with a BigInt = -2147483647 (-i32)` — bInt round-trips as bigint (or number for js_d1) [providers: exclude:mongodb] → non-ported
+- [x] `query model with a BigInt = MAX_SAFE_INTEGER` — bInt 9007199254740991 round-trips as bigint (or number for js_d1) [providers: exclude:mongodb] → non-ported
+- [x] `query model with a BigInt = -MAX_SAFE_INTEGER` — bInt -9007199254740991 round-trips as bigint (or number for js_d1) [providers: exclude:mongodb] → non-ported
+- [x] `when BigInt value is not a safe integer > query model with a BigInt = MAX_SAFE_INTEGER + MAX_SAFE_INTEGER > BigInt is natively supported` — [testIf isBigIntNativelySupported] create bInt=2*MAX_SAFE, result equals bigint 18014398509481982n [providers: exclude:mongodb] → non-ported
+- [x] `when BigInt value is not a safe integer > query model with a BigInt = MAX_SAFE_INTEGER + MAX_SAFE_INTEGER > BigInt is not natively supported` — [testIf !isBigIntNativelySupported, js_d1] create rejects "Invalid Int64-encoded value received: 18014398509481982" [providers: exclude:mongodb] → non-ported
+- [x] `when BigInt value is not a safe integer > query model with a BigInt = -(MAX_SAFE_INTEGER + MAX_SAFE_INTEGER) > BigInt is natively supported` — [describe.skip][testIf] create rejects with driver-adapter-specific out-of-range messages (libsql/neon/pg/planetscale branches) [providers: exclude:mongodb] → non-ported
+- [x] `when BigInt value is not a safe integer > query model with a BigInt = -(MAX_SAFE_INTEGER + MAX_SAFE_INTEGER) > BigInt is not natively supported` — [describe.skip][testIf] create rejects "Invalid Int64-encoded value received: -18014398509481982" [providers: exclude:mongodb] → non-ported
 
 ### packages/client/tests/functional/reconnect-failure/tests.ts
 - [ ] `example` — with db dropped, first `user.findMany()` rejects; after `db.setupDb()`, findMany resolves to `[]` (skipDb, skipDefaultClientInstance, skip js_mssql, skip remote executor) [providers: exclude:mongodb]
 
 ### packages/client/tests/functional/reconnect/tests.ts
-- [ ] `can disconnect and reconnect` — findMany, `$disconnect()`, `$connect()`, findMany again all succeed (skipDriverAdapter js_pg_cockroachdb) [providers: all]
+- [x] `can disconnect and reconnect` — findMany, `$disconnect()`, `$connect()`, findMany again all succeed (skipDriverAdapter js_pg_cockroachdb) [providers: all] → non-ported
 
 ### packages/client/tests/functional/referentialActions-setDefault/tests_1-to-1.ts
 - [x] `1:n mandatory (explicit) > [create] > [create] creating a table with SetDefault is accepted` — createTemplate (users 1 & default, profile userId=1); findMany include profile matches user1→profile, defaultUser→null [providers: postgres,cockroach,sqlserver,sqlite,mysql (optOut mongodb; skip js_planetscale)] → passing: test/ports/prisma/functional/referential-actions-set-default-1to1/referential-actions-set-default-1to1.test.ts
@@ -394,8 +394,8 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 - [x] `m:n mandatory (explicit) - MongoDB > [delete] > onDelete: > [delete] category should succeed` — [test.fails] delete category expected to fail with @map [providers: mongodb-only] → non-ported
 
 ### packages/client/tests/functional/runtime-import/tests.ts
-- [ ] `runtime bundles in JS client > imports correct runtime` — reads generated client index.js; asserts it contains node runtime and not edge runtime (or vice versa) depending on clientMeta.runtime [providers: all; describeIf generatorType==='prisma-client-js']
-- [ ] `runtime bundles in JS client > imported files have the expected annotations` — asserts generated client contains the Prisma "Do not edit" banner, `/* eslint-disable */`, and `// biome-ignore-all lint: generated file` [providers: all; describeIf generatorType==='prisma-client-js']
+- [x] `runtime bundles in JS client > imports correct runtime` — reads generated client index.js; asserts it contains node runtime and not edge runtime (or vice versa) depending on clientMeta.runtime [providers: all; describeIf generatorType==='prisma-client-js'] → non-ported
+- [x] `runtime bundles in JS client > imported files have the expected annotations` — asserts generated client contains the Prisma "Do not edit" banner, `/* eslint-disable */`, and `// biome-ignore-all lint: generated file` [providers: all; describeIf generatorType==='prisma-client-js'] → non-ported
 
 ### packages/client/tests/functional/skip/test.ts
 - [x] `skips arguments` — findMany with `where: Prisma.skip` returns all users (matches inline snapshot of both seeded users) [providers: all] → non-ported
@@ -459,22 +459,22 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 - [ ] `should perform a query and assert that no spans were generated via itx` — same assertion within an interactive `$transaction` (0 spans, no traceparent in queries) [providers: all; skipDriverAdapter js_d1]
 
 ### packages/client/tests/functional/tracing/tests.ts
-- [ ] `tracing on crud methods > create` — user.create emits operation span tree: client:compile(createOne), serialize, engine INSERT db_queries [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on crud methods > read` — user.findMany emits operation(findMany) tree with compile, serialize, engine SELECT/aggregate db_query [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on crud methods > update` — user.update emits operation(update) tree; expected db_queries vary by provider (UPDATE vs SELECT/UPDATE/SELECT with tx spans) [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on crud methods > delete` — user.delete emits operation(delete) tree; db_queries vary (DELETE vs SELECT/DELETE with tx for mysql/sqlserver/mongo) [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on crud methods > deleteMany()` — creates then deleteMany; emits operation(deleteMany) tree; db_queries vary by mongo/relationMode PRISMA/default [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on crud methods > count` — user.count emits operation(count) tree with aggregate compile, serialize, SELECT COUNT / mongo aggregate db_query [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on crud methods > aggregate` — user.aggregate `_max.id` emits operation(aggregate) tree with SELECT MAX / mongo aggregate db_query [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on transactions > $transaction` — array `$transaction([create, findMany])` emits `prisma:client:transaction` span with batched compile and per-operation children incl. itx start/commit db_queries [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on transactions > interactive transaction commit` — itx callback (create+findMany) emits transaction span with per-op compile/serialize/engine children and itxOperation commit+start [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on transactions > interactive transaction rollback` — itx callback that throws emits transaction span with itxOperation rollback+start [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing on $raw methods > $queryRaw` — `$queryRaw\`SELECT 1 + 1;\`` emits operation(queryRaw) with serialize + engine db_query 'SELECT 1 + 1;' [providers: exclude:mongodb (describeIf); skipDriverAdapter js_d1]
-- [ ] `tracing on $raw methods > $executeRaw` — `$executeRaw\`SELECT 1 + 1;\`` emits operation(executeRaw) tree; early-returns (no-op) for sqlite and mongodb [providers: exclude:mongodb (describeIf); skipDriverAdapter js_d1]
-- [ ] `tracing with custom span` — wraps user.create in custom `create-user` active span; asserts custom span has operation(create) child tree [providers: all; skipDriverAdapter js_d1]
-- [ ] `tracing connect > should trace the implicit $connect call` — findMany on fresh client emits operation(findMany) tree containing a `prisma:client:connect` span [providers: all; describeIf !dataProxy; skipDriverAdapter js_d1]
-- [ ] `tracing connect > should trace the explicit $connect call` — explicit `$connect()` emits a single `prisma:client:connect` root span [providers: all; describeIf !dataProxy; skipDriverAdapter js_d1]
-- [ ] `tracing disconnect > should trace $disconnect` — `$disconnect()` emits `prisma:client:disconnect` span with no children [providers: all; describeIf !dataProxy; skipDriverAdapter js_d1]
+- [x] `tracing on crud methods > create` — user.create emits operation span tree: client:compile(createOne), serialize, engine INSERT db_queries [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on crud methods > read` — user.findMany emits operation(findMany) tree with compile, serialize, engine SELECT/aggregate db_query [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on crud methods > update` — user.update emits operation(update) tree; expected db_queries vary by provider (UPDATE vs SELECT/UPDATE/SELECT with tx spans) [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on crud methods > delete` — user.delete emits operation(delete) tree; db_queries vary (DELETE vs SELECT/DELETE with tx for mysql/sqlserver/mongo) [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on crud methods > deleteMany()` — creates then deleteMany; emits operation(deleteMany) tree; db_queries vary by mongo/relationMode PRISMA/default [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on crud methods > count` — user.count emits operation(count) tree with aggregate compile, serialize, SELECT COUNT / mongo aggregate db_query [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on crud methods > aggregate` — user.aggregate `_max.id` emits operation(aggregate) tree with SELECT MAX / mongo aggregate db_query [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on transactions > $transaction` — array `$transaction([create, findMany])` emits `prisma:client:transaction` span with batched compile and per-operation children incl. itx start/commit db_queries [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on transactions > interactive transaction commit` — itx callback (create+findMany) emits transaction span with per-op compile/serialize/engine children and itxOperation commit+start [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on transactions > interactive transaction rollback` — itx callback that throws emits transaction span with itxOperation rollback+start [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on $raw methods > $queryRaw` — `$queryRaw\`SELECT 1 + 1;\`` emits operation(queryRaw) with serialize + engine db_query 'SELECT 1 + 1;' [providers: exclude:mongodb (describeIf); skipDriverAdapter js_d1] → non-ported
+- [x] `tracing on $raw methods > $executeRaw` — `$executeRaw\`SELECT 1 + 1;\`` emits operation(executeRaw) tree; early-returns (no-op) for sqlite and mongodb [providers: exclude:mongodb (describeIf); skipDriverAdapter js_d1] → non-ported
+- [x] `tracing with custom span` — wraps user.create in custom `create-user` active span; asserts custom span has operation(create) child tree [providers: all; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing connect > should trace the implicit $connect call` — findMany on fresh client emits operation(findMany) tree containing a `prisma:client:connect` span [providers: all; describeIf !dataProxy; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing connect > should trace the explicit $connect call` — explicit `$connect()` emits a single `prisma:client:connect` root span [providers: all; describeIf !dataProxy; skipDriverAdapter js_d1] → non-ported
+- [x] `tracing disconnect > should trace $disconnect` — `$disconnect()` emits `prisma:client:disconnect` span with no children [providers: all; describeIf !dataProxy; skipDriverAdapter js_d1] → non-ported
 
 ### packages/client/tests/functional/type-declaration/tests.ts
 - [ ] `does not contain reference to node types` — runtime `client.d.ts` does not contain `/// <reference types="node" />` [providers: sqlite-only (optOut all others)]
@@ -527,88 +527,88 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 - [ ] `json - output` — typed SQL `getJson` returns a Json column typed as JsonValue [providers: mysql-only]
 
 ### packages/client/tests/functional/typed-sql/postgres-lists/test.ts
-- [ ] `int - output` — typed SQL `getInt` returns an Int[] array column typed as `number[] | null` [providers: postgres-only]
-- [ ] `int - input` — typed SQL `findInt` accepts a number[] param and matches the row [providers: postgres-only]
-- [ ] `real - output` — typed SQL `getReal` returns a Real[] array column typed as `number[] | null` [providers: postgres-only]
-- [ ] `real - input` — typed SQL `findReal` accepts a number[] param and matches the row [providers: postgres-only]
-- [ ] `double - output` — typed SQL `getDouble` returns a Double[] array column typed as `number[] | null` [providers: postgres-only]
-- [ ] `double - input` — typed SQL `findDouble` accepts a number[] param and matches the row [providers: postgres-only]
-- [ ] `string - output` — typed SQL `getString` returns a String[] array column typed as `string[] | null` [providers: postgres-only]
-- [ ] `string - input` — typed SQL `findString` accepts a string[] param and matches the row [providers: postgres-only]
-- [ ] `BigInt - output` — typed SQL `getBigInt` returns a BigInt[] array column typed as `bigint[] | null` [providers: postgres-only]
-- [ ] `BigInt - input` — typed SQL `findBigInt` accepts both number[] and bigint[] params and matches the row [providers: postgres-only]
-- [ ] `DateTime - output` — typed SQL `getDateTime` returns a DateTime[] array column typed as `Date[] | null` [providers: postgres-only]
-- [ ] `DateTime - input` — typed SQL `findDateTime` accepts a Date[] param and matches the row [providers: postgres-only]
-- [ ] `Date - output` — typed SQL `getDate` returns a Date[] array column typed as `Date[] | null` [providers: postgres-only]
-- [ ] `Date - input` — typed SQL `findDate` accepts a Date[] param and matches the row [providers: postgres-only]
-- [ ] `Time - output` — typed SQL `getTime` returns a Time[] array column typed as `Date[] | null` [providers: postgres-only]
-- [ ] `Time - input` — typed SQL `findTime` accepts a Time Date[] param and matches the row [providers: postgres-only]
-- [ ] `Decimal - output` — typed SQL `getDecimal` returns a Decimal[] array (elements are Prisma.Decimal) typed as `Decimal[] | null` [providers: postgres-only]
-- [ ] `Decimal - input` — typed SQL `findDecimal` accepts both Decimal[] and number[] params and matches the row [providers: postgres-only]
-- [ ] `xml - output` — typed SQL `getXml` returns an Xml[] array column typed as `string[] | null` [providers: postgres-only]
-- [ ] `uuid - output` — typed SQL `getUuid` returns a Uuid[] array column typed as `string[] | null` [providers: postgres-only]
-- [ ] `uuid - input` — typed SQL `findUuid` accepts a string[] uuid param and matches the row [providers: postgres-only]
-- [ ] `bytes - output` — typed SQL `getBytes` returns a Bytes[] array column typed as `Uint8Array[] | null` [providers: postgres-only]
-- [ ] `bytes - input` — typed SQL `findBytes` accepts a Uint8Array[] param and matches the row [providers: postgres-only]
-- [ ] `json - output` — typed SQL `getJson` returns a Json[] array column typed as `JsonValue[] | null` [providers: postgres-only]
+- [x] `int - output` — typed SQL `getInt` returns an Int[] array column typed as `number[] | null` [providers: postgres-only] → non-ported
+- [x] `int - input` — typed SQL `findInt` accepts a number[] param and matches the row [providers: postgres-only] → non-ported
+- [x] `real - output` — typed SQL `getReal` returns a Real[] array column typed as `number[] | null` [providers: postgres-only] → non-ported
+- [x] `real - input` — typed SQL `findReal` accepts a number[] param and matches the row [providers: postgres-only] → non-ported
+- [x] `double - output` — typed SQL `getDouble` returns a Double[] array column typed as `number[] | null` [providers: postgres-only] → non-ported
+- [x] `double - input` — typed SQL `findDouble` accepts a number[] param and matches the row [providers: postgres-only] → non-ported
+- [x] `string - output` — typed SQL `getString` returns a String[] array column typed as `string[] | null` [providers: postgres-only] → non-ported
+- [x] `string - input` — typed SQL `findString` accepts a string[] param and matches the row [providers: postgres-only] → non-ported
+- [x] `BigInt - output` — typed SQL `getBigInt` returns a BigInt[] array column typed as `bigint[] | null` [providers: postgres-only] → non-ported
+- [x] `BigInt - input` — typed SQL `findBigInt` accepts both number[] and bigint[] params and matches the row [providers: postgres-only] → non-ported
+- [x] `DateTime - output` — typed SQL `getDateTime` returns a DateTime[] array column typed as `Date[] | null` [providers: postgres-only] → non-ported
+- [x] `DateTime - input` — typed SQL `findDateTime` accepts a Date[] param and matches the row [providers: postgres-only] → non-ported
+- [x] `Date - output` — typed SQL `getDate` returns a Date[] array column typed as `Date[] | null` [providers: postgres-only] → non-ported
+- [x] `Date - input` — typed SQL `findDate` accepts a Date[] param and matches the row [providers: postgres-only] → non-ported
+- [x] `Time - output` — typed SQL `getTime` returns a Time[] array column typed as `Date[] | null` [providers: postgres-only] → non-ported
+- [x] `Time - input` — typed SQL `findTime` accepts a Time Date[] param and matches the row [providers: postgres-only] → non-ported
+- [x] `Decimal - output` — typed SQL `getDecimal` returns a Decimal[] array (elements are Prisma.Decimal) typed as `Decimal[] | null` [providers: postgres-only] → non-ported
+- [x] `Decimal - input` — typed SQL `findDecimal` accepts both Decimal[] and number[] params and matches the row [providers: postgres-only] → non-ported
+- [x] `xml - output` — typed SQL `getXml` returns an Xml[] array column typed as `string[] | null` [providers: postgres-only] → non-ported
+- [x] `uuid - output` — typed SQL `getUuid` returns a Uuid[] array column typed as `string[] | null` [providers: postgres-only] → non-ported
+- [x] `uuid - input` — typed SQL `findUuid` accepts a string[] uuid param and matches the row [providers: postgres-only] → non-ported
+- [x] `bytes - output` — typed SQL `getBytes` returns a Bytes[] array column typed as `Uint8Array[] | null` [providers: postgres-only] → non-ported
+- [x] `bytes - input` — typed SQL `findBytes` accepts a Uint8Array[] param and matches the row [providers: postgres-only] → non-ported
+- [x] `json - output` — typed SQL `getJson` returns a Json[] array column typed as `JsonValue[] | null` [providers: postgres-only] → non-ported
 
 ### packages/client/tests/functional/typed-sql/postgres-scalars-nullable/test.ts
-- [ ] `int - output` — typed SQL `getInt` returns an Int column typed as `number | null` [providers: postgres-only]
-- [ ] `int - input` — typed SQL `findInt` accepts a number param and matches the row [providers: postgres-only]
-- [ ] `real - output` — typed SQL `getReal` returns a Real column typed as `number | null` [providers: postgres-only]
-- [ ] `real - input` — typed SQL `findReal` accepts a number param and matches the row [providers: postgres-only]
-- [ ] `double - output` — typed SQL `getDouble` returns a Double column typed as `number | null` [providers: postgres-only]
-- [ ] `double - input` — typed SQL `findDouble` accepts a double param and matches the row [providers: postgres-only]
-- [ ] `string - output` — typed SQL `getString` returns a String column typed as `string | null` [providers: postgres-only]
-- [ ] `string - input` — typed SQL `findString` accepts a string param and matches the row [providers: postgres-only]
-- [ ] `enum - output` — typed SQL `getEnum` returns an enum column typed as `'ONE' | 'TWO' | null` / nullable DbEnums [providers: postgres-only]
-- [ ] `enum - input` — typed SQL `findEnum` accepts an enum value param and matches the row [providers: postgres-only]
-- [ ] `BigInt - output` — typed SQL `getBigInt` returns a BigInt column typed as `bigint | null` [providers: postgres-only]
-- [ ] `BigInt - input` — typed SQL `findBigInt` accepts both number and bigint params and matches the row [providers: postgres-only]
-- [ ] `DateTime - output` — typed SQL `getDateTime` returns a DateTime column typed as `Date | null` [providers: postgres-only]
-- [ ] `DateTime - input` — typed SQL `findDateTime` accepts a Date param and matches the row [providers: postgres-only]
-- [ ] `Date - output` — typed SQL `getDate` returns a Date column typed as `Date | null` [providers: postgres-only]
-- [ ] `Date - input` — typed SQL `findDate` accepts a Date param and matches the row [providers: postgres-only]
-- [ ] `Time - output` — typed SQL `getTime` returns a Time column typed as `Date | null` [providers: postgres-only]
-- [ ] `Time - input` — typed SQL `findTime` accepts a Time Date param and matches the row [providers: postgres-only]
-- [ ] `Decimal - output` — typed SQL `getDecimal` returns a Decimal column as `Prisma.Decimal | null` instance [providers: postgres-only]
-- [ ] `Decimal - input` — typed SQL `findDecimal` accepts both Decimal and number params and matches the row [providers: postgres-only]
-- [ ] `xml - output` — typed SQL `getXml` returns an Xml column typed as `string | null` [providers: postgres-only]
-- [ ] `xml - input` — typed SQL `findXml` accepts an xml string param and returns the concatenated result [providers: postgres-only]
-- [ ] `uuid - output` — typed SQL `getUuid` returns a Uuid column typed as `string | null` [providers: postgres-only]
-- [ ] `uuid - input` — typed SQL `findUuid` accepts a uuid string param and matches the row [providers: postgres-only]
-- [ ] `bytes - output` — typed SQL `getBytes` returns a Bytes column typed as `Uint8Array | null` [providers: postgres-only]
-- [ ] `bytes - input` — typed SQL `findBytes` accepts a Uint8Array param and matches the row [providers: postgres-only]
-- [ ] `json - output` — typed SQL `getJson` returns a Json column typed as JsonValue [providers: postgres-only]
+- [x] `int - output` — typed SQL `getInt` returns an Int column typed as `number | null` [providers: postgres-only] → non-ported
+- [x] `int - input` — typed SQL `findInt` accepts a number param and matches the row [providers: postgres-only] → non-ported
+- [x] `real - output` — typed SQL `getReal` returns a Real column typed as `number | null` [providers: postgres-only] → non-ported
+- [x] `real - input` — typed SQL `findReal` accepts a number param and matches the row [providers: postgres-only] → non-ported
+- [x] `double - output` — typed SQL `getDouble` returns a Double column typed as `number | null` [providers: postgres-only] → non-ported
+- [x] `double - input` — typed SQL `findDouble` accepts a double param and matches the row [providers: postgres-only] → non-ported
+- [x] `string - output` — typed SQL `getString` returns a String column typed as `string | null` [providers: postgres-only] → non-ported
+- [x] `string - input` — typed SQL `findString` accepts a string param and matches the row [providers: postgres-only] → non-ported
+- [x] `enum - output` — typed SQL `getEnum` returns an enum column typed as `'ONE' | 'TWO' | null` / nullable DbEnums [providers: postgres-only] → non-ported
+- [x] `enum - input` — typed SQL `findEnum` accepts an enum value param and matches the row [providers: postgres-only] → non-ported
+- [x] `BigInt - output` — typed SQL `getBigInt` returns a BigInt column typed as `bigint | null` [providers: postgres-only] → non-ported
+- [x] `BigInt - input` — typed SQL `findBigInt` accepts both number and bigint params and matches the row [providers: postgres-only] → non-ported
+- [x] `DateTime - output` — typed SQL `getDateTime` returns a DateTime column typed as `Date | null` [providers: postgres-only] → non-ported
+- [x] `DateTime - input` — typed SQL `findDateTime` accepts a Date param and matches the row [providers: postgres-only] → non-ported
+- [x] `Date - output` — typed SQL `getDate` returns a Date column typed as `Date | null` [providers: postgres-only] → non-ported
+- [x] `Date - input` — typed SQL `findDate` accepts a Date param and matches the row [providers: postgres-only] → non-ported
+- [x] `Time - output` — typed SQL `getTime` returns a Time column typed as `Date | null` [providers: postgres-only] → non-ported
+- [x] `Time - input` — typed SQL `findTime` accepts a Time Date param and matches the row [providers: postgres-only] → non-ported
+- [x] `Decimal - output` — typed SQL `getDecimal` returns a Decimal column as `Prisma.Decimal | null` instance [providers: postgres-only] → non-ported
+- [x] `Decimal - input` — typed SQL `findDecimal` accepts both Decimal and number params and matches the row [providers: postgres-only] → non-ported
+- [x] `xml - output` — typed SQL `getXml` returns an Xml column typed as `string | null` [providers: postgres-only] → non-ported
+- [x] `xml - input` — typed SQL `findXml` accepts an xml string param and returns the concatenated result [providers: postgres-only] → non-ported
+- [x] `uuid - output` — typed SQL `getUuid` returns a Uuid column typed as `string | null` [providers: postgres-only] → non-ported
+- [x] `uuid - input` — typed SQL `findUuid` accepts a uuid string param and matches the row [providers: postgres-only] → non-ported
+- [x] `bytes - output` — typed SQL `getBytes` returns a Bytes column typed as `Uint8Array | null` [providers: postgres-only] → non-ported
+- [x] `bytes - input` — typed SQL `findBytes` accepts a Uint8Array param and matches the row [providers: postgres-only] → non-ported
+- [x] `json - output` — typed SQL `getJson` returns a Json column typed as JsonValue [providers: postgres-only] → non-ported
 
 ### packages/client/tests/functional/typed-sql/postgres-scalars/test.ts
-- [ ] `int - output` — typed SQL `getInt` returns an Int column round-tripped as a number [providers: postgres-only]
-- [ ] `int - input` — typed SQL `findInt` accepts a number param and matches the row [providers: postgres-only]
-- [ ] `real - output` — typed SQL `getReal` returns a Real column as a number [providers: postgres-only]
-- [ ] `real - input` — typed SQL `findReal` accepts a number param and matches the row [providers: postgres-only]
-- [ ] `double - output` — typed SQL `getDouble` returns a Double column as a number [providers: postgres-only]
-- [ ] `double - input` — typed SQL `findDouble` accepts a double param and matches the row [providers: postgres-only]
-- [ ] `string - output` — typed SQL `getString` returns a String column round-tripped [providers: postgres-only]
-- [ ] `string - input` — typed SQL `findString` accepts a string param and matches the row [providers: postgres-only]
-- [ ] `enum - output` — typed SQL `getEnum` returns an enum column typed as the DbEnums union / `'ONE' | 'TWO'` [providers: postgres-only]
-- [ ] `enum - input` — typed SQL `findEnum` accepts an enum value param and matches the row [providers: postgres-only]
-- [ ] `BigInt - output` — typed SQL `getBigInt` returns a BigInt column as a bigint [providers: postgres-only]
-- [ ] `BigInt - input` — typed SQL `findBigInt` accepts both number and bigint params and matches the row [providers: postgres-only]
-- [ ] `DateTime - output` — typed SQL `getDateTime` returns a DateTime column as a Date [providers: postgres-only]
-- [ ] `DateTime - input` — typed SQL `findDateTime` accepts a Date param and matches the row [providers: postgres-only]
-- [ ] `Date - output` — typed SQL `getDate` returns a Date column as a Date [providers: postgres-only]
-- [ ] `Date - input` — typed SQL `findDate` accepts a Date param and matches the row [providers: postgres-only]
-- [ ] `Time - output` — typed SQL `getTime` returns a Time column as a Date [providers: postgres-only]
-- [ ] `Time - input` — typed SQL `findTime` accepts a Time Date param and matches the row [providers: postgres-only]
-- [ ] `Decimal - output` — typed SQL `getDecimal` returns a Decimal column as a Prisma.Decimal instance [providers: postgres-only]
-- [ ] `Decimal - input` — typed SQL `findDecimal` accepts both Decimal and number params and matches the row [providers: postgres-only]
-- [ ] `xml - output` — typed SQL `getXml` returns an Xml column as a string [providers: postgres-only]
-- [ ] `xml - input` — typed SQL `findXml` accepts an xml string param and returns the concatenated result [providers: postgres-only]
-- [ ] `uuid - output` — typed SQL `getUuid` returns a Uuid column as a string [providers: postgres-only]
-- [ ] `uuid - input` — typed SQL `findUuid` accepts a uuid string param and matches the row [providers: postgres-only]
-- [ ] `bytes - output` — typed SQL `getBytes` returns a Bytes column as a Uint8Array [providers: postgres-only]
-- [ ] `bytes - input` — typed SQL `findBytes` accepts a Uint8Array param and matches the row [providers: postgres-only]
-- [ ] `json - output` — typed SQL `getJson` returns a Json column typed as JsonValue [providers: postgres-only]
+- [x] `int - output` — typed SQL `getInt` returns an Int column round-tripped as a number [providers: postgres-only] → non-ported
+- [x] `int - input` — typed SQL `findInt` accepts a number param and matches the row [providers: postgres-only] → non-ported
+- [x] `real - output` — typed SQL `getReal` returns a Real column as a number [providers: postgres-only] → non-ported
+- [x] `real - input` — typed SQL `findReal` accepts a number param and matches the row [providers: postgres-only] → non-ported
+- [x] `double - output` — typed SQL `getDouble` returns a Double column as a number [providers: postgres-only] → non-ported
+- [x] `double - input` — typed SQL `findDouble` accepts a double param and matches the row [providers: postgres-only] → non-ported
+- [x] `string - output` — typed SQL `getString` returns a String column round-tripped [providers: postgres-only] → non-ported
+- [x] `string - input` — typed SQL `findString` accepts a string param and matches the row [providers: postgres-only] → non-ported
+- [x] `enum - output` — typed SQL `getEnum` returns an enum column typed as the DbEnums union / `'ONE' | 'TWO'` [providers: postgres-only] → non-ported
+- [x] `enum - input` — typed SQL `findEnum` accepts an enum value param and matches the row [providers: postgres-only] → non-ported
+- [x] `BigInt - output` — typed SQL `getBigInt` returns a BigInt column as a bigint [providers: postgres-only] → non-ported
+- [x] `BigInt - input` — typed SQL `findBigInt` accepts both number and bigint params and matches the row [providers: postgres-only] → non-ported
+- [x] `DateTime - output` — typed SQL `getDateTime` returns a DateTime column as a Date [providers: postgres-only] → non-ported
+- [x] `DateTime - input` — typed SQL `findDateTime` accepts a Date param and matches the row [providers: postgres-only] → non-ported
+- [x] `Date - output` — typed SQL `getDate` returns a Date column as a Date [providers: postgres-only] → non-ported
+- [x] `Date - input` — typed SQL `findDate` accepts a Date param and matches the row [providers: postgres-only] → non-ported
+- [x] `Time - output` — typed SQL `getTime` returns a Time column as a Date [providers: postgres-only] → non-ported
+- [x] `Time - input` — typed SQL `findTime` accepts a Time Date param and matches the row [providers: postgres-only] → non-ported
+- [x] `Decimal - output` — typed SQL `getDecimal` returns a Decimal column as a Prisma.Decimal instance [providers: postgres-only] → non-ported
+- [x] `Decimal - input` — typed SQL `findDecimal` accepts both Decimal and number params and matches the row [providers: postgres-only] → non-ported
+- [x] `xml - output` — typed SQL `getXml` returns an Xml column as a string [providers: postgres-only] → non-ported
+- [x] `xml - input` — typed SQL `findXml` accepts an xml string param and returns the concatenated result [providers: postgres-only] → non-ported
+- [x] `uuid - output` — typed SQL `getUuid` returns a Uuid column as a string [providers: postgres-only] → non-ported
+- [x] `uuid - input` — typed SQL `findUuid` accepts a uuid string param and matches the row [providers: postgres-only] → non-ported
+- [x] `bytes - output` — typed SQL `getBytes` returns a Bytes column as a Uint8Array [providers: postgres-only] → non-ported
+- [x] `bytes - input` — typed SQL `findBytes` accepts a Uint8Array param and matches the row [providers: postgres-only] → non-ported
+- [x] `json - output` — typed SQL `getJson` returns a Json column typed as JsonValue [providers: postgres-only] → non-ported
 
 ### packages/client/tests/functional/typed-sql/sqlite-scalars-nullable/test.ts
 - [ ] `int - output` — typed SQL `getInt` returns an Int column typed as `number | null` [providers: sqlite-only]

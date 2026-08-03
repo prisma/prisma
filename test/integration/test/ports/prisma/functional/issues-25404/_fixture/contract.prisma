@@ -1,0 +1,13 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/25404 (all providers).
+//
+// Upstream schema:
+//   model User { id String @id @default(cuid()); memo String }
+//
+// The test verifies that creating a record with a String field containing a
+// date-format string does not mangle or coerce the value.
+
+model User {
+  id   String @id
+  memo String
+}

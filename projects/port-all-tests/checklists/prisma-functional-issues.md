@@ -34,20 +34,20 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/10000/tests.ts
 
-- [ ] `issue 10000 > issue 10000` — `@map`ped column names (`event_id`) resolve correctly through relation queries [providers: mysql]
+- [x] `issue 10000 > issue 10000` — `@map`ped column names (`event_id`) resolve correctly through relation queries [providers: mysql] → non-ported
 
 ### packages/client/tests/functional/issues/10229/tests.ts
 
-- [ ] `should assert that the error has the correct errorCode` — connection failure surfaces the correct initialization error code [providers: postgres, mysql, cockroachdb]
+- [x] `should assert that the error has the correct errorCode` — connection failure surfaces the correct initialization error code [providers: postgres, mysql, cockroachdb] → non-ported
 
 ### packages/client/tests/functional/issues/11233/tests.ts
 
-- [ ] `should not throw when using Prisma.empty inside $executeRaw` — `Prisma.empty` passed to `$executeRaw` does not throw [providers: sql]
-- [ ] `should not throw when using Prisma.empty inside $queryRaw` — `Prisma.empty` passed to `$queryRaw` does not throw [providers: sql]
+- [x] `should not throw when using Prisma.empty inside $executeRaw` — `Prisma.empty` passed to `$executeRaw` does not throw [providers: sql] → non-ported
+- [x] `should not throw when using Prisma.empty inside $queryRaw` — `Prisma.empty` passed to `$queryRaw` does not throw [providers: sql] → non-ported
 
 ### packages/client/tests/functional/issues/11322/tests.ts
 
-- [ ] `example` — BigInt-typed related record ids read back correctly through `include` after `set` (mysql-specific) [providers: mysql]
+- [x] `example` — BigInt-typed related record ids read back correctly through `include` after `set` (mysql-specific) [providers: mysql] → non-ported
 
 ### packages/client/tests/functional/issues/11740-transaction-stored-query/tests.ts
 
@@ -57,17 +57,17 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/11789-sqlite-with-wal-or-connection_limit/tests.ts
 
-- [ ] `D1 does not support journal_mode = WAL` — D1 adapter rejects `journal_mode = WAL` (driver-specific) [providers: sqlite]
-- [ ] `default case: no Driver Adapter > 5 concurrent upsert should succeed with journal_mode = WAL` — 5 concurrent upserts succeed under WAL journal mode [providers: sqlite]
-- [ ] `default case: no Driver Adapter > 5 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL` — 5 concurrent upserts succeed with connection_limit=1 and WAL [providers: sqlite]
-- [ ] `default case: no Driver Adapter > 5 concurrent upsert should succeed with connection_limit=1` — 5 concurrent upserts succeed with connection_limit=1 [providers: sqlite]
-- [ ] `default case: no Driver Adapter > 5 concurrent delete should succeed with connection_limit=1` — 5 concurrent deletes succeed with connection_limit=1 [providers: sqlite]
+- [x] `D1 does not support journal_mode = WAL` — D1 adapter rejects `journal_mode = WAL` (driver-specific) [providers: sqlite] → non-ported (ports/prisma/non-ported/functional/issues-11789-sqlite-with-wal-or-connection_limit/issues-11789-sqlite-with-wal-or-connection_limit.md)
+- [x] `default case: no Driver Adapter > 5 concurrent upsert should succeed with journal_mode = WAL` — 5 concurrent upserts succeed under WAL journal mode [providers: sqlite] → non-ported (ports/prisma/non-ported/functional/issues-11789-sqlite-with-wal-or-connection_limit/issues-11789-sqlite-with-wal-or-connection_limit.md)
+- [x] `default case: no Driver Adapter > 5 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL` — 5 concurrent upserts succeed with connection_limit=1 and WAL [providers: sqlite] → non-ported (ports/prisma/non-ported/functional/issues-11789-sqlite-with-wal-or-connection_limit/issues-11789-sqlite-with-wal-or-connection_limit.md)
+- [x] `default case: no Driver Adapter > 5 concurrent upsert should succeed with connection_limit=1` — 5 concurrent upserts succeed with connection_limit=1 [providers: sqlite] → non-ported (ports/prisma/non-ported/functional/issues-11789-sqlite-with-wal-or-connection_limit/issues-11789-sqlite-with-wal-or-connection_limit.md)
+- [x] `default case: no Driver Adapter > 5 concurrent delete should succeed with connection_limit=1` — 5 concurrent deletes succeed with connection_limit=1 [providers: sqlite] → non-ported (ports/prisma/non-ported/functional/issues-11789-sqlite-with-wal-or-connection_limit/issues-11789-sqlite-with-wal-or-connection_limit.md)
 
 ### packages/client/tests/functional/issues/11789-timed-out/tests.ts
 
-- [ ] `5 concurrent upsert should succeed` — 5 concurrent upserts complete without timing out [providers: sqlite]
-- [ ] `5 concurrent delete should succeed` — 5 concurrent deletes complete without timing out [providers: sqlite]
-- [ ] `100 concurrent creates should succeed` — 100 concurrent creates complete without timing out [providers: sqlite]
+- [x] `5 concurrent upsert should succeed` — 5 concurrent upserts complete without timing out [providers: sqlite] → non-ported (ports/prisma/non-ported/functional/issues-11789-timed-out/issues-11789-timed-out.md)
+- [x] `5 concurrent delete should succeed` — 5 concurrent deletes complete without timing out [providers: sqlite] → non-ported (ports/prisma/non-ported/functional/issues-11789-timed-out/issues-11789-timed-out.md)
+- [x] `100 concurrent creates should succeed` — 100 concurrent creates complete without timing out [providers: sqlite] → non-ported (ports/prisma/non-ported/functional/issues-11789-timed-out/issues-11789-timed-out.md)
 
 ### packages/client/tests/functional/issues/11974/tests.ts
 
@@ -111,21 +111,21 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/13405-mongo-raw-itx/tests.ts
 
-- [ ] `mongo raw queries should work inside iTX > findRaw` — `findRaw` works inside an interactive transaction [providers: mongodb]
-- [ ] `mongo raw queries should work inside iTX > aggregateRaw` — `aggregateRaw` works inside an interactive transaction [providers: mongodb]
-- [ ] `mongo raw queries should work inside iTX > runCommandRaw` — `runCommandRaw` works inside an interactive transaction [providers: mongodb]
-- [ ] `iTX functionality should work when using mongo raw queries > commit` — iTX commit works when raw queries are used [providers: mongodb]
-- [ ] `iTX functionality should work when using mongo raw queries > rollback` — iTX rollback works when raw queries are used [providers: mongodb]
+- [x] `mongo raw queries should work inside iTX > findRaw` — `findRaw` works inside an interactive transaction [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-13405-mongo-raw-itx/issues-13405-mongo-raw-itx.md)
+- [x] `mongo raw queries should work inside iTX > aggregateRaw` — `aggregateRaw` works inside an interactive transaction [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-13405-mongo-raw-itx/issues-13405-mongo-raw-itx.md)
+- [x] `mongo raw queries should work inside iTX > runCommandRaw` — `runCommandRaw` works inside an interactive transaction [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-13405-mongo-raw-itx/issues-13405-mongo-raw-itx.md)
+- [x] `iTX functionality should work when using mongo raw queries > commit` — iTX commit works when raw queries are used [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-13405-mongo-raw-itx/issues-13405-mongo-raw-itx.md)
+- [x] `iTX functionality should work when using mongo raw queries > rollback` — iTX rollback works when raw queries are used [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-13405-mongo-raw-itx/issues-13405-mongo-raw-itx.md)
 
 ### packages/client/tests/functional/issues/13766/at-unique/tests.ts
 
-- [ ] `relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation` — updating a non-referenced field is allowed under relationMode=prisma (@unique key) [providers: all]
-- [ ] `relationMode=prisma should prevent updates on a model if any other relation references a field` — updating a relation-referenced field is prevented under relationMode=prisma (@unique key) [providers: all]
+- [x] `relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation` — updating a non-referenced field is allowed under relationMode=prisma (@unique key) [providers: all] → non-ported
+- [x] `relationMode=prisma should prevent updates on a model if any other relation references a field` — updating a relation-referenced field is prevented under relationMode=prisma (@unique key) [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/13766/primary-key/tests.ts
 
-- [ ] `relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation` — updating a non-referenced field is allowed under relationMode=prisma (primary key) [providers: all]
-- [ ] `relationMode=prisma should prevent updates on a model if any other relation references a field` — updating a relation-referenced field is prevented under relationMode=prisma (primary key; excludes mongodb) [providers: all exclude:mongodb]
+- [x] `relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation` — updating a non-referenced field is allowed under relationMode=prisma (primary key) [providers: all] → non-ported
+- [x] `relationMode=prisma should prevent updates on a model if any other relation references a field` — updating a relation-referenced field is prevented under relationMode=prisma (primary key; excludes mongodb) [providers: all exclude:mongodb] → non-ported
 
 ### packages/client/tests/functional/issues/13913-integer-overflow/tests.ts
 
@@ -133,18 +133,18 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/14001-mongo-order-by-conflict/tests.ts
 
-- [ ] `findFirst` — field named `OrderBy` with where/orderBy/cursor/distinct does not produce invalid mongo query in findFirst [providers: mongodb]
-- [ ] `findMany` — `OrderBy` field query is valid in findMany [providers: mongodb]
-- [ ] `aggregate` — `OrderBy` field query is valid in aggregate [providers: mongodb]
-- [ ] `groupBy` — `OrderBy` field query is valid in groupBy [providers: mongodb]
+- [x] `findFirst` — field named `OrderBy` with where/orderBy/cursor/distinct does not produce invalid mongo query in findFirst [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-14001-mongo-order-by-conflict/issues-14001-mongo-order-by-conflict.md)
+- [x] `findMany` — `OrderBy` field query is valid in findMany [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-14001-mongo-order-by-conflict/issues-14001-mongo-order-by-conflict.md)
+- [x] `aggregate` — `OrderBy` field query is valid in aggregate [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-14001-mongo-order-by-conflict/issues-14001-mongo-order-by-conflict.md)
+- [x] `groupBy` — `OrderBy` field query is valid in groupBy [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-14001-mongo-order-by-conflict/issues-14001-mongo-order-by-conflict.md)
 
 ### packages/client/tests/functional/issues/14271/tests.ts
 
-- [ ] `issue 14271 > issue 14271` — nested createMany + ordered findMany across relations returns expected shape [providers: postgres]
+- [x] `issue 14271 > issue 14271` — nested createMany + ordered findMany across relations returns expected shape [providers: postgres] → ports/prisma/functional/issues-14271/issues-14271.test.ts
 
 ### packages/client/tests/functional/issues/14373-batch-tx-error/tests.ts
 
-- [ ] `correctly reports location of a batch error` — a batch transaction error reports the correct failing query location/index [providers: all]
+- [x] `correctly reports location of a batch error` — a batch transaction error reports the correct failing query location/index [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/14954-date-batch/tests.ts
 
@@ -155,36 +155,36 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/15044/tests.ts
 
-- [ ] `should not throw error when using connect inside transaction` — `connect` inside an interactive `$transaction` across multiple creates does not throw [providers: all]
+- [x] `should not throw error when using connect inside transaction` — `connect` inside an interactive `$transaction` across multiple creates does not throw [providers: all] → ports/prisma/functional/issues-15044/issues-15044.test.ts
 
 ### packages/client/tests/functional/issues/15079/tests.ts
 
-- [ ] `should not throw an error when upserting a @db.Decimal(2, 0)` — upsert of a `@db.Decimal(2,0)` column does not throw (sqlserver) [providers: sqlserver]
+- [x] `should not throw an error when upserting a @db.Decimal(2, 0)` — upsert of a `@db.Decimal(2,0)` column does not throw (sqlserver) [providers: sqlserver] → non-ported
 
 ### packages/client/tests/functional/issues/15084-mongo-logging/tests.ts
 
-- [ ] `should log queries` — mongo query events are emitted to the query log [providers: mongodb]
+- [x] `should log queries` — mongo query events are emitted to the query log [providers: mongodb] → non-ported (ports/prisma/non-ported/functional/issues-15084-mongo-logging/issues-15084-mongo-logging.md)
 
 ### packages/client/tests/functional/issues/15177/tests.ts
 
-- [ ] `should allow CRUD methods on a table column that has a space` — CRUD works on a column whose name contains a space [providers: sql]
+- [x] `should allow CRUD methods on a table column that has a space` — CRUD works on a column whose name contains a space [providers: sql] → non-ported
 
 ### packages/client/tests/functional/issues/15204-conversion-error/tests.ts
 
-- [ ] `should return a descriptive error` — reading an out-of-range Int/BigInt yields a descriptive conversion error (sqlite) [providers: sqlite]
+- [x] `should return a descriptive error` — reading an out-of-range Int/BigInt yields a descriptive conversion error (sqlite) [providers: sqlite] → non-ported
 
 ### packages/client/tests/functional/issues/15264-uint-id-overflow/tests.ts
 
-- [ ] `upsert should not fail` — upsert on an unsigned-int id near overflow does not fail (mysql) [providers: mysql]
+- [x] `upsert should not fail` — upsert on an unsigned-int id near overflow does not fail (mysql) [providers: mysql] → non-ported
 
 ### packages/client/tests/functional/issues/16195-index-out-of-bounds/tests.ts
 
-- [ ] `transaction` — a transaction does not trigger an index-out-of-bounds engine panic [providers: all]
+- [x] `transaction` — a transaction does not trigger an index-out-of-bounds engine panic [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/16390-relation-mode-m-n-dangling-pivot/tests.ts
 
-- [ ] `issue 16390 > when deleting an item, the corresponding entry in the implicit pivot table should be deleted` — deleting an item removes its implicit m2m pivot rows under relationMode [providers: postgres, mysql]
-- [ ] `when deleting a category, the corresponding entry in the implicit pivot table should be deleted` — deleting a category removes its implicit m2m pivot rows [providers: postgres, mysql]
+- [x] `issue 16390 > when deleting an item, the corresponding entry in the implicit pivot table should be deleted` — deleting an item removes its implicit m2m pivot rows under relationMode [providers: postgres, mysql] → non-ported
+- [x] `when deleting a category, the corresponding entry in the implicit pivot table should be deleted` — deleting a category removes its implicit m2m pivot rows [providers: postgres, mysql] → non-ported
 
 ### packages/client/tests/functional/issues/16535-select-enum/tests.ts
 
@@ -192,23 +192,23 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/17005-args-type-conflict/tests.ts
 
-- [ ] `dummy` — placeholder runtime check; real assertion is that generated arg types don't conflict (type test) [providers: all]
+- [x] `dummy` — placeholder runtime check; real assertion is that generated arg types don't conflict (type test) [providers: all] → ports/prisma/functional/issues-17005-args-type-conflict/issues-17005-args-type-conflict.test.ts
 
 ### packages/client/tests/functional/issues/17030-args-type-conflict/tests.ts
 
-- [ ] `include works correctly` — `include` still works when a model field name would conflict with args types [providers: all]
+- [x] `include works correctly` — `include` still works when a model field name would conflict with args types [providers: all] → ports/prisma/functional/issues-17030-args-type-conflict/issues-17030-args-type-conflict.test.ts
 
 ### packages/client/tests/functional/issues/17405-extensions-casing/tests.ts
 
-- [ ] `empty` — client extension with model-name casing variations instantiates (type test) [providers: all]
+- [x] `empty` — client extension with model-name casing variations instantiates (type test) [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/17797-no-env-error-init/tests.ts
 
-- [ ] `instantiate works without failing` — instantiating the client without env vars does not throw [providers: all]
+- [x] `instantiate works without failing` — instantiating the client without env vars does not throw [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/17948-tx-client-extensions/tests.ts
 
-- [ ] `extension method is bound to transaction client within itx` — a `$extends` model method binds to the transaction client inside an interactive transaction [providers: all]
+- [x] `extension method is bound to transaction client within itx` — a `$extends` model method binds to the transaction client inside an interactive transaction [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/18276-batch-order/tests.ts
 
@@ -217,9 +217,9 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/18292-inspect-loop/test.ts
 
-- [ ] `it is possible to inspect/log prisma client` — `util.inspect`/logging the client does not infinite-loop [providers: all]
-- [ ] `result extensions are still logged/inspected correctly` — result extensions are represented correctly when inspected [providers: all]
-- [ ] `depth option is respected` — inspect `depth` option is respected [providers: all]
+- [x] `it is possible to inspect/log prisma client` — `util.inspect`/logging the client does not infinite-loop [providers: all] → non-ported
+- [x] `result extensions are still logged/inspected correctly` — result extensions are represented correctly when inspected [providers: all] → non-ported
+- [x] `depth option is respected` — inspect `depth` option is respected [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/18598-select-count-true/tests.ts
 
@@ -231,7 +231,7 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/18854-extensions-db-null/tests.ts
 
-- [ ] `allows to use DbNull together with query extensions` — `Prisma.DbNull` works together with query extensions [providers: postgres, sqlite, mysql, cockroachdb]
+- [x] `allows to use DbNull together with query extensions` — `Prisma.DbNull` works together with query extensions [providers: postgres, sqlite, mysql, cockroachdb] → non-ported
 
 ### packages/client/tests/functional/issues/18970-invalid-date/tests.ts
 
@@ -250,11 +250,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/20422-cannot-assign-type-to-itself/tests.ts
 
-- [ ] `return types must be compatible with returned data types in classes (type test only)` — generated return types assignable to model class instances (type test) [providers: all]
+- [x] `return types must be compatible with returned data types in classes (type test only)` — generated return types assignable to model class instances (type test) [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/20499-result-ext-count/tests.ts
 
-- [ ] `result extensions do not break .count` — defining result extensions does not break `.count` [providers: all]
+- [x] `result extensions do not break .count` — defining result extensions does not break `.count` [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/20724/tests.ts
 
@@ -266,17 +266,17 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/21136-extensions-mocking-library/tests.ts
 
-- [ ] `with full override extension > output inference (via `mockResolvedValue`)` — output types infer correctly through a full-override result extension (mock proxy) [providers: sqlite]
-- [ ] `with full override extension > input inference (via `calledWith`)` — input types infer correctly through a full-override extension [providers: sqlite]
-- [ ] `with full override extension > call still work as usual` — calls still work through a full-override extension [providers: sqlite]
-- [ ] `with empty extension > output inference (via `mockResolvedValue`)` — output types infer correctly through an empty extension (mock proxy) [providers: sqlite]
-- [ ] `with empty extension > input inference (via `calledWith`)` — input types infer correctly through an empty extension [providers: sqlite]
-- [ ] `with empty extension > call still work as usual` — calls still work through an empty extension [providers: sqlite]
+- [x] `with full override extension > output inference (via `mockResolvedValue`)` — output types infer correctly through a full-override result extension (mock proxy) [providers: sqlite] → non-ported
+- [x] `with full override extension > input inference (via `calledWith`)` — input types infer correctly through a full-override extension [providers: sqlite] → non-ported
+- [x] `with full override extension > call still work as usual` — calls still work through a full-override extension [providers: sqlite] → non-ported
+- [x] `with empty extension > output inference (via `mockResolvedValue`)` — output types infer correctly through an empty extension (mock proxy) [providers: sqlite] → non-ported
+- [x] `with empty extension > input inference (via `calledWith`)` — input types infer correctly through an empty extension [providers: sqlite] → non-ported
+- [x] `with empty extension > call still work as usual` — calls still work through an empty extension [providers: sqlite] → non-ported
 
 ### packages/client/tests/functional/issues/21352-id-does-not-exist/tests.ts
 
-- [ ] `[1] should not fail` — relation-join query does not fail with "column j1.id does not exist" [providers: sql]
-- [ ] `[2] should not fail` — relation-join query does not fail with "column j1.field does not exist" [providers: sql]
+- [x] `[1] should not fail` — relation-join query does not fail with "column j1.id does not exist" [providers: sql] → ports/prisma/functional/issues-21352-id-does-not-exist/issues-21352-id-does-not-exist.test.ts
+- [x] `[2] should not fail` — relation-join query does not fail with "column j1.field does not exist" [providers: sql] → ports/prisma/functional/issues-21352-id-does-not-exist/issues-21352-id-does-not-exist.test.ts
 
 ### packages/client/tests/functional/issues/21369-select-null/tests.ts
 
@@ -284,8 +284,8 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/21454-$type-in-json/tests.ts
 
-- [ ] `preserves json with $type key inside` — JSON values containing a `$type` key are preserved verbatim [providers: exclude:sqlserver]
-- [ ] `preserves deeply nested json with $type key inside` — deeply nested JSON with `$type` keys is preserved verbatim [providers: exclude:sqlserver]
+- [x] `preserves json with $type key inside` — JSON values containing a `$type` key are preserved verbatim [providers: exclude:sqlserver] → ports/prisma/functional/issues-21454-type-in-json/issues-21454-type-in-json.test.ts
+- [x] `preserves deeply nested json with $type key inside` — deeply nested JSON with `$type` keys is preserved verbatim [providers: exclude:sqlserver] → ports/prisma/functional/issues-21454-type-in-json/issues-21454-type-in-json.test.ts
 
 ### packages/client/tests/functional/issues/21592-char-truncation/tests.ts
 
@@ -300,88 +300,88 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/21807-citext-neon/tests.ts
 
-- [ ] `writing and reading a citext field works` — writing and reading a Postgres `citext` field works [providers: postgres]
+- [x] `writing and reading a citext field works` — writing and reading a Postgres `citext` field works [providers: postgres] → non-ported
 
 ### packages/client/tests/functional/issues/21967-mapped-enum/test.ts
 
-- [ ] `correctly returns mapped enums` — `@map`ped enum values are returned correctly (mysql) [providers: mysql]
+- [x] `correctly returns mapped enums` — `@map`ped enum values are returned correctly (mysql) [providers: mysql] → non-ported
 
 ### packages/client/tests/functional/issues/22098-column_does_not_exist/test.ts
 
-- [ ] `does not throw error` — query against a model with a mapped/omitted column does not throw "column does not exist" [providers: all]
+- [x] `does not throw error` — query against a model with a mapped/omitted column does not throw "column does not exist" [providers: all] → ports/prisma/functional/issues-22098-column-does-not-exist/issues-22098-column-does-not-exist.test.ts
 
 ### packages/client/tests/functional/issues/22610-parallel-batch/tests.ts
 
-- [ ] `batch does not times out` — a large parallel batch of queries completes without timing out [providers: all]
+- [x] `batch does not times out` — a large parallel batch of queries completes without timing out [providers: all] → ports/prisma/functional/issues-22610-parallel-batch/issues-22610-parallel-batch.test.ts
 
 ### packages/client/tests/functional/issues/22947-sqlite-conccurrent-upsert/tests.ts
 
-- [ ] `concurrent upserts should succeed` — concurrent upserts on sqlite succeed without conflict errors [providers: all]
+- [x] `concurrent upserts should succeed` — concurrent upserts on sqlite succeed without conflict errors [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/23201-non-ascii-comments/test.ts
 
-- [ ] `can connect to the DB` — schema with non-ASCII comments still connects and queries [providers: all]
+- [x] `can connect to the DB` — schema with non-ASCII comments still connects and queries [providers: all] → ports/prisma/functional/issues-23201-non-ascii-comments/issues-23201-non-ascii-comments.test.ts
 
 ### packages/client/tests/functional/issues/23902/tests.ts
 
-- [ ] `should not throw error when updating fields on a many to many join table` — updating scalar fields on an explicit m2m join model must not throw (repro of #4004) [providers: all]
+- [x] `should not throw error when updating fields on a many to many join table` — updating scalar fields on an explicit m2m join model must not throw (repro of #4004) [providers: all] → ports/prisma/functional/issues-23902/issues-23902.test.ts
 
 ### packages/client/tests/functional/issues/24835-omit-error/test.ts
 
-- [ ] `have omitted field as never` — an omitted field is typed as `never` and absent at runtime [providers: all]
+- [x] `have omitted field as never` — an omitted field is typed as `never` and absent at runtime [providers: all] → non-ported
 
 ### packages/client/tests/functional/issues/25163-typed-sql-enum/test.ts
 
-- [ ] `returns enums that are mapped to invalid JS identifier correctly` — TypedSQL returns enum values whose names are invalid JS identifiers correctly [providers: postgres, cockroachdb]
+- [x] `returns enums that are mapped to invalid JS identifier correctly` — TypedSQL returns enum values whose names are invalid JS identifiers correctly [providers: postgres, cockroachdb] → non-ported
 
 ### packages/client/tests/functional/issues/25404/test.ts
 
-- [ ] `should not throw error when using d1 adapter and creating with string field that contains date string` — creating a string field containing a date string via D1 adapter does not throw [providers: all]
+- [x] `should not throw error when using d1 adapter and creating with string field that contains date string` — creating a string field containing a date string via D1 adapter does not throw [providers: all] → test/ports/prisma/functional/issues-25404/issues-25404.test.ts
 
 ### packages/client/tests/functional/issues/25481-typedsql-query-extension/test.ts
 
-- [ ] `TypedSQL should work when a client extension of type query extension is used` — TypedSQL works when a query-type client extension is active [providers: postgres]
+- [x] `TypedSQL should work when a client extension of type query extension is used` — TypedSQL works when a query-type client extension is active [providers: postgres] → non-ported
 
 ### packages/client/tests/functional/issues/27455-bytes-id/test.ts
 
-- [ ] `should retrieve records after a create with Bytes IDs` — records with `Bytes` primary keys are retrievable after create [providers: postgres, mysql, cockroachdb, sqlite]
+- [x] `should retrieve records after a create with Bytes IDs` — records with `Bytes` primary keys are retrievable after create [providers: postgres, mysql, cockroachdb, sqlite] → test.fails: test/ports/prisma/functional/issues-27455-bytes-id/issues-27455-bytes-id.test.ts
 
 ### packages/client/tests/functional/issues/27511-include-enum-array/test.ts
 
-- [ ] `findMany with include on many-to-many relationship with enum array should work` — findMany + include over a m2m relation with an enum-array field works [providers: postgres]
+- [x] `findMany with include on many-to-many relationship with enum array should work` — findMany + include over a m2m relation with an enum-array field works [providers: postgres] → test.fails: test/ports/prisma/functional/issues-27511-include-enum-array/issues-27511-include-enum-array.test.ts
 
 ### packages/client/tests/functional/issues/28151-broken-nested-set/tests.ts
 
-- [ ] `nested set should result in all expected linked rows` — nested `set` produces all expected relation links [providers: all]
+- [x] `nested set should result in all expected linked rows` — nested `set` produces all expected relation links [providers: all] → test.fails: ports/prisma/functional/issues-28151-broken-nested-set/issues-28151-broken-nested-set.test.ts
 
 ### packages/client/tests/functional/issues/28192-pg-historical-dates/test.ts
 
-- [ ] `historical dates with 2-digit years (00-99 AD) > correctly parses $label` — Postgres timestamps with historical/2-digit-year dates round-trip correctly (9 data rows) [providers: postgres] [each]
+- [x] `historical dates with 2-digit years (00-99 AD) > correctly parses $label` — Postgres timestamps with historical/2-digit-year dates round-trip correctly (9 data rows) [providers: postgres] [each] → ports/prisma/functional/issues-28192-pg-historical-dates/issues-28192-pg-historical-dates.test.ts (5 passing: 120 AD, ms, modern, 3-digit year, timestamptz+tz; test.fails ×4: 31/32/40/99 AD — pg/date@1 century-drop)
 
 ### packages/client/tests/functional/issues/28213-relation-join-batch-crash/tests.ts
 
-- [ ] `should not crash when submitting a batch with relationLoadStrategy join` — batching queries with `relationLoadStrategy: 'join'` does not crash [providers: postgres, cockroachdb, mysql]
+- [x] `should not crash when submitting a batch with relationLoadStrategy join` — batching queries with `relationLoadStrategy: 'join'` does not crash [providers: postgres, cockroachdb, mysql] → non-ported
 
 ### packages/client/tests/functional/issues/28591-mapped-enums/test.ts
 
-- [ ] `create with mapped enum` — creating a record with a `@map`ped enum value works (postgres) [providers: postgres]
+- [x] `create with mapped enum` — creating a record with a `@map`ped enum value works (postgres) [providers: postgres] → test.fails: ports/prisma/functional/issues-28591-mapped-enums/issues-28591-mapped-enums.test.ts
 
 ### packages/client/tests/functional/issues/28968-sqlite-exists-duplicate/tests.ts
 
-- [ ] `should not duplicate rows for a nested "some ... in" query` — a nested `some { ... in }` filter does not return duplicate rows (sqlite) [providers: sqlite]
+- [x] `should not duplicate rows for a nested "some ... in" query` — a nested `some { ... in }` filter does not return duplicate rows (sqlite) [providers: sqlite] → non-ported
 
 ### packages/client/tests/functional/issues/29010-bigint-precision-relation-joins/tests.ts
 
-- [ ] `preserves BigInt precision in relationJoins queries` — BigInt ids beyond MAX_SAFE_INTEGER keep precision in relationJoins queries [providers: postgres, cockroachdb, mysql]
-- [ ] `preserves BigInt precision in nested relationJoins queries` — BigInt precision preserved in nested relationJoins queries [providers: postgres, cockroachdb, mysql]
+- [x] `preserves BigInt precision in relationJoins queries` — BigInt ids beyond MAX_SAFE_INTEGER keep precision in relationJoins queries [providers: postgres, cockroachdb, mysql] → test.fails: ports/prisma/functional/issues-29010-bigint-precision-relation-joins/issues-29010-bigint-precision-relation-joins.test.ts
+- [x] `preserves BigInt precision in nested relationJoins queries` — BigInt precision preserved in nested relationJoins queries [providers: postgres, cockroachdb, mysql] → test.fails: ports/prisma/functional/issues-29010-bigint-precision-relation-joins/issues-29010-bigint-precision-relation-joins.test.ts
 
 ### packages/client/tests/functional/issues/29122-mysql-bigint-view-relation/tests.ts
 
-- [ ] `correctly handles an integer key returned from a view relation in MySQL` — integer key from a MySQL view relation is handled correctly [providers: mysql]
+- [x] `correctly handles an integer key returned from a view relation in MySQL` — integer key from a MySQL view relation is handled correctly [providers: mysql] → non-ported
 
 ### packages/client/tests/functional/issues/29160-mysql-precision-loss/tests.ts
 
-- [ ] `preserves precision for large decimal values` — large decimal values retain precision (MySQL/MariaDB) [providers: mysql]
+- [x] `preserves precision for large decimal values` — large decimal values retain precision (MySQL/MariaDB) [providers: mysql] → non-ported
 
 ### packages/client/tests/functional/issues/29174-jsonb-parameter-regression/tests.ts
 
@@ -391,11 +391,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/29176-cursor-parameter-regression/tests.ts
 
-- [ ] `correctly handles a cursor with parameterised values` — pagination with a cursor whose values are parameterised works [providers: all]
+- [x] `correctly handles a cursor with parameterised values` — pagination with a cursor whose values are parameterised works [providers: all] → test.fails: ports/prisma/functional/issues-29176-cursor-parameter-regression/issues-29176-cursor-parameter-regression.test.ts
 
 ### packages/client/tests/functional/issues/29212-array-push-regression/tests.ts
 
-- [ ] `correctly pushes to array field` — `push` update on a scalar array field appends correctly [providers: postgres, cockroachdb, mongodb]
+- [x] `correctly pushes to array field` — `push` update on a scalar array field appends correctly [providers: postgres, cockroachdb, mongodb] → non-ported
 
 ### packages/client/tests/functional/issues/29215-case-insensitive-in/tests.ts
 
@@ -404,7 +404,7 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/29254-query-plan-cache-mutation/tests.ts
 
-- [ ] `correctly handles two subsequent queries with a different cursor` — query-plan cache is not mutated across subsequent queries with different cursors [providers: all]
+- [x] `correctly handles two subsequent queries with a different cursor` — query-plan cache is not mutated across subsequent queries with different cursors [providers: all] → test.fails: ports/prisma/functional/issues-29254-query-plan-cache-mutation/issues-29254-query-plan-cache-mutation.test.ts
 
 ### packages/client/tests/functional/issues/29267-uint8array-in-json/tests.ts
 
@@ -415,22 +415,22 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/29309-datetime-cursor/tests.ts
 
-- [ ] `retrieves a cursor against a DATE column` — pagination cursor against a DATE column works [providers: postgres, mysql, cockroachdb, sqlserver]
+- [x] `retrieves a cursor against a DATE column` — pagination cursor against a DATE column works [providers: postgres, mysql, cockroachdb, sqlserver] → test.fails: ports/prisma/functional/issues-29309-datetime-cursor/issues-29309-datetime-cursor.test.ts
 
 ### packages/client/tests/functional/issues/29331-query-plan-cache-bloat/tests.ts
 
-- [ ] `createMany stress test for cache bloat` — repeated createMany with varying parameter patterns does not bloat the query-plan cache [providers: all]
+- [x] `createMany stress test for cache bloat` — repeated createMany with varying parameter patterns does not bloat the query-plan cache [providers: all] → ports/prisma/functional/issues-29331-query-plan-cache-bloat/issues-29331-query-plan-cache-bloat.test.ts
 
 ### packages/client/tests/functional/issues/TML-1664-invalid-enum-value-error/test.ts
 
-- [ ] `returns P2007 error when inserting enum value that does not exist in database` — inserting an enum value missing from the DB enum surfaces P2007 (data validation error) [providers: postgres]
+- [x] `returns P2007 error when inserting enum value that does not exist in database` — inserting an enum value missing from the DB enum surfaces P2007 (data validation error) [providers: postgres] → test/ports/prisma/functional/issues-TML-1664-invalid-enum-value-error/issues-TML-1664-invalid-enum-value-error.test.ts
 
 ### packages/client/tests/functional/issues/TML-1664-unknown-enum-value-read-error/test.ts
 
-- [ ] `returns P2023 error when reading enum value unknown to Prisma` — reading a DB enum value unknown to the Prisma schema surfaces P2023 [providers: postgres]
+- [x] `returns P2023 error when reading enum value unknown to Prisma` — reading a DB enum value unknown to the Prisma schema surfaces P2023 [providers: postgres] → test.fails: test/ports/prisma/functional/issues-TML-1664-unknown-enum-value-read-error/issues-TML-1664-unknown-enum-value-read-error.test.ts
 
 ### packages/client/tests/functional/issues/unmapped-driver-error-user-facing/test.ts
 
-- [ ] `returns P2039 with the original DB code and message for unmapped Postgres errors` — an unmapped Postgres error (42P10) surfaces P2039 with the original DB code and message [providers: postgres]
+- [x] `returns P2039 with the original DB code and message for unmapped Postgres errors` — an unmapped Postgres error (42P10) surfaces P2039 with the original DB code and message [providers: postgres] → test/ports/prisma/functional/issues-unmapped-driver-error-user-facing/issues-unmapped-driver-error-user-facing.test.ts
 
 **Total: 153 tests**

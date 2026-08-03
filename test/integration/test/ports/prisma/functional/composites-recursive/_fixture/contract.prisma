@@ -1,0 +1,24 @@
+// Port of prisma/prisma@a6d0155 packages/client/tests/functional/composites/recursive
+// prisma/_schema.ts (mongodb matrix entry).
+//
+// Upstream schema:
+//   model LinkedList {
+//     id   String   @id @default(auto()) @map("_id") @db.ObjectId
+//     head ListNode
+//   }
+//   type ListNode {
+//     value Int
+//     next  ListNode?
+//   }
+//
+// MongoDB PSL `type` blocks become value objects in the contract.
+
+type ListNode {
+  value Int
+  next  ListNode?
+}
+
+model LinkedList {
+  id   ObjectId @id @map("_id")
+  head ListNode
+}
