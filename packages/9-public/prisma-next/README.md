@@ -80,5 +80,5 @@ These subpaths are less stable than the facade packages (`@internal/postgres/con
 
 ## Links
 
-- Project: [prisma-next on GitHub](https://github.com/prisma/prisma-next)
+- Project: [Prisma 8 on GitHub](https://github.com/prisma/prisma)
 - Internal architecture documentation: [`@internal/cli` README](https://github.com/prisma/prisma/tree/main/packages/1-framework/3-tooling/cli)
