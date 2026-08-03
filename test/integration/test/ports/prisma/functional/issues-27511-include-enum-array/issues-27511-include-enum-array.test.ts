@@ -1,5 +1,5 @@
-import type { Varchar } from '@prisma-next/target-postgres/codec-types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { Varchar } from '@internal/target-postgres/codec-types';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../../../_harness/postgres';
 import type { Contract } from './_fixture/generated/contract';

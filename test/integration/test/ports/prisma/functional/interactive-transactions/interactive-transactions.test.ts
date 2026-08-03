@@ -1,4 +1,4 @@
-import { SqlQueryError, UNIQUE_VIOLATION_SQLSTATE } from '@prisma-next/sql-errors';
+import { SqlQueryError, UNIQUE_VIOLATION_SQLSTATE } from '@internal/sql-errors';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../../../_harness/postgres';
 import type { Contract } from './_fixture/generated/contract';

@@ -5211,7 +5211,7 @@ importers:
       '@internal/sql-contract-ts':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/2-authoring/contract-ts
-      '@prisma-next/sql-errors':
+      '@internal/sql-errors':
         specifier: workspace:0.16.0
         version: link:../../packages/2-sql/1-core/errors
       '@internal/sql-orm-client':
