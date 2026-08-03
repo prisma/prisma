@@ -528,6 +528,26 @@ Patterns to **catch** the F-family modes live in [`grep-library.md`](./grep-libr
 
 **Reference incident.** 2026-07-30, `public-npm-surface` slice 1 (PR #29854). Integration Tests red with 1646/1646 tests passed and 276/277 files passed; the branch's own new suites run in a different job entirely. A re-run of the failed job passed clean with no code change.
 
+### F28. Mid-merge branch checkout discards MERGE_HEAD; the "merge" commits with one parent
+
+**Symptom.** A branch that was supposed to merge another reports the merge as done — the commit message says "Merge branch X" and the author describes resolving conflicts — but the other branch's commits are not ancestors of the result. Later work built on "both sides merged" silently lacks one side.
+
+**Cause.** During conflict resolution, checking out another branch (e.g. to test whether a failure is pre-existing) aborts the in-progress merge state: `MERGE_HEAD` is discarded. Returning and committing then records a **single-parent** commit that looks like a merge only in its message. The hunks the author resolved by hand are real, but everything they did not explicitly touch from the other side is absent.
+
+**Detection signal.**
+
+- `git log -1 --format=%P` on the supposed merge commit shows one parent.
+- `git merge-base --is-ancestor <other-branch-tip> HEAD` exits nonzero.
+- The report describes conflict resolution in detail but never shows an ancestry check.
+
+**Mitigation.**
+
+- Orchestrator side: **never accept "merged" from a report.** The acceptance criterion for any merge dispatch is the printed output of `git merge-base --is-ancestor <tip> HEAD`, plus a diff audit over the other side's files.
+- Implementer side: never `git checkout <branch>` mid-merge — use a scratch worktree or `git show <ref>:<path>` to inspect other states. Verify `cat .git/MERGE_HEAD` immediately before the merge commit.
+- Diff audits classify by line content and cannot see a reverted deletion; run the other side's test suites as part of the audit.
+
+**Reference incident.** 2026-08-03, public-npm-surface fold. A rename branch "merged" the PR branch carrying 15 review-fix commits; the commit had one parent because a mid-merge `stash push` / `checkout` / `checkout back` / `stash pop` sequence discarded `MERGE_HEAD`. Caught by the orchestrator's `--is-ancestor` check at fold time. The corrective merge also showed the audit blind spot: taking the review side verbatim reverted five changes that only the test suites, not the diff read, surfaced.
+
 ## Slice-shape scope traps
 
 Patterns that have produced scope creep in the past — catch these at triage or slice-spec time, not at execution time.
