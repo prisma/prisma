@@ -314,6 +314,7 @@ export const knownInternalNamesInDist: readonly string[] = [
   '@prisma-next/target-postgres/codecs',
   '@prisma-next/target-postgres/errors',
   '@prisma-next/target-sqlite',
+  '@prisma-next/target-sqlite/codecs',
   '@prisma-next/target-sqlite/errors',
   '@prisma-next/utils',
   '@prisma-next/utils/canonical-stringify',
