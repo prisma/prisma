@@ -23,6 +23,16 @@
 //      siblings, which is what `prisma-next-check-pins` exploits on the
 //      consumer side.
 //
+//   3. Declaration-dependency check. Every module specifier named by a
+//      `.d.ts`/`.d.mts`/`.d.cts` file inside the tarball must resolve for a
+//      consumer: the package it belongs to has to appear in
+//      `dependencies`, `peerDependencies`, or `optionalDependencies`, and
+//      if that package ships no types of its own, its `@types/*` companion
+//      has to be declared too. `devDependencies` do not count — consumers
+//      never install them. Without this, a package compiles in the
+//      workspace (where pnpm has every dev dependency linked) and fails for
+//      anyone who builds with `skipLibCheck: false`.
+//
 // Usage:
 //   node scripts/check-publish-deps.mjs           — exit 1 on any violation
 //   node scripts/check-publish-deps.mjs --json    — same, with JSON report
@@ -31,10 +41,12 @@
 // step. Also runnable locally: `pnpm check:publish-deps`.
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { builtinModules } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
 
 const DEP_FIELDS = /** @type {const} */ ([
   'dependencies',
@@ -129,6 +141,242 @@ export function findPnPinViolations(pkgJson) {
   return violations;
 }
 
+const DECLARATION_FILE_RE = /\.d\.(?:m|c)?ts$/;
+
+const NODE_BUILTINS = new Set(builtinModules);
+
+// Stands for the tarball root in the entry-root set. A package whose entry
+// point has no directory component (`"types": "./index.d.ts"`) publishes from
+// the root itself; without an explicit marker its roots come out empty and
+// every declaration in the tarball goes unchecked.
+const PACKAGE_ROOT = '.';
+
+/**
+ * Every module specifier a declaration file names — imports, re-exports,
+ * `import(...)` types, and `/// <reference types="..." />` directives.
+ *
+ * Uses TypeScript's own file preprocessor rather than a regex so prose
+ * inside doc comments (`... e.g. pg-pool's 'release' event`) is never
+ * mistaken for an import.
+ *
+ * @param {string} declarationText
+ * @returns {string[]}
+ */
+export function moduleSpecifiersIn(declarationText) {
+  const info = ts.preProcessFile(declarationText, true, false);
+  return [
+    ...info.importedFiles.map((f) => f.fileName),
+    ...info.typeReferenceDirectives.map((f) => f.fileName),
+  ];
+}
+
+/**
+ * The npm package a module specifier belongs to, or `null` when the
+ * specifier does not name one: relative and absolute paths, `#private`
+ * subpath imports, and Node builtins (bare or `node:`-prefixed).
+ *
+ * Pure / side-effect-free; exported for tests.
+ *
+ * @param {string} spec
+ * @returns {string | null}
+ */
+export function packageNameFromSpecifier(spec) {
+  if (spec === '' || spec.startsWith('.') || spec.startsWith('/') || spec.startsWith('#')) {
+    return null;
+  }
+  if (spec.startsWith('node:')) return null;
+  const segments = spec.split('/');
+  const name = spec.startsWith('@') ? `${segments[0]}/${segments[1]}` : segments[0];
+  if (!name || NODE_BUILTINS.has(name)) return null;
+  return name;
+}
+
+/**
+ * The DefinitelyTyped companion package name for `name`, using npm's
+ * scope-mangling convention (`@scope/pkg` → `@types/scope__pkg`).
+ *
+ * @param {string} name
+ * @returns {string}
+ */
+export function typesPackageFor(name) {
+  return name.startsWith('@') ? `@types/${name.slice(1).replace('/', '__')}` : `@types/${name}`;
+}
+
+/**
+ * The top-level directories a package's published entry points live in —
+ * every `exports` target plus `types`/`typings`/`main`/`module`. An entry with
+ * no directory component (`"types": "./index.d.ts"`) yields
+ * {@link PACKAGE_ROOT}, so a package that publishes from the tarball root is
+ * checked rather than silently skipped.
+ *
+ * A tarball also ships `src/` so declaration maps can resolve to sources,
+ * but nothing in a consumer's module graph reaches those files: no entry
+ * point names them and no emitted `dist` declaration imports them. Scoping
+ * the declaration-dependency rule to the entry-point tree keeps it on the
+ * files a consumer's compiler can actually load.
+ *
+ * Pure / side-effect-free; exported for tests.
+ *
+ * @param {Record<string, unknown>} pkgJson
+ * @returns {Set<string>}
+ */
+export function publishedEntryRoots(pkgJson) {
+  const targets = [];
+  const collect = (value) => {
+    if (typeof value === 'string') targets.push(value);
+    else if (value && typeof value === 'object') Object.values(value).forEach(collect);
+  };
+  collect(pkgJson.exports);
+  for (const field of ['types', 'typings', 'main', 'module']) {
+    if (typeof pkgJson[field] === 'string') targets.push(pkgJson[field]);
+  }
+
+  const roots = new Set();
+  for (const target of targets) {
+    const normalized = target.replace(/^\.\//, '');
+    if (normalized === '') continue;
+    const slash = normalized.indexOf('/');
+    if (slash !== -1) {
+      roots.add(normalized.slice(0, slash));
+      continue;
+    }
+    // No directory component, so the entry sits at the tarball root. The
+    // manifest self-reference is not a code entry and does not put the root
+    // in scope on its own.
+    if (normalized === 'package.json') continue;
+    roots.add(PACKAGE_ROOT);
+  }
+  return roots;
+}
+
+/**
+ * The tarball-relative directory a declaration file lives in, using
+ * {@link PACKAGE_ROOT} for a file with no directory component so it can be
+ * compared against {@link publishedEntryRoots}.
+ *
+ * @param {string} file
+ * @returns {string}
+ */
+function declarationRoot(file) {
+  const slash = file.indexOf('/');
+  return slash === -1 ? PACKAGE_ROOT : file.slice(0, slash);
+}
+
+/**
+ * Classifies a packed package's declaration files against the rule that a
+ * consumer must be able to resolve everything they name.
+ *
+ * Returns one violation per (file, specifier) pair:
+ *   - `undeclared` — the package is in no consumer-installed dep field.
+ *   - `untyped`    — the package is declared but ships no types of its own
+ *                    and its `@types/*` companion is not declared.
+ *
+ * Pure / side-effect-free: `declarations` supplies the packed declaration
+ * text and `shipsOwnTypes` answers whether a dependency carries its own
+ * types (returning `null` when that cannot be determined, which skips the
+ * `untyped` rule rather than guessing).
+ *
+ * @param {object} args
+ * @param {Record<string, unknown>} args.pkgJson
+ * @param {Map<string, string>} args.declarations tarball-relative path → file text
+ * @param {(depName: string) => boolean | null} args.shipsOwnTypes
+ * @returns {Array<{ file: string; spec: string; kind: 'undeclared' | 'untyped'; needs: string }>}
+ */
+export function findDeclarationDepViolations({ pkgJson, declarations, shipsOwnTypes }) {
+  const shipped = new Set(
+    SHIPPED_DEP_FIELDS.flatMap((field) => {
+      const deps = pkgJson[field];
+      return deps && typeof deps === 'object' ? Object.keys(deps) : [];
+    }),
+  );
+  const entryRoots = publishedEntryRoots(pkgJson);
+  const violations = [];
+  const seen = new Set();
+
+  for (const [file, text] of declarations) {
+    if (!entryRoots.has(declarationRoot(file))) continue;
+    for (const spec of moduleSpecifiersIn(text)) {
+      const name = packageNameFromSpecifier(spec);
+      // A package may reference itself through its own `exports` map.
+      if (name === null || name === pkgJson.name) continue;
+
+      const key = `${file} ${name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      if (!shipped.has(name)) {
+        violations.push({ file, spec: name, kind: 'undeclared', needs: name });
+        continue;
+      }
+      const typesPkg = typesPackageFor(name);
+      if (shipsOwnTypes(name) === false && !shipped.has(typesPkg)) {
+        violations.push({ file, spec: name, kind: 'untyped', needs: typesPkg });
+      }
+    }
+  }
+  return violations;
+}
+
+/**
+ * Extracts a tarball's declaration files into `scratchDir` and returns
+ * their tarball-relative paths mapped to their contents.
+ *
+ * @param {string} tgzPath
+ * @param {string} scratchDir
+ * @returns {Map<string, string>}
+ */
+function readPackedDeclarations(tgzPath, scratchDir) {
+  const entries = execFileSync('tar', ['-tzf', tgzPath], { encoding: 'utf-8' })
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => DECLARATION_FILE_RE.test(line));
+  const out = new Map();
+  if (entries.length === 0) return out;
+  mkdirSync(scratchDir, { recursive: true });
+  execFileSync('tar', ['-xzf', tgzPath, '-C', scratchDir, ...entries]);
+  for (const entry of entries) {
+    out.set(entry.replace(/^package\//, ''), readFileSync(join(scratchDir, entry), 'utf-8'));
+  }
+  return out;
+}
+
+/**
+ * Whether `depName`, resolved the way a Node/TypeScript consumer would
+ * resolve it from `fromDir`, ships declaration files of its own. Returns
+ * `null` when the dependency cannot be found, so callers can skip rather
+ * than guess.
+ *
+ * @param {string} fromDir
+ * @param {string} depName
+ * @returns {boolean | null}
+ */
+function dependencyShipsOwnTypes(fromDir, depName) {
+  for (let dir = fromDir, previous = ''; dir !== previous; previous = dir, dir = dirname(dir)) {
+    const candidate = join(dir, 'node_modules', depName);
+    if (existsSync(candidate)) return containsDeclarationFile(candidate);
+  }
+  return null;
+}
+
+function containsDeclarationFile(dir, depth = 0) {
+  if (depth > 4) return false;
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return false;
+  }
+  for (const entry of entries) {
+    if (entry.name === 'node_modules') continue;
+    if (entry.isDirectory()) {
+      if (containsDeclarationFile(join(dir, entry.name), depth + 1)) return true;
+    } else if (DECLARATION_FILE_RE.test(entry.name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function readPackedManifest(tgzPath) {
   const out = execFileSync('tar', ['-xzOf', tgzPath, 'package/package.json'], {
     encoding: 'utf-8',
@@ -185,6 +433,8 @@ const DEFAULT_IO = {
   packAll,
   listPublishablePackageDirs,
   readPackedManifest,
+  readPackedDeclarations,
+  dependencyShipsOwnTypes,
   readPackageJson: (dir) => JSON.parse(readFileSync(join(dir, 'package.json'), 'utf-8')),
   readdirSync,
   mkdtemp: () => mkdtempSync(join(tmpdir(), 'pn-publish-check-')),
@@ -213,6 +463,8 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
     packAll: pack,
     listPublishablePackageDirs: listDirs,
     readPackedManifest: readPacked,
+    readPackedDeclarations: readDeclarations,
+    dependencyShipsOwnTypes: shipsOwnTypesFrom,
     readPackageJson,
     readdirSync: readDir,
     mkdtemp,
@@ -242,6 +494,7 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
      *   tarball: string;
      *   leaks: ReturnType<typeof findLeaks>;
      *   pnPinViolations: ReturnType<typeof findPnPinViolations>;
+     *   declarationDepViolations: ReturnType<typeof findDeclarationDepViolations>;
      * }>}
      */
     const offenders = [];
@@ -256,8 +509,22 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
       const packed = readPacked(join(dest, tarballName));
       const leaks = findLeaks(packed);
       const pnPinViolations = findPnPinViolations(packed);
-      if (leaks.length > 0 || pnPinViolations.length > 0) {
-        offenders.push({ pkg: sourcePkg.name, tarball: tarballName, leaks, pnPinViolations });
+      const declarationDepViolations = findDeclarationDepViolations({
+        pkgJson: packed,
+        declarations: readDeclarations(
+          join(dest, tarballName),
+          join(dest, 'unpacked', tarballName),
+        ),
+        shipsOwnTypes: (depName) => shipsOwnTypesFrom(dir, depName),
+      });
+      if (leaks.length > 0 || pnPinViolations.length > 0 || declarationDepViolations.length > 0) {
+        offenders.push({
+          pkg: sourcePkg.name,
+          tarball: tarballName,
+          leaks,
+          pnPinViolations,
+          declarationDepViolations,
+        });
       }
     }
 
@@ -265,7 +532,8 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
       stdoutWrite(`${JSON.stringify({ ok: offenders.length === 0, offenders }, null, 2)}\n`);
     } else if (offenders.length === 0) {
       stderrWrite(
-        `\nOK — no workspace:/catalog: leaks and no @prisma-next/* pin violations in ${dirs.length} publishable packages.\n`,
+        '\nOK — no workspace:/catalog: leaks, no @prisma-next/* pin violations, and no undeclared\n' +
+          `     declaration dependencies in ${dirs.length} publishable packages.\n`,
       );
     } else {
       stderrWrite(
@@ -279,6 +547,9 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
         for (const v of o.pnPinViolations) {
           stderrWrite(`    [pin]      ${v.field}.${v.name} = ${v.spec}\n`);
         }
+        for (const v of o.declarationDepViolations) {
+          stderrWrite(`    [decl]     ${v.file} names "${v.spec}" — declare "${v.needs}"\n`);
+        }
       }
       stderrWrite(
         '\n  [leak] specs are pnpm-internal (workspace:/catalog:) and break consumer installs.\n' +
@@ -287,7 +558,12 @@ export function runCheck({ argv = process.argv.slice(2), io = {} } = {}) {
           '  [pin]  every @prisma-next/* entry in dependencies/peer/optional must be a single\n' +
           '         exact version `X.Y.Z` (a pre-release suffix is permitted). Carets, tildes,\n' +
           '         ranges, and wildcards are rejected so consumer installs see the exact\n' +
-          '         @prisma-next/* graph this release validated against.\n',
+          '         @prisma-next/* graph this release validated against.\n' +
+          '  [decl] a shipped declaration names a module the consumer cannot resolve. Move the\n' +
+          '         dependency (and any `@types/*` companion) out of devDependencies into\n' +
+          '         dependencies or peerDependencies. devDependencies are bundled into the\n' +
+          '         emitted .d.mts rather than imported from, so a missing one usually shows\n' +
+          '         up as inlined types plus a bare side-effect import.\n',
       );
     }
 

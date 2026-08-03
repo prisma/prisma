@@ -11,9 +11,18 @@ export interface ReturnSpec {
   readonly nullable: boolean;
 }
 
+/**
+ * What an operation attaches to: a concrete codec identity, a set of codec
+ * traits the field's codec must carry, or list-typed (`many`) fields.
+ *
+ * Families refine this structurally — a family self spec may add its own
+ * members (for example element-level trait gating on the list variant) as
+ * long as every variant stays assignable to one here.
+ */
 export type SelfSpec =
-  | { readonly codecId: string; readonly traits?: never }
-  | { readonly traits: readonly string[]; readonly codecId?: never };
+  | { readonly codecId: string; readonly traits?: never; readonly many?: never }
+  | { readonly traits: readonly string[]; readonly codecId?: never; readonly many?: never }
+  | { readonly many: true; readonly codecId?: never; readonly traits?: never };
 
 export interface OperationEntry {
   readonly self?: SelfSpec;
@@ -48,10 +57,11 @@ export function createOperationRegistry<
       if (descriptor.self) {
         const hasCodecId = descriptor.self.codecId !== undefined;
         const hasTraits = descriptor.self.traits !== undefined && descriptor.self.traits.length > 0;
-        if (!hasCodecId && !hasTraits) {
+        const targetsMany = descriptor.self.many === true;
+        if (!hasCodecId && !hasTraits && !targetsMany) {
           throw contractError(
             'CONTRACT.PACK_CONTRIBUTION_INVALID',
-            `Operation "${name}" self has neither codecId nor traits`,
+            `Operation "${name}" self has none of codecId, traits, or many`,
             { meta: { operation: name } },
           );
         }

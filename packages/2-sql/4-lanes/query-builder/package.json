@@ -15,10 +15,13 @@
     "lint:fix:unsafe": "biome check --write --unsafe .",
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
-  "devDependencies": {
+  "dependencies": {
     "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/sql-builder": "workspace:0.16.0",
     "@prisma-next/sql-contract": "workspace:0.16.0",
+    "@standard-schema/spec": "^1.1.0"
+  },
+  "devDependencies": {
+    "@prisma-next/sql-builder": "workspace:0.16.0",
     "@prisma-next/tsconfig": "workspace:0.16.0",
     "@prisma-next/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",
