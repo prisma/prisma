@@ -42,8 +42,8 @@
     "arktype": "^2.2.2",
     "dotenv": "^17.4.2",
     "pg": "catalog:",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@prisma-next/cli": "workspace:0.16.0",

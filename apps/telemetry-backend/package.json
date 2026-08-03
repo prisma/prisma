@@ -25,7 +25,7 @@
     "@prisma-next/postgres": "workspace:0.16.0",
     "@prisma-next/sql-runtime": "workspace:0.16.0",
     "arktype": "catalog:",
-    "evlog": "^2.22.1"
+    "evlog": "^2.22.4"
   },
   "devDependencies": {
     "@prisma/compute-sdk": "^0.37.0",
