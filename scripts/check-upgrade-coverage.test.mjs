@@ -69,7 +69,7 @@ describe('parseTransitionFromPath', () => {
   it('extracts the transition segment for the extension skill', () => {
     assert.equal(
       parseTransitionFromPath(
-        'skills/extension-author/prisma-next-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+        'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
       ),
       '0.7-to-0.8',
     );
@@ -162,7 +162,7 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
     assert.notEqual(result.status, 0);
     assert.match(
       result.stderr,
-      /skills\/extension-author\/prisma-next-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
+      /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
     );
   });
 
@@ -186,7 +186,7 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
     );
     assert.match(
       missingBoth.stderr,
-      /skills\/extension-author\/prisma-next-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
+      /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
     );
 
     // Add only the user-skill directory; extension-skill still missing.
@@ -199,7 +199,7 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
     assert.notEqual(missingExt.status, 0);
     assert.match(
       missingExt.stderr,
-      /skills\/extension-author\/prisma-next-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
+      /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades\/0\.6-to-0\.7/,
     );
     assert.doesNotMatch(
       missingExt.stderr,
@@ -208,7 +208,7 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
 
     // Add the extension-skill directory; both present → pass.
     writeRepoFile(
-      'skills/extension-author/prisma-next-extension-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     commitAll('add ext-skill dir');
@@ -249,7 +249,7 @@ describe('check-upgrade-coverage — coverage rule (publish style: prev.minor < 
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-next-extension-upgrade/upgrades/0.6-to-0.7/instructions.md',
+      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.6-to-0.7/instructions.md',
       '---\nfrom: "0.6"\nto: "0.7"\nchanges: []\n---\n',
     );
     commitAll('feature with upgrade entry');
@@ -370,10 +370,7 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     assert.match(result.stderr, /0\.7-to-0\.8|0\.8-to-0\.9/);
     // The "move the new file under" diagnostic should name both cluster paths.
     assert.match(result.stderr, /skills\/upgrade\/prisma-next-upgrade\/upgrades/);
-    assert.match(
-      result.stderr,
-      /skills\/extension-author\/prisma-next-extension-upgrade\/upgrades/,
-    );
+    assert.match(result.stderr, /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades/);
   });
 
   it('publish mode: accepts an added file under either prev→head or head→head+1', () => {
@@ -388,7 +385,7 @@ describe('check-upgrade-coverage — new-entries rule', () => {
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-next-extension-upgrade/upgrades/0.8-to-0.9/instructions.md',
+      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.8-to-0.9/instructions.md',
       '---\nfrom: "0.8"\nto: "0.9"\nchanges: []\n---\n',
     );
     commitAll('head');
@@ -431,10 +428,7 @@ describe('check-upgrade-coverage — new-entries rule', () => {
     assert.match(result.stderr, /0\.7-to-0\.8/);
     // The "move the new file under" diagnostic should name both cluster paths.
     assert.match(result.stderr, /skills\/upgrade\/prisma-next-upgrade\/upgrades/);
-    assert.match(
-      result.stderr,
-      /skills\/extension-author\/prisma-next-extension-upgrade\/upgrades/,
-    );
+    assert.match(result.stderr, /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades/);
   });
 
   it('treats a git mv from outside the upgrades tree into a valid transition directory as a move, not an addition', () => {
@@ -551,11 +545,11 @@ describe('check-upgrade-coverage — skip-publish chain (head.minor > prev.minor
       '---\nfrom: "0.8"\nto: "0.9"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-next-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-next-extension-upgrade/upgrades/0.8-to-0.9/instructions.md',
+      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.8-to-0.9/instructions.md',
       '---\nfrom: "0.8"\nto: "0.9"\nchanges: []\n---\n',
     );
     writeRepoFile(
@@ -769,7 +763,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     writeRepoFile(
-      'skills/extension-author/prisma-next-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\n',
     );
     commitAll('prev — both directories already exist');
@@ -788,7 +782,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     assert.match(missingExt.stderr, /per-pr-declaration/);
     assert.match(
       missingExt.stderr,
-      /skills\/extension-author\/prisma-next-extension-upgrade\/upgrades\/0\.7-to-0\.8\/instructions\.md/,
+      /skills\/extension-author\/prisma-8-extension-upgrade\/upgrades\/0\.7-to-0\.8\/instructions\.md/,
     );
     assert.doesNotMatch(
       missingExt.stderr,
@@ -796,7 +790,7 @@ describe('check-upgrade-coverage — per-PR correspondence rule', () => {
     );
 
     writeRepoFile(
-      'skills/extension-author/prisma-next-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
+      'skills/extension-author/prisma-8-extension-upgrade/upgrades/0.7-to-0.8/instructions.md',
       '---\nfrom: "0.7"\nto: "0.8"\nchanges: []\n---\nupdated\n',
     );
     commitAll('head — both instructions.md updated');

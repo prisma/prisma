@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type AuthoringEntityContext,
   type AuthoringEntityTypeDescriptor,
@@ -6,9 +6,9 @@ import {
   type AuthoringPslBlockDescriptorNamespace,
   type PslExtensionBlock,
   resolveEnumCodecId,
-} from '@prisma-next/framework-components/authoring';
-import { type EnumTypeHandle, enumType } from '@prisma-next/mongo-contract-ts/contract-builder';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/framework-components/authoring';
+import { type EnumTypeHandle, enumType } from '@internal/mongo-contract-ts/contract-builder';
+import { blindCast } from '@internal/utils/casts';
 
 export const mongoFamilyEnumEntityDescriptor = {
   kind: 'entity' as const,

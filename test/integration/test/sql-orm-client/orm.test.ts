@@ -1,4 +1,4 @@
-import { Collection, orm } from '@prisma-next/sql-orm-client';
+import { Collection, orm } from '@internal/sql-orm-client';
 import { describe, expect, it } from 'vitest';
 import { getTestContext, type TestContract } from './helpers';
 import { timeouts, withCollectionRuntime } from './integration-helpers';

@@ -1,9 +1,9 @@
 /**
- * Re-export all domain error factories from @prisma-next/errors for convenience.
+ * Re-export all domain error factories from @internal/errors for convenience.
  * CLI-specific errors (e.g., Commander argument validation in the main CLI, or
  * clipanion parse errors in the migration-file CLI) can be added here if needed.
  */
-export type { CliErrorConflict, CliErrorEnvelope } from '@prisma-next/errors/control';
+export type { CliErrorConflict, CliErrorEnvelope } from '@internal/errors/control';
 
 import {
   CliStructuredError,
@@ -24,11 +24,11 @@ import {
   errorQueryRunnerFactoryRequired,
   errorTargetMigrationNotSupported,
   errorUnexpected,
-} from '@prisma-next/errors/control';
-import { errorRuntime } from '@prisma-next/errors/execution';
-import type { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import type { RefResolutionError } from '@prisma-next/migration-tools/ref-resolution';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/errors/control';
+import { errorRuntime } from '@internal/errors/execution';
+import type { MigrationToolsError } from '@internal/migration-tools/errors';
+import type { RefResolutionError } from '@internal/migration-tools/ref-resolution';
+import { ifDefined } from '@internal/utils/defined';
 import type { MigrateFailure } from '../control-api/types';
 
 export {
@@ -41,14 +41,14 @@ export {
   errorRuntime,
   errorSchemaVerificationFailed,
   errorTargetMismatch,
-} from '@prisma-next/errors/execution';
+} from '@internal/errors/execution';
 export {
   errorMigrationFileMissing,
   errorMigrationInvalidDefaultExport,
   errorMigrationPlanNotArray,
   errorUnfilledPlaceholder,
   placeholder,
-} from '@prisma-next/errors/migration';
+} from '@internal/errors/migration';
 export {
   CliStructuredError,
   errorConfigFileNotFound,

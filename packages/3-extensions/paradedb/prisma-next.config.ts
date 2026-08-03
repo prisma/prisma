@@ -12,12 +12,12 @@
  * @see docs/architecture docs/adrs/ADR 212 - Contract spaces.md
  */
 
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import sql from '@prisma-next/family-sql/control';
-import { emptyContract } from '@prisma-next/sql-contract-ts/config-types';
-import postgres from '@prisma-next/target-postgres/control';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import { defineConfig } from '@internal/cli/config-types';
+import sql from '@internal/family-sql/control';
+import { emptyContract } from '@internal/sql-contract-ts/config-types';
+import postgres from '@internal/target-postgres/control';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 
 export default defineConfig({
   family: sql,

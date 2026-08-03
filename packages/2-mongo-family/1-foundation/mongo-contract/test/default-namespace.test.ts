@@ -1,5 +1,5 @@
-import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/default-namespace';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/default-namespace';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import {
   defaultMongoDomainNamespaceId,

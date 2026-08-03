@@ -1,6 +1,6 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
-import { mongoCodec, newMongoCodecRegistry } from '@prisma-next/mongo-codec';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+import type { CodecCallContext } from '@internal/framework-components/codec';
+import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
+import { MongoParamRef } from '@internal/mongo-value';
 import { describe, expect, it } from 'vitest';
 import { resolveValue } from '../src/resolve-value';
 

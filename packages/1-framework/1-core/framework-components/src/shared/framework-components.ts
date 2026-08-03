@@ -157,7 +157,7 @@ export function checkContractComponentRequirements(
  *
  * @example
  * ```ts
- * import sql from '@prisma-next/family-sql/control';
+ * import sql from '@internal/family-sql/control';
  *
  * sql.kind     // 'family'
  * sql.familyId // 'sql'
@@ -187,7 +187,7 @@ export interface FamilyDescriptor<TFamilyId extends string> extends ComponentDes
  *
  * @example
  * ```ts
- * import postgres from '@prisma-next/target-postgres/control';
+ * import postgres from '@internal/target-postgres/control';
  *
  * postgres.kind     // 'target'
  * postgres.familyId // 'sql'
@@ -266,7 +266,7 @@ export type DriverPackRef<
  *
  * @example
  * ```ts
- * import postgresAdapter from '@prisma-next/adapter-postgres/control';
+ * import postgresAdapter from '@internal/adapter-postgres/control';
  *
  * postgresAdapter.kind     // 'adapter'
  * postgresAdapter.familyId // 'sql'
@@ -302,7 +302,7 @@ export interface AdapterDescriptor<TFamilyId extends string, TTargetId extends s
  *
  * @example
  * ```ts
- * import postgresDriver from '@prisma-next/driver-postgres/control';
+ * import postgresDriver from '@internal/driver-postgres/control';
  *
  * postgresDriver.kind     // 'driver'
  * postgresDriver.familyId // 'sql'
@@ -337,7 +337,7 @@ export interface DriverDescriptor<TFamilyId extends string, TTargetId extends st
  *
  * @example
  * ```ts
- * import pgvector from '@prisma-next/extension-pgvector/control';
+ * import pgvector from '@internal/extension-pgvector/control';
  *
  * pgvector.kind     // 'extension'
  * pgvector.familyId // 'sql'

@@ -14,7 +14,7 @@ This grows the attribute-spec kit with the two leaf combinators `@default` needs
 - **Kit location:** `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/combinators/`. Templates: `str.ts` (single-literal leaf), `field-ref.ts`, `entity-ref.ts`, `list.ts`. Re-export from `packages/1-framework/2-authoring/psl-parser/src/exports/index.ts`. Combinator tests live in `packages/1-framework/2-authoring/psl-parser/test/attribute-spec-combinators.test.ts`.
 - **Literal AST nodes** (`packages/1-framework/2-authoring/psl-parser/src/syntax/ast/expressions.ts`): `StringLiteralExprAst.value(): string | undefined` (decoded — escapes/quotes resolved), `NumberLiteralExprAst.value(): number | undefined`, `BooleanLiteralExprAst.value(): boolean | undefined`.
 - **`FunctionCallAst`** (same file): `.name(): QualifiedNameAst | undefined` and `.args(): Iterable<AttributeArgAst>`. Use the structural getters — for the function name, use `QualifiedNameAst.identifier()?.token()?.text` (do NOT stringify via `.path().join('.')`).
-- **`ParsedDefaultFunctionCall`** is a framework type in `packages/1-framework/1-core/framework-components/src/shared/mutation-default-types.ts`, exported via `@prisma-next/framework-components/control`. `psl-parser` already depends on `framework-components` (the kit imports `PslDiagnostic` from `@prisma-next/framework-components/psl-ast`), so `funcCall()` can emit `ParsedDefaultFunctionCall` directly — layering-clean. Read that type + `DefaultFunctionArgument` before implementing; match their shape exactly (`{ name, raw, args: [{ raw, span }], span }` — confirm field names against the source).
+- **`ParsedDefaultFunctionCall`** is a framework type in `packages/1-framework/1-core/framework-components/src/shared/mutation-default-types.ts`, exported via `@internal/framework-components/control`. `psl-parser` already depends on `framework-components` (the kit imports `PslDiagnostic` from `@internal/framework-components/psl-ast`), so `funcCall()` can emit `ParsedDefaultFunctionCall` directly — layering-clean. Read that type + `DefaultFunctionArgument` before implementing; match their shape exactly (`{ name, raw, args: [{ raw, span }], span }` — confirm field names against the source).
 - Slice spec + plan §D1: `projects/typed-attribute-parsers/slices/sql-default/{spec.md,plan.md}`.
 
 ## Task
@@ -33,14 +33,14 @@ This grows the attribute-spec kit with the two leaf combinators `@default` needs
 **Out:** the `@default` spec, `lowerDefaultForField`, and deleting the string parsers — all D2. Do NOT touch `packages/2-sql/**` in this dispatch.
 
 ## Design point to resolve + report
-Confirm `funcCall()` emitting `ParsedDefaultFunctionCall` from `@prisma-next/framework-components/control` typechecks and keeps `lint:deps` clean (framework→framework, no SQL dependency). If for any reason that coupling is wrong (e.g. the type isn't cleanly importable from psl-parser), STOP and report rather than inventing a parallel type.
+Confirm `funcCall()` emitting `ParsedDefaultFunctionCall` from `@internal/framework-components/control` typechecks and keeps `lint:deps` clean (framework→framework, no SQL dependency). If for any reason that coupling is wrong (e.g. the type isn't cleanly importable from psl-parser), STOP and report rather than inventing a parallel type.
 
 ## Constraints
-No `any`; no bare `as` (use `blindCast`/`castAs` from `@prisma-next/utils/casts` only if unavoidable); no file-ext imports; never suppress biome; tests-first. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`. Do NOT touch GitHub.
+No `any`; no bare `as` (use `blindCast`/`castAs` from `@internal/utils/casts` only if unavoidable); no file-ext imports; never suppress biome; tests-first. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`. Do NOT touch GitHub.
 
 ## Gates
-1. `pnpm --filter @prisma-next/psl-parser build`
-2. `pnpm --filter @prisma-next/psl-parser typecheck` and `pnpm --filter @prisma-next/psl-parser test`
+1. `pnpm --filter @internal/psl-parser build`
+2. `pnpm --filter @internal/psl-parser typecheck` and `pnpm --filter @internal/psl-parser test`
 3. `pnpm lint:deps` — 0 violations (you added a framework→framework import)
 4. `pnpm lint:framework-vocabulary` — if the two combinators push count over threshold, bump it in `scripts/lint-framework-vocabulary.config.json` to exactly the new count and say so
 

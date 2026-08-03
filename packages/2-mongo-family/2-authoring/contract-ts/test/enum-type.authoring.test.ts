@@ -1,8 +1,8 @@
-import type { AnyCodecDescriptor, Codec } from '@prisma-next/framework-components/codec';
-import { voidParamsSchema } from '@prisma-next/framework-components/codec';
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { MongoContractSchema } from '@prisma-next/mongo-contract';
+import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
+import { voidParamsSchema } from '@internal/framework-components/codec';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { MongoContractSchema } from '@internal/mongo-contract';
 import { type } from 'arktype';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { defineContract, field, model } from '../src/contract-builder';

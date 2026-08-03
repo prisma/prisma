@@ -1,4 +1,4 @@
-import type { SqlMiddleware } from '@prisma-next/sql-runtime';
+import type { SqlMiddleware } from '@internal/sql-runtime';
 import { type SupabaseDb, supabase } from '../../../src/exports/runtime';
 import type { Contract } from './contract';
 import contractJson from './contract.json' with { type: 'json' };

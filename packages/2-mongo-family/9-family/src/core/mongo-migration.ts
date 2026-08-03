@@ -1,6 +1,6 @@
-import { Migration, MigrationContractViews } from '@prisma-next/migration-tools/migration';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import type { AnyMongoMigrationOperation } from '@prisma-next/mongo-query-ast/control';
+import { Migration, MigrationContractViews } from '@internal/migration-tools/migration';
+import type { MongoContract } from '@internal/mongo-contract';
+import type { AnyMongoMigrationOperation } from '@internal/mongo-query-ast/control';
 import { MongoContractView } from './ir/mongo-contract-view';
 
 /**

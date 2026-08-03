@@ -1,4 +1,4 @@
-import type { ContractMarkerRecord } from '@prisma-next/contract/types';
+import type { ContractMarkerRecord } from '@internal/contract/types';
 import type { SqlQueryable } from './driver-types';
 import type { LoweredStatement } from './types';
 

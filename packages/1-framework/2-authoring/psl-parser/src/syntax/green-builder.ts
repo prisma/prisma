@@ -1,4 +1,4 @@
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 import type { TokenKind } from '../tokenizer';
 import type { GreenElement, GreenNode } from './green';
 import { greenNode, greenToken } from './green';

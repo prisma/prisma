@@ -1,5 +1,5 @@
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { MigrationEdge, MigrationGraph } from '@prisma-next/migration-tools/graph';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
 import type { GlyphMode } from '../glyph-mode';
 import type { MigrationEdgeAnnotation } from './migration-graph-labels';
 import {

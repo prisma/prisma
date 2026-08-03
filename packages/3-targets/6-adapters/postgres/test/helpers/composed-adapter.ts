@@ -1,12 +1,12 @@
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
+import sqlFamilyDescriptor from '@internal/family-sql/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
 import type {
   RuntimeExtensionDescriptor,
   RuntimeTargetDescriptor,
-} from '@prisma-next/framework-components/execution';
-import postgresTargetControlDescriptor from '@prisma-next/target-postgres/control';
+} from '@internal/framework-components/execution';
+import postgresTargetControlDescriptor from '@internal/target-postgres/control';
 import postgresAdapterControlDescriptor from '../../src/exports/control';
 import postgresRuntimeAdapterDescriptor from '../../src/exports/runtime';
 

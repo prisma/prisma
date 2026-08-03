@@ -1,10 +1,10 @@
-import { domainModelsAtDefaultNamespace } from '@prisma-next/contract/types';
+import { domainModelsAtDefaultNamespace } from '@internal/contract/types';
 import type {
   MongoContract,
   MongoModelDefinition,
   MongoModelsMap,
   RootModelName,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import { createFieldAccessor, type FieldAccessor, type LeafExpression } from './field-accessor';
 import { ormError } from './orm-errors';
 import type { ModelNestedShape } from './resolve-path';

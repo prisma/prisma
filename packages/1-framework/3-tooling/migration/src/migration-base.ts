@@ -1,11 +1,11 @@
 import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   ControlStack,
   MigrationPlan,
   MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import { type } from 'arktype';
 import {
   errorDescribeInvalidMetadata,
@@ -188,7 +188,7 @@ export class MigrationContractViews<TView> {
 /**
  * Returns true when `import.meta.url` resolves to the same file that was
  * invoked as the node entrypoint (`process.argv[1]`). Used by
- * `MigrationCLI.run` (in `@prisma-next/cli/migration-cli`) to no-op when
+ * `MigrationCLI.run` (in `@internal/cli/migration-cli`) to no-op when
  * the migration module is being imported (e.g. by another script) rather
  * than executed directly.
  */
@@ -207,7 +207,7 @@ export function isDirectEntrypoint(importMetaUrl: string): boolean {
  * In-memory artifacts produced from a `Migration` instance: the
  * serialized `ops.json` body, the `migration.json` metadata object, and
  * its serialized form. Returned by `buildMigrationArtifacts` so callers
- * (today: `MigrationCLI.run` in `@prisma-next/cli/migration-cli`) can
+ * (today: `MigrationCLI.run` in `@internal/cli/migration-cli`) can
  * decide how to persist them — write to disk, print in dry-run, ship
  * over the wire — without coupling artifact construction to file I/O.
  *

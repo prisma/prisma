@@ -1,9 +1,6 @@
-import {
-  INIT_ADDITIVE_POLICY,
-  type SqlMigrationPlanOperation,
-} from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+import { INIT_ADDITIVE_POLICY, type SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   contract,

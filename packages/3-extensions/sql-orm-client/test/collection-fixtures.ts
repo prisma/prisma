@@ -1,6 +1,6 @@
-import { type Contract, soleDomainNamespaceId } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import { type Contract, soleDomainNamespaceId } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { Collection } from '../src/collection';
 import type { MockRuntime, TestContract } from './helpers';
 import {

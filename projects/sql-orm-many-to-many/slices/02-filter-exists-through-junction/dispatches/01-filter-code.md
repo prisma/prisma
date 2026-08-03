@@ -25,7 +25,7 @@ The parent correlation is on the **junction** side; the target is reached via th
 
 - [ ] `some`/`every`/`none` on an M:N relation compile to a correctly-shaped EXISTS/NOT EXISTS through the junction (composite-key AND-ed); unit test asserts the AST.
 - [ ] FK relation filters unchanged (existing model-accessor unit tests pass).
-- [ ] Gate: `pnpm --filter @prisma-next/sql-orm-client typecheck` + `test` green.
+- [ ] Gate: `pnpm --filter @internal/sql-orm-client typecheck` + `test` green.
 
 ## Standing instruction
 

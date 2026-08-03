@@ -2,7 +2,7 @@
 
 ## Task
 
-Add the public SQLite target codec descriptor protocol in `@prisma-next/target-sqlite`, following D1's proven authoring/erasure conventions without importing PostgreSQL semantics: a real `SqliteCodecDescriptor<P>` base with a stable structural discriminant, validated erased-to-typed scalar projection method, a `sqliteCodec(...)` adapter that preserves the complete ordinary descriptor contract honestly, a tuple-preserving `defineSqliteCodecs(...)` helper, and a structurally validated immutable typed registry. SQLite has no stored scalar-array protocol in this slice; a scalar template call with `CodecRef.many` must fail clearly rather than projecting the whole stored array.
+Add the public SQLite target codec descriptor protocol in `@internal/target-sqlite`, following D1's proven authoring/erasure conventions without importing PostgreSQL semantics: a real `SqliteCodecDescriptor<P>` base with a stable structural discriminant, validated erased-to-typed scalar projection method, a `sqliteCodec(...)` adapter that preserves the complete ordinary descriptor contract honestly, a tuple-preserving `defineSqliteCodecs(...)` helper, and a structurally validated immutable typed registry. SQLite has no stored scalar-array protocol in this slice; a scalar template call with `CodecRef.many` must fail clearly rather than projecting the whole stored array.
 
 ## Scope
 
@@ -14,7 +14,7 @@ Add the public SQLite target codec descriptor protocol in `@prisma-next/target-s
 
 - [ ] Test-first runtime/type coverage proves raw generic descriptors are rejected, adapted/direct target descriptors preserve ordinary literal/factory signatures without promising unimplemented concrete members, scalar projection is mandatory, refs are validated before typed hooks, `many` fails clearly, and structural registry validation rejects malformed/duplicate/wrong-target descriptors without `instanceof`.
 - [ ] The SQLite protocol contains no PostgreSQL native-type or stored-array hook and all adapter delegation/registry exports remain target-package-local and immutable.
-- [ ] `@prisma-next/target-sqlite` build/test/typecheck/lint plus `pnpm lint:casts`, `pnpm lint:throws`, and `pnpm lint:deps` pass; closing bounded `rg` scans show no built-in/adapter migration or later-slice behavior.
+- [ ] `@internal/target-sqlite` build/test/typecheck/lint plus `pnpm lint:casts`, `pnpm lint:throws`, and `pnpm lint:deps` pass; closing bounded `rg` scans show no built-in/adapter migration or later-slice behavior.
 - [ ] Only D2 files are explicitly staged in a signed-off commit; do not amend or push. The report lists API/export choices, tests, gates, and deferrals.
 
 ## Standing instruction

@@ -9,9 +9,9 @@ import {
   type ControlPolicy,
   profileHash,
   type StorageHashBase,
-} from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   indexInputFromSerialized,
   type ReferentialAction,
@@ -19,12 +19,12 @@ import {
   SqlStorage,
   StorageTable,
   type StorageTableInput,
-} from '@prisma-next/sql-contract/types';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
-import type { SqlIndexIRInput, SqlReferentialAction } from '@prisma-next/sql-schema-ir/types';
-import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-contract/types';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
+import type { SqlIndexIRInput, SqlReferentialAction } from '@internal/sql-schema-ir/types';
+import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
+import { ifDefined } from '@internal/utils/defined';
+import { applicationDomainOf } from '@repo/test-utils';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import type { CodecControlHooks, ExpandNativeTypeInput } from '../src/core/migrations/types';
 
@@ -34,7 +34,7 @@ import type { CodecControlHooks, ExpandNativeTypeInput } from '../src/core/migra
 export function createTestContract(
   tables: Record<string, StorageTable>,
   extensions: Record<string, unknown> = {},
-  storageTypes?: Record<string, import('@prisma-next/sql-contract/types').SqlStorageTypeEntry>,
+  storageTypes?: Record<string, import('@internal/sql-contract/types').SqlStorageTypeEntry>,
   contractOverrides?: {
     defaultControlPolicy?: ControlPolicy;
   },
@@ -194,7 +194,7 @@ export function createSchemaTable(
  * Mock implementation of expandNativeType for Postgres parameterized types.
  *
  * IMPORTANT: This mirrors the real implementation in
- * `@prisma-next/adapter-postgres/src/core/parameterized-types.ts` (`expandParameterizedNativeType`).
+ * `@internal/adapter-postgres/src/core/parameterized-types.ts` (`expandParameterizedNativeType`).
  * If a new parameterized codec type is added there, this mock must be updated to match.
  *
  * We cannot import the real function because this package (family-sql, Layer 3 Tooling)

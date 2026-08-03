@@ -188,7 +188,7 @@ describe('buildTelemetryEvent', () => {
 
 /**
  * Build a `prisma-next.config.mjs` source string that satisfies
- * `validateConfig` from `@prisma-next/config/config-validation`.
+ * `validateConfig` from `@internal/config/config-validation`.
  * `target.targetId` is the only structurally-significant variable
  * the telemetry projection cares about; `extensions` defaults to
  * empty. Caller can override either via the parameters; pass a

@@ -1,11 +1,8 @@
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type {
-  MigrationPlanOperation,
-  OpFactoryCall,
-} from '@prisma-next/framework-components/control';
-import { blindCast } from '@prisma-next/utils/casts';
-import { isThenable } from '@prisma-next/utils/promise';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { MigrationPlanOperation, OpFactoryCall } from '@internal/framework-components/control';
+import { blindCast } from '@internal/utils/casts';
+import { isThenable } from '@internal/utils/promise';
 import { sqliteError } from '../errors';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 

@@ -1,4 +1,4 @@
-import type { Document } from '@prisma-next/mongo-value';
+import type { Document } from '@internal/mongo-value';
 import { MongoAstNode } from './ast-node';
 
 export class RawAggregateCommand extends MongoAstNode {

@@ -1,10 +1,10 @@
 import type {
   PslAttributeArgument,
   PslModelAttribute,
-} from '@prisma-next/framework-components/psl-ast';
-import { computeIndexContentHash, parseWireName } from '@prisma-next/sql-schema-ir/naming';
-import type { SqlIndexIR } from '@prisma-next/sql-schema-ir/types';
-import { assertDefined } from '@prisma-next/utils/assertions';
+} from '@internal/framework-components/psl-ast';
+import { computeIndexContentHash, parseWireName } from '@internal/sql-schema-ir/naming';
+import type { SqlIndexIR } from '@internal/sql-schema-ir/types';
+import { assertDefined } from '@internal/utils/assertions';
 import { buildAttribute, escapePslString, namedArg, positionalArg } from './psl-literals';
 
 export function buildModelConstraintAttribute(

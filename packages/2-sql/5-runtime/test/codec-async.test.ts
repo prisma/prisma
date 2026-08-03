@@ -1,7 +1,7 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import { coreHash } from '@prisma-next/contract/types';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type { Codec } from '@prisma-next/sql-relational-core/ast';
+import type { JsonValue } from '@internal/contract/types';
+import { coreHash } from '@internal/contract/types';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { Codec } from '@internal/sql-relational-core/ast';
 import {
   AndExpr,
   type AnyExpression,
@@ -11,9 +11,9 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { buildDecodeContext, decodeRow } from '../src/codecs/decoding';
 import { encodeParams } from '../src/codecs/encoding';

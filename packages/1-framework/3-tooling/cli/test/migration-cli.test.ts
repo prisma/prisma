@@ -12,21 +12,21 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { Writable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
-import { errorConfigFileNotFound } from '@prisma-next/errors/control';
-import { Migration } from '@prisma-next/migration-tools/migration';
+import { errorConfigFileNotFound } from '@internal/errors/control';
+import { Migration } from '@internal/migration-tools/migration';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const loadConfigMock = vi.fn();
 const createControlStackMock = vi.fn();
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: loadConfigMock,
 }));
 
-vi.mock('@prisma-next/framework-components/control', async () => {
-  const actual = await vi.importActual<typeof import('@prisma-next/framework-components/control')>(
-    '@prisma-next/framework-components/control',
+vi.mock('@internal/framework-components/control', async () => {
+  const actual = await vi.importActual<typeof import('@internal/framework-components/control')>(
+    '@internal/framework-components/control',
   );
   return { ...actual, createControlStack: createControlStackMock };
 });

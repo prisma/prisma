@@ -8,8 +8,8 @@
  * the PSL identifier grammar) skips with a comment note on its target
  * model instead of failing the whole infer.
  */
-import { printPsl } from '@prisma-next/psl-printer';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { printPsl } from '@internal/psl-printer';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { postgresAuthoringPslBlockDescriptors } from '../../src/core/authoring';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';

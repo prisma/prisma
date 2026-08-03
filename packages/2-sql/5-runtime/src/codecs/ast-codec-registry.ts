@@ -1,10 +1,10 @@
-import type { ContractCodecRegistry } from '@prisma-next/sql-relational-core/ast';
-import type { CodecDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { ContractCodecRegistry } from '@internal/sql-relational-core/ast';
+import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { createAstCodecResolver } from './ast-codec-resolver';
 
 /**
  * Build a contract-free {@link ContractCodecRegistry} that resolves codecs
- * purely from AST-supplied {@link import('@prisma-next/framework-components/codec').CodecRef}s
+ * purely from AST-supplied {@link import('@internal/framework-components/codec').CodecRef}s
  * against a target's descriptor registry.
  *
  * Dispatch is driven entirely by `CodecRef`s embedded in AST nodes; no

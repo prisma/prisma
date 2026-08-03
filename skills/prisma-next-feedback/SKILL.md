@@ -34,7 +34,7 @@ Canonical channels:
 - **Three channels, one decision.** GitHub Issues (bugs + concrete feature requests), Prisma Discord (Q&A, design feedback, direct team contact), or another in-cluster skill (when the question turns out to be a workflow question, not a hand-off-to-team question). The skill's first move is the channel decision; everything else follows.
 - **Public artifact.** GitHub issues *and* Discord messages are world-readable and archived. The body / message must not contain `DATABASE_URL` strings, internal company schema fragments, customer data in sample rows, or any other content the user wouldn't share publicly. The agent redacts before either kind of submission.
 - **Bug vs feature vs question.** A *bug* is "documented surface behaved unexpectedly". A *feature request* is "I want a capability that doesn't exist". A *question* is "I want to discuss X with someone, or I'm not sure this is a bug at all". Many capability-gap routes are feature requests; many extension-author prompts are questions.
-- **The framework team needs to reproduce (issues only).** A bug report without a reproduction is much harder to act on. Where possible, the agent produces a minimal repro the team can re-run locally — ideally a small change against [`examples/prisma-next-demo`](https://github.com/prisma/prisma-next/tree/main/examples/prisma-next-demo), which the team already has checked out. Discord Q&A doesn't require a full repro — a short code snippet plus the question is usually enough.
+- **The framework team needs to reproduce (issues only).** A bug report without a reproduction is much harder to act on. Where possible, the agent produces a minimal repro the team can re-run locally — ideally a small change against [`examples/prisma-8-demo`](https://github.com/prisma/prisma/tree/main/examples/prisma-8-demo), which the team already has checked out. Discord Q&A doesn't require a full repro — a short code snippet plus the question is usually enough.
 
 ## Workflow
 
@@ -84,7 +84,7 @@ If both — a bug *and* the user wants a related feature — file two separate i
 
 For **either** kind:
 
-- **Prisma Next version**: `pnpm ls @prisma-next/postgres` (or `@prisma-next/mongo`). If the project uses a target package, that version is canonical.
+- **Prisma Next version**: `pnpm ls @internal/postgres` (or `@internal/mongo`). If the project uses a target package, that version is canonical.
 - **Node version**: `node -v`.
 - **Package manager**: `pnpm` / `npm` / `yarn` / `bun` / `deno`.
 - **OS**: `darwin` / `linux` / `win32` and the version string is enough.
@@ -114,7 +114,7 @@ Bug-report body shape (fields named to match `.github/ISSUE_TEMPLATE/bug_report.
 ~~~markdown
 ## Package and version
 
-<e.g. @prisma-next/postgres@0.5.2>
+<e.g. @internal/postgres@0.5.2>
 
 ## What happened?
 
@@ -189,7 +189,7 @@ Preferred. Two steps:
 
    ~~~bash
    gh issue create \
-     --repo prisma/prisma-next \
+     --repo prisma/prisma \
      --title "<title>" \
      --body-file <path-from-step-1>
    ~~~
@@ -213,7 +213,7 @@ When step 1 picked the Discord channel (steps 2–7 do not apply):
    - Extension-author / partner-integration / breaking-change-coordination questions → the public extension-authors channel, or the user can ping a maintainer directly once they're in the server.
 2. **Help draft the opening message.** Prisma's Discord is searchable; a well-framed opening message gets a faster, more useful answer. The agent drafts a short message with:
    - One-sentence summary of what the user is trying to do.
-   - The Prisma Next version (`pnpm ls @prisma-next/postgres` or equivalent).
+   - The Prisma Next version (`pnpm ls @internal/postgres` or equivalent).
    - A short code snippet (PSL excerpt, query, config file) where relevant — redacted the same way as a GitHub issue body (no `DATABASE_URL`, no customer schema names).
    - The specific question the user wants answered.
 3. **Do not auto-post.** The agent surfaces the drafted message to the user — *"here's an opening message you can paste into Discord; want to adjust before sending?"* — and lets the user decide whether to paste it as-is, edit it, or pick a different framing.

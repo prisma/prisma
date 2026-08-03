@@ -1,17 +1,17 @@
-import { computeStorageHash } from '@prisma-next/contract/hashing';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
+import { computeStorageHash } from '@internal/contract/hashing';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type {
   SqlControlExtensionDescriptor,
   SqlDescribedContractSpace,
-} from '@prisma-next/family-sql/control';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
-import type { ContractSpace, ControlStack } from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { flatPslModels } from '@prisma-next/framework-components/psl-ast';
-import { printPsl } from '@prisma-next/psl-printer';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/family-sql/control';
+import sqlFamilyDescriptor from '@internal/family-sql/control';
+import type { ContractSpace, ControlStack } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import { flatPslModels } from '@internal/framework-components/psl-ast';
+import { printPsl } from '@internal/psl-printer';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { PostgresSchema } from '../../src/core/postgres-schema';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';

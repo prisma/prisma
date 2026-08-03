@@ -10,7 +10,7 @@ Sandwich shape: engine → combinators → consumer migration. 3 dispatches, seq
 - **Builds on:** The spec's chosen design; the `ExpressionAst` exports.
 - **Hands to:** The `ArgType<T>` contract (`parse(arg: ExpressionAst, ctx) → Result<T, Diagnostic[]>`) + the engine, so dispatch 2 can author real combinators against a stable interface.
 - **Focus:** Engine + types only. Message-templating machinery is included only if Open Question 1 resolves to "strict message parity."
-- **Gate:** `cd packages/1-framework/2-authoring/psl-parser && pnpm typecheck && pnpm test`; `pnpm --filter @prisma-next/psl-parser lint`.
+- **Gate:** `cd packages/1-framework/2-authoring/psl-parser && pnpm typecheck && pnpm test`; `pnpm --filter @internal/psl-parser lint`.
 
 ### Dispatch 2: The `@relation` combinators
 
@@ -26,6 +26,6 @@ Sandwich shape: engine → combinators → consumer migration. 3 dispatches, seq
 - **Builds on:** Dispatch 2's combinator set.
 - **Hands to:** SQL `@relation` validated via spec; legacy parser gone — the migration recipe slices 2–3 follow.
 - **Focus:** `@relation` only. Other SQL attributes stay on their legacy paths (slice 2).
-- **Gate:** `pnpm --filter @prisma-next/contract-psl-sql test` (relations + diagnostics suites); `pnpm fixtures:check`; `rg "parseRelationAttribute"` empty; workspace `pnpm typecheck` after `psl-parser` build (cross-package consumer check).
+- **Gate:** `pnpm --filter @internal/contract-psl-sql test` (relations + diagnostics suites); `pnpm fixtures:check`; `rg "parseRelationAttribute"` empty; workspace `pnpm typecheck` after `psl-parser` build (cross-package consumer check).
 
 _(Final `hands to` ⊇ slice-DoD: legacy parser removed (D3), kit exported + tested (D1–D2), parity gates green (D3). Complete.)_

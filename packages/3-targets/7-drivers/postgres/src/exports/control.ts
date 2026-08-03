@@ -1,9 +1,9 @@
-import { errorRuntime } from '@prisma-next/errors/execution';
-import type { ControlDriverDescriptor } from '@prisma-next/framework-components/control';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
-import { SqlQueryError } from '@prisma-next/sql-errors';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { redactDatabaseUrl } from '@prisma-next/utils/redact-db-url';
+import { errorRuntime } from '@internal/errors/execution';
+import type { ControlDriverDescriptor } from '@internal/framework-components/control';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
+import { SqlQueryError } from '@internal/sql-errors';
+import { ifDefined } from '@internal/utils/defined';
+import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
 import { Client } from 'pg';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
 import { normalizePgError } from '../normalize-error';

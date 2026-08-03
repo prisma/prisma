@@ -1,8 +1,4 @@
-import type {
-  Contract,
-  ContractMarkerRecord,
-  LedgerEntryRecord,
-} from '@prisma-next/contract/types';
+import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
 import type {
   AdapterInstance,
   DriverInstance,

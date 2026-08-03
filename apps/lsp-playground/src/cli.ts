@@ -46,7 +46,7 @@ async function fileExists(path: string): Promise<boolean> {
  * Stages a writable schema file under `.playground/` and returns its path.
  *
  * `.playground/` is where the server can resolve both the generated config's
- * `@prisma-next/*` imports and (via walk-up) the config for the opened
+ * `@prisma/orm-postgres` import and (via walk-up) the config for the opened
  * document. When `sourceFile` points at an existing file, its contents are
  * copied so the playground edits a sandbox copy rather than the user's file;
  * otherwise an empty scratch file is created. The staged file reuses the
@@ -65,12 +65,10 @@ async function stageSchema(sourceFile?: string): Promise<string> {
 }
 
 function resolveCliEntry(): string {
-  // The bridge spawns the built CLI binary (`dist/cli.js`). That path is not in
-  // the package's `exports` map, so resolve the package's main export and derive
-  // the sibling `cli.js` from its directory (`dist/exports/index.mjs` ->
-  // `dist/cli.js`).
-  const mainExport = fileURLToPath(import.meta.resolve('@prisma-next/cli'));
-  return resolve(dirname(mainExport), '..', 'cli.js');
+  // The facade puts the `prisma-next` command on an application's PATH and
+  // publishes the same launcher as an entrypoint, so the playground can spawn
+  // the one published CLI without depending on the toolchain itself.
+  return fileURLToPath(import.meta.resolve('@prisma/orm-postgres/bin/prisma-next'));
 }
 
 async function main(): Promise<void> {
@@ -99,7 +97,7 @@ async function main(): Promise<void> {
   // The PSL file is optional. An existing file already inside a project opens
   // in place under its discovered config; otherwise (no file, missing path, or
   // an existing file with no project config) the schema is staged into
-  // `.playground/` (whose `@prisma-next/*` imports resolve) beside a generated
+  // `.playground/` (whose `@prisma/orm-postgres` import resolves) beside a generated
   // default-postgres config — the "without a config, assume default postgres"
   // path.
   let schemaPath: string;
@@ -142,10 +140,7 @@ async function main(): Promise<void> {
 
   const cliEntry = resolveCliEntry();
   if (!(await fileExists(cliEntry))) {
-    console.error(
-      `Built CLI not found at ${cliEntry}.\n` +
-        'Build it first:  pnpm --filter @prisma-next/cli build',
-    );
+    console.error(`Built CLI not found at ${cliEntry}.\n` + 'Build it first:  pnpm -w build');
     process.exit(1);
   }
 

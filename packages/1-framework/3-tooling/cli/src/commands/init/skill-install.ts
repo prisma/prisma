@@ -11,7 +11,7 @@ const exec = promisify(execFile);
  * upstream `skills add`. Each `SkillSource` joins this base with its
  * own subpath (and optional `#ref` for version-pinned clusters).
  */
-export const DEFAULT_SKILL_BASE = 'prisma/prisma-next';
+export const DEFAULT_SKILL_BASE = 'prisma/prisma';
 
 /**
  * One discovery scope inside the Prisma Next monorepo. The CLI emits
@@ -22,7 +22,7 @@ export const DEFAULT_SKILL_BASE = 'prisma/prisma-next';
  * - `cli`: pin to the CLI's own package version (lockstep with the
  *   skills' SPI). Used for the version-locked usage cluster — the
  *   skills under `skills/<X>/SKILL.md`, which describe the public
- *   package API and are pinned to the version of `@prisma-next/*`
+ *   package API and are pinned to the version of `@internal/*`
  *   currently installed in the consumer's project.
  * - `null`: no ref. The cluster is "always-latest" — the cumulative
  *   instruction set is the source of truth, and the latest revision

@@ -1,10 +1,10 @@
 import type {
   SqlMigrationPlanOperation,
   SqlMigrationPlanOperationStep,
-} from '@prisma-next/family-sql/control';
-import { REFERENTIAL_ACTION_SQL } from '@prisma-next/sql-contract/referential-action-sql';
-import type { ReferentialAction } from '@prisma-next/sql-contract/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/family-sql/control';
+import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
+import type { ReferentialAction } from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
 import { quoteIdentifier } from '../../sql-utils';
 import type { SqlitePlanTargetDetails } from '../planner-target-details';
 

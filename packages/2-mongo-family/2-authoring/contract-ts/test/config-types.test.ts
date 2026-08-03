@@ -1,9 +1,9 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { ContractSourceContext } from '@prisma-next/config/config-types';
-import type { Contract, ControlPolicy } from '@prisma-next/contract/types';
-import { emptyCodecLookup } from '@prisma-next/framework-components/codec';
-import { timeouts } from '@prisma-next/test-utils';
+import type { ContractSourceContext } from '@internal/config/config-types';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
+import { emptyCodecLookup } from '@internal/framework-components/codec';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { typescriptContract, typescriptContractFromPath } from '../src/config-types';

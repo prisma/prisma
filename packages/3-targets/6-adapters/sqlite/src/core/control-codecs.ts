@@ -2,14 +2,14 @@ import type {
   AnyQueryAst,
   ContractCodecRegistry,
   LoweredStatement,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import {
   createAstCodecRegistry,
   deriveParamMetadata,
   encodeParamsWithMetadata,
-} from '@prisma-next/sql-runtime';
-import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-runtime';
+import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
+import { InternalError } from '@internal/utils/internal-error';
 
 export const CONTROL_CODECS = createAstCodecRegistry(sqliteCodecRegistry);
 

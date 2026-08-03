@@ -1,13 +1,13 @@
-import type { MongoIndexKey, MongoIndexKeyDirection } from '@prisma-next/mongo-contract';
+import type { MongoIndexKey, MongoIndexKeyDirection } from '@internal/mongo-contract';
 import {
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
-import type { CollationOptions } from '@prisma-next/mongo-value/mongodb-types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/mongo-schema-ir';
+import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
+import { blindCast } from '@internal/utils/casts';
 import type { Db, Document } from 'mongodb';
 
 const PRISMA_MIGRATIONS_COLLECTION = '_prisma_migrations';

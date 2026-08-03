@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { CodecDescriptor, CodecRef } from '@prisma-next/framework-components/codec';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlOperationRegistry } from '@prisma-next/sql-operations';
+import type { Contract } from '@internal/contract/types';
+import type { CodecDescriptor, CodecRef } from '@internal/framework-components/codec';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlOperationRegistry } from '@internal/sql-operations';
 import type { ContractCodecRegistry } from './ast/codec-types';
 
 /**

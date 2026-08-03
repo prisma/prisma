@@ -1,8 +1,8 @@
-import type { ContractRelation } from '@prisma-next/contract/types';
-import { crossRef } from '@prisma-next/contract/types';
-import { generateContractDts } from '@prisma-next/emitter';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import { extractCodecTypeImports } from '@prisma-next/framework-components/control';
+import type { ContractRelation } from '@internal/contract/types';
+import { crossRef } from '@internal/contract/types';
+import { generateContractDts } from '@internal/emitter';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import { extractCodecTypeImports } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';
@@ -104,8 +104,8 @@ describe('sql-target-family-hook', () => {
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).not.toContain('SqlMappings');
     expect(types).toContain('export type TypeMaps');
-    expect(types).not.toContain("'__@prisma-next/sql-contract/codecTypes@__'");
-    expect(types).not.toContain("'__@prisma-next/sql-contract/operationTypes@__'");
+    expect(types).not.toContain("'__@internal/sql-contract/codecTypes@__'");
+    expect(types).not.toContain("'__@internal/sql-contract/operationTypes@__'");
   });
 
   it('generates contract types with explicitly empty models and codecTypes', () => {

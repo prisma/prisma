@@ -1,22 +1,22 @@
-import type { ContractMarkerRecord, LedgerEntryRecord } from '@prisma-next/contract/types';
-import { withMarkerReadErrorHandling } from '@prisma-next/errors/execution';
-import type { MongoControlAdapter } from '@prisma-next/family-mongo/control-adapter';
-import type { ControlDriverInstance } from '@prisma-next/framework-components/control';
-import { ledgerOriginFromStored } from '@prisma-next/migration-tools/ledger-origin';
-import type { MongoAdapter, MongoDriver } from '@prisma-next/mongo-lowering';
-import type { AnyMongoDdlCommand } from '@prisma-next/mongo-query-ast/control';
+import type { ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
+import { withMarkerReadErrorHandling } from '@internal/errors/execution';
+import type { MongoControlAdapter } from '@internal/family-mongo/control-adapter';
+import type { ControlDriverInstance } from '@internal/framework-components/control';
+import { ledgerOriginFromStored } from '@internal/migration-tools/ledger-origin';
+import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
+import type { AnyMongoDdlCommand } from '@internal/mongo-query-ast/control';
 import {
   type AnyMongoCommand,
   MongoAggFieldRef,
   MongoAggLiteral,
   MongoAggOperator,
   type MongoQueryPlan,
-} from '@prisma-next/mongo-query-ast/execution';
-import { expr, fn } from '@prisma-next/mongo-query-builder';
-import { collection } from '@prisma-next/mongo-query-builder/contract-free';
-import type { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
-import type { MongoValue } from '@prisma-next/mongo-value';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/mongo-query-ast/execution';
+import { expr, fn } from '@internal/mongo-query-builder';
+import { collection } from '@internal/mongo-query-builder/contract-free';
+import type { MongoSchemaIR } from '@internal/mongo-schema-ir';
+import type { MongoValue } from '@internal/mongo-value';
+import { blindCast } from '@internal/utils/casts';
 import type { Document } from 'mongodb';
 import { createMongoAdapter } from '../mongo-adapter';
 import { describeReceivedValue, mongoAdapterError } from './errors';
@@ -59,7 +59,7 @@ export class MongoControlAdapterImpl implements MongoControlAdapter<'mongo'> {
       throw mongoAdapterError(
         'CONFIG.VALIDATION_FAILED',
         'Mongo control adapter requires a Mongo control driver with an execute() transport. ' +
-          'Provide a MongoControlDriver from `@prisma-next/driver-mongo/control`.',
+          'Provide a MongoControlDriver from `@internal/driver-mongo/control`.',
         { meta: { received: describeReceivedValue(driver) } },
       );
     }

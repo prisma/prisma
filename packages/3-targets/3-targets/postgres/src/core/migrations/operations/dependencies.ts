@@ -1,4 +1,4 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { extensionExistsAst } from '../../../contract-free/checks';
 import { DEFAULT_NAMESPACE_ID } from '../../namespace-ids';
 import { quoteIdentifier } from '../../sql-utils';

@@ -1,8 +1,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { createDbVerifyCommand } from '@prisma-next/cli/commands/db-verify';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { timeouts } from '@prisma-next/test-utils';
+import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { join } from 'pathe';

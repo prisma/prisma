@@ -1,16 +1,16 @@
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
+import { MongoDriverImpl } from '@internal/driver-mongo';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
   MongoContractWithTypeMaps,
-} from '@prisma-next/mongo-contract';
-import type { MongoOrmClient, MongoQueryPlan, MongoRawClient } from '@prisma-next/mongo-orm';
-import { mongoOrm } from '@prisma-next/mongo-orm';
-import type { MongoMiddleware, MongoRuntime } from '@prisma-next/mongo-runtime';
-import { createMongoRuntime, type MongoExecutionContext } from '@prisma-next/mongo-runtime';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-contract';
+import type { MongoOrmClient, MongoQueryPlan, MongoRawClient } from '@internal/mongo-orm';
+import { mongoOrm } from '@internal/mongo-orm';
+import type { MongoMiddleware, MongoRuntime } from '@internal/mongo-runtime';
+import { createMongoRuntime, type MongoExecutionContext } from '@internal/mongo-runtime';
+import { ifDefined } from '@internal/utils/defined';
 import { buildMongoStaticContext, type MongoStaticContext } from '../static/mongo-static';
 import {
   type MongoBinding,

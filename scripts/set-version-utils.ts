@@ -21,28 +21,29 @@ const DEP_FIELDS = [
 ] as const;
 
 /**
- * Rewrite every `@prisma-next/*` workspace dep spec in `packageJson`
- * to `workspace:<version>`. Mutates in place. Idempotent: re-running
- * with the same version is a no-op.
+ * Rewrite every workspace dep spec in `packageJson` to
+ * `workspace:<version>`. Mutates in place. Idempotent: re-running with the
+ * same version is a no-op.
  *
  * The literal-version form is the mechanism that gives every published
- * `@prisma-next/*` package an exact-version pin on its `@prisma-next/*`
- * siblings: pnpm rewrites `workspace:<X.Y.Z>` to exactly `X.Y.Z` at
- * publish time, while resolving to the local workspace package during
- * development.
+ * package an exact-version pin on its siblings: pnpm rewrites
+ * `workspace:<X.Y.Z>` to exactly `X.Y.Z` at publish time, while resolving to
+ * the local workspace package during development.
  *
- * Non-workspace specs (e.g. caret ranges from npm, catalog entries) are
- * intentionally left alone; only `workspace:` specifiers are rewritten.
- * Non-`@prisma-next/*` workspace deps (none today, but possible in
- * principle) are also left alone — the exact-pin discipline applies only
- * to the `@prisma-next/*` graph.
+ * Every scope is rewritten rather than one, because every package in this
+ * workspace is versioned in lockstep — the published `@prisma/orm-*` shells,
+ * the internal `@internal/*` packages they are built from, and the
+ * `@internal/*` development packages alike. Singling out one scope would leave
+ * the others pinned at whatever version they were last released under.
+ *
+ * Non-workspace specs (e.g. caret ranges from the registry, catalog entries)
+ * are intentionally left alone; only `workspace:` specifiers are rewritten.
  */
 export function rewriteWorkspaceDeps(packageJson: MutablePackageJson, version: string): void {
   for (const field of DEP_FIELDS) {
     const deps = packageJson[field];
     if (!deps) continue;
     for (const [name, spec] of Object.entries(deps)) {
-      if (!name.startsWith('@prisma-next/')) continue;
       if (typeof spec !== 'string' || !spec.startsWith('workspace:')) continue;
       deps[name] = `workspace:${version}`;
     }

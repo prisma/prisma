@@ -1,7 +1,7 @@
 import type {
   DefaultFunctionLoweringContext,
   TypedDefaultFunctionCall,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import {

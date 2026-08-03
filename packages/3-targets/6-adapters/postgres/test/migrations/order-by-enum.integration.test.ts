@@ -1,13 +1,9 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import sqlFamilyPack from '@prisma-next/family-sql/pack';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import {
-  buildBoundContract,
-  enumType,
-  member,
-} from '@prisma-next/sql-contract-ts/contract-builder';
+import type { Contract } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import sqlFamilyPack from '@internal/family-sql/pack';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { buildBoundContract, enumType, member } from '@internal/sql-contract-ts/contract-builder';
 import {
   ColumnRef,
   EqColJoinOn,
@@ -17,10 +13,10 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import postgresPack from '@prisma-next/target-postgres/pack';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/sql-relational-core/ast';
+import postgresPack from '@internal/target-postgres/pack';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
+import { timeouts } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createPostgresAdapter } from '../../src/core/adapter';
 import type { PostgresContract } from '../../src/core/types';

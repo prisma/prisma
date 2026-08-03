@@ -1,9 +1,9 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import {
   buildSqlSingleNamespaceView,
   type SqlSingleNamespaceView,
-} from '@prisma-next/sql-contract/contract-view';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/contract-view';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { SqliteContractSerializer } from './sqlite-contract-serializer';
 
 /**

@@ -1,4 +1,4 @@
-import { buildOperation, codecOf, toExpr } from '@prisma-next/sql-relational-core/expression';
+import { buildOperation, codecOf, toExpr } from '@internal/sql-relational-core/expression';
 import type { CodecTypes } from '../types/codec-types';
 import type { QueryOperationTypes } from '../types/operation-types';
 import { postgisAuthoringTypes } from './authoring';
@@ -156,13 +156,13 @@ const postgisPackMetaBase = {
     codecTypes: {
       codecDescriptors: Array.from(postgisCodecRegistry.values()),
       import: {
-        package: '@prisma-next/extension-postgis/codec-types',
+        package: '@internal/extension-postgis/codec-types',
         named: 'CodecTypes',
         alias: 'PostgisTypes',
       },
       typeImports: [
         {
-          package: '@prisma-next/extension-postgis/codec-types',
+          package: '@internal/extension-postgis/codec-types',
           named: 'Geometry',
           alias: 'Geometry',
         },
@@ -170,7 +170,7 @@ const postgisPackMetaBase = {
     },
     queryOperationTypes: {
       import: {
-        package: '@prisma-next/extension-postgis/operation-types',
+        package: '@internal/extension-postgis/operation-types',
         named: 'QueryOperationTypes',
         alias: 'PostgisQueryOperationTypes',
       },

@@ -12,7 +12,7 @@
  * they are reachable.
  */
 
-import { col } from '@prisma-next/sql-relational-core/contract-free';
+import { col } from '@internal/sql-relational-core/contract-free';
 import { test } from 'vitest';
 import { PostgresMigration } from '../../src/core/migrations/postgres-migration';
 

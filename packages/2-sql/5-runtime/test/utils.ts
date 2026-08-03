@@ -5,24 +5,24 @@ import {
   coreHash,
   profileHash,
   UNBOUND_DOMAIN_NAMESPACE_ID,
-} from '@prisma-next/contract/types';
-import type { CodecDescriptor, CodecTrait } from '@prisma-next/framework-components/codec';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+} from '@internal/contract/types';
+import type { CodecDescriptor, CodecTrait } from '@internal/framework-components/codec';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
 import {
   instantiateExecutionStack,
   type RuntimeDriverDescriptor,
-} from '@prisma-next/framework-components/execution';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ResultType } from '@prisma-next/framework-components/runtime';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
-import { builtinGeneratorIds } from '@prisma-next/ids';
-import { generateId } from '@prisma-next/ids/runtime';
+} from '@internal/framework-components/execution';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ResultType } from '@internal/framework-components/runtime';
+import { runtimeError } from '@internal/framework-components/runtime';
+import { canonicalizeJson } from '@internal/framework-components/utils';
+import { builtinGeneratorIds } from '@internal/ids';
+import { generateId } from '@internal/ids/runtime';
 import {
   SqlStorage,
   type SqlStorageInput,
   type StorageTableInput,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import type {
   Adapter,
   AnyQueryAst,
@@ -30,10 +30,10 @@ import type {
   ContractCodecRegistry,
   LoweredStatement,
   SelectAst,
-} from '@prisma-next/sql-relational-core/ast';
-import { SelectAst as SelectAstCtor, TableSource } from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import { SelectAst as SelectAstCtor, TableSource } from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { ifDefined } from '@internal/utils/defined';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { createExecutionContext, createSqlExecutionStack } from '../src/exports';
 import type {

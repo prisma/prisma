@@ -1,14 +1,14 @@
-import type { AnyCodecDescriptor, Codec } from '@prisma-next/framework-components/codec';
-import { CodecDescriptorImpl, voidParamsSchema } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, type StorageTableInput } from '@prisma-next/sql-contract/types';
-import type { ContractCodecRegistry, ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
-import { col, fn, lit } from '@prisma-next/sql-relational-core/contract-free';
-import { postgresCodec } from '@prisma-next/target-postgres/codec-descriptor';
-import { jsonb, pgTable, text } from '@prisma-next/target-postgres/contract-free';
-import { PostgresCreateTable } from '@prisma-next/target-postgres/ddl';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { createContract } from '@prisma-next/test-utils';
+import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
+import { CodecDescriptorImpl, voidParamsSchema } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, type StorageTableInput } from '@internal/sql-contract/types';
+import type { ContractCodecRegistry, ProjectionExpr } from '@internal/sql-relational-core/ast';
+import { col, fn, lit } from '@internal/sql-relational-core/contract-free';
+import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
+import { jsonb, pgTable, text } from '@internal/target-postgres/contract-free';
+import { PostgresCreateTable } from '@internal/target-postgres/ddl';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
+import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   createPostgresBuiltinCodecLookup,

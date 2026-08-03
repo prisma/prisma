@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { type BackendHarness, HARNESS_PATHS, sleep, startBackendHarness } from './backend-harness';

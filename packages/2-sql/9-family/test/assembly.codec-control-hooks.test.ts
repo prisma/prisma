@@ -1,4 +1,4 @@
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { extractCodecControlHooks } from '../src/core/assembly';
 import type { CodecControlHooks } from '../src/exports/control';

@@ -26,13 +26,13 @@
  * 5. Assembles a `ControlStack` from the loaded config descriptors and
  *    constructs the migration with that stack.
  * 6. Reads any previously-scaffolded `migration.json`, then calls
- *    `buildMigrationArtifacts` from `@prisma-next/migration-tools` to
+ *    `buildMigrationArtifacts` from `@internal/migration-tools` to
  *    produce in-memory `ops.json` + `migration.json` content. Persists
  *    the result to disk (or prints in dry-run mode).
  *
- * File I/O lives here, in `@prisma-next/cli`: this is the only place
+ * File I/O lives here, in `@internal/cli`: this is the only place
  * that legitimately combines config loading, stack assembly, and
- * on-disk persistence. `@prisma-next/migration-tools` owns the pure
+ * on-disk persistence. `@internal/migration-tools` owns the pure
  * conversion from a `Migration` instance to artifact strings; `Migration`
  * stays a pure abstract class.
  *
@@ -45,17 +45,17 @@
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import type { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from '@prisma-next/config-loader';
+import { loadConfig } from '@internal/config-loader';
 import {
   CliStructuredError,
   errorMigrationCliInvalidConfigArg,
   errorMigrationCliUnknownFlag,
-} from '@prisma-next/errors/control';
-import { errorMigrationTargetMismatch } from '@prisma-next/errors/migration';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { errorInvalidJson, MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { buildMigrationArtifacts, type Migration } from '@prisma-next/migration-tools/migration';
+} from '@internal/errors/control';
+import { errorMigrationTargetMismatch } from '@internal/errors/migration';
+import { createControlStack } from '@internal/framework-components/control';
+import { errorInvalidJson, MigrationToolsError } from '@internal/migration-tools/errors';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { buildMigrationArtifacts, type Migration } from '@internal/migration-tools/migration';
 import { Cli, Command, Option, UsageError } from 'clipanion';
 import { dirname, join } from 'pathe';
 
@@ -228,7 +228,7 @@ export class MigrationCLI {
 
 /**
  * Argv-aware variant of the entrypoint guard. The shared
- * `@prisma-next/migration-tools` helper of the same name reads
+ * `@internal/migration-tools` helper of the same name reads
  * `process.argv[1]` directly, which doesn't compose with the new
  * in-process testability surface (tests inject `argv` without mutating
  * the process global). Inlined here so the migration-file CLI's check
@@ -475,7 +475,7 @@ function writeStructuredError(stream: MigrationCliWritable, err: CliStructuredEr
  * user's on-disk content (preserved bookends, `createdAt`) without any
  * indication something was wrong on disk.
  * Apply-time consumers always route through the verifying
- * `readMigrationPackage` in `@prisma-next/migration-tools/io` instead.
+ * `readMigrationPackage` in `@internal/migration-tools/io` instead.
  */
 function readExistingMetadata(metadataPath: string): Partial<MigrationMetadata> | null {
   let raw: string;
@@ -499,7 +499,7 @@ function readExistingMetadata(metadataPath: string): Partial<MigrationMetadata> 
  * `ops.json` and `migration.json` are written next to `migration.ts` and
  * a confirmation line is printed.
  *
- * File I/O lives in the CLI rather than `@prisma-next/migration-tools`
+ * File I/O lives in the CLI rather than `@internal/migration-tools`
  * so the migration-tools package stays focused on the pure
  * `Migration` → in-memory artifact conversion. The CLI is the only
  * legitimate site for combining config loading, stack assembly, and

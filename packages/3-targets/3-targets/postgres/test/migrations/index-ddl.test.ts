@@ -4,8 +4,8 @@
  * through the lowerer instead of hand-concatenated SQL (the byte-level
  * rendering is asserted beside the renderer in the adapter package).
  */
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import {
   PostgresAlterIndexRename,

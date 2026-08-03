@@ -26,7 +26,7 @@ export default defineConfig({
 })
 ```
 
-Sugar config (`@prisma-next/postgres/config` et al.) already says `extensions`; its `outputPath` becomes `output`:
+Sugar config (`@internal/postgres/config` et al.) already says `extensions`; its `outputPath` becomes `output`:
 
 ```ts
 // before
@@ -67,7 +67,7 @@ Three renames, all landing in one breaking PR, no compatibility aliases (per the
 - All example/app/test configs (`examples/`, `apps/`, `test/integration/`, `test/e2e/`), including raw-form fixture configs.
 - Regeneration of all contract artifacts, migrations, and snapshots via `pnpm fixtures:emit`.
 - Docs: ADR 004 + ADR 112 corrections, subsystem docs (Data Contract; Ecosystem Extensions & Packs), `docs/glossary.md`, `skills/prisma-next-contract`, `skills/prisma-next-debug`, `skills/DEVELOPING.md`.
-- Upgrade instructions for both consumers (`skills/upgrade/prisma-next-upgrade`) and extension authors (`skills/extension-author/prisma-next-extension-upgrade`), via the record-upgrade-instructions skill.
+- Upgrade instructions for both consumers (`skills/upgrade/prisma-next-upgrade`) and extension authors (`skills/extension-author/prisma-8-extension-upgrade`), via the record-upgrade-instructions skill.
 
 **Deliberately out:**
 
@@ -76,7 +76,7 @@ Three renames, all landing in one breaking PR, no compatibility aliases (per the
 - `db: { connection }` (adding `db: string` later is additive), `migrations.dir`, `formatter.indent` — audited, freeze-safe as-is.
 - `family`/`target`/`adapter`/`driver` wiring keys — surface-documentation question, not a rename.
 - Historical records keep the old spelling: `CHANGELOG.md`, `docs/releases/*`, past upgrade instructions, `projects/` archives.
-- Replay fixture chains (`examples/prisma-next-demo/fixtures/**`) and `apps/telemetry-backend` snapshot files keep old-key contracts: they have no regen mechanism, are hash-keyed so old snapshots are only reachable by old hashes, and are never deserialized by green suites (reviewer-verified). Re-anchoring is TML-3082 (replay regen tool) and TML-3083 (telemetry hash-advance). Ratified deviation from the "no literal remains" DoD line, 2026-07-23.
+- Replay fixture chains (`examples/prisma-8-demo/fixtures/**`) and `apps/telemetry-backend` snapshot files keep old-key contracts: they have no regen mechanism, are hash-keyed so old snapshots are only reachable by old hashes, and are never deserialized by green suites (reviewer-verified). Re-anchoring is TML-3082 (replay regen tool) and TML-3083 (telemetry hash-advance). Ratified deviation from the "no literal remains" DoD line, 2026-07-23.
 
 ## Contract impact
 

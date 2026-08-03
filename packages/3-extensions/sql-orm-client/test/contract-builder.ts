@@ -1,6 +1,6 @@
-import sqlFamilyPack from '@prisma-next/family-sql/pack';
-import type { ExtensionPackRef } from '@prisma-next/framework-components/components';
-import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
+import sqlFamilyPack from '@internal/family-sql/pack';
+import type { ExtensionPackRef } from '@internal/framework-components/components';
+import type { StorageTypeInstance } from '@internal/sql-contract/types';
 import {
   buildBoundContract,
   type ComposedAuthoringHelpers,
@@ -12,13 +12,13 @@ import {
   model,
   rel,
   type ScalarFieldBuilder,
-} from '@prisma-next/sql-contract-ts/contract-builder';
-import postgresPack from '@prisma-next/target-postgres/pack';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+} from '@internal/sql-contract-ts/contract-builder';
+import postgresPack from '@internal/target-postgres/pack';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 
 // Postgres-bound `defineContract` for sql-orm-client tests. This mirrors
-// `@prisma-next/postgres/contract-builder`, but sql-orm-client cannot depend on
-// `@prisma-next/postgres` (that package re-exports sql-orm-client, so the
+// `@internal/postgres/contract-builder`, but sql-orm-client cannot depend on
+// `@internal/postgres` (that package re-exports sql-orm-client, so the
 // dependency would be a build cycle). Tests therefore bind the generic SQL
 // contract-builder to the SQL family + Postgres target packs directly, exactly
 // as the postgres package does.

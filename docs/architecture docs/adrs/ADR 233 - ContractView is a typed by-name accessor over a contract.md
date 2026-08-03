@@ -5,7 +5,7 @@
 A `ContractView` reads a contract's entities by name, with the default namespace unwrapped:
 
 ```ts
-import { MongoContractView } from '@prisma-next/family-mongo/ir';
+import { MongoContractView } from '@internal/family-mongo/ir';
 
 const view = MongoContractView.fromJson<Contract>(contractJson);
 view.collection.carts.validator;

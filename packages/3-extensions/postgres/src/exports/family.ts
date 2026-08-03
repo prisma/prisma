@@ -1,1 +1,1 @@
-export { default } from '@prisma-next/family-sql/pack';
+export { default } from '@internal/family-sql/pack';

@@ -1,4 +1,4 @@
-import type { AuthoringFieldPresetDescriptor } from '@prisma-next/framework-components/authoring';
+import type { AuthoringFieldPresetDescriptor } from '@internal/framework-components/authoring';
 
 /**
  * Hand-written mirror of family-sql's `temporalCodecPresetWithPrecision`
@@ -6,7 +6,7 @@ import type { AuthoringFieldPresetDescriptor } from '@prisma-next/framework-comp
  * target-agnostic.
  *
  * It is hand-written because this package cannot import family-sql:
- * family-sql declares `@prisma-next/sql-contract-ts` as a production
+ * family-sql declares `@internal/sql-contract-ts` as a production
  * dependency, so the reverse import would be a cycle.
  *
  * It is kept honest by `family-sql/test/temporal-codec-presets.test.ts`, which

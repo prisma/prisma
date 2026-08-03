@@ -1,11 +1,11 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
+import type { ControlPolicy } from '@internal/contract/types';
 import {
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
 import { diffMongoSchemas } from '../src/core/schema-diff';
 

@@ -1,8 +1,8 @@
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { defineConfig } from '@prisma-next/config/config-types';
-import type { Contract } from '@prisma-next/contract/types';
-import { typescriptContract } from '@prisma-next/sql-contract-ts/config-types';
-import { ok } from '@prisma-next/utils/result';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import { defineConfig } from '@internal/config/config-types';
+import type { Contract } from '@internal/contract/types';
+import { typescriptContract } from '@internal/sql-contract-ts/config-types';
+import { ok } from '@internal/utils/result';
 import { describe, expect, it } from 'vitest';
 
 describe('defineConfig', () => {

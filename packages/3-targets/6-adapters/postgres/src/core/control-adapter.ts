@@ -2,20 +2,20 @@ import type {
   ColumnDefault,
   ContractMarkerRecord,
   LedgerEntryRecord,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import {
   parseMarkerRowSafely,
   rethrowMarkerReadError,
   withMarkerReadErrorHandling,
-} from '@prisma-next/errors/execution';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
-import { parseContractMarkerRow } from '@prisma-next/family-sql/verify';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { APP_SPACE_ID, type SchemaNodeRef } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { ledgerOriginFromStored } from '@prisma-next/migration-tools/ledger-origin';
-import { REFERENTIAL_ACTION_SQL } from '@prisma-next/sql-contract/referential-action-sql';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+} from '@internal/errors/execution';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import { parseContractMarkerRow } from '@internal/family-sql/verify';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { APP_SPACE_ID, type SchemaNodeRef } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { ledgerOriginFromStored } from '@internal/migration-tools/ledger-origin';
+import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import type {
   AnyQueryAst,
   CodecRef,
@@ -29,9 +29,9 @@ import type {
   LowererContext,
   MarkerReadResult,
   SqlExecuteRequest,
-} from '@prisma-next/sql-relational-core/ast';
-import { isDdlNode } from '@prisma-next/sql-relational-core/ast';
-import { namingOfLiveName } from '@prisma-next/sql-schema-ir/naming';
+} from '@internal/sql-relational-core/ast';
+import { isDdlNode } from '@internal/sql-relational-core/ast';
+import { namingOfLiveName } from '@internal/sql-schema-ir/naming';
 import type {
   PrimaryKeyInput,
   SqlCheckConstraintIRInput,
@@ -40,12 +40,12 @@ import type {
   SqlIndexIRInput,
   SqlReferentialAction,
   SqlUniqueIRInput,
-} from '@prisma-next/sql-schema-ir/types';
-import { RelationalSchemaNodeKind } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-schema-ir/types';
+import { RelationalSchemaNodeKind } from '@internal/sql-schema-ir/types';
 import {
   buildControlTableBootstrapQueries,
   buildSignMarkerBootstrapQueries,
-} from '@prisma-next/target-postgres/contract-free';
+} from '@internal/target-postgres/contract-free';
 import type {
   AddColumnAction,
   AlterTableActionVisitor,
@@ -64,11 +64,11 @@ import type {
   PostgresDropPolicy,
   PostgresDropType,
   RlsPolicyOperation,
-} from '@prisma-next/target-postgres/ddl';
-import { parsePostgresDefault } from '@prisma-next/target-postgres/default-normalizer';
-import { postgresError } from '@prisma-next/target-postgres/errors';
-import { normalizeSchemaNativeType } from '@prisma-next/target-postgres/native-type-normalizer';
-import { escapeLiteral, quoteIdentifier } from '@prisma-next/target-postgres/sql-utils';
+} from '@internal/target-postgres/ddl';
+import { parsePostgresDefault } from '@internal/target-postgres/default-normalizer';
+import { postgresError } from '@internal/target-postgres/errors';
+import { normalizeSchemaNativeType } from '@internal/target-postgres/native-type-normalizer';
+import { escapeLiteral, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
@@ -77,9 +77,9 @@ import {
   PostgresRoleSchemaNode,
   PostgresSchemaNodeKind,
   PostgresTableSchemaNode,
-} from '@prisma-next/target-postgres/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/target-postgres/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { adapterError } from './adapter-errors';
 import { encodeControlQueryParams } from './control-codecs';
 import {

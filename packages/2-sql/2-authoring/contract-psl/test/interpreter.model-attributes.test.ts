@@ -1,6 +1,6 @@
-import type { AuthoringContributions } from '@prisma-next/framework-components/authoring';
-import { modelAttribute, str } from '@prisma-next/psl-parser';
-import type { SqlNamespaceInput } from '@prisma-next/sql-contract/types';
+import type { AuthoringContributions } from '@internal/framework-components/authoring';
+import { modelAttribute, str } from '@internal/psl-parser';
+import type { SqlNamespaceInput } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';

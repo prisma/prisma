@@ -1,4 +1,4 @@
-import { defineAnnotation } from '@prisma-next/framework-components/runtime';
+import { defineAnnotation } from '@internal/framework-components/runtime';
 
 /**
  * Payload accepted when calling the `cacheAnnotation` handle.
@@ -39,7 +39,7 @@ export interface CachePayload {
  *
  * @example
  * ```typescript
- * import { cacheAnnotation } from '@prisma-next/middleware-cache';
+ * import { cacheAnnotation } from '@internal/middleware-cache';
  *
  * // ORM read terminal — accepts the read-only annotation via the meta callback.
  * const user = await db.User.first(

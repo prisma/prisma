@@ -1,4 +1,4 @@
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { isCI } from 'ci-info';
 import { defineConfig } from 'vitest/config';
 

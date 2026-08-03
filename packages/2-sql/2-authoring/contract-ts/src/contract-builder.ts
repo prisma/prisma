@@ -1,19 +1,19 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import type { ForeignKeyDefaultsState } from '@prisma-next/contract-authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+import type { ControlPolicy } from '@internal/contract/types';
+import type { ForeignKeyDefaultsState } from '@internal/contract-authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
-import type { PackEntityHandle } from '@prisma-next/sql-contract/entity-handle-lowering-hook';
+} from '@internal/framework-components/components';
+import type { PackEntityHandle } from '@internal/sql-contract/entity-handle-lowering-hook';
 import type {
   SqlNamespaceBase,
   SqlNamespaceInput,
   StorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { buildSqlContractFromDefinition } from './build-contract';
 import {
   type ComposedAuthoringHelpers,

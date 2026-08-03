@@ -1,4 +1,4 @@
-import { ColumnRef, IdentifierRef } from '@prisma-next/sql-relational-core/ast';
+import { ColumnRef, IdentifierRef } from '@internal/sql-relational-core/ast';
 import type { FieldProxy } from '../expression';
 import type { Scope, ScopeTable } from '../scope';
 import { ExpressionImpl } from './expression-impl';

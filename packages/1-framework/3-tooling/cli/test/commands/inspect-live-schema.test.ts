@@ -1,4 +1,4 @@
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   errorDatabaseConnectionRequired,
@@ -38,7 +38,7 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfigMock,
 }));
 

@@ -12,7 +12,7 @@ isn't the terminal, STOP and use `rg` in the terminal instead.
 ## Context
 A small, mechanical migration — no kit growth (all combinators exist).
 - **Current handling:** `@@control` is parsed by `parseControlPolicyAttribute` (`packages/2-sql/2-authoring/contract-psl/src/psl-attribute-parsing.ts` ~lines 190–240), called from the interpreter's `if (modelAttribute.name === 'control')` branch (`interpreter.ts` ~line 596). The interpreter owns a `PSL_DUPLICATE_ATTRIBUTE` guard (`controlPolicyDeclared`) **which stays**. The parser validates: no named args, exactly one positional, and the token is one of `managed`/`tolerated`/`external`/`observed` (`ControlPolicy`).
-- **Combinators:** `oneOf(...)` and `identifier(name)` already exist and are exported from `@prisma-next/psl-parser`. `identifier('managed')` matches a bare identifier and returns the literal `'managed'`; `oneOf(identifier('managed'), identifier('tolerated'), identifier('external'), identifier('observed'))` yields `ControlPolicy`.
+- **Combinators:** `oneOf(...)` and `identifier(name)` already exist and are exported from `@internal/psl-parser`. `identifier('managed')` matches a bare identifier and returns the literal `'managed'`; `oneOf(identifier('managed'), identifier('tolerated'), identifier('external'), identifier('observed'))` yields `ControlPolicy`.
 - **Plumbing to reuse:** `sql-attribute-specs.ts` — `findModelAttributeNode` + `buildModelInterpretCtx` + the `interpretModelConstraint`/`interpretModelIndex` pattern (D3/D4). Add the `@@control` spec + interpret helper here.
 - Slice spec + plan §D5: `projects/typed-attribute-parsers/slices/sql-attributes/{spec.md,plan.md}`. Note the spec's edge-case row: `@@control` policy is **bare-identifier only** now (`@@control(external)`); the legacy quoted spelling `@@control("external")` is intentionally dropped (operator decision — no in-repo schema uses it).
 
@@ -31,10 +31,10 @@ Same `control` policy resolved and stored on the model node; the duplicate-`@@co
 ## Completed when
 - [ ] `@@control` lowered via the spec; duplicate-attribute guard retained.
 - [ ] The four control-policy helpers deleted; `rg` for each in `packages/` → zero.
-- [ ] Gates: `pnpm --filter @prisma-next/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary`. (No psl-parser change → no rebuild needed; if you somehow touched psl-parser, STOP and report.)
+- [ ] Gates: `pnpm --filter @internal/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary`. (No psl-parser change → no rebuild needed; if you somehow touched psl-parser, STOP and report.)
 
 ## Constraints
-No `any`; no bare `as` (use `blindCast`/`castAs` from `@prisma-next/utils/casts`, narrowed); no file-ext imports; tests-first where emitted code/behaviour changes. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.
+No `any`; no bare `as` (use `blindCast`/`castAs` from `@internal/utils/casts`, narrowed); no file-ext imports; tests-first where emitted code/behaviour changes. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.
 
 ## Operational metadata
 - **Model tier:** mid — mechanical; the one judgment call is not accidentally deleting a still-shared helper (`rg` before each delete).

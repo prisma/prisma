@@ -1,5 +1,5 @@
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { SqlNode } from '@prisma-next/sql-contract/types';
+import { freezeNode } from '@internal/framework-components/ir';
+import { SqlNode } from '@internal/sql-contract/types';
 
 /**
  * Roles are referenced by the contract but never owned — the framework
@@ -14,7 +14,7 @@ export interface PostgresRoleInput {
   readonly name: string;
   /**
    * Namespace coordinate. Roles are cluster-scoped; pass `UNBOUND_NAMESPACE_ID`
-   * from `@prisma-next/framework-components/ir`.
+   * from `@internal/framework-components/ir`.
    */
   readonly namespaceId: string;
   /**

@@ -1,5 +1,5 @@
-import { role } from '@prisma-next/postgres/contract-builder';
-import { enumType, member } from '@prisma-next/sql-contract-ts/contract-builder';
+import { role } from '@internal/postgres/contract-builder';
+import { enumType, member } from '@internal/sql-contract-ts/contract-builder';
 
 /**
  * Supabase's three standard Postgres roles as a Prisma Next enum — the

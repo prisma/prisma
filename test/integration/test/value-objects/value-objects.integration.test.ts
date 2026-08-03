@@ -5,14 +5,14 @@ import {
   domainModelsAtDefaultNamespace,
   domainValueObjectsAtDefaultNamespace,
   UNBOUND_DOMAIN_NAMESPACE_ID,
-} from '@prisma-next/contract/types';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { interpretPslDocumentToMongoContract } from '@prisma-next/mongo-contract-psl';
-import { mongoOrm } from '@prisma-next/mongo-orm';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+} from '@internal/contract/types';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import { interpretPslDocumentToMongoContract } from '@internal/mongo-contract-psl';
+import { mongoOrm } from '@internal/mongo-orm';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { describe, expect, it } from 'vitest';
 import { describeWithMongoDB } from '../mongo/setup';
 
@@ -188,7 +188,7 @@ describeWithMongoDB('value objects: end-to-end Mongo', (ctx) => {
       tags: [],
     } as unknown as CreateUser);
 
-    const { MongoFieldFilter } = await import('@prisma-next/mongo-query-ast/execution');
+    const { MongoFieldFilter } = await import('@internal/mongo-query-ast/execution');
     const updated = await userCollection.where(MongoFieldFilter.eq('name', 'Bob')).update({
       homeAddress: { street: '789 Pine Rd', city: 'Capital City', zip: '99999' },
     } as unknown as Parameters<ReturnType<typeof userCollection.where>['update']>[0]);

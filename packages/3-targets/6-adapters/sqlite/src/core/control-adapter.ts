@@ -1,12 +1,12 @@
-import type { ContractMarkerRecord, LedgerEntryRecord } from '@prisma-next/contract/types';
-import { parseMarkerRowSafely, withMarkerReadErrorHandling } from '@prisma-next/errors/execution';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
-import { parseContractMarkerRow } from '@prisma-next/family-sql/verify';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { APP_SPACE_ID, type SchemaNodeRef } from '@prisma-next/framework-components/control';
-import { ledgerOriginFromStored } from '@prisma-next/migration-tools/ledger-origin';
-import { REFERENTIAL_ACTION_SQL } from '@prisma-next/sql-contract/referential-action-sql';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+import type { ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
+import { parseMarkerRowSafely, withMarkerReadErrorHandling } from '@internal/errors/execution';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import { parseContractMarkerRow } from '@internal/family-sql/verify';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { APP_SPACE_ID, type SchemaNodeRef } from '@internal/framework-components/control';
+import { ledgerOriginFromStored } from '@internal/migration-tools/ledger-origin';
+import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import type {
   AnyQueryAst,
   CodecRef,
@@ -20,8 +20,8 @@ import type {
   LowererContext,
   MarkerReadResult,
   SqlExecuteRequest,
-} from '@prisma-next/sql-relational-core/ast';
-import { isDdlNode } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
+import { isDdlNode } from '@internal/sql-relational-core/ast';
 import type {
   PrimaryKeyInput,
   SqlColumnIRInput,
@@ -29,23 +29,19 @@ import type {
   SqlIndexIRInput,
   SqlReferentialAction,
   SqlUniqueIRInput,
-} from '@prisma-next/sql-schema-ir/types';
-import {
-  RelationalSchemaNodeKind,
-  SqlSchemaIR,
-  SqlTableIR,
-} from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-schema-ir/types';
+import { RelationalSchemaNodeKind, SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import {
   buildControlTableBootstrapQueries,
   buildSignMarkerBootstrapQueries,
-} from '@prisma-next/target-sqlite/contract-free';
-import type { SqliteCreateTable, SqliteDdlNode } from '@prisma-next/target-sqlite/ddl';
-import { parseSqliteDefault } from '@prisma-next/target-sqlite/default-normalizer';
-import { normalizeSqliteNativeType } from '@prisma-next/target-sqlite/native-type-normalizer';
-import { escapeLiteral, quoteIdentifier } from '@prisma-next/target-sqlite/sql-utils';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/target-sqlite/contract-free';
+import type { SqliteCreateTable, SqliteDdlNode } from '@internal/target-sqlite/ddl';
+import { parseSqliteDefault } from '@internal/target-sqlite/default-normalizer';
+import { normalizeSqliteNativeType } from '@internal/target-sqlite/native-type-normalizer';
+import { escapeLiteral, quoteIdentifier } from '@internal/target-sqlite/sql-utils';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { structuredError } from '@internal/utils/structured-error';
 import { renderLoweredSql } from './adapter';
 import { encodeControlQueryParams } from './control-codecs';
 import { coerceLedgerAppliedAt, operationCountFromStored } from './ledger-decode';

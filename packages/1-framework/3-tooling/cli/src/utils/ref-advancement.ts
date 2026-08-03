@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
-import { writeContractSnapshot } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { errorInvalidRefName } from '@prisma-next/migration-tools/errors';
-import { validateRefName, writeRef } from '@prisma-next/migration-tools/refs';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { errorInvalidRefName } from '@internal/migration-tools/errors';
+import { validateRefName, writeRef } from '@internal/migration-tools/refs';
+import { ifDefined } from '@internal/utils/defined';
 
 export interface ContractIR {
   readonly contract: unknown;

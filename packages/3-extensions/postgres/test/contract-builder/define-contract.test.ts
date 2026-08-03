@@ -1,4 +1,4 @@
-import { domainModelsAtDefaultNamespace } from '@prisma-next/contract/types';
+import { domainModelsAtDefaultNamespace } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, model } from '../../src/exports/contract-builder';
 

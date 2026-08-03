@@ -21,7 +21,7 @@ const arktypeJsonPackMetaBase = {
     codecTypes: {
       codecDescriptors: Array.from(arktypeJsonCodecRegistry.values()),
       import: {
-        package: '@prisma-next/extension-arktype-json/codec-types',
+        package: '@internal/extension-arktype-json/codec-types',
         named: 'CodecTypes',
         alias: 'ArktypeJsonTypes',
       },

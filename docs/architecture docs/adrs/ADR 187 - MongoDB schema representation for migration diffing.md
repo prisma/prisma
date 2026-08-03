@@ -124,7 +124,7 @@ class MongoSchemaIndex extends MongoSchemaNode {
 }
 ```
 
-`MongoIndexKey` is `{ field: string; direction: MongoIndexKeyDirection }`, where `MongoIndexKeyDirection` is `1 | -1 | 'text' | '2dsphere' | '2d' | 'hashed'`. This type is defined in `@prisma-next/mongo-contract` and shared between contract types and the schema IR.
+`MongoIndexKey` is `{ field: string; direction: MongoIndexKeyDirection }`, where `MongoIndexKeyDirection` is `1 | -1 | 'text' | '2dsphere' | '2d' | 'hashed'`. This type is defined in `@internal/mongo-contract` and shared between contract types and the schema IR.
 
 ### Immutability
 
@@ -155,7 +155,7 @@ This is a deliberate choice. MongoDB auto-generates index names, users can overr
 
 ## Package placement
 
-`@prisma-next/mongo-schema-ir` in `packages/2-mongo-family/3-tooling/mongo-schema-ir/`, the tooling layer on the migration plane. This mirrors `@prisma-next/sql-schema-ir` in the SQL domain.
+`@internal/mongo-schema-ir` in `packages/2-mongo-family/3-tooling/mongo-schema-ir/`, the tooling layer on the migration plane. This mirrors `@internal/sql-schema-ir` in the SQL domain.
 
 ## Alternatives considered
 

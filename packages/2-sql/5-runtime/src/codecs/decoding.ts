@@ -2,15 +2,15 @@ import {
   checkAborted,
   raceAgainstAbort,
   runtimeError,
-} from '@prisma-next/framework-components/runtime';
+} from '@internal/framework-components/runtime';
 import type {
   AnyQueryAst,
   Codec,
   ContractCodecRegistry,
   ProjectionItem,
   SqlCodecCallContext,
-} from '@prisma-next/sql-relational-core/ast';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import { isStructuredError } from '@internal/utils/structured-error';
 
 type ColumnRef = { table: string; column: string };
 

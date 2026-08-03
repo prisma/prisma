@@ -10,7 +10,7 @@ export type {
   MongoContractResult,
   RelationBuilder,
   ValueObjectBuilder,
-} from '@prisma-next/mongo-contract-ts/contract-builder';
+} from '@internal/mongo-contract-ts/contract-builder';
 export {
   field,
   index,
@@ -18,6 +18,6 @@ export {
   model,
   rel,
   valueObject,
-} from '@prisma-next/mongo-contract-ts/contract-builder';
+} from '@internal/mongo-contract-ts/contract-builder';
 export { defineContract } from '../contract/define-contract';
 export { enumType } from '../contract/enum-type';

@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { CodecDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { Contract } from '@internal/contract/types';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 
 export function extractCodecIds(contract: Contract<SqlStorage>): Set<string> {
   const codecIds = new Set<string>();

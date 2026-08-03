@@ -2,7 +2,7 @@ import type {
   AnyCodecDescriptor,
   CodecInstanceContext,
   CodecRef,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import {
   CaseExpr,
   CastExpr,
@@ -14,8 +14,8 @@ import {
   sqlFloatDescriptor,
   sqlIntDescriptor,
   sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import type { AnySqliteCodecDescriptor } from '../src/core/codec-descriptor';
 import {

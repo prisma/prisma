@@ -1,16 +1,16 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { RuntimeExecuteOptions } from '@prisma-next/framework-components/runtime';
-import { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
-import { type PostgresRuntime, PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import type { Contract } from '@internal/contract/types';
+import type { RuntimeExecuteOptions } from '@internal/framework-components/runtime';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
+import { type PostgresRuntime, PostgresRuntimeImpl } from '@internal/postgres/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   PreparedStatement,
   PreparedStatementImpl,
   RuntimeConnection,
   RuntimeTransaction,
-} from '@prisma-next/sql-runtime';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-runtime';
+import { blindCast } from '@internal/utils/casts';
 import type { SupabaseRole } from '../contract/roles';
 
 export interface SupabaseRuntime extends PostgresRuntime {}

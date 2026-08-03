@@ -1,28 +1,28 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import { isPlainRecord } from '@prisma-next/contract/is-plain-record';
-import type { Contract } from '@prisma-next/contract/types';
-import type { ContractSerializer } from '@prisma-next/framework-components/control';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import { isPlainRecord } from '@internal/contract/is-plain-record';
+import type { Contract } from '@internal/contract/types';
+import type { ContractSerializer } from '@internal/framework-components/control';
 import {
   type AnyEntityKindDescriptor,
   hydrateNamespaceEntities,
   type Namespace,
-} from '@prisma-next/framework-components/ir';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import { composeSqlEntityKinds } from '@prisma-next/sql-contract/entity-kinds';
+} from '@internal/framework-components/ir';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import { composeSqlEntityKinds } from '@internal/sql-contract/entity-kinds';
 import {
   isMaterializedSqlNamespace,
   type SqlNamespaceInput,
   SqlStorage,
   type SqlStorageInput,
   type SqlStorageTypeEntry,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import {
   createSqlContractSchema,
   validateSqlContractFully,
-} from '@prisma-next/sql-contract/validators';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import type { JsonObject, JsonValue } from '@prisma-next/utils/json';
+} from '@internal/sql-contract/validators';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import type { JsonObject, JsonValue } from '@internal/utils/json';
 import { type Type, type } from 'arktype';
 import { sqlFamilyError } from '../errors';
 

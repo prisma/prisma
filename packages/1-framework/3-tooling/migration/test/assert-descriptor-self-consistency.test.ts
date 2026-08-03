@@ -1,8 +1,5 @@
-import { computeStorageHash } from '@prisma-next/contract/hashing';
-import {
-  createPreserveEmptyPredicate,
-  type PathPattern,
-} from '@prisma-next/contract/hashing-utils';
+import { computeStorageHash } from '@internal/contract/hashing';
+import { createPreserveEmptyPredicate, type PathPattern } from '@internal/contract/hashing-utils';
 import { describe, expect, it } from 'vitest';
 import { assertDescriptorSelfConsistency } from '../src/assert-descriptor-self-consistency';
 import { MigrationToolsError } from '../src/errors';

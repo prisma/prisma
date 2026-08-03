@@ -1,5 +1,5 @@
-import type { Contract as ContractType, StorageHashBase } from '@prisma-next/contract/types';
-import type { ContractWithTypeMaps, TypeMaps } from '@prisma-next/sql-contract/types';
+import type { Contract as ContractType, StorageHashBase } from '@internal/contract/types';
+import type { ContractWithTypeMaps, TypeMaps } from '@internal/sql-contract/types';
 
 // A hand-authored stand-in for an emitted `contract.d.ts`, trimmed to the
 // shape the facade reachability tests need: a single `__unbound__` namespace

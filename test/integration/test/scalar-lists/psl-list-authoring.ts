@@ -1,21 +1,21 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import mongoAdapter from '@prisma-next/adapter-mongo/control';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import type { ContractSourceContext } from '@prisma-next/cli/config-types';
-import { enrichContract } from '@prisma-next/cli/control-api';
-import type { Contract, JsonValue } from '@prisma-next/contract/types';
-import { mongoFamilyDescriptor } from '@prisma-next/family-mongo/control';
-import sql from '@prisma-next/family-sql/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { mongoContract } from '@prisma-next/mongo-contract-psl/provider';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
-import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
-import postgres from '@prisma-next/target-postgres/control';
-import postgresPackRef from '@prisma-next/target-postgres/pack';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import mongoAdapter from '@internal/adapter-mongo/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import type { ContractSourceContext } from '@internal/cli/config-types';
+import { enrichContract } from '@internal/cli/control-api';
+import type { Contract, JsonValue } from '@internal/contract/types';
+import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import sql from '@internal/family-sql/control';
+import { createControlStack } from '@internal/framework-components/control';
+import type { MongoContract } from '@internal/mongo-contract';
+import { mongoContract } from '@internal/mongo-contract-psl/provider';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { prismaContract } from '@internal/sql-contract-psl/provider';
+import { mongoTargetDescriptor } from '@internal/target-mongo/control';
+import postgres from '@internal/target-postgres/control';
+import postgresPackRef from '@internal/target-postgres/pack';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { join } from 'pathe';
 
 const sqlStack = createControlStack({

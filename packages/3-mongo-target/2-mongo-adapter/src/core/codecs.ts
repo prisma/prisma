@@ -1,12 +1,12 @@
-import type { CodecDescriptor, CodecTrait } from '@prisma-next/framework-components/codec';
-import { renderTsLiteral, voidParamsSchema } from '@prisma-next/framework-components/codec';
+import type { CodecDescriptor, CodecTrait } from '@internal/framework-components/codec';
+import { renderTsLiteral, voidParamsSchema } from '@internal/framework-components/codec';
 import {
   type MongoCodec,
   type MongoCodecRegistry,
   mongoCodec,
   newMongoCodecRegistry,
-} from '@prisma-next/mongo-codec';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-codec';
+import { ifDefined } from '@internal/utils/defined';
 import { ObjectId } from 'bson';
 import {
   MONGO_BOOLEAN_CODEC_ID,

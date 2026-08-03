@@ -1,5 +1,5 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import type { IndexElements, IndexInput } from './ir/sql-index';
 
 /**

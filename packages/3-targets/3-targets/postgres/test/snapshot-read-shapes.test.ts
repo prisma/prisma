@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
+import { SqlStorage } from '@internal/sql-contract/types';
 import { join, relative, resolve } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';
@@ -94,13 +94,13 @@ describe('snapshot-read shape scan — checked-in on-disk contracts deserialize 
     // — same TML-2536 class as the demo, but regeneration needs a
     // DATABASE_URL and is being tracked as a follow-up. Skip from
     // the strict-validation scan.
-    if (rel.startsWith('examples/prisma-next-postgis-demo/migrations/')) return false;
+    if (rel.startsWith('examples/prisma-8-postgis-demo/migrations/')) return false;
     // TML-2583: re-baseline historical migration snapshots in the demo
     // against the post-namespace storage shape. They were emitted before
     // the per-namespace shape landed, so they carry legacy `storage.entries.table`
     // (flat) and untagged `storage.types` entries. Regenerating them
     // in-place would rewrite committed migration history.
-    if (rel.startsWith('examples/prisma-next-demo/migrations/')) return false;
+    if (rel.startsWith('examples/prisma-8-demo/migrations/')) return false;
     return true;
   });
 

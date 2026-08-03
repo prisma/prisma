@@ -1,29 +1,23 @@
-import type { PreserveEmptyPredicate } from '@prisma-next/contract/hashing';
-import {
-  createPreserveEmptyPredicate,
-  type PathPattern,
-} from '@prisma-next/contract/hashing-utils';
-import type { Contract } from '@prisma-next/contract/types';
-import {
-  SqlContractSerializerBase,
-  type SqlEntityHydrationFactory,
-} from '@prisma-next/family-sql/ir';
+import type { PreserveEmptyPredicate } from '@internal/contract/hashing';
+import { createPreserveEmptyPredicate, type PathPattern } from '@internal/contract/hashing-utils';
+import type { Contract } from '@internal/contract/types';
+import { SqlContractSerializerBase, type SqlEntityHydrationFactory } from '@internal/family-sql/ir';
 import {
   type AuthoringEntityContext,
   type AuthoringEntityTypeFactoryOutput,
   type AuthoringEntityTypeNamespace,
   isAuthoringEntityTypeDescriptor,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import {
   type AnyEntityKindDescriptor,
   type Namespace,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
-import type { SqlNamespaceInput, SqlStorage } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import type { JsonObject } from '@prisma-next/utils/json';
+} from '@internal/framework-components/ir';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import type { SqlNamespaceInput, SqlStorage } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
+import type { JsonObject } from '@internal/utils/json';
 import type { Type } from 'arktype';
 import { postgresAuthoringEntityTypes } from './authoring';
 import { PG_INT_CODEC_ID, PG_TEXT_CODEC_ID } from './codec-ids';

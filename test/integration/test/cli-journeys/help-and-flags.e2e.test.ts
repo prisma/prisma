@@ -6,7 +6,7 @@
  * contract emit as the test command since it requires no database.
  */
 
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import { parseJsonOutput, runContractEmit, setupJourney } from '../utils/journey-test-helpers';

@@ -1,5 +1,5 @@
-import type { PslDiagnostic } from '@prisma-next/framework-components/psl-ast';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { BooleanLiteralExprAst } from '../../syntax/ast/expressions';
 import type { ArgType } from '../types';
 import { leafDiagnostic } from './diagnostic';

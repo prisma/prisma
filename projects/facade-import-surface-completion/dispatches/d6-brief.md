@@ -4,7 +4,7 @@
 
 D1–D5d landed cleanly. D5e was formally deferred to **[TML-2633](https://linear.app/prisma-company/issue/TML-2633/mongo-facade-definecontract-wrap-collapses-inline-model-inference)** (mongo facade `defineContract` wrap collapses inline-model inference). D6 closes the slice by:
 
-1. Flipping every prose / example-code reference to the old `@prisma-next/target-{postgres,sqlite}/migration` specifier across docs, skills, and READMEs.
+1. Flipping every prose / example-code reference to the old `@internal/target-{postgres,sqlite}/migration` specifier across docs, skills, and READMEs.
 2. Removing all TML-2526 references outside `projects/`.
 3. Adding workaround comments to the two mongo integration test files that deliberately stay on the verbose import form (the in-tree state preserved by spec § A8).
 4. Running the final repo-wide lint + test + fixtures pass.
@@ -25,7 +25,7 @@ This is purely mechanical: every edit has an explicit file path, and most have e
 Rewrite the paragraph that mentions TML-2526. Drop:
 - The "until then" / "while TML-2526 is in flight" framing.
 - The TML-2526 reference itself.
-- Any example code that still uses `@prisma-next/target-postgres/migration` — flip to `@prisma-next/postgres/migration`.
+- Any example code that still uses `@internal/target-postgres/migration` — flip to `@internal/postgres/migration`.
 
 The skill should now teach the façade form unconditionally (no caveats).
 
@@ -35,11 +35,11 @@ Same flip as Edit 1: drop TML-2526 reference + any example code using the target
 
 ### Edit 3 — `packages/1-framework/1-core/ts-render/README.md` L45
 
-Example code in the README uses `@prisma-next/target-postgres/migration`. Flip to `@prisma-next/postgres/migration`.
+Example code in the README uses `@internal/target-postgres/migration`. Flip to `@internal/postgres/migration`.
 
 ### Edit 4 — `packages/1-framework/3-tooling/cli/README.md` L1063
 
-Paragraph describing the scaffolded migration's import line. Flip the example specifier to `@prisma-next/postgres/migration` (and `@prisma-next/sqlite/migration` if both are shown).
+Paragraph describing the scaffolded migration's import line. Flip the example specifier to `@internal/postgres/migration` (and `@internal/sqlite/migration` if both are shown).
 
 ### Edit 5 — `docs/architecture docs/adrs/ADR 208 - Invariant-aware migration routing.md` L9
 
@@ -54,7 +54,7 @@ Read `packages/3-extensions/{postgres,mongo,sqlite}/README.md`. Confirm each ref
 Add a workaround comment at the very top of the file (above the first `import`), in the style of `test/integration/test/mongo/fixtures/contract.ts` L1–3:
 
 ```ts
-// Intentionally uses verbose mongo-contract-ts import: @prisma-next/mongo/contract-builder's
+// Intentionally uses verbose mongo-contract-ts import: @internal/mongo/contract-builder's
 // defineContract wrap loses inline-model inference precision when consumers use
 // mongoQuery<typeof contract> chains (PlanRow row shapes collapse to _id: never / count: never).
 // Tracked at https://linear.app/prisma-company/issue/TML-2633 — migrate to the facade form
@@ -84,7 +84,7 @@ Per plan § D6:
 - [ ] All eight edits above landed.
 - [ ] `rg 'TML-2526' -- skills/ docs/ packages/ examples/ test/ projects/` returns hits only inside `projects/facade-import-surface-completion/`.
 - [ ] `rg 'TML-2633' test/integration/test/mongo/fixtures/contract.ts test/integration/test/mongo-runtime/query-builder.test.ts` returns one hit in each file.
-- [ ] `rg '@prisma-next/target-(postgres|sqlite)/migration' -g '!**/node_modules/**'` returns only the allowed-set listed in plan § D6 Done-when (internal target source + extension-pack hand-authored migrations + cipherstash docstring + pre-existing rendered examples + D1/D3 parity bridge tests).
+- [ ] `rg '@internal/target-(postgres|sqlite)/migration' -g '!**/node_modules/**'` returns only the allowed-set listed in plan § D6 Done-when (internal target source + extension-pack hand-authored migrations + cipherstash docstring + pre-existing rendered examples + D1/D3 parity bridge tests).
 - [ ] `pnpm lint:deps` clean.
 - [ ] `pnpm test:packages` clean.
 - [ ] `pnpm test:integration` clean — modulo any pre-existing environmental flakes. If mongo tests fail with `storage.collections must be an object (was missing)`, that's [TML-2631](https://linear.app/prisma-company/issue/TML-2631) (mongo example contract.json validator drift), unrelated to D6 — note in structured return and move on.

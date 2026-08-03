@@ -1,18 +1,18 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { CodecControlHooks, SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import { APP_SPACE_ID, type OpFactoryCall } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, type StorageColumn, type StorageTable } from '@prisma-next/sql-contract/types';
-import { createPostgresMigrationPlanner } from '@prisma-next/target-postgres/planner';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { CodecControlHooks, SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import { APP_SPACE_ID, type OpFactoryCall } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, type StorageColumn, type StorageTable } from '@internal/sql-contract/types';
+import { createPostgresMigrationPlanner } from '@internal/target-postgres/planner';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
-import { expectNarrowedType } from '@prisma-next/test-utils/typed-expectations';
+} from '@internal/target-postgres/types';
+import { applicationDomainOf } from '@repo/test-utils';
+import { expectNarrowedType } from '@repo/test-utils/typed-expectations';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';

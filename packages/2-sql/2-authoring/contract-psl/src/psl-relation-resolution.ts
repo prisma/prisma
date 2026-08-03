@@ -1,5 +1,5 @@
-import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
-import type { AuthoringContributions } from '@prisma-next/framework-components/authoring';
+import type { ContractSourceDiagnostic } from '@internal/config/config-types';
+import type { AuthoringContributions } from '@internal/framework-components/authoring';
 import type {
   FieldSymbol,
   InferAttr,
@@ -8,7 +8,7 @@ import type {
   PslDiagnostic,
   PslSpan,
   SymbolTable,
-} from '@prisma-next/psl-parser';
+} from '@internal/psl-parser';
 import {
   bool,
   fieldAttribute,
@@ -19,12 +19,12 @@ import {
   oneOf,
   optional,
   str,
-} from '@prisma-next/psl-parser';
-import type { SourceFile } from '@prisma-next/psl-parser/syntax';
-import type { ReferentialAction } from '@prisma-next/sql-contract/types';
-import type { RelationNode } from '@prisma-next/sql-contract-ts/contract-builder';
-import { assertDefined, invariant } from '@prisma-next/utils/assertions';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/psl-parser';
+import type { SourceFile } from '@internal/psl-parser/syntax';
+import type { ReferentialAction } from '@internal/sql-contract/types';
+import type { RelationNode } from '@internal/sql-contract-ts/contract-builder';
+import { assertDefined, invariant } from '@internal/utils/assertions';
+import { ifDefined } from '@internal/utils/defined';
 
 import { checkUncomposedNamespace, reportUncomposedNamespace } from './psl-column-resolution';
 import { findFieldAttributeNode, interpretFieldAttribute } from './sql-attribute-specs';

@@ -1,4 +1,4 @@
-import type { LedgerEntryRecord } from '@prisma-next/contract/types';
+import type { LedgerEntryRecord } from '@internal/contract/types';
 import stringWidth from 'string-width';
 import type { GlyphMode } from '../glyph-mode';
 import {

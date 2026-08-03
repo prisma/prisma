@@ -1,6 +1,6 @@
-import type { MongoControlAdapterDescriptor } from '@prisma-next/family-mongo/control-adapter';
-import type { AuthoringTypeNamespace } from '@prisma-next/framework-components/authoring';
-import type { MongoControlDriverInstance } from '@prisma-next/mongo-lowering';
+import type { MongoControlAdapterDescriptor } from '@internal/family-mongo/control-adapter';
+import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
+import type { MongoControlDriverInstance } from '@internal/mongo-lowering';
 
 export { MongoInspectionExecutor } from '../core/inspection-executor';
 export { introspectSchema } from '../core/introspect-schema';
@@ -44,13 +44,13 @@ export const mongoAdapterDescriptor: MongoControlAdapterDescriptor<'mongo'> = {
   types: {
     codecTypes: {
       import: {
-        package: '@prisma-next/adapter-mongo/codec-types',
+        package: '@internal/adapter-mongo/codec-types',
         named: 'CodecTypes',
         alias: 'MongoCodecTypes',
       },
       typeImports: [
         {
-          package: '@prisma-next/adapter-mongo/codec-types',
+          package: '@internal/adapter-mongo/codec-types',
           named: 'Vector',
           alias: 'Vector',
         },

@@ -19,7 +19,7 @@
 //   2. Explicit .select() used in most tests.
 //   3. At least one test uses implicit/default selection (no .select()).
 
-import { and } from '@prisma-next/sql-orm-client';
+import { and } from '@internal/sql-orm-client';
 import { describe, expect, it } from 'vitest';
 import { createUsersCollection, timeouts, withCollectionRuntime } from './integration-helpers';
 import { seedTags, seedUsers, seedUserTags } from './runtime-helpers';

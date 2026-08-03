@@ -5,14 +5,14 @@ import {
   jsonbColumn,
   textColumn,
   timestamptzColumn,
-} from '@prisma-next/adapter-postgres/column-types';
+} from '@internal/adapter-postgres/column-types';
 import {
   defineContract,
   enumType,
   field,
   member,
   model,
-} from '@prisma-next/postgres/contract-builder';
+} from '@internal/postgres/contract-builder';
 
 const pgText = { codecId: 'pg/text@1', nativeType: 'text' } as const;
 

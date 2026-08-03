@@ -18,7 +18,7 @@ Never use a `^` range or inline version — version drift between packages can c
 Every package that depends on MMS **must** configure its `vitest.config.ts` with:
 
 ```typescript
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -47,7 +47,7 @@ MMS instances within the same package must not start concurrently — parallel r
 ## Checklist for adding MMS to a new package
 
 1. Add `"mongodb-memory-server": "catalog:"` to `devDependencies`
-2. Add `"@prisma-next/test-utils": "workspace:*"` to `devDependencies`
+2. Add `"@repo/test-utils": "workspace:*"` to `devDependencies`
 3. Configure `vitest.config.ts` as shown above
 4. Use `timeouts.spinUpMongoMemoryServer` for any `describe()` / `beforeAll()` / `afterAll()` timeout overrides in test files
 5. Run `pnpm install` to update the lockfile

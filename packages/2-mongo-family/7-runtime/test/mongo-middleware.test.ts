@@ -1,8 +1,8 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import { type MongoCodecRegistry, newMongoCodecRegistry } from '@prisma-next/mongo-codec';
-import type { MongoAdapter, MongoDriver, MongoLoweredDraft } from '@prisma-next/mongo-lowering';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { AggregateWireCommand } from '@prisma-next/mongo-wire';
+import type { PlanMeta } from '@internal/contract/types';
+import { type MongoCodecRegistry, newMongoCodecRegistry } from '@internal/mongo-codec';
+import type { MongoAdapter, MongoDriver, MongoLoweredDraft } from '@internal/mongo-lowering';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import { AggregateWireCommand } from '@internal/mongo-wire';
 import { describe, expect, it, vi } from 'vitest';
 import type {
   MongoExecutionContext,

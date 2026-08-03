@@ -10,24 +10,24 @@
  * dropped and recreated on a maintenance connection; skips (does not fail)
  * when no real Postgres is reachable.
  */
-import type { Contract, ControlPolicy } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { collectScalarTypeConstructors } from '@prisma-next/framework-components/authoring';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
 import {
   APP_SPACE_ID,
   assembleAuthoringContributions,
   type MigrationOperationPolicy,
-} from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import {
   PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/target-postgres/types';
+import { ifDefined } from '@internal/utils/defined';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { postgresScalarAuthoringTypes } from '../../src/core/control-mutation-defaults';

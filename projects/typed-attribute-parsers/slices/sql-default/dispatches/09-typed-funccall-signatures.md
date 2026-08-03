@@ -11,13 +11,13 @@ ADR 231's `funcCall(sig)` specifies a function call's **arguments** through the 
 This is **one atomic change** (retyping the registry `lower` contract forces the framework type, `buildDefaultSpec`, both adapters, and the test stub registry to move together). Land it as one signed commit with a green tree.
 
 ## Layering constraint you must respect
-- `FuncCallSig` / combinator types (`ArgType`, `PositionalParam`, `Param`) live in `@prisma-next/psl-parser` (authoring layer, `1-framework/2-authoring`).
-- `ControlMutationDefaultEntry` and friends live in `@prisma-next/framework-components` (**core** layer, `1-framework/1-core`). **Core cannot import authoring** (`pnpm lint:deps` will fail).
+- `FuncCallSig` / combinator types (`ArgType`, `PositionalParam`, `Param`) live in `@internal/psl-parser` (authoring layer, `1-framework/2-authoring`).
+- `ControlMutationDefaultEntry` and friends live in `@internal/framework-components` (**core** layer, `1-framework/1-core`). **Core cannot import authoring** (`pnpm lint:deps` will fail).
 - Therefore the entry's `signature` field is typed `unknown` in core (an opaque payload); the SQL family narrows it back with **one** justified `blindCast<FuncCallSig, ...>` in `buildDefaultSpec`. The **typed call** passed to `lower` (`{ fn, span, args }`) is plain-structural and core-safe.
 
 ---
 
-## Phase 1 — Framework types (`@prisma-next/framework-components`)
+## Phase 1 — Framework types (`@internal/framework-components`)
 
 File `packages/1-framework/1-core/framework-components/src/shared/mutation-default-types.ts`.
 
@@ -36,7 +36,7 @@ export interface TypedDefaultFunctionCall {
 2. Change `ControlMutationDefaultEntry` (currently lines ~96-102) to:
 ```ts
 export interface ControlMutationDefaultEntry {
-  // The function's argument signature (a `FuncCallSig` from `@prisma-next/psl-parser`), consumed by
+  // The function's argument signature (a `FuncCallSig` from `@internal/psl-parser`), consumed by
   // the SQL family's `buildDefaultSpec` to build a typed `funcCall(name, signature)` arm. Typed
   // `unknown` here because `FuncCallSig` lives in the authoring layer, which the core framework
   // cannot import; the registering family owns the entries and narrows it back.
@@ -52,17 +52,17 @@ export interface ControlMutationDefaultEntry {
 
 File `packages/1-framework/1-core/framework-components/src/exports/control.ts` — add `TypedDefaultFunctionCall` to the `export type { … } from '../shared/mutation-default-types'` list (keep it alphabetical: it sorts after `SourceSpan`).
 
-Gate: `pnpm --filter @prisma-next/framework-components build && pnpm --filter @prisma-next/framework-components typecheck && pnpm --filter @prisma-next/framework-components test`.
+Gate: `pnpm --filter @internal/framework-components build && pnpm --filter @internal/framework-components typecheck && pnpm --filter @internal/framework-components test`.
 
 ---
 
-## Phase 2 — psl-parser `funcCall` typed output (`@prisma-next/psl-parser`)
+## Phase 2 — psl-parser `funcCall` typed output (`@internal/psl-parser`)
 
 File `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/combinators/func-call.ts`.
 
 Today `TypedFuncCall = { readonly fn: string } & Record<string, unknown>` and `typedFuncCall` returns `ok({ ...bound.value, fn: name })` (flat). Change to a **nested** shape carrying the call span:
 
-1. Add `import type { PslSpan } from '@prisma-next/framework-components/psl-ast';`
+1. Add `import type { PslSpan } from '@internal/framework-components/psl-ast';`
 2. Replace the `TypedFuncCall` type with:
 ```ts
 // The typed record a signed call binds to: the `fn` discriminant, the call-site span, and the
@@ -103,14 +103,14 @@ Only the `describe('funcCall with a signature', …)` block (currently ~L691-740
 - `nanoid()` case: `if (result.ok) expect(result.value).toMatchObject({ fn: 'nanoid', args: {} });`
 The three rejection cases (`nanoid(1)`, `nanoid(16, 2)`, `cuid(16)`) are unchanged (`ok === false`).
 
-Gate: `pnpm --filter @prisma-next/psl-parser build && pnpm --filter @prisma-next/psl-parser typecheck && pnpm --filter @prisma-next/psl-parser test`.
+Gate: `pnpm --filter @internal/psl-parser build && pnpm --filter @internal/psl-parser typecheck && pnpm --filter @internal/psl-parser test`.
 
 ---
 
-## Phase 3 — SQL contract wiring (`@prisma-next/sql-contract-psl`)
+## Phase 3 — SQL contract wiring (`@internal/sql-contract-psl`)
 
 ### 3a. `src/sql-attribute-specs.ts` — `buildDefaultSpec`
-- Imports: add `castAs`? NO — use `blindCast` (already imported? check the top; if not, `import { blindCast } from '@prisma-next/utils/casts';`). Add `import type { FuncCallSig, TypedFuncCall } from '@prisma-next/psl-parser';`. Remove the `ParsedDefaultFunctionCall` import if it becomes unused.
+- Imports: add `castAs`? NO — use `blindCast` (already imported? check the top; if not, `import { blindCast } from '@internal/utils/casts';`). Add `import type { FuncCallSig, TypedFuncCall } from '@internal/psl-parser';`. Remove the `ParsedDefaultFunctionCall` import if it becomes unused.
 - Change the `DefaultArgValue` type alias: replace `ParsedDefaultFunctionCall` with `TypedFuncCall`:
 ```ts
 type DefaultArgValue =
@@ -135,7 +135,7 @@ const funcArms = [...input.registry.entries()].map(([name, entry]) =>
 Everything else in `buildDefaultSpec` (the `literal`, `valueArms`, `oneOf`) stays; `funcArms` is now `ArgType<TypedFuncCall>[]`, still a member of the `DefaultArgValue` union.
 
 ### 3b. `src/default-function-registry.ts` — `lowerDefaultFunctionWithRegistry`
-- Imports: replace `ParsedDefaultFunctionCall` with `TypedDefaultFunctionCall` (from `@prisma-next/framework-components/control`).
+- Imports: replace `ParsedDefaultFunctionCall` with `TypedDefaultFunctionCall` (from `@internal/framework-components/control`).
 - Change the `call` param type to `TypedDefaultFunctionCall`, and `input.call.name` → `input.call.fn` (two sites: the `registry.get(...)` and the diagnostic message). `input.call.span` is unchanged (TypedDefaultFunctionCall has `span`).
 - Keep the unknown-function branch + `formatSupportedFunctionList` as-is (it is defensive: in production the name is always a registry key because `buildDefaultSpec` only builds arms for registry keys, but the unit test exercises this branch directly).
 
@@ -144,7 +144,7 @@ The `value` in the object branch is now a `TypedFuncCall`. Verify it compiles; t
 
 ### 3d. Test stub registry — `test/fixtures.ts`
 This file has a hand-written **parallel** registry (`createBuiltinLikeControlMutationDefaults`, ~L434-610) plus the helpers `invalidArgumentDiagnostic` (~L161), `executionGenerator` (~L177), `expectNoArgs` (~L191), `parseIntegerArgument` (~L206), `parseStringLiteral` (~L218). Migrate it to **mirror the adapters exactly** (see Phase 4 for the per-function lower bodies — use the postgres bodies verbatim, since this stub is postgres-flavoured):
-- Imports (top of file, ~L20-28): drop `ParsedDefaultFunctionCall`; add `TypedDefaultFunctionCall` to the `@prisma-next/framework-components/control` type import. Add `import { int, num, oneOf, optional, str } from '@prisma-next/psl-parser';` and `import type { FuncCallSig } from '@prisma-next/psl-parser';` (the file already imports other things from `@prisma-next/psl-parser`).
+- Imports (top of file, ~L20-28): drop `ParsedDefaultFunctionCall`; add `TypedDefaultFunctionCall` to the `@internal/framework-components/control` type import. Add `import { int, num, oneOf, optional, str } from '@internal/psl-parser';` and `import type { FuncCallSig } from '@internal/psl-parser';` (the file already imports other things from `@internal/psl-parser`).
 - Change `invalidArgumentDiagnostic`'s `span: ParsedDefaultFunctionCall['span']` → `span: TypedDefaultFunctionCall['span']`.
 - **Delete** `expectNoArgs`, `parseIntegerArgument`, `parseStringLiteral`. Keep `invalidArgumentDiagnostic`, `executionGenerator`.
 - In `createBuiltinLikeControlMutationDefaults`, give each of the 7 entries a `signature` (see the FuncCallSig table in Phase 4) and rewrite each `lower` to read typed args (see the lower bodies in Phase 4 — postgres variants). The entries here are `[name, { signature, lower, usageSignatures }]`; keep the `usageSignatures` values already present.
@@ -173,7 +173,7 @@ Leave every other block in this file unchanged (they use valid calls — `uuid()
 This file drives `lowerDefaultFunctionWithRegistry` **directly**, bypassing the grammar. Post-migration, arity/shape is grammar-enforced, so cases that fed malformed arg *counts/shapes* to `lower` test impossible states and must go.
 - Change the `call(...)` helper to build the typed shape:
 ```ts
-import type { TypedDefaultFunctionCall } from '@prisma-next/framework-components/control';
+import type { TypedDefaultFunctionCall } from '@internal/framework-components/control';
 function call(fn: string, args: Record<string, unknown> = {}): TypedDefaultFunctionCall {
   return { fn, span: createSpan(), args };
 }
@@ -192,7 +192,7 @@ function call(fn: string, args: Record<string, unknown> = {}): TypedDefaultFunct
 ### 3g. `test/composed-mutation-defaults.test.ts`
 Not expected to reference the call shape, but **run it** and fix any fallout from the entry-type change (e.g. a registry literal now needing `signature`). Keep changes minimal.
 
-Gate: `pnpm --filter @prisma-next/sql-contract-psl typecheck && pnpm --filter @prisma-next/sql-contract-psl test`.
+Gate: `pnpm --filter @internal/sql-contract-psl typecheck && pnpm --filter @internal/sql-contract-psl test`.
 
 ---
 
@@ -267,15 +267,15 @@ function lowerDbgenerated(input: { call: TypedDefaultFunctionCall; context: Defa
 ```
 
 ### 4a. `packages/3-targets/6-adapters/postgres/src/core/control-mutation-defaults.ts`
-- Import: replace `ParsedDefaultFunctionCall` with `TypedDefaultFunctionCall` in the `@prisma-next/framework-components/control` import. Add `import { int, num, oneOf, optional, str } from '@prisma-next/psl-parser';` and `import type { FuncCallSig } from '@prisma-next/psl-parser';` (this package already depends on `@prisma-next/psl-parser`).
+- Import: replace `ParsedDefaultFunctionCall` with `TypedDefaultFunctionCall` in the `@internal/framework-components/control` import. Add `import { int, num, oneOf, optional, str } from '@internal/psl-parser';` and `import type { FuncCallSig } from '@internal/psl-parser';` (this package already depends on `@internal/psl-parser`).
 - Change `invalidArgumentDiagnostic`'s `span: ParsedDefaultFunctionCall['span']` → `TypedDefaultFunctionCall['span']`.
 - **Delete** `expectNoArgs`, `parseIntegerArgument`, `parseStringLiteral`. Keep `invalidArgumentDiagnostic`, `executionGenerator`.
 - Replace the 7 `lowerX` bodies with the Phase-4 versions.
 - Add the FuncCallSig consts and put `signature: <sig>` on each entry in `postgresDefaultFunctionRegistryEntries` (keep the existing `usageSignatures`). The `satisfies ReadonlyArray<readonly [string, ControlMutationDefaultEntry]>` stays.
 
 ### 4b. `packages/3-targets/6-adapters/sqlite/src/core/control-mutation-defaults.ts`
-- **Add `@prisma-next/psl-parser` to this package's `package.json` dependencies** (`"@prisma-next/psl-parser": "workspace:0.14.0"`) — it is not currently a dependency and `pnpm lint:deps` will fail without it. After editing package.json run `pnpm install --lockfile-only` (or `pnpm install`) so the workspace link + lockfile update.
-- Imports: it currently derives `type ParsedDefaultFunctionCall = Parameters<DefaultFunctionLoweringHandler>[0]['call'];` (L26) — **delete that alias**. Add `TypedDefaultFunctionCall` to the `@prisma-next/framework-components/control` import (the file already imports `ControlMutationDefaultEntry, MutationDefaultGeneratorDescriptor` from there). Add `import { int, num, oneOf, optional, str } from '@prisma-next/psl-parser';` and `import type { FuncCallSig } from '@prisma-next/psl-parser';`. Keep the `DefaultFunctionLoweringContext` / `LoweredDefaultResult` imports (adjust source if needed so they still resolve).
+- **Add `@internal/psl-parser` to this package's `package.json` dependencies** (`"@internal/psl-parser": "workspace:0.14.0"`) — it is not currently a dependency and `pnpm lint:deps` will fail without it. After editing package.json run `pnpm install --lockfile-only` (or `pnpm install`) so the workspace link + lockfile update.
+- Imports: it currently derives `type ParsedDefaultFunctionCall = Parameters<DefaultFunctionLoweringHandler>[0]['call'];` (L26) — **delete that alias**. Add `TypedDefaultFunctionCall` to the `@internal/framework-components/control` import (the file already imports `ControlMutationDefaultEntry, MutationDefaultGeneratorDescriptor` from there). Add `import { int, num, oneOf, optional, str } from '@internal/psl-parser';` and `import type { FuncCallSig } from '@internal/psl-parser';`. Keep the `DefaultFunctionLoweringContext` / `LoweredDefaultResult` imports (adjust source if needed so they still resolve).
 - Change `invalidArgumentDiagnostic`'s `span: ParsedDefaultFunctionCall['span']` → `TypedDefaultFunctionCall['span']`.
 - **Delete** `expectNoArgs`, `parseIntegerArgument`, `parseStringLiteral`. Keep `NOW_SYNONYMS`, `invalidArgumentDiagnostic`, `executionGenerator`.
 - Replace the 7 `lowerX` bodies (use the sqlite `lowerDbgenerated`), add FuncCallSig consts, put `signature` on each entry in `sqliteDefaultFunctionRegistryEntries`.
@@ -307,11 +307,11 @@ function makeCall(fn: string, args: Record<string, unknown> = {}) {
 
 ### 4d. Coverage
 Deleting the imperative helpers + their tests changes per-file branch coverage for `control-mutation-defaults.ts`. Run each adapter package's coverage and confirm no per-file threshold regression:
-- `pnpm --filter @prisma-next/adapter-postgres test` then `pnpm --filter @prisma-next/adapter-postgres test:coverage` (or the package's coverage script — check `package.json` `scripts`).
-- `pnpm --filter @prisma-next/adapter-sqlite test` (+ coverage script).
+- `pnpm --filter @internal/adapter-postgres test` then `pnpm --filter @internal/adapter-postgres test:coverage` (or the package's coverage script — check `package.json` `scripts`).
+- `pnpm --filter @internal/adapter-sqlite test` (+ coverage script).
 If a surviving branch (e.g. `lowerNanoid`'s `typeof size` false path, `lowerUuid`'s non-7 path, `lowerDbgenerated`'s empty path) is uncovered, the success tests above should cover it — if coverage still dips, add one minimal `lower` test for the missing branch (do NOT re-introduce arity tests).
 
-Gate: `pnpm --filter @prisma-next/adapter-postgres typecheck && test`; `pnpm --filter @prisma-next/adapter-sqlite typecheck && test`.
+Gate: `pnpm --filter @internal/adapter-postgres typecheck && test`; `pnpm --filter @internal/adapter-sqlite typecheck && test`.
 
 ---
 
@@ -322,11 +322,11 @@ Gate: `pnpm --filter @prisma-next/adapter-postgres typecheck && test`; `pnpm --f
 No `any`; **no bare `as`** — the only cast is the single justified `blindCast<FuncCallSig, …>` in `buildDefaultSpec`; the `lower` bodies must be cast-free (use `typeof`/literal comparisons on `unknown`). No file-extension imports. Never suppress biome. Tests-first. `git commit -s` (DCO), explicit staging, no `--amend`, **no push** (the orchestrator pushes). Read-only on `projects/**` and `.agents/**`. Do NOT touch GitHub.
 
 ## Gates (all must pass, in order)
-1. `pnpm --filter @prisma-next/framework-components build && pnpm --filter @prisma-next/framework-components typecheck && pnpm --filter @prisma-next/framework-components test`
-2. `pnpm --filter @prisma-next/psl-parser build && pnpm --filter @prisma-next/psl-parser typecheck && pnpm --filter @prisma-next/psl-parser test`
-3. `pnpm --filter @prisma-next/sql-contract-psl typecheck && pnpm --filter @prisma-next/sql-contract-psl test`
-4. `pnpm --filter @prisma-next/adapter-postgres typecheck && pnpm --filter @prisma-next/adapter-postgres test` (+ its coverage script)
-5. `pnpm --filter @prisma-next/adapter-sqlite typecheck && pnpm --filter @prisma-next/adapter-sqlite test` (+ its coverage script)
+1. `pnpm --filter @internal/framework-components build && pnpm --filter @internal/framework-components typecheck && pnpm --filter @internal/framework-components test`
+2. `pnpm --filter @internal/psl-parser build && pnpm --filter @internal/psl-parser typecheck && pnpm --filter @internal/psl-parser test`
+3. `pnpm --filter @internal/sql-contract-psl typecheck && pnpm --filter @internal/sql-contract-psl test`
+4. `pnpm --filter @internal/adapter-postgres typecheck && pnpm --filter @internal/adapter-postgres test` (+ its coverage script)
+5. `pnpm --filter @internal/adapter-sqlite typecheck && pnpm --filter @internal/adapter-sqlite test` (+ its coverage script)
 6. `pnpm fixtures:check` — clean
 7. `pnpm lint:framework-vocabulary` (bump the threshold in the linter config to the exact new count ONLY if kit-comment wording moved it; prefer rewording), and `pnpm lint:deps` (must be 0 — this is where a missing `psl-parser` dep on adapter-sqlite would surface).
 

@@ -1,4 +1,4 @@
-import type { ColumnDefault, JsonValue } from '@prisma-next/contract/types';
+import type { ColumnDefault, JsonValue } from '@internal/contract/types';
 
 /**
  * Pre-compiled regex patterns for performance.

@@ -2,9 +2,9 @@ import {
   ForeignKeyConstraint,
   PrimaryKeyConstraint,
   UniqueConstraint,
-} from '@prisma-next/sql-relational-core/ast';
-import { col } from '@prisma-next/sql-relational-core/contract-free';
-import { createTable } from '@prisma-next/target-postgres/contract-free';
+} from '@internal/sql-relational-core/ast';
+import { col } from '@internal/sql-relational-core/contract-free';
+import { createTable } from '@internal/target-postgres/contract-free';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../src/core/control-adapter';

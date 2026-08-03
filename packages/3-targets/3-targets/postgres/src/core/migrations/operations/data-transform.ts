@@ -54,17 +54,17 @@
  * argument.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import { errorDataTransformContractMismatch } from '@prisma-next/errors/migration';
+import type { Contract } from '@internal/contract/types';
+import { errorDataTransformContractMismatch } from '@internal/errors/migration';
 import type {
   SqlMigrationPlanOperation,
   SqlMigrationPlanOperationStep,
-} from '@prisma-next/family-sql/control';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlExecuteRequest } from '@prisma-next/sql-relational-core/ast';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/family-sql/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { ifDefined } from '@internal/utils/defined';
 import type { PostgresPlanTargetDetails } from '../planner-target-details';
 
 interface Buildable<R = unknown> {

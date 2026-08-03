@@ -1,10 +1,10 @@
-import type { CrossReference, StorageHashBase } from '@prisma-next/contract/types';
-import { crossRef } from '@prisma-next/contract/types';
+import type { CrossReference, StorageHashBase } from '@internal/contract/types';
+import { crossRef } from '@internal/contract/types';
 import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoTypeMaps,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 
 type DecodeFixtureModels = {
   readonly User: {

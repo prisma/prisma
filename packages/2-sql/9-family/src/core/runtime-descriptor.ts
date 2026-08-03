@@ -1,4 +1,4 @@
-import type { RuntimeFamilyDescriptor } from '@prisma-next/framework-components/execution';
+import type { RuntimeFamilyDescriptor } from '@internal/framework-components/execution';
 import { createSqlRuntimeFamilyInstance, type SqlRuntimeFamilyInstance } from './runtime-instance';
 
 /**

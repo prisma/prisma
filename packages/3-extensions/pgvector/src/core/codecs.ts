@@ -10,7 +10,7 @@
  * `length` threads into the runtime codec via the constructor so encode/decode/encodeJson/decodeJson enforce the declared dimension at every ingress path. Without this, `vector(3)` and `vector(1536)` would produce codecs with identical behaviour and a dimension-mismatched value would round-trip undetected.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type AnyCodecDescriptor,
   type CodecCallContext,
@@ -19,13 +19,13 @@ import {
   type ColumnHelperFor,
   type ColumnHelperForStrict,
   column,
-} from '@prisma-next/framework-components/codec';
-import type { ExtractCodecTypes, ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
-import { CastExpr, FunctionCallExpr } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/codec';
+import type { ExtractCodecTypes, ProjectionExpr } from '@internal/sql-relational-core/ast';
+import { CastExpr, FunctionCallExpr } from '@internal/sql-relational-core/ast';
 import {
   definePostgresCodecs,
   PostgresCodecDescriptor,
-} from '@prisma-next/target-postgres/codec-descriptor';
+} from '@internal/target-postgres/codec-descriptor';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { VECTOR_CODEC_ID, VECTOR_MAX_DIM } from './constants';

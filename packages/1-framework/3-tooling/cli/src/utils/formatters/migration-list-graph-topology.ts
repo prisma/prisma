@@ -1,5 +1,5 @@
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { MigrationGraph } from '@prisma-next/migration-tools/graph';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { MigrationGraph } from '@internal/migration-tools/graph';
 import type { MigrationListEntry } from './migration-list-types';
 
 export type MigrationEdgeKind = 'forward' | 'rollback' | 'self';

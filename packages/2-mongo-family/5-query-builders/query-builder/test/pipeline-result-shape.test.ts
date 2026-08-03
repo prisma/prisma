@@ -6,8 +6,8 @@ import {
   MongoProjectStage,
   MongoUnwindStage,
   MongoVectorSearchStage,
-} from '@prisma-next/mongo-query-ast/execution';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/mongo-query-ast/execution';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { computePipelineResultShape } from '../src/pipeline-result-shape';
 import { contractModelToMongoResultShape } from '../src/result-shape';

@@ -11,13 +11,13 @@
  *     the model and the policy prefix, order-independently.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import { createSqlContract } from '@prisma-next/test-utils';
+import type { Contract } from '@internal/contract/types';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,

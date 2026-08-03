@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { resolveStorageTable } from '@prisma-next/sql-contract/resolve-storage-table';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import { resolveStorageTable } from '@internal/sql-contract/resolve-storage-table';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   AndExpr,
   type AnyExpression,
@@ -20,8 +20,8 @@ import {
   type ProjectionExpr,
   ProjectionItem,
   SelectAst,
-} from '@prisma-next/sql-relational-core/ast';
-import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+} from '@internal/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import { ormError } from './orm-errors';
 
 function namespaceCoordinateForSource(source: AnyFromSource): string | undefined {

@@ -1,4 +1,4 @@
-import { StorageColumn } from '@prisma-next/sql-contract/types';
+import { StorageColumn } from '@internal/sql-contract/types';
 import {
   checkExpression,
   col,
@@ -7,9 +7,9 @@ import {
   lit,
   primaryKey,
   unique,
-} from '@prisma-next/sql-relational-core/contract-free';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
-import { TsExpression } from '@prisma-next/ts-render';
+} from '@internal/sql-relational-core/contract-free';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
+import { TsExpression } from '@internal/ts-render';
 import { describe, expect, it } from 'vitest';
 import * as opFactoryCalls from '../../src/core/migrations/op-factory-call';
 import {
@@ -70,7 +70,7 @@ describe('renderCallsToTypeScript (postgres)', () => {
     });
 
     expect(output).toContain(
-      "import { Migration, MigrationCLI } from '@prisma-next/postgres/migration';",
+      "import { Migration, MigrationCLI } from '@internal/postgres/migration';",
     );
     expect(output).toContain(
       `import endContract from '${SNAPSHOTS_IMPORT_PATH}/${TO_HEX}/contract.json' with { type: "json" };`,
@@ -266,7 +266,7 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     });
 
     const facadeImport = output.match(
-      /import\s*\{([\s\S]*?)\}\s*from\s*'@prisma-next\/postgres\/migration';/,
+      /import\s*\{([\s\S]*?)\}\s*from\s*'@internal\/postgres\/migration';/,
     );
     expect(facadeImport).not.toBeNull();
     const importedNames = (facadeImport?.[1] ?? '')
@@ -283,7 +283,7 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     for (const name of importedNames) {
       expect(
         Object.hasOwn(migrationFacade, name),
-        `@prisma-next/postgres/migration must export "${name}" — the renderer emits an import for it in generated migration.ts files`,
+        `@internal/postgres/migration must export "${name}" — the renderer emits an import for it in generated migration.ts files`,
       ).toBe(true);
     }
   });

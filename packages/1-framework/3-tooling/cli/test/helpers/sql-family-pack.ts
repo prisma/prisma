@@ -1,4 +1,4 @@
-import type { FamilyPackRef } from '@prisma-next/framework-components/components';
+import type { FamilyPackRef } from '@internal/framework-components/components';
 
 export const sqlFamilyPack: FamilyPackRef<'sql'> = {
   kind: 'family',

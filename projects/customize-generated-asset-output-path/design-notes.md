@@ -52,12 +52,12 @@ The wrappers and the CLI operation convert directory → file path internally (`
 
 Both existing first-party `defineConfig` wrappers accept the option identically:
 
-- `@prisma-next/mongo/config`
-- `@prisma-next/postgres/config`
+- `@internal/mongo/config`
+- `@internal/postgres/config`
 
 Both wrappers do the same `join(options.outputPath, 'contract.json')` conversion before crossing the framework boundary. The *surface* must be identical; the wrappers each carry an inline copy of the default-path helper (`deriveOutputPath`) that's a future extraction candidate but isn't worth lifting for this PR alone.
 
-**SQLite is out of scope.** `@prisma-next/sqlite` has no `defineConfig` wrapper today; users wire the framework-level `coreDefineConfig` directly and explicitly pass the output path as the second argument to `typescriptContract(contract, outputPath)`. SQLite users therefore *already have* customizable output paths — they just don't have the ergonomic one-liner. Closing that ergonomic gap is tracked at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo).
+**SQLite is out of scope.** `@internal/sqlite` has no `defineConfig` wrapper today; users wire the framework-level `coreDefineConfig` directly and explicitly pass the output path as the second argument to `typescriptContract(contract, outputPath)`. SQLite users therefore *already have* customizable output paths — they just don't have the ergonomic one-liner. Closing that ergonomic gap is tracked at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo).
 
 ### What's emitted, where
 
@@ -88,7 +88,7 @@ The CLI flag short-circuits the config value at `executeContractEmit` entry; the
 - **File-path-or-directory polymorphism.** Accept either a `.json` file path or a directory; if a directory, derive both filenames. **Rejected because:** two semantics in one option creates ambiguity and extra validation surface for no clear ergonomic win.
 - **Independent control over `.json` and `.d.ts` paths.** Lift the `getEmittedArtifactPaths` co-location constraint. **Rejected because:** co-location is the simpler mental model; no current user need motivates lifting it; downstream tooling that imports from `contract.json` and the `.d.ts` companion assumes co-location.
 - **Mongo-only fix.** Resolve just the Mongo ticket; leave Postgres alone. **Rejected because:** the Mongo + Postgres wrappers are functionally identical in this area (same `deriveOutputPath` helper, same threading); users moving between targets would hit the same wall in Postgres; the symmetric-target-surface principle holds for surfaces that already exist.
-- **Build a SQLite `defineConfig` wrapper to achieve full target symmetry inside this project.** Add `@prisma-next/sqlite/config` mirroring the Mongo + Postgres shape and migrate the SQLite demo. **Rejected because:** that's a new user-facing surface, not a config-knob extension. It needs its own design discussion (option shape, migration plan for existing consumers, docs) and is a substantially larger PR. Tracked separately at TML-2677.
+- **Build a SQLite `defineConfig` wrapper to achieve full target symmetry inside this project.** Add `@internal/sqlite/config` mirroring the Mongo + Postgres shape and migrate the SQLite demo. **Rejected because:** that's a new user-facing surface, not a config-knob extension. It needs its own design discussion (option shape, migration plan for existing consumers, docs) and is a substantially larger PR. Tracked separately at TML-2677.
 - **Post-emit hook / formatter plugin.** Let users transform the emit output via a plugin rather than re-locate it. **Rejected because:** out of scope for this project; locating is the request, not transforming.
 - **Revise the `contract-space-package-layout` rule to permit overrides.** **Rejected (as a design move).** The rule already scopes itself to "packages that emit their own `contract.json`" (extensions, internal packages, aggregate-root apps) and describes the *recommended layout* for those packages. The new override is an application-author choice — applications can opt out of the convention for their specific needs without the convention itself being weakened. The rule may pick up a one-line note at close-out clarifying the convention is the default, not a hard mandate, but it doesn't need a rewrite.
 - **Calling the field `output`** (matching `ContractConfig.output`). **Rejected during PR review** in favour of `outputPath`. The framework-level field is internal-facing; the wrapper-facing field is user-facing and benefits from the more explicit `outputPath` naming (which also reads naturally with the CLI flag `--output-path`).

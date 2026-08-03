@@ -1,5 +1,5 @@
-import type { ColumnDefault, ControlPolicy, ValueSetRef } from '@prisma-next/contract/types';
-import { freezeNode } from '@prisma-next/framework-components/ir';
+import type { ColumnDefault, ControlPolicy, ValueSetRef } from '@internal/contract/types';
+import { freezeNode } from '@internal/framework-components/ir';
 import { SqlNode } from './sql-node';
 
 /**

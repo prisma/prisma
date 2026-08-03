@@ -1,6 +1,6 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { createSqlOperationRegistry } from '@prisma-next/sql-operations';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { createSqlOperationRegistry } from '@internal/sql-operations';
 import type { Adapter, LoweredStatement, SelectAst } from '../src/exports/ast';
 import type { ExecutionContext } from '../src/exports/query-lane-context';
 

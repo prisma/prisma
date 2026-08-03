@@ -1,4 +1,4 @@
-import { isInternalError } from '@prisma-next/utils/internal-error';
+import { isInternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import type { GreenElement } from '../../src/syntax/green';
 import { GreenNodeBuilder } from '../../src/syntax/green-builder';

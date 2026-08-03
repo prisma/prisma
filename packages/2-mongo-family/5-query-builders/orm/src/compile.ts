@@ -1,6 +1,6 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type { MongoModelDefinition } from '@prisma-next/mongo-contract';
-import type { MongoPipelineStage, MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import type { PlanMeta } from '@internal/contract/types';
+import type { MongoModelDefinition } from '@internal/mongo-contract';
+import type { MongoPipelineStage, MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import {
   AggregateCommand,
   MongoAndExpr,
@@ -11,9 +11,9 @@ import {
   MongoSkipStage,
   MongoSortStage,
   MongoUnwindStage,
-} from '@prisma-next/mongo-query-ast/execution';
-import { contractModelToMongoResultShape } from '@prisma-next/mongo-query-builder';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-query-ast/execution';
+import { contractModelToMongoResultShape } from '@internal/mongo-query-builder';
+import { ifDefined } from '@internal/utils/defined';
 import type { MongoCollectionState, MongoIncludeExpr } from './collection-state';
 
 function compileIncludes(includes: readonly MongoIncludeExpr[]): MongoPipelineStage[] {

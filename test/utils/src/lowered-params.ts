@@ -1,6 +1,6 @@
 /**
  * Test fixtures for the `LoweredParam` discriminated union exposed by
- * `@prisma-next/sql-relational-core/ast`. Defined locally so test-utils
+ * `@internal/sql-relational-core/ast`. Defined locally so test-utils
  * stays free of internal-package dependencies; the shape is structurally
  * identical to the production type.
  */

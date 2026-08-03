@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import { structuredError } from '@internal/utils/structured-error';
 
 export function defaultIndexName(tableName: string, columns: readonly string[]): string {
   return `${tableName}_${columns.join('_')}_idx`;

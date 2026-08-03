@@ -6,7 +6,7 @@ import {
   MongoGroupStage,
   MongoMatchStage,
   MongoSortStage,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { withMongod } from './setup';
 

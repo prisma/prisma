@@ -1,15 +1,15 @@
-import type { JsonValue, PlanMeta } from '@prisma-next/contract/types';
+import type { JsonValue, PlanMeta } from '@internal/contract/types';
 import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
-} from '@prisma-next/framework-components/runtime';
-import type { AnyQueryAst, LoweredParam } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/runtime';
+import type { AnyQueryAst, LoweredParam } from '@internal/sql-relational-core/ast';
 import type {
   CodecTypesBase,
   CodecValue,
   Expression,
-} from '@prisma-next/sql-relational-core/expression';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/expression';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { RuntimeQueryable } from '../sql-runtime';
 
 export type ParamSpec<CT extends CodecTypesBase = CodecTypesBase> =

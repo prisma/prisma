@@ -1,4 +1,4 @@
-# @prisma-next/adapter-mongo
+# @internal/adapter-mongo
 
 MongoDB adapter for Prisma Next. Lowers abstract MongoDB commands into wire-protocol documents.
 
@@ -12,4 +12,4 @@ Mongo does not currently decode rows — documents pass through from the driver 
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/mongo-core` (command types, codec types)
+  - `@internal/mongo-core` (command types, codec types)

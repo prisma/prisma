@@ -1,13 +1,13 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import * as configLoader from '@prisma-next/config-loader';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { writeContractSnapshot } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import * as configLoader from '@internal/config-loader';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { applicationDomainOf } from '@repo/test-utils';
 import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -34,10 +34,10 @@ const mocks = vi.hoisted(() => ({
   sign: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', { spy: true });
+vi.mock('@internal/config-loader', { spy: true });
 
-vi.mock('@prisma-next/migration-tools/refs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@prisma-next/migration-tools/refs')>();
+vi.mock('@internal/migration-tools/refs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@internal/migration-tools/refs')>();
   return { ...actual, writeRef: mocks.writeRef };
 });
 
@@ -181,7 +181,7 @@ function migrationLogJson(
 
 describe('read commands --json golden', () => {
   afterAll(() => {
-    vi.doUnmock('@prisma-next/migration-tools/refs');
+    vi.doUnmock('@internal/migration-tools/refs');
     vi.doUnmock('../../src/control-api/client');
   });
 

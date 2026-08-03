@@ -1,19 +1,18 @@
 import { mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import * as configLoader from '@prisma-next/config-loader';
-import type { Contract } from '@prisma-next/contract/types';
-import type { EmitResult } from '@prisma-next/emitter';
-import { emit as emitFn } from '@prisma-next/emitter';
+import * as configLoader from '@internal/config-loader';
+import type { Contract } from '@internal/contract/types';
+import type { EmitResult } from '@internal/emitter';
+import { emit as emitFn } from '@internal/emitter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeContractEmit } from '../../src/control-api/operations/contract-emit';
 import { disposeEmitQueue } from '../../src/utils/emit-queue';
 
-vi.mock('@prisma-next/config-loader', { spy: true });
+vi.mock('@internal/config-loader', { spy: true });
 
-vi.mock('@prisma-next/emitter', async () => {
-  const actual =
-    await vi.importActual<typeof import('@prisma-next/emitter')>('@prisma-next/emitter');
+vi.mock('@internal/emitter', async () => {
+  const actual = await vi.importActual<typeof import('@internal/emitter')>('@internal/emitter');
   return {
     ...actual,
     emit: vi.fn(),

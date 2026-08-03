@@ -1,8 +1,8 @@
 # Rebase-continue brief — resolve nested-includes conflict + fix imports
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Rebase state:** paused at commit 30/71 (`d7a4ac070 refactor(@prisma-next/sql-builder): move playground tests to integration, drop pgvector devDep`)
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Rebase state:** paused at commit 30/71 (`d7a4ac070 refactor(@internal/sql-builder): move playground tests to integration, drop pgvector devDep`)
 
 ## What's happening (orchestrator triage, read-only confirmed)
 
@@ -44,7 +44,7 @@ After `git rebase` completes (no more pending commits), one file from the adopte
 
 **Current (broken at new path):**
 ```ts
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { Collection } from '../../src/collection';
 import { getTestContext, getTestContract, type TestContract } from '../helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';
@@ -52,15 +52,15 @@ import type { PgIntegrationRuntime } from './runtime-helpers';
 
 **Fix (matches the `ee84b8982` D5c pattern for siblings):**
 ```ts
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import { Collection } from '@prisma-next/sql-orm-client';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { Collection } from '@internal/sql-orm-client';
 import { getTestContext, getTestContract, type TestContract } from './helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';
 ```
 
 Two line changes. The other three nested-includes files (`-refinements.test.ts`, `-strategy.test.ts`, `.test.ts`) use only same-directory imports (`./helpers`, `./runtime-helpers`, `./nested-includes-helpers`) and need NO changes — verified by orchestrator with `grep ^import`.
 
-**Verification cross-check** — read the analogous already-fixed file at `test/integration/test/sql-orm-client/include.test.ts` to confirm the pattern (`from '@prisma-next/sql-orm-client'` + `from './helpers'`).
+**Verification cross-check** — read the analogous already-fixed file at `test/integration/test/sql-orm-client/include.test.ts` to confirm the pattern (`from '@internal/sql-orm-client'` + `from './helpers'`).
 
 Then commit:
 

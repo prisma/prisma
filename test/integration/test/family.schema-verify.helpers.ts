@@ -1,23 +1,23 @@
 /**
  * Shared helpers for family.schema-verify tests.
  */
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql, { type SqlControlFamilyInstance } from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgres from '@prisma-next/target-postgres/control';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import type { Contract } from '@internal/contract/types';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql, { type SqlControlFamilyInstance } from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import postgres from '@internal/target-postgres/control';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { beforeAll } from 'vitest';
 
 // Re-export common imports for test files
-export { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-export { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
-export type { CodecTypes } from '@prisma-next/target-postgres/codec-types';
+export { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+export { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
+export type { CodecTypes } from '@internal/target-postgres/codec-types';
 export { pgvector } from './family.schema-verify.extensions';
 export type { Contract, SqlStorage };
 export {

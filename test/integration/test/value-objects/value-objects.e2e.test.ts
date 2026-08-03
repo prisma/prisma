@@ -1,13 +1,13 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { mongoOrm } from '@prisma-next/mongo-orm';
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import { orm as sqlOrm } from '@prisma-next/sql-orm-client';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import postgresDriver from '@internal/driver-postgres/runtime';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { mongoOrm } from '@internal/mongo-orm';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
+import { orm as sqlOrm } from '@internal/sql-orm-client';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresTarget from '@internal/target-postgres/runtime';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 import { describeWithMongoDB } from '../mongo/setup';
@@ -83,7 +83,7 @@ describeWithMongoDB('value objects e2e: Mongo → real DB → typed ORM', (ctx) 
       notes: { street: '2 Second Ave', city: 'Newtown', zip: '22222' },
     });
 
-    const { MongoFieldFilter } = await import('@prisma-next/mongo-query-ast/execution');
+    const { MongoFieldFilter } = await import('@internal/mongo-query-ast/execution');
     const updated = await shopCollection
       .where(MongoFieldFilter.eq('name', 'Updated Store'))
       .update({

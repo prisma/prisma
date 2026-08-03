@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/driver-sqlite",
+  "name": "@internal/driver-sqlite",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -15,19 +15,19 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/errors": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/sql-contract": "workspace:0.16.0",
-    "@prisma-next/sql-errors": "workspace:0.16.0",
-    "@prisma-next/sql-operations": "workspace:0.16.0",
-    "@prisma-next/sql-relational-core": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0"
+    "@internal/contract": "workspace:0.16.0",
+    "@internal/errors": "workspace:0.16.0",
+    "@internal/framework-components": "workspace:0.16.0",
+    "@internal/sql-contract": "workspace:0.16.0",
+    "@internal/sql-errors": "workspace:0.16.0",
+    "@internal/sql-operations": "workspace:0.16.0",
+    "@internal/sql-relational-core": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0"
   },
   "devDependencies": {
-    "@prisma-next/test-utils": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
+    "@repo/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

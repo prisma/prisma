@@ -2,7 +2,7 @@
  * Column type descriptor factory for pgvector extension. `vector(N)` is the canonical authoring surface; every pgvector column must declare a dimension via this factory. The dimension threads into the runtime codec through `paramsSchema.length` and into the DDL via the family-layer `expandNativeType` hook (e.g. `vector(1536)`).
  */
 
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import { VECTOR_CODEC_ID, VECTOR_MAX_DIM } from '../core/constants';
 import { pgVectorError } from '../core/errors';
 

@@ -1,7 +1,7 @@
 # Rebase-cleanup brief — fix two rebase-resolution misses on helpers.ts + missing unbound-tables.ts
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD:** `9ad36520f` (post-tiny-fixes force-pushed)
 
 ## What happened
@@ -15,7 +15,7 @@ The orchestrator confirmed the diagnosis via read-only triage:
 On `origin/main`, the helper functions `buildMixedPolyContract()` (line 124) and `buildStiPolyContract()` (line 189) reference the per-namespace storage IR introduced by TML-2520:
 
 ```ts
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 // ...
 raw.storage.namespaces[UNBOUND_NAMESPACE_ID].tables.tasks = { ... };
 ```
@@ -38,7 +38,7 @@ The likely cause is a rebase conflict resolution that kept our pgvector-stub add
 
 ### Bug 2 — `test/integration/test/sql-orm-client/unbound-tables.ts` missing
 
-Our D5 commit `d7a4ac070` (`refactor(@prisma-next/sql-builder): move playground tests to integration, drop pgvector devDep`) moved 3 files from `packages/3-extensions/sql-orm-client/test/` to `test/integration/test/sql-orm-client/`:
+Our D5 commit `d7a4ac070` (`refactor(@internal/sql-builder): move playground tests to integration, drop pgvector devDep`) moved 3 files from `packages/3-extensions/sql-orm-client/test/` to `test/integration/test/sql-orm-client/`:
 
 - `collection-fixtures.ts`
 - `collection-mutation-defaults.test.ts`
@@ -46,7 +46,7 @@ Our D5 commit `d7a4ac070` (`refactor(@prisma-next/sql-builder): move playground 
 
 The moved `collection-mutation-defaults.test.ts` does `import { unboundTables } from './unbound-tables';` (line 10). The `unbound-tables.ts` file is **not** at the integration location — it's still at `packages/3-extensions/sql-orm-client/test/unbound-tables.ts` (and several other locations, all identical blobs per `git ls-tree`).
 
-Result: `@prisma-next/integration-tests` typecheck fails with `Cannot find module './unbound-tables'`.
+Result: `integration-tests` typecheck fails with `Cannot find module './unbound-tables'`.
 
 ## Fix 1 — restore TML-2520 storage shape in package-level helpers.ts
 
@@ -56,7 +56,7 @@ Result: `@prisma-next/integration-tests` typecheck fails with `Cannot find modul
 
 1. Add the import at the top of the file (alphabetical order in the existing import block — slots in after `framework-components/codec`, before `framework-components/runtime`):
    ```ts
-   import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+   import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
    ```
 
 2. Replace all 5 occurrences of `raw.storage.tables.X = ...` with `raw.storage.namespaces[UNBOUND_NAMESPACE_ID].tables.X = ...`. Run:
@@ -69,12 +69,12 @@ Result: `@prisma-next/integration-tests` typecheck fails with `Cannot find modul
 
 **Validate:**
 ```bash
-pnpm --filter @prisma-next/sql-orm-client run typecheck
-pnpm --filter @prisma-next/sql-orm-client run test
+pnpm --filter @internal/sql-orm-client run typecheck
+pnpm --filter @internal/sql-orm-client run test
 ```
 Target: all 4 previously failing test files (`collection-contract`, `collection-runtime`, `collection-variant`, `query-plan-select`) now pass.
 
-**Commit subject:** `fix(@prisma-next/sql-orm-client): restore TML-2520 namespaced storage shape in package-level helpers.ts`
+**Commit subject:** `fix(@internal/sql-orm-client): restore TML-2520 namespaced storage shape in package-level helpers.ts`
 
 **Commit body:** explain that the rebase conflict resolution kept our pgvector stub additions but dropped TML-2520's per-namespace IR migration; this restores the `raw.storage.namespaces[UNBOUND_NAMESPACE_ID].tables.X` pattern so `buildMixedPolyContract` / `buildStiPolyContract` work against the post-TML-2520 contract shape.
 
@@ -86,7 +86,7 @@ Target: all 4 previously failing test files (`collection-contract`, `collection-
 
 **Validate:**
 ```bash
-pnpm --filter @prisma-next/integration-tests run typecheck
+pnpm --filter integration-tests run typecheck
 ```
 Target: the `Cannot find module './unbound-tables'` error in `test/integration/test/sql-orm-client/collection-mutation-defaults.test.ts` is gone.
 
@@ -102,7 +102,7 @@ After both fixes:
 2. `pnpm build` — re-verify 66/66.
 3. `pnpm fixtures:check` — green.
 4. `pnpm lint:deps` — green.
-5. `pnpm --filter @prisma-next/sql-orm-client run test` — record before/after counts; target is 0 failed test files from the namespaced-storage class (4 → 0). Adapter-postgres / PGlite flakes elsewhere are out of scope.
+5. `pnpm --filter @internal/sql-orm-client run test` — record before/after counts; target is 0 failed test files from the namespaced-storage class (4 → 0). Adapter-postgres / PGlite flakes elsewhere are out of scope.
 
 If green: `git push --force-with-lease origin tml-2526-facades-must-re-export-everything-users-import-in-their-app`.
 
@@ -133,14 +133,14 @@ GREEN / YELLOW / RED
 - Import added: yes / no
 - Occurrences updated: <N> (expected 5)
 - Commit: <sha>
-- Validation: `pnpm --filter @prisma-next/sql-orm-client run typecheck` <green/red>
+- Validation: `pnpm --filter @internal/sql-orm-client run typecheck` <green/red>
 - 4 target tests now passing: yes / no / partial (with detail)
 
 ## Fix 2 — integration unbound-tables.ts
 - File created: yes / no
 - Bytes/lines: <N>
 - Commit: <sha>
-- Validation: `pnpm --filter @prisma-next/integration-tests run typecheck` <green/red>
+- Validation: `pnpm --filter integration-tests run typecheck` <green/red>
 
 ## Final pre-flight
 - typecheck: green / red (full output for any remaining errors)

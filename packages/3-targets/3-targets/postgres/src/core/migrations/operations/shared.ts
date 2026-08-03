@@ -1,6 +1,6 @@
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import type { ReferentialAction } from '@prisma-next/sql-contract/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { ReferentialAction } from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
 import type { OperationClass, PostgresPlanTargetDetails } from '../planner-target-details';
 
 export type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;

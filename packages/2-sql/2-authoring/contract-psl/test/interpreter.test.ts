@@ -1,5 +1,5 @@
-import { crossRef } from '@prisma-next/contract/types';
-import { defineIndexTypes } from '@prisma-next/sql-contract/index-types';
+import { crossRef } from '@internal/contract/types';
+import { defineIndexTypes } from '@internal/sql-contract/index-types';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';

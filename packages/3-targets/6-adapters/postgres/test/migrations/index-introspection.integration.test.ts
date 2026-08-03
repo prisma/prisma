@@ -7,7 +7,7 @@
  * the same columns — forcing a spurious DROP+CREATE on every plan even
  * when the live index already matches the contract.
  */
-import { PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
+import { PostgresDatabaseSchemaNode } from '@internal/target-postgres/types';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   createDriver,

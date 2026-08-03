@@ -1,13 +1,13 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   UnboundTables as SqlBuilderUnboundTables,
   TableProxyContract,
-} from '@prisma-next/sql-builder/types';
+} from '@internal/sql-builder/types';
 import type {
   ExtractStorageColumnTypes,
   SqlStorage,
   StorageColumnTypeAcrossNamespaces,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import type { DrainOuterGeneric } from './type-atoms';
 
 export type UnboundTables<TContract extends Contract<SqlStorage>> = SqlBuilderUnboundTables<

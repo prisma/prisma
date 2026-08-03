@@ -4,24 +4,24 @@ import type {
   ControlPolicy,
   ExecutionMutationDefaultPhases,
   ExecutionMutationDefaultValue,
-} from '@prisma-next/contract/types';
-import { isColumnDefault } from '@prisma-next/contract/types';
-import type { ForeignKeyDefaultsState } from '@prisma-next/contract-authoring';
-import type { AuthoringFieldPresetDescriptor } from '@prisma-next/framework-components/authoring';
-import { instantiateAuthoringFieldPreset } from '@prisma-next/framework-components/authoring';
-import type { CodecLookup, ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
+} from '@internal/contract/types';
+import { isColumnDefault } from '@internal/contract/types';
+import type { ForeignKeyDefaultsState } from '@internal/contract-authoring';
+import type { AuthoringFieldPresetDescriptor } from '@internal/framework-components/authoring';
+import { instantiateAuthoringFieldPreset } from '@internal/framework-components/authoring';
+import type { CodecLookup, ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import type {
   SqlNamespaceBase,
   SqlNamespaceInput,
   StorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import type { NamedConstraintSpec } from './authoring-type-utils';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
@@ -1735,7 +1735,7 @@ export type ContractInput<
    * whose kind no composed pack registers is a build error. This is the only
    * public channel for attaching pack entities.
    */
-  readonly entities?: readonly import('@prisma-next/sql-contract/entity-handle-lowering-hook').PackEntityHandle[];
+  readonly entities?: readonly import('@internal/sql-contract/entity-handle-lowering-hook').PackEntityHandle[];
 };
 
 export function model<

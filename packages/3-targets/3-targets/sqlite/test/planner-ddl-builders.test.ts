@@ -1,4 +1,4 @@
-import type { StorageColumn, StorageTable } from '@prisma-next/sql-contract/types';
+import type { StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import {
   buildColumnDefaultSql,

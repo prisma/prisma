@@ -1,6 +1,6 @@
-import type { PslExtensionBlock } from '@prisma-next/framework-components/psl-ast';
-import { parseWireName } from '@prisma-next/sql-schema-ir/naming';
-import { assertDefined } from '@prisma-next/utils/assertions';
+import type { PslExtensionBlock } from '@internal/framework-components/psl-ast';
+import { parseWireName } from '@internal/sql-schema-ir/naming';
+import { assertDefined } from '@internal/utils/assertions';
 import type { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
 import { escapePslString, SYNTHETIC_SPAN } from './psl-literals';
 

@@ -41,7 +41,7 @@ Configured via the `extensions` array in `prisma-next.config.ts`; emitted into t
 
 A function that runs around every query, similar to middleware in Express or Koa. Middleware can inspect queries, enforce limits, collect metrics, or block unsafe operations — without changing how queries are built or executed. Examples: `budgets()` (cost limits), `lints()` (query checks).
 
-At the framework level, middleware is defined by the `RuntimeMiddleware` interface in `@prisma-next/framework-components`. A middleware can be family-agnostic (runs in any runtime) or scoped to a specific family (`familyId: 'sql'`) and/or target (`targetId: 'postgres'`). Family-specific interfaces (`SqlMiddleware`, `MongoMiddleware`) narrow the plan and context types.
+At the framework level, middleware is defined by the `RuntimeMiddleware` interface in `@internal/framework-components`. A middleware can be family-agnostic (runs in any runtime) or scoped to a specific family (`familyId: 'sql'`) and/or target (`targetId: 'postgres'`). Family-specific interfaces (`SqlMiddleware`, `MongoMiddleware`) narrow the plan and context types.
 
 ### Plan
 
@@ -67,7 +67,7 @@ A category of databases that share fundamental characteristics. SQL is a family 
 
 The umbrella term for the five kinds of building blocks that make up a Prisma Next configuration: **family**, **target**, **adapter**, **driver**, and **extension**. Each framework component follows the same structural pattern: a `ComponentDescriptor` (declarative metadata — identity, version, capabilities, type imports) plus plane-specific descriptor and instance types (see [Descriptor](#descriptor), [Instance](#instance) in the Architecture section).
 
-Framework components are composed into stacks via `create*Stack()` functions. The framework-components package (`@prisma-next/framework-components`) owns the base types and assembly logic that operate on framework components generically, without knowing which family or target they belong to.
+Framework components are composed into stacks via `create*Stack()` functions. The framework-components package (`@internal/framework-components`) owns the base types and assembly logic that operate on framework components generically, without knowing which family or target they belong to.
 
 ### Contract IR
 
@@ -183,7 +183,7 @@ Each plane has its own stack type:
 | `ControlStack` | Control | The component descriptors and their aggregated contributions (type imports, renderers, extension IDs, authoring contributions) needed for contract emission and migration |
 | `ExecutionStack` | Execution | Runtime descriptors (target, adapter, driver, extensions), ready for instantiation |
 
-> Use `createControlStack()` from `@prisma-next/framework-components/control` to build a `ControlStack`.
+> Use `createControlStack()` from `@internal/framework-components/control` to build a `ControlStack`.
 
 ---
 

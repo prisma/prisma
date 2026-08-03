@@ -10,8 +10,8 @@
 
 The extension pack naming convention previously allowed two patterns for npm package names:
 
-- `@prisma-next/ext-<name>` (shorter form)
-- `@prisma-next/extension-<name>` (longer form)
+- `@internal/ext-<name>` (shorter form)
+- `@internal/extension-<name>` (longer form)
 
 This was documented in `docs/reference/Extension-Packs-Naming-and-Layout.md` with a preference stated for the shorter `ext-` prefix for brevity. However, having two accepted patterns creates ambiguity and inconsistency:
 
@@ -21,7 +21,7 @@ This was documented in `docs/reference/Extension-Packs-Naming-and-Layout.md` wit
 
 ## Decision
 
-Use `@prisma-next/extension-<name>` exclusively for all extension pack npm package names.
+Use `@internal/extension-<name>` exclusively for all extension pack npm package names.
 
 The `ext-*` pattern is deprecated and should not be used for new packages.
 
@@ -29,9 +29,9 @@ The `ext-*` pattern is deprecated and should not be used for new packages.
 
 | Package Purpose | Correct Name | Incorrect Name |
 |----------------|--------------|----------------|
-| pgvector support | `@prisma-next/extension-pgvector` | `@prisma-next/ext-pgvector` |
-| PostGIS support | `@prisma-next/extension-postgis` | `@prisma-next/ext-postgis` |
-| SQL views | `@prisma-next/extension-sql-views` | `@prisma-next/ext-sql-views` |
+| pgvector support | `@internal/extension-pgvector` | `@internal/ext-pgvector` |
+| PostGIS support | `@internal/extension-postgis` | `@internal/ext-postgis` |
+| SQL views | `@internal/extension-sql-views` | `@internal/ext-sql-views` |
 
 ## Rationale
 
@@ -41,7 +41,7 @@ The `ext-*` pattern is deprecated and should not be used for new packages.
 
 3. **Clarity over brevity**: The few extra characters in `extension-` vs `ext-` provide clearer intent and are negligible in practice.
 
-4. **npm search and discovery**: Users can search for `@prisma-next/extension-` to find all extensions reliably.
+4. **npm search and discovery**: Users can search for `@internal/extension-` to find all extensions reliably.
 
 ## Consequences
 
@@ -58,7 +58,7 @@ The `ext-*` pattern is deprecated and should not be used for new packages.
 
 ### Migration
 
-No migration required — the existing `@prisma-next/extension-pgvector` package already follows this convention. Documentation has been updated to reflect the single-pattern approach.
+No migration required — the existing `@internal/extension-pgvector` package already follows this convention. Documentation has been updated to reflect the single-pattern approach.
 
 ## Related
 

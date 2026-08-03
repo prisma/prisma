@@ -14,8 +14,8 @@ describe('packageNameFromSpecifier', () => {
   it('returns the package a bare specifier belongs to', () => {
     assert.equal(packageNameFromSpecifier('pg'), 'pg');
     assert.equal(packageNameFromSpecifier('pg/lib/client'), 'pg');
-    assert.equal(packageNameFromSpecifier('@prisma-next/contract'), '@prisma-next/contract');
-    assert.equal(packageNameFromSpecifier('@prisma-next/contract/types'), '@prisma-next/contract');
+    assert.equal(packageNameFromSpecifier('@internal/contract'), '@internal/contract');
+    assert.equal(packageNameFromSpecifier('@internal/contract/types'), '@internal/contract');
   });
 
   it('returns null for specifiers that name no package', () => {
@@ -253,19 +253,19 @@ describe('findDeclarationDepViolations', () => {
   });
 
   it('flags a private workspace package like any other undeclared module', () => {
-    // `@prisma-next/test-utils` is `private: true` and never published, so a
+    // `@repo/test-utils` is `private: true` and never published, so a
     // shipped declaration naming it can never resolve for a consumer.
     assert.deepEqual(
       check(
-        { name: '@prisma-next/sql-runtime', devDependencies: { '@prisma-next/test-utils': '*' } },
-        { 'dist/test/utils.d.mts': 'import { X } from "@prisma-next/test-utils";' },
+        { name: '@internal/sql-runtime', devDependencies: { '@repo/test-utils': '*' } },
+        { 'dist/test/utils.d.mts': 'import { X } from "@repo/test-utils";' },
       ),
       [
         {
           file: 'dist/test/utils.d.mts',
-          spec: '@prisma-next/test-utils',
+          spec: '@repo/test-utils',
           kind: 'undeclared',
-          needs: '@prisma-next/test-utils',
+          needs: '@repo/test-utils',
         },
       ],
     );

@@ -1,7 +1,7 @@
-import { toFieldName } from '@prisma-next/family-sql/psl-infer';
-import type { PslModel } from '@prisma-next/framework-components/psl-ast';
-import type { SqlTableIR } from '@prisma-next/sql-schema-ir/types';
-import { assertDefined } from '@prisma-next/utils/assertions';
+import { toFieldName } from '@internal/family-sql/psl-infer';
+import type { PslModel } from '@internal/framework-components/psl-ast';
+import type { SqlTableIR } from '@internal/sql-schema-ir/types';
+import { assertDefined } from '@internal/utils/assertions';
 import { postgresError } from '../errors';
 
 export type ResolvedColumnFieldName = {

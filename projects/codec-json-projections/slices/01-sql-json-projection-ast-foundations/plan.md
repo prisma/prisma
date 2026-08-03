@@ -8,7 +8,7 @@
 
 ### Dispatch 1: projection algebra
 
-- **Outcome:** `@prisma-next/sql-relational-core/ast` exports a tested frozen `AnyJsonValueProjection` class/visitor union whose three variants preserve class identity, wrapped-expression traversal, and complete codec refs.
+- **Outcome:** `@internal/sql-relational-core/ast` exports a tested frozen `AnyJsonValueProjection` class/visitor union whose three variants preserve class identity, wrapped-expression traversal, and complete codec refs.
 - **Builds on:** The slice spec's chosen class/visitor design and the existing frozen AST conventions.
 - **Hands to:** A stable, independently tested projection algebra that JSON container nodes and target renderers can consume without deciding target behavior.
 - **Focus:** Tests first; abstract/concrete projection classes, visitor, rewrite/fold helpers, defensive codec freezing, kind/export coverage. Do not change `JsonObjectExpr`, `JsonArrayAggExpr`, adapters, ORM call sites, or SQL output yet.
@@ -66,26 +66,26 @@ Dispatches 1–5 are sequential because they share the same AST discriminants an
 ### Per-dispatch baseline
 
 - Write or adapt the focused tests before changing production implementation.
-- Run `pnpm --filter @prisma-next/sql-relational-core test`, `pnpm --filter @prisma-next/sql-relational-core typecheck`, and `pnpm --filter @prisma-next/sql-relational-core lint` whenever relational-core changes.
-- After exported AST types change, run `pnpm --filter @prisma-next/sql-relational-core build` before downstream typechecks.
-- Run package tests/typechecks/lint for every touched consumer package: `@prisma-next/adapter-postgres`, `@prisma-next/adapter-sqlite`, and `@prisma-next/sql-orm-client` as applicable.
+- Run `pnpm --filter @internal/sql-relational-core test`, `pnpm --filter @internal/sql-relational-core typecheck`, and `pnpm --filter @internal/sql-relational-core lint` whenever relational-core changes.
+- After exported AST types change, run `pnpm --filter @internal/sql-relational-core build` before downstream typechecks.
+- Run package tests/typechecks/lint for every touched consumer package: `@internal/adapter-postgres`, `@internal/adapter-sqlite`, and `@internal/sql-orm-client` as applicable.
 - Run `pnpm lint:casts` for every dispatch touching production TypeScript.
 
 ### Final slice gate
 
-- `pnpm --filter @prisma-next/sql-relational-core build`
-- `pnpm --filter @prisma-next/sql-relational-core test`
-- `pnpm --filter @prisma-next/sql-relational-core typecheck`
-- `pnpm --filter @prisma-next/sql-relational-core lint`
-- `pnpm --filter @prisma-next/adapter-postgres test`
-- `pnpm --filter @prisma-next/adapter-postgres typecheck`
-- `pnpm --filter @prisma-next/adapter-postgres lint`
-- `pnpm --filter @prisma-next/adapter-sqlite test`
-- `pnpm --filter @prisma-next/adapter-sqlite typecheck`
-- `pnpm --filter @prisma-next/adapter-sqlite lint`
-- `pnpm --filter @prisma-next/sql-orm-client test`
-- `pnpm --filter @prisma-next/sql-orm-client typecheck`
-- `pnpm --filter @prisma-next/sql-orm-client lint`
+- `pnpm --filter @internal/sql-relational-core build`
+- `pnpm --filter @internal/sql-relational-core test`
+- `pnpm --filter @internal/sql-relational-core typecheck`
+- `pnpm --filter @internal/sql-relational-core lint`
+- `pnpm --filter @internal/adapter-postgres test`
+- `pnpm --filter @internal/adapter-postgres typecheck`
+- `pnpm --filter @internal/adapter-postgres lint`
+- `pnpm --filter @internal/adapter-sqlite test`
+- `pnpm --filter @internal/adapter-sqlite typecheck`
+- `pnpm --filter @internal/adapter-sqlite lint`
+- `pnpm --filter @internal/sql-orm-client test`
+- `pnpm --filter @internal/sql-orm-client typecheck`
+- `pnpm --filter @internal/sql-orm-client lint`
 - `pnpm lint:casts`
 - `pnpm lint:deps`
 - `pnpm typecheck`

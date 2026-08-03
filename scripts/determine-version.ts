@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'pathe';
 import { assertCanonicalBase } from './determine-version-utils.ts';
 
-const PACKAGE_NAME = process.argv[2] ?? '@prisma-next/contract';
+const PACKAGE_NAME = process.argv[2] ?? '@internal/contract';
 
 interface VersionResult {
   version: string;

@@ -1,6 +1,6 @@
-import { createCacheMiddleware } from '@prisma-next/middleware-cache';
-import mongo from '@prisma-next/mongo/runtime';
-import type { MongoRuntime } from '@prisma-next/mongo-runtime';
+import { createCacheMiddleware } from '@prisma/orm-extension-middleware-cache';
+import type { MongoRuntime } from '@prisma/orm-mongo/family-runtime';
+import mongo from '@prisma/orm-mongo/runtime';
 import type { Contract } from './contract';
 import contractJson from './contract.json' with { type: 'json' };
 

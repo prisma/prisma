@@ -1,7 +1,7 @@
-import type { ColumnDefaultLiteralInputValue } from '@prisma-next/contract/types';
-import { isColumnDefaultLiteralInputValue } from '@prisma-next/contract/types';
-import type { ReferentialAction } from '@prisma-next/sql-contract/types';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import type { ColumnDefaultLiteralInputValue } from '@internal/contract/types';
+import { isColumnDefaultLiteralInputValue } from '@internal/contract/types';
+import type { ReferentialAction } from '@internal/sql-contract/types';
+import { structuredError } from '@internal/utils/structured-error';
 import type { CodecRef } from './codec-types';
 import type { AnyParamRef } from './types';
 

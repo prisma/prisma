@@ -1,5 +1,5 @@
-import type { SymbolTable } from '@prisma-next/psl-parser';
-import type { DocumentAst, SourceFile } from '@prisma-next/psl-parser/syntax';
+import type { SymbolTable } from '@internal/psl-parser';
+import type { DocumentAst, SourceFile } from '@internal/psl-parser/syntax';
 import type { LspDiagnostic } from './diagnostic-mapping';
 import { type PipelineInputs, runPipeline } from './pipeline';
 import type { SchemaInputSet } from './schema-inputs';

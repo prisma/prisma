@@ -86,8 +86,8 @@ The CLI calls `targetDescriptor.migrations.formatOperationStatements(ops)` when 
 
 ## What changes (when implemented)
 
-- `MigrationPlanOperation` in `@prisma-next/framework-components` would become generic over `TStep` and `TCheck`.
-- A `MigrationOperationSerializer` SPI would be added to `@prisma-next/framework-components`.
+- `MigrationPlanOperation` in `@internal/framework-components` would become generic over `TStep` and `TCheck`.
+- A `MigrationOperationSerializer` SPI would be added to `@internal/framework-components`.
 - `TargetMigrationsCapability` would gain an optional `formatOperationStatements` method.
 - SQL and Mongo families would conform to the generic, removing their independent envelope definitions.
 - The CLI `switch(familyId)` dispatch would be replaced by the capability method.

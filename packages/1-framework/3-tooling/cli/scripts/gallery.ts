@@ -4,11 +4,11 @@
  * Render hand-authored golden fixtures in colour to the terminal.
  *
  * Usage:
- *   pnpm --filter @prisma-next/cli gallery                        # all goldens
- *   pnpm --filter @prisma-next/cli gallery merge-2                # all of one scenario
- *   pnpm --filter @prisma-next/cli gallery merge-2:flat           # one strategy
- *   pnpm --filter @prisma-next/cli gallery merge-2:focus          # all focus variants
- *   pnpm --filter @prisma-next/cli gallery merge-2:focus:alt      # one specific golden
+ *   pnpm --filter @internal/cli gallery                        # all goldens
+ *   pnpm --filter @internal/cli gallery merge-2                # all of one scenario
+ *   pnpm --filter @internal/cli gallery merge-2:flat           # one strategy
+ *   pnpm --filter @internal/cli gallery merge-2:focus          # all focus variants
+ *   pnpm --filter @internal/cli gallery merge-2:focus:alt      # one specific golden
  *
  * Filter syntax: scenario · scenario:strategy · scenario:strategy:variant
  *

@@ -1,4 +1,4 @@
-# `@prisma-next/cli-telemetry`
+# `@internal/cli-telemetry`
 
 Anonymous CLI usage telemetry client for Prisma Next. Runs in a
 detached child process at command start, never blocks the parent,

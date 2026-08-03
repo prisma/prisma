@@ -2,12 +2,12 @@ import { execFile } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@prisma-next/cli/commands/contract-emit';
-import type { MigrateResult } from '@prisma-next/cli/commands/migrate';
-import { createMigrateCommand } from '@prisma-next/cli/commands/migrate';
-import { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-plan';
-import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
+import type { MigrateResult } from '@internal/cli/commands/migrate';
+import { createMigrateCommand } from '@internal/cli/commands/migrate';
+import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
+import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   appendImplicitMigrationPlanFrom,

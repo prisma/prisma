@@ -1,12 +1,12 @@
-import type { LedgerEntryRecord } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import type { LedgerEntryRecord } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
 import {
   type AggregateMigrationEdgeRef,
   buildFabricatedMigrationEdge,
-} from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { PostgresPlanTargetDetails } from '@prisma-next/target-postgres/planner-target-details';
+} from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planner-target-details';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';

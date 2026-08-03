@@ -1,4 +1,4 @@
-import type { Namespace, TableProxy } from '@prisma-next/sql-builder/types';
+import type { Namespace, TableProxy } from '@internal/sql-builder/types';
 import { expectTypeOf, test } from 'vitest';
 import type { SqliteClient } from '../src/runtime/sqlite';
 import type { Contract } from './fixtures/namespaced-contract';

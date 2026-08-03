@@ -4,8 +4,8 @@ import {
   type Contract,
   profileHash,
   type StorageHashBase,
-} from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   CheckConstraint,
   Index,
@@ -15,7 +15,7 @@ import {
   type StorageColumn,
   type StorageTable,
   StorageValueSet,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import {
   PrimaryKey,
   SqlCheckConstraintIR,
@@ -24,8 +24,8 @@ import {
   SqlIndexIR,
   SqlSchemaIR,
   SqlUniqueIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/sql-schema-ir/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import type { DefaultRenderer } from '../src/core/migrations/contract-to-schema-ir';
@@ -273,7 +273,7 @@ describe('contractToSchemaIR', () => {
   });
 
   it('resolves typeRef against storage.types before expanding native type', () => {
-    // Regression: `post.embedding` in prisma-next-demo stores a bare
+    // Regression: `post.embedding` in prisma-8-demo stores a bare
     // `{ nativeType: 'vector', typeRef: 'Embedding1536' }`; the parameter
     // metadata lives on the named `storage.types` entry. If the IR
     // conversion doesn't resolve `typeRef`, it emits `"vector"` while

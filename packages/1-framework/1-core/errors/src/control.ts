@@ -1,6 +1,6 @@
-import { ifDefined } from '@prisma-next/utils/defined';
-import type { StructuredError } from '@prisma-next/utils/structured-error';
-import { docsUrlFor } from '@prisma-next/utils/structured-error';
+import { ifDefined } from '@internal/utils/defined';
+import type { StructuredError } from '@internal/utils/structured-error';
+import { docsUrlFor } from '@internal/utils/structured-error';
 
 /**
  * CLI error envelope for output formatting.
@@ -32,7 +32,7 @@ export interface CliErrorConflict {
  * Call sites throw these errors with full context.
  *
  * A `CliStructuredError` is a `StructuredError` (see
- * `@prisma-next/utils/structured-error`): `code` is a dotted
+ * `@internal/utils/structured-error`): `code` is a dotted
  * `NAMESPACE.SUBCODE` string, and the namespace prefix is the error's
  * category — there is no separate `domain` field. See
  * [ADR 239](../../../../../docs/architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md)

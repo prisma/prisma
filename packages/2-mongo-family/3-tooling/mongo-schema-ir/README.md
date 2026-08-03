@@ -1,4 +1,4 @@
-# @prisma-next/mongo-schema-ir
+# @internal/mongo-schema-ir
 
 MongoDB Schema Intermediate Representation (IR) for migration diffing.
 
@@ -16,11 +16,11 @@ This package defines the in-memory representation of MongoDB collection schemas 
 
 ## Dependencies
 
-- **`@prisma-next/mongo-contract`**: `MongoIndexKey` type for index key definitions.
+- **`@internal/mongo-contract`**: `MongoIndexKey` type for index key definitions.
 
 **Dependents:**
 
-- `@prisma-next/adapter-mongo` — uses the schema IR via `contractToMongoSchemaIR()` for contract-to-schema conversion, migration planning, and filter evaluation.
+- `@internal/adapter-mongo` — uses the schema IR via `contractToMongoSchemaIR()` for contract-to-schema conversion, migration planning, and filter evaluation.
 
 ## Usage
 
@@ -30,7 +30,7 @@ import {
   MongoSchemaCollection,
   MongoSchemaIndex,
   indexesEquivalent,
-} from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-schema-ir';
 
 const index = new MongoSchemaIndex({
   keys: [{ field: 'email', direction: 1 }],

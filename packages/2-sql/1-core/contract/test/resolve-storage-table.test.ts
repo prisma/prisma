@@ -1,5 +1,5 @@
-import { coreHash } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { coreHash } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { SqlStorage } from '../src/ir/sql-storage';
 import { StorageTable } from '../src/ir/storage-table';

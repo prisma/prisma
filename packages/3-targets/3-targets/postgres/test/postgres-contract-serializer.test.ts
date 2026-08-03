@@ -1,15 +1,12 @@
-import { canonicalizeContractToObject } from '@prisma-next/contract/hashing';
-import type { Contract } from '@prisma-next/contract/types';
-import { effectiveControlPolicy } from '@prisma-next/contract/types';
-import {
-  SqlContractSerializerBase,
-  type SqlEntityHydrationFactory,
-} from '@prisma-next/family-sql/ir';
+import { canonicalizeContractToObject } from '@internal/contract/hashing';
+import type { Contract } from '@internal/contract/types';
+import { effectiveControlPolicy } from '@internal/contract/types';
+import { SqlContractSerializerBase, type SqlEntityHydrationFactory } from '@internal/family-sql/ir';
 import {
   type AnyEntityKindDescriptor,
   type Namespace,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import {
   ForeignKey,
   PrimaryKey,
@@ -19,9 +16,9 @@ import {
   StorageTable,
   type StorageTypeInstance,
   toStorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
-import { createSqlContract } from '@prisma-next/test-utils';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { createSqlContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';

@@ -1,4 +1,4 @@
-import { ifDefined } from '@prisma-next/utils/defined';
+import { ifDefined } from '@internal/utils/defined';
 import { Command } from 'commander';
 import { relative, resolve } from 'pathe';
 import { executeFormat } from '../control-api/operations/format';

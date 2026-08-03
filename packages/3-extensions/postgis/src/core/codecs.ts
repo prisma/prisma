@@ -31,7 +31,7 @@
  * (e.g. SRID cross-checks) without rewriting the constructor.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type AnyCodecDescriptor,
   type CodecCallContext,
@@ -40,12 +40,12 @@ import {
   type ColumnHelperFor,
   type ColumnHelperForStrict,
   column,
-} from '@prisma-next/framework-components/codec';
-import type { ExtractCodecTypes, ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/codec';
+import type { ExtractCodecTypes, ProjectionExpr } from '@internal/sql-relational-core/ast';
 import {
   definePostgresCodecs,
   PostgresCodecDescriptor,
-} from '@prisma-next/target-postgres/codec-descriptor';
+} from '@internal/target-postgres/codec-descriptor';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { POSTGIS_GEOMETRY_CODEC_ID } from './constants';

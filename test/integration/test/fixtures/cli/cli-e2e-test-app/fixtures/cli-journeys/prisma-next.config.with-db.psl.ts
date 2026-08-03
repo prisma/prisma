@@ -1,10 +1,10 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
-import postgres from '@prisma-next/target-postgres/control';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import { defineConfig } from '@internal/cli/config-types';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql from '@internal/family-sql/control';
+import { prismaContract } from '@internal/sql-contract-psl/provider';
+import postgres from '@internal/target-postgres/control';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 
 export default defineConfig({
   family: sql,

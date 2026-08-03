@@ -1,7 +1,7 @@
-import type { CoreSchemaView } from '@prisma-next/framework-components/control';
-import { SchemaTreeNode } from '@prisma-next/framework-components/control';
-import type { MongoSchemaCollection, MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { CoreSchemaView } from '@internal/framework-components/control';
+import { SchemaTreeNode } from '@internal/framework-components/control';
+import type { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
+import { ifDefined } from '@internal/utils/defined';
 
 export function mongoSchemaToView(schema: MongoSchemaIR): CoreSchemaView {
   const collectionNodes = schema.collections.map((collection) =>

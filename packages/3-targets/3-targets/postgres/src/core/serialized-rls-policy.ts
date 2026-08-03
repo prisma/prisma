@@ -1,4 +1,4 @@
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import type { PostgresRlsPolicyInput, RlsPolicyOperation } from './postgres-rls-policy';
 
 /**

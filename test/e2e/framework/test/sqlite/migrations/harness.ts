@@ -2,28 +2,26 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { integerColumn, textColumn } from '@prisma-next/adapter-sqlite/column-types';
+import { integerColumn, textColumn } from '@prisma/orm-sqlite/adapter/column-types';
 import sqliteAdapterDescriptor, {
   createSqliteBuiltinCodecLookup,
   SqliteControlAdapter,
-} from '@prisma-next/adapter-sqlite/control';
-import type { Contract } from '@prisma-next/contract/types';
-import sqliteDriverDescriptor from '@prisma-next/driver-sqlite/control';
-import sqlFamilyDescriptor, { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import sqlFamilyPack from '@prisma-next/family-sql/pack';
+} from '@prisma/orm-sqlite/adapter/control';
 import {
   APP_SPACE_ID,
   createControlStack,
   issueOutcome,
   type MigrationOperationPolicy,
   type MigrationRunnerFailure,
-} from '@prisma-next/framework-components/control';
-import { buildFabricatedMigrationEdge } from '@prisma-next/migration-tools/aggregate';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { field } from '@prisma-next/sqlite/contract-builder';
-import sqliteTargetDescriptor, { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import sqlitePack from '@prisma-next/target-sqlite/pack';
+} from '@prisma/orm-sqlite/components/control';
+import type { Contract } from '@prisma/orm-sqlite/contract/types';
+import { field } from '@prisma/orm-sqlite/contract-builder';
+import sqliteDriverDescriptor from '@prisma/orm-sqlite/driver/control';
+import sqlFamilyDescriptor, { INIT_ADDITIVE_POLICY } from '@prisma/orm-sqlite/family/control';
+import type { SqlStorage } from '@prisma/orm-sqlite/family-contract/types';
+import { buildFabricatedMigrationEdge } from '@prisma/orm-sqlite/migration-tools/aggregate';
+import { SqlSchemaIR } from '@prisma/orm-sqlite/schema-ir/types';
+import sqliteTargetDescriptor from '@prisma/orm-sqlite/target/control';
 
 const controlStack = createControlStack({
   family: sqlFamilyDescriptor,
@@ -37,11 +35,6 @@ const controlAdapter = sqliteAdapterDescriptor.create(controlStack);
 
 const fw = [sqliteTargetDescriptor, sqliteAdapterDescriptor, sqliteDriverDescriptor] as const;
 
-export const pack = {
-  family: sqlFamilyPack,
-  target: sqlitePack,
-  createNamespace: sqliteCreateNamespace,
-} as const;
 export const int = field.column(integerColumn);
 export const text = field.column(textColumn);
 export { integerColumn, textColumn };

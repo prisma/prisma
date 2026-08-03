@@ -1,4 +1,4 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import { readContractSnapshotJson } from '../contract-snapshot-store';
 import { errorSpaceHeadRefMissing, MigrationToolsError } from '../errors';
 import { readMigrationsDir } from '../io';

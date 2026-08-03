@@ -1,7 +1,7 @@
 import type {
   ContractSpaceHeadRef,
   MigrationPackage,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   MONGO_TEST_BASELINE_INVARIANT_ID,
   MONGO_TEST_BASELINE_MIGRATION_NAME,
@@ -24,7 +24,7 @@ const baselineMetadata = {
  * graph from a fresh marker reaches the head ref in one step.
  *
  * Symbolic ops (framework-level
- * {@link import('@prisma-next/framework-components/control').MigrationPlanOperation}
+ * {@link import('@internal/framework-components/control').MigrationPlanOperation}
  * shape — `id`/`label`/`operationClass`/`invariantId` only). The
  * runtime DDL commands that actually create the collection / index /
  * validator are derived from `contractJson` by the Mongo planner at

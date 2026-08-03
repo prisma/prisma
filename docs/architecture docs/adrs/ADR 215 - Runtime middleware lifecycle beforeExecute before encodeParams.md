@@ -30,7 +30,7 @@ runBeforeCompile(plan)           // middleware AST rewrites
  → runWithMiddleware(exec, ...)  // beforeExecute → intercept → onRow → afterExecute
 ```
 
-The `runWithMiddleware` helper (in `@prisma-next/framework-components`) owned four chains. `beforeExecute` fired with a `paramsMutator` constructed from the *post-encode* `exec.params` — wire bytes — which is too late for any middleware that wants to compute or mutate parameter values in their user-domain shape.
+The `runWithMiddleware` helper (in `@internal/framework-components`) owned four chains. `beforeExecute` fired with a `paramsMutator` constructed from the *post-encode* `exec.params` — wire bytes — which is too late for any middleware that wants to compute or mutate parameter values in their user-domain shape.
 
 This blocked the cipherstash bulk-encrypt middleware end-to-end. The middleware's design: walk the plan's `ParamRef` nodes, find every cipherstash envelope sitting in a parameter slot, group them by `(table, column)` routing key, issue one `sdk.bulkEncrypt(...)` per group, and write the resulting ciphertexts back onto the envelope handles. The codec's `encode(envelope, ctx)` body reads `handle.ciphertext` to produce the wire-format payload and throws if it's undefined (a deliberate strict guard — a codec asked to encode an envelope without a ciphertext has no correct answer). When `beforeExecute` fired post-encode:
 
@@ -50,7 +50,7 @@ The reorder is safe because every existing `beforeExecute` consumer falls into o
 | Consumer | What it does | Reorder impact |
 |---|---|---|
 | Cipherstash bulk-encrypt middleware | Walks `plan.ast`, finds envelope `ParamRef`s, calls SDK, mutates handle ciphertexts via `paramsMutator.replaceValues(...)` | Unblocked — now sees pre-encode envelopes |
-| `@prisma-next/middleware-telemetry` | Reads `plan.meta` for telemetry tagging | Neutral — meta is unchanged across the seam |
+| `@internal/middleware-telemetry` | Reads `plan.meta` for telemetry tagging | Neutral — meta is unchanged across the seam |
 | SQL runtime `budgets` middleware | Reads `plan.ast` and uses `plan` identity as a Map key for per-query budget accounting | Neutral — AST is unchanged; identity is preserved |
 | SQL runtime `lints` middleware | Reads `plan.ast` for lint evaluation | Neutral — AST is unchanged across the seam |
 
@@ -77,7 +77,7 @@ The split between `lowerToDraft` (private, returns a draft with pre-encode `para
 
 ### `runWithMiddleware` no longer owns `beforeExecute`
 
-The `beforeExecute` chain is extracted from `runWithMiddleware` into a free function `runBeforeExecuteChain(plan, middleware, ctx, paramsMutator?)` exported from `@prisma-next/framework-components/execution`. `runWithMiddleware` now owns three chains (`intercept`, the row-source loop driving `onRow`, and `afterExecute`) and accepts no `paramsMutator` parameter — the one prior consumer of that parameter was the extracted chain.
+The `beforeExecute` chain is extracted from `runWithMiddleware` into a free function `runBeforeExecuteChain(plan, middleware, ctx, paramsMutator?)` exported from `@internal/framework-components/execution`. `runWithMiddleware` now owns three chains (`intercept`, the row-source loop driving `onRow`, and `afterExecute`) and accepts no `paramsMutator` parameter — the one prior consumer of that parameter was the extracted chain.
 
 The extraction preserves all SPI semantics:
 
@@ -96,7 +96,7 @@ The alternative reading (`beforeExecute` skipped on intercept short-circuit) wou
 
 ### Template-method composition for non-SQL family runtimes
 
-`RuntimeCore.execute` (in `@prisma-next/framework-components`) implements the same `lower → beforeExecute → encode → runWithMiddleware` interleaving as a default template. Family runtimes that override `execute` (the SQL runtime, today; future non-SQL families) inline the same interleaving at their own override site, calling the shared `runBeforeExecuteChain` helper. Family runtimes that do *not* override `execute` inherit the ordering by composition.
+`RuntimeCore.execute` (in `@internal/framework-components`) implements the same `lower → beforeExecute → encode → runWithMiddleware` interleaving as a default template. Family runtimes that override `execute` (the SQL runtime, today; future non-SQL families) inline the same interleaving at their own override site, calling the shared `runBeforeExecuteChain` helper. Family runtimes that do *not* override `execute` inherit the ordering by composition.
 
 The SQL runtime overrides `execute` to thread its family-specific `SqlParamRefMutator` (constructed over the draft's params) and `SqlCodecCallContext` (carrying per-query `AbortSignal`) explicitly. The override site is also where the SQL runtime decides between the "pre-lowered fixture path" (caller hands in a `SqlExecutionPlan` directly; runtime still fires `beforeExecute` and then re-encodes to apply any mutations) and the standard AST → exec path. Both paths thread through the same `runBeforeExecuteChain` helper.
 
@@ -168,11 +168,11 @@ The SQL and Mongo stacks differ in *where* the two lowering phases and the param
 
 | Concern | SQL | Mongo |
 |---|---|---|
-| Two-phase lowering API | `lowerToDraft` / `encodeDraftParams` are **private** methods on `SqlRuntime` ([`packages/2-sql/5-runtime/src/sql-runtime.ts`](../../../packages/2-sql/5-runtime/src/sql-runtime.ts)); lowering walks the SQL adapter inside the runtime package. | `structuralLower` / `resolveParams` are **public** methods on the `MongoAdapter` SPI ([`packages/2-mongo-family/6-transport/mongo-lowering/src/adapter-types.ts`](../../../packages/2-mongo-family/6-transport/mongo-lowering/src/adapter-types.ts)); the target-owned implementation lives in [`@prisma-next/adapter-mongo`](../../../packages/3-mongo-target/2-mongo-adapter/). |
+| Two-phase lowering API | `lowerToDraft` / `encodeDraftParams` are **private** methods on `SqlRuntime` ([`packages/2-sql/5-runtime/src/sql-runtime.ts`](../../../packages/2-sql/5-runtime/src/sql-runtime.ts)); lowering walks the SQL adapter inside the runtime package. | `structuralLower` / `resolveParams` are **public** methods on the `MongoAdapter` SPI ([`packages/2-mongo-family/6-transport/mongo-lowering/src/adapter-types.ts`](../../../packages/2-mongo-family/6-transport/mongo-lowering/src/adapter-types.ts)); the target-owned implementation lives in [`@internal/adapter-mongo`](../../../packages/3-mongo-target/2-mongo-adapter/). |
 | Param mutator home | `SqlParamRefMutator` in [`packages/2-sql/4-lanes/relational-core`](../../../packages/2-sql/4-lanes/relational-core) (middleware module), composed by the SQL runtime. | `MongoParamRefMutator` in [`packages/2-mongo-family/7-runtime`](../../../packages/2-mongo-family/7-runtime/src/param-ref-mutator.ts) alongside `MongoMiddleware`, because Mongo has no `relational-core`-equivalent lanes layer — the runtime is the first layer that composes middleware and execute. |
 | Pre-resolve draft type | Reuses `SqlExecutionPlan` for both the pre-encode draft and the post-encode exec (params slot mutates; same interface type). | Introduces a distinct `MongoLoweredDraft` union (not a wire command) for phase 1; `MongoExecutionPlan.command` is typed as `AnyMongoWireCommand` but holds the draft only during `beforeExecute` ([`mongo-execution-plan.ts`](../../../packages/2-mongo-family/7-runtime/src/mongo-execution-plan.ts)). Mongo's typology is the stricter, preferable shape: phase 1 cannot be mistaken for a driver-ready command at the type level. |
 
-**Why the phase API is public on Mongo but private on SQL.** SQL structural lowering and param encoding are orchestrated entirely inside `@prisma-next/sql-runtime` against the generic SQL `Adapter` surface. Mongo lowering is target-owned: the runtime invokes `MongoAdapter` on the execution stack, and the two-phase contract must be auditable at the adapter SPI so implementors (`adapter-mongo`) and reviewers can see exactly where `MongoParamRef` resolution is deferred relative to middleware. Exposing `structuralLower` / `resolveParams` on the SPI documents that contract; hiding them inside the runtime would obscure the target boundary.
+**Why the phase API is public on Mongo but private on SQL.** SQL structural lowering and param encoding are orchestrated entirely inside `@internal/sql-runtime` against the generic SQL `Adapter` surface. Mongo lowering is target-owned: the runtime invokes `MongoAdapter` on the execution stack, and the two-phase contract must be auditable at the adapter SPI so implementors (`adapter-mongo`) and reviewers can see exactly where `MongoParamRef` resolution is deferred relative to middleware. Exposing `structuralLower` / `resolveParams` on the SPI documents that contract; hiding them inside the runtime would obscure the target boundary.
 
 **Convenience `lower`.** `MongoAdapter.lower` remains the one-shot `resolveParams(structuralLower(plan))` for callers that do not need the split; production execute uses the split explicitly.
 
@@ -182,5 +182,5 @@ The SQL and Mongo stacks differ in *where* the two lowering phases and the param
 - [ADR 207 — Codec call context per-query AbortSignal and column metadata](./ADR%20207%20-%20Codec%20call%20context%20per-query%20AbortSignal%20and%20column%20metadata.md) — the per-query `AbortSignal` and `SqlCodecCallContext` shape threaded through `runBeforeExecuteChain`.
 - [ADR 214 — Extension operator surface: namespaced replacement operators and the predicate/helper split](./ADR%20214%20-%20Extension%20operator%20surface%20namespaced%20replacement%20operators.md) — the cipherstash operator surface that depends on this lifecycle ordering at execute time.
 - [ADR 213 — Codec lifecycle hooks](./ADR%20213%20-%20Codec%20lifecycle%20hooks.md) — the plan-time analogue of this ADR's runtime hook.
-- [`@prisma-next/mongo-lowering`](../../../packages/2-mongo-family/6-transport/mongo-lowering/) — `MongoAdapter` two-phase SPI (`structuralLower` / `resolveParams`).
-- [`@prisma-next/mongo-runtime`](../../../packages/2-mongo-family/7-runtime/) — Mongo execute wiring and `MongoParamRefMutator` ([TML-2376](https://linear.app/prisma-company/issue/TML-2376)).
+- [`@internal/mongo-lowering`](../../../packages/2-mongo-family/6-transport/mongo-lowering/) — `MongoAdapter` two-phase SPI (`structuralLower` / `resolveParams`).
+- [`@internal/mongo-runtime`](../../../packages/2-mongo-family/7-runtime/) — Mongo execute wiring and `MongoParamRefMutator` ([TML-2376](https://linear.app/prisma-company/issue/TML-2376)).

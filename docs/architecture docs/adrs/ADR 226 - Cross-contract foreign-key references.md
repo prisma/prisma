@@ -76,7 +76,7 @@ A cross-space FK is authored with the *same* calls as a local one — `rel.belon
 What distinguishes the two is the model handle being referenced. An extension exports its model handles from its `/contract` subpath, branded with the extension's space id:
 
 ```ts
-import { AuthUser } from '@prisma-next/extension-supabase/contract';
+import { AuthUser } from '@internal/extension-supabase/contract';
 // rel.belongsTo(AuthUser, ...) — AuthUser's brand carries spaceId 'supabase'
 ```
 

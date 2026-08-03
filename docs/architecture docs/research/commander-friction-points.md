@@ -1,7 +1,7 @@
-# Commander.js friction points in `@prisma-next/cli`
+# Commander.js friction points in `@internal/cli`
 
 Snapshot: 2026-04-30. This is a durable artifact intended to guide a later
-replacement of CommanderJS in `@prisma-next/cli`. It catalogues the concrete
+replacement of CommanderJS in `@internal/cli`. It catalogues the concrete
 places where the current code fights Commander's defaults, with citations
 into the codebase as it stands today, and explains *why* each workaround
 exists. It is not an opinion piece — every claim is grounded in a code
@@ -406,7 +406,7 @@ CLI surface, single file, exact-version-pinned) the trade is
 acceptable: blast radius is bounded, and ripping clipanion out and
 replacing it is roughly a half-day's work if the maintenance situation
 ever blocks us. For a larger surface (e.g. a future Commander
-replacement in `@prisma-next/cli`), the same trade is more
+replacement in `@internal/cli`), the same trade is more
 load-bearing — re-evaluate criterion 10 against the candidate set
 before adopting clipanion at that scope.
 

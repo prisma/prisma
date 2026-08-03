@@ -163,7 +163,7 @@
           "import": {
             "alias": "ParadeDbQueryOperationTypes",
             "named": "QueryOperationTypes",
-            "package": "@prisma-next/extension-paradedb/operation-types"
+            "package": "@internal/extension-paradedb/operation-types"
           }
         }
       },

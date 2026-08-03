@@ -1,4 +1,4 @@
-import type { MongoIndexKey, MongoIndexKeyDirection } from '@prisma-next/mongo-contract';
+import type { MongoIndexKey, MongoIndexKeyDirection } from '@internal/mongo-contract';
 
 export function buildIndexOpId(
   verb: 'create' | 'drop',

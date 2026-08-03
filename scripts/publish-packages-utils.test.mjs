@@ -7,7 +7,7 @@ describe('classifyPublishResult', () => {
   it('treats exit 0 as ok and not already-published', () => {
     const result = classifyPublishResult({
       code: 0,
-      output: '+ @prisma-next/contract@0.9.0',
+      output: '+ @internal/contract@0.9.0',
     });
     assert.deepEqual(result, { ok: true, alreadyPublished: false });
   });
@@ -16,7 +16,7 @@ describe('classifyPublishResult', () => {
     const result = classifyPublishResult({
       code: 1,
       output: [
-        'npm notice 📦  @prisma-next/middleware-cache@0.9.0',
+        'npm notice 📦  @internal/middleware-cache@0.9.0',
         'npm error You cannot publish over the previously published versions: 0.9.0.',
         'npm error A complete log of this run can be found in: ...',
       ].join('\n'),

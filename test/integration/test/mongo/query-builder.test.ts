@@ -1,9 +1,9 @@
-import { crossRef, type NamespaceId } from '@prisma-next/contract/types';
+import { crossRef, type NamespaceId } from '@internal/contract/types';
 import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoTypeMaps,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import {
   MongoAggAccumulator,
   MongoAggCond,
@@ -17,8 +17,8 @@ import {
   type MongoQueryPlan,
   MongoRedactStage,
   MongoSortStage,
-} from '@prisma-next/mongo-query-ast/execution';
-import { acc, fn, mongoQuery } from '@prisma-next/mongo-query-builder';
+} from '@internal/mongo-query-ast/execution';
+import { acc, fn, mongoQuery } from '@internal/mongo-query-builder';
 import { describe, expect, it } from 'vitest';
 import { describeWithMongoDB } from './setup';
 

@@ -1,9 +1,5 @@
-import { coreHash } from '@prisma-next/contract/types';
-import {
-  freezeNode,
-  NamespaceBase,
-  UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
+import { coreHash } from '@internal/contract/types';
+import { freezeNode, NamespaceBase, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { buildMongoNamespace } from '../src/ir/build-mongo-namespace';
 import { MongoCollection } from '../src/ir/mongo-collection';

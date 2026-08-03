@@ -14,7 +14,7 @@
  * op-factory-call.lowering.test.ts.
  */
 
-import { col, lit, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
+import { col, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
 import {
   AddColumnCall,
   AddForeignKeyCall,
@@ -35,8 +35,8 @@ import {
   RawSqlCall,
   SetDefaultCall,
   SetNotNullCall,
-} from '@prisma-next/target-postgres/op-factory-call';
-import { renderCallsToTypeScript } from '@prisma-next/target-postgres/render-typescript';
+} from '@internal/target-postgres/op-factory-call';
+import { renderCallsToTypeScript } from '@internal/target-postgres/render-typescript';
 import { describe, expect, it } from 'vitest';
 
 const SNAPSHOTS_IMPORT_PATH = '../../snapshots';
@@ -99,13 +99,13 @@ describe('Postgres call classes - renderTypeScript + importRequirements', () => 
       ].join('\n'),
     );
     expect(call.importRequirements()).toEqual([
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'placeholder' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'placeholder' },
     ]);
   });
 });
 
 describe('Postgres call classes - per-class renderTypeScript coverage', () => {
-  const migrationModule = '@prisma-next/postgres/migration';
+  const migrationModule = '@internal/postgres/migration';
   const expectFactoryImport = (
     call: { importRequirements(): readonly unknown[] },
     symbol: string,
@@ -121,7 +121,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
       'this.createTable({ schema: "public", table: "user", columns: [col("id", "text", { notNull: true })] })',
     );
     expect(withoutConstraints.importRequirements()).toEqual([
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'col' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'col' },
     ]);
 
     const withPk = new CreateTableCall(
@@ -134,8 +134,8 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
       'this.createTable({ schema: "public", table: "user", columns: [col("id", "text", { notNull: true })], constraints: [primaryKey(["id"])] })',
     );
     expect(withPk.importRequirements()).toEqual([
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'col' },
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'primaryKey' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'col' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'primaryKey' },
     ]);
   });
 
@@ -151,8 +151,8 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
       col('id', 'integer', { notNull: true, default: lit(0) }),
     ]);
     expect(call.importRequirements()).toEqual([
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'col' },
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'lit' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'col' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'lit' },
     ]);
   });
 
@@ -377,9 +377,9 @@ describe('renderCallsToTypeScript', () => {
     // builder arg to this.addColumn/this.createTable needs a bare import.
     const targetPostgresImports = source
       .split('\n')
-      .filter((line) => line.includes("from '@prisma-next/postgres/migration';"));
+      .filter((line) => line.includes("from '@internal/postgres/migration';"));
     expect(targetPostgresImports).toEqual([
-      "import { Migration, MigrationCLI, col } from '@prisma-next/postgres/migration';",
+      "import { Migration, MigrationCLI, col } from '@internal/postgres/migration';",
     ]);
     expect(source).toContain('this.createTable(');
     expect(source).toContain('this.addColumn(');
@@ -398,7 +398,7 @@ describe('renderCallsToTypeScript', () => {
     // as `this.dataTransform(...)` so `PostgresMigration` can inject the
     // control adapter.
     expect(source).toContain(
-      "import { Migration, MigrationCLI, placeholder } from '@prisma-next/postgres/migration';",
+      "import { Migration, MigrationCLI, placeholder } from '@internal/postgres/migration';",
     );
     expect(source).toContain(
       `import endContract from '${SNAPSHOTS_IMPORT_PATH}/${TO_HEX}/contract.json' with { type: "json" };`,
@@ -430,7 +430,7 @@ describe('renderCallsToTypeScript', () => {
     expect(source).toContain('override readonly startContractJson = startContract;');
     expect(source).toContain('override readonly endContractJson = endContract;');
     expect(source).toContain(
-      "import { Migration, MigrationCLI } from '@prisma-next/postgres/migration';",
+      "import { Migration, MigrationCLI } from '@internal/postgres/migration';",
     );
     expect(source).toContain('MigrationCLI.run(import.meta.url, M);');
   });

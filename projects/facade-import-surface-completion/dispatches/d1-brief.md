@@ -2,7 +2,7 @@
 
 ## Context (≤ 1 paragraph)
 
-You are working on the **`facade-completion`** slice of the **`facade-import-surface-completion`** project. The project's purpose: close the gaps that force users of `@prisma-next/postgres` to reach into internal `@prisma-next/target-postgres/*`, `@prisma-next/family-sql/*`, `@prisma-next/sql-*`, `@prisma-next/cli/*` packages. This is D1 — the first dispatch. No prior dispatches have landed; the workspace is at HEAD of branch `tml-2526-facades-must-re-export-everything-users-import-in-their-app`.
+You are working on the **`facade-completion`** slice of the **`facade-import-surface-completion`** project. The project's purpose: close the gaps that force users of `@internal/postgres` to reach into internal `@internal/target-postgres/*`, `@internal/family-sql/*`, `@internal/sql-*`, `@internal/cli/*` packages. This is D1 — the first dispatch. No prior dispatches have landed; the workspace is at HEAD of branch `tml-2526-facades-must-re-export-everything-users-import-in-their-app`.
 
 ## Inputs (read these first)
 
@@ -20,21 +20,21 @@ You are working on the **`facade-completion`** slice of the **`facade-import-sur
 
 ## Intent (1–3 sentences)
 
-Add two surface additions to `@prisma-next/postgres` only:
+Add two surface additions to `@internal/postgres` only:
 
-1. **`@prisma-next/postgres/migration`** — a re-export of `@prisma-next/target-postgres/migration` (one-line `export *`).
-2. **Wrap `defineContract`** exposed at `@prisma-next/postgres/contract-builder` so it pre-binds `family: sqlFamily` + `target: postgresPack` internally and drops both from the input scaffold's type. Users writing a Postgres contract should write `defineContract({ extensionPacks, ... })` (or `defineContract(scaffold, factory)`) — never pass `family`/`target` again.
+1. **`@internal/postgres/migration`** — a re-export of `@internal/target-postgres/migration` (one-line `export *`).
+2. **Wrap `defineContract`** exposed at `@internal/postgres/contract-builder` so it pre-binds `family: sqlFamily` + `target: postgresPack` internally and drops both from the input scaffold's type. Users writing a Postgres contract should write `defineContract({ extensionPacks, ... })` (or `defineContract(scaffold, factory)`) — never pass `family`/`target` again.
 
-**What stays the same:** every other re-export from `@prisma-next/postgres/contract-builder` (`field`, `model`, `rel`, all type re-exports). Other façade subpaths. The renderer (D4 owns that flip). Anything in `packages/3-targets/`, `packages/2-sql/`, `packages/1-framework/`, `examples/`. The renderer continues to emit `@prisma-next/target-postgres/migration` for now — the `/migration` re-export is additive; the renderer flip is D4.
+**What stays the same:** every other re-export from `@internal/postgres/contract-builder` (`field`, `model`, `rel`, all type re-exports). Other façade subpaths. The renderer (D4 owns that flip). Anything in `packages/3-targets/`, `packages/2-sql/`, `packages/1-framework/`, `examples/`. The renderer continues to emit `@internal/target-postgres/migration` for now — the `/migration` re-export is additive; the renderer flip is D4.
 
 ## Files in play
 
 **New files:**
 
-- `packages/3-extensions/postgres/src/exports/migration.ts` — one-line `export * from '@prisma-next/target-postgres/migration';` (mirror `packages/3-extensions/postgres/src/exports/family.ts` for file shape if present, otherwise minimal).
+- `packages/3-extensions/postgres/src/exports/migration.ts` — one-line `export * from '@internal/target-postgres/migration';` (mirror `packages/3-extensions/postgres/src/exports/family.ts` for file shape if present, otherwise minimal).
 - `packages/3-extensions/postgres/src/contract/define-contract.ts` — new directory + file. Wrapped `defineContract` that:
-  - Imports `sqlFamily` from `@prisma-next/family-sql/pack` (default export) and `postgresPack` from `@prisma-next/target-postgres/pack` (default export).
-  - Imports `defineContract as baseDefineContract` from `@prisma-next/sql-contract-ts/contract-builder`.
+  - Imports `sqlFamily` from `@internal/family-sql/pack` (default export) and `postgresPack` from `@internal/target-postgres/pack` (default export).
+  - Imports `defineContract as baseDefineContract` from `@internal/sql-contract-ts/contract-builder`.
   - Re-implements the three-overload signature from `packages/2-sql/2-authoring/contract-ts/src/contract-builder.ts` L162–L290 with `Family` and `Target` generics fixed to `typeof sqlFamily` and `typeof postgresPack` (drop them from the input `ContractDefinition` / `ContractScaffold` type via `Omit<..., 'family' | 'target'>` so users cannot accidentally pass them).
   - Calls `baseDefineContract({ family: sqlFamily, target: postgresPack, ...scaffold }, factory?)`.
 - `packages/3-extensions/postgres/test/migration/re-export.test.ts` — named-export parity test (see "Test design" below).
@@ -42,9 +42,9 @@ Add two surface additions to `@prisma-next/postgres` only:
 
 **Modified files:**
 
-- `packages/3-extensions/postgres/src/exports/contract-builder.ts` — change the line that re-exports `defineContract` from `@prisma-next/sql-contract-ts/contract-builder`. Replace it with `export { defineContract } from '../contract/define-contract';`. Keep every other re-export untouched (`field`, `model`, `rel`, `buildSqlContractFromDefinition`, all the `type` re-exports).
+- `packages/3-extensions/postgres/src/exports/contract-builder.ts` — change the line that re-exports `defineContract` from `@internal/sql-contract-ts/contract-builder`. Replace it with `export { defineContract } from '../contract/define-contract';`. Keep every other re-export untouched (`field`, `model`, `rel`, `buildSqlContractFromDefinition`, all the `type` re-exports).
 - `packages/3-extensions/postgres/package.json` — add `"./migration": "./dist/migration.mjs"` to the `exports` map (mirror the alphabetical placement of the existing `"./contract-builder"`, `"./control"`, etc. entries).
-- `packages/3-extensions/postgres/README.md` — add `### @prisma-next/postgres/migration` section to the "Exports" list; update the `### @prisma-next/postgres/contract-builder` section's example to show the new no-family/target shape.
+- `packages/3-extensions/postgres/README.md` — add `### @internal/postgres/migration` section to the "Exports" list; update the `### @internal/postgres/contract-builder` section's example to show the new no-family/target shape.
 - `architecture.config.json` — add a single entry for `packages/3-extensions/postgres/src/exports/migration.ts`. Mirror the existing `packages/3-extensions/postgres/src/exports/contract-builder.ts` entry's `domain`/`layer`/`plane` triplet. (Inspect that entry to confirm; do not guess.)
 
 **Out of scope for D1 (do not touch):**
@@ -61,8 +61,8 @@ Add two surface additions to `@prisma-next/postgres` only:
 
 `packages/3-extensions/postgres/test/migration/re-export.test.ts`:
 
-- Import all named exports from `@prisma-next/target-postgres/migration` (via a wildcard import or by enumerating the known surface from `packages/3-targets/3-targets/postgres/src/exports/migration.ts`).
-- Import all named exports from `@prisma-next/postgres/migration`.
+- Import all named exports from `@internal/target-postgres/migration` (via a wildcard import or by enumerating the known surface from `packages/3-targets/3-targets/postgres/src/exports/migration.ts`).
+- Import all named exports from `@internal/postgres/migration`.
 - Assert the two surfaces have the same named exports (use `Object.keys(...).sort()` equality or enumerate every expected symbol explicitly — judgment call; explicit enumeration is more failure-mode-friendly).
 - At minimum, assert that `Migration`, `MigrationCLI`, `placeholder`, `dataTransform`, `createTable`, `addColumn`, `dropTable`, `rawSql`, `setNotNull`, `createIndex`, `installExtension` are re-exported (sample the known surface — these are the ones the planner and extension-pack migrations use).
 
@@ -85,19 +85,19 @@ Add two surface additions to `@prisma-next/postgres` only:
 
 Run only **once** at end-of-round (per implementer protocol § Test execution discipline). During iteration, run only the test files you're actively editing.
 
-- [ ] `pnpm build --filter @prisma-next/postgres` — clean.
-- [ ] `pnpm typecheck --filter @prisma-next/postgres` — clean.
-- [ ] `pnpm test:packages --filter @prisma-next/postgres` — clean. New parity + wrap-shape tests pass.
+- [ ] `pnpm build --filter @internal/postgres` — clean.
+- [ ] `pnpm typecheck --filter @internal/postgres` — clean.
+- [ ] `pnpm test:packages --filter @internal/postgres` — clean. New parity + wrap-shape tests pass.
 - [ ] `pnpm lint:deps` — clean. Validates the new `architecture.config.json` entry.
 - [ ] **Cross-package typecheck sanity (because D1 changes a public type — the wrapped `defineContract`'s signature):** `pnpm typecheck` workspace-wide. Should be clean — the verbose form still works at runtime (we're only narrowing the input *type* on the wrap; existing callers passing `{ family, target, ... }` will fail TS and that's the point). Surface any breakage to orchestrator.
-- [ ] **Grep gate:** `rg "@prisma-next/postgres/migration" packages/3-extensions/postgres/` returns at least 2 hits (the new export file + the new test file + the new README section).
-- [ ] **Grep gate:** the new wrapped `defineContract` doesn't accidentally re-export the base one. `rg "from '@prisma-next/sql-contract-ts/contract-builder'" packages/3-extensions/postgres/src/exports/contract-builder.ts` should NOT include `defineContract` in the named imports.
+- [ ] **Grep gate:** `rg "@internal/postgres/migration" packages/3-extensions/postgres/` returns at least 2 hits (the new export file + the new test file + the new README section).
+- [ ] **Grep gate:** the new wrapped `defineContract` doesn't accidentally re-export the base one. `rg "from '@internal/sql-contract-ts/contract-builder'" packages/3-extensions/postgres/src/exports/contract-builder.ts` should NOT include `defineContract` in the named imports.
 - [ ] **Transient ID gate (run before declaring done):** the script from `agents/implementer.md § No transient project IDs in code` against your `+` diff returns empty.
 - [ ] **Intent-validation (orchestrator-applied):** diff matches "Postgres `/migration` re-export + contract-builder wrap"; no out-of-scope surfaces touched.
 
 ## Edge cases (from slice spec; D1's portion)
 
-- **Existing user-authored `migration.ts` files in user repos still import `@prisma-next/target-postgres/migration`.** Disposition: the `target-postgres/migration` export stays in place forever (this is NFR2). The parity test catches drift if any target export drops out.
+- **Existing user-authored `migration.ts` files in user repos still import `@internal/target-postgres/migration`.** Disposition: the `target-postgres/migration` export stays in place forever (this is NFR2). The parity test catches drift if any target export drops out.
 - **Mongo + SQLite façades not yet wrapped.** Disposition: D1 doesn't touch them. The wrap is per-facade.
 - **Destructive git operations forbidden.** Disposition: F5 above. No `git clean -f*`, etc.
 

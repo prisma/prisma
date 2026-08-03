@@ -2,9 +2,9 @@ import type {
   AnnotationValue,
   OperationKind,
   ValidAnnotations,
-} from '@prisma-next/framework-components/runtime';
-import { assertAnnotationsApplicable } from '@prisma-next/framework-components/runtime';
-import type { StorageTable } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/runtime';
+import { assertAnnotationsApplicable } from '@internal/framework-components/runtime';
+import type { StorageTable } from '@internal/sql-contract/types';
 import {
   type AnyExpression as AstExpression,
   ColumnRef,
@@ -14,11 +14,11 @@ import {
   ProjectionItem,
   type TableSource,
   UpdateAst,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import type { MutationDefaultsOp } from '@prisma-next/sql-relational-core/query-lane-context';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { MutationDefaultsOp } from '@internal/sql-relational-core/query-lane-context';
+import { ifDefined } from '@internal/utils/defined';
+import { structuredError } from '@internal/utils/structured-error';
 import type { Expression, ExpressionBuilder } from '../expression';
 import type { ResolveRow } from '../resolve';
 import type { QueryContext, Scope, ScopeField } from '../scope';

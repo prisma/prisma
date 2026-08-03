@@ -1,4 +1,4 @@
-# @prisma-next/target-mongo
+# @internal/target-mongo
 
 MongoDB target pack for Prisma Next.
 
@@ -11,9 +11,9 @@ MongoDB target pack for Prisma Next.
 
 ## Entrypoints
 
-- `./pack`: pure target pack ref used by `@prisma-next/family-mongo` and `@prisma-next/mongo-contract-ts`
+- `./pack`: pure target pack ref used by `@internal/family-mongo` and `@internal/mongo-contract-ts`
 - `./codec-types`: base Mongo codec type map
-- `./migration`: factory functions (the `Migration` base class is in `@prisma-next/family-mongo/migration`)
+- `./migration`: factory functions (the `Migration` base class is in `@internal/family-mongo/migration`)
 - `./control`: `MongoMigrationRunner` and `createMongoRunnerDeps` for runtime migration execution
 - `./schema-verify`: pure `verifyMongoSchema(...)` (no DB I/O); composes `contractToMongoSchemaIR` and `diffMongoSchemas` so the runner's post-apply verify step and `MongoFamilyInstance.schemaVerify` agree on "matches the contract" by construction
 
@@ -22,9 +22,9 @@ MongoDB target pack for Prisma Next.
 ### Contract definition
 
 ```typescript
-import mongoFamily from '@prisma-next/family-mongo/pack';
-import { defineContract } from '@prisma-next/mongo-contract-ts/contract-builder';
-import mongoTarget from '@prisma-next/target-mongo/pack';
+import mongoFamily from '@internal/family-mongo/pack';
+import { defineContract } from '@internal/mongo-contract-ts/contract-builder';
+import mongoTarget from '@internal/target-mongo/pack';
 
 const contract = defineContract({
   family: mongoFamily,
@@ -35,9 +35,9 @@ const contract = defineContract({
 ### Migration authoring
 
 ```typescript
-import { MigrationCLI } from '@prisma-next/cli/migration-cli';
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { createIndex, createCollection } from '@prisma-next/target-mongo/migration';
+import { MigrationCLI } from '@internal/cli/migration-cli';
+import { Migration } from '@internal/family-mongo/migration';
+import { createIndex, createCollection } from '@internal/target-mongo/migration';
 
 class UsersMigration extends Migration {
   plan() {

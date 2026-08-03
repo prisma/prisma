@@ -2,8 +2,8 @@ import {
   type AuthoringPslBlockDescriptor,
   type AuthoringPslBlockDescriptorNamespace,
   isAuthoringPslBlockDescriptor,
-} from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
@@ -12,7 +12,7 @@ import {
   type PslSpan,
   UNSPECIFIED_PSL_NAMESPACE_ID,
   validateExtensionBlock,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import type { SourceFile } from './source-file';
 import type { BlockSymbol, ModelSymbol, SymbolTable } from './symbol-table';
 

@@ -11,7 +11,7 @@ The framework codec layering documented here mirrors PR #400's family-extension 
 A user authors one line of TypeScript:
 
 ```ts
-import { vector } from '@prisma-next/extension-pgvector/column-types';
+import { vector } from '@internal/extension-pgvector/column-types';
 
 const Document = model('Document', {
   fields: {
@@ -33,7 +33,7 @@ Before this ADR, each parameterized codec encoded its parameter relationship in 
 Every codec is described by a single descriptor type. The consumer surface is the `CodecDescriptor<P>` interface; codec authors extend the abstract class `CodecDescriptorImpl<P>`:
 
 ```ts
-// Consumer surface (interface, in @prisma-next/framework-components/codec)
+// Consumer surface (interface, in @internal/framework-components/codec)
 export interface CodecDescriptor<P = void> {
   readonly codecId: string;
   readonly traits: readonly CodecTrait[];
@@ -155,7 +155,7 @@ The same `vector(1536)` participates in four code paths. Each reads a different 
 
 ### 2. No-emit type resolution
 
-`@prisma-next/sql-contract-ts`'s `FieldOutputType<Definition, Model, Field>` follows `typeRef` through `storage.types`, then synthetically applies `CodecInstanceContext` to the column's `type` slot at the type level and reads the `Js` parameter off the resulting `Codec<…, Js>`. For `vector(1536)`, this produces `Vector<1536>` (literal `N` preserved through curried application). For non-parameterized columns (no `type` slot), it falls back to `CodecTypes[codecId]['output']`. Nullability is reattached uniformly.
+`@internal/sql-contract-ts`'s `FieldOutputType<Definition, Model, Field>` follows `typeRef` through `storage.types`, then synthetically applies `CodecInstanceContext` to the column's `type` slot at the type level and reads the `Js` parameter off the resulting `Codec<…, Js>`. For `vector(1536)`, this produces `Vector<1536>` (literal `N` preserved through curried application). For non-parameterized columns (no `type` slot), it falls back to `CodecTypes[codecId]['output']`. Nullability is reattached uniformly.
 
 ### 3. Emit-path rendering
 
@@ -212,7 +212,7 @@ Both problems share a root cause: the type-level facts about a parameterized col
 
 ### Per-library JSON extensions
 
-`@prisma-next/extension-arktype-json` ships `arktypeJson(schema)`. The codec id (`arktype/json@1`) is library-bound, not target-bound. The factory eagerly serializes `schema.expression` (TypeScript-source-like rendering) and `schema.json` (arktype's internal IR) into `typeParams` at the column-author site; the descriptor's factory rehydrates via `ark.schema(typeParams.jsonIr)`, fails fast if the rehydrated expression diverges, and validates internally in `decode`. The no-emit resolver and emit-path renderer read the factory return type / `expression` so `contract.d.ts` carries the schema's source-like rendering with full fidelity.
+`@internal/extension-arktype-json` ships `arktypeJson(schema)`. The codec id (`arktype/json@1`) is library-bound, not target-bound. The factory eagerly serializes `schema.expression` (TypeScript-source-like rendering) and `schema.json` (arktype's internal IR) into `typeParams` at the column-author site; the descriptor's factory rehydrates via `ark.schema(typeParams.jsonIr)`, fails fast if the rehydrated expression diverges, and validates internally in `decode`. The no-emit resolver and emit-path renderer read the factory return type / `expression` so `contract.d.ts` carries the schema's source-like rendering with full fidelity.
 
 The postgres adapter retains only the non-parameterized raw-JSON / raw-JSONB codecs (`pg/json@1`, `pg/jsonb@1`) — schema-typed JSON columns ship from extension packages. Future per-library extensions (`zod/json@1`, `valibot/json@1`) follow the same pattern when each library has a clean serialize / rehydrate story.
 
@@ -245,7 +245,7 @@ The legacy `defineCodec({...})` factory and the family-side `mkCodec({...})` ins
 - [ADR 212 — AST-bound codec resolution](ADR%20212%20-%20AST-bound%20codec%20resolution.md). Supersedes this ADR's `ParamRef.refs`-based dispatch (§ "Trade-offs") with `CodecRef`-based dispatch; dissolves eight runtime heuristics.
 - [ADR 184 — Codec-owned value serialization](ADR%20184%20-%20Codec-owned%20value%20serialization.md). Established the pattern of codecs owning their representations.
 - [ADR 171 — Parameterized native types in contracts](ADR%20171%20-%20Parameterized%20native%20types%20in%20contracts.md). Established `typeParams` on storage columns.
-- [ADR 168 — Postgres JSON and JSONB typed columns](ADR%20168%20-%20Postgres%20JSON%20and%20JSONB%20typed%20columns.md). Introduced typed JSON columns with Standard Schema. Per-library extensions (`@prisma-next/extension-arktype-json`) now own the typed JSON column shape.
+- [ADR 168 — Postgres JSON and JSONB typed columns](ADR%20168%20-%20Postgres%20JSON%20and%20JSONB%20typed%20columns.md). Introduced typed JSON columns with Standard Schema. Per-library extensions (`@internal/extension-arktype-json`) now own the typed JSON column shape.
 - [ADR 202 — Codec trait system](ADR%20202%20-%20Codec%20trait%20system.md). The trait system. The `'json-validator'` trait was a transitional gate for the now-deleted `JsonSchemaValidatorRegistry`; both the trait and the registry were retired — JSON-Schema validation lives uniformly inside the resolved codec's `decode` body.
 
 ## Future work

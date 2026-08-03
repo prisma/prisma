@@ -1,4 +1,4 @@
-import type { IntrospectSchemaResult } from '@prisma-next/framework-components/control';
+import type { IntrospectSchemaResult } from '@internal/framework-components/control';
 import { Command } from 'commander';
 import {
   addGlobalOptions,

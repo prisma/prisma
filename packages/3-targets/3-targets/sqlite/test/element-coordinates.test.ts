@@ -1,10 +1,10 @@
-import { coreHash } from '@prisma-next/contract/types';
+import { coreHash } from '@internal/contract/types';
 import {
   elementCoordinates,
   entityAt,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { SqliteDatabase, SqliteUnboundDatabase } from '../src/core/sqlite-unbound-database';
 

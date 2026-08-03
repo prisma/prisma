@@ -1,5 +1,5 @@
-import type { StorageHashBase } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { StorageHashBase } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { expectTypeOf, test } from 'vitest';
 import { type SqlNamespace, SqlStorage } from '../src/ir/sql-storage';
 import { createTestSqlNamespace } from './test-support';

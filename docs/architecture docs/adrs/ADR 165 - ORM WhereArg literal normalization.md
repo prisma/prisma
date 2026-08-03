@@ -16,7 +16,7 @@ Where:
   - `params`: the values to bind to those placeholders
   - `paramDescriptors`: metadata about those params (source, type hints, etc.)
 
-Today, `@prisma-next/sql-orm-client` stores its internal filters as **parameter-free** AST fragments. That makes filter composition predictable (merge `and/or/exists`, reuse filters across operations, etc.).
+Today, `@internal/sql-orm-client` stores its internal filters as **parameter-free** AST fragments. That makes filter composition predictable (merge `and/or/exists`, reuse filters across operations, etc.).
 
 ## Problem
 

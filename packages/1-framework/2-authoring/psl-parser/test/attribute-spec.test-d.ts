@@ -1,5 +1,5 @@
-import type { PslDiagnostic } from '@prisma-next/framework-components/psl-ast';
-import { ok, type Result } from '@prisma-next/utils/result';
+import type { PslDiagnostic } from '@internal/framework-components/psl-ast';
+import { ok, type Result } from '@internal/utils/result';
 import { expectTypeOf, test } from 'vitest';
 import type { ArgType, InferAttr } from '../src/exports';
 import { fieldAttribute, modelAttribute, optional } from '../src/exports';

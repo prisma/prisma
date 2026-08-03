@@ -1,4 +1,4 @@
-import { coordinateKey, elementCoordinates } from '@prisma-next/framework-components/ir';
+import { coordinateKey, elementCoordinates } from '@internal/framework-components/ir';
 import { EMPTY_CONTRACT_HASH } from '../constants';
 import { MigrationToolsError } from '../errors';
 import type {

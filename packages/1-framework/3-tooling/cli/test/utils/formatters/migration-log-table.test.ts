@@ -1,4 +1,4 @@
-import type { LedgerEntryRecord } from '@prisma-next/contract/types';
+import type { LedgerEntryRecord } from '@internal/contract/types';
 import { bold, cyan, cyanBright, dim } from 'colorette';
 import stringWidth from 'string-width';
 import { describe, expect, it } from 'vitest';

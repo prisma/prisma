@@ -22,7 +22,7 @@ git diff 485d437978ba2b558e273a84c42e811cde1a9e97 034ac56fc1f54f302846f9e9e19980
 ## What the known-good solution did
 
 The duplication had a single root cause: **two independent import renderers**. The migration
-renderers used `renderImports` in `@prisma-next/ts-render`, which aggregates all named imports
+renderers used `renderImports` in `@internal/ts-render`, which aggregates all named imports
 for a module onto one statement (correct); the emitter used its own `generateImportLines`,
 which emitted one line per import spec with no per-module aggregation (the bug).
 

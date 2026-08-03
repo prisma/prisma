@@ -7,7 +7,7 @@
  * - The `CodecTypes` *materialisation* (the `Resolve<...>` application) must still happen at the public boundary so tsdown's DTS bundler resolves consumer-side `pack.d.mts` references via the public entry point rather than a hash-named internal chunk (the `TS2742` family). `exports/codec-types.ts` re-exports `CodecTypes` from here as a type alias, which preserves the materialisation site at the public surface.
  */
 
-import type { ExtractCodecTypes } from '@prisma-next/sql-relational-core/ast';
+import type { ExtractCodecTypes } from '@internal/sql-relational-core/ast';
 import {
   pgBitDescriptor,
   pgBoolDescriptor,

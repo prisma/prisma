@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Codec } from './codec';
 import type { AnyCodecDescriptor } from './codec-descriptor';
@@ -29,7 +29,7 @@ export interface CodecRef {
  *
  * - `signal?: AbortSignal` — per-query cancellation. The runtime returns a `RUNTIME.ABORTED` envelope when the signal aborts; codec authors who forward `signal` to their underlying SDK get true cancellation of in-flight network calls.
  *
- * Family layers extend this base with their own shape-of-call metadata: the SQL family adds `column?: SqlColumnRef` via `SqlCodecCallContext` (see `@prisma-next/sql-relational-core`). Mongo currently uses this framework type unchanged. Column metadata is intentionally **not** on the framework type — it is a SQL-family concept rooted in SQL's `(table, column)` addressing model and would not generalise to other families.
+ * Family layers extend this base with their own shape-of-call metadata: the SQL family adds `column?: SqlColumnRef` via `SqlCodecCallContext` (see `@internal/sql-relational-core`). Mongo currently uses this framework type unchanged. Column metadata is intentionally **not** on the framework type — it is a SQL-family concept rooted in SQL's `(table, column)` addressing model and would not generalise to other families.
  *
  * The interface is named explicitly (not inlined) so future framework fields and family extensions can land additively without breaking codec author signatures.
  */
@@ -97,7 +97,7 @@ export const emptyCodecLookup: CodecLookup = {
  *
  * - `name` — the family-agnostic instance identity. For SQL, the runtime populates this as the `storage.types` instance name (e.g. `Embedding1536`) for typeRef-shaped columns, an inline-column sentinel (`<col:Document.embedding>`) for inline-`typeParams` columns, a shared codec-id sentinel (`<codec:pg/text@1>`) for non-parameterized codec ids, or the canonical cache key (`<codecId>:<canonicalizeJson(typeParams)>`) for ad-hoc refs the contract walk did not pre-populate. Other families pick the analogous identity for their materialization sites.
  *
- * Family-specific extensions (e.g. {@link import('@prisma-next/sql-relational-core/ast').SqlCodecInstanceContext} in the SQL layer) augment this base with domain-shaped column-set metadata. Codec authors target the base when they don't read family-specific metadata; they target the family extension when they do.
+ * Family-specific extensions (e.g. {@link import('@internal/sql-relational-core/ast').SqlCodecInstanceContext} in the SQL layer) augment this base with domain-shaped column-set metadata. Codec authors target the base when they don't read family-specific metadata; they target the family extension when they do.
  */
 export interface CodecInstanceContext {
   readonly name: string;

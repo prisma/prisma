@@ -1,5 +1,5 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import { timeouts } from '@prisma-next/test-utils';
+import type { JsonValue } from '@internal/contract/types';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { pgVectorColumn, pgVectorDescriptor } from '../src/core/codecs';
 import { VECTOR_CODEC_ID, VECTOR_MAX_DIM } from '../src/core/constants';

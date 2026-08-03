@@ -1,11 +1,11 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { Contract } from '@prisma-next/contract/types';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { loadContractSpaceAggregate } from '@prisma-next/migration-tools/aggregate';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
+import type { Contract } from '@internal/contract/types';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import {

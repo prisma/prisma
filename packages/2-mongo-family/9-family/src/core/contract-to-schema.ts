@@ -4,15 +4,15 @@ import type {
   MongoContract,
   MongoIndex,
   MongoValidator,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import {
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-schema-ir';
+import { ifDefined } from '@internal/utils/defined';
 
 function convertIndex(index: MongoIndex): MongoSchemaIndex {
   return new MongoSchemaIndex({

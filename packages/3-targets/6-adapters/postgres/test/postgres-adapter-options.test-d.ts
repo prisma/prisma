@@ -1,4 +1,4 @@
-import type { AnyPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
+import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 import { createPostgresAdapter } from '../src/core/adapter';
 
 declare const descriptor: AnyPostgresCodecDescriptor;

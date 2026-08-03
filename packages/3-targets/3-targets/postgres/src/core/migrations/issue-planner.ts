@@ -16,20 +16,20 @@
  * context, per the slice's scope.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   CodecControlHooks,
   MigrationOperationPolicy,
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
-} from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import type { DiffableNode, SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { issueOutcome, orderIssuesByDependencies } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage, StorageTypeInstance } from '@prisma-next/sql-contract/types';
-import type { DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
-import * as contractFree from '@prisma-next/sql-relational-core/contract-free';
+} from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
+import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/types';
+import type { DdlTableConstraint } from '@internal/sql-relational-core/ast';
+import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnDefaultIR,
@@ -39,11 +39,11 @@ import {
   SqlSchemaIR,
   type SqlSchemaIRNode,
   type SqlUniqueIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import type { Result } from '@prisma-next/utils/result';
-import { notOk, ok } from '@prisma-next/utils/result';
+} from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import type { Result } from '@internal/utils/result';
+import { notOk, ok } from '@internal/utils/result';
 import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';

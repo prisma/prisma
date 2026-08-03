@@ -1,10 +1,10 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   ControlDriverInstance,
   ControlFamilyInstance,
-} from '@prisma-next/framework-components/control';
-import { ok } from '@prisma-next/utils/result';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/control';
+import { ok } from '@internal/utils/result';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it, vi } from 'vitest';
 import { defineConfig, type PrismaNextConfig } from '../src/config-types';
 import { validateConfig } from '../src/config-validation';

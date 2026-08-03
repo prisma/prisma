@@ -1,14 +1,14 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ForeignKey, SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
+import type { ForeignKey, SqlStorage } from '@internal/sql-contract/types';
 import {
   defineContract,
   extensionModel,
   field,
   model,
   rel,
-} from '@prisma-next/sql-contract-ts/contract-builder';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-contract-ts/contract-builder';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';

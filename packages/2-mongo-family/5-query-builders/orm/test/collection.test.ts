@@ -1,5 +1,5 @@
-import { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import {
   MongoFieldFilter,
   type MongoLimitStage,
@@ -9,9 +9,9 @@ import {
   type MongoProjectStage,
   type MongoSkipStage,
   type MongoSortStage,
-} from '@prisma-next/mongo-query-ast/execution';
-import type { MongoValue } from '@prisma-next/mongo-value';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+} from '@internal/mongo-query-ast/execution';
+import type { MongoValue } from '@internal/mongo-value';
+import { MongoParamRef } from '@internal/mongo-value';
 import { describe, expect, it } from 'vitest';
 import type {
   CodecTypes,

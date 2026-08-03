@@ -3,8 +3,8 @@ import type {
   PslPrinterOptions,
   PslTypeMap,
   RelationField,
-} from '@prisma-next/family-sql/psl-infer';
-import { mapDefault, toFieldName, toModelName } from '@prisma-next/family-sql/psl-infer';
+} from '@internal/family-sql/psl-infer';
+import { mapDefault, toFieldName, toModelName } from '@internal/family-sql/psl-infer';
 import type {
   PslAttributeArgument,
   PslField,
@@ -12,9 +12,9 @@ import type {
   PslModel,
   PslModelAttribute,
   PslTypeConstructorCall,
-} from '@prisma-next/framework-components/psl-ast';
-import type { SqlColumnIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/psl-ast';
+import type { SqlColumnIR, SqlTableIR } from '@internal/sql-schema-ir/types';
+import { ifDefined } from '@internal/utils/defined';
 import { buildDanglingForeignKeyWarning, type DanglingForeignKeyInfo } from './infer-foreign-keys';
 import { buildIndexAttribute, buildModelConstraintAttribute } from './infer-index-attributes';
 import {

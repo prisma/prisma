@@ -1,11 +1,8 @@
-import mongoAdapterDescriptor, { introspectSchema } from '@prisma-next/adapter-mongo/control';
-import {
-  createMongoFamilyInstance,
-  mongoFamilyDescriptor,
-} from '@prisma-next/family-mongo/control';
-import { createControlStack, hasSchemaView } from '@prisma-next/framework-components/control';
-import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
-import { timeouts } from '@prisma-next/test-utils';
+import mongoAdapterDescriptor, { introspectSchema } from '@internal/adapter-mongo/control';
+import { createMongoFamilyInstance, mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import { createControlStack, hasSchemaView } from '@internal/framework-components/control';
+import { mongoTargetDescriptor } from '@internal/target-mongo/control';
+import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

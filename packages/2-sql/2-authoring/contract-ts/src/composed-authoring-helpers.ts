@@ -3,23 +3,23 @@ import {
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
   type MergeExtensionAuthoringNamespaces,
-} from '@prisma-next/contract-authoring';
+} from '@internal/contract-authoring';
 import type {
   AuthoringArgumentDescriptor,
   AuthoringEntityTypeNamespace,
   AuthoringFieldNamespace,
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import {
   assertNoCrossRegistryCollisions,
   mergeAuthoringNamespaces,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import {
   createFieldHelpersFromNamespace,
   createFieldPresetHelper,

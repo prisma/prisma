@@ -1,17 +1,17 @@
-import { postgresRawCodecInferer } from '@prisma-next/adapter-postgres/adapter';
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import pgvector from '@prisma-next/extension-pgvector/runtime';
+import { postgresRawCodecInferer } from '@internal/adapter-postgres/adapter';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import postgresDriver from '@internal/driver-postgres/runtime';
+import pgvector from '@internal/extension-pgvector/runtime';
 import {
   type ExecutionStackInstance,
   instantiateExecutionStack,
   type RuntimeDriverInstance,
-} from '@prisma-next/framework-components/execution';
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import { param } from '@prisma-next/sql-relational-core/expression';
-import type { SqlParamRefMutator } from '@prisma-next/sql-relational-core/middleware';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/framework-components/execution';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
+import { sql } from '@internal/sql-builder/runtime';
+import { param } from '@internal/sql-relational-core/expression';
+import type { SqlParamRefMutator } from '@internal/sql-relational-core/middleware';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import {
   createExecutionContext,
   createSqlExecutionStack,
@@ -20,9 +20,9 @@ import {
   type SqlRuntimeAdapterInstance,
   type SqlRuntimeDriverInstance,
   type SqlRuntimeExtensionInstance,
-} from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+} from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { setupTestDatabase } from '../utils';

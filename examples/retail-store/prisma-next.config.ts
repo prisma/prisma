@@ -1,4 +1,4 @@
-import { defineConfig } from '@prisma-next/mongo/config';
+import { defineConfig } from '@prisma/orm-mongo/config';
 
 export default defineConfig({
   contract: './src/contract.prisma',

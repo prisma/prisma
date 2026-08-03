@@ -49,15 +49,15 @@ Packages are organized by:
 
 - **Same-layer imports allowed** — e.g. `orm-lane` may import `sql-relational-core` (both `lanes`):
   ```typescript
-  import { schema } from '@prisma-next/sql-relational-core/schema';
+  import { schema } from '@internal/sql-relational-core/schema';
   ```
 - **Cross-layer: import only from inner layers** (closer to core). Outer layers cannot be imported
   by inner ones:
   ```typescript
   // ✅ lanes importing core
-  import { planInvalid } from '@prisma-next/plan';
+  import { planInvalid } from '@internal/plan';
   // ❌ core importing lanes
-  import { sql } from '@prisma-next/sql-lane';
+  import { sql } from '@internal/sql-lane';
   ```
 
 ### Plane rules and exceptions

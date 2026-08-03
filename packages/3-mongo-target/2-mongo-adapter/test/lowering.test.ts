@@ -1,5 +1,5 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
-import { mongoCodec, newMongoCodecRegistry } from '@prisma-next/mongo-codec';
+import type { CodecCallContext } from '@internal/framework-components/codec';
+import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
 import {
   MongoAddFieldsStage,
   MongoAggAccumulator,
@@ -46,8 +46,8 @@ import {
   MongoUnionWithStage,
   MongoUnwindStage,
   MongoVectorSearchStage,
-} from '@prisma-next/mongo-query-ast/execution';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+} from '@internal/mongo-query-ast/execution';
+import { MongoParamRef } from '@internal/mongo-value';
 import { describe, expect, it } from 'vitest';
 import { lowerAggExpr, lowerFilter, lowerPipeline, lowerStage } from '../src/lowering';
 

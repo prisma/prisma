@@ -2,49 +2,49 @@
 
 ## At a glance
 
-The user-facing CLI ships under the unscoped npm name `prisma-next` (`pnpm dlx prisma-next init`, `npx prisma-next ...`). The package is a thin **bin-only** shim whose `dist/` is a verbatim copy of `@prisma-next/cli`'s `dist/`. It declares no `exports`, no `main`, and no `types` — `import 'prisma-next'` from any path is a hard resolution failure. Programmatic consumers (advanced config wiring, build integrations, extension authors) keep importing from `@prisma-next/cli` and its subpaths (`/config-types`, `/control-api`, `/commands/*`, `/config-loader`).
+The user-facing CLI ships under the unscoped npm name `prisma-next` (`pnpm dlx prisma-next init`, `npx prisma-next ...`). The package is a thin **bin-only** shim whose `dist/` is a verbatim copy of `@internal/cli`'s `dist/`. It declares no `exports`, no `main`, and no `types` — `import 'prisma-next'` from any path is a hard resolution failure. Programmatic consumers (advanced config wiring, build integrations, extension authors) keep importing from `@internal/cli` and its subpaths (`/config-types`, `/control-api`, `/commands/*`, `/config-loader`).
 
 ## Context
 
-`@prisma-next/cli` is the internal name of the CLI package and is imported by ~21 internal packages and several example apps under that scoped address. The user-facing install command should be the ergonomic `prisma-next` (matching the bin name and the convention for CLI-first packages: `eslint`, `prettier`, `prisma`, the `typescript` binary). Two options were considered:
+`@internal/cli` is the internal name of the CLI package and is imported by ~21 internal packages and several example apps under that scoped address. The user-facing install command should be the ergonomic `prisma-next` (matching the bin name and the convention for CLI-first packages: `eslint`, `prettier`, `prisma`, the `typescript` binary). Two options were considered:
 
-1. **Rename the CLI package in place** (`@prisma-next/cli` → `prisma-next`). Updates ~30+ internal references, broadens import-allowlist enforcement to an unscoped name, and dilutes the `@prisma-next/*` scope convention.
-2. **A bin-only re-export shim** that spawns or re-imports `@prisma-next/cli`'s installed dist at runtime. Adds runtime indirection and ships two installed packages where the end user only ever invokes one.
-3. **A bin-only shim whose dist is a verbatim copy of `@prisma-next/cli`'s dist** at build time. No runtime indirection. The CLI package keeps its scoped name; only the public distribution gets the unscoped one.
+1. **Rename the CLI package in place** (`@internal/cli` → `prisma-next`). Updates ~30+ internal references, broadens import-allowlist enforcement to an unscoped name, and dilutes the `@internal/*` scope convention.
+2. **A bin-only re-export shim** that spawns or re-imports `@internal/cli`'s installed dist at runtime. Adds runtime indirection and ships two installed packages where the end user only ever invokes one.
+3. **A bin-only shim whose dist is a verbatim copy of `@internal/cli`'s dist** at build time. No runtime indirection. The CLI package keeps its scoped name; only the public distribution gets the unscoped one.
 
 Option 3 is the chosen shape.
 
 ## Decision
 
-`packages/1-framework/3-tooling/prisma-next/` is a sibling package to `@prisma-next/cli` whose only build step is "clear `dist/`, copy `@prisma-next/cli/dist/` over, re-apply `chmod 755` to the bin entries". It declares:
+`packages/1-framework/3-tooling/prisma-next/` is a sibling package to `@internal/cli` whose only build step is "clear `dist/`, copy `@internal/cli/dist/` over, re-apply `chmod 755` to the bin entries". It declares:
 
 - `name: "prisma-next"`, `bin: { "prisma-next": "./dist/cli.js" }`.
-- `dependencies` mirrored exactly from `@prisma-next/cli`'s runtime deps so `node_modules` resolution from inside the copied `dist/` finds every transitive `@prisma-next/*` runtime dep from the shim's own install.
-- `version` kept in lockstep with `@prisma-next/cli`'s version.
+- `dependencies` mirrored exactly from `@internal/cli`'s runtime deps so `node_modules` resolution from inside the copied `dist/` finds every transitive `@internal/*` runtime dep from the shim's own install.
+- `version` kept in lockstep with `@internal/cli`'s version.
 - **No** `exports`, **no** `main`, **no** `types` — the shim is a CLI distribution vehicle, never an import target. Any `import 'prisma-next'` (or any subpath) raises `ERR_PACKAGE_PATH_NOT_EXPORTED`.
 
 A drift-lint script enforces the invariants above (deps/bin/version must equal the CLI's; `exports`/`main`/`types` must not be present) and is wired into the workspace lint flow.
 
-The CLI's `init` command installs `prisma-next` (not `@prisma-next/cli`) as the user's devDependency, so a freshly initialised project's `package.json` reflects the public distribution name.
+The CLI's `init` command installs `prisma-next` (not `@internal/cli`) as the user's devDependency, so a freshly initialised project's `package.json` reflects the public distribution name.
 
 ## Consequences
 
 ### What stays scoped
 
-- `@prisma-next/cli` continues to be published. Internal workspace consumers depend on it, and external advanced users importing programmatic APIs (`@prisma-next/cli/config-types`, `/control-api`, `/commands/*`, `/config-loader`) need it. Programmatic APIs deliberately keep the scoped address — that name is the stability contract for those subpaths.
-- Every internal `@prisma-next/*` package keeps its scoped name. Renames are out of scope for this decision.
-- Other facade packages (`@prisma-next/postgres/config`, `@prisma-next/mongo/config`) remain the documented import target for application-level config. The asymmetry is deliberate: the CLI command is distributed under the ergonomic public name; programmatic surfaces stay scoped to signal they participate in the internal stability contract.
+- `@internal/cli` continues to be published. Internal workspace consumers depend on it, and external advanced users importing programmatic APIs (`@internal/cli/config-types`, `/control-api`, `/commands/*`, `/config-loader`) need it. Programmatic APIs deliberately keep the scoped address — that name is the stability contract for those subpaths.
+- Every internal `@internal/*` package keeps its scoped name. Renames are out of scope for this decision.
+- Other facade packages (`@internal/postgres/config`, `@internal/mongo/config`) remain the documented import target for application-level config. The asymmetry is deliberate: the CLI command is distributed under the ergonomic public name; programmatic surfaces stay scoped to signal they participate in the internal stability contract.
 
 ### What this enables
 
 - **Curated public README.** The shim's `README.md` is the user-facing description on npm; the CLI's README stays as architecture/contributor documentation with a short reframing notice.
-- **Internal-package labelling.** Pure-internal packages (`@prisma-next/config`, `/contract`, `/emitter`, `/migration-tools`, `/utils`, `/errors`, `/framework-components`, `/psl-printer`) carry a short README notice identifying them as implementation detail of `prisma-next` so casual readers don't misread the public surface.
-- **A future "Flavor 2" upgrade path** in which internal `@prisma-next/*` runtime deps are bundled into the shim's `dist/` and no longer published. The shim's public surface (bin only, no exports) makes that upgrade non-breaking within the `0.x` line.
+- **Internal-package labelling.** Pure-internal packages (`@internal/config`, `/contract`, `/emitter`, `/migration-tools`, `/utils`, `/errors`, `/framework-components`, `/psl-printer`) carry a short README notice identifying them as implementation detail of `prisma-next` so casual readers don't misread the public surface.
+- **A future "Flavor 2" upgrade path** in which internal `@internal/*` runtime deps are bundled into the shim's `dist/` and no longer published. The shim's public surface (bin only, no exports) makes that upgrade non-breaking within the `0.x` line.
 
 ### What is explicitly **not** done
 
-- The shim does not get any library exports — not now, not later. Adding any second public import surface here would require running stability management in parallel with `@prisma-next/cli` for the same APIs; that is the entire reason the asymmetry exists.
-- `@prisma-next/cli` is not deprecated on npm. Both packages are published; one is the CLI command, the other is the programmatic-API import target.
+- The shim does not get any library exports — not now, not later. Adding any second public import surface here would require running stability management in parallel with `@internal/cli` for the same APIs; that is the entire reason the asymmetry exists.
+- `@internal/cli` is not deprecated on npm. Both packages are published; one is the CLI command, the other is the programmatic-API import target.
 - The CLI's `bin` name is unchanged (it has always been `prisma-next`). This decision aligns the npm package name with the bin name; it does not introduce a new bin.
 - Automated changelog/release tooling and the operational publish-ordering checklist are out of scope.
 
@@ -52,5 +52,5 @@ The CLI's `init` command installs `prisma-next` (not `@prisma-next/cli`) as the 
 
 - [CLI subsystem](../subsystems/11.%20CLI.md)
 - [Package Naming Conventions](../../reference/Package%20Naming%20Conventions.md)
-- One-package-install user journey (settled): emitted `package.json` carries `prisma-next` as devDep, target facade as dep, every other `@prisma-next/*` arrives transitively
-- Linear: [TML-2265 — Publish `@prisma-next/cli` as `prisma-next`](https://linear.app/prisma-company/issue/TML-2265/publish-prisma-nextcli-as-prisma-next)
+- One-package-install user journey (settled): emitted `package.json` carries `prisma-next` as devDep, target facade as dep, every other `@internal/*` arrives transitively
+- Linear: [TML-2265 — Publish `@internal/cli` as `prisma-next`](https://linear.app/prisma-company/issue/TML-2265/publish-prisma-nextcli-as-prisma-next)

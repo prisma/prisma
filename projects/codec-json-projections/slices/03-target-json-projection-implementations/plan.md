@@ -10,10 +10,10 @@ Every dispatch in this slice runs this gate; all commands must pass before the d
 ```bash
 pnpm typecheck
 pnpm lint:deps
-pnpm test --filter @prisma-next/target-postgres \
-          --filter @prisma-next/target-sqlite \
-          --filter @prisma-next/adapter-postgres \
-          --filter @prisma-next/adapter-sqlite
+pnpm test --filter @internal/target-postgres \
+          --filter @internal/target-sqlite \
+          --filter @internal/adapter-postgres \
+          --filter @internal/adapter-sqlite
 pnpm fixtures:check
 pnpm check:upgrade-coverage
 # AC-9 invariant: no production render path reaches projectJson()
@@ -54,7 +54,7 @@ Three facts shape the plan:
 
 Inserted mid-slice (operator decision, 2026-07-28) after dispatch 2 halted on a stated halt condition. Runs **after** dispatch 2's codec work is committed and **before** dispatch 2 can close, because dispatch 2's commit leaves the branch red until this lands.
 
-- **Outcome:** `DefaultLiteralValue` resolves a contract literal default to the codec's **JSON** type rather than its application type, via a JSON channel added to `CodecTypes` / `ExtractCodecTypes`. `@prisma-next/extension-supabase` typechecks clean again, and an emitted `.d.ts` types an int8 literal default as the string the sibling `contract.json` actually holds.
+- **Outcome:** `DefaultLiteralValue` resolves a contract literal default to the codec's **JSON** type rather than its application type, via a JSON channel added to `CodecTypes` / `ExtractCodecTypes`. `@internal/extension-supabase` typechecks clean again, and an emitted `.d.ts` types an int8 literal default as the string the sibling `contract.json` actually holds.
 - **Builds on:** Dispatch 2's canonical `pg/int8@1`, which is what exposed the divergence.
 - **Hands to:** A seam that no longer breaks when a codec's application type differs from its JSON type — which unblocks dispatch 3's `pg/bytea@1` (`Uint8Array`) and dispatch 5's `sqlite/blob@1` before either is written.
 - **Focus:** The emitter/IR typing seam only. It does not change any codec, projection, or canonical form. `ColumnDefaultLiteral.value`'s runtime arktype schema is deliberately **not** widened — contract.json never holds a `bigint`; that was the whole defect.

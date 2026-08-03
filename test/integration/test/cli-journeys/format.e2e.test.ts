@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { format } from '@prisma-next/psl-parser/format';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import { format } from '../utils/cli-commands';
 import { withTempDir } from '../utils/cli-test-helpers';
 import { runFormatWithConfig, setupJourney } from '../utils/journey-test-helpers';
 
@@ -19,12 +19,12 @@ ADMIN
 }`;
 
 function pslConfig(): string {
-  return `import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import sql from '@prisma-next/family-sql/control';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
-import postgres from '@prisma-next/target-postgres/control';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+  return `import postgresAdapter from '@prisma/orm-postgres/adapter/control';
+import { defineConfig } from '@prisma/orm-toolchain/cli/config-types';
+import sql from '@prisma/orm-postgres/family/control';
+import { prismaContract } from '@prisma/orm-family-sql/contract-psl/provider';
+import postgres from '@prisma/orm-postgres/target/control';
+import { postgresCreateNamespace } from '@prisma/orm-postgres/target/types';
 
 export default defineConfig({
   family: sql,
@@ -71,10 +71,10 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(sourcePath, MESSY_PSL, 'utf-8');
         writeFileSync(
           ctx.configPath,
-          `import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
+          `import postgresAdapter from '@prisma/orm-postgres/adapter/control';
+import { defineConfig } from '@prisma/orm-toolchain/cli/config-types';
+import sql from '@prisma/orm-postgres/family/control';
+import postgres from '@prisma/orm-postgres/target/control';
 
 export default defineConfig({
   family: sql,

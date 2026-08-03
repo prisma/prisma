@@ -1,5 +1,5 @@
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import type { CollationOptions } from '@prisma-next/mongo-value/mongodb-types';
+import { freezeNode } from '@internal/framework-components/ir';
+import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import { MongoSchemaIRNode } from './schema-node';
 import type { MongoSchemaVisitor } from './visitor';
 

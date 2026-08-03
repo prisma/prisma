@@ -1,10 +1,10 @@
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import {
   type AnyQueryAst,
   type LoweredStatement,
   RawExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { PG_TIMESTAMPTZ_CODEC_ID } from '@prisma-next/target-postgres/codec-ids';
+} from '@internal/sql-relational-core/ast';
+import { PG_TIMESTAMPTZ_CODEC_ID } from '@internal/target-postgres/codec-ids';
 import {
   int4,
   int8,
@@ -13,7 +13,7 @@ import {
   text,
   textArray,
   timestamptz,
-} from '@prisma-next/target-postgres/contract-free';
+} from '@internal/target-postgres/contract-free';
 import { encodeControlQueryParams } from './control-codecs';
 
 export const marker = pgTable(

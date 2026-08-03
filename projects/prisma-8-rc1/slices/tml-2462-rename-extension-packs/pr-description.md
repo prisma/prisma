@@ -26,7 +26,7 @@ export default defineConfig({
 })
 ```
 
-Sugar configs (`@prisma-next/postgres/config` et al.) already said `extensions`; their `outputPath` becomes `output`. In `contract.json` and `contract.d.ts`, the top-level `extensionPacks` key becomes `extensions`.
+Sugar configs (`@internal/postgres/config` et al.) already said `extensions`; their `outputPath` becomes `output`. In `contract.json` and `contract.d.ts`, the top-level `extensionPacks` key becomes `extensions`.
 
 ## The decision
 
@@ -56,7 +56,7 @@ Regenerating with changed hashes exposed a latent bug in `scripts/regen-extensio
 
 ## Upgrade path
 
-`skills/upgrade/prisma-next-upgrade/upgrades/0.16-to-0.17/` (consumers) and `skills/extension-author/prisma-next-extension-upgrade/upgrades/0.16-to-0.17/` (extension authors, including the `composedExtensionPacks` → `composedExtensions` provider-API field) record the mechanical translation: rename the keys, re-emit, re-anchor migrations. `check:upgrade-coverage` enforces the declaration.
+`skills/upgrade/prisma-next-upgrade/upgrades/0.16-to-0.17/` (consumers) and `skills/extension-author/prisma-8-extension-upgrade/upgrades/0.16-to-0.17/` (extension authors, including the `composedExtensionPacks` → `composedExtensions` provider-API field) record the mechanical translation: rename the keys, re-emit, re-anchor migrations. `check:upgrade-coverage` enforces the declaration.
 
 ## Verification
 

@@ -1,4 +1,4 @@
-import { AndExpr, type AnyExpression } from '@prisma-next/sql-relational-core/ast';
+import { AndExpr, type AnyExpression } from '@internal/sql-relational-core/ast';
 
 export function combineWhereExprs(filters: readonly AnyExpression[]): AnyExpression | undefined {
   if (filters.length === 0) {

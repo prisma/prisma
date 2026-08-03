@@ -1,8 +1,8 @@
 import type {
   AnyCodecDescriptor,
   CodecInstanceContext,
-} from '@prisma-next/framework-components/codec';
-import type { Codec, SqlCodecCallContext } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/codec';
+import type { Codec, SqlCodecCallContext } from '@internal/sql-relational-core/ast';
 import {
   sqlCharDescriptor,
   sqlFloatDescriptor,
@@ -10,7 +10,7 @@ import {
   sqlTextDescriptor,
   sqlTimestampDescriptor,
   sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import {
   pgBitDescriptor,

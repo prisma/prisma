@@ -1,7 +1,7 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import { defineConfig } from '@internal/cli/config-types';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
 import { contract } from './contract';
 
 export default defineConfig({

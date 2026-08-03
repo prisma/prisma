@@ -10,7 +10,7 @@ Sometimes a single installable package must serve both migration and runtime pla
 
 ## Pattern
 
-- Keep one NPM package (e.g., `@prisma-next/adapter-postgres`).
+- Keep one NPM package (e.g., `@internal/adapter-postgres`).
 - Split sources by plane inside the package:
   - `src/core/**` — shared plane only
   - `src/exports/control.ts` — migration plane entrypoint (control plane)

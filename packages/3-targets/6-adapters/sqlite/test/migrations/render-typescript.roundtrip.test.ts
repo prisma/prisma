@@ -14,8 +14,9 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import { APP_SPACE_ID, storageHashHex } from '@prisma-next/framework-components/control';
-import { col, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
+import { APP_SPACE_ID, storageHashHex } from '@internal/framework-components/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import { col, primaryKey } from '@internal/sql-relational-core/contract-free';
 import {
   AddColumnCall,
   CreateIndexCall,
@@ -23,10 +24,10 @@ import {
   DropTableCall,
   RawSqlCall,
   RecreateTableCall,
-} from '@prisma-next/target-sqlite/op-factory-call';
-import { TypeScriptRenderableSqliteMigration } from '@prisma-next/target-sqlite/planner-produced-sqlite-migration';
-import { renderOps } from '@prisma-next/target-sqlite/render-ops';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/target-sqlite/op-factory-call';
+import { TypeScriptRenderableSqliteMigration } from '@internal/target-sqlite/planner-produced-sqlite-migration';
+import { renderOps } from '@internal/target-sqlite/render-ops';
+import { timeouts } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createSqliteBuiltinCodecLookup } from '../../src/core/codec-lookup';
@@ -86,7 +87,7 @@ const fixtureConfigSource = [
  * is enough.
  */
 function rewriteImports(tsSource: string): string {
-  return tsSource.replace("'@prisma-next/sqlite/migration'", `'${targetSqliteMigrationExport}'`);
+  return tsSource.replace("'@internal/sqlite/migration'", `'${targetSqliteMigrationExport}'`);
 }
 
 /**
@@ -174,7 +175,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stdout, stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -201,7 +202,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -234,7 +235,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -281,7 +282,7 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], { cwd: tmpDir });

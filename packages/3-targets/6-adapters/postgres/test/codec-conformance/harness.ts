@@ -36,10 +36,10 @@
  */
 
 import { isDeepStrictEqual } from 'node:util';
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { validateCodecTypeParams } from '@prisma-next/framework-components/codec';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { JsonValue } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { validateCodecTypeParams } from '@internal/framework-components/codec';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   CastExpr,
   ColumnRef,
@@ -48,11 +48,11 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { AnyPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import { createContract } from '@prisma-next/test-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
+import { ifDefined } from '@internal/utils/defined';
+import { createContract } from '@repo/test-utils';
 import { renderLoweredSql } from '../../src/core/sql-renderer';
 import type { PostgresContract } from '../../src/core/types';
 

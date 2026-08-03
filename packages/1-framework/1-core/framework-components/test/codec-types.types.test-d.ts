@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import { expectTypeOf, test } from 'vitest';
 import type { Codec } from '../src/shared/codec';
 import type { CodecTrait } from '../src/shared/codec-types';

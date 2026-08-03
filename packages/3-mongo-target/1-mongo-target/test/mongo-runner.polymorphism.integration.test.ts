@@ -1,19 +1,16 @@
-import { createMongoRunnerDeps, introspectSchema } from '@prisma-next/adapter-mongo/control';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import { MongoControlDriver } from '@prisma-next/driver-mongo/control';
-import { verifyMongoSchema } from '@prisma-next/family-mongo/schema-verify';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type {
-  ControlFamilyInstance,
-  MigrationPlan,
-} from '@prisma-next/framework-components/control';
-import { buildFabricatedMigrationEdge } from '@prisma-next/migration-tools/aggregate';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { interpretPslDocumentToMongoContract } from '@prisma-next/mongo-contract-psl';
-import type { AnyMongoMigrationOperation } from '@prisma-next/mongo-query-ast/control';
-import { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
+import { createMongoRunnerDeps, introspectSchema } from '@internal/adapter-mongo/control';
+import { MongoDriverImpl } from '@internal/driver-mongo';
+import { MongoControlDriver } from '@internal/driver-mongo/control';
+import { verifyMongoSchema } from '@internal/family-mongo/schema-verify';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type { ControlFamilyInstance, MigrationPlan } from '@internal/framework-components/control';
+import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregate';
+import type { MongoContract } from '@internal/mongo-contract';
+import { interpretPslDocumentToMongoContract } from '@internal/mongo-contract-psl';
+import type { AnyMongoMigrationOperation } from '@internal/mongo-query-ast/control';
+import { MongoSchemaIR } from '@internal/mongo-schema-ir';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
 import { type Db, MongoClient, MongoServerError } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

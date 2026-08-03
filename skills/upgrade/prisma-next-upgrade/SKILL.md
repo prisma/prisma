@@ -1,34 +1,34 @@
 ---
 name: prisma-next-upgrade
 description: >-
-  Upgrade Prisma Next in your app. Bumps every `@prisma-next/*` dependency
+  Upgrade Prisma Next in your app. Bumps every `@internal/*` dependency
   from the version pinned in the lockfile to the requested target (or npm
   `latest`), applies any required code-translation steps from the
   per-transition upgrade instructions, validates with the project's own
   typecheck + tests, and commits each minor step on its own. Use when the
   user asks to "upgrade Prisma Next", "bump Prisma Next", "move to Prisma
-  Next X.Y", or asks an agent to deal with an `@prisma-next/*` minor bump
+  Next X.Y", or asks an agent to deal with an `@internal/*` minor bump
   in their app.
 ---
 
 # Upgrade Prisma Next (user app)
 
-This skill upgrades a project that **consumes** Prisma Next via the public package API (`@prisma-next/postgres`, `@prisma-next/mongo`, the contract files in `prisma/`, etc.). If the project is itself a Prisma Next *extension*, use the `prisma-next-extension-upgrade` skill instead — or both, if the repo contains both an app and an extension package.
+This skill upgrades a project that **consumes** Prisma Next via the public package API (`@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, etc.). If the project is itself a Prisma Next *extension*, use the `prisma-8-extension-upgrade` skill instead — or both, if the repo contains both an app and an extension package.
 
 ## Step 0 — Ensure the skill is up to date
 
 Before anything else, ensure this skill is installed at `@latest` and reload it. Bug fixes to *old* per-transition upgrade instructions ship in the latest skill release as part of its cumulative set; running against a stale skill can apply a known-broken translation.
 
-If the agent runtime supports an in-session refresh, perform it now. Otherwise, exit and ask the user to re-install (`pnpm dlx skills add prisma/prisma-next/skills/upgrade --all`), then re-invoke. The upgrade-skill subpath is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth, and the latest release fixes apply to every prior transition.
+If the agent runtime supports an in-session refresh, perform it now. Otherwise, exit and ask the user to re-install (`pnpm dlx skills add prisma/prisma/skills/upgrade --all`), then re-invoke. The upgrade-skill subpath is intentionally unpinned (always `main`) — the cumulative instruction set is the source of truth, and the latest release fixes apply to every prior transition.
 
 ## Pre-flight — extension compatibility
 
-Before changing any code, refuse to upgrade past any installed extension's pinned Prisma Next version. Extensions in Prisma Next pin every `@prisma-next/*` dependency to a single exact version (no carets, no ranges); that pin is the highest version the extension has been validated against. Upgrading the user app past that pin would silently desynchronise the extension's type identity from the app's.
+Before changing any code, refuse to upgrade past any installed extension's pinned Prisma Next version. Extensions in Prisma Next pin every `@internal/*` dependency to a single exact version (no carets, no ranges); that pin is the highest version the extension has been validated against. Upgrading the user app past that pin would silently desynchronise the extension's type identity from the app's.
 
 Steps:
 
 1. **Read `prisma-next.config.ts`** (or its TS-discoverable equivalent at the project root) and enumerate the list of extension packages it imports. Each `extensions: [...]` entry corresponds to an installed npm package.
-2. **For each extension**, read its installed `package.json` from `node_modules/<extension-package-name>/package.json` and find any `@prisma-next/*` entry under `dependencies`, `peerDependencies`, or `optionalDependencies`. By construction those entries are exact-version pins (e.g. `"0.7.0"`), set when the extension author last ran their own upgrade.
+2. **For each extension**, read its installed `package.json` from `node_modules/<extension-package-name>/package.json` and find any `@internal/*` entry under `dependencies`, `peerDependencies`, or `optionalDependencies`. By construction those entries are exact-version pins (e.g. `"0.7.0"`), set when the extension author last ran their own upgrade.
 3. **Compute the lowest pinned version across all extensions.** That is the highest Prisma Next version reachable by this app on its current extension set.
 4. **Compare to the user's target.** If the target exceeds the lowest pin, halt with a structured message naming each lagging extension and its pinned version, and offer two paths:
    - (a) Wait for the lagging extension to publish a compatible release, then re-run.
@@ -42,15 +42,15 @@ If `prisma-next.config.ts` is absent or names no extensions, skip the pre-flight
 
 This skill applies when the project **consumes** Prisma Next:
 
-- `package.json` declares one or more `@prisma-next/*` packages under `dependencies` / `devDependencies`, and
-- the package is *not* itself an extension (no `@prisma-next/contract` (or other SPI) under `dependencies`/`peerDependencies`; name does not match `^@.*/extension-`; not referenced from a sibling app's `prisma-next.config.ts`).
+- `package.json` declares one or more `@internal/*` packages under `dependencies` / `devDependencies`, and
+- the package is *not* itself an extension (no `@internal/contract` (or other SPI) under `dependencies`/`peerDependencies`; name does not match `^@.*/extension-`; not referenced from a sibling app's `prisma-next.config.ts`).
 
-If the project also matches the extension-author role, install the `prisma-next-extension-upgrade` skill (`pnpm dlx skills add prisma/prisma-next/skills/extension-author --all`) and run **this** flow first, then that one in the same session. If detection is ambiguous, ask the user.
+If the project also matches the extension-author role, install the `prisma-8-extension-upgrade` skill (`pnpm dlx skills add prisma/prisma/skills/extension-author --all`) and run **this** flow first, then that one in the same session. If detection is ambiguous, ask the user.
 
 ## Version detection
 
-- **From-version.** Read the currently-installed Prisma Next version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@prisma-next/*` package. If the lockfile shows multiple `@prisma-next/*` packages at different minors (already broken), the **lowest** minor is the from-version.
-- **To-version.** Either the version the user specified, or the latest stable from `npm view @prisma-next/postgres dist-tags.latest`.
+- **From-version.** Read the currently-installed Prisma Next version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@internal/*` package. If the lockfile shows multiple `@internal/*` packages at different minors (already broken), the **lowest** minor is the from-version.
+- **To-version.** Either the version the user specified, or the latest stable from `npm view @internal/postgres dist-tags.latest`.
 
 Report both back to the user before continuing.
 
@@ -70,7 +70,7 @@ The chain order does not depend on which extensions are installed; the pre-fligh
 
 For each `(from, to)` step in the chain:
 
-1. **Bump `@prisma-next/*` deps.** Rewrite every `@prisma-next/*` entry in the project's `package.json` to the exact `<to>` version (no caret, no tilde). All entries advance to the same version. Cover `dependencies` and `devDependencies`. The upgrade skill itself is delivered through `pnpm dlx skills add` and lives under `.agents/skills/prisma-next-upgrade/` (or the equivalent CLI-managed directory) — there is no `@prisma-next/upgrade-skill` npm entry to bump.
+1. **Bump `@internal/*` deps.** Rewrite every `@internal/*` entry in the project's `package.json` to the exact `<to>` version (no caret, no tilde). All entries advance to the same version. Cover `dependencies` and `devDependencies`. The upgrade skill itself is delivered through `pnpm dlx skills add` and lives under `.agents/skills/prisma-next-upgrade/` (or the equivalent CLI-managed directory) — there is no `@internal/upgrade-skill` npm entry to bump.
 
 2. **Install.** Run `pnpm install` (or the project's lockfile-managing command). The project's code is now broken against the new types — the upgrade instructions for `<from> → <to>` exist to fix it.
 
@@ -87,7 +87,7 @@ For each `(from, to)` step in the chain:
 6. **Commit.** One commit per step containing the `package.json` bump, lockfile churn, and any source rewrites:
 
    ```text
-   chore: upgrade @prisma-next/* to <to-version>
+   chore: upgrade @internal/* to <to-version>
    ```
 
    (Or the project's own commit-message convention.) Never squash steps. The user may squash on merge; the in-flight history must be per-step so a failed step is bisectable.

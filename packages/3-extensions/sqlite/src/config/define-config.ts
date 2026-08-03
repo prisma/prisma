@@ -1,18 +1,15 @@
-import sqliteAdapter from '@prisma-next/adapter-sqlite/control';
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { defineConfig as coreDefineConfig } from '@prisma-next/config/config-types';
-import sqliteDriver from '@prisma-next/driver-sqlite/control';
-import sql from '@prisma-next/family-sql/control';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
-import { typescriptContractFromPath } from '@prisma-next/sql-contract-ts/config-types';
-import {
-  SQLITE_INTEGER_CODEC_ID,
-  SQLITE_TEXT_CODEC_ID,
-} from '@prisma-next/target-sqlite/codec-ids';
-import sqlite, { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import sqlitePackRef from '@prisma-next/target-sqlite/pack';
-import { ifDefined } from '@prisma-next/utils/defined';
+import sqliteAdapter from '@internal/adapter-sqlite/control';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import { defineConfig as coreDefineConfig } from '@internal/config/config-types';
+import sqliteDriver from '@internal/driver-sqlite/control';
+import sql from '@internal/family-sql/control';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import { prismaContract } from '@internal/sql-contract-psl/provider';
+import { typescriptContractFromPath } from '@internal/sql-contract-ts/config-types';
+import { SQLITE_INTEGER_CODEC_ID, SQLITE_TEXT_CODEC_ID } from '@internal/target-sqlite/codec-ids';
+import sqlite, { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import sqlitePackRef from '@internal/target-sqlite/pack';
+import { ifDefined } from '@internal/utils/defined';
 import { extname, join } from 'pathe';
 
 export interface SqliteConfigOptions {

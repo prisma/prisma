@@ -10,11 +10,12 @@
  * 3. A valid app-space migration directory resolves and returns details.
  */
 
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
+  declarePgvectorExtension,
   type JourneyContext,
   parseJsonOutput,
   runContractEmit,
@@ -23,17 +24,6 @@ import {
   setupJourney,
   timeouts,
 } from '../utils/journey-test-helpers';
-
-function declarePgvectorExtension(ctx: JourneyContext): void {
-  const config = readFileSync(ctx.configPath, 'utf-8');
-  const next = config
-    .replace(
-      "import sql from '@prisma-next/family-sql/control';",
-      "import sql from '@prisma-next/family-sql/control';\nimport pgvector from '@prisma-next/extension-pgvector/control';",
-    )
-    .replace('extensions: []', 'extensions: [pgvector]');
-  writeFileSync(ctx.configPath, next);
-}
 
 function setupUnmigratedExtensionsState(ctx: JourneyContext): void {
   declarePgvectorExtension(ctx);

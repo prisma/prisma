@@ -2,9 +2,9 @@ import {
   type Contract,
   type ControlPolicy,
   effectiveControlPolicy,
-} from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
 
 /**
  * The target object a control policy governs for a single planner call,

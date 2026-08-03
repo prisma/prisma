@@ -1,4 +1,4 @@
-import type { MongoFilterExpr } from '@prisma-next/mongo-query-ast/execution';
+import type { MongoFilterExpr } from '@internal/mongo-query-ast/execution';
 
 export interface MongoIncludeExpr {
   readonly relationName: string;

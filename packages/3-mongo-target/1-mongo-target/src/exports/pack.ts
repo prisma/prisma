@@ -1,4 +1,4 @@
-import type { AnyCodecDescriptor } from '@prisma-next/framework-components/codec';
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
 import { mongoTargetDescriptorMeta } from '../core/descriptor-meta';
 import type { CodecTypes } from './codec-types';
 

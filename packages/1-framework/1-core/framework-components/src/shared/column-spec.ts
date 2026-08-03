@@ -6,7 +6,7 @@
  * `column()` is a trivial, non-polymorphic packager. Generic over `R` (the codec instance type returned by the descriptor's curried factory) and `P` (the typeParams record). The framework does NOT try to infer `R` and `P` from a descriptor — that path is the variance trap. Per-codec helpers absorb the descriptor relationship instead and tie themselves to their descriptor via `satisfies ColumnHelperFor<D>` or `satisfies ColumnHelperForStrict<D>`.
  */
 
-import type { ValueSetRef } from '@prisma-next/contract/types';
+import type { ValueSetRef } from '@internal/contract/types';
 import type { CodecDescriptor } from './codec-descriptor';
 import type { CodecInstanceContext } from './codec-types';
 

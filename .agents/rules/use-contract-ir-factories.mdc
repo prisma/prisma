@@ -38,7 +38,7 @@ const ir: ContractIR = {
 **✅ CORRECT: Use factory functions**
 
 ```typescript
-import { createContractIR } from './utils'; // or from '@prisma-next/emitter' if exported
+import { createContractIR } from './utils'; // or from '@internal/emitter' if exported
 
 const ir = createContractIR({
   storage: {

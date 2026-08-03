@@ -1,7 +1,7 @@
 // Default contract — identical to contract-base.ts.
 // Journey tests swap this file to different contract variants during steps.
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
 
 export const contract = defineContract({
   models: {

@@ -3,9 +3,9 @@ import {
   int4Column,
   timestampColumn,
   timestamptzColumn,
-} from '@prisma-next/adapter-postgres/column-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import type { JsonValue } from '@prisma-next/contract/types';
+} from '@internal/adapter-postgres/column-types';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecDescriptorImpl,
@@ -13,16 +13,16 @@ import {
   type CodecInstanceContext,
   type ColumnTypeDescriptor,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
-import { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
-import { Collection } from '@prisma-next/sql-orm-client';
+} from '@internal/framework-components/codec';
+import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
+import { Collection } from '@internal/sql-orm-client';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   type SqlRuntimeExtensionDescriptor,
-} from '@prisma-next/sql-runtime';
-import { postgresCodec } from '@prisma-next/target-postgres/codec-descriptor';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
+} from '@internal/sql-runtime';
+import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
+import postgresTarget from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withCollectionRuntime } from './integration-helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';

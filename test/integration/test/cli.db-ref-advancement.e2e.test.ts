@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   parseJsonObjectFromCliCapture,

@@ -1,7 +1,7 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type { MongoFieldShape, MongoResultShape } from '@prisma-next/mongo-query-ast/execution';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { CodecCallContext } from '@internal/framework-components/codec';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { MongoFieldShape, MongoResultShape } from '@internal/mongo-query-ast/execution';
+import { isStructuredError } from '@internal/utils/structured-error';
 import type { MongoCodecLookup } from '../mongo-execution-stack';
 
 const WIRE_PREVIEW_LIMIT = 100;

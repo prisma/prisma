@@ -367,7 +367,7 @@ const testContract: SqlContract<SqlStorage> = {
 **✅ CORRECT: Use fully qualified type IDs**
 
 ```typescript
-import { validateContract } from '@prisma-next/sql-query/schema';
+import { validateContract } from '@internal/sql-query/schema';
 
 const testContract = validateContract<SqlContract<SqlStorage>>({
   storage: {
@@ -791,31 +791,31 @@ Dynamic imports create several issues:
 
 ```typescript
 // ❌ WRONG: Dynamic import for runtime code
-const { validateContract } = await import('@prisma-next/sql-query/schema');
+const { validateContract } = await import('@internal/sql-query/schema');
 
 // ❌ WRONG: Dynamic import with type-only usage
-const module = await import('@prisma-next/sql-lane/sql');
+const module = await import('@internal/sql-lane/sql');
 type SqlBuilder = typeof module.sql;
 
 // ❌ WRONG: Type-only dynamic import (type import() syntax)
-type SqlContract = import('@prisma-next/sql-contract/types').SqlContract;
+type SqlContract = import('@internal/sql-contract/types').SqlContract;
 
 // ❌ WRONG: Localized dynamic import with type-only cast usage
-const builder = { /* .. */ } as import('@prisma-next/sql-relational-core/types').AnyBinaryBuilder;
+const builder = { /* .. */ } as import('@internal/sql-relational-core/types').AnyBinaryBuilder;
 ```
 
 **✅ CORRECT: Use static imports**
 
 ```typescript
 // ✅ CORRECT: Static import for types
-import type { SqlContract } from '@prisma-next/sql-contract/types';
+import type { SqlContract } from '@internal/sql-contract/types';
 
 // ✅ CORRECT: Static import for runtime code
-import { validateContract } from '@prisma-next/sql-query/schema';
+import { validateContract } from '@internal/sql-query/schema';
 
 // ✅ CORRECT: Static import for both types and values
-import { sql } from '@prisma-next/sql-lane/sql';
-import type { ResultType } from '@prisma-next/sql-query/types';
+import { sql } from '@internal/sql-lane/sql';
+import type { ResultType } from '@internal/sql-query/types';
 ```
 
 ### Exception: User-Explicit Requirement
@@ -831,7 +831,7 @@ Dynamic imports are **only acceptable** when:
 // ✅ ACCEPTABLE: User explicitly requested lazy loading
 // Only use when user requirement is documented
 async function loadAdapterLazily(adapterName: string) {
-  const adapterModule = await import(`@prisma-next/adapter-${adapterName}`);
+  const adapterModule = await import(`@internal/adapter-${adapterName}`);
   return adapterModule.createAdapter();
 }
 ```
@@ -991,7 +991,7 @@ const result = await runtime.execute(plan);
 **✅ CORRECT: Fix the type by properly typing the plan**
 
 ```typescript
-import type { Plan } from '@prisma-next/contract/types';
+import type { Plan } from '@internal/contract/types';
 
 const plan = orm.user().create({ email }) as Plan<number>;
 const result = runtime.execute(plan);
@@ -1179,7 +1179,7 @@ Object.assign(mockedFamily, config.family, {
 
 **Pattern**: Common patterns in test files should be extracted into helper functions with JSDoc comments explaining their purpose.
 
-**Use `@prisma-next/test-utils` for generic shared helpers** - Check the shared package first before creating new helpers. Note that `@prisma-next/test-utils` has zero dependencies on other `@prisma-next/*` packages to avoid circular dependencies. For runtime-specific utilities, use `@prisma-next/runtime/test/utils`. For contract-related utilities in E2E tests, use `e2e-tests/test/utils.ts`.
+**Use `@repo/test-utils` for generic shared helpers** - Check the shared package first before creating new helpers. Note that `@repo/test-utils` has zero dependencies on other `@internal/*` packages to avoid circular dependencies. For runtime-specific utilities, use `@internal/runtime/test/utils`. For contract-related utilities in E2E tests, use `e2e-tests/test/utils.ts`.
 
 **❌ WRONG: Repeated pattern throughout test file or creating helpers that already exist**
 
@@ -1198,12 +1198,12 @@ async function setupDatabase(...) { /* ... */ }
 **✅ CORRECT: Use shared utilities from appropriate locations**
 
 ```typescript
-import { withDevDatabase, withClient } from '@prisma-next/test-utils';
+import { withDevDatabase, withClient } from '@repo/test-utils';
 import {
   executePlanAndCollect,
   setupE2EDatabase,
   createTestRuntimeFromClient,
-} from '@prisma-next/runtime/test/utils';
+} from '@internal/runtime/test/utils';
 import { loadContractFromDisk } from './utils';
 
 // Use shared helpers - return type is automatically inferred from plan

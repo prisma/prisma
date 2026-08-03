@@ -1,4 +1,4 @@
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 
 export interface MongoChangeStreamPreAndPostImagesOptionsInput {
   readonly enabled: boolean;

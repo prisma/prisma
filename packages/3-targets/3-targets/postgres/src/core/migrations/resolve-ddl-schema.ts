@@ -1,5 +1,5 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { isPostgresSchema } from '../postgres-schema';
 

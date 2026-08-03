@@ -1,4 +1,4 @@
-# @prisma-next/mongo-orm
+# @internal/mongo-orm
 
 MongoDB ORM client for Prisma Next.
 
@@ -13,7 +13,7 @@ MongoDB ORM client for Prisma Next.
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/mongo-core` (contract types, row inference, query plan types)
-  - `@prisma-next/framework-components` (`AsyncIterableResult` return type, imported from `@prisma-next/framework-components/runtime`)
+  - `@internal/mongo-core` (contract types, row inference, query plan types)
+  - `@internal/framework-components` (`AsyncIterableResult` return type, imported from `@internal/framework-components/runtime`)
 - **Depended on by**:
-  - `@prisma-next/mongo-runtime` (structurally satisfies `MongoQueryExecutor`)
+  - `@internal/mongo-runtime` (structurally satisfies `MongoQueryExecutor`)

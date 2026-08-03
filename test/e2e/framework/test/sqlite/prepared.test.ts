@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { timeouts } from '@prisma-next/test-utils';
+import { UNBOUND_NAMESPACE_ID } from '@prisma/orm-sqlite/components/ir';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from './fixtures/generated/contract.d';
 import { withSqliteTestRuntime } from './utils';

@@ -1,9 +1,9 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import type { ControlFamilyDescriptor } from '@prisma-next/framework-components/control';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
-import postgres from '@prisma-next/target-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import { defineConfig } from '@internal/cli/config-types';
+import postgresDriver from '@internal/driver-postgres/control';
+import type { ControlFamilyDescriptor } from '@internal/framework-components/control';
+import { sqlEmission } from '@internal/sql-contract-emitter';
+import postgres from '@internal/target-postgres/control';
 import { contract } from './contract';
 
 // Create family descriptor without create method

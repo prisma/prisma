@@ -6,10 +6,10 @@ inferred from reading code.
 **Instruments:**
 
 - `test/integration/test/cli-journeys/infer-roundtrip-fidelity.e2e.test.ts` — 8 `it()`s (IF.01–IF.08),
-  run with `pnpm --filter @prisma-next/integration-tests test:journeys test/cli-journeys/infer-roundtrip-fidelity.e2e.test.ts`.
+  run with `pnpm --filter integration-tests test:journeys test/cli-journeys/infer-roundtrip-fidelity.e2e.test.ts`.
   Result: **8 failed (8)**.
 - `test/integration/test/infer-roundtrip-runtime.integration.test.ts` — 2 `it()`s (RT.01–RT.02),
-  run with `pnpm --filter @prisma-next/integration-tests test test/infer-roundtrip-runtime.integration.test.ts`.
+  run with `pnpm --filter integration-tests test test/infer-roundtrip-runtime.integration.test.ts`.
   Result: **2 failed (2)**.
 
 Both files assert the **fixed** behaviour, so every one of the 10 failures is a live reproduction.
@@ -342,10 +342,10 @@ only when every fix has landed.
 The runtime test first failed with:
 
 ```
-Error: Cannot find package '@prisma-next/sql-schema-ir/naming' imported from .../packages/2-sql/1-core/contract/dist/foreign-key-materialization.mjs
+Error: Cannot find package '@internal/sql-schema-ir/naming' imported from .../packages/2-sql/1-core/contract/dist/foreign-key-materialization.mjs
 ```
 
 This is the `workspace-package-not-found-run-pnpm-install` rule's case, not a code bug: the
-`@prisma-next/sql-schema-ir` symlink was missing from `packages/2-sql/1-core/contract/node_modules/@prisma-next/`.
+`@internal/sql-schema-ir` symlink was missing from `packages/2-sql/1-core/contract/node_modules/@internal/`.
 `pnpm install` fixed it and left `pnpm-lock.yaml` unchanged. If a later dispatch sees this, install —
 don't debug it.

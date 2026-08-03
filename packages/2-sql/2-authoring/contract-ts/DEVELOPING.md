@@ -1,4 +1,4 @@
-# Developing `@prisma-next/sql-contract-ts`
+# Developing `@internal/sql-contract-ts`
 
 This note keeps contributor-facing lowering details and warning semantics out of the package README.
 

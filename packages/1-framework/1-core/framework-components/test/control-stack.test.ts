@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { describe, expect, it } from 'vitest';
 import type { CreateControlStackInput } from '../src/control/control-stack';
@@ -49,7 +49,7 @@ describe('extractCodecTypeImports', () => {
         types: {
           codecTypes: {
             import: {
-              package: '@prisma-next/adapter-mongo/codec-types',
+              package: '@internal/adapter-mongo/codec-types',
               named: 'CodecTypes',
               alias: 'MongoCodecTypes',
             },
@@ -59,7 +59,7 @@ describe('extractCodecTypeImports', () => {
     ]);
     expect(result).toEqual([
       {
-        package: '@prisma-next/adapter-mongo/codec-types',
+        package: '@internal/adapter-mongo/codec-types',
         named: 'CodecTypes',
         alias: 'MongoCodecTypes',
       },
@@ -1312,7 +1312,7 @@ describe('createControlStack', () => {
           types: {
             codecTypes: {
               import: {
-                package: '@prisma-next/adapter-mongo/codec-types',
+                package: '@internal/adapter-mongo/codec-types',
                 named: 'CodecTypes',
                 alias: 'MongoCodecTypes',
               },

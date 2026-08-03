@@ -1,11 +1,11 @@
-import type { Contract, JsonValue } from '@prisma-next/contract/types';
+import type { Contract, JsonValue } from '@internal/contract/types';
 import {
   type Codec,
   type CodecLookup,
   emptyCodecLookup,
-} from '@prisma-next/framework-components/codec';
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/codec';
+import type { TargetPackRef } from '@internal/framework-components/components';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { buildSqlContractFromDefinition } from '../src/build-contract';

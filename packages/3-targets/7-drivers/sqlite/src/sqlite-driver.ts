@@ -1,6 +1,6 @@
 import type { SQLInputValue } from 'node:sqlite';
 import { DatabaseSync } from 'node:sqlite';
-import type { RuntimeDriverInstance } from '@prisma-next/framework-components/execution';
+import type { RuntimeDriverInstance } from '@internal/framework-components/execution';
 import type {
   PreparedExecuteRequest,
   SqlConnection,
@@ -10,7 +10,7 @@ import type {
   SqlExplainResult,
   SqlQueryResult,
   SqlTransaction,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { normalizeSqliteError } from './normalize-error';
 
 export type SqliteBinding = { readonly kind: 'path'; readonly path: string };

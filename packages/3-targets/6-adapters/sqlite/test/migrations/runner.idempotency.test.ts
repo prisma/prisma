@@ -1,7 +1,7 @@
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import type { SqlitePlanTargetDetails } from '@prisma-next/target-sqlite/planner-target-details';
-import { timeouts } from '@prisma-next/test-utils';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import type { SqlitePlanTargetDetails } from '@internal/target-sqlite/planner-target-details';
+import { timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   contract,

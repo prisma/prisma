@@ -26,7 +26,7 @@ Migrate field `@map` and model `@@map` onto specs, and add the reusable model-le
 ## Completed when
 - [ ] `@map`/`@@map` lowered via `interpretAttribute`; absent-attribute defaults preserved.
 - [ ] `parseMapName` deleted (`rg parseMapName packages/2-sql` → zero).
-- [ ] Gates: `pnpm --filter @prisma-next/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary`; after `pnpm --filter @prisma-next/psl-parser build` (only if you touched psl-parser — you shouldn't), workspace `pnpm typecheck`.
+- [ ] Gates: `pnpm --filter @internal/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary`; after `pnpm --filter @internal/psl-parser build` (only if you touched psl-parser — you shouldn't), workspace `pnpm typecheck`.
 
 ## Constraints
 No `any`; no bare `as`; no file-ext imports; tests-first where the emitted code/behaviour changes. Explicit-staging commit(s) with sign-off, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Transient-ID scan on the `+` diff. Do NOT touch GitHub.

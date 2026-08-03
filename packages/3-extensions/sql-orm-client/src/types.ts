@@ -1,5 +1,5 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { AnnotationValue, OperationKind } from '@prisma-next/framework-components/runtime';
+import type { Contract } from '@internal/contract/types';
+import type { AnnotationValue, OperationKind } from '@internal/framework-components/runtime';
 import type {
   ExtractCodecTypes,
   ExtractFieldOutputTypes,
@@ -7,7 +7,7 @@ import type {
   SqlStorage,
   StorageColumn,
   StorageTable,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import {
   type AnyExpression,
   BinaryExpr,
@@ -18,10 +18,10 @@ import {
   NullCheckExpr,
   OrderByItem,
   ParamRef,
-} from '@prisma-next/sql-relational-core/ast';
-import type { Expression } from '@prisma-next/sql-relational-core/expression';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import type { ComputeColumnJsType, RuntimeScope } from '@prisma-next/sql-relational-core/types';
+} from '@internal/sql-relational-core/ast';
+import type { Expression } from '@internal/sql-relational-core/expression';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import type { ComputeColumnJsType, RuntimeScope } from '@internal/sql-relational-core/types';
 import type { RowSelection } from './collection-internal-types';
 
 export type AggregateFn = 'count' | 'sum' | 'avg' | 'min' | 'max';

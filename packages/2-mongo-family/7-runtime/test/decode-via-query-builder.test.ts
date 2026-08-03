@@ -11,9 +11,9 @@
  * `expectTypeOf`) and runtime values.
  */
 
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { acc, mongoQuery } from '@prisma-next/mongo-query-builder';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import { acc, mongoQuery } from '@internal/mongo-query-builder';
+import { MongoParamRef } from '@internal/mongo-value';
 import { ObjectId } from 'mongodb';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import {

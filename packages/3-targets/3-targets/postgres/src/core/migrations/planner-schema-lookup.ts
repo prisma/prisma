@@ -1,6 +1,6 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ForeignKey } from '@prisma-next/sql-contract/types';
-import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ForeignKey } from '@internal/sql-contract/types';
+import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 
 /**
  * Pre-computed lookup sets for a schema table's constraints.

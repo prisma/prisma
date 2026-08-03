@@ -1,9 +1,9 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ControlPolicySubject, SuppressionRecord } from '@prisma-next/family-sql/control';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { ControlPolicySubject, SuppressionRecord } from '@internal/family-sql/control';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   renderPostgresSuppression,

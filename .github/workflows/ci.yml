@@ -120,6 +120,10 @@ jobs:
         run: pnpm lint:throws
       - name: Lint framework vocabulary
         run: pnpm lint:framework-vocabulary
+      - name: Lint consumer internal imports
+        run: pnpm lint:consumer-internal-imports
+      - name: Lint the legacy product name
+        run: pnpm lint:legacy-name
       - name: Check upgrade-instruction coverage
         run: pnpm check:upgrade-coverage --mode pr
       - name: Check error-reference completeness
@@ -155,7 +159,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TEST_TIMEOUT_MULTIPLIER: 2
-      # Used by examples/prisma-next-cloudflare-worker's vitest-pool-workers
+      # Used by examples/prisma-8-cloudflare-worker's vitest-pool-workers
       # integration test. Mirrors the .env.example pattern; the container is
       # brought up by `pnpm db:up` below (docker-compose, not a service
       # container, because GitHub Actions service containers can't override
@@ -191,7 +195,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Start cloudflare-worker Postgres (5433, pg_stat_statements)
         if: needs.changes.outputs.inert != 'true'
-        run: pnpm --filter prisma-next-cloudflare-worker db:up
+        run: pnpm --filter prisma-8-cloudflare-worker db:up
       - name: Test packages
         if: needs.changes.outputs.inert != 'true'
         run: pnpm test:packages
@@ -343,7 +347,7 @@ jobs:
           } >> "$GITHUB_ENV"
       - name: Run the real-Supabase acceptance harness
         if: needs.changes.outputs.inert != 'true'
-        run: pnpm --filter @prisma-next/example-supabase test test/real-supabase.acceptance.test.ts
+        run: pnpm --filter supabase-example test test/real-supabase.acceptance.test.ts
 
   coverage:
     name: Coverage

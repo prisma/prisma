@@ -1,5 +1,5 @@
 ---
-description: No bare `as` casts in production TypeScript. Use blindCast<T, "Reason">(value) from @prisma-next/utils/casts as the auditable escape hatch, castAs<T>(value) for declarative-only assertions, or rewrite to eliminate the cast. as const is exempt. Test files are exempt.
+description: No bare `as` casts in production TypeScript. Use blindCast<T, "Reason">(value) from @internal/utils/casts as the auditable escape hatch, castAs<T>(value) for declarative-only assertions, or rewrite to eliminate the cast. as const is exempt. Test files are exempt.
 alwaysApply: false
 globs: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"]
 ---
@@ -16,10 +16,10 @@ Bare `as` type casts (`value as Foo`, `x as unknown as Bar`) are forbidden in pr
 | `castAs<T>(value)` | The value already satisfies `T`; the assertion is purely declarative (widening from a subtype, or providing an annotation the type-checker cannot infer). |
 | `as const` | A different semantic — produces a readonly literal type, not a type assertion. Always fine; the rule does not fire on `as const`. |
 
-Both helpers live in `@prisma-next/utils/casts`:
+Both helpers live in `@internal/utils/casts`:
 
 ```typescript
-import { blindCast, castAs } from '@prisma-next/utils/casts';
+import { blindCast, castAs } from '@internal/utils/casts';
 ```
 
 ## Rewrite first; cast as last resort; reviewer validates the justification

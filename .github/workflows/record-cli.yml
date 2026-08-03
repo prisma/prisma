@@ -66,10 +66,10 @@ jobs:
           fc-cache -f
 
       - name: Record per-command demos
-        run: pnpm --filter @prisma-next/cli record --no-cache
+        run: pnpm --filter @internal/cli record --no-cache
 
       - name: Record journey demos
-        run: pnpm --filter @prisma-next/cli record --no-cache --all-journeys
+        run: pnpm --filter @internal/cli record --no-cache --all-journeys
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v8

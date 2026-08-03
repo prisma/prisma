@@ -38,7 +38,7 @@ export function checkAborted(
  * Distinguishing the rejection source is load-bearing for AC-ERR4
  * (`RUNTIME.ENCODE_FAILED` / `RUNTIME.DECODE_FAILED` pass through unchanged).
  * The semantically equivalent `abortable(signal)` helper in
- * `@prisma-next/utils` rejects with `signal.reason ?? new DOMException(...)`,
+ * `@internal/utils` rejects with `signal.reason ?? new DOMException(...)`,
  * which is not stably distinguishable from a codec-thrown error by identity
  * alone (a fresh fallback DOMException is allocated per call). We instead
  * track abort attribution with a unique sentinel: only the `onAbort` listener

@@ -1,4 +1,4 @@
-import type { ApplicationDomain } from '@prisma-next/contract/types';
+import type { ApplicationDomain } from '@internal/contract/types';
 import type { EntityCoordinate } from './storage';
 
 /**

@@ -1,25 +1,26 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@prisma-next/config-loader';
-import type { Contract } from '@prisma-next/contract/types';
-import { getEmittedArtifactPaths } from '@prisma-next/emitter';
+import { loadConfig } from '@internal/config-loader';
+import type { Contract } from '@internal/contract/types';
+import { getEmittedArtifactPaths } from '@internal/emitter';
 import {
   createControlStack,
   hasOperationPreview,
   type MigrationPlanOperation,
   type OperationPreview,
   type SchemaOwnership,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { deriveProvidedInvariants } from '@prisma-next/migration-tools/invariants';
-import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { writeMigrationTs } from '@prisma-next/migration-tools/migration-ts';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/contract-snapshot-store';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { deriveProvidedInvariants } from '@internal/migration-tools/invariants';
+import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { writeMigrationTs } from '@internal/migration-tools/migration-ts';
+import type { ImportSpecifierResolver } from '@internal/publish-surface/import-roots';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { join, relative } from 'pathe';
 import {
@@ -51,6 +52,7 @@ import { assertFrameworkComponentsCompatible } from '../utils/framework-componen
 import type { CommonCommandOptions } from '../utils/global-flags';
 import { type GlobalFlags, parseGlobalFlagsOrExit } from '../utils/global-flags';
 import { resolveFromForPlan, resolveToForPlan } from '../utils/plan-resolution';
+import { createProjectSpecifierResolver } from '../utils/project-import-root';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI, type TerminalUI } from '../utils/terminal-ui';
 
@@ -78,6 +80,7 @@ async function runPlannerLeg(
   spaceId: string,
   ownership: SchemaOwnership,
   snapshotsImportPath: string,
+  resolveImportSpecifier: ImportSpecifierResolver,
 ): Promise<Result<PlannerSuccess, CliStructuredError>> {
   const fromSchema = migrations.contractToSchema(fromContract, frameworkComponents);
   const plannerResult = planner.plan({
@@ -131,7 +134,7 @@ async function runPlannerLeg(
 
   return ok({
     plannedOps,
-    migrationTsContent: plannerResult.plan.renderTypeScript(),
+    migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
   });
 }
@@ -371,6 +374,11 @@ async function executeMigrationPlanCommand(
     };
   }
 
+  // Before the seed phase, which is the first thing here that writes: an
+  // unreadable or contradictory project manifest fails the command outright
+  // rather than after artifacts are already on disk.
+  const resolveImportSpecifier = createProjectSpecifierResolver(options.config);
+
   // Phase 1 — seed: unconditionally re-emit per-space pinned artifacts
   // (contract.json / contract.d.ts / refs/head.json) and materialise any
   // descriptor-shipped migration packages not yet on disk. Runs before
@@ -495,6 +503,7 @@ async function executeMigrationPlanCommand(
         aggregate.app.spaceId,
         aggregate,
         snapshotsImportPathFrom(baselinePackageDir, migrationsDir),
+        resolveImportSpecifier,
       );
       if (!baselineLeg.ok) {
         return notOk(baselineLeg.failure);
@@ -564,6 +573,7 @@ async function executeMigrationPlanCommand(
         aggregate.app.spaceId,
         aggregate,
         snapshotsImportPathFrom(deltaPackageDir, migrationsDir),
+        resolveImportSpecifier,
       );
       if (!deltaLeg.ok) {
         return notOk(deltaLeg.failure);
@@ -638,6 +648,7 @@ async function executeMigrationPlanCommand(
       aggregate.app.spaceId,
       aggregate,
       snapshotsImportPathFrom(packageDir, migrationsDir),
+      resolveImportSpecifier,
     );
     if (!deltaLeg.ok) {
       return notOk(deltaLeg.failure);

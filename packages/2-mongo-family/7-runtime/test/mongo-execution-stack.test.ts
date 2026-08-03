@@ -1,7 +1,7 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { isRuntimeError } from '@prisma-next/framework-components/runtime';
-import { mongoCodec, newMongoCodecRegistry } from '@prisma-next/mongo-codec';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
+import mongoRuntimeAdapter from '@internal/adapter-mongo/runtime';
+import { isRuntimeError } from '@internal/framework-components/runtime';
+import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
+import mongoRuntimeTarget from '@internal/target-mongo/runtime';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import {
   createMongoExecutionContext,

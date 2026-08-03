@@ -13,12 +13,12 @@ pnpm build
 pnpm typecheck
 pnpm lint:deps
 pnpm lint --filter <touched adapters/targets/extensions>
-pnpm test --filter <every package the diff touches> --filter @prisma-next/integration-tests
+pnpm test --filter <every package the diff touches> --filter integration-tests
 pnpm fixtures:check
 pnpm check:upgrade-coverage
 ```
 
-Standing floor regardless of diff: `@prisma-next/integration-tests` (it owns `include-codecs.test.ts`, this slice's acceptance signal, and the #942-contract coverage that caught the seam), both adapters, both targets. The `projectJson` grep from slice 3 is **retired** — its invariant inverts here; the D1 byte-parity check below replaces it for the one dispatch that still needs dormancy. Failures classified individually, always; no-database packages are the free oracle for "is this real", but only against database contention — a 100 ms timeout under load is a different axis.
+Standing floor regardless of diff: `integration-tests` (it owns `include-codecs.test.ts`, this slice's acceptance signal, and the #942-contract coverage that caught the seam), both adapters, both targets. The `projectJson` grep from slice 3 is **retired** — its invariant inverts here; the D1 byte-parity check below replaces it for the one dispatch that still needs dormancy. Failures classified individually, always; no-database packages are the free oracle for "is this real", but only against database contention — a 100 ms timeout under load is a different axis.
 
 ## Shape
 

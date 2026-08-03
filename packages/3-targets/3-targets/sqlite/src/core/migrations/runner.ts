@@ -1,4 +1,4 @@
-import type { Contract, ContractMarkerRecord } from '@prisma-next/contract/types';
+import type { Contract, ContractMarkerRecord } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
   SqlControlFamilyInstance,
@@ -10,17 +10,17 @@ import type {
   SqlMigrationRunnerFailure,
   SqlMigrationRunnerResult,
   SqlMigrationRunnerSuccessValue,
-} from '@prisma-next/family-sql/control';
-import { runnerFailure, runnerSuccess } from '@prisma-next/family-sql/control';
-import type { MigrationRunnerResult } from '@prisma-next/framework-components/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import type { SqlControlDriverInstance, SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlExecuteRequest } from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import type { Result } from '@prisma-next/utils/result';
-import { notOk, ok, okVoid } from '@prisma-next/utils/result';
+} from '@internal/family-sql/control';
+import { runnerFailure, runnerSuccess } from '@internal/family-sql/control';
+import type { MigrationRunnerResult } from '@internal/framework-components/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
+import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import type { Result } from '@internal/utils/result';
+import { notOk, ok, okVoid } from '@internal/utils/result';
 import { MARKER_TABLE_NAME } from '../control-tables';
 import { sqliteError } from '../errors';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';

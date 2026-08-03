@@ -8,7 +8,7 @@
  * Class generic shape: `Id`, `TTraits`, `TWire`, `TInput`. Method generics on the codec subclass's own surface (e.g. arktype-json's schema generic, pgvector's dimension generic) flow through the subclass's constructor and propagate via the descriptor's typed `factory(params)` return at *direct* call sites.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { CodecDescriptor } from './codec-descriptor';
 import type { CodecCallContext, CodecTrait } from './codec-types';
 

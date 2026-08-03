@@ -1,5 +1,5 @@
-import type { PreserveEmptyPredicate, StorageSort } from '@prisma-next/contract/hashing';
-import type { JsonObject } from '@prisma-next/utils/json';
+import type { PreserveEmptyPredicate, StorageSort } from '@internal/contract/hashing';
+import type { JsonObject } from '@internal/utils/json';
 
 /**
  * Framework SPI for moving a contract between its canonical on-disk JSON

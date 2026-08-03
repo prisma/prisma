@@ -1,7 +1,7 @@
-import type { CrossReference } from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
-import { timeouts } from '@prisma-next/test-utils';
+import type { CrossReference } from '@internal/contract/types';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type { TypesImportSpec } from '@internal/framework-components/emission';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { EmitStackInput } from '../src/exports';
 import { createMockSpi } from './mock-spi';

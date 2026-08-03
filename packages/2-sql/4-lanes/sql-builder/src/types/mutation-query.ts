@@ -2,9 +2,9 @@ import type {
   AnnotationValue,
   OperationKind,
   ValidAnnotations,
-} from '@prisma-next/framework-components/runtime';
-import type { StorageTable } from '@prisma-next/sql-contract/types';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/framework-components/runtime';
+import type { StorageTable } from '@internal/sql-contract/types';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { ExpressionBuilder, WithFields } from '../expression';
 import type { ResolveRow } from '../resolve';
 import type { EmptyRow, GatedMethod, QueryContext, Scope, ScopeField } from '../scope';

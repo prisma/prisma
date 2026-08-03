@@ -1,4 +1,4 @@
-# @prisma-next/target-sqlite
+# @internal/target-sqlite
 
 SQLite target pack for Prisma Next.
 
@@ -32,8 +32,8 @@ This package spans multiple planes:
 ### Pack refs for TypeScript contract authoring
 
 ```typescript
-import sqlitePack from '@prisma-next/target-sqlite/pack';
-import { defineContract } from '@prisma-next/sql-contract-ts/contract-builder';
+import sqlitePack from '@internal/target-sqlite/pack';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
 
 export const contract = defineContract()
   .target(sqlitePack)
@@ -44,7 +44,7 @@ Pack refs are pure JSON-friendly objects that make TypeScript contract authoring
 
 ## Codec descriptor authoring
 
-SQLite-bound codecs use the public `SqliteCodecDescriptor` protocol, `sqliteCodec(...)` adapter, and `defineSqliteCodecs(...)` tuple helper exported from `@prisma-next/target-sqlite/codec-descriptor`. See the [codec authoring guide](../../../../docs/reference/codec-authoring-guide.md#target-owned-sql-codec-descriptors) for subclassing, generic adaptation, stack contribution, structural validation, SQLite's scalar-only contract, and the current renderer transition.
+SQLite-bound codecs use the public `SqliteCodecDescriptor` protocol, `sqliteCodec(...)` adapter, and `defineSqliteCodecs(...)` tuple helper exported from `@internal/target-sqlite/codec-descriptor`. See the [codec authoring guide](../../../../docs/reference/codec-authoring-guide.md#target-owned-sql-codec-descriptors) for subclassing, generic adaptation, stack contribution, structural validation, SQLite's scalar-only contract, and the current renderer transition.
 
 ## Architecture
 
@@ -52,11 +52,11 @@ This package provides a runtime entry point for the SQLite target. All declarati
 
 ## Dependencies
 
-- **`@prisma-next/framework-components`**: Descriptor types (`RuntimeTargetInstance`)
-- **`@prisma-next/sql-relational-core`**: Codec registry factory
-- **`@prisma-next/sql-runtime`**: `SqlRuntimeTargetDescriptor` type
-- **`@prisma-next/sql-contract`**: Pack ref types (`TargetPackRef`)
-- **`@prisma-next/adapter-sqlite`** *(dev)*: Codec types for pack ref `__codecTypes`
+- **`@internal/framework-components`**: Descriptor types (`RuntimeTargetInstance`)
+- **`@internal/sql-relational-core`**: Codec registry factory
+- **`@internal/sql-runtime`**: `SqlRuntimeTargetDescriptor` type
+- **`@internal/sql-contract`**: Pack ref types (`TargetPackRef`)
+- **`@internal/adapter-sqlite`** *(dev)*: Codec types for pack ref `__codecTypes`
 
 ## Related Subsystems
 

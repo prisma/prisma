@@ -1,5 +1,5 @@
-import type { GeneratedValueSpec } from '@prisma-next/contract/types';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { GeneratedValueSpec } from '@internal/contract/types';
+import { InternalError } from '@internal/utils/internal-error';
 import type { BuiltinGeneratorId } from './generator-ids';
 import { idGenerators } from './generators';
 

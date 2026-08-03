@@ -1,7 +1,7 @@
 import {
   type AggregateMigrationEdgeRef,
   buildFabricatedMigrationEdge,
-} from '@prisma-next/migration-tools/aggregate';
+} from '@internal/migration-tools/aggregate';
 
 export type FabricatedMigrationEdgesPlan = {
   readonly origin?: { readonly storageHash: string } | null;

@@ -5,7 +5,7 @@
 When `migration plan` detects a data transform, the scaffolder writes a `migration.ts` file. Most of the file is auto-derived, but two slots — `check.source` and `run` — require hand-authored queries that only the migration author knows. The scaffolder emits them like this:
 
 ```ts
-import { dataTransform, placeholder } from '@prisma-next/target-mongo/migration'
+import { dataTransform, placeholder } from '@internal/target-mongo/migration'
 
 dataTransform('backfill-product-status', {
   check: {
@@ -28,7 +28,7 @@ No silent nonsense, no generic stack trace — a precise diagnostic that flows t
 
 ## Decision
 
-We use a `placeholder(slot: string): never` function that always throws a `CliStructuredError` with code `2001`, domain `MIG`, and `meta: { slot }`. It lives in `@prisma-next/errors/migration` and is re-exported from each target's migration entrypoint (e.g. `@prisma-next/target-mongo/migration`).
+We use a `placeholder(slot: string): never` function that always throws a `CliStructuredError` with code `2001`, domain `MIG`, and `meta: { slot }`. It lives in `@internal/errors/migration` and is re-exported from each target's migration entrypoint (e.g. `@internal/target-mongo/migration`).
 
 ```ts
 export function placeholder(slot: string): never {
@@ -54,7 +54,7 @@ This is what makes the scaffold-then-emit handoff safe: without a structured thr
 
 ## What this replaces
 
-> **Status:** Planned/target-state. The sentinel→`placeholder()` switch described here is design intent for the upcoming class-flow rollout. The runtime data-transform paths in `@prisma-next/target-mongo/migration` still ship the `TodoMarker` sentinel today; the snippets below show the target API and the deletion catalog the implementation PR will execute against.
+> **Status:** Planned/target-state. The sentinel→`placeholder()` switch described here is design intent for the upcoming class-flow rollout. The runtime data-transform paths in `@internal/target-mongo/migration` still ship the `TodoMarker` sentinel today; the snippets below show the target API and the deletion catalog the implementation PR will execute against.
 
 The prior design used a sentinel symbol:
 

@@ -1,14 +1,14 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import { collectScalarTypeConstructors } from '@prisma-next/framework-components/authoring';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import postgres from '@prisma-next/target-postgres/control';
-import postgresPackRef from '@prisma-next/target-postgres/pack';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql from '@internal/family-sql/control';
+import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
+import { createControlStack } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import postgres from '@internal/target-postgres/control';
+import postgresPackRef from '@internal/target-postgres/pack';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { describe, expect, it } from 'vitest';
 
 const stack = createControlStack({

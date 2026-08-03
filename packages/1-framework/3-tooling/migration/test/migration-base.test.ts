@@ -1,5 +1,5 @@
-import type { ControlStack } from '@prisma-next/framework-components/control';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { ControlStack } from '@internal/framework-components/control';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import type { MigrationMetadata } from '../src/metadata';
 import { buildMigrationArtifacts, Migration } from '../src/migration-base';
@@ -193,7 +193,7 @@ describe('Migration', () => {
  * Direct unit tests for `buildMigrationArtifacts` — the pure
  * `Migration` → in-memory artifact conversion. File I/O (reading
  * existing `migration.json`, writing the rendered artifacts to disk,
- * dry-run stdout output) lives in `@prisma-next/cli` and is exercised
+ * dry-run stdout output) lives in `@internal/cli` and is exercised
  * there.
  */
 describe('buildMigrationArtifacts', () => {

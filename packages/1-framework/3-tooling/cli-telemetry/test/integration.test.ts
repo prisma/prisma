@@ -1,7 +1,7 @@
 import { fork } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { ParentToSenderPayload } from '../src/payload';
@@ -15,7 +15,7 @@ let projectDir: string;
 /**
  * Build a `prisma-next.config.mjs` source string with the minimum
  * descriptor shape that `validateConfig` (from
- * `@prisma-next/config/config-validation`) accepts. The integration
+ * `@internal/config/config-validation`) accepts. The integration
  * test exercises the full c12 + validator pipeline in the detached
  * child, so the fixture has to be structurally valid.
  */
@@ -46,7 +46,7 @@ beforeAll(async () => {
     JSON.stringify({ name: 'fixture', devDependencies: { typescript: '^5.9.3' } }),
   );
   // The detached child reads `prisma-next.config.*` via c12 and runs
-  // it through `@prisma-next/config`'s `validateConfig` to derive
+  // it through `@internal/config`'s `validateConfig` to derive
   // `databaseTarget` + `extensions`. The integration suite exercises
   // the full pipeline; write a `.mjs` fixture that satisfies the
   // canonical validator so the happy-path assertions on those fields
@@ -306,7 +306,7 @@ describe('cli-telemetry end-to-end — failure modes are silent', () => {
     },
     // The sender's idle-exit timeout is ~3s (REQUEST_TIMEOUT_MS × 2).
     // `databaseOperation` (5s base, scaled by `TEST_TIMEOUT_MULTIPLIER`)
-    // is the closest semantic helper exposed by `@prisma-next/test-utils`
+    // is the closest semantic helper exposed by `@repo/test-utils`
     // for an end-to-end operation that should finish within a few
     // seconds; on CI with `TEST_TIMEOUT_MULTIPLIER=2` it becomes 10s,
     // matching the previous hardcoded value.

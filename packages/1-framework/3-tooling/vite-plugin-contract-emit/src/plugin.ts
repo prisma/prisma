@@ -1,7 +1,7 @@
-import type { ContractEmitResult } from '@prisma-next/cli/control-api';
-import { disposeEmitQueue, executeContractEmit } from '@prisma-next/cli/control-api';
-import { loadConfig } from '@prisma-next/config-loader';
-import { getEmittedArtifactPaths } from '@prisma-next/emitter';
+import type { ContractEmitResult } from '@internal/cli/control-api';
+import { disposeEmitQueue, executeContractEmit } from '@internal/cli/control-api';
+import { loadConfig } from '@internal/config-loader';
+import { getEmittedArtifactPaths } from '@internal/emitter';
 import { extname, resolve } from 'pathe';
 import type { Plugin, ViteDevServer } from 'vite';
 import type { PrismaVitePluginOptions } from './types';
@@ -34,7 +34,7 @@ const MODULE_GRAPH_EXTENSIONS = new Set([
  * @example
  * ```ts
  * import { defineConfig } from 'vite';
- * import { prismaVitePlugin } from '@prisma-next/vite-plugin-contract-emit';
+ * import { prismaVitePlugin } from '@internal/vite-plugin-contract-emit';
  *
  * // Use default config path
  * export default defineConfig({

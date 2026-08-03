@@ -1,4 +1,4 @@
-import { CrossReferenceSchema } from '@prisma-next/contract/types';
+import { CrossReferenceSchema } from '@internal/contract/types';
 import { type Type, type } from 'arktype';
 import type { MongoJsonObject, MongoJsonPrimitive, MongoJsonValue } from './contract-types';
 

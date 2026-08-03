@@ -1,6 +1,6 @@
 import { readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from './utils/cli-test-helpers';
 import {

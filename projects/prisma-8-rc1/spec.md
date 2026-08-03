@@ -43,7 +43,7 @@ New queries are written against the v8 client; old code paths stay on v7. At the
 - **Renaming `prisma/prisma` → `prisma/prisma-orm`.** Parked. GitHub redirects make it cheap to do later; it does not need to ride along with the merge.
 - **Migrating the internal toolchain to TypeScript 7.** Consumer-side TS 7 validation is in scope (types must work under the native compiler); switching our own build to it is not.
 - **Comparative benchmarks.** The public benchmark surface is measurements-only (our own numbers over time). No v7 or competitor comparison — fair comparison is genuinely hard and the claim would become the story.
-- **ADR 211 Flavor 2 bundling before RC.** Consolidating the ~60 internal `@prisma-next/*` packages into the shim is designed and non-breaking, and therefore deliberately deferred to after RC.
+- **ADR 211 Flavor 2 bundling before RC.** Consolidating the ~60 internal `@internal/*` packages into the shim is designed and non-breaking, and therefore deliberately deferred to after RC.
 - **The public road-to-final dashboard.** Goes live *with* the RC announcement, not before. Pre-RC tracking is org-internal (the Linear project).
 - **An exhaustive up-front ticket backlog.** Tickets are created just-in-time as work starts; the Linear project's milestones and status updates are the tracking surface.
 
@@ -65,7 +65,7 @@ New queries are written against the v8 client; old code paths stay on v7. At the
 
 - The v8 branch lives in `prisma/prisma` with green CI for as long as possible before the final merge; merge mechanics are never last-week discoveries.
 - The RC is never reachable via `npm install prisma` (non-`latest` dist-tag) until 8.0.0 final.
-- Only the visible package set is renamed at RC (`prisma-next` shim → `prisma`; `@prisma-next/{postgres,sqlite,mongo}` facades → `@prisma/*`, collision-audited against classic's `@prisma/*` names). All other `@prisma-next/*` packages remain published and untouched until Flavor 2.
+- Only the visible package set is renamed at RC (`prisma-next` shim → `prisma`; `@internal/{postgres,sqlite,mongo}` facades → `@prisma/*`, collision-audited against classic's `@prisma/*` names). All other `@internal/*` packages remain published and untouched until Flavor 2.
 - During the coexistence period, `db verify` runs lenient (v7's `_prisma_migrations` table in `public` is an unclaimed element that fails `--strict`); the upgrade guide blesses lenient mode until cutover.
 
 # Project DoD

@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { Namespace } from '@prisma-next/framework-components/ir';
-import type { SqlNamespaceInput, SqlStorage } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { Contract } from '@internal/contract/types';
+import type { Namespace } from '@internal/framework-components/ir';
+import type { SqlNamespaceInput, SqlStorage } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { SqlContractSerializerBase } from '../src/core/ir/sql-contract-serializer-base';
 

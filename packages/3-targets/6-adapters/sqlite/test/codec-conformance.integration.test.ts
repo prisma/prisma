@@ -14,7 +14,7 @@
  */
 
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
-import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
+import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { sqliteConformanceCases } from './codec-conformance/cases';
 import type { ConformanceConnection } from './codec-conformance/harness';

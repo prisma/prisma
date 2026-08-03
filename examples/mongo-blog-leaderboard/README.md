@@ -38,7 +38,7 @@ pnpm --filter mongo-blog-leaderboard test
 ## The leaderboard query
 
 ```ts
-import { acc } from '@prisma-next/mongo-query-builder';
+import { acc } from '@prisma/orm-mongo/query-builder';
 import { createClient } from './src/db';
 
 const db = createClient({ url: process.env.MONGODB_URL!, dbName: 'blog' });
@@ -80,7 +80,7 @@ Each link in the chain produces a precise downstream row type:
 `src/db.ts` uses the canonical Mongo facade:
 
 ```ts
-import mongo from '@prisma-next/mongo/runtime';
+import mongo from '@prisma/orm-mongo/runtime';
 import contractJson from './contract.json' with { type: 'json' };
 import type { Contract } from './contract';
 
@@ -89,7 +89,7 @@ export function createClient({ url, dbName }: { url: string; dbName?: string }) 
 }
 ```
 
-> **Heads-up — declare `@prisma-next/adapter-mongo` (and `@prisma-next/mongo-contract`) as direct dependencies.** The emitted `contract.d.ts` references `@prisma-next/adapter-mongo/codec-types` for codec generics. With pnpm's strict hoisting, those types are only resolvable from the example when listed as a direct dep — otherwise TypeScript silently falls back to `any`, the `Contract` type widens, and `db.orm.users` becomes an index-signature access (i.e. you'll see `TS4111` errors under `noPropertyAccessFromIndexSignature`).
+> **The emitted `contract.d.ts` imports only from `@prisma/orm-mongo`**, including the codec generics it takes from `@prisma/orm-mongo/adapter/codec-types`. That matters under pnpm's strict hoisting: a generated file that named a package the application does not depend on directly would not resolve, and TypeScript would report `TS2307: Cannot find module`. The emitter picks its import root by reading this example's `package.json`, so the names it writes are always ones the example installed.
 
 The returned `MongoClient` exposes:
 
@@ -103,7 +103,7 @@ The returned `MongoClient` exposes:
 | Path | Purpose |
 | --- | --- |
 | `src/contract.prisma` | PSL authoring surface |
-| `prisma-next.config.ts` | CLI config (uses `@prisma-next/mongo/config`) |
+| `prisma-next.config.ts` | CLI config (uses `@prisma/orm-mongo/config`) |
 | `src/contract.json` | Emitted contract (regenerate with `pnpm emit`) |
 | `src/contract.d.ts` | Emitted typed contract (do not edit) |
 | `src/db.ts` | Runtime composition via the `mongo()` facade |

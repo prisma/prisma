@@ -1,10 +1,10 @@
-import type { ComponentMetadata } from '@prisma-next/framework-components/components';
-import { extractCodecLookup } from '@prisma-next/framework-components/control';
+import type { ComponentMetadata } from '@internal/framework-components/components';
+import { extractCodecLookup } from '@internal/framework-components/control';
 import {
   type AnySqliteCodecDescriptor,
   buildSqliteCodecDescriptorRegistry,
-} from '@prisma-next/target-sqlite/codec-descriptor';
-import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
+} from '@internal/target-sqlite/codec-descriptor';
+import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
 import type { SqliteCodecRegistry } from './types';
 
 type CodecContributor = Pick<ComponentMetadata, 'types'>;

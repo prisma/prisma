@@ -15,7 +15,7 @@
  *      `contract.d.ts`, reached through `.supabase`, the only surface that
  *      carries `auth.*`), not a hand-built type.
  *   2. `db.asServiceRole().supabase.nativeEnums.auth.AalLevel` exposes the
- *      same member set at runtime, wired via `@prisma-next/postgres`'s
+ *      same member set at runtime, wired via `@internal/postgres`'s
  *      `buildNamespacedNativeEnums`, built from the extension contract's own
  *      storage.
  *   3. A query that binds `aal` as a parameter forces the renderer to emit a
@@ -24,7 +24,7 @@
  *      query executes against real Postgres and returns the expected row.
  */
 
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { SupabaseInternalDb } from '../src/exports/runtime';
 import { createDb } from './fixtures/example-app/db';

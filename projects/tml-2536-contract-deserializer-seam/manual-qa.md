@@ -11,14 +11,14 @@
 
 ## What this script is testing
 
-**The bug.** `prisma-next migration plan` against `examples/prisma-next-demo` crashed with `PN-CLI-4999`. The predecessor snapshot's polymorphic `storage.types` entries (`Embedding1536` codec-instance, `user_type` postgres-enum) were read directly from disk via `JSON.parse(...) as Contract`, bypassing the family `ContractSerializer`. The planner then tried to dispatch on a `kind` discriminator that was never stamped onto the parsed entries, and threw. The bug shipped because no automated test exercised a snapshot read with polymorphic types, and the demo — the only checked-in artefact in tree that triggers the bug — wasn't in CI.
+**The bug.** `prisma-next migration plan` against `examples/prisma-8-demo` crashed with `PN-CLI-4999`. The predecessor snapshot's polymorphic `storage.types` entries (`Embedding1536` codec-instance, `user_type` postgres-enum) were read directly from disk via `JSON.parse(...) as Contract`, bypassing the family `ContractSerializer`. The planner then tried to dispatch on a `kind` discriminator that was never stamped onto the parsed entries, and threw. The bug shipped because no automated test exercised a snapshot read with polymorphic types, and the demo — the only checked-in artefact in tree that triggers the bug — wasn't in CI.
 
 **The fix.** Four changes in one PR:
 
 1. Every on-disk contract read in the CLI (`migration plan`, `migration new`, `migrate`, `migration show`, `db verify`) now routes through `familyInstance.validateContract` instead of `JSON.parse(...) as Contract`.
 2. `normaliseTypeEntry` in the SQL family core no longer silently re-stamps untagged codec triples — its permissive fallthrough was removed, and an untagged entry now throws a diagnostic naming the offending entry and its missing/unknown `kind`. The deserializer is strict for every code path simultaneously.
 3. The test-coverage gap is closed: per-`kind` snapshot-read fixtures (`codec-instance`, `postgres-enum`), a workspace lint (`pnpm lint:no-contract-cast`) that rejects `as Contract` in production code, a `.cursor/rules/` rule pair documenting the seam and the smell, and a new CI job (`Demo `migration plan` (no-op)`) that runs the demo's `migration:plan:check` against its checked-in history.
-4. Both upgrade-instruction skills (`prisma-next-upgrade` for end users; `prisma-next-extension-upgrade` for extension authors) ship a `0.9-to-0.10/` entry with a codemod (`stamp-storage-types-kind.ts`) that stamps the `kind` discriminator on every committed `*-contract.json` snapshot. This is a breaking change for any project (app or extension package) with committed migration history under 0.9; the codemod is the only supported path forward.
+4. Both upgrade-instruction skills (`prisma-next-upgrade` for end users; `prisma-8-extension-upgrade` for extension authors) ship a `0.9-to-0.10/` entry with a codemod (`stamp-storage-types-kind.ts`) that stamps the `kind` discriminator on every committed `*-contract.json` snapshot. This is a breaking change for any project (app or extension package) with committed migration history under 0.9; the codemod is the only supported path forward.
 
 **Why manual QA matters here.** The scripted fixtures + lint + CI job catch regressions of *the shapes the authors anticipated*. They don't catch: (a) whether real artefacts like the demo behave the way the synthetic fixtures suggest under the strict deserializer; (b) whether the strict-throw diagnostic is actually actionable when a human reads it cold; (c) whether the rule rewrites read coherently to a fresh developer or have stale "the validator does NOT normalize" language left behind; (d) whether the lint catches a planted regression in a real production file; (e) whether the literal CLI flow from the original bug report now succeeds; (f) whether the upgrade-instruction skills + codemods actually transform a real project's substrate correctly from the consumer's point of view (end-user app and extension package). Every scripted scenario below targets one of those gaps, and the exploratory charter probes the broader diagnostic surface for unknown unknowns.
 
@@ -36,7 +36,7 @@
 | 8 | Demo app boots and serves against a signed database **(judgement)** | The runtime contract-load path still works — we didn't accidentally break the product to fix the CLI | workspace | AC-4 (indirect) |
 | 9 | Exploratory: probe the contract-read diagnostic surface **(exploratory, charter)** | Surfaces unanticipated degradation modes and judges diagnostic quality across them | workspace | (no specific AC; charter) |
 | 10 | End-user upgrade journey via `prisma-next-upgrade` 0.9→0.10 entry | A real user with committed migration history under 0.9 can apply the codemod and successfully advance to 0.10 | workspace | (upgrade-instructions intent — end users) |
-| 11 | Extension-author upgrade journey via `prisma-next-extension-upgrade` 0.9→0.10 entry | An extension author can apply the codemod to seed migrations AND apply the source-level rules without their build / tests breaking | workspace | (upgrade-instructions intent — extension authors) |
+| 11 | Extension-author upgrade journey via `prisma-8-extension-upgrade` 0.9→0.10 entry | An extension author can apply the codemod to seed migrations AND apply the source-level rules without their build / tests breaking | workspace | (upgrade-instructions intent — extension authors) |
 
 > Scenarios marked **(negative control)** plant a violation, observe the gate fire, then restore. Scenarios marked **(judgement)** require runner evaluation against an explicit oracle that no test can assert. Scenarios marked **(exploratory)** are time-boxed charters with no scripted steps. Scenarios 10 and 11 are **upgrade-journey** reproductions — they exercise the breaking-change-mitigation surface (the codemods + prose) from the consumer's point of view.
 >
@@ -52,7 +52,7 @@
    ```
 2. Confirm a local Postgres is reachable and the demo's `.env` is set:
    ```bash
-   cd examples/prisma-next-demo
+   cd examples/prisma-8-demo
    cat .env   # expect DATABASE_URL=postgres://...
    ```
    If `.env` is missing, copy/edit one before continuing — every DB-touching scenario below needs it.
@@ -90,7 +90,7 @@ If any of those disagree, either the deserializer is silently coercing shapes (t
 ### Steps
 
 ```bash
-cd examples/prisma-next-demo
+cd examples/prisma-8-demo
 pnpm db:drop                       # nukes public + prisma_contract schemas
 pnpm emit                          # regenerates contract.json (should be no diff)
 $CLI db init                       # creates schema + signs marker
@@ -226,7 +226,7 @@ This scenario falls under the litmus-test bucket "re-enacts the originally-faili
 ### Steps
 
 ```bash
-cd examples/prisma-next-demo
+cd examples/prisma-8-demo
 pnpm db:drop
 pnpm emit
 $CLI migration apply                                # applies the full checked-in history
@@ -273,7 +273,7 @@ This scenario falls under the litmus-test bucket "negative control for a guardra
 
 **Preconditions:**
 - Pre-flight complete.
-- `git status` clean in `examples/prisma-next-demo/migrations/app/`.
+- `git status` clean in `examples/prisma-8-demo/migrations/app/`.
 - Demo DB state from Scenario 1 or 3 is fine (this scenario reads on-disk artefacts, not the DB).
 - No prerequisite scenarios.
 
@@ -281,7 +281,7 @@ This scenario falls under the litmus-test bucket "negative control for a guardra
 
 1. From the demo dir, with a clean tree, pick the head-migration `end-contract.json` (the predecessor read for `migration plan`) and back it up:
    ```bash
-   cd examples/prisma-next-demo
+   cd examples/prisma-8-demo
    END=migrations/app/20260518T1701_namespaces_bookend/end-contract.json
    cp "$END" "$END.bak"
    ```
@@ -457,7 +457,7 @@ This scenario falls under the litmus-test bucket "end-to-end developer-journey s
 
 **Isolation:** `external` (hits the GitHub API via `gh`; rate-limit aware).
 
-**Oracle:** the spec's AC-10 — "A CI job runs `pnpm prisma-next migration plan` against `examples/prisma-next-demo`. The job fails when the demo workflow fails." The job must be (a) defined in `.github/workflows/ci.yml`, (b) wired into the events that fire on PRs (no `if: false`, no branch filter that would skip PR runs), and (c) actually appearing in PR #533's check list.
+**Oracle:** the spec's AC-10 — "A CI job runs `pnpm prisma-next migration plan` against `examples/prisma-8-demo`. The job fails when the demo workflow fails." The job must be (a) defined in `.github/workflows/ci.yml`, (b) wired into the events that fire on PRs (no `if: false`, no branch filter that would skip PR runs), and (c) actually appearing in PR #533's check list.
 
 **Preconditions:**
 - `gh` CLI authenticated and able to read PR #533.
@@ -475,7 +475,7 @@ Open `.github/workflows/ci.yml` and confirm:
 
 - A job named `demo-migration-plan` with display name `Demo `migration plan` (no-op)` exists.
 - It's a top-level job under `jobs:`, not gated behind any conditional that would skip PR runs.
-- Its final step runs `pnpm --filter prisma-next-demo migration:plan:check` (or equivalent).
+- Its final step runs `pnpm --filter prisma-8-demo migration:plan:check` (or equivalent).
 
 ### What you should see
 
@@ -514,7 +514,7 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 ### Steps
 
 ```bash
-cd examples/prisma-next-demo
+cd examples/prisma-8-demo
 pnpm seed
 pnpm start -- users    # or whichever command the demo's main.ts exposes
 ```
@@ -549,18 +549,18 @@ No tree mutations. DB state can stay or be re-baselined as needed.
 
 **Covers:** (no specific AC; surfaces unknowns the scripted scenarios skip).
 
-**Isolation:** `workspace` (mutates files inside `examples/prisma-next-demo/migrations/app/`; may also `chmod` a file).
+**Isolation:** `workspace` (mutates files inside `examples/prisma-8-demo/migrations/app/`; may also `chmod` a file).
 
 **Time budget:** 30 minutes. Stop when the timer rings even if you have ideas left — log uncovered ideas as candidate scenarios for a future round (or as new negative controls if a clear gap emerges).
 
 **Preconditions:**
 - Pre-flight complete.
-- `git status` clean in `examples/prisma-next-demo/migrations/app/`.
+- `git status` clean in `examples/prisma-8-demo/migrations/app/`.
 - A copy of the intact `migrations/app/` somewhere outside the repo (or a `git stash`) so restoration after any mutation is one command.
 
 **Notes capture.** Write what you tried, what surprised you, and anything that "felt off" but you can't yet name (e.g. "the diagnostic was technically correct but I didn't realise which file it meant until I re-read it"). Findings from this charter are categorised the same way scripted-scenario findings are; the runner's report owns their classification in runtime context.
 
-**Restore.** After the time-box, `git checkout -- examples/prisma-next-demo/migrations/app/` (or `git stash pop`) and confirm `git status` is clean. If you `chmod`-ed a file, also restore permissions.
+**Restore.** After the time-box, `git checkout -- examples/prisma-8-demo/migrations/app/` (or `git stash pop`) and confirm `git status` is clean. If you `chmod`-ed a file, also restore permissions.
 
 ---
 
@@ -574,10 +574,10 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 **Isolation:** `workspace` (rewrites the demo's tracked `migrations/app/**/*.json` files; uses `git stash` for revert/restore).
 
-**Coverage boundary.** This scenario proves the codemod and prose work on **one** specific end-user substrate (the in-tree `examples/prisma-next-demo`, treated as a stand-in for a real 0.9 consumer). It does **not** prove the codemod handles every conceivable user shape (custom contract-emit configurations, hand-edited snapshots, repositories with deeply nested `migrations/` directories, etc.). The unit-style detection in the codemod (look-for-codecId, dispatch-on-codecId) and its idempotency are the structural invariants; this scenario only proves it works under a representative real configuration.
+**Coverage boundary.** This scenario proves the codemod and prose work on **one** specific end-user substrate (the in-tree `examples/prisma-8-demo`, treated as a stand-in for a real 0.9 consumer). It does **not** prove the codemod handles every conceivable user shape (custom contract-emit configurations, hand-edited snapshots, repositories with deeply nested `migrations/` directories, etc.). The unit-style detection in the codemod (look-for-codecId, dispatch-on-codecId) and its idempotency are the structural invariants; this scenario only proves it works under a representative real configuration.
 
-**Oracle:** the substrate after `--apply` must equal the PR-branch state of `examples/prisma-next-demo/migrations/app/**`. Concretely:
-- `git diff examples/prisma-next-demo/migrations/` is empty after the codemod runs against a reverted pre-codemod state.
+**Oracle:** the substrate after `--apply` must equal the PR-branch state of `examples/prisma-8-demo/migrations/app/**`. Concretely:
+- `git diff examples/prisma-8-demo/migrations/` is empty after the codemod runs against a reverted pre-codemod state.
 - Re-running the codemod (any flag) is a no-op (the script outputs `OK …  (already stamped)` for every snapshot).
 - `migration plan` against the demo is a clean no-op (`ok: true`, `noOp: true`, empty `operations`). The TML-2521 namespaces drift is closed by the `20260518T1701_namespaces_bookend` migration in this PR, so no `PN-CLI-4020` should surface either.
 
@@ -591,14 +591,14 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 1. From repo root, revert the demo's migrations to the pre-codemod state so you can re-run the codemod:
    ```bash
    cd "$(git rev-parse --show-toplevel)"
-   git stash push examples/prisma-next-demo/migrations/ -m "tml-2536-qa-pre-codemod"
+   git stash push examples/prisma-8-demo/migrations/ -m "tml-2536-qa-pre-codemod"
    ```
 
    The `stash push` only captures tracked-file modifications; you'll need to revert the post-codemod state to the pre-codemod state first. The simplest way is to check out a pre-codemod commit's `migrations/` tree, then re-stash, then check out the post-codemod state again. If your local layout lets you target the pre-codemod state directly, do that; otherwise, plant the pre-stamped shape by hand on one snapshot (strip `kind` from each `storage.types[*]` entry) and confirm `migration plan` reproduces the deserializer failure in step 2 below — the rest of the scenario still proves the codemod's `--check` / `--apply` / idempotency contract under a representative violation.
 
 2. Confirm the pre-codemod state surfaces TML-2536 cleanly under the strict deserializer:
    ```bash
-   cd examples/prisma-next-demo
+   cd examples/prisma-8-demo
    node ../../packages/1-framework/3-tooling/cli/dist/cli.js migration plan --json
    ```
    You should see a `PN-CLI-4003 Contract validation failed` envelope naming a specific `end-contract.json` path and listing both `Embedding1536` and `user_type` as having `kind` undefined. This is the regression vector the codemod exists to mitigate.
@@ -611,7 +611,7 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 4. Run the codemod in `--check` mode first (the dry-run path your CI gate would use):
    ```bash
-   cd "$(git rev-parse --show-toplevel)/examples/prisma-next-demo"
+   cd "$(git rev-parse --show-toplevel)/examples/prisma-8-demo"
    tsx ../../skills/upgrade/prisma-next-upgrade/upgrades/0.9-to-0.10/stamp-storage-types-kind.ts --check
    echo "exit=$?"
    ```
@@ -627,13 +627,13 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 6. Confirm the substrate now equals the PR-branch state:
    ```bash
    cd "$(git rev-parse --show-toplevel)"
-   git diff examples/prisma-next-demo/migrations/
+   git diff examples/prisma-8-demo/migrations/
    ```
    Expect empty output (the codemod reproduced the PR state exactly).
 
 7. Idempotency check — re-run the codemod and confirm it's a no-op:
    ```bash
-   cd examples/prisma-next-demo
+   cd examples/prisma-8-demo
    tsx ../../skills/upgrade/prisma-next-upgrade/upgrades/0.9-to-0.10/stamp-storage-types-kind.ts
    echo "exit=$?"
    ```
@@ -669,7 +669,7 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
-git checkout -- examples/prisma-next-demo/migrations/
+git checkout -- examples/prisma-8-demo/migrations/
 git stash drop                     # drop the pre-codemod stash if it's still around
 git status                         # must be clean
 ```
@@ -678,7 +678,7 @@ If you reverted via a different mechanism in step 1, restore accordingly — the
 
 ---
 
-## Scenario 11 — Extension-author upgrade journey via `prisma-next-extension-upgrade` 0.9→0.10 entry
+## Scenario 11 — Extension-author upgrade journey via `prisma-8-extension-upgrade` 0.9→0.10 entry
 
 **What you're proving from the extension author's seat:** an extension author with a 0.9 extension package — one that ships seed migrations under `packages/<extension>/migrations/` AND constructs `SqlStorage` instances programmatically in source — can read the extension-skill's prose, apply the codemod to seed migrations AND apply the source-level rules to their TypeScript, and end up with an extension whose typecheck + tests pass against 0.10.
 
@@ -690,7 +690,7 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 **Coverage boundary.** This scenario uses `packages/3-extensions/pgvector/` as the substrate stand-in for a real third-party extension package. It does **not** prove the codemod handles every extension's seed-migration layout, every shape of source-level `SqlStorage` construction, or every test fixture an extension might carry. The structural invariants live in the source-rule list itself; this scenario proves the rules read coherently against a representative real extension and that following them produces a working build.
 
-**Oracle:** after applying the codemod + source rules to the pgvector extension, `pnpm --filter @prisma-next/extension-pgvector typecheck && pnpm --filter @prisma-next/extension-pgvector test` should pass. If the source rules are incomplete (e.g. miss a construction shape the extension uses), one of these gates fails with a `SqlStorage` constructor diagnostic that names the offending entry — that's the structural falsifier.
+**Oracle:** after applying the codemod + source rules to the pgvector extension, `pnpm --filter @internal/extension-pgvector typecheck && pnpm --filter @internal/extension-pgvector test` should pass. If the source rules are incomplete (e.g. miss a construction shape the extension uses), one of these gates fails with a `SqlStorage` constructor diagnostic that names the offending entry — that's the structural falsifier.
 
 **Preconditions:**
 - Pre-flight complete.
@@ -710,14 +710,14 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
 
 2. Read the extension-skill entry's prose:
    ```bash
-   $EDITOR skills/extension-author/prisma-next-extension-upgrade/upgrades/0.9-to-0.10/instructions.md
+   $EDITOR skills/extension-author/prisma-8-extension-upgrade/upgrades/0.9-to-0.10/instructions.md
    ```
    As an extension author reading this cold, can you (a) tell which files the JSON codemod will touch in your extension, (b) recognise the source-code shapes the rules describe (object-literal vs spread vs destructuring vs `new SqlStorage(...)` vs `new PostgresEnumType(...)`), (c) know what to do for an edge case the rules don't enumerate?
 
 3. Confirm pgvector's tests are green on the current branch as the baseline:
    ```bash
-   pnpm --filter @prisma-next/extension-pgvector typecheck 2>&1 | tail -5
-   pnpm --filter @prisma-next/extension-pgvector test 2>&1 | tail -5
+   pnpm --filter @internal/extension-pgvector typecheck 2>&1 | tail -5
+   pnpm --filter @internal/extension-pgvector test 2>&1 | tail -5
    ```
    Both should pass. If they don't, stop — this scenario can't isolate the upgrade-skill's effects, and the failure is a baseline issue worth surfacing separately.
 
@@ -728,14 +728,14 @@ This scenario falls under the litmus-test buckets "end-to-end developer-journey 
    If the extension ships seed migrations, run the codemod with `--check` against the extension package root and confirm the dry-run output:
    ```bash
    cd packages/3-extensions/pgvector
-   tsx ../../../skills/extension-author/prisma-next-extension-upgrade/upgrades/0.9-to-0.10/stamp-storage-types-kind.ts --check
+   tsx ../../../skills/extension-author/prisma-8-extension-upgrade/upgrades/0.9-to-0.10/stamp-storage-types-kind.ts --check
    echo "exit=$?"
    ```
    If pgvector ships no seed snapshots that need stamping, this is a no-op (exit 0, all `OK …`). That's expected for an extension that doesn't yet have committed migration history in the old shape.
 
 5. Source-rule audit: open each file from step 1 and confirm none of them carry the pre-strict shape (untagged `{ codecId, nativeType, typeParams }` literals or naked `{ codecId: 'pg/enum@1', ... }` enum literals). If any do, the source-rule guidance must produce a clear fix for that file's shape.
 
-6. (Optional structural falsifier — only if you have time.) Plant a deliberate violation in pgvector's source (e.g. add a test fixture that constructs `SqlStorage` with an untagged codec triple), run `pnpm --filter @prisma-next/extension-pgvector test`, and confirm the `SqlStorage` constructor's diagnostic fires with the entry name and the `toStorageTypeInstance(...)` recommendation. Restore the planted change before moving on:
+6. (Optional structural falsifier — only if you have time.) Plant a deliberate violation in pgvector's source (e.g. add a test fixture that constructs `SqlStorage` with an untagged codec triple), run `pnpm --filter @internal/extension-pgvector test`, and confirm the `SqlStorage` constructor's diagnostic fires with the entry name and the `toStorageTypeInstance(...)` recommendation. Restore the planted change before moving on:
    ```bash
    git diff packages/3-extensions/pgvector | head -50   # review the plant
    # run the test, observe failure

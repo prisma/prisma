@@ -19,12 +19,12 @@
 //   1. Whole-row toEqual assertions on every test.
 //   2. Explicit .select() in most tests; one implicit-selection readback.
 
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import pgvectorRuntime from '@prisma-next/extension-pgvector/runtime';
-import { Collection } from '@prisma-next/sql-orm-client';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import pgvectorRuntime from '@internal/extension-pgvector/runtime';
+import { Collection } from '@internal/sql-orm-client';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import type { Contract as MnPslContract } from './fixtures/mn-psl/generated/contract';
 import mnPslContractJson from './fixtures/mn-psl/generated/contract.json' with { type: 'json' };

@@ -1,18 +1,18 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import type { CachePayload } from '@prisma-next/middleware-cache';
-import { cacheAnnotation, createCacheMiddleware } from '@prisma-next/middleware-cache';
-import { mongoOrm } from '@prisma-next/mongo-orm';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { mongoQuery } from '@prisma-next/mongo-query-builder';
+import type { CachePayload } from '@prisma/orm-extension-middleware-cache';
+import { cacheAnnotation, createCacheMiddleware } from '@prisma/orm-extension-middleware-cache';
+import mongoRuntimeAdapter from '@prisma/orm-mongo/adapter/runtime';
+import { createMongoDriver } from '@prisma/orm-mongo/driver';
+import { MongoContractSerializer } from '@prisma/orm-mongo/family/ir';
 import {
   createMongoExecutionContext,
   createMongoExecutionStack,
   createMongoRuntime,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@prisma/orm-mongo/family-runtime';
+import { mongoOrm } from '@prisma/orm-mongo/orm';
+import type { MongoQueryPlan } from '@prisma/orm-mongo/query-ast/execution';
+import { mongoQuery } from '@prisma/orm-mongo/query-builder';
+import mongoRuntimeTarget from '@prisma/orm-mongo/target/runtime';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -24,7 +24,7 @@ const contract = new MongoContractSerializer().deserializeContract<Contract>(con
 
 /**
  * End-to-end check that a real Mongo runtime + the cross-family
- * `@prisma-next/middleware-cache` + an annotated read short-circuits on
+ * `@internal/middleware-cache` + an annotated read short-circuits on
  * the second call. The same plan is executed twice; the second call
  * never reaches the driver because the cache middleware serves it from
  * the in-process LRU. Runs against `mongodb-memory-server` rather than

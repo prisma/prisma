@@ -1,5 +1,5 @@
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import type { SqlNamespace } from '@prisma-next/sql-contract/types';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { SqlNamespace } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { defineContract, field, model } from '../src/contract-builder';

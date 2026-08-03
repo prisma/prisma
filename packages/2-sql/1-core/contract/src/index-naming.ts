@@ -1,13 +1,13 @@
 import type {
   AuthoringWarning,
   AuthoringWarningSink,
-} from '@prisma-next/framework-components/authoring';
-import { flushAuthoringWarnings } from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
+import { flushAuthoringWarnings } from '@internal/framework-components/authoring';
 import {
   assertWireNamePrefixLength,
   computeIndexContentHash,
   defaultIndexName,
-} from '@prisma-next/sql-schema-ir/naming';
+} from '@internal/sql-schema-ir/naming';
 import { contractError } from './contract-errors';
 import type { IndexInput } from './ir/sql-index';
 

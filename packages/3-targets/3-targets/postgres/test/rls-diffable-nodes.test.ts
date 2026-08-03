@@ -3,7 +3,7 @@
  * they do not implement DiffableNode (no `id`, `children`, or `isEqualTo`).
  * The DiffableNode role belongs to PostgresPolicySchemaNode / PostgresRoleSchemaNode.
  */
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';

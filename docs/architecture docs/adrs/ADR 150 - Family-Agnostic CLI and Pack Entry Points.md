@@ -19,7 +19,7 @@ We want a single, simple way for applications to declare their target family, ta
 
 3. Family‑agnostic CLI + family‑provided helpers
 - The config's `family` export includes:
-  - `hook: TargetFamilyHook` (used by `@prisma-next/emitter`)
+  - `hook: TargetFamilyHook` (used by `@internal/emitter`)
   - `assembleOperationRegistry`, `extractCodecTypeImports`, `extractOperationTypeImports` (assembly helpers)
   - `validateContract` (validates and normalizes contract, returns Contract without mappings)
   - `stripMappings?` (optionally strips runtime-only mappings from contract)
@@ -53,7 +53,7 @@ Trade‑offs
 ✅ **Completed** (Briefs 20 & 21, Decouple-Framework-CLI-from-SQL)
 
 1) ✅ Config loader: `packages/1-framework/3-tooling/cli/src/config-loader.ts` loads TS module and returns config.
-2) ✅ SQL pack assembly moved to `packages/2-sql/3-tooling/family/src/core/assembly.ts` and is used via `@prisma-next/family-sql/control`.
+2) ✅ SQL pack assembly moved to `packages/2-sql/3-tooling/family/src/core/assembly.ts` and is used via `@internal/family-sql/control`.
 3) ✅ Emit command updated to read helpers from `config.family`, assemble inputs, and call emitter with `family.hook`.
 4) ✅ Flags removed: `--adapter` and `--extensions` flags removed; config-only model enforced.
 5) ✅ Pack loading/assembly removed from framework CLI; family-provided helpers handle all assembly logic.

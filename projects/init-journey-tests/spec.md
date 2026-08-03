@@ -57,8 +57,8 @@ TML-2485 was caught by a user. The pattern from TML-2485 to the four open ticket
 The four open tickets in this class:
 
 - [TML-2486](https://linear.app/prisma-company/issue/TML-2486) — `db init` sends `undefined` for optional `createCollection` fields; Mongo rejects the command. Seam: emit → `db init`.
-- [TML-2487](https://linear.app/prisma-company/issue/TML-2487) — `@prisma-next/mongo` doesn't re-export `ObjectId`; users have to `pnpm add mongodb`. Seam: `db init` → typed user code.
-- [TML-2314](https://linear.app/prisma-company/issue/TML-2314) — `@prisma-next/postgres/control` missing; users assemble `ControlClient` from five packages. Seam: `db init` → typed user code (control-plane).
+- [TML-2487](https://linear.app/prisma-company/issue/TML-2487) — `@internal/mongo` doesn't re-export `ObjectId`; users have to `pnpm add mongodb`. Seam: `db init` → typed user code.
+- [TML-2314](https://linear.app/prisma-company/issue/TML-2314) — `@internal/postgres/control` missing; users assemble `ControlClient` from five packages. Seam: `db init` → typed user code (control-plane).
 - [TML-2461](https://linear.app/prisma-company/issue/TML-2461) — `DEFAULT_CONTRACT_OUTPUT` not colocated with the PSL source; emitted artefacts land somewhere the user does not expect. Seam: authored contract → emitted artefacts.
 
 ## Approach
@@ -96,7 +96,7 @@ Add one user-journey test per cell that walks the full inner loop against a real
 - **FR6.** Step 2 — author. The harness applies a per-cell fixture model fragment to the scaffolded contract source (`prisma/contract.{ts,prisma}`). Fixture content is defined in **§ Per-cell fixtures**.
 - **FR7.** Step 3 — emit. The harness runs `prisma-next contract emit` and asserts the emitted artefacts (`contract.json`, `contract.d.ts`) exist at the **default** output path. The default-path assertion is the **TML-2461 seam**: until TML-2461 lands, the default path is `src/prisma/contract.json` regardless of where the source lives; after TML-2461, it is colocated with the source. The fixture deliberately authors the source outside `src/prisma/` so the default-path question is non-trivial.
 - **FR8.** Step 4 — `db init`. The harness runs `prisma-next db init` against the real in-process DB. For Mongo, this is the **TML-2486 seam**: until fixed, the step throws with the documented `createCollection` validator rejection; after fixed, it returns 0 and creates the expected collections.
-- **FR9.** Step 5 — user query code. The harness writes a small per-cell user-code file (see § Per-cell fixtures) that performs `import` + insert + select. The imports include `ObjectId` from `@prisma-next/mongo` (TML-2487 seam) or `control` from `@prisma-next/postgres` (TML-2314 seam). The harness compiles and runs the file under Node with `--experimental-strip-types`. Until TML-2487 / TML-2314 land, the file fails at module-resolution; after, it runs and inserts/selects against the live DB.
+- **FR9.** Step 5 — user query code. The harness writes a small per-cell user-code file (see § Per-cell fixtures) that performs `import` + insert + select. The imports include `ObjectId` from `@internal/mongo` (TML-2487 seam) or `control` from `@internal/postgres` (TML-2314 seam). The harness compiles and runs the file under Node with `--experimental-strip-types`. Until TML-2487 / TML-2314 land, the file fails at module-resolution; after, it runs and inserts/selects against the live DB.
 - **FR10.** Step 6 — query assertion. The harness asserts the inserted row round-trips correctly (specific field values, types preserved per the contract). Round-trip is what proves the runtime API → driver → DB → driver → runtime path is end-to-end correct.
 - **FR11.** Step 7 — reset. The harness invokes a programmatic DB reset (semantics in **Open Questions**: `db.reset()` if the project exposes one, otherwise drop+recreate the in-process DB instance) and asserts the DB is empty afterwards.
 - **FR12.** Step 8 — schema delta. The harness applies a second per-cell fixture fragment that adds a non-nullable field with a default. This forces a real migration plan (DDL on Postgres; collection / index changes on Mongo).
@@ -111,8 +111,8 @@ Add one user-journey test per cell that walks the full inner loop against a real
   - The user-code file for step 5.
   - The schema-delta fragment for step 8.
   - The post-migration user-code file for step 11.
-- **FR17.** The Mongo fixtures' step-5 user-code imports `ObjectId` from `@prisma-next/mongo` and uses it to pre-construct an `_id`. This is the canonical TML-2487 surface.
-- **FR18.** The Postgres fixtures' step-5 user-code (or a sibling test in the same cell) imports `createPostgresControlClient` (or equivalent name) from `@prisma-next/postgres/control` and uses it to invoke a control-plane operation. This is the canonical TML-2314 surface.
+- **FR17.** The Mongo fixtures' step-5 user-code imports `ObjectId` from `@internal/mongo` and uses it to pre-construct an `_id`. This is the canonical TML-2487 surface.
+- **FR18.** The Postgres fixtures' step-5 user-code (or a sibling test in the same cell) imports `createPostgresControlClient` (or equivalent name) from `@internal/postgres/control` and uses it to invoke a control-plane operation. This is the canonical TML-2314 surface.
 
 ### CI placement
 
@@ -174,8 +174,8 @@ N/A — this is internal test infrastructure.
 - [TML-2485](https://linear.app/prisma-company/issue/TML-2485) — the bug that motivated this work (`prisma-next init` broken under default pnpm install).
 - [PR #485](https://github.com/prisma/prisma-next/pull/485) — the TML-2485 fix and the predecessor regression test (`cli.init-facade-imports.e2e.test.ts`).
 - [TML-2486](https://linear.app/prisma-company/issue/TML-2486) — Mongo `createCollection` `undefined` rejection.
-- [TML-2487](https://linear.app/prisma-company/issue/TML-2487) — `ObjectId` missing from `@prisma-next/mongo`.
-- [TML-2314](https://linear.app/prisma-company/issue/TML-2314) — `@prisma-next/postgres/control` missing.
+- [TML-2487](https://linear.app/prisma-company/issue/TML-2487) — `ObjectId` missing from `@internal/mongo`.
+- [TML-2314](https://linear.app/prisma-company/issue/TML-2314) — `@internal/postgres/control` missing.
 - [TML-2461](https://linear.app/prisma-company/issue/TML-2461) — `DEFAULT_CONTRACT_OUTPUT` not colocated.
 - [TML-2490](https://linear.app/prisma-company/issue/TML-2490) — this ticket.
 - Existing journey-ish tests: `test/e2e/framework/greenfield-setup.e2e.test.ts`, `test/e2e/framework/brownfield-adoption.e2e.test.ts`.
@@ -185,6 +185,6 @@ N/A — this is internal test infrastructure.
 
 1. **Test location: `test/integration/test/cli-journeys/` vs `test/e2e/framework/`.** The empty `cli-journeys/` directory already exists, which suggests prior intent to land journey tests there. `test/e2e/framework/` is the home of similarly-shaped workflow tests (`greenfield-setup`, etc.) but its existing fixtures use pre-built contracts rather than running `prisma-next init`. **Default assumption: `test/integration/test/cli-journeys/init-journey.e2e.test.ts`.** Implementer may move it if the test infrastructure already in `test/e2e/framework/` is a closer fit; the spec does not pin this.
 2. **Real `pnpm install` mechanics.** Options: (a) run `pnpm install` against the workspace's pre-built tarballs (`pnpm pack` each touched workspace package first, then `pnpm install ./pack-*.tgz` in the tmp project), or (b) use a `link:` protocol that emulates `node-linker=isolated`. (a) is closer to a real user but slower and more setup; (b) is faster but may not faithfully reproduce TML-2485-class hoisting bugs. **Default assumption: (a)**, but the implementer should validate that the chosen mechanism actually fails on a deliberately-broken transitive import (e.g. by reverting PR #485 locally and confirming the journey breaks). If (b) suffices, prefer it for speed.
-3. **`reset DB` semantics.** Does `@prisma-next/postgres` / `@prisma-next/mongo` expose a programmatic `db.reset()`, or does the journey teardown the in-process DB instance and re-init? **Default assumption: prefer the programmatic API if it exists; fall back to instance teardown.** Implementer to confirm against the current control-plane surface.
+3. **`reset DB` semantics.** Does `@internal/postgres` / `@internal/mongo` expose a programmatic `db.reset()`, or does the journey teardown the in-process DB instance and re-init? **Default assumption: prefer the programmatic API if it exists; fall back to instance teardown.** Implementer to confirm against the current control-plane surface.
 4. **Mongo migration parity.** The discussion assumed migration operations are symmetrical at the user POV between Postgres and Mongo. If implementation reveals that Mongo lacks `migration plan` / `migration apply` in the same shape (e.g. it's all `db init`-based for schemaless changes), the Mongo cells' steps 8–9 substitute "re-author + re-emit + re-run `db init`" for "plan + apply". Spec accepts either resolution; flag in plan if the substitution is needed.
 5. **Per-cell fixture content.** The spec pins *what the fixture must exercise* (a model, an insert, a select, `ObjectId` on Mongo, `control` on Postgres, a non-nullable-default delta) but not the exact field names or model name. Implementer chooses concrete fixture content consistent with the existing `test/fixtures/contract.ts` style.

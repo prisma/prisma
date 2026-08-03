@@ -1,6 +1,6 @@
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import type { AnyExpression as AstExpression } from '@prisma-next/sql-relational-core/ast';
-import type { Expression } from '@prisma-next/sql-relational-core/expression';
+import type { CodecRef } from '@internal/framework-components/codec';
+import type { AnyExpression as AstExpression } from '@internal/sql-relational-core/ast';
+import type { Expression } from '@internal/sql-relational-core/expression';
 import type { ScopeField } from '../scope';
 
 /**

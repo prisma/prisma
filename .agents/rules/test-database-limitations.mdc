@@ -8,7 +8,7 @@ alwaysApply: false
 
 ## Overview
 
-Test databases created via `withDevDatabase()` from `@prisma-next/test-utils` use **pglite** (an in-memory PostgreSQL implementation via `@prisma/dev`). Pglite does **not support PostgreSQL extensions** like `pgvector`, `pg_trgm`, etc.
+Test databases created via `withDevDatabase()` from `@repo/test-utils` use **pglite** (an in-memory PostgreSQL implementation via `@prisma/dev`). Pglite does **not support PostgreSQL extensions** like `pgvector`, `pg_trgm`, etc.
 
 ## The Problem
 
@@ -86,7 +86,7 @@ try {
 3. **No database execution tests**: There are currently no tests that execute queries with pgvector against a real database. This is acceptable because:
    - Lowering tests verify SQL generation is correct
    - Codec tests verify encode/decode logic
-   - The extension is tested in production use cases (e.g., `examples/prisma-next-demo/scripts/seed.ts`)
+   - The extension is tested in production use cases (e.g., `examples/prisma-8-demo/scripts/seed.ts`)
 
 ## When to Use Each Approach
 

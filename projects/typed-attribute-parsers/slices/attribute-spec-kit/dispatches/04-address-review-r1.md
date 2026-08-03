@@ -41,7 +41,7 @@
 - [ ] T1–T5 done; `identifierName` fully removed (`rg identifierName` zero).
 - [ ] `rg "argValuesEqual"` zero (helper removed).
 - [ ] Unit tests updated/added for T1, T3, T4 (enumOf bare-identifier), T5 (fieldRef resolution: resolves a real field; emits one diagnostic for a missing field).
-- [ ] Gates green: `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl test` (or the package's real name — confirm); `pnpm fixtures:check`; after `pnpm --filter @prisma-next/psl-parser build`, workspace `pnpm typecheck`.
+- [ ] Gates green: `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl test` (or the package's real name — confirm); `pnpm fixtures:check`; after `pnpm --filter @internal/psl-parser build`, workspace `pnpm typecheck`.
 - [ ] Report: the T4 parity flag (code change + any updated assertions/fixtures, with counts) and the T5 reconciliation (what downstream check was removed, diagnostic parity result).
 
 ## Standing instruction

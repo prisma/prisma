@@ -1,7 +1,7 @@
 # Type-fix brief — resolve sql-orm-client type-d failures + push
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current state:** rebased onto `origin/main` (`cda126a566`) + force-pushed to `origin` at `394c62cfe`. CI is red on Type Check; you'll turn it green and push the fix.
 
 ## Investigation hand-off (already done — do NOT redo)
@@ -23,10 +23,10 @@ Key conclusions from that investigation — accept them as the starting position
 
 ### Part A — the 3 stale `@ts-expect-error` (mechanical)
 
-Delete the 3 stale `@ts-expect-error` directives in `packages/3-extensions/sql-orm-client/test/orm.types.test-d.ts`. Verify by running `pnpm --filter @prisma-next/sql-orm-client run typecheck` and seeing those 3 errors disappear (16 → 13). Commit as a single signed-off commit:
+Delete the 3 stale `@ts-expect-error` directives in `packages/3-extensions/sql-orm-client/test/orm.types.test-d.ts`. Verify by running `pnpm --filter @internal/sql-orm-client run typecheck` and seeing those 3 errors disappear (16 → 13). Commit as a single signed-off commit:
 
 ```
-test(@prisma-next/sql-orm-client): delete stale @ts-expect-error directives in orm.types
+test(@internal/sql-orm-client): delete stale @ts-expect-error directives in orm.types
 
 The three suppressions on `db.Post.where(views.like(…))`,
 `db.Post.where(views.ilike(…))`, and `agg.sum('title')` are no longer
@@ -49,9 +49,9 @@ Diagnose and fix in this order:
 
 3. **If the fixtures match but typecheck is still red:** then the type machinery in `relational-core/src/types.ts` or `sql-orm-client/src/types.ts` has a `valueObjects` / `roots` / `FieldOutputTypes` linkage that doesn't line up with the current fixture shape. Find the smallest patch that restores the linkage. Probe candidates: `ExtractFieldOutputTypes`, `FieldStorageJsType`, `DefaultModelRow`, `InferRootRow` — names from the investigation hand-off.
 
-4. Verify by running `pnpm --filter @prisma-next/sql-orm-client run typecheck` and seeing 0 errors.
+4. Verify by running `pnpm --filter @internal/sql-orm-client run typecheck` and seeing 0 errors.
 
-Commit as one or more focused signed-off commits with intent-driven messages (`fix(@prisma-next/sql-orm-client): …` or `fix(test-fixtures/sql-orm-client): …` per the actual fix shape).
+Commit as one or more focused signed-off commits with intent-driven messages (`fix(@internal/sql-orm-client): …` or `fix(test-fixtures/sql-orm-client): …` per the actual fix shape).
 
 ### Part C — validate + push
 

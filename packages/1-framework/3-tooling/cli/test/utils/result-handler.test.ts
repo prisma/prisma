@@ -1,4 +1,4 @@
-import { notOk, ok } from '@prisma-next/utils/result';
+import { notOk, ok } from '@internal/utils/result';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CliStructuredError,

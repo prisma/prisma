@@ -1,4 +1,4 @@
-import { type CodecLookup, renderTsLiteral } from '@prisma-next/framework-components/codec';
+import { type CodecLookup, renderTsLiteral } from '@internal/framework-components/codec';
 
 /**
  * Mirrors the real Postgres primitive codecs' `renderValueLiteral`: `pg/text@1` and `pg/int4@1` are

@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { MongoContractSerializer } from '../src/core/ir/mongo-contract-serializer';
 import { MongoContractView } from '../src/core/ir/mongo-contract-view';

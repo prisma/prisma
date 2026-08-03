@@ -96,7 +96,7 @@ the diff, don't blanket-regenerate.
 
 **D8 — delete the workarounds.** `DOUBLE_PLURALIZED_FIELD_NAMES` and `INDEX_OMISSIONS` gone;
 `DEFAULT_OMISSIONS` reduced to what's genuinely unrepresentable with the reason stated. Regenerate
-the pack contract via `pnpm --filter @prisma-next/extension-supabase run contract:generate` and
+the pack contract via `pnpm --filter @internal/extension-supabase run contract:generate` and
 read the diff. A workaround that survives a landed fix means the fix didn't work — report that
 rather than keeping the workaround.
 

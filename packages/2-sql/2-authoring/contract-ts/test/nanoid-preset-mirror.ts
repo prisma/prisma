@@ -1,11 +1,11 @@
-import type { AuthoringArgumentDescriptor } from '@prisma-next/framework-components/authoring';
+import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
 
 /**
  * Hand-written mirrors of family-sql's shipping
  * `sqlFamilyAuthoringFieldPresets.{nanoid, id.nanoid}`.
  *
  * They are hand-written because this package cannot import family-sql:
- * family-sql declares `@prisma-next/sql-contract-ts` as a production
+ * family-sql declares `@internal/sql-contract-ts` as a production
  * dependency, so the reverse import would be a cycle.
  *
  * They are kept honest by `family-sql/test/authoring-field-presets.test.ts`,

@@ -1,8 +1,8 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import type { AnnotationValue, OperationKind } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import type { SqlOperationEntry } from '@prisma-next/sql-operations';
+import type { PlanMeta } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import type { AnnotationValue, OperationKind } from '@internal/framework-components/runtime';
+import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import type { SqlOperationEntry } from '@internal/sql-operations';
 import {
   AndExpr,
   type AnyExpression as AstExpression,
@@ -13,16 +13,16 @@ import {
   ProjectionItem,
   SelectAst,
   type TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
-import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   AppliedMutationDefault,
   MutationDefaultsOptions,
-} from '@prisma-next/sql-relational-core/query-lane-context';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/query-lane-context';
+import { ifDefined } from '@internal/utils/defined';
+import { structuredError } from '@internal/utils/structured-error';
 import type {
   AggregateFunctions,
   Expression,
@@ -65,7 +65,7 @@ export class BuilderBase<Capabilities = unknown> {
 
 export interface BuilderState {
   readonly from: TableSource;
-  readonly joins: readonly import('@prisma-next/sql-relational-core/ast').JoinAst[];
+  readonly joins: readonly import('@internal/sql-relational-core/ast').JoinAst[];
   readonly projections: readonly ProjectionItem[];
   readonly where: readonly AstExpression[];
   readonly orderBy: readonly OrderByItem[];
@@ -164,7 +164,7 @@ export function buildSelectAst(state: BuilderState): SelectAst {
 }
 
 export function buildQueryPlan<Row = unknown>(
-  ast: import('@prisma-next/sql-relational-core/ast').AnyQueryAst,
+  ast: import('@internal/sql-relational-core/ast').AnyQueryAst,
   ctx: BuilderContext,
   annotations?: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>,
 ): SqlQueryPlan<Row> {

@@ -1,6 +1,6 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { nameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import { freezeNode } from '@internal/framework-components/ir';
+import { nameOf, type SqlObjectNaming } from '@internal/sql-schema-ir/naming';
 import { SqlNode } from './sql-node';
 
 /**
@@ -58,7 +58,7 @@ export type IndexInput = IndexElements & {
  * Note that this class shadows the global TypeScript `Index` lib type
  * at the family-shared name; consumer files that need both should
  * alias one (e.g.
- * `import { Index as SqlIndexNode } from '@prisma-next/sql-contract/types'`).
+ * `import { Index as SqlIndexNode } from '@internal/sql-contract/types'`).
  */
 export class Index extends SqlNode {
   readonly name: string;

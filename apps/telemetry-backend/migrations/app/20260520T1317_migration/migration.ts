@@ -5,7 +5,7 @@ import {
   Migration,
   MigrationCLI,
   primaryKey,
-} from '@prisma-next/target-postgres/migration';
+} from '@prisma/orm-postgres/target/migration';
 
 export default class M extends Migration {
   override describe() {

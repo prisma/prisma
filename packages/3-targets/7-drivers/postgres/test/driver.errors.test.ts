@@ -1,12 +1,12 @@
-import { SqlQueryError } from '@prisma-next/sql-errors';
-import { timeouts } from '@prisma-next/test-utils';
+import { SqlQueryError } from '@internal/sql-errors';
+import { timeouts } from '@repo/test-utils';
 import type { Client, Pool } from 'pg';
 import { newDb } from 'pg-mem';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
 
-describe('@prisma-next/driver-postgres', () => {
+describe('@internal/driver-postgres', () => {
   const cleanups: Array<() => Promise<void>> = [];
 
   afterEach(async () => {

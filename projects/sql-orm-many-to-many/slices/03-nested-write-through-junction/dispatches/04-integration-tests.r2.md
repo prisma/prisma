@@ -18,7 +18,7 @@ The R1 implementer ran out of budget but **correctly surfaced a real bug**: nest
 - [ ] Runtime guard rejects **both** `connect` and `create` on a required-payload junction (clear message); `disconnect` still works.
 - [ ] `mutation-executor.test.ts`: connect-on-`User.roles` now asserts rejection; create-rejects + disconnect-succeeds intact.
 - [ ] `mn-nested-write.test.ts`: no `it.skip`; connect-on-`User.roles` asserts throw; pure-junction connect/create/disconnect readback pass; both flows; standard (whole-row, explicit-most, ≥1 implicit).
-- [ ] Gates: `pnpm --filter @prisma-next/sql-orm-client typecheck` + `test` green; `cd test/integration && pnpm test test/sql-orm-client/mn-nested-write.test.ts` green.
+- [ ] Gates: `pnpm --filter @internal/sql-orm-client typecheck` + `test` green; `cd test/integration && pnpm test test/sql-orm-client/mn-nested-write.test.ts` green.
 
 ## Standing instruction
 

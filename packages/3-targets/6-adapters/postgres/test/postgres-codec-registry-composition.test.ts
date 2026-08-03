@@ -1,8 +1,8 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { AnyCodecDescriptor } from '@prisma-next/framework-components/codec';
-import { voidParamsSchema } from '@prisma-next/framework-components/codec';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import type { RuntimeExtensionDescriptor } from '@prisma-next/framework-components/execution';
+import type { JsonValue } from '@internal/contract/types';
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
+import { voidParamsSchema } from '@internal/framework-components/codec';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import type { RuntimeExtensionDescriptor } from '@internal/framework-components/execution';
 import {
   BinaryExpr,
   CodecJsonValueProjection,
@@ -14,15 +14,15 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import {
   type AnyPostgresCodecDescriptor,
   postgresCodec,
-} from '@prisma-next/target-postgres/codec-descriptor';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import postgresTargetControlDescriptor from '@prisma-next/target-postgres/control';
-import postgresRuntimeTargetDescriptor from '@prisma-next/target-postgres/runtime';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/codec-descriptor';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
+import postgresTargetControlDescriptor from '@internal/target-postgres/control';
+import postgresRuntimeTargetDescriptor from '@internal/target-postgres/runtime';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createPostgresAdapter } from '../src/core/adapter';

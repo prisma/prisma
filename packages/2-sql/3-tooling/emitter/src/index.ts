@@ -3,24 +3,21 @@ import type {
   ContractModel,
   ContractModelBase,
   JsonValue,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import {
   renderValueSetType,
   serializeNamespaceId,
   serializeObjectKey,
   serializeValue,
-} from '@prisma-next/emitter/domain-type-generation';
-import { isSafeTypeExpression } from '@prisma-next/emitter/type-expression-safety';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/emitter/domain-type-generation';
+import { isSafeTypeExpression } from '@internal/emitter/type-expression-safety';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import type {
   GenerateContractTypesOptions,
+  ImportSpecifierResolver,
   ValidationContext,
-} from '@prisma-next/framework-components/emission';
-import {
-  entityAt,
-  type Namespace,
-  UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/emission';
+import { entityAt, type Namespace, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type {
   SqlModelStorage,
   SqlStorage,
@@ -28,8 +25,8 @@ import type {
   StorageTable,
   StorageTypeInstance,
   StorageValueSet,
-} from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
 import { sqlEmitterError, sqlEmitterValidationError } from './errors';
 
 function serializeTypeParamsLiteral(params: Record<string, unknown> | undefined): string {
@@ -417,12 +414,12 @@ export const sqlEmission = {
     ].join('\n');
   },
 
-  getFamilyImports(): string[] {
+  getFamilyImports(resolveImportSpecifier: ImportSpecifierResolver): string[] {
     return [
       'import type {',
       '  ContractWithTypeMaps,',
       '  TypeMaps as TypeMapsType,',
-      "} from '@prisma-next/sql-contract/types';",
+      `} from '${resolveImportSpecifier('@internal/sql-contract/types')}';`,
     ];
   },
 

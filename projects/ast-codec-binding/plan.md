@@ -131,7 +131,7 @@ Descriptor-side honesty (AC-5):
 
 **Validation gate (per sub-commit).**
 
-- **M3a gate**: `pnpm typecheck` (workspace — mandatory because M3a deletes a public export `vectorColumn` from `@prisma-next/extension-pgvector/column-types`; package-scoped typecheck cannot catch downstream consumers in other workspace packages), `pnpm --filter @prisma-next/extension-pgvector test`, `pnpm --filter @prisma-next/sql-orm-client test`, `pnpm --filter @prisma-next/extension-pgvector build`, `pnpm lint:deps`. Cross-package grep before declaring M3a done: `rg 'vectorColumn'` across `packages/`, `test/`, and `examples/` — any production hit (non-doc, non-history) is a regression.
+- **M3a gate**: `pnpm typecheck` (workspace — mandatory because M3a deletes a public export `vectorColumn` from `@internal/extension-pgvector/column-types`; package-scoped typecheck cannot catch downstream consumers in other workspace packages), `pnpm --filter @internal/extension-pgvector test`, `pnpm --filter @internal/sql-orm-client test`, `pnpm --filter @internal/extension-pgvector build`, `pnpm lint:deps`. Cross-package grep before declaring M3a done: `rg 'vectorColumn'` across `packages/`, `test/`, and `examples/` — any production hit (non-doc, non-history) is a regression.
 - **M3b gate**: `pnpm typecheck` (workspace), `pnpm test:packages` (workspace), `pnpm lint:deps`, `pnpm build`. M3b changes the AST shape consumer-visible everywhere; the workspace gate is mandatory.
 - **M3c gate**: `pnpm typecheck`, `pnpm test:packages`, `pnpm test:integration`, `pnpm test:e2e`, `pnpm lint:deps`, `pnpm fixtures:check`. M3c retires public exports (`forCodecId`, `parameterizedRepresentatives`, `validateParamRefRefs`, `alias-resolver.ts`); the cross-package + integration + e2e gate is mandatory per the SKILL § cross-package gates rule.
 
@@ -167,7 +167,7 @@ Cross-package grep before declaring M3c done: `rg 'forCodecId|parameterizedRepre
 - `packages/3-targets/3-targets/postgres/src/core/migrations/operations/data-transform-ast.ts` and its `AST_BOUND_SENTINEL` re-export.
 - `packages/3-targets/3-targets/postgres/src/core/migrations/postgres-migration.ts` `dataTransformAst` instance method.
 - `runner.ts` `resolveStep` AST-bound branch and the `destinationContract` parameter threading on `runExecuteSteps` / `runExpectationSteps` / `expectationsAreSatisfied`.
-- The `examples/prisma-next-demo/migrations/app/20260511T1800_vector-backfill-ast/` demo directory.
+- The `examples/prisma-8-demo/migrations/app/20260511T1800_vector-backfill-ast/` demo directory.
 - `packages/3-targets/6-adapters/postgres/test/migrations/data-transform-ast.test.ts` and `runner.ast-steps.integration.test.ts`.
 
 **Documented in close-out.**

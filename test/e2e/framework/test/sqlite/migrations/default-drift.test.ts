@@ -1,6 +1,6 @@
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
+import { defineContract, field, model } from '@prisma/orm-sqlite/contract-builder';
 import { describe, expect, it } from 'vitest';
-import { applyMigration, int, integerColumn, pack } from './harness';
+import { applyMigration, int, integerColumn } from './harness';
 
 /**
  * Regression for the integer `@default` drift loop.
@@ -20,7 +20,6 @@ describe('SQLite Migration E2E - integer default drift', () => {
     await applyMigration(
       {
         destination: defineContract({
-          ...pack,
           models: {
             Setting: model('Setting', {
               fields: {

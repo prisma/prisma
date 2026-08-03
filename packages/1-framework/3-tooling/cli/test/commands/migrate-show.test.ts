@@ -1,12 +1,12 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { writeContractSnapshot } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { writeRef } from '@prisma-next/migration-tools/refs';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { writeRef } from '@internal/migration-tools/refs';
 import stripAnsi from 'strip-ansi';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-helpers';
@@ -19,13 +19,13 @@ const mocks = vi.hoisted(() => ({
   resolveRecordedPath: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({ loadConfig: mocks.loadConfig }));
+vi.mock('@internal/config-loader', () => ({ loadConfig: mocks.loadConfig }));
 vi.mock('../../src/control-api/client', () => ({
   createControlClient: mocks.createControlClient,
 }));
 // Spy on resolveRecordedPath to assert it is the seam used for path computation.
-vi.mock('@prisma-next/migration-tools/aggregate', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@prisma-next/migration-tools/aggregate')>();
+vi.mock('@internal/migration-tools/aggregate', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@internal/migration-tools/aggregate')>();
   return {
     ...original,
     resolveRecordedPath: mocks.resolveRecordedPath.mockImplementation(original.resolveRecordedPath),
@@ -44,9 +44,9 @@ vi.mock('../../src/control-api/operations/run-migration', async (importOriginal)
 });
 
 afterAll(() => {
-  vi.doUnmock('@prisma-next/config-loader');
+  vi.doUnmock('@internal/config-loader');
   vi.doUnmock('../../src/control-api/client');
-  vi.doUnmock('@prisma-next/migration-tools/aggregate');
+  vi.doUnmock('@internal/migration-tools/aggregate');
   vi.doUnmock('../../src/control-api/operations/run-migration');
   vi.resetModules();
 });

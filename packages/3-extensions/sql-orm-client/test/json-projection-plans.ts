@@ -3,7 +3,7 @@
  *
  * `representativePlans` is consumed on both sides of the projection seam: the
  * emission assertions beside this file read the variants out of the plan, and
- * the renderer tests in `@prisma-next/integration-tests` render the same plans
+ * the renderer tests in `integration-tests` render the same plans
  * to SQL. It lives in a helper rather than in either test so neither imports
  * the other's suites.
  */
@@ -16,7 +16,7 @@ import {
   JsonObjectExpr,
   type SelectAst,
   SubqueryExpr,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { compileSelectWithIncludes } from '../src/query-plan-select';
 import { baseContract, createCollection, createCollectionFor } from './collection-fixtures';
 

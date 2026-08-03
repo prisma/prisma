@@ -1,14 +1,11 @@
-import type { SqlDescribedContractSpace } from '@prisma-next/family-sql/control';
-import type { RelationField } from '@prisma-next/family-sql/psl-infer';
-import {
-  buildChildRelationField,
-  deriveRelationFieldName,
-} from '@prisma-next/family-sql/psl-infer';
-import { coordinateKey, elementCoordinates } from '@prisma-next/framework-components/ir';
-import type { SqlModelStorage } from '@prisma-next/sql-contract/types';
-import type { SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/types';
-import { SqlTableIR } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { SqlDescribedContractSpace } from '@internal/family-sql/control';
+import type { RelationField } from '@internal/family-sql/psl-infer';
+import { buildChildRelationField, deriveRelationFieldName } from '@internal/family-sql/psl-infer';
+import { coordinateKey, elementCoordinates } from '@internal/framework-components/ir';
+import type { SqlModelStorage } from '@internal/sql-contract/types';
+import type { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
+import { SqlTableIR } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
 import { postgresError } from '../errors';
 import {
   type ResolvedColumnFieldName,

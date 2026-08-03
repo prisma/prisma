@@ -24,15 +24,17 @@ import {
 import { rm } from 'node:fs/promises';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@prisma-next/cli/commands/contract-emit';
-import { createMigrateCommand } from '@prisma-next/cli/commands/migrate';
-import { createMigrationNewCommand } from '@prisma-next/cli/commands/migration-new';
-import { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-plan';
-import { createMigrationStatusCommand } from '@prisma-next/cli/commands/migration-status';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import {
+  createContractEmitCommand,
+  createMigrateCommand,
+  createMigrationNewCommand,
+  createMigrationPlanCommand,
+  createMigrationStatusCommand,
+} from '../utils/cli-commands';
 import {
   executeCommand,
   fixtureAppDir,
@@ -99,6 +101,23 @@ function setupMongoJourney(connectionString: string): JourneyCtx {
   const outputDir = join(testDir, 'output');
   mkdirSync(outputDir, { recursive: true });
   mkdirSync(join(testDir, 'migrations'), { recursive: true });
+  // Says which database this project is for. Without it the project inherits
+  // the fixture app's manifest, which carries every database these suites
+  // exercise and so answers no single import root.
+  writeFileSync(
+    join(testDir, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'mongo-invariants-app',
+        private: true,
+        type: 'module',
+        dependencies: { '@prisma/orm-mongo': 'workspace:0.16.0' },
+      },
+      null,
+      2,
+    )}\n`,
+    'utf-8',
+  );
 
   copyFileSync(join(FIXTURES_DIR, 'contract-base.ts'), join(testDir, 'contract.ts'));
 
@@ -225,10 +244,8 @@ function renderInvariantMigrationTs(
   const invariantField = opts.invariantId
     ? `        invariantId: ${JSON.stringify(opts.invariantId)},\n`
     : '';
-  return `import { MigrationCLI } from '@prisma-next/cli/migration-cli';
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { createIndex, dataTransform } from '@prisma-next/target-mongo/migration';
-import { RawUpdateManyCommand, RawAggregateCommand } from '@prisma-next/mongo-query-ast/execution';
+  return `import { createIndex, dataTransform, Migration, MigrationCLI } from '@prisma/orm-mongo/target/migration';
+import { RawUpdateManyCommand, RawAggregateCommand } from '@prisma/orm-mongo/query-ast/execution';
 
 const planMeta = {
   target: 'mongo',
@@ -285,9 +302,7 @@ MigrationCLI.run(import.meta.url, M);
  * the ref-required invariant.
  */
 function renderIndexOnlyMigrationTs(draftFrom: string, draftTo: string): string {
-  return `import { MigrationCLI } from '@prisma-next/cli/migration-cli';
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { createIndex } from '@prisma-next/target-mongo/migration';
+  return `import { createIndex, Migration, MigrationCLI } from '@prisma/orm-mongo/target/migration';
 
 class M extends Migration {
   override describe() {

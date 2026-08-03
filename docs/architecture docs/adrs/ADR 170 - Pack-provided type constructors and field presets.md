@@ -71,7 +71,7 @@ Today, PSL handles a lot of this either by piling information into `@` attribute
 - extension-specific attribute forms that push storage meaning outside the type position
 - `@default(uuid())` when what the author really means is something closer to “make this a UUID-backed id column”
 
-TS authoring has the same problem. We solved part of it there with helper functions, but we put some of those helpers in a low layer in `@prisma-next/ids`. That turned out to be the wrong place. It made concrete behavior feel “built in” even though it really belongs to targets, families, or packs.
+TS authoring has the same problem. We solved part of it there with helper functions, but we put some of those helpers in a low layer in `@internal/ids`. That turned out to be the wrong place. It made concrete behavior feel “built in” even though it really belongs to targets, families, or packs.
 
 So this ADR is about fixing that in a way that works for both authoring surfaces.
 

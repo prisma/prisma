@@ -1,4 +1,4 @@
-# @prisma-next/errors
+# @internal/errors
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
 > and is published only to support its runtime. Its API is unstable and may change
@@ -16,8 +16,8 @@ This package provides `CliStructuredError` (the shared error class) and factory 
 ## Usage
 
 ```ts
-import { CliStructuredError, errorConfigFileNotFound } from '@prisma-next/errors/control';
-import { errorHashMismatch } from '@prisma-next/errors/execution';
+import { CliStructuredError, errorConfigFileNotFound } from '@internal/errors/control';
+import { errorHashMismatch } from '@internal/errors/execution';
 
 // Create a CLI error
 throw errorConfigFileNotFound('/path/to/config.ts');

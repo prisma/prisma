@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/tsconfig",
+  "name": "@repo/tsconfig",
   "private": true,
   "sideEffects": false,
   "version": "0.16.0",

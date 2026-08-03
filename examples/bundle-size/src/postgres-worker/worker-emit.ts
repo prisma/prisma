@@ -1,4 +1,4 @@
-import postgresServerless from '@prisma-next/postgres/serverless';
+import postgresServerless from '@prisma/orm-postgres/serverless';
 import type { Contract } from '../postgres/generated/contract.d';
 import contractJson from '../postgres/generated/contract.json' with { type: 'json' };
 

@@ -1,13 +1,10 @@
-import type {
-  AsyncIterableResult,
-  RuntimeExecutor,
-} from '@prisma-next/framework-components/runtime';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import type { AsyncIterableResult, RuntimeExecutor } from '@internal/framework-components/runtime';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   RuntimeScope as CanonicalRuntimeScope,
   SqlOrmPlan,
-} from '@prisma-next/sql-relational-core/types';
-import type { Runtime, RuntimeQueryable as SqlRuntimeQueryable } from '@prisma-next/sql-runtime';
+} from '@internal/sql-relational-core/types';
+import type { Runtime, RuntimeQueryable as SqlRuntimeQueryable } from '@internal/sql-runtime';
 import { expectTypeOf, test } from 'vitest';
 import type { RuntimeConnection, RuntimeQueryable, RuntimeTransaction } from '../src/types';
 

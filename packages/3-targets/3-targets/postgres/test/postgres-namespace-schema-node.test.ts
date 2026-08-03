@@ -1,4 +1,4 @@
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { PostgresNamespaceSchemaNode } from '../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../src/core/schema-ir/postgres-native-enum-schema-node';

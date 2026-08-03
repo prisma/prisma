@@ -1,5 +1,5 @@
-import mongo from '@prisma-next/mongo/runtime';
-import { ifDefined } from '@prisma-next/utils/defined';
+import mongo from '@prisma/orm-mongo/runtime';
+import { ifDefined } from '@prisma/orm-mongo/utils/defined';
 import type { Contract } from './contract';
 import contractJson from './contract.json' with { type: 'json' };
 

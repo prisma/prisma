@@ -1,13 +1,13 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
+import mongoRuntimeAdapter from '@internal/adapter-mongo/runtime';
+import { createMongoDriver } from '@internal/driver-mongo';
 import {
   createMongoExecutionContext,
   createMongoExecutionStack,
   createMongoRuntime,
   type MongoRuntime,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/mongo-runtime';
+import mongoRuntimeTarget from '@internal/target-mongo/runtime';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe } from 'vitest';

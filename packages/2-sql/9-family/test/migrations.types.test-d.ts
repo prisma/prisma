@@ -6,7 +6,7 @@
  * to use core types while SQL-specific code uses the extended types.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   ContractSpace,
   ContractSpaceHeadRef,
@@ -17,8 +17,8 @@ import type {
   MigrationPlanOperation,
   MigrationRunnerFailure,
   MigrationRunnerPerSpaceSuccessValue,
-} from '@prisma-next/framework-components/control';
-import type { MigrationOps } from '@prisma-next/migration-tools/package';
+} from '@internal/framework-components/control';
+import type { MigrationOps } from '@internal/migration-tools/package';
 import { expectTypeOf } from 'vitest';
 import type {
   SqlControlExtensionDescriptor,
@@ -68,7 +68,7 @@ expectTypeOf<SqlMigrationRunnerFailure['summary']>().toExtend<MigrationRunnerFai
 // code can rely on it.
 //
 // The contract-space identity types live in
-// `@prisma-next/framework-components/control`; the SQL family specialises
+// `@internal/framework-components/control`; the SQL family specialises
 // `ContractSpace` to a SQL contract while the framework-level type stays
 // family-agnostic.
 expectTypeOf<ContractSpaceHeadRef>().toEqualTypeOf<{
@@ -90,5 +90,5 @@ expectTypeOf<ContractSpace>().toExtend<{
 // extensions without a contract space continue to typecheck unchanged).
 // SQL family specialises the framework type to `Contract<SqlStorage>`.
 expectTypeOf<SqlControlExtensionDescriptor<'postgres'>['contractSpace']>().toEqualTypeOf<
-  ContractSpace<Contract<import('@prisma-next/sql-contract/types').SqlStorage>> | undefined
+  ContractSpace<Contract<import('@internal/sql-contract/types').SqlStorage>> | undefined
 >();

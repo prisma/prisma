@@ -1,4 +1,4 @@
-import type { DefaultMappingOptions } from '@prisma-next/family-sql/psl-infer';
+import type { DefaultMappingOptions } from '@internal/family-sql/psl-infer';
 
 const POSTGRES_FUNCTION_ATTRIBUTES: Readonly<Record<string, string>> = {
   'gen_random_uuid()': '@default(dbgenerated("gen_random_uuid()"))',

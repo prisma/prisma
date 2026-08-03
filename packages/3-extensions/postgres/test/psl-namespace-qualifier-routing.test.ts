@@ -1,14 +1,14 @@
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
+import type { TargetPackRef } from '@internal/framework-components/components';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 import {
   PostgresSchema,
   PostgresUnboundSchema,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { describe, expect, it } from 'vitest';
 
 const postgresTargetPackRef: TargetPackRef<'sql', 'postgres'> = {

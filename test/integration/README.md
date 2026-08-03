@@ -1,4 +1,4 @@
-# @prisma-next/integration-tests
+# integration-tests
 
 Integration tests for Prisma Next that verify end-to-end behavior across packages.
 
@@ -50,16 +50,16 @@ The `*.e2e.test.ts` files in this directory are **in-process CLI tests** that:
 ## Dependencies
 
 This package depends on all packages under test via workspace protocol:
-- `@prisma-next/adapter-postgres` - Postgres adapter
-- `@prisma-next/cli` - CLI for contract emission
-- `@prisma-next/contract` - Contract types
-- `@prisma-next/driver-postgres` - Postgres driver
-- `@prisma-next/emitter` - Contract emission
-- `@prisma-next/runtime` - Execution runtime
-- `@prisma-next/sql-contract-ts` - SQL contract authoring (for integration tests)
-- `@prisma-next/sql-builder` - SQL builder lane
-- `@prisma-next/sql-relational-core` - Shared relational lane helpers
-- `@prisma-next/sql-contract` - SQL contract types (canonical source: `@prisma-next/sql-contract/types`)
+- `@internal/adapter-postgres` - Postgres adapter
+- `@internal/cli` - CLI for contract emission
+- `@internal/contract` - Contract types
+- `@internal/driver-postgres` - Postgres driver
+- `@internal/emitter` - Contract emission
+- `@internal/runtime` - Execution runtime
+- `@internal/sql-contract-ts` - SQL contract authoring (for integration tests)
+- `@internal/sql-builder` - SQL builder lane
+- `@internal/sql-relational-core` - Shared relational lane helpers
+- `@internal/sql-contract` - SQL contract types (canonical source: `@internal/sql-contract/types`)
 
 ## Location
 
@@ -86,9 +86,9 @@ Tests automatically depend on builds of target packages via Turborepo.
 
 ## Related Packages
 
-- `@prisma-next/sql-builder`: SQL builder lane
-- `@prisma-next/sql-relational-core`: Shared relational lane helpers
-- `@prisma-next/runtime`: Runtime execution engine that consumes contracts
+- `@internal/sql-builder`: SQL builder lane
+- `@internal/sql-relational-core`: Shared relational lane helpers
+- `@internal/runtime`: Runtime execution engine that consumes contracts
 - `test/e2e/framework/`: End-to-end tests using the CLI to emit contracts and execute queries
 
 ## Architecture

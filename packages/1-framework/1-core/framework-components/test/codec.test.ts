@@ -6,7 +6,7 @@
  * The proxy is also the load-bearing aliasing mechanism: an alias-style descriptor that overrides `codecId` produces codec instances whose `id` reads the alias's id (per spec § Class hierarchy aliasing). The third test below specifically exercises this regression vector.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { test } from 'vitest';
 import {

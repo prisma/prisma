@@ -2,7 +2,7 @@
 
 ## Summary
 
-Add a Mongo-specific TypeScript authoring surface that produces canonical Mongo contracts for emit and no-emit workflows. The plan is intentionally scoped around a new `@prisma-next/mongo-contract-ts` package plus minimal shared extractions, because the current SQL package embeds SQL semantics too deeply to serve as a drop-in cross-family core.
+Add a Mongo-specific TypeScript authoring surface that produces canonical Mongo contracts for emit and no-emit workflows. The plan is intentionally scoped around a new `@internal/mongo-contract-ts` package plus minimal shared extractions, because the current SQL package embeds SQL semantics too deeply to serve as a drop-in cross-family core.
 
 **Spec:** `projects/mongodb-contract-ts-support/spec.md`
 
@@ -22,7 +22,7 @@ Define the package boundary, the user-facing API, and the minimal shared seams r
 
 **Tasks:**
 
-- [ ] Decide package strategy: new `@prisma-next/mongo-contract-ts` package with targeted shared extraction, not a broad `sql-contract-ts` genericization.
+- [ ] Decide package strategy: new `@internal/mongo-contract-ts` package with targeted shared extraction, not a broad `sql-contract-ts` genericization.
 - [ ] Define the Mongo `defineContract(...)` shell and callback overload shape.
 - [ ] Define which builder primitives exist in the first slice: roots, models, fields, relations, owned models, polymorphism, value objects.
 - [ ] Add or plan the Mongo family pack export required for authoring-time composition if the builder depends on `family`.

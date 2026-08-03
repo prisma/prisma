@@ -1,7 +1,7 @@
 import {
   temporalAuthoringPresets,
   temporalCodecPresetWithPrecision,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeFactoryOutput,
@@ -12,22 +12,22 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   AuthoringTypeNamespace,
   PslExtensionBlock,
-} from '@prisma-next/framework-components/authoring';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ContributedPslDiagnosticCode } from '@prisma-next/framework-components/psl-ast';
-import { modelAttribute } from '@prisma-next/psl-parser';
+} from '@internal/framework-components/authoring';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
+import { modelAttribute } from '@internal/psl-parser';
 import type {
   EntityHandleLoweringInput,
   LoweredPackEntity,
   ResolvedEntityHandleRef,
   ResolvedPslModelRefs,
-} from '@prisma-next/sql-contract/entity-handle-lowering-hook';
-import { exactNameBodyWarning } from '@prisma-next/sql-contract/index-naming';
-import type { SqlValueSetDerivingEntityTypeOutput } from '@prisma-next/sql-contract/value-set-derivation-hook';
-import { assertWireNamePrefixLength, normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
-import { assertDefined } from '@prisma-next/utils/assertions';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-contract/entity-handle-lowering-hook';
+import { exactNameBodyWarning } from '@internal/sql-contract/index-naming';
+import type { SqlValueSetDerivingEntityTypeOutput } from '@internal/sql-contract/value-set-derivation-hook';
+import { assertWireNamePrefixLength, normalizeSqlBody } from '@internal/sql-schema-ir/naming';
+import { assertDefined } from '@internal/utils/assertions';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { PG_ENUM_CODEC_ID } from './codec-ids';
 import { postgresError } from './errors';
 import { PostgresNativeEnum } from './postgres-native-enum';

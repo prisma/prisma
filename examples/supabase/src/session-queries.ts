@@ -1,4 +1,4 @@
-import type { SupabaseInternalDb } from '@prisma-next/extension-supabase/runtime';
+import type { SupabaseInternalDb } from '@prisma/orm-extension-supabase/runtime';
 
 type AalLevel = SupabaseInternalDb['nativeEnums']['auth']['AalLevel']['Value'];
 

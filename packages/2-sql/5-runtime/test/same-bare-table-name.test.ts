@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
-import { SqlStorage, type StorageTableInput } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import type { Contract } from '@internal/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
+import { SqlStorage, type StorageTableInput } from '@internal/sql-contract/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { createStubAdapter, createTestContext } from './utils';

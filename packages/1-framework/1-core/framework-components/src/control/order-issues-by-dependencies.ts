@@ -1,4 +1,4 @@
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 import type { DiffableNode, SchemaDiffIssue } from './schema-diff';
 
 const PATH_DELIMITER = ' ';

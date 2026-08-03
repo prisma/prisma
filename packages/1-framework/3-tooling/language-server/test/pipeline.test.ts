@@ -1,5 +1,5 @@
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
 import { mapParseDiagnostics } from '../src/diagnostic-mapping';
 import { runPipeline } from '../src/pipeline';

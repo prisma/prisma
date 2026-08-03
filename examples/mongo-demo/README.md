@@ -70,7 +70,7 @@ This creates the unique index on `users.email` and records the migration in the 
 
 ## Cross-family caching
 
-`src/db.ts` wires `@prisma-next/middleware-cache` into the Mongo runtime — the same middleware used by `examples/prisma-next-demo` against Postgres. The package depends only on `@prisma-next/framework-components/runtime`; cache keys come from `RuntimeMiddlewareContext.contentHash(exec)`, which `MongoRuntimeImpl` populates the same way `SqlRuntime` does, so the middleware works against Mongo out of the box.
+`src/db.ts` wires `@internal/middleware-cache` into the Mongo runtime — the same middleware used by `examples/prisma-8-demo` against Postgres. The package depends only on `@internal/framework-components/runtime`; cache keys come from `RuntimeMiddlewareContext.contentHash(exec)`, which `MongoRuntimeImpl` populates the same way `SqlRuntime` does, so the middleware works against Mongo out of the box.
 
 The cache is **opt-in per query**: it acts only on plans whose `meta.annotations` carry a `cacheAnnotation` payload with a `ttl`. `scripts/cache-demo.ts` builds an aggregation plan with `mongoQuery`, attaches `cacheAnnotation({ ttl })` to `plan.meta.annotations.cache`, runs the same plan twice, and prints the per-call latency so the cache hit is visible:
 
@@ -121,9 +121,9 @@ The Mongo query builder doesn't yet expose a chainable `.annotate(...)` surface 
 | `.env.example`                 | Environment variable template (`MONGODB_URL`)       |
 | `test/blog.test.ts`            | Integration tests using `mongodb-memory-server`    |
 
-## Comparison with prisma-next-demo
+## Comparison with prisma-8-demo
 
-| Aspect        | `prisma-next-demo` (SQL)                    | `mongo-demo` (MongoDB)                      |
+| Aspect        | `prisma-8-demo` (SQL)                    | `mongo-demo` (MongoDB)                      |
 | ------------- | ------------------------------------------- | ------------------------------------------- |
 | Target        | PostgreSQL                                  | MongoDB                                     |
 | Schema        | `schema.prisma` (PSL)                       | `contract.prisma` (PSL)                     |

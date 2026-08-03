@@ -1,10 +1,10 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   SchemaDiffIssue,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { elementCoordinates } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { elementCoordinates } from '@internal/framework-components/ir';
 
 /**
  * The bare entity names the given contracts declare, unioned. The Mongo runner

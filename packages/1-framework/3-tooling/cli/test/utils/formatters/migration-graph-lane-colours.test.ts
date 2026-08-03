@@ -14,7 +14,7 @@
  * white = same as trunk), confirming the bug before the fix.
  */
 
-import type { MigrationEdge, MigrationGraph } from '@prisma-next/migration-tools/graph';
+import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
 import { describe, expect, it } from 'vitest';
 import { buildGrid } from '../../../src/utils/formatters/migration-graph-grid-layout';
 import type { Cell } from '../../../src/utils/formatters/migration-graph-model';

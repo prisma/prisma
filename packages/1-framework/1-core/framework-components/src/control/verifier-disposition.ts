@@ -1,4 +1,4 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
+import type { ControlPolicy } from '@internal/contract/types';
 
 export type VerificationStatus = 'pass' | 'warn' | 'fail';
 

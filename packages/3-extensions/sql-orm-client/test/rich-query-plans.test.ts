@@ -10,7 +10,7 @@ import {
   type SelectAst,
   type SubqueryExpr,
   type UpdateAst,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import {
   compileDeleteReturning,

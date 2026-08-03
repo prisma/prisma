@@ -1,6 +1,6 @@
-import type { LedgerEntryRecord } from '@prisma-next/contract/types';
-import type { AggregateMigrationEdgeRef } from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
+import type { LedgerEntryRecord } from '@internal/contract/types';
+import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { expect } from 'vitest';
 
 export const MULTI_EDGE_OPERATION_COUNTS = [1, 2, 1] as const;

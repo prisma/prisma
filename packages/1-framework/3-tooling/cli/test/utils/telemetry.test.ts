@@ -6,7 +6,7 @@ import {
   type TelemetryRunOutcome,
   userConfigPath,
   writeUserConfig,
-} from '@prisma-next/cli-telemetry';
+} from '@internal/cli-telemetry';
 import { Command } from 'commander';
 import { dirname, join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -31,10 +31,9 @@ const { runTelemetryMock } = vi.hoisted(() => ({
     spawned: true,
   })),
 }));
-vi.mock('@prisma-next/cli-telemetry', async () => {
-  const actual = await vi.importActual<typeof import('@prisma-next/cli-telemetry')>(
-    '@prisma-next/cli-telemetry',
-  );
+vi.mock('@internal/cli-telemetry', async () => {
+  const actual =
+    await vi.importActual<typeof import('@internal/cli-telemetry')>('@internal/cli-telemetry');
   return { ...actual, runTelemetry: runTelemetryMock };
 });
 

@@ -1,9 +1,9 @@
-import { asNamespaceId, coreHash, profileHash } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { namingOfLiveName, parseNaming } from '@prisma-next/sql-schema-ir/naming';
-import { SqlForeignKeyIR } from '@prisma-next/sql-schema-ir/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { asNamespaceId, coreHash, profileHash } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { namingOfLiveName, parseNaming } from '@internal/sql-schema-ir/naming';
+import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { contractToPostgresDatabaseSchemaNode } from '../../src/core/migrations/contract-to-postgres-database-schema-node';
 import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';

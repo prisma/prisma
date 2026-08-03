@@ -4,8 +4,8 @@
  * The codec implementations live in `sql-codecs.ts` (TML-2357). This module retains only the conversion helpers + emit-path renderers the codec methods compose with — keeping a single source of truth for non-trivial conversions while the codec methods provide the framework-required `Promise<…>` boundary.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import type { JsonValue } from '@internal/contract/types';
+import { structuredError } from '@internal/utils/structured-error';
 
 export const SQL_CHAR_CODEC_ID = 'sql/char@1' as const;
 export const SQL_VARCHAR_CODEC_ID = 'sql/varchar@1' as const;

@@ -39,10 +39,10 @@
  */
 
 import { isDeepStrictEqual } from 'node:util';
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { validateCodecTypeParams } from '@prisma-next/framework-components/codec';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { JsonValue } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { validateCodecTypeParams } from '@internal/framework-components/codec';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   ColumnRef,
   JsonObjectExpr,
@@ -50,10 +50,10 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
-import { createContract } from '@prisma-next/test-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
+import { ifDefined } from '@internal/utils/defined';
+import { createContract } from '@repo/test-utils';
 import { renderLoweredSql } from '../../src/core/adapter';
 import type { SqliteContract } from '../../src/core/types';
 

@@ -1,4 +1,4 @@
-import { defineContract } from '@prisma-next/postgres/contract-builder';
+import { defineContract } from '@prisma/orm-postgres/contract-builder';
 
 /**
  * Minimal contract: a single `Note` table with a single `id` column.

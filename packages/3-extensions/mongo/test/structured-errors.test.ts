@@ -1,10 +1,10 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
   MongoContractWithTypeMaps,
-} from '@prisma-next/mongo-contract';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/mongo-contract';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type AnyMongoContract = MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>;
@@ -21,31 +21,31 @@ const mocks = vi.hoisted(() => ({
   mongoQuery: vi.fn(),
 }));
 
-vi.mock('@prisma-next/adapter-mongo/runtime', () => ({ default: { id: 'adapter' } }));
-vi.mock('@prisma-next/target-mongo/runtime', () => ({ default: { id: 'target' } }));
-vi.mock('@prisma-next/mongo-runtime', () => ({
+vi.mock('@internal/adapter-mongo/runtime', () => ({ default: { id: 'adapter' } }));
+vi.mock('@internal/target-mongo/runtime', () => ({ default: { id: 'target' } }));
+vi.mock('@internal/mongo-runtime', () => ({
   createMongoExecutionStack: mocks.createMongoExecutionStack,
   createMongoExecutionContext: mocks.createMongoExecutionContext,
   createMongoRuntime: mocks.createMongoRuntime,
 }));
-vi.mock('@prisma-next/driver-mongo', () => ({
+vi.mock('@internal/driver-mongo', () => ({
   MongoDriverImpl: {
     fromConnection: mocks.driverFromConnection,
     fromDb: mocks.driverFromDb,
   },
 }));
-vi.mock('@prisma-next/family-mongo/ir', () => ({
+vi.mock('@internal/family-mongo/ir', () => ({
   MongoContractSerializer: class {
     deserializeContract(json: unknown) {
       return mocks.deserializeContract(json);
     }
   },
 }));
-vi.mock('@prisma-next/mongo-orm', () => ({
+vi.mock('@internal/mongo-orm', () => ({
   mongoOrm: mocks.mongoOrm,
   mongoRaw: mocks.mongoRaw,
 }));
-vi.mock('@prisma-next/mongo-query-builder', () => ({ mongoQuery: mocks.mongoQuery }));
+vi.mock('@internal/mongo-query-builder', () => ({ mongoQuery: mocks.mongoQuery }));
 
 import { resolveMongoBinding, resolveOptionalMongoBinding } from '../src/runtime/binding';
 import mongo from '../src/runtime/mongo';

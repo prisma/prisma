@@ -1,9 +1,9 @@
 /**
  * Test-only helper that constructs a SQL-family `Codec` instance from author-side encode/decode functions. Replaces the legacy public `mkCodec()` factory (deleted under TML-2357); tests that need a stub codec for behavioural assertions instantiate one through this helper rather than going through `descriptor.factory(...)`.
  */
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecTrait } from '@prisma-next/framework-components/codec';
-import type { Codec, SqlCodecCallContext } from '@prisma-next/sql-relational-core/ast';
+import type { JsonValue } from '@internal/contract/types';
+import type { CodecTrait } from '@internal/framework-components/codec';
+import type { Codec, SqlCodecCallContext } from '@internal/sql-relational-core/ast';
 
 type JsonRoundTripConfig<TInput> = [TInput] extends [JsonValue]
   ? {

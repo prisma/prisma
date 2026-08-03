@@ -1,10 +1,10 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   Index,
   indexInputFromSerialized,
   type SerializedIndex,
   StorageTable,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import {
   SqliteDatabase,

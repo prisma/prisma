@@ -1,10 +1,10 @@
 import type {
   ControlFamilyDescriptor,
   ControlTargetDescriptor,
-} from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
-import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { createSqlFamilyInstance } from '../src/core/control-instance';
 
@@ -22,7 +22,7 @@ function createMockStack() {
           '{ readonly tables: Record<string, never>; readonly types: Record<string, never>; readonly storageHash: StorageHash }',
         generateModelStorageType: () => 'Record<string, never>',
         getFamilyImports: () => [
-          "import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@prisma-next/sql-contract/types';",
+          "import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';",
         ],
         getFamilyTypeAliases: () => '',
         getTypeMapsExpression: () => 'TypeMapsType<CodecTypes, OperationTypes>',

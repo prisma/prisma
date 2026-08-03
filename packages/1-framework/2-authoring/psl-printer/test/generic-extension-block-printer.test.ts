@@ -14,18 +14,18 @@
  *   3. Built-in print round-trip is unchanged (enums, models).
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import {
   assembleAuthoringContributions,
   extractCodecLookup,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import type {
   PslExtensionBlock,
   PslExtensionBlockParamList,
@@ -33,13 +33,13 @@ import type {
   PslExtensionBlockParamRef,
   PslExtensionBlockParamScalarValue,
   PslModel,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
   UNSPECIFIED_PSL_NAMESPACE_ID,
-} from '@prisma-next/framework-components/psl-ast';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/psl-ast';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { printPslFromAst } from '../src/print-psl';
 import {

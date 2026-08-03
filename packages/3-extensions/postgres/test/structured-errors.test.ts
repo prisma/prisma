@@ -1,7 +1,7 @@
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { createContract } from '@prisma-next/test-utils';
-import { isInternalError } from '@prisma-next/utils/internal-error';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { isInternalError } from '@internal/utils/internal-error';
+import { isStructuredError } from '@internal/utils/structured-error';
+import { createContract } from '@repo/test-utils';
 import type { Client } from 'pg';
 import { describe, expect, it, vi } from 'vitest';
 

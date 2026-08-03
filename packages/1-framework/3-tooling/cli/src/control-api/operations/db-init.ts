@@ -1,13 +1,13 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlAdapterInstance,
   ControlDriverInstance,
   ControlExtensionDescriptor,
   ControlFamilyInstance,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import { ifDefined } from '@internal/utils/defined';
 import type { DbInitResult, OnControlProgress } from '../types';
 import { executeRun } from './db-run';
 
@@ -17,7 +17,7 @@ import { executeRun } from './db-run';
  * `db init` runs the loader → planner → runner pipeline:
  *
  * 1. {@link executeRun} loads a `ContractSpaceAggregate` via
- *    {@link import('@prisma-next/migration-tools/aggregate').loadContractSpaceAggregate}
+ *    {@link import('@internal/migration-tools/aggregate').loadContractSpaceAggregate}
  *    from the supplied descriptor set + on-disk on-disk artefacts.
  * 2. The aggregate planner runs with `callerPolicy.ignoreGraphFor`
  *    locked to the app space — synth strategy for the app, graph-walk

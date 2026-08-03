@@ -1,5 +1,5 @@
-import type { ContractField, ContractValueObject } from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+import type { ContractField, ContractValueObject } from '@internal/contract/types';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import {
   deriveJsonSchema,

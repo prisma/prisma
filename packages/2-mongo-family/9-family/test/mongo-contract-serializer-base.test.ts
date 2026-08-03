@@ -1,6 +1,6 @@
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import type { JsonObject } from '@prisma-next/utils/json';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { MongoContract } from '@internal/mongo-contract';
+import type { JsonObject } from '@internal/utils/json';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { MongoContractSerializerBase } from '../src/core/ir/mongo-contract-serializer-base';
 import { mongoContractJson } from './mongo-contract-json-fixture';

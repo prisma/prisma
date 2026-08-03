@@ -64,7 +64,7 @@
 
 ### Steps
 
-1. From the repo root: `node packages/1-framework/3-tooling/cli/dist/cli.mjs --help` (or `pnpm --filter examples/prisma-next-demo exec prisma-next --help` from inside the demo).
+1. From the repo root: `node packages/1-framework/3-tooling/cli/dist/cli.mjs --help` (or `pnpm --filter examples/prisma-8-demo exec prisma-next --help` from inside the demo).
 2. Read the top-level command list.
 3. For each top-level entry, run `<verb> --help` and read the subcommand list. Especially:
    - `prisma-next migration --help` — should list `plan`, `new`, `show`, `status`, `log`, `list`, `graph`, `check`. **No `apply`. No `ref`.**
@@ -162,13 +162,13 @@ For each of the following invocations, run the command and observe stderr + exit
 
 **Preconditions:**
 - Pre-flight complete.
-- The demo's migrations directory at `examples/prisma-next-demo/migrations/app/` contains at least two migrations (it does — see `20260422T0720_initial`, `20260422T0742_migration`, `20260422T0748_migration`).
+- The demo's migrations directory at `examples/prisma-8-demo/migrations/app/` contains at least two migrations (it does — see `20260422T0720_initial`, `20260422T0742_migration`, `20260422T0748_migration`).
 
 ### Steps
 
 1. **Cold check (happy path).** From the demo:
    ```bash
-   cd examples/prisma-next-demo
+   cd examples/prisma-8-demo
    pnpm exec prisma-next migration check ; echo "exit=$?"
    pnpm exec prisma-next migration check --json | head -40
    ```
@@ -215,7 +215,7 @@ git checkout -- migrations/app/20260422T0742_migration/end-contract.json
 git status   # must be clean — no other files mutated
 ```
 
-If `git status` shows any other file changed (especially `examples/prisma-next-demo/contract.json` or anything outside `migrations/app/<dir>/`), surface that as a finding — `migration check` is supposed to be read-only.
+If `git status` shows any other file changed (especially `examples/prisma-8-demo/contract.json` or anything outside `migrations/app/<dir>/`), surface that as a finding — `migration check` is supposed to be read-only.
 
 ## Scenario 5 — `See also` sections cross-link the split verbs
 
@@ -325,7 +325,7 @@ Read the `See also` block (if present) and confirm it lists the other four split
 
 ## Scenario 8 — Exploratory: probe the migration CLI surface
 
-**Charter.** Explore the migration CLI surface — `migrate`, `db update`, `db sign`, `ref`, the five `migration` reading verbs, and `migration check` — against the `examples/prisma-next-demo/` demo and / or one of the `migration-fixtures/` snapshots, for **30 minutes**. Discover behaviours that surprise you, diagnostics that read poorly, redirects that misfire, state combinations the scripted scenarios skipped, or any place where the user mental model and the implementation diverge.
+**Charter.** Explore the migration CLI surface — `migrate`, `db update`, `db sign`, `ref`, the five `migration` reading verbs, and `migration check` — against the `examples/prisma-8-demo/` demo and / or one of the `migration-fixtures/` snapshots, for **30 minutes**. Discover behaviours that surprise you, diagnostics that read poorly, redirects that misfire, state combinations the scripted scenarios skipped, or any place where the user mental model and the implementation diverge.
 
 **Covers:** (no specific AC; surfaces unknown unknowns).
 

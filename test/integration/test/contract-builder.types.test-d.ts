@@ -5,13 +5,13 @@ import {
   jsonbColumn,
   textColumn,
   timestamptzColumn,
-} from '@prisma-next/adapter-postgres/column-types';
-import { arktypeJson } from '@prisma-next/extension-arktype-json/column-types';
-import arktypeJsonRuntime from '@prisma-next/extension-arktype-json/runtime';
-import pgvectorPack from '@prisma-next/extension-pgvector/pack';
-import sqlFamilyPack from '@prisma-next/family-sql/pack';
-import type { ResultType } from '@prisma-next/framework-components/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
+} from '@internal/adapter-postgres/column-types';
+import { arktypeJson } from '@internal/extension-arktype-json/column-types';
+import arktypeJsonRuntime from '@internal/extension-arktype-json/runtime';
+import pgvectorPack from '@internal/extension-pgvector/pack';
+import sqlFamilyPack from '@internal/family-sql/pack';
+import type { ResultType } from '@internal/framework-components/runtime';
+import { sql } from '@internal/sql-builder/runtime';
 import {
   defineContract,
   enumType,
@@ -19,12 +19,12 @@ import {
   member,
   model,
   rel,
-} from '@prisma-next/sql-contract-ts/contract-builder';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { createStubAdapter, createTestContext } from '@prisma-next/sql-runtime/test/utils';
-import type { JsonValue } from '@prisma-next/target-postgres/codec-types';
-import postgresPack from '@prisma-next/target-postgres/pack';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+} from '@internal/sql-contract-ts/contract-builder';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { createStubAdapter, createTestContext } from '@internal/sql-runtime/test/utils';
+import type { JsonValue } from '@internal/target-postgres/codec-types';
+import postgresPack from '@internal/target-postgres/pack';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { type as arktype } from 'arktype';
 import { expectTypeOf, test } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
@@ -440,7 +440,7 @@ test('contract structure type matches Contract', () => {
 
 test('arktypeJson and jsonbColumn currently resolve to never in no-emit type path (known gap)', () => {
   // Phase C: schema-typed JSON ships from per-library extension packages
-  // now (`@prisma-next/extension-arktype-json` for arktype). The
+  // now (`@internal/extension-arktype-json` for arktype). The
   // adapter's `jsonbColumn` is the untyped fallback.
   const payloadSchema = arktype({
     action: 'string',

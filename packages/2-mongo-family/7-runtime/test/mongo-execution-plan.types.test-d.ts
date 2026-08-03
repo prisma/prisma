@@ -1,10 +1,6 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type {
-  ExecutionPlan,
-  QueryPlan,
-  ResultType,
-} from '@prisma-next/framework-components/runtime';
-import { InsertOneWireCommand } from '@prisma-next/mongo-wire';
+import type { PlanMeta } from '@internal/contract/types';
+import type { ExecutionPlan, QueryPlan, ResultType } from '@internal/framework-components/runtime';
+import { InsertOneWireCommand } from '@internal/mongo-wire';
 import { assertType, expectTypeOf, test } from 'vitest';
 import type { MongoExecutionPlan } from '../src/mongo-execution-plan';
 

@@ -1,5 +1,5 @@
-import type { PslDiagnosticCode } from '@prisma-next/framework-components/psl-ast';
-import { UNSPECIFIED_PSL_NAMESPACE_ID } from '@prisma-next/framework-components/psl-ast';
+import type { PslDiagnosticCode } from '@internal/framework-components/psl-ast';
+import { UNSPECIFIED_PSL_NAMESPACE_ID } from '@internal/framework-components/psl-ast';
 import { type Range, SourceFile } from './source-file';
 import { DocumentAst } from './syntax/ast/declarations';
 import type { GreenNode } from './syntax/green';

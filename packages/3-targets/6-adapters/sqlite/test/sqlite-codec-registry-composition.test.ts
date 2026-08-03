@@ -1,5 +1,5 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
+import type { JsonValue } from '@internal/contract/types';
+import sqlFamilyDescriptor from '@internal/family-sql/control';
 import {
   type AnyCodecDescriptor,
   type CodecCallContext,
@@ -7,10 +7,10 @@ import {
   CodecImpl,
   type CodecInstanceContext,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import type { RuntimeExtensionDescriptor } from '@prisma-next/framework-components/execution';
+} from '@internal/framework-components/codec';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import type { RuntimeExtensionDescriptor } from '@internal/framework-components/execution';
 import {
   BinaryExpr,
   CodecJsonValueProjection,
@@ -24,20 +24,20 @@ import {
   SQL_CHAR_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import {
   type AnySqliteCodecDescriptor,
   sqliteCodec,
-} from '@prisma-next/target-sqlite/codec-descriptor';
+} from '@internal/target-sqlite/codec-descriptor';
 import {
   SQLITE_BIGINT_CODEC_ID,
   SQLITE_BLOB_CODEC_ID,
   SQLITE_JSON_CODEC_ID,
-} from '@prisma-next/target-sqlite/codec-ids';
-import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
-import sqliteTargetControlDescriptor from '@prisma-next/target-sqlite/control';
-import sqliteRuntimeTargetDescriptor from '@prisma-next/target-sqlite/runtime';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/target-sqlite/codec-ids';
+import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
+import sqliteTargetControlDescriptor from '@internal/target-sqlite/control';
+import sqliteRuntimeTargetDescriptor from '@internal/target-sqlite/runtime';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createSqliteAdapter } from '../src/core/adapter';

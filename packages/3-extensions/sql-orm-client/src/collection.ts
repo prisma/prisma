@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   AnnotationValue,
   MetaBuilder,
   OperationKind,
-} from '@prisma-next/framework-components/runtime';
-import { AsyncIterableResult, createMetaBuilder } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/runtime';
+import { AsyncIterableResult, createMetaBuilder } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   type AnyExpression,
   BinaryExpr,
@@ -15,12 +15,12 @@ import {
   type OrderByItem,
   type ToWhereExpr,
   type WhereArg,
-} from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import type { SimplifyDeep } from '@prisma-next/utils/simplify-deep';
-import type { Simplify } from '@prisma-next/utils/types';
+} from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import type { SimplifyDeep } from '@internal/utils/simplify-deep';
+import type { Simplify } from '@internal/utils/types';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
 import { normalizeAggregateResult } from './collection-aggregate-result';
 import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-column-mapping';

@@ -2,11 +2,11 @@ import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import type {
   EntityHandleLoweringInput,
   LoweredPackEntity,
-} from '@prisma-next/sql-contract/entity-handle-lowering-hook';
+} from '@internal/sql-contract/entity-handle-lowering-hook';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { defineContract, extensionModel, field, model } from '../src/contract-builder';

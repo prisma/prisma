@@ -1,4 +1,4 @@
-import { notOk } from '@prisma-next/utils/result';
+import { notOk } from '@internal/utils/result';
 import { CliStructuredError, errorInvalidOutputFormat, errorOutputFormatMutex } from './cli-errors';
 import { isCI } from './is-ci';
 import { handleResult } from './result-handler';

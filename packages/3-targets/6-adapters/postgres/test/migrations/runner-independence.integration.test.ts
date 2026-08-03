@@ -1,22 +1,19 @@
 import { mkdir, mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import {
-  APP_SPACE_ID,
-  type MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { AggregateMigrationEdgeRef } from '@prisma-next/migration-tools/aggregate';
-import { writeContractSnapshot } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { materialiseMigrationPackage, readMigrationPackage } from '@prisma-next/migration-tools/io';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { PostgresPlanTargetDetails } from '@prisma-next/target-postgres/planner-target-details';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID, type MigrationPlanOperation } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
+import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { materialiseMigrationPackage, readMigrationPackage } from '@internal/migration-tools/io';
+import { SqlStorage } from '@internal/sql-contract/types';
+import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planner-target-details';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import {
   createDriver,

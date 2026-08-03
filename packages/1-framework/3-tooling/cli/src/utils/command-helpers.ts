@@ -1,11 +1,11 @@
 import { readFile } from 'node:fs/promises';
-import type { ControlTargetDescriptor } from '@prisma-next/framework-components/control';
-import { hasMigrations } from '@prisma-next/framework-components/control';
-import type { NoInvariantPathStructuralEdge } from '@prisma-next/migration-tools/errors';
-import type { MigrationEdge, MigrationGraph } from '@prisma-next/migration-tools/graph';
-import type { PathDecision } from '@prisma-next/migration-tools/migration-graph';
-import { APP_SPACE_ID, spaceMigrationDirectory } from '@prisma-next/migration-tools/spaces';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { ControlTargetDescriptor } from '@internal/framework-components/control';
+import { hasMigrations } from '@internal/framework-components/control';
+import type { NoInvariantPathStructuralEdge } from '@internal/migration-tools/errors';
+import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
+import type { PathDecision } from '@internal/migration-tools/migration-graph';
+import { APP_SPACE_ID, spaceMigrationDirectory } from '@internal/migration-tools/spaces';
+import { ifDefined } from '@internal/utils/defined';
 import type { Command } from 'commander';
 import { relative, resolve } from 'pathe';
 import { CliStructuredError, errorRuntime } from './cli-errors';

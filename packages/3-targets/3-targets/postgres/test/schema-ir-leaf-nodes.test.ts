@@ -1,5 +1,5 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import {
   PostgresPolicySchemaNode,

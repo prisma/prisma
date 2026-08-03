@@ -20,7 +20,7 @@ export type {
   PslSpan,
 } from '../shared/psl-extension-block';
 
-import { blindCast } from '@prisma-next/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import type { CodecLookup } from '../shared/codec-types';
 import type { AuthoringPslBlockDescriptorNamespace } from '../shared/framework-authoring';
 import type {

@@ -1,7 +1,7 @@
-import { errorRuntime } from '@prisma-next/errors/execution';
-import type { ControlDriverDescriptor } from '@prisma-next/framework-components/control';
-import type { MongoControlDriverInstance } from '@prisma-next/mongo-lowering';
-import { redactDatabaseUrl } from '@prisma-next/utils/redact-db-url';
+import { errorRuntime } from '@internal/errors/execution';
+import type { ControlDriverDescriptor } from '@internal/framework-components/control';
+import type { MongoControlDriverInstance } from '@internal/mongo-lowering';
+import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
 import { type Db, MongoClient } from 'mongodb';
 import { DRIVER_INFO } from '../core/driver-info';
 import { MongoDriverImpl } from '../mongo-driver';

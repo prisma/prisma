@@ -5,22 +5,22 @@ import {
   domainModelsAtDefaultNamespace,
   domainValueObjectsAtDefaultNamespace,
   type PlanMeta,
-} from '@prisma-next/contract/types';
-import { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
+} from '@internal/contract/types';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
   MongoContractWithTypeMaps,
   MongoModelDefinition,
   MongoModelsMap,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import type {
   AnyMongoCommand,
   MongoFieldShape,
   MongoFilterExpr,
   MongoQueryPlan,
   MongoResultShape,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import {
   DeleteManyCommand,
   FindOneAndDeleteCommand,
@@ -32,16 +32,16 @@ import {
   MongoAndExpr,
   MongoFieldFilter,
   UpdateManyCommand,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import {
   contractFieldToMongoFieldShape,
   contractModelToMongoResultShape,
-} from '@prisma-next/mongo-query-builder';
-import type { MongoValue } from '@prisma-next/mongo-value';
-import { MongoParamRef } from '@prisma-next/mongo-value';
-import { blindCast, castAs } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-query-builder';
+import type { MongoValue } from '@internal/mongo-value';
+import { MongoParamRef } from '@internal/mongo-value';
+import { blindCast, castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import type { MongoIncludeExpr } from './collection-state';
 import { emptyCollectionState, type MongoCollectionState } from './collection-state';
 import { compileMongoQuery } from './compile';

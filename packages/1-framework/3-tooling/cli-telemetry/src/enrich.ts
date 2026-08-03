@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
+import type { PrismaNextConfig } from '@internal/config/config-types';
 import { determineAgent } from '@vercel/detect-agent';
 import { join } from 'pathe';
 import type { ParentToSenderPayload, TelemetryEvent } from './payload';
@@ -22,14 +22,14 @@ const EMPTY_PROJECT_CONFIG: ProjectConfigFields = {
 
 /**
  * Best-effort load of `prisma-next.config.*` from `projectRoot`,
- * validated against the canonical `@prisma-next/config` schema.
+ * validated against the canonical `@internal/config` schema.
  * Returns `{ databaseTarget: null, extensions: [] }` on any failure
  * mode — missing config file (e.g. before `prisma-next init`), c12
  * throws while evaluating user TS, validator rejects a malformed
  * shape, etc. Telemetry is non-blocking and best-effort; an empty
  * result is the only downside of an unloadable or invalid config.
  *
- * Both `c12` and `@prisma-next/config/config-validation` are imported
+ * Both `c12` and `@internal/config/config-validation` are imported
  * lazily so the detached sender's cold-start cost is paid only when
  * telemetry actually fires, not on every fork even when gates
  * short-circuit before reaching this code path.
@@ -53,7 +53,7 @@ export async function loadProjectConfig(projectRoot: string): Promise<ProjectCon
     if (config === null || Object.keys(config).length === 0) {
       return EMPTY_PROJECT_CONFIG;
     }
-    const validation = await import('@prisma-next/config/config-validation');
+    const validation = await import('@internal/config/config-validation');
     // TS 4.7+ only flows `asserts cfg is X` narrowing when the
     // assertion function is called via a directly-declared name with
     // an explicit signature. The dynamic-import binding doesn't

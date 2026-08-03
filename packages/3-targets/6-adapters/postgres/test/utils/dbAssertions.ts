@@ -1,4 +1,4 @@
-import type { PostgresControlDriver } from '@prisma-next/driver-postgres/control';
+import type { PostgresControlDriver } from '@internal/driver-postgres/control';
 import { expect } from 'vitest';
 
 /**

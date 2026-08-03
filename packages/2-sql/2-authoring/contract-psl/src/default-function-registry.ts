@@ -3,7 +3,7 @@ import type {
   DefaultFunctionLoweringContext,
   LoweredDefaultResult,
   TypedDefaultFunctionCall,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 
 function formatSupportedFunctionList(registry: ControlMutationDefaultRegistry): string {
   const signatures = Array.from(registry.entries())

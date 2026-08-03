@@ -1,13 +1,13 @@
 import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { access } from 'node:fs/promises';
-import { createContractEmitCommand } from '@prisma-next/cli/commands/contract-emit';
-import { createDbVerifyCommand } from '@prisma-next/cli/commands/db-verify';
-import type { Contract } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { typescriptContract } from '@prisma-next/sql-contract-ts/config-types';
-import { seedTestMarker } from '@prisma-next/sql-runtime/test/utils';
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
+import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
+import type { Contract } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { typescriptContract } from '@internal/sql-contract-ts/config-types';
+import { seedTestMarker } from '@internal/sql-runtime/test/utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { bootstrapPostgresSignMarkerTables } from './postgres-bootstrap';
@@ -20,7 +20,7 @@ import {
   withTempDir,
 } from './utils/cli-test-helpers';
 
-vi.mock('@prisma-next/config-loader', { spy: true });
+vi.mock('@internal/config-loader', { spy: true });
 
 // Fixture subdirectory for db-verify tests
 const fixtureSubdir = 'db-verify';
@@ -1039,7 +1039,7 @@ withTempDir(({ createTempDir }) => {
             // withClient will close the client after this callback returns
           });
 
-          const originalLoadConfig = await import('@prisma-next/config-loader');
+          const originalLoadConfig = await import('@internal/config-loader');
           vi.spyOn(originalLoadConfig, 'loadConfig').mockResolvedValue({
             family: {
               familyId: 'sql',

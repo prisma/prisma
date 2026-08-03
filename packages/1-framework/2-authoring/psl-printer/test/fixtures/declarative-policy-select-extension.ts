@@ -32,8 +32,8 @@ import type {
   PslExtensionBlock,
   PslExtensionBlockParamRef,
   PslExtensionBlockParamScalarValue,
-} from '@prisma-next/framework-components/authoring';
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/authoring';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 
 export const POLICY_SELECT_KEYWORD = 'policy_select';
 export const POLICY_SELECT_DISCRIMINATOR = 'fixture-policy-select';

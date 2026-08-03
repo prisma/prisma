@@ -1,4 +1,4 @@
-# `@prisma-next/extension-arktype-json`
+# `@internal/extension-arktype-json`
 
 Per-library JSON-with-schema column factory for Prisma Next, built on [arktype](https://arktype.io). Ships the `arktypeJson(schema)` column-author helper and the `arktype/json@1` codec descriptor.
 
@@ -20,8 +20,8 @@ The unified `CodecDescriptor` model routes JSON-with-schema through per-library 
 
 ```ts
 import { type } from 'arktype';
-import { arktypeJson } from '@prisma-next/extension-arktype-json/column-types';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
+import { arktypeJson } from '@internal/extension-arktype-json/column-types';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
 
 const ProductSchema = type({ name: 'string', price: 'number', 'description?': 'string' });
 
@@ -44,8 +44,8 @@ After emit, `Product.spec` in `contract.d.ts` resolves to `{ name: string; price
 Add the runtime descriptor to your runtime stack and the control descriptor to your `prisma-next.config.ts` `extensions`:
 
 ```ts
-import arktypeJsonPack from '@prisma-next/extension-arktype-json/pack';
-import arktypeJsonRuntime from '@prisma-next/extension-arktype-json/runtime';
+import arktypeJsonPack from '@internal/extension-arktype-json/pack';
+import arktypeJsonRuntime from '@internal/extension-arktype-json/runtime';
 
 // prisma-next.config.ts
 export default {
@@ -73,7 +73,7 @@ The runtime enforces the invariant defensively: the codec's factory runs at exec
 
 - The codec is library-bound (`arktype/json@1`), not target-bound. Other schema libraries ship as parallel extensions (`zod/json@1`, `valibot/json@1`) when their serialize/rehydrate stories materialize.
 - `decode` validates internally and throws on rejection. JSON-Schema validation lives uniformly inside the resolved codec's `decode` body; the framework no longer maintains a parallel validator registry. Validation rejections surface as `RUNTIME.JSON_SCHEMA_VALIDATION_FAILED`.
-- For untyped raw JSON columns, use `jsonColumn` / `jsonbColumn` from `@prisma-next/adapter-postgres/column-types` instead.
+- For untyped raw JSON columns, use `jsonColumn` / `jsonbColumn` from `@internal/adapter-postgres/column-types` instead.
 
 ## Data integrity: validate-on-decode, not on encode
 

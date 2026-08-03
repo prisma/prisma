@@ -26,29 +26,29 @@
  * / the slice spec).
  */
 
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   CodecControlHooks,
   MigrationOperationPolicy,
   SqlMigrationPlanOperation,
-} from '@prisma-next/family-sql/control';
-import { resolveValueSetValues } from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/family-sql/control';
+import { resolveValueSetValues } from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   type SqlStorage,
   StorageTable,
   type StorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
-import * as contractFree from '@prisma-next/sql-relational-core/contract-free';
+} from '@internal/sql-contract/types';
+import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
   type SqlSchemaIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
 import {
   renderColumnAlterType,

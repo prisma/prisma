@@ -3,7 +3,7 @@
  * with row-by-row streaming.
  */
 
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import pg from 'pg';
 import { describe, expect, it } from 'vitest';
 import { NamedCursor } from '../src/named-cursor';

@@ -1,19 +1,16 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@prisma-next/config-loader';
-import type { Contract } from '@prisma-next/contract/types';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import {
-  type AggregateContractSpace,
-  requireHeadRef,
-} from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { errorUnknownInvariant, MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { findLatestMigration, isGraphNode } from '@prisma-next/migration-tools/migration-graph';
-import { parseContractRef } from '@prisma-next/migration-tools/ref-resolution';
-import type { RefEntry, Refs } from '@prisma-next/migration-tools/refs';
-import { readRefs } from '@prisma-next/migration-tools/refs';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { loadConfig } from '@internal/config-loader';
+import type { Contract } from '@internal/contract/types';
+import { createControlStack } from '@internal/framework-components/control';
+import { type AggregateContractSpace, requireHeadRef } from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { errorUnknownInvariant, MigrationToolsError } from '@internal/migration-tools/errors';
+import { findLatestMigration, isGraphNode } from '@internal/migration-tools/migration-graph';
+import { parseContractRef } from '@internal/migration-tools/ref-resolution';
+import type { RefEntry, Refs } from '@internal/migration-tools/refs';
+import { readRefs } from '@internal/migration-tools/refs';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { createControlClient } from '../control-api/client';
 import { planSpacePath } from '../control-api/operations/migrate';

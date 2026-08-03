@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@prisma/orm-postgres/config';
 
 const rawContractSource = process.env['PRISMA_NEXT_CONTRACT_SOURCE'];
 const contractSource =

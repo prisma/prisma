@@ -1,9 +1,6 @@
 import { copyFile, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
-import type {
-  MigrationMetadata,
-  MigrationPackage,
-} from '@prisma-next/framework-components/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { MigrationMetadata, MigrationPackage } from '@internal/framework-components/control';
+import { ifDefined } from '@internal/utils/defined';
 import { type } from 'arktype';
 import { basename, dirname, join, resolve } from 'pathe';
 import { readContractSnapshotJsonTolerant } from './contract-snapshot-store';

@@ -1,5 +1,5 @@
-import { MongoFieldFilter } from '@prisma-next/mongo-query-ast/execution';
-import { acc } from '@prisma-next/mongo-query-builder';
+import { MongoFieldFilter } from '@prisma/orm-mongo/query-ast/execution';
+import { acc } from '@prisma/orm-mongo/query-builder';
 import type { FieldInputTypes } from '../contract';
 import type { Db } from '../db';
 

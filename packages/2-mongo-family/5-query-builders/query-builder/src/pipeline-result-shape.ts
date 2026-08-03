@@ -3,13 +3,13 @@ import type {
   MongoFieldShape,
   MongoPipelineStage,
   MongoResultShape,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import {
   freezeMongoResultShape,
   MongoAddFieldsStage,
   MongoAggFieldRef,
   MongoProjectStage,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 
 const identityStageKinds = new Set(['match', 'sort', 'limit', 'skip', 'sample', 'vectorSearch']);
 

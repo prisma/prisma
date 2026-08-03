@@ -1,17 +1,17 @@
 import type {
   CanonicalizeContractOptions,
   PreserveEmptyPredicate,
-} from '@prisma-next/contract/hashing';
+} from '@internal/contract/hashing';
 import {
   createPreserveEmptyPredicate,
   createStorageSort,
   type NamedArraySortTarget,
   type PathPattern,
-} from '@prisma-next/contract/hashing-utils';
-import type { Contract, CrossReference } from '@prisma-next/contract/types';
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
-import { createContract } from '@prisma-next/test-utils/contract-factories';
-import type { JsonObject } from '@prisma-next/utils/json';
+} from '@internal/contract/hashing-utils';
+import type { Contract, CrossReference } from '@internal/contract/types';
+import type { EmissionSpi } from '@internal/framework-components/emission';
+import type { JsonObject } from '@internal/utils/json';
+import { createContract } from '@repo/test-utils/contract-factories';
 import type { EmitOptions, EmitResult, EmitStackInput } from '../src/exports';
 import { emit as emitImpl } from '../src/exports';
 

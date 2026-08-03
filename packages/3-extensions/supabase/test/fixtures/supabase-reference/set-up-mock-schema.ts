@@ -45,7 +45,7 @@ import type { Client } from 'pg';
  * never move from their source location under `test/fixtures/`.
  */
 function resolveFixtureDir(): string {
-  const packageJsonUrl = import.meta.resolve('@prisma-next/extension-supabase/package.json');
+  const packageJsonUrl = import.meta.resolve('@internal/extension-supabase/package.json');
   return join(dirname(fileURLToPath(packageJsonUrl)), 'test', 'fixtures', 'supabase-reference');
 }
 

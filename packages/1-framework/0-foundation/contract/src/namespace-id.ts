@@ -1,4 +1,4 @@
-import { blindCast } from '@prisma-next/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 
 export type NamespaceId = string & { readonly __brand: 'NamespaceId' };
 

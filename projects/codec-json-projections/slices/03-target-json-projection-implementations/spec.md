@@ -71,7 +71,7 @@ SQLite loses the JSON subtype across derived tables, so a document-valued projec
 
 An internal, database-backed harness takes a descriptor, a set of representative application values, and a live connection; for each value it encodes through the codec, stores it, projects it via `projectJson()`, executes, parses the driver's JSON, and asserts equality with `codec.encodeJson`. It runs `projectJson()` directly rather than through the render path, which is exactly why it works before the hard cut. The arbitrary-precision numeric regression (`1234567890.12345678901234567890`, `9007199254740993`) is a first-class case.
 
-The harness is internal to this slice. Slice 5 promotes its case-runner API into the public dev-only `@prisma-next/postgres-codec-testkit` / `@prisma-next/sqlite-codec-testkit` packages; shaping it here with that promotion in mind is deliberate, but the package boundary is not this slice's problem.
+The harness is internal to this slice. Slice 5 promotes its case-runner API into the public dev-only `@internal/postgres-codec-testkit` / `@internal/sqlite-codec-testkit` packages; shaping it here with that promotion in mind is deliberate, but the package boundary is not this slice's problem.
 
 **What the harness's green does not prove.** Three limits, each structural rather than a gap to be closed by more cases:
 

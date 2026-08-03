@@ -1,5 +1,5 @@
-import type { ColumnDefault } from '@prisma-next/contract/types';
-import { canonicalStringify } from '@prisma-next/utils/canonical-stringify';
+import type { ColumnDefault } from '@internal/contract/types';
+import { canonicalStringify } from '@internal/utils/canonical-stringify';
 
 /**
  * Structural equality for two resolved column defaults, ported from the

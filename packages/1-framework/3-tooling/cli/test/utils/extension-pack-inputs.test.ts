@@ -1,5 +1,5 @@
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import type { MigrationOps } from '@prisma-next/migration-tools/package';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import type { MigrationOps } from '@internal/migration-tools/package';
 import { describe, expect, it } from 'vitest';
 import type {
   DescriptorMigrationPackage,

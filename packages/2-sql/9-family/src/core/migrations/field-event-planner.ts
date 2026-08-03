@@ -22,9 +22,9 @@
  * See: `docs/architecture docs/adrs/ADR 213 - Codec lifecycle hooks.md`.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { OpFactoryCall } from '@prisma-next/framework-components/control';
-import { type SqlStorage, type StorageColumn, StorageTable } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { OpFactoryCall } from '@internal/framework-components/control';
+import { type SqlStorage, type StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import type { CodecControlHooks, FieldEvent, FieldEventContext } from './types';
 
 export interface PlanFieldEventOperationsOptions {

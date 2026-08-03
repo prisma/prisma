@@ -1,12 +1,12 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import type { Contract } from '@prisma-next/contract/types';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import type { Contract } from '@internal/contract/types';
 import postgresDriver, {
   type PostgresDriverCreateOptions,
-} from '@prisma-next/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { sql as sqlBuilder } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/driver-postgres/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
+import type { Db } from '@internal/sql-builder/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import type {
   ExecutionContext,
   Runtime,
@@ -14,11 +14,11 @@ import type {
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
   VerifyMarkerOption,
-} from '@prisma-next/sql-runtime';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-runtime';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { Client } from 'pg';
 import { postgresError } from '../errors';
 import type { PostgresTargetId } from './postgres';

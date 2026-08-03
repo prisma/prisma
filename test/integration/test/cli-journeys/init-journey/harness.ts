@@ -46,7 +46,7 @@ const CLI_BIN = join(WORKSPACE_ROOT, 'packages/1-framework/3-tooling/cli/dist/cl
  *  1. Path length. pnpm's content-addressable store encodes the **absolute**
  *     tarball path into the cached index filenames (using `+` as separator).
  *     A cache dir deep inside a long worktree path (e.g.
- *     `…/prisma-next-ws/worktrees/tml-2486-…/`) overflows the OS filename
+ *     `…/prisma-8-ws/worktrees/tml-2486-…/`) overflows the OS filename
  *     limit (`ENAMETOOLONG`). A short, stable prefix keeps things under
  *     the 255-char limit.
  *  2. Cross-run reuse. Repeated test runs hit the cache instead of repacking
@@ -110,7 +110,7 @@ export interface StepResult extends CommandRun {
 interface CreateJourneyProjectOptions {
   /**
    * Whether to run `pnpm install` after the scaffold lands. The install
-   * resolves every `@prisma-next/*` dep against the workspace tarballs at
+   * resolves every `@internal/*` dep against the workspace tarballs at
    * {@link TARBALL_CACHE_DIR} and uses `node-linker=isolated` so transitive
    * workspace packages are not hoisted into the tmpdir's top-level
    * `node_modules` — the exact pnpm layout that TML-2485 broke under.
@@ -149,7 +149,7 @@ export async function createJourneyProject(
     // `--no-skill` is load-bearing: this journey verifies
     // scaffold/install/emit/migrate only; skill registration is
     // intentionally not exercised. Without the flag, project-level skill
-    // install pulls the `prisma/prisma-next/skills#v<cliVersion>` tag from
+    // install pulls the `prisma/prisma/skills#v<cliVersion>` tag from
     // GitHub, which does not exist for an in-development minor (the tag is
     // only cut after publish), so every release-bump PR's CI goes red.
     const initResult = await runNode(
@@ -193,7 +193,7 @@ export async function createJourneyProject(
 /** Minimal `package.json` that satisfies init's precondition: a project root must already exist before init can attach to it. */
 function writeMinimalPackageJson(dir: string): void {
   const pkg = {
-    name: 'prisma-next-journey-fixture',
+    name: 'prisma-8-journey-fixture',
     version: '0.0.0',
     private: true,
     type: 'module',
@@ -256,7 +256,7 @@ function asString(value: unknown): string {
 // --- Workspace tarball preparation -----------------------------------------
 //
 // Section drives the Phase A.2 strategy: rather than installing
-// `@prisma-next/*` packages from npm (where workspace versions are unpublished)
+// `@internal/*` packages from npm (where workspace versions are unpublished)
 // or symlinking workspace source dirs (which would leak the workspace's
 // hoisted `node_modules`), we pack each workspace package into a tarball once
 // per test session and have the tmpdir install against those tarballs.
@@ -334,9 +334,16 @@ function walkForPackageJsons(dir: string, found: WorkspacePackage[], depth: numb
         version?: string;
         private?: boolean;
       };
-      if (typeof pkg.name === 'string' && pkg.name.startsWith('@prisma-next/')) {
-        found.push({ name: pkg.name, version: pkg.version ?? '0.0.0', dir });
-      } else if (pkg.name === 'prisma-next') {
+      // Both scopes: the scaffold installs the published `@prisma/orm-*`
+      // packages, and those are built from the `@internal/*` workspace
+      // packages, which the overrides below have to reach so resolution never
+      // leaves the tarball cache.
+      const ours =
+        typeof pkg.name === 'string' &&
+        (pkg.name.startsWith('@internal/') ||
+          pkg.name.startsWith('@prisma/orm-') ||
+          pkg.name === 'prisma-next');
+      if (ours && typeof pkg.name === 'string') {
         found.push({ name: pkg.name, version: pkg.version ?? '0.0.0', dir });
       }
     } catch {
@@ -458,26 +465,21 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
     pnpm?: { overrides?: Record<string, string> };
   };
 
-  const facade = cell.target === 'mongo' ? '@prisma-next/mongo' : '@prisma-next/postgres';
+  const facade = cell.target === 'mongo' ? '@prisma/orm-mongo' : '@prisma/orm-postgres';
   const facadeTarball = requireTarball(tarballs, facade);
   const prismaNextTarball = requireTarball(tarballs, 'prisma-next');
 
-  // The framework-emitted `migration.ts` imports framework packages
-  // directly (not via the user-facing facade): postgres goes through
-  // `@prisma-next/postgres/migration`; mongo goes through
-  // `@prisma-next/cli/migration-cli` + `@prisma-next/family-mongo/migration`
-  // + `@prisma-next/target-mongo/migration`. Under `node-linker=isolated`
-  // (the layout this journey deliberately uses to catch TML-2485-class
-  // bugs) these are only reachable when declared as direct deps. The
-  // init scaffold itself does not currently declare them, so a real
-  // user running `tsx migrations/.../migration.ts emit` under isolated
-  // linking would hit `ERR_MODULE_NOT_FOUND` — a real scaffold seam
-  // worth filing separately. Add them here so the journey can complete
+  // The framework-emitted `migration.ts` imports the target package
+  // directly rather than through the user-facing facade. Under
+  // `node-linker=isolated` (the layout this journey deliberately uses to
+  // catch TML-2485-class bugs) that is only reachable when declared as a
+  // direct dep. The init scaffold itself does not currently declare it, so
+  // a real user running `tsx migrations/.../migration.ts emit` under
+  // isolated linking would hit `ERR_MODULE_NOT_FOUND` — a real scaffold
+  // seam worth filing separately. Add it here so the journey can complete
   // end-to-end; the scaffold gap is a follow-up.
   const migrationDeps =
-    cell.target === 'mongo'
-      ? ['@prisma-next/cli', '@prisma-next/family-mongo', '@prisma-next/target-mongo']
-      : ['@prisma-next/target-postgres'];
+    cell.target === 'mongo' ? ['@prisma/orm-target-mongo'] : ['@prisma/orm-target-postgres'];
   const migrationDepEntries = Object.fromEntries(
     migrationDeps.map((name) => [name, `file:${requireTarball(tarballs, name)}`]),
   );
@@ -495,7 +497,7 @@ function rewritePackageJsonForTarballs(dir: string, cell: CellId, tarballs: Pack
     typescript: '^5.9.3',
   };
 
-  // Every workspace `@prisma-next/*` package becomes a pnpm override pointing
+  // Every workspace `@internal/*` package becomes a pnpm override pointing
   // at its tarball so transitive resolution stays within the cache, never
   // reaching the public registry. The presence of this block does not mean
   // every package is installed — only ones reached from the dep graph are

@@ -1,4 +1,4 @@
-import type { SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
+import type { SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import { paradedbPackMeta, paradedbQueryOperations } from '../core/descriptor-meta';
 
 const paradedbRuntimeDescriptor: SqlRuntimeExtensionDescriptor<'postgres'> = {

@@ -53,7 +53,7 @@ This example is shipped as a single workspace package for ergonomic reasons (the
 ## Running
 
 ```sh
-pnpm --filter @prisma-next/example-multi-extension-monorepo test
+pnpm --filter multi-extension-monorepo test
 ```
 
 ## Authoring (maintainers)

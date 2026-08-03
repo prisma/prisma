@@ -33,7 +33,7 @@ finished into a usable static context. Three gaps versus SQL:
 | typed | `contract: TContract` | `contract: unknown` |
 
 The Mongo context is **already driver-free**: `createMongoExecutionStack({ target, adapter })`
-takes no driver (it is optional), `@prisma-next/mongo-runtime` has zero driver dependencies,
+takes no driver (it is optional), `@internal/mongo-runtime` has zero driver dependencies,
 and the `MongoDriverImpl` is created separately and only handed to `createMongoRuntime`. So
 the static context is built without touching `mongodb` today — it is just buried in the
 connect path and discarded as a standalone value.
@@ -45,10 +45,10 @@ This slice surfaces that abstraction symmetrically and uses it to replace the ex
 
 PR #880 ("Exercise Mongo enums in retail-store") needed the static enum accessors importable
 from a `'use client'` component without pulling the Mongo driver into the browser bundle. It
-prototyped a `mongoEnums` + dedicated `@prisma-next/mongo/enums` entrypoint to do that, then
+prototyped a `mongoEnums` + dedicated `@internal/mongo/enums` entrypoint to do that, then
 **pulled it back out** — that machinery did not belong in an "exercise enums" PR. The example
 now builds its static enums directly from the existing public, driver-free `buildNamespacedEnums`
-(`@prisma-next/contract/enum-accessor`) with one `blindCast` in `src/enums.ts`. That works but
+(`@internal/contract/enum-accessor`) with one `blindCast` in `src/enums.ts`. That works but
 is a narrow point solution: the real abstraction is the `ExecutionContext`, which both targets
 should build upfront, expose, and offer client-safe. This slice provides the principled surface
 the prototype was reaching for.
@@ -67,7 +67,7 @@ foundation). `enums`, the query builder (`query`/`sql`), and `raw` all derive fr
 
 2. **Client-safe static-context factory per target.** `mongoStatic({ contractJson })` /
    `postgresStatic({ contractJson })` on a dedicated client-safe entrypoint
-   (`@prisma-next/<target>/static`) build the `ExecutionContext` from the static contract with
+   (`@internal/<target>/static`) build the `ExecutionContext` from the static contract with
    no driver, and return it alongside the derived static surface (`enums`, builder, `raw`,
    `contract`). The factory and the facade share one builder so the exposed `db.context` and
    the standalone context are identical.
@@ -86,11 +86,11 @@ foundation). `enums`, the query builder (`query`/`sql`), and `raw` all derive fr
    derivation once; the facade calls the same builder, so the cast lives in framework code in
    one place instead of being re-asserted per facade.
 
-5. **Migrate the interim consumer.** #880 landed on `main` (only its `@prisma-next/mongo/enums`
+5. **Migrate the interim consumer.** #880 landed on `main` (only its `@internal/mongo/enums`
    entrypoint was pulled), so `examples/retail-store/src/enums.ts` — the `buildNamespacedEnums`
    + `blindCast` interim — **does** exist, consumed by the `'use client'` `checkout-form.tsx`,
    `seed.ts`, and `api/orders/route.ts`. Delete that interim and point its consumers at
-   `mongoStatic` / `@prisma-next/mongo/static` so the typing comes from the framework, not a cast
+   `mongoStatic` / `@internal/mongo/static` so the typing comes from the framework, not a cast
    in example code. `checkout-form.tsx` importing the static surface is the `next build`
    client-safety acceptance test.
 
@@ -98,13 +98,13 @@ foundation). `enums`, the query builder (`query`/`sql`), and `raw` all derive fr
 
 - Both facades build the `ExecutionContext` upfront and expose `db.context: ExecutionContext<TContract>`
   with the same shape (Mongo's typed `<TContract>`, no `unknown`).
-- `mongoStatic`/`postgresStatic` exist on `@prisma-next/<target>/static`, return the
+- `mongoStatic`/`postgresStatic` exist on `@internal/<target>/static`, return the
   `ExecutionContext` + derived static surface, and are **client-safe**: a `'use client'`
   component importing them builds (`next build`) with **no driver code in the client bundle**
   (the acceptance test that gated #880). Client-safety is also asserted cheaply in CI by a
   package test that imports each `/static` entrypoint and fails if the resolved module graph
-  pulls in a driver package (`mongodb`, `pg`, `@prisma-next/driver-*`).
-- A minimal `'use client'` component in `retail-store` consumes `@prisma-next/mongo/static` and
+  pulls in a driver package (`mongodb`, `pg`, `@internal/driver-*`).
+- A minimal `'use client'` component in `retail-store` consumes `@internal/mongo/static` and
   stays green (typecheck, tests, `next build`).
 - The per-facade enum `blindCast` is gone — both facades derive `enums` through the shared
   static builder.
@@ -116,7 +116,7 @@ foundation). `enums`, the query builder (`query`/`sql`), and `raw` all derive fr
 ## Out of scope / notes
 
 - **Client-safety required a driver-free fix in the Mongo adapter.** The premise that building
-  the Mongo `ExecutionContext` is driver-free was only true for `@prisma-next/mongo-runtime`, not
+  the Mongo `ExecutionContext` is driver-free was only true for `@internal/mongo-runtime`, not
   the adapter: the codec module (`packages/3-mongo-target/2-mongo-adapter/src/core/codecs.ts`)
   value-imported `ObjectId` from `mongodb`, dragging the whole driver into the client bundle
   (`next build` failed with 19 errors). `ObjectId` is a `bson` class `mongodb` merely re-exports,

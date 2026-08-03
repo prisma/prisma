@@ -13,7 +13,7 @@ import {
   InsertOneWireCommand,
   UpdateManyWireCommand,
   UpdateOneWireCommand,
-} from '@prisma-next/mongo-wire';
+} from '@internal/mongo-wire';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';

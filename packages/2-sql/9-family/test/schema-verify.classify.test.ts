@@ -2,13 +2,13 @@ import type {
   DiffableNode,
   DiffSubjectGranularity,
   ExpectationFailureReason,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   SqlCheckConstraintIR,
   SqlColumnIR,
   SqlIndexIR,
   SqlTableIR,
-} from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { classifySqlDiffIssue, computeSqlDiffVerdict } from '../src/core/diff/schema-verify';
 

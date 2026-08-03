@@ -1,4 +1,4 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import {
   AsyncIterableResult,
   checkAborted,
@@ -10,8 +10,8 @@ import {
   runBeforeExecuteChain,
   runtimeError,
   runWithMiddleware,
-} from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import type {
   Adapter,
   AnyQueryAst,
@@ -23,18 +23,18 @@ import type {
   SqlDriver,
   SqlQueryable,
   SqlTransaction,
-} from '@prisma-next/sql-relational-core/ast';
-import { collectOrderedParamRefs } from '@prisma-next/sql-relational-core/ast';
-import type { CodecTypesBase } from '@prisma-next/sql-relational-core/expression';
+} from '@internal/sql-relational-core/ast';
+import { collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
+import type { CodecTypesBase } from '@internal/sql-relational-core/expression';
 import {
   createSqlParamRefMutator,
   type SqlParamRefMutator,
   type SqlParamRefMutatorInternal,
-} from '@prisma-next/sql-relational-core/middleware';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import type { CodecDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
-import type { RuntimeScope } from '@prisma-next/sql-relational-core/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/middleware';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
+import { ifDefined } from '@internal/utils/defined';
 import { buildDecodeContext, type DecodeContext, decodeRow } from './codecs/decoding';
 import { deriveParamMetadata, encodeParams, encodeParamsWithMetadata } from './codecs/encoding';
 import { validateCodecRegistryCompleteness } from './codecs/validation';

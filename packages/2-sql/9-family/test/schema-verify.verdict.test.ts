@@ -12,18 +12,18 @@
  * graded by `computeSqlDiffVerdict` + `computeStorageTypeVerdict`.
  */
 
-import type { ColumnDefault, Contract, ControlPolicy } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { diffSchemas, issueOutcome } from '@prisma-next/framework-components/control';
-import { entityAt } from '@prisma-next/framework-components/ir';
-import type { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import type { ColumnDefault, Contract, ControlPolicy } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { diffSchemas, issueOutcome } from '@internal/framework-components/control';
+import { entityAt } from '@internal/framework-components/ir';
+import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import {
   relationalNodeGranularity,
   SqlColumnIR,
   SqlSchemaIR,
   SqlTableIR,
-} from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { extractCodecControlHooks } from '../src/core/assembly';
 import { computeSqlDiffVerdict, computeStorageTypeVerdict } from '../src/core/diff/schema-verify';

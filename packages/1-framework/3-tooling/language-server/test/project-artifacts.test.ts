@@ -1,9 +1,9 @@
 import { pathToFileURL } from 'node:url';
-import type { ContractSourceContext } from '@prisma-next/config/config-types';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import type { PslInterpretCapable } from '@prisma-next/psl-parser/interpret';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { notOk, ok } from '@prisma-next/utils/result';
+import type { ContractSourceContext } from '@internal/config/config-types';
+import { buildSymbolTable } from '@internal/psl-parser';
+import type { PslInterpretCapable } from '@internal/psl-parser/interpret';
+import { parse } from '@internal/psl-parser/syntax';
+import { notOk, ok } from '@internal/utils/result';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ProjectInterpretation } from '../src/config-resolution';
 import { mapParseDiagnostics } from '../src/diagnostic-mapping';

@@ -1,4 +1,4 @@
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { PostgresPolicySchemaNode } from '../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../src/core/schema-ir/postgres-table-schema-node';

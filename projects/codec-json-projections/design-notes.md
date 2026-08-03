@@ -171,7 +171,7 @@ Compile-time constraints prove descriptor shape but not semantic equivalence. Da
 
 PostgreSQL cases also cover null arrays, empty arrays, null elements, order, single evaluation where observable, and equivalence between the default array lift and optimized overrides. Built-in suites cover every built-in and wrapped generic codec. Extension packages run the same harness in extension-owned database setup for codecs such as pgvector and PostGIS.
 
-The public harnesses live in separate dev-only packages, `@prisma-next/postgres-codec-testkit` and `@prisma-next/sqlite-codec-testkit`. Production target adapters do not depend on them. Third-party targets may publish analogous testkits without joining a framework registry.
+The public harnesses live in separate dev-only packages, `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`. Production target adapters do not depend on them. Third-party targets may publish analogous testkits without joining a framework registry.
 
 ### Hard-cut and migration policy
 

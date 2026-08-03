@@ -5,9 +5,9 @@
 A User and Post contract authored with the contract DSL. The model definition speaks in application-domain terms first — fields, relations, identity — and falls back to SQL details only when the author needs something storage-specific.
 
 ```ts
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { defineContract } from '@prisma-next/sql-contract-ts/contract-builder';
-import postgresPack from '@prisma-next/target-postgres/pack';
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
+import postgresPack from '@internal/target-postgres/pack';
 
 export const contract = defineContract(
   {

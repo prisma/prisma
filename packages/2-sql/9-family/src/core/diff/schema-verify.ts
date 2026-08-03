@@ -13,21 +13,21 @@
  * its verification tree are retired).
  */
 
-import type { Contract, ControlPolicy } from '@prisma-next/contract/types';
-import { effectiveControlPolicy } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
+import { effectiveControlPolicy } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   DiffSubjectGranularity,
   SchemaDiffIssue,
   VerifierIssueCategory,
   VerifierOutcome,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { dispositionForCategory, issueOutcome } from '@prisma-next/framework-components/control';
-import { isStorageTypeInstance, type SqlStorage } from '@prisma-next/sql-contract/types';
-import { RelationalSchemaNodeKind, type SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import { dispositionForCategory, issueOutcome } from '@internal/framework-components/control';
+import { isStorageTypeInstance, type SqlStorage } from '@internal/sql-contract/types';
+import { RelationalSchemaNodeKind, type SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { extractCodecControlHooks } from '../assembly';
 import type { SqlSchemaDiffFn } from '../migrations/schema-differ';
 import type { CodecControlHooks } from '../migrations/types';
@@ -52,7 +52,7 @@ function issueNode(issue: SchemaDiffIssue): SqlSchemaIRNode | undefined {
  * `granularityOf` map. The node carries only its `nodeKind` identity, never a
  * classification, and nothing is stamped onto the issue — every consumer
  * (the family verdict below, the framework aggregate's unclaimed-elements
- * sweep via {@link import('@prisma-next/framework-components/control').SchemaSubjectClassifierCapable})
+ * sweep via {@link import('@internal/framework-components/control').SchemaSubjectClassifierCapable})
  * calls this the same way, resolved by the family/target that owns the node
  * vocabulary. `undefined` for an issue with no node.
  */
@@ -69,7 +69,7 @@ export function classifyDiffSubjectGranularity(
  * node's `nodeKind` via the target-provided `entityKindOf` map — the sibling
  * of {@link classifyDiffSubjectGranularity}, called the same way by the same
  * consumers (via
- * {@link import('@prisma-next/framework-components/control').SchemaSubjectClassifierCapable}).
+ * {@link import('@internal/framework-components/control').SchemaSubjectClassifierCapable}).
  * `undefined` for an issue with no node, or for a node kind with no storage
  * entity of its own.
  */

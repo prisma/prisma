@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type {
   Codec as BaseCodec,
   CodecCallContext,
@@ -6,15 +6,15 @@ import type {
   CodecInstanceContext,
   CodecRef,
   CodecTrait,
-} from '@prisma-next/framework-components/codec';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/codec';
+import { ifDefined } from '@internal/utils/defined';
 
 export type {
   CodecCallContext,
   CodecDescriptor,
   CodecRef,
   CodecTrait,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 
 function isJsonArray(value: JsonValue): value is readonly JsonValue[] {
   return Array.isArray(value);
@@ -86,9 +86,9 @@ export interface SqlCodecInstanceContext extends CodecInstanceContext {
 /**
  * SQL codec — extends the framework codec base by narrowing the per-call context to the SQL-family {@link SqlCodecCallContext} (adds `column?: SqlColumnRef`). TypeScript treats method-syntax declarations bivariantly, so the SQL narrowing is structurally compatible with the framework {@link BaseCodec} super-interface.
  *
- * Codec-id-keyed static metadata (`traits`, `targetTypes`, `paramsSchema`, `renderOutputType`) lives on the unified {@link import('@prisma-next/framework-components/codec').CodecDescriptor} — the codec instance itself only carries `id` plus the four conversion methods.
+ * Codec-id-keyed static metadata (`traits`, `targetTypes`, `paramsSchema`, `renderOutputType`) lives on the unified {@link import('@internal/framework-components/codec').CodecDescriptor} — the codec instance itself only carries `id` plus the four conversion methods.
  *
- * See `Codec` in `@prisma-next/framework-components/codec` for the codec contract that this interface extends.
+ * See `Codec` in `@internal/framework-components/codec` for the codec contract that this interface extends.
  */
 export interface Codec<
   Id extends string = string,

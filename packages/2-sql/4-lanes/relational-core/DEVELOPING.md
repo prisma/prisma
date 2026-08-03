@@ -1,4 +1,4 @@
-# Developing `@prisma-next/sql-relational-core`
+# Developing `@internal/sql-relational-core`
 
 Internal contributor guide. See [README.md](README.md) for the package overview.
 

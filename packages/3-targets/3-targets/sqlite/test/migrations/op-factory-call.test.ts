@@ -1,5 +1,5 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { col, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { col, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { describe, expect, it } from 'vitest';
 import { columnExistsAst } from '../../src/contract-free/checks';
 import {
@@ -90,7 +90,7 @@ describe('CreateTableCall', () => {
     const call = new CreateTableCall('user', [col('id', 'INTEGER')]);
     const reqs = call.importRequirements();
     expect(reqs).toContainEqual({
-      moduleSpecifier: '@prisma-next/sqlite/migration',
+      moduleSpecifier: '@internal/sqlite/migration',
       symbol: 'col',
     });
   });
@@ -394,8 +394,8 @@ describe('DataTransformCall', () => {
   it('importRequirements() pulls dataTransform + placeholder from the migration module', () => {
     const reqs = makeCall().importRequirements();
     expect(reqs).toEqual([
-      { moduleSpecifier: '@prisma-next/sqlite/migration', symbol: 'dataTransform' },
-      { moduleSpecifier: '@prisma-next/sqlite/migration', symbol: 'placeholder' },
+      { moduleSpecifier: '@internal/sqlite/migration', symbol: 'dataTransform' },
+      { moduleSpecifier: '@internal/sqlite/migration', symbol: 'placeholder' },
     ]);
   });
 });

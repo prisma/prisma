@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import { storageHashHex } from '@prisma-next/framework-components/control';
-import { writeMigrationTs } from '@prisma-next/migration-tools/migration-ts';
+import { storageHashHex } from '@internal/framework-components/control';
+import { writeMigrationTs } from '@internal/migration-tools/migration-ts';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
@@ -244,10 +244,10 @@ describe('migration file E2E', () => {
       ];
 
       const tsSource = renderCallsToTypeScript(calls, defaultMeta);
-      const resolvedSource = tsSource
-        .replace("'@prisma-next/family-mongo/migration'", `'${migrationExport}'`)
-        .replace("'@prisma-next/target-mongo/migration'", `'${factoryExport}'`)
-        .replace("'@prisma-next/cli/migration-cli'", `'${cliMigrationCliExport}'`);
+      const resolvedSource = tsSource.replace(
+        "'@internal/target-mongo/migration'",
+        `'${factoryExport}'`,
+      );
       await writeFile(join(tmpDir, 'migration.ts'), resolvedSource);
       await writeContractFixtures(defaultMeta);
 
@@ -288,10 +288,10 @@ describe('migration file E2E', () => {
       ];
 
       const tsSource = renderCallsToTypeScript(calls, defaultMeta);
-      const resolvedSource = tsSource
-        .replace("'@prisma-next/family-mongo/migration'", `'${migrationExport}'`)
-        .replace("'@prisma-next/target-mongo/migration'", `'${factoryExport}'`)
-        .replace("'@prisma-next/cli/migration-cli'", `'${cliMigrationCliExport}'`);
+      const resolvedSource = tsSource.replace(
+        "'@internal/target-mongo/migration'",
+        `'${factoryExport}'`,
+      );
       await writeFile(join(tmpDir, 'migration.ts'), resolvedSource);
       await writeContractFixtures(defaultMeta);
 
@@ -319,10 +319,10 @@ describe('migration file E2E', () => {
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       } as const;
       const tsSource = renderCallsToTypeScript(calls, meta);
-      const resolvedSource = tsSource
-        .replace("'@prisma-next/family-mongo/migration'", `'${migrationExport}'`)
-        .replace("'@prisma-next/target-mongo/migration'", `'${factoryExport}'`)
-        .replace("'@prisma-next/cli/migration-cli'", `'${cliMigrationCliExport}'`);
+      const resolvedSource = tsSource.replace(
+        "'@internal/target-mongo/migration'",
+        `'${factoryExport}'`,
+      );
       await writeFile(join(tmpDir, 'migration.ts'), resolvedSource);
       await writeContractFixtures(meta);
 
@@ -461,9 +461,10 @@ describe('migration file E2E', () => {
       repoRoot,
       'packages/1-framework/3-tooling/cli/dist/migration-cli.mjs',
     );
-    const familyMongoDistMigration = pathToFileURL(familyMongoDistMigrationPath).href;
+    // Only the target's dist is named directly: the scaffold imports one
+    // module now. The family and CLI dists still have to exist, because the
+    // target's `migration` entry re-exports from them.
     const targetMongoDistMigration = pathToFileURL(targetMongoDistMigrationPath).href;
-    const cliMigrationCliDist = pathToFileURL(cliMigrationCliDistPath).href;
 
     it('runs via ./migration.ts on POSIX (or node migration.ts on Windows) and prints operations JSON', async (ctx) => {
       const distsExist = await Promise.all([
@@ -482,7 +483,7 @@ describe('migration file E2E', () => {
       ]);
       if (!distsExist.every(Boolean)) {
         ctx.skip(
-          `dist migration entrypoints not built: ${familyMongoDistMigrationPath}, ${targetMongoDistMigrationPath}, ${cliMigrationCliDistPath} — run \`pnpm build\` for @prisma-next/family-mongo, @prisma-next/target-mongo, and @prisma-next/cli`,
+          `dist migration entrypoints not built: ${familyMongoDistMigrationPath}, ${targetMongoDistMigrationPath}, ${cliMigrationCliDistPath} — run \`pnpm build\` for @internal/family-mongo, @internal/target-mongo, and @internal/cli`,
         );
       }
 
@@ -498,10 +499,10 @@ describe('migration file E2E', () => {
         to: '1'.repeat(64),
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       } as const;
-      const migrationSource = renderCallsToTypeScript(calls, directRunMeta)
-        .replace("'@prisma-next/family-mongo/migration'", `'${familyMongoDistMigration}'`)
-        .replace("'@prisma-next/target-mongo/migration'", `'${targetMongoDistMigration}'`)
-        .replace("'@prisma-next/cli/migration-cli'", `'${cliMigrationCliDist}'`);
+      const migrationSource = renderCallsToTypeScript(calls, directRunMeta).replace(
+        "'@internal/target-mongo/migration'",
+        `'${targetMongoDistMigration}'`,
+      );
       await writeMigrationTs(tmpDir, migrationSource);
       await writeContractFixtures(directRunMeta);
 

@@ -1,5 +1,5 @@
-import type { ControlDriverInstance } from '@prisma-next/framework-components/control';
-import type { AnyMongoDdlWireCommand, AnyMongoDmlWireCommand } from '@prisma-next/mongo-wire';
+import type { ControlDriverInstance } from '@internal/framework-components/control';
+import type { AnyMongoDdlWireCommand, AnyMongoDmlWireCommand } from '@internal/mongo-wire';
 import type { Db } from 'mongodb';
 
 export interface MongoDriver {

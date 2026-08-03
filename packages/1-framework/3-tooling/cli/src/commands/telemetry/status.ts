@@ -1,4 +1,4 @@
-import { readUserConfig, resolveGating, userConfigPath } from '@prisma-next/cli-telemetry';
+import { readUserConfig, resolveGating, userConfigPath } from '@internal/cli-telemetry';
 
 /**
  * Why telemetry resolves the way it does, in the order the CLI's

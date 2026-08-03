@@ -1,6 +1,6 @@
-import type { AuthoringWarning } from '@prisma-next/framework-components/authoring';
-import { flushAuthoringWarnings } from '@prisma-next/framework-components/authoring';
-import { computeIndexContentHash, nameOf } from '@prisma-next/sql-schema-ir/naming';
+import type { AuthoringWarning } from '@internal/framework-components/authoring';
+import { flushAuthoringWarnings } from '@internal/framework-components/authoring';
+import { computeIndexContentHash, nameOf } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it, vi } from 'vitest';
 import {
   type AuthoredIndexInput,

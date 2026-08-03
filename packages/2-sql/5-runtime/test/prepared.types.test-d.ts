@@ -1,4 +1,4 @@
-import type { CodecTypesBase, Expression } from '@prisma-next/sql-relational-core/expression';
+import type { CodecTypesBase, Expression } from '@internal/sql-relational-core/expression';
 import { expectTypeOf, test } from 'vitest';
 import type {
   BindSiteParams,

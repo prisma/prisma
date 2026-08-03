@@ -1,11 +1,11 @@
-import { buildNamespacedEnums, type NamespacedEnums } from '@prisma-next/contract/enum-accessor';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { buildNamespacedEnums, type NamespacedEnums } from '@internal/contract/enum-accessor';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
   MongoContractWithTypeMaps,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import { describe, expect, it } from 'vitest';
 import { defineContract, enumType, field, member, model } from '../src/exports/contract-builder';
 import mongoStatic from '../src/static/mongo-static';

@@ -5,7 +5,7 @@
  * introspection, and asserts the produced `SqlColumnIR` carries
  * `many: true` with the element codec's native type.
  */
-import { PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
+import { PostgresDatabaseSchemaNode } from '@internal/target-postgres/types';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   createDriver,

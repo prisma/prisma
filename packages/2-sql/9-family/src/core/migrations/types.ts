@@ -1,5 +1,5 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ContractSpace,
   ControlAdapterDescriptor,
@@ -18,18 +18,18 @@ import type {
   OpFactoryCall,
   SchemaDiffIssue,
   SchemaOwnership,
-} from '@prisma-next/framework-components/control';
-import type { AggregateMigrationEdgeRef } from '@prisma-next/migration-tools/aggregate';
+} from '@internal/framework-components/control';
+import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
 import type {
   SqlControlDriverInstance,
   SqlStorage,
   StorageColumn,
   StorageTable,
   StorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
-import type { SqlOperationDescriptors } from '@prisma-next/sql-operations';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
-import type { Result } from '@prisma-next/utils/result';
+} from '@internal/sql-contract/types';
+import type { SqlOperationDescriptors } from '@internal/sql-operations';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import type { Result } from '@internal/utils/result';
 import type { SqlControlAdapter } from '../control-adapter';
 
 export type AnyRecord = Readonly<Record<string, unknown>>;
@@ -171,7 +171,7 @@ export interface SqlControlExtensionDescriptor<TTargetId extends string>
    * verifier by setting this field. Extensions without it are codec-only or
    * query-ops-only — today's behaviour preserved.
    *
-   * The shape comes from `@prisma-next/framework-components/control`
+   * The shape comes from `@internal/framework-components/control`
    * (`ContractSpace`) — contract-space identity is a framework concept,
    * not a SQL-specific one. The SQL family specialises the generic to
    * `Contract<SqlStorage>` so descriptor authors continue to see a

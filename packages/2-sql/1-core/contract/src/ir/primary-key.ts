@@ -1,4 +1,4 @@
-import { freezeNode } from '@prisma-next/framework-components/ir';
+import { freezeNode } from '@internal/framework-components/ir';
 import { SqlNode } from './sql-node';
 
 export interface PrimaryKeyInput {

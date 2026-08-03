@@ -1,19 +1,19 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { collectScalarTypeConstructors } from '@prisma-next/framework-components/authoring';
+import type { Contract } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
 import {
   APP_SPACE_ID,
   assembleAuthoringContributions,
-} from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
+} from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 import {
   PostgresRlsPolicy,
   PostgresSchema,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { postgresScalarAuthoringTypes } from '../../src/core/control-mutation-defaults';
 import {

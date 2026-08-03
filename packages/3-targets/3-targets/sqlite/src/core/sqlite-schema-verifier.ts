@@ -1,11 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { SqlSchemaVerifierBase } from '@prisma-next/family-sql/ir';
-import type {
-  SchemaDiffIssue,
-  SchemaVerifyOptions,
-} from '@prisma-next/framework-components/control';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import type { Contract } from '@internal/contract/types';
+import { SqlSchemaVerifierBase } from '@internal/family-sql/ir';
+import type { SchemaDiffIssue, SchemaVerifyOptions } from '@internal/framework-components/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 
 /**
  * SQLite target `SchemaVerifier` concretion. Mirrors the Postgres

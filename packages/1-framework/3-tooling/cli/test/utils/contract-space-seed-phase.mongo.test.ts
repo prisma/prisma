@@ -1,15 +1,15 @@
 import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
 import {
   contractSnapshotDir,
   readContractSnapshotDts,
   readContractSnapshotJson,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
+} from '@internal/migration-tools/contract-snapshot-store';
 import {
   listContractSpaceDirectories,
   readContractSpaceHeadRef,
-} from '@prisma-next/migration-tools/spaces';
+} from '@internal/migration-tools/spaces';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { runContractSpaceSeedPhase } from '../../src/utils/contract-space-seed-phase';

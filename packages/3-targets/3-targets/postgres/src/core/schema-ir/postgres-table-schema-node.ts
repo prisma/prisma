@@ -1,5 +1,5 @@
-import type { DiffableNode } from '@prisma-next/framework-components/control';
-import { freezeNode } from '@prisma-next/framework-components/ir';
+import type { DiffableNode } from '@internal/framework-components/control';
+import { freezeNode } from '@internal/framework-components/ir';
 import {
   assertNode,
   PrimaryKey,
@@ -11,8 +11,8 @@ import {
   SqlSchemaIRNode,
   type SqlTableIRInput,
   SqlUniqueIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
 import type { PostgresPolicySchemaNode } from './postgres-policy-schema-node';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 

@@ -1,11 +1,11 @@
-import type { CodecDescriptor } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { CodecDescriptor } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   SqlStorage,
   type SqlStorageTypeEntry,
   type StorageTableInput,
-} from '@prisma-next/sql-contract/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { AnyCodecDescriptor } from '../src/ast/codec-types';

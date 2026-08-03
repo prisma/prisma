@@ -1,5 +1,5 @@
-import { domainModelsAtDefaultNamespace } from '@prisma-next/contract/types';
-import { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
+import { domainModelsAtDefaultNamespace } from '@internal/contract/types';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import { describe, expect, it } from 'vitest';
 import {
   POLYMORPHIC_DISCRIMINATOR_ALIAS,

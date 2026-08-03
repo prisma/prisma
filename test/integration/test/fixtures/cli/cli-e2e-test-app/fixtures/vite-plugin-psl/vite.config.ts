@@ -1,4 +1,4 @@
-import { prismaVitePlugin } from '@prisma-next/vite-plugin-contract-emit';
+import { prismaVitePlugin } from '@internal/vite-plugin-contract-emit';
 import { defineConfig } from 'vite';
 
 export default defineConfig({

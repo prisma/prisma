@@ -15,11 +15,14 @@
 
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { computeIndexContentHash, normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
-import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
-import { withClient } from '@prisma-next/test-utils';
+import { withClient } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { afterAll, describe, expect, it } from 'vitest';
+import {
+  computeContentHash,
+  computeIndexContentHash,
+  normalizeSqlBody,
+} from '../utils/cli-commands';
 import { fixtureAppDir } from '../utils/cli-test-helpers';
 import {
   getLatestMigrationDir,

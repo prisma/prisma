@@ -1,4 +1,4 @@
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
+import type { TargetPackRef } from '@internal/framework-components/components';
 
 export const postgresPack: TargetPackRef<'sql', 'postgres'> = {
   kind: 'target',

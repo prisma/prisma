@@ -1,9 +1,9 @@
-import type { Contract, PlanMeta } from '@prisma-next/contract/types';
-import type { AnnotationValue, OperationKind } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { type AnyQueryAst, collectOrderedParamRefs } from '@prisma-next/sql-relational-core/ast';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { Contract, PlanMeta } from '@internal/contract/types';
+import type { AnnotationValue, OperationKind } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { type AnyQueryAst, collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { ifDefined } from '@internal/utils/defined';
 import { ormError } from './orm-errors';
 import { storageTableForContract } from './storage-resolution';
 

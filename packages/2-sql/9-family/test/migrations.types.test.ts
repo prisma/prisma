@@ -1,4 +1,4 @@
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import {
   createMigrationPlan,

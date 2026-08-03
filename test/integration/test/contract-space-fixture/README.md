@@ -1,7 +1,7 @@
 # test-contract-space (fixture)
 
 Integration-tests fixture exercising the **contract-space mechanism** in
-`@prisma-next/migration-tools` (see its `spaces` export at
+`@internal/migration-tools` (see its `spaces` export at
 `packages/1-framework/3-tooling/migration/src/exports/spaces.ts`).
 
 ## What this exists for
@@ -20,7 +20,7 @@ purpose-built scaffolding that exercises:
 
 ## Why a test-tree fixture rather than a workspace package
 
-Earlier iterations hosted this surface as `@prisma-next/extension-test-contract-space`
+Earlier iterations hosted this surface as `@internal/extension-test-contract-space`
 under `packages/3-extensions/`. The `extension-` prefix is reserved for
 production extensions (pgvector, cipherstash, arktype-json), and a fixture
 sitting in that directory was structurally indistinguishable from a real

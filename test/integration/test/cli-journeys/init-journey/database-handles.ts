@@ -1,14 +1,14 @@
 /**
  * Per-cell in-process database handle for the init journey test.
  *
- * Postgres uses `@prisma/dev` via the existing `@prisma-next/test-utils`
+ * Postgres uses `@prisma/dev` via the existing `@repo/test-utils`
  * factory; Mongo uses `mongodb-memory-server`. Both expose a normalised
  * `connectionString` that the journey injects into the project's `.env`
  * so the scaffolded `prisma-next.config.ts` (which reads
  * `process.env['DATABASE_URL']`) picks it up.
  */
 
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import type { CellId } from './harness';
 

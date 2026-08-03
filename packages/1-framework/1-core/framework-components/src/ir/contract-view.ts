@@ -1,5 +1,5 @@
-import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import { UNBOUND_NAMESPACE_ID } from './namespace';
 import type { Storage } from './storage';
 
@@ -46,7 +46,7 @@ type EntriesOf<TNamespace> = TNamespace extends { readonly entries: infer E } ? 
 /**
  * The namespace-keyed entity-view map — every storage namespace keyed by its raw
  * id, each projected to its {@link SingleNamespaceView}. Mirrors
- * `NamespacedEnums` from `@prisma-next/contract/enum-accessor`: the migration
+ * `NamespacedEnums` from `@internal/contract/enum-accessor`: the migration
  * author's storage-side `view.namespace.<nsId>` is the twin of the runtime's
  * `db.enums.<nsId>`. Nesting the schema map under one fixed `namespace` member
  * makes it collision-proof — a schema named `storage` is `view.namespace.storage`,

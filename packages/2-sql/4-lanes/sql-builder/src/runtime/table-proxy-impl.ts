@@ -1,5 +1,5 @@
-import type { StorageTable } from '@prisma-next/sql-contract/types';
-import type { AnyFromSource, TableSource } from '@prisma-next/sql-relational-core/ast';
+import type { StorageTable } from '@internal/sql-contract/types';
+import type { AnyFromSource, TableSource } from '@internal/sql-relational-core/ast';
 import type {
   AggregateFunctions,
   Expression,

@@ -1,9 +1,9 @@
-import type { ColumnDefault } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import type { DiffableNode } from '@prisma-next/framework-components/control';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { ColumnDefault } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import type { DiffableNode } from '@internal/framework-components/control';
+import { freezeNode } from '@internal/framework-components/ir';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
 import { SqlColumnDefaultIR } from './sql-column-default-ir';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './sql-schema-ir-node';

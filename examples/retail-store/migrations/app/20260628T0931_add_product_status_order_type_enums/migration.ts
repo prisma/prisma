@@ -1,7 +1,5 @@
 #!/usr/bin/env -S node
-import { MigrationCLI } from '@prisma-next/cli/migration-cli';
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { collMod } from '@prisma-next/target-mongo/migration';
+import { collMod, Migration, MigrationCLI } from '@prisma/orm-mongo/target/migration';
 import type { Contract as Start } from '../../snapshots/9414a8f88a64f9decc0e019967459e49da083f011cf91898094b7bccab6c1810/contract';
 import startContract from '../../snapshots/9414a8f88a64f9decc0e019967459e49da083f011cf91898094b7bccab6c1810/contract.json' with {
   type: 'json',

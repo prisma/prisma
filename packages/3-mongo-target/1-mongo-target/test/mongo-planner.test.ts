@@ -1,5 +1,6 @@
-import { coreHash, type JsonValue } from '@prisma-next/contract/types';
-import type { MigrationOperationPolicy } from '@prisma-next/framework-components/control';
+import { coreHash, type JsonValue } from '@internal/contract/types';
+import type { MigrationOperationPolicy } from '@internal/framework-components/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
 import {
   buildMongoNamespace,
   MongoCollection,
@@ -11,7 +12,7 @@ import {
   MongoStorage,
   type MongoValidator,
   type MongoValidatorInput,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import type {
   CollModCommand,
   CreateCollectionCommand,
@@ -19,14 +20,14 @@ import type {
   DropCollectionCommand,
   DropIndexCommand,
   MongoMigrationPlanOperation,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import {
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
 import { MongoMigrationPlanner } from '../src/core/mongo-planner';
 import { CollModCall, CreateIndexCall } from '../src/core/op-factory-call';
@@ -1673,10 +1674,11 @@ describe('MongoMigrationPlanner', () => {
         snapshotsImportPath: '../../snapshots',
       });
 
-      const source = empty.renderTypeScript();
+      const source = empty.renderTypeScript(keepInternalSpecifiers);
 
-      expect(source).toContain("import { Migration } from '@prisma-next/family-mongo/migration';");
-      expect(source).toContain("import { MigrationCLI } from '@prisma-next/cli/migration-cli';");
+      expect(source).toContain(
+        "import { Migration, MigrationCLI } from '@internal/target-mongo/migration';",
+      );
       expect(source).toContain('class M extends Migration<Start, End>');
       expect(source).toContain('MigrationCLI.run(import.meta.url, M);');
       // New shape: from/to are derived from the imported contract JSON, not

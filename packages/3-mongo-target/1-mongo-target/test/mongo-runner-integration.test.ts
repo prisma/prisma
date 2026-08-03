@@ -2,27 +2,23 @@ import {
   createMongoRunnerDeps,
   introspectSchema,
   MongoControlAdapterImpl,
-} from '@prisma-next/adapter-mongo/control';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import { MongoControlDriver } from '@prisma-next/driver-mongo/control';
-import type { MongoControlFamilyInstance } from '@prisma-next/family-mongo/control';
+} from '@internal/adapter-mongo/control';
+import { MongoDriverImpl } from '@internal/driver-mongo';
+import { MongoControlDriver } from '@internal/driver-mongo/control';
+import type { MongoControlFamilyInstance } from '@internal/family-mongo/control';
 import type {
   ControlFamilyInstance,
   MigrationPlan,
   MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   type AggregateMigrationEdgeRef,
   buildFabricatedMigrationEdge,
-} from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import type { AnyMongoMigrationOperation } from '@prisma-next/mongo-query-ast/control';
-import {
-  MongoSchemaCollection,
-  MongoSchemaIndex,
-  MongoSchemaIR,
-} from '@prisma-next/mongo-schema-ir';
+} from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { MongoContract } from '@internal/mongo-contract';
+import type { AnyMongoMigrationOperation } from '@internal/mongo-query-ast/control';
+import { MongoSchemaCollection, MongoSchemaIndex, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -752,7 +748,7 @@ describe('MongoMigrationRunner - E2E round-trip', () => {
   it('serialize → deserialize → execute mixed DDL + data transform', async () => {
     const { dataTransform } = await import('../src/exports/migration');
     const { RawUpdateManyCommand, RawAggregateCommand } = await import(
-      '@prisma-next/mongo-query-ast/execution'
+      '@internal/mongo-query-ast/execution'
     );
 
     const planner = new MongoMigrationPlanner();

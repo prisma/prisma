@@ -17,25 +17,25 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@prisma-next/cli/commands/contract-emit';
-import { createContractInferCommand } from '@prisma-next/cli/commands/contract-infer';
-import { createDbInitCommand } from '@prisma-next/cli/commands/db-init';
-import { createDbSchemaCommand } from '@prisma-next/cli/commands/db-schema';
-import { createDbSignCommand } from '@prisma-next/cli/commands/db-sign';
-import { createDbUpdateCommand } from '@prisma-next/cli/commands/db-update';
-import { createDbVerifyCommand } from '@prisma-next/cli/commands/db-verify';
-import { createMigrateCommand } from '@prisma-next/cli/commands/migrate';
-import { createMigrationCheckCommand } from '@prisma-next/cli/commands/migration-check';
-import { createMigrationGraphCommand } from '@prisma-next/cli/commands/migration-graph';
-import { createMigrationListCommand } from '@prisma-next/cli/commands/migration-list';
-import { createMigrationLogCommand } from '@prisma-next/cli/commands/migration-log';
-import { createMigrationNewCommand } from '@prisma-next/cli/commands/migration-new';
-import { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-plan';
-import { createMigrationShowCommand } from '@prisma-next/cli/commands/migration-show';
-import { createMigrationStatusCommand } from '@prisma-next/cli/commands/migration-status';
-import { createRefCommand } from '@prisma-next/cli/commands/ref';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
+import { createContractInferCommand } from '@internal/cli/commands/contract-infer';
+import { createDbInitCommand } from '@internal/cli/commands/db-init';
+import { createDbSchemaCommand } from '@internal/cli/commands/db-schema';
+import { createDbSignCommand } from '@internal/cli/commands/db-sign';
+import { createDbUpdateCommand } from '@internal/cli/commands/db-update';
+import { createDbVerifyCommand } from '@internal/cli/commands/db-verify';
+import { createMigrateCommand } from '@internal/cli/commands/migrate';
+import { createMigrationCheckCommand } from '@internal/cli/commands/migration-check';
+import { createMigrationGraphCommand } from '@internal/cli/commands/migration-graph';
+import { createMigrationListCommand } from '@internal/cli/commands/migration-list';
+import { createMigrationLogCommand } from '@internal/cli/commands/migration-log';
+import { createMigrationNewCommand } from '@internal/cli/commands/migration-new';
+import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
+import { createMigrationShowCommand } from '@internal/cli/commands/migration-show';
+import { createMigrationStatusCommand } from '@internal/cli/commands/migration-status';
+import { createRefCommand } from '@internal/cli/commands/ref';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import type { Command } from 'commander';
 import { isAbsolute, join, resolve } from 'pathe';
 import { afterAll, beforeAll } from 'vitest';
@@ -50,6 +50,7 @@ import {
   executeCommand,
   getExitCode,
   setupCommandMocks,
+  writeProjectManifest,
 } from './cli-test-helpers';
 
 // ---------------------------------------------------------------------------
@@ -177,6 +178,14 @@ export function setupJourney(options: JourneySetupOptions): JourneyContext {
   }
   const configPath = join(testDir, 'prisma-next.config.ts');
   writeFileSync(configPath, configContent, 'utf-8');
+
+  // The journey's project says which import root it is on, rather than
+  // inheriting the fixture app's. These journeys drive the CLI against the
+  // workspace packages and assert the workspace names in what it writes, so
+  // the manifest names no published package — which is what tells emission to
+  // leave every specifier as authored. A journey that is specifically about
+  // facade behaviour overwrites this with a manifest of its own.
+  writeProjectManifest(testDir);
 
   return { testDir, configPath, outputDir };
 }
@@ -486,11 +495,11 @@ export function injectMigrationSqlDbSetup(scaffold: string): string {
   }
   const block = [
     `import endContractJson from '${endContractSpecifier}' with { type: 'json' };`,
-    `import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';`,
-    `import postgresAdapter from '@prisma-next/adapter-postgres/runtime';`,
-    `import { sql } from '@prisma-next/sql-builder/runtime';`,
-    `import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';`,
-    `import postgresTarget from '@prisma-next/target-postgres/runtime';`,
+    `import { PostgresContractSerializer } from '@internal/target-postgres/runtime';`,
+    `import postgresAdapter from '@internal/adapter-postgres/runtime';`,
+    `import { sql } from '@internal/sql-builder/runtime';`,
+    `import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';`,
+    `import postgresTarget from '@internal/target-postgres/runtime';`,
     '',
     'const endContract = new PostgresContractSerializer().deserializeContract(endContractJson);',
     '',
@@ -770,4 +779,24 @@ export async function sql(
     const result = await client.query(query, params);
     return { rows: result.rows as Record<string, unknown>[] };
   });
+}
+
+/**
+ * Adds pgvector to a journey project's config, as a user declaring an
+ * extension would.
+ *
+ * Lives here rather than in the test that uses it because it edits the config
+ * this module wrote, by matching the import line the fixture template carries.
+ * The two have to agree on that line's exact text, so they belong together.
+ */
+export function declarePgvectorExtension(ctx: JourneyContext): void {
+  const familyImport = "import sql from '@internal/family-sql/control';";
+  const config = readFileSync(ctx.configPath, 'utf-8');
+  const next = config
+    .replace(
+      familyImport,
+      `${familyImport}\nimport pgvector from '@internal/extension-pgvector/control';`,
+    )
+    .replace('extensions: []', 'extensions: [pgvector]');
+  writeFileSync(ctx.configPath, next);
 }

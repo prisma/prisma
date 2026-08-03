@@ -1,4 +1,4 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 import { assertType, expectTypeOf, test } from 'vitest';
 import type { ExecutionPlan, QueryPlan, ResultType } from '../src/execution/query-plan';
 

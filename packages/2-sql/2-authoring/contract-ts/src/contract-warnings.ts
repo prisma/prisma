@@ -1,4 +1,4 @@
-import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
+import type { StorageTypeInstance } from '@internal/sql-contract/types';
 import {
   type ContractModelBuilder,
   type ModelAttributesSpec,

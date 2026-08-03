@@ -1,8 +1,8 @@
-import { toEnumMemberName, toEnumName } from '@prisma-next/family-sql/psl-infer';
+import { toEnumMemberName, toEnumName } from '@internal/family-sql/psl-infer';
 import type {
   PslExtensionBlock,
   PslExtensionBlockParamValue,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import {
   buildTopLevelNameMap,
   createUniqueFieldName,

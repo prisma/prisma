@@ -1,4 +1,4 @@
-# @prisma-next/mongo-value
+# @internal/mongo-value
 
 Primitive value types and parameter references for the MongoDB family.
 
@@ -11,7 +11,7 @@ Primitive value types and parameter references for the MongoDB family.
 
 - **Depends on**: nothing (leaf package)
 - **Depended on by**:
-  - `@prisma-next/mongo-query-ast` (filter expressions and pipeline stages)
-  - `@prisma-next/mongo-wire` (wire command payloads)
-  - `@prisma-next/mongo-codec` (codec encode/decode signatures)
-  - `@prisma-next/adapter-mongo` (lowering and driver integration)
+  - `@internal/mongo-query-ast` (filter expressions and pipeline stages)
+  - `@internal/mongo-wire` (wire command payloads)
+  - `@internal/mongo-codec` (codec encode/decode signatures)
+  - `@internal/adapter-mongo` (lowering and driver integration)

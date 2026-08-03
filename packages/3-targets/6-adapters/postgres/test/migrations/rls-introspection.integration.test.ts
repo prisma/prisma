@@ -1,9 +1,9 @@
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
-import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
+import { normalizeSqlBody } from '@internal/sql-schema-ir/naming';
+import { computeContentHash } from '@internal/target-postgres/rls-canonicalize';
 import {
   PostgresDatabaseSchemaNode,
   PostgresPolicySchemaNode,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   createDriver,

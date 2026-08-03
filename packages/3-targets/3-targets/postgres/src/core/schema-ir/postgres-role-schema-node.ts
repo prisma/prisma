@@ -1,14 +1,14 @@
-import type { DiffableNode } from '@prisma-next/framework-components/control';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { assertNode, SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { DiffableNode } from '@internal/framework-components/control';
+import { freezeNode } from '@internal/framework-components/ir';
+import { assertNode, SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';
 
 export interface PostgresRoleSchemaNodeInput {
   readonly name: string;
   /**
    * Namespace coordinate. Roles are cluster-scoped; callers pass
-   * `UNBOUND_NAMESPACE_ID` from `@prisma-next/framework-components/ir`.
+   * `UNBOUND_NAMESPACE_ID` from `@internal/framework-components/ir`.
    */
   readonly namespaceId: string;
 }

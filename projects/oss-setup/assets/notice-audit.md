@@ -7,7 +7,7 @@
 
 ## Outcome
 
-**No `NOTICE` file is required at the repo root.** Apache-2.0 §4(d) is **not** engaged by any published `@prisma-next/*` package.
+**No `NOTICE` file is required at the repo root.** Apache-2.0 §4(d) is **not** engaged by any published `@internal/*` package.
 
 A root `NOTICE` file has therefore **not** been added.
 
@@ -35,11 +35,11 @@ The audit walked every package physically installed under `node_modules/.pnpm/` 
   - `examples/mongo-blog-leaderboard` (private)
   - `examples/mongo-demo` (private)
   - `examples/retail-store` (private)
-  - `@prisma-next/mongo-orm` (devDependency)
-  - `@prisma-next/mongo-runtime` (devDependency)
-  - `@prisma-next/mongo` (devDependency)
-  - `@prisma-next/target-mongo` (devDependency)
-- Because `mongodb-memory-server` is a `devDependency` (in-memory Mongo used for unit/integration tests), it is **not** included in the published tarball of any `@prisma-next/*` package. Downstream consumers installing `@prisma-next/mongo` (or any other package) do not receive `bare-path` in their install.
+  - `@internal/mongo-orm` (devDependency)
+  - `@internal/mongo-runtime` (devDependency)
+  - `@internal/mongo` (devDependency)
+  - `@internal/target-mongo` (devDependency)
+- Because `mongodb-memory-server` is a `devDependency` (in-memory Mongo used for unit/integration tests), it is **not** included in the published tarball of any `@internal/*` package. Downstream consumers installing `@internal/mongo` (or any other package) do not receive `bare-path` in their install.
 - §4(d) governs only redistribution. Dev-only deps used for our own testing are not redistribution.
 
 ## Conclusion

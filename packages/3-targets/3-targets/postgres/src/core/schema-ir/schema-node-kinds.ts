@@ -1,12 +1,9 @@
-import type {
-  DiffableNode,
-  DiffSubjectGranularity,
-} from '@prisma-next/framework-components/control';
+import type { DiffableNode, DiffSubjectGranularity } from '@internal/framework-components/control';
 import {
   relationalNodeEntityKind,
   relationalNodeGranularity,
   type SqlSchemaIRNode,
-} from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-schema-ir/types';
 
 /**
  * A Postgres schema-diff-tree node: a `SqlSchemaIRNode` that also implements
@@ -74,7 +71,7 @@ export function postgresNodeGranularity(nodeKind: PostgresSchemaNodeKind): DiffS
  * …), so this dispatches to whichever family/target map owns the kind. Called
  * on demand by consumers (the family verdict, the framework aggregate's
  * unclaimed-elements sweep, via the {@link
- * import('@prisma-next/framework-components/control').SchemaSubjectClassifierCapable}
+ * import('@internal/framework-components/control').SchemaSubjectClassifierCapable}
  * capability) — never stamped onto the issue or the node.
  */
 export function postgresDiffSubjectGranularity(nodeKind: string): DiffSubjectGranularity {
@@ -112,7 +109,7 @@ export function postgresNodeEntityKind(nodeKind: PostgresSchemaNodeKind): string
  * tree — sibling of {@link postgresDiffSubjectGranularity}, dispatching the
  * same way to whichever family/target map owns the kind. Called on demand by
  * the framework aggregate's unclaimed-elements sweep via the {@link
- * import('@prisma-next/framework-components/control').SchemaSubjectClassifierCapable}
+ * import('@internal/framework-components/control').SchemaSubjectClassifierCapable}
  * capability — never stamped onto the issue or the node.
  */
 export function postgresDiffSubjectEntityKind(nodeKind: string): string | undefined {

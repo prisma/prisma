@@ -6,18 +6,18 @@
  * design — a top-level `native_enum` never lowers), subtracts pack-owned
  * enum types by TYPE NAME, and leaves enum-free output flat and byte-identical.
  */
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { SqlDescribedContractSpace } from '@prisma-next/family-sql/control';
-import type { Codec, CodecLookup } from '@prisma-next/framework-components/codec';
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { UNSPECIFIED_PSL_NAMESPACE_ID } from '@prisma-next/framework-components/psl-ast';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { printPsl } from '@prisma-next/psl-printer';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import type { SqlColumnIRInput } from '@prisma-next/sql-schema-ir/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { SqlDescribedContractSpace } from '@internal/family-sql/control';
+import type { Codec, CodecLookup } from '@internal/framework-components/codec';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { UNSPECIFIED_PSL_NAMESPACE_ID } from '@internal/framework-components/psl-ast';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { printPsl } from '@internal/psl-printer';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import type { SqlColumnIRInput } from '@internal/sql-schema-ir/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,

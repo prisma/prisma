@@ -33,7 +33,7 @@ const GIT_ROOT = process.cwd();
 // diagnostic on purpose, and repo tooling scripts plus published upgrade-step
 // codemods cannot import structuredError/InternalError (they run standalone —
 // pre-build, or via `pnpm exec tsx` from a consumer project with no
-// `@prisma-next/*` resolvable), so the ban would prescribe an impossible fix
+// `@internal/*` resolvable), so the ban would prescribe an impossible fix
 // there. The plugin still reports them; only the CI count ignores them.
 const UNCOUNTED_PATH_RE =
   /biome-plugins\/fixtures\/|(^|\/)scripts\/[^/]+\.(mjs|ts)$|(^|\/)skills\/(upgrade|extension-author)\/[^\0]*\/upgrades\//;

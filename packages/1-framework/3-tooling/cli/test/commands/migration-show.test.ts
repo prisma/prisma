@@ -5,11 +5,11 @@ import { join } from 'node:path';
 import type {
   MigrationOperationClass,
   MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
+} from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { type } from 'arktype';
 import stripAnsi from 'strip-ansi';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -24,14 +24,14 @@ const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 
 afterAll(() => {
   // Repo-wide vitest runs with `isolate: false`, so the `vi.mock` leaks
   // into the next file in the same worker; unmock to restore it.
-  vi.doUnmock('@prisma-next/config-loader');
+  vi.doUnmock('@internal/config-loader');
   vi.resetModules();
 });
 

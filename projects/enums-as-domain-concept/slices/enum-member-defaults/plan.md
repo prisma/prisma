@@ -39,6 +39,6 @@ opus.
   `lint:deps`, cast ratchet).
 - **Builds on:** D1.
 - **Hands to:** the slice-DoD; with TML-2885, the cutover's parity prerequisites.
-- **Focus:** `examples/prisma-next-demo` (contract.prisma, emit, migration,
+- **Focus:** `examples/prisma-8-demo` (contract.prisma, emit, migration,
   proof). Stage only named files; verify `git diff --staged --stat` (standing
   guardrail). **Out:** anything beyond the demo + sweep.

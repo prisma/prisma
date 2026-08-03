@@ -1,4 +1,4 @@
-import { SqlConnectionError, SqlQueryError } from '@prisma-next/sql-errors';
+import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 
 interface SqliteError extends Error {
   readonly code?: string;

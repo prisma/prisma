@@ -14,7 +14,7 @@ Migrate the complete PostgreSQL target-owned codec descriptor set to the D1 prot
 
 - [ ] Tests written first prove every canonical PostgreSQL descriptor is target-typed, each generic SQL descriptor is explicitly adapted, raw descriptors are absent, registry order and emitted type-map membership remain intentional, and existing descriptor/column/factory types compile unchanged.
 - [ ] Existing metadata/native-type results—including parameterized enum behavior—and all current codec JSON/runtime helper assertions remain equivalent; direct scalar hooks are explicit current-behavior identity/pass-through declarations and do not affect renderer output.
-- [ ] `@prisma-next/target-postgres` build/test/typecheck/lint, downstream `@prisma-next/adapter-postgres` typecheck, `pnpm lint:casts`, `pnpm lint:throws`, `pnpm lint:deps`, and `pnpm fixtures:check` pass with zero generated drift; bounded `rg` scope scans find no adapter/extension/later-slice behavior.
+- [ ] `@internal/target-postgres` build/test/typecheck/lint, downstream `@internal/adapter-postgres` typecheck, `pnpm lint:casts`, `pnpm lint:throws`, `pnpm lint:deps`, and `pnpm fixtures:check` pass with zero generated drift; bounded `rg` scope scans find no adapter/extension/later-slice behavior.
 - [ ] Only D3 files are explicitly staged in a signed-off commit; do not amend or push. The report enumerates migrated descriptor categories, parity evidence, gates, and deferrals.
 
 ## Standing instruction

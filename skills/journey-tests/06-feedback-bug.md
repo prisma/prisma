@@ -21,7 +21,7 @@ A `prisma-next init`-scaffolded project (any target).
   - The exact command (`prisma-next migration plan --name no-op`) and its full output.
   - A numbered list of steps to reproduce.
 - [ ] Agent collects the environment block:
-  - Prisma Next version (from `pnpm ls @prisma-next/postgres` or similar).
+  - Prisma Next version (from `pnpm ls @internal/postgres` or similar).
   - Node version (`node -v`).
   - Package manager + version.
   - OS.
@@ -38,4 +38,4 @@ A `prisma-next init`-scaffolded project (any target).
 - [ ] Body contains all required fields named in the bug-report issue form (`Package and version`, `What happened?`, `What did you expect to happen?`, `Minimal reproduction`, `Environment`).
 - [ ] Title is in conventional-commit form.
 - [ ] User was prompted for confirmation before submission.
-- [ ] Issue submitted to `prisma/prisma-next` (verified by URL in the agent's response).
+- [ ] Issue submitted to `prisma/prisma` (verified by URL in the agent's response).

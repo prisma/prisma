@@ -155,7 +155,7 @@ Patterns to **catch** the F-family modes live in [`grep-library.md`](./grep-libr
 - Recon brief must explicitly ask for both `src/` AND `test/` (and any other compilable directory the package owns) to be scanned. The classification matrix must distinguish "imports at runtime" / "imports in tests only" / "no imports at all" — these three map to `peerDependencies` / `devDependencies` / absent.
 - Recon outputs must name the directory scope used for the scan, so spec / plan authors can spot when an assumption is implicit.
 
-**Reference incident.** 2026-05-27, mongo `mongodb@^6` → `^7` peer-dep migration. `@prisma-next/target-mongo` was misclassified as a non-consumer; the implementer halted-and-surfaced when `pnpm typecheck` failed on three `test/` files importing `MongoClient` / `Db` / `MongoServerError`. Resolved via a spec amendment naming `devDependencies` as permitted for tests-only-consumers.
+**Reference incident.** 2026-05-27, mongo `mongodb@^6` → `^7` peer-dep migration. `@internal/target-mongo` was misclassified as a non-consumer; the implementer halted-and-surfaced when `pnpm typecheck` failed on three `test/` files importing `MongoClient` / `Db` / `MongoServerError`. Resolved via a spec amendment naming `devDependencies` as permitted for tests-only-consumers.
 
 ### F9. Slice-plan structural-coherence checks use line-oriented regex on structured files
 

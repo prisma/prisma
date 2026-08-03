@@ -8,7 +8,7 @@ alwaysApply: false
 
 `packages/1-framework` is consumed by every family (SQL, Mongo) and every target. A concept may enter it only if it is genuinely family-blind.
 
-**The test for every new framework export, field, hook, or member:** *would Mongo populate or consume this meaningfully?* If not, it belongs in the family layer (e.g. `@prisma-next/sql-contract`), behind a structural interface + type predicate at the boundary.
+**The test for every new framework export, field, hook, or member:** *would Mongo populate or consume this meaningfully?* If not, it belongs in the family layer (e.g. `@internal/sql-contract`), behind a structural interface + type predicate at the boundary.
 
 ## Do
 

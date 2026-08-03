@@ -1,8 +1,8 @@
-import type { MarkerOperations, MongoRunnerDependencies } from '@prisma-next/adapter-mongo/control';
-import type { ContractMarkerRecord } from '@prisma-next/contract/types';
-import { errorRunnerFailed } from '@prisma-next/errors/execution';
-import { verifyMongoSchema } from '@prisma-next/family-mongo/schema-verify';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { MarkerOperations, MongoRunnerDependencies } from '@internal/adapter-mongo/control';
+import type { ContractMarkerRecord } from '@internal/contract/types';
+import { errorRunnerFailed } from '@internal/errors/execution';
+import { verifyMongoSchema } from '@internal/family-mongo/schema-verify';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
   APP_SPACE_ID,
   type MigrationOperationPolicy,
@@ -13,10 +13,10 @@ import {
   type MigrationRunnerPerSpaceSuccessValue,
   type OperationContext,
   type VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import type { AggregateMigrationEdgeRef } from '@prisma-next/migration-tools/aggregate';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import type { MongoAdapter, MongoDriver } from '@prisma-next/mongo-lowering';
+} from '@internal/framework-components/control';
+import type { AggregateMigrationEdgeRef } from '@internal/migration-tools/aggregate';
+import type { MongoContract } from '@internal/mongo-contract';
+import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
 import type {
   AnyMongoMigrationOperation,
   MongoDataTransformCheck,
@@ -24,9 +24,9 @@ import type {
   MongoInspectionCommandVisitor,
   MongoMigrationCheck,
   MongoMigrationPlanOperation,
-} from '@prisma-next/mongo-query-ast/control';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/mongo-query-ast/control';
+import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { FilterEvaluator } from './filter-evaluator';
 import { deserializeMongoOps } from './mongo-ops-serializer';
 

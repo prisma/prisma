@@ -1,12 +1,12 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import type { SchemaDiffIssue, VerifierOutcome } from '@prisma-next/framework-components/control';
+import type { ControlPolicy } from '@internal/contract/types';
+import type { SchemaDiffIssue, VerifierOutcome } from '@internal/framework-components/control';
 import type {
   MongoSchemaCollection,
   MongoSchemaIndex,
   MongoSchemaIR,
-} from '@prisma-next/mongo-schema-ir';
-import { canonicalize, deepEqual } from '@prisma-next/mongo-schema-ir';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-schema-ir';
+import { canonicalize, deepEqual } from '@internal/mongo-schema-ir';
+import { ifDefined } from '@internal/utils/defined';
 import { verifierDisposition } from './schema-verify/verifier-disposition';
 
 /**

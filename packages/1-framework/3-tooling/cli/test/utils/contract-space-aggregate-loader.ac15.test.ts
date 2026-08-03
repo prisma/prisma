@@ -16,8 +16,8 @@
  */
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { Contract } from '@prisma-next/contract/types';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
+import type { Contract } from '@internal/contract/types';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildContractSpaceAggregate } from '../../src/utils/contract-space-aggregate-loader';

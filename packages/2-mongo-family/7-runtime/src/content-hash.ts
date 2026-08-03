@@ -1,6 +1,6 @@
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import { canonicalStringify } from '@prisma-next/utils/canonical-stringify';
-import { hashContent } from '@prisma-next/utils/hash-content';
+import { runtimeError } from '@internal/framework-components/runtime';
+import { canonicalStringify } from '@internal/utils/canonical-stringify';
+import { hashContent } from '@internal/utils/hash-content';
 import type { MongoExecutionPlan } from './mongo-execution-plan';
 
 /** @internal */
@@ -62,7 +62,7 @@ function assertContentHashOnResolvedCommand(command: unknown): void {
  * of the same characters.
  *
  * The canonical string is then piped through `hashContent` to produce a
- * bounded, opaque digest. See `@prisma-next/utils/hash-content` for the
+ * bounded, opaque digest. See `@internal/utils/hash-content` for the
  * rationale.
  *
  * @throws {RuntimeErrorEnvelope} {@link RUNTIME_CONTENT_HASH_REQUIRES_RESOLVED_COMMAND}

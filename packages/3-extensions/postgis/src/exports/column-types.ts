@@ -6,7 +6,7 @@
  * comes out as `geometry(Geometry, <srid>)`.
  */
 
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import { POSTGIS_GEOMETRY_CODEC_ID } from '../core/constants';
 import { postgisError } from '../core/errors';
 

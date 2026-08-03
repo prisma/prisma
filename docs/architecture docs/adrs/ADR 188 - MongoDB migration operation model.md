@@ -114,7 +114,7 @@ interface MongoMigrationCheck {
 ```
 
 - **`source`** — an inspection command (`ListIndexesCommand`, `ListCollectionsCommand`) that queries the database and returns result documents.
-- **`filter`** — a `MongoFilterExpr` applied client-side to the results. This reuses the existing filter expression AST from `@prisma-next/mongo-query-ast` — the same `$eq`, `$and`, `$or`, `$not`, `$exists`, `$gt`, `$in` vocabulary used in query `$match` stages. We reuse it because it's already built, tested, serializable, and familiar to anyone who knows MongoDB query syntax.
+- **`filter`** — a `MongoFilterExpr` applied client-side to the results. This reuses the existing filter expression AST from `@internal/mongo-query-ast` — the same `$eq`, `$and`, `$or`, `$not`, `$exists`, `$gt`, `$in` vocabulary used in query `$match` stages. We reuse it because it's already built, tested, serializable, and familiar to anyone who knows MongoDB query syntax.
 - **`expect`** — `'exists'` means at least one result matches; `'notExists'` means none match.
 
 This gives checks the same expressive power as MongoDB query filters, without inventing a separate vocabulary.

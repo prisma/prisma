@@ -1,6 +1,6 @@
-import type { Contract, ControlPolicy } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { validateSqlContractFully } from '@prisma-next/sql-contract/validators';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { interpretPslDocumentToSqlContract } from '../src/interpreter';

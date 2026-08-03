@@ -2,9 +2,9 @@ import {
   crossRef,
   domainModelsAtDefaultNamespace,
   domainValueObjectsAtDefaultNamespace,
-} from '@prisma-next/contract/types';
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/contract/types';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, index, model, rel, valueObject } from '../src/contract-builder';
 

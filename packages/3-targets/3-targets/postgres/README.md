@@ -1,4 +1,4 @@
-# @prisma-next/target-postgres
+# @internal/target-postgres
 
 Postgres target pack for Prisma Next.
 
@@ -45,10 +45,10 @@ For the CLI orchestration, see `packages/1-framework/3-tooling/cli/src/commands/
 ### Control Plane (CLI)
 
 ```typescript
-import postgres from '@prisma-next/target-postgres/control';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
+import postgres from '@internal/target-postgres/control';
+import sqlFamilyDescriptor from '@internal/family-sql/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
 
 // postgres is a SqlControlTargetDescriptor with:
 // - kind: 'target'
@@ -99,10 +99,10 @@ if (planResult.kind === 'success') {
 ### Pack refs for TypeScript contract authoring
 
 ```typescript
-import postgresPack from '@prisma-next/target-postgres/pack';
-import pgvector from '@prisma-next/extension-pgvector/pack';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { defineContract } from '@prisma-next/sql-contract-ts/contract-builder';
+import postgresPack from '@internal/target-postgres/pack';
+import pgvector from '@internal/extension-pgvector/pack';
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
 
 export const contract = defineContract({
   family: sqlFamily,
@@ -115,7 +115,7 @@ Pack refs are pure JSON-friendly objects that make TypeScript contract authoring
 
 ## Codec descriptor authoring
 
-PostgreSQL-bound codecs use the public `PostgresCodecDescriptor` protocol, `postgresCodec(...)` adapter, and `definePostgresCodecs(...)` tuple helper exported from `@prisma-next/target-postgres/codec-descriptor`. See the [codec authoring guide](../../../../docs/reference/codec-authoring-guide.md#target-owned-sql-codec-descriptors) for subclassing, generic adaptation, stack contribution, validation, array projection, and the current renderer transition.
+PostgreSQL-bound codecs use the public `PostgresCodecDescriptor` protocol, `postgresCodec(...)` adapter, and `definePostgresCodecs(...)` tuple helper exported from `@internal/target-postgres/codec-descriptor`. See the [codec authoring guide](../../../../docs/reference/codec-authoring-guide.md#target-owned-sql-codec-descriptors) for subclassing, generic adaptation, stack contribution, validation, array projection, and the current renderer transition.
 
 ## Architecture
 
@@ -135,13 +135,13 @@ Both the planner and runner return structured results instead of throwing:
 
 Runner error codes include: `EXECUTION_FAILED`, `PRECHECK_FAILED`, `POSTCHECK_FAILED`, `SCHEMA_VERIFY_FAILED`, `POLICY_VIOLATION`, `MARKER_ORIGIN_MISMATCH`, `DESTINATION_CONTRACT_MISMATCH`.
 
-See `@prisma-next/family-sql/control` README for full error code documentation.
+See `@internal/family-sql/control` README for full error code documentation.
 
 ## Dependencies
 
-- **`@prisma-next/family-sql`**: SQL family types (`SqlControlTargetDescriptor`, `SqlControlFamilyInstance`)
-- **`@prisma-next/framework-components`**: Control plane types via `./control` (`ControlTargetInstance`)
-- **`@prisma-next/sql-contract`**: Pack types (`TargetPackRef`)
+- **`@internal/family-sql`**: SQL family types (`SqlControlTargetDescriptor`, `SqlControlFamilyInstance`)
+- **`@internal/framework-components`**: Control plane types via `./control` (`ControlTargetInstance`)
+- **`@internal/sql-contract`**: Pack types (`TargetPackRef`)
 - **`arktype`**: Runtime validation
 
 **Dependents:**
@@ -157,7 +157,7 @@ See `@prisma-next/family-sql/control` README for full error code documentation.
 
 This package ships a mix of fast planner unit tests and slower runner integration tests that require a dev Postgres instance (via `@prisma/dev`).
 
-- **Default (`pnpm --filter @prisma-next/target-postgres test`)**: runs all tests including integration tests
+- **Default (`pnpm --filter @internal/target-postgres test`)**: runs all tests including integration tests
 - **Test files**:
   - `test/migrations/planner.behavior.test.ts`: Planner unit tests (classification, conflicts, dependency ops)
   - `test/migrations/planner.fk-config.test.ts`: Planner unit tests for FK constraint/index configuration combinations
@@ -166,5 +166,5 @@ This package ships a mix of fast planner unit tests and slower runner integratio
   - `test/migrations/runner.*.integration.test.ts`: Runner integration tests (basic, errors, idempotency, policy)
 
 ```bash
-pnpm --filter @prisma-next/target-postgres test
+pnpm --filter @internal/target-postgres test
 ```

@@ -10,7 +10,7 @@ Non-negotiable — prior dispatches died on this. If you reach for a search tool
 isn't the terminal, STOP and use `rg` in the terminal instead.
 
 ## Context
-This dispatch **grows the kit** (adds a combinator to `@prisma-next/psl-parser`) and then migrates `@@index`, which lets a batch of now-dead string-parsing helpers be deleted.
+This dispatch **grows the kit** (adds a combinator to `@internal/psl-parser`) and then migrates `@@index`, which lets a batch of now-dead string-parsing helpers be deleted.
 
 - **Kit location:** `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/combinators/`. Existing leaves (`str.ts`, `list.ts`, `field-ref.ts`, `int.ts`, `bool.ts`, `one-of.ts`, `identifier.ts`) are your templates. Combinators are re-exported from `packages/1-framework/2-authoring/psl-parser/src/exports/index.ts` (see the `export { list } from '../attribute-spec/combinators/list'` lines ~39–48).
 - **AST for the new combinator:** `packages/1-framework/2-authoring/psl-parser/src/syntax/ast/expressions.ts` — `ObjectLiteralExprAst` (`.fields()` → `Iterable<ObjectFieldAst>`); `ObjectFieldAst` has `.keyName(): string | undefined` (unquoted key) and `.value(): ExpressionAst | undefined`. String leaves are `StringLiteralExprAst` (`.value(): string | undefined`).
@@ -41,10 +41,10 @@ Same index output (`columns`, `name`, `type`, `options`) as before; `options`-re
 - [ ] `record` combinator added, exported, unit-tested; psl-parser typecheck + test green.
 - [ ] `@@index` lowered via spec; index output unchanged; `options`-requires-`type` preserved.
 - [ ] All seven helpers deleted; `rg` for each in `packages/` → zero. Shared primitives + `@db.*` helpers retained.
-- [ ] Gates: `pnpm --filter @prisma-next/psl-parser build` (kit changed — required before downstream typecheck), then `pnpm --filter @prisma-next/psl-parser typecheck && test`; `pnpm --filter @prisma-next/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary` (the `record` combinator adds framework lines — if `count` exceeds `threshold`, bump the threshold in `scripts/lint-framework-vocabulary.config.json` to the new count and say so).
+- [ ] Gates: `pnpm --filter @internal/psl-parser build` (kit changed — required before downstream typecheck), then `pnpm --filter @internal/psl-parser typecheck && test`; `pnpm --filter @internal/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary` (the `record` combinator adds framework lines — if `count` exceeds `threshold`, bump the threshold in `scripts/lint-framework-vocabulary.config.json` to the new count and say so).
 
 ## Constraints
-No `any`; no bare `as` (use `blindCast`/`castAs` from `@prisma-next/utils/casts`, narrowed); no file-ext imports; tests-first where emitted code/behaviour changes. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.
+No `any`; no bare `as` (use `blindCast`/`castAs` from `@internal/utils/casts`, narrowed); no file-ext imports; tests-first where emitted code/behaviour changes. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.
 
 ## Operational metadata
 - **Model tier:** high — this is the slice's biggest dispatch (kit growth + migration + 7-helper sweep). Take the steps in order: combinator + test first (prove it in isolation), then the migration, then the deletions last (so `rg`-zero is meaningful).

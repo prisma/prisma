@@ -23,7 +23,7 @@
  *          `index: false` on a relation whose FK columns have no live backing index, using the same
  *          column-exact-match predicate FK1's contract construction now uses to materialize a
  *          table's FK-backing `indexes[]` entries — the entries `db verify` checks against (shared
- *          as `@prisma-next/sql-contract/foreign-key-materialization`,
+ *          as `@internal/sql-contract/foreign-key-materialization`,
  *          `packages/2-sql/1-core/contract/src/foreign-key-materialization.ts`).
  *        - `storage.buckets.allowed_mime_types` / `storage.objects.path_tokens`
  *          are nullable `text[]` columns; PSL/Prisma-family list fields have
@@ -40,16 +40,16 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { createControlClient } from '@prisma-next/cli/control-api';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
-import postgres from '@prisma-next/target-postgres/control';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import { createControlClient } from '@internal/cli/control-api';
+import postgresDriver from '@internal/driver-postgres/control';
+import sql from '@internal/family-sql/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { emitContractSpaceArtifacts } from '@internal/migration-tools/spaces';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
+import postgres from '@internal/target-postgres/control';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import supabasePack from '../src/exports/pack';
 import { setUpSupabaseMockSchema } from './fixtures/supabase-reference/set-up-mock-schema';

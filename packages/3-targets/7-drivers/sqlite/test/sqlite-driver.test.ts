@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { SqlQueryError } from '@prisma-next/sql-errors';
+import { SqlQueryError } from '@internal/sql-errors';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createBoundDriverFromBinding,

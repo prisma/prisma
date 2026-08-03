@@ -8,7 +8,7 @@
 ## Context
 This evolves the *static* non-enum `@default` spec (shipped earlier in this PR) into a **dynamically composed** one, built per field from the registry + `isList`. Operator decisions baked in: literals stay flexible; `funcCallFrom` is not built (compose `oneOf(funcCall(name))`); unknown-function-name and array-on-scalar/scalar-on-list become **grammar** failures (`PSL_INVALID_ATTRIBUTE_SYNTAX`) — Option A. Enum path is D6; don't touch it.
 
-## Part A — kit changes (in `@prisma-next/psl-parser`)
+## Part A — kit changes (in `@internal/psl-parser`)
 1. **`funcCall(name)`** — make the existing `funcCall` name-pinned. File `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/combinators/func-call.ts`. Today `export function funcCall(): ArgType<ParsedDefaultFunctionCall>` matches any (unqualified) call. Change it to `export function funcCall(name: string): ArgType<ParsedDefaultFunctionCall>` and, after the existing unqualified-name extraction (`const name = qname.identifier()?.token()?.text;` — rename the local to `calleeName` to avoid shadowing the param), add: `if (calleeName !== name) return notOk([leafDiagnostic(ctx, arg, \`Expected ${name}()\`)]);`. Keep the raw-arg capture unchanged. Update the `funcCall` unit tests in `attribute-spec-combinators.test.ts` to pass a name (e.g. `funcCall('now')` accepts `now()`, rejects `uuid()` and `foo.now()`).
 2. **`num()`** — new atom `combinators/num.ts`: `ArgType<number>` accepting ANY `NumberLiteralExprAst` (incl. floats — do NOT add an integer guard; that's what `int()` is for). Model on `int.ts` but drop the `Number.isInteger` check; label `'number'`; message `'Expected a number literal'`. Export from `src/exports/index.ts`. Unit-test it (accepts `5` and `1.5`; rejects a string / bool / identifier).
 
@@ -27,7 +27,7 @@ export function buildDefaultSpec(input: {
   return fieldAttribute('default', { positional: [{ key: 'value', type: oneOf(...valueArms) }] });
 }
 ```
-Add `num` to the `@prisma-next/psl-parser` import; `oneOf`/`list`/`str`/`bool`/`funcCall`/`fieldAttribute` are already imported. Import `ControlMutationDefaultRegistry` as a type from `@prisma-next/framework-components/control`. **Typing note:** the `oneOf(...valueArms)` spread of a heterogeneous array may not infer a clean tuple/union `OutOf`. If TS widens or errors, either construct `valueArms` with an explicit `ArgType<string | number | boolean | (string | number | boolean)[] | ParsedDefaultFunctionCall>[]` annotation, or wrap with a narrow `blindCast<…, 'reason'>` on the composed arg-type (mirror how `oneOf` itself uses `blindCast` internally). **No bare `as`.** Report the approach you took. Remove the old `defaultSpec` export and (if unused elsewhere) drop `scalarLiteral` from this file's imports — but do NOT delete the `scalar-literal.ts`/`bare-identifier.ts` combinators yet (that's D7; `enumDefaultSpec` still uses `bareIdentifier` until D6).
+Add `num` to the `@internal/psl-parser` import; `oneOf`/`list`/`str`/`bool`/`funcCall`/`fieldAttribute` are already imported. Import `ControlMutationDefaultRegistry` as a type from `@internal/framework-components/control`. **Typing note:** the `oneOf(...valueArms)` spread of a heterogeneous array may not infer a clean tuple/union `OutOf`. If TS widens or errors, either construct `valueArms` with an explicit `ArgType<string | number | boolean | (string | number | boolean)[] | ParsedDefaultFunctionCall>[]` annotation, or wrap with a narrow `blindCast<…, 'reason'>` on the composed arg-type (mirror how `oneOf` itself uses `blindCast` internally). **No bare `as`.** Report the approach you took. Remove the old `defaultSpec` export and (if unused elsewhere) drop `scalarLiteral` from this file's imports — but do NOT delete the `scalar-literal.ts`/`bare-identifier.ts` combinators yet (that's D7; `enumDefaultSpec` still uses `bareIdentifier` until D6).
 
 ## Part C — rewire `lowerDefaultForField` (`packages/2-sql/2-authoring/contract-psl/src/psl-column-resolution.ts`, ~line 880)
 Currently it interprets the static `defaultSpec` and shape-switches (lines 896–988). Change:
@@ -44,12 +44,12 @@ Currently it interprets the static `defaultSpec` and shape-switches (lines 896�
 - **Do NOT touch** the registry arg-validation tests (`PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT` for `uuid(2)`/`nanoid(16,32)`) or the optional-field test — a known-name call still reaches the registry, which still validates args unchanged. Also do NOT touch `default-function-registry.test.ts`.
 
 ## Constraints
-No `any`; no bare `as` (use `blindCast`/`castAs` from `@prisma-next/utils/casts`, narrowed — the `oneOf` spread typing is the only likely spot); no file-ext imports; never suppress biome; tests-first for the kit atoms. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `.agents/**`. Do NOT touch GitHub. Do NOT touch the enum path (`lowerEnumDefaultForField`, `enumDefaultSpec`, `bareIdentifier`).
+No `any`; no bare `as` (use `blindCast`/`castAs` from `@internal/utils/casts`, narrowed — the `oneOf` spread typing is the only likely spot); no file-ext imports; never suppress biome; tests-first for the kit atoms. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `.agents/**`. Do NOT touch GitHub. Do NOT touch the enum path (`lowerEnumDefaultForField`, `enumDefaultSpec`, `bareIdentifier`).
 
 ## Gates (all must pass, in order)
-1. `pnpm --filter @prisma-next/psl-parser build`
-2. `pnpm --filter @prisma-next/psl-parser typecheck` and `pnpm --filter @prisma-next/psl-parser test`
-3. `pnpm --filter @prisma-next/sql-contract-psl typecheck` and `pnpm --filter @prisma-next/sql-contract-psl test`
+1. `pnpm --filter @internal/psl-parser build`
+2. `pnpm --filter @internal/psl-parser typecheck` and `pnpm --filter @internal/psl-parser test`
+3. `pnpm --filter @internal/sql-contract-psl typecheck` and `pnpm --filter @internal/sql-contract-psl test`
 4. `pnpm fixtures:check` — clean
 5. `pnpm lint:framework-vocabulary` (bump threshold to the new count if `num()` moves it); `pnpm lint:deps`
 

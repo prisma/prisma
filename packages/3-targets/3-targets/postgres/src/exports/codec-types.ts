@@ -6,7 +6,7 @@
  * Lives in `target-postgres` because codec types describe the target's value space — both the control adapter (introspection / schema verification) and the runtime adapter (encode/decode) share the same definitions, and the target package is the natural home that both adapters depend on.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { ExtractedCodecTypes, Resolve } from '../core/codec-type-map';
 
 export type CodecTypes = Resolve<ExtractedCodecTypes>;

@@ -2,7 +2,7 @@
 
 ## At a glance
 
-`@prisma-next/mongo-query-builder` exposes a contract-bound, typed CRUD surface. Its chain looks like any fluent builder — `q.from('users').match(...).build()` for a read, `q.from('users').match(...).updateMany(...)` for a write — but the *set of methods available on the chain changes as you call them*. Here's a happy-path read next to a happy-path write next to a find-and-modify, with the class name of each intermediate value on the right:
+`@internal/mongo-query-builder` exposes a contract-bound, typed CRUD surface. Its chain looks like any fluent builder — `q.from('users').match(...).build()` for a read, `q.from('users').match(...).updateMany(...)` for a write — but the *set of methods available on the chain changes as you call them*. Here's a happy-path read next to a happy-path write next to a find-and-modify, with the class name of each intermediate value on the right:
 
 ```ts
 // Read
@@ -203,7 +203,7 @@ A poor fit is a builder whose chain is just progressive configuration of a singl
 
 ### Accept everything, validate at runtime
 
-Have a single `PipelineBuilder` class with every method on it. Invalid combinations throw from `.build()` when they're detected. This is where the Mongo builder started — as `@prisma-next/mongo-pipeline-builder`, since renamed to [`@prisma-next/mongo-query-builder`](../../../packages/2-mongo-family/5-query-builders/query-builder/README.md) — before it was unified into the CRUD surface.
+Have a single `PipelineBuilder` class with every method on it. Invalid combinations throw from `.build()` when they're detected. This is where the Mongo builder started — as `@internal/mongo-pipeline-builder`, since renamed to [`@internal/mongo-query-builder`](../../../packages/2-mongo-family/5-query-builders/query-builder/README.md) — before it was unified into the CRUD surface.
 
 **Why we rejected it.** The type system contributes nothing — every illegal combination has to be caught by hand-rolled validation code inside each terminal. The list of illegal combinations grows with every new stage and every new terminal, each pair needing its own check. Error messages are runtime strings instead of compile-time structural errors, and the author finds out about the mistake at execution time rather than in the editor.
 
@@ -224,4 +224,4 @@ Make the whole builder a concrete-class state machine with no phantom parameters
 - [ADR 180 — Dot-path field accessor](ADR%20180%20-%20Dot-path%20field%20accessor.md) — the unified `FieldAccessor` callback type that stage methods accept (`.match(f => …)`, `.updateMany(f => …)`, etc.).
 - [ADR 183 — Aggregation pipeline only, never find API](ADR%20183%20-%20Aggregation%20pipeline%20only%2C%20never%20find%20API.md) — the upstream constraint that made a unified read builder coherent (everything is a pipeline; `find()` is not a parallel surface).
 - [MongoDB Family subsystem](../subsystems/10.%20MongoDB%20Family.md) — conceptual summary of the query builder inside the wider Mongo stack.
-- `@prisma-next/mongo-query-builder` [package README](../../../packages/2-mongo-family/5-query-builders/query-builder/README.md) — user-facing surface documentation.
+- `@internal/mongo-query-builder` [package README](../../../packages/2-mongo-family/5-query-builders/query-builder/README.md) — user-facing surface documentation.

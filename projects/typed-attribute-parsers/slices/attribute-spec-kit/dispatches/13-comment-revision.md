@@ -48,7 +48,7 @@ Operator's three explicit complaints (address these exactly):
 ## Completed when
 - [ ] Every added comment reviewed; non-obvious whys are terse **inline** comments at their implementing line in plain language; no `pinned-only`/`open form`/`Result-pure`-style jargon remains; no comment documents another symbol's behaviour.
 - [ ] `pnpm lint:framework-vocabulary` passes (threshold updated if the count moved).
-- [ ] Gates (prove no code changed): `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl test`; `pnpm fixtures:check`; workspace `pnpm typecheck` after psl-parser build.
+- [ ] Gates (prove no code changed): `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl test`; `pnpm fixtures:check`; workspace `pnpm typecheck` after psl-parser build.
 
 ## Operational metadata
 - **Model tier:** thorough (judgment per comment + placement).

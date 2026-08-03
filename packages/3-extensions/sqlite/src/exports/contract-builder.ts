@@ -12,6 +12,6 @@ export type {
   RelationNode,
   ScalarFieldBuilder,
   UniqueConstraintNode,
-} from '@prisma-next/sql-contract-ts/contract-builder';
-export { field, model, rel } from '@prisma-next/sql-contract-ts/contract-builder';
+} from '@internal/sql-contract-ts/contract-builder';
+export { field, model, rel } from '@internal/sql-contract-ts/contract-builder';
 export { defineContract } from '../contract/define-contract';

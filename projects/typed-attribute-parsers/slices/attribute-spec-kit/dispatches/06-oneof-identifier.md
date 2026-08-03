@@ -37,7 +37,7 @@ Replace the bespoke `enumOf` with two composable primitives joined by `oneOf` â€
 - [ ] `oneOf` + `identifier` exported and usable as `Param`s; `enumOf` gone (`rg enumOf` zero).
 - [ ] `onDelete`/`onUpdate` use `oneOf(identifier(...))`; output union unchanged; SQL relations + diagnostics suites green (the bad-action case still emits `PSL_INVALID_RELATION_ATTRIBUTE`).
 - [ ] Unit + type-level tests for `oneOf` (union inference, first-match, aggregate diagnostic) and `identifier` (pinned match/mismatch, literal type).
-- [ ] Gates: `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl test`; `pnpm fixtures:check`; after `pnpm --filter @prisma-next/psl-parser build`, workspace `pnpm typecheck`.
+- [ ] Gates: `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl test`; `pnpm fixtures:check`; after `pnpm --filter @internal/psl-parser build`, workspace `pnpm typecheck`.
 
 ## Constraints
 No `any`; no bare `as` (narrow `blindCast`/`castAs` with reason, or types that avoid it); no file-ext imports; no reexport outside `exports/`; tests-first. Explicit-staging commits, no amend, **no push**. Read-only on `projects/**/reviews/**`, `spec.md`, plan files. Transient-ID scan on the `+` diff. Do NOT post to GitHub.

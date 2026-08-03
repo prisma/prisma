@@ -10,9 +10,9 @@
  * The descriptor wires those JSON artefacts via JSON-import declarations
  * so they flow through the consuming application's module resolver
  * without filesystem assumptions, and synthesises the canonical
- * {@link import('@prisma-next/framework-components/control').MigrationPackage}
+ * {@link import('@internal/framework-components/control').MigrationPackage}
  * shape for the framework's runner / verifier to consume. Readers in
- * `@prisma-next/migration-tools` add `dirPath` when loading from disk
+ * `@internal/migration-tools` add `dirPath` when loading from disk
  * (`OnDiskMigrationPackage`); descriptor-bundled packages do not need
  * it because the framework reads them directly from the descriptor.
  *
@@ -27,10 +27,10 @@
  *   (contract-space package layout convention).
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlControlExtensionDescriptor } from '@prisma-next/family-sql/control';
-import { contractSpaceFromJson } from '@prisma-next/migration-tools/spaces';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { Contract } from '@internal/contract/types';
+import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
+import { contractSpaceFromJson } from '@internal/migration-tools/spaces';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import baselineMetadata from '../../migrations/20260601T0000_install_pg_search_extension/migration.json' with {
   type: 'json',
 };

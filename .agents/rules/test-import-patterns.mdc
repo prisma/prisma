@@ -14,7 +14,7 @@ This rulecard is intentionally short. For more examples, see `docs/reference/tes
 
 ## Cross-package / integration tests
 
-- **Import from package exports** (`@prisma-next/...`) to verify the public API.
+- **Import from package exports** (`@internal/...`) to verify the public API.
 
 ## Related rules
 

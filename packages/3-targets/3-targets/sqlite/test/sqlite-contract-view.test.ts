@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { SqliteContractSerializer } from '../src/core/sqlite-contract-serializer';
 import { SqliteContractView } from '../src/core/sqlite-contract-view';

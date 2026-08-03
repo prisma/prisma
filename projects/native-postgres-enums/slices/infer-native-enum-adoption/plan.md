@@ -16,7 +16,7 @@
 - **Builds on:** — (main; the `EnumInfo`/`enumNameMap` seams already exist, dead-wired).
 - **Hands to:** a printer that renders adoptable PSL when fed enum definitions; D2b feeds it real data.
 - **Focus:** wiring `PslPrinterOptions.enumInfo` → block AST + `enumNameMap`; the `pg.enum(Name)` **call-syntax** field type (not bare-name substitution); name-collision handling via the existing top-level name registry (`buildTopLevelNameMap` kind `'enum'`); the enum-array and enum-default edge cases from the spec (settle emit-vs-diagnostic for arrays against what Phase-1 authoring accepts). Tests: `print-psl.enums.test.ts` inverts from asserting the throw to asserting emission (keep one negative for whatever remains unsupported).
-- **Completed when:** printer tests prove block + column emission incl. `@@map`, sanitized members, collision case; emitted PSL for the `aal_level` shape parses via `@prisma-next/psl-parser`.
+- **Completed when:** printer tests prove block + column emission incl. `@@map`, sanitized members, collision case; emitted PSL for the `aal_level` shape parses via `@internal/psl-parser`.
 
 ## D2b — `infer-pipeline-adoption`
 

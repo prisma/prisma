@@ -2,13 +2,13 @@ import type {
   AnyCodecDescriptor,
   Codec,
   CodecInstanceContext,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import {
   SQL_CHAR_CODEC_ID,
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import {
   SQLITE_BIGINT_CODEC_ID,
   SQLITE_BLOB_CODEC_ID,
@@ -17,8 +17,8 @@ import {
   SQLITE_JSON_CODEC_ID,
   SQLITE_REAL_CODEC_ID,
   SQLITE_TEXT_CODEC_ID,
-} from '@prisma-next/target-sqlite/codec-ids';
-import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
+} from '@internal/target-sqlite/codec-ids';
+import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 import { describe, expect, it } from 'vitest';
 
 const SYNTH_CTX: CodecInstanceContext = { name: 'test' };

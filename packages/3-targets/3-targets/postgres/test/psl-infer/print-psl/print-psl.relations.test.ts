@@ -1,5 +1,5 @@
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { printPslFromFlat as printPslFromSql } from '../fixtures';
 

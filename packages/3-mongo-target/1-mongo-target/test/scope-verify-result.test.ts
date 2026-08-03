@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   SchemaDiffIssue,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { entityNamesDeclaredBy, scopeVerifyResultToSpace } from '../src/core/scope-verify-result';
 

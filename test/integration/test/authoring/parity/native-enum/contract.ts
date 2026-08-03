@@ -1,11 +1,5 @@
-import { int4Column } from '@prisma-next/adapter-postgres/column-types';
-import {
-  defineContract,
-  field,
-  model,
-  nativeEnum,
-  pg,
-} from '@prisma-next/postgres/contract-builder';
+import { int4Column } from '@internal/adapter-postgres/column-types';
+import { defineContract, field, model, nativeEnum, pg } from '@internal/postgres/contract-builder';
 
 const Role = nativeEnum('Role', 'user', 'admin');
 const AalLevel = nativeEnum('AalLevel', 'aal1', 'aal2', 'aal3').map('aal_level');

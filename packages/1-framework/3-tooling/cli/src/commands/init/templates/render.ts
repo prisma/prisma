@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 import { join } from 'pathe';
 
 export function renderTemplate(

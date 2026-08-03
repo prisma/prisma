@@ -1,7 +1,7 @@
-import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
-import type { PslSpan, ResolvedAttribute } from '@prisma-next/psl-parser';
-import { parseQuotedStringLiteral } from '@prisma-next/psl-parser';
-import type { ExpressionAst } from '@prisma-next/psl-parser/syntax';
+import type { ContractSourceDiagnostic } from '@internal/config/config-types';
+import type { PslSpan, ResolvedAttribute } from '@internal/psl-parser';
+import { parseQuotedStringLiteral } from '@internal/psl-parser';
+import type { ExpressionAst } from '@internal/psl-parser/syntax';
 
 export { parseQuotedStringLiteral };
 

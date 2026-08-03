@@ -27,7 +27,7 @@ Three changes. Each maps to a review comment.
 
 ### 1. The resolver returns a concrete SQL column-binding, not an opaque payload
 
-`pg.enum(Ref)` is a column type whose parameter is a *resolved reference to a named entity* — that construct is real and stays. What goes is the framework-opaque round-trip. The only registrant is Postgres and the only caller is `@prisma-next/sql-contract-psl`; **producer and consumer are both SQL**, so the family-neutral `object` return buys nothing.
+`pg.enum(Ref)` is a column type whose parameter is a *resolved reference to a named entity* — that construct is real and stays. What goes is the framework-opaque round-trip. The only registrant is Postgres and the only caller is `@internal/sql-contract-psl`; **producer and consumer are both SQL**, so the family-neutral `object` return buys nothing.
 
 - The resolver returns a concrete, SQL-typed column binding `{ codecId, typeParams, valueSetEntityName }` — the same three generic fields any parameterized-codec-plus-value-set column carries. `nativeType` drops out of the payload (the codec owns it — see §3).
 - Delete `SqlEntityRefResolution` and `isSqlEntityRefResolution`: with a typed return there is nothing to re-narrow.

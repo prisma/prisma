@@ -2,9 +2,9 @@ import type {
   ContractSerializer,
   MigratableTargetDescriptor,
   SchemaVerifier,
-} from '@prisma-next/framework-components/control';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import type { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
+} from '@internal/framework-components/control';
+import type { MongoContract } from '@internal/mongo-contract';
+import type { MongoSchemaIR } from '@internal/mongo-schema-ir';
 import type { MongoControlFamilyInstance } from './control-instance';
 
 /**

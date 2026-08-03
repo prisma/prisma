@@ -1,5 +1,5 @@
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { normalizeContractConfig } from '@prisma-next/config/config-types';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import { normalizeContractConfig } from '@internal/config/config-types';
 import { resolve } from 'pathe';
 
 type ContractSourceProvider = NonNullable<PrismaNextConfig['contract']>['source'];

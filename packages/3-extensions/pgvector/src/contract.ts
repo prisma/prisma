@@ -40,7 +40,7 @@
  * @see docs/architecture docs/adrs/ADR 212 - Contract spaces.md
  */
 
-import { defineContract } from '@prisma-next/postgres/contract-builder';
+import { defineContract } from '@internal/postgres/contract-builder';
 import { VECTOR_CODEC_ID } from './core/constants';
 import { PGVECTOR_NATIVE_TYPE } from './core/contract-space-constants';
 

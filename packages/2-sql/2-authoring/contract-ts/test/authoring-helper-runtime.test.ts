@@ -1,12 +1,12 @@
 import type {
   AuthoringFieldNamespace,
   AuthoringTypeNamespace,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import {
   createFieldHelpersFromNamespace,

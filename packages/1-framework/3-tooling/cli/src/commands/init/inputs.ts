@@ -13,6 +13,7 @@ import {
 import {
   type AuthoringId,
   defaultSchemaPath,
+  scaffoldSpecifierResolverFor,
   type TargetId,
   targetLabel,
   targetPackageName,
@@ -61,7 +62,7 @@ export interface ResolvedInitInputs {
   readonly reinit: boolean;
   /**
    * FR9.2 — set to the **previous** facade package name (e.g.
-   * `@prisma-next/postgres`) when re-init is switching targets and the
+   * `@internal/postgres`) when re-init is switching targets and the
    * user has consented to remove it from `package.json#dependencies`.
    * `null` when no removal is needed: not a re-init, no previous facade
    * present, the previous facade matches the chosen target, or the user
@@ -70,7 +71,7 @@ export interface ResolvedInitInputs {
    */
   readonly removePreviousFacade: string | null;
   /**
-   * Whether to run `npx skills add prisma/prisma-next#v<version>` at the
+   * Whether to run `npx skills add prisma/prisma#v<version>` at the
    * project level after install + emit. True by default; `--no-skill`
    * sets it to `false`. The skill is always project-level (never
    * user-level / global) so its version stays locked to the project's
@@ -257,7 +258,14 @@ async function resolveRemovePreviousFacade(opts: {
     return null;
   }
   const otherTarget: TargetId = opts.target === 'postgres' ? 'mongo' : 'postgres';
-  const otherFacade = targetPackageName(otherTarget);
+  // This reads a `package.json` an *earlier* `init` wrote, which may have been
+  // an older version that scaffolded the workspace name rather than the
+  // published one. So it looks for every name a previous run could have
+  // installed, not only the one this run would write.
+  const otherFacadeNames = [
+    targetPackageName(otherTarget, scaffoldSpecifierResolverFor(otherTarget)),
+    targetPackageName(otherTarget),
+  ];
   let parsed: Record<string, unknown>;
   try {
     parsed = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as Record<string, unknown>;
@@ -268,7 +276,10 @@ async function resolveRemovePreviousFacade(opts: {
   if (deps === null || typeof deps !== 'object' || Array.isArray(deps)) {
     return null;
   }
-  if (!Object.hasOwn(deps as Record<string, unknown>, otherFacade)) {
+  const otherFacade = otherFacadeNames.find((name) =>
+    Object.hasOwn(deps as Record<string, unknown>, name),
+  );
+  if (otherFacade === undefined) {
     return null;
   }
 

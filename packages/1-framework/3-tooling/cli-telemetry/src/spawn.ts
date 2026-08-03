@@ -1,6 +1,6 @@
 import { fork } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { ifDefined } from '@internal/utils/defined';
 import { resolveTelemetryEndpoint } from './endpoint';
 import { resolveGating } from './gating';
 import type { ParentToSenderPayload } from './payload';

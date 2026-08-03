@@ -1,4 +1,4 @@
-import { namingOf, parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import { namingOf, parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { Index, type IndexInput } from '../src/ir/sql-index';
 

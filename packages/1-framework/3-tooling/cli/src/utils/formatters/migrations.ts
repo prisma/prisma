@@ -1,7 +1,7 @@
 import type {
   MigrationPlannerConflict,
   OperationPreview,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import { cyan, green, yellow } from 'colorette';
 
 import type { PerSpaceExecutionEntry } from '../../control-api/types';

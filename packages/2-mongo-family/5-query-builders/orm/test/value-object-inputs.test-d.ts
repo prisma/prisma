@@ -1,9 +1,9 @@
-import type { CrossReference, ProfileHashBase, StorageHashBase } from '@prisma-next/contract/types';
+import type { CrossReference, ProfileHashBase, StorageHashBase } from '@internal/contract/types';
 import type {
   MongoCollection,
   MongoContractWithTypeMaps,
   MongoTypeMaps,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import { expectTypeOf, test } from 'vitest';
 import type {
   CreateInput,

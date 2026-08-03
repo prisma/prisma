@@ -1,4 +1,4 @@
-# @prisma-next/sql-contract
+# @internal/sql-contract
 
 SQL contract types, validators, and IR factories for Prisma Next.
 
@@ -19,7 +19,7 @@ Each `StorageColumn` in SQL contracts includes both:
 - **`nativeType`** (required): Native database type identifier (e.g., `'int4'`, `'text'`, `'vector'`) - used for database structure verification and migration planning
 - **`codecId`** (required): Codec identifier (e.g., `'pg/int4@1'`, `'pg/text@1'`, `'pg/vector@1'`) - used for query builders and runtime codecs
 - **`nullable`** (required): Whether the column is nullable
-- **`default`** (optional): Uses the shared `ColumnDefault` type from `@prisma-next/contract` for db-agnostic defaults (literal or function). Client-generated defaults live in `execution.mutations.defaults`.
+- **`default`** (optional): Uses the shared `ColumnDefault` type from `@internal/contract` for db-agnostic defaults (literal or function). Client-generated defaults live in `execution.mutations.defaults`.
 
 Both `nativeType` and `codecId` are required to ensure contracts are consumable by both the application (via codec IDs) and the database (via native types). See `docs/briefs/Sql-Contract-Native-and-Codec-Types.md` for details.
 
@@ -42,7 +42,7 @@ import type {
   StorageTable,
   SqlModelStorage,
   ForeignKeysConfig,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 ```
 
 ### Foreign Keys Configuration
@@ -79,7 +79,7 @@ When omitted, the database applies its default behavior (Postgres: `NO ACTION`).
 The `fk()` factory accepts referential actions via an options object:
 
 ```typescript
-import { fk } from '@prisma-next/sql-contract/factories';
+import { fk } from '@internal/sql-contract/factories';
 
 // Simple FK (no referential actions)
 const simple = fk(['userId'], 'user', ['id']);
@@ -102,7 +102,7 @@ const named = fk(['userId'], 'user', ['id'], {
 Validate contract structures using Arktype validators:
 
 ```typescript
-import { validateSqlContractFully, validateStorage, validateModel } from '@prisma-next/sql-contract/validators';
+import { validateSqlContractFully, validateStorage, validateModel } from '@internal/sql-contract/validators';
 
 // Validate a complete contract
 const contract = validateSqlContractFully<Contract>(contractJson);
@@ -118,7 +118,7 @@ Validate JSON-emitted contracts with mapping + logic checks via the
 target descriptor's `contractSerializer` SPI:
 
 ```typescript
-import postgresTarget from '@prisma-next/target-postgres/control';
+import postgresTarget from '@internal/target-postgres/control';
 
 const contract = postgresTarget.contractSerializer.deserializeContract(contractJson);
 ```
@@ -135,7 +135,7 @@ SPI internally.
 Use factory functions to construct contract IR structures in tests:
 
 ```typescript
-import { col, table, storage, model, contract, pk, unique, index, fk } from '@prisma-next/sql-contract/factories';
+import { col, table, storage, model, contract, pk, unique, index, fk } from '@internal/sql-contract/factories';
 
 // Create a column (nativeType, codecId, nullable)
 const idColumn = col('int4', 'pg/int4@1', false);
@@ -211,21 +211,21 @@ flowchart TD
 
 ## Dependencies
 
-- **`@prisma-next/contract`**: Framework-level contract types (`ContractBase`)
+- **`@internal/contract`**: Framework-level contract types (`ContractBase`)
 - **`arktype`**: Runtime validation library
 
 **Dependents:**
-- **`@prisma-next/sql-contract-ts`**: Uses SQL contract types and validators for authoring
-- **`@prisma-next/sql-contract-emitter`**: Uses SQL contract types for emission
-- **`@prisma-next/sql-query`**: Uses SQL contract types for query building
-- **`@prisma-next/sql-runtime`**: Uses SQL contract types for runtime execution
-- **`@prisma-next/sql-lane`**: Uses SQL contract types for lane operations
+- **`@internal/sql-contract-ts`**: Uses SQL contract types and validators for authoring
+- **`@internal/sql-contract-emitter`**: Uses SQL contract types for emission
+- **`@internal/sql-query`**: Uses SQL contract types for query building
+- **`@internal/sql-runtime`**: Uses SQL contract types for runtime execution
+- **`@internal/sql-lane`**: Uses SQL contract types for lane operations
 
 ## Related Packages
 
-- `@prisma-next/contract`: Framework-level contract types (`ContractBase`)
-- `@prisma-next/sql-contract-ts`: SQL contract authoring surface (uses this package)
-- `@prisma-next/emitter`: Contract emission engine (uses validators)
+- `@internal/contract`: Framework-level contract types (`ContractBase`)
+- `@internal/sql-contract-ts`: SQL contract authoring surface (uses this package)
+- `@internal/emitter`: Contract emission engine (uses validators)
 
 ## Related Subsystems
 

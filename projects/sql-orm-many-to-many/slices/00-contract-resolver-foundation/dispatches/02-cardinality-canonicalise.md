@@ -21,7 +21,7 @@ Also move the existing M:N-nested-mutation **rejection** unit test (in `mutation
 
 - [ ] `rg "'M:N'" packages/3-extensions/sql-orm-client/src` returns empty (only `'N:M'` remains).
 - [ ] The M:N rejection unit test uses `'N:M'` and still passes as a rejection.
-- [ ] Gate: `pnpm --filter @prisma-next/sql-orm-client typecheck` + `pnpm --filter @prisma-next/sql-orm-client test` green.
+- [ ] Gate: `pnpm --filter @internal/sql-orm-client typecheck` + `pnpm --filter @internal/sql-orm-client test` green.
 
 ## Standing instruction
 

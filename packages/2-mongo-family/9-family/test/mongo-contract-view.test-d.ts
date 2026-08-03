@@ -1,5 +1,5 @@
-import type { Contract as ContractBase } from '@prisma-next/contract/types';
-import type { MongoCollection } from '@prisma-next/mongo-contract';
+import type { Contract as ContractBase } from '@internal/contract/types';
+import type { MongoCollection } from '@internal/mongo-contract';
 import { expectTypeOf, test } from 'vitest';
 import { MongoContractView } from '../src/core/ir/mongo-contract-view';
 import type { Contract } from './fixtures/orm-contract.d';

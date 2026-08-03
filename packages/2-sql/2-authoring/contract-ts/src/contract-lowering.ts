@@ -1,19 +1,19 @@
 import {
   type AuthoringEntityTypeNamespace,
   isAuthoringEntityTypeDescriptor,
-} from '@prisma-next/framework-components/authoring';
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import type { ExtensionPackRef } from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/authoring';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import type { ExtensionPackRef } from '@internal/framework-components/components';
 import {
   providesEntityHandleLowering,
   type ResolvedEntityHandleRef,
   type ResolvedPackEntityHandle,
-} from '@prisma-next/sql-contract/entity-handle-lowering-hook';
-import type { AuthoredIndexMethod } from '@prisma-next/sql-contract/index-naming';
-import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-contract/entity-handle-lowering-hook';
+import type { AuthoredIndexMethod } from '@internal/sql-contract/index-naming';
+import type { StorageTypeInstance } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import type {
   AttachedEntities,
   ContractDefinition,
@@ -992,7 +992,7 @@ function lowerPackEntityHandles(
   if (entities === undefined || entities.length === 0) return undefined;
 
   const components: readonly {
-    readonly authoring?: import('@prisma-next/framework-components/authoring').AuthoringContributions;
+    readonly authoring?: import('@internal/framework-components/authoring').AuthoringContributions;
   }[] = [
     definition.target,
     ...Object.values<ExtensionPackRef<'sql', string>>(definition.extensions ?? {}),

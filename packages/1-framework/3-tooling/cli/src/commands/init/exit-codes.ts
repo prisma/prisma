@@ -63,7 +63,7 @@ export const INIT_EXIT_EMIT_FAILED = 5;
 
 /**
  * The project-level Prisma Next skills install (`npx skills add
- * prisma/prisma-next#v<version>`) failed after a successful dependency
+ * prisma/prisma#v<version>`) failed after a successful dependency
  * install + emit. The scaffolded project files remain on disk; the
  * user can fix the underlying issue (network, registry reachability,
  * `npx skills` not on PATH) and run the install manually, or re-run

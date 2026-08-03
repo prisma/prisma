@@ -1,9 +1,9 @@
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type {
   PreparedExecuteRequest,
   SqlDriver,
   SqlExecuteRequest,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import {
   BinaryExpr,
   ColumnRef,
@@ -12,9 +12,9 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { Expression, ScopeField } from '@prisma-next/sql-relational-core/expression';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import type { Expression, ScopeField } from '@internal/sql-relational-core/expression';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it, vi } from 'vitest';
 import type { SqlMiddleware } from '../src/middleware/sql-middleware';
 import { createSqlExecutionStack } from '../src/sql-context';

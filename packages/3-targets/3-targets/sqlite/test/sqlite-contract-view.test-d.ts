@@ -1,4 +1,4 @@
-import type { Contract as ContractBase } from '@prisma-next/contract/types';
+import type { Contract as ContractBase } from '@internal/contract/types';
 import { expectTypeOf, test } from 'vitest';
 import { SqliteContractView } from '../src/core/sqlite-contract-view';
 import type { Contract } from './fixtures/sqlite-contract.d';

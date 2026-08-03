@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { withTransaction } from '@prisma-next/sql-runtime';
-import { timeouts } from '@prisma-next/test-utils';
+import { withTransaction } from '@prisma/orm-postgres/family-runtime';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { Contract } from './fixtures/generated/contract.d';
 import { withTestRuntime } from './utils';

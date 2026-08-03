@@ -10,7 +10,7 @@
  * Audit: every SQLite codec is non-parameterized and parameter-stateless; `factory()` takes no params (`P = void`) and returns a fresh codec constructed solely from `this`.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecImpl,
@@ -19,7 +19,7 @@ import {
   type ColumnHelperForStrict,
   column,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import {
   CaseExpr,
   CastExpr,
@@ -31,7 +31,7 @@ import {
   sqlFloatDescriptor,
   sqlIntDescriptor,
   sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { defineSqliteCodecs, SqliteCodecDescriptor, sqliteCodec } from './codec-descriptor';
 import {
   SQLITE_BIGINT_CODEC_ID,

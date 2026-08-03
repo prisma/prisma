@@ -1,19 +1,19 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import pgvectorRuntime from '@prisma-next/extension-pgvector/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import type { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { RuntimeQueryable } from '@prisma-next/sql-orm-client';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import type { Contract } from '@internal/contract/types';
+import postgresDriver from '@internal/driver-postgres/runtime';
+import pgvectorRuntime from '@internal/extension-pgvector/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import type { AsyncIterableResult } from '@internal/framework-components/runtime';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { RuntimeQueryable } from '@internal/sql-orm-client';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   type SqlRuntimeExtensionDescriptor,
-} from '@prisma-next/sql-runtime';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
+} from '@internal/sql-runtime';
+import postgresTarget from '@internal/target-postgres/runtime';
 import { Client } from 'pg';
 import { getTestContract } from './helpers';
 

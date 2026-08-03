@@ -1,6 +1,6 @@
-import { generateContractDts } from '@prisma-next/emitter';
-import { type CodecLookup, renderTsLiteral } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { generateContractDts } from '@internal/emitter';
+import { type CodecLookup, renderTsLiteral } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';

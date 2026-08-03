@@ -1,4 +1,4 @@
-import type { StorageTable } from '@prisma-next/sql-contract/types';
+import type { StorageTable } from '@internal/sql-contract/types';
 import type { TableProxy } from './table-proxy';
 
 export type CapabilitiesBase = Record<string, Record<string, boolean>>;

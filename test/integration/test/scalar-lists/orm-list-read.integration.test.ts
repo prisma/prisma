@@ -6,21 +6,21 @@
  * accessors fully typed: `db.public.Item` is a real `Item` collection rather
  * than an index signature.
  */
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresRuntimeAdapter from '@prisma-next/adapter-postgres/runtime';
-import type { Contract as FrameworkContract } from '@prisma-next/contract/types';
-import postgresControlDriver from '@prisma-next/driver-postgres/control';
-import sql, { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID, createControlStack } from '@prisma-next/framework-components/control';
-import { buildFabricatedMigrationEdge } from '@prisma-next/migration-tools/aggregate';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { orm } from '@prisma-next/sql-orm-client';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgres from '@prisma-next/target-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresRuntimeAdapter from '@internal/adapter-postgres/runtime';
+import type { Contract as FrameworkContract } from '@internal/contract/types';
+import postgresControlDriver from '@internal/driver-postgres/control';
+import sql, { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID, createControlStack } from '@internal/framework-components/control';
+import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregate';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { orm } from '@internal/sql-orm-client';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgres from '@internal/target-postgres/control';
 import postgresRuntimeTarget, {
   PostgresContractSerializer,
-} from '@prisma-next/target-postgres/runtime';
-import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/runtime';
+import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, expectTypeOf, it } from 'vitest';
 import type { Contract } from '../sql-orm-client/fixtures/scalar-lists/generated/contract';
 import contractJson from '../sql-orm-client/fixtures/scalar-lists/generated/contract.json' with {

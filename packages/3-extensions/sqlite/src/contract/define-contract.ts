@@ -1,18 +1,18 @@
-import sqlFamilyPack from '@prisma-next/family-sql/pack';
-import type { ExtensionPackRef } from '@prisma-next/framework-components/components';
+import sqlFamilyPack from '@internal/family-sql/pack';
+import type { ExtensionPackRef } from '@internal/framework-components/components';
 import type {
   SqlNamespaceBase,
   SqlNamespaceInput,
   StorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import type {
   ComposedAuthoringHelpers,
   ContractInput,
   ModelLike,
-} from '@prisma-next/sql-contract-ts/contract-builder';
-import { buildBoundContract } from '@prisma-next/sql-contract-ts/contract-builder';
-import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import sqlitePack from '@prisma-next/target-sqlite/pack';
+} from '@internal/sql-contract-ts/contract-builder';
+import { buildBoundContract } from '@internal/sql-contract-ts/contract-builder';
+import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import sqlitePack from '@internal/target-sqlite/pack';
 
 type SqlFamily = typeof sqlFamilyPack;
 type SqlitePack = typeof sqlitePack;

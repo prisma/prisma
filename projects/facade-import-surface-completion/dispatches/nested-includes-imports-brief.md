@@ -1,7 +1,7 @@
 # Fix nested-includes test imports — followup to commit 357805f2f
 
 **Branch:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
-**Worktree:** `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2526-facades-must-re-export-everything-users-import-in-their-app`
+**Worktree:** `tml-2526-facades-must-re-export-everything-users-import-in-their-app`
 **Current HEAD:** `56a22e22b`
 **Origin HEAD:** `9c0eb947b` (push still pending — was blocked by typecheck red)
 
@@ -104,7 +104,7 @@ Signed-off-by: Will Madden <madden@prisma.io>'
 
 After the commit:
 
-1. `pnpm typecheck` — must exit 0 (the @prisma-next/integration-tests block should be gone).
+1. `pnpm typecheck` — must exit 0 (the integration-tests block should be gone).
 2. `pnpm fixtures:check` — must exit 0.
 3. `pnpm lint:deps` — must exit 0.
 

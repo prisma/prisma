@@ -1,4 +1,4 @@
-import type { ContractRelationThrough } from '@prisma-next/contract/types';
+import type { ContractRelationThrough } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import {
   assertReturningCapability,

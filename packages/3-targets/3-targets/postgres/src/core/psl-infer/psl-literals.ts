@@ -1,11 +1,11 @@
-import { type ColumnDefault, isColumnDefault } from '@prisma-next/contract/types';
-import type { PslPrinterOptions } from '@prisma-next/family-sql/psl-infer';
+import { type ColumnDefault, isColumnDefault } from '@internal/contract/types';
+import type { PslPrinterOptions } from '@internal/family-sql/psl-infer';
 import type {
   PslAttribute,
   PslAttributeArgument,
   PslFieldAttribute,
   PslSpan,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 
 export const SYNTHETIC_SPAN: PslSpan = {
   start: { offset: 0, line: 1, column: 1 },

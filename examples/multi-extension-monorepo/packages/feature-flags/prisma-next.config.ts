@@ -3,7 +3,7 @@
  * package — see `../audit/prisma-next.config.ts` for the framing.
  */
 
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@prisma/orm-postgres/config';
 
 export default defineConfig({
   contract: './src/contract.prisma',

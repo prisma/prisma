@@ -1,4 +1,4 @@
-import { mongoOrm } from '@prisma-next/mongo-orm';
+import { mongoOrm } from '@internal/mongo-orm';
 import { ObjectId } from 'mongodb';
 import { expect, expectTypeOf, it } from 'vitest';
 import { contract } from './fixtures/contract';

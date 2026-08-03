@@ -110,7 +110,7 @@ collapse.
 <!--
 TML-2891 (eliminate the SQL family placeholder namespace): app authors who build
 contracts through the public facades / target `defineContract` wrappers
-(`@prisma-next/postgres`, `@prisma-next/sqlite`) are unaffected — those wrappers
+(`@internal/postgres`, `@internal/sqlite`) are unaffected — those wrappers
 supply the now-required `createNamespace` factory, so no app-author code changes.
 The only `examples/` diff is regenerated migration `end-contract.d.ts` snapshots
 whose SQL namespace `kind` changed from `'sql-namespace'` to `'postgres-schema'`;
@@ -144,12 +144,12 @@ substrate diff only.
 -->
 
 <!--
-TML-2795: the `prisma-next-demo` example gains a Post<->Tag many-to-many. The demo
+TML-2795: the `prisma-8-demo` example gains a Post<->Tag many-to-many. The demo
 authors the relation in PSL (with a re-baselined `add_post_tags` migration), switches
 its id fields to native uuid storage for M:N parity, and adds M:N ORM examples, CLI
 commands, seed data, and PGlite integration coverage. Demonstrates the many-to-many
 authoring surface that slice 5 (TML-2794) added to the framework; the example diff
-spans `examples/prisma-next-demo/**` only. Additive and opt-in — no existing consumer
+spans `examples/prisma-8-demo/**` only. Additive and opt-in — no existing consumer
 contract changes shape and no migration is forced. No consumer action required.
 Incidental substrate diff only.
 -->
@@ -221,7 +221,7 @@ No user action — a re-emit picks up the new contract shape.
 <!--
 Exercise Mongo enums in retail-store (this PR): the retail-store example replaces
 order-type string literals with typed enum accessors via `buildNamespacedEnums` from
-`@prisma-next/contract/enum-accessor`. The `MongoClient` facade also gains a direct
+`@internal/contract/enum-accessor`. The `MongoClient` facade also gains a direct
 `db.execute(plan)` method and a `db.raw` property (both additive). None of these
 changes affect the emitted contract shape; a re-emit picks them up automatically.
 No user action required. Incidental substrate diff only.
@@ -242,7 +242,7 @@ on the previous un-decoded values would now observe decoded ones. Incidental to 
 
 <!--
 TML-2955 (expose the static ExecutionContext symmetrically): additive client-safe
-static surface. New `@prisma-next/{mongo,postgres,sqlite}/static` entrypoints export
+static surface. New `@internal/{mongo,postgres,sqlite}/static` entrypoints export
 `<target>Static({ contractJson })`, returning the driver-free `ExecutionContext`
 plus derived `enums` / query builder / `raw` / `contract`; the facades also expose
 `db.context` (Mongo now typed `MongoExecutionContext<TContract>`) and `db.contract`.
@@ -257,7 +257,7 @@ TML-2952 (this PR): route SQL enum/value-set column TS typing through the codec.
 A field/column restricted to a value set now derives its narrowed TS literal union
 by rendering each stored value through its codec, replacing the framework's
 (now-deleted) domain-enum override. The only `examples/` touch is a type test —
-`examples/prisma-next-demo/test/demo-dx.types.test.ts` — asserting the emitted
+`examples/prisma-8-demo/test/demo-dx.types.test.ts` — asserting the emitted
 `FieldOutputTypes` enum field equals the no-emit `typeof contract` value union
 (emit-vs-no-emit agreement). The emitted contract is byte-identical (`fixtures:check`
 clean; `contract.json`, `contract.d.ts`, and both hashes unchanged). No user action
@@ -265,7 +265,7 @@ required. Incidental substrate diff only.
 -->
 
 <!--
-Slow-query warning middleware example (PR #912): the `prisma-next-demo` example
+Slow-query warning middleware example (PR #912): the `prisma-8-demo` example
 gains a `slowQueryWarning` custom middleware (`src/prisma/slow-query-warning.ts`,
 wired into the runtime `middleware: [...]` chain in `src/prisma/db.ts`, with
 offline unit tests). Documentation-driven example code only — it exercises the
@@ -297,7 +297,7 @@ entity, typed as a value union, and read at runtime through a Postgres-only
 - `examples/supabase` gains `src/session-queries.ts` and
   `test/native-enum-session.integration.test.ts` (reading `auth.aal_level`), plus a
   regenerated `src/contract.d.ts`.
-- `examples/prisma-next-demo` and `examples/retail-store` switch their enum
+- `examples/prisma-8-demo` and `examples/retail-store` switch their enum
   value-union annotations from `EnumValues<Db['enums'][X]>` to the equivalent `.Value`
   phantom (`Db['enums'][X]['Value']`). `EnumValues` is unchanged and still exported;
   `.Value` is the new preferred form, so this is an optional style adoption, not a
@@ -339,8 +339,8 @@ substrate diff only.
 <!--
 PR #915 (middleware doc-comment lifecycle fixes): comments-only. The only
 `examples/` touches are doc comments in
-`examples/prisma-next-demo/src/prisma/db.ts` and
-`examples/prisma-next-demo/src/orm-client/find-user-by-id-cached.ts`,
+`examples/prisma-8-demo/src/prisma/db.ts` and
+`examples/prisma-8-demo/src/orm-client/find-user-by-id-cached.ts`,
 correcting stale claims about what runs on a cache-middleware hit (every
 `beforeExecute` has already run before `intercept` is consulted,
 `afterExecute` still fires with `source: 'middleware'`, and `decodeRow`

@@ -1,6 +1,6 @@
-import { CheckExpressionConstraint } from '@prisma-next/sql-relational-core/ast';
-import { col } from '@prisma-next/sql-relational-core/contract-free';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { CheckExpressionConstraint } from '@internal/sql-relational-core/ast';
+import { col } from '@internal/sql-relational-core/contract-free';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { sqliteBigintDescriptor, sqliteRealDescriptor } from '../src/core/codecs';
 import sqliteControlTargetDescriptor from '../src/core/control-target';

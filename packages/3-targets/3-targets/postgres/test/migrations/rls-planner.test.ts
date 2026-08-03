@@ -11,15 +11,15 @@
  * - Multiple policies on the same table → only one ENABLE RLS emitted
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { namingOfLiveName, parseNaming } from '@prisma-next/sql-schema-ir/naming';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import type { Contract } from '@internal/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { namingOfLiveName, parseNaming } from '@internal/sql-schema-ir/naming';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';

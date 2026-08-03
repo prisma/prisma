@@ -10,7 +10,7 @@
  * Never run `vitest --update-snapshots` blindly — always `pnpm gallery` first.
  */
 
-import type { MigrationGraph } from '@prisma-next/migration-tools/graph';
+import type { MigrationGraph } from '@internal/migration-tools/graph';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { buildGrid } from '../../../src/utils/formatters/migration-graph-grid-layout';

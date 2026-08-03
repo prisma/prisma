@@ -19,8 +19,8 @@ Every workspace package — publishable, private, the workspace root, and exampl
 
 This invariant has consequences that ecosystem participants need to plan for:
 
-- **Agent skills, the upgrade skill, and any other tooling we ship alongside the framework version in lockstep with it.** A skill installed at the same time as `@prisma-next/postgres@0.8.0` is a `0.8.0` skill and reasons about a `0.8.0` contract. There is no separate skill-version axis to track.
-- **Extension authors that depend on internal framework packages must pin those dependencies to the framework version their consumers will use.** If your extension depends on `@prisma-next/sql-core` (an internal framework package), publish each version of your extension targeting one specific Prisma Next minor and pin to it exactly (`"@prisma-next/sql-core": "0.8.0"`, not `"^0.8.0"`). Internal packages do not promise inter-minor compatibility — `0.8.x` and `0.9.x` may have incompatible internals even when the user-visible surface looks similar. The extension's published version range communicates which framework minor it targets.
+- **Agent skills, the upgrade skill, and any other tooling we ship alongside the framework version in lockstep with it.** A skill installed at the same time as `@internal/postgres@0.8.0` is a `0.8.0` skill and reasons about a `0.8.0` contract. There is no separate skill-version axis to track.
+- **Extension authors that depend on internal framework packages must pin those dependencies to the framework version their consumers will use.** If your extension depends on `@internal/sql-core` (an internal framework package), publish each version of your extension targeting one specific Prisma Next minor and pin to it exactly (`"@internal/sql-core": "0.8.0"`, not `"^0.8.0"`). Internal packages do not promise inter-minor compatibility — `0.8.x` and `0.9.x` may have incompatible internals even when the user-visible surface looks similar. The extension's published version range communicates which framework minor it targets.
 - **Internal packages are never published, but they still version in lockstep** so a contributor cloning the repo at any commit sees one consistent answer to "what version is this code?" The `private: true` flag means `pnpm publish` skips them.
 
 If lockstep ever broke — if a private package or example carried a different version — the "one read of root tells you everything" invariant would be silently violated. Every CI gate that checks the root version on publish (today: pre-publish dependency-specifier validation; tomorrow: the upgrade-skill recipe-presence check that fires on root version changes) is built on this assumption.
@@ -29,8 +29,8 @@ If lockstep ever broke — if a private package or example carried a different v
 
 The npm registry exposes Prisma Next under three dist-tags:
 
-- **`latest`** — the most recent stable release. Default for any `npm install @prisma-next/...`. New `latest` releases happen automatically when a release PR merges (see procedure below).
-- **`dev`** — every push to `main` that doesn't change the root `version` produces a `<base>-dev.N` tarball under this tag. Use these to pin reproductions, install internal CI runs, or hand someone a "try `npm install @prisma-next/postgres@dev` to get the bleeding edge" link. **No stability promise** — they may be yanked freely.
+- **`latest`** — the most recent stable release. Default for any `npm install @internal/...`. New `latest` releases happen automatically when a release PR merges (see procedure below).
+- **`dev`** — every push to `main` that doesn't change the root `version` produces a `<base>-dev.N` tarball under this tag. Use these to pin reproductions, install internal CI runs, or hand someone a "try `npm install @internal/postgres@dev` to get the bleeding edge" link. **No stability promise** — they may be yanked freely.
 - **`beta`** — reserved for hand-cut release candidates ahead of significant changes. Routine releases do not use this tag.
 
 The `pr` dist-tag was used historically to publish per-PR previews; PR previews now go through [`pkg.pr.new`](https://pkg.pr.new) ([`.github/workflows/preview-publish.yml`](../../.github/workflows/preview-publish.yml)) instead. The legacy `pr` tag is left as-is on the registry.

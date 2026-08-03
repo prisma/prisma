@@ -8,20 +8,31 @@ import {
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
   type OpFactoryCall,
-} from '@prisma-next/framework-components/control';
-import { detectScaffoldRuntime, shebangLineFor } from '@prisma-next/migration-tools/migration-ts';
-import { type ImportRequirement, renderImports } from '@prisma-next/ts-render';
+} from '@internal/framework-components/control';
+import {
+  type ImportSpecifierResolver,
+  resolveRequirementSpecifiers,
+} from '@internal/framework-components/emission';
+import { detectScaffoldRuntime, shebangLineFor } from '@internal/migration-tools/migration-ts';
+import { type ImportRequirement, renderImports } from '@internal/ts-render';
 
 export interface RenderMigrationMeta {
   readonly from: string | null;
   readonly to: string;
   /** POSIX-relative path from the migration package dir to `migrations/snapshots`, e.g. '../../snapshots'. */
   readonly snapshotsImportPath: string;
+  /**
+   * Rewrites the package names the scaffold imports from, for the import root
+   * the consuming application installed. Applied once to the assembled
+   * requirement list rather than at each `OpFactoryCall`, so a new operation
+   * cannot forget it. Defaults to leaving specifiers as authored.
+   */
+  readonly resolveImportSpecifier?: ImportSpecifierResolver;
 }
 
 /**
  * Always-present base imports for the rendered scaffold. Both come from
- * `@prisma-next/sqlite/migration` so an authored SQLite
+ * `@internal/sqlite/migration` so an authored SQLite
  * `migration.ts` only needs a single dependency for its base class and
  * its CLI entrypoint. Mirrors Postgres's `BASE_IMPORTS`.
  *
@@ -29,12 +40,12 @@ export interface RenderMigrationMeta {
  *   generic to `SqlitePlanTargetDetails` and the abstract `targetId` to
  *   `'sqlite'`.
  * - `MigrationCLI` — the migration-file CLI entrypoint, re-exported from
- *   `@prisma-next/cli/migration-cli`. Loads `prisma-next.config.ts`,
+ *   `@internal/cli/migration-cli`. Loads `prisma-next.config.ts`,
  *   assembles a `ControlStack`, and instantiates the migration class.
  */
 const BASE_IMPORTS: readonly ImportRequirement[] = [
-  { moduleSpecifier: '@prisma-next/sqlite/migration', symbol: 'Migration' },
-  { moduleSpecifier: '@prisma-next/sqlite/migration', symbol: 'MigrationCLI' },
+  { moduleSpecifier: '@internal/sqlite/migration', symbol: 'Migration' },
+  { moduleSpecifier: '@internal/sqlite/migration', symbol: 'MigrationCLI' },
 ];
 
 export function renderCallsToTypeScript(
@@ -73,7 +84,7 @@ function buildImports(calls: ReadonlyArray<OpFactoryCall>, meta: RenderMigration
       requirements.push(req);
     }
   }
-  return renderImports(requirements);
+  return renderImports(resolveRequirementSpecifiers(requirements, meta.resolveImportSpecifier));
 }
 
 /**

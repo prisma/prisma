@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { createDevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { MongoClient, ObjectId } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';

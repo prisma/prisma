@@ -1,5 +1,5 @@
-import { createSqlOperationRegistry } from '@prisma-next/sql-operations';
-import { OperationExpr, ParamRef } from '@prisma-next/sql-relational-core/ast';
+import { createSqlOperationRegistry } from '@internal/sql-operations';
+import { OperationExpr, ParamRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { ParadeDbProximityChain } from '../src/core/proximity-chain';
 import paradedbDescriptor from '../src/exports/runtime';

@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { CliStructuredError } from '@prisma-next/errors/control';
+import { CliStructuredError } from '@internal/errors/control';
 import { join } from 'pathe';
 import type { TargetId } from './templates/code-templates';
 

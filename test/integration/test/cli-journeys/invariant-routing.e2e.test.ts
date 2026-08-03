@@ -18,7 +18,7 @@
 
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { storageHashHex } from '@prisma-next/framework-components/control';
+import { storageHashHex } from '@prisma/orm-postgres/components/control';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
@@ -581,13 +581,13 @@ withTempDir(({ createTempDir }) => {
         expect(draftManifest.to).toBe(c1Hash);
 
         const endContractSpecifier = `../../snapshots/${storageHashHex(c1Hash)}/contract.json`;
-        const handAuthored = `import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import { Migration, MigrationCLI } from '@prisma-next/postgres/migration';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
+        const handAuthored = `import postgresAdapter from '@prisma/orm-postgres/adapter/runtime';
+import { Migration, MigrationCLI } from '@prisma/orm-postgres/migration';
+import postgresTarget from '@prisma/orm-postgres/target/runtime';
+import { sql } from '@prisma/orm-postgres/builder/runtime';
+import { createExecutionContext, createSqlExecutionStack } from '@prisma/orm-postgres/family-runtime';
 import endContractJson from '${endContractSpecifier}' with { type: 'json' };
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 
 const endContract = new PostgresContractSerializer().deserializeContract(endContractJson);
 
@@ -734,13 +734,13 @@ MigrationCLI.run(import.meta.url, M);
         );
 
         const endContractSpecifier = `../../snapshots/${storageHashHex(c1Hash)}/contract.json`;
-        const handAuthored = `import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import { Migration, MigrationCLI } from '@prisma-next/postgres/migration';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
+        const handAuthored = `import postgresAdapter from '@prisma/orm-postgres/adapter/runtime';
+import { Migration, MigrationCLI } from '@prisma/orm-postgres/migration';
+import postgresTarget from '@prisma/orm-postgres/target/runtime';
+import { sql } from '@prisma/orm-postgres/builder/runtime';
+import { createExecutionContext, createSqlExecutionStack } from '@prisma/orm-postgres/family-runtime';
 import endContractJson from '${endContractSpecifier}' with { type: 'json' };
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 
 const endContract = new PostgresContractSerializer().deserializeContract(endContractJson);
 

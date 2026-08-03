@@ -1,6 +1,6 @@
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, type DevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { dirname, join } from 'pathe';
 import { createServer, type ViteDevServer } from 'vite';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

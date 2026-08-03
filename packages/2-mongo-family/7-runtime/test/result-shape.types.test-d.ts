@@ -1,5 +1,5 @@
-import type { MongoFieldShape, MongoResultShape } from '@prisma-next/mongo-query-ast/execution';
-import { InsertOneWireCommand } from '@prisma-next/mongo-wire';
+import type { MongoFieldShape, MongoResultShape } from '@internal/mongo-query-ast/execution';
+import { InsertOneWireCommand } from '@internal/mongo-wire';
 import { expectTypeOf, test } from 'vitest';
 import type { MongoExecutionPlan } from '../src/mongo-execution-plan';
 

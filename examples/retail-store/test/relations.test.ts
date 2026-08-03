@@ -1,4 +1,4 @@
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { getCartWithUser, upsertCart } from '../src/data/carts';
 import { createInvoice, findInvoiceWithOrder } from '../src/data/invoices';

@@ -12,7 +12,7 @@ import type {
   StorageColumn,
   StorageTable,
   StorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import { sqliteError } from '../errors';
 import { escapeLiteral, quoteIdentifier } from '../sql-utils';
 

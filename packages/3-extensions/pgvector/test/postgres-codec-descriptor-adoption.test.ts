@@ -1,4 +1,4 @@
-import { CastExpr, ColumnRef, FunctionCallExpr } from '@prisma-next/sql-relational-core/ast';
+import { CastExpr, ColumnRef, FunctionCallExpr } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { codecDescriptors, pgVectorDescriptor } from '../src/core/codecs';
 import { pgvectorCodecRegistry } from '../src/core/registry';

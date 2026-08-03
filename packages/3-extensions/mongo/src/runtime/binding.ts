@@ -1,4 +1,4 @@
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 import type { MongoClient as MongoDriverClient } from 'mongodb';
 import { mongoError } from './mongo-errors';
 

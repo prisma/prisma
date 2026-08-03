@@ -1,5 +1,5 @@
-import { FunctionSource, type SelectAst } from '@prisma-next/sql-relational-core/ast';
-import { cfExpr, cfTable, exprSelect } from '@prisma-next/sql-relational-core/contract-free';
+import { FunctionSource, type SelectAst } from '@internal/sql-relational-core/ast';
+import { cfExpr, cfTable, exprSelect } from '@internal/sql-relational-core/contract-free';
 import { SQLITE_TEXT_CODEC_ID } from '../core/codec-ids';
 
 export interface ColumnExistsCheckBuilder {

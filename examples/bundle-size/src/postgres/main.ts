@@ -1,4 +1,4 @@
-import postgres from '@prisma-next/postgres/runtime';
+import postgres from '@prisma/orm-postgres/runtime';
 import { contract } from './contract';
 
 const db = postgres({ contract });

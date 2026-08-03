@@ -1,24 +1,24 @@
 import {
   createPostgresBuiltinCodecLookup,
   PostgresControlAdapter,
-} from '@prisma-next/adapter-postgres/control';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { CodecControlHooks, SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { createPostgresMigrationPlanner } from '@prisma-next/target-postgres/planner';
-import type { PostgresPlanTargetDetails } from '@prisma-next/target-postgres/planner-target-details';
+} from '@internal/adapter-postgres/control';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { CodecControlHooks, SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { createPostgresMigrationPlanner } from '@internal/target-postgres/planner';
+import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planner-target-details';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
   PostgresUnboundSchema,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
-import { expectNarrowedType } from '@prisma-next/test-utils/typed-expectations';
+} from '@internal/target-postgres/types';
+import { applicationDomainOf } from '@repo/test-utils';
+import { expectNarrowedType } from '@repo/test-utils/typed-expectations';
 import { describe, expect, it } from 'vitest';
 import pgvectorDescriptor from '../../src/exports/control';
 

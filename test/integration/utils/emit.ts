@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { emit as emitImpl } from '@prisma-next/emitter';
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
-import type { JsonObject } from '@prisma-next/utils/json';
+import type { Contract } from '@internal/contract/types';
+import { emit as emitImpl } from '@internal/emitter';
+import type { EmissionSpi } from '@internal/framework-components/emission';
+import type { JsonObject } from '@internal/utils/json';
 
 /**
  * Tests author JSON-clean contracts directly, so the canonicalisation

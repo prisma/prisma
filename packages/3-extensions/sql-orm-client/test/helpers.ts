@@ -1,28 +1,28 @@
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
 import {
   type ColumnDefaultLiteralInputValue,
   domainModelsAtDefaultNamespace,
   type Contract as FrameworkContract,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import type {
   CodecDescriptor,
   CodecInstanceContext,
   ColumnTypeDescriptor,
-} from '@prisma-next/framework-components/codec';
-import { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { Codec, SelectAst } from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/framework-components/codec';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { Codec, SelectAst } from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   type RuntimeMutationDefaultGenerator,
   type RuntimeParameterizedCodecDescriptor,
   type SqlRuntimeExtensionDescriptor,
-} from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+} from '@internal/sql-runtime';
+import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import type { RuntimeQueryable } from '../src/types';
 import { defineContract, field, model, rel, type ScalarFieldBuilder } from './contract-builder';
 import type { Contract } from './fixtures/generated/contract';

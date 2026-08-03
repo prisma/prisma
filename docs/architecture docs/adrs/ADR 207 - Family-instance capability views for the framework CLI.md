@@ -22,7 +22,7 @@ Optional family-instance features are exposed via **capability-gated views**, fo
 
 The five-step structure:
 
-1. **View type** — a family-agnostic shape that lives in a framework-domain package (e.g. `framework-components`) and has no knowledge of any specific family. Examples: `CoreSchemaView` (`@prisma-next/framework-components/control`), `OperationPreview` (same), `PslDocumentAst` (`@prisma-next/framework-components/psl-ast`).
+1. **View type** — a family-agnostic shape that lives in a framework-domain package (e.g. `framework-components`) and has no knowledge of any specific family. Examples: `CoreSchemaView` (`@internal/framework-components/control`), `OperationPreview` (same), `PslDocumentAst` (`@internal/framework-components/psl-ast`).
 2. **Capability interface** — declares the method that produces the view from the family's opaque schema IR or operation list. Lives in `framework-components/src/control-capabilities.ts` alongside other capability declarations. Generic over `TSchemaIR` when the input is the family's IR.
 3. **Type predicate** — a runtime guard `hasFooCapable(instance): instance is ControlFamilyInstance<...> & FooCapable` that the framework uses to detect participation. Always defined alongside the capability and exported from the same module.
 4. **Family implementation** — each family that opts in implements the capability on its `ControlFamilyInstance` (concretely: extends the family-instance interface and provides the method on the factory's return value). Families that do not opt in simply do not implement the method.

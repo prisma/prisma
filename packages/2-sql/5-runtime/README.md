@@ -1,4 +1,4 @@
-# @prisma-next/sql-runtime
+# @internal/sql-runtime
 
 SQL runtime implementation for Prisma Next.
 
@@ -10,7 +10,7 @@ SQL runtime implementation for Prisma Next.
 
 ## Overview
 
-The SQL runtime package implements the SQL family runtime by extending the abstract `RuntimeCore` base class from `@prisma-next/framework-components/runtime` with SQL-specific adapters, drivers, codecs, marker verification, telemetry fingerprinting, and a `beforeCompile` middleware chain. It provides the public runtime API for SQL-based databases, including descriptor-based static context derivation via `SqlStaticContributions` and execution-plane composition via `ExecutionStack`.
+The SQL runtime package implements the SQL family runtime by extending the abstract `RuntimeCore` base class from `@internal/framework-components/runtime` with SQL-specific adapters, drivers, codecs, marker verification, telemetry fingerprinting, and a `beforeCompile` middleware chain. It provides the public runtime API for SQL-based databases, including descriptor-based static context derivation via `SqlStaticContributions` and execution-plane composition via `ExecutionStack`.
 
 ## Purpose
 
@@ -35,17 +35,17 @@ Execute SQL query Plans with deterministic verification, guardrails, and feedbac
 
 ## Dependencies
 
-- `@prisma-next/framework-components` - Runtime component descriptor types (`./execution`) and the abstract `RuntimeCore` base class plus `runWithMiddleware` helper (`./runtime`)
-- `@prisma-next/sql-contract` - SQL contract types (via `@prisma-next/sql-contract/types`)
-- `@prisma-next/operations` - Operation registry
+- `@internal/framework-components` - Runtime component descriptor types (`./execution`) and the abstract `RuntimeCore` base class plus `runWithMiddleware` helper (`./runtime`)
+- `@internal/sql-contract` - SQL contract types (via `@internal/sql-contract/types`)
+- `@internal/operations` - Operation registry
 
 ## Usage
 
-`SqlRuntime` is an abstract base class. Construct a runtime via the target factory — `postgres()` from `@prisma-next/postgres` or `sqlite()` from `@prisma-next/sqlite`. You do not call `new SqlRuntime()` directly.
+`SqlRuntime` is an abstract base class. Construct a runtime via the target factory — `postgres()` from `@internal/postgres` or `sqlite()` from `@internal/sqlite`. You do not call `new SqlRuntime()` directly.
 
 ```typescript
-import postgres from '@prisma-next/postgres';
-import { budgets } from '@prisma-next/sql-runtime';
+import postgres from '@internal/postgres';
+import { budgets } from '@internal/sql-runtime';
 import type { Contract } from './src/contract';
 import contractJson from './src/contract.json' with { type: 'json' };
 
@@ -75,7 +75,7 @@ const db = postgres<Contract>({
 
 ### Runtime
 
-- `SqlRuntime` - Abstract family-layer base class; subclass to build a target runtime (construction happens via target factories — `postgres()` from `@prisma-next/postgres`, `sqlite()` from `@prisma-next/sqlite`)
+- `SqlRuntime` - Abstract family-layer base class; subclass to build a target runtime (construction happens via target factories — `postgres()` from `@internal/postgres`, `sqlite()` from `@internal/sqlite`)
 - `Runtime` - Runtime instance interface
 - `withTransaction` - Helper to run a callback inside a transaction against any `Runtime`
 - `VerifyMarkerOption` - Marker-verification option (`'onFirstUse'` default; `false` to skip)
@@ -123,8 +123,8 @@ Marker reads and writes go through the control adapter SPI (`adapter.readMarker`
 - `lints` - **AST-first lint middleware** (canonical in SQL domain), inspects `plan.ast` when present
 - `SqlMiddleware`, `SqlMiddlewareContext` - SQL-family middleware interface and per-execution context
 - `BudgetsOptions`, `LintsOptions` - Middleware option types
-- `AfterExecuteResult` - Middleware `afterExecute` hook result type (re-exported from `@prisma-next/framework-components/runtime`)
-- `Log` - Log entry type (re-exported from `@prisma-next/framework-components/runtime`)
+- `AfterExecuteResult` - Middleware `afterExecute` hook result type (re-exported from `@internal/framework-components/runtime`)
+- `Log` - Log entry type (re-exported from `@internal/framework-components/runtime`)
 
 #### Lints middleware (SQL domain)
 
@@ -138,8 +138,8 @@ The `lints` middleware operates on `plan.ast` when it is a SQL `QueryAst`:
 When `plan.ast` is missing, the middleware falls back to raw heuristic guardrails (`fallbackWhenAstMissing: 'raw'`) or skips linting (`fallbackWhenAstMissing: 'skip'`). Default is `'raw'`.
 
 ```typescript
-import postgres from '@prisma-next/postgres';
-import { lints } from '@prisma-next/sql-runtime';
+import postgres from '@internal/postgres';
+import { lints } from '@internal/sql-runtime';
 
 const db = postgres<Contract>({
   contractJson,
@@ -150,9 +150,9 @@ const db = postgres<Contract>({
 
 ## Architecture
 
-The SQL runtime extends the abstract `RuntimeCore` base class from `@prisma-next/framework-components/runtime` with SQL-specific implementations. Descriptors implement `SqlStaticContributions` so `ExecutionContext` can be derived from the descriptors-only stack without instantiation.
+The SQL runtime extends the abstract `RuntimeCore` base class from `@internal/framework-components/runtime` with SQL-specific implementations. Descriptors implement `SqlStaticContributions` so `ExecutionContext` can be derived from the descriptors-only stack without instantiation.
 
-1. **ExecutionStack**: Descriptors-only stack (from `@prisma-next/framework-components/execution`)
+1. **ExecutionStack**: Descriptors-only stack (from `@internal/framework-components/execution`)
 2. **SqlStaticContributions**: Codecs, operation signatures, parameterized codecs, and mutation default generators contributed by each descriptor
 3. **ExecutionContext**: Built from contract + stack descriptors (no instantiation)
 4. **ExecutionStackInstance**: Instantiated components used at runtime for execution

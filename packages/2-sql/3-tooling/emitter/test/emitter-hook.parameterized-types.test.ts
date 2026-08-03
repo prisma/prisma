@@ -1,4 +1,4 @@
-import { generateContractDts } from '@prisma-next/emitter';
+import { generateContractDts } from '@internal/emitter';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';

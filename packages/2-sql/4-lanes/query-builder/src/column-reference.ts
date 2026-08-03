@@ -1,4 +1,4 @@
-import type { Brand, StorageHashBase } from '@prisma-next/contract/types';
+import type { Brand, StorageHashBase } from '@internal/contract/types';
 import type { ErrorMessage } from './type-errors';
 
 /**

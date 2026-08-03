@@ -1,5 +1,5 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
+import type { ControlPolicy } from '@internal/contract/types';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 import {
   MongoCollectionOptions,
   type MongoCollectionOptionsInput,
@@ -36,12 +36,12 @@ export interface MongoCollectionInput {
  * sites.
  *
  * The unprefixed name `MongoCollection` is now the contract IR class.
- * Note that `@prisma-next/mongo-orm` also exports a (different)
+ * Note that `@internal/mongo-orm` also exports a (different)
  * `MongoCollection<TContract, ModelName>` generic for the user-facing
  * ORM query builder; the two live in separate packages and are
  * resolved by import path. A source file that needs both should alias
  * one (e.g. `import { MongoCollection as MongoContractCollection }
- * from '@prisma-next/mongo-contract'`).
+ * from '@internal/mongo-contract'`).
  */
 export class MongoCollection extends IRNodeBase {
   readonly kind = 'mongo-collection' as const;

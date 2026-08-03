@@ -1,17 +1,17 @@
-import { MONGO_INT32_CODEC_ID, MONGO_STRING_CODEC_ID } from '@prisma-next/adapter-mongo/codec-ids';
+import { MONGO_INT32_CODEC_ID, MONGO_STRING_CODEC_ID } from '@internal/adapter-mongo/codec-ids';
 import {
   mongoFamilyEntityTypes,
   mongoFamilyPslBlockDescriptors,
-} from '@prisma-next/family-mongo/pack';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/family-mongo/pack';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   type InterpretPslDocumentToMongoContractInput,
   interpretPslDocumentToMongoContract,
-} from '@prisma-next/mongo-contract-psl';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/mongo-contract-psl';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 const authoringContributions = {

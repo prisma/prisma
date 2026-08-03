@@ -45,11 +45,11 @@ describe('findPnPinViolations', () => {
         name: '@scope/pkg',
         version: '0.7.0',
         dependencies: {
-          '@prisma-next/contract': '0.7.0',
-          '@prisma-next/postgres': '0.7.0',
+          '@internal/contract': '0.7.0',
+          '@internal/postgres': '0.7.0',
           arktype: '^2.1.29',
         },
-        peerDependencies: { '@prisma-next/framework-components': '0.7.0' },
+        peerDependencies: { '@internal/framework-components': '0.7.0' },
       }),
       [],
     );
@@ -58,12 +58,12 @@ describe('findPnPinViolations', () => {
   it('flags a caret range in dependencies', () => {
     const v = findPnPinViolations({
       name: '@scope/pkg',
-      dependencies: { '@prisma-next/contract': '^0.7.0' },
+      dependencies: { '@internal/contract': '^0.7.0' },
     });
     assert.equal(v.length, 1);
     assert.deepEqual(v[0], {
       field: 'dependencies',
-      name: '@prisma-next/contract',
+      name: '@internal/contract',
       spec: '^0.7.0',
     });
   });
@@ -72,7 +72,7 @@ describe('findPnPinViolations', () => {
     for (const spec of ['^0.7.0', '~0.7.0', '>=0.7.0', '0.7.x', '*', '0.7.0 || 0.8.0']) {
       const v = findPnPinViolations({
         name: '@scope/pkg',
-        dependencies: { '@prisma-next/contract': spec },
+        dependencies: { '@internal/contract': spec },
       });
       assert.equal(v.length, 1, `expected ${spec} to be flagged`);
       assert.equal(v[0].spec, spec);
@@ -82,8 +82,8 @@ describe('findPnPinViolations', () => {
   it('flags violations in peerDependencies and optionalDependencies, not just dependencies', () => {
     const v = findPnPinViolations({
       name: '@scope/pkg',
-      peerDependencies: { '@prisma-next/a': '^0.7.0' },
-      optionalDependencies: { '@prisma-next/b': '~0.7.0' },
+      peerDependencies: { '@internal/a': '^0.7.0' },
+      optionalDependencies: { '@internal/b': '~0.7.0' },
     });
     assert.equal(v.length, 2);
     const fields = v.map((x) => x.field).sort();
@@ -94,13 +94,13 @@ describe('findPnPinViolations', () => {
     assert.deepEqual(
       findPnPinViolations({
         name: '@scope/pkg',
-        devDependencies: { '@prisma-next/contract': '^0.7.0' },
+        devDependencies: { '@internal/contract': '^0.7.0' },
       }),
       [],
     );
   });
 
-  it('does not flag non-@prisma-next/* deps', () => {
+  it('does not flag non-@internal/* deps', () => {
     assert.deepEqual(
       findPnPinViolations({
         name: '@scope/pkg',
@@ -113,8 +113,8 @@ describe('findPnPinViolations', () => {
   it('cross-field: a range in peerDependencies still fails even if dependencies is clean', () => {
     const v = findPnPinViolations({
       name: '@scope/pkg',
-      dependencies: { '@prisma-next/contract': '0.7.0' },
-      peerDependencies: { '@prisma-next/postgres': '^0.7.0' },
+      dependencies: { '@internal/contract': '0.7.0' },
+      peerDependencies: { '@internal/postgres': '^0.7.0' },
     });
     assert.equal(v.length, 1);
     assert.equal(v[0].field, 'peerDependencies');
@@ -124,8 +124,8 @@ describe('findPnPinViolations', () => {
     const pkg = {
       name: '@scope/pkg',
       dependencies: {
-        '@prisma-next/contract': 'workspace:0.7.0',
-        '@prisma-next/postgres': 'catalog:',
+        '@internal/contract': 'workspace:0.7.0',
+        '@internal/postgres': 'catalog:',
       },
     };
     assert.deepEqual(findPnPinViolations(pkg), []);
@@ -137,7 +137,7 @@ describe('findPnPinViolations', () => {
     assert.deepEqual(
       findPnPinViolations({
         name: '@scope/pkg',
-        dependencies: { '@prisma-next/contract': '0.7.0-dev.5' },
+        dependencies: { '@internal/contract': '0.7.0-dev.5' },
       }),
       [],
     );

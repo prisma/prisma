@@ -1,5 +1,5 @@
-import { type Contract, coreHash, type StorageNamespace } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { type Contract, coreHash, type StorageNamespace } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 
 /**
  * `Contract['storage']` widened with the SQL-family `types` slot, which the

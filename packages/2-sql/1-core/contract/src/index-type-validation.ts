@@ -1,5 +1,5 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import type { Contract } from '@prisma-next/contract/types';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import type { Contract } from '@internal/contract/types';
 import { type } from 'arktype';
 import type { IndexTypeRegistry } from './index-types';
 import type { SqlStorage } from './types';

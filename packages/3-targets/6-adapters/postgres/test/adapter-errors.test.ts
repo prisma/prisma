@@ -1,6 +1,6 @@
-import type { StorageHashBase } from '@prisma-next/contract/types';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import type { RawSqlLiteral } from '@prisma-next/sql-relational-core/ast';
+import type { StorageHashBase } from '@internal/contract/types';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import type { RawSqlLiteral } from '@internal/sql-relational-core/ast';
 import {
   BinaryExpr,
   ColumnRef,
@@ -13,12 +13,12 @@ import {
   SelectAst,
   TableSource,
   UpdateAst,
-} from '@prisma-next/sql-relational-core/ast';
-import { col, lit } from '@prisma-next/sql-relational-core/contract-free';
-import { PostgresCreateTable } from '@prisma-next/target-postgres/ddl';
-import { PostgresSchema } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-relational-core/ast';
+import { col, lit } from '@internal/sql-relational-core/contract-free';
+import { PostgresCreateTable } from '@internal/target-postgres/ddl';
+import { PostgresSchema } from '@internal/target-postgres/types';
+import { isStructuredError } from '@internal/utils/structured-error';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresAdapter, postgresRawCodecInferer } from '../src/core/adapter';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';

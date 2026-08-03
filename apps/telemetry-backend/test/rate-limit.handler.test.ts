@@ -1,4 +1,4 @@
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTelemetryDb, type TelemetryDb } from '../src/db';
 import { createHandler } from '../src/handler';

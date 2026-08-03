@@ -4,8 +4,8 @@ import type {
   SchemaDiffIssue,
   SignDatabaseResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { SchemaTreeNode } from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
+import { SchemaTreeNode } from '@internal/framework-components/control';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import {

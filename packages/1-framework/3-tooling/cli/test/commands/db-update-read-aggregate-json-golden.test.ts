@@ -1,10 +1,10 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { writeContractSnapshot } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { writeContractSnapshot } from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDbUpdateCommand } from '../../src/commands/db-update';
@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   close: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 
@@ -91,7 +91,7 @@ async function setupFixture(): Promise<{
 
 describe('db update read aggregate --json golden', () => {
   afterAll(() => {
-    vi.doUnmock('@prisma-next/config-loader');
+    vi.doUnmock('@internal/config-loader');
     vi.doUnmock('../../src/control-api/client');
   });
 

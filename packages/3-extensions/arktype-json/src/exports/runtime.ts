@@ -6,7 +6,7 @@
  * Lives at the runtime-plane entrypoint so `src/core/**` stays free of runtime-plane imports (per `.cursor/rules/multi-plane-entrypoints.mdc`).
  */
 
-import type { SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
+import type { SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import { arktypeJsonPackMeta } from '../core/pack-meta';
 import { arktypeJsonCodecRegistry } from '../core/registry';
 

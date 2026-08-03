@@ -83,7 +83,7 @@ factory body.
   context-supplied defaults, then continue into the existing codec-resolution + member loop with
   that id. Present `@@type` skips the classifier entirely (R2).
 - **Carrying the defaults.** Extend `AuthoringEntityContext`
-  (`@prisma-next/framework-components/authoring`) with the target's default enum codec ids (e.g.
+  (`@internal/framework-components/authoring`) with the target's default enum codec ids (e.g.
   `enumInferenceCodecs: { text: string; int: string }`), populated where each pack builds the
   authoring context. This is the single new framework surface.
 - **Classifier is shared.** One helper classifies the member set → `'text' | 'int' | null`

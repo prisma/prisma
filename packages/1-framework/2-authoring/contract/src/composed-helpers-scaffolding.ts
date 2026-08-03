@@ -2,8 +2,8 @@ import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
   AuthoringEntityTypeNamespace,
-} from '@prisma-next/framework-components/authoring';
-import { instantiateAuthoringEntityType } from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
+import { instantiateAuthoringEntityType } from '@internal/framework-components/authoring';
 
 /**
  * Family-agnostic merge / instantiation scaffolding for pack-bag-driven

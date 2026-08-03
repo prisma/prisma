@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { CapabilityMatrix } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type { CapabilityMatrix } from '@internal/framework-components/components';
 import type {
   AssembledAuthoringContributions,
   ControlMutationDefaults,
-} from '@prisma-next/framework-components/control';
-import type { Result } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import type { Result } from '@internal/utils/result';
 
 export interface ContractSourceDiagnosticPosition {
   readonly offset: number;

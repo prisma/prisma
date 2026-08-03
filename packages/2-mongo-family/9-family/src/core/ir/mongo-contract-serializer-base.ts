@@ -1,21 +1,21 @@
-import { validateContractDomain } from '@prisma-next/contract/validate-domain';
-import type { ContractSerializer } from '@prisma-next/framework-components/control';
+import { validateContractDomain } from '@internal/contract/validate-domain';
+import type { ContractSerializer } from '@internal/framework-components/control';
 import {
   type AnyEntityKindDescriptor,
   hydrateNamespaceEntities,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import {
   createMongoContractSchema,
   type MongoContract,
   MongoContractSchema,
   type MongoNamespaceEntries,
   validateMongoStorage,
-} from '@prisma-next/mongo-contract';
-import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/canonicalization-hooks';
-import { composeMongoEntityKinds } from '@prisma-next/mongo-contract/entity-kinds';
-import { blindCast } from '@prisma-next/utils/casts';
-import type { JsonObject } from '@prisma-next/utils/json';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/mongo-contract';
+import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
+import { composeMongoEntityKinds } from '@internal/mongo-contract/entity-kinds';
+import { blindCast } from '@internal/utils/casts';
+import type { JsonObject } from '@internal/utils/json';
+import { structuredError } from '@internal/utils/structured-error';
 import { type as arktypeType, type Type } from 'arktype';
 
 /**

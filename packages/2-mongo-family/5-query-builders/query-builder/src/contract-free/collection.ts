@@ -4,7 +4,7 @@ import {
   CreateIndexCommand,
   type CreateIndexOptions,
   type MongoIndexKey,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import {
   AggregateCommand,
   FindOneAndUpdateCommand,
@@ -16,9 +16,9 @@ import {
   type MongoPipelineStage,
   MongoSortStage,
   type MongoUpdatePipelineStage,
-} from '@prisma-next/mongo-query-ast/execution';
-import type { MongoValue } from '@prisma-next/mongo-value';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-query-ast/execution';
+import type { MongoValue } from '@internal/mongo-value';
+import { InternalError } from '@internal/utils/internal-error';
 import { createFieldAccessor, type FieldAccessor } from '../field-accessor';
 import type { DocShape } from '../types';
 import { resolveUpdaterResult, type UpdaterResult } from '../update-ops';

@@ -1,5 +1,5 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { rlsEnabledAst, rlsPolicyExistsAst } from '../../src/contract-free/checks';
 import {

@@ -16,16 +16,16 @@
  *     `.sql({ table })` form and default (identity) naming both included.
  */
 
-import { extensionModel } from '@prisma-next/sql-contract-ts/contract-builder';
-import { formatWireName } from '@prisma-next/sql-schema-ir/naming';
-import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import type { PostgresSchema } from '@prisma-next/target-postgres/types';
+import { extensionModel } from '@internal/sql-contract-ts/contract-builder';
+import { formatWireName } from '@internal/sql-schema-ir/naming';
+import { computeContentHash } from '@internal/target-postgres/rls-canonicalize';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import type { PostgresSchema } from '@internal/target-postgres/types';
 import {
   PostgresRlsEnablement,
   PostgresRlsPolicy,
   PostgresRole,
-} from '@prisma-next/target-postgres/types';
+} from '@internal/target-postgres/types';
 import { describe, expect, it, vi } from 'vitest';
 import {
   defineContract,

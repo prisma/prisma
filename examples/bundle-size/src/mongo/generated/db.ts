@@ -1,4 +1,4 @@
-import mongo from '@prisma-next/mongo/runtime';
+import mongo from '@prisma/orm-mongo/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 

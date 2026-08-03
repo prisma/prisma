@@ -1,6 +1,6 @@
-import { validateSqlContractFully } from '@prisma-next/sql-contract/validators';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { validateSqlContractFully } from '@internal/sql-contract/validators';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { sql } from '../../src/runtime/sql';
 import { contract as contractJson } from '../fixtures/contract';

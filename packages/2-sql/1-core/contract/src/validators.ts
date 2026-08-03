@@ -1,19 +1,19 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
 import {
   type Contract,
   type ContractField,
   type ContractModel,
   CrossReferenceSchema,
-} from '@prisma-next/contract/types';
-import { validateContractDomain } from '@prisma-next/contract/validate-domain';
+} from '@internal/contract/types';
+import { validateContractDomain } from '@internal/contract/validate-domain';
 import {
   type AnyEntityKindDescriptor,
   isPlainRecord,
   type Namespace,
-} from '@prisma-next/framework-components/ir';
-import { computeIndexContentHash } from '@prisma-next/sql-schema-ir/naming';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/ir';
+import { computeIndexContentHash } from '@internal/sql-schema-ir/naming';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { type Type, type } from 'arktype';
 import { contractError } from './contract-errors';
 import { composeSqlEntityKinds } from './entity-kinds';

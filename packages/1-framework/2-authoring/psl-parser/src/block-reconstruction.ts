@@ -1,11 +1,11 @@
-import type { AuthoringPslBlockDescriptor } from '@prisma-next/framework-components/authoring';
+import type { AuthoringPslBlockDescriptor } from '@internal/framework-components/authoring';
 import type {
   PslBlockParam,
   PslExtensionBlock,
   PslExtensionBlockAttribute,
   PslExtensionBlockParamValue,
   PslSpan,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import type { ParseDiagnostic } from './parse';
 import { nodePslSpan } from './resolve';
 import type { SourceFile } from './source-file';

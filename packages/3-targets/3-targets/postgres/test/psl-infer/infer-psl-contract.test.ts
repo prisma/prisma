@@ -1,13 +1,13 @@
-import { flatPslModels } from '@prisma-next/framework-components/psl-ast';
-import { printPsl } from '@prisma-next/psl-printer';
+import { flatPslModels } from '@internal/framework-components/psl-ast';
+import { printPsl } from '@internal/psl-printer';
 import {
   computeIndexContentHash,
   formatWireName,
   parseNaming,
-} from '@prisma-next/sql-schema-ir/naming';
-import type { SqlIndexIRInput, SqlSchemaIRInput } from '@prisma-next/sql-schema-ir/types';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/sql-schema-ir/naming';
+import type { SqlIndexIRInput, SqlSchemaIRInput } from '@internal/sql-schema-ir/types';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';

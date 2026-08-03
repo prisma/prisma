@@ -1,6 +1,6 @@
 # Brief — example emit writes the generated contract to the wrong directory
 
-In `examples/paradedb-demo` and `examples/prisma-next-demo-sqlite`, the app imports its
+In `examples/paradedb-demo` and `examples/prisma-8-demo-sqlite`, the app imports its
 generated contract (`contract.d.ts` / `contract.json`) from `src/prisma/` — the tracked
 location, next to `db.ts`, which is what the app imports from. The authoring source is
 `prisma/contract.ts`.

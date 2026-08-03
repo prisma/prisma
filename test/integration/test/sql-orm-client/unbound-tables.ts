@@ -1,4 +1,4 @@
-import type { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
+import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 
 const POSTGRES_DEFAULT_NAMESPACE_ID = 'public' as const;
 

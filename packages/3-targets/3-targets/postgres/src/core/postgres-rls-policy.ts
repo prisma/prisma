@@ -1,6 +1,6 @@
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { SqlNode } from '@prisma-next/sql-contract/types';
-import { nameOf, type SqlObjectNaming } from '@prisma-next/sql-schema-ir/naming';
+import { freezeNode } from '@internal/framework-components/ir';
+import { SqlNode } from '@internal/sql-contract/types';
+import { nameOf, type SqlObjectNaming } from '@internal/sql-schema-ir/naming';
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 

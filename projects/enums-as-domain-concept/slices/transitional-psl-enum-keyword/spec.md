@@ -101,7 +101,7 @@ framework-level surface available on every target whose codec set resolves the
 `@@type` codec id; any block descriptor the extension-block machinery needs lives at
 the framework/SQL-family level (component 2).
 
-**4. Demo (`examples/prisma-next-demo`).** Author `enum2 Priority` (the same three
+**4. Demo (`examples/prisma-8-demo`).** Author `enum2 Priority` (the same three
 members the TS-path `Priority` in `prisma/contract.ts` has) in
 `src/prisma/contract.prisma`; re-emit (`pnpm emit`) so `src/prisma/contract.json` +
 `contract.d.ts` carry the enum and the field's value union (the TML-2852 emit-time
@@ -249,7 +249,7 @@ architecture.
   `contract-ts/src/enum-type.ts` (`EnumTypeHandle`);
   `postgres/src/core/authoring.ts` (43–53 `postgresAuthoringEntityTypes`);
   `framework-components/src/control/psl-extension-block-validator.ts` (~190–216 value
-  validation); `examples/prisma-next-demo` (`src/prisma/contract.prisma`,
+  validation); `examples/prisma-8-demo` (`src/prisma/contract.prisma`,
   `prisma/contract.ts` Priority, `package.json` emit scripts, `migrations/app/`).
 - Merged prerequisites: TML-2850 `b661ee117`, TML-2851 `60b2ed9e6`, TML-2852
   `dc72201bc`.

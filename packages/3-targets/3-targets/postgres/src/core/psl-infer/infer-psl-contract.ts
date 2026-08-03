@@ -1,14 +1,14 @@
-import type { SqlDescribedContractSpace } from '@prisma-next/family-sql/control';
-import type { EnumInfo, PslPrinterOptions } from '@prisma-next/family-sql/psl-infer';
-import { inferRelations, parseRawDefault, toModelName } from '@prisma-next/family-sql/psl-infer';
-import { coordinateKey } from '@prisma-next/framework-components/ir';
-import type { PslDocumentAst, PslModel } from '@prisma-next/framework-components/psl-ast';
+import type { SqlDescribedContractSpace } from '@internal/family-sql/control';
+import type { EnumInfo, PslPrinterOptions } from '@internal/family-sql/psl-infer';
+import { inferRelations, parseRawDefault, toModelName } from '@internal/family-sql/psl-infer';
+import { coordinateKey } from '@internal/framework-components/ir';
+import type { PslDocumentAst, PslModel } from '@internal/framework-components/psl-ast';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
   UNSPECIFIED_PSL_NAMESPACE_ID,
-} from '@prisma-next/framework-components/psl-ast';
-import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/framework-components/psl-ast';
+import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { postgresError } from '../errors';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';

@@ -1,5 +1,5 @@
-import type { CodecInstanceContext } from '@prisma-next/framework-components/codec';
-import type { AnyPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
+import type { CodecInstanceContext } from '@internal/framework-components/codec';
+import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 import { type } from 'arktype';
 import { expectTypeOf, test } from 'vitest';
 import {

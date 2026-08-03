@@ -21,9 +21,9 @@ This skill exists to disambiguate vague Prisma Next prompts. When the user hasn'
   - Setting up a new project or adopting an existing DB → `prisma-next-quickstart`.
   - Editing the schema, adding a model, changing a field → `prisma-next-contract`.
   - Authoring a migration, fixing a planner error → `prisma-next-migrations`.
-  - Reviewing what's about to run on merge, handling concurrent migrations → `prisma-next-migration-review`.
+  - Reviewing what's about to run on merge, handling concurrent migrations → `prisma-8-migration-review`.
   - Writing a query → `prisma-next-queries`.
-  - Supabase — RLS policies, role binding (`asUser` / `asAnon` / `asServiceRole`), `auth.users` FKs, `@prisma-next/extension-supabase` → `prisma-next-supabase`.
+  - Supabase — RLS policies, role binding (`asUser` / `asAnon` / `asServiceRole`), `auth.users` FKs, `@internal/extension-supabase` → `prisma-next-supabase`.
   - Wiring `db.ts`, middleware, environment config → `prisma-next-runtime`.
   - Build-system / dev-server plugin (Vite, Next.js, …) → `prisma-next-build`.
   - A specific error code or symptom → `prisma-next-debug`.
@@ -38,7 +38,7 @@ Otherwise, ask **one** disambiguating question. Pick from:
 - *"Are you new to Prisma Next and asking what you can do with it, or where to start?"* (and any *"what can I do with Prisma Next?"* / *"I just ran createprisma"* variant) → `prisma-next-quickstart` (first-touch orientation path).
 - *"Do you want to set up a new Prisma Next project, or wire it into an existing database?"* → `prisma-next-quickstart`.
 - *"Do you want to edit your data contract (add a model / field / relation), or work with the database (migrations, queries)?"* → `prisma-next-contract` vs the others.
-- *"Is this about authoring a migration, or about reviewing what's going to run on deploy?"* → `prisma-next-migrations` vs `prisma-next-migration-review`.
+- *"Is this about authoring a migration, or about reviewing what's going to run on deploy?"* → `prisma-next-migrations` vs `prisma-8-migration-review`.
 - *"Is this about wiring Prisma Next into your build tool (Vite / Next.js / …), or about wiring `db.ts` and middleware at runtime?"* → `prisma-next-build` vs `prisma-next-runtime`.
 - *"What error or symptom are you seeing?"* → `prisma-next-debug`.
 - *"Do you want to report this as a bug to the Prisma Next team, or is this a feature request?"* → `prisma-next-feedback`.

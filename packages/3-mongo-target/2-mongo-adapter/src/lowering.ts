@@ -1,5 +1,5 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
-import type { MongoCodecRegistry } from '@prisma-next/mongo-codec';
+import type { CodecCallContext } from '@internal/framework-components/codec';
+import type { MongoCodecRegistry } from '@internal/mongo-codec';
 import type {
   MongoAggExpr,
   MongoAggExprVisitor,
@@ -8,11 +8,11 @@ import type {
   MongoPipelineStage,
   MongoProjectionValue,
   MongoWindowField,
-} from '@prisma-next/mongo-query-ast/execution';
-import { isExprArray, isRecordArgs } from '@prisma-next/mongo-query-ast/execution';
-import type { Document } from '@prisma-next/mongo-value';
-import { blindCast } from '@prisma-next/utils/casts';
-import { assertNever, InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-query-ast/execution';
+import { isExprArray, isRecordArgs } from '@internal/mongo-query-ast/execution';
+import type { Document } from '@internal/mongo-value';
+import { blindCast } from '@internal/utils/casts';
+import { assertNever, InternalError } from '@internal/utils/internal-error';
 import { resolveValue } from './resolve-value';
 
 // Biome flags `{ then: ... }` as a thenable object (noThenProperty). Build via Object.fromEntries to avoid.

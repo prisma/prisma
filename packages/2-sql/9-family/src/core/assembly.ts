@@ -1,5 +1,5 @@
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import { assertUniqueCodecOwner } from '@prisma-next/framework-components/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import { assertUniqueCodecOwner } from '@internal/framework-components/control';
 import type { CodecControlHooks } from './migrations/types';
 
 type CodecControlHooksMap = Record<string, CodecControlHooks>;

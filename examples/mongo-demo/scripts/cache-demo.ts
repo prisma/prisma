@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
-import type { CachePayload } from '@prisma-next/middleware-cache';
-import { cacheAnnotation } from '@prisma-next/middleware-cache';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import type { CachePayload } from '@prisma/orm-extension-middleware-cache';
+import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';
+import type { MongoQueryPlan } from '@prisma/orm-mongo/query-ast/execution';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { createClient } from '../src/db';
 import { seed } from '../src/seed';
@@ -19,7 +19,7 @@ const DB_NAME = 'cache_demo';
  * surface (the SQL DSL does), so we thread the annotation through
  * `plan.meta.annotations.cache` directly. The cache middleware reads it
  * via `cacheAnnotation.read(plan)` exactly the same way it does for SQL
- * plans — the package depends only on `@prisma-next/framework-components/runtime`
+ * plans — the package depends only on `@internal/framework-components/runtime`
  * and is family-agnostic by construction.
  */
 function withCacheAnnotation<P extends MongoQueryPlan>(plan: P, payload: CachePayload): P {

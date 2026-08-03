@@ -2,7 +2,7 @@
 
 ## Task
 
-Add the public PostgreSQL target codec descriptor protocol in `@prisma-next/target-postgres`: a real `PostgresCodecDescriptor<P>` base with a stable structural discriminant, validated erased-to-typed template methods, explicit native-type and scalar JSON projection hooks, the default overridable single-evaluation array lift, a `postgresCodec(...)` adapter that preserves the complete wrapped descriptor contract, a tuple-preserving `definePostgresCodecs(...)` helper, and a structurally validated typed registry. This dispatch establishes and tests the protocol only; no built-in, adapter, or extension migration occurs yet.
+Add the public PostgreSQL target codec descriptor protocol in `@internal/target-postgres`: a real `PostgresCodecDescriptor<P>` base with a stable structural discriminant, validated erased-to-typed template methods, explicit native-type and scalar JSON projection hooks, the default overridable single-evaluation array lift, a `postgresCodec(...)` adapter that preserves the complete wrapped descriptor contract, a tuple-preserving `definePostgresCodecs(...)` helper, and a structurally validated typed registry. This dispatch establishes and tests the protocol only; no built-in, adapter, or extension migration occurs yet.
 
 ## Scope
 
@@ -14,7 +14,7 @@ Add the public PostgreSQL target codec descriptor protocol in `@prisma-next/targ
 
 - [ ] Test-first runtime/type coverage proves raw generic descriptors are rejected by `definePostgresCodecs`, adapted/direct target descriptors preserve literal and factory types, scalar/native hooks are mandatory, erased refs are validated before typed hooks, structural validation works without `instanceof`, and malformed/duplicate registries fail clearly.
 - [ ] The default array projection is represented compositionally without raw SQL, binds the input once, and structurally preserves null array, empty array, null elements, and order; an override is accepted only through the same typed parameter boundary.
-- [ ] `@prisma-next/target-postgres` build/test/typecheck/lint plus `pnpm lint:casts`, `pnpm lint:throws`, and `pnpm lint:deps` pass; closing bounded `rg` scans show no built-in/adapter/extension migration or later-slice behavior.
+- [ ] `@internal/target-postgres` build/test/typecheck/lint plus `pnpm lint:casts`, `pnpm lint:throws`, and `pnpm lint:deps` pass; closing bounded `rg` scans show no built-in/adapter/extension migration or later-slice behavior.
 - [ ] Only D1 files are explicitly staged in a signed-off commit; do not amend or push. The report lists API/export choices, tests, gate results, and any deferral.
 
 ## Standing instruction

@@ -2,7 +2,7 @@ import {
   type StructuredError,
   type StructuredErrorOptions,
   structuredError,
-} from '@prisma-next/utils/structured-error';
+} from '@internal/utils/structured-error';
 
 type OrmSubcode =
   | 'MODEL_UNKNOWN'

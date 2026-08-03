@@ -1,8 +1,8 @@
 import {
   backingIndexColumnKeys,
   isBackedByColumnKeys,
-} from '@prisma-next/sql-contract/foreign-key-materialization';
-import type { SqlForeignKeyIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-contract/foreign-key-materialization';
+import type { SqlForeignKeyIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { deriveBackRelationFieldName, deriveRelationFieldName, pluralize } from './name-transforms';
 import type { RelationField } from './printer-config';
 

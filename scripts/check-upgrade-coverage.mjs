@@ -115,7 +115,7 @@ export function parseChangesFrontmatter(src) {
 }
 
 const USER_SKILL_PKG = 'skills/upgrade/prisma-next-upgrade';
-const EXT_SKILL_PKG = 'skills/extension-author/prisma-next-extension-upgrade';
+const EXT_SKILL_PKG = 'skills/extension-author/prisma-8-extension-upgrade';
 
 /**
  * Substrates covered by the gate. Each entry pairs a diff pathspec
@@ -219,7 +219,7 @@ export function coverageTransitionChain(head, prev) {
  */
 export function parseTransitionFromPath(path) {
   const match =
-    /^skills\/(?:upgrade\/prisma-next-upgrade|extension-author\/prisma-next-extension-upgrade)\/upgrades\/([^/]+)\//.exec(
+    /^skills\/(?:upgrade\/prisma-next-upgrade|extension-author\/prisma-8-extension-upgrade)\/upgrades\/([^/]+)\//.exec(
       path,
     );
   return match ? match[1] : null;
@@ -499,7 +499,7 @@ function renderViolations(result, write) {
           `                ${v.allowedTransitions.join(', ')}\n` +
           '              move the new file under one of:\n' +
           '                skills/upgrade/prisma-next-upgrade/upgrades/<one-of-the-above>/instructions.md\n' +
-          '                skills/extension-author/prisma-next-extension-upgrade/upgrades/<one-of-the-above>/instructions.md\n',
+          '                skills/extension-author/prisma-8-extension-upgrade/upgrades/<one-of-the-above>/instructions.md\n',
       );
     } else if (v.rule === 'per-pr-declaration') {
       if (v.malformed) {

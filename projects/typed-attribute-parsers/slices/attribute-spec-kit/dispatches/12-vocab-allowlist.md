@@ -33,7 +33,7 @@ In `scripts/lint-framework-vocabulary.config.json`:
 - [ ] Config has `"allow": ["SymbolTable"]` and a `threshold` recomputed to the new accurate count.
 - [ ] `node scripts/lint-framework-vocabulary.test.mjs` (however the repo runs it — check `package.json` / how #918 wired it; likely `node --test` or a vitest) passes, including the new allow test.
 - [ ] `pnpm lint:framework-vocabulary` passes (count === threshold).
-- [ ] Gates unaffected: `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl test`; `pnpm fixtures:check`; workspace `pnpm typecheck` (after psl-parser build).
+- [ ] Gates unaffected: `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl test`; `pnpm fixtures:check`; workspace `pnpm typecheck` (after psl-parser build).
 
 ## Constraints
 No `any` in the script beyond its existing style (it's plain JS/ESM — match the file's conventions). Explicit-staging commit(s) with sign-off, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.

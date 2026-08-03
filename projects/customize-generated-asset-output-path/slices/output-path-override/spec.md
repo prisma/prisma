@@ -21,7 +21,7 @@ This slice is the project's only slice. The project spec + design notes are auth
 
 ## Out of scope
 
-- Any change to `@prisma-next/sqlite` (no wrapper exists; tracked at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo)).
+- Any change to `@internal/sqlite` (no wrapper exists; tracked at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo)).
 - Any change to `ContractConfig.output`'s underlying semantics or to `getEmittedArtifactPaths`. The framework-level shape stays a file path; the wrapper / CLI operation converts directory → file path at the boundary.
 - Letting the user pick the emitted filenames. `contract.json` and `contract.d.ts` are canonical.
 - Adding a `--output-path` flag to commands other than `contract emit` (e.g. `migrate` doesn't get one).
@@ -85,7 +85,7 @@ Pre-named edge cases under the directory-semantics design that landed during PR 
 # Slice DoD
 
 - [ ] **SDoD1.** All in-scope edge cases (#1-8, #11-12) handled with corresponding tests; #9-10 explicitly documented as out-of-scope (no test required).
-- [ ] **SDoD2.** Unit tests for both wrappers green: `pnpm --filter @prisma-next/mongo test` and `pnpm --filter @prisma-next/postgres test`.
+- [ ] **SDoD2.** Unit tests for both wrappers green: `pnpm --filter @internal/mongo test` and `pnpm --filter @internal/postgres test`.
 - [ ] **SDoD3.** CLI tests green covering the flag, the precedence rule, the default-unchanged invariant, and the OS-agnostic assertion of resolved relative-path values.
 - [ ] **SDoD4.** End-to-end / integration test green confirming `--output-path <dir>` produces `<dir>/contract.json` and `<dir>/contract.d.ts`.
 - [ ] **SDoD5.** `pnpm fixtures:check` clean — no fixture drift introduced.

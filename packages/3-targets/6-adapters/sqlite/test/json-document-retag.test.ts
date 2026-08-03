@@ -13,7 +13,7 @@
  * rather than as a document.
  */
 
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   ColumnRef,
   FunctionCallExpr,
@@ -22,12 +22,9 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import {
-  jsonDocumentRetag,
-  sqliteCodecDescriptorRegistry,
-} from '@prisma-next/target-sqlite/codecs';
-import { createContract } from '@prisma-next/test-utils';
+} from '@internal/sql-relational-core/ast';
+import { jsonDocumentRetag, sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
+import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { renderLoweredSql } from '../src/core/adapter';
 import type { SqliteContract } from '../src/core/types';

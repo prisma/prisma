@@ -5,18 +5,18 @@
  * model's namespace coordinate (auth vs public), not only the default namespace.
  */
 
-import { postgresRawCodecInferer } from '@prisma-next/adapter-postgres/adapter';
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import { asNamespaceId, type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget, { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
-import { PostgresSchema } from '@prisma-next/target-postgres/types';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { instantiateExecutionStack } from '@prisma/orm-postgres/components/execution';
+import {
+  asNamespaceId,
+  type Contract,
+  coreHash,
+  profileHash,
+} from '@prisma/orm-postgres/contract/types';
+import { SqlStorage, StorageTable } from '@prisma/orm-postgres/family-contract/types';
+import postgres from '@prisma/orm-postgres/runtime';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
+import { PostgresSchema } from '@prisma/orm-postgres/target/types';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { Pool } from 'pg';
 import { describe, expect, it } from 'vitest';
 import { createControlClientForTests, withE2eMigrationsDir } from './utils';
@@ -164,33 +164,12 @@ describe('multi-namespace runtime', () => {
           await controlClient.close();
         }
 
-        const stack = createSqlExecutionStack({
-          target: postgresTarget,
-          adapter: postgresAdapter,
-          driver: postgresDriver,
-        });
-        const context = createExecutionContext({ contract, stack });
-        const stackInstance = instantiateExecutionStack(stack);
-        const adapter = stackInstance.adapter;
-        if (!adapter) {
-          throw new Error('adapter missing from execution stack');
-        }
-
         const pool = new Pool({ connectionString });
         try {
-          const driver = postgresDriver.create();
-          await driver.connect({ kind: 'pgPool', pool });
-
-          const runtime = new PostgresRuntimeImpl({
-            context,
-            adapter: stackInstance.adapter,
-            driver,
-          });
-
-          const db = sql({
-            context,
-            rawCodecInferer: postgresRawCodecInferer,
-          });
+          const client = postgres({ contract, pg: pool });
+          const runtime = await client.connect();
+          const adapter = instantiateExecutionStack(client.stack).adapter;
+          const db = client.sql;
 
           // Seed with qualified DDL targets (migration already created auth + public tables).
           await pool.query('INSERT INTO "auth"."user" (id, name) VALUES ($1, $2)', [1, 'Ada']);
@@ -201,14 +180,14 @@ describe('multi-namespace runtime', () => {
 
           const userSelect = db['auth']!['user']!.select('id', 'name').build();
           const userSql = adapter.lower(userSelect.ast, {
-            contract,
+            contract: client.contract,
             params: userSelect.params,
           }).sql;
           expect(userSql).toContain('FROM "auth"."user"');
 
           const noteSelect = db['public']!['note']!.select('id', 'body').build();
           const noteSql = adapter.lower(noteSelect.ast, {
-            contract,
+            contract: client.contract,
             params: noteSelect.params,
           }).sql;
           expect(noteSql).toContain('FROM "public"."note"');

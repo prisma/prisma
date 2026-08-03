@@ -20,8 +20,8 @@ In `packages/2-sql/5-runtime/src/sql-runtime.ts`, add a pre-iteration `invalidat
 ## Completed when
 
 - [ ] New sql-runtime unit test passes and proves the driver is not consulted post-invalidation.
-- [ ] Gates: `pnpm --filter @prisma-next/sql-runtime test`, package typecheck (+ test project), package lint — green.
-- [ ] Shared-substrate regression gates: `pnpm --filter @prisma-next/e2e-tests test -- test/sqlite` green AND the Postgres-path transaction e2e files green (`pnpm --filter @prisma-next/e2e-tests test -- test/transaction` or the harness's path filter covering `transaction.test.ts` + `transaction-orm.test.ts`).
+- [ ] Gates: `pnpm --filter @internal/sql-runtime test`, package typecheck (+ test project), package lint — green.
+- [ ] Shared-substrate regression gates: `pnpm --filter e2e-tests test -- test/sqlite` green AND the Postgres-path transaction e2e files green (`pnpm --filter e2e-tests test -- test/transaction` or the harness's path filter covering `transaction.test.ts` + `transaction-orm.test.ts`).
 - [ ] No new bare casts (`pnpm lint:casts` delta 0).
 - [ ] New commit(s), explicit staging, sign-off, message referencing TML-2843.
 

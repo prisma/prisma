@@ -1,24 +1,24 @@
-import type { ColumnDefault, Contract, ControlPolicy } from '@prisma-next/contract/types';
-import type { NativeTypeExpander, SqlSchemaDiffResult } from '@prisma-next/family-sql/control';
-import { buildNativeTypeExpander, contractToSchemaIR } from '@prisma-next/family-sql/control';
-import { verifySqlSchemaByDiff } from '@prisma-next/family-sql/diff';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { ColumnDefault, Contract, ControlPolicy } from '@internal/contract/types';
+import type { NativeTypeExpander, SqlSchemaDiffResult } from '@internal/family-sql/control';
+import { buildNativeTypeExpander, contractToSchemaIR } from '@internal/family-sql/control';
+import { verifySqlSchemaByDiff } from '@internal/family-sql/diff';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   SchemaDiffIssue,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { diffSchemas } from '@prisma-next/framework-components/control';
-import { entityAt } from '@prisma-next/framework-components/ir';
-import type { SqlStorage, StorageColumn, StorageTable } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/control';
+import { diffSchemas } from '@internal/framework-components/control';
+import { entityAt } from '@internal/framework-components/ir';
+import type { SqlStorage, StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import type {
   SqlColumnIRInput,
   SqlSchemaIRInput,
   SqlSchemaIRNode,
   SqlTableIRInput,
-} from '@prisma-next/sql-schema-ir/types';
-import { relationalNodeGranularity, SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-schema-ir/types';
+import { relationalNodeGranularity, SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { renderDefaultLiteral } from './planner-ddl-builders';
 
 interface SqliteDiffDatabaseSchemaInput {

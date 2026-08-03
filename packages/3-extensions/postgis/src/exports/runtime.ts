@@ -1,4 +1,4 @@
-import type { SqlRuntimeExtensionDescriptor } from '@prisma-next/sql-runtime';
+import type { SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import { postgisPackMeta, postgisQueryOperations } from '../core/descriptor-meta';
 import { postgisCodecRegistry } from '../core/registry';
 

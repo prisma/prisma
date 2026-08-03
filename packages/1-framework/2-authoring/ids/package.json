@@ -1,5 +1,5 @@
 {
-  "name": "@prisma-next/ids",
+  "name": "@internal/ids",
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -16,14 +16,14 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0",
+    "@internal/contract": "workspace:0.16.0",
+    "@internal/framework-components": "workspace:0.16.0",
+    "@internal/utils": "workspace:0.16.0",
     "uniku": "^0.4.3"
   },
   "devDependencies": {
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.16.0",
+    "@repo/tsdown": "workspace:0.16.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

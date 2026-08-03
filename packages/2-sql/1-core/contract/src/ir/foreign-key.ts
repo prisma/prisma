@@ -1,4 +1,4 @@
-import { freezeNode } from '@prisma-next/framework-components/ir';
+import { freezeNode } from '@internal/framework-components/ir';
 import { ForeignKeyReference, type ForeignKeyReferenceInput } from './foreign-key-reference';
 import { SqlNode } from './sql-node';
 

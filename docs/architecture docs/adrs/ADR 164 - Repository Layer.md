@@ -16,7 +16,7 @@ The existing ORM lane (ADR 015) will eventually be deprecated and removed; the r
 
 ### 1) Package location and plane
 
-The repository layer is implemented by `@prisma-next/sql-orm-client` at `packages/3-extensions/sql-orm-client/` in the runtime plane (`extensions` domain, `integrations` layer).
+The repository layer is implemented by `@internal/sql-orm-client` at `packages/3-extensions/sql-orm-client/` in the runtime plane (`extensions` domain, `integrations` layer).
 
 ### 2) Dependency rules
 

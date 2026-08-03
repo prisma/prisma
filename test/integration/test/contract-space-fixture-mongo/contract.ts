@@ -1,7 +1,7 @@
-import { computeStorageHash } from '@prisma-next/contract/hashing';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/canonicalization-hooks';
+import { computeStorageHash } from '@internal/contract/hashing';
+import { coreHash, profileHash } from '@internal/contract/types';
+import type { MongoContract } from '@internal/mongo-contract';
+import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
 import { MONGO_TEST_COLLECTION } from './constants';
 
 const TARGET = 'mongo' as const;

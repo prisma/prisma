@@ -1,4 +1,4 @@
-import { prismaVitePlugin } from '@prisma-next/vite-plugin-contract-emit';
+import { prismaVitePlugin } from '@prisma/orm-postgres/vite-plugin-contract-emit';
 import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';

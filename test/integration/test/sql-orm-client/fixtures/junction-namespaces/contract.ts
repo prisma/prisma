@@ -1,6 +1,6 @@
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import { uuidv4 } from '@prisma-next/ids';
-import { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import { uuidv4 } from '@internal/ids';
+import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
 
 // Two domain namespaces (`public` + `shadow`) each declare the SAME junction
 // table `user_roles` with the SAME payload column `token`, but only the

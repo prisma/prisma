@@ -1,12 +1,12 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
+import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import {
   emitContractSpaceArtifacts,
   readContractSpaceHeadRef,
   spaceMigrationDirectory,
-} from '@prisma-next/migration-tools/spaces';
+} from '@internal/migration-tools/spaces';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {

@@ -1,8 +1,8 @@
 import type {
   SchemaDiffIssue,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import { ifDefined } from '@internal/utils/defined';
 import { CliStructuredError } from './control';
 
 // ============================================================================

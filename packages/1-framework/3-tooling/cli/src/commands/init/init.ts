@@ -2,7 +2,8 @@ import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 import * as clack from '@clack/prompts';
-import { docsUrlFor } from '@prisma-next/utils/structured-error';
+import type { ImportSpecifierResolver } from '@internal/framework-components/emission';
+import { docsUrlFor } from '@internal/utils/structured-error';
 import { basename, dirname, isAbsolute, join } from 'pathe';
 import { CliStructuredError } from '../../utils/cli-errors';
 import { formatErrorJson, formatErrorOutput } from '../../utils/formatters/errors';
@@ -56,7 +57,13 @@ import {
   LEGACY_SKILL_FILE,
   runProjectLevelSkillInstall,
 } from './skill-install';
-import { configFile, dbFile, starterSchema, targetPackageName } from './templates/code-templates';
+import {
+  configFile,
+  dbFile,
+  scaffoldSpecifierResolverFor,
+  starterSchema,
+  targetPackageName,
+} from './templates/code-templates';
 import { envExampleContent, envFileContent, MIN_SERVER_VERSION } from './templates/env';
 import { quickReferenceMd } from './templates/quick-reference';
 import { minimalProjectReadmeMd } from './templates/readme';
@@ -162,16 +169,31 @@ export async function runInit(
   // unparseable tsconfig.json, …) returns a structured error and the
   // user's project on disk stays byte-identical to its pre-init state.
   // -----------------------------------------------------------------
+  // The one place `init` decides which package names the scaffold carries.
+  // Everything downstream — the files below and the dependency `runInstall`
+  // adds — resolves through this, so the imports written and the package
+  // installed cannot disagree.
+  const resolveImportSpecifier = scaffoldSpecifierResolverFor(inputs.target);
+
   const filesToWrite: FileEntry[] = [
-    { path: inputs.schemaPath, content: starterSchema(inputs.target, inputs.authoring) },
+    {
+      path: inputs.schemaPath,
+      content: starterSchema(inputs.target, inputs.authoring, resolveImportSpecifier),
+    },
     {
       path: 'prisma-next.config.ts',
-      content: configFile(inputs.target, configContractPath),
+      content: configFile(inputs.target, configContractPath, resolveImportSpecifier),
     },
-    { path: join(schemaDir, 'db.ts'), content: dbFile(inputs.target) },
+    { path: join(schemaDir, 'db.ts'), content: dbFile(inputs.target, resolveImportSpecifier) },
     {
       path: 'prisma-next.md',
-      content: quickReferenceMd(inputs.target, inputs.authoring, inputs.schemaPath, pkgRun),
+      content: quickReferenceMd(
+        inputs.target,
+        inputs.authoring,
+        inputs.schemaPath,
+        pkgRun,
+        resolveImportSpecifier,
+      ),
     },
     { path: '.env.example', content: envExampleContent(inputs.target) },
   ];
@@ -185,7 +207,7 @@ export async function runInit(
   // and missing-on-disk-at-write-time is tolerated.
   const filesToDelete: string[] = inputs.reinit ? [...findStaleArtifacts(baseDir, schemaDir)] : [];
 
-  // `init` delegates the skill to `npx skills add prisma/prisma-next#v<version>`,
+  // `init` delegates the skill to `npx skills add prisma/prisma#v<version>`,
   // so a hand-rolled `.agents/skills/prisma-next/SKILL.md` in the project
   // would shadow the published package. Queue it for deletion on every
   // run (not gated on `--reinit`).
@@ -409,6 +431,7 @@ export async function runInit(
       flags,
       ui,
       filesWritten,
+      resolveImportSpecifier,
       hasTypesNode:
         parsedPackageJson !== null ? hasDirectDep(parsedPackageJson, '@types/node') : false,
     });
@@ -688,6 +711,11 @@ async function runInstall(ctx: {
   readonly ui: TerminalUI;
   readonly filesWritten: readonly string[];
   /**
+   * Resolves the dependency name to install, from the same root the
+   * scaffolded files were written against.
+   */
+  readonly resolveImportSpecifier: ImportSpecifierResolver;
+  /**
    * FR2.1 — set when the user already declares `@types/node` directly in
    * `dependencies` or `devDependencies`. We then skip adding it so a
    * locked major (e.g. `^18` for a Node 18 runtime) survives `init`
@@ -698,7 +726,7 @@ async function runInstall(ctx: {
   readonly hasTypesNode: boolean;
 }): Promise<InstallReport> {
   const { baseDir, pm, target, install, flags, ui, filesWritten, hasTypesNode } = ctx;
-  const pkg = targetPackageName(target);
+  const pkg = targetPackageName(target, ctx.resolveImportSpecifier);
   const deps = [pkg, 'dotenv'];
   // FR2.1: under `moduleResolution: 'bundler'` (FR2.2) the scaffolded
   // `db.ts` / `prisma-next.config.ts` reference `process.env`, which

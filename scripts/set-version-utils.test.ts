@@ -4,7 +4,7 @@ import { describe, it } from 'node:test';
 import { type MutablePackageJson, rewriteWorkspaceDeps } from './set-version-utils.ts';
 
 describe('rewriteWorkspaceDeps', () => {
-  it('leaves a package with no @prisma-next/* deps unchanged (fixture A)', () => {
+  it('leaves a package with no @internal/* deps unchanged (fixture A)', () => {
     const pkg: MutablePackageJson = {
       name: 'a-no-pn-deps',
       version: '0.7.0',
@@ -21,22 +21,22 @@ describe('rewriteWorkspaceDeps', () => {
       name: 'b-mixed-pn-deps',
       version: '0.7.0',
       dependencies: {
-        '@prisma-next/contract': 'workspace:*',
-        '@prisma-next/postgres': 'workspace:0.6.0',
+        '@internal/contract': 'workspace:*',
+        '@internal/postgres': 'workspace:0.6.0',
         arktype: '^2.1.29',
       },
       devDependencies: {
-        '@prisma-next/tsconfig': 'workspace:*',
+        '@repo/tsconfig': 'workspace:*',
       },
     };
     rewriteWorkspaceDeps(pkg, '0.8.0');
     assert.deepEqual(pkg.dependencies, {
-      '@prisma-next/contract': 'workspace:0.8.0',
-      '@prisma-next/postgres': 'workspace:0.8.0',
+      '@internal/contract': 'workspace:0.8.0',
+      '@internal/postgres': 'workspace:0.8.0',
       arktype: '^2.1.29',
     });
     assert.deepEqual(pkg.devDependencies, {
-      '@prisma-next/tsconfig': 'workspace:0.8.0',
+      '@repo/tsconfig': 'workspace:0.8.0',
     });
   });
 
@@ -45,10 +45,10 @@ describe('rewriteWorkspaceDeps', () => {
       name: 'c-already-pinned',
       version: '0.8.0',
       dependencies: {
-        '@prisma-next/contract': 'workspace:0.8.0',
+        '@internal/contract': 'workspace:0.8.0',
       },
       peerDependencies: {
-        '@prisma-next/postgres': 'workspace:0.8.0',
+        '@internal/postgres': 'workspace:0.8.0',
       },
     };
     const before = JSON.stringify(pkg);
@@ -62,20 +62,20 @@ describe('rewriteWorkspaceDeps', () => {
     const pkg: MutablePackageJson = {
       name: 'all-fields',
       version: '0.7.0',
-      dependencies: { '@prisma-next/a': 'workspace:*' },
-      peerDependencies: { '@prisma-next/b': 'workspace:*' },
-      devDependencies: { '@prisma-next/c': 'workspace:*' },
-      optionalDependencies: { '@prisma-next/d': 'workspace:*' },
+      dependencies: { '@internal/a': 'workspace:*' },
+      peerDependencies: { '@internal/b': 'workspace:*' },
+      devDependencies: { '@internal/c': 'workspace:*' },
+      optionalDependencies: { '@internal/d': 'workspace:*' },
     };
     rewriteWorkspaceDeps(pkg, '1.0.0');
-    assert.equal(pkg.dependencies!['@prisma-next/a'], 'workspace:1.0.0');
-    assert.equal(pkg.peerDependencies!['@prisma-next/b'], 'workspace:1.0.0');
-    assert.equal(pkg.devDependencies!['@prisma-next/c'], 'workspace:1.0.0');
-    assert.equal(pkg.optionalDependencies!['@prisma-next/d'], 'workspace:1.0.0');
+    assert.equal(pkg.dependencies!['@internal/a'], 'workspace:1.0.0');
+    assert.equal(pkg.peerDependencies!['@internal/b'], 'workspace:1.0.0');
+    assert.equal(pkg.devDependencies!['@internal/c'], 'workspace:1.0.0');
+    assert.equal(pkg.optionalDependencies!['@internal/d'], 'workspace:1.0.0');
   });
 
-  it('does not rewrite a non-workspace @prisma-next/* spec (e.g. a published-version pin)', () => {
-    // An extension package installs a published @prisma-next/* dep via
+  it('does not rewrite a non-workspace @internal/* spec (e.g. a published-version pin)', () => {
+    // An extension package installs a published @internal/* dep via
     // its own author's `extension-upgrade-skill` flow. That spec is an
     // exact published version (no `workspace:` prefix) and must not be
     // touched by a host-workspace version bump.
@@ -83,27 +83,31 @@ describe('rewriteWorkspaceDeps', () => {
       name: 'extension-with-published-pn',
       version: '0.7.0',
       dependencies: {
-        '@prisma-next/contract': '0.7.0',
-        '@prisma-next/postgres': '^0.7.0',
+        '@internal/contract': '0.7.0',
+        '@internal/postgres': '^0.7.0',
       },
     };
     rewriteWorkspaceDeps(pkg, '0.8.0');
-    assert.equal(pkg.dependencies!['@prisma-next/contract'], '0.7.0');
-    assert.equal(pkg.dependencies!['@prisma-next/postgres'], '^0.7.0');
+    assert.equal(pkg.dependencies!['@internal/contract'], '0.7.0');
+    assert.equal(pkg.dependencies!['@internal/postgres'], '^0.7.0');
   });
 
-  it('does not rewrite non-@prisma-next/* workspace deps', () => {
+  it('rewrites every scope, because the whole workspace is versioned in lockstep', () => {
     const pkg: MutablePackageJson = {
-      name: 'with-non-pn-workspace-dep',
+      name: 'with-deps-across-scopes',
       version: '0.7.0',
       dependencies: {
-        '@example/sibling': 'workspace:*',
-        '@prisma-next/contract': 'workspace:*',
+        '@prisma/orm-postgres': 'workspace:*',
+        '@internal/contract': 'workspace:*',
+        '@repo/tsconfig': 'workspace:*',
       },
     };
     rewriteWorkspaceDeps(pkg, '0.8.0');
-    assert.equal(pkg.dependencies!['@example/sibling'], 'workspace:*');
-    assert.equal(pkg.dependencies!['@prisma-next/contract'], 'workspace:0.8.0');
+    assert.deepEqual(pkg.dependencies, {
+      '@prisma/orm-postgres': 'workspace:0.8.0',
+      '@internal/contract': 'workspace:0.8.0',
+      '@repo/tsconfig': 'workspace:0.8.0',
+    });
   });
 
   it('tolerates a package with missing dep-field objects', () => {

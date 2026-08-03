@@ -1,7 +1,7 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { col, lit } from '@prisma-next/sql-relational-core/contract-free';
-import { parseNaming } from '@prisma-next/sql-schema-ir/naming';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { col, lit } from '@internal/sql-relational-core/contract-free';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import {
   columnExistsAst,
@@ -140,8 +140,8 @@ describe('AddColumnCall', () => {
       'this.addColumn({ schema: "public", table: "user", column: col("bio", "text", { notNull: true, default: lit("active") }) })',
     );
     expect(call.importRequirements()).toEqual([
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'col' },
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'lit' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'col' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'lit' },
     ]);
   });
 });
@@ -771,7 +771,7 @@ describe('CreateExtensionCall', () => {
     const call = new CreateExtensionCall('pgcrypto');
     expect(call.renderTypeScript()).toBe('createExtension("pgcrypto")');
     expect(call.importRequirements()).toEqual([
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'createExtension' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'createExtension' },
     ]);
   });
 });
@@ -845,7 +845,7 @@ describe('DataTransformCall', () => {
   it('importRequirements() references only the placeholder facade import (endContract comes from the scaffold)', () => {
     const call = new DataTransformCall('Backfill status', 'check', 'run');
     expect(call.importRequirements()).toEqual([
-      { moduleSpecifier: '@prisma-next/postgres/migration', symbol: 'placeholder' },
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'placeholder' },
     ]);
   });
 });

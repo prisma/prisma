@@ -2,7 +2,7 @@ import type {
   Codec,
   ContractCodecRegistry,
   SqlCodecCallContext,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { encodeParam } from '../src/codecs/encoding';
 import { defineTestCodec } from './test-codec';

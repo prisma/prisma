@@ -1,31 +1,31 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import postgresDriverDescriptor from '@prisma-next/driver-postgres/control';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import postgresDriverDescriptor from '@internal/driver-postgres/control';
 import sqlFamilyDescriptor, {
   createMigrationPlan,
   type SqlMigrationPlanOperation,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import {
   APP_SPACE_ID,
   createControlStack,
   type MigrationPlan,
   type MigrationRunnerFailure,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   type AggregateMigrationEdgeRef,
   buildFabricatedMigrationEdge,
-} from '@prisma-next/migration-tools/aggregate';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlExecuteRequest } from '@prisma-next/sql-relational-core/ast';
-import { buildControlTableBootstrapQueries } from '@prisma-next/target-postgres/contract-free';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
-import type { PostgresDdlNode } from '@prisma-next/target-postgres/ddl';
-import type { PostgresPlanTargetDetails } from '@prisma-next/target-postgres/planner-target-details';
+} from '@internal/migration-tools/aggregate';
+import { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
+import { buildControlTableBootstrapQueries } from '@internal/target-postgres/contract-free';
+import postgresTargetDescriptor from '@internal/target-postgres/control';
+import type { PostgresDdlNode } from '@internal/target-postgres/ddl';
+import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planner-target-details';
 import {
   PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
-} from '@prisma-next/target-postgres/types';
-import { applicationDomainOf, createDevDatabase, timeouts } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/types';
+import { applicationDomainOf, createDevDatabase, timeouts } from '@repo/test-utils';
 import { createPostgresBuiltinCodecLookup } from '../../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../../src/core/control-adapter';
 import type { PostgresContract } from '../../../src/core/types';

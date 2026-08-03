@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
   SqlMigrationPlannerPlanOptions,
   SqlPlannerConflict,
   SqlPlannerFailureResult,
   SuppressionRecord,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import {
   controlPolicyForCall,
   extractCodecControlHooks,
@@ -13,9 +13,9 @@ import {
   partitionIssuesByControlPolicy,
   planFieldEventOperations,
   plannerFailure,
-} from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+} from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   MigrationOperationClass,
   MigrationPlanner,
@@ -23,15 +23,15 @@ import type {
   MigrationScaffoldContext,
   SchemaDiffIssue,
   SchemaOwnership,
-} from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { namingOf, parseWireName } from '@prisma-next/sql-schema-ir/naming';
-import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { SqlIndexIR } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
+import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { SqlIndexIR } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { PostgresRlsPolicy } from '../postgres-rls-policy';
 import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordinate';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';

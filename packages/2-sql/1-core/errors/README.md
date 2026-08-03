@@ -1,4 +1,4 @@
-# @prisma-next/sql-errors
+# @internal/sql-errors
 
 SQL-normalized driver error types for Prisma Next.
 
@@ -55,7 +55,7 @@ Represents connection-related failures:
 ## Usage
 
 ```typescript
-import { SqlQueryError, SqlConnectionError } from '@prisma-next/sql-errors';
+import { SqlQueryError, SqlConnectionError } from '@internal/sql-errors';
 
 // Check error type using type predicate (recommended)
 if (SqlQueryError.is(error)) {

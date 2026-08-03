@@ -16,7 +16,7 @@ Using generic contract types loses type information:
 
 ```typescript
 // ❌ WRONG: Generic type loses inference
-import type { SqlContract, SqlStorage } from '@prisma-next/sql-contract/types';
+import type { SqlContract, SqlStorage } from '@internal/sql-contract/types';
 
 function loadContractFixture(): SqlContract<SqlStorage> {
   // ...
@@ -76,7 +76,7 @@ expect(rows.map((r) => r.id)).toEqual([6, 7, 8, 9, 10]);  // r.id is typed as nu
 The `fixtures/contract.d.ts` file should define the full contract type matching the JSON fixture:
 
 ```typescript
-import type { SqlContract } from '@prisma-next/sql-contract/types';
+import type { SqlContract } from '@internal/sql-contract/types';
 
 type CodecTypes = {
   readonly 'pg/int4@1': { output: number };
@@ -110,6 +110,6 @@ export type { CodecTypes };
 
 - ✅ Integration tests with contract fixtures
 - ✅ E2E tests with contract fixtures  
-- ✅ Example app tests (e.g., `prisma-next-demo/test/`)
+- ✅ Example app tests (e.g., `prisma-8-demo/test/`)
 - ❌ Unit tests that create contracts inline (use test-utils column helpers instead)
 - ❌ Tests that intentionally test generic contract handling

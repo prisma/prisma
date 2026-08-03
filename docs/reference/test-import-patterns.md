@@ -4,7 +4,7 @@
 
 **Tests should import from source files directly, not from package exports.**
 
-When writing tests within a package, import from the source files (`../src/...`) rather than from package exports (`@prisma-next/package-name/...`). This ensures tests run against the actual implementation code, not the built dist files.
+When writing tests within a package, import from the source files (`../src/...`) rather than from package exports (`@internal/package-name/...`). This ensures tests run against the actual implementation code, not the built dist files.
 
 ## Import Patterns
 
@@ -22,8 +22,8 @@ import { defineContract } from '../src/exports/contract-builder';
 
 ```typescript
 // packages/sql-query/test/contract.test.ts
-import { validateContract } from '@prisma-next/sql-query/contract';
-import { defineContract } from '@prisma-next/sql-query/contract-builder';
+import { validateContract } from '@internal/sql-query/contract';
+import { defineContract } from '@internal/sql-query/contract-builder';
 ```
 
 **Why?**
@@ -38,8 +38,8 @@ import { defineContract } from '@prisma-next/sql-query/contract-builder';
 
 ```typescript
 // packages/integration-tests/test/contract.test.ts
-import { defineContract } from '@prisma-next/sql-contract-ts/contract-builder';
-import { validateContract } from '@prisma-next/sql-contract/validate';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
+import { validateContract } from '@internal/sql-contract/validate';
 ```
 
 **Why?**
@@ -53,7 +53,7 @@ import { validateContract } from '@prisma-next/sql-contract/validate';
 
 ```typescript
 // packages/framework/tooling/cli/test/fixtures/valid-contract.ts
-import { defineContract } from '@prisma-next/sql-contract-ts/contract-builder';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
 ```
 
 **Why?**
@@ -107,7 +107,7 @@ When extracting code from one package to another:
 **❌ WRONG:**
 ```typescript
 // packages/sql-query/test/contract.test.ts
-import { validateContract } from '@prisma-next/sql-query/contract';
+import { validateContract } from '@internal/sql-query/contract';
 ```
 
 **Problem:** This resolves to the dist file, which may have workspace dependencies that Vitest can't resolve. Also, tests should run against source code.
@@ -123,7 +123,7 @@ import { validateContract } from '../src/contract';
 **❌ WRONG: Import from own package using package name**
 ```typescript
 // packages/sql-lane/test/sql.test.ts
-import { sql } from '@prisma-next/sql-lane/sql';
+import { sql } from '@internal/sql-lane/sql';
 ```
 
 **Problem:**
@@ -137,7 +137,7 @@ import { sql } from '@prisma-next/sql-lane/sql';
 import { sql } from '../src/sql';
 ```
 
-**Rule:** Test files should **never** import from their own package using package aliases (e.g., `@prisma-next/package-name/...`). Always use relative imports (e.g., `../src/...`) when importing from the same package.
+**Rule:** Test files should **never** import from their own package using package aliases (e.g., `@internal/package-name/...`). Always use relative imports (e.g., `../src/...`) when importing from the same package.
 
 ### Keeping Duplicate Test Files
 
@@ -157,10 +157,10 @@ import { sql } from '../src/sql';
 
 ```typescript
 // packages/framework/tooling/emitter/test/emitter.test.ts
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 ```
 
-**Rule:** Tests should always use workspace package names (`@prisma-next/package-name/...`) when importing from other packages, regardless of whether they're in the same domain or not. This ensures:
+**Rule:** Tests should always use workspace package names (`@internal/package-name/...`) when importing from other packages, regardless of whether they're in the same domain or not. This ensures:
 - Clear dependency boundaries
 - Proper package build state validation
 - Consistent import patterns across the codebase
@@ -198,7 +198,7 @@ export function convertOperationManifest(manifest: OperationManifest): SqlOperat
 }
 
 // packages/framework/tooling/cli/test/emit.test.ts
-import { convertOperationManifest } from '@prisma-next/family-sql/instance';
+import { convertOperationManifest } from '@internal/family-sql/instance';
 ```
 
 **✅ CORRECT: Use relative imports within the same package**
@@ -223,7 +223,7 @@ export function assembleOperationRegistryFromPacks(packs: ReadonlyArray<...>): O
 }
 
 // test/integration/utils/framework-components.ts (integration test utility)
-import { createOperationRegistry } from '@prisma-next/operations';
+import { createOperationRegistry } from '@internal/operations';
 // Assembles registry using framework primitives, not SQL-specific re-exports
 const registry = createOperationRegistry();
 for (const desc of descriptors) {

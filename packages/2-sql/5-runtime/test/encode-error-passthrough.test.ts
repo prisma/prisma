@@ -1,6 +1,6 @@
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type { SqlCodecCallContext } from '@prisma-next/sql-relational-core/ast';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { SqlCodecCallContext } from '@internal/sql-relational-core/ast';
+import { structuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { encodeParam } from '../src/codecs/encoding';
 import { defineTestCodec } from './test-codec';
