@@ -149,10 +149,15 @@ export function scanManifests(scanDir, scope) {
     let parsed;
     try {
       parsed = JSON.parse(readFileSync(join(scanDir, relPath), 'utf-8'));
-    } catch {
-      continue;
+    } catch (cause) {
+      // Skipping would count every internal package this manifest declares as
+      // one fewer, so a manifest broken by an edit would read as progress
+      // against the ratchet and lower the recorded baseline.
+      throw new Error(`${relPath} could not be read as JSON`, { cause });
     }
-    if (!isRecord(parsed)) continue;
+    if (!isRecord(parsed)) {
+      throw new Error(`${relPath} is valid JSON but not a JSON object`);
+    }
     for (const field of MANIFEST_FIELDS) {
       const declared = parsed[field];
       if (!isRecord(declared)) continue;
