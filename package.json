@@ -68,7 +68,8 @@
     "errors:list": "node scripts/list-error-codes.mjs",
     "check:error-reference": "node scripts/list-error-codes.mjs --verify docs/reference/error-reference.md",
     "lint:consumer-internal-imports": "node scripts/lint-consumer-internal-imports.mjs",
-    "lint:legacy-name": "node scripts/lint-legacy-name.mjs"
+    "lint:legacy-name": "node scripts/lint-legacy-name.mjs",
+    "lint:publishability": "node scripts/lint-publishability.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.5",

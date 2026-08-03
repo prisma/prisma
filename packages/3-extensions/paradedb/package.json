@@ -1,5 +1,6 @@
 {
   "name": "@internal/extension-paradedb",
+  "private": true,
   "version": "0.16.0",
   "license": "Apache-2.0",
   "type": "module",
