@@ -204,6 +204,11 @@ async function executeMigrationNewCommand(
       ...(config.extensions ?? []),
     ]);
 
+    // Before any write: an unreadable or contradictory project manifest fails
+    // the command outright rather than after a half-scaffolded migration
+    // directory is already on disk.
+    const resolveSpecifier = createProjectSpecifierResolver(options.config);
+
     await writeMigrationPackage(packageDir, metadata, []);
     const destinationArtifacts = getEmittedArtifactPaths(contractPathAbsolute);
     const [contractJsonRaw, contractDts] = await Promise.all([
@@ -226,10 +231,7 @@ async function executeMigrationNewCommand(
       },
       APP_SPACE_ID,
     );
-    await writeMigrationTs(
-      packageDir,
-      emptyPlan.renderTypeScript(createProjectSpecifierResolver(options.config)),
-    );
+    await writeMigrationTs(packageDir, emptyPlan.renderTypeScript(resolveSpecifier));
 
     return ok({
       ok: true as const,
