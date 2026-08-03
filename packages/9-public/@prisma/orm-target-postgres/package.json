@@ -86,5 +86,10 @@
     "./target/sql-utils": "./dist/target__sql-utils.mjs",
     "./target/types": "./dist/target__types.mjs",
     "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-target-postgres"
   }
 }

@@ -103,5 +103,10 @@
     "./schema-ir/naming": "./dist/schema-ir__naming.mjs",
     "./schema-ir/types": "./dist/schema-ir__types.mjs",
     "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-family-sql"
   }
 }

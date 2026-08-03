@@ -80,5 +80,10 @@
     "./value/mongodb-types": "./dist/value__mongodb-types.mjs",
     "./wire": "./dist/wire.mjs",
     "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-family-mongo"
   }
 }

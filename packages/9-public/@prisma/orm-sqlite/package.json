@@ -160,5 +160,10 @@
   },
   "bin": {
     "prisma-next": "./dist/bin__prisma-next.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-sqlite"
   }
 }
