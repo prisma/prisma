@@ -19,8 +19,8 @@ This skill fires on PRs **inside this repo** that make a breaking change to Pris
 
 The published skills you will be authoring entries into:
 
-- `skills/upgrade/prisma-next-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma-next/skills/upgrade --all`. **Audience: users of Prisma Next** (consumers of the public package API: `@prisma-next/postgres`, `@prisma-next/mongo`, the contract files in `prisma/`, on-disk migration shape).
-- `skills/extension-author/prisma-next-extension-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma-next/skills/extension-author --all`. **Audience: authors of Prisma Next extensions** (consumers of the framework SPI: `@prisma-next/contract`, `@prisma-next/framework-components`, `@prisma-next/migration-tools`, etc.).
+- `skills/upgrade/prisma-next-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma/skills/upgrade --all`. **Audience: users of Prisma Next** (consumers of the public package API: `@prisma-next/postgres`, `@prisma-next/mongo`, the contract files in `prisma/`, on-disk migration shape).
+- `skills/extension-author/prisma-next-extension-upgrade/` — distributed via `pnpm dlx skills add prisma/prisma/skills/extension-author --all`. **Audience: authors of Prisma Next extensions** (consumers of the framework SPI: `@prisma-next/contract`, `@prisma-next/framework-components`, `@prisma-next/migration-tools`, etc.).
 
 The two skill clusters are independent (no shared content). Cross-audience breaking changes — where the same on-disk transformation applies to both substrates — are recorded *separately* in each cluster, including duplicated colocated scripts.
 
