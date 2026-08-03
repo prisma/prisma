@@ -12,13 +12,22 @@ export interface PackedShell {
   readonly tarball: string;
 }
 
+/** The `package.json` of a package directory, as a record. */
+function readManifest(packageDir: string): Record<string, unknown> {
+  const manifest: unknown = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'));
+  if (!isRecord(manifest)) throw new ShellTestError(`${packageDir}/package.json is not an object`);
+  return manifest;
+}
+
+function manifestName(packageDir: string, manifest: Record<string, unknown>): string {
+  const name = manifest['name'];
+  if (typeof name !== 'string') throw new ShellTestError(`${packageDir}/package.json has no name`);
+  return name;
+}
+
 /** `pnpm pack` a shell package into `outDir`, returning the published name + tarball path. */
 export function packShell(shellDir: string, outDir: string): PackedShell {
-  const manifest: unknown = JSON.parse(readFileSync(join(shellDir, 'package.json'), 'utf8'));
-  if (typeof manifest !== 'object' || manifest === null || !('name' in manifest)) {
-    throw new ShellTestError(`${shellDir}/package.json has no name`);
-  }
-  const name = String(manifest.name);
+  const name = manifestName(shellDir, readManifest(shellDir));
   const tarball = join(outDir, `${name.replaceAll(/[@/]/g, '-').replace(/^-/, '')}.tgz`);
   execFileSync('pnpm', ['pack', '--out', tarball], { cwd: shellDir, stdio: 'pipe' });
   return { name, tarball };
@@ -31,11 +40,8 @@ export function packShell(shellDir: string, outDir: string): PackedShell {
  * are exactly those.
  */
 export function packShellAtVersion(shellDir: string, outDir: string, version: string): PackedShell {
-  const manifest: unknown = JSON.parse(readFileSync(join(shellDir, 'package.json'), 'utf8'));
-  if (typeof manifest !== 'object' || manifest === null || !('name' in manifest)) {
-    throw new ShellTestError(`${shellDir}/package.json has no name`);
-  }
-  const name = String(manifest.name);
+  const manifest = readManifest(shellDir);
+  const name = manifestName(shellDir, manifest);
   const stageDir = join(outDir, `restaged-${name.replaceAll(/[@/]/g, '-').replace(/^-/, '')}`);
   mkdirSync(stageDir, { recursive: true });
   cpSync(join(shellDir, 'dist'), join(stageDir, 'dist'), { recursive: true });
@@ -44,7 +50,7 @@ export function packShellAtVersion(shellDir: string, outDir: string, version: st
   // `workspace:` becomes the plain version it names, and `catalog:` entries
   // are dropped. That makes this a stand-in for the real package — enough
   // to occupy its name at another version — not a substitute for it.
-  const staged: Record<string, unknown> = { ...Object(manifest), version };
+  const staged: Record<string, unknown> = { ...manifest, version };
   for (const field of ['dependencies', 'peerDependencies', 'optionalDependencies']) {
     const deps = staged[field];
     if (!isRecord(deps)) continue;
@@ -158,13 +164,11 @@ export function runInScratch(scratchDir: string, scriptSource: string): string {
  * a command and run the program when imported.
  */
 export function importSubpaths(installedPackageDir: string): string[] {
-  const manifest: unknown = JSON.parse(
-    readFileSync(join(installedPackageDir, 'package.json'), 'utf8'),
-  );
-  if (typeof manifest !== 'object' || manifest === null || !('exports' in manifest)) {
+  const exports = readManifest(installedPackageDir)['exports'];
+  if (!isRecord(exports)) {
     throw new ShellTestError(`${installedPackageDir}/package.json has no exports`);
   }
-  return Object.keys(Object(manifest.exports)).filter(
+  return Object.keys(exports).filter(
     (key) => key !== './package.json' && !key.startsWith('./bin/'),
   );
 }
@@ -204,13 +208,8 @@ const SHELL_MAP_SUBPATH = '/publish-surface/shells';
  * stop matching without anyone noticing.
  */
 function shellMapModules(installedPackageDir: string): ReadonlySet<string> {
-  const manifest: unknown = JSON.parse(
-    readFileSync(join(installedPackageDir, 'package.json'), 'utf8'),
-  );
-  if (typeof manifest !== 'object' || manifest === null || !('exports' in manifest)) {
-    return new Set();
-  }
-  const exports = Object(manifest.exports);
+  const exports = readManifest(installedPackageDir)['exports'];
+  if (!isRecord(exports)) return new Set();
   const key = Object.keys(exports).find((subpath) => subpath.endsWith(SHELL_MAP_SUBPATH));
   if (key === undefined) return new Set();
   const entry: unknown = exports[key];
