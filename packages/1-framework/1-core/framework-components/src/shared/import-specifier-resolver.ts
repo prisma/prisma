@@ -29,7 +29,7 @@ export const keepInternalSpecifiers: ImportSpecifierResolver = (specifier) => sp
 export function resolveRequirementSpecifiers<T extends { readonly moduleSpecifier: string }>(
   requirements: readonly T[],
   resolve: ImportSpecifierResolver = keepInternalSpecifiers,
-): T[] {
+): Array<Omit<T, 'moduleSpecifier'> & { readonly moduleSpecifier: string }> {
   return requirements.map((requirement) => ({
     ...requirement,
     moduleSpecifier: resolve(requirement.moduleSpecifier),

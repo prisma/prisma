@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { publicShells } from '@prisma-next/publish-surface/shells';
 import { init as initLexer, parse as parseModule } from 'es-module-lexer';
@@ -43,6 +43,9 @@ export function packShellAtVersion(shellDir: string, outDir: string, version: st
   const manifest = readManifest(shellDir);
   const name = manifestName(shellDir, manifest);
   const stageDir = join(outDir, `restaged-${name.replaceAll(/[@/]/g, '-').replace(/^-/, '')}`);
+  // `cpSync` merges rather than replaces, so a stage directory left by an
+  // earlier run would contribute dist files the shell no longer builds.
+  rmSync(stageDir, { recursive: true, force: true });
   mkdirSync(stageDir, { recursive: true });
   cpSync(join(shellDir, 'dist'), join(stageDir, 'dist'), { recursive: true });
   // The staging directory is outside the workspace, so `pnpm pack` can
