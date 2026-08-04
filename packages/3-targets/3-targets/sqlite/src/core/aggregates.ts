@@ -11,14 +11,14 @@
  * Result identity is declared, not lowered: SQLite's own results already carry these codecs' storage classes, so no descriptor needs a lowering hook.
  */
 
-import type { CodecTrait } from '@prisma-next/framework-components/codec';
-import type { ValueInputAggregateDescriptor } from '@prisma-next/framework-components/components';
+import type { CodecTrait } from '@internal/framework-components/codec';
+import type { ValueInputAggregateDescriptor } from '@internal/framework-components/components';
 import type {
   SqlAggregateDescriptor,
   SqlAggregateLowering,
-} from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
-import type { AggregateFn } from '@prisma-next/sql-relational-core/ast';
-import { AggregateExpr, CastExpr } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import type { AggregateFn } from '@internal/sql-relational-core/ast';
+import { AggregateExpr, CastExpr } from '@internal/sql-relational-core/ast';
 import {
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,

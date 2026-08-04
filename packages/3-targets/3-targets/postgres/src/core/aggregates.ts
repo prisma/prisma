@@ -8,9 +8,9 @@
  * Result identity is declared, not lowered: PostgreSQL's native result types already are these codecs' native types, so no descriptor needs a lowering hook.
  */
 
-import type { CodecTrait } from '@prisma-next/framework-components/codec';
-import type { ValueInputAggregateDescriptor } from '@prisma-next/framework-components/components';
-import type { SqlAggregateDescriptor } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import type { CodecTrait } from '@internal/framework-components/codec';
+import type { ValueInputAggregateDescriptor } from '@internal/framework-components/components';
+import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import {
   PG_DATE_CODEC_ID,
   PG_FLOAT_CODEC_ID,

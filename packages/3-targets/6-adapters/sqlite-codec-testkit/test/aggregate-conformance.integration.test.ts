@@ -29,10 +29,10 @@
  */
 
 import { DatabaseSync } from 'node:sqlite';
-import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
-import { AggregateExpr, CastExpr, ColumnRef } from '@prisma-next/sql-relational-core/ast';
-import { sqliteAggregateDescriptors } from '@prisma-next/target-sqlite/aggregates';
-import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
+import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import { AggregateExpr, CastExpr, ColumnRef } from '@internal/sql-relational-core/ast';
+import { sqliteAggregateDescriptors } from '@internal/target-sqlite/aggregates';
+import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const registry = buildSqlAggregateDescriptorRegistry(

@@ -1,4 +1,4 @@
-import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import {
   AggregateExpr,
   AndExpr,
@@ -13,8 +13,8 @@ import {
   ParamRef,
   SelectAst,
   SubqueryExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { buildCodecDescriptorRegistry } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+} from '@internal/sql-relational-core/ast';
+import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Functions } from '../../src/expression';
 import { ExpressionImpl } from '../../src/runtime/expression-impl';

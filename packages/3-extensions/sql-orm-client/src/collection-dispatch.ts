@@ -14,13 +14,13 @@
  * `test/integration/codec-async.test.ts` and `test/codec-async.types.test-d.ts`.
  */
 
-import type { Contract, JsonValue } from '@prisma-next/contract/types';
+import type { Contract, JsonValue } from '@internal/contract/types';
 import {
   AsyncIterableResult,
   isRuntimeError,
   runtimeError,
-} from '@prisma-next/framework-components/runtime';
-import type { SqlStorage, StorageColumn } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/runtime';
+import type { SqlStorage, StorageColumn } from '@internal/sql-contract/types';
 import {
   AndExpr,
   type AnyExpression,
@@ -30,9 +30,9 @@ import {
   ListExpression,
   LiteralExpr,
   OrExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import { resolveAggregateOutputCodec } from './aggregate-codecs';
 import {
   isToOneCardinality,

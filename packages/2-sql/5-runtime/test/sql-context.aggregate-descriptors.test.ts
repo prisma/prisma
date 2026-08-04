@@ -1,8 +1,8 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { AnyCodecDescriptor } from '@prisma-next/framework-components/codec';
-import type { AggregateDescriptor } from '@prisma-next/framework-components/components';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
+import type { AggregateDescriptor } from '@internal/framework-components/components';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import type {

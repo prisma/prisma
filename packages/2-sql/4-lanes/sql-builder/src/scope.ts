@@ -2,9 +2,9 @@ import type {
   AggregateTypesBase,
   QueryOperationTypesBase,
   StorageTable,
-} from '@prisma-next/sql-contract/types';
-import type { AnyFromSource, SelectAst } from '@prisma-next/sql-relational-core/ast';
-import type { CodecTypesBase, ScopeField } from '@prisma-next/sql-relational-core/expression';
+} from '@internal/sql-contract/types';
+import type { AnyFromSource, SelectAst } from '@internal/sql-relational-core/ast';
+import type { CodecTypesBase, ScopeField } from '@internal/sql-relational-core/expression';
 
 export type { ScopeField };
 

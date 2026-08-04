@@ -21,18 +21,18 @@
  * swept up by a trait fallback inferred from traits rather than probed.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
-import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { SqlQueryError } from '@prisma-next/sql-errors';
-import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
-import { postgresAggregateDescriptors } from '@prisma-next/target-postgres/aggregates';
+import type { JsonValue } from '@internal/contract/types';
+import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { SqlQueryError } from '@internal/sql-errors';
+import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import { postgresAggregateDescriptors } from '@internal/target-postgres/aggregates';
 import {
   postgresCodecDescriptorRegistry,
   postgresCodecRegistry,
-} from '@prisma-next/target-postgres/codecs';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/target-postgres/codecs';
+import { ifDefined } from '@internal/utils/defined';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const registry = buildSqlAggregateDescriptorRegistry(

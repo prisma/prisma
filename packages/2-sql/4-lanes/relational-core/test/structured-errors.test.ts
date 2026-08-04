@@ -1,5 +1,5 @@
-import type { CodecTrait } from '@prisma-next/framework-components/codec';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { CodecTrait } from '@internal/framework-components/codec';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import type { SqlAggregateDescriptor } from '../src/aggregate-descriptor';
 import { buildSqlAggregateDescriptorRegistry } from '../src/aggregate-descriptor-registry';

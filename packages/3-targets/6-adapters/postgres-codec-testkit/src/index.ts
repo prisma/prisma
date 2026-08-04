@@ -36,14 +36,14 @@
  */
 
 import { isDeepStrictEqual } from 'node:util';
-import { renderLoweredSql } from '@prisma-next/adapter-postgres/sql-renderer';
-import type { PostgresContract } from '@prisma-next/adapter-postgres/types';
-import { computeProfileHash, computeStorageHash } from '@prisma-next/contract/hashing';
-import type { JsonValue } from '@prisma-next/contract/types';
-import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { validateCodecTypeParams } from '@prisma-next/framework-components/codec';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
+import { renderLoweredSql } from '@internal/adapter-postgres/sql-renderer';
+import type { PostgresContract } from '@internal/adapter-postgres/types';
+import { computeProfileHash, computeStorageHash } from '@internal/contract/hashing';
+import type { JsonValue } from '@internal/contract/types';
+import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { validateCodecTypeParams } from '@internal/framework-components/codec';
+import { SqlStorage } from '@internal/sql-contract/types';
 import {
   CastExpr,
   ColumnRef,
@@ -52,10 +52,10 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { AnyPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
+import { ifDefined } from '@internal/utils/defined';
 
 /**
  * Minimal execution surface the harness needs from a live database. A caller

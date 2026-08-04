@@ -40,7 +40,7 @@ pnpm build
 pnpm typecheck
 pnpm lint:deps
 pnpm lint --filter <touched>
-pnpm test --filter <touched> --filter @prisma-next/integration-tests
+pnpm test --filter <touched> --filter @internal/integration-tests
 pnpm fixtures:check
 ```
 

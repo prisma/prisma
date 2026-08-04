@@ -1,4 +1,4 @@
-import type { CodecTrait } from '@prisma-next/framework-components/codec';
+import type { CodecTrait } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import type { SqlAggregateDescriptor } from '../src/aggregate-descriptor';
 import { buildSqlAggregateDescriptorRegistry } from '../src/aggregate-descriptor-registry';

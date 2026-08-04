@@ -90,6 +90,7 @@
     "./operations": "./dist/operations.mjs",
     "./orm-client": "./dist/orm-client.mjs",
     "./relational-core": "./dist/relational-core.mjs",
+    "./relational-core/aggregate-descriptor-registry": "./dist/relational-core__aggregate-descriptor-registry.mjs",
     "./relational-core/ast": "./dist/relational-core__ast.mjs",
     "./relational-core/codec-descriptor-registry": "./dist/relational-core__codec-descriptor-registry.mjs",
     "./relational-core/contract-free": "./dist/relational-core__contract-free.mjs",

@@ -1,5 +1,5 @@
-import type { SqlOperationEntry } from '@prisma-next/sql-operations';
-import type { AggregateFn } from '@prisma-next/sql-relational-core/ast';
+import type { SqlOperationEntry } from '@internal/sql-operations';
+import type { AggregateFn } from '@internal/sql-relational-core/ast';
 import {
   AggregateExpr,
   AndExpr,
@@ -13,11 +13,11 @@ import {
   NullCheckExpr,
   OrExpr,
   SubqueryExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
-import { codecOf, createRawSql, toExpr } from '@prisma-next/sql-relational-core/expression';
-import type { SqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
+import { codecOf, createRawSql, toExpr } from '@internal/sql-relational-core/expression';
+import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
+import { ifDefined } from '@internal/utils/defined';
 import type {
   AggregateFunctions,
   BooleanCodecType,

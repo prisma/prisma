@@ -559,7 +559,7 @@ changes:
   - id: codec-conformance-harness-moves-to-testkit-packages
     summary: |
       The database-backed codec conformance harness ships as two published dev-only packages,
-      `@prisma-next/postgres-codec-testkit` and `@prisma-next/sqlite-codec-testkit`. A pack that
+      `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`. A pack that
       reached the in-repo harness through a relative cross-package import
       (`../../../3-targets/6-adapters/postgres/test/codec-conformance/harness`) adds the matching
       testkit as a devDependency and imports `runPostgresCodecProjection` /
@@ -604,17 +604,17 @@ changes:
 
 ## `codec-conformance-harness-moves-to-testkit-packages`
 
-The conformance harness that measures a codec's JSON projection against a real database is published, as `@prisma-next/postgres-codec-testkit` and `@prisma-next/sqlite-codec-testkit`. Packs that reached it by relative path across the adapter's `test/` directory install the package instead:
+The conformance harness that measures a codec's JSON projection against a real database is published, as `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`. Packs that reached it by relative path across the adapter's `test/` directory install the package instead:
 
 ```jsonc
 // package.json
 "devDependencies": {
-  "@prisma-next/postgres-codec-testkit": "^0.17.0"
+  "@internal/postgres-codec-testkit": "^0.17.0"
 }
 ```
 
 ```ts
-import { runPostgresCodecProjection } from '@prisma-next/postgres-codec-testkit';
+import { runPostgresCodecProjection } from '@internal/postgres-codec-testkit';
 ```
 
 The harness API is the same one the in-repo version had — you supply the connection and the cases; it encodes, stores, projects through your descriptor, executes, and compares the database's JSON against `encodeJson` and back through `decodeJson`. Cases move verbatim. If your `tsconfig.json` widened `rootDir` to make the cross-package relative import resolve, narrow it back to the pack.
@@ -624,7 +624,7 @@ The harness API is the same one the in-repo version had — you supply the conne
 Aggregate result typing is now declared rather than inferred. A target (or an extension) contributes `SqlAggregateDescriptor`s on `types.codecTypes.aggregateDescriptors`, beside `codecDescriptors`:
 
 ```ts
-import type { SqlAggregateDescriptor } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 
 const sumOverMoney: SqlAggregateDescriptor = {
   operation: 'sum',

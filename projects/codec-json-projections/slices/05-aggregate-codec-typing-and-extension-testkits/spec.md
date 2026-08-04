@@ -4,7 +4,7 @@ _(Parent project `projects/codec-json-projections/`. Outcome this slice contribu
 
 ## At a glance
 
-After the slice-4 hard cut, every JSON entry with a known codec projects canonically — except aggregates, which the emission tests whitelist as `native` and whose results reach users as whatever the driver sent (`COUNT(*)` arrives as text `'2'` and is `Number()`-coerced, silently lossy past 2^53). This slice introduces `SqlAggregateDescriptor` contributions and registries, emits `aggregateTypes` into SQL `TypeMaps` from the same descriptors, decodes top-level, grouped, and include aggregates through resolved output codecs, and extracts the codec-conformance harnesses into `@prisma-next/postgres-codec-testkit` and `@prisma-next/sqlite-codec-testkit`.
+After the slice-4 hard cut, every JSON entry with a known codec projects canonically — except aggregates, which the emission tests whitelist as `native` and whose results reach users as whatever the driver sent (`COUNT(*)` arrives as text `'2'` and is `Number()`-coerced, silently lossy past 2^53). This slice introduces `SqlAggregateDescriptor` contributions and registries, emits `aggregateTypes` into SQL `TypeMaps` from the same descriptors, decodes top-level, grouped, and include aggregates through resolved output codecs, and extracts the codec-conformance harnesses into `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`.
 
 ## Chosen design
 
@@ -44,7 +44,7 @@ SQL `TypeMaps` (`packages/2-sql/1-core/contract/src/types.ts:98-112`, six keys t
 
 ### Conformance testkits
 
-The harnesses currently live as test-internal files (`packages/3-targets/6-adapters/postgres/test/codec-conformance/{harness,cases}.ts`, sqlite equivalent) that pgvector and arktype-json import via `../../../3-targets/...` relative paths across package boundaries. They move to `@prisma-next/postgres-codec-testkit` and `@prisma-next/sqlite-codec-testkit`: published, dev-only, test-framework-independent packages (publishing metadata per `@prisma-next/target-sqlite`, content conventions per `@prisma-next/test-utils`). Built-in adapter suites and both extensions consume the packages; the cross-package relative imports disappear. The aggregate conformance matrices extend the same harness. Production adapters gain no dependency on the testkits.
+The harnesses currently live as test-internal files (`packages/3-targets/6-adapters/postgres/test/codec-conformance/{harness,cases}.ts`, sqlite equivalent) that pgvector and arktype-json import via `../../../3-targets/...` relative paths across package boundaries. They move to `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`: published, dev-only, test-framework-independent packages (publishing metadata per `@internal/target-sqlite`, content conventions per `@repo/test-utils`). Built-in adapter suites and both extensions consume the packages; the cross-package relative imports disappear. The aggregate conformance matrices extend the same harness. Production adapters gain no dependency on the testkits.
 
 ## Coherence rationale
 

@@ -13,13 +13,13 @@
  * dependency instead of somewhere downstream.
  */
 
-import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
+import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
 import type {
   ConformanceConnection,
   PostgresCodecConformanceCase,
-} from '@prisma-next/postgres-codec-testkit';
-import { runPostgresCodecProjection } from '@prisma-next/postgres-codec-testkit';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+} from '@internal/postgres-codec-testkit';
+import { runPostgresCodecProjection } from '@internal/postgres-codec-testkit';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { pgVectorDescriptor } from '../src/core/codecs';
 

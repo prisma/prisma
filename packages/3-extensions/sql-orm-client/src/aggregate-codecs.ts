@@ -4,12 +4,12 @@
  * Planning asks so it can stamp the codec on the projected value; decoding asks so it can turn the JSON the database produced back into an application value. Both ask the same registry the same question, so a result cannot be projected under one codec and read under another.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlAggregateLowering } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
-import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
-import type { SqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { Contract } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 
 export interface ResolvedAggregate {
   /** The codec the result carries. */

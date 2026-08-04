@@ -1,4 +1,4 @@
-# @prisma-next/sqlite-codec-testkit
+# @internal/sqlite-codec-testkit
 
 Database-backed conformance harness for SQLite codec JSON projections.
 
@@ -11,8 +11,8 @@ It is dev-only tooling, not a runtime dependency — extension authors install i
 ## Usage
 
 ```ts
-import { runSqliteCodecProjection } from '@prisma-next/sqlite-codec-testkit';
-import type { SqliteCodecConformanceCase } from '@prisma-next/sqlite-codec-testkit';
+import { runSqliteCodecProjection } from '@internal/sqlite-codec-testkit';
+import type { SqliteCodecConformanceCase } from '@internal/sqlite-codec-testkit';
 
 const conformanceCase: SqliteCodecConformanceCase = {
   codecId: 'my-extension/my-codec@1',

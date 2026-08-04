@@ -41,7 +41,7 @@ pnpm build
 pnpm typecheck
 pnpm lint:deps
 pnpm lint --filter <touched>
-pnpm test --filter @prisma-next/sql-orm-client --filter <other touched> --filter @prisma-next/integration-tests
+pnpm test --filter @internal/sql-orm-client --filter <other touched> --filter @internal/integration-tests
 pnpm fixtures:check
 ```
 

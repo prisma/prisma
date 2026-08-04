@@ -26,7 +26,7 @@
  * line-break cases below, where the small value could not have caught it.
  */
 
-import type { PgInterval } from '@prisma-next/target-postgres/codecs';
+import type { PgInterval } from '@internal/target-postgres/codecs';
 import type { PostgresCodecConformanceCase } from '../../src/index';
 
 /** Spells out an interval's three fields so a case reads as the value it is. */

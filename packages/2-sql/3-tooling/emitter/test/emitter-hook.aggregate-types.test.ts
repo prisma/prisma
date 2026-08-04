@@ -1,4 +1,4 @@
-import type { AggregateDescriptor } from '@prisma-next/framework-components/components';
+import type { AggregateDescriptor } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 

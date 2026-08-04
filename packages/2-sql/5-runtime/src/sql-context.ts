@@ -1,21 +1,17 @@
-import type {
-  Contract,
-  ExecutionMutationDefaultValue,
-  JsonValue,
-} from '@prisma-next/contract/types';
+import type { Contract, ExecutionMutationDefaultValue, JsonValue } from '@internal/contract/types';
 import type {
   AnyCodecDescriptor,
   CodecDescriptor,
   CodecRef,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import type {
   ComponentDescriptor,
   ComponentMetadata,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import {
   checkContractComponentRequirements,
   mergeCapabilityMatrices,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import {
   createExecutionStack,
   type ExecutionStack,
@@ -27,11 +23,11 @@ import {
   type RuntimeExtensionInstance,
   type RuntimeTargetDescriptor,
   type RuntimeTargetInstance,
-} from '@prisma-next/framework-components/execution';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
-import type { SqlStorage, StorageTypeInstance } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/framework-components/execution';
+import { runtimeError } from '@internal/framework-components/runtime';
+import { canonicalizeJson } from '@internal/framework-components/utils';
+import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
 
 function documentScopedCodecTypes(
   contract: Contract<SqlStorage>,
@@ -42,11 +38,8 @@ function documentScopedCodecTypes(
   >(contract.storage.types);
 }
 
-import {
-  createSqlOperationRegistry,
-  type SqlOperationDescriptors,
-} from '@prisma-next/sql-operations';
-import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import { createSqlOperationRegistry, type SqlOperationDescriptors } from '@internal/sql-operations';
+import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import type {
   Adapter,
   AnyQueryAst,
@@ -54,16 +47,16 @@ import type {
   LoweredStatement,
   SqlCodecInstanceContext,
   SqlDriver,
-} from '@prisma-next/sql-relational-core/ast';
-import { buildCodecDescriptorRegistry } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
-import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
+} from '@internal/sql-relational-core/ast';
+import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type {
   AppliedMutationDefault,
   CodecDescriptorRegistry,
   ExecutionContext,
   MutationDefaultsOptions,
   TypeHelperRegistry,
-} from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/query-lane-context';
 import { createAstCodecResolver } from './codecs/ast-codec-resolver';
 
 /**

@@ -1,6 +1,6 @@
-import type { Contract, JsonValue } from '@prisma-next/contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { Contract, JsonValue } from '@internal/contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import type { AggregateDescriptor } from '../shared/aggregate-descriptor';
 import { aggregateDescriptorKey, isAggregateDescriptor } from '../shared/aggregate-descriptor';
 import type { CapabilityMatrix } from '../shared/capabilities';

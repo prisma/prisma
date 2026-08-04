@@ -6,16 +6,16 @@
  * so those positions consume the plain aggregate.
  */
 
-import { validateSqlContractFully } from '@prisma-next/sql-contract/validators';
-import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import { validateSqlContractFully } from '@internal/sql-contract/validators';
+import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import {
   AggregateExpr,
   type BinaryExpr,
   CastExpr,
   IdentifierRef,
-} from '@prisma-next/sql-relational-core/ast';
-import { buildCodecDescriptorRegistry } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/ast';
+import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import type { ExpressionImpl } from '../../src/runtime/expression-impl';
 import { createAggregateFunctions } from '../../src/runtime/functions';

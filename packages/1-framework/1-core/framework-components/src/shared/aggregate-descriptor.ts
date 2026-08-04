@@ -6,7 +6,7 @@
  * Components contribute descriptors through `types.codecTypes.aggregateDescriptors`. This module owns the declarative half of the protocol — the half emission reads and the half ownership validation keys on. Families extend {@link AggregateDescriptor} with their own lowering hook; because such a hook returns an expression and never a codec, a descriptor's declared `output` is the only source of result identity.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { CodecRef, CodecTrait } from './codec-types';
 import { isCodecTrait } from './codec-types';
 

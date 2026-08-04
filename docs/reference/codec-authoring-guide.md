@@ -434,7 +434,7 @@ See [packages/3-targets/3-targets/postgres/src/core/codecs.ts](../../packages/3-
 A codec says how one value converts. An aggregate is a *new* value the database computes from many, and what it returns is a property of the operation, the target, and sometimes the input — `sum` over PostgreSQL's `int4` is an `int8`, over its `int8` a `numeric`, and over SQLite's integers an integer that only the bigint codec carries. None of that is derivable from the input codec, so it is declared separately, as `SqlAggregateDescriptor` contributions on `types.codecTypes.aggregateDescriptors` beside `codecDescriptors`.
 
 ```ts
-import type { SqlAggregateDescriptor } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
+import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 
 const sumOfSmallIntegers: SqlAggregateDescriptor = {
   operation: 'sum',

@@ -1,4 +1,4 @@
-# @prisma-next/postgres-codec-testkit
+# @internal/postgres-codec-testkit
 
 Database-backed conformance harness for PostgreSQL codec JSON projections.
 
@@ -11,8 +11,8 @@ It is dev-only tooling, not a runtime dependency — extension authors install i
 ## Usage
 
 ```ts
-import { runPostgresCodecProjection } from '@prisma-next/postgres-codec-testkit';
-import type { PostgresCodecConformanceCase } from '@prisma-next/postgres-codec-testkit';
+import { runPostgresCodecProjection } from '@internal/postgres-codec-testkit';
+import type { PostgresCodecConformanceCase } from '@internal/postgres-codec-testkit';
 
 const conformanceCase: PostgresCodecConformanceCase = {
   codecId: 'my-extension/my-codec@1',

@@ -1,13 +1,13 @@
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import type { NamedAggregateOutput } from '@prisma-next/framework-components/components';
+import type { CodecRef } from '@internal/framework-components/codec';
+import type { NamedAggregateOutput } from '@internal/framework-components/components';
 import {
   aggregateDescriptorKey,
   isAnyInputAggregateDescriptor,
   isNoInputAggregateDescriptor,
   settleAggregateOverloads,
-} from '@prisma-next/framework-components/components';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/components';
+import { ifDefined } from '@internal/utils/defined';
+import { structuredError } from '@internal/utils/structured-error';
 import type { SqlAggregateDescriptor } from './aggregate-descriptor';
 import { isSqlAggregateDescriptor } from './aggregate-descriptor';
 import { frozenCodecRef } from './ast/codec-types';
