@@ -49,3 +49,23 @@ export function rewriteWorkspaceDeps(packageJson: MutablePackageJson, version: s
     }
   }
 }
+
+/**
+ * Whether a manifest that is NOT a workspace member still versions in
+ * lockstep with the workspace. A `workspace:` dep spec is the tell:
+ * project-boundary manifests (e.g. `examples/bundle-size/src/postgres`,
+ * which exists so the emitter can resolve an import root per database)
+ * pin workspace packages and go stale on every bump unless swept.
+ * Fixture manifests with only registry-style specs are test data and
+ * must be left alone.
+ */
+export function participatesInLockstep(packageJson: MutablePackageJson): boolean {
+  for (const field of DEP_FIELDS) {
+    const deps = packageJson[field];
+    if (!deps) continue;
+    for (const spec of Object.values(deps)) {
+      if (typeof spec === 'string' && spec.startsWith('workspace:')) return true;
+    }
+  }
+  return false;
+}

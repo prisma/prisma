@@ -18,6 +18,10 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..');
+const workspaceVersion = (
+  JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8')) as { version: string }
+).version;
+const skewedVersion = workspaceVersion.replace(/\d+$/, (patch) => String(Number(patch) + 1));
 const extension = '@prisma/orm-extension-pgvector';
 const facade = '@prisma/orm-postgres';
 const targetShell = '@prisma/orm-target-postgres';
@@ -83,7 +87,7 @@ describe('an extension pack installed next to the facade it extends', () => {
       dependencies?: Record<string, string>;
       peerDependencies?: Record<string, string>;
     };
-    expect(peerDependencies?.[targetShell]).toBe('0.16.0');
+    expect(peerDependencies?.[targetShell]).toBe(workspaceVersion);
     expect(dependencies?.[targetShell]).toBeUndefined();
   });
 
@@ -147,13 +151,15 @@ describe('an extension pack next to a target shell of a different version', () =
         '@prisma/orm-family-sql',
         '@prisma/orm-toolchain',
       ]),
-      packShellAtVersion(join(repoRoot, targetDir), scratch, '0.16.1'),
+      packShellAtVersion(join(repoRoot, targetDir), scratch, skewedVersion),
     ];
     const result = tryInstallShells(scratch, packed, {
       direct: [extension, targetShell],
       npmrc: ['strict-peer-dependencies=true', 'auto-install-peers=false'],
     });
     expect(result.ok).toBe(false);
-    expect(result.output).toContain(`unmet peer ${targetShell}@0.16.0: found 0.16.1`);
+    expect(result.output).toContain(
+      `unmet peer ${targetShell}@${workspaceVersion}: found ${skewedVersion}`,
+    );
   });
 });

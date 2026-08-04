@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { rewriteWorkspaceDeps } from './set-version-utils.ts';
+import { participatesInLockstep, rewriteWorkspaceDeps } from './set-version-utils.ts';
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -56,6 +56,33 @@ for (const pkg of workspacePackages) {
   await fs.writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
 
   console.log(`Updated ${pkg.name} to ${version}`);
+  updatedCount++;
+}
+
+// Project-boundary manifests (tracked package.json files that are not
+// workspace members but carry `workspace:` pins, e.g. the per-database
+// halves of examples/bundle-size) version in lockstep too. Without this
+// sweep they go stale on every bump and fail at install once the old
+// version leaves the registry.
+const memberPaths = new Set(workspacePackages.map((pkg) => path.join(pkg.path, 'package.json')));
+const trackedManifests = execSync("git ls-files -- '*package.json'", {
+  cwd: rootDir,
+  encoding: 'utf-8',
+})
+  .split('\n')
+  .filter(Boolean)
+  .map((rel) => path.join(rootDir, rel))
+  .filter((abs) => !memberPaths.has(abs));
+
+for (const manifestPath of trackedManifests) {
+  const packageJson: PackageJson = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
+  if (!participatesInLockstep(packageJson)) continue;
+  packageJson.version = version;
+  rewriteWorkspaceDeps(packageJson, version);
+  await fs.writeFile(manifestPath, `${JSON.stringify(packageJson, null, 2)}\n`);
+  console.log(
+    `Updated ${path.relative(rootDir, manifestPath)} (project-boundary manifest) to ${version}`,
+  );
   updatedCount++;
 }
 
