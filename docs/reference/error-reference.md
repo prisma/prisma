@@ -473,7 +473,7 @@ An in-flight `execute()` was cancelled via the per-query `AbortSignal` passed as
 
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
-A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `self` output on an operation that consumes no input, or a non-callable `lower`. Raised while the execution context assembles the registry. Meta: `descriptor`.
+A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `self` output on an operation that consumes no input, or a non-callable `lower`. Raised while the execution context assembles the registry. Meta: `descriptor`.
 
 ### RUNTIME.AMBIGUOUS_AGGREGATE_DESCRIPTOR
 

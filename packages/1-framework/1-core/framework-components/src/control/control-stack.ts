@@ -368,7 +368,7 @@ export function collectAggregateDescriptors(
       if (!isAggregateDescriptor(contributed)) {
         throw new InternalError(
           `Malformed aggregate descriptor contributed by "${descriptorId}". ` +
-            'A descriptor declares a non-empty `operation`, an `input` match of kind `none`/`codec`/`trait`, ' +
+            'A descriptor declares a non-empty `operation`, an `input` match of kind `none`/`any`/`codec`/`trait`, ' +
             'an `output` of kind `self`/`codec`, and a boolean `nullable`; a `self` output needs an input to reuse.',
         );
       }

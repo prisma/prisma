@@ -153,7 +153,7 @@ describe('collectAggregateDescriptors', () => {
   it('rejects a malformed contribution at collection time', () => {
     const malformed = { operation: 'sum', input: { kind: 'trait' }, nullable: true };
 
-    expect(() =>
+    const collect = () =>
       collectAggregateDescriptors([
         {
           id: 'extension',
@@ -163,7 +163,9 @@ describe('collectAggregateDescriptors', () => {
             },
           },
         },
-      ]),
-    ).toThrow(/Malformed aggregate descriptor contributed by "extension"/);
+      ]);
+
+    expect(collect).toThrow(/Malformed aggregate descriptor contributed by "extension"/);
+    expect(collect).toThrow(/`none`\/`any`\/`codec`\/`trait`/);
   });
 });
