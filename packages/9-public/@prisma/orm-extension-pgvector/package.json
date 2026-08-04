@@ -1,0 +1,57 @@
+{
+  "name": "@prisma/orm-extension-pgvector",
+  "version": "0.17.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "pgvector embedding columns, distance operators, and indexes for Prisma Next",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "lint": "biome check . --error-on-warnings",
+    "clean": "rm -rf dist src-gen",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@prisma/orm-family-sql": "workspace:0.17.0",
+    "@prisma/orm-framework": "workspace:0.17.0",
+    "@prisma/orm-toolchain": "workspace:0.17.0",
+    "@standard-schema/spec": "^1.1.0",
+    "arktype": "^2.2.2"
+  },
+  "devDependencies": {
+    "@internal/extension-pgvector": "workspace:0.17.0",
+    "@repo/tsconfig": "workspace:0.17.0",
+    "@internal/publish-surface": "workspace:0.17.0",
+    "@repo/tsdown": "workspace:0.17.0",
+    "@prisma/orm-target-postgres": "workspace:0.17.0",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@prisma/orm-target-postgres": "workspace:0.17.0",
+    "typescript": ">=5.9"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "exports": {
+    "./codec-types": "./dist/codec-types.mjs",
+    "./column-types": "./dist/column-types.mjs",
+    "./control": "./dist/control.mjs",
+    "./operation-types": "./dist/operation-types.mjs",
+    "./pack": "./dist/pack.mjs",
+    "./runtime": "./dist/runtime.mjs",
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/9-public/@prisma/orm-extension-pgvector"
+  }
+}

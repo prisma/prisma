@@ -812,7 +812,7 @@
                   "codecId": "pg/int8@1",
                   "default": {
                     "kind": "literal",
-                    "value": 9007199254740991
+                    "value": "9007199254740991"
                   },
                   "nativeType": "int8",
                   "nullable": false
@@ -1096,7 +1096,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "cecd9cfc7e5a5102f2f73a02f9e58aac2643d5249308de9bed711b45f5d83fbe"
+    "storageHash": "38192768d53e3f5c573856534541b506a6382492220cf6476a89505a76d2084b"
   },
   "execution": {
     "executionHash": "5629682c0d69cfa236e08de82a20c1a4fdcf1163a78ac2f17ffaf993caf4f8f4",
@@ -1145,7 +1145,7 @@
           "import": {
             "alias": "ArktypeJsonTypes",
             "named": "CodecTypes",
-            "package": "@prisma-next/extension-arktype-json/codec-types"
+            "package": "@internal/extension-arktype-json/codec-types"
           }
         },
         "storage": [
@@ -1174,13 +1174,13 @@
           "import": {
             "alias": "PgVectorTypes",
             "named": "CodecTypes",
-            "package": "@prisma-next/extension-pgvector/codec-types"
+            "package": "@internal/extension-pgvector/codec-types"
           },
           "typeImports": [
             {
               "alias": "Vector",
               "named": "Vector",
-              "package": "@prisma-next/extension-pgvector/codec-types"
+              "package": "@internal/extension-pgvector/codec-types"
             }
           ]
         },
@@ -1188,14 +1188,14 @@
           "import": {
             "alias": "PgVectorOperationTypes",
             "named": "OperationTypes",
-            "package": "@prisma-next/extension-pgvector/operation-types"
+            "package": "@internal/extension-pgvector/operation-types"
           }
         },
         "queryOperationTypes": {
           "import": {
             "alias": "PgVectorQueryOperationTypes",
             "named": "QueryOperationTypes",
-            "package": "@prisma-next/extension-pgvector/operation-types"
+            "package": "@internal/extension-pgvector/operation-types"
           }
         },
         "storage": [

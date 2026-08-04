@@ -18,10 +18,10 @@ import type {
   MigrationOperationPolicy,
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
-} from '@prisma-next/family-sql/control';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import { issueOutcome, orderIssuesByDependencies } from '@prisma-next/framework-components/control';
+} from '@internal/family-sql/control';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
@@ -29,10 +29,10 @@ import {
   SqlSchemaIR,
   type SqlSchemaIRNode,
   type SqlTableIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import type { Result } from '@prisma-next/utils/result';
-import { notOk, ok } from '@prisma-next/utils/result';
+} from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import type { Result } from '@internal/utils/result';
+import { notOk, ok } from '@internal/utils/result';
 import { CONTROL_TABLE_NAMES } from '../control-tables';
 import {
   columnSpecFromNode,

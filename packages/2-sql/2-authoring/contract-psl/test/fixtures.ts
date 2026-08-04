@@ -1,12 +1,12 @@
 import type {
   ContractSourceContext,
   ContractSourceDiagnostic,
-} from '@prisma-next/config/config-types';
-import type { Contract, JsonValue } from '@prisma-next/contract/types';
+} from '@internal/config/config-types';
+import type { Contract, JsonValue } from '@internal/contract/types';
 import {
   domainModelsAtDefaultNamespace,
   domainValueObjectsAtDefaultNamespace,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import {
   type AuthoringContributions,
   type AuthoringEntityContext,
@@ -17,16 +17,16 @@ import {
   collectScalarTypeConstructors,
   type PslExtensionBlock,
   resolveEnumCodecId,
-} from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { ExtensionPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultEntry,
   ControlMutationDefaults,
   DefaultFunctionLoweringContext,
   TypedDefaultFunctionCall,
-} from '@prisma-next/framework-components/control';
-import type { FuncCallSig, SymbolTable } from '@prisma-next/psl-parser';
+} from '@internal/framework-components/control';
+import type { FuncCallSig, SymbolTable } from '@internal/psl-parser';
 import {
   buildSymbolTable,
   int,
@@ -35,12 +35,12 @@ import {
   optional,
   rangeToPslSpan,
   str,
-} from '@prisma-next/psl-parser';
-import type { SourceFile } from '@prisma-next/psl-parser/syntax';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import type { SqlNamespaceBase, SqlNamespaceInput } from '@prisma-next/sql-contract/types';
-import { type EnumTypeHandle, enumType } from '@prisma-next/sql-contract-ts/contract-builder';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/psl-parser';
+import type { SourceFile } from '@internal/psl-parser/syntax';
+import { parse } from '@internal/psl-parser/syntax';
+import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
+import { type EnumTypeHandle, enumType } from '@internal/sql-contract-ts/contract-builder';
+import { blindCast } from '@internal/utils/casts';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 
 function testEnumFactory(
@@ -478,7 +478,6 @@ export const postgresCodecLookup: CodecLookup = {
     return { id } as ReturnType<CodecLookup['get']>;
   },
   targetTypesFor: (id: string) => targetTypesByCodecId[id],
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 
@@ -689,7 +688,7 @@ export function buildEnumCapturingFactory(): {
  * further down.
  *
  * They are hand-written because this package cannot import family-sql:
- * family-sql declares `@prisma-next/sql-contract-psl` as a devDependency, so
+ * family-sql declares `@internal/sql-contract-psl` as a devDependency, so
  * the reverse import would be a cycle.
  *
  * They are kept honest by `family-sql/test/temporal-codec-presets.test.ts`,

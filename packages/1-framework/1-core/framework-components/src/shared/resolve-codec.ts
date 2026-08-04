@@ -1,4 +1,4 @@
-import { blindCast } from '@prisma-next/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import type { Codec } from './codec';
 import type { AnyCodecDescriptor } from './codec-descriptor';
 import type { CodecInstanceContext, CodecRef } from './codec-types';

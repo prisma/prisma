@@ -1,14 +1,14 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
 
 import {
   type ExecutionStackInstance,
   instantiateExecutionStack,
   type RuntimeDriverInstance,
   type RuntimeExtensionInstance,
-} from '@prisma-next/framework-components/execution';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { Codec, SqlDriver, SqlExecuteRequest } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/execution';
+import { SqlStorage } from '@internal/sql-contract/types';
+import type { Codec, SqlDriver, SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import {
   BinaryExpr,
   ColumnRef,
@@ -17,9 +17,9 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { applicationDomainOf, timeouts } from '@prisma-next/test-utils';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import type { SqlMiddleware } from '../src/middleware/sql-middleware';

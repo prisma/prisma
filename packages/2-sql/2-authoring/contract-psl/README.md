@@ -1,13 +1,13 @@
-# @prisma-next/sql-contract-psl
+# @internal/sql-contract-psl
 
 PSL-first SQL contract interpretation for Prisma Next.
 
 ## Overview
 
-`@prisma-next/sql-contract-psl` provides two entrypoints:
+`@internal/sql-contract-psl` provides two entrypoints:
 
-- **Pure interpreter** (`@prisma-next/sql-contract-psl`): parsed PSL document -> SQL `Contract`
-- **Provider helper** (`@prisma-next/sql-contract-psl/provider`): read file -> parse -> interpret -> `ContractConfig`
+- **Pure interpreter** (`@internal/sql-contract-psl`): parsed PSL document -> SQL `Contract`
+- **Provider helper** (`@internal/sql-contract-psl/provider`): read file -> parse -> interpret -> `ContractConfig`
 
 This keeps core/CLI source-agnostic while giving PSL-first SQL users a one-line config helper.
 
@@ -82,7 +82,7 @@ Supported timestamp authoring surface:
 
 - Exactly one of a fields list or `expression:` (the whole CREATE INDEX element list as one opaque string); violating this raises `PSL_INDEX_FIELDS_XOR_EXPRESSION`.
 - `expression:` requires `name:` or `map:` (`PSL_INDEX_EXPRESSION_REQUIRES_NAME` — no default name can be derived from an expression); at most one of `name:`/`map:` (`PSL_INDEX_NAME_XOR_MAP`).
-- `name:` declares a managed index — the physical name is `<name>_<8-hex content hash>` and renames plan as `ALTER INDEX … RENAME`. `map:` adopts an exact physical name verbatim, intended for objects captured by `contract infer`.
+- `name:` declares a wire-named index — the physical name is `<name>_<8-hex content hash>` and renames plan as `ALTER INDEX … RENAME`. `map:` adopts an exact physical name verbatim, intended for objects captured by `contract infer`.
 - `where:` is a partial-index predicate (WHERE body, without the keyword); `unique:` a boolean; `type:` plus `options:` select a target-registered index access method (e.g. `type: "hash"`). Unlike the TS builder (whose pack-typed arm requires the `options` key at compile time), PSL accepts `type:` without `options:` — absent options validate as `{}` and lower to the same IR.
 - `map:` combined with a SQL body (`expression:`/`where:`) emits the `PN_EXACT_NAME_BODY_COMPARISON` warning: drift detection byte-compares the authored text against Postgres's reprinted form, which is only reliable for infer-captured text — prefer `name:` for hand-authored bodies.
 
@@ -96,28 +96,28 @@ Contract-level default (specifier options bag):
 
 ## Public API
 
-- `@prisma-next/sql-contract-psl`
-  - `interpretPslDocumentToSqlContract({ symbolTable, sourceFile, sourceId, target, scalarColumnDescriptors, composedExtensionContracts, seedDiagnostics?, authoringContributions?, controlMutationDefaults?, composedExtensions? })` — build `symbolTable`/`sourceFile` via `parse(schema)` + `buildSymbolTable(...)` from `@prisma-next/psl-parser`.
-- `@prisma-next/sql-contract-psl/provider`
+- `@internal/sql-contract-psl`
+  - `interpretPslDocumentToSqlContract({ symbolTable, sourceFile, sourceId, target, scalarColumnDescriptors, composedExtensionContracts, seedDiagnostics?, authoringContributions?, controlMutationDefaults?, composedExtensions? })` — build `symbolTable`/`sourceFile` via `parse(schema)` + `buildSymbolTable(...)` from `@internal/psl-parser`.
+- `@internal/sql-contract-psl/provider`
   - `prismaContract(schemaPath, { output?, target, createNamespace, composedExtensionPackRefs?, defaultControlPolicy?, enumInferenceCodecs? })` — scalar column descriptors are derived from the composed stack's authoring type namespace at load time.
-  - Provider input is fully preassembled by composition layers (for example `@prisma-next/family-sql/control` helpers).
+  - Provider input is fully preassembled by composition layers (for example `@internal/family-sql/control` helpers).
 
 ## Dependencies
 
 - **Depends on**
-  - `@prisma-next/psl-parser` for parser + parser result types
-  - `@prisma-next/sql-contract-ts` for SQL authoring builder composition
+  - `@internal/psl-parser` for parser + parser result types
+  - `@internal/sql-contract-ts` for SQL authoring builder composition
   - `pathe` for provider path resolution
-  - `@prisma-next/contract` and `@prisma-next/utils`
+  - `@internal/contract` and `@internal/utils`
 - **Used by**
   - PSL contract providers configured via `contract.source`
-  - Composition helpers such as `@prisma-next/family-sql/control` that assemble provider inputs
+  - Composition helpers such as `@internal/family-sql/control` that assemble provider inputs
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  config[prisma-next.config.ts] --> providerHelper[@prisma-next/sql-contract-psl/provider]
+  config[prisma-next.config.ts] --> providerHelper[@internal/sql-contract-psl/provider]
   providerHelper --> fsRead[read schema.prisma]
   fsRead --> parse[parse]
   parse --> parsed[DocumentAst + SourceFile + parser diagnostics]
@@ -125,7 +125,7 @@ flowchart LR
   providerHelper --> descriptors[pslBlockDescriptors]
   descriptors --> symbols
   symbols --> symbolTable[SymbolTable + symbol-table diagnostics]
-  symbolTable --> interpreter[@prisma-next/sql-contract-psl]
+  symbolTable --> interpreter[@internal/sql-contract-psl]
   interpreter --> irResult[Result_Contract_Diagnostics]
   irResult --> emit[Framework emit pipeline]
 ```

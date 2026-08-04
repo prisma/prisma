@@ -1,4 +1,4 @@
-import type { MongoCodecRegistry } from '@prisma-next/mongo-codec';
+import type { MongoCodecRegistry } from '@internal/mongo-codec';
 import type { MongoExecutionContext, MongoRuntimeOptions } from '../src/exports/index';
 import { createMongoRuntime } from '../src/mongo-runtime';
 

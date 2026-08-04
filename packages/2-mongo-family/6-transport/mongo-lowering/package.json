@@ -1,6 +1,7 @@
 {
-  "name": "@prisma-next/mongo-lowering",
-  "version": "0.16.0",
+  "name": "@internal/mongo-lowering",
+  "private": true,
+  "version": "0.17.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -16,14 +17,14 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/mongo-query-ast": "workspace:0.16.0",
-    "@prisma-next/mongo-wire": "workspace:0.16.0"
+    "@internal/framework-components": "workspace:0.17.0",
+    "@internal/mongo-query-ast": "workspace:0.17.0",
+    "@internal/mongo-wire": "workspace:0.17.0"
   },
   "devDependencies": {
     "mongodb": "catalog:",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/tsdown": "workspace:0.17.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

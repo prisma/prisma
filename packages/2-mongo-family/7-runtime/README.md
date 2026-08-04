@@ -1,4 +1,4 @@
-# @prisma-next/mongo-runtime
+# @internal/mongo-runtime
 
 MongoDB runtime executor for Prisma Next.
 
@@ -10,7 +10,7 @@ MongoDB runtime executor for Prisma Next.
 
 ## Overview
 
-The Mongo runtime package implements the Mongo family runtime by extending the abstract `RuntimeCore` base class from `@prisma-next/framework-components/runtime` with Mongo-specific lowering and driver dispatch. It provides the public runtime API for MongoDB, layering Mongo concerns (adapter lowering and wire-command dispatch) on top of the shared middleware lifecycle.
+The Mongo runtime package implements the Mongo family runtime by extending the abstract `RuntimeCore` base class from `@internal/framework-components/runtime` with Mongo-specific lowering and driver dispatch. It provides the public runtime API for MongoDB, layering Mongo concerns (adapter lowering and wire-command dispatch) on top of the shared middleware lifecycle.
 
 ## Usage
 
@@ -21,14 +21,14 @@ Typed reads that attach a **`resultShape`** on the query plan are decoded after 
 Example:
 
 ```ts
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
+import mongoRuntimeAdapter from '@internal/adapter-mongo/runtime';
+import { createMongoDriver } from '@internal/driver-mongo';
 import {
   createMongoExecutionContext,
   createMongoExecutionStack,
   createMongoRuntime,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
+} from '@internal/mongo-runtime';
+import mongoRuntimeTarget from '@internal/target-mongo/runtime';
 
 const stack = createMongoExecutionStack({
   target: mongoRuntimeTarget,
@@ -47,7 +47,7 @@ Custom or third-party codecs (encryption, vendor scalars) are contributed via an
 ## Responsibilities
 
 - **Stack/context composition**: `createMongoExecutionStack` and `createMongoExecutionContext` mirror SQL's `createSqlExecutionStack` / `createExecutionContext`. The context aggregates codec contributions from `[stack.target, stack.adapter, ...stack.extensions]` into a single `MongoCodecRegistry`.
-- **Runtime executor**: `createMongoRuntime({ context, driver, ... })` composes context and driver into a `MongoRuntime` with a single `execute(plan)` entry point accepting `MongoQueryPlan<Row>` from `@prisma-next/mongo-query-ast`. The adapter is reached via `context.stack.adapter` (instantiated lazily through the stack's `create(stack)` factory). Execution lowers the plan through the adapter, runs the wire command on the driver, then **optionally decodes** each row when `plan.resultShape` is present.
+- **Runtime executor**: `createMongoRuntime({ context, driver, ... })` composes context and driver into a `MongoRuntime` with a single `execute(plan)` entry point accepting `MongoQueryPlan<Row>` from `@internal/mongo-query-ast`. The adapter is reached via `context.stack.adapter` (instantiated lazily through the stack's `create(stack)` factory). Execution lowers the plan through the adapter, runs the wire command on the driver, then **optionally decodes** each row when `plan.resultShape` is present.
 - **Unified flow**: There is no separate `execute` vs `executeCommand`; all operations use `execute(plan)`.
 - **Lowering**: Happens in the adapter (`lower(plan)`), wrapped by the runtime's `lower` override into a `MongoExecutionPlan`.
 - **Middleware lifecycle inheritance**: `MongoRuntime` extends `RuntimeCore<MongoQueryPlan, MongoExecutionPlan, MongoMiddleware>` and inherits the `beforeExecute` / `onRow` / `afterExecute` lifecycle from the framework via `runWithMiddleware`. Mongo does **not** override `runBeforeCompile` (Mongo middleware has no `beforeCompile` hook today).
@@ -56,10 +56,10 @@ Custom or third-party codecs (encryption, vendor scalars) are contributed via an
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/mongo-codec` (`MongoCodecRegistry` for decode)
-  - `@prisma-next/mongo-lowering` (`MongoAdapter`, `MongoDriver` interfaces)
-  - `@prisma-next/mongo-query-ast` (`MongoQueryPlan`, `AnyMongoCommand` — the typed plan shape)
-  - `@prisma-next/framework-components` (`RuntimeCore` base class, `runWithMiddleware` helper, `RuntimeMiddleware` SPI, `AsyncIterableResult` return type, `RuntimeAdapterDescriptor` / `ExecutionStack` for the stack composition model)
+  - `@internal/mongo-codec` (`MongoCodecRegistry` for decode)
+  - `@internal/mongo-lowering` (`MongoAdapter`, `MongoDriver` interfaces)
+  - `@internal/mongo-query-ast` (`MongoQueryPlan`, `AnyMongoCommand` — the typed plan shape)
+  - `@internal/framework-components` (`RuntimeCore` base class, `runWithMiddleware` helper, `RuntimeMiddleware` SPI, `AsyncIterableResult` return type, `RuntimeAdapterDescriptor` / `ExecutionStack` for the stack composition model)
 - **Depended on by**:
   - Integration tests (`test/integration/test/mongo/` and `test/integration/test/cross-package/cross-family-middleware.test.ts`)
 

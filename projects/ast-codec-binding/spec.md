@@ -152,7 +152,7 @@ Every artifact below is removed:
 
 **Breaking change: undimensioned `vectorColumn` retires.**
 
-The pgvector extension currently exports two column-type helpers from `@prisma-next/extension-pgvector/column-types`:
+The pgvector extension currently exports two column-type helpers from `@internal/extension-pgvector/column-types`:
 
 - `vector(N)` — dimensioned vector with `typeParams: { length: N }`.
 - `vectorColumn` — undimensioned vector with no `typeParams`. Today's runtime serves this column shape via the `parameterizedRepresentatives` cache + the `factory(undefined)` representative-codec hack.

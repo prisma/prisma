@@ -57,7 +57,7 @@ export interface CodecControlHooks<TTargetDetails = unknown> {
 }
 ```
 
-The hook is **synchronous** (no I/O at plan time), receives concrete SQL family IR (`StorageTable` / `StorageColumn` from `@prisma-next/sql-contract/types`), and returns a list of migration ops each carrying its own `invariantId`.
+The hook is **synchronous** (no I/O at plan time), receives concrete SQL family IR (`StorageTable` / `StorageColumn` from `@internal/sql-contract/types`), and returns a list of migration ops each carrying its own `invariantId`.
 
 ### Triggered events and dispatch
 
@@ -96,8 +96,8 @@ The convention keeps codec-emitted invariantIds visually distinct from extension
 
 Two pieces of plumbing connect the hook to the planner:
 
-- **`extractCodecControlHooks(descriptors)`** (in `@prisma-next/family-sql/control`) — collects `onFieldEvent` hooks across all loaded extension descriptors into a `Map<codecId, CodecControlHooks>`. Erases target-details to `unknown` at the codec-extraction boundary (pre-existing convention shared with the rest of `extractCodecControlHooks`'s return type).
-- **`planFieldEventOperations(options)`** (in `@prisma-next/family-sql/control`) — given the prior/new app contracts and the hook map, walks per-field diffs, dispatches hooks, and returns the concatenated `SqlMigrationPlanOperation<unknown>[]` ready to inline into the app-space migration. Each target's planner casts the helper's `unknown` results back to its target-details specialisation at the integration site (scoped per-line `.map(...)` cast with an explanatory comment, per the codebase's typesafety rules).
+- **`extractCodecControlHooks(descriptors)`** (in `@internal/family-sql/control`) — collects `onFieldEvent` hooks across all loaded extension descriptors into a `Map<codecId, CodecControlHooks>`. Erases target-details to `unknown` at the codec-extraction boundary (pre-existing convention shared with the rest of `extractCodecControlHooks`'s return type).
+- **`planFieldEventOperations(options)`** (in `@internal/family-sql/control`) — given the prior/new app contracts and the hook map, walks per-field diffs, dispatches hooks, and returns the concatenated `SqlMigrationPlanOperation<unknown>[]` ready to inline into the app-space migration. Each target's planner casts the helper's `unknown` results back to its target-details specialisation at the integration site (scoped per-line `.map(...)` cast with an explanatory comment, per the codebase's typesafety rules).
 
 The cast-at-integration-site pattern mirrors the existing `extractCodecControlHooks` shape and the rest of the SQL family's codec-control surface: `extractCodecControlHooks` already erases target-details to `unknown` because codec hooks are inherently cross-target (one codec implementation works for both Postgres and SQLite). Either we widen the type at the consumer site (current pattern) or every hook is generic over its target — the latter inflates type complexity for marginal benefit.
 

@@ -1,0 +1,33 @@
+// Faithful translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/issues/14271 (postgres matrix entry).
+//
+// Upstream schema:
+//   model Hub {
+//     id            Int            @id @default(autoincrement())
+//     name          String         @unique
+//     batteryLevels BatteryLevel[]
+//   }
+//   model BatteryLevel {
+//     id    Int    @id @default(autoincrement())
+//     name  String @unique
+//     hubId Int?
+//     hub   Hub?   @relation(fields: [hubId], references: [id])
+//   }
+//
+// onDelete default for SET NULL is used (default is SetNull as per the _matrix.ts).
+// No explicit onDelete needed — Prisma default for optional FK is SetNull is expressed
+// by the upstream _matrix.ts; however default Prisma referential action is SetNull only
+// with explicit setting. The test asserts that deleting a Hub sets hubId to null on
+// BatteryLevel rows — onDelete: SetNull must be set.
+model Hub {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  batteryLevels BatteryLevel[]
+}
+
+model BatteryLevel {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  hubId Int?
+  hub   Hub?   @relation(fields: [hubId], references: [id], onDelete: SetNull)
+}

@@ -1,6 +1,6 @@
-import { isRuntimeError } from '@prisma-next/framework-components/runtime';
-import { ColumnRef, ParamRef } from '@prisma-next/sql-relational-core/ast';
-import { type Expression, toExpr } from '@prisma-next/sql-relational-core/expression';
+import { isRuntimeError } from '@internal/framework-components/runtime';
+import { ColumnRef, ParamRef } from '@internal/sql-relational-core/ast';
+import { type Expression, toExpr } from '@internal/sql-relational-core/expression';
 import { describe, expect, it } from 'vitest';
 
 describe('raw SQL codec-required guard', () => {

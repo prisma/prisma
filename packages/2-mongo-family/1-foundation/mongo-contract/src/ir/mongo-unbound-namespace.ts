@@ -1,8 +1,4 @@
-import {
-  freezeNode,
-  NamespaceBase,
-  UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
+import { freezeNode, NamespaceBase, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { MongoNamespaceEntries } from './mongo-storage';
 
 export class MongoUnboundNamespace extends NamespaceBase {

@@ -1,4 +1,4 @@
-import { docsUrlFor } from '@prisma-next/utils/structured-error';
+import { docsUrlFor } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   buildNeverPlannedFailure,

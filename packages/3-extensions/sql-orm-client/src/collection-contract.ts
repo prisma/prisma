@@ -3,11 +3,11 @@ import type {
   ContractFieldType,
   ContractRelationThrough,
   CrossReference,
-} from '@prisma-next/contract/types';
-import type { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/contract/types';
+import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { ormError } from './orm-errors';
 import {
   domainModelTableInNamespace,

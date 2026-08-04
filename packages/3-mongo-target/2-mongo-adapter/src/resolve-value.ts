@@ -1,14 +1,14 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
+import type { CodecCallContext } from '@internal/framework-components/codec';
 import {
   checkAborted,
   raceAgainstAbort,
   runtimeError,
-} from '@prisma-next/framework-components/runtime';
-import type { MongoCodecRegistry } from '@prisma-next/mongo-codec';
-import type { Document, MongoValue } from '@prisma-next/mongo-value';
-import { MongoParamRef } from '@prisma-next/mongo-value';
-import { blindCast } from '@prisma-next/utils/casts';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/runtime';
+import type { MongoCodecRegistry } from '@internal/mongo-codec';
+import type { Document, MongoValue } from '@internal/mongo-value';
+import { MongoParamRef } from '@internal/mongo-value';
+import { blindCast } from '@internal/utils/casts';
+import { isStructuredError } from '@internal/utils/structured-error';
 
 /**
  * Resolves a `MongoValue` (which may contain `MongoParamRef` leaves) into the

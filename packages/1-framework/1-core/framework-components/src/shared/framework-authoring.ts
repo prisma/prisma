@@ -2,14 +2,14 @@ import type {
   ColumnDefault,
   ExecutionMutationDefaultPhases,
   ExecutionMutationDefaultValue,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import {
   isColumnDefaultLiteralInputValue,
   isExecutionMutationDefaultValue,
-} from '@prisma-next/contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import type { Type } from 'arktype';
 import type { CodecLookup } from './codec-types';
 import type { AuthoringOption } from './option-descriptor';
@@ -509,7 +509,7 @@ export interface AuthoringModelAttributeLoweringOutput {
  *   grouped under (`entries[attribute][key]`).
  * - `spec` is opaque to the framework core: an ADR-231 attribute-spec kit
  *   `AttributeSpec<Out>` value (`modelAttribute(name, {...})` from
- *   `@prisma-next/psl-parser`). Framework core does not depend on
+ *   `@internal/psl-parser`). Framework core does not depend on
  *   psl-parser and never inspects this field; the family interpreter,
  *   which does depend on psl-parser, parses the attribute's arguments
  *   against it.

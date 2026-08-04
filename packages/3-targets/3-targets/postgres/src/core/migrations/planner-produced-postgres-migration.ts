@@ -23,13 +23,14 @@
  * issue-planner integration lands in Phase 2.
  */
 
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type {
   MigrationPlanWithAuthoringSurface,
   OpFactoryCall,
-} from '@prisma-next/framework-components/control';
-import type { MigrationMeta } from '@prisma-next/migration-tools/migration';
+} from '@internal/framework-components/control';
+import type { ImportSpecifierResolver } from '@internal/framework-components/emission';
+import type { MigrationMeta } from '@internal/migration-tools/migration';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { PostgresMigration } from './postgres-migration';
 import { renderOps } from './render-ops';
@@ -87,11 +88,12 @@ export class TypeScriptRenderablePostgresMigration
     return this.#spaceId;
   }
 
-  renderTypeScript(): string {
+  renderTypeScript(resolveImportSpecifier: ImportSpecifierResolver): string {
     return renderCallsToTypeScript(this.#calls, {
       from: this.#meta.from,
       to: this.#meta.to,
       snapshotsImportPath: this.#snapshotsImportPath,
+      resolveImportSpecifier,
     });
   }
 }

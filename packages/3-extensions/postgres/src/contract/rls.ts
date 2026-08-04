@@ -1,7 +1,7 @@
-import type { ScalarFieldBuilder } from '@prisma-next/sql-contract-ts/contract-builder';
-import { POLICY_OPERATION_PREDICATES } from '@prisma-next/target-postgres/rls-canonicalize';
-import type { RlsPolicyOperation } from '@prisma-next/target-postgres/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { ScalarFieldBuilder } from '@internal/sql-contract-ts/contract-builder';
+import { POLICY_OPERATION_PREDICATES } from '@internal/target-postgres/rls-canonicalize';
+import type { RlsPolicyOperation } from '@internal/target-postgres/types';
+import { ifDefined } from '@internal/utils/defined';
 import { postgresError } from '../errors';
 
 /**

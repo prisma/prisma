@@ -1,4 +1,4 @@
-import { AndExpr, BinaryExpr, ColumnRef, LiteralExpr } from '@prisma-next/sql-relational-core/ast';
+import { AndExpr, BinaryExpr, ColumnRef, LiteralExpr } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { combineWhereExprs } from '../src/where-utils';
 

@@ -1,5 +1,5 @@
-import type { StructuredError, StructuredErrorOptions } from '@prisma-next/utils/structured-error';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import type { StructuredError, StructuredErrorOptions } from '@internal/utils/structured-error';
+import { structuredError } from '@internal/utils/structured-error';
 
 export type MongoFacadeCode =
   | 'RUNTIME.BINDING_INVALID'

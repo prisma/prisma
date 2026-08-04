@@ -1,4 +1,4 @@
-import type { Db, Namespace, TableProxy } from '@prisma-next/sql-builder/types';
+import type { Db, Namespace, TableProxy } from '@internal/sql-builder/types';
 import { expectTypeOf, test } from 'vitest';
 import type { PostgresClient, PostgresTransactionContext } from '../src/runtime/postgres';
 import type { Contract } from './fixtures/namespaced-contract';

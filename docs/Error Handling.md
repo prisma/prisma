@@ -62,7 +62,7 @@ Recommended handling:
 - **Throw and fail fast**.
 - Only catch at the outermost boundary for crash reporting / last-resort formatting, without disguising the issue as an “expected failure”.
 
-**Bugs throw `InternalError`**, never a structured envelope. Use `InternalError` and `assertNever` from `@prisma-next/utils/internal-error`; `assertNever` also gives a compile-time exhaustiveness check for switches over discriminated unions. A `throw new Error(...)` is neither a structured failure nor a labeled bug, so it's banned by the `no-bare-throw` lint ratchet — convert bare throws to one of the two paths above.
+**Bugs throw `InternalError`**, never a structured envelope. Use `InternalError` and `assertNever` from `@internal/utils/internal-error`; `assertNever` also gives a compile-time exhaustiveness check for switches over discriminated unions. A `throw new Error(...)` is neither a structured failure nor a labeled bug, so it's banned by the `no-bare-throw` lint ratchet — convert bare throws to one of the two paths above.
 
 ## Representation in this codebase
 
@@ -71,8 +71,8 @@ Recommended handling:
 We provide a generic `Result<T, F>` type for representing success or failure outcomes at system boundaries. This type is used when a function can return either a success value or a structured failure.
 
 ```typescript
-import type { Result, Ok, NotOk } from '@prisma-next/utils/result';
-import { ok, notOk, okVoid } from '@prisma-next/utils/result';
+import type { Result, Ok, NotOk } from '@internal/utils/result';
+import { ok, notOk, okVoid } from '@internal/utils/result';
 
 // Success with a value - both T and F must be specified
 function divide(a: number, b: number): Result<number, { code: string; message: string }> {
@@ -123,7 +123,7 @@ See:
 
 CLI commands use structured errors and convert them to a `Result` at the command boundary. Non-structured errors propagate (fail fast) to preserve stack traces.
 
-`CliStructuredError` implements the structural `StructuredError` interface from `@prisma-next/utils/structured-error` (ADR 239), so it's recognizable by `isStructuredError` across the control/execution plane split, not just by its own class.
+`CliStructuredError` implements the structural `StructuredError` interface from `@internal/utils/structured-error` (ADR 239), so it's recognizable by `isStructuredError` across the control/execution plane split, not just by its own class.
 
 See:
 - `packages/1-framework/1-core/errors/src/control.ts` (`CliStructuredError`)

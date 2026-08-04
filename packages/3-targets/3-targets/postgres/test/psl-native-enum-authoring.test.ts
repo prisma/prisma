@@ -13,12 +13,12 @@
  *  3. Negative: a bare (value-less) member is a diagnostic, not accepted.
  */
 
-import sqlFamilyPack from '@prisma-next/family-sql/pack';
-import type { Codec, CodecLookup } from '@prisma-next/framework-components/codec';
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
+import sqlFamilyPack from '@internal/family-sql/pack';
+import type { Codec, CodecLookup } from '@internal/framework-components/codec';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,
@@ -414,7 +414,6 @@ describe('native_enum coexists with a PSL enum block in the same namespace', () 
   const enumTestCodecLookup: CodecLookup = {
     get: (id) => (id === 'pg/text@1' ? textCodec : undefined),
     targetTypesFor: (id) => (id === 'pg/text@1' ? ['text'] : undefined),
-    metaFor: () => undefined,
     renderOutputTypeFor: () => undefined,
   };
 

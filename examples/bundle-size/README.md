@@ -1,7 +1,7 @@
 # bundle-size
 
-Bundle-size fixture for `@prisma-next/postgres` and `@prisma-next/mongo`,
-plus a Cloudflare Workers variant for `@prisma-next/postgres/serverless`.
+Bundle-size fixture for `@internal/postgres` and `@internal/mongo`,
+plus a Cloudflare Workers variant for `@internal/postgres/serverless`.
 
 For each shape there is a **no-emit** entry that builds the contract at
 runtime from a TypeScript-authored DSL and an **emit** entry that consumes
@@ -18,7 +18,7 @@ factory and one query, so the number reflects the floor of each shape.
 
 ```text
 src/
-├── postgres/                        # Node target, @prisma-next/postgres/runtime
+├── postgres/                        # Node target, @internal/postgres/runtime
 │   ├── contract.ts                  # single Note model with a single id column
 │   ├── main.ts                      # no-emit:  postgres({ contract })
 │   ├── main-emit.ts                 # emit:     wraps src/postgres/generated/db.ts
@@ -26,7 +26,7 @@ src/
 │       ├── contract.json
 │       ├── contract.d.ts
 │       └── db.ts                    # postgres<Contract>({ contractJson })
-├── mongo/                           # Node target, @prisma-next/mongo/runtime
+├── mongo/                           # Node target, @internal/mongo/runtime
 │   ├── contract.ts                  # single Note model with a single _id field
 │   ├── main.ts                      # no-emit:  mongo({ contract })
 │   ├── main-emit.ts                 # emit:     wraps src/mongo/generated/db.ts
@@ -34,7 +34,7 @@ src/
 │       ├── contract.json
 │       ├── contract.d.ts
 │       └── db.ts                    # mongo<Contract>({ contractJson })
-└── postgres-worker/                 # CF Workers target, @prisma-next/postgres/serverless
+└── postgres-worker/                 # CF Workers target, @internal/postgres/serverless
     ├── worker.ts                    # no-emit:  postgresServerless({ contract }) + fetch handler
     └── worker-emit.ts               # emit:     postgresServerless<Contract>({ contractJson })
                                        # reuses ../postgres/{contract.ts, generated/}
@@ -104,7 +104,7 @@ on a cf-worker bundle, read the unminified metafile (`*.worker.mjs.meta.json`).
 pnpm test
 ```
 
-Postgres tests boot PGlite via `@prisma-next/test-utils.createDevDatabase`.
+Postgres tests boot PGlite via `@repo/test-utils.createDevDatabase`.
 Mongo tests boot `mongodb-memory-server` (downloads a `mongod` binary on first
 run). On unsupported host distros (e.g. NixOS) the Mongo tests will fail
 because the binary downloader has no matching artefact — this is an upstream
@@ -112,7 +112,7 @@ limitation, not a regression in the example.
 
 The cf-worker entries are bundle-only: there is no miniflare runtime test in
 this example. The Cloudflare Workers + Prisma Next functional coverage lives
-in [`examples/prisma-next-cloudflare-worker`](../prisma-next-cloudflare-worker/)
+in [`examples/prisma-8-cloudflare-worker`](../prisma-8-cloudflare-worker/)
 which runs against `@cloudflare/vitest-pool-workers`.
 
 ## CI reporting

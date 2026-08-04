@@ -13,7 +13,7 @@
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
+import { contractSnapshotDir } from '@prisma/orm-postgres/migration-tools/contract-snapshot-store';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
@@ -135,7 +135,7 @@ withTempDir(({ createTempDir }) => {
         };
         const orphanOps = readFileSync(join(migDir, 'ops.json'), 'utf-8');
 
-        const { computeMigrationHash } = await import('@prisma-next/migration-tools/hash');
+        const { computeMigrationHash } = await import('@prisma/orm-postgres/migration-tools/hash');
         orphanManifest.migrationHash = computeMigrationHash(orphanManifest, JSON.parse(orphanOps));
 
         writeFileSync(join(orphanDir, 'migration.json'), JSON.stringify(orphanManifest, null, 2));

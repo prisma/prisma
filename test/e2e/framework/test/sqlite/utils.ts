@@ -2,24 +2,13 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import sqliteAdapter from '@prisma-next/adapter-sqlite/runtime';
-import type { Contract } from '@prisma-next/contract/types';
-import sqliteDriver from '@prisma-next/driver-sqlite/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { sql as sqlBuilder } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { orm } from '@prisma-next/sql-orm-client';
-import type { RawCodecInferer } from '@prisma-next/sql-relational-core/expression';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import {
-  createExecutionContext,
-  createSqlExecutionStack,
-  type Runtime,
-} from '@prisma-next/sql-runtime';
-import { SqliteRuntimeImpl } from '@prisma-next/sqlite/runtime';
-import sqliteTarget from '@prisma-next/target-sqlite/runtime';
-import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
+import { sql as sqlBuilder } from '@prisma/orm-sqlite/builder/runtime';
+import type { Db } from '@prisma/orm-sqlite/builder/types';
+import type { Contract } from '@prisma/orm-sqlite/contract/types';
+import type { SqlStorage } from '@prisma/orm-sqlite/family-contract/types';
+import type { Runtime } from '@prisma/orm-sqlite/family-runtime';
+import { orm } from '@prisma/orm-sqlite/orm-client';
+import sqlite from '@prisma/orm-sqlite/runtime';
 
 export interface SqliteTestContext<TContract extends Contract<SqlStorage>> {
   readonly db: Db<TContract>;
@@ -33,7 +22,6 @@ export async function withSqliteTestRuntime<TContract extends Contract<SqlStorag
   callback: (ctx: SqliteTestContext<TContract>) => Promise<void>,
 ): Promise<void> {
   const contractJson = JSON.parse(readFileSync(contractJsonPath, 'utf-8')) as unknown;
-  const contract = new SqlContractSerializer().deserializeContract(contractJson) as TContract;
 
   const testDir = mkdtempSync(join(tmpdir(), 'prisma-sqlite-e2e-'));
   const dbPath = join(testDir, 'test.db');
@@ -42,13 +30,18 @@ export async function withSqliteTestRuntime<TContract extends Contract<SqlStorag
   rawDb.exec('PRAGMA foreign_keys = ON');
 
   try {
-    createSchema(rawDb, contract);
+    const client = sqlite<TContract>({ contractJson, path: dbPath });
+    createSchema(rawDb, client.contract);
     seedData(rawDb);
 
-    const { runtime, context, rawCodecInferer } = await createSqliteRuntime(contract, dbPath);
+    const runtime = await client.connect();
+    const context = client.context;
 
     try {
-      const db = sqlBuilder<TContract>({ context, rawCodecInferer });
+      const db = sqlBuilder<TContract>({
+        context,
+        rawCodecInferer: client.stack.adapter.rawCodecInferer,
+      });
       const ormClient = orm({
         context,
         runtime: {
@@ -63,7 +56,7 @@ export async function withSqliteTestRuntime<TContract extends Contract<SqlStorag
 
       await callback({ db, runtime, ormClient, rawDb });
     } finally {
-      await runtime.close();
+      await client.close();
     }
   } finally {
     rawDb.close();
@@ -172,33 +165,4 @@ export function seedData(db: DatabaseSync): void {
       (1, 1, 'Alice bio'),
       (2, 2, 'Bob bio')
   `);
-}
-
-async function createSqliteRuntime<TContract extends Contract<SqlStorage>>(
-  contract: TContract,
-  dbPath: string,
-): Promise<{
-  runtime: Runtime;
-  context: ExecutionContext<TContract>;
-  rawCodecInferer: RawCodecInferer;
-}> {
-  const stack = createSqlExecutionStack({
-    target: sqliteTarget,
-    adapter: sqliteAdapter,
-    driver: sqliteDriver,
-    extensions: [],
-  });
-
-  const stackInstance = instantiateExecutionStack(stack);
-  const context = createExecutionContext({ contract, stack });
-  const driver = stackInstance.driver!;
-  await driver.connect({ kind: 'path', path: dbPath });
-
-  const runtime = new SqliteRuntimeImpl({
-    context,
-    adapter: stackInstance.adapter,
-    driver,
-  });
-
-  return { runtime, context, rawCodecInferer: stack.adapter.rawCodecInferer };
 }

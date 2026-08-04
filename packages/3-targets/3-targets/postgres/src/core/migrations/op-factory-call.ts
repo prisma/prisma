@@ -20,25 +20,26 @@
  * `PostgresOpFactoryCall` union.
  */
 
-import { errorUnfilledPlaceholder } from '@prisma-next/errors/migration';
-import type { CodecControlHooks, SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer, Lowerer } from '@prisma-next/family-sql/control-adapter';
+import { errorUnfilledPlaceholder } from '@internal/errors/migration';
+import type { CodecControlHooks, SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type {
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { StorageColumn, StorageTypeInstance } from '@prisma-next/sql-contract/types';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import type {
   AnyDdlColumnDefault,
   DdlColumn,
   DdlTableConstraint,
-} from '@prisma-next/sql-relational-core/ast';
-import { FunctionColumnDefault, LiteralColumnDefault } from '@prisma-next/sql-relational-core/ast';
-import { type ImportRequirement, jsonToTsSource, TsExpression } from '@prisma-next/ts-render';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { assertNever } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import { FunctionColumnDefault, LiteralColumnDefault } from '@internal/sql-relational-core/ast';
+import { namingOf } from '@internal/sql-schema-ir/naming';
+import { type ImportRequirement, jsonToTsSource, TsExpression } from '@internal/ts-render';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { assertNever } from '@internal/utils/internal-error';
 import {
   columnExistsAst,
   nativeEnumTypeExistsAst,
@@ -47,7 +48,7 @@ import {
 } from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
 import { postgresError } from '../errors';
-import type { PostgresRlsPolicy, PostgresRlsPolicyMigrationInput } from '../postgres-rls-policy';
+import type { PostgresRlsPolicy, RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import {
   escapeLiteral,
   quoteIdentifier,
@@ -103,13 +104,16 @@ type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
 // (col / lit / fn / primaryKey / foreignKey / unique) from
 // sql-relational-core/contract-free. We emit imports against the facade,
 // not against the underlying sql-relational-core subpath, because user
-// projects depend on `@prisma-next/postgres` (a runtime dep of every
+// projects depend on `@internal/postgres` (a runtime dep of every
 // init-scaffolded project) — they do not depend on the internal
-// `@prisma-next/sql-relational-core` package, so an emitted
-// `import … from '@prisma-next/sql-relational-core/contract-free'` fails
+// `@internal/sql-relational-core` package, so an emitted
+// `import … from '@internal/sql-relational-core/contract-free'` fails
 // ESM resolution at runtime in user migrations even though pnpm has the
 // transitive package on disk.
-const POSTGRES_MIGRATION_FACADE = '@prisma-next/postgres/migration';
+// This is the authored name. `render-typescript.ts` maps it to whatever the
+// consuming application's import root calls it, once over the whole assembled
+// import list.
+const POSTGRES_MIGRATION_FACADE = '@internal/postgres/migration';
 
 abstract class PostgresOpFactoryCallNode extends TsExpression implements FrameworkOpFactoryCall {
   abstract readonly factoryName: string;
@@ -1721,13 +1725,11 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
 
   renderTypeScript(): string {
     const p = this.policy;
-    // Typed as the migration API's own optional-key parameter shape so the
-    // rendered literal (absent keys omitted) is the shape `createRlsPolicy`
-    // accepts — a drift between the two is a compile error here, not in the
+    // Typed as the parameter `createRlsPolicy` accepts, so a drift between
+    // the renderer and the API is a compile error here rather than in the
     // user's generated migration.
-    const input: PostgresRlsPolicyMigrationInput = {
-      name: p.name,
-      ...ifDefined('prefix', p.prefix),
+    const input: RenderedRlsPolicyLiteral = {
+      naming: namingOf(p.name, p.prefix),
       tableName: p.tableName,
       namespaceId: p.namespaceId,
       operation: p.operation,

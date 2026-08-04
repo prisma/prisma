@@ -214,7 +214,7 @@ Mostly localized to the ORM client and a small new module in framework-component
 
 4. **`packages/3-extensions/sql-orm-client/test/`.** Existing unit and type tests — every site that called `db.User.first({ id }, cacheAnnotation({ ttl }))` becomes `db.User.first({ id }, (meta) => meta.annotate(cacheAnnotation({ ttl })))`. The negative type tests (write-only annotation on read terminal, read-only on write terminal) move from variadic-position negatives to `meta.annotate(...)` argument-position negatives. Cast-bypass runtime tests target `meta.annotate(annotation as any)` and assert the same `RUNTIME.ANNOTATION_INAPPLICABLE` envelope.
 
-5. **`packages/3-extensions/middleware-cache/test/` and `examples/prisma-next-demo/`.** Mechanical: every annotated ORM call site gains a `(meta) => meta.annotate(...)` wrapper.
+5. **`packages/3-extensions/middleware-cache/test/` and `examples/prisma-8-demo/`.** Mechanical: every annotated ORM call site gains a `(meta) => meta.annotate(...)` wrapper.
 
 6. **`docs/architecture docs/subsystems/4. Runtime & Middleware Framework.md` "Lane integration" section.** Update the ORM `Collection` bullet from "variadic argument with the same gated shape" to "optional last argument `configure: (meta: MetaBuilder<K>) => void`". Update the storage paragraph's "Multiple `.annotate()` calls or terminal arguments compose" to "Multiple `meta.annotate(...)` calls compose".
 
@@ -224,7 +224,7 @@ The framework-components annotation module (`annotations.ts`) does **not** chang
 
 ## Acceptance criteria
 
-- [ ] `MetaBuilder<K>` is exported from `@prisma-next/framework-components/runtime`. Type tests cover: `meta.annotate(readApplicable)` typechecks for `K = 'read'`; `meta.annotate(writeOnly)` does not for `K = 'read'`; mirror image for `K = 'write'`; a `'read' | 'write'` annotation works on both. Type test asserts `meta.annotate` returns `this` (for chaining).
+- [ ] `MetaBuilder<K>` is exported from `@internal/framework-components/runtime`. Type tests cover: `meta.annotate(readApplicable)` typechecks for `K = 'read'`; `meta.annotate(writeOnly)` does not for `K = 'read'`; mirror image for `K = 'write'`; a `'read' | 'write'` annotation works on both. Type test asserts `meta.annotate` returns `this` (for chaining).
 - [ ] `MetaBuilder.annotate` validates eagerly via `assertAnnotationsApplicable` and throws `RUNTIME.ANNOTATION_INAPPLICABLE` on cast-bypass (unit test, both kinds).
 - [ ] Every ORM read terminal accepts an optional `configure: (meta: MetaBuilder<'read'>) => void` last argument and threads `meta.annotations` into `plan.meta.annotations` (integration test, one per terminal).
 - [ ] Every ORM write terminal accepts an optional `configure: (meta: MetaBuilder<'write'>) => void` last argument and threads `meta.annotations` into the compiled mutation plan(s) via `mergeUserAnnotations` (integration test, one per terminal).
@@ -234,7 +234,7 @@ The framework-components annotation module (`annotations.ts`) does **not** chang
 - [ ] The runtime `first` overload set collapses to two signatures and the `isAnnotationValue(filterOrFirstAnnotation)` branch is removed (unit test asserts both overloads dispatch correctly: `first(configure)` and `first(filter, configure)`).
 - [ ] `pnpm test:packages` passes; `pnpm typecheck` passes; `pnpm lint:deps` clean.
 - [ ] Cache middleware's stop-condition integration test (`test/integration/test/cross-package/middleware-cache.test.ts`) passes against the new call shape with the annotated ORM read.
-- [ ] Demo (`examples/prisma-next-demo/`) updated to use the new shape; run remains green.
+- [ ] Demo (`examples/prisma-8-demo/`) updated to use the new shape; run remains green.
 
 ## Sequencing
 

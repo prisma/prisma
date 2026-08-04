@@ -21,7 +21,7 @@ Start by extracting pure, side-effect-free utility functions:
 
 ```typescript
 // utils/ast.ts - Thin wrappers around rich AST classes
-export { BinaryExpr, ColumnRef, OperationExpr, ParamRef } from '@prisma-next/sql-relational-core/ast';
+export { BinaryExpr, ColumnRef, OperationExpr, ParamRef } from '@internal/sql-relational-core/ast';
 
 // utils/errors.ts - Centralized error constructors
 export function errorModelNotFound(modelName: string): never {
@@ -201,7 +201,7 @@ When TypeScript's `exactOptionalPropertyTypes` is enabled, optional properties m
 **✅ CORRECT: Use `compact` helper for optional properties**
 
 ```typescript
-import { compact } from '@prisma-next/sql-relational-core/ast';
+import { compact } from '@internal/sql-relational-core/ast';
 
 const includeForMeta: IncludeState = compact({
   alias: includeState.alias,
@@ -227,10 +227,10 @@ const includeForMeta: IncludeState = compact({
 
 ```typescript
 // 1. External type imports
-import type { ParamDescriptor, Plan } from '@prisma-next/contract/types';
+import type { ParamDescriptor, Plan } from '@internal/contract/types';
 
 // 2. External value imports
-import { planInvalid } from '@prisma-next/sql-relational-core/errors';
+import { planInvalid } from '@internal/sql-relational-core/errors';
 
 // 3. Internal type imports
 import type { OrmContext } from '../orm/context';
@@ -253,13 +253,13 @@ import { errorModelNotFound } from '../utils/errors';
 
 ```bash
 # After extracting utilities
-pnpm --filter @prisma-next/sql-orm-lane test
+pnpm --filter @internal/sql-orm-lane test
 
 # After extracting domain modules
-pnpm --filter @prisma-next/sql-orm-lane test
+pnpm --filter @internal/sql-orm-lane test
 
 # After creating facade
-pnpm --filter @prisma-next/sql-orm-lane test
+pnpm --filter @internal/sql-orm-lane test
 ```
 
 **Key Points:**
@@ -270,7 +270,7 @@ pnpm --filter @prisma-next/sql-orm-lane test
 
 ## Example: ORM Lane Refactoring
 
-The `@prisma-next/sql-orm-lane` package was refactored from a single 1900-line file into a modular structure:
+The `@internal/sql-orm-lane` package was refactored from a single 1900-line file into a modular structure:
 
 **Before:**
 - `orm-builder.ts` (1900 lines) - Everything in one file
@@ -293,7 +293,7 @@ The `@prisma-next/sql-orm-lane` package was refactored from a single 1900-line f
 
 ## Example: SQL Lane Refactoring
 
-The `@prisma-next/sql-lane` package was refactored from a single 1940-line `sql.ts` file into a modular structure:
+The `@internal/sql-lane` package was refactored from a single 1940-line `sql.ts` file into a modular structure:
 
 **Before:**
 - `sql.ts` (1940 lines) - Everything in one file
@@ -317,7 +317,7 @@ The `@prisma-next/sql-lane` package was refactored from a single 1940-line `sql.
 
 **Key Learnings:**
 - **Consolidate duplicate code**: The refactoring consolidated three duplicate `_buildWhereExpr` implementations (in SelectBuilderImpl, UpdateBuilderImpl, DeleteBuilderImpl) into a single `buildWhereExpr` function in `predicate-builder.ts`
-- **Use AST factories consistently**: All AST construction flows through factories from `@prisma-next/sql-relational-core/ast`, ensuring consistency and reducing duplication
+- **Use AST factories consistently**: All AST construction flows through factories from `@internal/sql-relational-core/ast`, ensuring consistency and reducing duplication
 - **Centralize error handling**: All error constructors are in `utils/errors.ts`, providing a single source of truth for error messages
 - **Capability checks**: Capability checking logic is centralized in `utils/capabilities.ts`, following the same pattern as the ORM lane
 - **State management**: Immutable state types are extracted to `utils/state.ts`, making state shapes reusable across modules

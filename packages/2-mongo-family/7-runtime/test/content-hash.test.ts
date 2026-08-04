@@ -1,10 +1,10 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 import {
   AggregateWireCommand,
   DeleteOneWireCommand,
   InsertOneWireCommand,
   UpdateOneWireCommand,
-} from '@prisma-next/mongo-wire';
+} from '@internal/mongo-wire';
 import { describe, expect, it } from 'vitest';
 import { computeMongoContentHash } from '../src/content-hash';
 import type { MongoExecutionPlan } from '../src/mongo-execution-plan';

@@ -3,7 +3,7 @@ import type {
   SchemaVerifier,
   SchemaVerifyOptions,
   SchemaVerifyResult,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 
 /**
  * SQL family `SchemaVerifier` abstract base. Centralises the SQL-shared

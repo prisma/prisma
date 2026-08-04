@@ -1,13 +1,13 @@
-import sqliteAdapter from '@prisma-next/adapter-sqlite/control';
+import sqliteAdapter from '@internal/adapter-sqlite/control';
 import {
   type ControlClient,
   type ControlClientOptions,
   createControlClient,
-} from '@prisma-next/cli/control-api';
-import sqliteDriver from '@prisma-next/driver-sqlite/control';
-import sql from '@prisma-next/family-sql/control';
-import sqlite from '@prisma-next/target-sqlite/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/cli/control-api';
+import sqliteDriver from '@internal/driver-sqlite/control';
+import sql from '@internal/family-sql/control';
+import sqlite from '@internal/target-sqlite/control';
+import { ifDefined } from '@internal/utils/defined';
 
 export interface SqliteControlClientOptions {
   readonly connection?: string;

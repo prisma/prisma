@@ -1,6 +1,6 @@
-import { crossRef } from '@prisma-next/contract/types';
-import { generateContractDts } from '@prisma-next/emitter';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
+import { crossRef } from '@internal/contract/types';
+import { generateContractDts } from '@internal/emitter';
+import type { TypesImportSpec } from '@internal/framework-components/emission';
 import { describe, expect, it } from 'vitest';
 import { mongoEmission } from '../src/index';
 import {
@@ -47,8 +47,8 @@ describe('mongoEmission.generateContractTypes', () => {
   it('includes framework imports', () => {
     const contract = createMongoContract();
     const types = generateContractDts(contract, mongoEmission, [], testHashes);
-    expect(types).toContain("from '@prisma-next/mongo-contract'");
-    expect(types).toContain("from '@prisma-next/contract/types'");
+    expect(types).toContain("from '@internal/mongo-contract'");
+    expect(types).toContain("from '@internal/contract/types'");
     expect(types).toContain('MongoContractWithTypeMaps');
     expect(types).toContain('MongoTypeMaps');
     expect(types).toContain('StorageHashBase');
@@ -60,14 +60,14 @@ describe('mongoEmission.generateContractTypes', () => {
     const contract = createMongoContract();
     const codecImports: TypesImportSpec[] = [
       {
-        package: '@prisma-next/adapter-mongo/codec-types',
+        package: '@internal/adapter-mongo/codec-types',
         named: 'CodecTypes',
         alias: 'MongoCodecTypes',
       },
     ];
     const types = generateContractDts(contract, mongoEmission, codecImports, testHashes);
     expect(types).toContain(
-      "import type { CodecTypes as MongoCodecTypes } from '@prisma-next/adapter-mongo/codec-types'",
+      "import type { CodecTypes as MongoCodecTypes } from '@internal/adapter-mongo/codec-types'",
     );
     expect(types).toContain('export type CodecTypes = MongoCodecTypes');
   });

@@ -1,4 +1,4 @@
-import type { StorageColumn } from '@prisma-next/sql-contract/types';
+import type { StorageColumn } from '@internal/sql-contract/types';
 import {
   DdlColumn,
   type DdlTableConstraint,
@@ -7,10 +7,10 @@ import {
   LiteralColumnDefault,
   PrimaryKeyConstraint,
   UniqueConstraint,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlColumnIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { assertNever, InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import type { SqlColumnIR, SqlTableIR } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import { assertNever, InternalError } from '@internal/utils/internal-error';
 import type { SqliteColumnSpec } from './operations/shared';
 import { buildColumnDefaultSql, buildColumnTypeSql } from './planner-ddl-builders';
 

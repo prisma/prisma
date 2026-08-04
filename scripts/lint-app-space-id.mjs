@@ -7,7 +7,7 @@
  *
  *   1. **Single source of truth.** `export const APP_SPACE_ID = ...`
  *      may appear at exactly one path under `packages/` — the canonical
- *      home in `@prisma-next/framework-components/control`. Re-exports
+ *      home in `@internal/framework-components/control`. Re-exports
  *      (`export { APP_SPACE_ID } from '...'`) are allowed and
  *      encouraged: they preserve the existing module surface for
  *      consumers of `migration-tools`, `sql-runtime`, the postgres /

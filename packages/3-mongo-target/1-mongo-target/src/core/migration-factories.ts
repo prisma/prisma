@@ -3,7 +3,7 @@ import type {
   MongoDataTransformOperation,
   MongoFilterExpr,
   MongoIndexKey,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import {
   buildIndexOpId,
   CollModCommand,
@@ -20,13 +20,13 @@ import {
   MongoExistsExpr,
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
-} from '@prisma-next/mongo-query-ast/control';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { createFieldAccessor } from '@prisma-next/mongo-query-builder';
-import { collection } from '@prisma-next/mongo-query-builder/contract-free';
-import type { MongoValue } from '@prisma-next/mongo-value';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-query-ast/control';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import { createFieldAccessor } from '@internal/mongo-query-builder';
+import { collection } from '@internal/mongo-query-builder/contract-free';
+import type { MongoValue } from '@internal/mongo-value';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import type { CollModMeta } from './op-factory-call';
 
 type StringField = { readonly codecId: 'mongo/string@1'; readonly nullable: false };

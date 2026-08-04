@@ -15,7 +15,7 @@
  * this file is not the answer — that's what codecs are for.
  */
 
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 
 export type JsonValue = string | number | boolean | null | readonly JsonValue[] | JsonObject;
 export type JsonObject = { readonly [key: string]: JsonValue | undefined };

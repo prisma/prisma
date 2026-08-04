@@ -1,16 +1,16 @@
 import type {
   AuthoringPslBlockDescriptor,
   AuthoringPslBlockDescriptorNamespace,
-} from '@prisma-next/framework-components/authoring';
-import { isAuthoringPslBlockDescriptor } from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/authoring';
+import { isAuthoringPslBlockDescriptor } from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import type {
   PslBlockParam,
   PslExtensionBlock,
   PslExtensionBlockParamValue,
-} from '@prisma-next/framework-components/psl-ast';
-import { UNSPECIFIED_PSL_NAMESPACE_ID } from '@prisma-next/framework-components/psl-ast';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/framework-components/psl-ast';
+import { UNSPECIFIED_PSL_NAMESPACE_ID } from '@internal/framework-components/psl-ast';
+import { blindCast } from '@internal/utils/casts';
 import { contractError } from './contract-errors';
 import type { PrintDocument, PrintNamespaceSection } from './print-document';
 import type { PrinterField, PrinterNamedType } from './types';

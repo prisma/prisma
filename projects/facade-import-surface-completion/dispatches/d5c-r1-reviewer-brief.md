@@ -1,6 +1,6 @@
 # D5c R1 — Reviewer brief
 
-You are reviewing **dispatch D5c R1** of the `facade-import-surface-completion` slice. D5c's scope is architectural cycle-breaking: move pgvector-dependent (and analogous mongo-contract-ts-dependent) tests out of `packages/*/test/` and into `test/integration/`, then drop the offending `devDependencies` from the package manifests. The cycle being broken is `@prisma-next/postgres` → `@prisma-next/sql-builder` → `@prisma-next/extension-pgvector` → (would-be) `@prisma-next/postgres`, which currently blocks D5d from migrating `pgvector`/`postgis`/`mongo-runtime` `src/contract.ts` to facade-form imports.
+You are reviewing **dispatch D5c R1** of the `facade-import-surface-completion` slice. D5c's scope is architectural cycle-breaking: move pgvector-dependent (and analogous mongo-contract-ts-dependent) tests out of `packages/*/test/` and into `test/integration/`, then drop the offending `devDependencies` from the package manifests. The cycle being broken is `@internal/postgres` → `@internal/sql-builder` → `@internal/extension-pgvector` → (would-be) `@internal/postgres`, which currently blocks D5d from migrating `pgvector`/`postgis`/`mongo-runtime` `src/contract.ts` to facade-form imports.
 
 Critically: D5c is **a pre-requisite for D5d**, so your role is to confirm the cycle is verifiably broken AND that no test coverage was lost in the move (no skips, no broad `as unknown as` casts, no scope creep).
 
@@ -16,11 +16,11 @@ Critically: D5c is **a pre-requisite for D5d**, so your role is to confirm the c
 ## Commit range
 
 ```
-82e4e7105  refactor(@prisma-next/sql-builder): move playground tests to integration, drop pgvector devDep
-8d86ea44b  refactor(@prisma-next/sql-orm-client): move pgvector-dependent tests to integration, drop pgvector devDep
-cdedc86cb  refactor(@prisma-next/mongo-runtime): move query-builder test to integration, drop mongo-contract-ts devDep
-fb45ba05e  refactor(@prisma-next/sql-orm-client): move pgvector model-accessor tests to integration
-ad692094d  fix(@prisma-next/sql-orm-client): align package test fixture with postgres-only runtime
+82e4e7105  refactor(@internal/sql-builder): move playground tests to integration, drop pgvector devDep
+8d86ea44b  refactor(@internal/sql-orm-client): move pgvector-dependent tests to integration, drop pgvector devDep
+cdedc86cb  refactor(@internal/mongo-runtime): move query-builder test to integration, drop mongo-contract-ts devDep
+fb45ba05e  refactor(@internal/sql-orm-client): move pgvector model-accessor tests to integration
+ad692094d  fix(@internal/sql-orm-client): align package test fixture with postgres-only runtime
 ```
 
 Use `git log --oneline f73787e16..HEAD` and `git diff f73787e16..HEAD --stat` to scope your review. (`f73787e16` is the last project artifact commit before D5c implementation started.)
@@ -30,20 +30,20 @@ Use `git log --oneline f73787e16..HEAD` and `git diff f73787e16..HEAD --stat` to
 ### Architectural
 
 1. **Cycle is verifiably broken.** From the structured return:
-   - Before D5c: `Cyclic dependency detected: @prisma-next/extension-pgvector, @prisma-next/sql-builder, @prisma-next/sql-orm-client, @prisma-next/postgres` (per D5a R1).
-   - After D5c (transient experiment, reverted): adding `"@prisma-next/postgres": "workspace:0.9.0"` to `packages/3-extensions/pgvector/package.json` devDeps + `pnpm install` + `pnpm typecheck --filter @prisma-next/extension-pgvector` returns **exit 0**.
+   - Before D5c: `Cyclic dependency detected: @internal/extension-pgvector, @internal/sql-builder, @internal/sql-orm-client, @internal/postgres` (per D5a R1).
+   - After D5c (transient experiment, reverted): adding `"@internal/postgres": "workspace:0.9.0"` to `packages/3-extensions/pgvector/package.json` devDeps + `pnpm install` + `pnpm typecheck --filter @internal/extension-pgvector` returns **exit 0**.
 
    You must independently re-run this experiment to confirm. Steps:
    - Add the transient devDep to `packages/3-extensions/pgvector/package.json`.
    - `pnpm install`.
-   - `pnpm typecheck --filter @prisma-next/extension-pgvector` — must succeed.
+   - `pnpm typecheck --filter @internal/extension-pgvector` — must succeed.
    - **Revert** the devDep + re-run `pnpm install` before signing off.
    - Capture the typecheck command's exit code as evidence in your verdict.
 
 2. **The three offending devDeps are actually dropped.** Read these three `package.json`s and confirm:
-   - `packages/2-sql/4-lanes/sql-builder/package.json` — no `@prisma-next/extension-pgvector` in `devDependencies`.
-   - `packages/3-extensions/sql-orm-client/package.json` — no `@prisma-next/extension-pgvector` in `devDependencies`.
-   - `packages/2-mongo-family/7-runtime/package.json` — no `@prisma-next/mongo-contract-ts` (or whichever the cycle-causing dep was — confirm against `cdedc86cb`'s diff).
+   - `packages/2-sql/4-lanes/sql-builder/package.json` — no `@internal/extension-pgvector` in `devDependencies`.
+   - `packages/3-extensions/sql-orm-client/package.json` — no `@internal/extension-pgvector` in `devDependencies`.
+   - `packages/2-mongo-family/7-runtime/package.json` — no `@internal/mongo-contract-ts` (or whichever the cycle-causing dep was — confirm against `cdedc86cb`'s diff).
 
 ### Test relocation hygiene (CRITICAL)
 
@@ -66,12 +66,12 @@ Use `git log --oneline f73787e16..HEAD` and `git diff f73787e16..HEAD --stat` to
 ### Gates
 
 7. Re-run these gates (the structured return claims green on all):
-   - `pnpm typecheck --filter @prisma-next/sql-orm-client`
-   - `pnpm typecheck --filter @prisma-next/sql-builder`
-   - `pnpm typecheck --filter @prisma-next/mongo-runtime`
-   - `pnpm test --filter @prisma-next/sql-orm-client`
-   - `pnpm test --filter @prisma-next/sql-builder`
-   - `pnpm test --filter @prisma-next/mongo-runtime`
+   - `pnpm typecheck --filter @internal/sql-orm-client`
+   - `pnpm typecheck --filter @internal/sql-builder`
+   - `pnpm typecheck --filter @internal/mongo-runtime`
+   - `pnpm test --filter @internal/sql-orm-client`
+   - `pnpm test --filter @internal/sql-builder`
+   - `pnpm test --filter @internal/mongo-runtime`
    - `pnpm test:integration test/sql-orm-client/model-accessor.pgvector.test.ts`
    - `pnpm lint:deps`
 

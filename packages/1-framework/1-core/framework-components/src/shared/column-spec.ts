@@ -6,7 +6,7 @@
  * `column()` is a trivial, non-polymorphic packager. Generic over `R` (the codec instance type returned by the descriptor's curried factory) and `P` (the typeParams record). The framework does NOT try to infer `R` and `P` from a descriptor — that path is the variance trap. Per-codec helpers absorb the descriptor relationship instead and tie themselves to their descriptor via `satisfies ColumnHelperFor<D>` or `satisfies ColumnHelperForStrict<D>`.
  */
 
-import type { ValueSetRef } from '@prisma-next/contract/types';
+import type { ValueSetRef } from '@internal/contract/types';
 import type { CodecDescriptor } from './codec-descriptor';
 import type { CodecInstanceContext } from './codec-types';
 
@@ -61,7 +61,7 @@ export interface ColumnSpec<R, P extends Record<string, unknown> | undefined>
 /**
  * Trivial column packager. Per-codec helpers call this directly with the result of `descriptor.factory(params)` — direct method invocation binds the descriptor's method-level generic at the call site and the literal flows through `R`.
  *
- * `nativeType` is the column's database-native type spelling — the value the postgres adapter's migration planner, the SQL renderer's cast policy, and the contract's `meta.db.<family>.<target>.nativeType` slot read. Per-codec helpers pass the literal native-type string for their codec (e.g. `'text'`, `'int4'`, `'character varying'`); for codecs whose native-type spelling depends on parameters (none today; reserved for future shapes), the helper computes the rendered string before calling `column`. The framework does not derive the value from `codecId` — that mapping is target-specific and lives at the helper.
+ * `nativeType` is the column's database-native type spelling — the value the postgres adapter's migration planner, the SQL renderer's cast policy, and the emitted contract's column `nativeType` slot read. Per-codec helpers pass the literal native-type string for their codec (e.g. `'text'`, `'int4'`, `'character varying'`); for codecs whose native-type spelling depends on parameters (none today; reserved for future shapes), the helper computes the rendered string before calling `column`. The framework does not derive the value from `codecId` — that mapping is target-specific and lives at the helper.
  */
 export function column<R, P extends Record<string, unknown> | undefined>(
   codecFactory: (ctx: CodecInstanceContext) => R,

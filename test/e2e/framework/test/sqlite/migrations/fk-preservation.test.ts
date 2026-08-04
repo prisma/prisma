@@ -1,6 +1,6 @@
-import { defineContract, model } from '@prisma-next/sql-contract-ts/contract-builder';
+import { defineContract, model } from '@prisma/orm-sqlite/contract-builder';
 import { describe, expect, it } from 'vitest';
-import { applyMigration, int, pack, text } from './harness';
+import { applyMigration, int, text } from './harness';
 
 describe('SQLite Migration E2E - FK preservation through recreate-table', () => {
   const WIDENING = { allowedOperationClasses: ['additive', 'widening'] } as const;
@@ -40,8 +40,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
 
     await applyMigration(
       {
-        origin: defineContract({ ...pack, models: { User, Post: PostV1 } }),
-        destination: defineContract({ ...pack, models: { User, Post: PostV2 } }),
+        origin: defineContract({ models: { User, Post: PostV1 } }),
+        destination: defineContract({ models: { User, Post: PostV2 } }),
         policy: WIDENING,
         seed: async (driver) => {
           await driver.query('INSERT INTO "User" (id, name) VALUES (?, ?)', [1, 'Alice']);
@@ -99,8 +99,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
 
     await applyMigration(
       {
-        origin: defineContract({ ...pack, models: { User: UserV1, Post } }),
-        destination: defineContract({ ...pack, models: { User: UserV2, Post } }),
+        origin: defineContract({ models: { User: UserV1, Post } }),
+        destination: defineContract({ models: { User: UserV2, Post } }),
         policy: WIDENING,
         seed: async (driver) => {
           await driver.query('INSERT INTO "User" (id, name, bio) VALUES (?, ?, ?)', [
@@ -162,8 +162,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
 
     await applyMigration(
       {
-        origin: defineContract({ ...pack, models: { User: UserV1 } }),
-        destination: defineContract({ ...pack, models: { User: UserV2 } }),
+        origin: defineContract({ models: { User: UserV1 } }),
+        destination: defineContract({ models: { User: UserV2 } }),
         policy: WIDENING,
         seed: async (driver) => {
           await driver.query('INSERT INTO "User" (id, email, name) VALUES (?, ?, ?)', [
@@ -247,8 +247,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
 
     await applyMigration(
       {
-        origin: defineContract({ ...pack, models: { User, Post: PostV1, Comment } }),
-        destination: defineContract({ ...pack, models: { User, Post: PostV2, Comment } }),
+        origin: defineContract({ models: { User, Post: PostV1, Comment } }),
+        destination: defineContract({ models: { User, Post: PostV2, Comment } }),
         policy: WIDENING,
         seed: async (driver) => {
           await driver.query('INSERT INTO "User" (id, name) VALUES (?, ?)', [1, 'Alice']);
@@ -312,8 +312,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
 
     await applyMigration(
       {
-        origin: defineContract({ ...pack, models: { User: UserV1 } }),
-        destination: defineContract({ ...pack, models: { User: UserV2 } }),
+        origin: defineContract({ models: { User: UserV1 } }),
+        destination: defineContract({ models: { User: UserV2 } }),
         policy: WIDENING,
         seed: async (driver) => {
           await driver.query('INSERT INTO "User" (id, email, name, tenant) VALUES (?, ?, ?, ?)', [
@@ -375,8 +375,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
 
     await applyMigration(
       {
-        origin: defineContract({ ...pack, models: { User: UserV1, Post } }),
-        destination: defineContract({ ...pack, models: { User: UserV2, Post } }),
+        origin: defineContract({ models: { User: UserV1, Post } }),
+        destination: defineContract({ models: { User: UserV2, Post } }),
         policy: WIDENING,
         seed: async (driver) => {
           await driver.query('INSERT INTO "User" (id, name, bio) VALUES (?, ?, ?)', [
@@ -413,8 +413,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
     await expect(
       applyMigration(
         {
-          origin: defineContract({ ...pack, models: { User: UserV1, Post } }),
-          destination: defineContract({ ...pack, models: { User: UserV2, Post } }),
+          origin: defineContract({ models: { User: UserV1, Post } }),
+          destination: defineContract({ models: { User: UserV2, Post } }),
           policy: WIDENING,
           seed: async (driver) => {
             await driver.query('INSERT INTO "User" (id, name, bio) VALUES (?, ?, ?)', [
@@ -471,8 +471,8 @@ describe('SQLite Migration E2E - FK preservation through recreate-table', () => 
 
     await applyMigration(
       {
-        origin: defineContract({ ...pack, models: { User, Post: PostNoFk } }),
-        destination: defineContract({ ...pack, models: { User, Post: PostWithFk } }),
+        origin: defineContract({ models: { User, Post: PostNoFk } }),
+        destination: defineContract({ models: { User, Post: PostWithFk } }),
         policy: DESTRUCTIVE,
         seed: async (driver) => {
           await driver.query('INSERT INTO "User" (id, name) VALUES (?, ?)', [1, 'Alice']);

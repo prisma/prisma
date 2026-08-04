@@ -1,5 +1,5 @@
-import type { PostgresContract } from '@prisma-next/adapter-postgres/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { PostgresContract } from '@internal/adapter-postgres/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   BinaryExpr,
   ColumnRef,
@@ -7,8 +7,8 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/sql-relational-core/ast';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createComposedPostgresAdapter } from './helpers/composed-adapter';

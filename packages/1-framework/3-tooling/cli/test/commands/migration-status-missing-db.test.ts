@@ -1,4 +1,4 @@
-import type { CliErrorEnvelope } from '@prisma-next/errors/control';
+import type { CliErrorEnvelope } from '@internal/errors/control';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-helpers';
 
@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
 }));
 
-vi.mock('@prisma-next/config-loader', () => ({
+vi.mock('@internal/config-loader', () => ({
   loadConfig: mocks.loadConfig,
 }));
 
@@ -58,7 +58,7 @@ describe('migration status missing-DB precondition', () => {
   afterAll(() => {
     // Repo-wide vitest runs with `isolate: false`, so the `vi.mock` leaks
     // into the next file in the same worker; unmock to restore it.
-    vi.doUnmock('@prisma-next/config-loader');
+    vi.doUnmock('@internal/config-loader');
     vi.resetModules();
   });
 

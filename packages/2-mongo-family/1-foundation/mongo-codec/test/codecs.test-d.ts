@@ -1,4 +1,4 @@
-import type { Codec as BaseCodec } from '@prisma-next/framework-components/codec';
+import type { Codec as BaseCodec } from '@internal/framework-components/codec';
 import { expectTypeOf, test } from 'vitest';
 import type { MongoCodec, MongoCodecInput } from '../src/codecs';
 import { mongoCodec } from '../src/codecs';

@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import {
   SqlStorage,
   type SqlStorage as SqlStorageType,
   StorageTable,
-} from '@prisma-next/sql-contract/types';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-contract/types';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import {
   requireStorageTableForContract,

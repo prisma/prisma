@@ -1,15 +1,15 @@
 import { access } from 'node:fs/promises';
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { validateConfig } from '@prisma-next/config/config-validation';
-import { getEmittedArtifactPaths } from '@prisma-next/emitter';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import { validateConfig } from '@internal/config/config-validation';
+import { getEmittedArtifactPaths } from '@internal/emitter';
 import {
   CliStructuredError,
   errorConfigFileNotFound,
   errorConfigValidation,
   errorUnexpected,
-} from '@prisma-next/errors/control';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { isStructuredError, structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/errors/control';
+import { ifDefined } from '@internal/utils/defined';
+import { isStructuredError, structuredError } from '@internal/utils/structured-error';
 import { dirname, join, resolve } from 'pathe';
 import { finalizeConfig } from './finalize-config';
 
@@ -143,7 +143,7 @@ export function toStructuredConfigError(error: unknown, configPath?: string): Er
 
 /**
  * Loads, validates, and finalizes the Prisma Next config, mapping every failure
- * to a structured `@prisma-next/errors/control` error (`CliStructuredError`).
+ * to a structured `@internal/errors/control` error (`CliStructuredError`).
  * This is the sole public entry point: callers that need to degrade gracefully
  * (e.g. the language server) branch on the structured error's stable `.code`.
  */

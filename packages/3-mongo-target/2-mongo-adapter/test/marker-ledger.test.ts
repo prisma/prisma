@@ -1,7 +1,7 @@
-import type { LedgerEntryRecord } from '@prisma-next/contract/types';
-import { MongoControlDriver } from '@prisma-next/driver-mongo/control';
-import { CliStructuredError } from '@prisma-next/errors/control';
-import { timeouts } from '@prisma-next/test-utils';
+import type { LedgerEntryRecord } from '@internal/contract/types';
+import { MongoControlDriver } from '@internal/driver-mongo/control';
+import { CliStructuredError } from '@internal/errors/control';
+import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

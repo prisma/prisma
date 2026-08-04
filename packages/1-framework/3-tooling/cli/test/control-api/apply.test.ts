@@ -4,17 +4,17 @@ import type {
   MigrationPlan,
   MigrationRunnerResult,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import type {
   AggregateContractSpace,
   ContractSpaceAggregate,
   PerSpacePlan,
-} from '@prisma-next/migration-tools/aggregate';
+} from '@internal/migration-tools/aggregate';
 import {
   buildFabricatedMigrationEdge,
   createContractSpaceAggregate,
-} from '@prisma-next/migration-tools/aggregate';
-import { ok } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/aggregate';
+import { ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
 import { type RunAction, runMigration } from '../../src/control-api/operations/run-migration';
 import type { ControlProgressEvent } from '../../src/control-api/types';

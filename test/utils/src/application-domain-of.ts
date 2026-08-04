@@ -3,7 +3,7 @@ import {
   type ContractModelBase,
   type ContractValueObject,
   UNBOUND_DOMAIN_NAMESPACE_ID,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 
 export function applicationDomainOf(params: {
   readonly models?: Record<string, ContractModelBase>;

@@ -28,7 +28,7 @@ Refactor the loop so the duplicate check happens **once**, uniformly:
 ## Completed when
 - [ ] One `seen` check in the loop; `Origin` gone; `seen` is a `Set<string>`; `duplicateDiagnostic`'s branching removed (one uniform duplicate diagnostic anchored to the arg node).
 - [ ] `rg "Origin\b" packages/1-framework/2-authoring/psl-parser/src/attribute-spec/interpret.ts` → zero (the removed type).
-- [ ] Gates: `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl test`; `pnpm fixtures:check`; after `pnpm --filter @prisma-next/psl-parser build`, workspace `pnpm typecheck`.
+- [ ] Gates: `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl test`; `pnpm fixtures:check`; after `pnpm --filter @internal/psl-parser build`, workspace `pnpm typecheck`.
 
 ## Constraints
 No `any`; no bare `as` (keep the existing justified `blindCast` on the output object); no file-ext imports; tests-first for the changed behaviour. Explicit-staging commit with sign-off, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Transient-ID scan on the `+` diff. Do NOT post to GitHub.

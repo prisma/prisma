@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type {
   Codec as BaseCodec,
   CodecCallContext,
@@ -6,15 +6,15 @@ import type {
   CodecInstanceContext,
   CodecRef,
   CodecTrait,
-} from '@prisma-next/framework-components/codec';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/codec';
+import { ifDefined } from '@internal/utils/defined';
 
 export type {
   CodecCallContext,
   CodecDescriptor,
   CodecRef,
   CodecTrait,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 
 function isJsonArray(value: JsonValue): value is readonly JsonValue[] {
   return Array.isArray(value);
@@ -84,24 +84,11 @@ export interface SqlCodecInstanceContext extends CodecInstanceContext {
 }
 
 /**
- * Codec metadata for database-specific type information. Used for schema introspection and verification.
- */
-export interface CodecMeta {
-  readonly db?: {
-    readonly sql?: {
-      readonly postgres?: {
-        readonly nativeType: string; // e.g. 'integer', 'text', 'vector', 'timestamp with time zone'
-      };
-    };
-  };
-}
-
-/**
  * SQL codec — extends the framework codec base by narrowing the per-call context to the SQL-family {@link SqlCodecCallContext} (adds `column?: SqlColumnRef`). TypeScript treats method-syntax declarations bivariantly, so the SQL narrowing is structurally compatible with the framework {@link BaseCodec} super-interface.
  *
- * Codec-id-keyed static metadata (`traits`, `targetTypes`, `meta`, `paramsSchema`, `renderOutputType`) lives on the unified {@link import('@prisma-next/framework-components/codec').CodecDescriptor} — the codec instance itself only carries `id` plus the four conversion methods.
+ * Codec-id-keyed static metadata (`traits`, `targetTypes`, `paramsSchema`, `renderOutputType`) lives on the unified {@link import('@internal/framework-components/codec').CodecDescriptor} — the codec instance itself only carries `id` plus the four conversion methods.
  *
- * See `Codec` in `@prisma-next/framework-components/codec` for the codec contract that this interface extends.
+ * See `Codec` in `@internal/framework-components/codec` for the codec contract that this interface extends.
  */
 export interface Codec<
   Id extends string = string,
@@ -154,6 +141,27 @@ export type DescriptorCodecInput<D> =
     : never;
 
 /**
+ * Resolve the JSON type for a descriptor `D` — what the codec's `encodeJson`
+ * produces, and therefore what a `contract.json` holds for a value of this
+ * codec.
+ *
+ * This is a distinct channel from {@link DescriptorCodecInput} because the two
+ * diverge wherever a codec's canonical JSON is not the value it hands the
+ * application — a wide integer carried as a decimal string, say. Reading the
+ * application type where the JSON type is meant produces a contract type that
+ * describes a value the file cannot contain.
+ *
+ * The type is read off the codec's declared `encodeJson` return, so a codec that
+ * narrows that return (`encodeJson(value: bigint): string`) publishes its JSON
+ * type without a new type parameter, and one that does not stays at the
+ * `JsonValue` the base signature promises.
+ */
+export type DescriptorCodecJson<D> =
+  DescriptorResolvedCodec<D> extends BaseCodec<string, readonly CodecTrait[], unknown, unknown>
+    ? ReturnType<DescriptorResolvedCodec<D>['encodeJson']>
+    : never;
+
+/**
  * Resolve the trait union for a descriptor `D`.
  *
  * Reads `traits` directly off the descriptor — concrete descriptor classes declare `override readonly traits = [...] as const`, which preserves the literal trait tuple at the descriptor type. Reading from the resolved codec instance (`CodecImpl<…, TTraits, …>`) would lose the literal because `Codec` carries `TTraits` only on its optional phantom slot (`readonly __codecTraits?: TTraits`); codecs extending `CodecImpl`
@@ -178,6 +186,7 @@ export type ExtractCodecTypes<
   readonly [K in keyof ScalarNames as DescriptorCodecId<ScalarNames[K]>]: {
     readonly input: DescriptorCodecInput<ScalarNames[K]>;
     readonly output: DescriptorCodecInput<ScalarNames[K]>;
+    readonly json: DescriptorCodecJson<ScalarNames[K]>;
     readonly traits: DescriptorCodecTraits<ScalarNames[K]>;
   };
 };

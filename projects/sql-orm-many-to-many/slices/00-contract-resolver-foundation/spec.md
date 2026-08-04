@@ -23,7 +23,7 @@ Today an emitted M:N contract is **unvalidatable**: the relation validator's car
 
 - **`validators.ts`** — extend `ContractReferenceRelationSchema`: add `'N:M'` to the cardinality enum, add an optional `through` object (own `'+': 'reject'`, array columns). 
 - **`build-contract.ts`** — delete the `as ContractRelation['cardinality']` cast (the comment "until the contract type is extended to cover many-to-many" is now resolved); rename emitted `parentCols/childCols` → `parentColumns/childColumns` (match lowering); populate `targetColumns` from the target anchor.
-- **`ContractReferenceRelation` TS type** (`@prisma-next/sql-contract/types`) — add the optional `through` field so the cast is unnecessary.
+- **`ContractReferenceRelation` TS type** (`@internal/sql-contract/types`) — add the optional `through` field so the cast is unnecessary.
 
 **Resolver — `ResolvedRelation` carries `through`.**
 

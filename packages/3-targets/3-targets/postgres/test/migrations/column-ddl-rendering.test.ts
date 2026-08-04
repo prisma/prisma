@@ -1,4 +1,4 @@
-import { SqlColumnDefaultIR, SqlColumnIR } from '@prisma-next/sql-schema-ir/types';
+import { SqlColumnDefaultIR, SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import {
   renderColumnAlterType,

@@ -12,7 +12,7 @@
  * Negative tests cover the `ColumnHelperFor` typeParams-shape check.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type Codec,
   type CodecInstanceContext,
@@ -20,7 +20,7 @@ import {
   type ColumnHelperFor,
   type ColumnSpec,
   column,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import { type } from 'arktype';
 import { expectTypeOf, test } from 'vitest';
 import {

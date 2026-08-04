@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   SchemaEntityCoordinate,
   SchemaOwnership,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import type { MigrationGraph } from '../graph';
 import type { IntegrityQueryOptions, IntegrityViolation } from '../integrity-violation';
 import type { OnDiskMigrationPackage } from '../package';

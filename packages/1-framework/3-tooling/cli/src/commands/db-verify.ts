@@ -1,16 +1,16 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@prisma-next/config-loader';
-import type { Contract } from '@prisma-next/contract/types';
-import type { VerifyDatabaseResult } from '@prisma-next/framework-components/control';
+import { loadConfig } from '@internal/config-loader';
+import type { Contract } from '@internal/contract/types';
+import type { VerifyDatabaseResult } from '@internal/framework-components/control';
 import {
   createControlStack,
   VERIFY_CODE_HASH_MISMATCH,
   VERIFY_CODE_MARKER_MISSING,
   VERIFY_CODE_TARGET_MISMATCH,
-} from '@prisma-next/framework-components/control';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/control';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok, type Result } from '@internal/utils/result';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { Command } from 'commander';
 import { relative, resolve } from 'pathe';
 import { createControlClient } from '../control-api/client';

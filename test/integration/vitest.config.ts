@@ -1,12 +1,47 @@
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // Disable V8 PKU JIT write-protection in the test worker forks: PGlite
-    // (WASM) teardown still intermittently aborts on Linux with
-    // jit_page_->allocations_.erase even on @prisma/dev 0.24.12. No-op on macOS.
-    execArgv: ['--no-memory-protection-keys'],
+    // PGlite (WASM) intermittently aborts the worker fork on Linux CI with the
+    // V8 CHECK `jit_page_->allocations_.erase(addr) == 1`. That CHECK lives in
+    // V8's ThreadIsolation JIT-page bookkeeping (deps/v8/src/common/
+    // code-memory-access.cc) and its only production caller is
+    // ThreadIsolation::UnregisterWasmAllocation, reached exclusively through
+    // WasmEngine::FreeDeadCode -> WasmCodeAllocator::FreeCode — i.e. it fires
+    // while V8 frees *dead wasm code* (Liftoff code displaced by tier-up, code
+    // reaped by the wasm code GC, and the process-global refcounted
+    // wasm-to-JS import wrappers every PGlite instantiate/close churns). The
+    // failure means a WasmCode was freed whose address was no longer tracked:
+    // a refcount/double-free race inside V8, not anything the harness does
+    // (the teardown chain withDevDatabase -> @prisma/dev close -> PGlite.close
+    // -> awaited worker.terminate is awaited end to end).
+    //
+    // --no-memory-protection-keys never addressed it. V8 allocates the JIT
+    // page tracking unconditionally ("we need to allocate the memory for jit
+    // page tracking even if we don't enable the ThreadIsolation protections");
+    // the flag only disables the PKU write-protection layered on top, so the
+    // bookkeeping holding the CHECK still runs. #814 restored that flag to
+    // stop a ~30% e2e flake and it appeared to work, but the mechanism it
+    // claimed does not exist — the improvement was probabilistic.
+    //
+    // So keep the dead-code-freeing path from running at all:
+    //   --no-wasm-code-gc   no GC cycles, so FreeDeadCode is unreachable;
+    //                       dying code parks until process exit, where whole
+    //                       code spaces are released via UnregisterJitPage,
+    //                       a path without the per-allocation erase CHECK
+    //   --no-wasm-tier-up   stops background tier-up producing dead Liftoff
+    //                       code, removing the cross-thread refcount churn
+    // Memory cost is bounded: forks are recycled per test file.
+    //
+    // Adjacent but NOT the same crash: nodejs/node#64500 (open) reports
+    // concurrent-PGlite wasm failures on Node 20-27 where --no-wasm-tier-up
+    // fixed 100/100 waves on Node 25 — but its signature is a SIGSEGV in
+    // TrapWebAssemblyOrContinue, it never mentions --no-wasm-code-gc, and Node
+    // 27 canary still reproduced with the flag. These flags therefore rest on
+    // the mechanism above, not on a matching upstream repro; if the abort
+    // survives them, that is the assumption that failed.
+    execArgv: ['--no-wasm-code-gc', '--no-wasm-tier-up', '--no-memory-protection-keys'],
     globals: true,
     environment: 'node',
     include: ['test/**/*.test.ts'],
@@ -18,10 +53,9 @@ export default defineConfig({
     // Hook timeout needs to be higher than default (100ms) because beforeEach/afterEach
     // hooks often perform filesystem operations (creating/cleaning test directories)
     hookTimeout: timeouts.databaseOperation,
-    // The PGlite (WASM) suites still intermittently abort on the slower CI
-    // runners even with --no-memory-protection-keys ("Connection terminated
-    // unexpectedly"). The crash is environment-specific and does not reproduce
-    // locally; a re-run with a fresh dev database clears it.
+    // Covers ordinary CI flakiness ("Connection terminated unexpectedly").
+    // Note it cannot cover the JIT abort above: that kills the worker fork
+    // rather than failing a test, so there is nothing for vitest to retry.
     retry: process.env['CI'] ? 2 : 0,
   },
 });

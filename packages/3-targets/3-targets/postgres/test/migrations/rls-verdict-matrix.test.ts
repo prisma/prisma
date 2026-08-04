@@ -7,11 +7,12 @@
  * everything here rides the generic diff verdict.
  */
 
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { verifySqlSchemaByDiff } from '@prisma-next/family-sql/diff';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import type { ControlPolicy } from '@internal/contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { verifySqlSchemaByDiff } from '@internal/family-sql/diff';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { namingOfLiveName, parseNaming } from '@internal/sql-schema-ir/naming';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { diffPostgresSchema } from '../../src/core/migrations/diff-database-schema';
 import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';
@@ -27,8 +28,7 @@ const TABLE_NAME = 'profiles';
 
 function policyNamed(name: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    naming: namingOfLiveName(name),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
@@ -114,8 +114,7 @@ function actualSchema(options: {
             policies: (options.policies ?? []).map(
               (policy) =>
                 new PostgresPolicySchemaNode({
-                  name: policy.name,
-                  prefix: policy.prefix,
+                  naming: parseNaming(policy.name, policy.prefix),
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,

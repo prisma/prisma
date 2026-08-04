@@ -17,12 +17,12 @@ Read in this order:
 
 D1, D2, D3, D4 are SATISFIED. The facades now expose:
 
-- `@prisma-next/postgres/contract-builder` (wrapped `defineContract` pre-binding `sqlFamily` + `postgresPack`; no longer accepts `family:`/`target:` keys)
-- `@prisma-next/postgres/config`, `/control`, `/migration`
-- `@prisma-next/sqlite/contract-builder`, `/config`, `/control`, `/migration` (same wrap pattern)
-- `@prisma-next/mongo/contract-builder`, `/config`, `/control`, `/bson` (no `.` barrel — BSON value constructors moved to `/bson`)
+- `@internal/postgres/contract-builder` (wrapped `defineContract` pre-binding `sqlFamily` + `postgresPack`; no longer accepts `family:`/`target:` keys)
+- `@internal/postgres/config`, `/control`, `/migration`
+- `@internal/sqlite/contract-builder`, `/config`, `/control`, `/migration` (same wrap pattern)
+- `@internal/mongo/contract-builder`, `/config`, `/control`, `/bson` (no `.` barrel — BSON value constructors moved to `/bson`)
 
-The renderer (D4) now emits `@prisma-next/{postgres,sqlite}/migration` in newly-rendered migration files. **Existing rendered migration files in `examples/<app>/migrations/app/**`** stay on the old specifier — A7 protects them; do NOT touch them.
+The renderer (D4) now emits `@internal/{postgres,sqlite}/migration` in newly-rendered migration files. **Existing rendered migration files in `examples/<app>/migrations/app/**`** stay on the old specifier — A7 protects them; do NOT touch them.
 
 ## Intent
 
@@ -38,26 +38,26 @@ Migrate every user-authored TS file under `examples/` (and the two extension-pac
   - `examples/multi-extension-monorepo/packages/audit/prisma-next.config.ts`
   - `examples/retail-store/prisma-next.config.ts`
   - `examples/mongo-demo/prisma-next.config.ts`
-  - `examples/prisma-next-demo-sqlite/prisma-next.config.ts`
-  - `examples/prisma-next-cloudflare-worker/prisma-next.config.ts`
+  - `examples/prisma-8-demo-sqlite/prisma-next.config.ts`
+  - `examples/prisma-8-cloudflare-worker/prisma-next.config.ts`
   - `examples/cipherstash-integration/prisma-next.config.ts`
   - `examples/paradedb-demo/prisma-next.config.ts`
   - `examples/react-router-demo/prisma-next.config.ts`
   - `examples/mongo-blog-leaderboard/prisma-next.config.ts`
-  - `examples/prisma-next-demo/prisma-next.config.ts`
-  - `examples/prisma-next-postgis-demo/prisma-next.config.ts`
+  - `examples/prisma-8-demo/prisma-next.config.ts`
+  - `examples/prisma-8-postgis-demo/prisma-next.config.ts`
 
-  Migration pattern: replace verbose `defineConfig` imports (`@prisma-next/cli`, `@prisma-next/family-{sql,mongo}/control`, `@prisma-next/target-{postgres,sqlite,mongo}/control`, etc.) with the facade form (`@prisma-next/{postgres,sqlite,mongo}/config`'s `defineConfig`). Mirror the pattern from any example already migrated (e.g. `prisma-next-demo` was D0-migrated; verify shape).
+  Migration pattern: replace verbose `defineConfig` imports (`@internal/cli`, `@internal/family-{sql,mongo}/control`, `@internal/target-{postgres,sqlite,mongo}/control`, etc.) with the facade form (`@internal/{postgres,sqlite,mongo}/config`'s `defineConfig`). Mirror the pattern from any example already migrated (e.g. `prisma-8-demo` was D0-migrated; verify shape).
 
 - **4 `examples/*/prisma/contract.ts` files**:
-  - `examples/prisma-next-demo-sqlite/prisma/contract.ts`
+  - `examples/prisma-8-demo-sqlite/prisma/contract.ts`
   - `examples/paradedb-demo/prisma/contract.ts`
   - `examples/react-router-demo/prisma/contract.ts`
-  - `examples/prisma-next-demo/prisma/contract.ts`
+  - `examples/prisma-8-demo/prisma/contract.ts`
 
   Migration pattern:
-  - Replace `import { defineContract } from '@prisma-next/sql-contract-ts/contract-builder'` (or similar) with `import { defineContract } from '@prisma-next/{postgres,sqlite}/contract-builder'`.
-  - Drop `import sqlFamily from '@prisma-next/family-sql/pack'` and `import postgresPack from '@prisma-next/target-postgres/pack'` (or sqlite equivalents).
+  - Replace `import { defineContract } from '@internal/sql-contract-ts/contract-builder'` (or similar) with `import { defineContract } from '@internal/{postgres,sqlite}/contract-builder'`.
+  - Drop `import sqlFamily from '@internal/family-sql/pack'` and `import postgresPack from '@internal/target-postgres/pack'` (or sqlite equivalents).
   - Drop `family: sqlFamily` and `target: postgresPack` from the `defineContract` arguments.
   - Keep `extensionPacks: { ... }` as-is. Keep all `field`, `model`, `rel` usage as-is — those are still imported from the same place via the facade's `/contract-builder` re-exports.
 
@@ -71,9 +71,9 @@ Migrate every user-authored TS file under `examples/` (and the two extension-pac
 
 - `packages/3-extensions/sql-orm-client/test/fixtures/contract.ts` — test fixture. Read the surrounding test to verify migration doesn't break test intent. If the test deliberately exercises the verbose form, leave it + add a one-line comment explaining why; if not, migrate.
 
-- `examples/multi-extension-monorepo/test/multi-space.e2e.integration.test.ts` — imports `postgresAdapterDescriptor` from `@prisma-next/adapter-postgres/control`, `executeDbInit` from `@prisma-next/cli/control-api`, `postgresDriverDescriptor` from `@prisma-next/driver-postgres/control`, `sqlFamilyDescriptor` from `@prisma-next/family-sql/control`, `postgresTargetDescriptor` from `@prisma-next/target-postgres/control`. The slice plan's original D5 scope note covers this: "in scope if the façade now exposes the equivalent surface (`createSqliteControlClient`, `createMongoControlClient`, `createPostgresControlClient`)". Verify what the facade `/control` exports and migrate if equivalent; otherwise leave + note in your structured return for D5b consideration.
+- `examples/multi-extension-monorepo/test/multi-space.e2e.integration.test.ts` — imports `postgresAdapterDescriptor` from `@internal/adapter-postgres/control`, `executeDbInit` from `@internal/cli/control-api`, `postgresDriverDescriptor` from `@internal/driver-postgres/control`, `sqlFamilyDescriptor` from `@internal/family-sql/control`, `postgresTargetDescriptor` from `@internal/target-postgres/control`. The slice plan's original D5 scope note covers this: "in scope if the façade now exposes the equivalent surface (`createSqliteControlClient`, `createMongoControlClient`, `createPostgresControlClient`)". Verify what the facade `/control` exports and migrate if equivalent; otherwise leave + note in your structured return for D5b consideration.
 
-- `examples/prisma-next-postgis-demo/test/utils/test-database.ts` — same investigate-then-migrate treatment.
+- `examples/prisma-8-postgis-demo/test/utils/test-database.ts` — same investigate-then-migrate treatment.
 
 ### Out of scope for D5a (D5b will handle)
 
@@ -103,8 +103,8 @@ You are a `generalPurpose` subagent of `claude-4.6-sonnet-low-thinking`. Follow 
 Per the slice plan's D5 (now D5a) Done-when checklist, adjusted:
 
 - [ ] D2 + D3 landed (✓ confirmed before dispatch).
-- [ ] Grep gate (config): `rg "@prisma-next/(cli|family-(sql|mongo)|sql-(contract|contract-psl|contract-ts)|mongo-(contract|contract-psl|contract-ts)|target-(postgres|sqlite|mongo)|adapter-(postgres|sqlite|mongo)|driver-(postgres|sqlite|mongo))/" examples/*/prisma-next.config.ts examples/multi-extension-monorepo/**/prisma-next.config.ts` returns zero hits.
-- [ ] Grep gate (contract): `rg "@prisma-next/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" examples/*/prisma/contract.ts packages/3-extensions/{pgvector,postgis}/src/contract.ts` returns zero hits.
+- [ ] Grep gate (config): `rg "@internal/(cli|family-(sql|mongo)|sql-(contract|contract-psl|contract-ts)|mongo-(contract|contract-psl|contract-ts)|target-(postgres|sqlite|mongo)|adapter-(postgres|sqlite|mongo)|driver-(postgres|sqlite|mongo))/" examples/*/prisma-next.config.ts examples/multi-extension-monorepo/**/prisma-next.config.ts` returns zero hits.
+- [ ] Grep gate (contract): `rg "@internal/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" examples/*/prisma/contract.ts packages/3-extensions/{pgvector,postgis}/src/contract.ts` returns zero hits.
 - [ ] `pnpm typecheck` clean for every example (use `pnpm -r --filter './examples/*' typecheck` or whatever the repo's all-examples task is — check `package.json` scripts first).
 - [ ] `pnpm build` clean across the workspace (`pnpm build` at repo root).
 - [ ] `pnpm lint:deps` clean.

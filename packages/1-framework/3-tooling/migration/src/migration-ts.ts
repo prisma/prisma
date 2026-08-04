@@ -19,13 +19,13 @@ const MIGRATION_TS_FILE = 'migration.ts';
  * executable permissions (0o755) so it can be run directly via
  * `./migration.ts` — the rendered scaffold ends with
  * `MigrationCLI.run(import.meta.url, M)` from
- * `@prisma-next/cli/migration-cli` (re-exported by the postgres facade),
+ * `@internal/cli/migration-cli` (re-exported by the postgres facade),
  * which guards on the entrypoint and serializes when the file is the main
  * module.
  *
  * The source is run through prettier before writing so migration renderers
  * can produce structurally-correct but loosely-indented source and rely on
- * a single canonical format on disk. Matches what `@prisma-next/emitter`
+ * a single canonical format on disk. Matches what `@internal/emitter`
  * already does for generated `contract.d.ts`.
  */
 export async function writeMigrationTs(packageDir: string, content: string): Promise<void> {

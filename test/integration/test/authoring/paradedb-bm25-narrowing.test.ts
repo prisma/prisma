@@ -7,9 +7,9 @@
  * `options` against the registered shape and rejects unregistered types
  * and bad option shapes at compile time.
  */
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import paradedbPack from '@prisma-next/extension-paradedb/pack';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import paradedbPack from '@internal/extension-paradedb/pack';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 
 describe('paradedb bm25 narrowing in TS authoring DSL', () => {
@@ -157,7 +157,7 @@ describe('paradedb bm25 narrowing in TS authoring DSL', () => {
           return { models: { Doc } };
         },
       ),
-    ).toThrow(/options without a type/);
+    ).toThrow(/options requires an explicit type/);
   });
 
   it('imported bare model() rejects any type/options — strict by default', () => {

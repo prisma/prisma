@@ -1,15 +1,15 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { crossRef } from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { Contract } from '@internal/contract/types';
+import { crossRef } from '@internal/contract/types';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 
 function modelsOf(ir: Contract): Record<string, unknown> {
   return ir.domain.namespaces[UNBOUND_NAMESPACE_ID]!.models;
 }
 
-import { buildSymbolTable, type SymbolTable } from '@prisma-next/psl-parser';
-import type { SourceFile } from '@prisma-next/psl-parser/syntax';
-import { parse } from '@prisma-next/psl-parser/syntax';
+import { buildSymbolTable, type SymbolTable } from '@internal/psl-parser';
+import type { SourceFile } from '@internal/psl-parser/syntax';
+import { parse } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
 import { interpretPslDocumentToMongoContract } from '../src/interpreter';
 
@@ -44,7 +44,6 @@ const mongoCodecLookup: CodecLookup = {
     } as ReturnType<CodecLookup['get']>;
   },
   targetTypesFor: (id: string) => mongoTargetTypes[id],
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 

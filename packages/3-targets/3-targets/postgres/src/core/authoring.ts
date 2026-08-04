@@ -1,7 +1,7 @@
 import {
   temporalAuthoringPresets,
   temporalCodecPresetWithPrecision,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeFactoryOutput,
@@ -12,26 +12,22 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   AuthoringTypeNamespace,
   PslExtensionBlock,
-} from '@prisma-next/framework-components/authoring';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ContributedPslDiagnosticCode } from '@prisma-next/framework-components/psl-ast';
-import { modelAttribute } from '@prisma-next/psl-parser';
+} from '@internal/framework-components/authoring';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
+import { modelAttribute } from '@internal/psl-parser';
 import type {
   EntityHandleLoweringInput,
   LoweredPackEntity,
   ResolvedEntityHandleRef,
   ResolvedPslModelRefs,
-} from '@prisma-next/sql-contract/entity-handle-lowering-hook';
-import { exactNameBodyWarning } from '@prisma-next/sql-contract/index-naming';
-import type { SqlValueSetDerivingEntityTypeOutput } from '@prisma-next/sql-contract/value-set-derivation-hook';
-import {
-  assertWireNamePrefixLength,
-  formatWireName,
-  normalizeSqlBody,
-} from '@prisma-next/sql-schema-ir/naming';
-import { assertDefined } from '@prisma-next/utils/assertions';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-contract/entity-handle-lowering-hook';
+import { exactNameBodyWarning } from '@internal/sql-contract/index-naming';
+import type { SqlValueSetDerivingEntityTypeOutput } from '@internal/sql-contract/value-set-derivation-hook';
+import { assertWireNamePrefixLength, normalizeSqlBody } from '@internal/sql-schema-ir/naming';
+import { assertDefined } from '@internal/utils/assertions';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { PG_ENUM_CODEC_ID } from './codec-ids';
 import { postgresError } from './errors';
 import { PostgresNativeEnum } from './postgres-native-enum';
@@ -172,7 +168,10 @@ function buildRlsPolicyEntity(input: {
   readonly roles: readonly string[];
   readonly using?: string;
   readonly withCheck?: string;
+  /** Defaults to PERMISSIVE — the hash tuple slot already existed. */
+  readonly permissive?: boolean;
 }): PostgresRlsPolicy {
+  const permissive = input.permissive ?? true;
   const wireHash = computeContentHash({
     ...ifDefined('using', input.using !== undefined ? normalizeSqlBody(input.using) : undefined),
     ...ifDefined(
@@ -181,19 +180,18 @@ function buildRlsPolicyEntity(input: {
     ),
     roles: input.roles,
     operation: input.operation,
-    permissive: true,
+    permissive,
   });
 
   return new PostgresRlsPolicy({
-    name: formatWireName(input.prefix, wireHash),
-    prefix: input.prefix,
+    naming: { kind: 'wire', prefix: input.prefix, hash: wireHash },
     tableName: input.tableName,
     namespaceId: input.namespaceId,
     operation: input.operation,
     roles: input.roles,
     using: input.using,
     withCheck: input.withCheck,
-    permissive: true,
+    permissive,
   });
 }
 
@@ -238,6 +236,18 @@ function lowerRlsPolicyFromBlock(
   const using = usingRaw !== undefined ? unwrapQuotedString(usingRaw) : undefined;
   const withCheck = withCheckRaw !== undefined ? unwrapQuotedString(withCheckRaw) : undefined;
 
+  const permissiveRaw = readValueParam(block, 'permissive');
+  if (permissiveRaw !== undefined && permissiveRaw !== 'true' && permissiveRaw !== 'false') {
+    ctx.diagnostics?.push({
+      code: PSL_EXTENSION_INVALID_VALUE,
+      message: `\`${block.keyword}\` policy "${block.name}" \`permissive\` must be \`true\` or \`false\`, got ${permissiveRaw}.`,
+      sourceId: ctx.sourceId ?? 'unknown',
+      span: block.parameters['permissive']?.span ?? block.span,
+    });
+    return undefined;
+  }
+  const permissive = permissiveRaw !== 'false';
+
   // `@@map("physical name")` adopts an EXACT-named policy: the lowered
   // entity's name is the map value verbatim — no prefix, no content hash,
   // and no wire-prefix length cap (exact names are verbatim physical names,
@@ -261,15 +271,14 @@ function lowerRlsPolicyFromBlock(
     }
     ctx.warnings?.push(exactNameBodyWarning('policy', exactName));
     return new PostgresRlsPolicy({
-      name: exactName,
-      prefix: undefined,
+      naming: { kind: 'exact', name: exactName },
       tableName,
       namespaceId: block.namespaceId,
       operation,
       roles,
       using,
       withCheck,
-      permissive: true,
+      permissive,
     });
   }
 
@@ -281,6 +290,7 @@ function lowerRlsPolicyFromBlock(
     roles,
     ...ifDefined('using', using),
     ...ifDefined('withCheck', withCheck),
+    permissive,
   });
 }
 
@@ -499,6 +509,7 @@ const policyRolesParam = {
   of: { kind: 'ref', refKind: 'role', scope: 'cross-space' },
 } as const;
 const policyPredicateParam = { kind: 'value', codecId: 'pg/text@1', required: true } as const;
+const policyPermissiveParam = { kind: 'value', codecId: 'pg/bool@1' } as const;
 // A policy may only target an RLS-controlled model: the model named by
 // `target` must declare `@@rls`, or the load fails with a diagnostic naming
 // the model and the policy prefix.
@@ -516,7 +527,12 @@ export const postgresAuthoringPslBlockDescriptors = {
     keyword: 'policy_select',
     discriminator: 'policy',
     name: { required: true },
-    parameters: { target: policyTargetParam, roles: policyRolesParam, using: policyPredicateParam },
+    parameters: {
+      target: policyTargetParam,
+      roles: policyRolesParam,
+      using: policyPredicateParam,
+      permissive: policyPermissiveParam,
+    },
     requiresModelAttribute: policyRequiresRls,
   },
   policy_delete: {
@@ -524,7 +540,12 @@ export const postgresAuthoringPslBlockDescriptors = {
     keyword: 'policy_delete',
     discriminator: 'policy',
     name: { required: true },
-    parameters: { target: policyTargetParam, roles: policyRolesParam, using: policyPredicateParam },
+    parameters: {
+      target: policyTargetParam,
+      roles: policyRolesParam,
+      using: policyPredicateParam,
+      permissive: policyPermissiveParam,
+    },
     requiresModelAttribute: policyRequiresRls,
   },
   policy_insert: {
@@ -536,6 +557,7 @@ export const postgresAuthoringPslBlockDescriptors = {
       target: policyTargetParam,
       roles: policyRolesParam,
       withCheck: policyPredicateParam,
+      permissive: policyPermissiveParam,
     },
     requiresModelAttribute: policyRequiresRls,
   },
@@ -549,6 +571,7 @@ export const postgresAuthoringPslBlockDescriptors = {
       roles: policyRolesParam,
       using: policyPredicateParam,
       withCheck: policyPredicateParam,
+      permissive: policyPermissiveParam,
     },
     requiresModelAttribute: policyRequiresRls,
   },
@@ -562,6 +585,7 @@ export const postgresAuthoringPslBlockDescriptors = {
       roles: policyRolesParam,
       using: policyPredicateParam,
       withCheck: policyPredicateParam,
+      permissive: policyPermissiveParam,
     },
     requiresModelAttribute: policyRequiresRls,
   },

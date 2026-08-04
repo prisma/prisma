@@ -4,9 +4,9 @@
 // matching the project convention visible across other files in
 // `test/integration/`), split by functionality for readability.
 
-import type { Contract } from '@prisma-next/contract/types';
-import { Collection } from '@prisma-next/sql-orm-client';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { Contract } from '@internal/contract/types';
+import { Collection } from '@internal/sql-orm-client';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { getTestContext, getTestContract, type TestContract } from './helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';
 

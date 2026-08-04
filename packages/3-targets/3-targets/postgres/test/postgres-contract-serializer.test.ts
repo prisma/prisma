@@ -1,14 +1,12 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { effectiveControlPolicy } from '@prisma-next/contract/types';
-import {
-  SqlContractSerializerBase,
-  type SqlEntityHydrationFactory,
-} from '@prisma-next/family-sql/ir';
+import { canonicalizeContractToObject } from '@internal/contract/hashing';
+import type { Contract } from '@internal/contract/types';
+import { effectiveControlPolicy } from '@internal/contract/types';
+import { SqlContractSerializerBase, type SqlEntityHydrationFactory } from '@internal/family-sql/ir';
 import {
   type AnyEntityKindDescriptor,
   type Namespace,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import {
   ForeignKey,
   PrimaryKey,
@@ -18,9 +16,9 @@ import {
   StorageTable,
   type StorageTypeInstance,
   toStorageTypeInstance,
-} from '@prisma-next/sql-contract/types';
-import { createSqlContract } from '@prisma-next/test-utils';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { createSqlContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';
@@ -372,6 +370,30 @@ describe('role + policy round-trip', () => {
       },
     };
   }
+
+  it('permissive: false survives canonicalization (default-omission must not drop it)', () => {
+    const serializer = new PostgresContractSerializer();
+    const contract = blindCast<Contract, 'test contract shape is structurally a Contract'>(
+      makeContractWithRolesAndPolicies(),
+    );
+    const canonical = canonicalizeContractToObject(contract, {
+      serializeContract: (c) => serializer.serializeContract(blindCast<never, 'test'>(c)),
+      shouldPreserveEmpty: serializer.shouldPreserveEmpty,
+      sortStorage: serializer.sortStorage,
+    });
+    const storage = blindCast<
+      {
+        namespaces: Record<
+          string,
+          { entries: { policy: Record<string, { permissive?: boolean }> } }
+        >;
+      },
+      'canonical storage shape'
+    >(canonical['storage']);
+    const policies = storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.policy;
+    expect(policies?.['posts_select_own_a1b2c3d4']?.permissive).toBe(true);
+    expect(policies?.['posts_insert_restrictive_b5c6d7e8']?.permissive).toBe(false);
+  });
 
   it('preserves role + policy entries through serialize → deserialize', () => {
     const serializer = new PostgresContractSerializer();

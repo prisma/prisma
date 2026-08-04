@@ -1,14 +1,14 @@
-import { MONGO_INT32_CODEC_ID, MONGO_STRING_CODEC_ID } from '@prisma-next/adapter-mongo/codec-ids';
-import mongoAdapter from '@prisma-next/adapter-mongo/control';
-import type { PrismaNextConfig } from '@prisma-next/config/config-types';
-import { defineConfig as coreDefineConfig } from '@prisma-next/config/config-types';
-import mongoDriver from '@prisma-next/driver-mongo/control';
-import { mongoFamilyDescriptor } from '@prisma-next/family-mongo/control';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import { mongoContract } from '@prisma-next/mongo-contract-psl/provider';
-import { typescriptContractFromPath } from '@prisma-next/mongo-contract-ts/config-types';
-import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { MONGO_INT32_CODEC_ID, MONGO_STRING_CODEC_ID } from '@internal/adapter-mongo/codec-ids';
+import mongoAdapter from '@internal/adapter-mongo/control';
+import type { PrismaNextConfig } from '@internal/config/config-types';
+import { defineConfig as coreDefineConfig } from '@internal/config/config-types';
+import mongoDriver from '@internal/driver-mongo/control';
+import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import { mongoContract } from '@internal/mongo-contract-psl/provider';
+import { typescriptContractFromPath } from '@internal/mongo-contract-ts/config-types';
+import { mongoTargetDescriptor } from '@internal/target-mongo/control';
+import { ifDefined } from '@internal/utils/defined';
 import { extname, join } from 'pathe';
 
 export interface MongoConfigOptions {

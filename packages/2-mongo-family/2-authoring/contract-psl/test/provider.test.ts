@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { ContractSourceContext } from '@prisma-next/config/config-types';
-import { emptyCodecLookup } from '@prisma-next/framework-components/codec';
+import type { ContractSourceContext } from '@internal/config/config-types';
+import { emptyCodecLookup } from '@internal/framework-components/codec';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { mongoContract } from '../src/exports/provider';

@@ -40,7 +40,7 @@ Slice spec: [spec.md](./spec.md). One PR, sequential dispatches, single worktree
 
 - Correct ADR 004 (hashes include the key; name it `extensions`) and ADR 112 (unify on `extensions.<namespace>` / config `extensions`).
 - Sweep `docs/architecture docs/subsystems/` (Data Contract; Ecosystem Extensions & Packs), `docs/glossary.md`, `skills/prisma-next-contract`, `skills/prisma-next-debug`, `skills/DEVELOPING.md`, onboarding docs if they name the key.
-- Run record-upgrade-instructions: consumer entry in `skills/upgrade/prisma-next-upgrade/upgrades/`, extension-author entry in `skills/extension-author/prisma-next-extension-upgrade` — covering all three renames and the re-emit requirement.
+- Run record-upgrade-instructions: consumer entry in `skills/upgrade/prisma-next-upgrade/upgrades/`, extension-author entry in `skills/extension-author/prisma-8-extension-upgrade` — covering all three renames and the re-emit requirement.
 - `check:upgrade-coverage` green.
 
 **Builds on:** D3's green tree. **Hands to:** review — the slice DoD is met: fixtures:check green, no stray old-key literals outside historical records, ADRs corrected, upgrade instructions recorded.

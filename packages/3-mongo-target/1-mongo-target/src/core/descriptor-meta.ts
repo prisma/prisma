@@ -1,6 +1,6 @@
-import { mongoCodecDescriptors } from '@prisma-next/adapter-mongo/codecs';
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { mongoCodecDescriptors } from '@internal/adapter-mongo/codecs';
+import type { TargetPackRef } from '@internal/framework-components/components';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { CodecTypes } from './codec-types';
 
 // The Mongo target owns its codec descriptors. Contract authoring resolves each enum's codec by id

@@ -2,7 +2,7 @@ import {
   CreateCollectionCommand,
   CreateIndexCommand,
   defaultMongoIndexName,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import { collection } from '../src/contract-free/collection';
 

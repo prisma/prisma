@@ -9,11 +9,11 @@ import {
   type RuntimeExtensionInstance,
   type RuntimeTargetDescriptor,
   type RuntimeTargetInstance,
-} from '@prisma-next/framework-components/execution';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type { MongoCodec } from '@prisma-next/mongo-codec';
-import { type MongoCodecRegistry, newMongoCodecRegistry } from '@prisma-next/mongo-codec';
-import type { MongoAdapter } from '@prisma-next/mongo-lowering';
+} from '@internal/framework-components/execution';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { MongoCodec } from '@internal/mongo-codec';
+import { type MongoCodecRegistry, newMongoCodecRegistry } from '@internal/mongo-codec';
+import type { MongoAdapter } from '@internal/mongo-lowering';
 
 /**
  * Mongo-specific static contributions a runtime descriptor declares.

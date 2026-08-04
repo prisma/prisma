@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": ["@prisma-next/tsconfig/base"],
+  "extends": ["@repo/tsconfig/base"],
   "references": [
     { "path": "./packages/1-framework/0-foundation/contract" },
     { "path": "./packages/1-framework/0-foundation/utils" },

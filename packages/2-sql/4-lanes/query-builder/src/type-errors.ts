@@ -1,4 +1,4 @@
-import type { Brand } from '@prisma-next/contract/types';
+import type { Brand } from '@internal/contract/types';
 
 /**
  * An error message type, prefixed with `[error]`.

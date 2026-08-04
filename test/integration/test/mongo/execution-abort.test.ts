@@ -1,10 +1,10 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import type { PlanMeta } from '@internal/contract/types';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import {
   AggregateCommand,
   MongoFieldFilter,
   MongoMatchStage,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import { expect, it } from 'vitest';
 import { describeWithMongoDB } from './setup';
 

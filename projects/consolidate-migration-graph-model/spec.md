@@ -45,7 +45,7 @@ The end state: **one** model, founded on the tolerant view, with targeting made 
 
 ## Place in the larger world
 
-**Owning package.** `@prisma-next/migration-tools` (`packages/1-framework/3-tooling/migration`) owns the graph model (`migration-graph.ts`, `graph.ts`, `graph-membership.ts`, `migration-list-graph-topology.ts`, `errors.ts`, `constants.ts`).
+**Owning package.** `@internal/migration-tools` (`packages/1-framework/3-tooling/migration`) owns the graph model (`migration-graph.ts`, `graph.ts`, `graph-membership.ts`, `migration-list-graph-topology.ts`, `errors.ts`, `constants.ts`).
 
 **Graph sourcing is the aggregate's job, not the consumer's.** `ContractSpaceAggregate` (`aggregate/types.ts`, `aggregate/aggregate.ts`) is the tolerant per-invocation snapshot of on-disk migration state; each member's `graph()` memoises `reconstructGraph(packages)`, and the aggregate's contract is that consumers get graphs *from it* rather than re-deriving them from disk. The consolidated reasoning model therefore operates on the aggregate-provided `MigrationGraph` (recommended: hung off the member as a memoised `topology()` facet beside `graph()`/`contract()`), and **no consumer calls `reconstructGraph` directly.** See [`design-notes.md`](./design-notes.md) § "Where the graph comes from".
 

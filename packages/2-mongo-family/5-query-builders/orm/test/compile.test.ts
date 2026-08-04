@@ -1,5 +1,5 @@
-import type { MongoModelDefinition } from '@prisma-next/mongo-contract';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import type { MongoModelDefinition } from '@internal/mongo-contract';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import {
   type MongoAndExpr,
   MongoFieldFilter,
@@ -11,7 +11,7 @@ import {
   MongoSkipStage,
   MongoSortStage,
   MongoUnwindStage,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import type { MongoCollectionState } from '../src/collection-state';
 import { emptyCollectionState } from '../src/collection-state';

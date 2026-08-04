@@ -8,11 +8,11 @@ D1 is SATISFIED (commits `5058518f2`, `9ff5d1533`, `588e31092`). D2 opens. Six f
 
 ## Context (one paragraph)
 
-D2 is the Mongo equivalent of D1, plus three additional changes: bring `MongoConfigOptions` to parity with Postgres (`extensions`, `migrations.dir`); add `@prisma-next/mongo/control` exporting `createMongoControlClient`; add `@prisma-next/mongo/bson` carrying the BSON value constructors that currently leak through the `"."` barrel; **drop the `"."` barrel entirely** (delete `src/exports/index.ts` and remove `"."` from `package.json` exports). Wrap `defineContract` in `@prisma-next/mongo/contract-builder` to pre-bind family + target. Mongo does **not** get a `/migration` subpath in this slice — declarative-migration surfaces don't have the same user-facing shape as SQL.
+D2 is the Mongo equivalent of D1, plus three additional changes: bring `MongoConfigOptions` to parity with Postgres (`extensions`, `migrations.dir`); add `@internal/mongo/control` exporting `createMongoControlClient`; add `@internal/mongo/bson` carrying the BSON value constructors that currently leak through the `"."` barrel; **drop the `"."` barrel entirely** (delete `src/exports/index.ts` and remove `"."` from `package.json` exports). Wrap `defineContract` in `@internal/mongo/contract-builder` to pre-bind family + target. Mongo does **not** get a `/migration` subpath in this slice — declarative-migration surfaces don't have the same user-facing shape as SQL.
 
 ## Intent (1-3 sentences)
 
-Close the mongo half of the façade gap so users can author a complete Mongo app importing only from `@prisma-next/mongo/*` subpaths — no reach-ins to `@prisma-next/{adapter-mongo,driver-mongo,family-mongo,target-mongo,cli,config}` — and so all imports stay on tree-shakeable subpaths (no top-level barrel). Anti-corruption: do **not** touch the renderer, the example apps' configs, or the docs — those are D4/D5/D6 work.
+Close the mongo half of the façade gap so users can author a complete Mongo app importing only from `@internal/mongo/*` subpaths — no reach-ins to `@internal/{adapter-mongo,driver-mongo,family-mongo,target-mongo,cli,config}` — and so all imports stay on tree-shakeable subpaths (no top-level barrel). Anti-corruption: do **not** touch the renderer, the example apps' configs, or the docs — those are D4/D5/D6 work.
 
 ## Critical design judgments — read before writing code
 
@@ -40,7 +40,7 @@ The mongo wrap is therefore structurally simpler:
 Your `test/contract-builder/define-contract.test-d.ts` from the **first round** must include:
 
 - `@ts-expect-error` cases rejecting `{ family: ... }` and `{ target: ... }` in the input (mirror of D1).
-- Positive literal-type assertions: `expectTypeOf(result.target).toEqualTypeOf<'mongo'>()` and `expectTypeOf(result.targetFamily).toEqualTypeOf<'mongo'>()` (or whatever the mongo family-ID is — verify against `@prisma-next/family-mongo/pack`).
+- Positive literal-type assertions: `expectTypeOf(result.target).toEqualTypeOf<'mongo'>()` and `expectTypeOf(result.targetFamily).toEqualTypeOf<'mongo'>()` (or whatever the mongo family-ID is — verify against `@internal/family-mongo/pack`).
 - **Positive model-shape inference assertion** — at minimum: `defineContract({ models: { User: model('User', { ... }) } })` returns a contract where `result.models.User.not.toBeNever()`. This is the assertion D1 R1 omitted; don't repeat that.
 - Optional but recommended: a factory-form assertion that mirrors the definition-form one.
 
@@ -49,8 +49,8 @@ The runtime test (`test/contract-builder/define-contract.test.ts`) should cover 
 ### Pack imports
 
 ```ts
-import mongoFamilyPack from '@prisma-next/family-mongo/pack';
-import mongoTargetPack from '@prisma-next/target-mongo/pack';
+import mongoFamilyPack from '@internal/family-mongo/pack';
+import mongoTargetPack from '@internal/target-mongo/pack';
 ```
 
 The mongo facade already re-exports these (`src/exports/family.ts`, `src/exports/target.ts`) — your wrap imports them directly from the internal packs, the existing facade re-exports stay untouched for now (they remain available for users who need them; the wrap simply pre-binds them so users don't *have* to import them).
@@ -94,22 +94,22 @@ From the slice plan (D2 section). Re-read the slice plan for the most current li
 
 ### README
 
-- `packages/3-extensions/mongo/README.md` — rewrite to mirror Postgres's README structure: document each subpath (`/config`, `/contract-builder`, `/control`, `/bson`, `/family`, `/runtime`, `/target`) with its purpose + a small example. **Critical user-facing migration note:** call out that `import { ObjectId } from '@prisma-next/mongo'` no longer works and that users must move BSON constructor imports to `@prisma-next/mongo/bson`. This is a user-visible breaking change for any consumer that used the barrel form; the migration is one-line per import.
+- `packages/3-extensions/mongo/README.md` — rewrite to mirror Postgres's README structure: document each subpath (`/config`, `/contract-builder`, `/control`, `/bson`, `/family`, `/runtime`, `/target`) with its purpose + a small example. **Critical user-facing migration note:** call out that `import { ObjectId } from '@internal/mongo'` no longer works and that users must move BSON constructor imports to `@internal/mongo/bson`. This is a user-visible breaking change for any consumer that used the barrel form; the migration is one-line per import.
 
 ## "Done when" gates
 
-- [ ] `pnpm build --filter @prisma-next/mongo` clean.
-- [ ] `pnpm typecheck --filter @prisma-next/mongo` clean.
-- [ ] `pnpm test:packages --filter @prisma-next/mongo` clean (config parity tests + control test + bson parity test + contract-builder runtime + type tests all pass).
+- [ ] `pnpm build --filter @internal/mongo` clean.
+- [ ] `pnpm typecheck --filter @internal/mongo` clean.
+- [ ] `pnpm test:packages --filter @internal/mongo` clean (config parity tests + control test + bson parity test + contract-builder runtime + type tests all pass).
 - [ ] `pnpm lint:deps` clean.
-- [ ] Mongo example apps' **package-scoped** `pnpm typecheck` (`pnpm typecheck --filter mongo-demo --filter mongo-blog-leaderboard`) — examples that import BSON constructors from the barrel need their imports updated to `@prisma-next/mongo/bson`. **You are authorised to do these import-path updates as part of D2** even though they touch `examples/` — they are unblocked-by-D2 and would otherwise leave `mongo-demo` / `mongo-blog-leaderboard` red until D5. Commit them separately with a scope note (`refactor(mongo-examples): move BSON imports to /bson subpath after barrel drop`). If an example also uses `family:`/`target:` in `defineContract`, do NOT touch that — that's D5's `defineContract` migration sweep.
-- [ ] Grep gate: `rg "from '@prisma-next/mongo'(?!/)" packages/ examples/ test/` returns zero hits (or only the deleted barrel file path itself if rg picks up moved/deleted files differently).
+- [ ] Mongo example apps' **package-scoped** `pnpm typecheck` (`pnpm typecheck --filter mongo-demo --filter mongo-blog-leaderboard`) — examples that import BSON constructors from the barrel need their imports updated to `@internal/mongo/bson`. **You are authorised to do these import-path updates as part of D2** even though they touch `examples/` — they are unblocked-by-D2 and would otherwise leave `mongo-demo` / `mongo-blog-leaderboard` red until D5. Commit them separately with a scope note (`refactor(mongo-examples): move BSON imports to /bson subpath after barrel drop`). If an example also uses `family:`/`target:` in `defineContract`, do NOT touch that — that's D5's `defineContract` migration sweep.
+- [ ] Grep gate: `rg "from '@internal/mongo'(?!/)" packages/ examples/ test/` returns zero hits (or only the deleted barrel file path itself if rg picks up moved/deleted files differently).
 - [ ] Intent-validation: diff is confined to `packages/3-extensions/mongo/**`, `architecture.config.json`, and the `examples/mongo-*/` BSON-import updates above. **No** renderer change, no `defineContract` migration in example contracts, no docs sweep, no SQLite/Postgres changes.
 
 ## Edge cases (from slice spec, D2's portion)
 
 - **`/control` SPI shape.** The slice spec named `createMongoControlClient` as straight composition. Verify against the Postgres `createPostgresControlClient` pattern before writing — if the mongo control plane needs a different options interface (e.g. driver-specific connection lifecycle), surface that as a design decision in your structured report (don't silently improvise). If it's a clean mirror, no escalation needed.
-- **`MongoConfigOptions` extension shape.** The Postgres equivalent's `extensions` array is `readonly ExtensionPackRef<'sql', string>[]`. The mongo equivalent should be `readonly ExtensionPackRef<'mongo', string>[]` — verify the `'mongo'` family-ID matches what `@prisma-next/family-mongo/pack` exports as `familyId`.
+- **`MongoConfigOptions` extension shape.** The Postgres equivalent's `extensions` array is `readonly ExtensionPackRef<'sql', string>[]`. The mongo equivalent should be `readonly ExtensionPackRef<'mongo', string>[]` — verify the `'mongo'` family-ID matches what `@internal/family-mongo/pack` exports as `familyId`.
 - **BSON constructor inventory.** The current `src/exports/index.ts` barrel re-exports specific BSON value constructors. Treat the deleted barrel's surface as the authoritative inventory — your `/bson` subpath must include every symbol the barrel was re-exporting (no more, no less), so the parity test can assert exact equality.
 - **Wrapped `defineContract` accepts `extensionPacks`.** D1 R1's test omitted this case for the wrap; bake it in for D2 (one of the four runtime tests).
 
@@ -132,7 +132,7 @@ From the slice plan (D2 section). Re-read the slice plan for the most current li
 ## Constraints (reminder, terse)
 
 - Explicit-staging commits; no amend; no push.
-- **Commit shape (preferred but your call):** 5 atomic commits — `feat(@prisma-next/mongo): extend MongoConfigOptions for extensions + migrations.dir`, `feat(@prisma-next/mongo): add /control subpath`, `feat(@prisma-next/mongo): add /bson subpath and drop "." barrel`, `feat(@prisma-next/mongo): wrap defineContract to pre-bind family and target`, `refactor(mongo-examples): move BSON imports to /bson subpath after barrel drop`. Lump if structural overlap forces it.
+- **Commit shape (preferred but your call):** 5 atomic commits — `feat(@internal/mongo): extend MongoConfigOptions for extensions + migrations.dir`, `feat(@internal/mongo): add /control subpath`, `feat(@internal/mongo): add /bson subpath and drop "." barrel`, `feat(@internal/mongo): wrap defineContract to pre-bind family and target`, `refactor(mongo-examples): move BSON imports to /bson subpath after barrel drop`. Lump if structural overlap forces it.
 - Heartbeats to `wip/heartbeats/implementer.txt` per `.claude/skills/drive-build-workflow/agents/implementer.md § Heartbeats`.
 - Return shape per `.claude/skills/drive-build-workflow/agents/implementer.md § Return shape`.
 - Read-only on `spec.md`, `plan.md`, `code-review.md`, and the D2 brief itself.

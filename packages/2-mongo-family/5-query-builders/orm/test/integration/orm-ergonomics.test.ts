@@ -1,13 +1,13 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
+import mongoRuntimeAdapter from '@internal/adapter-mongo/runtime';
+import { createMongoDriver } from '@internal/driver-mongo';
 import {
   createMongoExecutionContext,
   createMongoExecutionStack,
   createMongoRuntime,
   type MongoRuntime,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/mongo-runtime';
+import mongoRuntimeTarget from '@internal/target-mongo/runtime';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient, ObjectId } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -61,6 +61,49 @@ describe('ORM ergonomics integration (FL-04, FL-06, FL-08)', {
   afterAll(async () => {
     await Promise.allSettled([runtime?.close(), client?.close(), replSet?.stop()]);
   }, timeouts.spinUpMongoMemoryServer);
+
+  describe('write results decode through codecs (issue #577)', () => {
+    it('create() returns _id as the decoded hex string a read returns', async () => {
+      const orm = mongoOrm({ contract, executor: runtime });
+      const created = await orm.users.create(defaultUserData);
+      expect(typeof created._id).toBe('string');
+      const fetched = await orm.users.where({ _id: created._id as string }).first();
+      expect(fetched!._id).toBe(created._id);
+    });
+
+    it('createAll() returns decoded _ids', async () => {
+      const orm = mongoOrm({ contract, executor: runtime });
+      const rows: Record<string, unknown>[] = [];
+      for await (const row of orm.users.createAll([
+        defaultUserData,
+        { ...defaultUserData, name: 'Bob', email: 'bob@test.com' },
+      ])) {
+        rows.push(row as Record<string, unknown>);
+      }
+      expect(rows).toHaveLength(2);
+      for (const row of rows) {
+        expect(typeof row['_id']).toBe('string');
+      }
+    });
+
+    it('update() returns the document decoded like a read', async () => {
+      const orm = mongoOrm({ contract, executor: runtime });
+      const created = await orm.users.create(defaultUserData);
+      const updated = await orm.users
+        .where({ _id: created._id as string })
+        .update({ name: 'Renamed' });
+      expect(updated).not.toBeNull();
+      expect((updated as Record<string, unknown>)['_id']).toBe(created._id);
+    });
+
+    it('delete() returns the document decoded like a read', async () => {
+      const orm = mongoOrm({ contract, executor: runtime });
+      const created = await orm.users.create(defaultUserData);
+      const deleted = await orm.users.where({ _id: created._id as string }).delete();
+      expect(deleted).not.toBeNull();
+      expect((deleted as Record<string, unknown>)['_id']).toBe(created._id);
+    });
+  });
 
   describe('FL-06: codec-aware where()', () => {
     it('retrieves document by ObjectId field using object where', async () => {

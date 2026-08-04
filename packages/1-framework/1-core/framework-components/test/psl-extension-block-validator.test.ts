@@ -19,7 +19,7 @@
  *   the generic parser for malformed body lines and malformed list syntax.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { describe, expect, it } from 'vitest';
 import { extractCodecLookup } from '../src/control/control-stack';

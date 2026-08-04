@@ -145,7 +145,7 @@ The net effect: the PSL parser already tolerates `temporal.updatedAt()` (the typ
 - [ ] **AC7.** SQLite PSL and TypeScript authoring accept the same `temporal.createdAt()` / `temporal.updatedAt()` model as Postgres, emit SQLite-native timestamp codecs/defaults, and the SQL PSL provider remains target-generic. Covers FR1, FR3, FR4, NFR2.
 - [ ] **AC8.** Examples and templates updated:
   - `examples/react-router-demo/prisma/contract.{ts,prisma}` uses the preset surface.
-  - `examples/prisma-next-demo/prisma/contract.ts` uses `field.temporal.*`.
+  - `examples/prisma-8-demo/prisma/contract.ts` uses `field.temporal.*`.
   - `packages/1-framework/3-tooling/cli/src/commands/init/templates/code-templates.ts` PSL/TS templates use the new preset surface for `updatedAt`.
 - [ ] **AC9.** Documentation reflects the preset surface in one canonical location:
   - `docs/products/psl/README.md` — canonical reference; lists `temporal.createdAt()`, `temporal.updatedAt()`, and `@default(now())`. Documents the namespace exemption and the field-preset dispatch path.

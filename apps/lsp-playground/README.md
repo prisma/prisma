@@ -1,4 +1,4 @@
-# @prisma-next/lsp-playground (private)
+# lsp-playground (private)
 
 A throwaway dev playground that opens a `.psl` file in a browser Monaco editor wired to the Prisma Next language server (`prisma-next lsp --stdio`) for live PSL diagnostics, folding ranges, whole-document formatting, and server-driven semantic tokens.
 
@@ -8,7 +8,7 @@ It is a private, unpublished `apps/` package — not part of the framework build
 
 ```bash
 # 1. Build the playground dependency closure once so the bridge can spawn the built CLI and generated configs can import workspace packages:
-pnpm --filter @prisma-next/lsp-playground... run --if-present build
+pnpm --filter lsp-playground... run --if-present build
 
 # 2a. Open a blank scratch schema (no file needed):
 psl-playground
@@ -17,7 +17,7 @@ psl-playground
 psl-playground path/to/schema.psl
 
 # During repository development, the package script is equivalent:
-pnpm --filter @prisma-next/lsp-playground start path/to/schema.psl
+pnpm --filter lsp-playground start path/to/schema.psl
 ```
 
 The PSL file is **optional**. With no argument — or a path that does not yet exist — the playground opens a writable scratch schema under `.playground/` so you can start authoring immediately. Then open the printed `http://localhost:5295/` URL; parse diagnostics update live as you edit, folding controls are available in the editor gutter, semantic highlighting is requested through the language client, and the header's **Format** button sends `textDocument/formatting` to the language server.
@@ -29,7 +29,7 @@ Everything (editor + LSP) is served on the single port `5295`.
 The language server identifies schema documents from `prisma-next.config.ts` (`contract.source.inputs`), discovering a document's config by walking up from the document's own path. The playground resolves what the editor opens, and the config that sits above it, as follows:
 
 1. An **existing** file already inside a project (a `prisma-next.config.ts` is found walking up from it): open it in place under that config.
-2. Otherwise (no file, a non-existent path, or an existing file with no project config): **stage a copy** of the schema under `.playground/` and generate a **default-postgres** config beside it — the "without a config, assume default postgres" path. Staging is required because the server resolves the generated config's `@prisma-next/*` imports and discovers the config by walking up from the staged file.
+2. Otherwise (no file, a non-existent path, or an existing file with no project config): **stage a copy** of the schema under `.playground/` and generate a **default-postgres** config beside it — the "without a config, assume default postgres" path. Staging is required because the server resolves the generated config's `@prisma/orm-postgres` import and discovers the config by walking up from the staged file.
 
 There is no `--config` flag: the language server discovers config purely by walking up from each document, so it cannot be pointed at an arbitrary config path.
 
@@ -37,7 +37,7 @@ There is no `--config` flag: the language server discovers config purely by walk
 
 ```text
 Monaco editor + VS Code API shim  --LSP/WebSocket-->  ws bridge  --spawn+stdio-->  node cli.js lsp --stdio
-(monaco-languageclient + vscode-languageclient)       (vscode-ws-jsonrpc/server)   (@prisma-next/language-server)
+(monaco-languageclient + vscode-languageclient)       (vscode-ws-jsonrpc/server)   (prisma-next lsp)
 ```
 
 - `src/bridge.ts` — `ws` + `vscode-ws-jsonrpc/server` (`createServerProcess` + `forward`), adapted from the TypeFox example (MIT). Each browser WebSocket connection spawns `node <built-cli> lsp --stdio` and forwards JSON-RPC between the browser and the language server process.
@@ -50,13 +50,13 @@ The playground does not contain a PSL classifier. Semantic highlighting comes fr
 
 The client loads Monaco's VS Code theme service with the bundled Default Dark+ theme. A tiny local system extension contributes `semanticTokenScopes` for the `prisma` language so the server's standard semantic token types resolve to the theme's existing TextMate colors; it does not classify PSL or define a custom PSL color palette.
 
-Keep PSL meaning in `@prisma-next/language-server`. If semantic-token traffic is present but colors are not visually distinct in Monaco, prefer the smallest Monaco-side setting or theme adjustment that enables standard semantic highlighting; do not add a playground-local tokenizer, custom token legend, CodeMirror adapter, or duplicate request loop.
+Keep PSL meaning in the language server the `prisma-next lsp` command runs. If semantic-token traffic is present but colors are not visually distinct in Monaco, prefer the smallest Monaco-side setting or theme adjustment that enables standard semantic highlighting; do not add a playground-local tokenizer, custom token legend, CodeMirror adapter, or duplicate request loop.
 
 ## Manual QA
 
 Use this path when changing the language server, playground wiring, or docs for editor features. The visual checks require a browser; a headless JSON-RPC smoke can prove the bridge returns token data, but it cannot prove Monaco theme rendering.
 
-1. Build the dependency closure with `pnpm --filter @prisma-next/lsp-playground... run --if-present build`.
+1. Build the dependency closure with `pnpm --filter lsp-playground... run --if-present build`.
 2. Create or choose a representative PSL file that includes a namespace, models, a composite type, a `types` block, attributes, strings, numbers, booleans, and a comment. For example:
 
 ```psl
@@ -86,7 +86,7 @@ types {
 }
 ```
 
-3. Start the playground with `pnpm --filter @prisma-next/lsp-playground start path/to/schema.psl` (or `psl-playground path/to/schema.psl` when using the package binary) and open the printed `http://localhost:5295/` URL.
+3. Start the playground with `pnpm --filter lsp-playground start path/to/schema.psl` (or `psl-playground path/to/schema.psl` when using the package binary) and open the printed `http://localhost:5295/` URL.
 4. Confirm the browser console logs `Connected to language server` and the Network tab shows the `/psl` WebSocket connected.
 5. Confirm semantic highlighting is server-driven: declarations, field names, attributes, literals, comments, and type references receive semantic styling after the LSP connection initializes. In the Network/WebSocket frames or language-server logs, confirm `textDocument/semanticTokens/full` or `textDocument/semanticTokens/range` requests are sent; there should be no playground-local PSL tokenization code involved.
 6. Edit the document by adding a field such as `enabled Boolean @default(false)` or renaming a model/type reference. Confirm semantic highlighting refreshes after the edit and diagnostics still update live.

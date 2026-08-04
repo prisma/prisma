@@ -1,16 +1,16 @@
-import type { ExecutionMutationDefaultValue } from '@prisma-next/contract/types';
-import { timestampNowControlDescriptor } from '@prisma-next/family-sql/control';
-import type { AuthoringTypeNamespace } from '@prisma-next/framework-components/authoring';
+import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
+import { timestampNowControlDescriptor } from '@internal/family-sql/control';
+import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import type {
   ControlMutationDefaultEntry,
   DefaultFunctionLoweringContext,
   LoweredDefaultResult,
   MutationDefaultGeneratorDescriptor,
   TypedDefaultFunctionCall,
-} from '@prisma-next/framework-components/control';
-import { builtinGeneratorRegistryMetadata } from '@prisma-next/ids';
-import type { FuncCallSig } from '@prisma-next/psl-parser';
-import { int, num, oneOf, optional, str } from '@prisma-next/psl-parser';
+} from '@internal/framework-components/control';
+import { builtinGeneratorRegistryMetadata } from '@internal/ids';
+import type { FuncCallSig } from '@internal/psl-parser';
+import { int, num, oneOf, optional, str } from '@internal/psl-parser';
 import {
   SQLITE_BIGINT_CODEC_ID,
   SQLITE_BLOB_CODEC_ID,
@@ -19,7 +19,7 @@ import {
   SQLITE_JSON_CODEC_ID,
   SQLITE_REAL_CODEC_ID,
   SQLITE_TEXT_CODEC_ID,
-} from '@prisma-next/target-sqlite/codec-ids';
+} from '@internal/target-sqlite/codec-ids';
 
 function invalidArgumentDiagnostic(input: {
   readonly context: DefaultFunctionLoweringContext;

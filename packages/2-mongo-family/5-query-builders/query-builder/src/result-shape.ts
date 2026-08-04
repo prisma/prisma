@@ -1,10 +1,7 @@
-import type { ContractField } from '@prisma-next/contract/types';
-import type { MongoModelDefinition } from '@prisma-next/mongo-contract';
-import type { MongoFieldShape, MongoResultShape } from '@prisma-next/mongo-query-ast/execution';
-import {
-  freezeMongoFieldShape,
-  freezeMongoResultShape,
-} from '@prisma-next/mongo-query-ast/execution';
+import type { ContractField } from '@internal/contract/types';
+import type { MongoModelDefinition } from '@internal/mongo-contract';
+import type { MongoFieldShape, MongoResultShape } from '@internal/mongo-query-ast/execution';
+import { freezeMongoFieldShape, freezeMongoResultShape } from '@internal/mongo-query-ast/execution';
 
 export function contractFieldToMongoFieldShape(field: ContractField): MongoFieldShape {
   const { type, nullable, many } = field;

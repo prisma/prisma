@@ -1,4 +1,4 @@
-import { MongoFieldFilter } from '@prisma-next/mongo-query-ast/execution';
+import { MongoFieldFilter } from '@internal/mongo-query-ast/execution';
 import { describe, it } from 'vitest';
 import { mongoQuery } from '../src/query';
 import type { TContract } from './fixtures/test-contract';

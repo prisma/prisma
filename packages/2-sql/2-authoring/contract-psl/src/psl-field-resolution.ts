@@ -1,22 +1,22 @@
-import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
+import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type {
   ColumnDefault,
   ColumnDefaultLiteralInputValue,
   ExecutionMutationDefaultPhases,
-} from '@prisma-next/contract/types';
-import type { AuthoringContributions } from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { CapabilityMatrix } from '@prisma-next/framework-components/components';
+} from '@internal/contract/types';
+import type { AuthoringContributions } from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type { CapabilityMatrix } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultRegistry,
   MutationDefaultGeneratorDescriptor,
-} from '@prisma-next/framework-components/control';
-import type { FieldSymbol, ModelSymbol, ResolvedAttribute } from '@prisma-next/psl-parser';
-import type { SourceFile } from '@prisma-next/psl-parser/syntax';
-import type { EnumTypeHandle } from '@prisma-next/sql-contract-ts/contract-builder';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/framework-components/control';
+import type { FieldSymbol, ModelSymbol, ResolvedAttribute } from '@internal/psl-parser';
+import type { SourceFile } from '@internal/psl-parser/syntax';
+import type { EnumTypeHandle } from '@internal/sql-contract-ts/contract-builder';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import {
   formatDbAttributeMigrationMessage,
   getAttribute,

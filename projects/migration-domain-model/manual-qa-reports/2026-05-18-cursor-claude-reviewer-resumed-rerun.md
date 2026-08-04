@@ -4,7 +4,7 @@
 > **Prior run:** [`2026-05-18-cursor-claude-reviewer-resumed.md`](./2026-05-18-cursor-claude-reviewer-resumed.md) — ❌ Fail with 2 ⚠️ High + 7 📝 Follow-ups + 2 script-quality follow-ups. All 9 system findings + 2 script-quality items + 5 reviewer-derivative findings (F8/F9/F10/F11/F12) have since landed across M7 R3, R4, R5 (all reviewer-SATISFIED). Reviewer-side code-review.md scoreboard: 9 PASS / 0 FAIL / 0 NOT VERIFIED.
 > **Runner:** `cursor-claude-reviewer-resumed-rerun` — same LLM session that did pass 1 + the R3–R5 reviewer rounds. Continuity-runner, not fresh-eyes.
 > **Environment:**
-> - Worktree: `/Users/wmadden/Projects/prisma/prisma-next-ws/worktrees/tml-2546-review-migration-cli-commands-and-vocabulary/`
+> - Worktree: `<worktree for `tml-2546-review-migration-cli-commands-and-vocabulary`>/`
 > - Branch HEAD: `c4942308a` (M7 R5's last commit).
 > - Working tree at start: `M projects/migration-domain-model/plan.md` (intentional, per orchestrator note); untracked `projects/agile-agent-orchestration/` (workspace dir). One unexpected uncommitted item — see F-r1 below.
 > - Node: `v24.13.0` · pnpm: `10.27.0` · macOS (darwin 25.3.0).
@@ -28,15 +28,15 @@ The second pass confirms every prior-run finding has held: the F-1 happy-path sl
 **Observed:**
 ```
 $ git status --short
- M examples/prisma-next-demo/migrations/app/20260422T0742_migration/end-contract.json
+ M examples/prisma-8-demo/migrations/app/20260422T0742_migration/end-contract.json
  M projects/migration-domain-model/plan.md
 ?? projects/agile-agent-orchestration/
 
-$ git diff examples/prisma-next-demo/migrations/app/20260422T0742_migration/end-contract.json | head -10
-diff --git a/examples/prisma-next-demo/migrations/app/20260422T0742_migration/end-contract.json b/examples/prisma-next-demo/migrations/app/20260422T0742_migration/end-contract.json
+$ git diff examples/prisma-8-demo/migrations/app/20260422T0742_migration/end-contract.json | head -10
+diff --git a/examples/prisma-8-demo/migrations/app/20260422T0742_migration/end-contract.json b/examples/prisma-8-demo/migrations/app/20260422T0742_migration/end-contract.json
 index 777451756..b6aaf450d 100644
---- a/examples/prisma-next-demo/migrations/app/20260422T0742_migration/end-contract.json
-+++ b/examples/prisma-next-demo/migrations/app/20260422T0742_migration/end-contract.json
+--- a/examples/prisma-8-demo/migrations/app/20260422T0742_migration/end-contract.json
++++ b/examples/prisma-8-demo/migrations/app/20260422T0742_migration/end-contract.json
 @@ -116,8 +116,12 @@
          "user": {
            "cardinality": "N:1",
@@ -54,7 +54,7 @@ The diff is a JSON pretty-print drift (single-line arrays → multi-line), not t
 - Mutated file restored before scenarios — no impact on test results.
 - Likely residue from: (a) my own QA pass 1's `python3 -c "json.load → json.dump indent=2"` cycle, which would have changed array formatting on the round-trip even after `git checkout --` (if my checkout happened on a different commit), OR (b) some other round's tooling that touched the file and partially restored it. Cannot determine root cause from here.
 
-**Notes:** Filing as 📝 Follow-up because (a) the file was restored before scenarios so no test results are tainted, (b) this is fixture-state hygiene rather than a system bug, and (c) the orchestrator's pre-flight already calls out the unsurprising-uncommitted-items class. The script could grow a stronger pre-flight check: `git diff --stat` against HEAD scoped to `examples/prisma-next-demo/` to catch fixture drift before scenarios.
+**Notes:** Filing as 📝 Follow-up because (a) the file was restored before scenarios so no test results are tainted, (b) this is fixture-state hygiene rather than a system bug, and (c) the orchestrator's pre-flight already calls out the unsurprising-uncommitted-items class. The script could grow a stronger pre-flight check: `git diff --stat` against HEAD scoped to `examples/prisma-8-demo/` to catch fixture drift before scenarios.
 
 ## Per-scenario log
 
@@ -229,13 +229,13 @@ Probes I didn't get to (re-mentioned from pass 1 as candidates for a future roun
 
 ### File F-r1 as a script-quality ticket (or fold into TML-2554's neighbouring scope)
 
-`drive-qa-plan` revision could strengthen the pre-flight to detect fixture-file drift in `examples/prisma-next-demo/` between rounds. Either (a) script-side check before scenarios start, or (b) doc-side note that QA runs against worktrees with prior-round residue need an explicit `git stash` of `examples/` changes first. Low-impact; not a regression.
+`drive-qa-plan` revision could strengthen the pre-flight to detect fixture-file drift in `examples/prisma-8-demo/` between rounds. Either (a) script-side check before scenarios start, or (b) doc-side note that QA runs against worktrees with prior-round residue need an explicit `git stash` of `examples/` changes first. Low-impact; not a regression.
 
 ### `drive/qa/README.md` candidates (surface to orchestrator; do not edit here)
 
 Same two items I surfaced in pass 1, both still relevant:
 
-1. **Demo state gotcha** — `examples/prisma-next-demo` ships with `extensions: [pgvector]` but no `migrations/pgvector/` directory; some offline read-only commands USED to fail with `PN-MIG-5001` until `migrate` materialised the space. **This has been fixed for `migration show`** but the underlying demo-state asymmetry remains and could re-surface if a new offline verb is added that uses `buildContractSpaceAggregate`. Worth a substrate note.
+1. **Demo state gotcha** — `examples/prisma-8-demo` ships with `extensions: [pgvector]` but no `migrations/pgvector/` directory; some offline read-only commands USED to fail with `PN-MIG-5001` until `migrate` materialised the space. **This has been fixed for `migration show`** but the underlying demo-state asymmetry remains and could re-surface if a new offline verb is added that uses `buildContractSpaceAggregate`. Worth a substrate note.
 
 2. **Non-TTY auto-JSON** — every command run via `pnpm exec` from a non-TTY shell auto-enables `--json`. Scenarios that expect human-readable output need to know this; affects what "What you should see" means in practice.
 

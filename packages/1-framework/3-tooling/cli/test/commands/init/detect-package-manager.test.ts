@@ -162,17 +162,17 @@ describe('formatRunCommand', () => {
 
 describe('formatAddArgs', () => {
   it('prefixes packages with npm: for deno', () => {
-    expect(formatAddArgs('deno', ['@prisma-next/postgres', 'dotenv'])).toEqual([
+    expect(formatAddArgs('deno', ['@internal/postgres', 'dotenv'])).toEqual([
       'add',
-      'npm:@prisma-next/postgres',
+      'npm:@internal/postgres',
       'npm:dotenv',
     ]);
   });
 
   it('passes packages directly for other managers', () => {
-    expect(formatAddArgs('pnpm', ['@prisma-next/postgres', 'dotenv'])).toEqual([
+    expect(formatAddArgs('pnpm', ['@internal/postgres', 'dotenv'])).toEqual([
       'add',
-      '@prisma-next/postgres',
+      '@internal/postgres',
       'dotenv',
     ]);
   });

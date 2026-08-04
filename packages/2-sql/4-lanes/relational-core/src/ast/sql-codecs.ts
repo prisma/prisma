@@ -9,7 +9,7 @@
  * After TML-2357 this file is the canonical source of SQL base codec metadata and runtime behaviour — the legacy `mkCodec` / `defineCodec` carriers retired with the deletion sweep.
  */
 
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecDescriptorImpl,
@@ -19,7 +19,7 @@ import {
   type ColumnHelperForStrict,
   column,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import {
@@ -33,7 +33,9 @@ import {
   sqlCharEncode,
   sqlCharRenderOutputType,
   sqlFloatDecode,
+  sqlFloatDecodeJson,
   sqlFloatEncode,
+  sqlFloatEncodeJson,
   sqlIntDecode,
   sqlIntEncode,
   sqlTextDecode,
@@ -148,10 +150,10 @@ export class SqlFloatCodec extends CodecImpl<
     return sqlFloatDecode(wire);
   }
   encodeJson(value: number): JsonValue {
-    return value;
+    return sqlFloatEncodeJson(value);
   }
   decodeJson(json: JsonValue): number {
-    return json as number;
+    return sqlFloatDecodeJson(json);
   }
 }
 

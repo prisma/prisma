@@ -2,13 +2,13 @@
 
 Prisma Next — the contract-first rewrite of Prisma — ships as **Prisma 8**. On **July 31** we publish **`prisma@8.0.0-rc.1`** from the `prisma/prisma` repository: the same repository and the same npm package Prisma users already know. The release candidate is published under a pre-release tag, so `npm install prisma` keeps installing Prisma 7 until 8.0.0 final ships. Prisma 8 carries **PostgreSQL to general availability** — and that is all: **MongoDB ships in early access**, and **SQLite is a proof of concept** at this stage. A release candidate freezes the public API; it does not promise Prisma 7 feature parity. Its promise is different: **everything it ships works and is proven by a test**, everything experimental is labeled, and everything absent is named rather than silently missing.
 
-**Updated July 23 · Health: on track · Ships July 31 · Tasks: 6 done / 11 in flight / 17 not started · [Scoreboard](https://github.com/prisma/prisma-next/pull/1000): ~450 proven / ~500 unproven / ~30 experimental / ~250 not in 8.0**
+**Updated July 31 · Health: on track · Ships July 31 · Tasks: 9 done / 10 in flight / 16 not started · [Scoreboard](https://github.com/prisma/prisma-next/pull/1000): ~450 proven / ~500 unproven / ~30 experimental / ~250 not in 8.0**
 
 ## What needs to happen to release v8-RC1
 
 Six things must be true on release day. Everything on this page belongs to one of them.
 
-1. **[Queries must return correct values](#1-queries-must-return-correct-values)** — *in progress · Alexey.* The main remaining defect: values read through relation-loading corrupt or fail.
+1. **[Queries must return correct values](#1-queries-must-return-correct-values)** — *in progress · Alexey.* The relation-loading codec defect is fixed and verified; aggregate typing and the type/runtime mismatches remain.
 2. **[The schema language must reach its final form](#2-the-schema-language-must-reach-its-final-form)** — *in flight · Serhii.* Whatever syntax the RC ships is permanent for the life of v8; three language projects are running.
 3. **[Every name and format users depend on must be final](#3-every-name-and-format-users-depend-on-must-be-final)** — *in progress · Will.* Error codes, hashes, the migration snapshot layout, and the config-key rename are done; the `prisma-next` name sweep remains.
 4. **[The release's claims must be proven](#4-the-releases-claims-must-be-proven)** — *scoreboard drafted, proofs open · everyone.* "It works" and "you can migrate incrementally" each need a runnable receipt.
@@ -21,15 +21,15 @@ Two dated decisions still bound the work. One is now overdue: the minimum suppor
 
 ## 1. Queries must return correct values
 
-Prisma 8's core promise at the RC is that the query paths it ships are correct. One significant defect class remains, plus the tail of an almost-finished one.
+Prisma 8's core promise at the RC is that the query paths it ships are correct. The one significant defect class — relation-loading bypassing type codecs — is fixed as of July 31; what remains is the aggregate-typing tail, the type/runtime mismatches, and the polymorphism call.
 
-<details><summary>⏳ <b>Values read through relation-loading bypass their type codecs — big numbers silently corrupt, date columns throw</b> · critical path</summary>
+<details><summary>✅ <b>Values read through relation-loading bypass their type codecs — big numbers silently corrupt, date columns throw</b> · landed</summary>
 
-When a query loads a relation (say, a post together with its author), Postgres assembles the nested rows into JSON inside the database, using its `json_agg` function. JSON numbers cannot represent everything a database column can hold: a 64-bit integer or arbitrary-precision decimal gets silently rounded to the nearest JavaScript-representable number before Prisma's type codecs ever see it, and date/time values arrive in a format the decoder rejects — so a plain `DateTime` column read through `.include()` throws today.
+When a query loads a relation (say, a post together with its author), Postgres assembles the nested rows into JSON inside the database, using its `json_agg` function. JSON numbers cannot represent everything a database column can hold: a 64-bit integer or arbitrary-precision decimal got silently rounded to the nearest JavaScript-representable number before Prisma's type codecs ever saw it, and date/time values arrived in a format the decoder rejects — so a plain `DateTime` column read through `.include()` threw.
 
-The fix: every type codec gains an explicit *lossless* JSON form (big numbers travel as strings, for example), and the SQL we generate is changed to produce that form inside the database. It lands as four pull requests in strict sequence — foundations, per-database codec descriptors, the switch-over, then aggregate typing. The switch-over is a breaking change: users regenerate their contract files, and some aggregate result types change (a `count()` becomes a `bigint`, decimal sums become strings — precise instead of approximately convenient).
+The fix landed July 31: every type codec states an explicit *lossless* canonical JSON form (big numbers travel as decimal strings, binary as base64), and the SQL we generate produces that form inside the database. It shipped as three pull requests in strict sequence — the projection AST foundations ([TML-3062](https://linear.app/prisma-company/issue/TML-3062), [#1023](https://github.com/prisma/prisma-next/pull/1023)), the per-database codec descriptors ([TML-3061](https://linear.app/prisma-company/issue/TML-3061), [#1051](https://github.com/prisma/prisma-next/pull/1051)), and the switch-over carrying the per-codec projections and their database-backed conformance harness ([TML-3100](https://linear.app/prisma-company/issue/TML-3100), [TML-3063](https://linear.app/prisma-company/issue/TML-3063), [#29844](https://github.com/prisma/prisma/pull/29844)). The switch-over is the promised breaking change: users regenerate their contract files, nine codecs change their JSON form on the read path, and zone-less timestamps now read as UTC. Integration tests prove each renderer produces the canonical form against a real database.
 
-Tracked as [TML-3060](https://linear.app/prisma-company/issue/TML-3060/plan-codec-json-projections); in flight now — the first of the four PRs, the explicit-JSON-projection AST foundations, has landed ([TML-3062](https://linear.app/prisma-company/issue/TML-3062), [#1023](https://github.com/prisma/prisma-next/pull/1023)).
+Two remainders are accepted knowingly: aggregate values are not yet decoded through codecs ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), tracked in the type-mismatch item below), and `pg/geometry@1` keeps its non-canonical form until its SRID representation is decided and a PostGIS-capable test database exists ([TML-3105](https://linear.app/prisma-company/issue/TML-3105)).
 </details>
 
 <details><summary>✅ <b>`date` columns fail at runtime when read through relation-loading</b> · landed</summary>
@@ -37,19 +37,20 @@ Tracked as [TML-3060](https://linear.app/prisma-company/issue/TML-3060/plan-code
 The codec that correctly handles Postgres `date` values exists and is strict (it rejects impossible dates like February 31st rather than silently normalizing them), but nothing connected the `date` column type to it — so reading a `date` column through `.include()` threw at decode time, because the column inherited the `timestamptz` codec, which rejects the bare `YYYY-MM-DD` that `json_agg` renders. `@db.Date` now binds to `pg/date@1`, and a test proves an included `date` column comes back as a `Date` ([TML-3086](https://linear.app/prisma-company/issue/TML-3086), landed as [#1038](https://github.com/prisma/prisma-next/pull/1038)).
 </details>
 
-<details><summary>⏳ <b>Binary columns read through relation-loading return hex text instead of bytes</b></summary>
+<details><summary>✅ <b>Binary columns read through relation-loading return hex text instead of bytes</b> · landed</summary>
 
-Same disease as the big one above, concrete instance: a `Bytes` column selected inside `.include()` comes back as the raw hexadecimal text Postgres uses in JSON (`\x48656c6c6f`) while the TypeScript types promise a `Uint8Array`. Fixed by the same lossless-JSON work; a separate ticket ([TML-2990](https://linear.app/prisma-company/issue/TML-2990)) tracks it so it can't be forgotten in the sweep. In progress.
+Same disease as the big one above, concrete instance: a `Bytes` column selected inside `.include()` came back as the raw hexadecimal text Postgres uses in JSON (`\x48656c6c6f`) while the TypeScript types promise a `Uint8Array`. Fixed by the lossless-JSON switch-over: `pg/bytea@1`'s canonical JSON form is base64, and an integration test reads an included `bytea` column back as its exact bytes ([TML-2990](https://linear.app/prisma-company/issue/TML-2990), landed as part of [#29844](https://github.com/prisma/prisma/pull/29844)).
 </details>
 
 <details><summary>⏳ <b>Places where the TypeScript types and the runtime disagree</b></summary>
 
-Two known mismatches, both "the type signature promises one thing, the running code returns another":
+Three known mismatches, all "the type signature promises one thing, the running code returns another":
 
 - `Timestamp`/`Timestamptz` columns: the declared output type is a branded string, but the codec actually returns a JavaScript `Date` ([TML-2391](https://linear.app/prisma-company/issue/TML-2391), in progress).
 - Projects that use the schema types directly without running contract emission (`typeof contract`) get types that ignore per-instance codec parameters and enum value sets — so a column can typecheck against values the database will reject ([TML-2960](https://linear.app/prisma-company/issue/TML-2960), in progress).
+- Aggregate results: a `count()` is typed `bigint`, but the runtime still returns the text the database sent — aggregate values are not yet decoded through codecs. This is the final PR of the lossless-JSON sequence, which also delivers the public target testkits for extensions ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), open).
 
-A type that lies is a correctness bug with a delay on it; both must be resolved (or the type corrected to tell the truth) before the types freeze.
+A type that lies is a correctness bug with a delay on it; all must be resolved (or the type corrected to tell the truth) before the types freeze.
 </details>
 
 <details><summary>⏳ <b>Finish the polymorphism bug tail — then decide: stable or experimental</b></summary>
@@ -110,7 +111,7 @@ All of the above changes what generated schema and migration files look like. Th
 
 ## 3. Every name and format users depend on must be final
 
-Users write `catch` blocks against error codes, commit generated contract and migration files to their repositories, and write config files against our keys. All of that becomes permanent API at the RC. Five changes must land first — sequenced together, because several of them alter the same generated files and users should see one change, not five.
+Users write `catch` blocks against error codes, commit generated contract and migration files to their repositories, and write config files against our keys. All of that becomes permanent API at the RC. Six changes must land first — sequenced together, because several of them alter the same generated files and users should see one change, not six.
 
 <details><summary>✅ <b>One error-code scheme instead of four</b> · landed</summary>
 
@@ -135,6 +136,15 @@ Every migration folder used to carry full copies of the data contract it goes fr
 <details><summary>⬜ <b>Sweep out the old `prisma-next` name everywhere it's baked in</b></summary>
 
 After the package rename (section 5), the old name survives in places that are easy to forget and hard to change later: the project templates that `prisma-next init` writes for new users, the agent skills it installs into user projects, the documentation links embedded inside error messages (which must resolve to real pages on release day), and internal-looking names that are actually permanent — environment variable names, the per-user config file path, telemetry identifiers. Each gets an explicit keep-or-rename decision before the freeze makes the choice for us.
+</details>
+
+<details><summary>⬜ <b>Decide the config filename and the command name</b></summary>
+
+Two uses of the old name are different in kind from the rest of the sweep, because they are not ours to change quietly: `prisma-next.config.ts` is a file in the user's repository, and `prisma-next` is the command they type and script into their CI. The packages have moved to `@prisma/*` and the examples now read `prisma-8-*`, so a user who installs Prisma 8 and is told to create a `prisma-next.config.ts` and run `prisma-next migration plan` is being asked to write a name that appears nowhere else in what they installed.
+
+The config filename is in 894 places across 333 files in this repository alone, and every one of those is mirrored in every user project that has run `init`. Renaming it is a breaking change: the config loader discovers the file by name, so a project that upgrades without renaming stops being found. The command name is worse, because it is also the published bin, so renaming it changes what `npx` resolves and what a CI script invokes.
+
+Both therefore need an upgrade path rather than a rename — a loader that accepts the new name and the old one for a deprecation window, a codemod in the version's upgrade recipe, and a decision on whether the command becomes a `prisma` subcommand now that Prisma 8 ships as `prisma`. That work does not belong in the package-rename change; it belongs here, before the RC freezes both names for the life of v8.
 </details>
 
 ---
@@ -178,6 +188,11 @@ Prisma 8 leans heavily on advanced TypeScript types, which is exactly the patter
 Prisma 7's functional test suite encodes years of database and query edge cases. Converting it wholesale would take months and mostly port API details that no longer exist — so we mine it instead: for each scoreboard cell that says "works" without a proving test, find the Prisma 7 tests covering that feature and port just those scenarios. Where comparing against Prisma 7's behavior is cheaper than porting assertions, the side-by-side project doubles as the comparison harness. The port has started — a first pass accounting for 488 scenarios from the `prisma` and `prisma-engines` corpus landed ([#1035](https://github.com/prisma/prisma-next/pull/1035)). This is a stream, not a step; it continues past the RC, visibly, on the public scoreboard.
 </details>
 
+<details><summary>✅ <b>Expression, partial, and unique indexes — authorable, name-identified, adoptable</b> · landed</summary>
+
+Prisma 8 can now author the indexes real Postgres databases actually carry: expression indexes (`@@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq")` — the exact shape Cipherstash's encrypted-search EQL extension needs), partial (`where:`) and unique variants, access methods, and storage options — in PSL and the TypeScript authoring path alike. Indexes and row-level-security policies became name-identified entities: a wire-named object's physical name ends in a content hash, so a body edit converges as create + drop while a pure rename converges as a single `ALTER INDEX … RENAME`; `map:` adopts an existing physical name verbatim. `contract infer` emits every live index and policy at full fidelity, so an existing database can be adopted and signed exactly as it stands — and converted to wire naming later by nothing but renames. ([#1047](https://github.com/prisma/prisma-next/pull/1047), [#1048](https://github.com/prisma/prisma-next/pull/1048), [#1050](https://github.com/prisma/prisma-next/pull/1050), [#29808](https://github.com/prisma/prisma/pull/29808))
+</details>
+
 <details><summary>✅ <b>Adopting an existing database round-trips cleanly</b> · landed</summary>
 
 The adoption path had a credibility problem: deriving a schema from a live database produced output that Prisma 8's own tooling then rejected or flagged as drifted — a user had independently written a 260-line repair script to fix our output, and it matched the workaround script in our own repository. Seven distinct defects were fixed, and the whole loop (read the database → derive the schema → emit the contract → verify the database matches) now runs as an automated test against live databases. This is the foundation the side-by-side proof builds on.
@@ -196,22 +211,17 @@ First a rehearsal in a disposable fork: combine prisma-next's history with prism
 
 <details><summary>⬜ <b>Rewire the publishing pipeline — inside prisma/prisma and in the repositories connected to it</b></summary>
 
-prisma/prisma's release automation currently exists to publish Prisma 7. After the move it does two jobs: publish v8 from `main` and keep publishing v7 patches from the `v7` branch, without either disturbing the other. (Publish permissions on the `prisma` npm package are already in hand; what remains is configuration, including the per-package "trusted publishing" setup that lets CI publish without long-lived secrets.) Beyond the repository itself, workflows in several other repositories and open pull requests are wired into prisma/prisma's publishing today; each connection has to be found and re-pointed. The first concrete task is the inventory — a written list of every workflow that touches prisma/prisma's publishing, so the rewiring is a checklist instead of a surprise.
+prisma/prisma's release automation currently exists to publish Prisma 7. After the move it does two jobs: publish v8 from `main` and keep publishing v7 patches from the `v7` branch, without either disturbing the other. (Publish permissions on the `prisma` npm package are already in hand, and the per-package "trusted publishing" setup that lets CI publish without long-lived secrets is done for all 17 v8 packages — what remains is the v7 side.) Beyond the repository itself, workflows in several other repositories and open pull requests are wired into prisma/prisma's publishing today; each connection has to be found and re-pointed. The first concrete task is the inventory — a written list of every workflow that touches prisma/prisma's publishing, so the rewiring is a checklist instead of a surprise.
 </details>
 
 <details><summary>⬜ <b>Take over the `prisma` package name — carefully</b></summary>
 
-The `prisma` package becomes Prisma 8's command-line tool, published under a pre-release tag so `npm install prisma` keeps giving people Prisma 7 until 8.0.0 final. The three per-database packages users import get new names: `@prisma/postgres`, `@prisma/sqlite`, `@prisma/mongo` (checked for collisions against the many `@prisma/*` names Prisma 7 already publishes). Only those four packages rename — the ~60 internal packages that arrive automatically as dependencies keep their `@prisma-next/*` names and are explicitly not part of the supported surface. *(The package naming here is superseded by the namespace restructure below — facades are now spelled like `@prisma/orm-postgres`, and the internal packages do move.)* The v8 tool installs a single command, `prisma-next` — deliberately *not* `prisma`, so in a project that has both versions installed, `prisma` always unambiguously means Prisma 7, on every package manager. (Whether v8 ever claims the bare `prisma` command is deferred; adding a command later breaks nothing.) The old `prisma-next` package gets a deprecation notice pointing at its new home.
+The `prisma` package becomes Prisma 8's command-line tool, published under a pre-release tag so `npm install prisma` keeps giving people Prisma 7 until 8.0.0 final. The three per-database packages users import get new names: `@prisma/postgres`, `@prisma/sqlite`, `@prisma/mongo` (checked for collisions against the many `@prisma/*` names Prisma 7 already publishes). Only those four packages rename — the ~60 internal packages that arrive automatically as dependencies keep their `@internal/*` names and are explicitly not part of the supported surface. *(The package naming here is superseded by the namespace restructure below — facades are now spelled like `@prisma/orm-postgres`, and the internal packages do move.)* The v8 tool installs a single command, `prisma-next` — deliberately *not* `prisma`, so in a project that has both versions installed, `prisma` always unambiguously means Prisma 7, on every package manager. (Whether v8 ever claims the bare `prisma` command is deferred; adding a command later breaks nothing.) The old `prisma-next` package gets a deprecation notice pointing at its new home.
 </details>
 
-<details><summary>⬜ <b>Restructure the npm package namespaces</b></summary>
+<details><summary>✅ <b>Restructure the npm package namespaces</b> · landed</summary>
 
-The package-naming plan is revised; four pieces of work:
-
-- **A new `@prisma-orm` npm namespace** hosts everything that is internal today — the ~60 implementation packages published under `@prisma-next/*` move there wholesale, and stay explicitly outside the supported surface.
-- **A small number of user-facing facade packages** are established under `@prisma/*` — e.g. `@prisma/orm-postgres` — and those facades are the only supported import surface.
-- **OIDC trusted publishing for every new package**: CI publishes both namespaces without long-lived npm tokens, configured per package as part of the pipeline rewiring above.
-- **Every `@prisma-next/*` package is deprecated** on npm with a notice pointing at its successor.
+Delivered, with one revision to the plan: no second namespace exists. 17 packages are published — 16 under the single `@prisma` scope plus the unscoped `prisma-next` bin shim: three database facades (`@prisma/orm-postgres`, `@prisma/orm-sqlite`, `@prisma/orm-mongo`; an application depends on exactly one), six extension packs, seven platform packages the facades depend on, and the shim ([ADR 242](docs/architecture%20docs/adrs/ADR%20242%20-%20Public%20npm%20surface%20-%20single%20%40prisma%20scope%20with%20consolidated%20publish%20packages.md)). The ~60 internal implementation packages are not published at all — they are `private: true` and their code reaches npm bundled inside the platform packages, so the planned `@prisma-orm` namespace (and the deprecation sweep it would have required) became unnecessary. CI enforces the shape: publishability is a directory property (`packages/9-public/` and nothing else), every publishable manifest must declare the canonical repository (npm provenance verification depends on it), and the legacy `@prisma-next` name is lint-banned outside historical documents. All 17 packages publish via OIDC trusted publishing — no long-lived npm tokens — with provenance attestations, configured per package on npmjs.com.
 
 </details>
 
@@ -302,6 +312,8 @@ Support statements that end up in the announcement get checked first: Windows, B
 
 ## Recently landed
 
+- **Expression, partial, and unique indexes landed end-to-end** — authorable in PSL and TypeScript, name-identified (a wire name carries a content-hash suffix; `map:` adopts the live name verbatim), and emitted at full fidelity by `contract infer` so existing databases adopt cleanly (section 4).
+- **Relation-loading now reads every value losslessly through its type codec** — nested JSON is canonical per codec: big integers arrive as `bigint`, decimals as exact strings, `Bytes` as bytes; a breaking change that regenerates contracts and changes nine codecs' JSON form (section 1).
 - **One error-code scheme, delivered end-to-end** — every published error is a structural envelope with a dotted code; the ORM and contract-authoring planes' codeless throws were swept onto it; the 221-code reference page ships with a CI check that keeps it complete (section 3).
 - **Contract snapshots deduplicated into one content-addressed store** — migration folders stopped carrying full contract copies, ref-paired snapshots folded in too, closing the migrations-folder layout ahead of the freeze (section 3).
 - **Hashes lost their `sha256:` prefix** — the textual form of every content hash froze without the redundant algorithm tag (section 3).

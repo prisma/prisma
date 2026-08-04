@@ -8,7 +8,7 @@
 
 **New commits this round (2 commits):**
 
-- `a602bcc57` — `fix(@prisma-next/postgres): accept PostgresEnumStorageEntry in defineContract TypesConstraint` — surfaced during D5b's pattern-verify phase. The wrapped `defineContract`'s `TypesConstraint` was narrower than the base — rejected `PostgresEnumStorageEntry` that the base accepts. Implementer widened it to `Record<string, StorageTypeInstance | PostgresEnumStorageEntry>`. Technically a facade source change in a test-fixture dispatch; orchestrator accepted in-flight because it was blocking otherwise-valid migrations and the alternative was halting D5b for a one-line fix.
+- `a602bcc57` — `fix(@internal/postgres): accept PostgresEnumStorageEntry in defineContract TypesConstraint` — surfaced during D5b's pattern-verify phase. The wrapped `defineContract`'s `TypesConstraint` was narrower than the base — rejected `PostgresEnumStorageEntry` that the base accepts. Implementer widened it to `Record<string, StorageTypeInstance | PostgresEnumStorageEntry>`. Technically a facade source change in a test-fixture dispatch; orchestrator accepted in-flight because it was blocking otherwise-valid migrations and the alternative was halting D5b for a one-line fix.
 - `c09030abf` — `feat(test-fixtures): migrate verbose defineContract form to facade contract-builders` — 97-file mechanical migration. Per implementer's structured return: ~38 CLI-journey + ~15 parity + ~7 top-level + 3 e2e framework + 2 CLI recordings + 1 sql-orm-client + Tier 2 judgments (~31 inline-construct test files migrated where intent allowed; ~6 left verbose-with-comment).
 
 **Pull diff:** `git diff 243e297d8..c09030abf` is the substantive D5b code change (the brief commit + the lockfile realignment are orchestrator-side).
@@ -17,7 +17,7 @@
 
 - **97 files vs ~60 brief estimate.** Implementer didn't trigger `scope-escalation` — they judged 97 was within range (Tier 1 turned out larger than orchestrator's grep estimated, plus many Tier 2 inline-construct test files were straightforward to migrate). Spot-check the Tier 2 judgments listed in the implementer's structured return (5+ files marked LEFT-VERBOSE-WITH-COMMENT) — verify each has a one-line comment explaining the reason.
 
-- **Pattern consistency.** Sample 5-10 files across categories (CLI-journey, parity, top-level integration fixture, mongo fixture). Pattern should be: drop `import sqlFamily from '@prisma-next/family-sql/pack'` + `import postgresPack from '@prisma-next/target-postgres/pack'`, change `import { defineContract } from '@prisma-next/sql-contract-ts/contract-builder'` to `from '@prisma-next/{postgres,sqlite,mongo}/contract-builder'`, drop `family:` + `target:` from the `defineContract` call. If you spot drift between SQL and Mongo variants, file it.
+- **Pattern consistency.** Sample 5-10 files across categories (CLI-journey, parity, top-level integration fixture, mongo fixture). Pattern should be: drop `import sqlFamily from '@internal/family-sql/pack'` + `import postgresPack from '@internal/target-postgres/pack'`, change `import { defineContract } from '@internal/sql-contract-ts/contract-builder'` to `from '@internal/{postgres,sqlite,mongo}/contract-builder'`, drop `family:` + `target:` from the `defineContract` call. If you spot drift between SQL and Mongo variants, file it.
 
 - **The `TypesConstraint` widening fix (`a602bcc57`).** Verify the widened type is `Record<string, StorageTypeInstance | PostgresEnumStorageEntry>` (or whatever the implementer landed). Check that the corresponding Sqlite/Mongo facade types don't have the same gap (if they do, file as a follow-up — D5b doesn't need to fix them but reviewer should flag).
 
@@ -25,7 +25,7 @@
 
 - **Tier 2 "leave-verbose-with-comment" file list.** Implementer's structured return enumerates them with rationale. Spot-check 2-3: are the comments present and meaningful?
 
-- **`packages/2-mongo-family/7-runtime/test/query-builder.test.ts` left verbose due to cycle.** The implementer found this is the same kind of architectural cycle as the pgvector one (adding `@prisma-next/mongo` as a devDep would cycle). Accept the verbose-with-comment decision for this dispatch — D5c will fix the underlying layering, after which the file should migrate. Verify the comment in the file points at D5c / the layering fix.
+- **`packages/2-mongo-family/7-runtime/test/query-builder.test.ts` left verbose due to cycle.** The implementer found this is the same kind of architectural cycle as the pgvector one (adding `@internal/mongo` as a devDep would cycle). Accept the verbose-with-comment decision for this dispatch — D5c will fix the underlying layering, after which the file should migrate. Verify the comment in the file points at D5c / the layering fix.
 
 - **`test/integration/test/mongo/fixtures/contract.ts` left verbose due to Mongo facade type regression.** Implementer reports the Mongo facade's `defineContract` wrap loses type precision for discriminated unions with embedded relations (`tasks[0].comments[0].createdAt` infers as `never`). Verify the comment in the file documents this. **File this as a follow-up finding (not a must-fix for D5b):** the Mongo facade type regression is a real bug that needs its own dispatch; D5b's verbose-with-comment is the right interim move.
 
@@ -47,7 +47,7 @@
 
 ## Anything that has changed in your operating context
 
-- **A7 extension for extension-pack contracts is being REVERTED.** Orchestrator informed user about the cycle workaround; user pushed back on the architectural anti-pattern (extension packs being pulled into sql-builder via test fixtures), said "delete the dependencies that violate the architectural layering". D5c will dispatch immediately after your D5b verdict to remove `sql-builder` + `sql-orm-client` devDeps on `@prisma-next/extension-pgvector`, move the test fixtures that use pgvector to `test/integration/`, then in a follow-up dispatch migrate pgvector + postgis (and possibly mongo-runtime test) contracts to the facade form per the original D5 intent.
+- **A7 extension for extension-pack contracts is being REVERTED.** Orchestrator informed user about the cycle workaround; user pushed back on the architectural anti-pattern (extension packs being pulled into sql-builder via test fixtures), said "delete the dependencies that violate the architectural layering". D5c will dispatch immediately after your D5b verdict to remove `sql-builder` + `sql-orm-client` devDeps on `@internal/extension-pgvector`, move the test fixtures that use pgvector to `test/integration/`, then in a follow-up dispatch migrate pgvector + postgis (and possibly mongo-runtime test) contracts to the facade form per the original D5 intent.
 - **The mongo-runtime cycle the implementer just surfaced is the SAME pattern.** D5c's scope will include it.
 
 ## Reminders (terse)

@@ -16,8 +16,8 @@ The ratified floor table:
 |---|---|---|
 | Node.js | `>=24` | `engines.node` on every publishable package |
 | TypeScript | `>=5.9` | optional `peerDependencies.typescript` on every publishable package + source-of-truth constant + drift test |
-| PostgreSQL (server) | `17` | `prismaNext.minServerVersion` on `@prisma-next/target-postgres` + CLI mirror + `docker-compose.yaml` test image |
-| MongoDB (server) | `8.0` | `prismaNext.minServerVersion` on `@prisma-next/target-mongo` + CLI mirror; MMS 11.x downloads 8.2.x by default |
+| PostgreSQL (server) | `17` | `prismaNext.minServerVersion` on `@internal/target-postgres` + CLI mirror + `docker-compose.yaml` test image |
+| MongoDB (server) | `8.0` | `prismaNext.minServerVersion` on `@internal/target-mongo` + CLI mirror; MMS 11.x downloads 8.2.x by default |
 | Bun | `>=1.2` | documented; runtime detection already exists |
 | Deno | `>=2.0` | documented; runtime detection already exists |
 
@@ -81,7 +81,7 @@ The correct sequence for raising a DB floor:
 1. Update `prismaNext.minServerVersion` in the target package's `package.json`.
 2. Update `MIN_SERVER_VERSION` in `env.ts` to match.
 3. Update the test infrastructure (e.g., `docker-compose.yaml` image tag) to match the new floor.
-4. Run `pnpm --filter @prisma-next/cli test` to verify the drift test passes.
+4. Run `pnpm --filter @internal/cli test` to verify the drift test passes.
 
 ---
 

@@ -22,9 +22,9 @@
  * @see docs/architecture docs/adrs/ADR 212 - Contract spaces.md
  */
 
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { assertDescriptorSelfConsistency } from '@prisma-next/migration-tools/spaces';
-import { sqlContractCanonicalizationHooks } from '@prisma-next/sql-contract/canonicalization-hooks';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { assertDescriptorSelfConsistency } from '@internal/migration-tools/spaces';
+import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
 import { describe, expect, it } from 'vitest';
 import { VECTOR_CODEC_ID } from '../src/core/constants';
 import {

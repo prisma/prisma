@@ -16,21 +16,21 @@
  *     TS authoring surface for the first time).
  *
  * Lives in test/integration (not beside the PSL twin in adapter-postgres):
- * `@prisma-next/postgres` already depends on `@prisma-next/adapter-postgres`,
+ * `@internal/postgres` already depends on `@internal/adapter-postgres`,
  * so the reverse devDependency would create a workspace cycle.
  */
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import postgresAdapterDescriptor from '@prisma-next/adapter-postgres/control';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriverDescriptor from '@prisma-next/driver-postgres/control';
-import sqlFamilyDescriptor, { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import postgresAdapterDescriptor from '@internal/adapter-postgres/control';
+import type { Contract } from '@internal/contract/types';
+import postgresDriverDescriptor from '@internal/driver-postgres/control';
+import sqlFamilyDescriptor, { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import {
   APP_SPACE_ID,
   createControlStack,
   issueOutcome,
   type MigrationOperationPolicy,
-} from '@prisma-next/framework-components/control';
-import { buildFabricatedMigrationEdge } from '@prisma-next/migration-tools/aggregate';
+} from '@internal/framework-components/control';
+import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregate';
 import {
   defineContract,
   field,
@@ -38,12 +38,12 @@ import {
   policySelect,
   rlsEnabled,
   role,
-} from '@prisma-next/postgres/contract-builder';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
-import { isPostgresSchema, PostgresDatabaseSchemaNode } from '@prisma-next/target-postgres/types';
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+} from '@internal/postgres/contract-builder';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import postgresTargetDescriptor from '@internal/target-postgres/control';
+import { isPostgresSchema, PostgresDatabaseSchemaNode } from '@internal/target-postgres/types';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const testTimeout = timeouts.spinUpPpgDev;

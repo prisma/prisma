@@ -1,11 +1,11 @@
-import { domainModelsAtDefaultNamespace, type PlanMeta } from '@prisma-next/contract/types';
+import { domainModelsAtDefaultNamespace, type PlanMeta } from '@internal/contract/types';
 import type {
   AnyMongoTypeMaps,
   ExtractMongoCodecTypes,
   MongoContract,
   MongoContractWithTypeMaps,
   MongoModelDefinition,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import type {
   MongoAggAccumulator,
   MongoAggExpr,
@@ -19,7 +19,7 @@ import type {
   MongoUpdatePipelineStage,
   MongoWindowField,
   UpdateResult,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import {
   AggregateCommand,
   FindOneAndDeleteCommand,
@@ -55,10 +55,10 @@ import {
   MongoVectorSearchStage,
   UpdateManyCommand,
   UpdateOneCommand,
-} from '@prisma-next/mongo-query-ast/execution';
-import { castAs } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-query-ast/execution';
+import { castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { createFieldAccessor, type Expression, type FieldAccessor } from './field-accessor';
 import {
   createLookupFrom,

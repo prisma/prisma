@@ -1,6 +1,6 @@
-import { CliStructuredError } from '@prisma-next/errors/control';
-import type { StructuredError, StructuredErrorOptions } from '@prisma-next/utils/structured-error';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { CliStructuredError } from '@internal/errors/control';
+import type { StructuredError, StructuredErrorOptions } from '@internal/utils/structured-error';
+import { structuredError } from '@internal/utils/structured-error';
 
 export type SqliteTargetErrorCode =
   | 'CONTRACT.ARGUMENT_INVALID'
@@ -41,7 +41,7 @@ export function sqliteError(
  * because the missing input is the stack itself, not the per-operation
  * contract.
  *
- * Lives in `@prisma-next/target-sqlite/errors` rather than the shared
+ * Lives in `@internal/target-sqlite/errors` rather than the shared
  * framework migration errors module because the failure is target-specific:
  * the contract it talks about (`SqliteMigration`, the SQLite control
  * adapter, the SQLite-target stack) only exists in this package.

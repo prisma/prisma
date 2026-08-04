@@ -1,8 +1,8 @@
 import type {
   ContractSourceDiagnostic,
   ContractSourceDiagnosticSpan,
-} from '@prisma-next/config/config-types';
-import type { ParseDiagnostic, Range, SourceFile } from '@prisma-next/psl-parser/syntax';
+} from '@internal/config/config-types';
+import type { ParseDiagnostic, Range, SourceFile } from '@internal/psl-parser/syntax';
 
 export const ParseDiagnosticSeverity = {
   Error: 1,

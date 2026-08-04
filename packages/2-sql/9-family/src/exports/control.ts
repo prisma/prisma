@@ -10,8 +10,8 @@ export type {
   MigrationPlannerResult,
   MigrationPlanOperation,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-export { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
+export { assembleAuthoringContributions } from '@internal/framework-components/control';
 export { extractCodecControlHooks } from '../core/assembly';
 export type { SqlControlFamilyInstance } from '../core/control-instance';
 export type {

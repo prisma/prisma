@@ -1,4 +1,4 @@
-import type { Char } from '@prisma-next/target-postgres/codec-types';
+import type { Char } from '@internal/target-postgres/codec-types';
 import { describe, expect, it } from 'vitest';
 import { setupIntegrationTest, timeouts } from './setup';
 

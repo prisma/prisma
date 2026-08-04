@@ -1,11 +1,11 @@
-import { SQL_CHAR_CODEC_ID } from '@prisma-next/sql-relational-core/ast';
-import { col, lit } from '@prisma-next/sql-relational-core/contract-free';
+import { SQL_CHAR_CODEC_ID } from '@internal/sql-relational-core/ast';
+import { col, lit } from '@internal/sql-relational-core/contract-free';
 import {
   columnExistsAst,
   indexExistsAst,
   tableExistsAst,
-} from '@prisma-next/target-sqlite/contract-free';
-import { SqliteCreateTable } from '@prisma-next/target-sqlite/ddl';
+} from '@internal/target-sqlite/contract-free';
+import { SqliteCreateTable } from '@internal/target-sqlite/ddl';
 import { describe, expect, it } from 'vitest';
 import { createSqliteBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../src/core/control-adapter';

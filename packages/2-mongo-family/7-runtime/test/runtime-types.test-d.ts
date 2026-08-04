@@ -1,12 +1,12 @@
-import type { CrossReference, StorageHashBase } from '@prisma-next/contract/types';
-import type { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
+import type { CrossReference, StorageHashBase } from '@internal/contract/types';
+import type { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoTypeMaps,
-} from '@prisma-next/mongo-contract';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { mongoQuery } from '@prisma-next/mongo-query-builder';
+} from '@internal/mongo-contract';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import { mongoQuery } from '@internal/mongo-query-builder';
 import { expectTypeOf } from 'vitest';
 import type { MongoRuntime } from '../src/mongo-runtime';
 

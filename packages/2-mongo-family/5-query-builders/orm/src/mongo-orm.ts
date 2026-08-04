@@ -3,8 +3,8 @@ import type {
   MongoContract,
   MongoContractWithTypeMaps,
   RootModelName,
-} from '@prisma-next/mongo-contract';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/mongo-contract';
+import { blindCast } from '@internal/utils/casts';
 import type { MongoCollection } from './collection';
 import { createMongoCollection } from './collection';
 import type { MongoQueryExecutor } from './executor';

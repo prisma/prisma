@@ -13,7 +13,7 @@ export const PLAYGROUND_DIR = join(packageRoot, '.playground');
  * This is the "without a config, assume default postgres" path.
  *
  * The config lives in `.playground/` (NOT the OS temp dir, NOT the user's
- * directory) for two reasons: (1) its `@prisma-next/*` imports resolve through
+ * directory) for two reasons: (1) its `@prisma/orm-postgres` import resolves through
  * the workspace `node_modules`, and (2) the language server discovers a
  * document's config by walking up from the document's own path, so the schema
  * the editor opens must live at or under this directory. Callers therefore
@@ -27,25 +27,12 @@ export async function generateDefaultPostgresConfig(absoluteSchemaPath: string):
   await mkdir(PLAYGROUND_DIR, { recursive: true });
   const configPath = join(PLAYGROUND_DIR, 'prisma-next.config.ts');
   const json = JSON.stringify(absoluteSchemaPath);
-  const contents = `import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { defineConfig } from '@prisma-next/cli/config-types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
-import postgres from '@prisma-next/target-postgres/control';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+  const contents = `import { defineConfig } from '@prisma/orm-postgres/config';
 
 export default defineConfig({
-  family: sql,
-  target: postgres,
-  adapter: postgresAdapter,
-  driver: postgresDriver,
+  contract: ${json},
+  output: 'output',
   extensions: [],
-  contract: prismaContract(${json}, {
-    output: 'output/contract.json',
-    target: postgres,
-    createNamespace: postgresCreateNamespace,
-  }),
 });
 `;
   await writeFile(configPath, contents, 'utf8');

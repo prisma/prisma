@@ -1,14 +1,14 @@
-import { asNamespaceId } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ForeignKey } from '@prisma-next/sql-contract/types';
-import type { SqlTableIRInput } from '@prisma-next/sql-schema-ir/types';
-import { SqlSchemaIR, SqlTableIR } from '@prisma-next/sql-schema-ir/types';
+import { asNamespaceId } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ForeignKey } from '@internal/sql-contract/types';
+import type { SqlTableIRInput } from '@internal/sql-schema-ir/types';
+import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import {
   buildSchemaLookupMap,
   hasForeignKey,
   hasIndex,
   hasUniqueConstraint,
-} from '@prisma-next/target-postgres/planner-schema-lookup';
+} from '@internal/target-postgres/planner-schema-lookup';
 import { describe, expect, it } from 'vitest';
 
 function makeTable(overrides: Partial<SqlTableIRInput> = {}): SqlSchemaIR['tables'][string] {
@@ -55,8 +55,7 @@ describe('buildSchemaLookupMap', () => {
         user: makeTable({
           indexes: [
             {
-              name: 'idx_created_at',
-              prefix: undefined,
+              naming: { kind: 'exact', name: 'idx_created_at' },
               columns: ['created_at'],
               where: undefined,
               unique: false,
@@ -67,8 +66,7 @@ describe('buildSchemaLookupMap', () => {
               dependsOn: undefined,
             },
             {
-              name: 'idx_email',
-              prefix: undefined,
+              naming: { kind: 'exact', name: 'idx_email' },
               columns: ['email'],
               where: undefined,
               unique: true,
@@ -111,8 +109,7 @@ describe('hasUniqueConstraint', () => {
         uniques: [{ columns: ['email'] }],
         indexes: [
           {
-            name: 'idx_tenant_slug',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'idx_tenant_slug' },
             columns: ['tenant', 'slug'],
             where: undefined,
             unique: true,
@@ -152,8 +149,7 @@ describe('hasIndex', () => {
         uniques: [{ columns: ['email'] }],
         indexes: [
           {
-            name: 'idx_created_at',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'idx_created_at' },
             columns: ['created_at'],
             where: undefined,
             unique: false,

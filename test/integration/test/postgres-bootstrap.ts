@@ -1,14 +1,14 @@
 import {
   createPostgresBuiltinCodecLookup,
   PostgresControlAdapter,
-} from '@prisma-next/adapter-postgres/control';
-import type { PostgresContract } from '@prisma-next/adapter-postgres/types';
-import type { SqlExecuteRequest } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/adapter-postgres/control';
+import type { PostgresContract } from '@internal/adapter-postgres/types';
+import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import {
   buildControlTableBootstrapQueries,
   buildSignMarkerBootstrapQueries,
-} from '@prisma-next/target-postgres/contract-free';
-import type { PostgresDdlNode } from '@prisma-next/target-postgres/ddl';
+} from '@internal/target-postgres/contract-free';
+import type { PostgresDdlNode } from '@internal/target-postgres/ddl';
 import type { Client } from 'pg';
 
 const postgresControlAdapter = new PostgresControlAdapter(createPostgresBuiltinCodecLookup());

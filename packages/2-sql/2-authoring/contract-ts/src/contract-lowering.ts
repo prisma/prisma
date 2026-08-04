@@ -1,17 +1,19 @@
 import {
   type AuthoringEntityTypeNamespace,
   isAuthoringEntityTypeDescriptor,
-} from '@prisma-next/framework-components/authoring';
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import type { ExtensionPackRef } from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/authoring';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import type { ExtensionPackRef } from '@internal/framework-components/components';
 import {
   providesEntityHandleLowering,
   type ResolvedEntityHandleRef,
   type ResolvedPackEntityHandle,
-} from '@prisma-next/sql-contract/entity-handle-lowering-hook';
-import type { StorageTypeInstance } from '@prisma-next/sql-contract/types';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-contract/entity-handle-lowering-hook';
+import type { AuthoredIndexMethod } from '@internal/sql-contract/index-naming';
+import type { StorageTypeInstance } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import type {
   AttachedEntities,
   ContractDefinition,
@@ -811,13 +813,20 @@ function resolveModelNode(
     ...(unique.name ? { name: unique.name } : {}),
   })) satisfies readonly UniqueConstraintNode[];
   const indexes = (spec.sqlSpec?.indexes ?? []).map((index): IndexNode => {
+    // Carried verbatim rather than narrowed: the constraint type already
+    // forbids options without a type, but a caller that suppresses the
+    // compile error still reaches here, and dropping the orphaned options
+    // would hide it from lowerAuthoredIndex's runtime backstop.
+    const method = blindCast<
+      AuthoredIndexMethod,
+      'the constraint type carries the union; reading the two fields separately loses the correlation'
+    >({ type: index.type, options: index.options });
     const carried = {
       where: index.where,
       unique: index.unique,
       name: index.name,
       map: index.map,
-      type: index.type,
-      options: index.options,
+      ...method,
     };
     return index.expression !== undefined
       ? { ...carried, expression: index.expression }
@@ -983,7 +992,7 @@ function lowerPackEntityHandles(
   if (entities === undefined || entities.length === 0) return undefined;
 
   const components: readonly {
-    readonly authoring?: import('@prisma-next/framework-components/authoring').AuthoringContributions;
+    readonly authoring?: import('@internal/framework-components/authoring').AuthoringContributions;
   }[] = [
     definition.target,
     ...Object.values<ExtensionPackRef<'sql', string>>(definition.extensions ?? {}),

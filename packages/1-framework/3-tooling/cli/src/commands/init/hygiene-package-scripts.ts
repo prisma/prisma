@@ -1,4 +1,4 @@
-import { blindCast } from '@prisma-next/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 
 /**
  * The package.json `scripts` entries `init` adds idempotently (FR3.5).

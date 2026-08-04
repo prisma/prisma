@@ -1,10 +1,10 @@
-import type { StorageHashBase } from '@prisma-next/contract/types';
+import type { StorageHashBase } from '@internal/contract/types';
 import {
   freezeNode,
   IRNodeBase,
   type Namespace,
   type Storage,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import type { MongoCollection, MongoCollectionInput } from './mongo-collection';
 import type { MongoValueSet, MongoValueSetInput } from './mongo-value-set';
 

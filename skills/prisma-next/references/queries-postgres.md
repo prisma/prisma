@@ -1,12 +1,12 @@
 # Prisma Next — Queries (Postgres)
 
-> Load this guide when `db.ts` imports from `@prisma-next/postgres/runtime`.
+> Load this guide when `db.ts` imports from `@internal/postgres/runtime`.
 
 Shared concepts (result consumption, script teardown, cross-target pitfalls, capability gaps) live in [`queries.md`](./queries.md).
 
 ## Key Concepts
 
-**Postgres** (`postgres<Contract>(...)` from `@prisma-next/postgres/runtime`):
+**Postgres** (`postgres<Contract>(...)` from `@internal/postgres/runtime`):
 
 - **`db.orm.<Model>`** — ORM, PascalCase model name (`db.orm.User`). Fluent `.where(...).select(...).orderBy(...).all()`, fully typed against `Contract`. Default lane for CRUD with relations.
 - **`db.sql.<table>`** — SQL builder, lowercase storage name (`db.sql.user`). Produces a *plan* executed via `db.runtime().execute(plan)`. Use when the ORM is too high-level — explicit `JOIN`, computed projections, set operations, window functions.
@@ -72,7 +72,7 @@ await db.orm.Sale
   .all();
 
 // Equivalent with an explicit `and(...)` inside one clause.
-import { and } from '@prisma-next/sql-orm-client'; // façade re-export pending — see *What PN doesn't do yet* in queries.md
+import { and } from '@internal/sql-orm-client'; // façade re-export pending — see *What PN doesn't do yet* in queries.md
 await db.orm.Sale
   .where((s) => and(s.day.gte(start), s.day.lte(end)))
   .all();
@@ -80,10 +80,10 @@ await db.orm.Sale
 
 The two forms emit the same SQL. Pick chained `.where()` when each clause adds a separate condition that reads as its own thought; pick `and(...)` when one logical predicate happens to have two parts and you want the visual grouping. Don't reach for a `between` helper — there isn't one.
 
-**Combinators** (`and`, `or`, `not`) compose predicates, and **relation predicates** (`.some(...)`, `.none(...)`, `.every(...)`) recurse into a relation. These currently come from the internal `@prisma-next/sql-orm-client` package — see *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md):
+**Combinators** (`and`, `or`, `not`) compose predicates, and **relation predicates** (`.some(...)`, `.none(...)`, `.every(...)`) recurse into a relation. These currently come from the internal `@internal/sql-orm-client` package — see *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md):
 
 ```typescript
-import { and, or, not } from '@prisma-next/sql-orm-client';
+import { and, or, not } from '@internal/sql-orm-client';
 
 await db.orm.User
   .where((u) =>
@@ -340,7 +340,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 2. **Using `.all()` when you wanted one row.** `.all()` issues no implicit limit. Use `.first()` or `.first({ pk })`.
 3. **Coalescing `count()` with `?? 0` "just in case".** `count()` is `number`, not `number | null` — the runtime already substitutes `0` for the empty case. The `?? 0` belongs on `sum` / `avg` / `min` / `max`.
 4. **Reaching for `.between(a, b)` on a field proxy.** It doesn't exist. Either chain `.where((m) => m.field.gte(a)).where((m) => m.field.lte(b))` or use `and(m.field.gte(a), m.field.lte(b))` inside one `.where()` clause.
-5. **Importing `and` / `or` / `not` from a Postgres façade subpath.** The combinators currently live in `@prisma-next/sql-orm-client` — an internal package. See *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md).
+5. **Importing `and` / `or` / `not` from a Postgres façade subpath.** The combinators currently live in `@internal/sql-orm-client` — an internal package. See *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md).
 6. **Trying to `db.sql.from(tables.user)`.** That surface does not exist. The builder is table-shaped: `db.sql.<tableName>.select(...)`. There is no `db.schema.tables` either.
 7. **Trying to `db.execute(plan)` directly.** Plans execute through the runtime: `db.runtime().execute(plan)`. Inside a transaction, use `tx.execute(plan)`.
 8. **Setting `capabilities: { lateral: true }` in `prisma-next.config.ts`.** `defineConfig` does not take `capabilities`. Capabilities are declared by the active adapter and become part of the emitted contract; the Postgres adapter advertises `lateral`, `jsonAgg`, and `returning` out of the box. Enable extension capabilities through `extensions: [...]` in the config (see `references/contract.md`).
@@ -350,7 +350,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 
 ## Reference Files
 
-- Example queries under [`examples/prisma-next-demo/src/orm-client/`](examples/prisma-next-demo/src/orm-client/) and [`examples/prisma-next-demo/src/queries/`](examples/prisma-next-demo/src/queries/) — canonical ORM and SQL-builder shapes.
+- Example queries under [`examples/prisma-8-demo/src/orm-client/`](examples/prisma-8-demo/src/orm-client/) and [`examples/prisma-8-demo/src/queries/`](examples/prisma-8-demo/src/queries/) — canonical ORM and SQL-builder shapes.
 - ORM client source under `packages/3-extensions/sql-orm-client/src/`.
 - SQL builder source under `packages/2-sql/4-lanes/sql-builder/src/`.
 
@@ -361,7 +361,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 - [ ] Coalesced `sum` / `avg` / `min` / `max` results with `?? 0` at the consumption site when zero-fill is desired — did NOT coalesce `count()`, which is `number`.
 - [ ] Expressed ranges as chained `.where(...)` clauses or a single `and(...)` clause — did NOT reach for a non-existent `.between(...)` operator.
 - [ ] For cursor pagination, used `.orderBy(...).cursor({ field: lastValue }).take(n).all()` — did NOT hand-write a `.where(p => p.field.lt(cursor))` workaround when the `.cursor()` API serves the same purpose.
-- [ ] For ORM combinators, imported `and` / `or` / `not` from the (currently internal) `@prisma-next/sql-orm-client` and noted the façade gap to the user.
+- [ ] For ORM combinators, imported `and` / `or` / `not` from the (currently internal) `@internal/sql-orm-client` and noted the façade gap to the user.
 - [ ] Executed SQL-builder plans via `db.runtime().execute(plan)` (or `tx.execute(plan)` inside a transaction).
 - [ ] Wrapped multi-statement work in `db.transaction(async (tx) => { ... })` where atomicity matters.
 - [ ] For top-N grouped aggregates at meaningful scale, dropped to `db.sql.<table>` rather than JS-side sort + slice over `groupBy(...).aggregate(...)`.

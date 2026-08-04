@@ -1,6 +1,6 @@
 {
-  "name": "@prisma-next/telemetry-backend",
-  "version": "0.16.0",
+  "name": "telemetry-backend",
+  "version": "0.17.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -22,24 +22,15 @@
     "clean": "rm -rf dist coverage"
   },
   "dependencies": {
-    "@prisma-next/postgres": "workspace:0.16.0",
-    "@prisma-next/sql-runtime": "workspace:0.16.0",
+    "@prisma/orm-postgres": "workspace:0.17.0",
     "arktype": "catalog:",
-    "evlog": "^2.22.1"
+    "evlog": "^2.22.4"
   },
   "devDependencies": {
     "@prisma/compute-sdk": "^0.36.0",
     "@prisma/management-api-sdk": "^1.47.0",
-    "@prisma-next/adapter-postgres": "workspace:0.16.0",
-    "@prisma-next/cli": "workspace:0.16.0",
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/driver-postgres": "workspace:0.16.0",
-    "@prisma-next/family-sql": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/sql-contract": "workspace:0.16.0",
-    "@prisma-next/target-postgres": "workspace:0.16.0",
-    "@prisma-next/test-utils": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.17.0",
+    "@repo/tsconfig": "workspace:0.17.0",
     "@types/bun": "^1.2.18",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

@@ -1,10 +1,6 @@
-import type { SqlControlAdapterDescriptor } from '@prisma-next/family-sql/control';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
-import {
-  escapeLiteral,
-  qualifyName,
-  quoteIdentifier,
-} from '@prisma-next/target-postgres/sql-utils';
+import type { SqlControlAdapterDescriptor } from '@internal/family-sql/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import { escapeLiteral, qualifyName, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import { assemblePostgresCodecRegistry } from '../core/codec-lookup';
 import { PostgresControlAdapter } from '../core/control-adapter';
 import {
@@ -34,8 +30,8 @@ const postgresAdapterDescriptor: SqlControlAdapterDescriptor<'postgres'> = {
 
 export default postgresAdapterDescriptor;
 
-export { parsePostgresDefault } from '@prisma-next/target-postgres/default-normalizer';
-export { normalizeSchemaNativeType } from '@prisma-next/target-postgres/native-type-normalizer';
+export { parsePostgresDefault } from '@internal/target-postgres/default-normalizer';
+export { normalizeSchemaNativeType } from '@internal/target-postgres/native-type-normalizer';
 export {
   createPostgresBuiltinCodecLookup,
   createPostgresCodecRegistryWithBuiltins,

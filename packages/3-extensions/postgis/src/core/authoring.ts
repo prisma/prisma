@@ -1,4 +1,4 @@
-import type { AuthoringTypeNamespace } from '@prisma-next/framework-components/authoring';
+import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { POSTGIS_GEOMETRY_CODEC_ID } from './constants';
 
 export const postgisAuthoringTypes = {

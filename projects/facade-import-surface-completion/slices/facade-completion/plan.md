@@ -2,7 +2,7 @@
 
 Sequential. Seven dispatches, each M or smaller. Sequencing constraint: façade subpaths (D1–D3) land before the renderer switch (D4); renderer switch + in-workspace fixture regen is one commit; example + test-fixture sweep (D5a + D5b) lands after D4 so user-shaped TS doesn't briefly point at a not-yet-emitted specifier; docs sweep (D6) lands last.
 
-**Mid-flight split.** D5 was originally one M-sized dispatch (~17 files) covering example apps + extension-pack contracts. While preparing the D5 brief the orchestrator grepped for `@prisma-next/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/pack` across the workspace and found ~60 additional user-shaped TS files (CLI-journey + parity test fixtures under `test/integration/test/fixtures/cli/cli-e2e-test-app/fixtures/**/contract*.ts` and `test/integration/test/authoring/parity/**/contract.ts`, plus a handful of `test/e2e/framework/` fixtures and a CLI-recording fixture pair). These weren't in the original D5 inventory but are structurally identical to user contracts (`import sqlFamily from '@prisma-next/family-sql/pack'` + `defineContract({ family: sqlFamily, target: postgresPack, ... })`) and break under the D1/D2/D3 wraps' input-type drop. Folding ~80 files into one dispatch would have pushed D5 to L; per the M-cap, split into D5a (original inventory, ~19 files) + D5b (test fixtures, ~60 files). Each is M-sized and mechanical; D5a establishes the migration pattern on a small surface before D5b scales it. D6 unchanged.
+**Mid-flight split.** D5 was originally one M-sized dispatch (~17 files) covering example apps + extension-pack contracts. While preparing the D5 brief the orchestrator grepped for `@internal/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/pack` across the workspace and found ~60 additional user-shaped TS files (CLI-journey + parity test fixtures under `test/integration/test/fixtures/cli/cli-e2e-test-app/fixtures/**/contract*.ts` and `test/integration/test/authoring/parity/**/contract.ts`, plus a handful of `test/e2e/framework/` fixtures and a CLI-recording fixture pair). These weren't in the original D5 inventory but are structurally identical to user contracts (`import sqlFamily from '@internal/family-sql/pack'` + `defineContract({ family: sqlFamily, target: postgresPack, ... })`) and break under the D1/D2/D3 wraps' input-type drop. Folding ~80 files into one dispatch would have pushed D5 to L; per the M-cap, split into D5a (original inventory, ~19 files) + D5b (test fixtures, ~60 files). Each is M-sized and mechanical; D5a establishes the migration pattern on a small surface before D5b scales it. D6 unchanged.
 
 ## Pre-dispatch orchestrator context-gathering (complete; not a dispatch)
 
@@ -12,7 +12,7 @@ Findings folded into the project + slice specs:
 
 - **A3 verified** — `migrationHash` is content-addressed over `ops.json`, not over `migration.ts`. Renderer flip doesn't shift hashes.
 - **A4 verified** — Mongo `/control` SPI shape matches Postgres's pattern; `createMongoControlClient` is straight composition.
-- **A5 verified** — no internal consumer imports `@prisma-next/mongo` without a subpath; the existing `"."` barrel re-exports BSON value constructors from `mongodb`, which move to a new `/bson` subpath.
+- **A5 verified** — no internal consumer imports `@internal/mongo` without a subpath; the existing `"."` barrel re-exports BSON value constructors from `mongodb`, which move to a new `/bson` subpath.
 - **A6 verified** — TML-2526 referenced in `skills/prisma-next-migrations/SKILL.md` + `skills/DEVELOPING.md` only.
 - **A7 added** — application-level rendered migrations stay on the target specifier (NFR2-protected); extension-pack migrations stay on the target specifier deliberately (extension authoring contract).
 
@@ -30,7 +30,7 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 
 ### Dispatch 1: Postgres `/migration` + contract-builder pre-binding + arch config
 
-**Intent.** Add `@prisma-next/postgres/migration` as a re-export of `@prisma-next/target-postgres/migration`. Wrap `defineContract` in `@prisma-next/postgres/contract-builder` to pre-bind `sqlFamily` + `postgresPack` (drop both from the input scaffold's type). Register the new subpath in `architecture.config.json`. Add parity + wrap-shape tests. Do NOT yet flip the renderer; renderer change is D4.
+**Intent.** Add `@internal/postgres/migration` as a re-export of `@internal/target-postgres/migration`. Wrap `defineContract` in `@internal/postgres/contract-builder` to pre-bind `sqlFamily` + `postgresPack` (drop both from the input scaffold's type). Register the new subpath in `architecture.config.json`. Add parity + wrap-shape tests. Do NOT yet flip the renderer; renderer change is D4.
 
 **Files in play.**
 
@@ -38,18 +38,18 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 - `packages/3-extensions/postgres/src/contract/define-contract.ts` (new; wrapped `defineContract` pre-binding `sqlFamily` + `postgresPack`).
 - `packages/3-extensions/postgres/src/exports/contract-builder.ts` (replace re-exported `defineContract` with the wrapped version; keep `field`, `model`, `rel`, type re-exports as-is).
 - `packages/3-extensions/postgres/package.json` (add `./migration` to `exports`).
-- `packages/3-extensions/postgres/test/migration/re-export.test.ts` (new; named-export parity assertion against `@prisma-next/target-postgres/migration`).
+- `packages/3-extensions/postgres/test/migration/re-export.test.ts` (new; named-export parity assertion against `@internal/target-postgres/migration`).
 - `packages/3-extensions/postgres/test/contract-builder/define-contract.test.ts` (new; assert the wrapped `defineContract` (a) accepts a scaffold with no `family`/`target` keys, (b) produces a contract whose family/target IDs are `'sql'`/`'postgres'`, (c) still accepts an `extensionPacks` map, (d) type-check: `family`/`target` not in the input type).
-- `packages/3-extensions/postgres/README.md` (add `### @prisma-next/postgres/migration` section; update the `contract-builder` section to show the new no-family/target shape).
+- `packages/3-extensions/postgres/README.md` (add `### @internal/postgres/migration` section; update the `contract-builder` section to show the new no-family/target shape).
 - `architecture.config.json` (add entry: `packages/3-extensions/postgres/src/exports/migration.ts` → `domain: extensions, layer: adapters, plane: migration`).
 
 **"Done when":**
 
-- [ ] `pnpm build --filter @prisma-next/postgres` clean.
-- [ ] `pnpm typecheck --filter @prisma-next/postgres` clean.
-- [ ] `pnpm test:packages --filter @prisma-next/postgres` clean (parity + wrap-shape tests pass).
+- [ ] `pnpm build --filter @internal/postgres` clean.
+- [ ] `pnpm typecheck --filter @internal/postgres` clean.
+- [ ] `pnpm test:packages --filter @internal/postgres` clean (parity + wrap-shape tests pass).
 - [ ] `pnpm lint:deps` clean.
-- [ ] Importing `Migration`, `MigrationCLI`, `placeholder`, `createTable`, `addColumn`, `dataTransform`, `rawSql` from `@prisma-next/postgres/migration` in a smoke-test snippet typechecks against the same types `@prisma-next/target-postgres/migration` exposes.
+- [ ] Importing `Migration`, `MigrationCLI`, `placeholder`, `createTable`, `addColumn`, `dataTransform`, `rawSql` from `@internal/postgres/migration` in a smoke-test snippet typechecks against the same types `@internal/target-postgres/migration` exposes.
 - [ ] The wrapped `defineContract` smoke-test: `defineContract({ extensionPacks: {} }, ({ field, model }) => ({ models: { Foo: model('Foo', { fields: { id: field.id.uuidv4() } }) } }))` typechecks and returns a `SqlContractResult<...>` whose family/target IDs are `'sql'`/`'postgres'`.
 - [ ] Intent-validation: diff covers exactly the new `/migration` subpath + the contract-builder wrap + tests + README + arch config; no behaviour change to the underlying types.
 
@@ -63,7 +63,7 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 
 ### Dispatch 2: Mongo `/config` parity + `/control` + `/bson` + contract-builder pre-binding + drop barrel
 
-**Intent.** Bring `MongoConfigOptions` to parity with `PostgresConfigOptions` (`extensions`, `migrations.dir`). Add `@prisma-next/mongo/control` exporting `createMongoControlClient`. Add `@prisma-next/mongo/bson` re-exporting the BSON value constructors currently behind the `"."` barrel. Drop the `"."` barrel and delete `src/exports/index.ts`. Wrap `defineContract` in `@prisma-next/mongo/contract-builder` to pre-bind family + target (mirror of D1 for the mongo family). Add covering tests.
+**Intent.** Bring `MongoConfigOptions` to parity with `PostgresConfigOptions` (`extensions`, `migrations.dir`). Add `@internal/mongo/control` exporting `createMongoControlClient`. Add `@internal/mongo/bson` re-exporting the BSON value constructors currently behind the `"."` barrel. Drop the `"."` barrel and delete `src/exports/index.ts`. Wrap `defineContract` in `@internal/mongo/contract-builder` to pre-bind family + target (mirror of D1 for the mongo family). Add covering tests.
 
 **Files in play.**
 
@@ -79,17 +79,17 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 - `packages/3-extensions/mongo/test/config/define-config.test.ts` (extend with `extensions` + `migrations.dir` cases).
 - `packages/3-extensions/mongo/test/control/create-mongo-control-client.test.ts` (new; assert the client composes the expected descriptors).
 - `packages/3-extensions/mongo/test/bson/re-export.test.ts` (new; named-export parity against the deleted barrel's surface).
-- `packages/3-extensions/mongo/README.md` (rewrite to mirror Postgres's structure; document `/config`, `/contract-builder`, `/control`, `/bson`, `/family`, `/runtime`, `/target`; note barrel removal + the `import { ObjectId } from '@prisma-next/mongo'` → `from '@prisma-next/mongo/bson'` migration for users).
+- `packages/3-extensions/mongo/README.md` (rewrite to mirror Postgres's structure; document `/config`, `/contract-builder`, `/control`, `/bson`, `/family`, `/runtime`, `/target`; note barrel removal + the `import { ObjectId } from '@internal/mongo'` → `from '@internal/mongo/bson'` migration for users).
 - `architecture.config.json` (add entries for `mongo/src/exports/control.ts` + `bson.ts`; remove entry for the deleted `index.ts` barrel if one exists).
 
 **"Done when":**
 
-- [ ] `pnpm build --filter @prisma-next/mongo` clean.
-- [ ] `pnpm typecheck --filter @prisma-next/mongo` clean.
-- [ ] `pnpm test:packages --filter @prisma-next/mongo` clean.
+- [ ] `pnpm build --filter @internal/mongo` clean.
+- [ ] `pnpm typecheck --filter @internal/mongo` clean.
+- [ ] `pnpm test:packages --filter @internal/mongo` clean.
 - [ ] `pnpm lint:deps` clean.
 - [ ] Mongo example apps' `pnpm typecheck` still clean (`mongo-demo`, `mongo-blog-leaderboard` — including any that imported BSON constructors from the barrel, which must now import from `/bson`).
-- [ ] Grep gate: `rg "from '@prisma-next/mongo'(?!/)"` returns zero hits across `packages/` + `examples/` + `test/` (or only the deleted barrel file).
+- [ ] Grep gate: `rg "from '@internal/mongo'(?!/)"` returns zero hits across `packages/` + `examples/` + `test/` (or only the deleted barrel file).
 - [ ] Intent-validation: diff matches "Mongo parity + control + bson + barrel removal"; nothing else.
 
 **Size.** M.
@@ -109,10 +109,10 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 - `packages/3-extensions/sqlite/src/config/define-config.ts` (new; mirror of postgres `define-config.ts`).
 - `packages/3-extensions/sqlite/src/exports/config.ts` (new; re-exports).
 - `packages/3-extensions/sqlite/src/contract/define-contract.ts` (new; wrapped `defineContract` pre-binding `sqlFamily` + `sqlitePack`).
-- `packages/3-extensions/sqlite/src/exports/contract-builder.ts` (new; exports the wrapped `defineContract`, plus re-exports `field`, `model`, `rel`, types from `@prisma-next/sql-contract-ts/contract-builder`).
+- `packages/3-extensions/sqlite/src/exports/contract-builder.ts` (new; exports the wrapped `defineContract`, plus re-exports `field`, `model`, `rel`, types from `@internal/sql-contract-ts/contract-builder`).
 - `packages/3-extensions/sqlite/src/exports/control.ts` (new; mirror of postgres `control.ts`).
-- `packages/3-extensions/sqlite/src/exports/migration.ts` (new; `export * from '@prisma-next/target-sqlite/migration'`).
-- `packages/3-extensions/sqlite/package.json` (add `./config`, `./contract-builder`, `./control`, `./migration` to `exports`; add `@prisma-next/cli`, `@prisma-next/config`, `@prisma-next/sql-contract-psl`, `@prisma-next/sql-contract-ts`, `pathe` to `dependencies`).
+- `packages/3-extensions/sqlite/src/exports/migration.ts` (new; `export * from '@internal/target-sqlite/migration'`).
+- `packages/3-extensions/sqlite/package.json` (add `./config`, `./contract-builder`, `./control`, `./migration` to `exports`; add `@internal/cli`, `@internal/config`, `@internal/sql-contract-psl`, `@internal/sql-contract-ts`, `pathe` to `dependencies`).
 - `packages/3-extensions/sqlite/test/config/define-config.test.ts` (new; mirror of mongo's).
 - `packages/3-extensions/sqlite/test/contract-builder/re-export.test.ts` (new; named-export parity).
 - `packages/3-extensions/sqlite/test/control/create-sqlite-control-client.test.ts` (new; mirror of postgres's).
@@ -124,9 +124,9 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 **"Done when":**
 
 - [ ] D0 confirmed the SQLite façade's new deps don't cycle (`pnpm install` succeeds; `pnpm lint:deps` clean).
-- [ ] `pnpm build --filter @prisma-next/sqlite` clean.
-- [ ] `pnpm typecheck --filter @prisma-next/sqlite` clean.
-- [ ] `pnpm test:packages --filter @prisma-next/sqlite` clean.
+- [ ] `pnpm build --filter @internal/sqlite` clean.
+- [ ] `pnpm typecheck --filter @internal/sqlite` clean.
+- [ ] `pnpm test:packages --filter @internal/sqlite` clean.
 - [ ] `pnpm lint:deps` clean.
 - [ ] Importing from each new subpath in a smoke-test snippet typechecks against the expected surface.
 - [ ] Intent-validation: diff covers exactly the four new subpaths + tests + README + arch config; no renderer change yet.
@@ -170,15 +170,15 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 
 **"Done when":**
 
-- [ ] D1 + D3 landed; `@prisma-next/postgres/migration` and `@prisma-next/sqlite/migration` resolve.
-- [ ] `pnpm build --filter @prisma-next/target-postgres --filter @prisma-next/target-sqlite` clean.
+- [ ] D1 + D3 landed; `@internal/postgres/migration` and `@internal/sqlite/migration` resolve.
+- [ ] `pnpm build --filter @internal/target-postgres --filter @internal/target-sqlite` clean.
 - [ ] `pnpm test:packages` for both target packages and both adapters clean.
 - [ ] `pnpm test:integration` clean (cli-journey e2e tests pass with the flipped specifier).
 - [ ] `pnpm test:e2e` clean.
 - [ ] `pnpm fixtures:check` clean.
 - [ ] `pnpm lint:deps` clean.
 - [ ] Intent-validation: diff covers exactly the 4 source files + the test-pin sweep + the docstring touch-ups; no façade source change in this dispatch.
-- [ ] Grep gate: `rg "@prisma-next/target-(postgres|sqlite)/migration" -g '!**/node_modules/**' -g '!**/migrations/**'` returns only:
+- [ ] Grep gate: `rg "@internal/target-(postgres|sqlite)/migration" -g '!**/node_modules/**' -g '!**/migrations/**'` returns only:
   - the internal target packages' own `src/exports/migration.ts` (the source of `/migration`),
   - the cipherstash extension's `src/exports/migration.ts` docstring (deliberate; documents the extension authoring contract),
   - the parity tests added in D1 and D3 (which assert the façade re-exports byte-match the target),
@@ -196,24 +196,24 @@ Pre-dispatch research that *is* dispatchable (would touch source or change diffs
 
 **Intent.** Migrate every user-authored TS file in `examples/` (and the two extension-pack `src/contract.ts` files) to façade form. Two surfaces:
 
-- **`examples/<app>/prisma-next.config.ts`** — verbose → façade (`@prisma-next/{postgres,sqlite,mongo}/config`). Per D0's inventory: `react-router-demo` + `prisma-next-demo-sqlite` definitely verbose; spot-check `paradedb-demo`, `prisma-next-postgis-demo`, `retail-store`.
-- **`examples/<app>/prisma/contract.ts`** + **`packages/3-extensions/{pgvector,postgis}/src/contract.ts`** — drop `import sqlFamily from '@prisma-next/family-sql/pack'` + `import postgresPack from '@prisma-next/target-postgres/pack'`; drop `family` / `target` from the `defineContract` call. Extension packs that ship a contract count as user-authored TS for this purpose.
+- **`examples/<app>/prisma-next.config.ts`** — verbose → façade (`@internal/{postgres,sqlite,mongo}/config`). Per D0's inventory: `react-router-demo` + `prisma-8-demo-sqlite` definitely verbose; spot-check `paradedb-demo`, `prisma-8-postgis-demo`, `retail-store`.
+- **`examples/<app>/prisma/contract.ts`** + **`packages/3-extensions/{pgvector,postgis}/src/contract.ts`** — drop `import sqlFamily from '@internal/family-sql/pack'` + `import postgresPack from '@internal/target-postgres/pack'`; drop `family` / `target` from the `defineContract` call. Extension packs that ship a contract count as user-authored TS for this purpose.
 
 For Mongo examples, opportunistically apply the now-available `extensions` / `migrations` fields only if the example needs them. Verify `pnpm typecheck` per example after migration.
 
 **Files in play.**
 
 - All `examples/*/prisma-next.config.ts` files (per D0 inventory, 13 files).
-- All `examples/*/prisma/contract.ts` files (per D0 grep, 4 files: `paradedb-demo`, `prisma-next-demo-sqlite`, `prisma-next-demo`, `react-router-demo`).
-- ~~`packages/3-extensions/pgvector/src/contract.ts`, `packages/3-extensions/postgis/src/contract.ts`~~ (**dropped post-D5a R1**: Turbo build cycle `postgres → sql-builder → extension-pgvector → would-be postgres` makes the migration impossible without architectural refactor. Folded into A7's extension-pack exemption; see spec § A7 for details and the `@prisma-next/postgres-contract` extraction follow-up option).
+- All `examples/*/prisma/contract.ts` files (per D0 grep, 4 files: `paradedb-demo`, `prisma-8-demo-sqlite`, `prisma-8-demo`, `react-router-demo`).
+- ~~`packages/3-extensions/pgvector/src/contract.ts`, `packages/3-extensions/postgis/src/contract.ts`~~ (**dropped post-D5a R1**: Turbo build cycle `postgres → sql-builder → extension-pgvector → would-be postgres` makes the migration impossible without architectural refactor. Folded into A7's extension-pack exemption; see spec § A7 for details and the `@internal/postgres-contract` extraction follow-up option).
 - `packages/3-extensions/sql-orm-client/test/fixtures/contract.ts` (test fixture — only migrate if doing so doesn't break the test's intent; if the fixture deliberately exercises the verbose form, leave + add a comment).
-- Any `examples/*/scripts/*.ts` or `examples/*/test/utils/*.ts` that imports from `@prisma-next/cli/control-api`, `@prisma-next/target-*/control`, etc. — verified by grep; in scope if the façade now exposes the equivalent surface (`createSqliteControlClient`, `createMongoControlClient`, `createPostgresControlClient`).
+- Any `examples/*/scripts/*.ts` or `examples/*/test/utils/*.ts` that imports from `@internal/cli/control-api`, `@internal/target-*/control`, etc. — verified by grep; in scope if the façade now exposes the equivalent surface (`createSqliteControlClient`, `createMongoControlClient`, `createPostgresControlClient`).
 
 **"Done when":**
 
 - [ ] D2 + D3 landed; mongo + sqlite façade subpaths + wrapped `defineContract` exist.
-- [ ] Grep gate (config): `rg "@prisma-next/(cli|family-(sql|mongo)|sql-(contract|contract-psl|contract-ts)|mongo-(contract|contract-psl|contract-ts)|target-(postgres|sqlite|mongo)|adapter-(postgres|sqlite|mongo)|driver-(postgres|sqlite|mongo))/" examples/*/prisma-next.config.ts` returns zero hits.
-- [ ] Grep gate (contract): `rg "@prisma-next/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" examples/*/prisma/contract.ts packages/3-extensions/{pgvector,postgis}/src/contract.ts` returns zero hits.
+- [ ] Grep gate (config): `rg "@internal/(cli|family-(sql|mongo)|sql-(contract|contract-psl|contract-ts)|mongo-(contract|contract-psl|contract-ts)|target-(postgres|sqlite|mongo)|adapter-(postgres|sqlite|mongo)|driver-(postgres|sqlite|mongo))/" examples/*/prisma-next.config.ts` returns zero hits.
+- [ ] Grep gate (contract): `rg "@internal/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" examples/*/prisma/contract.ts packages/3-extensions/{pgvector,postgis}/src/contract.ts` returns zero hits.
 - [ ] `pnpm typecheck` clean for every example (filter per example or run the all-examples task).
 - [ ] `pnpm build` clean across the workspace.
 - [ ] Intent-validation: diff covers only `examples/**/{prisma-next.config.ts,prisma/contract.ts}` + (if applicable) a handful of control-side test helpers; no façade or framework source change. (Extension-pack contracts exempted post-discovery — see A7.)
@@ -251,7 +251,7 @@ Per the orchestrator's grep (run before D5a; re-grep to refresh before D5b dispa
 **"Done when":**
 
 - [ ] D5a landed.
-- [ ] Grep gate: `rg "@prisma-next/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" -g '!**/node_modules/**' -g '!**/dist/**' -g '!projects/**'` returns only:
+- [ ] Grep gate: `rg "@internal/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" -g '!**/node_modules/**' -g '!**/dist/**' -g '!projects/**'` returns only:
   - the facade source files that re-export from packs (`packages/3-extensions/{postgres,sqlite,mongo}/src/{exports/{family,target}.ts,contract/define-contract.ts}`),
   - the facade test files that assert pack rejection via `@ts-expect-error` (`packages/3-extensions/{postgres,sqlite,mongo}/test/contract-builder/define-contract.test-d.ts`),
   - cipherstash migration files (A7 exemption),
@@ -279,13 +279,13 @@ Per the orchestrator's grep (run before D5a; re-grep to refresh before D5b dispa
 
 Three cycles to break:
 
-- `@prisma-next/postgres` → `sql-builder` → `extension-pgvector` (devDep) → would-be `postgres`.
-- `@prisma-next/postgres` → `sql-orm-client` → `extension-pgvector` (devDep) → would-be `postgres`.
-- `@prisma-next/mongo` → `mongo-runtime` → would-be `mongo` (test fixture).
+- `@internal/postgres` → `sql-builder` → `extension-pgvector` (devDep) → would-be `postgres`.
+- `@internal/postgres` → `sql-orm-client` → `extension-pgvector` (devDep) → would-be `postgres`.
+- `@internal/mongo` → `mongo-runtime` → would-be `mongo` (test fixture).
 
 **Files in play.**
 
-- **sql-builder** (3 files moved out): `test/playground/resolved-field-types.test-d.ts` + `test/fixtures/generated/contract.{json,d.ts}` → `test/integration/test/sql-builder/`. Drop `@prisma-next/extension-pgvector` from `packages/2-sql/4-lanes/sql-builder/package.json` devDeps.
+- **sql-builder** (3 files moved out): `test/playground/resolved-field-types.test-d.ts` + `test/fixtures/generated/contract.{json,d.ts}` → `test/integration/test/sql-builder/`. Drop `@internal/extension-pgvector` from `packages/2-sql/4-lanes/sql-builder/package.json` devDeps.
 - **sql-orm-client** (~8 files moved out): `test/collection-mutation-defaults.test.ts`, `test/integration/{codec-async.test.ts,runtime-helpers.ts}`, `test/helpers.ts` (verify whether pgvector-specific), `test/fixtures/{contract.ts,prisma-next.config.ts,generated/contract.{json,d.ts}}` → `test/integration/test/sql-orm-client/`. Drop `extension-pgvector` + likely several other now-unused devDeps from `packages/3-extensions/sql-orm-client/package.json`.
 - **mongo-runtime** (1 file + maybe helpers): `packages/2-mongo-family/7-runtime/test/query-builder.test.ts` (the D5b verbose-with-comment file) → `test/integration/test/mongo-runtime/query-builder.test.ts`. Update mongo-runtime's package.json devDeps accordingly.
 - `test/integration/package.json` already deps on every extension pack + facade; should typecheck without further changes.
@@ -294,7 +294,7 @@ Three cycles to break:
 **"Done when":**
 
 - [ ] D5b landed (✓ before dispatch).
-- [ ] All three cycles broken — `pnpm typecheck --filter @prisma-next/extension-pgvector` after experimentally adding `@prisma-next/postgres` as a devDep succeeds (revert the experimental devDep after verifying; the real migration is D5d).
+- [ ] All three cycles broken — `pnpm typecheck --filter @internal/extension-pgvector` after experimentally adding `@internal/postgres` as a devDep succeeds (revert the experimental devDep after verifying; the real migration is D5d).
 - [ ] All moved tests pass at their new location.
 - [ ] All three packages still typecheck + pass their remaining tests.
 - [ ] `pnpm lint:deps` clean.
@@ -315,10 +315,10 @@ Three cycles to break:
 
 **Files in play.**
 
-- `packages/3-extensions/pgvector/src/contract.ts` — drop verbose imports, switch to `@prisma-next/postgres/contract-builder`'s `defineContract`, drop `family`/`target` args.
+- `packages/3-extensions/pgvector/src/contract.ts` — drop verbose imports, switch to `@internal/postgres/contract-builder`'s `defineContract`, drop `family`/`target` args.
 - `packages/3-extensions/postgis/src/contract.ts` — same migration.
-- `packages/2-mongo-family/7-runtime/test/query-builder.test.ts` (now under `test/integration/test/mongo-runtime/`) — drop the verbose-with-comment, switch to `@prisma-next/mongo/contract-builder`.
-- `packages/3-extensions/{pgvector,postgis}/package.json` — add `@prisma-next/postgres` as dep (or devDep if contract.ts is only used at build/emit time, verify).
+- `packages/2-mongo-family/7-runtime/test/query-builder.test.ts` (now under `test/integration/test/mongo-runtime/`) — drop the verbose-with-comment, switch to `@internal/mongo/contract-builder`.
+- `packages/3-extensions/{pgvector,postgis}/package.json` — add `@internal/postgres` as dep (or devDep if contract.ts is only used at build/emit time, verify).
 - `projects/facade-import-surface-completion/spec.md` § A7 — revert the extension-pack-contracts extension I made during D5a R1 (the migration files exemption stays; the contracts exemption no longer applies). Update the orchestrator-decision-log line in code-review.md to reflect.
 
 **"Done when":**
@@ -327,7 +327,7 @@ Three cycles to break:
 - [ ] `pnpm typecheck` clean for `pgvector`, `postgis`, `mongo-runtime`, `integration-tests`.
 - [ ] `pnpm test:packages` clean for the three packages.
 - [ ] `pnpm test:integration` for the moved mongo-runtime test passes.
-- [ ] Grep gate: `rg "@prisma-next/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" -g '!**/node_modules/**' -g '!**/dist/**' -g '!projects/**'` no longer matches `packages/3-extensions/{pgvector,postgis}/src/contract.ts` or the moved mongo-runtime test.
+- [ ] Grep gate: `rg "@internal/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" -g '!**/node_modules/**' -g '!**/dist/**' -g '!projects/**'` no longer matches `packages/3-extensions/{pgvector,postgis}/src/contract.ts` or the moved mongo-runtime test.
 - [ ] Spec § A7 reverted to the pre-D5a form (migration-files exemption only).
 - [ ] Intent-validation: 3 contract migrations + 2 package.json dep additions + spec revert; nothing else.
 
@@ -351,7 +351,7 @@ Three cycles to break:
 
 D5e's stated scope (cross-package type threading + authoring-layer changes + discriminated-union regression test design) is genuinely substantive type-system work, not mechanical. Filing as a dedicated ticket lets a future implementer run the typescript investigation properly, with the wrap-fix + authoring-layer changes + regression test all in one focused PR.
 
-**In-tree workaround.** Two integration test files keep the verbose `@prisma-next/mongo-contract-ts/contract-builder` import — `test/integration/test/mongo/fixtures/contract.ts` (left verbose by D5b, comment already in tree) and `test/integration/test/mongo-runtime/query-builder.test.ts` (left verbose by D5d's halt, comment to be added by D6). See spec § A8.
+**In-tree workaround.** Two integration test files keep the verbose `@internal/mongo-contract-ts/contract-builder` import — `test/integration/test/mongo/fixtures/contract.ts` (left verbose by D5b, comment already in tree) and `test/integration/test/mongo-runtime/query-builder.test.ts` (left verbose by D5d's halt, comment to be added by D6). See spec § A8.
 
 **F3 + F5 status.** Both findings transferred to TML-2633 as acceptance criteria. Closed in `code-review.md` with a "deferred to TML-2633" disposition rather than resolved.
 
@@ -359,25 +359,25 @@ D5e's stated scope (cross-package type threading + authoring-layer changes + dis
 
 ### ~~Dispatch 5e (original brief, retained as historical reference)~~
 
-**Intent.** D5d R1 closed F4 and migrated pgvector + postgis contracts but halted on the mongo-runtime test migration: `@prisma-next/mongo/contract-builder`'s `defineContract` wrap collapses the `Models` generic, so `PlanRow<typeof contract>` resolves model fields to `never`. This is the same root cause as F3 (the integration mongo fixture's discriminated-union + embedded-relation precision regression), which D5b documented but couldn't address inside its mechanical-migration scope. D5e is the orchestrator-led wrap fix that unblocks both. Structurally mirrors D1 R1→R2's postgres wrap fix (explicit `const` generic threading with covariant `ModelLike` constraint).
+**Intent.** D5d R1 closed F4 and migrated pgvector + postgis contracts but halted on the mongo-runtime test migration: `@internal/mongo/contract-builder`'s `defineContract` wrap collapses the `Models` generic, so `PlanRow<typeof contract>` resolves model fields to `never`. This is the same root cause as F3 (the integration mongo fixture's discriminated-union + embedded-relation precision regression), which D5b documented but couldn't address inside its mechanical-migration scope. D5e is the orchestrator-led wrap fix that unblocks both. Structurally mirrors D1 R1→R2's postgres wrap fix (explicit `const` generic threading with covariant `ModelLike` constraint).
 
 **Files in play.**
 
 - `packages/3-extensions/mongo/src/contract/define-contract.ts` — rewrite both overloads to thread `const Models`, `const ValueObjects`, `const ExtensionPacks` (etc.) explicitly. Mirror the postgres pattern at `packages/3-extensions/postgres/src/contract/define-contract.ts` L25–101.
 - `packages/2-mongo-family/2-authoring/contract-ts/src/contract-builder.ts` (or wherever mongo authoring layer's model builder lives) — if `ContractModelBuilder` (or mongo equivalent) has a contravariant member (D1 R1 contravariance trap), export a covariant `MongoModelLike` interface and re-export it from the relevant `exports/contract-builder.ts`. Verify whether this is needed; if mongo's model builder is purely covariant, skip.
 - `packages/3-extensions/mongo/test/contract-builder/define-contract.test-d.ts` — add three positive type assertions: (a) inline `models: { User, Post }` definition form keeps `result.models.User.not.toBeNever()`; (b) factory form ditto; (c) **F3 regression**: discriminated-union model with embedded relation resolves `tasks[0].comments[0].createdAt` to its concrete type (not `never`).
-- `test/integration/test/mongo-runtime/query-builder.test.ts` — drop verbose imports + workaround comment, switch to `@prisma-next/mongo/contract-builder`, drop `family`/`target` args, keep all existing `expectTypeOf` assertions.
-- `test/integration/test/mongo/fixtures/contract.ts` — drop verbose-with-comment workaround, switch to `@prisma-next/mongo/contract-builder`, drop `family`/`target` args. Remove the F3-workaround comment.
+- `test/integration/test/mongo-runtime/query-builder.test.ts` — drop verbose imports + workaround comment, switch to `@internal/mongo/contract-builder`, drop `family`/`target` args, keep all existing `expectTypeOf` assertions.
+- `test/integration/test/mongo/fixtures/contract.ts` — drop verbose-with-comment workaround, switch to `@internal/mongo/contract-builder`, drop `family`/`target` args. Remove the F3-workaround comment.
 
 **"Done when":**
 
 - [ ] D5d landed (✓ before dispatch — partial, but the two contract migrations are committed).
-- [ ] `pnpm typecheck --filter @prisma-next/mongo --filter @prisma-next/mongo-contract-ts --filter @prisma-next/integration-tests` all pass.
-- [ ] `pnpm test --filter @prisma-next/mongo` passes — including new positive + regression type assertions in `define-contract.test-d.ts`.
+- [ ] `pnpm typecheck --filter @internal/mongo --filter @internal/mongo-contract-ts --filter integration-tests` all pass.
+- [ ] `pnpm test --filter @internal/mongo` passes — including new positive + regression type assertions in `define-contract.test-d.ts`.
 - [ ] `pnpm test:integration test/mongo-runtime/query-builder.test.ts` passes (the previously-blocked migration now typechecks AND `expectTypeOf<PlanRow>` resolves correctly).
 - [ ] `pnpm test:integration test/mongo/` covers the F3 fixture using the facade form.
 - [ ] `pnpm lint:deps` clean.
-- [ ] Grep gate: `rg "@prisma-next/(family-mongo|target-mongo)/(pack|control)" test/integration/test/mongo/ test/integration/test/mongo-runtime/` returns zero hits in the migrated files.
+- [ ] Grep gate: `rg "@internal/(family-mongo|target-mongo)/(pack|control)" test/integration/test/mongo/ test/integration/test/mongo-runtime/` returns zero hits in the migrated files.
 - [ ] F3 closed and F5 closed in `reviews/code-review.md`.
 - [ ] No skips. No broad `as unknown as Record<string, unknown>` casts in test bodies. Narrow type-specific casts in the wrap implementation are acceptable when explained (mirror postgres's `as unknown as PostgresResult<...>` pattern — that's the single legitimate one).
 - [ ] Intent-validation: diff covers only the mongo wrap + 1-3 mongo authoring exports + mongo wrap test additions + 2 mongo test/fixture migrations. NO postgres/sqlite changes, NO pgvector/postgis touches, NO unrelated cleanup.
@@ -402,7 +402,7 @@ D5e's stated scope (cross-package type threading + authoring-layer changes + dis
 - `packages/1-framework/3-tooling/cli/README.md` L1063 (paragraph describing the scaffolded migration's import line).
 - `docs/architecture docs/adrs/ADR 208 - Invariant-aware migration routing.md` L9 (illustrative-code example flips; the ADR's *decision* text stays as-is — it's historical).
 - Verify the three façade READMEs reflect their final shape after D1/D2/D3; touch up if anything stale.
-- **`test/integration/test/mongo-runtime/query-builder.test.ts`** — add an inline comment at the top of the file (above the imports) referencing TML-2633 and explaining why this file deliberately keeps the verbose `@prisma-next/mongo-contract-ts/contract-builder` import. Mirror the style of the existing comment in `test/integration/test/mongo/fixtures/contract.ts` (also referencing TML-2633 — see next bullet).
+- **`test/integration/test/mongo-runtime/query-builder.test.ts`** — add an inline comment at the top of the file (above the imports) referencing TML-2633 and explaining why this file deliberately keeps the verbose `@internal/mongo-contract-ts/contract-builder` import. Mirror the style of the existing comment in `test/integration/test/mongo/fixtures/contract.ts` (also referencing TML-2633 — see next bullet).
 - **`test/integration/test/mongo/fixtures/contract.ts`** — update its existing workaround comment to reference TML-2633 explicitly (the current comment describes the symptom but predates the ticket). Same minimal change pattern as `query-builder.test.ts`.
 
 **"Done when":**
@@ -410,7 +410,7 @@ D5e's stated scope (cross-package type threading + authoring-layer changes + dis
 - [ ] D1–D5d all landed (D5e deferred to TML-2633; not a blocker for D6).
 - [ ] `rg 'TML-2526' -- skills/ docs/ packages/ examples/ test/ projects/` returns hits only inside `projects/facade-import-surface-completion/`.
 - [ ] `rg 'TML-2633' -- test/integration/test/mongo/fixtures/contract.ts test/integration/test/mongo-runtime/query-builder.test.ts` returns one hit in each file (the workaround comments).
-- [ ] `rg '@prisma-next/target-(postgres|sqlite)/migration' -g '!**/node_modules/**'` returns only:
+- [ ] `rg '@internal/target-(postgres|sqlite)/migration' -g '!**/node_modules/**'` returns only:
   - internal target package source (`packages/3-targets/3-targets/{postgres,sqlite}/src/exports/migration.ts` and internal callers),
   - extension-pack hand-authored migrations (`packages/3-extensions/{cipherstash,pgvector,postgis,paradedb}/migrations/**/migration.ts`) — deliberate per A7,
   - extension-pack export docstrings that document the extension authoring contract (cipherstash),

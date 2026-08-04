@@ -7,7 +7,7 @@ An interactive e-commerce example application demonstrating Prisma Next's MongoD
 | Feature | Implementation |
 |---|---|
 | **PSL contract with embedded value objects** | 8 `type` definitions (Price, Image, Address, CartItem, etc.) nested inside 7 models |
-| **ORM CRUD** | `create`, `createAll`, `update`, `delete`, `upsert` via `@prisma-next/mongo-orm` |
+| **ORM CRUD** | `create`, `createAll`, `update`, `delete`, `upsert` via `@internal/mongo-orm` |
 | **Reference relations** | `include('user')` compiles to `$lookup` for cart→user, order→user, invoice→order |
 | **Array update operators** | `$push`/`$pull` via `mongoRaw` for cart items and order status history |
 | **Aggregation pipelines** | `$match`→`$group`→`$sort` for event analytics, `$sample` for random products |

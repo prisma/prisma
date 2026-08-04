@@ -1,5 +1,5 @@
-import type { ComponentDescriptor } from '@prisma-next/framework-components/components';
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
+import type { ComponentDescriptor } from '@internal/framework-components/components';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 
 function createDescriptor(

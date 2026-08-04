@@ -1,5 +1,5 @@
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import { uuidv4 } from '@prisma-next/ids';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import { uuidv4 } from '@internal/ids';
 import { expectTypeOf, test } from 'vitest';
 import type { MutationCreateInput, MutationUpdateInput } from '../src/types';
 import { defineContract, field, model, rel } from './contract-builder';

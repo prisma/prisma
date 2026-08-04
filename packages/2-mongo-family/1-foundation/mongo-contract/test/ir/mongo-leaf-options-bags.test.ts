@@ -1,4 +1,4 @@
-import { IRNodeBase } from '@prisma-next/framework-components/ir';
+import { IRNodeBase } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { MongoChangeStreamPreAndPostImagesOptions } from '../../src/ir/mongo-change-stream-pre-and-post-images-options';
 import { MongoClusteredCollectionOptions } from '../../src/ir/mongo-clustered-collection-options';

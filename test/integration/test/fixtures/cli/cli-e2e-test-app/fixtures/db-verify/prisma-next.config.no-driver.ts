@@ -1,6 +1,6 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
 import { contract } from './contract';
 
 // This config includes db.connection but no driver

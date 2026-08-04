@@ -1,15 +1,15 @@
-import { createMongoRunnerDeps, extractDb } from '@prisma-next/adapter-mongo/control';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import mongoControlDriver from '@prisma-next/driver-mongo/control';
-import { createMongoFamilyInstance } from '@prisma-next/family-mongo/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import type { AnyMongoMigrationOperation } from '@prisma-next/mongo-query-ast/control';
+import { createMongoRunnerDeps, extractDb } from '@internal/adapter-mongo/control';
+import { MongoDriverImpl } from '@internal/driver-mongo';
+import mongoControlDriver from '@internal/driver-mongo/control';
+import { createMongoFamilyInstance } from '@internal/family-mongo/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { MongoContract } from '@internal/mongo-contract';
+import type { AnyMongoMigrationOperation } from '@internal/mongo-query-ast/control';
 import {
   deserializeMongoOps,
   MongoMigrationRunner,
   serializeMongoOps,
-} from '@prisma-next/target-mongo/control';
+} from '@internal/target-mongo/control';
 import {
   createCollection,
   createIndex,
@@ -17,8 +17,8 @@ import {
   dropIndex,
   setValidation,
   validatedCollection,
-} from '@prisma-next/target-mongo/migration';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/target-mongo/migration';
+import { timeouts } from '@repo/test-utils';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

@@ -1,4 +1,4 @@
-import { MongoFieldFilter } from '@prisma-next/mongo-query-ast/execution';
+import { MongoFieldFilter } from '@internal/mongo-query-ast/execution';
 import { describe, expectTypeOf, it } from 'vitest';
 import type { PipelineChain } from '../src/builder';
 import type { FindAndModifyEnabled, UpdateEnabled } from '../src/markers';

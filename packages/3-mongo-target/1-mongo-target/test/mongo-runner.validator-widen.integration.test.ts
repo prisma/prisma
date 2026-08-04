@@ -2,24 +2,21 @@ import {
   createMongoRunnerDeps,
   introspectSchema,
   MongoControlAdapterImpl,
-} from '@prisma-next/adapter-mongo/control';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
-import { MongoControlDriver } from '@prisma-next/driver-mongo/control';
-import type {
-  ControlFamilyInstance,
-  MigrationPlan,
-} from '@prisma-next/framework-components/control';
+} from '@internal/adapter-mongo/control';
+import { MongoDriverImpl } from '@internal/driver-mongo';
+import { MongoControlDriver } from '@internal/driver-mongo/control';
+import type { ControlFamilyInstance, MigrationPlan } from '@internal/framework-components/control';
 import {
   type AggregateMigrationEdgeRef,
   buildFabricatedMigrationEdge,
-} from '@prisma-next/migration-tools/aggregate';
-import { MongoCollection, type MongoContract } from '@prisma-next/mongo-contract';
-import type { AnyMongoMigrationOperation } from '@prisma-next/mongo-query-ast/control';
+} from '@internal/migration-tools/aggregate';
+import { MongoCollection, type MongoContract } from '@internal/mongo-contract';
+import type { AnyMongoMigrationOperation } from '@internal/mongo-query-ast/control';
 import {
   MongoSchemaCollection,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-schema-ir';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

@@ -3,7 +3,7 @@ export {
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 export const SQLITE_TEXT_CODEC_ID = 'sqlite/text@1' as const;
 export const SQLITE_INTEGER_CODEC_ID = 'sqlite/integer@1' as const;
 export const SQLITE_REAL_CODEC_ID = 'sqlite/real@1' as const;

@@ -1,4 +1,4 @@
-import { isPgPool } from '@prisma-next/postgres/runtime';
+import { isPgPool } from '@internal/postgres/runtime';
 import type { Pool } from 'pg';
 import { describe, expect, it } from 'vitest';
 
@@ -12,7 +12,7 @@ function duckPool(): Pool {
   } as unknown as Pool;
 }
 
-describe('isPgPool via @prisma-next/postgres/runtime', () => {
+describe('isPgPool via @internal/postgres/runtime', () => {
   it('is true for a duck-typed pool that is not an instance of any local Pool class', () => {
     expect(isPgPool(duckPool())).toBe(true);
   });

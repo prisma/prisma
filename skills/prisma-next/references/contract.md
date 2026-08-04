@@ -23,10 +23,10 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 - User wants to add a namespace block (Postgres schema) or a cross-contract foreign key.
 - User wants to set `@@control` on a model or configure `defaultControlPolicy`.
 - User wants to use a custom type from an extension (`pgvector.Vector(length: 1536)`, `cipherstash.EncryptedString({...})`).
-- User wants to install or configure an extension via `extensions: [...]` in `prisma-next.config.ts`, including `@prisma-next/extension-supabase`.
+- User wants to install or configure an extension via `extensions: [...]` in `prisma-next.config.ts`, including `@internal/extension-supabase`.
 - User is migrating between authoring sources (PSL ↔ TypeScript builder).
 - User received `PN-CLI-4002`, `PN-CLI-4003`, or `PN-CLI-4011` from `contract emit`.
-- User mentions: *schema, fields, models, attributes, prisma schema, PSL, contract.prisma, contract.ts, contract.json, contract.d.ts, contract emit, façade imports, `@prisma-next/postgres/config`, `@prisma-next/postgres/contract-builder`, extensions, pgvector, cipherstash, postgis, paradedb, supabase, namespaces, cross-space FK, `@@control`, enums, value objects, validations, callbacks, soft delete, paranoid, scopes*. (The last cluster routes to *What Prisma Next doesn't do yet* below.)
+- User mentions: *schema, fields, models, attributes, prisma schema, PSL, contract.prisma, contract.ts, contract.json, contract.d.ts, contract emit, façade imports, `@internal/postgres/config`, `@internal/postgres/contract-builder`, extensions, pgvector, cipherstash, postgis, paradedb, supabase, namespaces, cross-space FK, `@@control`, enums, value objects, validations, callbacks, soft delete, paranoid, scopes*. (The last cluster routes to *What Prisma Next doesn't do yet* below.)
 
 ## When Not to Use
 
@@ -40,17 +40,17 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 
 ## Key Concepts
 
-- **The `@prisma-next/<target>` façade is the only surface user-authored code imports from.** For a Postgres app: `@prisma-next/postgres/config`, `@prisma-next/postgres/contract-builder`, `@prisma-next/postgres/control`, `@prisma-next/postgres/runtime`. Mongo has the same layout (`@prisma-next/mongo/config`, `@prisma-next/mongo/contract-builder`, `@prisma-next/mongo/runtime`). Each extension publishes its own façade — `@prisma-next/extension-pgvector/control`, `@prisma-next/extension-postgis/control`, `@prisma-next/extension-paradedb/control`. **Never reach into `@prisma-next/cli/*`, `@prisma-next/family-*`, `@prisma-next/target-*`, `@prisma-next/adapter-*`, `@prisma-next/driver-*`, or `@prisma-next/sql-contract-*` from user code.** The façade bakes the family / target / adapter / driver wiring in. See *Common Pitfalls* #4.
+- **The `@internal/<target>` façade is the only surface user-authored code imports from.** For a Postgres app: `@internal/postgres/config`, `@internal/postgres/contract-builder`, `@internal/postgres/control`, `@internal/postgres/runtime`. Mongo has the same layout (`@internal/mongo/config`, `@internal/mongo/contract-builder`, `@internal/mongo/runtime`). Each extension publishes its own façade — `@internal/extension-pgvector/control`, `@internal/extension-postgis/control`, `@internal/extension-paradedb/control`. **Never reach into `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` from user code.** The façade bakes the family / target / adapter / driver wiring in. See *Common Pitfalls* #4.
 - **Contract source.** A file the framework reads and lowers to the canonical Contract IR. Two flavours, both first-class:
   - **`contract.prisma` (PSL)** — schema-flavoured DSL. Canonical for typical apps and brownfield Prisma users. Wired by `contract: './<path>/contract.prisma'` — the `defineConfig` façade detects the `.prisma` extension and routes through the PSL provider.
-  - **`contract.ts` (TypeScript builder)** — programmatic authoring with `defineContract({...}, ({ field, model, rel, type }) => ({...}))` from `@prisma-next/postgres/contract-builder` (or `@prisma-next/mongo/contract-builder`). Wired by `contract: './<path>/contract.ts'` — the façade detects the `.ts` extension and routes through the TS provider. Use when you need programmatic composition (per-tenant variants, generated fields) or constructs PSL doesn't yet express (e.g. registering a parameterised extension type — see pgvector's contract).
-- **`prisma-next.config.ts`.** Wires the contract source, the database connection, the migrations directory, and any installed extensions. Use `defineConfig({...})` from `@prisma-next/postgres/config` (or `@prisma-next/mongo/config`). The four fields the façade accepts: `contract` (path string — `.prisma` or `.ts`), `db` (`{ connection?: string }`), `extensions` (array of control descriptors), `migrations` (`{ dir?: string }`). The output path for `contract.json` is auto-derived from `contract` (e.g. `./src/prisma/contract.prisma` → `./src/prisma/contract.json`).
+  - **`contract.ts` (TypeScript builder)** — programmatic authoring with `defineContract({...}, ({ field, model, rel, type }) => ({...}))` from `@internal/postgres/contract-builder` (or `@internal/mongo/contract-builder`). Wired by `contract: './<path>/contract.ts'` — the façade detects the `.ts` extension and routes through the TS provider. Use when you need programmatic composition (per-tenant variants, generated fields) or constructs PSL doesn't yet express (e.g. registering a parameterised extension type — see pgvector's contract).
+- **`prisma-next.config.ts`.** Wires the contract source, the database connection, the migrations directory, and any installed extensions. Use `defineConfig({...})` from `@internal/postgres/config` (or `@internal/mongo/config`). The four fields the façade accepts: `contract` (path string — `.prisma` or `.ts`), `db` (`{ connection?: string }`), `extensions` (array of control descriptors), `migrations` (`{ dir?: string }`). The output path for `contract.json` is auto-derived from `contract` (e.g. `./src/prisma/contract.prisma` → `./src/prisma/contract.json`).
 - **Emit pipeline.** `prisma-next contract emit --config <path>?` reads `prisma-next.config.ts`, calls the provider the façade picked, validates the resulting Contract, then atomically writes `contract.json` + `contract.d.ts` colocated with the source.
 - **Extension namespaces.** Extensions contribute namespaced constructors (`pgvector.Vector(length: 1536)`, `cipherstash.EncryptedString({equality: true})`) and helper presets. Install them by adding the descriptor to **two** places — both fields are named `extensions`, but the two surfaces consume two different descriptor types and shapes:
-  - **In the config (façade and core):** `extensions: [pgvector]` — array of *control* descriptors imported from `@prisma-next/extension-<name>/control`.
-  - **In the TS builder's `defineContract` (only when authoring `contract.ts`):** `extensions: { pgvector }` — record of *pack* descriptors imported from `@prisma-next/extension-<name>/pack`.
+  - **In the config (façade and core):** `extensions: [pgvector]` — array of *control* descriptors imported from `@internal/extension-<name>/control`.
+  - **In the TS builder's `defineContract` (only when authoring `contract.ts`):** `extensions: { pgvector }` — record of *pack* descriptors imported from `@internal/extension-<name>/pack`.
 - **Contract space.** Every package that emits a contract owns its own *contract space* — a `prisma-next.config.ts` at package root, a contract source, the colocated emitted artefacts, and a `migrations/` directory. **There are two intentional on-disk layouts**, picked by whether the contract space is the consuming application or a contract-space package (an extension, an internal aggregate-root package, etc.):
-  - **Application layout** (what you use when building an *app*). `prisma-next.config.ts` at repo root; `src/prisma/contract.{prisma,ts}`; `src/prisma/contract.{json,d.ts}` colocated; `src/prisma/db.ts` colocated; migrations under `migrations/app/<timestamp>_<slug>/`. The `app/` segment is the consuming application's space-id; extension space-ids land in sibling `migrations/<extension-space-id>/` directories that the extension packages manage. This is what `examples/prisma-next-demo` uses. `prisma-next init` currently scaffolds something different (`prisma/...` at repo root) — that's a defect (TML-2532); the canonical layout is what every command actually expects to see.
+  - **Application layout** (what you use when building an *app*). `prisma-next.config.ts` at repo root; `src/prisma/contract.{prisma,ts}`; `src/prisma/contract.{json,d.ts}` colocated; `src/prisma/db.ts` colocated; migrations under `migrations/app/<timestamp>_<slug>/`. The `app/` segment is the consuming application's space-id; extension space-ids land in sibling `migrations/<extension-space-id>/` directories that the extension packages manage. This is what `examples/prisma-8-demo` uses. `prisma-next init` currently scaffolds something different (`prisma/...` at repo root) — that's a defect (TML-2532); the canonical layout is what every command actually expects to see.
   - **Contract-space-package layout** (what you use when *publishing* a contract-space package — extensions, internal monorepo packages). `prisma-next.config.ts` at package root; `src/contract.{prisma,ts}` directly (no `prisma/` subdir); `src/contract.{json,d.ts}` colocated; `migrations/<timestamp>_<slug>/` directly under `migrations/` (no `<space-id>` segment — the package *is* a single space). Documented in `.cursor/rules/contract-space-package-layout.mdc` and ADR 212.
 
   Both layouts let `defineConfig`'s `contract:` path point at the source; the framework derives everything else (emit output, migration root) from there. Pick the layout that matches what you're building and stick with it — don't mix.
@@ -61,9 +61,9 @@ Both files are **emitted artefacts**. Edit the source; never the JSON or `.d.ts`
 
 | Code | Meaning | Next move |
 |---|---|---|
-| `PN-CLI-4002` *Contract configuration missing* | `contract` not set in `prisma-next.config.ts`. | Add `contract: './src/prisma/contract.prisma'` (app layout) or `'./src/contract.prisma'` (contract-space-package layout) — likewise for `.ts` sources — to `defineConfig({...})` from `@prisma-next/postgres/config`. |
+| `PN-CLI-4002` *Contract configuration missing* | `contract` not set in `prisma-next.config.ts`. | Add `contract: './src/prisma/contract.prisma'` (app layout) or `'./src/contract.prisma'` (contract-space-package layout) — likewise for `.ts` sources — to `defineConfig({...})` from `@internal/postgres/config`. |
 | `PN-CLI-4003` *Contract validation failed* | Source loaded but the Contract IR failed structural validation. | Read `meta.diagnostics` / `meta.issues` for the offending model/field, fix the source, re-emit. |
-| `PN-CLI-4011` *Missing extension packs in config* | The contract uses a namespaced constructor (e.g. `pgvector.Vector(...)`) but `extensions` in the config does not list a matching descriptor. `meta.missingExtensions` names them. | Install the package, import its control descriptor (`import pgvector from '@prisma-next/extension-pgvector/control'`), add it to `extensions: [...]` in `prisma-next.config.ts`. |
+| `PN-CLI-4011` *Missing extension packs in config* | The contract uses a namespaced constructor (e.g. `pgvector.Vector(...)`) but `extensions` in the config does not list a matching descriptor. `meta.missingExtensions` names them. | Install the package, import its control descriptor (`import pgvector from '@internal/extension-pgvector/control'`), add it to `extensions: [...]` in `prisma-next.config.ts`. |
 
 ## Workflow — Read the contract source of truth
 
@@ -105,7 +105,7 @@ Then run `pnpm prisma-next contract emit` (or rely on the Vite plugin — see `r
 @@index([authorId], where: "(archived_at IS NULL)", name: "posts_author_active")
 ```
 
-`name:` declares a managed index (physical name `<name>_<8-hex hash>`, renames plan as `ALTER INDEX … RENAME`); `map:` adopts an exact physical name verbatim (for infer-captured objects — combining it with a SQL body warns, because drift detection byte-compares the authored text against Postgres's reprint). An `expression:` requires `name:` or `map:`. The TS builder mirrors this via `constraints.index([cols.x], {...})` / `constraints.index({ expression, ... })` — see `packages/2-sql/2-authoring/contract-ts/README.md`.
+`name:` declares a wire-named index (physical name `<name>_<8-hex hash>`, renames plan as `ALTER INDEX … RENAME`); `map:` adopts an exact physical name verbatim (for infer-captured objects — combining it with a SQL body warns, because drift detection byte-compares the authored text against Postgres's reprint). An `expression:` requires `name:` or `map:`. The TS builder mirrors this via `constraints.index([cols.x], {...})` / `constraints.index({ expression, ... })` — see `packages/2-sql/2-authoring/contract-ts/README.md`.
 
 PSL alias surface for repeated types lives in a top-level `types {}` block:
 
@@ -124,12 +124,12 @@ Note: scalar lists (e.g. `String[]`) and implicit Prisma-ORM many-to-many (list 
 
 ## Workflow — Edit a model / field / relation (TS builder)
 
-The concept: same model, different authoring surface. The façade re-exports `defineContract`, `field`, `model`, `rel`, plus the `family`/`target` packs as default exports of `@prisma-next/postgres/family` and `@prisma-next/postgres/target`. Use the callback overload (`defineContract({...}, ({ field, model, rel, type }) => ({...}))`) to get the higher-level helpers (`field.text()`, `field.id.uuidv7String()`, `field.temporal.createdAt()`, `type.sql.String(35)`).
+The concept: same model, different authoring surface. The façade re-exports `defineContract`, `field`, `model`, `rel`, plus the `family`/`target` packs as default exports of `@internal/postgres/family` and `@internal/postgres/target`. Use the callback overload (`defineContract({...}, ({ field, model, rel, type }) => ({...}))`) to get the higher-level helpers (`field.text()`, `field.id.uuidv7String()`, `field.temporal.createdAt()`, `type.sql.String(35)`).
 
 ```typescript
-import sqlFamily from '@prisma-next/postgres/family';
-import { defineContract } from '@prisma-next/postgres/contract-builder';
-import postgresPack from '@prisma-next/postgres/target';
+import sqlFamily from '@internal/postgres/family';
+import { defineContract } from '@internal/postgres/contract-builder';
+import postgresPack from '@internal/postgres/target';
 
 export const contract = defineContract(
   {
@@ -152,7 +152,7 @@ export const contract = defineContract(
 
 Then `pnpm prisma-next contract emit`. The `field.<scalar>()` helpers are only available inside the callback overload; outside the callback only `field.column(...)`, `field.generated(...)`, `field.namedType(...)` exist.
 
-For Mongo, swap every `@prisma-next/postgres/*` import for `@prisma-next/mongo/*`. The Mongo builder also exposes `index` and `valueObject`.
+For Mongo, swap every `@internal/postgres/*` import for `@internal/mongo/*`. The Mongo builder also exposes `index` and `valueObject`.
 
 ## Workflow — Add an extension-typed scalar (pgvector)
 
@@ -161,8 +161,8 @@ The concept: an extension contributes a namespace (`pgvector.*`) plus two descri
 `prisma-next.config.ts`:
 
 ```typescript
-import pgvector from '@prisma-next/extension-pgvector/control';
-import { defineConfig } from '@prisma-next/postgres/config';
+import pgvector from '@internal/extension-pgvector/control';
+import { defineConfig } from '@internal/postgres/config';
 
 export default defineConfig({
   contract: './src/prisma/contract.prisma',
@@ -184,7 +184,7 @@ Emit. The named-type lowering puts `vector(1536)` on the column and the type map
 
 If you reference `pgvector.*` without registering the pack in the config, emit fails with `PN-CLI-4011` and `meta.missingExtensions: ['pgvector']`. The envelope's `fix` text says *"Add the missing extension descriptors to `extensions` in prisma-next.config.ts"* — that field name matches the façade.
 
-For canonical worked examples covering single and multi-extension setups, read `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-next-postgis-demo/prisma-next.config.ts`.
+For canonical worked examples covering single and multi-extension setups, read `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-8-postgis-demo/prisma-next.config.ts`.
 
 ## Workflow — Polymorphism (`@@discriminator` / `@@base`)
 
@@ -218,7 +218,7 @@ model Feature {
 
 Verify the polymorphism syntax against the interpreter tests if in doubt: `packages/2-sql/2-authoring/contract-psl/test/interpreter.polymorphism.test.ts`.
 
-Mongo has no schema layer, so polymorphism on Mongo is modelled by an explicit `discriminator` field on the model in the TS builder (see `@prisma-next/mongo/contract-builder`); `@@base` / `@@discriminator` PSL attributes are SQL-only.
+Mongo has no schema layer, so polymorphism on Mongo is modelled by an explicit `discriminator` field on the model in the TS builder (see `@internal/mongo/contract-builder`); `@@base` / `@@discriminator` PSL attributes are SQL-only.
 
 Querying the variants is a runtime concern — see `references/queries.md`.
 
@@ -243,7 +243,7 @@ model User {
 
 Emitted `contract.json` carries `domain.namespaces.<ns>.valueObjects.Address` with its field descriptors, and the `address` column lands as `codecId: "pg/jsonb@1"` / `nativeType: "jsonb"` in `storage`.
 
-Canonical worked example: `examples/prisma-next-demo/src/prisma/contract.prisma`.
+Canonical worked example: `examples/prisma-8-demo/src/prisma/contract.prisma`.
 
 ## Workflow — Enums
 
@@ -262,7 +262,7 @@ model User {
 }
 ```
 
-Canonical worked example: `examples/prisma-next-demo/src/prisma/contract.prisma`.
+Canonical worked example: `examples/prisma-8-demo/src/prisma/contract.prisma`.
 
 ## Workflow — Namespaces (Postgres schemas)
 
@@ -301,7 +301,7 @@ namespace public {
 }
 ```
 
-`supabase:auth.AuthUser` means: model `AuthUser` in namespace `auth` of contract space `supabase`. The target space is provided by a registered extension pack (here `@prisma-next/extension-supabase/pack`).
+`supabase:auth.AuthUser` means: model `AuthUser` in namespace `auth` of contract space `supabase`. The target space is provided by a registered extension pack (here `@internal/extension-supabase/pack`).
 
 Canonical worked example: `examples/supabase/src/contract.prisma`.
 
@@ -320,15 +320,15 @@ model AuditLog {
 
 A contract-level default can be set via `defaultControlPolicy` on `prismaContract(path, { defaultControlPolicy })`. See `references/migrations.md` for how control policies affect DDL planning.
 
-## Workflow — `@prisma-next/extension-supabase`
+## Workflow — `@internal/extension-supabase`
 
 The concept: the Supabase extension provides the `supabase` contract space (the `auth` / `storage` schemas as `external` tables, plus the platform roles) and its own role-first runtime factory. It does not expose a `/control` subpath so it cannot be registered via the user-facing `defineConfig({ extensions: [...] })` façade — it is wired via `extensions` in the low-level config. See `examples/supabase` for the full working pattern.
 
 `prisma-next.config.ts` (mirrors the example):
 
 ```typescript
-import supabasePack from '@prisma-next/extension-supabase/pack';
-import { defineConfig } from '@prisma-next/cli/config-types';
+import supabasePack from '@internal/extension-supabase/pack';
+import { defineConfig } from '@internal/cli/config-types';
 // ... other low-level imports
 
 export default defineConfig({
@@ -337,9 +337,9 @@ export default defineConfig({
 });
 ```
 
-`db.ts` does **not** use the stock `postgres()` factory — a Supabase app builds its client with the `supabase()` factory from `@prisma-next/extension-supabase/runtime` (role-first: `asUser(jwt)` / `asAnon()` / `asServiceRole()`, JWT validation, RLS). That runtime — and RLS policy authoring (`policy_select` / `@@rls`) — is covered by **`references/supabase.md`**; load it for anything past the config wiring.
+`db.ts` does **not** use the stock `postgres()` factory — a Supabase app builds its client with the `supabase()` factory from `@internal/extension-supabase/runtime` (role-first: `asUser(jwt)` / `asAnon()` / `asServiceRole()`, JWT validation, RLS). That runtime — and RLS policy authoring (`policy_select` / `@@rls`) — is covered by **`references/supabase.md`**; load it for anything past the config wiring.
 
-Export subpaths: `@prisma-next/extension-supabase/pack`, `@prisma-next/extension-supabase/runtime`, `@prisma-next/extension-supabase/contract`. Canonical worked example: `examples/supabase`.
+Export subpaths: `@internal/extension-supabase/pack`, `@internal/extension-supabase/runtime`, `@internal/extension-supabase/contract`. Canonical worked example: `examples/supabase`.
 
 ## Workflow — Brownfield introspection
 
@@ -350,13 +350,15 @@ pnpm prisma-next contract infer --db $DATABASE_URL --output ./src/prisma/contrac
 pnpm prisma-next contract emit
 ```
 
+Infer captures indexes at full fidelity — expression, partial (`where:`), unique non-constraint, `type:`/`options:` — adopting each under `map:` with the live name, except that a name shaped like a wire name whose hash recomputes from the content re-detects as wire-named and emits `name:` with the prefix. RLS surfaces too: `@@rls` on RLS-enabled models, and every policy as a `policy_<operation>` block with `@@map("<live name>")`, verbatim predicate reprints, and `permissive = false` for RESTRICTIVE rows (a policy whose role name can't be spelled as a PSL identifier is skipped with a comment note). Replacing an adopted `map:` with the plain wire spelling later converges via a single rename migration.
+
 ## Common Pitfalls
 
 1. **Forgetting to re-emit after an edit.** `contract.json` and `contract.d.ts` go stale; downstream typecheck and `migration plan` see the old shape. Re-emit, or install the Vite plugin (`references/build.md`).
 2. **Editing the emitted artefacts.** `contract.json` and `contract.d.ts` are emitted; edits there round-trip away on the next emit. Edit the source.
-3. **Wrong factory/import path for the TS builder.** `defineContract`, `field`, `model`, `rel` come from `@prisma-next/postgres/contract-builder` (or `@prisma-next/mongo/contract-builder`). Outside the callback overload, the available field constructors are `field.column(...)`, `field.generated(...)`, `field.namedType(...)`.
-4. **Reaching into internal packages from user code.** User-authored files (`prisma-next.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@prisma-next/<target>/<subpath>` and `@prisma-next/extension-<name>/<subpath>`. Imports from `@prisma-next/cli/*`, `@prisma-next/family-*`, `@prisma-next/target-*`, `@prisma-next/adapter-*`, `@prisma-next/driver-*`, or `@prisma-next/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma Next doesn't do yet* and route to `references/feedback.md`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-next-postgis-demo/prisma-next.config.ts`.
-5. **Confusing the config `extensions` with the TS builder's `extensions`.** Same packs, two surfaces, one field name but two shapes: `defineConfig({ extensions: [pgvector] })` (array of *control* descriptors from `@prisma-next/extension-<name>/control`) versus `defineContract({ extensions: { pgvector } })` (record of *pack* descriptors from `@prisma-next/extension-<name>/pack`).
+3. **Wrong factory/import path for the TS builder.** `defineContract`, `field`, `model`, `rel` come from `@internal/postgres/contract-builder` (or `@internal/mongo/contract-builder`). Outside the callback overload, the available field constructors are `field.column(...)`, `field.generated(...)`, `field.namedType(...)`.
+4. **Reaching into internal packages from user code.** User-authored files (`prisma-next.config.ts`, `contract.ts`, `db.ts`, control clients) import only from `@internal/<target>/<subpath>` and `@internal/extension-<name>/<subpath>`. Imports from `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` are framework-internal — the façade composes them for you. If a façade subpath you need is missing for your target, see *What Prisma Next doesn't do yet* and route to `references/feedback.md`. The canonical worked examples are `examples/multi-extension-monorepo/app/prisma-next.config.ts` and `examples/prisma-8-postgis-demo/prisma-next.config.ts`.
+5. **Confusing the config `extensions` with the TS builder's `extensions`.** Same packs, two surfaces, one field name but two shapes: `defineConfig({ extensions: [pgvector] })` (array of *control* descriptors from `@internal/extension-<name>/control`) versus `defineContract({ extensions: { pgvector } })` (record of *pack* descriptors from `@internal/extension-<name>/pack`).
 6. **Renaming a field and expecting the planner to detect it.** Prisma Next has no in-contract rename hint; the planner sees a destructive drop+add. Hand-edit `migration.ts` after `migration plan` (see `references/migrations.md`), or use the keep-then-drop two-migration pattern.
 
 ## What Prisma Next doesn't do yet
@@ -374,15 +376,15 @@ pnpm prisma-next contract emit
 - PSL feature surface and what the interpreter accepts: `packages/2-sql/2-authoring/contract-psl/README.md`.
 - TS builder surface and the callback-helper vocabulary: `packages/2-sql/2-authoring/contract-ts/README.md`.
 - Layouts (where `contract.prisma`, `contract.json`, `contract.d.ts`, and `migrations/` live):
-  - **App layout** (`src/prisma/...` + `migrations/app/...`) — what `examples/prisma-next-demo` demonstrates; the canonical shape consuming applications use.
+  - **App layout** (`src/prisma/...` + `migrations/app/...`) — what `examples/prisma-8-demo` demonstrates; the canonical shape consuming applications use.
   - **Contract-space-package layout** (`src/contract.{prisma,ts}` directly, `migrations/<timestamp>_<slug>/` without a space-id segment) — for extensions and aggregate-root packages, documented in `.cursor/rules/contract-space-package-layout.mdc` and ADR 212.
 
 ## Checklist
 
 - [ ] Read `prisma-next.config.ts` and identified the contract source (path string ending in `.prisma` or `.ts`) and the installed `extensions: [...]`.
-- [ ] All user-authored imports resolve to `@prisma-next/<target>/<subpath>` (e.g. `@prisma-next/postgres/config`) or `@prisma-next/extension-<name>/<subpath>`. No imports from `@prisma-next/cli/*`, `@prisma-next/family-*`, `@prisma-next/target-*`, `@prisma-next/adapter-*`, `@prisma-next/driver-*`, or `@prisma-next/sql-contract-*` in user files.
+- [ ] All user-authored imports resolve to `@internal/<target>/<subpath>` (e.g. `@internal/postgres/config`) or `@internal/extension-<name>/<subpath>`. No imports from `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, or `@internal/sql-contract-*` in user files.
 - [ ] Edited the contract source (`contract.prisma` or `contract.ts`), not an emitted artefact.
-- [ ] For new extension namespaces: added the package, imported its control descriptor (`@prisma-next/extension-<name>/control`), added it to `extensions: [...]` in `defineConfig({...})` (and the matching pack descriptor to `defineContract({extensions: {...}})` if using the TS builder).
+- [ ] For new extension namespaces: added the package, imported its control descriptor (`@internal/extension-<name>/control`), added it to `extensions: [...]` in `defineConfig({...})` (and the matching pack descriptor to `defineContract({extensions: {...}})` if using the TS builder).
 - [ ] For renames: hand-edited `migration.ts` after `migration plan` (or used the keep-then-drop two-migration pattern) — Prisma Next has no rename hint today.
 - [ ] Ran `pnpm prisma-next contract emit` after the edit (or let the Vite plugin re-emit on save).
 - [ ] Confirmed `contract.json` and `contract.d.ts` updated next to the source.

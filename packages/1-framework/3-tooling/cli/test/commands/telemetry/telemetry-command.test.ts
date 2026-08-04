@@ -1,6 +1,6 @@
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { readUserConfig, userConfigPath, writeUserConfig } from '@prisma-next/cli-telemetry';
+import { readUserConfig, userConfigPath, writeUserConfig } from '@internal/cli-telemetry';
 import { dirname, join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

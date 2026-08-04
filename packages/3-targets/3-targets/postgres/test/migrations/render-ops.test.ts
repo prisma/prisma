@@ -1,5 +1,5 @@
-import type { OpFactoryCall } from '@prisma-next/framework-components/control';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { OpFactoryCall } from '@internal/framework-components/control';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { renderOps } from '../../src/core/migrations/render-ops';
 

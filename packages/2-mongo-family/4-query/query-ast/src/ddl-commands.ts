@@ -1,9 +1,9 @@
-import type { MongoIndexKey } from '@prisma-next/mongo-contract';
+import type { MongoIndexKey } from '@internal/mongo-contract';
 import type {
   CollationOptions,
   CreateIndexesOptions,
   CreateCollectionOptions as MongoCreateCollectionOptions,
-} from '@prisma-next/mongo-value/mongodb-types';
+} from '@internal/mongo-value/mongodb-types';
 import { MongoAstNode } from './ast-node';
 import type { MongoDdlCommandVisitor } from './ddl-visitors';
 

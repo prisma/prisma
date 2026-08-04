@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import { join } from 'pathe';
 import { writeContractSnapshot } from './contract-snapshot-store';
 import type { ContractSpaceHeadRef } from './read-contract-space-head-ref';

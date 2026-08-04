@@ -2,9 +2,9 @@ import type {
   OperationDescriptor,
   OperationDescriptors,
   OperationRegistry,
-} from '@prisma-next/operations';
-import { createOperationRegistry } from '@prisma-next/operations';
-import type { QueryOperationTypeEntry } from '@prisma-next/sql-contract/types';
+} from '@internal/operations';
+import { createOperationRegistry } from '@internal/operations';
+import type { QueryOperationTypeEntry } from '@internal/sql-contract/types';
 
 export interface SqlLoweringSpec {
   readonly targetFamily: 'sql';

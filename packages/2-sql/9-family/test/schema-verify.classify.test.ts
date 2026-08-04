@@ -2,13 +2,13 @@ import type {
   DiffableNode,
   DiffSubjectGranularity,
   ExpectationFailureReason,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   SqlCheckConstraintIR,
   SqlColumnIR,
   SqlIndexIR,
   SqlTableIR,
-} from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { classifySqlDiffIssue, computeSqlDiffVerdict } from '../src/core/diff/schema-verify';
 
@@ -24,8 +24,7 @@ import { classifySqlDiffIssue, computeSqlDiffVerdict } from '../src/core/diff/sc
 const table = new SqlTableIR({ name: 't', columns: {}, foreignKeys: [], uniques: [], indexes: [] });
 const column = new SqlColumnIR({ name: 'c', nativeType: 'int4', nullable: false });
 const index = new SqlIndexIR({
-  name: 't_c_idx',
-  prefix: undefined,
+  naming: { kind: 'exact', name: 't_c_idx' },
   columns: ['c'],
   where: undefined,
   unique: false,

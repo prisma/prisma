@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { countSemanticLines } from '@prisma-next/test-utils/semantic-lines';
+import { countSemanticLines } from '@repo/test-utils/semantic-lines';
 import { describe, expect, it } from 'vitest';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -39,7 +39,7 @@ describe('VP2: TS callback-mode authoring terseness parity', () => {
     //
     // Baseline (April milestone): structural TS authoring was ~3–5x the
     // PSL version. The callback-mode field presets (contributed by
-    // @prisma-next/target-postgres/pack) should collapse scalar fields to
+    // @internal/target-postgres/pack) should collapse scalar fields to
     // one line each, pulling the ratio well under the baseline.
     //
     // The upper bound of 2.1x is intentional: any drift above 2.1x should

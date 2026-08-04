@@ -1,5 +1,5 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { JsonValue } from '@internal/contract/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { newMongoCodecRegistry } from '../src/codec-registry';
 import { type MongoCodec, mongoCodec } from '../src/codecs';

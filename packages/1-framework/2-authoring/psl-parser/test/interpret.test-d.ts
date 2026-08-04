@@ -3,9 +3,9 @@ import type {
   ContractSourceDiagnostics,
   ContractSourceProvider,
   PslContractSourceProvider,
-} from '@prisma-next/config/config-types';
-import type { Contract } from '@prisma-next/contract/types';
-import { ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/config/config-types';
+import type { Contract } from '@internal/contract/types';
+import { ok, type Result } from '@internal/utils/result';
 import { expectTypeOf, test } from 'vitest';
 import {
   hasPslInterpreter,

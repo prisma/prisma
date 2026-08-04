@@ -1,6 +1,6 @@
-import * as pg from '@prisma-next/adapter-postgres/column-types';
-import pgvector from '@prisma-next/extension-pgvector/pack';
-import { defineContract, rel } from '@prisma-next/postgres/contract-builder';
+import * as pg from '@internal/adapter-postgres/column-types';
+import pgvector from '@internal/extension-pgvector/pack';
+import { defineContract, rel } from '@internal/postgres/contract-builder';
 
 export const contract = defineContract({ extensions: { pgvector } }, ({ field, model, type }) => {
   const types = {

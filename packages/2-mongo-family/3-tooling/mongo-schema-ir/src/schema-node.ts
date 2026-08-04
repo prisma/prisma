@@ -1,5 +1,5 @@
-import type { DiffableNode } from '@prisma-next/framework-components/control';
-import { IRNodeBase } from '@prisma-next/framework-components/ir';
+import type { DiffableNode } from '@internal/framework-components/control';
+import { IRNodeBase } from '@internal/framework-components/ir';
 import type { MongoSchemaVisitor } from './visitor';
 
 /**

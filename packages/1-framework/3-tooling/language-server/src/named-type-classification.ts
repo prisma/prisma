@@ -1,4 +1,4 @@
-import type { NamedTypeSymbol } from '@prisma-next/psl-parser';
+import type { NamedTypeSymbol } from '@internal/psl-parser';
 
 /**
  * Presentation-level classification of a `types {}` binding: a

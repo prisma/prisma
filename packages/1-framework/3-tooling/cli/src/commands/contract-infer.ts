@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { errorRuntime } from '@prisma-next/errors/execution';
-import { printPsl } from '@prisma-next/psl-printer';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { errorRuntime } from '@internal/errors/execution';
+import { printPsl } from '@internal/psl-printer';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { dirname, relative } from 'pathe';
 import type { CliStructuredError } from '../utils/cli-errors';

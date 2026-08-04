@@ -2,12 +2,12 @@
 
 ## Summary
 
-Move `packages/2-sql/9-family/src/core/sql-migration.ts` into the sibling `core/migrations/` directory, then register that directory as `plane: migration` in `architecture.config.json`. This resolves a latent shared→migration plane violation (the file imports `Migration` from migration-plane `@prisma-next/migration-tools/migration` from a shared-plane home) without introducing any new abstractions.
+Move `packages/2-sql/9-family/src/core/sql-migration.ts` into the sibling `core/migrations/` directory, then register that directory as `plane: migration` in `architecture.config.json`. This resolves a latent shared→migration plane violation (the file imports `Migration` from migration-plane `@internal/migration-tools/migration` from a shared-plane home) without introducing any new abstractions.
 
 ## Context
 
 - `packages/2-sql/9-family/src/core/**` is currently registered as `{ domain: sql, layer: family, plane: shared }` (`architecture.config.json:87-92`).
-- `core/sql-migration.ts:1` imports `Migration` from `@prisma-next/migration-tools/migration`, which is a migration-plane package (`packages/1-framework/3-tooling/**` → `plane: migration`, `architecture.config.json:46-50`).
+- `core/sql-migration.ts:1` imports `Migration` from `@internal/migration-tools/migration`, which is a migration-plane package (`packages/1-framework/3-tooling/**` → `plane: migration`, `architecture.config.json:46-50`).
 - Plane rules forbid shared→migration (`architecture.config.json:521-525`). This import is a real violation; it isn't caught today because dep-cruiser's matching tolerates a subpath re-export path the validator doesn't fully resolve. The fix makes the code honest about its plane rather than relying on that gap.
 - The sibling directory `packages/2-sql/9-family/src/core/migrations/` already houses control-plane (migration-plane intent) code: `contract-to-schema-ir.ts`, `descriptor-schemas.ts`, `operation-descriptors.ts`, `plan-helpers.ts`, `policies.ts`, `types.ts`. It is currently registered as shared (inherited from the `src/core/**` glob), so moving the file there is not sufficient on its own — the directory itself needs an explicit migration-plane registration.
 
@@ -50,13 +50,13 @@ The file is imported from exactly one place: `packages/2-sql/9-family/src/export
 - No file references `../core/sql-migration` or `./sql-migration` outside the new location.
 - `architecture.config.json` includes the new `core/migrations/**` migration-plane entry.
 - `pnpm dep-cruise` (or the repo-standard dependency-validation command) reports zero plane violations in `packages/2-sql/9-family/`.
-- `pnpm -F @prisma-next/family-sql build` and `pnpm -F @prisma-next/family-sql typecheck` pass.
+- `pnpm -F @internal/family-sql build` and `pnpm -F @internal/family-sql typecheck` pass.
 - The re-export at `src/exports/migration.ts` still exposes `SqlMigration` as `Migration` — no public-API change.
 
 ## Out of scope
 
 - Splitting `Migration` into an abstract authoring class vs. a `run()` orchestrator. That is a separate, larger refactor (see `projects/migration-control-adapter-di/spec.md`). This spec addresses only the misplaced file.
-- Any change to `@prisma-next/migration-tools` or its exports.
+- Any change to `@internal/migration-tools` or its exports.
 - Renaming `SqlMigration` or its public `Migration` alias.
 
 ## Open questions

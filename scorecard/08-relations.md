@@ -22,6 +22,7 @@ Legend:
 | Self-relations | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/self-relations.test.ts` |
 | Explicit many-to-many (junction model) | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/mn-include.test.ts`; `test/integration/test/sql-orm-client/mn-filter.test.ts` |
 | To-many relation filter `some` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/mn-filter.test.ts` (`u.tags.some(...)`) |
+| To-many relation filters across Postgres schemas with identical table names | ❌ | — | — | `test/integration/test/ports/prisma/functional/multi-schema/multi-schema.test.ts` (`multischema: read`, `multischema: update`) |
 | To-many relation filter `every` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/mn-filter.test.ts` (`u.tags.every(...)`) |
 | To-many relation filter `none` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/mn-filter.test.ts` (`u.tags.none(...)`) |
 | Referential action `onDelete` | ✅ | ✅ | — | `test/integration/test/referential-actions.integration.test.ts` (runtime behavior); `test/e2e/framework/test/sqlite/migrations/additive.test.ts` (`ON DELETE CASCADE`, `ON DELETE SET NULL`) |

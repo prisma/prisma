@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import { isStorageValueSet, type SqlStorage } from '@prisma-next/sql-contract/types';
-import { validateSqlContractFully } from '@prisma-next/sql-contract/validators';
-import { defineContract, enumType, member } from '@prisma-next/sql-contract-ts/contract-builder';
+import type { Contract } from '@internal/contract/types';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { isStorageValueSet, type SqlStorage } from '@internal/sql-contract/types';
+import { validateSqlContractFully } from '@internal/sql-contract/validators';
+import { defineContract, enumType, member } from '@internal/sql-contract-ts/contract-builder';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { TestSqlContractSerializer as SqlContractSerializer } from './test-sql-contract-serializer';

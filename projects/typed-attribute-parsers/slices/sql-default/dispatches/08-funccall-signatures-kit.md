@@ -46,9 +46,9 @@ export function funcCall(name: string, sig?: FuncCallSig): ArgType<{ readonly fn
 No `any`; no bare `as` (the `interpretArgs`/`funcCall` output records may need a narrow `blindCast` exactly as `interpretAttribute` already does for its dynamic output — reuse that justified pattern, narrowly); no file-ext imports; never suppress biome; tests-first. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `.agents/**`. Do NOT touch GitHub.
 
 ## Gates (all must pass, in order)
-1. `pnpm --filter @prisma-next/psl-parser build`
-2. `pnpm --filter @prisma-next/psl-parser typecheck` and `pnpm --filter @prisma-next/psl-parser test`
-3. `pnpm --filter @prisma-next/sql-contract-psl typecheck` and `pnpm --filter @prisma-next/sql-contract-psl test` (must stay green with NO edits — `funcCall(name)` no-sig behaviour is unchanged)
+1. `pnpm --filter @internal/psl-parser build`
+2. `pnpm --filter @internal/psl-parser typecheck` and `pnpm --filter @internal/psl-parser test`
+3. `pnpm --filter @internal/sql-contract-psl typecheck` and `pnpm --filter @internal/sql-contract-psl test` (must stay green with NO edits — `funcCall(name)` no-sig behaviour is unchanged)
 4. `pnpm fixtures:check` — clean
 5. `pnpm lint:framework-vocabulary` (bump threshold to exact count if it moves); `pnpm lint:deps`
 

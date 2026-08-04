@@ -13,11 +13,11 @@
  *     factory chain (no test-side hand-lowering).
  */
 
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import { createSqlContract } from '@prisma-next/test-utils';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,
@@ -139,8 +139,7 @@ namespace public {
     const wireName = `${prefix}_${wireHash}`;
 
     const policy = new PostgresRlsPolicy({
-      name: wireName,
-      prefix,
+      naming: { kind: 'wire', prefix, hash: wireHash },
       tableName,
       namespaceId,
       operation: 'select',

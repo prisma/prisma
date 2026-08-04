@@ -1,12 +1,12 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import type { Contract } from '@prisma-next/contract/types';
-import { generateContractDts } from '@prisma-next/emitter';
-import { extractQueryOperationTypeImports } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import type { Contract } from '@internal/contract/types';
+import { generateContractDts } from '@internal/emitter';
+import { extractQueryOperationTypeImports } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { sqlEmission } from '@internal/sql-contract-emitter';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 describe('emitter + postgres adapter descriptor', () => {
@@ -41,7 +41,7 @@ describe('emitter + postgres adapter descriptor', () => {
     );
 
     expect(types).toContain(
-      "import type { QueryOperationTypes as PgAdapterQueryOps } from '@prisma-next/adapter-postgres/operation-types'",
+      "import type { QueryOperationTypes as PgAdapterQueryOps } from '@internal/adapter-postgres/operation-types'",
     );
     expect(types).toContain('export type QueryOperationTypes = PgAdapterQueryOps');
   });

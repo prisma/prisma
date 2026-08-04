@@ -1,6 +1,7 @@
 import {
   AggregateExpr,
   AndExpr,
+  type AnyJsonValueProjection,
   type AnyQueryAst,
   BinaryExpr,
   CaseExpr,
@@ -32,9 +33,9 @@ import {
   TableSource,
   UpdateAst,
   WindowFuncExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { applicationDomainOf } from '@prisma-next/test-utils';
-import { litParams } from '@prisma-next/test-utils/lowered-params';
+} from '@internal/sql-relational-core/ast';
+import { applicationDomainOf } from '@repo/test-utils';
+import { litParams } from '@repo/test-utils/lowered-params';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createSqliteAdapter } from '../src/core/adapter';
@@ -481,6 +482,16 @@ describe('SQLite adapter', () => {
       expect(sql).toContain('json_object(\'email\', "user"."email", \'count\', COUNT(*))');
     });
 
+    function selectProjecting(projection: AnyJsonValueProjection): SelectAst {
+      return SelectAst.from(TableSource.named('user')).withProjection([
+        ProjectionItem.of(
+          'object',
+          JsonObjectExpr.fromEntries([JsonObjectExpr.entry('value', projection)]),
+        ),
+        ProjectionItem.of('array', JsonArrayAggExpr.of(projection)),
+      ]);
+    }
+
     it.each([
       {
         name: 'codec',
@@ -492,23 +503,25 @@ describe('SQLite adapter', () => {
         name: 'native',
         projection: new NativeJsonValueProjection(ColumnRef.of('user', 'email')),
       },
-      {
-        name: 'document',
-        projection: new JsonDocumentProjection(ColumnRef.of('user', 'email')),
-      },
-    ])('renders $name JSON value projections as structural pass-throughs', ({ projection }) => {
-      const ast = SelectAst.from(TableSource.named('user')).withProjection([
-        ProjectionItem.of(
-          'object',
-          JsonObjectExpr.fromEntries([JsonObjectExpr.entry('value', projection)]),
-        ),
-        ProjectionItem.of('array', JsonArrayAggExpr.of(projection)),
-      ]);
-
-      const { sql } = adapter.lower(ast, { contract });
+    ])('renders $name JSON value projections as the column itself', ({ projection }) => {
+      const { sql } = adapter.lower(selectProjecting(projection), { contract });
 
       expect(sql).toBe(
         `SELECT json_object('value', "user"."email") AS "object", json_group_array("user"."email") AS "array" FROM "user"`,
+      );
+    });
+
+    // `sqlite/text@1` projects as itself, which is why the codec case above
+    // matches native. A document does not: SQLite keeps "this text is JSON" as a
+    // subtype that a derived table drops, so a document arriving from one is
+    // plain text and has to be retagged before an enclosing constructor sees it.
+    it('retags a document JSON value projection', () => {
+      const projection = new JsonDocumentProjection(ColumnRef.of('user', 'email'));
+
+      const { sql } = adapter.lower(selectProjecting(projection), { contract });
+
+      expect(sql).toBe(
+        `SELECT json_object('value', json("user"."email")) AS "object", json_group_array(json("user"."email")) AS "array" FROM "user"`,
       );
     });
 

@@ -1,4 +1,4 @@
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { VECTOR_CODEC_ID } from '../src/core/constants';
 import { pgvectorExtensionDescriptor } from '../src/exports/control';
@@ -18,7 +18,7 @@ describe('pgvector descriptor', () => {
 
   it('has codec types import', () => {
     expect(pgvectorExtensionDescriptor.types?.codecTypes?.import).toEqual({
-      package: '@prisma-next/extension-pgvector/codec-types',
+      package: '@internal/extension-pgvector/codec-types',
       named: 'CodecTypes',
       alias: 'PgVectorTypes',
     });

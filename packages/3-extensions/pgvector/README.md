@@ -1,4 +1,4 @@
-# @prisma-next/extension-pgvector
+# @internal/extension-pgvector
 
 PostgreSQL pgvector extension pack for Prisma Next.
 
@@ -17,15 +17,15 @@ This extension pack adds support for the `vector` data type and vector similarit
 
 ## Dependencies
 
-- **`@prisma-next/cli`**: CLI config types and extension descriptor interface
-- **`@prisma-next/sql-operations`**: SQL operation signature types
-- **`@prisma-next/sql-relational-core`**: Codec registry and AST types
+- **`@internal/cli`**: CLI config types and extension descriptor interface
+- **`@internal/sql-operations`**: SQL operation signature types
+- **`@internal/sql-relational-core`**: Codec registry and AST types
 - **`arktype`**: Schema validation for manifest structure
 
 ## Installation
 
 ```bash
-pnpm add @prisma-next/extension-pgvector
+pnpm add @internal/extension-pgvector
 ```
 
 ## Database Setup
@@ -45,11 +45,11 @@ Ensure the baseline migration (or equivalent DDL) has been applied before runnin
 Add the extension to your `prisma-next.config.ts`:
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
-import pgvector from '@prisma-next/extension-pgvector/control';
+import { defineConfig } from '@internal/cli/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
+import pgvector from '@internal/extension-pgvector/control';
 
 export default defineConfig({
   family: sql,
@@ -66,12 +66,12 @@ export default defineConfig({
 Add vector columns to your contract and enable the namespace via pack refs:
 
 ```typescript
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
-import { vector } from '@prisma-next/extension-pgvector/column-types';
-import pgvector from '@prisma-next/extension-pgvector/pack';
-import postgres from '@prisma-next/target-postgres/pack';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
+import { vector } from '@internal/extension-pgvector/column-types';
+import pgvector from '@internal/extension-pgvector/pack';
+import postgres from '@internal/target-postgres/pack';
 
 export const contract = defineContract({
   family: sqlFamily,
@@ -97,11 +97,11 @@ The `vector(N)` factory is registered through the unified `CodecDescriptor<{ len
 Register the extension when creating your execution stack:
 
 ```typescript
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
-import pgvector from '@prisma-next/extension-pgvector/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import postgresTarget from '@internal/target-postgres/runtime';
+import pgvector from '@internal/extension-pgvector/runtime';
 
 const stack = createSqlExecutionStack({
   target: postgresTarget,
@@ -118,8 +118,8 @@ Use vector similarity operations in your queries:
 
 ```typescript
 import { sql, tables } from '../prisma/query';
-import { param } from '@prisma-next/sql-query/param';
-import type { ResultType } from '@prisma-next/sql-query/types';
+import { param } from '@internal/sql-query/param';
+import type { ResultType } from '@internal/sql-query/types';
 
 const queryVector = [0.1, 0.2, 0.3, /* ... */];
 
@@ -147,7 +147,7 @@ The extension provides:
 - `Vector<N>` type for dimensioned vector typing in emitted `contract.d.ts` and schema result types when the contract includes dimension metadata
 
 ```typescript
-import type { CodecTypes, Vector } from '@prisma-next/extension-pgvector/codec-types';
+import type { CodecTypes, Vector } from '@internal/extension-pgvector/codec-types';
 
 // CodecTypes['pg/vector@1']['output'] = number[]
 // Vector<1536> is a branded number[] type used for dimensioned typing
@@ -158,7 +158,7 @@ import type { CodecTypes, Vector } from '@prisma-next/extension-pgvector/codec-t
 The extension provides an `OperationTypes` export for vector operations:
 
 ```typescript
-import type { OperationTypes } from '@prisma-next/extension-pgvector/operation-types';
+import type { OperationTypes } from '@internal/extension-pgvector/operation-types';
 
 // OperationTypes['pg/vector@1']['cosineDistance'] = (rhs: number[] | vector) => number
 // OperationTypes['pg/vector@1']['cosineSimilarity'] = (rhs: number[] | vector) => number
@@ -211,4 +211,4 @@ See [ADR 212 — Contract spaces](../../../docs/architecture%20docs/adrs/ADR%202
 - [Extension Packs Guide](../../../docs/reference/Extension-Packs-Naming-and-Layout.md)
 - [ADR 212 — Contract spaces](../../../docs/architecture%20docs/adrs/ADR%20212%20-%20Contract%20spaces.md)
 
-Pack refs (`@prisma-next/extension-pgvector/pack`) are pure data objects generated from the hydrated manifest (`src/core/manifest.ts`), so TypeScript contract builders can enable the pgvector namespace in both emit and no-emit workflows without touching the filesystem.
+Pack refs (`@internal/extension-pgvector/pack`) are pure data objects generated from the hydrated manifest (`src/core/manifest.ts`), so TypeScript contract builders can enable the pgvector namespace in both emit and no-emit workflows without touching the filesystem.

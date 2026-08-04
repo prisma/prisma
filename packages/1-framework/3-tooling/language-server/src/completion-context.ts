@@ -19,7 +19,7 @@ import {
   skipTriviaToken,
   type TokenAtOffset,
   TypesBlockAst,
-} from '@prisma-next/psl-parser/syntax';
+} from '@internal/psl-parser/syntax';
 
 export interface ClassifyPslCompletionContextInput {
   readonly document: DocumentAst;

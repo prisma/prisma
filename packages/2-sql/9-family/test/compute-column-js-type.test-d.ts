@@ -1,6 +1,6 @@
-import type { Contract, StorageHashBase } from '@prisma-next/contract/types';
-import type { SqlStorage, TypeMaps, TypeMapsPhantomKey } from '@prisma-next/sql-contract/types';
-import type { ComputeColumnJsType } from '@prisma-next/sql-relational-core/types';
+import type { Contract, StorageHashBase } from '@internal/contract/types';
+import type { SqlStorage, TypeMaps, TypeMapsPhantomKey } from '@internal/sql-contract/types';
+import type { ComputeColumnJsType } from '@internal/sql-relational-core/types';
 
 type IsEqual<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

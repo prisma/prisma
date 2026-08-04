@@ -1,4 +1,4 @@
-# @prisma-next/ids
+# @internal/ids
 
 ID generator helpers for Prisma Next contracts. This package provides ergonomic helpers that
 produce contract-safe, JSON-serializable execution defaults for client-generated IDs, plus
@@ -15,7 +15,7 @@ pass options supported by the underlying `uniku` generator.
 
 ## Dependencies
 
-- `@prisma-next/contract` for shared contract types (`ExecutionMutationDefaultValue`).
+- `@internal/contract` for shared contract types (`ExecutionMutationDefaultValue`).
 - `uniku` for ID generator implementations.
 
 ## Architecture
@@ -31,11 +31,11 @@ flowchart LR
 ## Usage
 
 ```ts
-import { textColumn } from '@prisma-next/adapter-postgres/column-types';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { uuidv4 } from '@prisma-next/ids';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
-import postgresPack from '@prisma-next/target-postgres/pack';
+import { textColumn } from '@internal/adapter-postgres/column-types';
+import sqlFamily from '@internal/family-sql/pack';
+import { uuidv4 } from '@internal/ids';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
+import postgresPack from '@internal/target-postgres/pack';
 
 export const contract = defineContract({
   family: sqlFamily,
@@ -54,7 +54,7 @@ export const contract = defineContract({
 Pass generator options directly (for helpers whose `uniku` implementation supports them):
 
 ```ts
-import { nanoid } from '@prisma-next/ids';
+import { nanoid } from '@internal/ids';
 
 const idSpec = nanoid({ size: 12 });
 ```
@@ -68,7 +68,7 @@ const idSpec = nanoid({ size: 12 });
 Runtime usage:
 
 ```ts
-import { generateId } from '@prisma-next/ids/runtime';
+import { generateId } from '@internal/ids/runtime';
 
 const value = generateId({ id: 'uuidv4' });
 ```

@@ -1,6 +1,7 @@
 {
-  "name": "@prisma-next/mongo-value",
-  "version": "0.16.0",
+  "name": "@internal/mongo-value",
+  "private": true,
+  "version": "0.17.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -19,8 +20,8 @@
     "mongodb": "catalog:"
   },
   "devDependencies": {
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/tsdown": "workspace:0.17.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

@@ -1,4 +1,4 @@
-import { freezeNode } from '@prisma-next/framework-components/ir';
+import { freezeNode } from '@internal/framework-components/ir';
 import { MongoSchemaIRNode } from './schema-node';
 import type { MongoSchemaVisitor } from './visitor';
 

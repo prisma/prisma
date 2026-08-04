@@ -1,13 +1,13 @@
-import mongoAdapter from '@prisma-next/adapter-mongo/control';
+import mongoAdapter from '@internal/adapter-mongo/control';
 import {
   type ControlClient,
   type ControlClientOptions,
   createControlClient,
-} from '@prisma-next/cli/control-api';
-import mongoDriver from '@prisma-next/driver-mongo/control';
-import { mongoFamilyDescriptor } from '@prisma-next/family-mongo/control';
-import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/cli/control-api';
+import mongoDriver from '@internal/driver-mongo/control';
+import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import { mongoTargetDescriptor } from '@internal/target-mongo/control';
+import { ifDefined } from '@internal/utils/defined';
 
 export interface MongoControlClientOptions {
   readonly connection?: string;

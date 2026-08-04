@@ -8,8 +8,8 @@
  * Label format and styling live in `./migration-graph-labels`.
  */
 
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { ifDefined } from '@internal/utils/defined';
 import stringWidth from 'string-width';
 import type { GlyphMode } from '../glyph-mode';
 import {

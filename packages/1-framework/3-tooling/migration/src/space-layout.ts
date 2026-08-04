@@ -1,7 +1,4 @@
-import {
-  APP_SPACE_ID,
-  CONTRACT_SNAPSHOTS_DIRNAME,
-} from '@prisma-next/framework-components/control';
+import { APP_SPACE_ID, CONTRACT_SNAPSHOTS_DIRNAME } from '@internal/framework-components/control';
 import { join } from 'pathe';
 import { errorInvalidSpaceId } from './errors';
 

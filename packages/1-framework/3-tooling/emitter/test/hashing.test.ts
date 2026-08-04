@@ -1,5 +1,5 @@
-import type { PreserveEmptyPredicate } from '@prisma-next/contract/hashing';
-import { computeProfileHash, computeStorageHash } from '@prisma-next/contract/hashing';
+import type { PreserveEmptyPredicate } from '@internal/contract/hashing';
+import { computeProfileHash, computeStorageHash } from '@internal/contract/hashing';
 import { describe, expect, it } from 'vitest';
 
 const emptyNamespacedStorage = () => ({

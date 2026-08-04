@@ -1,4 +1,4 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { runBeforeExecuteChain } from '../src/execution/before-execute-chain';
 import type { ExecutionPlan } from '../src/execution/query-plan';

@@ -1,6 +1,7 @@
 {
-  "name": "@prisma-next/mongo-contract-psl",
-  "version": "0.16.0",
+  "name": "@internal/mongo-contract-psl",
+  "private": true,
+  "version": "0.17.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -15,21 +16,21 @@
     "clean": "rm -rf dist coverage"
   },
   "dependencies": {
-    "@prisma-next/config": "workspace:0.16.0",
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/contract-authoring": "workspace:0.16.0",
-    "@prisma-next/errors": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/mongo-contract": "workspace:0.16.0",
-    "@prisma-next/mongo-value": "workspace:0.16.0",
-    "@prisma-next/psl-parser": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0",
+    "@internal/config": "workspace:0.17.0",
+    "@internal/contract": "workspace:0.17.0",
+    "@internal/contract-authoring": "workspace:0.17.0",
+    "@internal/errors": "workspace:0.17.0",
+    "@internal/framework-components": "workspace:0.17.0",
+    "@internal/mongo-contract": "workspace:0.17.0",
+    "@internal/mongo-value": "workspace:0.17.0",
+    "@internal/psl-parser": "workspace:0.17.0",
+    "@internal/utils": "workspace:0.17.0",
     "mongodb": "catalog:",
     "pathe": "^2.0.3"
   },
   "devDependencies": {
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/tsdown": "workspace:0.17.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

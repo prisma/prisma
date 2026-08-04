@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import {
   PG_BIT_CODEC_ID,
@@ -183,7 +183,7 @@ describe('pg/bytea@1 codec runtime (direct instantiation)', () => {
   it('round-trips a payload through encodeJson / decodeJson', () => {
     const input = new Uint8Array([0xca, 0xfe]);
     const json = codec.encodeJson(input);
-    expect(json).toBe('\\xcafe');
+    expect(json).toBe('yv4=');
     expect(Array.from(codec.decodeJson(json))).toEqual([0xca, 0xfe]);
   });
 });
@@ -198,7 +198,9 @@ describe('pg/text-array@1 codec', () => {
   it('exposes equality-only traits and the text[] target/native types', () => {
     expect(pgTextArrayDescriptor.traits).toEqual(['equality']);
     expect(pgTextArrayDescriptor.targetTypes).toEqual(['text[]']);
-    expect(pgTextArrayDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('text[]');
+    expect(pgTextArrayDescriptor.nativeTypeFor({ codecId: pgTextArrayDescriptor.codecId })).toBe(
+      'text[]',
+    );
   });
 
   it('round-trips a string array verbatim', async () => {

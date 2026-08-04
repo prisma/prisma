@@ -40,9 +40,7 @@ function withCleanEnv<T>(fn: () => T): T {
 
 const usageSource = DEFAULT_SKILL_SOURCES.find((s) => s.skill === 'prisma-next');
 const upgradeSource = DEFAULT_SKILL_SOURCES.find((s) => s.skill === 'prisma-next-upgrade');
-const extAuthorSource = DEFAULT_SKILL_SOURCES.find(
-  (s) => s.skill === 'prisma-next-extension-upgrade',
-);
+const extAuthorSource = DEFAULT_SKILL_SOURCES.find((s) => s.skill === 'prisma-8-extension-upgrade');
 
 if (!usageSource || !upgradeSource || !extAuthorSource) {
   throw new Error('DEFAULT_SKILL_SOURCES is missing expected entries');
@@ -133,7 +131,7 @@ describe('formatSkillInstallCommand', () => {
   it('pnpm command for the extension-author source omits the #ref fragment and names the skill', () => {
     withCleanEnv(() => {
       expect(formatSkillInstallCommand({ pm: 'pnpm', source: extAuthorSource })).toBe(
-        `pnpm dlx skills@latest add ${DEFAULT_SKILL_BASE}/skills ${agentFlags('prisma-next-extension-upgrade')}`,
+        `pnpm dlx skills@latest add ${DEFAULT_SKILL_BASE}/skills ${agentFlags('prisma-8-extension-upgrade')}`,
       );
     });
   });
@@ -164,7 +162,7 @@ describe('resolveProjectSkillInstallCommands', () => {
 });
 
 describe('legacySkillDirs', () => {
-  it('covers every retired per-workflow skill in every agent install root', () => {
+  it('covers every retired or renamed skill in every agent install root', () => {
     const dirs = legacySkillDirs();
     expect(dirs).toHaveLength(RETIRED_SKILL_NAMES.length * AGENT_SKILL_ROOTS.length);
     for (const name of RETIRED_SKILL_NAMES) {
@@ -174,11 +172,17 @@ describe('legacySkillDirs', () => {
     }
   });
 
-  it('never names the consolidated skill or the upgrade skills', () => {
+  it('covers the pre-rename spellings of the renamed skills', () => {
+    const dirs = legacySkillDirs();
+    expect(dirs).toContain('.claude/skills/prisma-next-extension-upgrade');
+    expect(dirs).toContain('.claude/skills/prisma-8-migration-review');
+  });
+
+  it('never names the consolidated skill or the current upgrade skills', () => {
     for (const dir of legacySkillDirs()) {
       expect(dir.endsWith('/prisma-next')).toBe(false);
-      expect(dir).not.toContain('prisma-next-upgrade');
-      expect(dir).not.toContain('prisma-next-extension-upgrade');
+      expect(dir).not.toContain('/prisma-next-upgrade');
+      expect(dir).not.toContain('prisma-8-extension-upgrade');
     }
   });
 });

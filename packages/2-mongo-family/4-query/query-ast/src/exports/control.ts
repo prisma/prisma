@@ -1,4 +1,4 @@
-export type { MongoIndexKey, MongoIndexKeyDirection } from '@prisma-next/mongo-contract';
+export type { MongoIndexKey, MongoIndexKeyDirection } from '@internal/mongo-contract';
 export type {
   AnyMongoDdlCommand,
   CollModOptions,

@@ -12,7 +12,7 @@
 // proves authoring → typemap → read for an int enum. The postgres package
 // depends on sql-orm-client, so both the postgres-bound `defineContract` /
 // `enumType` (within-package, via `../../src/...`) and the ORM read/write row
-// types (cross-package, via `@prisma-next/sql-orm-client`) are importable here.
+// types (cross-package, via `@internal/sql-orm-client`) are importable here.
 //
 // The int enum is built ONLY inline here — never added to an emitted/fixture
 // contract — because numeric enums cannot be emitted/migrated
@@ -20,9 +20,9 @@
 // inline `defineContract` runs `buildContract` at runtime to produce the typed
 // value but does NOT emit/migrate, so the numeric guard never fires.
 
-import type { NamespacedEnums } from '@prisma-next/contract/enum-accessor';
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CreateInput, DefaultModelRow } from '@prisma-next/sql-orm-client';
+import type { NamespacedEnums } from '@internal/contract/enum-accessor';
+import type { JsonValue } from '@internal/contract/types';
+import type { CreateInput, DefaultModelRow } from '@internal/sql-orm-client';
 import { expectTypeOf, test } from 'vitest';
 import { defineContract, enumType, member } from '../../src/exports/contract-builder';
 

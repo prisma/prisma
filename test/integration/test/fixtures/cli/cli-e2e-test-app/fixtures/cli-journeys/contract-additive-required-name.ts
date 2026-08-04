@@ -1,5 +1,5 @@
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
 
 /**
  * Adds a NOT NULL `name` column with no default to `User`. The Postgres

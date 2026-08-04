@@ -1,13 +1,13 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import type { ContractSourceContext } from '@prisma-next/config/config-types';
+import type { ContractSourceContext } from '@internal/config/config-types';
 import {
   type Contract,
   type ControlPolicy,
   domainModelsAtDefaultNamespace,
-} from '@prisma-next/contract/types';
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/contract/types';
+import type { TargetPackRef } from '@internal/framework-components/components';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
@@ -35,7 +35,6 @@ const stubContext: ContractSourceContext = {
   codecLookup: {
     get: () => undefined,
     targetTypesFor: () => undefined,
-    metaFor: () => undefined,
     renderOutputTypeFor: () => undefined,
   },
   controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },

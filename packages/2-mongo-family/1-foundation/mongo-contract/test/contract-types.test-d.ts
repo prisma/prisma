@@ -1,4 +1,4 @@
-import type { CrossReference, ProfileHashBase, StorageHashBase } from '@prisma-next/contract/types';
+import type { CrossReference, ProfileHashBase, StorageHashBase } from '@internal/contract/types';
 import { expectTypeOf, test } from 'vitest';
 import type {
   ExtractMongoFieldInputTypes,

@@ -3,7 +3,7 @@ export type {
   InsertManyResult,
   InsertOneResult,
   UpdateResult,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 export { acc } from '../accumulator-helpers';
 export { PipelineChain } from '../builder';
 export { fn } from '../expression-helpers';

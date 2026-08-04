@@ -22,7 +22,7 @@ Concretely:
 
 - [ ] An M:N `include` compiles to a **single correlated subquery** walking parent → junction → target (composite-key correlation AND-ed); unit test asserts the AST shape and the **absence of any `LATERAL`** node.
 - [ ] The FK (non-M:N) include path is unchanged (its existing unit tests still pass).
-- [ ] Gate: `pnpm --filter @prisma-next/sql-orm-client typecheck` + `pnpm --filter @prisma-next/sql-orm-client test` green.
+- [ ] Gate: `pnpm --filter @internal/sql-orm-client typecheck` + `pnpm --filter @internal/sql-orm-client test` green.
 
 ## Standing instruction
 

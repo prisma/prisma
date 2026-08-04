@@ -1,8 +1,8 @@
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { findNearestConfigPathForFile } from '@prisma-next/config-loader';
-import { CliStructuredError } from '@prisma-next/errors/control';
-import type { SymbolTable } from '@prisma-next/psl-parser';
-import { type FormatOptions, format } from '@prisma-next/psl-parser/format';
+import { findNearestConfigPathForFile } from '@internal/config-loader';
+import { CliStructuredError } from '@internal/errors/control';
+import type { SymbolTable } from '@internal/psl-parser';
+import { type FormatOptions, format } from '@internal/psl-parser/format';
 import { join } from 'pathe';
 import {
   type CompletionItem,
@@ -520,7 +520,7 @@ export function createServer(connection: Connection): LanguageServer {
         .sendRequest(RegistrationRequest.type, {
           registrations: [
             {
-              id: 'prisma-next-config-watcher',
+              id: 'prisma-8-config-watcher',
               method: DidChangeWatchedFilesNotification.type.method,
               registerOptions: { watchers: [{ globPattern: watchedConfigGlob }] },
             },

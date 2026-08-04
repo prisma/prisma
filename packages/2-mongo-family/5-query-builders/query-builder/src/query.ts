@@ -1,12 +1,12 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
   MongoContractWithTypeMaps,
   RootModelName,
-} from '@prisma-next/mongo-contract';
-import type { AnyMongoCommand, MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/mongo-contract';
+import type { AnyMongoCommand, MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import { blindCast } from '@internal/utils/casts';
 import { contractError } from './contract-errors';
 import { asMongoContract, type CollectionHandle, createCollectionHandle } from './state-classes';
 

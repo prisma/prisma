@@ -1,10 +1,10 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
+import type { ControlPolicy } from '@internal/contract/types';
 import type {
   SchemaDiffIssue,
   VerifierIssueCategory,
   VerifierOutcome,
-} from '@prisma-next/framework-components/control';
-import { dispositionForCategory, issueOutcome } from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
+import { dispositionForCategory, issueOutcome } from '@internal/framework-components/control';
 
 /**
  * Classifies a Mongo schema-diff issue into the target-neutral categories the

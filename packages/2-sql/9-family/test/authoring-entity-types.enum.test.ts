@@ -3,8 +3,8 @@ import type {
   AuthoringEntityContext,
   PslExtensionBlock,
   PslExtensionBlockParamValue,
-} from '@prisma-next/framework-components/authoring';
-import type { Codec, CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/authoring';
+import type { Codec, CodecLookup } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { sqlFamilyEnumEntityDescriptor } from '../src/core/authoring-entity-types';
 
@@ -80,7 +80,6 @@ const testCodecLookup: CodecLookup = {
     if (id === PG_INT_CODEC_ID) return ['int'];
     return undefined;
   },
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
 };
 

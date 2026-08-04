@@ -1,4 +1,4 @@
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
+import type { EmissionSpi } from '@internal/framework-components/emission';
 
 export function createMockSpi(overrides: Partial<EmissionSpi> = {}): EmissionSpi {
   return {
@@ -7,7 +7,7 @@ export function createMockSpi(overrides: Partial<EmissionSpi> = {}): EmissionSpi
       '{ readonly tables: Record<string, never>; readonly types: Record<string, never>; readonly storageHash: StorageHash }',
     generateModelStorageType: () => 'Record<string, never>',
     getFamilyImports: () => [
-      "import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@prisma-next/sql-contract/types';",
+      "import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';",
     ],
     getFamilyTypeAliases: () => 'export type LaneCodecTypes = CodecTypes;',
     getTypeMapsExpression: () => 'TypeMapsType<CodecTypes>',

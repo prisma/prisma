@@ -3,12 +3,12 @@ import {
   crossRef,
   type ProfileHashBase,
   type StorageHashBase,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoTypeMaps,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 
 type TestModels = {
   readonly Order: {

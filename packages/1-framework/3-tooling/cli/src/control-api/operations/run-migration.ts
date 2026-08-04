@@ -3,17 +3,17 @@
  * Backs no command directly; consumed by db-run and migrate.
  */
 
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlDriverInstance,
   ControlFamilyInstance,
   MigrationOperationPolicy,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-import type { ContractSpaceAggregate, PerSpacePlan } from '@prisma-next/migration-tools/aggregate';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import type { ContractSpaceAggregate, PerSpacePlan } from '@internal/migration-tools/aggregate';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import type { OnControlProgress, PerSpaceExecutionEntry } from '../types';
 
 /**
@@ -55,7 +55,7 @@ export interface RunMigrationInputs<TFamilyId extends string, TTargetId extends 
   readonly perSpacePlans: ReadonlyMap<string, PerSpacePlan>;
   /**
    * Canonical schedule order — extensions alphabetically by `spaceId`,
-   * then app. Mirrors {@link import('@prisma-next/migration-tools/concatenate-space-apply-inputs').concatenateSpaceApplyInputs}'s
+   * then app. Mirrors {@link import('@internal/migration-tools/concatenate-space-apply-inputs').concatenateSpaceApplyInputs}'s
    * convention so `MigrationRunnerFailure.failingSpace` attribution
    * stays byte-for-byte stable across callers.
    */

@@ -1,4 +1,4 @@
-# @prisma-next/contract
+# @internal/contract
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
 > and is published only to support its runtime. Its API is unstable and may change
@@ -11,7 +11,7 @@ Core contract data types and JSON schemas for Prisma Next.
 This package provides the foundational type definitions for Prisma Next data contracts:
 
 - **Contract data types**: The canonical description of an application's data model and storage layout (`ContractBase`, `DocumentContract`, `Source`, `FieldType`)
-- **Plan metadata**: Target-family-agnostic plan metadata (`PlanMeta`). The plan markers themselves (`QueryPlan`, `ExecutionPlan`) live in `@prisma-next/framework-components/runtime`; family-specific plans (`SqlExecutionPlan`, `MongoExecutionPlan`) live in their respective domains. Per [ADR 205](../../../../docs/architecture%20docs/adrs/ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md), execution metadata (codec IDs, projection refs, parameter descriptors) lives on the family AST when one is present, not on `PlanMeta`.
+- **Plan metadata**: Target-family-agnostic plan metadata (`PlanMeta`). The plan markers themselves (`QueryPlan`, `ExecutionPlan`) live in `@internal/framework-components/runtime`; family-specific plans (`SqlExecutionPlan`, `MongoExecutionPlan`) live in their respective domains. Per [ADR 205](../../../../docs/architecture%20docs/adrs/ADR%20205%20-%20Execution%20metadata%20lives%20on%20AST.md), execution metadata (codec IDs, projection refs, parameter descriptors) lives on the family AST when one is present, not on `PlanMeta`.
 - **Hash types**: Branded hash types for storage, execution, and profile hashing (`StorageHashBase`, `ExecutionHashBase`, `ProfileHashBase`)
 - **JSON Schemas**: Validation schemas for contract files
 - **Type guards**: Runtime type guards for narrowing contract types (`isDocumentContract`)
@@ -26,8 +26,8 @@ import type {
   ContractMarkerRecord,
   DocumentContract,
   PlanMeta,
-} from '@prisma-next/contract/types';
-import { isDocumentContract, coreHash, profileHash } from '@prisma-next/contract/types';
+} from '@internal/contract/types';
+import { isDocumentContract, coreHash, profileHash } from '@internal/contract/types';
 
 if (isDocumentContract(contract)) {
   const collections = contract.storage.document.collections;
@@ -40,7 +40,7 @@ Reference the appropriate JSON schema in your `contract.json` files to enable ID
 
 ```json
 {
-  "$schema": "node_modules/@prisma-next/contract/schemas/data-contract-document-v1.json",
+  "$schema": "node_modules/@internal/contract/schemas/data-contract-document-v1.json",
   "schemaVersion": "1",
   "target": "mongodb",
   "targetFamily": "document",
@@ -48,7 +48,7 @@ Reference the appropriate JSON schema in your `contract.json` files to enable ID
 }
 ```
 
-For SQL contracts, use `@prisma-next/sql-contract-ts/schema-sql` instead.
+For SQL contracts, use `@internal/sql-contract-ts/schema-sql` instead.
 
 ## Exports
 
@@ -68,7 +68,7 @@ For SQL contracts, use `@prisma-next/sql-contract-ts/schema-sql` instead.
 
 ## Dependencies
 
-- **`@prisma-next/utils`**: Shared utility functions
+- **`@internal/utils`**: Shared utility functions
 
 ## Related Subsystems
 

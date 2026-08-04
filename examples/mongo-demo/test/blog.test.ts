@@ -1,28 +1,17 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { mongoOrm } from '@prisma-next/mongo-orm';
-import {
-  createMongoExecutionContext,
-  createMongoExecutionStack,
-  createMongoRuntime,
-  type MongoRuntime,
-} from '@prisma-next/mongo-runtime';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
-import { timeouts } from '@prisma-next/test-utils';
+import mongo from '@prisma/orm-mongo/runtime';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Contract } from '../src/contract';
 import contractJson from '../src/contract.json' with { type: 'json' };
 
-const contract = new MongoContractSerializer().deserializeContract<Contract>(contractJson);
-
 describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemoryServer }, () => {
   let replSet: MongoMemoryReplSet;
   let client: MongoClient;
-  let runtime: MongoRuntime;
   const dbName = 'blog_test';
+  const mongoDb = mongo<Contract>({ contractJson });
+  const orm = mongoDb.orm;
 
   beforeAll(async () => {
     replSet = await MongoMemoryReplSet.create({
@@ -31,13 +20,7 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
     client = new MongoClient(replSet.getUri());
     await client.connect();
 
-    const stack = createMongoExecutionStack({
-      target: mongoRuntimeTarget,
-      adapter: mongoRuntimeAdapter,
-    });
-    const context = createMongoExecutionContext({ contract, stack });
-    const driver = await createMongoDriver(replSet.getUri(), dbName);
-    runtime = createMongoRuntime({ context, driver });
+    await mongoDb.connect({ uri: replSet.getUri(), dbName });
   }, timeouts.spinUpMongoMemoryServer);
 
   beforeEach(async () => {
@@ -45,11 +28,10 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
   });
 
   afterAll(async () => {
-    await Promise.allSettled([runtime?.close(), client?.close(), replSet?.stop()]);
+    await Promise.allSettled([mongoDb.close(), client?.close(), replSet?.stop()]);
   }, timeouts.spinUpMongoMemoryServer);
 
   it('all() returns seeded users with embedded address value objects', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
     const aliceAddress = {
       street: '123 Main St',
       city: 'San Francisco',
@@ -86,7 +68,6 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
   });
 
   it('all() returns seeded posts', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
     const alice = await orm.users.create({
       name: 'Alice',
       email: 'alice@example.com',
@@ -128,7 +109,6 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
   });
 
   it('include() resolves Post -> User via $lookup', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
     const alice = await orm.users.create({
       name: 'Alice',
       email: 'alice@example.com',
@@ -154,8 +134,6 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
   });
 
   it('full flow: seed users and posts, query with include', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
-
     const createdUsers = await orm.users.createAll([
       {
         name: 'Alice',
@@ -207,7 +185,6 @@ describe('mongo-demo blog integration', { timeout: timeouts.spinUpMongoMemorySer
   });
 
   it('variant() filters posts by discriminator', async () => {
-    const orm = mongoOrm({ contract, executor: runtime });
     const alice = await orm.users.create({
       name: 'Alice',
       email: 'alice@example.com',

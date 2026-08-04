@@ -1,15 +1,15 @@
-import sqliteAdapter from '@prisma-next/adapter-sqlite/runtime';
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqliteBinding } from '@prisma-next/driver-sqlite/runtime';
-import sqliteDriver from '@prisma-next/driver-sqlite/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { sql as sqlBuilder } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
-import type { ExtractCodecTypes, SqlStorage } from '@prisma-next/sql-contract/types';
-import { orm as ormBuilder } from '@prisma-next/sql-orm-client';
-import type { CodecTypesBase, RawSqlTag } from '@prisma-next/sql-relational-core/expression';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import sqliteAdapter from '@internal/adapter-sqlite/runtime';
+import type { Contract } from '@internal/contract/types';
+import type { SqliteBinding } from '@internal/driver-sqlite/runtime';
+import sqliteDriver from '@internal/driver-sqlite/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { sql as sqlBuilder } from '@internal/sql-builder/runtime';
+import type { Db } from '@internal/sql-builder/types';
+import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
+import { orm as ormBuilder } from '@internal/sql-orm-client';
+import type { CodecTypesBase, RawSqlTag } from '@internal/sql-relational-core/expression';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   BindSiteParams,
   Declaration,
@@ -22,19 +22,19 @@ import type {
   SqlRuntimeExtensionDescriptor,
   TransactionContext,
   VerifyMarkerOption,
-} from '@prisma-next/sql-runtime';
+} from '@internal/sql-runtime';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   withTransaction,
-} from '@prisma-next/sql-runtime';
+} from '@internal/sql-runtime';
 import sqliteTarget, {
   SqliteContractSerializer as SqlContractSerializer,
-} from '@prisma-next/target-sqlite/runtime';
-import { assertDefined } from '@prisma-next/utils/assertions';
-import { blindCast, castAs } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/target-sqlite/runtime';
+import { assertDefined } from '@internal/utils/assertions';
+import { blindCast, castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { sqliteError } from '../errors';
 import { buildSqliteStaticContext, type SqliteStaticContext } from '../static/sqlite-static';
 import { resolveOptionalSqliteBinding, resolveSqliteBinding } from './binding';

@@ -12,11 +12,11 @@
  *  3. Nullable variant (`pg.enum(E)?`).
  */
 
-import type { Codec, CodecLookup } from '@prisma-next/framework-components/codec';
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
+import type { Codec, CodecLookup } from '@internal/framework-components/codec';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,
@@ -47,7 +47,6 @@ const pgEnumCodec = {
 const codecLookup: CodecLookup = {
   get: (id) => (id === PG_ENUM_CODEC_ID ? pgEnumCodec : undefined),
   targetTypesFor: () => undefined,
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
   descriptorFor: (id) => (id === PG_ENUM_CODEC_ID ? pgEnumDescriptor : undefined),
 };

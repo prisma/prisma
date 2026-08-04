@@ -1,9 +1,9 @@
-import type { ColumnDefault, Contract, JsonValue } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
+import type { ColumnDefault, Contract, JsonValue } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
 import type {
   MigrationPlannerConflict,
   SchemaNodeRef,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   type CheckConstraint,
   type ForeignKey,
@@ -14,7 +14,8 @@ import {
   StorageTable,
   type StorageTypeInstance,
   type UniqueConstraint,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
+import { namingOf } from '@internal/sql-schema-ir/naming';
 import {
   RelationalSchemaNodeKind,
   type SqlAnnotations,
@@ -25,10 +26,10 @@ import {
   SqlSchemaIR,
   SqlTableIR,
   type SqlUniqueIRInput,
-} from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { sqlFamilyError } from '../errors';
 
 /**
@@ -308,8 +309,7 @@ function convertIndex(
   tableColumns: readonly string[],
 ): SqlIndexIRInput {
   const base = {
-    name: index.name,
-    prefix: index.prefix,
+    naming: namingOf(index.name, index.prefix),
     where: index.where,
     unique: index.unique,
     partial: index.where !== undefined,

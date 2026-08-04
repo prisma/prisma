@@ -515,8 +515,8 @@ The conformance harness is a supported public extension-author API, but it must 
 
 Separate dev-only packages are settled:
 
-- `@prisma-next/postgres-codec-testkit`
-- `@prisma-next/sqlite-codec-testkit`
+- `@internal/postgres-codec-testkit`
+- `@internal/sqlite-codec-testkit`
 
 They are test-framework-independent and installed as development dependencies. A third-party target may publish its own testkit without being added to a central framework package or target map.
 

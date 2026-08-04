@@ -1,8 +1,8 @@
 import type {
   AnyCodecDescriptor,
   CodecInstanceContext,
-} from '@prisma-next/framework-components/codec';
-import type { Codec, SqlCodecCallContext } from '@prisma-next/sql-relational-core/ast';
+} from '@internal/framework-components/codec';
+import type { Codec, SqlCodecCallContext } from '@internal/sql-relational-core/ast';
 import {
   sqlCharDescriptor,
   sqlFloatDescriptor,
@@ -10,7 +10,7 @@ import {
   sqlTextDescriptor,
   sqlTimestampDescriptor,
   sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import {
   pgBitDescriptor,
@@ -39,7 +39,7 @@ import {
   pgVarbitDescriptor,
   pgVarcharDescriptor,
 } from '../src/core/codecs';
-import { postgresCodecRegistry } from '../src/core/registry';
+import { postgresCodecDescriptorRegistry, postgresCodecRegistry } from '../src/core/registry';
 
 const SYNTH_CTX: CodecInstanceContext = { name: 'test' };
 
@@ -150,6 +150,13 @@ describe('adapter-postgres codecs', () => {
       expect(await timestampCodec.encode(date, {})).toBe(date);
       expect(await timestampCodec.decode(date, {})).toBe(date);
     });
+
+    it('uses the zone-less ISO form a timestamp column holds', () => {
+      const codec = codecForScalar('sql-timestamp');
+      const date = new Date('2024-01-15T10:30:00.000Z');
+      expect(codec.encodeJson(date)).toBe('2024-01-15T10:30:00.000');
+      expect(codec.decodeJson('2024-01-15T10:30:00.000')).toEqual(date);
+    });
   });
 
   describe('timestamptz codec', () => {
@@ -225,7 +232,6 @@ describe('adapter-postgres codecs', () => {
     it.each([
       { scalar: 'int2', value: 12 },
       { scalar: 'int4', value: 42 },
-      { scalar: 'int8', value: 9001 },
       { scalar: 'float4', value: 3.14 },
       { scalar: 'float8', value: Math.E },
     ] as const)('keeps $scalar values unchanged', async ({ scalar, value }) => {
@@ -399,27 +405,26 @@ describe('adapter-postgres codecs', () => {
       expect(Array.from(decoded)).toEqual([0x01, 0x02, 0x03]);
     });
 
-    it('decodes Postgres JSON bytea hex text', () => {
-      expect(byteaCodec.decodeJson('\\x0102feff')).toEqual(
-        new Uint8Array([0x01, 0x02, 0xfe, 0xff]),
+    it('uses base64 for JSON in both directions', () => {
+      const bytes = new Uint8Array([0x01, 0x02, 0xfe, 0xff]);
+      expect(byteaCodec.encodeJson(bytes)).toBe('AQL+/w==');
+      expect(byteaCodec.decodeJson('AQL+/w==')).toEqual(bytes);
+      expect(byteaCodec.encodeJson(new Uint8Array())).toBe('');
+      expect(byteaCodec.decodeJson('')).toEqual(new Uint8Array());
+    });
+
+    it('rejects JSON that is not base64 text', () => {
+      expect(() => byteaCodec.decodeJson(42)).toThrow(
+        'pg/bytea@1 database JSON value must be a base64 string',
+      );
+      expect(() => byteaCodec.decodeJson('not base64!')).toThrow(
+        'pg/bytea@1 database JSON value must be a base64 string',
       );
     });
 
-    it('rejects malformed Postgres JSON bytea hex text', () => {
-      expect(() => byteaCodec.decodeJson('0102')).toThrow(
-        'Expected Postgres bytea hex text to start with "\\x"',
-      );
-      expect(() => byteaCodec.decodeJson('\\x123')).toThrow(
-        'Invalid Postgres bytea hex text length: 3',
-      );
-      expect(() => byteaCodec.decodeJson('\\x01zz')).toThrow(
-        'Invalid Postgres bytea hex pair "zz" at offset 2',
-      );
-    });
-
-    it('encodes Uint8Array to Postgres JSON bytea hex text', () => {
+    it('encodes Uint8Array to base64 text', () => {
       const input = new Uint8Array([0x68, 0x65, 0x6c, 0x6c, 0x6f]);
-      expect(byteaCodec.encodeJson(input)).toBe('\\x68656c6c6f');
+      expect(byteaCodec.encodeJson(input)).toBe('aGVsbG8=');
     });
 
     it('round-trips through encodeJson / decodeJson', () => {
@@ -431,28 +436,57 @@ describe('adapter-postgres codecs', () => {
 
     it('throws on non-string input to decodeJson', () => {
       expect(() => byteaCodec.decodeJson(42)).toThrow(
-        'Expected Postgres bytea hex text to start with "\\x"',
+        'pg/bytea@1 database JSON value must be a base64 string',
       );
     });
   });
 
   describe('interval codec', () => {
-    const intervalCodec = codecForScalar('interval') as {
-      encode: (value: string, ctx: SqlCodecCallContext) => Promise<string>;
-      decode: (wire: string | Record<string, unknown>, ctx: SqlCodecCallContext) => Promise<string>;
-    };
-
-    it('encodes string as-is', async () => {
-      expect(await intervalCodec.encode('1 day', {})).toBe('1 day');
+    const codec = codecForScalar('interval');
+    const fields = (partial: { months?: number; days?: number; micros?: bigint }) => ({
+      months: 0,
+      days: 0,
+      micros: 0n,
+      ...partial,
     });
 
-    it('decodes string as-is', async () => {
-      expect(await intervalCodec.decode('2 hours', {})).toBe('2 hours');
+    it('writes the value as the ISO duration PostgreSQL accepts', async () => {
+      expect(await codec.encode(fields({ days: 1 }), {})).toBe('P1D');
     });
 
-    it('serializes object wire values to JSON strings', async () => {
-      const decoded = await intervalCodec.decode({ hours: 2, minutes: 30 }, {});
-      expect(decoded).toBe('{"hours":2,"minutes":30}');
+    it('reads a text wire value into the three fields', async () => {
+      expect(await codec.decode('PT2H', {})).toEqual(fields({ micros: 7_200_000_000n }));
+      expect(await codec.decode('P13M', {})).toEqual(fields({ months: 13 }));
+    });
+
+    it('rejects a text wire value that is not an ISO-8601 duration', async () => {
+      await expect(codec.decode('1 day', {})).rejects.toThrow(
+        'pg/interval@1 value must be an ISO-8601 duration, got 1 day',
+      );
+    });
+
+    it('reads the driver component object into the three fields', async () => {
+      expect(await codec.decode({ hours: 2, minutes: 30 }, {})).toEqual(
+        fields({ micros: 9_000_000_000n }),
+      );
+    });
+
+    it('carries the JSON side as the ISO duration, normalising only its spelling', () => {
+      expect(codec.encodeJson(fields({ months: 13 }))).toBe('P1Y1M');
+      expect(codec.decodeJson('P1Y1M')).toEqual(fields({ months: 13 }));
+      expect(codec.encodeJson(fields({ months: 1, days: -1 }))).toBe('P1M-1D');
+    });
+
+    /**
+     * PostgreSQL rounds sub-microsecond fractional seconds rather than
+     * truncating: `INTERVAL '1.1234567 seconds'` is `1.123457`, and
+     * `'1.9999999'` carries into `2`. Both paths into the value agree.
+     */
+    it('rounds fractional seconds past microsecond resolution', () => {
+      expect(codec.decodeJson('PT1.1234567S')).toEqual(fields({ micros: 1_123_457n }));
+      expect(codec.decodeJson('PT1.9999999S')).toEqual(fields({ micros: 2_000_000n }));
+      expect(codec.decodeJson('PT-1.1234567S')).toEqual(fields({ micros: -1_123_457n }));
+      expect(codec.encodeJson(fields({ micros: 1_123_457n }))).toBe('PT1.123457S');
     });
   });
 
@@ -473,12 +507,14 @@ describe('adapter-postgres codecs', () => {
     ];
 
     it.each(postgresNativeTypeCases)(
-      'sets postgres nativeType metadata for $scalar',
+      'states the postgres native type for $scalar',
       ({ scalar, nativeType }) => {
-        const meta = descriptorByScalar[scalar].meta as
-          | { db?: { sql?: { postgres?: { nativeType?: string } } } }
-          | undefined;
-        expect(meta?.db?.sql?.postgres?.nativeType).toBe(nativeType);
+        // Resolved through the registry rather than off the map, whose value type
+        // spans the SQL-base descriptors too — those carry no PostgreSQL native
+        // type, and none of these cases names one.
+        const codecId = descriptorByScalar[scalar].codecId;
+        const descriptor = postgresCodecDescriptorRegistry.descriptorFor(codecId);
+        expect(descriptor?.nativeTypeFor({ codecId })).toBe(nativeType);
       },
     );
 
@@ -517,9 +553,83 @@ describe('adapter-postgres codecs', () => {
     describe('pg/numeric@1', () => {
       const codec = codecForScalar('numeric');
 
-      it('uses the Postgres JSON number representation', () => {
-        expect(codec.encodeJson('1234.5')).toBe(1234.5);
-        expect(codec.decodeJson(1234.5)).toBe('1234.5');
+      it('uses decimal text, so arbitrary precision survives', () => {
+        expect(codec.encodeJson('1234.5')).toBe('1234.5');
+        expect(codec.decodeJson('1234.5')).toBe('1234.5');
+        expect(codec.encodeJson('1234567890.12345678901234567890')).toBe(
+          '1234567890.12345678901234567890',
+        );
+        expect(codec.decodeJson('1234567890.12345678901234567890')).toBe(
+          '1234567890.12345678901234567890',
+        );
+      });
+
+      it('rejects a JSON number, which has already lost digits', () => {
+        expect(() => codec.decodeJson(1234.5)).toThrow(
+          'pg/numeric@1 database JSON value must be a decimal string',
+        );
+      });
+
+      /**
+       * The accepted grammar is what PostgreSQL *prints* for a numeric, not what
+       * it accepts as input. It reads `+123`, `.5`, `1.`, `1e5`, `0x1f`, `1_000`
+       * and whitespace-padded text, and prints all of them normalised — so
+       * accepting an input spelling would name an application value the
+       * projection can never return.
+       */
+      it('accepts the forms a numeric prints, including the non-finite ones', () => {
+        for (const value of [
+          '0',
+          '-0',
+          '123',
+          '-123',
+          '1.5',
+          '-1.5',
+          'NaN',
+          'Infinity',
+          '-Infinity',
+          `${'9'.repeat(60)}.${'1'.repeat(40)}`,
+        ]) {
+          expect(codec.encodeJson(value)).toBe(value);
+        }
+      });
+
+      it('rejects spellings a numeric reads but never prints', () => {
+        for (const value of [
+          '+123',
+          '.5',
+          '1.',
+          '1e5',
+          '1E5',
+          '1e-5',
+          '0x1f',
+          '1_000',
+          '  12  ',
+          '',
+        ]) {
+          expect(() => codec.encodeJson(value)).toThrow(/canonical numeric text/);
+        }
+      });
+    });
+
+    describe('pg/int8@1', () => {
+      const codec = codecForScalar('int8');
+
+      it('uses decimal text, so values beyond 2^53 survive', () => {
+        expect(codec.encodeJson(42n)).toBe('42');
+        expect(codec.decodeJson('42')).toBe(42n);
+        expect(codec.encodeJson(9007199254740993n)).toBe('9007199254740993');
+        expect(codec.decodeJson('9007199254740993')).toBe(9007199254740993n);
+      });
+
+      it('rejects a JSON number, which has already lost digits', () => {
+        expect(() => codec.decodeJson(42)).toThrow(
+          'pg/int8@1 database JSON value must be a decimal string',
+        );
+      });
+
+      it('renders a default as a bigint literal', () => {
+        expect(pgInt8Descriptor.renderValueLiteral?.('9007199254740993')).toBe('9007199254740993n');
       });
     });
 
@@ -599,12 +709,6 @@ describe('adapter-postgres codecs', () => {
         const codec = codecForScalar('bool');
         expect(codec.encodeJson(true)).toBe(true);
         expect(codec.decodeJson(false)).toBe(false);
-      });
-
-      it('pg/int8@1 round-trips numbers (identity)', () => {
-        const codec = codecForScalar('int8');
-        expect(codec.encodeJson(9001)).toBe(9001);
-        expect(codec.decodeJson(9001)).toBe(9001);
       });
     });
   });

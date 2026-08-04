@@ -81,12 +81,12 @@ it('emits contract and executes query', async () => {
 **Example:**
 ```typescript
 // test/e2e/framework/test/runtime.e2e.test.ts
-import { withDevDatabase, withClient } from '@prisma-next/test-utils';
+import { withDevDatabase, withClient } from '@repo/test-utils';
 import {
   setupE2EDatabase,
   createTestRuntimeFromClient,
   executePlanAndCollect,
-} from '@prisma-next/runtime/test/utils';
+} from '@internal/runtime/test/utils';
 import { loadContractFromDisk } from './utils';
 
 it('returns multiple rows with correct types', async () => {
@@ -231,13 +231,13 @@ Good test helpers:
 ### Helper Examples from Codebase
 
 **Test utilities are organized across multiple locations to avoid circular dependencies:**
-- **`@prisma-next/test-utils`**: Generic database and async iterable utilities with zero dependencies on other `@prisma-next/*` packages
-- **`@prisma-next/runtime/test/utils`**: Runtime-specific test utilities (plan execution, runtime creation, contract markers)
+- **`@repo/test-utils`**: Generic database and async iterable utilities with zero dependencies on other `@internal/*` packages
+- **`@internal/runtime/test/utils`**: Runtime-specific test utilities (plan execution, runtime creation, contract markers)
 - **`test/e2e/framework/test/utils.ts`**: Contract-related utilities for E2E tests (contract loading, emission verification)
 
 #### Shared Test Utilities
 
-**Note**: The `@prisma-next/test-utils` package has zero dependencies on other `@prisma-next/*` packages. For runtime-specific utilities, import from `@prisma-next/sql-runtime/test/utils`. For contract-related utilities in E2E tests, import from `test/e2e/framework/test/utils.ts`.
+**Note**: The `@repo/test-utils` package has zero dependencies on other `@internal/*` packages. For runtime-specific utilities, import from `@internal/sql-runtime/test/utils`. For contract-related utilities in E2E tests, import from `test/e2e/framework/test/utils.ts`.
 
 ```typescript
 // Import from generic utilities
@@ -246,7 +246,7 @@ import {
   withClient,
   collectAsync,
   drainAsyncIterable,
-} from '@prisma-next/test-utils';
+} from '@repo/test-utils';
 
 // Import from runtime-specific utilities
 import {
@@ -256,7 +256,7 @@ import {
   createTestRuntime,
   createTestRuntimeFromClient,
   setupE2EDatabase,
-} from '@prisma-next/runtime/test/utils';
+} from '@internal/runtime/test/utils';
 
 // Import from contract utilities (in e2e-tests only)
 import { loadContractFromDisk, emitAndVerifyContract } from './utils';
@@ -284,7 +284,7 @@ await setupE2EDatabase(client, contract, async (c) => {
 const runtime = createTestRuntimeFromClient(contract, client, adapter);
 ```
 
-**Architecture**: The base functions in `@prisma-next/test-utils` accept dependencies as parameters (e.g., `validateContractFn`, `markerStatements`). Wrapper files in consuming packages inject these dependencies, preventing cyclic dependencies and keeping test utilities lightweight.
+**Architecture**: The base functions in `@repo/test-utils` accept dependencies as parameters (e.g., `validateContractFn`, `markerStatements`). Wrapper files in consuming packages inject these dependencies, preventing cyclic dependencies and keeping test utilities lightweight.
 
 #### Package-Specific Helpers
 
@@ -461,7 +461,7 @@ const database = await createDevDatabase();
 
 **Pattern:** Use the rich AST classes and static helpers instead of manual object creation
 
-**Available AST helpers from `@prisma-next/sql-relational-core/ast`:**
+**Available AST helpers from `@internal/sql-relational-core/ast`:**
 - `ColumnRef.of(table, column)` - Creates a `ColumnRef`
 - `ParamRef.of(index, name?)` - Creates a `ParamRef`
 - `LiteralExpr.of(value)` - Creates a `LiteralExpr`
@@ -470,7 +470,7 @@ const database = await createDevDatabase();
 
 ```typescript
 // ✅ CORRECT: Use AST classes and helpers
-import { BinaryExpr, ColumnRef, LiteralExpr, ParamRef, TableSource } from '@prisma-next/sql-relational-core/ast';
+import { BinaryExpr, ColumnRef, LiteralExpr, ParamRef, TableSource } from '@internal/sql-relational-core/ast';
 
 const colRef = ColumnRef.of('user', 'id');
 const paramRef = ParamRef.of(1, 'userId');
@@ -490,11 +490,11 @@ const literalExpr: LiteralExpr = { kind: 'literal', value: 'test' };
 
 ### Contract Factory Functions
 
-When creating `Contract` values in tests, use `createContract` from `@prisma-next/test-utils` (or a local helper such as `createTestContract` in package test `utils`) instead of manual object creation:
+When creating `Contract` values in tests, use `createContract` from `@repo/test-utils` (or a local helper such as `createTestContract` in package test `utils`) instead of manual object creation:
 
 ```typescript
 // ✅ CORRECT: Use factory function
-import { createContract } from '@prisma-next/test-utils';
+import { createContract } from '@repo/test-utils';
 
 const contract = createContract({
   storage: {
@@ -511,7 +511,7 @@ const contract = createContract({
 
 ```typescript
 // ❌ WRONG: Manual object creation
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 
 const contract: Contract = {
   target: 'postgres',
@@ -547,7 +547,7 @@ See `.cursor/rules/use-contract-ir-factories.mdc` for detailed guidelines.
 ```typescript
 import { expectTypeOf, test } from 'vitest';
 import type { Contract } from './fixtures/contract.d';
-import type { ResultType, Plan } from '@prisma-next/sql-relational-core/types';
+import type { ResultType, Plan } from '@internal/sql-relational-core/types';
 
 test('Contract types are correct', () => {
   type UserTable = Contract['storage']['tables']['user'];
@@ -759,25 +759,25 @@ expect(() => buildPlan(contract, node)).toThrow(
 
 ## Common Mistakes and Corrections
 
-### Importing from `@prisma-next/test-utils` directly
+### Importing from `@repo/test-utils` directly
 
-**❌ WRONG: Importing directly from `@prisma-next/test-utils`**
+**❌ WRONG: Importing directly from `@repo/test-utils`**
 
 ```typescript
-import { executePlanAndCollect } from '@prisma-next/test-utils';
+import { executePlanAndCollect } from '@repo/test-utils';
 ```
 
 **✅ CORRECT: Import from package-specific wrapper files**
 
 ```typescript
 // For runtime tests
-import { executePlanAndCollect } from '@prisma-next/runtime/test/utils';
+import { executePlanAndCollect } from '@internal/runtime/test/utils';
 
 // For e2e tests
 import { executePlanAndCollect } from './utils';
 ```
 
-**Why?** The `@prisma-next/test-utils` package uses dependency injection with no dependencies on other `@prisma-next` packages. Wrapper files inject dependencies to prevent cyclic dependencies and enable proper type inference.
+**Why?** The `@repo/test-utils` package uses dependency injection with no dependencies on other `@internal/*` packages. Wrapper files inject dependencies to prevent cyclic dependencies and enable proper type inference.
 
 ### Type inference in `executePlanAndCollect`
 
@@ -794,7 +794,7 @@ const rows = await executePlanAndCollect(runtime, plan);
 type Row = ResultType<typeof plan>;  // Optional: for type tests
 ```
 
-**Why?** The wrapper functions use `ResultType<P>` from `@prisma-next/sql-query/types` to automatically infer the return type from the plan. Manual type parameters are unnecessary and can cause type inference issues.
+**Why?** The wrapper functions use `ResultType<P>` from `@internal/sql-query/types` to automatically infer the return type from the plan. Manual type parameters are unnecessary and can cause type inference issues.
 
 ### Bundling external dependencies
 
@@ -993,10 +993,10 @@ pnpm test:packages
 pnpm test:examples
 
 # Run tests for a specific package
-pnpm --filter @prisma-next/sql-runtime test
+pnpm --filter @internal/sql-runtime test
 
 # Run tests in watch mode
-pnpm --filter @prisma-next/sql-runtime test --watch
+pnpm --filter @internal/sql-runtime test --watch
 ```
 
 ### Coverage Commands
@@ -1006,7 +1006,7 @@ pnpm --filter @prisma-next/sql-runtime test --watch
 pnpm coverage:packages
 
 # Run tests with coverage for a specific package
-pnpm --filter @prisma-next/sql-runtime test:coverage
+pnpm --filter @internal/sql-runtime test:coverage
 
 # Run tests with coverage for all packages (including examples)
 pnpm test:coverage
@@ -1019,7 +1019,7 @@ pnpm test:coverage
 pnpm typecheck:packages
 
 # Type check a specific package
-pnpm --filter @prisma-next/sql-runtime typecheck
+pnpm --filter @internal/sql-runtime typecheck
 ```
 
 ---
@@ -1102,10 +1102,10 @@ Vitest config for MongoDB tests must set:
 - `testTimeout` and `hookTimeout` to `timeouts.spinUpDbServer` (30s base, scalable via `TEST_TIMEOUT_MULTIPLIER`)
 - `fileParallelism: false` — MongoDB tests cannot run in parallel within a single file
 
-Timeouts are available from `@prisma-next/test-utils`:
+Timeouts are available from `@repo/test-utils`:
 
 ```typescript
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 ```
 
 ### Where tests live

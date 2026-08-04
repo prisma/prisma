@@ -1,7 +1,7 @@
-import type { Contract, ContractModelBase } from '@prisma-next/contract/types';
-import { crossRef } from '@prisma-next/contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { Contract, ContractModelBase } from '@internal/contract/types';
+import { crossRef } from '@internal/contract/types';
+import { blindCast } from '@internal/utils/casts';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { mongoEmission } from '../src/index';
 import {

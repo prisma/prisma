@@ -1,5 +1,5 @@
-import { buildSignMarkerBootstrapQueries } from '@prisma-next/target-postgres/contract-free';
-import type { PostgresDdlNode } from '@prisma-next/target-postgres/ddl';
+import { buildSignMarkerBootstrapQueries } from '@internal/target-postgres/contract-free';
+import type { PostgresDdlNode } from '@internal/target-postgres/ddl';
 import { describe, expect, test } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';

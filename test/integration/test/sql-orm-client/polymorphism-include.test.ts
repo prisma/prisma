@@ -1,6 +1,6 @@
-import type { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
-import { Collection } from '@prisma-next/sql-orm-client';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { AsyncIterableResult } from '@internal/framework-components/runtime';
+import { Collection } from '@internal/sql-orm-client';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import {
   buildMixedPolyContract,

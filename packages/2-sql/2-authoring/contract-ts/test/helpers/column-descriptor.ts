@@ -1,4 +1,4 @@
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 
 export function columnDescriptor(
   codecId: string,

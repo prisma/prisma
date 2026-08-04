@@ -45,7 +45,7 @@ Go through **every comment ADDED by this branch** and remove the ones that don't
 
 ## Completed when
 - [ ] Every added comment reviewed against the criteria; narration/restatement/enumeration/transient-ref/removed-ref comments removed; mixed ones trimmed to the why; only non-obvious why-comments remain.
-- [ ] Gates green (proving no code was accidentally deleted): `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl typecheck && test`; `pnpm --filter @prisma-next/utils typecheck`.
+- [ ] Gates green (proving no code was accidentally deleted): `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl typecheck && test`; `pnpm --filter @internal/utils typecheck`.
 
 ## Report
 Return a per-file summary: which comments you REMOVED, which you TRIMMED (before→after gist), and which you KEPT with the one-line why each survived. Commit SHA(s). Flag any comment you were genuinely torn on for the orchestrator's call. Model tier: thorough (judgment per comment).

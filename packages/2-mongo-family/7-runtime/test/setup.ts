@@ -1,9 +1,9 @@
-import mongoRuntimeAdapter from '@prisma-next/adapter-mongo/runtime';
-import type { PlanMeta } from '@prisma-next/contract/types';
-import { createMongoDriver } from '@prisma-next/driver-mongo';
-import type { MongoCodecRegistry } from '@prisma-next/mongo-codec';
-import mongoRuntimeTarget from '@prisma-next/target-mongo/runtime';
-import { timeouts } from '@prisma-next/test-utils';
+import mongoRuntimeAdapter from '@internal/adapter-mongo/runtime';
+import type { PlanMeta } from '@internal/contract/types';
+import { createMongoDriver } from '@internal/driver-mongo';
+import type { MongoCodecRegistry } from '@internal/mongo-codec';
+import mongoRuntimeTarget from '@internal/target-mongo/runtime';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import {

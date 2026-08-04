@@ -1,4 +1,4 @@
-import type { ComparisonMethods, ModelAccessor } from '@prisma-next/sql-orm-client';
+import type { ComparisonMethods, ModelAccessor } from '@internal/sql-orm-client';
 import { describe, expectTypeOf, test } from 'vitest';
 import type { Contract } from './fixtures/generated/contract';
 
@@ -109,7 +109,7 @@ describe('ilike extension operation on text fields', () => {
     type IlikeFn = PostAccessor['title']['ilike'];
     expectTypeOf<IlikeFn>().toBeFunction();
     expectTypeOf<ReturnType<IlikeFn>>().toExtend<
-      import('@prisma-next/sql-relational-core/ast').AnyExpression
+      import('@internal/sql-relational-core/ast').AnyExpression
     >();
   });
 

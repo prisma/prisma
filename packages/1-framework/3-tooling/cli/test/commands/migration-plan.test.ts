@@ -1,17 +1,17 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
 import {
   formatMigrationDirName,
   readMigrationPackage,
   readMigrationsDir,
   writeMigrationPackage,
-} from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { findLeaf, reconstructGraph } from '@prisma-next/migration-tools/migration-graph';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { findLeaf, reconstructGraph } from '@internal/migration-tools/migration-graph';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { resolveBundleByPrefix } from '../../src/commands/migration-plan';
 
@@ -44,7 +44,7 @@ function attestedMetadata(
  * Mirrors the `writeTestPackage` helper in
  * `migration-tools/test/fixtures.ts` and `migration-e2e.test.ts`. The
  * cross-package consolidation into a published
- * `@prisma-next/migration-tools/testing` subpath is queued as a follow-up.
+ * `@internal/migration-tools/testing` subpath is queued as a follow-up.
  */
 async function writeTestPackage(
   dir: string,

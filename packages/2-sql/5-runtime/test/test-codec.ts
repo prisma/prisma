@@ -3,9 +3,9 @@
  *
  * The body is identical in spirit to the retired `mkCodec`: promise-lift sync author functions onto the framework-required `Promise<…>` boundary, default `encodeJson`/`decodeJson` to identity when `TInput` is JSON-safe, fail loudly otherwise.
  */
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecTrait } from '@prisma-next/framework-components/codec';
-import type { Codec, SqlCodecCallContext } from '@prisma-next/sql-relational-core/ast';
+import type { JsonValue } from '@internal/contract/types';
+import type { CodecTrait } from '@internal/framework-components/codec';
+import type { Codec, SqlCodecCallContext } from '@internal/sql-relational-core/ast';
 
 type JsonRoundTripConfig<TInput> = [TInput] extends [JsonValue]
   ? {

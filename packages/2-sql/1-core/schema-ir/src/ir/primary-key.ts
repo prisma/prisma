@@ -1,6 +1,6 @@
-import type { DiffableNode, SchemaNodeRef } from '@prisma-next/framework-components/control';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { DiffableNode, SchemaNodeRef } from '@internal/framework-components/control';
+import { freezeNode } from '@internal/framework-components/ir';
+import { blindCast } from '@internal/utils/casts';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './sql-schema-ir-node';
 

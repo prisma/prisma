@@ -1,5 +1,5 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
+import type { JsonValue } from '@internal/contract/types';
+import sqlFamilyDescriptor from '@internal/family-sql/control';
 import {
   type AnyCodecDescriptor,
   type CodecCallContext,
@@ -7,10 +7,10 @@ import {
   CodecImpl,
   type CodecInstanceContext,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import type { RuntimeExtensionDescriptor } from '@prisma-next/framework-components/execution';
+} from '@internal/framework-components/codec';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import type { RuntimeExtensionDescriptor } from '@internal/framework-components/execution';
 import {
   BinaryExpr,
   CodecJsonValueProjection,
@@ -24,20 +24,20 @@ import {
   SQL_CHAR_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import {
   type AnySqliteCodecDescriptor,
   sqliteCodec,
-} from '@prisma-next/target-sqlite/codec-descriptor';
+} from '@internal/target-sqlite/codec-descriptor';
 import {
   SQLITE_BIGINT_CODEC_ID,
   SQLITE_BLOB_CODEC_ID,
   SQLITE_JSON_CODEC_ID,
-} from '@prisma-next/target-sqlite/codec-ids';
-import { sqliteCodecDescriptorRegistry } from '@prisma-next/target-sqlite/codecs';
-import sqliteTargetControlDescriptor from '@prisma-next/target-sqlite/control';
-import sqliteRuntimeTargetDescriptor from '@prisma-next/target-sqlite/runtime';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/target-sqlite/codec-ids';
+import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
+import sqliteTargetControlDescriptor from '@internal/target-sqlite/control';
+import sqliteRuntimeTargetDescriptor from '@internal/target-sqlite/runtime';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createSqliteAdapter } from '../src/core/adapter';
@@ -387,7 +387,7 @@ describe('SQLite adapter codec registry composition', () => {
     );
   });
 
-  it('keeps descriptor JSON hooks dormant and preserves JSON object and array SQL', () => {
+  it('asks a composed descriptor how to project every JSON entry it owns', () => {
     let projectionCalls = 0;
     const descriptor = sqliteDescriptor({
       codecId: 'app/json-hook@1',
@@ -411,11 +411,15 @@ describe('SQLite adapter codec registry composition', () => {
     const runtime = runtimeAdapter.lower(ast, { contract });
     const control = controlAdapter.lower(ast, { contract });
 
+    // This descriptor's projection is the identity, so the SQL is unchanged —
+    // which is the point: a codec whose canonical JSON is its stored form
+    // renders as itself, and the renderer still had to ask to find that out.
+    // The call count is what says it asked, once per entry, on both paths.
     expect(runtime.sql).toBe(
       `SELECT json_object('value', "records"."value") AS "object", json_group_array("records"."value") AS "array" FROM "records"`,
     );
     expect(control).toEqual(runtime);
-    expect(projectionCalls).toBe(0);
+    expect(projectionCalls).toBe(4);
   });
 
   it('preserves built-in BLOB, bigint, and structured JSON representations', () => {
@@ -425,9 +429,9 @@ describe('SQLite adapter codec registry composition', () => {
     const json = registry.get(SQLITE_JSON_CODEC_ID);
     const document = { nested: ['value', 1, true, null] };
 
-    expect(blob?.encodeJson(new Uint8Array([1, 2, 3]))).toBe('AQID');
-    expect(bigint?.encodeJson(42n)).toBe(42);
-    expect(() => bigint?.encodeJson(9007199254740993n)).toThrow(/safe integer/);
+    expect(blob?.encodeJson(new Uint8Array([0x0a, 0xbc]))).toBe('0ABC');
+    expect(bigint?.encodeJson(42n)).toBe('42');
+    expect(bigint?.encodeJson(9007199254740993n)).toBe('9007199254740993');
     expect(json?.encodeJson(document)).toEqual(document);
   });
 });

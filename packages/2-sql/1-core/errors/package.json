@@ -1,6 +1,7 @@
 {
-  "name": "@prisma-next/sql-errors",
-  "version": "0.16.0",
+  "name": "@internal/sql-errors",
+  "private": true,
+  "version": "0.17.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -16,9 +17,9 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "devDependencies": {
-    "@prisma-next/test-utils": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.17.0",
+    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/tsdown": "workspace:0.17.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

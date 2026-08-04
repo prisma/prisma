@@ -1,30 +1,28 @@
 import {
+  type ApplicationDomain,
   type Contract,
   type ContractModelBase,
   coreHash,
   profileHash,
-} from '@prisma-next/contract/types';
-import type {
-  CodecDescriptor,
-  CodecMeta,
-  CodecTrait,
-} from '@prisma-next/framework-components/codec';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
+  UNBOUND_DOMAIN_NAMESPACE_ID,
+} from '@internal/contract/types';
+import type { CodecDescriptor, CodecTrait } from '@internal/framework-components/codec';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
 import {
   instantiateExecutionStack,
   type RuntimeDriverDescriptor,
-} from '@prisma-next/framework-components/execution';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ResultType } from '@prisma-next/framework-components/runtime';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import { canonicalizeJson } from '@prisma-next/framework-components/utils';
-import { builtinGeneratorIds } from '@prisma-next/ids';
-import { generateId } from '@prisma-next/ids/runtime';
+} from '@internal/framework-components/execution';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ResultType } from '@internal/framework-components/runtime';
+import { runtimeError } from '@internal/framework-components/runtime';
+import { canonicalizeJson } from '@internal/framework-components/utils';
+import { builtinGeneratorIds } from '@internal/ids';
+import { generateId } from '@internal/ids/runtime';
 import {
   SqlStorage,
   type SqlStorageInput,
   type StorageTableInput,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import type {
   Adapter,
   AnyQueryAst,
@@ -32,12 +30,10 @@ import type {
   ContractCodecRegistry,
   LoweredStatement,
   SelectAst,
-} from '@prisma-next/sql-relational-core/ast';
-import { SelectAst as SelectAstCtor, TableSource } from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { applicationDomainOf, collectAsync, drainAsyncIterable } from '@prisma-next/test-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
-import type { Client } from 'pg';
+} from '@internal/sql-relational-core/ast';
+import { SelectAst as SelectAstCtor, TableSource } from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { ifDefined } from '@internal/utils/defined';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { createExecutionContext, createSqlExecutionStack } from '../src/exports';
 import type {
@@ -57,6 +53,45 @@ function createTestMutationDefaultGenerators() {
     generate: (params?: Record<string, unknown>) => generateId(params ? { id, params } : { id }),
     stability: 'field' as const,
   }));
+}
+
+/**
+ * The slice of a SQL client the database helpers below use.
+ *
+ * Structural rather than `pg.Client`: this package is the target-agnostic SQL
+ * runtime, so its published test surface must not name a specific driver's
+ * client class — doing so put `pg` (a devDependency here) into declarations
+ * consumers install. A real `pg.Client` satisfies this as-is.
+ */
+export interface TestSqlClient {
+  query(text: string, values?: unknown[]): Promise<unknown>;
+}
+
+/** Collects every value an async iterable yields. */
+export async function collectAsync<T>(iterable: AsyncIterable<T>): Promise<T[]> {
+  const out: T[] = [];
+  for await (const item of iterable) {
+    out.push(item);
+  }
+  return out;
+}
+
+/** Exhausts an async iterable without retaining its values. */
+export async function drainAsyncIterable<T>(iterable: AsyncIterable<T>): Promise<void> {
+  for await (const _ of iterable) {
+    // exhaust iterator
+  }
+}
+
+function applicationDomainOf(params: {
+  readonly models?: Record<string, ContractModelBase>;
+  readonly namespaceId?: string;
+}): ApplicationDomain {
+  return {
+    namespaces: {
+      [params.namespaceId ?? UNBOUND_DOMAIN_NAMESPACE_ID]: { models: params.models ?? {} },
+    },
+  };
 }
 
 class TestSqlRuntime extends SqlRuntimeBase {}
@@ -115,11 +150,11 @@ export async function drainPlanExecution(
  * `bootstrapPostgresSignMarkerTables` from integration `postgres-bootstrap.ts`)
  * so this package does not depend on the postgres adapter/target packs.
  */
-export async function setupTestDatabase(
-  client: Client,
+export async function setupTestDatabase<TClient extends TestSqlClient>(
+  client: TClient,
   contract: Contract<SqlStorage>,
-  setupFn: (client: Client) => Promise<void>,
-  bootstrapMarkerTables: (client: Client) => Promise<void>,
+  setupFn: (client: TClient) => Promise<void>,
+  bootstrapMarkerTables: (client: TClient) => Promise<void>,
 ): Promise<void> {
   await client.query('drop schema if exists prisma_contract cascade');
   await client.query('create schema if not exists public');
@@ -146,7 +181,7 @@ export interface SeedMarkerInput {
  * which needs a `ControlDriverInstance`; these fixtures hold a raw `pg.Client`,
  * so they perform a minimal `INSERT` over the columns the runtime reads back.
  */
-export async function seedTestMarker(client: Client, input: SeedMarkerInput): Promise<void> {
+export async function seedTestMarker(client: TestSqlClient, input: SeedMarkerInput): Promise<void> {
   await client.query(
     `insert into prisma_contract.marker
        (space, core_hash, profile_hash, contract_json, canonical_version, invariants, updated_at)
@@ -167,7 +202,7 @@ export async function seedTestMarker(client: Client, input: SeedMarkerInput): Pr
  * {@link seedTestMarker} for the common "write the marker for this contract" case.
  */
 export async function writeTestContractMarker(
-  client: Client,
+  client: TestSqlClient,
   contract: Contract<SqlStorage>,
 ): Promise<void> {
   await seedTestMarker(client, {
@@ -221,7 +256,7 @@ export function buildTestContractCodecs(
 
 /**
  * Synthesize `CodecDescriptor`s from a codec array of non-parameterized codec instances. Test-only: the production synthesis bridge was retired under TML-2357. Lets the existing `createTestAdapterDescriptor` pattern keep wrapping a stub `Adapter` (whose `__codecs` slot still exposes the codec set) into the descriptor-list shape that `SqlStaticContributions.codecs:` now expects. The `Codec` instances carry
- * `traits`/`targetTypes`/`meta` via the SQL family extension; the structural narrow reads those fields directly.
+ * `traits`/`targetTypes` via the SQL family extension; the structural narrow reads those fields directly.
  */
 export function descriptorsFromCodecs(
   codecs: ReadonlyArray<Codec<string>>,
@@ -249,7 +284,6 @@ export function descriptorsFromCodecs(
     const legacy = instance as {
       readonly traits?: readonly CodecTrait[];
       readonly targetTypes?: readonly string[];
-      readonly meta?: CodecMeta;
     };
     descriptors.push({
       codecId: instance.id,
@@ -258,7 +292,6 @@ export function descriptorsFromCodecs(
       paramsSchema: acceptAnyParamsSchema,
       isParameterized: true,
       factory: () => () => instance,
-      ...(legacy.meta !== undefined ? { meta: legacy.meta } : {}),
     });
   }
   return descriptors;
@@ -495,15 +528,6 @@ export function createTestContract(
 export function stubAst(): AnyQueryAst {
   return SelectAstCtor.from(TableSource.named('stub'));
 }
-
-// Re-export generic utilities from test-utils
-export {
-  collectAsync,
-  createDevDatabase,
-  type DevDatabase,
-  teardownTestDatabase,
-  withClient,
-} from '@prisma-next/test-utils';
 
 // Re-export decode helpers so cross-package tests can exercise the row-decode
 // path (e.g. RUNTIME.DECODE_FAILED for a malformed many-element) without going

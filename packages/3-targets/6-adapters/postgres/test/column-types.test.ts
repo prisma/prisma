@@ -4,7 +4,7 @@ import { byteaColumn, jsonbColumn, jsonColumn } from '../src/exports/column-type
 // Phase C of the codec-registry-unification project retired the schema-
 // typed `json(schema)` / `jsonb(schema)` overloads from the postgres
 // adapter — schema-typed JSON now ships from per-library extension
-// packages (`@prisma-next/extension-arktype-json` for arktype). The
+// packages (`@internal/extension-arktype-json` for arktype). The
 // adapter retains only the static raw-JSON / raw-JSONB descriptors.
 
 describe('adapter-postgres column-types', () => {

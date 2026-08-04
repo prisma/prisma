@@ -20,7 +20,7 @@ Make the single shared ORM resolver surface a **complete** `through` descriptor 
 
 - [ ] `ResolvedRelation.through` is populated for an M:N relation including `targetColumns` and `requiredPayloadColumns`.
 - [ ] The resolver unit test covers cases (a)–(d) above and passes.
-- [ ] Gate: `pnpm --filter @prisma-next/sql-orm-client typecheck` + `pnpm --filter @prisma-next/sql-orm-client test` green.
+- [ ] Gate: `pnpm --filter @internal/sql-orm-client typecheck` + `pnpm --filter @internal/sql-orm-client test` green.
 
 ## Standing instruction
 
@@ -30,7 +30,7 @@ Stay focused on the goal; control scope. The judgment site here is the `required
 
 - Slice spec: `projects/sql-orm-many-to-many/slices/00-contract-resolver-foundation/spec.md` — the `ResolvedRelation` shape + § Open Questions working positions (array not boolean; carry `targetColumns` explicitly).
 - D1 commit `f962fd47d` — the contract `through` shape you read from.
-- Grounding: `collection-contract.ts:199` (`ResolvedRelation`), `:249` (`resolveModelRelations`). You'll need to find how the contract model storage exposes a column's **nullability and default-presence** (to compute `requiredPayloadColumns`) — grep the contract storage types (`ModelStorageField` / `ModelStorage` in `@prisma-next/contract` or `@prisma-next/sql-contract`).
+- Grounding: `collection-contract.ts:199` (`ResolvedRelation`), `:249` (`resolveModelRelations`). You'll need to find how the contract model storage exposes a column's **nullability and default-presence** (to compute `requiredPayloadColumns`) — grep the contract storage types (`ModelStorageField` / `ModelStorage` in `@internal/contract` or `@internal/sql-contract`).
 
 ## Operational metadata
 

@@ -1,6 +1,7 @@
-import type { MigrationPlanWithAuthoringSurface } from '@prisma-next/framework-components/control';
-import { Migration, type MigrationMeta } from '@prisma-next/migration-tools/migration';
-import type { AnyMongoMigrationOperation } from '@prisma-next/mongo-query-ast/control';
+import type { MigrationPlanWithAuthoringSurface } from '@internal/framework-components/control';
+import type { ImportSpecifierResolver } from '@internal/framework-components/emission';
+import { Migration, type MigrationMeta } from '@internal/migration-tools/migration';
+import type { AnyMongoMigrationOperation } from '@internal/mongo-query-ast/control';
 import type { OpFactoryCall } from './op-factory-call';
 import { renderOps } from './render-ops';
 import { renderCallsToTypeScript } from './render-typescript';
@@ -10,16 +11,15 @@ import { renderCallsToTypeScript } from './render-typescript';
  * and `MongoMigrationPlanner.emptyMigration(...)`.
  *
  * Unlike user-authored migrations (which extend `MongoMigration` from
- * `@prisma-next/family-mongo/migration`), this class lives inside the target
- * and holds the richer authoring IR (`OpFactoryCall[]`) needed to render
- * itself back to TypeScript source. It implements
- * `MigrationPlanWithAuthoringSurface` so that the CLI can uniformly ask any
- * planner result to serialize itself to a `migration.ts`.
+ * `@internal/family-mongo`), this class lives inside the target and holds
+ * the richer authoring IR (`OpFactoryCall[]`) needed to render itself back to
+ * TypeScript source. It implements `MigrationPlanWithAuthoringSurface` so
+ * that the CLI can uniformly ask any planner result to serialize itself to a
+ * `migration.ts`.
  *
- * Extends the framework `Migration` base class directly (not
- * `MongoMigration`) because `MongoMigration` lives in `@prisma-next/family-mongo`,
- * which depends on this package — extending it here would create a dependency
- * cycle.
+ * It extends the framework `Migration` base directly and declares its own
+ * `targetId` rather than inheriting `MongoMigration`, whose added value is
+ * the lazily-built contract views a planner result never reads.
  */
 export class PlannerProducedMongoMigration
   extends Migration<AnyMongoMigrationOperation>
@@ -43,11 +43,12 @@ export class PlannerProducedMongoMigration
     return this.meta;
   }
 
-  renderTypeScript(): string {
+  renderTypeScript(resolveImportSpecifier: ImportSpecifierResolver): string {
     return renderCallsToTypeScript(this.calls, {
       from: this.meta.from,
       to: this.meta.to,
       snapshotsImportPath: this.snapshotsImportPath,
+      resolveImportSpecifier,
     });
   }
 }

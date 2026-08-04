@@ -1,6 +1,6 @@
-import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
-import { buildSymbolTable, type SymbolTable } from '@prisma-next/psl-parser';
-import { type DocumentAst, parse, type SourceFile } from '@prisma-next/psl-parser/syntax';
+import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import { buildSymbolTable, type SymbolTable } from '@internal/psl-parser';
+import { type DocumentAst, parse, type SourceFile } from '@internal/psl-parser/syntax';
 import { type LspDiagnostic, mapParseDiagnostics } from './diagnostic-mapping';
 
 /**

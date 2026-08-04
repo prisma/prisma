@@ -1,5 +1,5 @@
-import type { SqlNamespace, StorageTable } from '@prisma-next/sql-contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { SqlNamespace, StorageTable } from '@internal/sql-contract/types';
+import { blindCast } from '@internal/utils/casts';
 
 type StorageLike = {
   readonly namespaces: Readonly<Record<string, unknown>>;

@@ -1,10 +1,10 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   ContractSpace,
   ContractSpaceHeadRef,
   MigrationPackage,
   MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import type { MigrationMetadata } from './metadata';
 
 /**

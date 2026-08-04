@@ -1,5 +1,5 @@
-import type { SqlControlAdapterDescriptor } from '@prisma-next/family-sql/control';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
+import type { SqlControlAdapterDescriptor } from '@internal/family-sql/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { assembleSqliteCodecRegistry } from '../core/codec-lookup';
 import { SqliteControlAdapter } from '../core/control-adapter';
 import {
@@ -29,9 +29,9 @@ export default sqliteAdapterDescriptor;
 // matching Postgres). Re-exported from the adapter so consumers — both
 // internal and downstream — see the same adapter-shaped surface across
 // SQL targets.
-export { parseSqliteDefault } from '@prisma-next/target-sqlite/default-normalizer';
-export { normalizeSqliteNativeType } from '@prisma-next/target-sqlite/native-type-normalizer';
-export { escapeLiteral, quoteIdentifier } from '@prisma-next/target-sqlite/sql-utils';
+export { parseSqliteDefault } from '@internal/target-sqlite/default-normalizer';
+export { normalizeSqliteNativeType } from '@internal/target-sqlite/native-type-normalizer';
+export { escapeLiteral, quoteIdentifier } from '@internal/target-sqlite/sql-utils';
 export {
   createSqliteBuiltinCodecLookup,
   createSqliteCodecRegistryWithBuiltins,

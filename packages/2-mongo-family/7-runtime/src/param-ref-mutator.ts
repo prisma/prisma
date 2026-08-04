@@ -1,8 +1,8 @@
-import { isPlainRecord } from '@prisma-next/contract/is-plain-record';
-import type { ParamRefMutator } from '@prisma-next/framework-components/runtime';
-import type { MongoLoweredDraft } from '@prisma-next/mongo-lowering';
-import { MongoParamRef } from '@prisma-next/mongo-value';
-import { blindCast } from '@prisma-next/utils/casts';
+import { isPlainRecord } from '@internal/contract/is-plain-record';
+import type { ParamRefMutator } from '@internal/framework-components/runtime';
+import type { MongoLoweredDraft } from '@internal/mongo-lowering';
+import { MongoParamRef } from '@internal/mongo-value';
+import { blindCast } from '@internal/utils/casts';
 
 /**
  * Phantom brand on {@link MongoParamRefHandle} so handles produced by

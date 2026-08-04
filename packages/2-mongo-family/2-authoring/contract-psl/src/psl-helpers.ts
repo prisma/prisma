@@ -1,6 +1,6 @@
-import type { ResolvedAttribute, ResolvedAttributeArg } from '@prisma-next/psl-parser';
-import { parseQuotedStringLiteral } from '@prisma-next/psl-parser';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { ResolvedAttribute, ResolvedAttributeArg } from '@internal/psl-parser';
+import { parseQuotedStringLiteral } from '@internal/psl-parser';
+import { ifDefined } from '@internal/utils/defined';
 
 export { parseQuotedStringLiteral };
 

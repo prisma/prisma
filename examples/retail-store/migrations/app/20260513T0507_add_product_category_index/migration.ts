@@ -1,7 +1,5 @@
 #!/usr/bin/env -S node
-import { MigrationCLI } from '@prisma-next/cli/migration-cli';
-import { Migration } from '@prisma-next/family-mongo/migration';
-import { createIndex } from '@prisma-next/target-mongo/migration';
+import { createIndex, Migration, MigrationCLI } from '@prisma/orm-mongo/target/migration';
 import type { Contract as End } from '../../snapshots/977a060afe52c4a56f93f2f33d65b8b6b4cc4ded04d16fe6b4f8e7e9e61192d3/contract';
 import endContract from '../../snapshots/977a060afe52c4a56f93f2f33d65b8b6b4cc4ded04d16fe6b4f8e7e9e61192d3/contract.json' with {
   type: 'json',

@@ -1,17 +1,17 @@
-import { CliStructuredError } from '@prisma-next/errors/control';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+import { CliStructuredError } from '@internal/errors/control';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import {
   PrimaryKey,
   SqlForeignKeyIR,
   SqlIndexIR,
   SqlUniqueIR,
-} from '@prisma-next/sql-schema-ir/types';
-import { normalizeSchemaNativeType } from '@prisma-next/target-postgres/native-type-normalizer';
+} from '@internal/sql-schema-ir/types';
+import { normalizeSchemaNativeType } from '@internal/target-postgres/native-type-normalizer';
 import type {
   PostgresDatabaseSchemaNode,
   PostgresTableSchemaNode,
-} from '@prisma-next/target-postgres/types';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/types';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import {
@@ -984,8 +984,7 @@ describe('PostgresControlAdapter', () => {
 
       expect(tablesOf(result)['user']?.indexes).toEqual([
         new SqlIndexIR({
-          name: 'user_name_idx',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'user_name_idx' },
           columns: ['name'],
           where: undefined,
           unique: false,
@@ -1060,8 +1059,7 @@ describe('PostgresControlAdapter', () => {
 
       expect(tablesOf(result)['user']?.indexes).toEqual([
         new SqlIndexIR({
-          name: 'user_email_tenant_idx',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'user_email_tenant_idx' },
           columns: ['email', 'tenant_id'],
           where: undefined,
           unique: false,
@@ -1163,8 +1161,7 @@ describe('PostgresControlAdapter', () => {
       // The partial-index predicate rides along as `where`.
       expect(tablesOf(result)['user']?.indexes).toEqual([
         new SqlIndexIR({
-          name: 'user_idx',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'user_idx' },
           expression: 'lower(email), id',
           where: '(id > 0)',
           unique: false,

@@ -1,7 +1,7 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { fileURLToPath } from 'node:url';
-import { createDevDatabase, type DevDatabase, withClient } from '@prisma-next/test-utils';
+import { createDevDatabase, type DevDatabase, withClient } from '@repo/test-utils';
 import { dirname, join, resolve } from 'pathe';
 
 /**
@@ -162,7 +162,7 @@ async function initializeBackendSchema(database: DevDatabase): Promise<void> {
     'pnpm',
     [
       '--filter',
-      '@prisma-next/telemetry-backend',
+      'telemetry-backend',
       'exec',
       'prisma-next',
       'db',
@@ -246,7 +246,7 @@ async function stopBackend(backend: BackendProcess): Promise<void> {
 }
 
 // The dev Postgres' default `databaseIdleTimeoutMillis` (1000ms in
-// `@prisma-next/test-utils`) is too aggressive for this suite: any
+// `@repo/test-utils`) is too aggressive for this suite: any
 // backend pg-pool connection that idles past one second between test
 // cases gets killed server-side, which the production driver's pool
 // surfaces as an unhandled `'error'` event and crashes the backend

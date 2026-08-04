@@ -1,8 +1,5 @@
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type {
-  ContractCodecRegistry,
-  SqlCodecCallContext,
-} from '@prisma-next/sql-relational-core/ast';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { ContractCodecRegistry, SqlCodecCallContext } from '@internal/sql-relational-core/ast';
 import { encodeParamsWithMetadata } from '../codecs/encoding';
 import type { PreparedStatementInternals } from './prepared-statement';
 

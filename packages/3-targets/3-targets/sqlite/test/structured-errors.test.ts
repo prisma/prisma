@@ -1,8 +1,8 @@
-import { CheckExpressionConstraint } from '@prisma-next/sql-relational-core/ast';
-import { col } from '@prisma-next/sql-relational-core/contract-free';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { CheckExpressionConstraint } from '@internal/sql-relational-core/ast';
+import { col } from '@internal/sql-relational-core/contract-free';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
-import { sqliteBigintDescriptor } from '../src/core/codecs';
+import { sqliteBigintDescriptor, sqliteRealDescriptor } from '../src/core/codecs';
 import sqliteControlTargetDescriptor from '../src/core/control-target';
 import { CreateTableCall, DropTableCall } from '../src/core/migrations/op-factory-call';
 import {
@@ -51,23 +51,23 @@ describe('structured error codes', () => {
     });
   });
 
-  it('bigint codec decode of a string raises RUNTIME.DECODE_FAILED', () => {
+  it('bigint codec decode of a number raises RUNTIME.DECODE_FAILED', () => {
     const bigintCodec = sqliteBigintDescriptor.factory()({ name: 'test' });
-    const error = capture(() => bigintCodec.decodeJson('42'));
+    const error = capture(() => bigintCodec.decodeJson(42));
     expect(isStructuredError(error)).toBe(true);
     expect(error).toMatchObject({
       code: 'RUNTIME.DECODE_FAILED',
-      message: 'sqlite/bigint@1 database JSON value must be a number',
+      message: 'sqlite/bigint@1 database JSON value must be a decimal string',
     });
   });
 
-  it('bigint codec encodeJson of an unsafe integer raises RUNTIME.ENCODE_FAILED', () => {
-    const bigintCodec = sqliteBigintDescriptor.factory()({ name: 'test' });
-    const error = capture(() => bigintCodec.encodeJson(2n ** 63n));
+  it('real codec encodeJson of a non-finite value raises RUNTIME.ENCODE_FAILED', () => {
+    const realCodec = sqliteRealDescriptor.factory()({ name: 'test' });
+    const error = capture(() => realCodec.encodeJson(Number.POSITIVE_INFINITY));
     expect(isStructuredError(error)).toBe(true);
     expect(error).toMatchObject({
       code: 'RUNTIME.ENCODE_FAILED',
-      message: 'sqlite/bigint@1 database JSON value must be a safe integer',
+      message: 'sqlite/real@1 value must be a finite number',
     });
   });
 

@@ -4,7 +4,7 @@
  * These descriptors provide both codecId and nativeType for use in contract authoring. They are derived from the same source of truth as codec definitions and manifests.
  */
 
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import {
   PG_BIT_CODEC_ID,
   PG_BOOL_CODEC_ID,
@@ -26,7 +26,7 @@ import {
   PG_VARBIT_CODEC_ID,
   SQL_CHAR_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
-} from '@prisma-next/target-postgres/codec-ids';
+} from '@internal/target-postgres/codec-ids';
 
 export const textColumn = {
   codecId: PG_TEXT_CODEC_ID,
@@ -169,7 +169,7 @@ export function intervalColumn(precision?: number): ColumnTypeDescriptor & {
 /**
  * Postgres `json` column descriptor — untyped raw JSON.
  *
- * For schema-typed JSON columns, use the per-library extension package (`@prisma-next/extension-arktype-json` ships `arktypeJson(schema)` for arktype). The schema-accepting `json(schema)` / `jsonb(schema)` overloads previously shipped from this module retired in Phase C of the codec-registry-unification project — see spec § AC-7.
+ * For schema-typed JSON columns, use the per-library extension package (`@internal/extension-arktype-json` ships `arktypeJson(schema)` for arktype). The schema-accepting `json(schema)` / `jsonb(schema)` overloads previously shipped from this module retired in Phase C of the codec-registry-unification project — see spec § AC-7.
  */
 export const jsonColumn = {
   codecId: PG_JSON_CODEC_ID,

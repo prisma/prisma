@@ -1,4 +1,4 @@
-# @prisma-next/sql-relational-core
+# @internal/sql-relational-core
 
 Schema and column builders, operation attachment, and AST types for Prisma Next.
 
@@ -108,7 +108,7 @@ import {
   voidParamsSchema,
   type CodecCallContext,
   type CodecInstanceContext,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 
 class PgTextCodec extends CodecImpl<'pg/text@1', readonly ['equality'], string, string> {
   override readonly id = 'pg/text@1';
@@ -173,12 +173,12 @@ See [ADR 204 — Single-Path Async Codec Runtime](../../../../docs/architecture%
 
 ## Dependencies
 
-- **`@prisma-next/contract`**: Core contract types
-- **`@prisma-next/operations`**: Operation registry used by schema builders
-- **`@prisma-next/sql-contract`**: SQL contract types (via `@prisma-next/sql-contract/types`)
+- **`@internal/contract`**: Core contract types
+- **`@internal/operations`**: Operation registry used by schema builders
+- **`@internal/sql-contract`**: SQL contract types (via `@internal/sql-contract/types`)
 - **`arktype`**: Parameter schema typing for codec definitions
 
-**Note**: This package does not depend on specific adapters (e.g., `@prisma-next/adapter-postgres`). Test fixtures define `CodecTypes` inline to remain adapter-agnostic and avoid cyclic dependencies.
+**Note**: This package does not depend on specific adapters (e.g., `@internal/adapter-postgres`). Test fixtures define `CodecTypes` inline to remain adapter-agnostic and avoid cyclic dependencies.
 
 ## Package Structure
 
@@ -192,7 +192,7 @@ This package follows the standard `exports/` directory pattern:
 - `src/exports/ast.ts` - Re-exports SQL AST types
 - `src/index.ts` - Main entry point that re-exports from `exports/`
 
-This enables subpath imports like `@prisma-next/sql-relational-core/schema`, `@prisma-next/sql-relational-core/param`, `@prisma-next/sql-relational-core/plan`, etc.
+This enables subpath imports like `@internal/sql-relational-core/schema`, `@internal/sql-relational-core/param`, `@internal/sql-relational-core/plan`, etc.
 
 ## Related Subsystems
 

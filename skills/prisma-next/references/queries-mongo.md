@@ -1,12 +1,12 @@
 # Prisma Next — Queries (Mongo)
 
-> Load this guide when `db.ts` imports from `@prisma-next/mongo/runtime`.
+> Load this guide when `db.ts` imports from `@internal/mongo/runtime`.
 
 Shared concepts (result consumption, script teardown, cross-target pitfalls, capability gaps) live in [`queries.md`](./queries.md).
 
 ## Key Concepts
 
-**Mongo** (`mongo<Contract>(...)` from `@prisma-next/mongo/runtime`):
+**Mongo** (`mongo<Contract>(...)` from `@internal/mongo/runtime`):
 
 - **`db.orm.<root>`** — ORM, lowercased plural contract root (`db.orm.users`, `db.orm.posts`). Same fluent chaining; `.where({ field: value })` object equality is the idiomatic filter form.
 - **`db.query`** — typed aggregation-pipeline builder. Start with `db.query.from('<root>')`, chain `.match(...)` / `.project(...)` / `.group(...)` / `.lookup(...)`, terminal with `.build()`. Execute via `(await db.runtime()).execute(plan)`.
@@ -49,7 +49,7 @@ const recent = await db.orm.posts
 
 **`.where(...)`** accepts a plain object whose keys are model field names and values are compared with equality (codec-aware — `ObjectId` fields accept string ids from the contract). Chain multiple `.where({ ... })` calls to AND-compose filters.
 
-For operators the object form doesn't cover (`.in([...])`, range comparisons, nested logic), pass a `MongoFilterExpr` — today that means importing filter helpers from `@prisma-next/mongo-query-ast/execution` (a façade-completeness gap; see *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md)). Prefer the object form whenever equality suffices.
+For operators the object form doesn't cover (`.in([...])`, range comparisons, nested logic), pass a `MongoFilterExpr` — today that means importing filter helpers from `@internal/mongo-query-ast/execution` (a façade-completeness gap; see *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md)). Prefer the object form whenever equality suffices.
 
 **Polymorphic roots.** When the contract declares variants on a model, narrow before querying:
 
@@ -123,7 +123,7 @@ await db.orm.users.where({ email: 'alice@example.com' }).upsert({
 The Mongo ORM does not expose `.aggregate(...)` / `.groupBy(...)`. Express aggregations through **`db.query`** — the pipeline builder — with `.group(...)` and accumulator helpers:
 
 ```typescript
-import { acc } from '@prisma-next/mongo-query-builder';
+import { acc } from '@internal/mongo-query-builder';
 
 const runtime = await db.runtime();
 const plan = db.query
@@ -140,7 +140,7 @@ const plan = db.query
 const byKind = await runtime.execute(plan);
 ```
 
-Import `acc` and expression helpers (`fn`) from `@prisma-next/mongo-query-builder` when building computed pipeline stages.
+Import `acc` and expression helpers (`fn`) from `@internal/mongo-query-builder` when building computed pipeline stages.
 
 ## Workflow — Query builder (`db.query`)
 
@@ -148,7 +148,7 @@ The concept: `db.query.from('<root>')` starts a typed aggregation-pipeline chain
 
 ```typescript
 // src/queries/analytics.ts
-import { acc, fn } from '@prisma-next/mongo-query-builder';
+import { acc, fn } from '@internal/mongo-query-builder';
 import { db } from '../prisma/db';
 
 const runtime = await db.runtime();

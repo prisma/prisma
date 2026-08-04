@@ -6,8 +6,8 @@ import {
   type InsertAst,
   LiteralExpr,
   type SelectAst,
-} from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it, vi } from 'vitest';
 import { Collection } from '../src/collection';
 import { withReturningCapability } from './collection-fixtures';

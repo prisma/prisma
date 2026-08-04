@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import {
   buildNamespacedEntities,
   buildSingleNamespaceView,
   type DefaultNamespaceEntries,
   type NamespacedEntities,
   type SingleNamespaceView,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import type { SqlStorage } from './ir/sql-storage';
 
 /**

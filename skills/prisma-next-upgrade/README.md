@@ -4,14 +4,14 @@ An agent skill that upgrades a project consuming Prisma Next from one minor vers
 
 ## Audience
 
-This skill is for **users** of Prisma Next — projects that depend on the public package API (`@prisma-next/postgres`, `@prisma-next/mongo`, the contract files in `prisma/`, etc.).
+This skill is for **users** of Prisma Next — projects that depend on the public package API (`@internal/postgres`, `@internal/mongo`, the contract files in `prisma/`, etc.).
 
-If you are an extension author, install the [`prisma-next-extension-upgrade`](../prisma-next-extension-upgrade/SKILL.md) skill instead. If your repo contains both an app and an extension, install both.
+If you are an extension author, install the [`prisma-8-extension-upgrade`](../prisma-8-extension-upgrade/SKILL.md) skill instead. If your repo contains both an app and an extension, install both.
 
 ## Installation
 
 ```bash
-pnpm dlx skills add prisma/prisma-next/skills --skill prisma-next-upgrade -y
+pnpm dlx skills add prisma/prisma/skills --skill prisma-next-upgrade -y
 ```
 
 `--skill` selects this skill from the shared `skills` source and `-y` skips the confirmation prompt. To limit the install to one agent runtime, add `-a <agent>` (e.g. `-a claude-code`).

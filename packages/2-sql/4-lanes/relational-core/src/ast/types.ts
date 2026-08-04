@@ -1,9 +1,9 @@
-import type { ParamSpec } from '@prisma-next/operations';
-import type { SqlLoweringSpec } from '@prisma-next/sql-operations';
+import type { ParamSpec } from '@internal/operations';
+import type { SqlLoweringSpec } from '@internal/sql-operations';
 
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { structuredError } from '@internal/utils/structured-error';
 import { type CodecRef, frozenCodecRef } from './codec-types';
 import type { AnyJsonValueProjection } from './json-value-projection';
 

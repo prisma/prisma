@@ -1,5 +1,5 @@
-import type { OnDiskMigrationPackage } from '@prisma-next/migration-tools/package';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import type { OnDiskMigrationPackage } from '@internal/migration-tools/package';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { isAbsolute, relative, resolve } from 'pathe';
 import { type CliStructuredError, errorRuntime } from './cli-errors';
 

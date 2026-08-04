@@ -1,6 +1,6 @@
-import type { CodecControlHooks } from '@prisma-next/family-sql/control';
-import type { StorageColumn, StorageTypeInstance } from '@prisma-next/sql-contract/types';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { CodecControlHooks } from '@internal/family-sql/control';
+import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
 
 /**
  * Resolves the identity value (monoid neutral element) as a SQL literal for a column's type.

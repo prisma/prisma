@@ -1,5 +1,5 @@
-import { uuidv4 } from '@prisma-next/ids';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
+import { uuidv4 } from '@internal/ids';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
 
 export const contract = defineContract({
   models: {

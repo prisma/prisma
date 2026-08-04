@@ -1,5 +1,5 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlAdapterInstance,
   ControlFamilyInstance,
@@ -8,8 +8,8 @@ import type {
   MigrationPlannerConflict,
   MigrationPlanOperation,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-import type { Result } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import type { Result } from '@internal/utils/result';
 import type { PathDecision } from '../migration-graph';
 import type { ContractMarkerRecordLike } from './marker-types';
 import type { ContractSpaceAggregate } from './types';

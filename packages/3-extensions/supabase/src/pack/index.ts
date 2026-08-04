@@ -1,5 +1,5 @@
-import type { SqlControlExtensionDescriptor } from '@prisma-next/family-sql/control';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
+import { blindCast } from '@internal/utils/casts';
 import packageJson from '../../package.json' with { type: 'json' };
 import type { Contract } from '../contract/contract.d';
 import contractJson from '../contract/contract.json' with { type: 'json' };

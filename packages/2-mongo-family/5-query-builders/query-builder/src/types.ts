@@ -5,8 +5,8 @@ import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoModelsMap,
-} from '@prisma-next/mongo-contract';
-import type { MongoAggAccumulator, MongoAggExpr } from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-contract';
+import type { MongoAggAccumulator, MongoAggExpr } from '@internal/mongo-query-ast/execution';
 import type { ModelArrayField, ModelOriginBrand, ModelOriginBranded } from './resolve-path';
 
 export interface DocField {
@@ -86,7 +86,7 @@ type ResolveFields<
  *  1. Detect the `ModelOriginBrand` on `Shape` — the phantom symbol
  *     placed by `ModelToDocShape`. When present (and the contract has
  *     type maps), the row is resolved via `InferModelRow<TC, M>` from
- *     `@prisma-next/mongo-contract`, which walks scalar / valueObject /
+ *     `@internal/mongo-contract`, which walks scalar / valueObject /
  *     union field kinds (handling nested value-objects and `many: true`).
  *     This makes entry-point reads (`q.from('users').build()`) and
  *     shape-extending stages (`match`, `addFields`) resolve value-object

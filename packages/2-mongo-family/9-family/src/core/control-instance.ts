@@ -1,9 +1,5 @@
-import type {
-  Contract,
-  ContractMarkerRecord,
-  LedgerEntryRecord,
-} from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlDriverInstance,
   ControlFamilyInstance,
@@ -16,20 +12,20 @@ import type {
   SignDatabaseResult,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
   VERIFY_CODE_HASH_MISMATCH,
   VERIFY_CODE_MARKER_MISSING,
   VERIFY_CODE_TARGET_MISMATCH,
-} from '@prisma-next/framework-components/control';
-import { assertDescriptorSelfConsistency } from '@prisma-next/migration-tools/spaces';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/canonicalization-hooks';
-import type { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/control';
+import { assertDescriptorSelfConsistency } from '@internal/migration-tools/spaces';
+import type { MongoContract } from '@internal/mongo-contract';
+import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
+import type { MongoSchemaIR } from '@internal/mongo-schema-ir';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { structuredError } from '@internal/utils/structured-error';
 import type { MongoControlAdapter, MongoControlAdapterDescriptor } from './control-adapter';
 import type { MongoControlExtensionDescriptor } from './control-types';
 import { MongoContractSerializer } from './ir/mongo-contract-serializer';

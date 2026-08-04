@@ -1,4 +1,4 @@
-import type { MongoContract, MongoStorage } from '@prisma-next/mongo-contract';
+import type { MongoContract, MongoStorage } from '@internal/mongo-contract';
 
 /**
  * Mongo target contract envelope: the result of

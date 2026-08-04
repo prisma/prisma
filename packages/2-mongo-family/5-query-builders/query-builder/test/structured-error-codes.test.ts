@@ -1,5 +1,5 @@
-import { InsertOneCommand } from '@prisma-next/mongo-query-ast/execution';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { InsertOneCommand } from '@internal/mongo-query-ast/execution';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import type { PipelineChain } from '../src/builder';
 import { mongoQuery } from '../src/query';

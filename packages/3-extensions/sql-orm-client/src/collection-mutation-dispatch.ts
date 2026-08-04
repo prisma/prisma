@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import type { Contract } from '@internal/contract/types';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { resolvePolymorphismInfo } from './collection-contract';
 import { reloadMutationRowsByIdentities } from './collection-dispatch';
 import {

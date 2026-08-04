@@ -1,11 +1,11 @@
-import { createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import { createDevDatabase, timeouts } from '@repo/test-utils';
 import type { Client, Pool } from 'pg';
 import { newDb } from 'pg-mem';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
 
-describe('@prisma-next/driver-postgres runtime driver lifecycle', () => {
+describe('@internal/driver-postgres runtime driver lifecycle', () => {
   let cleanup: (() => Promise<void>) | undefined;
 
   afterEach(async () => {

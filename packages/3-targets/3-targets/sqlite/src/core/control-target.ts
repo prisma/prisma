@@ -1,16 +1,13 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlControlTargetDescriptor } from '@prisma-next/family-sql/control';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
+import type { Contract } from '@internal/contract/types';
+import type { SqlControlTargetDescriptor } from '@internal/family-sql/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import type {
   ControlTargetInstance,
   MigrationPlanner,
   MigrationRunner,
-} from '@prisma-next/framework-components/control';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import {
-  relationalNodeEntityKind,
-  relationalNodeGranularity,
-} from '@prisma-next/sql-schema-ir/types';
+} from '@internal/framework-components/control';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { relationalNodeEntityKind, relationalNodeGranularity } from '@internal/sql-schema-ir/types';
 import { sqliteTargetDescriptorMeta } from './descriptor-meta';
 import { sqliteError } from './errors';
 import { diffSqliteSchema, sqliteContractToSchema } from './migrations/diff-database-schema';

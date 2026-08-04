@@ -1,5 +1,5 @@
-import { createSqlOperationRegistry } from '@prisma-next/sql-operations';
-import type { CodecTrait } from '@prisma-next/sql-relational-core/ast';
+import { createSqlOperationRegistry } from '@internal/sql-operations';
+import type { CodecTrait } from '@internal/sql-relational-core/ast';
 import {
   AndExpr,
   BinaryExpr,
@@ -15,7 +15,7 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { buildPairedColumnExprs, createModelAccessor } from '../src/model-accessor';
 import {

@@ -17,10 +17,11 @@
  * aggregator are covered in op-factory-call.rendering.test.ts.
  */
 
-import type { CodecControlHooks } from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import type { StorageColumn } from '@prisma-next/sql-contract/types';
-import { col } from '@prisma-next/sql-relational-core/contract-free';
+import type { CodecControlHooks } from '@internal/family-sql/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import type { StorageColumn } from '@internal/sql-contract/types';
+import { col } from '@internal/sql-relational-core/contract-free';
 import {
   AddColumnCall,
   AddForeignKeyCall,
@@ -42,11 +43,11 @@ import {
   RawSqlCall,
   SetDefaultCall,
   SetNotNullCall,
-} from '@prisma-next/target-postgres/op-factory-call';
-import { resolveIdentityValue } from '@prisma-next/target-postgres/planner-identity-values';
-import { TypeScriptRenderablePostgresMigration } from '@prisma-next/target-postgres/planner-produced-postgres-migration';
-import { renderOps } from '@prisma-next/target-postgres/render-ops';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/target-postgres/op-factory-call';
+import { resolveIdentityValue } from '@internal/target-postgres/planner-identity-values';
+import { TypeScriptRenderablePostgresMigration } from '@internal/target-postgres/planner-produced-postgres-migration';
+import { renderOps } from '@internal/target-postgres/render-ops';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';
@@ -259,9 +260,9 @@ describe('TypeScriptRenderablePostgresMigration', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const source = migration.renderTypeScript();
+    const source = migration.renderTypeScript(keepInternalSpecifiers);
     expect(source).toContain(
-      "import { Migration, MigrationCLI } from '@prisma-next/postgres/migration';",
+      "import { Migration, MigrationCLI } from '@internal/postgres/migration';",
     );
     expect(source).toContain('this.dropTable({ schema: "public", table: "stale" })');
   });

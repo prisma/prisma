@@ -28,7 +28,7 @@ The capture workflow is documented in [`.claude/skills/record-gotchas/SKILL.md`]
 **First hit:** running the migration-graph demo fixtures end-to-end while writing the public migrations docs
 **Cost:** ~30 minutes (ruling out my own setup before reading the snapshots)
 
-**Symptom.** The graph fixtures under `examples/prisma-next-demo/fixtures/` render fine with the offline commands, but applying one against a live database fails before any SQL runs:
+**Symptom.** The graph fixtures under `examples/prisma-8-demo/fixtures/` render fine with the offline commands, but applying one against a live database fails before any SQL runs:
 
 ```text
 $ pnpm prisma-next migrate --to prod --db $DB --config fixtures/diamond/prisma-next.config.ts
@@ -45,11 +45,11 @@ $ pnpm prisma-next migrate --to prod --db $DB --config fixtures/diamond/prisma-n
 
 **Reproduction.**
 1. `docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres:17-alpine`, create any empty database.
-2. `cd examples/prisma-next-demo && pnpm prisma-next contract emit --config fixtures/diamond/prisma-next.config.ts`
+2. `cd examples/prisma-8-demo && pnpm prisma-next contract emit --config fixtures/diamond/prisma-next.config.ts`
 3. `pnpm prisma-next migrate --to prod --db <url> --config fixtures/diamond/prisma-next.config.ts` → PN-CLI-4003 as above.
 
 **References.**
-- Fixture snapshot: [`examples/prisma-next-demo/fixtures/diamond/migrations/snapshots/93be6c200743261baf55f0586b1380a1c0ade3c48730c09a8fec71ba419c2464/contract.json`](examples/prisma-next-demo/fixtures/diamond/migrations/snapshots/93be6c200743261baf55f0586b1380a1c0ade3c48730c09a8fec71ba419c2464/contract.json)
+- Fixture snapshot: [`examples/prisma-8-demo/fixtures/diamond/migrations/snapshots/93be6c200743261baf55f0586b1380a1c0ade3c48730c09a8fec71ba419c2464/contract.json`](examples/prisma-8-demo/fixtures/diamond/migrations/snapshots/93be6c200743261baf55f0586b1380a1c0ade3c48730c09a8fec71ba419c2464/contract.json)
 - Restructure that moved the format: #894
 
 ---

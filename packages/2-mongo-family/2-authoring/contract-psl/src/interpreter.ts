@@ -1,8 +1,8 @@
 import type {
   ContractSourceDiagnostic,
   ContractSourceDiagnostics,
-} from '@prisma-next/config/config-types';
-import { computeProfileHash, computeStorageHash } from '@prisma-next/contract/hashing';
+} from '@internal/config/config-types';
+import { computeProfileHash, computeStorageHash } from '@internal/contract/hashing';
 import {
   type Contract,
   type ContractEnum,
@@ -13,19 +13,19 @@ import {
   crossRef,
   type JsonValue,
   type ValueSetRef,
-} from '@prisma-next/contract/types';
-import type { EnumTypeHandle } from '@prisma-next/contract-authoring';
-import { errorEnumCodecNotInPackStack } from '@prisma-next/errors/control';
+} from '@internal/contract/types';
+import type { EnumTypeHandle } from '@internal/contract-authoring';
+import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
 import type {
   AuthoringContributions,
   AuthoringEntityContext,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import {
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
-} from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoNamespace,
@@ -34,9 +34,9 @@ import {
   type MongoIndexKeyDirection,
   MongoStorage,
   type MongoValueSetInput,
-} from '@prisma-next/mongo-contract';
-import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/canonicalization-hooks';
-import type { CollationOptions } from '@prisma-next/mongo-value/mongodb-types';
+} from '@internal/mongo-contract';
+import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
+import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type {
   CompositeTypeSymbol,
   FieldSymbol,
@@ -46,13 +46,13 @@ import type {
   PslSpan,
   ResolvedAttribute,
   SymbolTable,
-} from '@prisma-next/psl-parser';
-import { nodePslSpan } from '@prisma-next/psl-parser';
-import type { SourceFile } from '@prisma-next/psl-parser/syntax';
-import { assertDefined } from '@prisma-next/utils/assertions';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/psl-parser';
+import { nodePslSpan } from '@internal/psl-parser';
+import type { SourceFile } from '@internal/psl-parser/syntax';
+import { assertDefined } from '@internal/utils/assertions';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { deriveJsonSchema, derivePolymorphicJsonSchema } from './derive-json-schema';
 import {
   getAttribute,

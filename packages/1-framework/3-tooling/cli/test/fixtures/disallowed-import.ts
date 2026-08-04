@@ -1,8 +1,8 @@
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
-import { int4Column, textColumn } from '@prisma-next/test-utils/column-descriptors';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
 // @ts-expect-error - This import is intentionally disallowed for testing
 import { something } from 'some-other-package';
 import { createTestSqlNamespace } from '../../../../../2-sql/1-core/contract/test/test-support';
+import { int4Column, textColumn } from '../helpers/column-descriptors';
 import { postgresPack } from '../helpers/postgres-pack';
 import { sqlFamilyPack } from '../helpers/sql-family-pack';
 

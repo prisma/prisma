@@ -1,4 +1,4 @@
-# @prisma-next/sql-operations
+# @internal/sql-operations
 
 SQL-specific operation types and registry for Prisma Next.
 
@@ -10,7 +10,7 @@ SQL-specific operation types and registry for Prisma Next.
 
 ## Overview
 
-This package provides SQL-specific operation types that extend the generic `OperationRegistry` from `@prisma-next/operations` with SQL lowering specs. It lives in the shared plane to allow both migration-plane (emitter/CLI) and runtime-plane (lanes/runtime) packages to import operation types without violating plane boundaries. The package contains only types and pure helpers (no pack I/O, no manifest assembly); manifest assembly is handled by the CLI/tooling layer.
+This package provides SQL-specific operation types that extend the generic `OperationRegistry` from `@internal/operations` with SQL lowering specs. It lives in the shared plane to allow both migration-plane (emitter/CLI) and runtime-plane (lanes/runtime) packages to import operation types without violating plane boundaries. The package contains only types and pure helpers (no pack I/O, no manifest assembly); manifest assembly is handled by the CLI/tooling layer.
 
 ## Responsibilities
 
@@ -27,31 +27,31 @@ This package provides SQL-specific operation types that extend the generic `Oper
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/operations` (core operation registry types)
+  - `@internal/operations` (core operation registry types)
 - **Depended on by**:
-  - `@prisma-next/sql-relational-core` (uses for operation execution)
-  - `@prisma-next/sql-runtime` (uses for operation signature types)
-  - `@prisma-next/cli` (uses types when assembling registries from packs)
+  - `@internal/sql-relational-core` (uses for operation execution)
+  - `@internal/sql-runtime` (uses for operation signature types)
+  - `@internal/cli` (uses types when assembling registries from packs)
 
 ## Architecture
 
 ```mermaid
 flowchart TD
     subgraph "Core Ring (Shared Plane)"
-        OPS[@prisma-next/operations]
-        SQL_OPS[@prisma-next/sql-operations]
+        OPS[@internal/operations]
+        SQL_OPS[@internal/sql-operations]
     end
 
     subgraph "Tooling Ring (Migration Plane)"
-        CLI[@prisma-next/cli]
+        CLI[@internal/cli]
     end
 
     subgraph "Lanes Ring (Runtime Plane)"
-        REL_CORE[@prisma-next/sql-relational-core]
+        REL_CORE[@internal/sql-relational-core]
     end
 
     subgraph "Runtime Ring (Runtime Plane)"
-        SQL_RUNTIME[@prisma-next/sql-runtime]
+        SQL_RUNTIME[@internal/sql-runtime]
     end
 
     OPS --> SQL_OPS
@@ -68,7 +68,7 @@ flowchart TD
 import {
   createSqlOperationRegistry,
   type SqlOperationDescriptor,
-} from '@prisma-next/sql-operations';
+} from '@internal/sql-operations';
 
 const registry = createSqlOperationRegistry();
 
@@ -84,7 +84,7 @@ const entries = registry.entries(); // Record<string, SqlOperationEntry>
 
 ### Assembling Operations from Extension Packs (CLI/Tooling)
 
-For tooling code that works with extension packs, manifest assembly happens in the CLI layer. See `@prisma-next/cli` for pack assembly utilities.
+For tooling code that works with extension packs, manifest assembly happens in the CLI layer. See `@internal/cli` for pack assembly utilities.
 
 ## Related Documentation
 

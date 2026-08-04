@@ -23,9 +23,9 @@ Note: **no separate model-ctx plumbing helper in `psl-parser`** — the model-le
 **Out:** any attribute migration (D2+); any SQL-package change; `record`/`entityRef`/`funcCall`/scalar-literal leaves (later dispatches); Mongo; `@db.*`.
 
 ## Completed when
-- [ ] `modelAttribute`, `int`, `bool` exported from `@prisma-next/psl-parser` and usable (`modelAttribute('x', { positional: [{ key:'k', type: int() }] })` type-checks and infers `{ k: number }`).
+- [ ] `modelAttribute`, `int`, `bool` exported from `@internal/psl-parser` and usable (`modelAttribute('x', { positional: [{ key:'k', type: int() }] })` type-checks and infers `{ k: number }`).
 - [ ] Unit + type-level tests cover the three (success + diagnostic paths; `modelAttribute` level + inference).
-- [ ] Gates: `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm lint:framework-vocabulary` (kit growth may add framework lines — if the count moves, update `threshold` in `scripts/lint-framework-vocabulary.config.json`, keeping `allow: ["SymbolTable"]`, and report it).
+- [ ] Gates: `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm lint:framework-vocabulary` (kit growth may add framework lines — if the count moves, update `threshold` in `scripts/lint-framework-vocabulary.config.json`, keeping `allow: ["SymbolTable"]`, and report it).
 
 ## Constraints
 No `any`; no bare `as` (use `blindCast`/`castAs` with a reason, or types that avoid it — follow the existing combinators' style); no file-ext imports; no reexport outside `exports/`; tests-first. Explicit-staging commits with sign-off (`git commit -s`), no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Run the transient-ID scan on the `+` diff. Do NOT touch GitHub.

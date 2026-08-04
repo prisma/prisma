@@ -9,13 +9,14 @@
  * directions with a warning.
  */
 
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { MigrationOperationClass } from '@prisma-next/framework-components/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import type { ControlPolicy } from '@internal/contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { MigrationOperationClass } from '@internal/framework-components/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { namingOfLiveName, parseNaming } from '@internal/sql-schema-ir/naming';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';
@@ -40,8 +41,7 @@ const ADDITIVE_ONLY_POLICY = { allowedOperationClasses: ['additive'] as const };
 
 function contractPolicy(name: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name,
-    prefix: name.replace(/_[0-9a-f]{8}$/, ''),
+    naming: namingOfLiveName(name),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
@@ -127,8 +127,7 @@ function actualSchema(options: {
             policies: (options.policies ?? []).map(
               (policy) =>
                 new PostgresPolicySchemaNode({
-                  name: policy.name,
-                  prefix: policy.prefix,
+                  naming: parseNaming(policy.name, policy.prefix),
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,

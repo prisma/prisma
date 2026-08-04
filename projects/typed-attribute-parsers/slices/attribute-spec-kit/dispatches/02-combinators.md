@@ -6,7 +6,7 @@
 - **The D1 engine you build on** (committed, on disk): `packages/1-framework/2-authoring/psl-parser/src/attribute-spec/` — read `types.ts`, `interpret.ts`, `optional.ts`, `field-attribute.ts`, and exports in `src/exports/index.ts`. Tests: `packages/1-framework/2-authoring/psl-parser/test/attribute-spec.test.ts` + `attribute-spec.test-d.ts`.
 - Slice spec: `projects/typed-attribute-parsers/slices/attribute-spec-kit/spec.md`; slice plan §Dispatch 2: `projects/typed-attribute-parsers/slices/attribute-spec-kit/plan.md`.
 - ADR 231: `docs/architecture docs/adrs/ADR 231 - Declarative attribute specifications.md`.
-- CST types exported from `packages/1-framework/2-authoring/psl-parser/src/exports/syntax.ts` (`StringLiteralExprAst`, `NumberLiteralExprAst`, `ArrayLiteralAst`, `IdentifierAst`, `ExpressionAst`, …). Span helper `nodePslSpan(node, sourceFile)` in `src/resolve.ts`. Diagnostics are `PslDiagnostic`; failure channel `Result<T, readonly PslDiagnostic[]>` from `@prisma-next/utils/result`.
+- CST types exported from `packages/1-framework/2-authoring/psl-parser/src/exports/syntax.ts` (`StringLiteralExprAst`, `NumberLiteralExprAst`, `ArrayLiteralAst`, `IdentifierAst`, `ExpressionAst`, …). Span helper `nodePslSpan(node, sourceFile)` in `src/resolve.ts`. Diagnostics are `PslDiagnostic`; failure channel `Result<T, readonly PslDiagnostic[]>` from `@internal/utils/result`.
 
 Engine facts (verify against the code): `ArgType<T> { kind; label; _out?; parse(arg: ExpressionAst, ctx: InterpretCtx): Result<T, readonly PslDiagnostic[]> }`. `InterpretCtx` currently `{ level, sourceId, sourceFile, symbols, selfModel, resolveReferencedModel(), field? }`. `AttributeSpec` has `diagnosticCode?` (defaults `PSL_INVALID_ATTRIBUTE_SYNTAX`).
 
@@ -29,13 +29,13 @@ Diagnostic **codes** must stay identical; legacy `@relation` errors all use `PSL
 - [ ] `str`, `enumOf`, `fieldRef`, `list` exported from `psl-parser` and usable as `Param`s in an `AttributeSpec`.
 - [ ] Unit tests per combinator: parse success + each diagnostic path; `enumOf` covers a mixed string/number set; `list` covers `nonEmpty` + `unique` + element-error propagation; `fieldRef` returns the name and emits NO existence diagnostic.
 - [ ] A test proves a leaf diagnostic carries the attribute's `diagnosticCode` end-to-end through `interpretAttribute`.
-- [ ] Gate green: `pnpm --filter @prisma-next/psl-parser typecheck && pnpm --filter @prisma-next/psl-parser test && pnpm --filter @prisma-next/psl-parser lint`.
+- [ ] Gate green: `pnpm --filter @internal/psl-parser typecheck && pnpm --filter @internal/psl-parser test && pnpm --filter @internal/psl-parser lint`.
 
 ## Standing instruction
 Stay focused on the goal; control scope. Trivial-and-related fixes that serve the goal go in with a one-line note in your wrap-up; anything pulling you off the goal halts and surfaces.
 
 ## Constraints
-- No `any`; no bare `as` (narrow `blindCast`/`castAs` from `@prisma-next/utils/casts` with a reason, or types that avoid the cast); arktype not zod — where a leaf reduces to a context-free value check (`enumOf`'s literal set), ADR 231 suggests backing it with an arktype `Type`; use judgment for a small fixed set vs a plain membership check, and note the choice; no file-extension imports; tests-first.
+- No `any`; no bare `as` (narrow `blindCast`/`castAs` from `@internal/utils/casts` with a reason, or types that avoid the cast); arktype not zod — where a leaf reduces to a context-free value check (`enumOf`'s literal set), ADR 231 suggests backing it with an arktype `Type`; use judgment for a small fixed set vs a plain membership check, and note the choice; no file-extension imports; tests-first.
 - Explicit-staging commits (`git add <paths>`, never `-A`/`.`); no amend; **no push**.
 - Read-only on `projects/typed-attribute-parsers/reviews/**`, `spec.md`, plan files.
 - Run the "no transient project IDs in code" scan on your `+` diff before declaring done.

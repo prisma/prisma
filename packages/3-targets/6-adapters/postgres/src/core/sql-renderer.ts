@@ -1,6 +1,6 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
+import type { JsonValue } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { runtimeError } from '@internal/framework-components/runtime';
 import {
   type AggregateExpr,
   type AnyExpression,
@@ -28,6 +28,7 @@ import {
   type NullCheckExpr,
   type OperationExpr,
   type OrderByItem,
+  type ProjectionExpr,
   type ProjectionItem,
   type RawExpr,
   type RawSqlExpr,
@@ -36,16 +37,16 @@ import {
   type TableSource,
   type UpdateAst,
   type WindowFuncExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import type { PostgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codec-descriptor';
-import { isPgEnumParams } from '@prisma-next/target-postgres/codecs';
+} from '@internal/sql-relational-core/ast';
+import type { PostgresCodecDescriptorRegistry } from '@internal/target-postgres/codec-descriptor';
+import { isPgEnumParams } from '@internal/target-postgres/codecs';
 import {
   escapeLiteral,
   quoteIdentifier,
   quoteQualifiedName,
-} from '@prisma-next/target-postgres/sql-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { assertNever, InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/target-postgres/sql-utils';
+import { ifDefined } from '@internal/utils/defined';
+import { assertNever, InternalError } from '@internal/utils/internal-error';
 import { adapterError } from './adapter-errors';
 import type { PostgresContract } from './types';
 
@@ -100,7 +101,7 @@ function renderTypedParam(
         'validated PostgreSQL codec registry has no entry for it. This usually indicates ' +
         'a missing extension pack in the runtime stack — register the pack ' +
         'that contributes this codec (e.g. `extensions: [pgvectorRuntime]`), ' +
-        'or use the codec directly from `@prisma-next/target-postgres/codecs` ' +
+        'or use the codec directly from `@internal/target-postgres/codecs` ' +
         "if it's a builtin.",
       { meta: { codecId } },
     );
@@ -701,11 +702,38 @@ function renderJsonValueProjection(
   pim: ParamIndexMap,
 ): string {
   const visitor: JsonValueProjectionVisitor<string> = {
-    codec: ({ value }) => renderExpr(value, contract, pim),
+    // The codec's descriptor owns the expression that turns a stored value
+    // into its canonical JSON — a cast, a function call, or the array lift,
+    // chosen on `ref.many` inside `projectJson`.
+    codec: ({ value, codec }) =>
+      renderExpr(projectJsonThroughCodec(value, codec, pim), contract, pim),
     native: ({ value }) => renderExpr(value, contract, pim),
+    // PostgreSQL carries a JSON value's type with it, so a document nested
+    // into an enclosing document stays a document without help.
     document: ({ value }) => renderExpr(value, contract, pim),
   };
   return projection.accept(visitor);
+}
+
+function projectJsonThroughCodec(
+  value: ProjectionExpr,
+  codec: CodecRef,
+  pim: ParamIndexMap,
+): ProjectionExpr {
+  const descriptor = pim.codecDescriptorRegistry.descriptorFor(codec.codecId);
+  if (descriptor === undefined) {
+    throw adapterError(
+      'RUNTIME.PARAM_REF_MISSING_CODEC',
+      `Postgres lowering: a JSON projection carries codecId "${codec.codecId}" but the ` +
+        'validated PostgreSQL codec registry has no entry for it. This usually indicates ' +
+        'a missing extension pack in the runtime stack — register the pack ' +
+        'that contributes this codec (e.g. `extensions: [pgvectorRuntime]`), ' +
+        'or use the codec directly from `@internal/target-postgres/codecs` ' +
+        "if it's a builtin.",
+      { meta: { codecId: codec.codecId } },
+    );
+  }
+  return descriptor.projectJson(value, codec);
 }
 
 function renderJsonObjectExpr(

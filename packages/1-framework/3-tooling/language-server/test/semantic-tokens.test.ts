@@ -1,5 +1,5 @@
-import { buildSymbolTable, type SymbolTable } from '@prisma-next/psl-parser';
-import { type DocumentAst, parse, SourceFile } from '@prisma-next/psl-parser/syntax';
+import { buildSymbolTable, type SymbolTable } from '@internal/psl-parser';
+import { type DocumentAst, parse, SourceFile } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
 import {
   buildSemanticTokens,

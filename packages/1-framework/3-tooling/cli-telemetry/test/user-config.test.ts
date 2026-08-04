@@ -14,7 +14,7 @@ describe('readUserConfig / writeUserConfig', () => {
   let originalXdg: string | undefined;
 
   beforeEach(() => {
-    xdgRoot = mkdtempSync(join(tmpdir(), 'prisma-next-cli-telemetry-'));
+    xdgRoot = mkdtempSync(join(tmpdir(), 'prisma-8-cli-telemetry-'));
     originalXdg = process.env['XDG_CONFIG_HOME'];
     process.env['XDG_CONFIG_HOME'] = xdgRoot;
     mkdirSync(dirname(userConfigPath()), { recursive: true });
@@ -123,7 +123,7 @@ describe('ensureInstallationId', () => {
   let originalXdg: string | undefined;
 
   beforeEach(() => {
-    xdgRoot = mkdtempSync(join(tmpdir(), 'prisma-next-cli-telemetry-id-'));
+    xdgRoot = mkdtempSync(join(tmpdir(), 'prisma-8-cli-telemetry-id-'));
     originalXdg = process.env['XDG_CONFIG_HOME'];
     process.env['XDG_CONFIG_HOME'] = xdgRoot;
     mkdirSync(dirname(userConfigPath()), { recursive: true });

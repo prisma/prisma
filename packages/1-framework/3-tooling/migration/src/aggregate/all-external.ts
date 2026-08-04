@@ -1,7 +1,7 @@
-import type { Contract, ControlPolicy } from '@prisma-next/contract/types';
-import { effectiveControlPolicy } from '@prisma-next/contract/types';
-import { elementCoordinates, entityAt } from '@prisma-next/framework-components/ir';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
+import { effectiveControlPolicy } from '@internal/contract/types';
+import { elementCoordinates, entityAt } from '@internal/framework-components/ir';
+import { blindCast } from '@internal/utils/casts';
 
 function isControlPolicy(value: unknown): value is ControlPolicy {
   return (

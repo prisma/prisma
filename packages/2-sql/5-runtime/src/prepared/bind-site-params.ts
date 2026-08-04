@@ -1,9 +1,6 @@
-import type {
-  AnyExpression as AstExpression,
-  CodecRef,
-} from '@prisma-next/sql-relational-core/ast';
-import { PreparedParamRef } from '@prisma-next/sql-relational-core/ast';
-import type { Expression, ScopeField } from '@prisma-next/sql-relational-core/expression';
+import type { AnyExpression as AstExpression, CodecRef } from '@internal/sql-relational-core/ast';
+import { PreparedParamRef } from '@internal/sql-relational-core/ast';
+import type { Expression, ScopeField } from '@internal/sql-relational-core/expression';
 import type { BindSiteParams, Declaration, ParamSpec } from './types';
 
 function normalizeSpec(spec: ParamSpec): { codec: CodecRef; nullable: boolean } {

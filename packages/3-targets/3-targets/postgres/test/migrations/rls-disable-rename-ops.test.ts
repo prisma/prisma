@@ -1,4 +1,4 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { describe, expect, it } from 'vitest';
 import { rlsEnabledAst, rlsPolicyExistsAst } from '../../src/contract-free/checks';
 import {

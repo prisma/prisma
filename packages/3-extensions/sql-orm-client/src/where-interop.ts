@@ -1,7 +1,7 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { AnyExpression, ToWhereExpr, WhereArg } from '@prisma-next/sql-relational-core/ast';
-import { isWhereExpr } from '@prisma-next/sql-relational-core/ast';
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { AnyExpression, ToWhereExpr, WhereArg } from '@internal/sql-relational-core/ast';
+import { isWhereExpr } from '@internal/sql-relational-core/ast';
 import { ormError } from './orm-errors';
 import { bindWhereExpr } from './where-binding';
 

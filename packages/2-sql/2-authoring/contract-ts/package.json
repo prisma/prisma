@@ -1,6 +1,7 @@
 {
-  "name": "@prisma-next/sql-contract-ts",
-  "version": "0.16.0",
+  "name": "@internal/sql-contract-ts",
+  "private": true,
+  "version": "0.17.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -16,22 +17,22 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@prisma-next/config": "workspace:0.16.0",
-    "@prisma-next/contract": "workspace:0.16.0",
-    "@prisma-next/contract-authoring": "workspace:0.16.0",
-    "@prisma-next/framework-components": "workspace:0.16.0",
-    "@prisma-next/sql-contract": "workspace:0.16.0",
-    "@prisma-next/utils": "workspace:0.16.0",
+    "@internal/config": "workspace:0.17.0",
+    "@internal/contract": "workspace:0.17.0",
+    "@internal/contract-authoring": "workspace:0.17.0",
+    "@internal/framework-components": "workspace:0.17.0",
+    "@internal/sql-contract": "workspace:0.17.0",
+    "@internal/utils": "workspace:0.17.0",
     "arktype": "^2.2.2",
     "pathe": "^2.0.3",
     "ts-toolbelt": "^9.6.0"
   },
   "devDependencies": {
-    "@prisma-next/test-utils": "workspace:0.16.0",
-    "@prisma-next/tsconfig": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.17.0",
+    "@repo/tsconfig": "workspace:0.17.0",
     "@types/pg": "catalog:",
     "pg": "catalog:",
-    "@prisma-next/tsdown": "workspace:0.16.0",
+    "@repo/tsdown": "workspace:0.17.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

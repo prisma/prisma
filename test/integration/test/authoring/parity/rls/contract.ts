@@ -1,4 +1,4 @@
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
 import {
   defineContract,
   field,
@@ -10,7 +10,7 @@ import {
   policyUpdate,
   rlsEnabled,
   role,
-} from '@prisma-next/postgres/contract-builder';
+} from '@internal/postgres/contract-builder';
 
 const anon = role('anon');
 const authenticated = role('authenticated');

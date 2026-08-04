@@ -1,44 +1,12 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { SqlNode } from '@prisma-next/sql-contract/types';
-import { formatWireName, parseWireName } from '@prisma-next/sql-schema-ir/naming';
+import { freezeNode } from '@internal/framework-components/ir';
+import { SqlNode } from '@internal/sql-contract/types';
+import { nameOf, type SqlObjectNaming } from '@internal/sql-schema-ir/naming';
 
 export type RlsPolicyOperation = 'select' | 'insert' | 'update' | 'delete' | 'all';
 
-/**
- * The machine-rendered flat spelling of an input type: keys whose value
- * admits `undefined` become optional (and still accept explicit
- * `undefined`), everything else is carried unchanged — the
- * `required-key-undefined-fields.mdc` carve-out for rendered literals,
- * derived instead of hand-written so the field list has one home.
- */
-type FlatSpelling<T> = { [K in keyof T as undefined extends T[K] ? never : K]: T[K] } & {
-  [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
-};
-
-/**
- * The optional-key policy shape accepted by the migration authoring API
- * (`Migration#createRlsPolicy`) and emitted by the migration renderer.
- * Machine-rendered literals omit absent keys (`prefix` for an exact
- * policy, `withCheck` for a SELECT policy); derived from
- * {@link PostgresRlsPolicyInput}, so a new field appears here — and flows
- * through `createRlsPolicy`'s spread — without a second hand-written list.
- */
-export type PostgresRlsPolicyMigrationInput = FlatSpelling<PostgresRlsPolicyInput>;
-
 export interface PostgresRlsPolicyInput {
-  /**
-   * Full physical name. Stored as-is; hashing is not this class's job.
-   */
-  readonly name: string;
-  /**
-   * The managed-mode name prefix — its PRESENCE is the naming-mode
-   * discriminator (there is no stored enum). Present ⇔ managed: the
-   * toolchain owns the physical name and `name === formatWireName(prefix,
-   * <8hex content hash>)`. Absent ⇔ exact: `name` is an adopted verbatim
-   * physical name whose identity the author owns entirely.
-   */
-  readonly prefix: string | undefined;
+  /** The policy's identity. Read back off a built entity with `namingOf`. */
+  readonly naming: SqlObjectNaming;
   /** Name of the table this policy attaches to, by name within the same schema. */
   readonly tableName: string;
   /** Namespace coordinate (schema name). Policies are schema-scoped. */
@@ -53,6 +21,20 @@ export interface PostgresRlsPolicyInput {
   /** `true` = `AS PERMISSIVE`, `false` = `AS RESTRICTIVE`. */
   readonly permissive: boolean;
 }
+
+/** Keys whose value may be absent become omittable. */
+type AbsentKeysOmittable<T> = { [K in keyof T as undefined extends T[K] ? never : K]: T[K] } & {
+  [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
+};
+
+/**
+ * The policy literal a generated migration file carries, and the parameter
+ * `Migration#createRlsPolicy` accepts. Same shape as
+ * {@link PostgresRlsPolicyInput} — naming union included — except that absent
+ * values are spelled by omitting the key, which is how a machine-rendered
+ * literal writes them. Deriving it keeps the field list in one place.
+ */
+export type RenderedRlsPolicyLiteral = AbsentKeysOmittable<PostgresRlsPolicyInput>;
 
 /**
  * Postgres contract-IR class for a row-level security policy (`CREATE POLICY … ON …`).
@@ -81,17 +63,8 @@ export class PostgresRlsPolicy extends SqlNode {
 
   constructor(input: PostgresRlsPolicyInput) {
     super();
-    if (input.prefix !== undefined) {
-      const parsed = parseWireName(input.name);
-      if (parsed === undefined || parsed.prefix !== input.prefix) {
-        throw new ContractValidationError(
-          `Policy "${input.name}": prefix "${input.prefix}" does not match the wire name (expected "${formatWireName(input.prefix, '<8hex>')}").`,
-          'storage',
-        );
-      }
-    }
-    this.name = input.name;
-    if (input.prefix !== undefined) this.prefix = input.prefix;
+    this.name = nameOf(input.naming);
+    if (input.naming.kind === 'wire') this.prefix = input.naming.prefix;
     this.tableName = input.tableName;
     this.namespaceId = input.namespaceId;
     this.operation = input.operation;

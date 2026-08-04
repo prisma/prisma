@@ -81,11 +81,11 @@ const familyInstance = config.family.create({
 ### Config File Pattern
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import postgresDriver from '@prisma-next/driver-postgres/control';
+import { defineConfig } from '@internal/cli/config-types';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import postgresDriver from '@internal/driver-postgres/control';
 
 export default defineConfig({
   family: sql, // ControlFamilyDescriptor<'sql'>
@@ -107,11 +107,11 @@ export default defineConfig({
 
 Control plane entry points export default descriptors:
 
-- `@prisma-next/family-sql/control` → `ControlFamilyDescriptor<'sql'>`
-- `@prisma-next/target-postgres/control` → `ControlTargetDescriptor<'sql', 'postgres'>`
-- `@prisma-next/adapter-postgres/control` → `ControlAdapterDescriptor<'sql', 'postgres'>`
-- `@prisma-next/driver-postgres/control` → `ControlDriverDescriptor<'sql', 'postgres'>`
-- `@prisma-next/extensions-*/control` → `ControlExtensionDescriptor<'sql', 'postgres'>`
+- `@internal/family-sql/control` → `ControlFamilyDescriptor<'sql'>`
+- `@internal/target-postgres/control` → `ControlTargetDescriptor<'sql', 'postgres'>`
+- `@internal/adapter-postgres/control` → `ControlAdapterDescriptor<'sql', 'postgres'>`
+- `@internal/driver-postgres/control` → `ControlDriverDescriptor<'sql', 'postgres'>`
+- `@internal/extensions-*/control` → `ControlExtensionDescriptor<'sql', 'postgres'>`
 
 ### Migration Notes
 

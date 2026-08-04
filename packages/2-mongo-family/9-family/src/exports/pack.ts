@@ -1,4 +1,4 @@
-import type { FamilyPackRef } from '@prisma-next/framework-components/components';
+import type { FamilyPackRef } from '@internal/framework-components/components';
 import {
   mongoFamilyEntityTypes,
   mongoFamilyPslBlockDescriptors,

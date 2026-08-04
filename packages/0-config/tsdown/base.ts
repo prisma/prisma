@@ -54,7 +54,7 @@ export const baseConfig = defineConfigOriginal({
       return out;
     },
     // this enables "live mode" via TypeScript custom conditions for the best DX during development
-    // devExports: '@prisma-next/source-code',
+    // devExports: '@internal/source-code',
     // we don't want drift in NPM, in case someone changed build config and didn't push the package.json changes.
     enabled: 'local-only',
     // cli entrypoints should not be importable by consumers.

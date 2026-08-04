@@ -1,4 +1,4 @@
-import type { AuthoringTypeNamespace } from '@prisma-next/framework-components/authoring';
+import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { VECTOR_MAX_DIM } from './constants';
 
 export const pgvectorAuthoringTypes = {

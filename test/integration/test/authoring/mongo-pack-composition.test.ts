@@ -1,4 +1,4 @@
-import { defineContract, field, model } from '@prisma-next/mongo/contract-builder';
+import { defineContract, field, model } from '@internal/mongo/contract-builder';
 import { describe, expect, it } from 'vitest';
 
 describe('Mongo pack composition', () => {

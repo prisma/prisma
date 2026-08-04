@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { col, fk, index, model, pk, table, unique } from '../src/factories';
 
@@ -91,7 +91,7 @@ describe('SQL contract factories', () => {
       });
     });
 
-    it('creates a managed index when a prefix is given', () => {
+    it('creates a wire-named index when a prefix is given', () => {
       const idx = index('user_email_idx_deadbeef', ['email'], { prefix: 'user_email_idx' });
       expect(idx).toEqual({
         name: 'user_email_idx_deadbeef',

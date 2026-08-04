@@ -69,7 +69,7 @@ native-enum arc and the `20260611T1856_convert_user_type_to_value_set` self-edge
 removed. Second (#829): collapsing the chain to a single from-empty baseline was also
 wrong — the demo must keep a **multi-step incremental chain** so it actually exercises
 the migration CLI (`db update` applying successive migrations, `migration status`/`list`
-across a chain). So the demo's `examples/prisma-next-demo/migrations/app/` chain is
+across a chain). So the demo's `examples/prisma-8-demo/migrations/app/` chain is
 **re-authored from the original multi-step history in the new value-set representation**:
 the original per-step `contract.prisma` snapshots are recovered, the initial migration
 is edited to create `user.kind` as a `text` column with a `user_kind_check` CHECK

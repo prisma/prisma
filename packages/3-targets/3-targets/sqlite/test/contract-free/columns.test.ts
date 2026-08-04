@@ -1,4 +1,4 @@
-import { InsertAst, UpdateAst } from '@prisma-next/sql-relational-core/ast';
+import { InsertAst, UpdateAst } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { datetime, integer, jsonText, sqliteTable, text } from '../../src/exports/contract-free';
 

@@ -1,4 +1,4 @@
-import { ifDefined } from '@prisma-next/utils/defined';
+import { ifDefined } from '@internal/utils/defined';
 import { EMPTY_CONTRACT_HASH } from './constants';
 import { errorAmbiguousTarget, errorNoInitialMigration, errorNoTarget } from './errors';
 import type { MigrationEdge, MigrationGraph } from './graph';

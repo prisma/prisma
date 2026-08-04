@@ -1,4 +1,4 @@
-import type { ParamRefMutator } from '@prisma-next/framework-components/runtime';
+import type { ParamRefMutator } from '@internal/framework-components/runtime';
 import type { AnyParamRef } from '../ast/types';
 import { collectOrderedParamRefs } from '../ast/util';
 import type { SqlExecutionPlan } from '../sql-execution-plan';

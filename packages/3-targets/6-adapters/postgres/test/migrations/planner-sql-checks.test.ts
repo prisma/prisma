@@ -1,14 +1,14 @@
 import {
   buildExpectedFormatType,
   qualifyTableName,
-} from '@prisma-next/target-postgres/planner-sql-checks';
+} from '@internal/target-postgres/planner-sql-checks';
 import { describe, expect, it } from 'vitest';
 
 // Raw-string check helpers (columnExistsCheck, columnNullabilityCheck,
 // columnTypeCheck, columnDefaultExistsCheck, columnHasNoDefaultCheck,
 // tableHasPrimaryKeyCheck, tableIsEmptyCheck, toRegclassLiteral) were replaced
 // by typed AST builders (columnExistsAst, columnNullabilityAst, etc.) from
-// @prisma-next/target-postgres/contract-free. Construction pins live in
+// @internal/target-postgres/contract-free. Construction pins live in
 // target-postgres test/migrations/verification-checks.test.ts and lowering
 // pins in test/verification-checks-lowering.test.ts.
 

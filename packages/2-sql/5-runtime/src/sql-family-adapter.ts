@@ -1,8 +1,8 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { ExecutionPlan } from '@prisma-next/framework-components/runtime';
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { AdapterProfile } from '@prisma-next/sql-relational-core/ast';
+import type { Contract } from '@internal/contract/types';
+import type { ExecutionPlan } from '@internal/framework-components/runtime';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { AdapterProfile } from '@internal/sql-relational-core/ast';
 import type { MarkerReader, RuntimeFamilyAdapter } from './runtime-spi';
 
 export class SqlFamilyAdapter<TContract extends Contract<SqlStorage>>

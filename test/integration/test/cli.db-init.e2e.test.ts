@@ -1,4 +1,4 @@
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {

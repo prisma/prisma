@@ -1,4 +1,4 @@
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { structuredError } from '@internal/utils/structured-error';
 import type { MongoContract, MongoModelDefinition } from './contract-types';
 
 function formatCrossRef(crossRef: { readonly namespace: string; readonly model: string }): string {

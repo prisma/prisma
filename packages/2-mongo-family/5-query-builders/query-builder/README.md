@@ -1,11 +1,11 @@
-# @prisma-next/mongo-query-builder
+# @internal/mongo-query-builder
 
 A typed CRUD query builder for MongoDB contracts. Reads, writes, pipeline aggregations, and find-and-modify operations all produce `MongoQueryPlan` values that the runtime executes. Authored against a contract, not directly against the driver.
 
 ## Quick start
 
 ```typescript
-import { mongoQuery } from '@prisma-next/mongo-query-builder';
+import { mongoQuery } from '@internal/mongo-query-builder';
 
 const q = mongoQuery<TContract>({ contractJson: contract });
 

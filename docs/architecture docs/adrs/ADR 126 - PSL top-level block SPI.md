@@ -23,7 +23,7 @@ policy_select ReadPosts {
 and the extension registers exactly this descriptor to make that block parseable, validatable, printable, and round-trippable:
 
 ```ts
-import type { AuthoringPslBlockDescriptor } from '@prisma-next/framework-components/authoring';
+import type { AuthoringPslBlockDescriptor } from '@internal/framework-components/authoring';
 
 const policySelectDescriptor: AuthoringPslBlockDescriptor = {
   kind: 'pslBlock',

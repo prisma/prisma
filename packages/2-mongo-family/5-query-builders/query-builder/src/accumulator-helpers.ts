@@ -1,5 +1,5 @@
-import type { MongoAggExpr } from '@prisma-next/mongo-query-ast/execution';
-import { MongoAggAccumulator, MongoAggLiteral } from '@prisma-next/mongo-query-ast/execution';
+import type { MongoAggExpr } from '@internal/mongo-query-ast/execution';
+import { MongoAggAccumulator, MongoAggLiteral } from '@internal/mongo-query-ast/execution';
 import type {
   ArrayField,
   DocField,

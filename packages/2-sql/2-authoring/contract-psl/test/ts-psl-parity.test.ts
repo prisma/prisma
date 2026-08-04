@@ -1,14 +1,14 @@
-import type { AuthoringContributions } from '@prisma-next/framework-components/authoring';
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
+import type { AuthoringContributions } from '@internal/framework-components/authoring';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
-import { defineIndexTypes } from '@prisma-next/sql-contract/index-types';
-import type { ForeignKey, SqlStorage } from '@prisma-next/sql-contract/types';
-import { defineContract, field, model, rel } from '@prisma-next/sql-contract-ts/contract-builder';
-import { countSemanticLines } from '@prisma-next/test-utils/semantic-lines';
+} from '@internal/framework-components/components';
+import { defineIndexTypes } from '@internal/sql-contract/index-types';
+import type { ForeignKey, SqlStorage } from '@internal/sql-contract/types';
+import { defineContract, field, model, rel } from '@internal/sql-contract-ts/contract-builder';
+import { countSemanticLines } from '@repo/test-utils/semantic-lines';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
@@ -481,7 +481,7 @@ model Post {
     expect(tsFks).toEqual(pslFks);
   });
 
-  it('PSL and TS lower the same expression index to identical managed IR (wire name pinned)', () => {
+  it('PSL and TS lower the same expression index to identical wire-named IR (wire name pinned)', () => {
     const pslDocument = symbolTableInputFromParseArgs({
       schema: `model User {
   id    Int    @id
@@ -669,7 +669,7 @@ model Post {
     expect(tsIndexes).toEqual(pslIndexes);
   });
 
-  it('PSL name: and TS name: lower the same managed fields index (wire name pinned)', () => {
+  it('PSL name: and TS name: lower the same wire-named fields index (wire name pinned)', () => {
     const pslDocument = symbolTableInputFromParseArgs({
       schema: `model User {
   id    Int    @id
@@ -724,7 +724,7 @@ model Post {
     expect(tsIndexes).toEqual(pslIndexes);
   });
 
-  it('PSL and TS lower the same unnamed index to identical managed IR (wire names pinned)', () => {
+  it('PSL and TS lower the same unnamed index to identical wire-named IR (wire names pinned)', () => {
     const pslDocument = symbolTableInputFromParseArgs({
       schema: `model User {
   id Int @id

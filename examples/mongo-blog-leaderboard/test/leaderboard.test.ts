@@ -1,12 +1,12 @@
-import { timeouts } from '@prisma-next/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createClient, type Db } from '../src/db';
 import { getAuthorLeaderboard } from '../src/queries';
 import { seed } from '../src/seed';
+import { mongoMemoryServerTimeoutMs } from './timeouts';
 
-describe('mongo-blog-leaderboard', { timeout: timeouts.spinUpMongoMemoryServer }, () => {
+describe('mongo-blog-leaderboard', { timeout: mongoMemoryServerTimeoutMs }, () => {
   let replSet: MongoMemoryReplSet;
   let mongoClient: MongoClient;
   let db: Db;
@@ -19,7 +19,7 @@ describe('mongo-blog-leaderboard', { timeout: timeouts.spinUpMongoMemoryServer }
     mongoClient = new MongoClient(replSet.getUri());
     await mongoClient.connect();
     db = createClient({ url: replSet.getUri(), dbName });
-  }, timeouts.spinUpMongoMemoryServer);
+  }, mongoMemoryServerTimeoutMs);
 
   beforeEach(async () => {
     await mongoClient.db(dbName).dropDatabase();
@@ -27,7 +27,7 @@ describe('mongo-blog-leaderboard', { timeout: timeouts.spinUpMongoMemoryServer }
 
   afterAll(async () => {
     await Promise.allSettled([db?.close(), mongoClient?.close(), replSet?.stop()]);
-  }, timeouts.spinUpMongoMemoryServer);
+  }, mongoMemoryServerTimeoutMs);
 
   it('ranks authors by post count and embeds the user via $lookup', async () => {
     await seed(db.orm);

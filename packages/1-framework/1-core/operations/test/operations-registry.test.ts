@@ -1,4 +1,4 @@
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import {
   createOperationRegistry,
@@ -57,16 +57,16 @@ describe('OperationRegistry', () => {
     });
   });
 
-  it('throws when self has neither codecId nor traits', () => {
+  it('throws when self names no target', () => {
     const registry = createOperationRegistry();
 
     expect(() =>
       registry.register('bad', {
-        // @ts-expect-error — SelfSpec requires codecId or traits
+        // @ts-expect-error — SelfSpec requires codecId, traits, or many
         self: {},
         impl: noopImpl,
       }),
-    ).toThrow('Operation "bad" self has neither codecId nor traits');
+    ).toThrow('Operation "bad" self has none of codecId, traits, or many');
   });
 
   it('throws when self has an empty traits array', () => {
@@ -77,7 +77,7 @@ describe('OperationRegistry', () => {
         self: { traits: [] },
         impl: noopImpl,
       }),
-    ).toThrow('Operation "bad" self has neither codecId nor traits');
+    ).toThrow('Operation "bad" self has none of codecId, traits, or many');
   });
 
   it('throws when self has both codecId and traits', () => {
@@ -102,6 +102,34 @@ describe('OperationRegistry', () => {
           self: { traits: ['textual'] },
         }),
       ),
+    ).not.toThrow();
+  });
+
+  it('accepts list-targeted self', () => {
+    const registry = createOperationRegistry();
+
+    expect(() =>
+      registry.register(
+        'fine',
+        descriptor({
+          self: { many: true },
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it('accepts a family self spec that refines the list variant', () => {
+    interface ListEntry extends OperationEntry {
+      readonly self?: { readonly many: true; readonly elementTraits?: readonly string[] };
+    }
+
+    const registry = createOperationRegistry<ListEntry>();
+
+    expect(() =>
+      registry.register('fine', {
+        self: { many: true, elementTraits: ['textual'] },
+        impl: noopImpl,
+      }),
     ).not.toThrow();
   });
 

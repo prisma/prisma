@@ -7,7 +7,7 @@
  * `migration plan`, `db init`, and `db update`.
  */
 
-import { defineConfig } from '@prisma-next/postgres/config';
+import { defineConfig } from '@prisma/orm-postgres/config';
 import audit from '../packages/audit/src/control';
 import featureFlags from '../packages/feature-flags/src/control';
 

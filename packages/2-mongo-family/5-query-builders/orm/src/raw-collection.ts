@@ -1,5 +1,5 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type { MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
+import type { PlanMeta } from '@internal/contract/types';
+import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import {
   RawAggregateCommand,
   RawDeleteManyCommand,
@@ -10,8 +10,8 @@ import {
   RawInsertOneCommand,
   RawUpdateManyCommand,
   RawUpdateOneCommand,
-} from '@prisma-next/mongo-query-ast/execution';
-import type { Document } from '@prisma-next/mongo-value';
+} from '@internal/mongo-query-ast/execution';
+import type { Document } from '@internal/mongo-value';
 
 interface Buildable<Row = unknown> {
   build(): MongoQueryPlan<Row>;

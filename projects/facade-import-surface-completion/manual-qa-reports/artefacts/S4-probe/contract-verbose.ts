@@ -1,6 +1,6 @@
-import mongoFamily from '@prisma-next/family-mongo/pack';
-import { defineContract, field, model } from '@prisma-next/mongo-contract-ts/contract-builder';
-import mongoTarget from '@prisma-next/target-mongo/pack';
+import mongoFamily from '@internal/family-mongo/pack';
+import { defineContract, field, model } from '@internal/mongo-contract-ts/contract-builder';
+import mongoTarget from '@internal/target-mongo/pack';
 
 export const contract = defineContract({
   family: mongoFamily,

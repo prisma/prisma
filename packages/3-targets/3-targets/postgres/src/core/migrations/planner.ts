@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
   SqlMigrationPlannerPlanOptions,
   SqlPlannerConflict,
   SqlPlannerFailureResult,
   SuppressionRecord,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import {
   controlPolicyForCall,
   extractCodecControlHooks,
@@ -13,9 +13,9 @@ import {
   partitionIssuesByControlPolicy,
   planFieldEventOperations,
   plannerFailure,
-} from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+} from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   MigrationOperationClass,
   MigrationPlanner,
@@ -23,15 +23,15 @@ import type {
   MigrationScaffoldContext,
   SchemaDiffIssue,
   SchemaOwnership,
-} from '@prisma-next/framework-components/control';
-import { issueOutcome } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { parseWireName } from '@prisma-next/sql-schema-ir/naming';
-import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { SqlIndexIR } from '@prisma-next/sql-schema-ir/types';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/control';
+import { issueOutcome } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
+import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { SqlIndexIR } from '@internal/sql-schema-ir/types';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { PostgresRlsPolicy } from '../postgres-rls-policy';
 import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordinate';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
@@ -398,8 +398,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * wire names, grouped by `(schema, table, hash)`; missing nodes iterated
    * in sorted-name order consume the sorted-name-first candidate.
    *
-   * Content pairing (exact→managed convergence), after hash pairing has
-   * consumed its matches: the remaining managed-missing nodes
+   * Content pairing (exact→wire convergence), after hash pairing has
+   * consumed its matches: the remaining wire-named-missing nodes
    * (`prefix` defined) against the remaining extras of any name shape,
    * paired iff content-equal (columns ordered-strict both-defined-or-
    * both-undefined, `unique`/`type` strict, `options` loose, bodies
@@ -527,9 +527,9 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * Rename post-pass (the index pass's structure): hash pairing pairs a
    * `not-found` and a `not-expected` policy on the SAME table whose
    * wire-name content hashes match but prefixes differ (prefix-only rename);
-   * content pairing then pairs remaining managed-missing policies against remaining
+   * content pairing then pairs remaining wire-named-missing policies against remaining
    * extras of any name shape by verbatim content (the node-owned `contentEquals` —
-   * exact→managed adoption). Multi-candidate groups pair deterministically
+   * exact→wire adoption). Multi-candidate groups pair deterministically
    * by sorted name; leftovers proceed as create/drop; an exact-named
    * missing policy never content-pairs.
    *
@@ -562,7 +562,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     for (const issue of filteredDiffIssues) {
       // 'not-equal' is reachable for exact-named (prefix-absent) policies:
       // their isEqualTo compares content, so a same-named live policy with a
-      // drifted body pairs by name and fails equality. Managed policies never
+      // drifted body pairs by name and fails equality. Wire-named policies never
       // produce it — the wire name encodes the body hash, so name-equality is
       // body-equality.
       if (issueOutcome(issue) === 'not-equal') {
@@ -645,9 +645,9 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         );
       }
 
-      // Content pairing (exact→managed convergence), after hash pairing
+      // Content pairing (exact→wire convergence), after hash pairing
       // has consumed its matches: a
-      // remaining managed-missing policy pairs with a remaining
+      // remaining wire-named-missing policy pairs with a remaining
       // extra of ANY name shape when the content matches verbatim
       // (the node-owned `contentEquals` — not the normalized hash tuple). This is how
       // replacing `@@map` with the plain head converges as one
@@ -901,8 +901,7 @@ function gradePolicyReplacement(
  */
 function policyNodeToContractPolicy(node: PostgresPolicySchemaNode): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name: node.name,
-    prefix: node.prefix,
+    naming: namingOf(node.name, node.prefix),
     tableName: node.tableName,
     namespaceId: node.namespaceId,
     operation: node.operation,

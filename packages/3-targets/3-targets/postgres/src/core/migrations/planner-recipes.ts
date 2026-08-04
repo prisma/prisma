@@ -1,9 +1,9 @@
-import type { CodecControlHooks, SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { StorageColumn, StorageTypeInstance } from '@prisma-next/sql-contract/types';
-import { FunctionColumnDefault } from '@prisma-next/sql-relational-core/ast';
-import { col } from '@prisma-next/sql-relational-core/contract-free';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { CodecControlHooks, SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
+import { FunctionColumnDefault } from '@internal/sql-relational-core/ast';
+import { col } from '@internal/sql-relational-core/contract-free';
+import { ifDefined } from '@internal/utils/defined';
 import {
   columnDefaultAst,
   columnExistsAst,

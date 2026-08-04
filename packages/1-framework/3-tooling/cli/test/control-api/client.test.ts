@@ -1,6 +1,6 @@
-import type { ContractSourceProvider } from '@prisma-next/config/config-types';
-import type { Contract, LedgerEntryRecord } from '@prisma-next/contract/types';
-import type { EmitResult } from '@prisma-next/emitter';
+import type { ContractSourceProvider } from '@internal/config/config-types';
+import type { Contract, LedgerEntryRecord } from '@internal/contract/types';
+import type { EmitResult } from '@internal/emitter';
 import type {
   ControlAdapterDescriptor,
   ControlDriverDescriptor,
@@ -11,14 +11,14 @@ import type {
   SignDatabaseResult,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import type { EmissionSpi } from '@prisma-next/framework-components/emission';
-import { timeouts } from '@prisma-next/test-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import type { EmissionSpi } from '@internal/framework-components/emission';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok } from '@internal/utils/result';
+import { timeouts } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@prisma-next/emitter', () => ({
+vi.mock('@internal/emitter', () => ({
   emit: vi.fn(
     async (): Promise<EmitResult> => ({
       storageHash: 'test-core-hash',
@@ -29,7 +29,7 @@ vi.mock('@prisma-next/emitter', () => ({
   ),
 }));
 
-import { emit as emitFn } from '@prisma-next/emitter';
+import { emit as emitFn } from '@internal/emitter';
 import { createControlClient } from '../../src/control-api/client';
 import type { ControlProgressEvent } from '../../src/control-api/types';
 
@@ -103,7 +103,7 @@ function createMockComponents() {
       '{ readonly tables: Record<string, never>; readonly types: Record<string, never>; readonly storageHash: StorageHash }',
     generateModelStorageType: () => 'Record<string, never>',
     getFamilyImports: () => [
-      "import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@prisma-next/sql-contract/types';",
+      "import type { ContractWithTypeMaps, TypeMaps as TypeMapsType } from '@internal/sql-contract/types';",
     ],
     getFamilyTypeAliases: () => '',
     getTypeMapsExpression: () => 'TypeMapsType<CodecTypes, OperationTypes>',

@@ -8,7 +8,7 @@ Add `test/e2e/framework/test/sqlite/transaction.test.ts` exercising the `sqlite(
 
 **In:**
 
-- `test/e2e/framework/test/sqlite/transaction.test.ts` — new. Reuse `createSchema`/`seedData`/fixture helpers from `test/e2e/framework/test/sqlite/utils.ts` where applicable, but construct the client via the `sqlite()` facade (facade behavior is what this slice delivers). Use `timeouts` from `@prisma-next/test-utils`, omit "should" in test names.
+- `test/e2e/framework/test/sqlite/transaction.test.ts` — new. Reuse `createSchema`/`seedData`/fixture helpers from `test/e2e/framework/test/sqlite/utils.ts` where applicable, but construct the client via the `sqlite()` facade (facade behavior is what this slice delivers). Use `timeouts` from `@repo/test-utils`, omit "should" in test names.
 - `test/e2e/framework/test/sqlite/utils.ts` — only if a small schema/seed helper needs exporting; no changes to its existing runtime-construction path.
 
 **Out:**
@@ -18,8 +18,8 @@ Add `test/e2e/framework/test/sqlite/transaction.test.ts` exercising the `sqlite(
 
 ## Completed when
 
-- [ ] The four behavioral scenarios above each have a discriminating test; suite passes via `pnpm --filter @prisma-next/e2e-tests test -- test/sqlite/transaction.test.ts` (adjust invocation to the harness's actual filter form).
-- [ ] Full sqlite e2e directory still green: `pnpm --filter @prisma-next/e2e-tests test -- test/sqlite`.
+- [ ] The four behavioral scenarios above each have a discriminating test; suite passes via `pnpm --filter e2e-tests test -- test/sqlite/transaction.test.ts` (adjust invocation to the harness's actual filter form).
+- [ ] Full sqlite e2e directory still green: `pnpm --filter e2e-tests test -- test/sqlite`.
 - [ ] Gates from `drive/calibration/dod.md`: e2e package lint green for the new file.
 
 ## Standing instruction
@@ -44,5 +44,5 @@ Stay focused on the goal; control scope. Trivial-and-related fixes that obviousl
 - **Model tier:** mid (Sonnet) — precedent-mirroring test authoring against an established harness.
 - **Time-box:** 40 min. Overrun → halt and surface.
 - **Halt conditions:** facade behavior gap discovered (I12 — do not patch `packages/**`); e2e harness cannot construct the facade client from the existing fixture contract without harness changes beyond `utils.ts` helper exports.
-- **Affected packages:** `@prisma-next/e2e-tests` only. Fixtures: reuse existing generated fixtures; regeneration out of scope.
+- **Affected packages:** `e2e-tests` only. Fixtures: reuse existing generated fixtures; regeneration out of scope.
 - **Commit:** explicit staging, sign-off, message referencing TML-2843.

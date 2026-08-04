@@ -1,4 +1,4 @@
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { expectTypeOf, test } from 'vitest';
 import { db } from './preamble';
 
@@ -115,7 +115,7 @@ test('EXISTS with grouped subquery', () => {
           .select('user_id')
           .select('cnt', (_pf, pfns) => pfns.count())
           .groupBy('user_id')
-          .having((_pf, pfns) => pfns.gt(pfns.count(), 5)),
+          .having((_pf, pfns) => pfns.gt(pfns.count(), 5n)),
       ),
     )
     .build();

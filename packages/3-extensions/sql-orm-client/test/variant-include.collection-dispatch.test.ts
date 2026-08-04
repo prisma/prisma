@@ -1,4 +1,4 @@
-import type { ProjectionItem } from '@prisma-next/sql-relational-core/ast';
+import type { ProjectionItem } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { Collection } from '../src/collection';
 import {

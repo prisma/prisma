@@ -2,8 +2,8 @@
  * Constructive type tests for the pgvector per-extension descriptor record layer (TML-2357). Mirrors the per-target tests in postgres / sqlite.
  */
 
-import type { AnyCodecDescriptor, CodecTrait } from '@prisma-next/framework-components/codec';
-import type { AnyPostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
+import type { AnyCodecDescriptor, CodecTrait } from '@internal/framework-components/codec';
+import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 import { expectTypeOf, test } from 'vitest';
 import { codecDescriptors, type PgVectorDescriptor, pgVectorDescriptor } from '../src/core/codecs';
 import type { CodecTypes } from '../src/exports/codec-types';

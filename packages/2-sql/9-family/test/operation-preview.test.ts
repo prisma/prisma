@@ -1,5 +1,5 @@
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { hasOperationPreview } from '@prisma-next/framework-components/control';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { hasOperationPreview } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { extractSqlDdl, sqlOperationsToPreview } from '../src/core/operation-preview';
 import sqlFamilyDescriptor from '../src/exports/control';

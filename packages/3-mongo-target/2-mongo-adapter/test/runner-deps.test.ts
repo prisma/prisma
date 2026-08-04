@@ -1,5 +1,5 @@
-import type { ControlDriverInstance } from '@prisma-next/framework-components/control';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import type { ControlDriverInstance } from '@internal/framework-components/control';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { extractDb } from '../src/core/runner-deps';
 

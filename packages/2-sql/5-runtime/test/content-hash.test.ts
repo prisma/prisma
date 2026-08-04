@@ -1,5 +1,5 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+import type { PlanMeta } from '@internal/contract/types';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it } from 'vitest';
 import { computeSqlContentHash } from '../src/content-hash';
 import { stubAst } from './utils';

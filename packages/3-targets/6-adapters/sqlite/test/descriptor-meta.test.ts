@@ -13,8 +13,8 @@
  * re-broke codec lookup three times before the invariant was made explicit here.
  */
 
-import { SQL_CHAR_CODEC_ID, SQL_VARCHAR_CODEC_ID } from '@prisma-next/sql-relational-core/ast';
-import { sqliteCodecRegistry } from '@prisma-next/target-sqlite/codecs';
+import { SQL_CHAR_CODEC_ID, SQL_VARCHAR_CODEC_ID } from '@internal/sql-relational-core/ast';
+import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 import { describe, expect, it } from 'vitest';
 import { sqliteAdapterDescriptorMeta } from '../src/core/descriptor-meta';
 

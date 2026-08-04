@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongodb';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withMongoPort } from '../../../_harness/mongo';
 import type { Contract } from './_fixture/generated/contract';
@@ -25,9 +24,9 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // system (content cannot be null/undefined on CommentRequired), so that branch
 // has no runtime equivalent and is not ported.
 //
-// Note: create() returns the input data merged with the server-assigned _id
-// (an ObjectId, not the decoded hex string); the type-level string comes from
-// re-reads via all()/first().
+// Note: create() returns the input data merged with the server-assigned _id.
+// Upstream asserts `id: expect.any(String)`; prisma-next decodes write results
+// through the same codecs as reads (#29879), so `_id` is a hex string here too.
 
 function withComposites(fn: Parameters<typeof withMongoPort<Contract>>[1]) {
   return withMongoPort<Contract>({ contractJson }, fn);
@@ -54,7 +53,7 @@ describe('ports/prisma/functional/composites/object/create', () => {
               upvotes: [{ userId: '10', vote: true }],
             },
           });
-          expect(comment._id).toBeInstanceOf(ObjectId);
+          expect(comment._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );
@@ -165,7 +164,7 @@ describe('ports/prisma/functional/composites/object/create', () => {
               upvotes: [{ userId: '10', vote: true }],
             },
           });
-          expect(comment._id).toBeInstanceOf(ObjectId);
+          expect(comment._id).toEqual(expect.any(String));
         }),
       timeouts.spinUpMongoMemoryServer,
     );

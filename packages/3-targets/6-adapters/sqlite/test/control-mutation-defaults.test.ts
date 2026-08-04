@@ -1,4 +1,4 @@
-import type { AuthoringTypeNamespace } from '@prisma-next/framework-components/authoring';
+import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
 import { createSqliteBuiltinCodecLookup } from '../src/core/codec-lookup';
 import {

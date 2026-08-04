@@ -2,9 +2,9 @@ import {
   ForeignKeyConstraint,
   PrimaryKeyConstraint,
   UniqueConstraint,
-} from '@prisma-next/sql-relational-core/ast';
-import { col } from '@prisma-next/sql-relational-core/contract-free';
-import { createTable } from '@prisma-next/target-sqlite/contract-free';
+} from '@internal/sql-relational-core/ast';
+import { col } from '@internal/sql-relational-core/contract-free';
+import { createTable } from '@internal/target-sqlite/contract-free';
 import { describe, expect, it } from 'vitest';
 import { createSqliteBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../src/core/control-adapter';

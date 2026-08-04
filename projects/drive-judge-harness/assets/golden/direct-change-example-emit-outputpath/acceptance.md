@@ -24,7 +24,7 @@ within the direct-change envelope — it's the minimal enabling change, not scop
 ## Correctness oracle
 
 - **Mechanical:** `pnpm fixtures:check` clean; `pnpm --filter paradedb-demo typecheck` and
-  `pnpm --filter prisma-next-demo-sqlite typecheck` pass; any config-package tests pass.
+  `pnpm --filter prisma-8-demo-sqlite typecheck` pass; any config-package tests pass.
 - **Requirements:** AC-1…AC-5 against the diff.
 - **Intent:** the root cause (emit output path diverged from the tracked, imported location)
   is fixed at the source — not papered over with a copy step in tooling. A correct run

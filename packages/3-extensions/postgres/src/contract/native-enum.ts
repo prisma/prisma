@@ -1,8 +1,8 @@
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import { PG_ENUM_CODEC_ID } from '@prisma-next/target-postgres/codec-ids';
-import { pgEnumDescriptor } from '@prisma-next/target-postgres/codecs';
-import { PostgresNativeEnum } from '@prisma-next/target-postgres/types';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import { PG_ENUM_CODEC_ID } from '@internal/target-postgres/codec-ids';
+import { pgEnumDescriptor } from '@internal/target-postgres/codecs';
+import { PostgresNativeEnum } from '@internal/target-postgres/types';
+import { InternalError } from '@internal/utils/internal-error';
 import { postgresError } from '../errors';
 
 /**

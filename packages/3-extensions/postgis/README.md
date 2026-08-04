@@ -1,4 +1,4 @@
-# @prisma-next/extension-postgis
+# @internal/extension-postgis
 
 Geospatial data for Prisma Next on PostgreSQL, powered by [PostGIS](https://postgis.net).
 
@@ -19,21 +19,21 @@ The PostGIS extension must be installable on your PostgreSQL server. Most manage
 ## Installation
 
 ```bash
-pnpm add @prisma-next/extension-postgis
+pnpm add @internal/extension-postgis
 ```
 
 ## Quick start
 
-A complete five-step example — see [`examples/prisma-next-postgis-demo`](../../../examples/prisma-next-postgis-demo) for the full version with a seeded database, a Next.js UI, and e2e tests.
+A complete five-step example — see [`examples/prisma-8-postgis-demo`](../../../examples/prisma-8-postgis-demo) for the full version with a seeded database, a Next.js UI, and e2e tests.
 
 **1. Register the extension in `prisma-next.config.ts`:**
 
 ```typescript
-import { defineConfig } from '@prisma-next/cli/config-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
-import postgis from '@prisma-next/extension-postgis/control';
+import { defineConfig } from '@internal/cli/config-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import sql from '@internal/family-sql/control';
+import postgres from '@internal/target-postgres/control';
+import postgis from '@internal/extension-postgis/control';
 
 export default defineConfig({
   family: sql,
@@ -71,8 +71,8 @@ pnpm prisma-next db init         # CREATE EXTENSION postgis + CREATE TABLE
 
 ```typescript
 // src/prisma/db.ts
-import postgres from '@prisma-next/postgres/runtime';
-import postgis from '@prisma-next/extension-postgis/runtime';
+import postgres from '@internal/postgres/runtime';
+import postgis from '@internal/extension-postgis/runtime';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -86,7 +86,7 @@ export const db = postgres<Contract>({
 **5. Query:**
 
 ```typescript
-import { point } from '@prisma-next/extension-postgis/geojson';
+import { point } from '@internal/extension-postgis/geojson';
 import { db } from './prisma/db';
 
 const ferryBuilding = point(-122.3937, 37.7955, 4326);
@@ -126,12 +126,12 @@ model Route {
 ### TypeScript contract builder
 
 ```typescript
-import { textColumn, varcharColumn } from '@prisma-next/adapter-postgres/column-types';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import { defineContract, field, model } from '@prisma-next/sql-contract-ts/contract-builder';
-import { geometry, geometryColumn } from '@prisma-next/extension-postgis/column-types';
-import postgis from '@prisma-next/extension-postgis/pack';
-import postgres from '@prisma-next/target-postgres/pack';
+import { textColumn, varcharColumn } from '@internal/adapter-postgres/column-types';
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
+import { geometry, geometryColumn } from '@internal/extension-postgis/column-types';
+import postgis from '@internal/extension-postgis/pack';
+import postgres from '@internal/target-postgres/pack';
 
 export const contract = defineContract({
   family: sqlFamily,
@@ -153,10 +153,10 @@ export const contract = defineContract({
 
 ## Geometry values
 
-Runtime geometries are GeoJSON-shaped objects: `{ type, coordinates, srid? }`. Build them with the constructors from `@prisma-next/extension-postgis/geojson` rather than constructing the literals by hand — the constructors keep the coordinate ordering straight (`[lng, lat]`) and attach SRID metadata in one place.
+Runtime geometries are GeoJSON-shaped objects: `{ type, coordinates, srid? }`. Build them with the constructors from `@internal/extension-postgis/geojson` rather than constructing the literals by hand — the constructors keep the coordinate ordering straight (`[lng, lat]`) and attach SRID metadata in one place.
 
 ```typescript
-import { bboxPolygon, point, polygon } from '@prisma-next/extension-postgis/geojson';
+import { bboxPolygon, point, polygon } from '@internal/extension-postgis/geojson';
 
 // Point — note: longitude first, latitude second.
 const sightglass = point(-122.4106, 37.7765, 4326);
@@ -259,8 +259,8 @@ Features that require it should declare a `requires: ['postgis.geometry']` const
 For consumers that need to reference the value or operation shapes directly:
 
 ```typescript
-import type { CodecTypes, Geometry } from '@prisma-next/extension-postgis/codec-types';
-import type { OperationTypes, QueryOperationTypes } from '@prisma-next/extension-postgis/operation-types';
+import type { CodecTypes, Geometry } from '@internal/extension-postgis/codec-types';
+import type { OperationTypes, QueryOperationTypes } from '@internal/extension-postgis/operation-types';
 
 // CodecTypes['pg/geometry@1']['output'] = Geometry (the GeoJSON union)
 // Geometry<4326> is the SRID-branded form rendered into contract.d.ts.
@@ -268,7 +268,7 @@ import type { OperationTypes, QueryOperationTypes } from '@prisma-next/extension
 
 ## Demo
 
-The end-to-end demo in [`examples/prisma-next-postgis-demo`](../../../examples/prisma-next-postgis-demo) walks through:
+The end-to-end demo in [`examples/prisma-8-postgis-demo`](../../../examples/prisma-8-postgis-demo) walks through:
 
 - Schema with three geometry shapes (`Point`, `LineString`, `Polygon`).
 - Seeded data (five SF cafes, two delivery routes, three neighborhood polygons).

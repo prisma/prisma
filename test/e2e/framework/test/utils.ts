@@ -3,26 +3,21 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { type ControlClient, createControlClient } from '@prisma-next/cli/control-api';
-import type { Contract } from '@prisma-next/contract/types';
-import postgresDriver from '@prisma-next/driver-postgres/control';
-import arktypeJson from '@prisma-next/extension-arktype-json/control';
-import arktypeJsonRuntime from '@prisma-next/extension-arktype-json/runtime';
-import pgvector from '@prisma-next/extension-pgvector/control';
-import pgvectorRuntime from '@prisma-next/extension-pgvector/runtime';
-import sql from '@prisma-next/family-sql/control';
-import { createTestRuntimeFromClient } from '@prisma-next/integration-tests/test/utils';
-import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import { sql as sqlBuilder } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { createStubAdapter, createTestContext } from '@prisma-next/sql-runtime/test/utils';
-import postgres from '@prisma-next/target-postgres/control';
-import { withClient, withDevDatabase } from '@prisma-next/test-utils';
+import arktypeJson from '@prisma/orm-extension-arktype-json/control';
+import arktypeJsonRuntime from '@prisma/orm-extension-arktype-json/runtime';
+import pgvector from '@prisma/orm-extension-pgvector/control';
+import pgvectorRuntime from '@prisma/orm-extension-pgvector/runtime';
+import type { Db } from '@prisma/orm-postgres/builder/types';
+import type { Contract } from '@prisma/orm-postgres/contract/types';
+import { type ControlClient, createPostgresControlClient } from '@prisma/orm-postgres/control';
+import type { SqlStorage } from '@prisma/orm-postgres/family-contract/types';
+import type { ExecutionContext, Runtime } from '@prisma/orm-postgres/family-runtime';
+import { materialiseMigrationPackage } from '@prisma/orm-postgres/migration-tools/io';
+import { emitContractSpaceArtifacts } from '@prisma/orm-postgres/migration-tools/spaces';
+import postgres from '@prisma/orm-postgres/runtime';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
+import { withClient, withDevDatabase } from '@repo/test-utils';
 import type { Client } from 'pg';
-import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 
 const execFileAsync = promisify(execFile);
 
@@ -37,13 +32,9 @@ export async function collect<T>(iter: AsyncIterable<T>): Promise<T[]> {
  * Used for database initialization via dbInit.
  */
 export function createControlClientForTests(connectionString: string): ControlClient {
-  return createControlClient({
-    family: sql,
-    target: postgres,
-    adapter: postgresAdapter,
-    driver: postgresDriver,
-    extensions: [pgvector, arktypeJson],
+  return createPostgresControlClient({
     connection: connectionString,
+    extensions: [pgvector, arktypeJson],
   });
 }
 
@@ -56,7 +47,7 @@ export async function loadContractFromDisk<
   TContract extends Contract<SqlStorage> = Contract<SqlStorage>,
 >(contractJsonPath: string): Promise<TContract> {
   const contractJson = await loadRawContractFromDisk(contractJsonPath);
-  return new SqlContractSerializer().deserializeContract(contractJson) as TContract;
+  return new PostgresContractSerializer().deserializeContract(contractJson) as TContract;
 }
 
 async function loadRawContractFromDisk(contractJsonPath: string): Promise<Record<string, unknown>> {
@@ -100,7 +91,9 @@ export async function emitAndVerifyContract(
     );
   }
 
-  return new SqlContractSerializer().deserializeContract(emittedContract) as Contract<SqlStorage>;
+  return new PostgresContractSerializer().deserializeContract(
+    emittedContract,
+  ) as Contract<SqlStorage>;
 }
 
 /**
@@ -129,7 +122,7 @@ async function materialisePgvectorPinnedArtifacts(migrationsDir: string): Promis
 export async function withE2eMigrationsDir<T>(
   callback: (migrationsDir: string) => Promise<T>,
 ): Promise<T> {
-  const migrationsDir = await mkdtemp(join(tmpdir(), 'prisma-next-e2e-migrations-'));
+  const migrationsDir = await mkdtemp(join(tmpdir(), 'prisma-8-e2e-migrations-'));
   try {
     await materialisePgvectorPinnedArtifacts(migrationsDir);
     return await callback(migrationsDir);
@@ -215,9 +208,9 @@ export interface TestRuntimeContext<TContract extends Contract<SqlStorage>> {
   /** The validated contract loaded from disk */
   readonly contract: TContract;
   /** The SQL query context for building queries */
-  readonly context: ReturnType<typeof createTestContext>;
+  readonly context: ExecutionContext<TContract>;
   /** The test runtime for executing queries */
-  readonly runtime: Awaited<ReturnType<typeof createTestRuntimeFromClient>>;
+  readonly runtime: Runtime;
   /** The sql-builder proxy for building and executing queries */
   readonly db: Db<TContract>;
   /** The raw pg client for direct SQL queries */
@@ -251,7 +244,6 @@ export async function withTestRuntime<TContract extends Contract<SqlStorage>>(
   callback: (ctx: TestRuntimeContext<TContract>) => Promise<void>,
 ): Promise<void> {
   const contractJson = await loadRawContractFromDisk(contractJsonPath);
-  const contract = new SqlContractSerializer().deserializeContract(contractJson) as TContract;
 
   await withDevDatabase(async ({ connectionString }) => {
     await withE2eMigrationsDir(async (migrationsDir) => {
@@ -263,22 +255,24 @@ export async function withTestRuntime<TContract extends Contract<SqlStorage>>(
       await runDbInit({ connectionString, contractJsonPath, migrationsDir });
 
       await withClient(connectionString, async (client: Client) => {
-        const adapter = createStubAdapter();
-        const context = createTestContext(contract, adapter, {
+        const postgresClient = postgres<TContract>({
+          contractJson,
+          pg: client,
           extensions: [pgvectorRuntime, arktypeJsonRuntime],
         });
-        const runtime = await createTestRuntimeFromClient(contract, client, {
-          extensions: [pgvectorRuntime, arktypeJsonRuntime],
-        });
+        const runtime = await postgresClient.connect();
 
         try {
-          const db = sqlBuilder<TContract>({
-            context,
-            rawCodecInferer: { inferCodec: () => 'pg/text' },
+          await callback({
+            contract: postgresClient.contract,
+            context: postgresClient.context,
+            runtime,
+            db: postgresClient.sql,
+            client,
+            sql,
           });
-          await callback({ contract, context, runtime, db, client, sql });
         } finally {
-          await runtime.close();
+          await postgresClient.close();
         }
       });
     });

@@ -72,7 +72,7 @@ These four cases anchor the acceptance criteria. If any can't be expressed clean
 
 ### Case E — Emit-path `contract.d.ts` typed `TypeMaps` derivation
 
-**Setup.** `pnpm emit` runs against `examples/prisma-next-demo`. The emitter walks the descriptors registered through the unified `codecs:` slot, derives per-codec-id `{input, output, traits}` shapes, and writes them into `contract.d.ts`'s `TypeMaps` projection.
+**Setup.** `pnpm emit` runs against `examples/prisma-8-demo`. The emitter walks the descriptors registered through the unified `codecs:` slot, derives per-codec-id `{input, output, traits}` shapes, and writes them into `contract.d.ts`'s `TypeMaps` projection.
 
 **Expected behavior.** Generated `TypeMaps` projection has correct per-codec-id shapes:
 ```typescript
@@ -94,7 +94,7 @@ type TypeMaps = {
 
 **Setup.** Postgres adapter's contributor protocol returns `codecs: () => ReadonlyArray<AnyCodecDescriptor>` (per AC-2 of the parent spec). `Object.values(pgDescriptors)` flattens the typed record into a generic descriptor array for runtime registration.
 
-**Expected behavior.** The runtime registration path (`@prisma-next/sql-runtime` → `CodecLookup.descriptorFor(codecId)`) accepts the heterogeneous array. The framework treats each entry as base `CodecDescriptor` (or `AnyCodecDescriptor`); typed-codec generics are not required at runtime — they served their purpose at the no-emit authoring boundary and at emit time.
+**Expected behavior.** The runtime registration path (`@internal/sql-runtime` → `CodecLookup.descriptorFor(codecId)`) accepts the heterogeneous array. The framework treats each entry as base `CodecDescriptor` (or `AnyCodecDescriptor`); typed-codec generics are not required at runtime — they served their purpose at the no-emit authoring boundary and at emit time.
 
 **What this pins.**
 - The variance erasure point is bounded to the *registration boundary* — type-flow ergonomics survive at the descriptor-record-of-typed-descriptors level (where it matters); the framework runtime continues to consume codecs as black boxes (where it shouldn't matter).
@@ -132,7 +132,7 @@ Per-package descriptor records preserve each entry's full descriptor type by inf
 
 ### AC-0.3. No-emit authoring chain types end-to-end
 
-The no-emit authoring chain (using `examples/prisma-next-demo/prisma/contract.ts` + `prisma-no-emit/context.ts` as the reference shape) types every step:
+The no-emit authoring chain (using `examples/prisma-8-demo/prisma/contract.ts` + `prisma-no-emit/context.ts` as the reference shape) types every step:
 
 - `field.uuidv4()` returns a field spec whose codec generic is `Codec<'pg/uuid@1', ..., Buffer, string>`.
 - `defineContract({target: postgresPack, family: sqlFamily, extensionPacks: {pgvector}}, ...)` produces a contract type carrying per-column codec types (e.g. `User.fields.id` → `pg/uuid@1` codec; `Post.fields.embedding` → `pg/vector@1` codec).
@@ -152,7 +152,7 @@ This is the AC that *proves* AC-0.1–AC-0.4 hold in fact and not just nominally
 
 **Required deletions inside M0:**
 
-1. **`mkCodec` public export** from `@prisma-next/sql-relational-core/ast`. The factory may persist as an *internal* helper inside the package (rename to `buildSqlCodec` to make the role explicit; it's the codec-instance builder called inside `defineCodec` factory closures). External callers must reach typed codecs via descriptors.
+1. **`mkCodec` public export** from `@internal/sql-relational-core/ast`. The factory may persist as an *internal* helper inside the package (rename to `buildSqlCodec` to make the role explicit; it's the codec-instance builder called inside `defineCodec` factory closures). External callers must reach typed codecs via descriptors.
 
 2. **`CodecDefBuilder` and `CodecDefBuilderImpl`** from `packages/2-sql/4-lanes/relational-core/src/ast/codec-types.ts`. The instance-keyed builder has no remaining role; descriptor-keyed `CodecDescriptorBuilder` (line 709-) absorbs every consumer. Delete the legacy `defineCodecGroup()` factory function exported in parallel.
 
@@ -204,4 +204,4 @@ The contract-level `ExtractCodecTypes<T>` in `sql/1-core/contract/src/types.ts` 
 - Parent spec: [`spec.md`](../spec.md) — TML-2357 canonical spec; this sub-spec is a precondition for AC-1 / AC-2 / AC-3 / AC-7.
 - [`wip/unattended-decisions.md` Decision #11](../../../wip/unattended-decisions.md) — diagnosis of the M2 R4 type-system failure that surfaced this problem.
 - [`packages/2-sql/4-lanes/relational-core/src/ast/codec-types.ts:587-593`](../../../packages/2-sql/4-lanes/relational-core/src/ast/codec-types.ts) — current `defineCodec` declaration, where the variance erasure happens.
-- [`examples/prisma-next-demo/prisma/contract.ts`](../../../examples/prisma-next-demo/prisma/contract.ts), [`examples/prisma-next-demo/src/prisma-no-emit/context.ts`](../../../examples/prisma-next-demo/src/prisma-no-emit/context.ts) — reference no-emit authoring chain.
+- [`examples/prisma-8-demo/prisma/contract.ts`](../../../examples/prisma-8-demo/prisma/contract.ts), [`examples/prisma-8-demo/src/prisma-no-emit/context.ts`](../../../examples/prisma-8-demo/src/prisma-no-emit/context.ts) — reference no-emit authoring chain.

@@ -11,17 +11,17 @@
  * Supabase release).
  *
  * Usage:
- *   pnpm --filter @prisma-next/extension-supabase run contract:generate
- *   pnpm --filter @prisma-next/extension-supabase run contract:generate -- --url postgres://...
+ *   pnpm --filter @internal/extension-supabase run contract:generate
+ *   pnpm --filter @internal/extension-supabase run contract:generate -- --url postgres://...
  */
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import postgresAdapterDescriptor from '@prisma-next/adapter-postgres/control';
-import postgresDriverDescriptor from '@prisma-next/driver-postgres/control';
-import sqlFamilyDescriptor from '@prisma-next/family-sql/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
+import postgresAdapterDescriptor from '@internal/adapter-postgres/control';
+import postgresDriverDescriptor from '@internal/driver-postgres/control';
+import sqlFamilyDescriptor from '@internal/family-sql/control';
+import { createControlStack } from '@internal/framework-components/control';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
@@ -31,15 +31,15 @@ import {
   type PslModel,
   type PslNamedTypeDeclaration,
   type PslNamespace,
-} from '@prisma-next/framework-components/psl-ast';
-import { printPsl } from '@prisma-next/psl-printer';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
+} from '@internal/framework-components/psl-ast';
+import { printPsl } from '@internal/psl-printer';
+import postgresTargetDescriptor from '@internal/target-postgres/control';
 import {
   PostgresDatabaseSchemaNode,
   PostgresNamespaceSchemaNode,
   PostgresTableSchemaNode,
-} from '@prisma-next/target-postgres/types';
-import { createDevDatabase } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/types';
+import { createDevDatabase } from '@repo/test-utils';
 import { Client } from 'pg';
 import { SupabaseRole } from '../src/contract/roles';
 import { setUpSupabaseMockSchema } from '../test/fixtures/supabase-reference/set-up-mock-schema';
@@ -198,43 +198,6 @@ function applyDefaultOmissions(
 
   if (!changed) return namespace;
 
-  return makePslNamespace({
-    kind: 'namespace',
-    name: namespace.name,
-    entries: makePslNamespaceEntries(
-      models,
-      namespace.compositeTypes,
-      namespacePslExtensionBlocks(namespace),
-    ),
-    span: namespace.span,
-  });
-}
-
-function rlsModelAttribute(): PslModel['attributes'][number] {
-  return { kind: 'attribute', target: 'model', name: 'rls', args: [], span: SYNTHETIC_SPAN };
-}
-
-/**
- * Marks every model backed by an RLS-enabled table with `@@rls` — an
- * argument-less model attribute (no policies authored) that only records
- * `ENABLE ROW LEVEL SECURITY`, matching what `db verify` observes live.
- * Every `auth`/`storage` table in a real Supabase instance has RLS enabled;
- * without this a verify comparison sees the contract's implicit
- * `rlsEnabled: false` against the live `true` and reports every such table
- * `not-equal`. Real Supabase policies are not captured — authoring the
- * policy set itself is out of scope here (see the RLS unification project).
- */
-function applyRlsEnablement(
-  namespace: PslNamespace,
-  rlsEnabledTables: ReadonlySet<string>,
-): PslNamespace {
-  let changed = false;
-  const models = namespace.models.map((model) => {
-    if (!rlsEnabledTables.has(tableNameOfModel(model))) return model;
-    changed = true;
-    return { ...model, attributes: [...model.attributes, rlsModelAttribute()] };
-  });
-  if (!changed) return namespace;
   return makePslNamespace({
     kind: 'namespace',
     name: namespace.name,
@@ -460,15 +423,10 @@ async function introspectSchema(
     );
   }
 
-  const rlsEnabledTables = new Set(
-    Object.values(tree.namespaces[schemaName]?.tables ?? {})
-      .filter((table) => table.rlsEnabled)
-      .map((table) => table.name),
-  );
-
+  // `@@rls` is emitted natively by `inferPslContract` from each table node's
+  // `rlsEnabled` — no out-of-band appender needed.
   const defaultsFixed = applyDefaultOmissions(namespace, DEFAULT_OMISSIONS[schemaName] ?? {});
-  const rlsFixed = applyRlsEnablement(defaultsFixed, rlsEnabledTables);
-  return { namespace: rlsFixed, types: ast.types?.declarations ?? [] };
+  return { namespace: defaultsFixed, types: ast.types?.declarations ?? [] };
 }
 
 async function main(): Promise<void> {

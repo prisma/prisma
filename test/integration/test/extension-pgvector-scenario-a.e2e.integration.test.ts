@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 /**
  * Scenario A end-to-end against PGlite — pgvector contract-space
  * (project: extension-contract-spaces, M4 / T4.3).
@@ -18,7 +18,7 @@ import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
  * Turbo dep cycle by relocating runtime-dep tests`).
  *
  * Public-export-only consumption: this file imports pgvector solely
- * via `@prisma-next/extension-pgvector/control` (the published
+ * via `@internal/extension-pgvector/control` (the published
  * descriptor). The few `pgvector:*` string constants we need are
  * inlined here with comments tying them to their source-of-truth
  * locations.
@@ -52,24 +52,19 @@ import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import postgresAdapterDescriptor from '@prisma-next/adapter-postgres/control';
-import { executeDbInit } from '@prisma-next/cli/control-api';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import postgresDriverDescriptor from '@prisma-next/driver-postgres/control';
-import pgvectorExtensionDescriptor from '@prisma-next/extension-pgvector/control';
-import sqlFamilyDescriptor, {
-  type SqlMigrationPlanOperation,
-} from '@prisma-next/family-sql/control';
-import {
-  createControlStack,
-  type MigrationPackage,
-} from '@prisma-next/framework-components/control';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { materialiseMigrationPackage } from '@prisma-next/migration-tools/io';
-import { emitContractSpaceArtifacts } from '@prisma-next/migration-tools/spaces';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import postgresTargetDescriptor from '@prisma-next/target-postgres/control';
-import { applicationDomainOf, createDevDatabase, timeouts } from '@prisma-next/test-utils';
+import postgresAdapterDescriptor from '@internal/adapter-postgres/control';
+import { executeDbInit } from '@internal/cli/control-api';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import postgresDriverDescriptor from '@internal/driver-postgres/control';
+import pgvectorExtensionDescriptor from '@internal/extension-pgvector/control';
+import sqlFamilyDescriptor, { type SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import { createControlStack, type MigrationPackage } from '@internal/framework-components/control';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { materialiseMigrationPackage } from '@internal/migration-tools/io';
+import { emitContractSpaceArtifacts } from '@internal/migration-tools/spaces';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import postgresTargetDescriptor from '@internal/target-postgres/control';
+import { applicationDomainOf, createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 // String constants pinned by source of truth in

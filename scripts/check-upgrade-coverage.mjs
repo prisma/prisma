@@ -114,8 +114,8 @@ export function parseChangesFrontmatter(src) {
   return { ok: false, reason: 'changes key absent' };
 }
 
-const USER_SKILL_PKG = 'skills/upgrade/prisma-next-upgrade';
-const EXT_SKILL_PKG = 'skills/extension-author/prisma-next-extension-upgrade';
+const USER_SKILL_PKG = 'skills/prisma-next-upgrade';
+const EXT_SKILL_PKG = 'skills/prisma-8-extension-upgrade';
 
 /**
  * Substrates covered by the gate. Each entry pairs a diff pathspec
@@ -214,14 +214,12 @@ export function coverageTransitionChain(head, prev) {
  * Parse a path under `<skill-pkg>/upgrades/<transition>/...` and return
  * the transition segment, or null if the path does not match.
  *
- * Example: `skills/upgrade/prisma-next-upgrade/upgrades/0.7-to-0.8/foo.ts`
+ * Example: `skills/prisma-next-upgrade/upgrades/0.7-to-0.8/foo.ts`
  *  → `'0.7-to-0.8'`
  */
 export function parseTransitionFromPath(path) {
   const match =
-    /^skills\/(?:upgrade\/prisma-next-upgrade|extension-author\/prisma-next-extension-upgrade)\/upgrades\/([^/]+)\//.exec(
-      path,
-    );
+    /^skills\/(?:prisma-next-upgrade|prisma-8-extension-upgrade)\/upgrades\/([^/]+)\//.exec(path);
   return match ? match[1] : null;
 }
 
@@ -498,8 +496,8 @@ function renderViolations(result, write) {
           `              transition is "${v.observedTransition}" but only the following are accepted:\n` +
           `                ${v.allowedTransitions.join(', ')}\n` +
           '              move the new file under one of:\n' +
-          '                skills/upgrade/prisma-next-upgrade/upgrades/<one-of-the-above>/instructions.md\n' +
-          '                skills/extension-author/prisma-next-extension-upgrade/upgrades/<one-of-the-above>/instructions.md\n',
+          '                skills/prisma-next-upgrade/upgrades/<one-of-the-above>/instructions.md\n' +
+          '                skills/prisma-8-extension-upgrade/upgrades/<one-of-the-above>/instructions.md\n',
       );
     } else if (v.rule === 'per-pr-declaration') {
       if (v.malformed) {

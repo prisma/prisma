@@ -1,4 +1,4 @@
-# @prisma-next/sql-orm-client
+# @internal/sql-orm-client
 
 ORM client for Prisma Next — fluent, type-safe model collections.
 
@@ -18,10 +18,10 @@ This package provides a high-level ORM client surface on top of the runtime that
 
 This package depends on:
 
-- `@prisma-next/sql-contract` for contract shape and mappings
-- `@prisma-next/contract` for `ExecutionPlan` metadata
-- `@prisma-next/framework-components` for `AsyncIterableResult` and the canonical `RuntimeExecutor<TPlan>` interface (imported from `@prisma-next/framework-components/runtime`)
-- `@prisma-next/sql-relational-core` for SQL AST and plan types
+- `@internal/sql-contract` for contract shape and mappings
+- `@internal/contract` for `ExecutionPlan` metadata
+- `@internal/framework-components` for `AsyncIterableResult` and the canonical `RuntimeExecutor<TPlan>` interface (imported from `@internal/framework-components/runtime`)
+- `@internal/sql-relational-core` for SQL AST and plan types
 
 This package should not depend on target adapters or drivers directly; execution is delegated to the runtime queryable interface.
 

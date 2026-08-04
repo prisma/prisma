@@ -1,19 +1,19 @@
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
-import type { PrismaNextConfig } from '@prisma-next/config-loader';
-import * as configLoader from '@prisma-next/config-loader';
-import { errorUnexpected } from '@prisma-next/errors/control';
-import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
-import type { ControlStack } from '@prisma-next/framework-components/control';
-import * as control from '@prisma-next/framework-components/control';
-import { timeouts } from '@prisma-next/test-utils';
+import type { PrismaNextConfig } from '@internal/config-loader';
+import * as configLoader from '@internal/config-loader';
+import { errorUnexpected } from '@internal/errors/control';
+import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type { ControlStack } from '@internal/framework-components/control';
+import * as control from '@internal/framework-components/control';
+import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { resolveConfigInputs } from '../src/config-resolution';
 
-vi.mock('@prisma-next/config-loader', { spy: true });
-vi.mock('@prisma-next/framework-components/control', { spy: true });
+vi.mock('@internal/config-loader', { spy: true });
+vi.mock('@internal/framework-components/control', { spy: true });
 
 function loadedConfig(format: string, inputs: readonly string[]): PrismaNextConfig {
   return { contract: { source: { format, inputs } } } as unknown as PrismaNextConfig;

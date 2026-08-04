@@ -1,6 +1,6 @@
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { mongoOrm } from '@prisma-next/mongo-orm';
-import { MongoFieldFilter } from '@prisma-next/mongo-query-ast/execution';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import { mongoOrm } from '@internal/mongo-orm';
+import { MongoFieldFilter } from '@internal/mongo-query-ast/execution';
 import { ObjectId } from 'mongodb';
 import { expect, expectTypeOf, it } from 'vitest';
 import type { Contract } from './fixtures/generated/contract';

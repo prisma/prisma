@@ -3,5 +3,5 @@ export type {
   ContractConfig,
   ContractSourceContext,
   PrismaNextConfig,
-} from '@prisma-next/config/config-types';
-export { defineConfig } from '@prisma-next/config/config-types';
+} from '@internal/config/config-types';
+export { defineConfig } from '@internal/config/config-types';

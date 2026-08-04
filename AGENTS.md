@@ -64,7 +64,7 @@ The repo keeps a single canonical home for each kind of agent surface, with pres
 - Never use `@ts-expect-error` outside of negative type tests; never use `@ts-nocheck`.
 - Never suppress biome lints.
 - Minimize type casts: prefer explicit types that make casts unnecessary. If unavoidable, narrow the cast as far as possible — never cast a whole object/class when casting one property would suffice.
-- No bare `as` in production code. Use `blindCast<T, "Reason">` or `castAs<T>` from `@prisma-next/utils/casts`; see the `no-bare-casts` skill for the decision tree. `as const` and test files are exempt. The `no-bare-cast` plugin + CI ratchet enforce no per-PR cast increases.
+- No bare `as` in production code. Use `blindCast<T, "Reason">` or `castAs<T>` from `@internal/utils/casts`; see the `no-bare-casts` skill for the decision tree. `as const` and test files are exempt. The `no-bare-cast` plugin + CI ratchet enforce no per-PR cast increases.
 
 ## Common Commands
 

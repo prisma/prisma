@@ -1,5 +1,5 @@
 /**
- * Supabase role surface exported from `@prisma-next/extension-supabase/contract`:
+ * Supabase role surface exported from `@internal/extension-supabase/contract`:
  *
  * 1. `anon` / `authenticated` are plain RLS role reference handles (built with
  *    the postgres contract-builder's `role(...)`) usable in a policy's
@@ -14,7 +14,7 @@
  *    `control: 'external'` role entity bound to the `__unbound__` namespace
  *    coordinate (roles are cluster-scoped in Postgres).
  */
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import contractJson from '../src/contract/contract.json' with { type: 'json' };
 import { SupabaseRole } from '../src/contract/roles';

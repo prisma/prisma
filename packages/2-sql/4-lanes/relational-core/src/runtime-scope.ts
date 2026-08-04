@@ -1,4 +1,4 @@
-import type { RuntimeExecutor } from '@prisma-next/framework-components/runtime';
+import type { RuntimeExecutor } from '@internal/framework-components/runtime';
 import type { SqlQueryPlan } from './plan';
 import type { SqlExecutionPlan } from './sql-execution-plan';
 
@@ -14,7 +14,7 @@ export type SqlOrmPlan = SqlExecutionPlan | SqlQueryPlan;
  * depend on: the `execute` method of `RuntimeExecutor<SqlOrmPlan>`.
  *
  * Owned by `sql-relational-core` (lanes layer) so both
- * `@prisma-next/sql-runtime` and `@prisma-next/sql-orm-client` consume the
+ * `@internal/sql-runtime` and `@internal/sql-orm-client` consume the
  * same source of truth without a layering inversion.
  */
 export type RuntimeScope = Pick<RuntimeExecutor<SqlOrmPlan>, 'execute'>;

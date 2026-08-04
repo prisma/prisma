@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import { blindCast, castAs } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import type { JsonObject } from '@prisma-next/utils/json';
+import { blindCast, castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import type { JsonObject } from '@internal/utils/json';
 import {
   canonicalizeContract,
   type PreserveEmptyPredicate,

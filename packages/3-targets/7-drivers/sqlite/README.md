@@ -1,4 +1,4 @@
-# @prisma-next/driver-sqlite
+# @internal/driver-sqlite
 
 SQLite driver for Prisma Next.
 
@@ -81,9 +81,9 @@ flowchart TD
 
 ## Dependencies
 
-- **`@prisma-next/sql-relational-core`**: SQL contract types (`SqlDriver`, `SqlConnection`, `SqlTransaction`)
-- **`@prisma-next/framework-components`**: Descriptor types (`RuntimeDriverDescriptor`, `ControlDriverDescriptor`)
-- **`@prisma-next/errors`**: Structured error factories
+- **`@internal/sql-relational-core`**: SQL contract types (`SqlDriver`, `SqlConnection`, `SqlTransaction`)
+- **`@internal/framework-components`**: Descriptor types (`RuntimeDriverDescriptor`, `ControlDriverDescriptor`)
+- **`@internal/errors`**: Structured error factories
 
 ## Related Subsystems
 
@@ -100,7 +100,7 @@ flowchart TD
 Use the descriptor + connect lifecycle:
 
 ```typescript
-import sqliteDriver from '@prisma-next/driver-sqlite/runtime';
+import sqliteDriver from '@internal/driver-sqlite/runtime';
 
 const driver = sqliteDriver.create();
 await driver.connect({ kind: 'path', path: ':memory:' });

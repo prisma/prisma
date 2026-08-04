@@ -1,6 +1,6 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { ControlPolicy } from '@internal/contract/types';
+import { freezeNode } from '@internal/framework-components/ir';
+import { InternalError } from '@internal/utils/internal-error';
 import { CheckConstraint, type CheckConstraintInput } from './check-constraint';
 import { ForeignKey, type ForeignKeyInput } from './foreign-key';
 import { PrimaryKey, type PrimaryKeyInput } from './primary-key';

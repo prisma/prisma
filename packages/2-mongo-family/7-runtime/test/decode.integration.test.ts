@@ -1,15 +1,15 @@
-import { MongoContractSerializer } from '@prisma-next/family-mongo/ir';
-import { isRuntimeError } from '@prisma-next/framework-components/runtime';
-import { mongoCodec } from '@prisma-next/mongo-codec';
-import type { MongoResultShape } from '@prisma-next/mongo-query-ast/execution';
+import { MongoContractSerializer } from '@internal/family-mongo/ir';
+import { isRuntimeError } from '@internal/framework-components/runtime';
+import { mongoCodec } from '@internal/mongo-codec';
+import type { MongoResultShape } from '@internal/mongo-query-ast/execution';
 import {
   AggregateCommand,
   MongoFieldFilter,
   MongoMatchStage,
   RawAggregateCommand,
-} from '@prisma-next/mongo-query-ast/execution';
-import { mongoQuery } from '@prisma-next/mongo-query-builder';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+} from '@internal/mongo-query-ast/execution';
+import { mongoQuery } from '@internal/mongo-query-builder';
+import { MongoParamRef } from '@internal/mongo-value';
 import { describe, expect, it } from 'vitest';
 import {
   decodeFixtureContractJson,

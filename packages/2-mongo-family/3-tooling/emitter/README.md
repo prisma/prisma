@@ -1,4 +1,4 @@
-# @prisma-next/mongo-emitter
+# @internal/mongo-emitter
 
 Mongo target-family emitter hook for Prisma Next contract emission.
 
@@ -11,8 +11,8 @@ Implements the `TargetFamilyHook` interface for Mongo contracts, generating `con
 Pass `mongoEmission` to the `emit()` function when generating contracts for a Mongo target:
 
 ```typescript
-import { emit } from '@prisma-next/emitter';
-import { mongoEmission } from '@prisma-next/mongo-emitter';
+import { emit } from '@internal/emitter';
+import { mongoEmission } from '@internal/mongo-emitter';
 
 const result = emit(contractIR, mongoEmission, options);
 ```
@@ -27,7 +27,7 @@ const result = emit(contractIR, mongoEmission, options);
   - Polymorphic variant/base collection sharing
   - `storage.relations` consistency with owned models
 - **`generateContractTypes(ir, ...)`** — generates the `contract.d.ts` content using:
-  - Shared domain-level utilities from `@prisma-next/emitter` (roots, model fields, relations, imports, hashes)
+  - Shared domain-level utilities from `@internal/emitter` (roots, model fields, relations, imports, hashes)
   - Mongo-specific storage type generation (collections, embedded document storage, `storage.relations`)
 
 ## Architecture
@@ -36,4 +36,4 @@ const result = emit(contractIR, mongoEmission, options);
 - **Layer**: `tooling`
 - **Plane**: `migration`
 
-Uses shared domain-level generation utilities from `@prisma-next/emitter/domain-type-generation`. The SQL emitter will be migrated to these same utilities in M6.
+Uses shared domain-level generation utilities from `@internal/emitter/domain-type-generation`. The SQL emitter will be migrated to these same utilities in M6.

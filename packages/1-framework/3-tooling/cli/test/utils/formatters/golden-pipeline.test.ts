@@ -3,8 +3,8 @@
  * golden's graph structure and colour (labels stripped from both sides).
  */
 
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import type { MigrationEdge, MigrationGraph } from '@prisma-next/migration-tools/graph';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import type { MigrationEdge, MigrationGraph } from '@internal/migration-tools/graph';
 import { describe, expect, it } from 'vitest';
 import { buildGrid } from '../../../src/utils/formatters/migration-graph-grid-layout';
 import type { Highlight } from '../../../src/utils/formatters/migration-graph-model';

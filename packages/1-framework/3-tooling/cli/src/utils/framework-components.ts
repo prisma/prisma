@@ -1,9 +1,9 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import {
   checkContractComponentRequirements,
   type TargetBoundComponentDescriptor,
-} from '@prisma-next/framework-components/components';
-import type { ControlStack } from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/components';
+import type { ControlStack } from '@internal/framework-components/control';
 import { errorConfigValidation, errorContractMissingExtensions } from './cli-errors';
 
 /**

@@ -1,4 +1,4 @@
-import type { ExtractCodecTypes } from '@prisma-next/sql-contract/types';
+import type { ExtractCodecTypes } from '@internal/sql-contract/types';
 import { expectTypeOf, test } from 'vitest';
 import { pgvectorContract } from './contract-declaration-portability.fixture';
 
@@ -20,7 +20,7 @@ test('exported contracts retain pgvector public type metadata', () => {
   expectTypeOf(extension.authoring.type.pgvector.Vector.kind).toEqualTypeOf<'typeConstructor'>();
   expectTypeOf(
     extension.types.codecTypes.import.package,
-  ).toEqualTypeOf<'@prisma-next/extension-pgvector/codec-types'>();
+  ).toEqualTypeOf<'@internal/extension-pgvector/codec-types'>();
   expectTypeOf<PgvectorCodecTypes['pg/vector@1']['input']>().toEqualTypeOf<number[]>();
   expectTypeOf<PgvectorCodecTypes['pg/vector@1']['output']>().toEqualTypeOf<number[]>();
   expectTypeOf<ContractCodecTypes['pg/vector@1']['input']>().toEqualTypeOf<number[]>();

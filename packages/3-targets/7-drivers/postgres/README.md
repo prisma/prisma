@@ -1,4 +1,4 @@
-# @prisma-next/driver-postgres
+# @internal/driver-postgres
 
 PostgreSQL driver for Prisma Next.
 
@@ -74,7 +74,7 @@ flowchart TD
 
 ## Dependencies
 
-- **`@prisma-next/sql-contract`**: SQL contract types (via `@prisma-next/sql-contract/types`)
+- **`@internal/sql-contract`**: SQL contract types (via `@internal/sql-contract/types`)
 
 ## Related Subsystems
 
@@ -91,7 +91,7 @@ flowchart TD
 Use the descriptor + connect lifecycle:
 
 ```typescript
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
+import postgresDriver from '@internal/driver-postgres/runtime';
 
 const driver = postgresDriver.create({ cursor: { batchSize: 100 } });
 await driver.connect({ kind: 'url', url: process.env.DATABASE_URL });

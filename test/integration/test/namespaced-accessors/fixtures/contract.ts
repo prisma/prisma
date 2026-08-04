@@ -1,9 +1,9 @@
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
+import type { TargetPackRef } from '@internal/framework-components/components';
 import {
   buildSqlContractFromDefinition,
   type ModelNode,
-} from '@prisma-next/postgres/contract-builder';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+} from '@internal/postgres/contract-builder';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 
 const idDescriptor = { codecId: 'pg/int4@1', nativeType: 'int4' } as const;
 const textDescriptor = { codecId: 'pg/text@1', nativeType: 'text' } as const;

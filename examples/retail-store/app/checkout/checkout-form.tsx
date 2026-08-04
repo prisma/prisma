@@ -1,7 +1,7 @@
 'use client';
 
-import type { EnumValues } from '@prisma-next/contract/enum-accessor';
-import { blindCast } from '@prisma-next/utils/casts';
+import type { EnumValues } from '@prisma/orm-mongo/contract/enum-accessor';
+import { blindCast } from '@prisma/orm-mongo/utils/casts';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useCart } from '../../src/components/cart-provider';

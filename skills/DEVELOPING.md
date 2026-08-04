@@ -4,7 +4,7 @@ Contributor guide for the Prisma Next skills cluster. If you are *using* the ski
 
 ## What this tree is
 
-Skills that teach an LLM agent how to operate Prisma Next end-to-end. The usage surface is one consolidated skill: [`skills/prisma-next/SKILL.md`](./prisma-next/SKILL.md) is the runtime-matched entry point (its `description:` frontmatter fires on any Prisma Next work) and routes via its routing table into workflow-scoped reference files under [`skills/prisma-next/references/`](./prisma-next/references/) — one user goal per reference file. The two upgrade skills ([`prisma-next-upgrade`](./prisma-next-upgrade/), [`prisma-next-extension-upgrade`](./prisma-next-extension-upgrade/)) stay separate because their install ref policy differs (always `main`, never version-pinned).
+Skills that teach an LLM agent how to operate Prisma Next end-to-end. The usage surface is one consolidated skill: [`skills/prisma-next/SKILL.md`](./prisma-next/SKILL.md) is the runtime-matched entry point (its `description:` frontmatter fires on any Prisma Next work) and routes via its routing table into workflow-scoped reference files under [`skills/prisma-next/references/`](./prisma-next/references/) — one user goal per reference file. The two upgrade skills ([`prisma-next-upgrade`](./prisma-next-upgrade/), [`prisma-8-extension-upgrade`](./prisma-8-extension-upgrade/)) stay separate because their install ref policy differs (always `main`, never version-pinned).
 
 ## Design principles
 
@@ -34,7 +34,7 @@ The test for placement: *would every Prisma Next task benefit from the agent hav
 
 Where a fact can be *queried* — from the framework source, the installed packages, or the CLI itself — a reference file should teach the query, not transcribe the answer. Transcribed API detail goes stale silently; a lookup procedure stays correct as the framework moves. This is the same principle as *concepts-over-procedures* below, applied to content: prefer *"ask the system with `command --flag`"* over a table of memorised outputs, and prefer `--help` pointers over restating flag lists.
 
-The long-term direction is for versioned API documentation to ship inside the published `@prisma-next/*` packages, with reference files shrinking toward routing plus lookup method. Until that lands, reference files still carry API content inline — which is why the lockstep rule below (skill updates ship in the same PR as framework-surface changes) is load-bearing.
+The long-term direction is for versioned API documentation to ship inside the published `@internal/*` packages, with reference files shrinking toward routing plus lookup method. Until that lands, reference files still carry API content inline — which is why the lockstep rule below (skill updates ship in the same PR as framework-surface changes) is load-bearing.
 
 ## Authoring rules
 
@@ -97,34 +97,34 @@ Read the diff if you want a before/after; read the rewrite itself if you want th
 
 ### Show façade-only imports in user-authored code
 
-**The principle: every import a user types in their own source files comes from `@prisma-next/<target>/<subpath>` or `@prisma-next/extension-<name>/<subpath>`. A user's `package.json` lists exactly one façade per target plus one façade per extension. They never see `@prisma-next/cli/*`, `@prisma-next/family-*`, `@prisma-next/target-*`, `@prisma-next/adapter-*`, `@prisma-next/driver-*`, `@prisma-next/sql-contract-*`, or `@prisma-next/mongo-contract-*` in a file they own.**
+**The principle: every import a user types in their own source files comes from `@internal/<target>/<subpath>` or `@internal/extension-<name>/<subpath>`. A user's `package.json` lists exactly one façade per target plus one façade per extension. They never see `@internal/cli/*`, `@internal/family-*`, `@internal/target-*`, `@internal/adapter-*`, `@internal/driver-*`, `@internal/sql-contract-*`, or `@internal/mongo-contract-*` in a file they own.**
 
-The façade packages exist for this reason. `@prisma-next/postgres/config` exposes a `defineConfig({ contract, db, extensions, migrations })` that bakes in `family`/`target`/`adapter`/`driver` and auto-routes `.prisma` vs `.ts` contract paths — so the user writes two imports instead of seven. `@prisma-next/postgres/contract-builder` re-exports the TS-builder surface. `@prisma-next/postgres/control` exposes `createPostgresControlClient({ connection, extensions })` instead of asking the user to compose a `createControlClient` call from five internal pieces. `@prisma-next/postgres/runtime` does the same for the runtime client.
+The façade packages exist for this reason. `@internal/postgres/config` exposes a `defineConfig({ contract, db, extensions, migrations })` that bakes in `family`/`target`/`adapter`/`driver` and auto-routes `.prisma` vs `.ts` contract paths — so the user writes two imports instead of seven. `@internal/postgres/contract-builder` re-exports the TS-builder surface. `@internal/postgres/control` exposes `createPostgresControlClient({ connection, extensions })` instead of asking the user to compose a `createControlClient` call from five internal pieces. `@internal/postgres/runtime` does the same for the runtime client.
 
-A skill that teaches the verbose form has handed the agent a worse mental model than the API is actually capable of. When the user follows the skill's example into their own code, their `package.json` grows seven `@prisma-next/*` entries instead of one. Upgrades are now seven-way coordinated instead of one-line. The drift compounds.
+A skill that teaches the verbose form has handed the agent a worse mental model than the API is actually capable of. When the user follows the skill's example into their own code, their `package.json` grows seven `@internal/*` entries instead of one. Upgrades are now seven-way coordinated instead of one-line. The drift compounds.
 
 **Verify each user-authored import:**
 
 ```bash
-rg "from '@prisma-next/" skills/prisma-next/references/<topic>.md \
-  | rg -v '@prisma-next/(postgres|mongo|sqlite|extension-|[a-z]+-plugin-)' \
+rg "from '@internal/" skills/prisma-next/references/<topic>.md \
+  | rg -v '@internal/(postgres|mongo|sqlite|extension-|[a-z]+-plugin-)' \
   | rg -v 'framework-rendered'
 ```
 
 Anything that prints is a likely defect: a user-authored example is importing from an internal package. Either rewrite it onto the façade, or annotate the surrounding prose so it reads as framework-rendered rather than user-typed.
 
-The exclusion list covers the three sanctioned sources of user-authored `@prisma-next/*` imports: target façades (`postgres`, `mongo`, `sqlite`), extension façades (`extension-<name>`), and build-tool plugin packages (`<bundler>-plugin-<purpose>`, e.g. `@prisma-next/vite-plugin-contract-emit`). Build-tool plugins are themselves one-package-per-integration façades — they ship their own public surface and are not internal to a target package.
+The exclusion list covers the three sanctioned sources of user-authored `@internal/*` imports: target façades (`postgres`, `mongo`, `sqlite`), extension façades (`extension-<name>`), and build-tool plugin packages (`<bundler>-plugin-<purpose>`, e.g. `@internal/vite-plugin-contract-emit`). Build-tool plugins are themselves one-package-per-integration façades — they ship their own public surface and are not internal to a target package.
 
-**The framework-rendered exception.** Some files in a user's project are written *by* the framework, not by the user — chiefly `migrations/<scope>/<timestamp>/migration.ts`, which `prisma-next migration create` renders. Those files import from `@prisma-next/postgres/migration` (or `@prisma-next/sqlite/migration` for SQLite). A skill describing those files should:
+**The framework-rendered exception.** Some files in a user's project are written *by* the framework, not by the user — chiefly `migrations/<scope>/<timestamp>/migration.ts`, which `prisma-next migration create` renders. Those files import from `@internal/postgres/migration` (or `@internal/sqlite/migration` for SQLite). A skill describing those files should:
 
 1. Make explicit that the imports are framework-managed.
 2. Not show those imports as if the user typed them.
 
 The framework-rendered migration scaffold uses the target façade's `/migration` subpath — the same façade-only convention as the rest of the project.
 
-**Worked example — the contract skill re-audit.** Commit `e41f02c1b` rewrote every user-authored example in `references/contract.md` against the façade. The `prisma-next.config.ts` example went from seven imports across `@prisma-next/{cli,adapter-postgres,driver-postgres,family-sql,target-postgres,sql-contract-psl}` to two imports from `@prisma-next/{postgres/config, extension-pgvector/control}`. The TS builder example moved off `@prisma-next/sql-contract-ts/contract-builder` onto `@prisma-next/postgres/contract-builder`, and uses `@prisma-next/postgres/family` and `@prisma-next/postgres/target` as the `family`/`target` packs (a less-obvious façade subpath worth knowing about). Read the diff for a before/after.
+**Worked example — the contract skill re-audit.** Commit `e41f02c1b` rewrote every user-authored example in `references/contract.md` against the façade. The `prisma-next.config.ts` example went from seven imports across `@internal/{cli,adapter-postgres,driver-postgres,family-sql,target-postgres,sql-contract-psl}` to two imports from `@internal/{postgres/config, extension-pgvector/control}`. The TS builder example moved off `@internal/sql-contract-ts/contract-builder` onto `@internal/postgres/contract-builder`, and uses `@internal/postgres/family` and `@internal/postgres/target` as the `family`/`target` packs (a less-obvious façade subpath worth knowing about). Read the diff for a before/after.
 
-Commit `bf742221c` (`examples: migrate to @prisma-next/<target> façade imports`) does the same migration across nine example apps in `examples/`. Those apps are the canonical worked references; cite them when a skill needs a concrete example to point at.
+Commit `bf742221c` (`examples: migrate to @internal/<target> façade imports`) does the same migration across nine example apps in `examples/`. Those apps are the canonical worked references; cite them when a skill needs a concrete example to point at.
 
 ### Other authoring rules
 

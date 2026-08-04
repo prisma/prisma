@@ -1,4 +1,4 @@
-import { coreHash } from '@prisma-next/contract/types';
+import { coreHash } from '@internal/contract/types';
 import {
   AndExpr,
   type AnyExpression,
@@ -9,8 +9,8 @@ import {
   SelectAst,
   type SqlCodecCallContext,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it } from 'vitest';
 import { encodeParam, encodeParams } from '../src/codecs/encoding';
 import { defineTestCodec } from './test-codec';

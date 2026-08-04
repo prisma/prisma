@@ -1,4 +1,4 @@
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { columnExistsAst } from '../../../contract-free/checks';
 import { quoteIdentifier } from '../../sql-utils';
 import { buildTargetDetails } from '../planner-target-details';

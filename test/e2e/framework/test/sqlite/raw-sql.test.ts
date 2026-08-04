@@ -3,26 +3,16 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
-import { sqliteRawCodecInferer } from '@prisma-next/adapter-sqlite/adapter';
-import sqliteAdapter from '@prisma-next/adapter-sqlite/runtime';
-import sqliteDriver from '@prisma-next/driver-sqlite/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { sql } from '@prisma-next/sql-builder/runtime';
-import type { Db } from '@prisma-next/sql-builder/types';
-import { param } from '@prisma-next/sql-relational-core/expression';
-import type { SqlParamRefMutator } from '@prisma-next/sql-relational-core/middleware';
-import {
-  createExecutionContext,
-  createSqlExecutionStack,
-  type Runtime,
-  type SqlMiddleware,
-} from '@prisma-next/sql-runtime';
-import { SqliteRuntimeImpl } from '@prisma-next/sqlite/runtime';
-import sqliteTarget from '@prisma-next/target-sqlite/runtime';
-import { timeouts } from '@prisma-next/test-utils';
+import { sqliteRawCodecInferer } from '@prisma/orm-sqlite/adapter/adapter';
+import { sql } from '@prisma/orm-sqlite/builder/runtime';
+import type { Db } from '@prisma/orm-sqlite/builder/types';
+import { UNBOUND_NAMESPACE_ID } from '@prisma/orm-sqlite/components/ir';
+import type { Runtime, SqlMiddleware } from '@prisma/orm-sqlite/family-runtime';
+import { param } from '@prisma/orm-sqlite/relational-core/expression';
+import type { SqlParamRefMutator } from '@prisma/orm-sqlite/relational-core/middleware';
+import sqlite from '@prisma/orm-sqlite/runtime';
+import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 import type { Contract } from './fixtures/generated/contract.d';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -36,10 +26,17 @@ interface Harness {
 
 async function buildHarness(middleware?: readonly SqlMiddleware[]): Promise<Harness> {
   const contractJson = JSON.parse(readFileSync(contractJsonPath, 'utf-8')) as unknown;
-  const contract = new SqlContractSerializer().deserializeContract(contractJson) as Contract;
 
   const testDir = mkdtempSync(join(tmpdir(), 'prisma-sqlite-rawsql-'));
   const dbPath = join(testDir, 'test.db');
+
+  const client = sqlite<Contract>({
+    contractJson,
+    path: dbPath,
+    verifyMarker: false,
+    ...(middleware ? { middleware } : {}),
+  });
+  const contract = client.contract;
 
   const rawDb = new DatabaseSync(dbPath);
   rawDb.exec('PRAGMA foreign_keys = ON');
@@ -76,38 +73,18 @@ async function buildHarness(middleware?: readonly SqlMiddleware[]): Promise<Harn
   `);
   rawDb.close();
 
-  const stack = createSqlExecutionStack({
-    target: sqliteTarget,
-    adapter: sqliteAdapter,
-    driver: sqliteDriver,
-    extensions: [],
-  });
+  const runtime = await client.connect();
 
-  const stackInstance = instantiateExecutionStack(stack);
-  const context = createExecutionContext({ contract, stack });
-  const driver = stackInstance.driver;
-  if (!driver) throw new Error('SQLite driver missing from execution stack');
-  await driver.connect({ kind: 'path', path: dbPath });
-
-  const runtime = new SqliteRuntimeImpl({
-    context,
-    adapter: stackInstance.adapter,
-    driver,
-    verifyMarker: false,
-    ...(middleware ? { middleware } : {}),
-  });
-
-  const adapter = sqliteRawCodecInferer;
   const db = sql<Contract>({
-    context,
-    rawCodecInferer: adapter,
+    context: client.context,
+    rawCodecInferer: sqliteRawCodecInferer,
   });
 
   return {
     db,
     runtime,
     async close() {
-      await runtime.close();
+      await client.close();
       try {
         rmSync(testDir, { recursive: true, force: true });
       } catch {

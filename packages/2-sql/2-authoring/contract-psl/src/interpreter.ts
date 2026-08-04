@@ -2,15 +2,15 @@ import type {
   ContractSourceDiagnostic,
   ContractSourceDiagnosticSpan,
   ContractSourceDiagnostics,
-} from '@prisma-next/config/config-types';
+} from '@internal/config/config-types';
 import type {
   Contract,
   ContractField,
   ContractModel,
   ContractValueObject,
   ControlPolicy,
-} from '@prisma-next/contract/types';
-import { crossRef } from '@prisma-next/contract/types';
+} from '@internal/contract/types';
+import { crossRef } from '@internal/contract/types';
 import type {
   AuthoringContributions,
   AuthoringEntityContext,
@@ -23,25 +23,25 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   AuthoringWarning,
   PslExtensionBlock,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import {
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
   isAuthoringModelAttributeDescriptor,
   isAuthoringPslBlockDescriptor,
-} from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import type {
   CapabilityMatrix,
   ExtensionPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultRegistry,
   ControlMutationDefaults,
   MutationDefaultGeneratorDescriptor,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   type AttributeSpec,
   type BlockSymbol,
@@ -55,14 +55,14 @@ import {
   nodePslSpan,
   type ResolvedAttribute,
   type SymbolTable,
-} from '@prisma-next/psl-parser';
-import type { SourceFile } from '@prisma-next/psl-parser/syntax';
+} from '@internal/psl-parser';
+import type { SourceFile } from '@internal/psl-parser/syntax';
 import type {
   SqlModelStorage,
   SqlNamespaceBase,
   SqlNamespaceInput,
-} from '@prisma-next/sql-contract/types';
-import { deriveValueSetFromEntity } from '@prisma-next/sql-contract/value-set-derivation-hook';
+} from '@internal/sql-contract/types';
+import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
   buildSqlContractFromDefinition,
   type EnumTypeHandle,
@@ -73,11 +73,11 @@ import {
   type PrimaryKeyNode,
   type RelationNode,
   type UniqueConstraintNode,
-} from '@prisma-next/sql-contract-ts/contract-builder';
-import { invariant } from '@prisma-next/utils/assertions';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/sql-contract-ts/contract-builder';
+import { invariant } from '@internal/utils/assertions';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { contractError } from './contract-errors';
 
 import { getAttribute, getNamedArgument, mapFieldNamesToColumns } from './psl-attribute-parsing';
@@ -185,7 +185,7 @@ function compareStrings(left: string, right: string): -1 | 0 | 1 {
 /**
  * Name of the framework-parser synthesised bucket for top-level
  * declarations. Re-declared here so the per-target dispatch does not
- * have to import from `@prisma-next/framework-components/psl-ast`
+ * have to import from `@internal/framework-components/psl-ast`
  * (which would cross a layer that the interpreter does not otherwise
  * import from). The value is part of the framework parser's contract;
  * if it changes there, the matching test in this package's
@@ -1002,10 +1002,13 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         columnNames = mapped;
       }
       indexNodes.push(
-        // The interpreter's own diagnostics pre-empt the neither/both
-        // element cases; the cast defers final enforcement to
-        // lowerAuthoredIndex's runtime guard.
-        blindCast<IndexNode, 'columns-xor-expression enforced by lowerAuthoredIndex'>({
+        // PSL attribute arguments are assembled one at a time, so the
+        // compiler cannot see either union arm; the interpreter's own
+        // span-anchored diagnostics reject both invalid shapes first.
+        blindCast<
+          IndexNode,
+          'dynamically assembled from PSL arguments; the interpreter diagnoses both invalid shapes and lowerAuthoredIndex re-checks'
+        >({
           ...ifDefined('columns', columnNames),
           ...ifDefined('expression', parsed.expression),
           where: parsed.where,

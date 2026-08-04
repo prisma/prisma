@@ -1,4 +1,4 @@
-import { computeProfileHash, computeStorageHash } from '@prisma-next/contract/hashing';
+import { computeProfileHash, computeStorageHash } from '@internal/contract/hashing';
 import {
   type ContractEmbedRelation,
   type ContractEnum,
@@ -14,27 +14,27 @@ import {
   type ProfileHashBase,
   type StorageHashBase,
   type ValueSetRef,
-} from '@prisma-next/contract/types';
+} from '@internal/contract/types';
 import {
   createEntityHelpersFromNamespace,
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
   type MergeExtensionAuthoringNamespaces,
-} from '@prisma-next/contract-authoring';
-import { errorEnumCodecNotInPackStack } from '@prisma-next/errors/control';
-import type { AuthoringEntityTypeNamespace } from '@prisma-next/framework-components/authoring';
+} from '@internal/contract-authoring';
+import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
+import type { AuthoringEntityTypeNamespace } from '@internal/framework-components/authoring';
 import {
   assertNoCrossRegistryCollisions,
   mergeAuthoringNamespaces,
-} from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
-import { extractCodecLookup } from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/components';
+import { extractCodecLookup } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoNamespace,
@@ -54,11 +54,11 @@ import {
   type MongoStorageShape,
   type MongoTypeMaps,
   type MongoValueSetInput,
-} from '@prisma-next/mongo-contract';
-import { mongoContractCanonicalizationHooks } from '@prisma-next/mongo-contract/canonicalization-hooks';
-import { canonicalStringify } from '@prisma-next/utils/canonical-stringify';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-contract';
+import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
+import { canonicalStringify } from '@internal/utils/canonical-stringify';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
 
@@ -131,7 +131,7 @@ export type ExtractCodecTypesFromPack<P> = P extends { __codecTypes?: infer Code
     : Record<string, never>
   : Record<string, never>;
 
-// This mirrors @prisma-next/target-mongo/codec-types because authoring must stay decoupled from
+// This mirrors @internal/target-mongo/codec-types because authoring must stay decoupled from
 // the target layer while still exposing the built-in Mongo codec registry to type inference.
 type MongoCodecTypes = {
   readonly 'mongo/objectId@1': { readonly input: string; readonly output: string };

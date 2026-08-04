@@ -81,8 +81,8 @@ Plugins remain lane-agnostic and primarily key off:
 
 The current PN SQL AST is intentionally minimal. We will extend it where needed to represent the subset of SQL used by:
 
-- `examples/prisma-next-demo/src/queries` (as the acceptance scope), and
-- the Kysely equivalents we add under `examples/prisma-next-demo/src/kysely`
+- `examples/prisma-8-demo/src/queries` (as the acceptance scope), and
+- the Kysely equivalents we add under `examples/prisma-8-demo/src/kysely`
 
 Key additions include (non-exhaustive):
 

@@ -16,8 +16,8 @@ import type {
   ExtractTypeMapsFromContract,
   FieldOutputTypesOf,
   StorageColumnTypesOf,
-} from '@prisma-next/sql-contract/types';
-import type { DefaultModelRow } from '@prisma-next/sql-orm-client';
+} from '@internal/sql-contract/types';
+import type { DefaultModelRow } from '@internal/sql-orm-client';
 import { expectTypeOf } from 'vitest';
 import { defineContract, field, model, nativeEnum, pg } from '../../src/exports/contract-builder';
 

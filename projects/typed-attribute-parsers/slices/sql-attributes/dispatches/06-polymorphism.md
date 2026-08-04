@@ -40,10 +40,10 @@ Same discriminator/base declarations resolved; the String-type check and all `re
 - [ ] `entityRef` added, exported, unit-tested; psl-parser typecheck + test green.
 - [ ] `@@discriminator`/`@@base` lowered via specs; String-type check retained; dead `PSL_DISCRIMINATOR_FIELD_NOT_FOUND` block removed (SQL only); Mongo untouched.
 - [ ] Singular `getPositionalArgument` deleted; `rg -n "getPositionalArgument\\b" packages/2-sql` → only zero (plural `getPositionalArguments` retained).
-- [ ] Gates: `pnpm --filter @prisma-next/psl-parser build` (kit changed), then `pnpm --filter @prisma-next/psl-parser typecheck && test`; `pnpm --filter @prisma-next/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary` (if the `entityRef` combinator moves the count above threshold, bump the threshold in `scripts/lint-framework-vocabulary.config.json` to the new count and say so).
+- [ ] Gates: `pnpm --filter @internal/psl-parser build` (kit changed), then `pnpm --filter @internal/psl-parser typecheck && test`; `pnpm --filter @internal/sql-contract-psl typecheck && test`; `pnpm fixtures:check`; `pnpm lint:framework-vocabulary` (if the `entityRef` combinator moves the count above threshold, bump the threshold in `scripts/lint-framework-vocabulary.config.json` to the new count and say so).
 
 ## Constraints
-No `any`; no bare `as` (use `blindCast`/`castAs` from `@prisma-next/utils/casts`, narrowed); no file-ext imports; tests-first where emitted code/behaviour changes. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.
+No `any`; no bare `as` (use `blindCast`/`castAs` from `@internal/utils/casts`, narrowed); no file-ext imports; tests-first where emitted code/behaviour changes. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `spec.md`, plan files. Do NOT touch GitHub.
 
 ## Operational metadata
 - **Model tier:** high — the `collectPolymorphismDeclarations` rewire + safely removing the dead check without disturbing the other `resolvePolymorphism` diagnostics is the risk. Do the combinator + test first, then the specs, then the rewire, then the deletion.

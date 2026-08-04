@@ -3,11 +3,11 @@ import {
   int4Column,
   jsonbColumn,
   textColumn,
-} from '@prisma-next/adapter-postgres/column-types';
-import { vector } from '@prisma-next/extension-pgvector/column-types';
-import pgvector from '@prisma-next/extension-pgvector/pack';
-import { uuidv4 } from '@prisma-next/ids';
-import { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
+} from '@internal/adapter-postgres/column-types';
+import { vector } from '@internal/extension-pgvector/column-types';
+import pgvector from '@internal/extension-pgvector/pack';
+import { uuidv4 } from '@internal/ids';
+import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
 
 const UserBase = model('User', {
   fields: {

@@ -1,4 +1,4 @@
-import type { PslSpan } from '@prisma-next/framework-components/psl-ast';
+import type { PslSpan } from '@internal/framework-components/psl-ast';
 import type { Position, Range, SourceFile } from './source-file';
 import type {
   AttributeArgListAst,

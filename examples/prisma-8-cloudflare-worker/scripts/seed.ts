@@ -1,0 +1,104 @@
+/**
+ * Seeds the demo schema with users, posts, and tasks.
+ *
+ * Mirrors examples/prisma-8-demo/scripts/seed.ts minus the pgvector
+ * embeddings (this example exercises the per-request facade, not vectors).
+ */
+
+import { db } from '../src/prisma/db';
+import { EXAMPLE_ROOT, HYPERDRIVE_VAR, loadLocalEnv } from './env';
+
+async function main() {
+  loadLocalEnv(EXAMPLE_ROOT);
+  const url = process.env[HYPERDRIVE_VAR] ?? process.env['DATABASE_URL'];
+
+  if (!url) {
+    throw new Error(`Set ${HYPERDRIVE_VAR} in .env (or DATABASE_URL) before running pnpm seed.`);
+  }
+
+  await using runtime = await db.connect({ url });
+
+  await runtime.execute(
+    db.sql.public.user
+      .insert([
+        {
+          email: 'alice@example.com',
+          displayName: 'Alice',
+          createdAt: new Date('2026-04-01T00:00:00.000Z'),
+          kind: 'admin',
+          address: { street: '123 Main St', city: 'San Francisco', zip: '94102', country: 'US' },
+        },
+      ])
+      .build(),
+  );
+
+  await runtime.execute(
+    db.sql.public.user
+      .insert([
+        {
+          email: 'bob@example.com',
+          displayName: 'Bob',
+          createdAt: new Date('2026-04-02T00:00:00.000Z'),
+          kind: 'user',
+          address: { street: '456 Oak Ave', city: 'Portland', zip: null, country: 'US' },
+        },
+      ])
+      .build(),
+  );
+
+  const aliceRows = await runtime.execute(
+    db.sql.public.user
+      .select('id', 'email')
+      .where((f, fns) => fns.eq(f.email, 'alice@example.com'))
+      .limit(1)
+      .build(),
+  );
+  const bobRows = await runtime.execute(
+    db.sql.public.user
+      .select('id', 'email')
+      .where((f, fns) => fns.eq(f.email, 'bob@example.com'))
+      .limit(1)
+      .build(),
+  );
+  const alice = aliceRows[0];
+  const bob = bobRows[0];
+  if (!alice || !bob) {
+    throw new Error('Failed to find seeded users');
+  }
+
+  for (let i = 0; i < 5; i++) {
+    await runtime.execute(
+      db.sql.public.post
+        .insert([
+          {
+            title: `Alice post ${i + 1}`,
+            userId: alice.id,
+            createdAt: new Date(Date.UTC(2026, 3, 10 + i)),
+          },
+        ])
+        .build(),
+    );
+  }
+
+  for (let i = 0; i < 3; i++) {
+    await runtime.execute(
+      db.sql.public.post
+        .insert([
+          {
+            title: `Bob post ${i + 1}`,
+            userId: bob.id,
+            createdAt: new Date(Date.UTC(2026, 3, 20 + i)),
+          },
+        ])
+        .build(),
+    );
+  }
+
+  console.log(`Seeded users: alice=${alice.id}, bob=${bob.id}`);
+  console.log('Seed complete (tasks/bugs/features intentionally empty — exercised by tests).');
+}
+
+main().catch((err) => {
+  console.error('Seed failed:', err);
+  process.exitCode = 1;
+});

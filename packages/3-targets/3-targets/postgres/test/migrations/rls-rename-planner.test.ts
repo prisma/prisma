@@ -9,13 +9,14 @@
  * create of the new name.
  */
 
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { MigrationOperationClass } from '@prisma-next/framework-components/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import type { ControlPolicy } from '@internal/contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { MigrationOperationClass } from '@internal/framework-components/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';
@@ -41,8 +42,7 @@ const ADDITIVE_ONLY_POLICY = { allowedOperationClasses: ['additive'] as const };
 function policyNamed(name: string, overrides?: { readonly using?: string }): PostgresRlsPolicy {
   const prefix = /_[0-9a-f]{8}$/.test(name) ? name.replace(/_[0-9a-f]{8}$/, '') : undefined;
   return new PostgresRlsPolicy({
-    name,
-    prefix,
+    naming: parseNaming(name, prefix),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
@@ -119,8 +119,7 @@ function actualSchema(policies: readonly PostgresRlsPolicy[]): PostgresDatabaseS
             policies: policies.map(
               (policy) =>
                 new PostgresPolicySchemaNode({
-                  name: policy.name,
-                  prefix: policy.prefix,
+                  naming: parseNaming(policy.name, policy.prefix),
                   tableName: policy.tableName,
                   namespaceId: 'public',
                   operation: policy.operation,
@@ -273,10 +272,10 @@ describe('multi-candidate hash groups', () => {
   });
 });
 
-describe('content pairing (exact→managed convergence)', () => {
+describe('content pairing (exact→wire convergence)', () => {
   function exactPolicy(name: string, overrides?: { readonly using?: string }): PostgresRlsPolicy {
     return new PostgresRlsPolicy({
-      name,
+      naming: { kind: 'exact', name },
       tableName: TABLE_NAME,
       namespaceId: 'public',
       operation: 'select',
@@ -284,11 +283,10 @@ describe('content pairing (exact→managed convergence)', () => {
       using: overrides?.using ?? '(auth.uid() = user_id)',
       withCheck: undefined,
       permissive: true,
-      prefix: undefined,
     });
   }
 
-  it('pairs a managed-missing policy against an unparseable live name by content', async () => {
+  it('pairs a wire-named-missing policy against an unparseable live name by content', async () => {
     const contract = buildContract([policyNamed('p_read_ab12cd34')]);
     const schema = actualSchema([exactPolicy('Tenant members can read')]);
 
@@ -309,7 +307,7 @@ describe('content pairing (exact→managed convergence)', () => {
     ]);
   });
 
-  it('an exact-named missing policy never content-pairs (managed only)', async () => {
+  it('an exact-named missing policy never content-pairs (wire-named only)', async () => {
     const contract = buildContract([exactPolicy('adopted exact name')]);
     const schema = actualSchema([exactPolicy('legacy live name')]);
 
@@ -322,18 +320,18 @@ describe('content pairing (exact→managed convergence)', () => {
 
   it('remaining content pairs consume candidates deterministically by sorted name', async () => {
     const contract = buildContract([
-      policyNamed('a_managed_11111111'),
-      policyNamed('b_managed_22222222'),
+      policyNamed('a_wire_11111111'),
+      policyNamed('b_wire_22222222'),
     ]);
     const schema = actualSchema([exactPolicy('z legacy'), exactPolicy('y legacy')]);
 
-    // Missing sorted: a_managed_…, b_managed_…; candidates sorted: y legacy, z legacy.
+    // Missing sorted: a_wire_…, b_wire_…; candidates sorted: y legacy, z legacy.
     // Labels pin the rename TARGETS, not just the source-keyed op ids — the
     // reversed pairing would emit the same two ids.
     const labels = await planOpLabels(contract, schema, ALL_CLASSES_POLICY);
     expect(labels).toEqual([
-      `Rename RLS policy "y legacy" to "a_managed_11111111" on "${TABLE_NAME}"`,
-      `Rename RLS policy "z legacy" to "b_managed_22222222" on "${TABLE_NAME}"`,
+      `Rename RLS policy "y legacy" to "a_wire_11111111" on "${TABLE_NAME}"`,
+      `Rename RLS policy "z legacy" to "b_wire_22222222" on "${TABLE_NAME}"`,
     ]);
   });
 

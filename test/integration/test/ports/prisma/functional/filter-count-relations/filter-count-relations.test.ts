@@ -19,12 +19,6 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //
 //   `prisma.group.findFirst({ select: { users: { select: { _count: ... }, orderBy: { id: 'asc' } } } })`
 //   → `db.public.Group.where({title}).include('users', u => u.orderBy(x=>x.id.asc()).select('id').include('posts', p => p.where({published:true}).count())).first()`
-//
-// M2M filtered-count cases (`group._count.users where ...`) compile but hit a
-// query-plan bug: N:M include count() does not route through the junction;
-// buildIncludeChildScalarSelect ignores the `through` descriptor and emits
-// a direct column ref (`user.groupId`) that does not exist on the user table.
-// These are marked it.fails.
 
 const GROUP_TITLE = 'test-group';
 const USER_EMAIL = 'target@example.com';
@@ -151,10 +145,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
     //   _count: { select: { users: { where: { blocked: true } } } } } }) → 1
     //
     // Faithful port: include('users', u => u.where({blocked:true}).count()).
-    // This compiles but hits a query-plan bug: N:M include count() does not
-    // route through the junction; buildIncludeChildScalarSelect ignores `through`
-    // and emits `user.groupId = group.id` (column does not exist on user table).
-    it.fails(
+    it(
       'with simple equality condition',
       () =>
         withFilterCountRelations(async ({ db }) => {
@@ -169,7 +160,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
 
     // Upstream: group.findFirst({ where: { title }, select: {
     //   _count: { select: { users: { where: { balance: { gt: 20 } } } } } } }) → 2
-    it.fails(
+    it(
       'with > condition',
       () =>
         withFilterCountRelations(async ({ db }) => {
@@ -184,7 +175,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
 
     // Upstream: group.findFirst({ where: { title }, select: {
     //   _count: { select: { users: { where: { balance: { gt: 20 }, blocked: false } } } } } }) → 1
-    it.fails(
+    it(
       'with multiple conditions',
       () =>
         withFilterCountRelations(async ({ db }) => {

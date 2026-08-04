@@ -2,11 +2,11 @@
 
 How to deploy Prisma Next to per-request runtimes — Cloudflare Workers + Hyperdrive as the primary worked path, with pointers for AWS Lambda (Node), Vercel Edge / Vercel Serverless, Deno Deploy, and Bun edge.
 
-This guide covers the per-request facade `@prisma-next/postgres/serverless`. If you are deploying to a long-lived Node process (a server, a container, a non-edge Vercel function with bundling that keeps the process warm), use the existing `@prisma-next/postgres/runtime` facade — the long-lived shape is unchanged and not in scope here.
+This guide covers the per-request facade `@internal/postgres/serverless`. If you are deploying to a long-lived Node process (a server, a container, a non-edge Vercel function with bundling that keeps the process warm), use the existing `@internal/postgres/runtime` facade — the long-lived shape is unchanged and not in scope here.
 
 ## Two facades, one driver
 
-`@prisma-next/postgres` exports two facades that compose the same execution stack and differ only in lifecycle ergonomics:
+`@internal/postgres` exports two facades that compose the same execution stack and differ only in lifecycle ergonomics:
 
 | Surface              | `postgres()` — `/runtime`                        | `postgresServerless()` — `/serverless`                              |
 | -------------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
@@ -40,7 +40,7 @@ export default {
 
 Cloudflare Workers + [Hyperdrive](https://developers.cloudflare.com/hyperdrive/) is the primary tested path. Hyperdrive is Cloudflare's managed Postgres connection pooler at the edge: the Worker connects to it with the standard Postgres wire protocol via the `pg` library, Hyperdrive terminates that connection at the edge and pools connections to your origin Postgres. The Worker reads the connection string off `env.HYPERDRIVE.connectionString`.
 
-A complete worked example lives at `examples/prisma-next-cloudflare-worker/`. This section documents the pattern; the example documents the example.
+A complete worked example lives at `examples/prisma-8-cloudflare-worker/`. This section documents the pattern; the example documents the example.
 
 ### Architecture
 
@@ -109,13 +109,13 @@ This goes in `.env`, not `.dev.vars`. `.dev.vars` is for runtime worker secrets;
 
 ### Worker code shape
 
-Module-scope construction; per-request runtime acquisition; three query surfaces; cursor streaming. The full file is `examples/prisma-next-cloudflare-worker/src/worker.ts`.
+Module-scope construction; per-request runtime acquisition; three query surfaces; cursor streaming. The full file is `examples/prisma-8-cloudflare-worker/src/worker.ts`.
 
 #### Module scope
 
 ```ts
 // src/prisma/db.ts
-import postgresServerless from '@prisma-next/postgres/serverless';
+import postgresServerless from '@internal/postgres/serverless';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
@@ -138,7 +138,7 @@ export const db = postgresServerless<Contract>({
 
 ```ts
 // src/worker.ts
-import { withTransaction } from '@prisma-next/sql-runtime';
+import { withTransaction } from '@internal/sql-runtime';
 import { createOrmClient } from './orm-client/client';
 import { db } from './prisma/db';
 
@@ -213,12 +213,12 @@ The cursor default is the inverse of the long-lived `postgres()` facade's defaul
 
 ### Wiring the ORM client
 
-`createOrmClient(runtime)` is the existing pattern from `examples/prisma-next-demo/src/orm-client/`; the per-request facade reuses it unchanged:
+`createOrmClient(runtime)` is the existing pattern from `examples/prisma-8-demo/src/orm-client/`; the per-request facade reuses it unchanged:
 
 ```ts
 // src/orm-client/client.ts
-import type { Runtime } from '@prisma-next/sql-runtime';
-import { orm } from '@prisma-next/sql-orm-client';
+import type { Runtime } from '@internal/sql-runtime';
+import { orm } from '@internal/sql-orm-client';
 import { db } from '../prisma/db';
 import { UserCollection, PostCollection } from './collections';
 
@@ -261,7 +261,7 @@ There is no per-request migration story and there is no Hyperdrive control-plane
 - Migration commands (`prisma-next migrate`, `prisma-next db init`, `prisma-next db reset`) are control-plane operations: they speak to the `migration` plane through the control-plane Postgres driver, run in long-lived Node processes (CI runners, dev workstations, deploy hooks), and are inherently long-lived shapes — DDL does not benefit from per-request lifecycle.
 - Hyperdrive caches query results at the edge. That is desirable for many runtime read patterns and undesirable for DDL: a stale read of the migration ledger or marker leads to duplicate-apply or skipped-apply confusion. The Cloudflare-recommended pattern is to bypass Hyperdrive for control-plane operations, and we follow that.
 
-The existing migration commands accept a connection string (typically via `DATABASE_URL`) and use the `@prisma-next/driver-postgres/control` driver. Run them from CI / your deploy pipeline / a one-shot Node task pointed at the origin URL — see the existing migration docs and the [Getting Started guide](./onboarding/Getting-Started.md) for the command surface. Nothing about deploying to a per-request runtime changes that.
+The existing migration commands accept a connection string (typically via `DATABASE_URL`) and use the `@internal/driver-postgres/control` driver. Run them from CI / your deploy pipeline / a one-shot Node task pointed at the origin URL — see the existing migration docs and the [Getting Started guide](./onboarding/Getting-Started.md) for the command surface. Nothing about deploying to a per-request runtime changes that.
 
 ## Known limitations
 
@@ -273,13 +273,13 @@ The existing migration commands accept a connection string (typically via `DATAB
 
 - **Cursor mode hangs on Cloudflare Hyperdrive — pass `cursor: { disabled: true }` if your origin sits behind Hyperdrive.** Empirically verified during the May 2026 production smoke. The default cursor path uses `pg-cursor`'s extended-query named-portal protocol; after rows are returned and the client sends `Close portal + Sync`, Hyperdrive emits `Protocol Error: Unexpected protocol code: C` (SQLSTATE `58000`) and never follows up with the expected `ReadyForQuery`. The connection wedges; Cloudflare's runtime kills the request at 30 s with error 1101. This affects every read path (SQL DSL, ORM `.all()` / `.first()`, `for await`) — there is no per-call short-circuit, the cursor decision is made at the driver layer for every read. Wrapping the read in `withTransaction(...)` does not help: the failure is in Hyperdrive's protocol parser state, not in connection pinning. The driver's catch-block fallback to simple-query mode does **not** save you either — it only fires on certain thrown errors, and a hang doesn't throw. Workaround: pass `cursor: { disabled: true }` to `postgresServerless({...})` to force the simple-protocol path. Tracking upstream as a Cloudflare Hyperdrive bug.
 
-- **The `@prisma-next/postgres` package statically imports `pg-pool` and `pg-cloudflare`.** The serverless facade does not construct a `pg.Pool` and does not exercise the pool path, but the `pg` library imports both at module load. The bundle includes them. This is not a correctness concern — `pg-cloudflare` activates only when `navigator.userAgent === 'Cloudflare-Workers'` is true at runtime — but it adds bundle weight. The example's full bundle measures around 254 KiB gzipped including these.
+- **The `@internal/postgres` package statically imports `pg-pool` and `pg-cloudflare`.** The serverless facade does not construct a `pg.Pool` and does not exercise the pool path, but the `pg` library imports both at module load. The bundle includes them. This is not a correctness concern — `pg-cloudflare` activates only when `navigator.userAgent === 'Cloudflare-Workers'` is true at runtime — but it adds bundle weight. The example's full bundle measures around 254 KiB gzipped including these.
 
 - **Migrations run from Node.** As above — no per-request migration story, no Hyperdrive control-plane driver. If your deploy pipeline expects to apply migrations from the same surface that runs the Worker, you need a separate Node task (CI step, deploy hook, one-shot script).
 
 ## Validating end-to-end
 
-The `examples/prisma-next-cloudflare-worker/` example provides a `vitest-pool-workers` integration test that boots the Worker under `workerd`, points the Hyperdrive binding at a local Docker Postgres, and exercises SQL DSL, ORM, transactions, and cursor streaming. That suite is the canonical "does my pattern work end-to-end" reference and is the one you should mirror when bootstrapping your own deployment.
+The `examples/prisma-8-cloudflare-worker/` example provides a `vitest-pool-workers` integration test that boots the Worker under `workerd`, points the Hyperdrive binding at a local Docker Postgres, and exercises SQL DSL, ORM, transactions, and cursor streaming. That suite is the canonical "does my pattern work end-to-end" reference and is the one you should mirror when bootstrapping your own deployment.
 
 The example is intentionally minimal — minimum schema, minimum routes — so you can compare your setup against it side-by-side. See its README for the local-dev workflow (`pnpm db:up` / `pnpm db:init` / `pnpm seed` / `pnpm dev`) and the bundle-size / cold-start measurements.
 
@@ -289,4 +289,4 @@ The example is intentionally minimal — minimum schema, minimum routes — so y
 - [ADR 159 — Runtime Driver Lifecycle](./architecture%20docs/adrs/ADR%20159%20-%20Driver%20Terminology%20and%20Lifecycle.md) — how the underlying driver lifecycle works (both facades inherit it unchanged).
 - [Architecture Overview](./Architecture%20Overview.md) — Prisma Next's broader plane / target / adapter / driver model.
 - [Cloudflare Hyperdrive docs](https://developers.cloudflare.com/hyperdrive/) — Hyperdrive setup, configuration, and observability.
-- The example: `examples/prisma-next-cloudflare-worker/` (in this repo).
+- The example: `examples/prisma-8-cloudflare-worker/` (in this repo).

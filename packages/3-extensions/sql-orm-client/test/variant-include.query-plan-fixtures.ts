@@ -1,18 +1,21 @@
 import {
   BinaryExpr,
+  CodecJsonValueProjection,
+  type CodecRef,
   ColumnRef,
   DerivedTableSource,
   EqColJoinOn,
   JoinAst,
   JsonArrayAggExpr,
+  JsonDocumentProjection,
   JsonObjectExpr,
-  NativeJsonValueProjection,
   ProjectionItem,
   SelectAst,
   SubqueryExpr,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
 import { expect } from 'vitest';
 import {
   type CollectionState,
@@ -104,6 +107,18 @@ export function projection(
   return ProjectionItem.of(alias, ColumnRef.of(table, column), { codecId });
 }
 
+/**
+ * The codec the child SELECT resolved for a projected alias — the same one the
+ * enclosing `json_agg` entry carries, since the entry reads that column.
+ */
+function codecOfProjected(childRows: SelectAst, alias: string): CodecRef {
+  const codec = childRows.projection.find((item) => item.alias === alias)?.codec;
+  if (codec === undefined) {
+    throw new InternalError(`child rows project no codec for '${alias}'`);
+  }
+  return codec;
+}
+
 export function rowAggregate(
   relationName: string,
   childRows: SelectAst,
@@ -114,12 +129,15 @@ export function rowAggregate(
     ProjectionItem.of(
       relationName,
       JsonArrayAggExpr.of(
-        new NativeJsonValueProjection(
+        new JsonDocumentProjection(
           JsonObjectExpr.fromEntries(
             projectedAliases.map((alias) =>
               JsonObjectExpr.entry(
                 alias,
-                new NativeJsonValueProjection(ColumnRef.of(rowsAlias, alias)),
+                new CodecJsonValueProjection(
+                  ColumnRef.of(rowsAlias, alias),
+                  codecOfProjected(childRows, alias),
+                ),
               ),
             ),
           ),

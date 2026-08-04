@@ -1,4 +1,4 @@
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import type { ControlProgressEvent } from '../../src/control-api/types';
 import type { GlobalFlags } from '../../src/utils/global-flags';

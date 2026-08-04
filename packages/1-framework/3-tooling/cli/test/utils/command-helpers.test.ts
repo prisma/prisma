@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
-import type { MigrationEdge } from '@prisma-next/migration-tools/graph';
-import type { PathDecision } from '@prisma-next/migration-tools/migration-graph';
+import type { MigrationEdge } from '@internal/migration-tools/graph';
+import type { PathDecision } from '@internal/migration-tools/migration-graph';
 import { describe, expect, it } from 'vitest';
 import {
   maskConnectionUrl,

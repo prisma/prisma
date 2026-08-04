@@ -1,5 +1,5 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
-import type { MigrationOperationClass } from '@prisma-next/framework-components/control';
+import type { PlanMeta } from '@internal/contract/types';
+import type { MigrationOperationClass } from '@internal/framework-components/control';
 import {
   type AnyMongoDdlCommand,
   type AnyMongoInspectionCommand,
@@ -22,7 +22,7 @@ import {
   type MongoMigrationStep,
   MongoNotExpr,
   MongoOrExpr,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import {
   AggregateCommand,
   type AnyMongoCommand,
@@ -45,8 +45,8 @@ import {
   RawInsertOneCommand,
   RawUpdateManyCommand,
   RawUpdateOneCommand,
-} from '@prisma-next/mongo-query-ast/execution';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/mongo-query-ast/execution';
+import { ifDefined } from '@internal/utils/defined';
 import { type } from 'arktype';
 import { mongoTargetError } from './mongo-target-errors';
 

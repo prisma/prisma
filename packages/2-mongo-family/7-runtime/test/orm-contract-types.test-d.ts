@@ -1,4 +1,4 @@
-import type { InferModelRow } from '@prisma-next/mongo-contract';
+import type { InferModelRow } from '@internal/mongo-contract';
 import { expectTypeOf, test } from 'vitest';
 import type {
   Contract,

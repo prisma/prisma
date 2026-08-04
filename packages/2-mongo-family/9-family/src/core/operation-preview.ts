@@ -1,7 +1,7 @@
 import type {
   MigrationPlanOperation,
   OperationPreview,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import type {
   CollModCommand,
   CreateCollectionCommand,
@@ -10,7 +10,7 @@ import type {
   DropIndexCommand,
   MongoDdlCommandVisitor,
   MongoIndexKey,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 
 function formatKeySpec(keys: ReadonlyArray<MongoIndexKey>): string {
   const entries = keys.map((k) => `${JSON.stringify(k.field)}: ${JSON.stringify(k.direction)}`);

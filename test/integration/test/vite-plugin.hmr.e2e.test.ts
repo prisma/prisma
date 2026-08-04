@@ -1,6 +1,6 @@
 import { copyFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import * as vite7 from 'vite7';
 import * as vite8 from 'vite8';
 import { afterEach, describe, expect, it, vi } from 'vitest';

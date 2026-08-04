@@ -11,14 +11,14 @@
  *                        `T[]?` → `ReadonlyArray<string> | null`.
  */
 
-import type { ColumnTypeDescriptor } from '@prisma-next/framework-components/codec';
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type {
   ExtractCodecTypes,
   ExtractFieldOutputTypes,
   ExtractStorageColumnInputTypes,
   ExtractStorageColumnTypes,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import { expectTypeOf, test } from 'vitest';
 import { field, model } from '../src/contract-builder';
 import type { SqlContractResult } from '../src/contract-types';

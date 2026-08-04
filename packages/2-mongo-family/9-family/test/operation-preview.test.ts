@@ -1,9 +1,9 @@
-import { createControlStack, hasOperationPreview } from '@prisma-next/framework-components/control';
+import { createControlStack, hasOperationPreview } from '@internal/framework-components/control';
 import {
   CreateIndexCommand,
   DropIndexCommand,
   type MongoMigrationPlanOperation,
-} from '@prisma-next/mongo-query-ast/control';
+} from '@internal/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import { mongoFamilyDescriptor } from '../src/core/control-descriptor';
 import { stubMongoTargetDescriptor } from './test-target-descriptor';

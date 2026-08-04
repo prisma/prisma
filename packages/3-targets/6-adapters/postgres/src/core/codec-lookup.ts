@@ -1,10 +1,10 @@
-import type { ComponentMetadata } from '@prisma-next/framework-components/components';
-import { extractCodecLookup } from '@prisma-next/framework-components/control';
+import type { ComponentMetadata } from '@internal/framework-components/components';
+import { extractCodecLookup } from '@internal/framework-components/control';
 import {
   type AnyPostgresCodecDescriptor,
   buildPostgresCodecDescriptorRegistry,
-} from '@prisma-next/target-postgres/codec-descriptor';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
+} from '@internal/target-postgres/codec-descriptor';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
 import type { PostgresCodecRegistry } from './types';
 
 function buildPostgresCodecRegistry(descriptors: ReadonlyArray<unknown>): PostgresCodecRegistry {

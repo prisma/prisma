@@ -1,9 +1,9 @@
-import type { AuthoringTypeNamespace } from '@prisma-next/framework-components/authoring';
+import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import {
   collectScalarTypeConstructors,
   instantiateAuthoringTypeConstructor,
   validateAuthoringHelperArguments,
-} from '@prisma-next/framework-components/authoring';
+} from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import {

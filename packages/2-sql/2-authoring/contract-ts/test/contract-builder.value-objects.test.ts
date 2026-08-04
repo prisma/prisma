@@ -1,6 +1,6 @@
-import type { ContractField, ContractValueObject } from '@prisma-next/contract/types';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
+import type { ContractField, ContractValueObject } from '@internal/contract/types';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type { TargetPackRef } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { buildSqlContractFromDefinition } from '../src/contract-builder';
@@ -50,7 +50,6 @@ describe('value objects in contract definition builder', () => {
         };
       },
       targetTypesFor: (id) => (id === 'pg/jsonb@1' ? ['jsonb'] : undefined),
-      metaFor: () => undefined,
       renderOutputTypeFor: () => undefined,
     };
 

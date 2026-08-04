@@ -16,8 +16,9 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import { APP_SPACE_ID, storageHashHex } from '@prisma-next/framework-components/control';
-import { col, primaryKey } from '@prisma-next/sql-relational-core/contract-free';
+import { APP_SPACE_ID, storageHashHex } from '@internal/framework-components/control';
+import { keepInternalSpecifiers } from '@internal/framework-components/emission';
+import { col, primaryKey } from '@internal/sql-relational-core/contract-free';
 import {
   AddColumnCall,
   CreateExtensionCall,
@@ -32,11 +33,11 @@ import {
   RawSqlCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
-} from '@prisma-next/target-postgres/op-factory-call';
-import { TypeScriptRenderablePostgresMigration } from '@prisma-next/target-postgres/planner-produced-postgres-migration';
-import { renderOps } from '@prisma-next/target-postgres/render-ops';
-import { PostgresRlsPolicy } from '@prisma-next/target-postgres/types';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/op-factory-call';
+import { TypeScriptRenderablePostgresMigration } from '@internal/target-postgres/planner-produced-postgres-migration';
+import { renderOps } from '@internal/target-postgres/render-ops';
+import { PostgresRlsPolicy } from '@internal/target-postgres/types';
+import { timeouts } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
@@ -100,9 +101,9 @@ const fixtureConfigSource = [
  */
 function rewriteImports(tsSource: string): string {
   return tsSource
-    .replace("'@prisma-next/postgres/migration'", `'${targetPostgresMigrationExport}'`)
+    .replace("'@internal/postgres/migration'", `'${targetPostgresMigrationExport}'`)
     .replace(
-      "'@prisma-next/sql-relational-core/contract-free'",
+      "'@internal/sql-relational-core/contract-free'",
       `'${relationalCoreContractFreeExport}'`,
     );
 }
@@ -160,7 +161,7 @@ const tscPath = join(repoRoot, 'node_modules/.bin/tsc');
  */
 async function writeTypecheckDir(dir: string, renderedSource: string): Promise<void> {
   const tsSource = renderedSource.replace(
-    "'@prisma-next/postgres/migration'",
+    "'@internal/postgres/migration'",
     `'${resolve(repoRoot, 'packages/3-extensions/postgres/dist/migration.mjs')}'`,
   );
   await writeFile(join(dir, 'migration.ts'), tsSource);
@@ -245,8 +246,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'p_ab12cd34',
-          prefix: 'p',
+          naming: { kind: 'wire', prefix: 'p', hash: 'ab12cd34' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -269,7 +269,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       testAdapter,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stdout, stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -295,7 +295,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -321,8 +321,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'tenant_read_f8d5e783',
-          prefix: 'tenant_read',
+          naming: { kind: 'wire', prefix: 'tenant_read', hash: 'f8d5e783' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -336,8 +335,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'public',
         'user',
         new PostgresRlsPolicy({
-          name: 'Tenant members can read',
-          prefix: undefined,
+          naming: { kind: 'exact', name: 'Tenant members can read' },
           tableName: 'user',
           namespaceId: 'public',
           operation: 'select',
@@ -356,7 +354,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       testAdapter,
     );
 
-    await writeTypecheckDir(tmpDir, migration.renderTypeScript());
+    await writeTypecheckDir(tmpDir, migration.renderTypeScript(keepInternalSpecifiers));
     // Non-zero exit (a type error in the rendered source) rejects.
     await execFileAsync(tscPath, ['--project', tmpDir]);
   });
@@ -370,8 +368,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
           'public',
           'user',
           new PostgresRlsPolicy({
-            name: 'Tenant members can read',
-            prefix: undefined,
+            naming: { kind: 'exact', name: 'Tenant members can read' },
             tableName: 'user',
             namespaceId: 'public',
             operation: 'select',
@@ -388,12 +385,15 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       testAdapter,
     );
 
-    // Delete the policy's required `name` key from the rendered source — the
-    // compile must fail on the missing property, proving the green run of
+    // Delete the policy's required `naming` key from the rendered source —
+    // the compile must fail on the missing property, proving the green run of
     // the sibling test is a real typecheck and not a vacuous pass.
-    const brokenSource = migration
-      .renderTypeScript()
-      .replace('  name: "Tenant members can read",\n', '');
+    const rendered = migration.renderTypeScript(keepInternalSpecifiers);
+    expect(rendered).toContain('naming: { kind: "exact", name: "Tenant members can read" },');
+    const brokenSource = rendered.replace(
+      '        naming: { kind: "exact", name: "Tenant members can read" },\n',
+      '',
+    );
     expect(brokenSource).not.toContain('Tenant members can read');
     await writeTypecheckDir(tmpDir, brokenSource);
 
@@ -402,7 +402,9 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       (error: unknown) => error,
     );
     expect(failure).toBeDefined();
-    expect(String((failure as { stdout?: string }).stdout)).toContain("Property 'name' is missing");
+    expect(String((failure as { stdout?: string }).stdout)).toContain(
+      "Property 'naming' is missing",
+    );
   });
 
   it('preserves RawSqlCall ops byte-for-byte through the render → execute round-trip', {
@@ -426,7 +428,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
     );
 
-    const tsSource = rewriteImports(migration.renderTypeScript());
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {

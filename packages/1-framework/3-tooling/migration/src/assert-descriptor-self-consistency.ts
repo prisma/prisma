@@ -1,6 +1,6 @@
-import type { PreserveEmptyPredicate, StorageSort } from '@prisma-next/contract/hashing';
-import { computeStorageHash } from '@prisma-next/contract/hashing';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { PreserveEmptyPredicate, StorageSort } from '@internal/contract/hashing';
+import { computeStorageHash } from '@internal/contract/hashing';
+import { ifDefined } from '@internal/utils/defined';
 import { errorDescriptorHeadHashMismatch } from './errors';
 
 /**

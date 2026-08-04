@@ -1,10 +1,10 @@
-import sqliteAdapter from '@prisma-next/adapter-sqlite/control';
-import { defineConfig as coreDefineConfig } from '@prisma-next/config/config-types';
-import sqliteDriver from '@prisma-next/driver-sqlite/control';
-import sql from '@prisma-next/family-sql/control';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
-import sqlite, { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import sqlitePackRef from '@prisma-next/target-sqlite/pack';
+import sqliteAdapter from '@internal/adapter-sqlite/control';
+import { defineConfig as coreDefineConfig } from '@internal/config/config-types';
+import sqliteDriver from '@internal/driver-sqlite/control';
+import sql from '@internal/family-sql/control';
+import { prismaContract } from '@internal/sql-contract-psl/provider';
+import sqlite, { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import sqlitePackRef from '@internal/target-sqlite/pack';
 import { describe, expect, it } from 'vitest';
 import { defineConfig } from '../../src/config/define-config';
 

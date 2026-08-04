@@ -1,11 +1,11 @@
-import type { PreserveEmptyPredicate, StorageSort } from '@prisma-next/contract/hashing';
+import type { PreserveEmptyPredicate, StorageSort } from '@internal/contract/hashing';
 import {
   createPreserveEmptyPredicate,
   createStorageSort,
   matchesPathPattern,
   type NamedArraySortTarget,
   type PathPattern,
-} from '@prisma-next/contract/hashing-utils';
+} from '@internal/contract/hashing-utils';
 
 const preserveEmptyPatterns = [
   ['storage', 'namespaces', '*', 'entries', 'table'],

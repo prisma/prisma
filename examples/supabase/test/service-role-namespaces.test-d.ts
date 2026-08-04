@@ -15,7 +15,7 @@
  *      `asUser(jwt)` do not.
  */
 
-import type { RoleBoundDb, SupabaseDb } from '@prisma-next/extension-supabase/runtime';
+import type { RoleBoundDb, SupabaseDb } from '@prisma/orm-extension-supabase/runtime';
 import { expectTypeOf, test } from 'vitest';
 import type { Contract } from '../src/contract';
 

@@ -1,5 +1,5 @@
-import type { SqlQueryOperationTypes } from '@prisma-next/sql-contract/types';
-import type { CodecExpression, Expression } from '@prisma-next/sql-relational-core/expression';
+import type { SqlQueryOperationTypes } from '@internal/sql-contract/types';
+import type { CodecExpression, Expression } from '@internal/sql-relational-core/expression';
 
 type CodecTypesBase = Record<string, { readonly input: unknown; readonly output: unknown }>;
 

@@ -1,10 +1,10 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import {
   freezeNode,
   hydrateNamespaceEntities,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
-import { composeSqlEntityKinds } from '@prisma-next/sql-contract/entity-kinds';
+} from '@internal/framework-components/ir';
+import { composeSqlEntityKinds } from '@internal/sql-contract/entity-kinds';
 import {
   SqlNamespaceBase,
   type SqlNamespaceEntries,
@@ -12,12 +12,12 @@ import {
   type SqlStorage,
   type StorageTable,
   type StorageValueSet,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 
-import { type CfExpr, cfExpr } from '@prisma-next/sql-relational-core/contract-free';
-import { invariant } from '@prisma-next/utils/assertions';
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { type CfExpr, cfExpr } from '@internal/sql-relational-core/contract-free';
+import { invariant } from '@internal/utils/assertions';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { PostgresTableSource } from './ast/table-source';
 import { PG_TEXT_CODEC_ID } from './codec-ids';
 import {

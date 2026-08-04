@@ -1,8 +1,8 @@
 import type {
   ContractSpace,
   ControlExtensionDescriptor,
-} from '@prisma-next/framework-components/control';
-import type { MongoContract, MongoStorageShape } from '@prisma-next/mongo-contract';
+} from '@internal/framework-components/control';
+import type { MongoContract, MongoStorageShape } from '@internal/mongo-contract';
 
 /**
  * Mongo-family extension descriptor.
@@ -11,7 +11,7 @@ import type { MongoContract, MongoStorageShape } from '@prisma-next/mongo-contra
  * runner / verifier by setting `contractSpace`. Extensions without it
  * are codec-only or query-ops-only — today's behaviour preserved.
  *
- * The shape comes from `@prisma-next/framework-components/control`
+ * The shape comes from `@internal/framework-components/control`
  * (`ContractSpace`) — contract-space identity is a framework concept,
  * not a Mongo-specific one. The Mongo family specialises the generic
  * to `MongoContract<MongoStorageShape>` so descriptor authors see a

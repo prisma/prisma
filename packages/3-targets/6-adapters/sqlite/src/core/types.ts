@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { CodecRegistry } from '@prisma-next/framework-components/codec';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { LoweredStatement } from '@prisma-next/sql-relational-core/ast';
+import type { Contract } from '@internal/contract/types';
+import type { CodecRegistry } from '@internal/framework-components/codec';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { LoweredStatement } from '@internal/sql-relational-core/ast';
 import type {
   AnySqliteCodecDescriptor,
   SqliteCodecDescriptorRegistry,
-} from '@prisma-next/target-sqlite/codec-descriptor';
+} from '@internal/target-sqlite/codec-descriptor';
 
 export type SqliteCodecRegistry = CodecRegistry & SqliteCodecDescriptorRegistry;
 

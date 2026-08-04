@@ -1,8 +1,5 @@
-import type {
-  ControlFamilyDescriptor,
-  ControlStack,
-} from '@prisma-next/framework-components/control';
-import { mongoEmission } from '@prisma-next/mongo-emitter';
+import type { ControlFamilyDescriptor, ControlStack } from '@internal/framework-components/control';
+import { mongoEmission } from '@internal/mongo-emitter';
 import { mongoFamilyEntityTypes, mongoFamilyPslBlockDescriptors } from './authoring-entity-types';
 import { createMongoFamilyInstance, type MongoControlFamilyInstance } from './control-instance';
 

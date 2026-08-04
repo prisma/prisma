@@ -10,14 +10,14 @@ body:
         Before filing, please check that:
 
         - You are on the **latest minor version** of Prisma Next. While we are pre-1.0, only the latest minor receives fixes — older minors are not supported. If you are on an older minor, please upgrade and re-verify before filing.
-        - You are not reporting a security issue. **Do not file public issues for security reports** — use [Private Vulnerability Reporting](https://github.com/prisma/prisma-next/security/advisories/new) instead.
+        - You are not reporting a security issue. **Do not file public issues for security reports** — use [Private Vulnerability Reporting](https://github.com/prisma/prisma/security/advisories/new) instead.
 
   - type: input
     id: package-and-version
     attributes:
       label: Package and version
-      description: Which `@prisma-next/*` package (or the umbrella `prisma-next`) and version are you using?
-      placeholder: "e.g. @prisma-next/postgres@0.5.2"
+      description: Which `@internal/*` package (or the umbrella `prisma-next`) and version are you using?
+      placeholder: "e.g. @internal/postgres@0.5.2"
     validations:
       required: true
 

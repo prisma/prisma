@@ -1,5 +1,15 @@
+import {
+  type ImportSpecifierResolver,
+  keepInternalSpecifiers,
+} from '@internal/framework-components/emission';
 import { dirname } from 'pathe';
-import { type AuthoringId, schemaSample, type TargetId } from './code-templates';
+import {
+  type AuthoringId,
+  schemaSample,
+  type TargetId,
+  targetEntrypoint,
+  targetPackageName,
+} from './code-templates';
 import { MIN_SERVER_VERSION, TARGET_LABEL } from './env';
 import { renderTemplate } from './render';
 
@@ -8,6 +18,8 @@ export const variables = [
   'schemaDir',
   'dbImportPath',
   'pkgRun',
+  'pkg',
+  'configEntrypoint',
   'schemaSample',
   'requirements',
 ] as const;
@@ -19,14 +31,18 @@ export function quickReferenceMd(
   authoring: AuthoringId,
   schemaPath: string,
   pkgRun: string,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
 ): string {
   const schemaDir = dirname(schemaPath);
+  const pkg = targetPackageName(target, resolveImportSpecifier);
   const vars: TemplateVars = {
     schemaPath,
     schemaDir,
     dbImportPath: `./${schemaDir}/db`,
     pkgRun,
-    schemaSample: schemaSample(target, authoring),
+    pkg,
+    configEntrypoint: targetEntrypoint(target, 'config', resolveImportSpecifier),
+    schemaSample: schemaSample(target, authoring, resolveImportSpecifier),
     requirements: requirementsBlock(target),
   };
   const templateFile = `quick-reference-${target}.md`;

@@ -6,8 +6,8 @@
  * inbound migration rows — in display order (tips first, then roots).
  */
 
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { InternalError } from '@internal/utils/internal-error';
 import {
   type Cell,
   type CellLine,

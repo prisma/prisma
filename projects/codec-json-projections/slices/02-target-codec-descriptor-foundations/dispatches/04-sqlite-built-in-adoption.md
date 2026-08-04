@@ -14,7 +14,7 @@ Migrate the complete SQLite target-owned codec descriptor set to the D2 protocol
 
 - [ ] Tests written first prove every canonical SQLite descriptor is target-typed, each generic SQL descriptor is explicitly adapted, raw descriptors are absent, registry/type-map order and membership remain intentional, and existing descriptor/column/factory types compile unchanged.
 - [ ] Existing codec JSON/runtime assertions remain equivalent, direct scalar hooks are explicit identity/pass-through declarations, `many` remains rejected, and the typed registry contains char/varchar even though control/emission metadata deliberately excludes them.
-- [ ] `@prisma-next/target-sqlite` build/test/typecheck/lint, downstream `@prisma-next/adapter-sqlite` typecheck, `pnpm lint:casts`, `pnpm lint:throws`, `pnpm lint:deps`, and `pnpm fixtures:check` pass with zero generated drift; bounded `rg` scans find no adapter/renderer/later-slice behavior.
+- [ ] `@internal/target-sqlite` build/test/typecheck/lint, downstream `@internal/adapter-sqlite` typecheck, `pnpm lint:casts`, `pnpm lint:throws`, `pnpm lint:deps`, and `pnpm fixtures:check` pass with zero generated drift; bounded `rg` scans find no adapter/renderer/later-slice behavior.
 - [ ] Only D4 files are explicitly staged in a signed-off commit; do not amend or push. The report enumerates migrated descriptor categories, filter/parity evidence, gates, and deferrals.
 
 ## Standing instruction

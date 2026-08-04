@@ -1,12 +1,8 @@
-import type {
-  Contract,
-  ContractMarkerRecord,
-  LedgerEntryRecord,
-} from '@prisma-next/contract/types';
-import { emit as emitContractArtifacts } from '@prisma-next/emitter';
-import { CliStructuredError } from '@prisma-next/errors/control';
-import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
+import { emit as emitContractArtifacts } from '@internal/emitter';
+import { CliStructuredError } from '@internal/errors/control';
+import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlAdapterInstance,
   ControlDriverInstance,
@@ -18,7 +14,7 @@ import type {
   SignDatabaseResult,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
   createControlStack,
@@ -26,12 +22,12 @@ import {
   hasOperationPreview,
   hasPslContractInfer,
   hasSchemaView,
-} from '@prisma-next/framework-components/control';
-import type { PslDocumentAst } from '@prisma-next/framework-components/psl-ast';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { notOk, ok } from '@prisma-next/utils/result';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/control';
+import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok } from '@internal/utils/result';
+import { structuredError } from '@internal/utils/structured-error';
 
 import { assertFrameworkComponentsCompatible } from '../utils/framework-components';
 import { enrichContract } from './contract-enrichment';

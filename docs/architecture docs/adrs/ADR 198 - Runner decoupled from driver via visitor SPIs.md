@@ -14,9 +14,9 @@ export interface MongoRunnerDependencies {
 }
 ```
 
-Every dependency is an abstract interface. `MongoDdlCommandVisitor` and `MongoInspectionCommandVisitor` are the visitor SPIs from `@prisma-next/mongo-query-ast`. `MongoAdapter` and `MongoDriver` are the runtime query-execution abstractions already used by the rest of the system. `MarkerOperations` is a small interface covering the four marker-ledger calls. The runner has zero imports from `mongodb`.
+Every dependency is an abstract interface. `MongoDdlCommandVisitor` and `MongoInspectionCommandVisitor` are the visitor SPIs from `@internal/mongo-query-ast`. `MongoAdapter` and `MongoDriver` are the runtime query-execution abstractions already used by the rest of the system. `MarkerOperations` is a small interface covering the four marker-ledger calls. The runner has zero imports from `mongodb`.
 
-The concrete implementations — `MongoCommandExecutor`, `MongoInspectionExecutor`, and a `MarkerOperations` literal backed by `Db` — live in the adapter (`@prisma-next/adapter-mongo`) and are wired in at the composition site:
+The concrete implementations — `MongoCommandExecutor`, `MongoInspectionExecutor`, and a `MarkerOperations` literal backed by `Db` — live in the adapter (`@internal/adapter-mongo`) and are wired in at the composition site:
 
 ```ts
 // adapter-mongo/src/core/runner-deps.ts
@@ -45,7 +45,7 @@ The family descriptor's `createRunner` calls `createMongoRunnerDeps` and passes 
 
 The runner depends on abstract visitor interfaces and an abstract `MarkerOperations` interface — not on `mongodb`'s `Db` type. Concrete implementations stay in the adapter; composition happens at the family descriptor.
 
-This gives the runner a clean package-layer position. It lives in the target package (`@prisma-next/target-mongo`), which sits above the family-layer AST types but below the adapter. A target-layer module must not import adapter or driver code. The visitor SPIs make this possible: they are defined in the family layer (`@prisma-next/mongo-query-ast`), the runner depends on them, and the adapter provides implementations.
+This gives the runner a clean package-layer position. It lives in the target package (`@internal/target-mongo`), which sits above the family-layer AST types but below the adapter. A target-layer module must not import adapter or driver code. The visitor SPIs make this possible: they are defined in the family layer (`@internal/mongo-query-ast`), the runner depends on them, and the adapter provides implementations.
 
 ### DDL execution
 

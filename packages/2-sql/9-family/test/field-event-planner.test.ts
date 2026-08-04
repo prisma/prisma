@@ -1,11 +1,8 @@
-import { type Contract, profileHash, type StorageHashBase } from '@prisma-next/contract/types';
-import type {
-  MigrationPlanOperation,
-  OpFactoryCall,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage, type StorageColumn, type StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { type Contract, profileHash, type StorageHashBase } from '@internal/contract/types';
+import type { MigrationPlanOperation, OpFactoryCall } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage, type StorageColumn, type StorageTable } from '@internal/sql-contract/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import { planFieldEventOperations } from '../src/core/migrations/field-event-planner';

@@ -1,4 +1,4 @@
-import type { CodecCallContext } from '@prisma-next/framework-components/codec';
+import type { CodecCallContext } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { mongoCodec } from '../src/codecs';
 

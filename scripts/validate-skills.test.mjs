@@ -106,12 +106,12 @@ description: broken yaml: this colon breaks parsing
 
   it('scans the user-facing skills/ root, not just skills-contrib', () => {
     const root = mkdtempSync(join(tmpdir(), 'validate-skills-userfacing-'));
-    const skillDir = join(root, 'skills', 'prisma-next-example');
+    const skillDir = join(root, 'skills', 'prisma-8-example');
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(
       join(skillDir, 'SKILL.md'),
       `---
-name: prisma-next-example
+name: prisma-8-example
 description: Wire this skill with adapterPacks: [examplePack] for the example target.
 ---
 
@@ -121,7 +121,7 @@ description: Wire this skill with adapterPacks: [examplePack] for the example ta
 
     const offences = runCheck({ root });
     strictEqual(offences.length, 1);
-    strictEqual(offences[0].file, 'skills/prisma-next-example/SKILL.md');
+    strictEqual(offences[0].file, 'skills/prisma-8-example/SKILL.md');
     strictEqual(offences[0].errors[0].startsWith('frontmatter parse error:'), true);
   });
 

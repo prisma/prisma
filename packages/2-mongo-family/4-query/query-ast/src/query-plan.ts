@@ -1,4 +1,4 @@
-import type { QueryPlan } from '@prisma-next/framework-components/runtime';
+import type { QueryPlan } from '@internal/framework-components/runtime';
 import type { AnyMongoCommand } from './commands';
 import type { MongoResultShape } from './result-shape';
 

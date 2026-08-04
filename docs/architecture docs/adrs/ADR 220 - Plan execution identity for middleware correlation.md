@@ -92,7 +92,7 @@ ADR 160's `groupingKey` is orchestrator-assigned and groups *multiple* plans tha
 
 ## Implementation
 
-`RuntimeCore.execute()` in `@prisma-next/framework-components` constructs the per-execute context at the top of its generator:
+`RuntimeCore.execute()` in `@internal/framework-components` constructs the per-execute context at the top of its generator:
 
 ```ts
 const execCtx: RuntimeMiddlewareContext = {

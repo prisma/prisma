@@ -1,4 +1,4 @@
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 
 export const CONTRACT_SNAPSHOTS_DIRNAME = 'snapshots';
 

@@ -1,4 +1,4 @@
-# @prisma-next/tsconfig
+# @repo/tsconfig
 
 This package is inspired by https://www.elsakaan.dev/blog/monorepo-college-2.
 
@@ -8,10 +8,10 @@ We're solving unnecessary complexity of `extends` paths in nested `tsconfig.json
 
 ### Installation
 
-Add `@prisma-next/tsconfig` as a workspace devDependency in your package's `package.json`:
+Add `@repo/tsconfig` as a workspace devDependency in your package's `package.json`:
 
 ```bash
-pnpm add -D --workspace @prisma-next/tsconfig
+pnpm add -D --workspace @repo/tsconfig
 ```
 
 Or add it manually to `package.json`:
@@ -19,7 +19,7 @@ Or add it manually to `package.json`:
 ```json
 {
   "devDependencies": {
-    "@prisma-next/tsconfig": "workspace:*"
+    "@repo/tsconfig": "workspace:*"
   }
 }
 ```
@@ -30,7 +30,7 @@ In your `tsconfig.json`, extend the base configuration:
 
 ```json
 {
-  "extends": ["@prisma-next/tsconfig/base"],
+  "extends": ["@repo/tsconfig/base"],
   "compilerOptions": {
     // Your package-specific overrides
   }

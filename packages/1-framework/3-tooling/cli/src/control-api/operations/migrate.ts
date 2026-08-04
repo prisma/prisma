@@ -2,14 +2,14 @@
  * Backs the `migrate` command. Resolves the recorded path for every space, replay-only (no introspect/diff/planner).
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlDriverInstance,
   ControlExtensionDescriptor,
   ControlFamilyInstance,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   type AggregateContractSpace,
   allStorageElementsExternal,
@@ -19,13 +19,13 @@ import {
   type PerSpacePlan,
   requireHeadRef,
   resolveRecordedPath,
-} from '@prisma-next/migration-tools/aggregate';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { errorNoInvariantPath } from '@prisma-next/migration-tools/errors';
-import { findPathWithDecision } from '@prisma-next/migration-tools/migration-graph';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { notOk, ok } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/aggregate';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { errorNoInvariantPath } from '@internal/migration-tools/errors';
+import { findPathWithDecision } from '@internal/migration-tools/migration-graph';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { notOk, ok } from '@internal/utils/result';
 import {
   type BuildAggregateInputs,
   buildContractSpaceAggregate,

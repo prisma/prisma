@@ -47,7 +47,7 @@ describe('ports/prisma/functional/composites/list/upsert-create', () => {
             },
           ],
         });
-        expect(comment._id).toBeInstanceOf(ObjectId);
+        expect(comment._id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -80,7 +80,7 @@ describe('ports/prisma/functional/composites/list/upsert-create', () => {
             },
           ],
         });
-        expect(comment._id).toBeInstanceOf(ObjectId);
+        expect(comment._id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -155,7 +155,7 @@ describe('ports/prisma/functional/composites/list/upsert-create', () => {
             },
           ],
         });
-        expect(comment._id).toBeInstanceOf(ObjectId);
+        expect(comment._id).toEqual(expect.any(String));
       }),
     timeouts.spinUpMongoMemoryServer,
   );

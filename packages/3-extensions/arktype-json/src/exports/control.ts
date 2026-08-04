@@ -16,7 +16,7 @@
 import type {
   CodecControlHooks,
   SqlControlExtensionDescriptor,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import { ARKTYPE_JSON_CODEC_ID } from '../core/arktype-json-codec';
 import { arktypeJsonPackMeta } from '../core/pack-meta';
 

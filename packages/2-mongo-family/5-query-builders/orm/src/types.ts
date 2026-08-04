@@ -1,4 +1,4 @@
-import type { ContractReferenceRelation } from '@prisma-next/contract/types';
+import type { ContractReferenceRelation } from '@internal/contract/types';
 import type {
   AnyMongoTypeMaps,
   ExtractMongoCodecTypes,
@@ -8,7 +8,7 @@ import type {
   MongoModelsMap,
   MongoUnboundFieldInputTypes,
   MongoUnboundFieldOutputTypes,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 
 type Simplify<T> = T extends unknown ? { [K in keyof T]: T[K] } : never;
 

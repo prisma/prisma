@@ -1,4 +1,4 @@
-import { cfExpr, cfTable, exprSelect } from '@prisma-next/sql-relational-core/contract-free';
+import { cfExpr, cfTable, exprSelect } from '@internal/sql-relational-core/contract-free';
 import {
   columnDefaultAst,
   columnExistsAst,
@@ -13,7 +13,7 @@ import {
   tableExistsAst,
   tableIsEmptyAst,
   tablePrimaryKeyAst,
-} from '@prisma-next/target-postgres/contract-free';
+} from '@internal/target-postgres/contract-free';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../src/core/control-adapter';

@@ -21,9 +21,9 @@ For SQL/Postgres fixtures:
 
 ```ts
 // BEFORE
-import { defineContract } from '@prisma-next/sql-contract-ts/contract-builder';
-import sqlFamily from '@prisma-next/family-sql/pack';
-import postgresPack from '@prisma-next/target-postgres/pack';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
+import sqlFamily from '@internal/family-sql/pack';
+import postgresPack from '@internal/target-postgres/pack';
 
 export const contract = defineContract(
   { family: sqlFamily, target: postgresPack, /* extensionPacks: {...} */ },
@@ -31,7 +31,7 @@ export const contract = defineContract(
 );
 
 // AFTER
-import { defineContract } from '@prisma-next/postgres/contract-builder';
+import { defineContract } from '@internal/postgres/contract-builder';
 
 export const contract = defineContract(
   { /* extensionPacks: {...} */ },  // family + target dropped; extensionPacks retained if present
@@ -39,9 +39,9 @@ export const contract = defineContract(
 );
 ```
 
-For SQL/SQLite: substitute `@prisma-next/sqlite/contract-builder` + `target-sqlite/pack` accordingly.
+For SQL/SQLite: substitute `@internal/sqlite/contract-builder` + `target-sqlite/pack` accordingly.
 
-For Mongo: substitute `@prisma-next/mongo/contract-builder` + `mongo-contract-ts/contract-builder` + `family-mongo/pack` + `target-mongo/pack`.
+For Mongo: substitute `@internal/mongo/contract-builder` + `mongo-contract-ts/contract-builder` + `family-mongo/pack` + `target-mongo/pack`.
 
 **Single-argument form:** if a fixture has an empty `extensionPacks` and the call collapses to `defineContract({}, factory)` after the drop, leave it as `defineContract({}, factory)` (don't drop the empty options object — it's still the API shape).
 
@@ -109,7 +109,7 @@ Per orchestrator inventory:
 
    ```bash
    # Find all callers
-   rg -l '@prisma-next/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/pack' \
+   rg -l '@internal/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/pack' \
      test/integration/test/fixtures/ \
      test/integration/test/authoring/parity/ \
      test/integration/test/authoring/side-by-side/ \
@@ -128,7 +128,7 @@ Per orchestrator inventory:
 ## Done when
 
 - [ ] D5a landed (✓ confirmed before dispatch).
-- [ ] Grep gate: `rg "@prisma-next/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" -g '!**/node_modules/**' -g '!**/dist/**' -g '!projects/**'` returns only:
+- [ ] Grep gate: `rg "@internal/(family-(sql|mongo)|target-(postgres|sqlite|mongo))/(pack|control)" -g '!**/node_modules/**' -g '!**/dist/**' -g '!projects/**'` returns only:
   - facade source files (`packages/3-extensions/{postgres,sqlite,mongo}/src/{exports/{family,target}.ts,contract/define-contract.ts}`),
   - facade `@ts-expect-error` test files (`packages/3-extensions/{postgres,sqlite,mongo}/test/contract-builder/define-contract.test-d.ts`),
   - cipherstash migration files (A7),

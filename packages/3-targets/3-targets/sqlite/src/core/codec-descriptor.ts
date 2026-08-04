@@ -1,18 +1,17 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type AnyCodecDescriptor,
   type Codec,
   type CodecDescriptor,
   CodecDescriptorImpl,
   type CodecInstanceContext,
-  type CodecMeta,
   type CodecRef,
   type CodecTrait,
   validateCodecTypeParams,
-} from '@prisma-next/framework-components/codec';
-import type { ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/framework-components/codec';
+import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
+import { structuredError } from '@internal/utils/structured-error';
 
 const SQLITE_CODEC_DESCRIPTOR_KIND = 'sqlite-codec' as const;
 
@@ -73,7 +72,6 @@ class SqliteCodecDescriptorAdapter<D extends AnyCodecDescriptor> extends SqliteC
   override readonly traits: readonly CodecTrait[];
   override readonly targetTypes: readonly string[];
   override readonly paramsSchema: D['paramsSchema'];
-  override readonly metaFor?: (params: DescriptorParams<D>) => CodecMeta | undefined;
   override readonly renderOutputType?: (params: DescriptorParams<D>) => string | undefined;
   override readonly renderInputType?: (params: DescriptorParams<D>) => string | undefined;
   override readonly renderValueLiteral?: (
@@ -90,18 +88,6 @@ class SqliteCodecDescriptorAdapter<D extends AnyCodecDescriptor> extends SqliteC
     this.traits = descriptor.traits;
     this.targetTypes = descriptor.targetTypes;
     this.paramsSchema = descriptor.paramsSchema;
-
-    if (descriptor.meta !== undefined) {
-      Object.defineProperty(this, 'meta', {
-        value: descriptor.meta,
-        enumerable: true,
-      });
-    }
-
-    const metaFor = descriptor.metaFor;
-    if (metaFor !== undefined) {
-      this.metaFor = (params) => metaFor.call(descriptor, params);
-    }
 
     const renderOutputType = descriptor.renderOutputType;
     if (renderOutputType !== undefined) {

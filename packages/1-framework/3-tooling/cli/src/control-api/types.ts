@@ -1,13 +1,9 @@
 import type {
   ContractSourceDiagnostics,
   ContractSourceProvider,
-} from '@prisma-next/config/config-types';
-import type {
-  Contract,
-  ContractMarkerRecord,
-  LedgerEntryRecord,
-} from '@prisma-next/contract/types';
-import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
+} from '@internal/config/config-types';
+import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
+import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import type {
   ControlAdapterDescriptor,
   ControlDriverDescriptor,
@@ -21,9 +17,9 @@ import type {
   SignDatabaseResult,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import type { PslDocumentAst } from '@prisma-next/framework-components/psl-ast';
-import type { Result } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
+import type { Result } from '@internal/utils/result';
 import type { ExecuteDbVerifyResult } from './operations/db-verify';
 
 // ============================================================================
@@ -712,7 +708,7 @@ export type MigrateResult = Result<MigrateSuccess, MigrateFailure>;
  * Options for the standalone executeContractEmit function.
  *
  * `executeContractEmit` is the canonical publication path for both the
- * `prisma-next contract emit` CLI command and the `@prisma-next/vite-plugin-contract-emit`
+ * `prisma-next contract emit` CLI command and the `@internal/vite-plugin-contract-emit`
  * Vite plugin. Do not duplicate the load → emit → publish dance elsewhere; if a
  * caller needs additional behavior, extend this options shape and update the
  * single implementation rather than building a parallel publication path.

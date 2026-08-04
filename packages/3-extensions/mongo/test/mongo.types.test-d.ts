@@ -1,7 +1,7 @@
-import type { ContractEnumAccessor } from '@prisma-next/contract/enum-accessor';
-import type { ProfileHashBase, StorageHashBase } from '@prisma-next/contract/types';
-import type { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
-import type { MongoContractWithTypeMaps, MongoTypeMaps } from '@prisma-next/mongo-contract';
+import type { ContractEnumAccessor } from '@internal/contract/enum-accessor';
+import type { ProfileHashBase, StorageHashBase } from '@internal/contract/types';
+import type { AsyncIterableResult } from '@internal/framework-components/runtime';
+import type { MongoContractWithTypeMaps, MongoTypeMaps } from '@internal/mongo-contract';
 import type {
   CreateInput,
   IncludedRow,
@@ -9,8 +9,8 @@ import type {
   MongoQueryPlan,
   MongoRawClient,
   NoIncludes,
-} from '@prisma-next/mongo-orm';
-import type { MongoExecutionContext } from '@prisma-next/mongo-runtime';
+} from '@internal/mongo-orm';
+import type { MongoExecutionContext } from '@internal/mongo-runtime';
 import { expectTypeOf, test } from 'vitest';
 import type { Contract } from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
 import { defineContract, enumType, field, member, model } from '../src/exports/contract-builder';

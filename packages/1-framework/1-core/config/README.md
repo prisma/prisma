@@ -1,4 +1,4 @@
-# @prisma-next/config
+# @internal/config
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
 > and is published only to support its runtime. Its API is unstable and may change
@@ -25,15 +25,15 @@ This package owns the shared config contract used by tooling and authoring packa
 
 ## Non-responsibilities
 
-- Config file discovery/loading (`c12`, file I/O) - handled by `@prisma-next/config-loader`
+- Config file discovery/loading (`c12`, file I/O) - handled by `@internal/config-loader`
 - CLI error envelope formatting and rendering - handled by CLI/errors package error utilities
 - Control-plane migration operations and runtime actions
 
 ## Usage
 
 ```ts
-import { defineConfig } from '@prisma-next/config/config-types';
-import { validateConfig } from '@prisma-next/config/config-validation';
+import { defineConfig } from '@internal/config/config-types';
+import { validateConfig } from '@internal/config/config-validation';
 
 const config = defineConfig({
   family: sqlFamilyDescriptor,
@@ -54,5 +54,5 @@ validateConfig(config);
 Declare `source.inputs` only for source files that are not already covered by the config module
 graph, such as PSL schema paths or TypeScript contract paths passed as strings. Do not include
 emitted artifact paths derived from `contract.output` (for example `contract.json` or the
-colocated `contract.d.ts`); `@prisma-next/config-loader` resolves and validates those paths
+colocated `contract.d.ts`); `@internal/config-loader` resolves and validates those paths
 before emit/watch commands run. Tooling should always treat the config module graph as watched by default.

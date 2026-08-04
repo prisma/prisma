@@ -1,4 +1,4 @@
-import type { OperationDescriptor, OperationDescriptors } from '@prisma-next/operations';
+import type { OperationDescriptor, OperationDescriptors } from '@internal/operations';
 import { MONGO_VECTOR_CODEC_ID } from './codec-ids';
 
 export const mongoVectorNearOperation: OperationDescriptor = Object.freeze({

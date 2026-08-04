@@ -1,8 +1,8 @@
-import type { Contract, ControlPolicy } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
-import type { SchemaDiffIssue } from '@prisma-next/framework-components/control';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 
 /**
  * The full-tree node diff a SQL target produces for the family verify

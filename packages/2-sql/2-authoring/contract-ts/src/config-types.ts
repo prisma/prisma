@@ -1,12 +1,12 @@
 import { pathToFileURL } from 'node:url';
-import type { ContractConfig } from '@prisma-next/config/config-types';
-import { applySpecifierDefaultControlPolicy } from '@prisma-next/contract/apply-specifier-default-control-policy';
-import type { Contract, ControlPolicy } from '@prisma-next/contract/types';
-import type { TargetPackRef } from '@prisma-next/framework-components/components';
-import type { SqlNamespaceBase, SqlNamespaceInput } from '@prisma-next/sql-contract/types';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { InternalError } from '@prisma-next/utils/internal-error';
-import { ok } from '@prisma-next/utils/result';
+import type { ContractConfig } from '@internal/config/config-types';
+import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-specifier-default-control-policy';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
+import type { TargetPackRef } from '@internal/framework-components/components';
+import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
+import { InternalError } from '@internal/utils/internal-error';
+import { ok } from '@internal/utils/result';
 import { extname } from 'pathe';
 import { buildSqlContractFromDefinition } from './build-contract';
 import { contractError } from './contract-errors';
@@ -15,7 +15,7 @@ import { contractError } from './contract-errors';
  * Derives the emit output path from the TS contract input so artefacts land
  * colocated with the source (e.g. `prisma/contract.ts` →
  * `prisma/contract.json`). Mirrors the same default-derivation logic in
- * `@prisma-next/sql-contract-psl/provider`.
+ * `@internal/sql-contract-psl/provider`.
  */
 function defaultOutputFromContractPath(contractPath: string): string {
   const ext = extname(contractPath);

@@ -20,5 +20,5 @@ import { join } from 'pathe';
 process.stdout.isTTY = true;
 
 if (process.env['XDG_CONFIG_HOME'] === undefined) {
-  process.env['XDG_CONFIG_HOME'] = mkdtempSync(join(tmpdir(), 'prisma-next-cli-test-xdg-'));
+  process.env['XDG_CONFIG_HOME'] = mkdtempSync(join(tmpdir(), 'prisma-8-cli-test-xdg-'));
 }

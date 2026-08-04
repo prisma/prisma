@@ -1,5 +1,10 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { StorageTable } from '@prisma-next/sql-contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import {
+  Index,
+  indexInputFromSerialized,
+  type SerializedIndex,
+  StorageTable,
+} from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import {
   SqliteDatabase,
@@ -193,7 +198,8 @@ describe('SqliteUnboundDatabase — entries open dictionary', () => {
 });
 
 describe('sqliteCreateNamespace — expression/partial index rejection', () => {
-  function tableWithIndex(index: Record<string, unknown>) {
+  function tableWithIndex(flat: Record<string, unknown>) {
+    const index = new Index(indexInputFromSerialized(flat as SerializedIndex));
     return {
       id: UNBOUND_NAMESPACE_ID,
       entries: {
@@ -205,7 +211,7 @@ describe('sqliteCreateNamespace — expression/partial index rejection', () => {
             },
             primaryKey: { columns: ['id'] },
             uniques: [],
-            indexes: [index as never],
+            indexes: [index],
             foreignKeys: [],
           }),
         },

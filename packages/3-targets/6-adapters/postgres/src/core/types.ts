@@ -1,5 +1,5 @@
-import type { CodecRegistry } from '@prisma-next/framework-components/codec';
-import type { StorageColumn, StorageTable } from '@prisma-next/sql-contract/types';
+import type { CodecRegistry } from '@internal/framework-components/codec';
+import type { StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import type {
   AnyQueryAst,
   BinaryExpr,
@@ -15,11 +15,11 @@ import type {
   ParamRef,
   SelectAst,
   UpdateAst,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import type {
   AnyPostgresCodecDescriptor,
   PostgresCodecDescriptorRegistry,
-} from '@prisma-next/target-postgres/codec-descriptor';
+} from '@internal/target-postgres/codec-descriptor';
 
 export type PostgresCodecRegistry = CodecRegistry & PostgresCodecDescriptorRegistry;
 
@@ -33,7 +33,7 @@ export interface PostgresAdapterOptions {
   readonly codecDescriptors?: readonly AnyPostgresCodecDescriptor[];
 }
 
-export type { PostgresContract } from '@prisma-next/target-postgres/types';
+export type { PostgresContract } from '@internal/target-postgres/types';
 
 export type Expr = ColumnRef | ParamRef | DefaultValueExpr;
 

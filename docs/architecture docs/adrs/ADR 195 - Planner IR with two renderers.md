@@ -107,7 +107,7 @@ const renderCallVisitor: OpFactoryCallVisitor<string> = {
 };
 ```
 
-The outer function wraps the rendered calls in a complete `migration.ts` file: shebang, imports from `@prisma-next/family-mongo/migration` and `@prisma-next/target-mongo/migration`, a `Migration` subclass with `describe()` and `operations`, and `Migration.run(import.meta.url, M)`. The result is a runnable file the developer can edit, then execute to emit `ops.json` ([ADR 192](ADR%20192%20-%20ops.json%20is%20the%20migration%20contract.md)).
+The outer function wraps the rendered calls in a complete `migration.ts` file: shebang, imports from `@internal/family-mongo/migration` and `@internal/target-mongo/migration`, a `Migration` subclass with `describe()` and `operations`, and `Migration.run(import.meta.url, M)`. The result is a runnable file the developer can edit, then execute to emit `ops.json` ([ADR 192](ADR%20192%20-%20ops.json%20is%20the%20migration%20contract.md)).
 
 ### Wiring
 

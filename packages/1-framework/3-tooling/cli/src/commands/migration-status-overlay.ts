@@ -1,5 +1,5 @@
-import type { MigrationGraph } from '@prisma-next/migration-tools/graph';
-import { findPath } from '@prisma-next/migration-tools/migration-graph';
+import type { MigrationGraph } from '@internal/migration-tools/graph';
+import { findPath } from '@internal/migration-tools/migration-graph';
 import type { MigrationEdgeAnnotation } from '../utils/formatters/migration-graph-labels';
 
 export interface DeriveStatusEdgeAnnotationsInput {

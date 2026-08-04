@@ -41,7 +41,7 @@ Configured via the `extensions` array in `prisma-next.config.ts`; emitted into t
 
 A function that runs around every query, similar to middleware in Express or Koa. Middleware can inspect queries, enforce limits, collect metrics, or block unsafe operations — without changing how queries are built or executed. Examples: `budgets()` (cost limits), `lints()` (query checks).
 
-At the framework level, middleware is defined by the `RuntimeMiddleware` interface in `@prisma-next/framework-components`. A middleware can be family-agnostic (runs in any runtime) or scoped to a specific family (`familyId: 'sql'`) and/or target (`targetId: 'postgres'`). Family-specific interfaces (`SqlMiddleware`, `MongoMiddleware`) narrow the plan and context types.
+At the framework level, middleware is defined by the `RuntimeMiddleware` interface in `@internal/framework-components`. A middleware can be family-agnostic (runs in any runtime) or scoped to a specific family (`familyId: 'sql'`) and/or target (`targetId: 'postgres'`). Family-specific interfaces (`SqlMiddleware`, `MongoMiddleware`) narrow the plan and context types.
 
 ### Plan
 
@@ -67,7 +67,7 @@ A category of databases that share fundamental characteristics. SQL is a family 
 
 The umbrella term for the five kinds of building blocks that make up a Prisma Next configuration: **family**, **target**, **adapter**, **driver**, and **extension**. Each framework component follows the same structural pattern: a `ComponentDescriptor` (declarative metadata — identity, version, capabilities, type imports) plus plane-specific descriptor and instance types (see [Descriptor](#descriptor), [Instance](#instance) in the Architecture section).
 
-Framework components are composed into stacks via `create*Stack()` functions. The framework-components package (`@prisma-next/framework-components`) owns the base types and assembly logic that operate on framework components generically, without knowing which family or target they belong to.
+Framework components are composed into stacks via `create*Stack()` functions. The framework-components package (`@internal/framework-components`) owns the base types and assembly logic that operate on framework components generically, without knowing which family or target they belong to.
 
 ### Contract IR
 
@@ -183,7 +183,7 @@ Each plane has its own stack type:
 | `ControlStack` | Control | The component descriptors and their aggregated contributions (type imports, renderers, extension IDs, authoring contributions) needed for contract emission and migration |
 | `ExecutionStack` | Execution | Runtime descriptors (target, adapter, driver, extensions), ready for instantiation |
 
-> Use `createControlStack()` from `@prisma-next/framework-components/control` to build a `ControlStack`.
+> Use `createControlStack()` from `@internal/framework-components/control` to build a `ControlStack`.
 
 ---
 
@@ -204,6 +204,16 @@ A small record stored in the database that tracks which contract the database is
 ### Namespace
 
 A unique name that identifies an extension. Namespaces keep extensions from colliding with each other and with built-in features. You'll see them in PSL constructor expressions (`pgvector.Vector(...)`), in the contract (`extensions.pgvector`), and in capability names (`pgvector.ivfflat`).
+
+### Naming Mode
+
+Where a database object's name comes from. An object is **wire-named** when Prisma Next derives the name (see [wire name](#wire-name)), or **exact-named** when you supply the name and Prisma Next adopts it verbatim — `map:` on an index, `@@map` on an RLS policy block. The two modes differ in how drift is detected: a wire name commits to the object's content, so comparing names is comparing content; an exact name says nothing about content, so the body is compared byte-for-byte against the database's own reprint.
+
+Naming mode is independent of [control policy](architecture%20docs/adrs/ADR%20224%20-%20Control%20Policy%20—%20framework-locked%20vocabulary%20and%20family-owned%20dispatch.md), which answers a different question: whether Prisma Next may write to the object at all.
+
+### Wire Name
+
+The name Prisma Next derives for an object it names itself: your prefix, an underscore, and eight hex characters of a hash over the object's content — `user_email_idx_46df9cad`. Because the suffix is content-addressed, an unchanged definition always produces the same name, and a name match is a content match. Renaming the prefix while leaving the definition alone keeps the suffix, which is how a rename is recognized as a rename rather than a drop and a create. See [ADR 234](architecture%20docs/adrs/ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md).
 
 ---
 

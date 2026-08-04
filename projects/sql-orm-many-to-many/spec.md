@@ -43,7 +43,7 @@ The whole project hangs off one new primitive: a uniform **`through` descriptor*
 
 After the runtime core (slices 0–3) shipped, scope expanded to **demonstrate the M:N API end-to-end in the example apps** — and that surfaced a real authoring-surface gap. These are slices 4–6 (see the plan):
 
-- **Demo examples** (previously implicit, now explicit scope). The SQLite demo (`examples/prisma-next-demo-sqlite`, TS-authored) demonstrates include / filter / nested-write M:N — **done** (slice 4 / TML-2790).
+- **Demo examples** (previously implicit, now explicit scope). The SQLite demo (`examples/prisma-8-demo-sqlite`, TS-authored) demonstrates include / filter / nested-write M:N — **done** (slice 4 / TML-2790).
 - **PSL many-to-many authoring** (newly in scope — slice 5 / TML-2794). The navigable M:N API is authorable **only via the TS contract builder** (`rel.manyToMany`); PSL emits only `1:N`/`N:1` and routes M:N to explicit junction models. Teaching PSL to lower a junction to `cardinality:'N:M'` + `through` completes the authoring surface. _(Framework-scoped — may be promoted to its own project at pickup.)_
 - **PG demo examples + dual-mode reconciliation** (slice 6 / TML-2795, **blocked by slice 5**). The PG demo emits from PSL, so it can't show M:N until slice 5 lands; it also carries pre-existing dual-mode contract drift (stale TS source) to reconcile.
 
@@ -91,7 +91,7 @@ _Follow-on (slices 4–6):_
 
 _Required: this project changes the contract surface._
 
-- **Entities affected:** the SQL domain relation — the `ModelRelation` JSON schema (`data-contract-sql-v1.json`), the `ContractReferenceRelation` arktype validator (`packages/2-sql/1-core/contract`), and the corresponding `ContractReferenceRelation` TS type (`@prisma-next/sql-contract/types`).
+- **Entities affected:** the SQL domain relation — the `ModelRelation` JSON schema (`data-contract-sql-v1.json`), the `ContractReferenceRelation` arktype validator (`packages/2-sql/1-core/contract`), and the corresponding `ContractReferenceRelation` TS type (`@internal/sql-contract/types`).
 - **New / changed kinds:** relation `cardinality` enum gains `'N:M'`; relation gains optional `through: { table, parentColumns, childColumns }` (canonical field names match lowering; `build-contract`'s `parentCols/childCols` drift is reconciled). The `as ContractRelation['cardinality']` cast in `build-contract.ts` is deleted.
 - **Migration plan for downstream consumers:** purely **additive** — existing non-M:N contracts are byte-unchanged in shape, so no consumer breaks and no deprecation window is needed. The contract **hash** changes, so all emitted fixtures/goldens regenerate; `pnpm fixtures:check` gates this. `validateContract` consumers gain M:N acceptance (today they reject it), so this only widens what validates.
 

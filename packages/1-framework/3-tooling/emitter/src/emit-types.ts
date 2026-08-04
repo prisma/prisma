@@ -2,9 +2,12 @@ import type {
   PreserveEmptyPredicate,
   SerializeContract,
   StorageSort,
-} from '@prisma-next/contract/hashing';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { TypesImportSpec } from '@prisma-next/framework-components/emission';
+} from '@internal/contract/hashing';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type {
+  ImportSpecifierResolver,
+  TypesImportSpec,
+} from '@internal/framework-components/emission';
 
 /**
  * The subset of ControlStack that emit() reads.
@@ -40,6 +43,13 @@ export interface EmitOptions {
    * `descriptor.contractSerializer.sortStorage` when present.
    */
   readonly sortStorage?: StorageSort;
+  /**
+   * Rewrites the package names the generated `contract.d.ts` imports from, for
+   * the import root the consuming application installed. Defaults to leaving
+   * every specifier as authored, which is what the repository itself needs
+   * while its own code still imports workspace names.
+   */
+  readonly resolveImportSpecifier?: ImportSpecifierResolver;
 }
 
 export interface EmitResult {

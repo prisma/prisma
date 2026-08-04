@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { createServer, type ServerResponse } from 'node:http';
-import type { SimplifyDeep } from '@prisma-next/utils/simplify-deep';
+import type { SimplifyDeep } from '@prisma/orm-mongo/utils/simplify-deep';
 
 if (existsSync('.env')) {
   process.loadEnvFile('.env');
@@ -10,8 +10,8 @@ import {
   MongoCountStage,
   MongoLimitStage,
   MongoSortStage,
-} from '@prisma-next/mongo-query-ast/execution';
-import { acc, fn } from '@prisma-next/mongo-query-builder';
+} from '@prisma/orm-mongo/query-ast/execution';
+import { acc, fn } from '@prisma/orm-mongo/query-builder';
 import type { Db } from './db';
 import { createClient } from './db';
 import { seed } from './seed';

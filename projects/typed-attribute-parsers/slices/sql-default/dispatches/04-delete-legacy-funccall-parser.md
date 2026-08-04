@@ -14,7 +14,7 @@ Delete these (all confirmed used ONLY by the string parser — verify with termi
 - `splitTopLevelArgs` (~line 62)
 - `createSpanFromBase` (~line 48) and `resolveSpanPositionFromBase` (~line 14)
 - the `DefaultFunctionArgument` interface (~line 9)
-- the `import type { PslSpan } from '@prisma-next/psl-parser';` (line 7) — it is used ONLY by the deleted helpers; drop it (confirm with `rg "PslSpan" ` on the file after deleting).
+- the `import type { PslSpan } from '@internal/psl-parser';` (line 7) — it is used ONLY by the deleted helpers; drop it (confirm with `rg "PslSpan" ` on the file after deleting).
 
 **RETAIN** (unchanged): the imports of `ControlMutationDefaultRegistry` / `DefaultFunctionLoweringContext` / `LoweredDefaultResult` / `ParsedDefaultFunctionCall`, `formatSupportedFunctionList` (~line 170), and `lowerDefaultFunctionWithRegistry` (~line 182). After deletion, `default-function-registry.ts` should contain only those two functions + their imports.
 
@@ -28,7 +28,7 @@ Delete these (all confirmed used ONLY by the string parser — verify with termi
      return { name, raw: `${name}(${args.join(', ')})`, args: args.map((raw) => ({ raw, span })), span };
    }
    ```
-   (Import `ParsedDefaultFunctionCall` as a type from `@prisma-next/framework-components/control`. Reuse the file's existing `createSpan()` helper for spans — the exact offsets don't matter to these registry-lowering assertions, only the `name`/`args` do.) Then `parseDefaultFunctionCall('cuid(2)', createSpan())` becomes `call('cuid', ['2'])`, `parseDefaultFunctionCall('mystery()', createSpan())` becomes `call('mystery', [])`, `parseDefaultFunctionCall('nanoid(16, 32)', createSpan())` becomes `call('nanoid', ['16', '32'])`, etc.
+   (Import `ParsedDefaultFunctionCall` as a type from `@internal/framework-components/control`. Reuse the file's existing `createSpan()` helper for spans — the exact offsets don't matter to these registry-lowering assertions, only the `name`/`args` do.) Then `parseDefaultFunctionCall('cuid(2)', createSpan())` becomes `call('cuid', ['2'])`, `parseDefaultFunctionCall('mystery()', createSpan())` becomes `call('mystery', [])`, `parseDefaultFunctionCall('nanoid(16, 32)', createSpan())` becomes `call('nanoid', ['16', '32'])`, etc.
 - Remove `parseDefaultFunctionCall` from the file's import (keep `lowerDefaultFunctionWithRegistry`).
 - Every retained registry-lowering assertion must still pass unchanged (same codes/messages) — you are only changing how the input call object is built.
 
@@ -39,12 +39,12 @@ Delete these (all confirmed used ONLY by the string parser — verify with termi
 No `any`; no bare `as` (the `call()` helper needs none); no file-ext imports; never suppress biome. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `.agents/**`. Do NOT touch GitHub.
 
 ## Gates (all must pass)
-1. `pnpm --filter @prisma-next/sql-contract-psl typecheck`
-2. `pnpm --filter @prisma-next/sql-contract-psl test` — `default-function-registry.test.ts` green (fewer tests, since the parsing tests are gone); everything else unchanged
+1. `pnpm --filter @internal/sql-contract-psl typecheck`
+2. `pnpm --filter @internal/sql-contract-psl test` — `default-function-registry.test.ts` green (fewer tests, since the parsing tests are gone); everything else unchanged
 3. `pnpm fixtures:check` — clean
 4. `pnpm lint:framework-vocabulary`; `pnpm lint:deps`
 5. Terminal `rg -n "parseDefaultFunctionCall|splitTopLevelArgs|createSpanFromBase|resolveSpanPositionFromBase" packages/2-sql` → zero
 
-You should NOT need to touch `@prisma-next/psl-parser` here. If you do, STOP and report.
+You should NOT need to touch `@internal/psl-parser` here. If you do, STOP and report.
 
 Report: confirmation of the src deletions + that `formatSupportedFunctionList`/`lowerDefaultFunctionWithRegistry` remain; the `call()` test helper + how many parsing tests you deleted; the `rg`-zero result; all gate results; and the commit SHA. If reading the test file reveals a `parseDefaultFunctionCall` use that ISN'T cleanly one of the two categories above, STOP and report.

@@ -1,23 +1,23 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import type { Contract } from '@prisma-next/contract/types';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import type { Contract } from '@internal/contract/types';
 import type {
   PostgresBinding,
   PostgresDriverCreateOptions,
-} from '@prisma-next/driver-postgres/runtime';
-import postgresDriver from '@prisma-next/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { PostgresRuntimeImpl } from '@prisma-next/postgres/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
+} from '@internal/driver-postgres/runtime';
+import postgresDriver from '@internal/driver-postgres/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import type {
   Log,
   Runtime,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
   VerifyMarkerOption,
-} from '@prisma-next/sql-runtime';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import { setupTestDatabase as setupTestDatabaseBase } from '@prisma-next/sql-runtime/test/utils';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
+} from '@internal/sql-runtime';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import { setupTestDatabase as setupTestDatabaseBase } from '@internal/sql-runtime/test/utils';
+import postgresTarget from '@internal/target-postgres/runtime';
 import type { Client } from 'pg';
 import { bootstrapPostgresSignMarkerTables } from './postgres-bootstrap';
 

@@ -6,13 +6,13 @@
  * the drift.
  */
 
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { MigrationOperationClass } from '@prisma-next/framework-components/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import type { Contract } from '@internal/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { MigrationOperationClass } from '@internal/framework-components/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { PostgresRlsEnablement } from '../../src/core/postgres-rls-enablement';
@@ -37,14 +37,13 @@ const NO_DESTRUCTIVE_POLICY = { allowedOperationClasses: ['additive', 'widening'
 
 function exactPolicy(using: string): PostgresRlsPolicy {
   return new PostgresRlsPolicy({
-    name: EXACT_NAME,
+    naming: { kind: 'exact', name: EXACT_NAME },
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',
     roles: ['app_user'],
     using,
     permissive: true,
-    prefix: undefined,
     withCheck: undefined,
   });
 }
@@ -116,14 +115,13 @@ function actualSchema(
             rlsEnabled: true,
             policies: [
               new PostgresPolicySchemaNode({
-                name: livePolicy.name,
+                naming: { kind: 'exact', name: livePolicy.name },
                 tableName: livePolicy.tableName,
                 namespaceId: 'public',
                 operation: livePolicy.operation,
                 roles: [...livePolicy.roles],
                 using: livePolicy.using,
                 permissive: livePolicy.permissive,
-                prefix: undefined,
                 withCheck: undefined,
                 dependsOn: undefined,
               }),

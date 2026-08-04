@@ -1,4 +1,4 @@
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { PgVectorCodec, pgVectorDescriptor } from '../src/core/codecs';
 import { VECTOR_MAX_DIM } from '../src/core/constants';
@@ -67,13 +67,13 @@ describe('pgvector structured error codes', () => {
     });
   });
 
-  it('RUNTIME.DECODE_FAILED on decodeJson of a non-string value', () => {
+  it('RUNTIME.DECODE_FAILED on decodeJson of a non-array value', () => {
     const codec = new PgVectorCodec(pgVectorDescriptor, 3);
     const err = catchError(() => codec.decodeJson(123));
     expect(isStructuredError(err)).toBe(true);
     expect(err).toMatchObject({
       code: 'RUNTIME.DECODE_FAILED',
-      message: 'Vector database JSON value must be a string',
+      message: 'Vector database JSON value must be an array',
     });
   });
 

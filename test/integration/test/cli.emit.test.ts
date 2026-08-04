@@ -2,14 +2,14 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadContractFromTs } from '@prisma-next/cli';
-import { emit } from '@prisma-next/emitter/test/utils';
+import { loadContractFromTs } from '@internal/cli';
+import { emit } from '@internal/emitter/test/utils';
 import {
   extractCodecTypeImports,
   extractComponentIds,
-} from '@prisma-next/framework-components/control';
-import { sqlEmission } from '@prisma-next/sql-contract-emitter';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/framework-components/control';
+import { sqlEmission } from '@internal/sql-contract-emitter';
+import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getSqlDescriptorBundle } from '../utils/framework-components';
 
@@ -22,7 +22,7 @@ describe('emit command functionality', () => {
   beforeEach(() => {
     outputDir = join(
       tmpdir(),
-      `prisma-next-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      `prisma-8-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
     mkdirSync(outputDir, { recursive: true });
   });
@@ -115,7 +115,7 @@ describe('emit command functionality', () => {
   it(
     'creates output directory if it does not exist',
     async () => {
-      const newOutputDir = join(tmpdir(), `prisma-next-test-new-${Date.now()}`);
+      const newOutputDir = join(tmpdir(), `prisma-8-test-new-${Date.now()}`);
       const contractPath = join(fixturesDir, 'valid-contract.ts');
       const contract = await loadContractFromTs(contractPath);
       const { codecTypeImports, extensionIds } = buildEmitterArtifacts();

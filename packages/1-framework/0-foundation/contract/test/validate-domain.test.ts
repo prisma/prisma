@@ -6,8 +6,8 @@ function crossRef(model: string, namespace: string = UNBOUND_DOMAIN_NAMESPACE_ID
   return { namespace: asNamespaceId(namespace), model };
 }
 
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { ContractValidationError } from '../src/contract-validation-error';
 import type { ContractValueObject } from '../src/domain-types';
 import type { DomainContractShape } from '../src/validate-domain';

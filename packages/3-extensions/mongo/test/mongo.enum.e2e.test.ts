@@ -1,11 +1,11 @@
-import { generateContractDts } from '@prisma-next/emitter';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { ExtractMongoFieldOutputTypes } from '@prisma-next/mongo-contract';
-import { deriveJsonSchema, type FieldValueSets } from '@prisma-next/mongo-contract-psl';
-import { mongoEmission } from '@prisma-next/mongo-emitter';
-import { timeouts } from '@prisma-next/test-utils';
-import { blindCast } from '@prisma-next/utils/casts';
+import { generateContractDts } from '@internal/emitter';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { ExtractMongoFieldOutputTypes } from '@internal/mongo-contract';
+import { deriveJsonSchema, type FieldValueSets } from '@internal/mongo-contract-psl';
+import { mongoEmission } from '@internal/mongo-emitter';
+import { blindCast } from '@internal/utils/casts';
+import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, describe, expect, expectTypeOf, it } from 'vitest';
@@ -62,7 +62,6 @@ const codecLookup: CodecLookup = {
     } as ReturnType<CodecLookup['get']>;
   },
   targetTypesFor: (id: string) => mongoTargetTypes[id],
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
   // Enum field types are produced through the codec seam (TML-2952): the emitter
   // renders each value-set value via `renderValueLiteralFor`. `mongo/string@1` is an
@@ -277,7 +276,7 @@ describe('mongo enum — end-to-end (replica set)', {
 describe('emit-then-consume: value-union narrowing through the emitted contract.d.ts', () => {
   const mongoCodecImports = [
     {
-      package: '@prisma-next/adapter-mongo/codec-types',
+      package: '@internal/adapter-mongo/codec-types',
       named: 'CodecTypes' as const,
       alias: 'MongoCodecTypes' as const,
     },

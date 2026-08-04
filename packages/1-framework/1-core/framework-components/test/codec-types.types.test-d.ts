@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import { expectTypeOf, test } from 'vitest';
 import type { Codec } from '../src/shared/codec';
 import type { CodecTrait } from '../src/shared/codec-types';
@@ -33,7 +33,7 @@ test('decodeJson is required and synchronous', () => {
 });
 
 test('Codec instance carries only id + the four conversion methods (plus phantom)', () => {
-  // The runtime instance is narrowed to id + behavior (TML-2357); codec-id-keyed static metadata (`traits`, `targetTypes`, `meta`, `renderOutputType`) lives on `CodecDescriptor` keyed by codecId. The `__codecTraits` slot is a type-only phantom carrier (always `undefined` at runtime) and double-underscored to signal that it is not part of the consumer-facing API surface.
+  // The runtime instance is narrowed to id + behavior (TML-2357); codec-id-keyed static metadata (`traits`, `targetTypes`, `renderOutputType`) lives on `CodecDescriptor` keyed by codecId. The `__codecTraits` slot is a type-only phantom carrier (always `undefined` at runtime) and double-underscored to signal that it is not part of the consumer-facing API surface.
   type CodecStringKeys = Extract<keyof Codec, string>;
   const expectedKeys = [
     'id',

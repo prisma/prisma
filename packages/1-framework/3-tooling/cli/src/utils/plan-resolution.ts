@@ -1,16 +1,16 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { AggregateContractSpace } from '@prisma-next/migration-tools/aggregate';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import type { MigrationGraph } from '@prisma-next/migration-tools/graph';
+import type { Contract } from '@internal/contract/types';
+import type { AggregateContractSpace } from '@internal/migration-tools/aggregate';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import type { MigrationGraph } from '@internal/migration-tools/graph';
 import {
   assertHashIsGraphNode,
   findLatestMigration,
   isGraphNode,
-} from '@prisma-next/migration-tools/migration-graph';
-import type { ContractRef } from '@prisma-next/migration-tools/ref-resolution';
-import { parseContractRef } from '@prisma-next/migration-tools/ref-resolution';
-import type { Refs } from '@prisma-next/migration-tools/refs';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/migration-graph';
+import type { ContractRef } from '@internal/migration-tools/ref-resolution';
+import { parseContractRef } from '@internal/migration-tools/ref-resolution';
+import type { Refs } from '@internal/migration-tools/refs';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import {
   CliStructuredError,
   errorPlanForgotTheFlag,

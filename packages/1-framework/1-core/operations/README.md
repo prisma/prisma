@@ -1,4 +1,4 @@
-# @prisma-next/operations
+# @internal/operations
 
 Target-neutral operation registry for Prisma Next.
 
@@ -21,28 +21,28 @@ This package provides a generic, target-neutral operation registry. It's part of
 
 - **Depends on**: Nothing (leaf package)
 - **Depended on by**:
-  - `@prisma-next/sql-operations` (extends with SQL-specific lowering specs)
-  - `@prisma-next/sql-relational-core` (imports `ParamSpec` for AST and type definitions)
-  - `@prisma-next/sql-runtime`, `@prisma-next/framework-components`, and other packages that build on the operation registry
+  - `@internal/sql-operations` (extends with SQL-specific lowering specs)
+  - `@internal/sql-relational-core` (imports `ParamSpec` for AST and type definitions)
+  - `@internal/sql-runtime`, `@internal/framework-components`, and other packages that build on the operation registry
 
 ## Architecture
 
 ```mermaid
 flowchart TD
     subgraph "Core Ring"
-        OPS[@prisma-next/operations]
+        OPS[@internal/operations]
     end
 
     subgraph "Targets Ring"
-        SQL_OPS[@prisma-next/sql-operations]
+        SQL_OPS[@internal/sql-operations]
     end
 
     subgraph "Lanes Ring"
-        REL_CORE[@prisma-next/sql-relational-core]
+        REL_CORE[@internal/sql-relational-core]
     end
 
     subgraph "Runtime Ring"
-        RT[@prisma-next/runtime]
+        RT[@internal/runtime]
     end
 
     OPS --> SQL_OPS
@@ -55,7 +55,7 @@ flowchart TD
 ### Creating an Operation Registry
 
 ```typescript
-import { createOperationRegistry, type OperationDescriptor } from '@prisma-next/operations';
+import { createOperationRegistry, type OperationDescriptor } from '@internal/operations';
 
 const registry = createOperationRegistry();
 
@@ -71,7 +71,7 @@ const entries = registry.entries(); // Record<string, OperationEntry>
 ### Using a Custom Entry Type
 
 ```typescript
-import { createOperationRegistry, type OperationEntry } from '@prisma-next/operations';
+import { createOperationRegistry, type OperationEntry } from '@internal/operations';
 
 interface MyEntry extends OperationEntry {
   readonly extra: string;

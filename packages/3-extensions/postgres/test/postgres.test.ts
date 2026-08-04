@@ -1,9 +1,9 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { Runtime } from '@prisma-next/sql-runtime';
-import { PostgresSchema } from '@prisma-next/target-postgres/types';
-import { createContract } from '@prisma-next/test-utils';
+import type { Contract } from '@internal/contract/types';
+import { coreHash } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { Runtime } from '@internal/sql-runtime';
+import { PostgresSchema } from '@internal/target-postgres/types';
+import { createContract } from '@repo/test-utils';
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 
 // Only mock the third-party pg boundary. Real drivers, adapters, and runtimes

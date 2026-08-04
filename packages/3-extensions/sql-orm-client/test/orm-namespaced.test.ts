@@ -1,4 +1,4 @@
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import { orm } from '../src/orm';
 import { createMockRuntime, type TestContract } from './helpers';

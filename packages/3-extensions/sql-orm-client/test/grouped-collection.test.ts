@@ -6,7 +6,7 @@ import {
   CastExpr,
   FunctionCallExpr,
   LiteralExpr,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { createCollectionFor } from './collection-fixtures';
 import { isSelectAst } from './helpers';

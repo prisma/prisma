@@ -3,15 +3,15 @@
 // (the intersection-based return type loses type precision compared to the base overload).
 // Tracked at https://linear.app/prisma-company/issue/TML-2633 — migrate to the facade form
 // once TML-2633 lands.
-import mongoFamily from '@prisma-next/family-mongo/pack';
+import mongoFamily from '@internal/family-mongo/pack';
 import {
   defineContract,
   field,
   index,
   model,
   rel,
-} from '@prisma-next/mongo-contract-ts/contract-builder';
-import mongoTarget from '@prisma-next/target-mongo/pack';
+} from '@internal/mongo-contract-ts/contract-builder';
+import mongoTarget from '@internal/target-mongo/pack';
 
 const User = model('User', {
   collection: 'users',

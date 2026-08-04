@@ -3,13 +3,13 @@ import type {
   CreateCollectionOptions as CreateCollectionCommandOptions,
   CreateIndexOptions,
   MongoIndexKeyDirection,
-} from '@prisma-next/mongo-query-ast/control';
-import type { Document, RawPipeline } from '@prisma-next/mongo-value';
+} from '@internal/mongo-query-ast/control';
+import type { Document, RawPipeline } from '@internal/mongo-value';
 import type {
   CollationOptions,
   CreateCollectionOptions,
   CreateIndexesOptions,
-} from '@prisma-next/mongo-value/mongodb-types';
+} from '@internal/mongo-value/mongodb-types';
 
 abstract class MongoWireCommand {
   abstract readonly kind: string;

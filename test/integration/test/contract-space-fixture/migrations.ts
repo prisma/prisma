@@ -1,7 +1,7 @@
 import type {
   ContractSpaceHeadRef,
   MigrationPackage,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   TEST_BASELINE_INVARIANT_ID,
   TEST_BASELINE_MIGRATION_NAME,

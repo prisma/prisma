@@ -55,13 +55,13 @@ import {
   CONTRACT_SNAPSHOTS_DIRNAME,
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { readMigrationPackage } from '@prisma-next/migration-tools/io';
+} from '@internal/migration-tools/contract-snapshot-store';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { readMigrationPackage } from '@internal/migration-tools/io';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 

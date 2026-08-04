@@ -1,8 +1,13 @@
-import { flatPslModels } from '@prisma-next/framework-components/psl-ast';
-import { printPsl } from '@prisma-next/psl-printer';
-import type { SqlSchemaIRInput } from '@prisma-next/sql-schema-ir/types';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { flatPslModels } from '@internal/framework-components/psl-ast';
+import { printPsl } from '@internal/psl-printer';
+import {
+  computeIndexContentHash,
+  formatWireName,
+  parseNaming,
+} from '@internal/sql-schema-ir/naming';
+import type { SqlIndexIRInput, SqlSchemaIRInput } from '@internal/sql-schema-ir/types';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
@@ -258,8 +263,7 @@ describe('inferPostgresPslContract', () => {
           uniques: [],
           indexes: [
             {
-              name: 'post_user_id_idx',
-              prefix: undefined,
+              naming: { kind: 'exact', name: 'post_user_id_idx' },
               columns: ['user_id'],
               where: undefined,
               unique: false,
@@ -299,6 +303,196 @@ describe('inferPostgresPslContract', () => {
       }
       "
     `);
+  });
+
+  describe('index emission — wire re-detection and the full matrix', () => {
+    interface IndexFixture {
+      readonly name: string;
+      readonly prefix?: string;
+      readonly columns?: readonly string[];
+      readonly expression?: string;
+      readonly where?: string;
+      readonly unique: boolean;
+      readonly type?: string;
+      readonly options?: Record<string, unknown>;
+    }
+
+    function pslWithIndex(index: IndexFixture): string {
+      const schemaIR = ir({
+        tables: {
+          user: {
+            name: 'user',
+            columns: {
+              id: { name: 'id', nativeType: 'int4', nullable: false },
+              email: { name: 'email', nativeType: 'text', nullable: false },
+            },
+            primaryKey: { columns: ['id'] },
+            foreignKeys: [],
+            uniques: [],
+            indexes: [
+              {
+                naming: parseNaming(index.name, index.prefix),
+                columns: index.columns,
+                expression: index.expression,
+                where: index.where,
+                unique: index.unique,
+                partial: index.where !== undefined,
+                type: index.type,
+                options: index.options,
+                annotations: undefined,
+                dependsOn: undefined,
+              } as SqlIndexIRInput,
+            ],
+          },
+        },
+      });
+      return printPsl(sqlSchemaIrToPslAst(schemaIR));
+    }
+
+    it('a default-named wire-named index re-detects: the wire hash recomputes, name: emits', () => {
+      const psl = pslWithIndex({
+        name: 'user_email_idx_46df9cad',
+        prefix: 'user_email_idx',
+        columns: ['email'],
+        unique: false,
+      });
+      expect(psl).toContain('@@index([email], name: "user_email_idx")');
+    });
+
+    it('a custom-prefix wire name re-detects wire-named with that prefix', () => {
+      const psl = pslWithIndex({
+        name: 'custom_idx_46df9cad',
+        prefix: 'custom_idx',
+        columns: ['email'],
+        unique: false,
+      });
+      expect(psl).toContain('@@index([email], name: "custom_idx")');
+    });
+
+    it('a non-wire name adopts exactly with map:', () => {
+      const psl = pslWithIndex({ name: 'handwritten_idx', columns: ['email'], unique: false });
+      expect(psl).toContain('@@index([email], map: "handwritten_idx")');
+    });
+
+    it('a wire-shaped name whose hash does not recompute adopts exactly with map:', () => {
+      const psl = pslWithIndex({
+        name: 'user_email_idx_00000000',
+        prefix: 'user_email_idx',
+        columns: ['email'],
+        unique: false,
+      });
+      expect(psl).toContain('@@index([email], map: "user_email_idx_00000000")');
+    });
+
+    it("the btree edge: an index authored type: 'btree' re-detects as exact (benign)", () => {
+      // The authored 'btree' hashed into the suffix, but introspection
+      // normalizes the default method away, so the recompute mismatches and
+      // the index adopts exactly — a clean round-trip, just map: not name:.
+      const authoredName = formatWireName(
+        'user_email_btree',
+        computeIndexContentHash({ columns: ['email'], unique: false, type: 'btree' }),
+      );
+      const psl = pslWithIndex({
+        name: authoredName,
+        prefix: 'user_email_btree',
+        columns: ['email'],
+        unique: false,
+      });
+      expect(psl).toContain(`@@index([email], map: "${authoredName}")`);
+    });
+
+    it('a wire-named index with an explicit non-default type and options re-detects stable', () => {
+      // A wire-named index carrying options always hashed an explicit type
+      // (options without a type is unrepresentable), so the recompute from
+      // the introspected parts agrees and name: re-emits.
+      const hash = computeIndexContentHash({
+        columns: ['email'],
+        unique: false,
+        type: 'hash',
+        options: { fillfactor: '70' },
+      });
+      const psl = pslWithIndex({
+        name: formatWireName('user_email_hashed', hash),
+        prefix: 'user_email_hashed',
+        columns: ['email'],
+        unique: false,
+        type: 'hash',
+        options: { fillfactor: '70' },
+      });
+      expect(psl).toContain(
+        '@@index([email], name: "user_email_hashed", type: "hash", options: { fillfactor: "70" })',
+      );
+    });
+
+    it('an expression index emits expression: with no positional list', () => {
+      const psl = pslWithIndex({
+        name: 'users_email_lower',
+        expression: 'lower(email)',
+        unique: false,
+      });
+      expect(psl).toContain('@@index(expression: "lower(email)", map: "users_email_lower")');
+    });
+
+    it('an expression index whose reprint re-hashes to the live suffix re-detects wire-named', () => {
+      const psl = pslWithIndex({
+        name: 'users_lower_17273133',
+        prefix: 'users_lower',
+        expression: 'lower(email)',
+        unique: false,
+      });
+      expect(psl).toContain('@@index(expression: "lower(email)", name: "users_lower")');
+    });
+
+    it('a partial index emits its where: predicate verbatim', () => {
+      const psl = pslWithIndex({
+        name: 'users_email_active',
+        columns: ['email'],
+        where: '(email IS NOT NULL)',
+        unique: false,
+      });
+      expect(psl).toContain(
+        '@@index([email], map: "users_email_active", where: "(email IS NOT NULL)")',
+      );
+    });
+
+    it('a unique non-constraint index emits unique: true instead of being dropped', () => {
+      const psl = pslWithIndex({
+        name: 'users_email_ci_key',
+        expression: 'lower(email)',
+        unique: true,
+      });
+      expect(psl).toContain(
+        '@@index(expression: "lower(email)", map: "users_email_ci_key", unique: true)',
+      );
+    });
+
+    it("a default-method index with reloptions emits an explicit type: 'btree' with options:", () => {
+      // Introspection normalizes btree away, but PSL requires options: to be
+      // paired with type: — the explicit spelling round-trips clean because
+      // the expected node's constructor normalizes btree back to undefined.
+      const psl = pslWithIndex({
+        name: 'users_email_ff_idx',
+        columns: ['email'],
+        unique: false,
+        options: { fillfactor: '70' },
+      });
+      expect(psl).toContain(
+        '@@index([email], map: "users_email_ff_idx", type: "btree", options: { fillfactor: "70" })',
+      );
+    });
+
+    it('type: and options: emit as introspected when both are present', () => {
+      const psl = pslWithIndex({
+        name: 'users_email_hash',
+        columns: ['email'],
+        unique: false,
+        type: 'hash',
+        options: { fillfactor: '70' },
+      });
+      expect(psl).toContain(
+        '@@index([email], map: "users_email_hash", type: "hash", options: { fillfactor: "70" })',
+      );
+    });
   });
 
   it('throws on same-named tables in different schemas (single-namespace stopgap)', () => {

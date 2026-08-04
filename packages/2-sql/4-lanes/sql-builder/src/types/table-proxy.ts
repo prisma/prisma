@@ -5,7 +5,7 @@ import type {
   ExtractStorageColumnTypes,
   StorageColumnMapAt,
   StorageTable,
-} from '@prisma-next/sql-contract/types';
+} from '@internal/sql-contract/types';
 import type { Expression, FieldProxy, Functions } from '../expression';
 import type {
   DefaultScope,

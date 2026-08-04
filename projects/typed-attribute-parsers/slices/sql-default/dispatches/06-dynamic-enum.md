@@ -36,9 +36,9 @@ export function buildEnumDefaultSpec(memberNames: readonly string[]) {
 No `any`; keep only the one pre-existing `blindCast` for the enum member value; no other bare `as`; no file-ext imports; never suppress biome. `git commit -s` (DCO), explicit staging, no amend, **no push**. Read-only on `projects/**`, `.agents/**`. Do NOT touch GitHub. Do NOT touch the non-enum path or `bare-identifier.ts` (D7).
 
 ## Gates (all must pass, in order)
-1. `pnpm --filter @prisma-next/psl-parser build`
-2. `pnpm --filter @prisma-next/psl-parser typecheck` and `pnpm --filter @prisma-next/psl-parser test`
-3. `pnpm --filter @prisma-next/sql-contract-psl typecheck` and `pnpm --filter @prisma-next/sql-contract-psl test`
+1. `pnpm --filter @internal/psl-parser build`
+2. `pnpm --filter @internal/psl-parser typecheck` and `pnpm --filter @internal/psl-parser test`
+3. `pnpm --filter @internal/sql-contract-psl typecheck` and `pnpm --filter @internal/sql-contract-psl test`
 4. `pnpm fixtures:check` — clean
 5. `pnpm lint:framework-vocabulary`; `pnpm lint:deps`
 

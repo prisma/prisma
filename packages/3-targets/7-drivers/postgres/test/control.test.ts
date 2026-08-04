@@ -2,7 +2,7 @@ import type { Client } from 'pg';
 import { describe, expect, it, vi } from 'vitest';
 import { PostgresControlDriver } from '../src/exports/control';
 
-describe('@prisma-next/driver-postgres control', () => {
+describe('@internal/driver-postgres control', () => {
   it('absorbs client error events after create() instead of crashing the process', async () => {
     const listeners = new Map<string, (...args: unknown[]) => void>();
     const mockClient = {

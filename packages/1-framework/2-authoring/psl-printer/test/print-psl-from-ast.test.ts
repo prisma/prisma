@@ -7,13 +7,13 @@ import type {
   PslNamespace,
   PslSpan,
   PslTypesBlock,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import {
   makePslNamespace,
   makePslNamespaceEntries,
   UNSPECIFIED_PSL_NAMESPACE_ID,
-} from '@prisma-next/framework-components/psl-ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/framework-components/psl-ast';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import { printPslFromAst } from '../src/print-psl';
 

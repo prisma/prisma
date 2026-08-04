@@ -1,9 +1,9 @@
-import type { Contract, ContractValueObjectDefinitions } from '@prisma-next/contract/types';
+import type { Contract, ContractValueObjectDefinitions } from '@internal/contract/types';
 import {
   domainModelsAtDefaultNamespace,
   domainValueObjectsAtDefaultNamespace,
-} from '@prisma-next/contract/types';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/contract/types';
+import { blindCast } from '@internal/utils/casts';
 
 /** Models map for the contract's sole domain namespace, precise per-namespace. */
 type SoleNamespaceModels<T extends Contract> =

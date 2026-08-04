@@ -2,31 +2,31 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import sqliteDriverDescriptor from '@prisma-next/driver-sqlite/control';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import sqliteDriverDescriptor from '@internal/driver-sqlite/control';
 import sqlFamilyDescriptor, {
   createMigrationPlan,
   type SqlMigrationPlanOperation,
-} from '@prisma-next/family-sql/control';
+} from '@internal/family-sql/control';
 import {
   APP_SPACE_ID,
   createControlStack,
   type MigrationPlan,
   type MigrationRunnerFailure,
-} from '@prisma-next/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   type AggregateMigrationEdgeRef,
   buildFabricatedMigrationEdge,
-} from '@prisma-next/migration-tools/aggregate';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlExecuteRequest } from '@prisma-next/sql-relational-core/ast';
-import { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
-import { buildControlTableBootstrapQueries } from '@prisma-next/target-sqlite/contract-free';
-import sqliteTargetDescriptor, { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import type { SqliteDdlNode } from '@prisma-next/target-sqlite/ddl';
-import type { SqlitePlanTargetDetails } from '@prisma-next/target-sqlite/planner-target-details';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/migration-tools/aggregate';
+import { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
+import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { buildControlTableBootstrapQueries } from '@internal/target-sqlite/contract-free';
+import sqliteTargetDescriptor, { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import type { SqliteDdlNode } from '@internal/target-sqlite/ddl';
+import type { SqlitePlanTargetDetails } from '@internal/target-sqlite/planner-target-details';
+import { applicationDomainOf } from '@repo/test-utils';
 import { createSqliteBuiltinCodecLookup } from '../../../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../../../src/core/control-adapter';
 import type { SqliteContract } from '../../../src/core/types';

@@ -1,5 +1,5 @@
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import { MigrationToolsError } from '../src/errors';
 import { deriveProvidedInvariants, validateInvariantId } from '../src/invariants';

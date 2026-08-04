@@ -25,7 +25,7 @@ This is a real fork. Either path is acceptable as long as the choice is informed
 
 - The `family`/`target` drop from the input type is correct and verified by R1's `@ts-expect-error` cases. Keep that exactly as it stands.
 - The runtime implementation (the `full = { family: sqlFamilyPack, target: postgresPack, ...scaffold }` shape and the `factory !== undefined` branch) is correct. Don't refactor it; only the type signatures around it need lifting.
-- The two-commit shape from R1 stays. R2's fix is one additional commit: `fix(@prisma-next/postgres): preserve Types/Models/ExtensionPacks/Capabilities inference in defineContract wrap` (or close to it — your call on the exact subject).
+- The two-commit shape from R1 stays. R2's fix is one additional commit: `fix(@internal/postgres): preserve Types/Models/ExtensionPacks/Capabilities inference in defineContract wrap` (or close to it — your call on the exact subject).
 - All other contract-builder re-exports (`field`, `model`, `rel`, type re-exports) and the `/migration` re-export are SATISFIED — do not touch them.
 - README updates from R1 stay; only update them if the new test assertion makes the example clearer.
 
@@ -37,9 +37,9 @@ This is a real fork. Either path is acceptable as long as the choice is informed
 
 ## Validation gates (re-run before reporting done)
 
-- `pnpm build --filter @prisma-next/postgres`
-- `pnpm typecheck --filter @prisma-next/postgres`
-- `pnpm test:packages --filter @prisma-next/postgres` (the new positive assertions land in `define-contract.test-d.ts`)
+- `pnpm build --filter @internal/postgres`
+- `pnpm typecheck --filter @internal/postgres`
+- `pnpm test:packages --filter @internal/postgres` (the new positive assertions land in `define-contract.test-d.ts`)
 - `pnpm lint:deps` (no new deps; should stay clean)
 - Workspace `pnpm typecheck` if any of the above are anywhere near a transitive consumer (the postgres facade is consumed by examples and other extension packs)
 

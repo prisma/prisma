@@ -22,7 +22,7 @@ describe('renderCallsToTypeScript (sqlite)', () => {
     });
 
     expect(output).toContain(
-      "import { Migration, MigrationCLI } from '@prisma-next/sqlite/migration';",
+      "import { Migration, MigrationCLI } from '@internal/sqlite/migration';",
     );
     expect(output).toContain(
       `import endContract from '${SNAPSHOTS_IMPORT_PATH}/${TO_HEX}/contract.json' with { type: "json" };`,

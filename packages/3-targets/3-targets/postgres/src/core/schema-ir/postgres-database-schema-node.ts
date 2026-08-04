@@ -1,6 +1,6 @@
-import type { DiffableNode } from '@prisma-next/framework-components/control';
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { assertNode, SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+import type { DiffableNode } from '@internal/framework-components/control';
+import { freezeNode } from '@internal/framework-components/ir';
+import { assertNode, SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import type { PostgresNamespaceSchemaNode } from './postgres-namespace-schema-node';
 import type { PostgresRoleSchemaNode } from './postgres-role-schema-node';
 import { PostgresSchemaNodeKind } from './schema-node-kinds';

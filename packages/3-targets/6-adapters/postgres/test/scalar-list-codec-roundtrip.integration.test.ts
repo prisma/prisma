@@ -13,11 +13,11 @@
  * then maps the element codec over each.
  */
 
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import postgresRuntimeDriverDescriptor from '@prisma-next/driver-postgres/runtime';
-import { instantiateExecutionStack } from '@prisma-next/framework-components/execution';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import postgresRuntimeDriverDescriptor from '@internal/driver-postgres/runtime';
+import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
 import {
   BinaryExpr,
   ColumnRef,
@@ -26,26 +26,21 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { planFromAst } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import { planFromAst } from '@internal/sql-relational-core/plan';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   type Runtime,
-} from '@prisma-next/sql-runtime';
+} from '@internal/sql-runtime';
 import {
   buildDecodeContext,
   buildTestContractCodecs,
   createTestRuntime,
   decodeRow,
-} from '@prisma-next/sql-runtime/test/utils';
-import postgresRuntimeTargetDescriptor from '@prisma-next/target-postgres/runtime';
-import {
-  applicationDomainOf,
-  createDevDatabase,
-  timeouts,
-  withClient,
-} from '@prisma-next/test-utils';
+} from '@internal/sql-runtime/test/utils';
+import postgresRuntimeTargetDescriptor from '@internal/target-postgres/runtime';
+import { applicationDomainOf, createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../../2-sql/1-core/contract/test/test-support';
 import postgresRuntimeAdapterDescriptorFull from '../src/exports/runtime';
@@ -131,7 +126,7 @@ function buildInsertAst(row: {
   dates: Date[] | null;
   bytes: Uint8Array[] | null;
   decimals: string[] | null;
-  bigints: number[] | null;
+  bigints: bigint[] | null;
 }): InsertAst {
   return InsertAst.into(TABLE).withRows([
     {
@@ -312,10 +307,10 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
   }, async () => {
     const contract = getContract();
 
-    // int8 values are numbers in JS; pg returns int8 array elements as strings to
-    // avoid precision loss. The element codec is a passthrough, so decoded elements
-    // are string representations.
-    const bigints = [12345678, 9876543];
+    // int8 spans the full signed 64-bit range, so the element codec carries
+    // application values as `bigint` and reads the decimal string `pg` returns
+    // for each element.
+    const bigints = [12345678n, 9876543n];
 
     await runtime!
       .execute(
@@ -329,10 +324,10 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(400), contract)).toArray();
 
     expect(rows).toHaveLength(1);
-    const row = rows[0] as unknown as { bigints: string[] };
+    const row = rows[0] as unknown as { bigints: bigint[] };
     expect(row.bigints).toHaveLength(2);
-    expect(row.bigints[0]).toBe('12345678');
-    expect(row.bigints[1]).toBe('9876543');
+    expect(row.bigints[0]).toBe(12345678n);
+    expect(row.bigints[1]).toBe(9876543n);
   });
 
   it('passes NULL elements through the decode loop unchanged', {
@@ -367,12 +362,12 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(501), contract)).toArray();
 
     expect(rows).toHaveLength(1);
-    // pg returns int8 array elements as strings; null elements are null.
-    const row = rows[0] as unknown as { bigints: (string | null)[] };
+    // Elements decode through the int8 codec to `bigint`; null elements stay null.
+    const row = rows[0] as unknown as { bigints: (bigint | null)[] };
     expect(row.bigints).toHaveLength(3);
-    expect(row.bigints[0]).toBe('1');
+    expect(row.bigints[0]).toBe(1n);
     expect(row.bigints[1]).toBeNull();
-    expect(row.bigints[2]).toBe('3');
+    expect(row.bigints[2]).toBe(3n);
   });
 });
 

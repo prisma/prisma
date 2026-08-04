@@ -1,4 +1,4 @@
-# @prisma-next/mongo-contract-ts
+# @internal/mongo-contract-ts
 
 Mongo-specific TypeScript contract authoring surface for Prisma Next.
 
@@ -10,7 +10,7 @@ This package provides the Mongo `contract.ts` DSL:
 - `field`, `index`, `model`, `rel`, and `valueObject` helpers
 - callback and object-literal authoring forms
 
-It builds canonical `MongoContract` values and validates them through `@prisma-next/mongo-contract`.
+It builds canonical `MongoContract` values and validates them through `@internal/mongo-contract`.
 
 ## Current Slice
 
@@ -35,9 +35,9 @@ This first slice does not yet cover union or dict authoring, or Mongo validator 
 ## Usage
 
 ```typescript
-import mongoFamily from '@prisma-next/family-mongo/pack';
-import { defineContract, field, index, model, rel, valueObject } from '@prisma-next/mongo-contract-ts/contract-builder';
-import mongoTarget from '@prisma-next/target-mongo/pack';
+import mongoFamily from '@internal/family-mongo/pack';
+import { defineContract, field, index, model, rel, valueObject } from '@internal/mongo-contract-ts/contract-builder';
+import mongoTarget from '@internal/target-mongo/pack';
 
 const Address = valueObject('Address', {
   fields: {
@@ -89,6 +89,6 @@ export const contract = defineContract({
 
 ## Notes
 
-- Use `@prisma-next/family-mongo/pack` and `@prisma-next/target-mongo/pack` in authoring flows. They are pure pack refs and do not pull in control-plane runtime code.
-- Runtime validation and row inference live in `@prisma-next/mongo-contract`.
-- When you hoist reusable index or collection option objects, prefer `satisfies MongoIndexOptions` or `satisfies MongoCollectionOptions` from `@prisma-next/mongo-contract` so TypeScript validates the supported Mongo option surface.
+- Use `@internal/family-mongo/pack` and `@internal/target-mongo/pack` in authoring flows. They are pure pack refs and do not pull in control-plane runtime code.
+- Runtime validation and row inference live in `@internal/mongo-contract`.
+- When you hoist reusable index or collection option objects, prefer `satisfies MongoIndexOptions` or `satisfies MongoCollectionOptions` from `@internal/mongo-contract` so TypeScript validates the supported Mongo option surface.

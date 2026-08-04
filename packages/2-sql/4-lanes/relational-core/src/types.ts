@@ -1,11 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { ParamSpec } from '@prisma-next/operations';
+import type { Contract } from '@internal/contract/types';
+import type { ParamSpec } from '@internal/operations';
 import type {
   ExtractFieldOutputTypes,
   SqlStorage,
   StorageColumn,
-} from '@prisma-next/sql-contract/types';
-import type { SqlLoweringSpec } from '@prisma-next/sql-operations';
+} from '@internal/sql-contract/types';
+import type { SqlLoweringSpec } from '@internal/sql-operations';
 import type { ColumnRef, ParamRef } from './ast/types';
 import type { ExecutionContext } from './query-lane-context';
 import type { SqlExecutionPlan } from './sql-execution-plan';

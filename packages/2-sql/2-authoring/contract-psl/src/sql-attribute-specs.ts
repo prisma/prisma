@@ -1,9 +1,9 @@
-import type { ContractSourceDiagnostic } from '@prisma-next/config/config-types';
-import type { ControlMutationDefaultRegistry } from '@prisma-next/framework-components/control';
+import type { ContractSourceDiagnostic } from '@internal/config/config-types';
+import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import type {
   ContributedPslDiagnosticCode,
   PslDiagnostic,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import type {
   ArgType,
   AttributeSpec,
@@ -12,7 +12,7 @@ import type {
   InterpretCtx,
   ModelSymbol,
   TypedFuncCall,
-} from '@prisma-next/psl-parser';
+} from '@internal/psl-parser';
 import {
   bool,
   entityRef,
@@ -29,13 +29,9 @@ import {
   optional,
   record,
   str,
-} from '@prisma-next/psl-parser';
-import type {
-  FieldAttributeAst,
-  ModelAttributeAst,
-  SourceFile,
-} from '@prisma-next/psl-parser/syntax';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/psl-parser';
+import type { FieldAttributeAst, ModelAttributeAst, SourceFile } from '@internal/psl-parser/syntax';
+import { blindCast } from '@internal/utils/casts';
 
 export function findModelAttributeNode(
   model: ModelSymbol,

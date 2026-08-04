@@ -1,17 +1,17 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
 import {
   formatMigrationDirName,
   readMigrationsDir,
   writeMigrationPackage,
-} from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { findLeaf, findPath, reconstructGraph } from '@prisma-next/migration-tools/migration-graph';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { findLeaf, findPath, reconstructGraph } from '@internal/migration-tools/migration-graph';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 function createTableOp(table: string): MigrationPlanOperation {

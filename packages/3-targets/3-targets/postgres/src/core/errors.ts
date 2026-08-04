@@ -1,6 +1,6 @@
-import { CliStructuredError } from '@prisma-next/errors/control';
-import type { StructuredError, StructuredErrorOptions } from '@prisma-next/utils/structured-error';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { CliStructuredError } from '@internal/errors/control';
+import type { StructuredError, StructuredErrorOptions } from '@internal/utils/structured-error';
+import { structuredError } from '@internal/utils/structured-error';
 
 export type PostgresTargetErrorCode =
   | 'CONTRACT.CODEC_DESCRIPTOR_MISSING'
@@ -47,7 +47,7 @@ export function postgresError(
  * plan against wrong contract) because the missing input is the stack
  * itself, not the per-operation contract.
  *
- * Lives in `@prisma-next/target-postgres/errors` rather than the shared
+ * Lives in `@internal/target-postgres/errors` rather than the shared
  * framework migration errors module because the failure is target-specific:
  * the contract it talks about (`PostgresMigration`, the Postgres control
  * adapter, the Postgres-target stack) only exists in this package.

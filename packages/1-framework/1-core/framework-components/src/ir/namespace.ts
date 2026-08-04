@@ -1,4 +1,4 @@
-import type { StorageNamespace } from '@prisma-next/contract/types';
+import type { StorageNamespace } from '@internal/contract/types';
 import { type IRNode, IRNodeBase } from './ir-node';
 
 /**

@@ -1,5 +1,5 @@
-import type { DiffSubjectGranularity } from '@prisma-next/framework-components/control';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { DiffSubjectGranularity } from '@internal/framework-components/control';
+import { InternalError } from '@internal/utils/internal-error';
 
 /**
  * The `nodeKind` discriminant for each relational schema-diff leaf node.

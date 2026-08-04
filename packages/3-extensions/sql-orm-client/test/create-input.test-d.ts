@@ -1,4 +1,4 @@
-import type { Contract, StorageHashBase } from '@prisma-next/contract/types';
+import type { Contract, StorageHashBase } from '@internal/contract/types';
 import type { CreateInput } from '../src/types';
 
 type CreateInputStorage = {

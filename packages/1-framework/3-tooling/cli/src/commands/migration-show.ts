@@ -1,17 +1,17 @@
 import { readFile } from 'node:fs/promises';
-import { loadConfig } from '@prisma-next/config-loader';
-import type { Contract } from '@prisma-next/contract/types';
+import { loadConfig } from '@internal/config-loader';
+import type { Contract } from '@internal/contract/types';
 import {
   APP_SPACE_ID,
   createControlStack,
   type MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
-import { loadContractSpaceAggregate } from '@prisma-next/migration-tools/aggregate';
-import type { OnDiskMigrationPackage } from '@prisma-next/migration-tools/package';
-import { parseMigrationRef } from '@prisma-next/migration-tools/ref-resolution';
-import { castAs } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
+import type { OnDiskMigrationPackage } from '@internal/migration-tools/package';
+import { parseMigrationRef } from '@internal/migration-tools/ref-resolution';
+import { castAs } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { relative } from 'pathe';
 import { createControlClient } from '../control-api/client';

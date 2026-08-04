@@ -1,10 +1,7 @@
-import { coreHash } from '@prisma-next/contract/types';
-import type {
-  SchemaDiffIssue,
-  SchemaVerifyOptions,
-} from '@prisma-next/framework-components/control';
-import type { Namespace } from '@prisma-next/framework-components/ir';
-import { MongoStorage } from '@prisma-next/mongo-contract';
+import { coreHash } from '@internal/contract/types';
+import type { SchemaDiffIssue, SchemaVerifyOptions } from '@internal/framework-components/control';
+import type { Namespace } from '@internal/framework-components/ir';
+import { MongoStorage } from '@internal/mongo-contract';
 import { describe, expect, it } from 'vitest';
 import { MongoSchemaVerifierBase } from '../src/core/ir/mongo-schema-verifier-base';
 

@@ -1,7 +1,7 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { AnyCodecDescriptor } from '@prisma-next/framework-components/codec';
-import { voidParamsSchema } from '@prisma-next/framework-components/codec';
-import type { RuntimeExtensionDescriptor } from '@prisma-next/framework-components/execution';
+import type { JsonValue } from '@internal/contract/types';
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
+import { voidParamsSchema } from '@internal/framework-components/codec';
+import type { RuntimeExtensionDescriptor } from '@internal/framework-components/execution';
 import {
   BinaryExpr,
   ColumnRef,
@@ -10,15 +10,15 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import { codecRefForStorageColumn } from '@prisma-next/sql-relational-core/codec-descriptor-registry';
+} from '@internal/sql-relational-core/ast';
+import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import {
   type AnyPostgresCodecDescriptor,
   buildPostgresCodecDescriptorRegistry,
   postgresCodec,
-} from '@prisma-next/target-postgres/codec-descriptor';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/codec-descriptor';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { renderLoweredSql } from '../src/core/sql-renderer';

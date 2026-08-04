@@ -1,5 +1,5 @@
-import { defineAnnotation } from '@prisma-next/framework-components/runtime';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
+import { defineAnnotation } from '@internal/framework-components/runtime';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import { sql } from '../../src/runtime/sql';
 import { contract as contractJson } from '../fixtures/contract';

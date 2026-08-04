@@ -1,5 +1,5 @@
-import { IRNodeBase } from '@prisma-next/framework-components/ir';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { IRNodeBase } from '@internal/framework-components/ir';
+import { InternalError } from '@internal/utils/internal-error';
 
 /**
  * SQL Schema IR node base. Carries the family-level

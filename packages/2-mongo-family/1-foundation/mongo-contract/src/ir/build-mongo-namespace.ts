@@ -3,8 +3,8 @@ import {
   hydrateNamespaceEntities,
   NamespaceBase,
   UNBOUND_NAMESPACE_ID,
-} from '@prisma-next/framework-components/ir';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/framework-components/ir';
+import { blindCast } from '@internal/utils/casts';
 import { composeMongoEntityKinds } from '../entity-kinds';
 import type { MongoCollection } from './mongo-collection';
 import type {

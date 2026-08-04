@@ -1,4 +1,4 @@
-import { parse } from '@prisma-next/psl-parser/syntax';
+import { parse } from '@internal/psl-parser/syntax';
 import { describe, expect, it } from 'vitest';
 import { classifyPslCompletionContext } from '../src/completion-context';
 

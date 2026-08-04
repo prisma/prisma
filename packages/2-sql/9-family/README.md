@@ -1,4 +1,4 @@
-# @prisma-next/family-sql
+# @internal/family-sql
 
 SQL family descriptor for Prisma Next.
 
@@ -13,7 +13,7 @@ Provides the SQL family descriptor (`ControlFamilyDescriptor`) that includes:
 - **Family Descriptor Export**: Exports the SQL `ControlFamilyDescriptor` for use in CLI configuration files
 - **Family Instance Creation**: Creates `SqlFamilyInstance` objects that implement control-plane domain actions (`verify`, `schemaVerify`, `introspect`, `emitContract`, `deserializeContract`)
 - **Planner & Runner SPI**: Owns the `MigrationPlanner` / `MigrationRunner` interfaces plus the `SqlControlTargetDescriptor` helper so targets can expose planners and runners (e.g., Postgres init planner/runner)
-- **Family Hook Integration**: Integrates the SQL target family hook (`sqlEmission`) from `@prisma-next/sql-contract-emitter`
+- **Family Hook Integration**: Integrates the SQL target family hook (`sqlEmission`) from `@internal/sql-contract-emitter`
 - **Control Plane Entry Point**: Serves as the control plane entry point for the SQL family, enabling the CLI to select the family hook and create family instances
 - **Contract-to-SchemaIR Conversion**: Converts `SqlStorage` from a contract into `SqlSchemaIR` for offline migration planning, enabling `migration plan` to work without a database connection
 - **Destructive Change Detection**: Compares two `SqlStorage` values and identifies destructive changes (dropped tables/columns) for migration policy enforcement
@@ -28,8 +28,8 @@ Provides the SQL family descriptor (`ControlFamilyDescriptor`) that includes:
 ## Usage
 
 ```typescript
-import sql from '@prisma-next/family-sql/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
+import sql from '@internal/family-sql/control';
+import { createControlStack } from '@internal/framework-components/control';
 
 // sql is a ControlFamilyDescriptor with:
 // - kind: 'family'
@@ -88,9 +88,9 @@ if (executeResult.ok) {
 ## Architecture
 
 This package is the control plane entry point for the SQL family. It composes:
-- `@prisma-next/sql-contract-emitter` - Provides the SQL family hook
-- `@prisma-next/sql-operations` - SQL operation signature types
-- `@prisma-next/sql-contract` - SQL contract types and validation
+- `@internal/sql-contract-emitter` - Provides the SQL family hook
+- `@internal/sql-operations` - SQL operation signature types
+- `@internal/sql-contract` - SQL contract types and validation
 
 The framework CLI uses this descriptor to:
 1. Create family instances for control-plane operations (via `create()`)
@@ -133,15 +133,15 @@ The runner returns structured errors with the following codes:
 
 - **`./control`**: Control plane entry point for CLI/config usage (exports `SqlFamilyDescriptor`)
 - **`./control-adapter`**: SQL control adapter interface (`SqlControlAdapter`, `SqlControlAdapterDescriptor`) for target-specific adapters
-- **`./runtime`**: Runtime plane identity exports only (family ID, types, descriptor identity). Does **not** export runtime creation helpers—use `instantiateExecutionStack` from `@prisma-next/framework-components/execution` and `createExecutionContext`, `createRuntime`, `createSqlExecutionStack` from `@prisma-next/sql-runtime`. See [ADR 152](../../../docs/architecture%20docs/adrs/ADR%20152%20-%20Execution%20Plane%20Descriptors%20and%20Instances.md).
+- **`./runtime`**: Runtime plane identity exports only (family ID, types, descriptor identity). Does **not** export runtime creation helpers—use `instantiateExecutionStack` from `@internal/framework-components/execution` and `createExecutionContext`, `createRuntime`, `createSqlExecutionStack` from `@internal/sql-runtime`. See [ADR 152](../../../docs/architecture%20docs/adrs/ADR%20152%20-%20Execution%20Plane%20Descriptors%20and%20Instances.md).
 - **`./verify`**: Marker row parsing helper (`parseContractMarkerRow`). Marker reads are owned by each `SqlControlAdapter` (e.g. `PostgresControlAdapter.readMarker`) so dialect-specific SQL stays target-local.
 
 ## Dependencies
 
-- **`@prisma-next/framework-components`**: Control plane types via `./control` (`ControlFamilyDescriptor`, `ControlTargetDescriptor`, `ControlAdapterDescriptor`, `ControlDriverDescriptor`, `ControlExtensionDescriptor`, `ControlDriverInstance`, etc.)
-- **`@prisma-next/sql-contract-emitter`**: SQL target family hook (`sqlEmission`)
-- **`@prisma-next/sql-contract`**: SQL contract types plus validation primitives (`validateSqlContractFully`, consumed by the family serializer base)
-- **`@prisma-next/sql-operations`**: SQL operation registry types (`SqlOperationEntry`, `SqlOperationRegistry`)
+- **`@internal/framework-components`**: Control plane types via `./control` (`ControlFamilyDescriptor`, `ControlTargetDescriptor`, `ControlAdapterDescriptor`, `ControlDriverDescriptor`, `ControlExtensionDescriptor`, `ControlDriverInstance`, etc.)
+- **`@internal/sql-contract-emitter`**: SQL target family hook (`sqlEmission`)
+- **`@internal/sql-contract`**: SQL contract types plus validation primitives (`validateSqlContractFully`, consumed by the family serializer base)
+- **`@internal/sql-operations`**: SQL operation registry types (`SqlOperationEntry`, `SqlOperationRegistry`)
 
 **Dependents:**
 - CLI configuration files import this package to register the SQL family
@@ -150,7 +150,7 @@ The runner returns structured errors with the following codes:
 
 - **CLI orchestration**: `packages/1-framework/3-tooling/cli/src/commands/db-init.ts`
 - **Planner/runner SPI types**: `packages/2-sql/3-tooling/family/src/core/migrations/types.ts`
-- **Pure schema verifier (used by planner + runner)**: `@prisma-next/family-sql/schema-verify` (source: `packages/2-sql/3-tooling/family/src/core/schema-verify/`)
+- **Pure schema verifier (used by planner + runner)**: `@internal/family-sql/schema-verify` (source: `packages/2-sql/3-tooling/family/src/core/schema-verify/`)
 - **Postgres implementation**:
   - Planner: `packages/3-targets/3-targets/postgres/src/core/migrations/planner.ts`
   - Runner: `packages/3-targets/3-targets/postgres/src/core/migrations/runner.ts`

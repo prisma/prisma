@@ -1,26 +1,20 @@
 import { mkdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
 import {
   formatMigrationDirName,
   readMigrationsDir,
   writeMigrationPackage,
-} from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
-import { findPath, reconstructGraph } from '@prisma-next/migration-tools/migration-graph';
-import type { RefEntry } from '@prisma-next/migration-tools/refs';
-import {
-  deleteRef,
-  readRef,
-  readRefs,
-  resolveRef,
-  writeRef,
-} from '@prisma-next/migration-tools/refs';
-import { timeouts } from '@prisma-next/test-utils';
+} from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { findPath, reconstructGraph } from '@internal/migration-tools/migration-graph';
+import type { RefEntry } from '@internal/migration-tools/refs';
+import { deleteRef, readRef, readRefs, resolveRef, writeRef } from '@internal/migration-tools/refs';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 
 const HASH_A = `${'a'.repeat(64)}`;

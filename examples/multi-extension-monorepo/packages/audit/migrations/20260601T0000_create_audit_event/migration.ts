@@ -12,9 +12,9 @@
  * Re-emit `ops.json` / `migration.json` after edits via
  * `node migration.ts` (or `tsx migration.ts` on Node < 24).
  */
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import { Migration, MigrationCLI, rawSql } from '@prisma-next/target-postgres/migration';
-import type { PostgresPlanTargetDetails } from '@prisma-next/target-postgres/planner-target-details';
+import type { SqlMigrationPlanOperation } from '@prisma/orm-postgres/family/control';
+import { Migration, MigrationCLI, rawSql } from '@prisma/orm-postgres/target/migration';
+import type { PostgresPlanTargetDetails } from '@prisma/orm-postgres/target/planner-target-details';
 import { AUDIT_BASELINE_INVARIANT_ID, AUDIT_EVENT_TABLE } from '../../src/constants';
 import type { Contract as End } from '../snapshots/d009a7c12d910e42e7319f0e56ef3113548bd5d3262f06759caf861afd4468f5/contract';
 import endContract from '../snapshots/d009a7c12d910e42e7319f0e56ef3113548bd5d3262f06759caf861afd4468f5/contract.json' with {

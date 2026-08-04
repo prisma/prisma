@@ -1,21 +1,21 @@
-import { loadConfig } from '@prisma-next/config-loader';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
+import { loadConfig } from '@internal/config-loader';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import {
   contractSnapshotDir,
   readContractSnapshotJson,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@prisma-next/migration-tools/errors';
-import { findLatestMigration, isGraphNode } from '@prisma-next/migration-tools/migration-graph';
-import { parseContractRef } from '@prisma-next/migration-tools/ref-resolution';
-import type { RefEntry } from '@prisma-next/migration-tools/refs';
+} from '@internal/migration-tools/contract-snapshot-store';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
+import { findLatestMigration, isGraphNode } from '@internal/migration-tools/migration-graph';
+import { parseContractRef } from '@internal/migration-tools/ref-resolution';
+import type { RefEntry } from '@internal/migration-tools/refs';
 import {
   deleteRef,
   readRefs,
   validateRefName,
   validateRefValue,
   writeRef,
-} from '@prisma-next/migration-tools/refs';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+} from '@internal/migration-tools/refs';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { join } from 'pathe';
 import {

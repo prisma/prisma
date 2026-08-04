@@ -1,4 +1,4 @@
 export {
   defaultMongoDomainNamespaceId,
   defaultMongoStorageNamespaceId,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';

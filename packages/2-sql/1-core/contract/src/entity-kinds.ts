@@ -1,16 +1,31 @@
 import type {
   AnyEntityKindDescriptor,
   EntityKindDescriptor,
-} from '@prisma-next/framework-components/ir';
+} from '@internal/framework-components/ir';
 import { contractError } from './contract-errors';
+import { Index } from './ir/sql-index';
 import { StorageTableSchema, StorageValueSetSchema } from './ir/storage-entry-schemas';
 import { StorageTable, type StorageTableInput } from './ir/storage-table';
 import { StorageValueSet, type StorageValueSetInput } from './ir/storage-value-set';
+import { indexInputFromSerialized, type SerializedIndex } from './serialized-index';
 
-export const tableEntityKind: EntityKindDescriptor<StorageTableInput, StorageTable> = {
+/**
+ * A table entry as it reaches hydration: from `contract.json` its indexes are
+ * still the stored flat records, from authoring they are already `Index`
+ * nodes.
+ */
+export type HydratableStorageTable = Omit<StorageTableInput, 'indexes'> & {
+  readonly indexes: ReadonlyArray<Index | SerializedIndex>;
+};
+
+export const tableEntityKind: EntityKindDescriptor<HydratableStorageTable, StorageTable> = {
   kind: 'table',
   schema: StorageTableSchema,
-  construct: (input) => new StorageTable(input),
+  construct: (input) =>
+    new StorageTable({
+      ...input,
+      indexes: input.indexes.map((i) => (i instanceof Index ? i : indexInputFromSerialized(i))),
+    }),
 };
 
 export const valueSetEntityKind: EntityKindDescriptor<StorageValueSetInput, StorageValueSet> = {

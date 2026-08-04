@@ -3,7 +3,7 @@ import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoTypeMaps,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 
 type UserModel = {
   readonly storage: { readonly collection: 'users' };

@@ -9,17 +9,9 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // Verifies that brand counts per category are correct when fetching categories
 // with M:N brand counts included. Upstream uses implicit M:N and reads counts
 // via `findMany({ include: { _count: { select: { brands: true } } } })`.
-//
-// Gap: `include('brands', b => b.count())` on an N:M/through relation hits a
-// genuine ORM gap: `buildIncludeChildScalarSelect` ignores the junction `through`
-// descriptor and joins directly to the target table using `targetColumn` (the
-// brand's own id column) instead of routing through the junction — the generated
-// SQL is invalid. The nested M:N create IS supported (proven by mn-nested-write
-// integration tests). This test uses the faithful nested create shape and the
-// faithful include-count read, wrapped in it.fails to record the gap.
 
 describe('ports/prisma/functional/issues-12557', () => {
-  it.fails(
+  it(
     'issue 12557',
     () =>
       withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
@@ -44,9 +36,6 @@ describe('ports/prisma/functional/issues-12557', () => {
             ]),
         });
 
-        // Faithful include-count on N:M — hits the junction gap in
-        // buildIncludeChildScalarSelect (uses targetColumn instead of
-        // routing through categoryBrand junction → invalid SQL).
         const categories = await db.public.Category.include('brands', (b) => b.count())
           .select('id', 'name')
           .orderBy((c) => c.name.asc())

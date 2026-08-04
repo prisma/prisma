@@ -1,12 +1,12 @@
-import mongoFamilyPack from '@prisma-next/family-mongo/pack';
+import mongoFamilyPack from '@internal/family-mongo/pack';
 import type {
   ContractDefinition,
   ContractFactory,
   ContractScaffold,
   MongoContractResult,
-} from '@prisma-next/mongo-contract-ts/contract-builder';
-import { buildBoundContract } from '@prisma-next/mongo-contract-ts/contract-builder';
-import mongoTargetPack from '@prisma-next/target-mongo/pack';
+} from '@internal/mongo-contract-ts/contract-builder';
+import { buildBoundContract } from '@internal/mongo-contract-ts/contract-builder';
+import mongoTargetPack from '@internal/target-mongo/pack';
 
 type MongoFamilyPack = typeof mongoFamilyPack;
 type MongoTargetPack = typeof mongoTargetPack;

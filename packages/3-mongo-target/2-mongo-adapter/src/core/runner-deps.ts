@@ -1,15 +1,15 @@
-import type { ContractMarkerRecord } from '@prisma-next/contract/types';
-import type { MongoControlAdapter } from '@prisma-next/family-mongo/control-adapter';
+import type { ContractMarkerRecord } from '@internal/contract/types';
+import type { MongoControlAdapter } from '@internal/family-mongo/control-adapter';
 import type {
   ControlDriverInstance,
   ControlFamilyInstance,
-} from '@prisma-next/framework-components/control';
-import type { MongoAdapter, MongoDriver } from '@prisma-next/mongo-lowering';
+} from '@internal/framework-components/control';
+import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
 import type {
   AnyMongoDdlCommand,
   MongoInspectionCommandVisitor,
-} from '@prisma-next/mongo-query-ast/control';
-import type { MongoSchemaIR } from '@prisma-next/mongo-schema-ir';
+} from '@internal/mongo-query-ast/control';
+import type { MongoSchemaIR } from '@internal/mongo-schema-ir';
 import type { Db } from 'mongodb';
 import { createMongoAdapter } from '../mongo-adapter';
 import { describeReceivedValue, mongoAdapterError } from './errors';
@@ -22,7 +22,7 @@ export function extractDb(driver: ControlDriverInstance<'mongo', 'mongo'>): Db {
     throw mongoAdapterError(
       'CONFIG.VALIDATION_FAILED',
       'Expected a Mongo control driver created by ' +
-        'mongoControlDriver.create() from `@prisma-next/driver-mongo/control`.',
+        'mongoControlDriver.create() from `@internal/driver-mongo/control`.',
       { meta: { received: describeReceivedValue(driver) } },
     );
   }

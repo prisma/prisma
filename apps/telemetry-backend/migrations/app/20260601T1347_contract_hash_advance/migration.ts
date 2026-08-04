@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node
-import { Migration, MigrationCLI } from '@prisma-next/postgres/migration';
+import { Migration, MigrationCLI } from '@prisma/orm-postgres/migration';
 
 export default class M extends Migration {
   override describe() {

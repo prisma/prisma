@@ -1,4 +1,4 @@
-# @prisma-next/migration-tools
+# @internal/migration-tools
 
 > **Internal package.** This package is an implementation detail of [`prisma-next`](https://www.npmjs.com/package/prisma-next)
 > and is published only to support its runtime. Its API is unstable and may change
@@ -63,26 +63,26 @@ graph TD
     IO --> META["metadata.ts<br/>MigrationMetadata"]
     IO --> PKG["package.ts<br/>MigrationPackage, MigrationOps"]
     HASH --> IO
-    HASH --> CAN["@prisma-next/framework-components/utils<br/>canonicalizeJson"]
-    HASH --> CP["@prisma-next/emitter<br/>canonicalizeContract"]
+    HASH --> CAN["@internal/framework-components/utils<br/>canonicalizeJson"]
+    HASH --> CP["@internal/emitter<br/>canonicalizeContract"]
     GRAPH --> GR["graph.ts<br/>MigrationGraph, MigrationEdge"]
-    GRAPH --> ABS["@prisma-next/migration-tools/constants<br/>EMPTY_CONTRACT_HASH"]
+    GRAPH --> ABS["@internal/migration-tools/constants<br/>EMPTY_CONTRACT_HASH"]
 ```
 
 ## Dependencies
 
 | Package | Why |
 |---|---|
-| `@prisma-next/contract` | `Contract` type for embedded contracts in metadata |
-| `@prisma-next/framework-components` | `MigrationPlanOperation` types (via `./control`) |
-| `@prisma-next/emitter` | `canonicalizeContract` |
+| `@internal/contract` | `Contract` type for embedded contracts in metadata |
+| `@internal/framework-components` | `MigrationPlanOperation` types (via `./control`) |
+| `@internal/emitter` | `canonicalizeContract` |
 | `arktype` | Runtime shape validation for `migration.json` and `ops.json` |
-| `@prisma-next/utils` | Workspace utility dependency (currently no direct runtime imports in this package) |
+| `@internal/utils` | Workspace utility dependency (currently no direct runtime imports in this package) |
 | `pathe` | Cross-platform path manipulation |
 
 ### Dependents
 
-- `@prisma-next/cli` (M3) — CLI commands consume these functions
+- `@internal/cli` (M3) — CLI commands consume these functions
 
 ## Export Subpaths
 

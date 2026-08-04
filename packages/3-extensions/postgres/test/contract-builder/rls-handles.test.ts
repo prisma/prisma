@@ -10,7 +10,7 @@
  *  3. Empty names are rejected at construction.
  */
 
-import { extensionModel } from '@prisma-next/sql-contract-ts/contract-builder';
+import { extensionModel } from '@internal/sql-contract-ts/contract-builder';
 import { describe, expect, it } from 'vitest';
 import type { RlsRoleHandle } from '../../src/exports/contract-builder';
 import {

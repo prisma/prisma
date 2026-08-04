@@ -1,8 +1,5 @@
-import type { PreserveEmptyPredicate } from '@prisma-next/contract/hashing';
-import {
-  createPreserveEmptyPredicate,
-  type PathPattern,
-} from '@prisma-next/contract/hashing-utils';
+import type { PreserveEmptyPredicate } from '@internal/contract/hashing';
+import { createPreserveEmptyPredicate, type PathPattern } from '@internal/contract/hashing-utils';
 
 const preserveEmptyPatterns = [
   ['storage', 'namespaces', '*', 'entries', 'collection'],

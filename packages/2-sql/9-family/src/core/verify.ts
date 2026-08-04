@@ -1,4 +1,4 @@
-import type { ContractMarkerRecord } from '@prisma-next/contract/types';
+import type { ContractMarkerRecord } from '@internal/contract/types';
 import { type } from 'arktype';
 import { sqlFamilyError } from './errors';
 

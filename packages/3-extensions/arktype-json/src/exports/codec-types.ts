@@ -3,7 +3,7 @@
  *
  * Re-export from types module for public API. The pack-meta references
  * this entrypoint via `import: { package:
- * '@prisma-next/extension-arktype-json/codec-types' }` so the emitter
+ * '@internal/extension-arktype-json/codec-types' }` so the emitter
  * threads `CodecTypes` into `contract.d.ts`.
  */
 

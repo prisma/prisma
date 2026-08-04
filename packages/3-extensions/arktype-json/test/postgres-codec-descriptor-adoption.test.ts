@@ -1,6 +1,6 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { ColumnRef } from '@prisma-next/sql-relational-core/ast';
+import type { JsonValue } from '@internal/contract/types';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { ColumnRef } from '@internal/sql-relational-core/ast';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
@@ -41,7 +41,6 @@ describe('arktype-json PostgreSQL codec descriptor adoption', () => {
     const expression = ColumnRef.of('products', 'details');
 
     expect(arktypeJsonDescriptor.nativeTypeFor(ref)).toBe('jsonb');
-    expect(arktypeJsonDescriptor.meta?.db?.sql?.postgres?.nativeType).toBe('jsonb');
     expect(arktypeJsonDescriptor.projectJson(expression, ref)).toBe(expression);
 
     const codec = column.codecFactory({ name: 'details' });

@@ -2,24 +2,24 @@ import {
   createMongoRunnerDeps,
   extractDb,
   type MongoRunnerDependencies,
-} from '@prisma-next/adapter-mongo/control';
-import type { Contract } from '@prisma-next/contract/types';
-import { MongoDriverImpl } from '@prisma-next/driver-mongo';
+} from '@internal/adapter-mongo/control';
+import type { Contract } from '@internal/contract/types';
+import { MongoDriverImpl } from '@internal/driver-mongo';
 import type {
   MongoControlFamilyInstance,
   MongoControlTargetDescriptor,
-} from '@prisma-next/family-mongo/control';
-import { contractToMongoSchemaIR } from '@prisma-next/family-mongo/control';
-import type { MongoControlAdapter } from '@prisma-next/family-mongo/control-adapter';
+} from '@internal/family-mongo/control';
+import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
+import type { MongoControlAdapter } from '@internal/family-mongo/control-adapter';
 import type {
   MigrationRunner,
   MigrationRunnerPerSpaceSuccessValue,
   MigrationRunnerResult,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import type { MongoContract } from '@prisma-next/mongo-contract';
-import { blindCast } from '@prisma-next/utils/casts';
-import { notOk, ok } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import type { MongoContract } from '@internal/mongo-contract';
+import { blindCast } from '@internal/utils/casts';
+import { notOk, ok } from '@internal/utils/result';
 import { mongoTargetDescriptorMeta } from './descriptor-meta';
 import { MongoMigrationPlanner } from './mongo-planner';
 import { MongoMigrationRunner, type MongoMigrationRunnerExecuteOptions } from './mongo-runner';

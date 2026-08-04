@@ -8,11 +8,20 @@
  * per-build batch as indexes (one flush covering both).
  */
 
-import { assembleAuthoringContributions } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi,
+} from 'vitest';
 import {
   postgresAuthoringEntityTypes,
   postgresAuthoringModelAttributes,
@@ -91,11 +100,28 @@ function publicNamespace(result: ReturnType<typeof interpret>): PostgresSchema {
   return result.value.storage.namespaces['public'] as PostgresSchema;
 }
 
-describe('@@map lowers an exact-named policy', () => {
-  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
-  afterEach(() => {
-    emitWarning.mockClear();
+/**
+ * Spies `process.emitWarning` for one suite. The spy is installed in
+ * `beforeAll` rather than at collection time because the suites in this file
+ * share the global: stacked collection-time spies let one suite's restore
+ * discard the next suite's instrumentation.
+ */
+function useEmitWarningSpy(): () => MockInstance<typeof process.emitWarning> {
+  let spy: MockInstance<typeof process.emitWarning>;
+  beforeAll(() => {
+    spy = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
   });
+  afterEach(() => {
+    spy.mockClear();
+  });
+  afterAll(() => {
+    spy.mockRestore();
+  });
+  return () => spy;
+}
+
+describe('@@map lowers an exact-named policy', () => {
+  const emitWarning = useEmitWarningSpy();
 
   it('name is the map value verbatim, prefix absent, no hash, keyed by the head', () => {
     const result = interpret(
@@ -297,7 +323,7 @@ policy_select p_read {
     );
   });
 
-  it('without @@map the managed lowering is unchanged — head prefix, wire name', () => {
+  it('without @@map the wire lowering is unchanged — head prefix, wire name', () => {
     const result = interpret(
       policyDoc(`
   policy_select p_read {
@@ -312,7 +338,7 @@ policy_select p_read {
     expect(policy?.prefix).toBe('p_read');
     expect(policy?.name).toMatch(/^p_read_[0-9a-f]{8}$/);
     expect(
-      emitWarning.mock.calls.filter(
+      emitWarning().mock.calls.filter(
         ([, options]) =>
           (options as { code?: string } | undefined)?.code === 'PN_EXACT_NAME_BODY_COMPARISON',
       ),
@@ -320,14 +346,100 @@ policy_select p_read {
   });
 });
 
-describe('exact-name body-comparison warning for @@map policies — shared per-build batch with indexes', () => {
-  const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
-  afterEach(() => {
-    emitWarning.mockClear();
+describe('permissive is an authorable block property', () => {
+  useEmitWarningSpy();
+
+  it('permissive = false lowers a RESTRICTIVE policy', () => {
+    const result = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target     = profile
+    roles      = [app_user]
+    using      = "owner_id = 1"
+    permissive = false
+  }
+`),
+    );
+    const ns = publicNamespace(result);
+    const policy = ns.policy['p_read'];
+    expect(policy?.permissive).toBe(false);
+    expect(policy?.name).toMatch(/^p_read_[0-9a-f]{8}$/);
   });
 
+  it('permissive participates in the wire hash — the RESTRICTIVE twin gets a different name', () => {
+    const restrictive = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target     = profile
+    roles      = [app_user]
+    using      = "owner_id = 1"
+    permissive = false
+  }
+`),
+    );
+    const permissive = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target = profile
+    roles  = [app_user]
+    using  = "owner_id = 1"
+  }
+`),
+    );
+    const restrictiveName = publicNamespace(restrictive).policy['p_read']?.name;
+    const permissiveName = publicNamespace(permissive).policy['p_read']?.name;
+    expect(restrictiveName).not.toBe(permissiveName);
+  });
+
+  it('omitted permissive defaults true — the wire name is byte-unchanged', () => {
+    const explicit = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target     = profile
+    roles      = [app_user]
+    using      = "owner_id = 1"
+    permissive = true
+  }
+`),
+    );
+    const omitted = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target = profile
+    roles  = [app_user]
+    using  = "owner_id = 1"
+  }
+`),
+    );
+    const explicitPolicy = publicNamespace(explicit).policy['p_read'];
+    const omittedPolicy = publicNamespace(omitted).policy['p_read'];
+    expect(explicitPolicy?.permissive).toBe(true);
+    expect(explicitPolicy?.name).toBe(omittedPolicy?.name);
+  });
+
+  it('an @@map policy carries permissive = false verbatim', () => {
+    const result = interpret(
+      policyDoc(`
+  policy_select p_read {
+    target     = profile
+    roles      = [app_user]
+    using      = "owner_id = 1"
+    permissive = false
+    @@map("Restrictive tenant read")
+  }
+`),
+    );
+    const policy = publicNamespace(result).policy['p_read'];
+    expect(policy?.permissive).toBe(false);
+    expect(policy?.name).toBe('Restrictive tenant read');
+  });
+});
+
+describe('exact-name body-comparison warning for @@map policies — shared per-build batch with indexes', () => {
+  const emitWarning = useEmitWarningSpy();
+
   function exactNameWarningCalls() {
-    return emitWarning.mock.calls.filter(
+    return emitWarning().mock.calls.filter(
       ([, options]) =>
         (options as { code?: string } | undefined)?.code === 'PN_EXACT_NAME_BODY_COMPARISON',
     );
@@ -349,7 +461,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
     const message = String(calls[0]?.[0]);
     expect(message).toContain('policy "Tenant members can read" uses @@map with a SQL body.');
     expect(message).toContain(
-      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map",
+      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to wire naming, remove @@map",
     );
     expect(message).not.toContain('name:');
   });
@@ -384,14 +496,14 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
     expect(policySummary).toBeDefined();
     expect(indexSummary).toBeDefined();
     expect(policySummary).toContain(
-      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to managed naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
+      "drop @@map and let the policy block's head name the policy; to migrate an adopted policy to wire naming, remove @@map (keeping the body text unchanged) and apply the resulting rename migration.",
     );
     for (const n of ['a', 'b', 'c', 'd', 'e', 'f']) {
       expect(policySummary).toContain(`  - policy "adopted policy ${n}"`);
     }
     expect(policySummary).not.toContain('index "');
     expect(indexSummary).toContain(
-      'use name: and let Prisma Next manage the physical name; to migrate an adopted object to managed naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
+      'use name: and let Prisma Next manage the physical name; to migrate an adopted object to wire naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
     );
     for (const n of [1, 2, 3, 4, 5, 6]) {
       expect(indexSummary).toContain(`  - index "adopted_idx_${n}"`);

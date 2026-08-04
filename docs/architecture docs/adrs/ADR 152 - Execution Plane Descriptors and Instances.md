@@ -24,7 +24,7 @@ We standardize on a **descriptor + instance** pattern for execution-plane compon
 - **Descriptors** are flat objects (identity + declarative metadata) with a `create()` factory.
 - **Instances** are the runtime objects used during execution.
 - Everything is parameterized by **familyId** and **targetId** to make mis-wiring a type error.
-- Base interfaces live in `@prisma-next/framework-components/execution`; families refine them with family-specific behavior.
+- Base interfaces live in `@internal/framework-components/execution`; families refine them with family-specific behavior.
 
 This ADR formalizes the model and entrypoints; it is not intended to change runtime behavior.
 
@@ -41,7 +41,7 @@ These IDs appear in contracts and on descriptors/instances and anchor type-level
 
 We introduce plane-first, cross-family descriptor interfaces in core, under:
 
-- `@prisma-next/framework-components/execution` for execution/runtime-plane descriptors and base instances
+- `@internal/framework-components/execution` for execution/runtime-plane descriptors and base instances
 
 Descriptors:
 
@@ -103,7 +103,7 @@ export interface RuntimeExtensionDescriptor<
 }
 ```
 
-Note: runtime-plane descriptors build on `@prisma-next/contract/framework-components` (identity + declarative metadata like `types`, `operations`, and `capabilities`).
+Note: runtime-plane descriptors build on `@internal/contract/framework-components` (identity + declarative metadata like `types`, `operations`, and `capabilities`).
 
 Notes:
 
@@ -243,7 +243,7 @@ We enforce compile-time compatibility across execution-plane wiring:
 
 This ADR covers:
 
-- Cross-family interfaces in core for the execution plane (`@prisma-next/framework-components/execution`).
+- Cross-family interfaces in core for the execution plane (`@internal/framework-components/execution`).
 - First implementation pass for SQL + Postgres packs (targets/adapters/drivers/extensions) using the standardized runtime entrypoints.
 
 Non-goals for this ADR:

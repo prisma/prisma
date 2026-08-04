@@ -30,7 +30,7 @@ const raw = mongoRaw({ contract: contractJson as Contract })
 
 When a migration is scaffolded (`migration plan` / `migration new`), the tooling copies the project's emitted `contract.json` and the colocated `contract.d.ts` into the migration directory. The migration is self-contained: its query builders are typed against the contract that existed when the migration was authored, and that contract travels with the migration permanently.
 
-The copy is performed by `copyContractToMigrationDir` in `@prisma-next/framework-migration`:
+The copy is performed by `copyContractToMigrationDir` in `@internal/framework-migration`:
 
 ```ts
 export async function copyContractToMigrationDir(

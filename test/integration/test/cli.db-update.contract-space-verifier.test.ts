@@ -1,4 +1,4 @@
-import { timeouts, withClient, withDevDatabase } from '@prisma-next/test-utils';
+import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   parseJsonObjectFromCliCapture,
@@ -109,7 +109,7 @@ withTempDir(({ createTempDir }) => {
           const { configPath } = testSetup;
 
           const { createContractEmitCommand } = await import(
-            '@prisma-next/cli/commands/contract-emit'
+            '@internal/cli/commands/contract-emit'
           );
           const { executeCommand } = await import('./utils/cli-test-helpers');
           const emitCommand = createContractEmitCommand();

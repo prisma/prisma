@@ -1,5 +1,5 @@
-import type { VerifyDatabaseSchemaResult } from '@prisma-next/framework-components/control';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { VerifyDatabaseSchemaResult } from '@internal/framework-components/control';
+import { InternalError } from '@internal/utils/internal-error';
 
 /**
  * The combined per-space contract-satisfaction result plus the standalone

@@ -1,4 +1,4 @@
-import type { StorageColumn, StorageTypeInstance } from '@prisma-next/sql-contract/types';
+import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 
 export type ResolvedColumnTypeMetadata = Pick<
   StorageColumn,

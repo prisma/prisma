@@ -1,11 +1,11 @@
-import type { CodecControlHooks, ExpandNativeTypeInput } from '@prisma-next/family-sql/control';
+import type { CodecControlHooks, ExpandNativeTypeInput } from '@internal/family-sql/control';
 import {
   buildOperation,
   type CodecExpression,
   type Expression,
   type TraitExpression,
   toExpr,
-} from '@prisma-next/sql-relational-core/expression';
+} from '@internal/sql-relational-core/expression';
 import {
   PG_BIT_CODEC_ID,
   PG_BOOL_CODEC_ID,
@@ -37,8 +37,8 @@ import {
   SQL_TEXT_CODEC_ID,
   SQL_TIMESTAMP_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
-} from '@prisma-next/target-postgres/codec-ids';
-import { postgresCodecRegistry } from '@prisma-next/target-postgres/codecs';
+} from '@internal/target-postgres/codec-ids';
+import { postgresCodecRegistry } from '@internal/target-postgres/codecs';
 import type { QueryOperationTypes } from '../types/operation-types';
 import { adapterError } from './adapter-errors';
 
@@ -47,7 +47,7 @@ import { adapterError } from './adapter-errors';
 /** Creates a type import spec for codec types */
 const codecTypeImport = (named: string) =>
   ({
-    package: '@prisma-next/target-postgres/codec-types',
+    package: '@internal/target-postgres/codec-types',
     named,
     alias: named,
   }) as const;
@@ -191,13 +191,13 @@ export const postgresAdapterDescriptorMeta = {
     codecTypes: {
       codecDescriptors: Array.from(postgresCodecRegistry.values()),
       import: {
-        package: '@prisma-next/target-postgres/codec-types',
+        package: '@internal/target-postgres/codec-types',
         named: 'CodecTypes',
         alias: 'PgTypes',
       },
       typeImports: [
         {
-          package: '@prisma-next/target-postgres/codec-types',
+          package: '@internal/target-postgres/codec-types',
           named: 'JsonValue',
           alias: 'JsonValue',
         },
@@ -302,7 +302,7 @@ export const postgresAdapterDescriptorMeta = {
     ],
     queryOperationTypes: {
       import: {
-        package: '@prisma-next/adapter-postgres/operation-types',
+        package: '@internal/adapter-postgres/operation-types',
         named: 'QueryOperationTypes',
         alias: 'PgAdapterQueryOps',
       },

@@ -1,9 +1,9 @@
-import type { AuthoringFieldNamespace } from '@prisma-next/framework-components/authoring';
+import type { AuthoringFieldNamespace } from '@internal/framework-components/authoring';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
-} from '@prisma-next/framework-components/components';
+} from '@internal/framework-components/components';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { defineContract, rel } from '../src/contract-builder';

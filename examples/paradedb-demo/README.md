@@ -1,6 +1,6 @@
 # paradedb-demo
 
-End-to-end demo of `@prisma-next/extension-paradedb` against a live ParadeDB server in Docker.
+End-to-end demo of `@internal/extension-paradedb` against a live ParadeDB server in Docker.
 
 Exercises:
 

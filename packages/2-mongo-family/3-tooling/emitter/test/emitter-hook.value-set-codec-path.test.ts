@@ -1,7 +1,7 @@
-import { type Contract, type ContractModelBase, coreHash } from '@prisma-next/contract/types';
-import { generateContractDts } from '@prisma-next/emitter';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { type Contract, type ContractModelBase, coreHash } from '@internal/contract/types';
+import { generateContractDts } from '@internal/emitter';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { mongoEmission } from '../src/index';
 import { createMongoContract } from './fixtures/create-mongo-contract';
@@ -15,7 +15,6 @@ const LEVEL_BY_INDEX = ['low', 'high', 'urgent'] as const;
 const nonIdentityCodecLookup: CodecLookup = {
   get: () => undefined,
   targetTypesFor: (id) => (id === NON_IDENTITY_CODEC_ID ? ['string'] : undefined),
-  metaFor: () => undefined,
   renderOutputTypeFor: (id) => (id === NON_IDENTITY_CODEC_ID ? 'Level' : undefined),
   renderValueLiteralFor: (id, value) => {
     if (id !== NON_IDENTITY_CODEC_ID || typeof value !== 'number') return undefined;

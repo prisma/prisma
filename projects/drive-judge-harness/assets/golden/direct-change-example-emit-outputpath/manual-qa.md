@@ -32,7 +32,7 @@ app imports.
 ### Steps
 
 1. Run the example emit (or `pnpm fixtures:emit`) for `paradedb-demo` and
-   `prisma-next-demo-sqlite`.
+   `prisma-8-demo-sqlite`.
 2. `git status`.
 3. Run emit a second time; `git status` again.
 4. Run `pnpm fixtures:check`.
@@ -59,7 +59,7 @@ regenerated contract.
 
 ### Steps
 
-1. `pnpm --filter paradedb-demo typecheck` and `pnpm --filter prisma-next-demo-sqlite typecheck`.
+1. `pnpm --filter paradedb-demo typecheck` and `pnpm --filter prisma-8-demo-sqlite typecheck`.
 2. Confirm the authoring source is still `prisma/contract.ts` and the app import path is
    unchanged.
 

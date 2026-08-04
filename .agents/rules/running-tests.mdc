@@ -32,7 +32,7 @@ Each `:agent` run has a hard timeout (default 5 minutes, override with `AGENT_CM
 ## 2. Run one package's tests
 
 ```bash
-pnpm --filter @prisma-next/cli test
+pnpm --filter @internal/cli test
 ```
 
 Runs only that package's own `test` script — seconds, not minutes. Output goes to your terminal; no capture needed.
@@ -42,13 +42,13 @@ Runs only that package's own `test` script — seconds, not minutes. Output goes
 By file:
 
 ```bash
-pnpm --filter @prisma-next/cli test test/commands/migration-list-json-golden.test.ts
+pnpm --filter @internal/cli test test/commands/migration-list-json-golden.test.ts
 ```
 
 By test name within a file (vitest's `-t` filter):
 
 ```bash
-pnpm --filter @prisma-next/cli test test/commands/migration-list-json-golden.test.ts -t "pins head ref decoration"
+pnpm --filter @internal/cli test test/commands/migration-list-json-golden.test.ts -t "pins head ref decoration"
 ```
 
 ## 4. Find specific failures in the captured output

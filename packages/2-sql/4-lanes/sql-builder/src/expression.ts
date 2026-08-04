@@ -1,10 +1,10 @@
-import type { QueryOperationTypesBase } from '@prisma-next/sql-contract/types';
+import type { QueryOperationTypesBase } from '@internal/sql-contract/types';
 import type {
   CodecExpression,
   Expression,
   RawSqlTag,
   TraitExpression,
-} from '@prisma-next/sql-relational-core/expression';
+} from '@internal/sql-relational-core/expression';
 import type { Expand, QueryContext, Scope, ScopeField, ScopeTable, Subquery } from './scope';
 
 export type { CodecExpression, Expression, RawSqlTag, TraitExpression };

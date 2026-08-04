@@ -1,6 +1,6 @@
-import { defineContract, model } from '@prisma-next/sql-contract-ts/contract-builder';
+import { defineContract, model } from '@prisma/orm-sqlite/contract-builder';
 import { describe, expect, it } from 'vitest';
-import { applyMigration, int, pack, text } from './harness';
+import { applyMigration, int, text } from './harness';
 
 // ---------------------------------------------------------------------------
 // Destructive operations (drop table / drop index / replace index)
@@ -13,14 +13,12 @@ describe('SQLite Migration E2E - Destructive operations', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), name: text } }),
             Legacy: model('Legacy', { fields: { id: int.id(), data: text } }),
           },
         }),
         destination: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text } }) },
         }),
         policy: DESTRUCTIVE,
@@ -36,7 +34,6 @@ describe('SQLite Migration E2E - Destructive operations', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), email: text } }).sql((ctx) => ({
               indexes: [ctx.constraints.index([ctx.cols.email], { name: 'idx_users_email' })],
@@ -44,7 +41,6 @@ describe('SQLite Migration E2E - Destructive operations', () => {
           },
         }),
         destination: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), email: text } }) },
         }),
         policy: DESTRUCTIVE,
@@ -59,7 +55,6 @@ describe('SQLite Migration E2E - Destructive operations', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), email: text, name: text } }).sql(
               (ctx) => ({
@@ -69,7 +64,6 @@ describe('SQLite Migration E2E - Destructive operations', () => {
           },
         }),
         destination: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), email: text, name: text } }).sql(
               (ctx) => ({
@@ -100,7 +94,6 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: {
             User: model('User', {
               fields: {
@@ -112,7 +105,6 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
           },
         }),
         destination: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text } }) },
         }),
         policy: ALL,
@@ -128,11 +120,9 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { Item: model('Item', { fields: { id: int.id(), value: text } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: { Item: model('Item', { fields: { id: int.id(), value: int.optional() } }) },
         }),
         policy: ALL,
@@ -147,11 +137,9 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text.optional() } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text } }) },
         }),
         policy: ALL,
@@ -166,13 +154,11 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: {
             User: model('User', { fields: { id: int.id(), name: text, temp: text.optional() } }),
           },
         }),
         destination: defineContract({
-          ...pack,
           models: { User: model('User', { fields: { id: int.id(), name: text } }) },
         }),
         policy: ALL,
@@ -198,11 +184,9 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: { Item: model('Item', { fields: { id: int.id(), value: text } }) },
         }),
         destination: defineContract({
-          ...pack,
           models: { Item: model('Item', { fields: { id: int.id(), value: int.optional() } }) },
         }),
         policy: ALL,
@@ -227,7 +211,6 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
     await applyMigration(
       {
         origin: defineContract({
-          ...pack,
           models: {
             Record: model('Record', {
               fields: {
@@ -239,7 +222,6 @@ describe('SQLite Migration E2E - Destructive column changes', () => {
           },
         }),
         destination: defineContract({
-          ...pack,
           models: { Record: model('Record', { fields: { id: int.id(), value: int } }) },
         }),
         policy: ALL,

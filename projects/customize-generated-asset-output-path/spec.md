@@ -12,7 +12,7 @@ The new surface is one optional field on `defineConfig` and one optional flag on
 
 ```ts
 // prisma-next.config.ts
-import { defineConfig } from '@prisma-next/mongo/config'; // or /postgres/config
+import { defineConfig } from '@internal/mongo/config'; // or /postgres/config
 
 export default defineConfig({
   contract: './src/contract.prisma',
@@ -29,7 +29,7 @@ In both cases the emitter writes `./generated/contract.json` and `./generated/co
 
 The framework-level plumbing (`ContractConfig.output` → `normalizeContractConfig` → `executeContractEmit` → `getEmittedArtifactPaths`) still operates on file paths internally and is unchanged. The wrappers and the CLI operation convert `<dir>` to `<dir>/contract.json` before handing off — the framework boundary is unmoved.
 
-SQLite users today wire `coreDefineConfig` from `@prisma-next/cli/config-types` directly and already pass the output path explicitly as the second argument to `typescriptContract(contract, 'src/prisma/contract.json')`. The ergonomic wrapper at parity with Mongo + Postgres is tracked separately at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo).
+SQLite users today wire `coreDefineConfig` from `@internal/cli/config-types` directly and already pass the output path explicitly as the second argument to `typescriptContract(contract, 'src/prisma/contract.json')`. The ergonomic wrapper at parity with Mongo + Postgres is tracked separately at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo).
 
 ```mermaid
 flowchart LR
@@ -47,14 +47,14 @@ flowchart LR
 
 ## In scope
 
-- A new optional `outputPath?: string` field on the two target `defineConfig` wrappers that currently hard-wire the path: `@prisma-next/mongo/config` and `@prisma-next/postgres/config`. **Directory semantics** — value is the directory the emitter writes into; the emitted filenames are canonical (`contract.json`, `contract.d.ts`). Identical surface across both wrappers.
+- A new optional `outputPath?: string` field on the two target `defineConfig` wrappers that currently hard-wire the path: `@internal/mongo/config` and `@internal/postgres/config`. **Directory semantics** — value is the directory the emitter writes into; the emitted filenames are canonical (`contract.json`, `contract.d.ts`). Identical surface across both wrappers.
 - A new `--output-path <dir>` flag on `prisma-next contract emit`, with the same directory semantics, taking precedence over the config value.
 - A short documentation update covering the new knob, its default, and CLI/config precedence.
 - Test coverage for both wrappers, the CLI flag, the precedence rule, and the "no override → unchanged default behaviour" invariant.
 
 ## Non-goals
 
-- Adding a `@prisma-next/sqlite/config` `defineConfig` wrapper at ergonomic parity. SQLite already supports a custom output path through the framework-level `defineConfig` + `typescriptContract(contract, output)` plumbing; the ergonomic wrapper is tracked at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo).
+- Adding a `@internal/sqlite/config` `defineConfig` wrapper at ergonomic parity. SQLite already supports a custom output path through the framework-level `defineConfig` + `typescriptContract(contract, output)` plumbing; the ergonomic wrapper is tracked at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo).
 - Independent control over `.json` and `.d.ts` paths. The two stay co-located inside the chosen directory, derived by the existing `getEmittedArtifactPaths`.
 - Letting users pick the filename. `contract.json` and `contract.d.ts` are canonical; user-supplied filenames are not supported. The wrapper / CLI surface accepts a directory only.
 - Changes to the contract surface, contract schema, or emitter algorithm. Output *location* only.
@@ -94,8 +94,8 @@ Validation is intentionally minimal: `mkdir -p` of the parent directory (existin
 
 # Functional Requirements
 
-- **FR1.** `@prisma-next/mongo/config`'s `defineConfig({ contract, outputPath?, db, ... })` accepts an optional `outputPath: string` (directory) and converts it internally to `join(outputPath, 'contract.json')` before passing to the framework-level provider. If absent, behaviour is identical to today.
-- **FR2.** `@prisma-next/postgres/config`'s `defineConfig` accepts the same optional `outputPath: string` with identical directory semantics.
+- **FR1.** `@internal/mongo/config`'s `defineConfig({ contract, outputPath?, db, ... })` accepts an optional `outputPath: string` (directory) and converts it internally to `join(outputPath, 'contract.json')` before passing to the framework-level provider. If absent, behaviour is identical to today.
+- **FR2.** `@internal/postgres/config`'s `defineConfig` accepts the same optional `outputPath: string` with identical directory semantics.
 - **FR3.** When `outputPath` is set, the emitter writes `<outputPath>/contract.json` and `<outputPath>/contract.d.ts`. The filenames are canonical; the user controls the directory only.
 - **FR4.** `outputPath`, when relative, resolves against the directory containing `prisma-next.config.ts` for the config-file value, or against the current working directory for the CLI flag value (matching CLI convention for path args).
 - **FR5.** `prisma-next contract emit --output-path <dir>` overrides the config-file value (and any default).
@@ -118,12 +118,12 @@ This work does **not** change the contract surface (`packages/0-shared/contract/
 
 Affects the two first-party target config wrappers that hard-wire the output path today:
 
-- `@prisma-next/mongo` (`packages/3-extensions/mongo/src/config/define-config.ts`)
-- `@prisma-next/postgres` (`packages/3-extensions/postgres/src/config/define-config.ts`)
+- `@internal/mongo` (`packages/3-extensions/mongo/src/config/define-config.ts`)
+- `@internal/postgres` (`packages/3-extensions/postgres/src/config/define-config.ts`)
 
 The framework-level `ContractConfig.output` and the emitter / CLI plumbing are unchanged; only the two existing `defineConfig` wrappers gain the new option, plus the CLI command surface gains the new flag.
 
-`@prisma-next/sqlite` is **not** affected — it has no `defineConfig` wrapper today. SQLite users go through the framework-level `defineConfig` from `@prisma-next/cli/config-types` and already pass an explicit output path. Adding a SQLite wrapper at parity is tracked separately at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo).
+`@internal/sqlite` is **not** affected — it has no `defineConfig` wrapper today. SQLite users go through the framework-level `defineConfig` from `@internal/cli/config-types` and already pass an explicit output path. Adding a SQLite wrapper at parity is tracked separately at [TML-2677](https://linear.app/prisma-company/issue/TML-2677/add-prisma-nextsqliteconfig-defineconfig-wrapper-at-parity-with-mongo).
 
 # ADR pointer
 

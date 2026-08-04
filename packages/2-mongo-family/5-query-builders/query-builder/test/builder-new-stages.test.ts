@@ -21,7 +21,7 @@ import {
   MongoSortStage,
   MongoUnionWithStage,
   MongoVectorSearchStage,
-} from '@prisma-next/mongo-query-ast/execution';
+} from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
 import { mongoQuery } from '../src/query';
 import type { TContract } from './fixtures/test-contract';

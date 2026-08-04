@@ -1,14 +1,14 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { SqlMigrationPlanOperation } from '@prisma-next/family-sql/control';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
-import { Migration as SqlMigration } from '@prisma-next/family-sql/migration';
-import type { ControlStack } from '@prisma-next/framework-components/control';
-import { MigrationContractViews } from '@prisma-next/migration-tools/migration';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { DdlColumn, DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
+import type { Contract } from '@internal/contract/types';
+import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import { Migration as SqlMigration } from '@internal/family-sql/migration';
+import type { ControlStack } from '@internal/framework-components/control';
+import { MigrationContractViews } from '@internal/migration-tools/migration';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import { errorPostgresMigrationStackMissing } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
-import { PostgresRlsPolicy, type PostgresRlsPolicyMigrationInput } from '../postgres-rls-policy';
+import { PostgresRlsPolicy, type RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
@@ -54,9 +54,9 @@ import type { PostgresPlanTargetDetails } from './planner-target-details';
  * `renderCallsToTypeScript`) can extend `PostgresMigration` directly without
  * redeclaring target-local identity.
  *
- * Mirrors `MongoMigration` in `@prisma-next/family-mongo`: the renderer
+ * Mirrors `MongoMigration` in `@internal/family-mongo`: the renderer
  * emits `extends Migration` against a facade re-export of this class
- * from `@prisma-next/postgres/migration`, keeping the authoring surface
+ * from `@internal/postgres/migration`, keeping the authoring surface
  * target-scoped rather than family-scoped.
  *
  * The constructor materializes a single Postgres `SqlControlAdapter` from
@@ -466,20 +466,15 @@ export abstract class PostgresMigration<
   protected createRlsPolicy(options: {
     readonly schema: string;
     readonly table: string;
-    readonly policy: PostgresRlsPolicyMigrationInput;
+    readonly policy: RenderedRlsPolicyLiteral;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    // The migration input is the flat spelling of the constructor input
-    // (optional keys for absence-legal fields), so defaults-then-spread is
-    // the whole adaptation: omitted keys land as explicit undefined, and a
-    // new field flows through without a hand-written copy.
     return new CreatePostgresRlsPolicyCall(
       options.schema,
       options.table,
       new PostgresRlsPolicy({
-        prefix: undefined,
-        using: undefined,
-        withCheck: undefined,
         ...options.policy,
+        using: options.policy.using,
+        withCheck: options.policy.withCheck,
       }),
     ).toOp(this.controlAdapterFor('createRlsPolicy'));
   }

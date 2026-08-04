@@ -1,5 +1,5 @@
-import { defineAnnotation } from '@prisma-next/framework-components/runtime';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import { defineAnnotation } from '@internal/framework-components/runtime';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { describe, expectTypeOf, test } from 'vitest';
 import { db } from './preamble';
 

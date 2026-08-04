@@ -9,7 +9,7 @@
 
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { timeouts } from '@prisma-next/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import { runContractEmitWithConfig, setupJourney } from '../utils/journey-test-helpers';
@@ -71,10 +71,10 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(
           emptyConfigPath,
           `
-import { defineConfig } from '@prisma-next/cli/config-types';
-import sql from '@prisma-next/family-sql/control';
-import postgres from '@prisma-next/target-postgres/control';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
+import { defineConfig } from '@prisma/orm-toolchain/cli/config-types';
+import sql from '@prisma/orm-postgres/family/control';
+import postgres from '@prisma/orm-postgres/target/control';
+import postgresAdapter from '@prisma/orm-postgres/adapter/control';
 
 export default defineConfig({
   family: sql,

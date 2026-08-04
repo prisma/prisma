@@ -1,9 +1,9 @@
-import type { ContractSourceContext } from '@prisma-next/config/config-types';
-import { loadConfig, type PrismaNextConfig } from '@prisma-next/config-loader';
-import type { ControlStack } from '@prisma-next/framework-components/control';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import type { FormatOptions } from '@prisma-next/psl-parser/format';
-import { hasPslInterpreter, type PslInterpretCapable } from '@prisma-next/psl-parser/interpret';
+import type { ContractSourceContext } from '@internal/config/config-types';
+import { loadConfig, type PrismaNextConfig } from '@internal/config-loader';
+import type { ControlStack } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
+import type { FormatOptions } from '@internal/psl-parser/format';
+import { hasPslInterpreter, type PslInterpretCapable } from '@internal/psl-parser/interpret';
 import type { PipelineInputs } from './pipeline';
 import { hasPslInputs, resolveSchemaInputs, type SchemaInputSet } from './schema-inputs';
 

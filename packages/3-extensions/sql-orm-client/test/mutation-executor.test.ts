@@ -1,10 +1,10 @@
-import { SqlQueryError, UNIQUE_VIOLATION_SQLSTATE } from '@prisma-next/sql-errors';
+import { SqlQueryError, UNIQUE_VIOLATION_SQLSTATE } from '@internal/sql-errors';
 import {
   type AnyExpression,
   BinaryExpr,
   ColumnRef,
   LiteralExpr,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it, vi } from 'vitest';
 import {
   assertJunctionParentMetadataLength,

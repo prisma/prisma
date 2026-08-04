@@ -61,20 +61,20 @@ This keeps fixture data colocated with the runner while still using the existing
 Run only this suite:
 
 ```bash
-pnpm --filter @prisma-next/integration-tests exec vitest run test/authoring/cli.emit-parity-fixtures.test.ts
+pnpm --filter integration-tests exec vitest run test/authoring/cli.emit-parity-fixtures.test.ts
 ```
 
 Run parity suite and existing emit regression:
 
 ```bash
-pnpm --filter @prisma-next/integration-tests exec vitest run test/authoring/cli.emit-parity-fixtures.test.ts
-pnpm --filter @prisma-next/integration-tests exec vitest run test/cli.emit-command.test.ts
+pnpm --filter integration-tests exec vitest run test/authoring/cli.emit-parity-fixtures.test.ts
+pnpm --filter integration-tests exec vitest run test/cli.emit-command.test.ts
 ```
 
 Run only the side-by-side examples suite:
 
 ```bash
-pnpm --filter @prisma-next/integration-tests exec vitest run test/authoring/side-by-side-contracts.test.ts
+pnpm --filter integration-tests exec vitest run test/authoring/side-by-side-contracts.test.ts
 ```
 
 Regenerate every authoring fixture (parity `expected.contract.json` and
@@ -83,20 +83,20 @@ repo-wide `pnpm fixtures:emit`, so the snapshots stay in sync with the
 package's other emitted fixtures:
 
 ```bash
-pnpm --filter @prisma-next/integration-tests run emit:authoring
+pnpm --filter integration-tests run emit:authoring
 ```
 
 The targeted env-var invocations remain available for regenerating a
 single suite. Update expected snapshots for parity cases:
 
 ```bash
-UPDATE_AUTHORING_PARITY_EXPECTED=1 pnpm --filter @prisma-next/integration-tests exec vitest run test/authoring/cli.emit-parity-fixtures.test.ts
+UPDATE_AUTHORING_PARITY_EXPECTED=1 pnpm --filter integration-tests exec vitest run test/authoring/cli.emit-parity-fixtures.test.ts
 ```
 
 Update the committed side-by-side `contract.json` snapshots:
 
 ```bash
-UPDATE_SIDE_BY_SIDE_CONTRACTS=1 pnpm --filter @prisma-next/integration-tests exec vitest run test/authoring/side-by-side-contracts.test.ts
+UPDATE_SIDE_BY_SIDE_CONTRACTS=1 pnpm --filter integration-tests exec vitest run test/authoring/side-by-side-contracts.test.ts
 ```
 
 Both env-var routes write the raw emitter output; run `biome format

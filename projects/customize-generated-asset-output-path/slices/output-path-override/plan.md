@@ -25,8 +25,8 @@ Originally planned as three sequential dispatches; a fourth PR-review-response r
 **"Done when":**
 
 - [ ] Tests added before implementation changes (golden rule).
-- [ ] `pnpm test:packages -- @prisma-next/mongo` passes.
-- [ ] `pnpm test:packages -- @prisma-next/postgres` passes.
+- [ ] `pnpm test:packages -- @internal/mongo` passes.
+- [ ] `pnpm test:packages -- @internal/postgres` passes.
 - [ ] `pnpm typecheck` clean (workspace-wide; the wrapper option types change is a public surface).
 - [ ] `pnpm lint:deps` clean.
 - [ ] No `any`, no `@ts-expect-error`, no biome suppressions.
@@ -65,7 +65,7 @@ Originally planned as three sequential dispatches; a fourth PR-review-response r
 **"Done when":**
 
 - [ ] Tests added before implementation changes.
-- [ ] `pnpm test:packages -- @prisma-next/cli` passes (or whichever scope covers the CLI command + operation).
+- [ ] `pnpm test:packages -- @internal/cli` passes (or whichever scope covers the CLI command + operation).
 - [ ] `pnpm test:packages` passes globally.
 - [ ] `pnpm typecheck` clean.
 - [ ] `pnpm lint:deps` clean.

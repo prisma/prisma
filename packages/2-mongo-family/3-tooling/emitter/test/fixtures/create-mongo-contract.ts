@@ -4,9 +4,9 @@ import {
   type ContractValueObject,
   coreHash,
   UNBOUND_DOMAIN_NAMESPACE_ID,
-} from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { applicationDomainOf } from '@repo/test-utils';
 
 export function namespacedMongoStorageFromCollections(
   collections: Record<string, unknown>,

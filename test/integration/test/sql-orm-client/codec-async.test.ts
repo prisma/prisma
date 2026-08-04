@@ -1,7 +1,7 @@
 /**
  * End-to-end ORM-client coverage for the async-codec read/write boundary.
  *
- * `Post.embedding` flows through the `pg/vector@1` codec from `@prisma-next/extension-pgvector`. The pgvector codec's `encode` and `decode` are authored synchronously, but the codec base in `framework-components` lifts them to Promise-returning at the boundary, so this column exercises the runtime's async dispatch path on every read and write.
+ * `Post.embedding` flows through the `pg/vector@1` codec from `@internal/extension-pgvector`. The pgvector codec's `encode` and `decode` are authored synchronously, but the codec base in `framework-components` lifts them to Promise-returning at the boundary, so this column exercises the runtime's async dispatch path on every read and write.
  *
  * `User.address` flows through `pg/jsonb@1` (a built-in `adapter-postgres` codec, also lifted to async by the same boundary) backed by the `Address` value object. Adding a second codec with a different wire shape gives us "mixed sync/async codec columns" in a single integration run.
  *

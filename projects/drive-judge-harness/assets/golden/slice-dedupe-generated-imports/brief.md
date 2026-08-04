@@ -5,14 +5,14 @@ per imported symbol — instead of aggregating the symbols from a module onto a 
 statement. This was noticed in the output of `prisma-next contract emit`, for example:
 
 ```ts
-import type { CodecTypes as MongoCodecTypes } from '@prisma-next/adapter-mongo/codec-types';
-import type { Vector } from '@prisma-next/adapter-mongo/codec-types';
+import type { CodecTypes as MongoCodecTypes } from '@internal/adapter-mongo/codec-types';
+import type { Vector } from '@internal/adapter-mongo/codec-types';
 ```
 
 These repeated imports should be deduped, so each module is imported once:
 
 ```ts
-import type { CodecTypes as MongoCodecTypes, Vector } from '@prisma-next/adapter-mongo/codec-types';
+import type { CodecTypes as MongoCodecTypes, Vector } from '@internal/adapter-mongo/codec-types';
 ```
 
 Requirements:

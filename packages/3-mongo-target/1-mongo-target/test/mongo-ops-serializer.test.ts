@@ -12,8 +12,8 @@ import {
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
   MongoOrExpr,
-} from '@prisma-next/mongo-query-ast/control';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/mongo-query-ast/control';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { deserializeMongoOps, serializeMongoOps } from '../src/core/mongo-ops-serializer';
 

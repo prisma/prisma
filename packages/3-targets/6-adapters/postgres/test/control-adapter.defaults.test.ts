@@ -1,6 +1,6 @@
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
-import { parsePostgresDefault } from '@prisma-next/target-postgres/default-normalizer';
-import { timeouts } from '@prisma-next/test-utils';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
+import { parsePostgresDefault } from '@internal/target-postgres/default-normalizer';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../src/core/control-adapter';
@@ -515,28 +515,28 @@ describe('parsePostgresDefault parses JSON literals for json/jsonb columns', () 
 });
 
 describe('parsePostgresDefault handles bigint defaults', () => {
-  it('parses bare safe integer for int8 as number', () => {
+  it('parses a bare integer for int8 as decimal text', () => {
     expect(parsePostgresDefault('42', 'int8')).toEqual({
       kind: 'literal',
-      value: 42,
+      value: '42',
     });
   });
 
-  it('parses bare unsafe integer for int8 as string', () => {
+  it('parses a bare integer past the safe range for int8 as decimal text', () => {
     expect(parsePostgresDefault('9999999999999999999', 'bigint')).toEqual({
       kind: 'literal',
       value: '9999999999999999999',
     });
   });
 
-  it('parses quoted safe integer for int8 as number', () => {
+  it('parses a quoted integer for int8 as decimal text', () => {
     expect(parsePostgresDefault("'42'::bigint", 'bigint')).toEqual({
       kind: 'literal',
-      value: 42,
+      value: '42',
     });
   });
 
-  it('parses quoted unsafe integer for int8 as string', () => {
+  it('parses a quoted integer past the safe range for int8 as decimal text', () => {
     expect(parsePostgresDefault("'9999999999999999999'::bigint", 'int8')).toEqual({
       kind: 'literal',
       value: '9999999999999999999',

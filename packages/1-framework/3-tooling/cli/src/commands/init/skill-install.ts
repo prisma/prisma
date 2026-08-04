@@ -11,7 +11,7 @@ const exec = promisify(execFile);
  * upstream `skills add`. Each `SkillSource` joins this base with its
  * own subpath (and optional `#ref` for version-pinned clusters).
  */
-export const DEFAULT_SKILL_BASE = 'prisma/prisma-next';
+export const DEFAULT_SKILL_BASE = 'prisma/prisma';
 
 /**
  * One skill install inside the Prisma Next monorepo. The CLI emits
@@ -25,7 +25,7 @@ export const DEFAULT_SKILL_BASE = 'prisma/prisma-next';
  * - `cli`: pin to the CLI's own package version (lockstep with the
  *   skills' SPI). Used for the consolidated usage skill
  *   (`skills/prisma-next`), which describes the public package API
- *   and is pinned to the version of `@prisma-next/*` currently
+ *   and is pinned to the version of `@internal/*` currently
  *   installed in the consumer's project.
  * - `null`: no ref. The skill is "always-latest" — the cumulative
  *   instruction set is the source of truth, and the latest revision
@@ -54,7 +54,7 @@ export const DEFAULT_SKILL_SOURCES: readonly SkillSource[] = [
   },
   {
     subpath: 'skills',
-    skill: 'prisma-next-extension-upgrade',
+    skill: 'prisma-8-extension-upgrade',
     ref: null,
     description: 'extension-author upgrade skill (always tracks `main`)',
   },
@@ -252,23 +252,28 @@ export function redactSecrets(stderr: string): string {
 export const LEGACY_SKILL_FILE = '.agents/skills/prisma-next/SKILL.md';
 
 /**
- * Per-workflow skills that predate the consolidated `prisma-next`
- * skill. Projects initialised before the consolidation carry these as
- * sibling directories next to `prisma-next` in each agent's install
- * root; left in place they compete with the consolidated skill for
- * activation, so init removes them on every run.
+ * Skill directories that predate the consolidated `prisma-next`
+ * skill: the per-workflow usage cluster (including the renamed
+ * `prisma-8-migration-review` spelling it briefly shipped under) and
+ * the pre-rename spelling of the extension-author upgrade skill.
+ * Projects initialised before the consolidation carry these as
+ * sibling directories in each agent's install root; left in place
+ * they compete with the current skills for activation, so init
+ * removes them on every run.
  */
 export const RETIRED_SKILL_NAMES = [
   'prisma-next-quickstart',
   'prisma-next-contract',
   'prisma-next-migrations',
   'prisma-next-migration-review',
+  'prisma-8-migration-review',
   'prisma-next-queries',
   'prisma-next-runtime',
   'prisma-next-build',
   'prisma-next-supabase',
   'prisma-next-debug',
   'prisma-next-feedback',
+  'prisma-next-extension-upgrade',
 ] as const;
 
 /**

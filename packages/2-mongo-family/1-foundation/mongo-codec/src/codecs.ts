@@ -1,16 +1,16 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import type {
   Codec as BaseCodec,
   CodecCallContext,
   CodecTrait,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 
 export type MongoCodecTrait = CodecTrait;
 
 /**
  * A codec for the Mongo target. Translates between an application value and the BSON-shaped wire form the Mongo driver exchanges, and between an application value and the JSON form stored in contract artifacts.
  *
- * Same shape as the framework codec base — see `Codec` in `@prisma-next/framework-components/codec` for the contract. Codec-id-keyed static metadata (`traits`, `targetTypes`, `renderOutputType`) lives on the unified {@link import('@prisma-next/framework-components/codec').CodecDescriptor}; Mongo's full migration to descriptor-side registration is tracked under TML-2324.
+ * Same shape as the framework codec base — see `Codec` in `@internal/framework-components/codec` for the contract. Codec-id-keyed static metadata (`traits`, `targetTypes`, `renderOutputType`) lives on the unified {@link import('@internal/framework-components/codec').CodecDescriptor}; Mongo's full migration to descriptor-side registration is tracked under TML-2324.
  */
 export interface MongoCodec<
   Id extends string = string,

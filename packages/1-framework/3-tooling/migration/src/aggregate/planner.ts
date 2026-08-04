@@ -1,4 +1,4 @@
-import { notOk, ok } from '@prisma-next/utils/result';
+import { notOk, ok } from '@internal/utils/result';
 import { requireHeadRef } from './aggregate';
 import { allStorageElementsExternal } from './all-external';
 import { buildFabricatedMigrationEdge } from './fabricated-migration-edge';

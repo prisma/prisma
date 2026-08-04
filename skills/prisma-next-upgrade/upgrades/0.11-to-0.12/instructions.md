@@ -143,11 +143,11 @@ The runtime now does not crash on drift — it emits one structured log line per
 
 ### Type-level change
 
-The `RuntimeVerifyOptions` type is removed from `@prisma-next/sql-runtime` exports; replaced by `VerifyMarkerOption = 'onFirstUse' | false`. Any consumer code that imports `RuntimeVerifyOptions` will fail to compile after the bump.
+The `RuntimeVerifyOptions` type is removed from `@internal/sql-runtime` exports; replaced by `VerifyMarkerOption = 'onFirstUse' | false`. Any consumer code that imports `RuntimeVerifyOptions` will fail to compile after the bump.
 
 ```diff
--import type { RuntimeVerifyOptions } from '@prisma-next/sql-runtime';
-+import type { VerifyMarkerOption } from '@prisma-next/sql-runtime';
+-import type { RuntimeVerifyOptions } from '@internal/sql-runtime';
++import type { VerifyMarkerOption } from '@internal/sql-runtime';
 ```
 
 ### Validation
@@ -166,8 +166,8 @@ Two consumer-visible consequences:
 ### Before 0.12
 
 ```ts
-import { defineContract } from '@prisma-next/postgres/contract-builder';
-import { pgvector } from '@prisma-next/pgvector';
+import { defineContract } from '@internal/postgres/contract-builder';
+import { pgvector } from '@internal/pgvector';
 
 export const contract = defineContract(
   {
@@ -190,8 +190,8 @@ export const contract = defineContract(
 ### Starting at 0.12
 
 ```ts
-import { defineContract } from '@prisma-next/postgres/contract-builder';
-import { pgvector } from '@prisma-next/pgvector';
+import { defineContract } from '@internal/postgres/contract-builder';
+import { pgvector } from '@internal/pgvector';
 
 export const contract = defineContract(
   {
@@ -378,4 +378,4 @@ Re-emit (`pnpm emit` / `prisma-next contract emit`) is **not** required solely f
 
 ### Emitted types note
 
-If you maintain hand-written code against generated `contract.d.ts`, replace any use of removed `ContractModelsMap<Contract>` with the emitted `Models` export or `ContractModelDefinitions<YourContract>` from `@prisma-next/contract/types`. That removal affects extension authors directly; application projects that only import the generated `Models` alias pick up the new shape on re-emit.
+If you maintain hand-written code against generated `contract.d.ts`, replace any use of removed `ContractModelsMap<Contract>` with the emitted `Models` export or `ContractModelDefinitions<YourContract>` from `@internal/contract/types`. That removal affects extension authors directly; application projects that only import the generated `Models` alias pick up the new shape on re-emit.

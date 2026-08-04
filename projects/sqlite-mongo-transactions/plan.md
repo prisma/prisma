@@ -20,7 +20,7 @@ The public API should feel consistent across Postgres, SQLite, and MongoDB, but 
 **Scope.**
 
 - `packages/3-extensions/sqlite/src/runtime/sqlite.ts`
-  - Import `TransactionContext` and `withTransaction` from `@prisma-next/sql-runtime`.
+  - Import `TransactionContext` and `withTransaction` from `@internal/sql-runtime`.
   - Add `SqliteTransactionContext<TContract>` extending `TransactionContext`.
   - Add `transaction<R>(...)` to `SqliteClient<TContract>`.
   - Implement `transaction(...)` by calling `withTransaction(getRuntime(), ...)`.
@@ -47,7 +47,7 @@ The public API should feel consistent across Postgres, SQLite, and MongoDB, but 
 
 **Likely validation.**
 
-- `pnpm --filter @prisma-next/sqlite test`
+- `pnpm --filter @internal/sqlite test`
 - relevant SQLite e2e/integration command used by the repo for `test/e2e/framework/test/sqlite/**`
 - package typecheck if tests do not include type tests automatically
 

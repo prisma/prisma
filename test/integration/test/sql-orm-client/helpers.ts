@@ -1,21 +1,21 @@
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
 import {
   domainModelsAtDefaultNamespace,
   type Contract as FrameworkContract,
-} from '@prisma-next/contract/types';
-import pgvectorRuntime from '@prisma-next/extension-pgvector/runtime';
-import { PostgresContractSerializer } from '@prisma-next/target-postgres/runtime';
+} from '@internal/contract/types';
+import pgvectorRuntime from '@internal/extension-pgvector/runtime';
+import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 
 const POSTGRES_DEFAULT_NAMESPACE_ID = 'public' as const;
 
-import { AsyncIterableResult } from '@prisma-next/framework-components/runtime';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { RuntimeQueryable } from '@prisma-next/sql-orm-client';
-import type { SelectAst } from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import { createExecutionContext, createSqlExecutionStack } from '@prisma-next/sql-runtime';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { RuntimeQueryable } from '@internal/sql-orm-client';
+import type { SelectAst } from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
+import postgresTarget from '@internal/target-postgres/runtime';
 import type { Contract as ExecutionDefaultedTagsContract } from './fixtures/execution-defaulted-tags/generated/contract';
 import executionDefaultedTagsContractJson from './fixtures/execution-defaulted-tags/generated/contract.json' with {
   type: 'json',

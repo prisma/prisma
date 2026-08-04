@@ -1,4 +1,4 @@
-import { and } from '@prisma-next/sql-orm-client';
+import { and } from '@internal/sql-orm-client';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../../../_harness/postgres';
 import type { Contract } from './_fixture/generated/contract';
@@ -17,11 +17,6 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //   → include('upVotedUsers', rel => rel.count())
 //     .include('downVotedUsers', rel => rel.count())
 //   Assertion: [{ id: '1', upVotedUsers: 1, downVotedUsers: 1 }]
-//   Status: it.fails — N:M scalar include (count()) does not route through the
-//   junction; the scalar include path uses include.targetColumn directly on the
-//   child table (buildIncludeChildScalarSelect) and ignores the `through`
-//   descriptor, emitting "user.commentId = comment.id" instead of joining
-//   through upVote. Failing line: the `.all()` call throws SqlQueryError.
 //
 // Upstream test 2: aggregate with where: { AND: [downVotedUsers.every, upVotedUsers.every] }, _count: true
 //   → where((c) => and(c.downVotedUsers.every(...), c.upVotedUsers.every(...)))
@@ -33,7 +28,7 @@ function withIssue11974(fn: Parameters<typeof withPostgresPort<Contract>>[1]) {
 }
 
 describe('ports/prisma/functional/issues-11974', () => {
-  it.fails(
+  it(
     'should not throw an error when counting two relation fields using find',
     () =>
       withIssue11974(async ({ db }) => {
@@ -43,8 +38,6 @@ describe('ports/prisma/functional/issues-11974', () => {
         await db.public.DownVote.create({ commentId: '1', userId: '2' });
         await db.public.UpVote.create({ commentId: '1', userId: '3' });
 
-        // Failing line: N:M include count() hits the scalar-include path which
-        // does not route through the junction table, emitting an invalid column ref.
         const response = await db.public.Comment.include('upVotedUsers', (rel) => rel.count())
           .include('downVotedUsers', (rel) => rel.count())
           .select('id')

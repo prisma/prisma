@@ -1,8 +1,8 @@
-import type { JsonValue } from '@prisma-next/contract/types';
-import type { AnyCodecDescriptor } from '@prisma-next/framework-components/codec';
-import { voidParamsSchema } from '@prisma-next/framework-components/codec';
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
-import type { RuntimeExtensionDescriptor } from '@prisma-next/framework-components/execution';
+import type { JsonValue } from '@internal/contract/types';
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
+import { voidParamsSchema } from '@internal/framework-components/codec';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
+import type { RuntimeExtensionDescriptor } from '@internal/framework-components/execution';
 import {
   BinaryExpr,
   CodecJsonValueProjection,
@@ -14,15 +14,15 @@ import {
   ProjectionItem,
   SelectAst,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import {
   type AnyPostgresCodecDescriptor,
   postgresCodec,
-} from '@prisma-next/target-postgres/codec-descriptor';
-import { postgresCodecDescriptorRegistry } from '@prisma-next/target-postgres/codecs';
-import postgresTargetControlDescriptor from '@prisma-next/target-postgres/control';
-import postgresRuntimeTargetDescriptor from '@prisma-next/target-postgres/runtime';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/codec-descriptor';
+import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
+import postgresTargetControlDescriptor from '@internal/target-postgres/control';
+import postgresRuntimeTargetDescriptor from '@internal/target-postgres/runtime';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createPostgresAdapter } from '../src/core/adapter';
@@ -337,7 +337,7 @@ describe('PostgreSQL adapter codec registry composition', () => {
     ).toThrow(/Duplicate codec descriptor.*pg\/text@1/);
   });
 
-  it('keeps descriptor JSON projection hooks dormant and preserves JSON SQL', () => {
+  it('asks a composed descriptor how to project every JSON entry it owns', () => {
     let projectionCalls = 0;
     const descriptor = postgresDescriptor('app/json-hook@1', 'jsonb', () => {
       projectionCalls += 1;
@@ -362,10 +362,14 @@ describe('PostgreSQL adapter codec registry composition', () => {
     const runtime = runtimeAdapter.lower(ast, { contract });
     const control = controlAdapter.lower(ast, { contract });
 
+    // This descriptor's projection is the identity, so the SQL is unchanged —
+    // which is the point: a codec whose canonical JSON is its stored form
+    // renders as itself, and the renderer still had to ask to find that out.
+    // The call count is what says it asked, once per entry, on both paths.
     expect(runtime.sql).toBe(
       `SELECT json_build_object('value', "records"."document") AS "object", json_agg("records"."document") AS "array" FROM "records"`,
     );
     expect(control).toEqual(runtime);
-    expect(projectionCalls).toBe(0);
+    expect(projectionCalls).toBe(4);
   });
 });

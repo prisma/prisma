@@ -1,7 +1,7 @@
 import type {
   PslNamedTypeDeclaration,
   PslTypeConstructorCall,
-} from '@prisma-next/framework-components/psl-ast';
+} from '@internal/framework-components/psl-ast';
 import { expectTypeOf, test } from 'vitest';
 
 const malformedDeclaration: PslNamedTypeDeclaration = {

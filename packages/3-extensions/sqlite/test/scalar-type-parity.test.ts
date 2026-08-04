@@ -1,16 +1,16 @@
-import sqliteAdapter from '@prisma-next/adapter-sqlite/control';
-import sqliteDriver from '@prisma-next/driver-sqlite/control';
-import sql from '@prisma-next/family-sql/control';
+import sqliteAdapter from '@internal/adapter-sqlite/control';
+import sqliteDriver from '@internal/driver-sqlite/control';
+import sql from '@internal/family-sql/control';
 import {
   collectScalarTypeConstructors,
   type ScalarTypeConstructorOutput,
-} from '@prisma-next/framework-components/authoring';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import sqlite, { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import sqlitePackRef from '@prisma-next/target-sqlite/pack';
+} from '@internal/framework-components/authoring';
+import { createControlStack } from '@internal/framework-components/control';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import sqlite, { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import sqlitePackRef from '@internal/target-sqlite/pack';
 import { describe, expect, it } from 'vitest';
 
 const stack = createControlStack({

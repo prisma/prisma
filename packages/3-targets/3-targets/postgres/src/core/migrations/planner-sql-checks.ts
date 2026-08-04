@@ -1,5 +1,5 @@
-import type { CodecControlHooks } from '@prisma-next/family-sql/control';
-import type { StorageColumn, StorageTypeInstance } from '@prisma-next/sql-contract/types';
+import type { CodecControlHooks } from '@internal/family-sql/control';
+import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import { postgresCreateNamespace } from '../postgres-schema';
 import { quoteIdentifier } from '../sql-utils';
 import { resolveColumnTypeMetadata } from './planner-type-resolution';

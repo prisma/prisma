@@ -1,4 +1,4 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   MongoCollection,
   type MongoCollectionOptions,
@@ -8,7 +8,7 @@ import {
   type MongoIndexInput,
   type MongoValidator,
   type MongoValidatorInput,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import { describe, expect, it } from 'vitest';
 import { contractToMongoSchemaIR } from '../src/core/contract-to-schema';
 

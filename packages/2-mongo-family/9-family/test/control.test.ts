@@ -1,12 +1,12 @@
-import { createControlStack, hasSchemaView } from '@prisma-next/framework-components/control';
+import { createControlStack, hasSchemaView } from '@internal/framework-components/control';
 import {
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
   MongoSchemaIR,
   MongoSchemaValidator,
-} from '@prisma-next/mongo-schema-ir';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/mongo-schema-ir';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import type {
   MongoControlAdapter,

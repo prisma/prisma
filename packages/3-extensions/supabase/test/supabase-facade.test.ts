@@ -1,7 +1,7 @@
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import { SelectAst, TableSource } from '@prisma-next/sql-relational-core/ast';
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
-import { createContract } from '@prisma-next/test-utils';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import { SelectAst, TableSource } from '@internal/sql-relational-core/ast';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { createContract } from '@repo/test-utils';
 import { SignJWT } from 'jose';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -25,7 +25,7 @@ vi.mock('pg', () => {
   return { Pool, Client };
 });
 
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { Pool } from 'pg';
 import supabase from '../src/runtime/supabase';
 

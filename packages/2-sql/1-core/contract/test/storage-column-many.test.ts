@@ -1,5 +1,5 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { createContract } from '@prisma-next/test-utils';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { col, table } from '../src/factories';
 import { StorageColumn } from '../src/ir/storage-column';

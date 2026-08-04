@@ -1,8 +1,8 @@
-import { loadConfig } from '@prisma-next/config-loader';
-import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
-import type { CoreSchemaView } from '@prisma-next/framework-components/control';
-import type { PslDocumentAst } from '@prisma-next/framework-components/psl-ast';
-import { notOk, ok, type Result } from '@prisma-next/utils/result';
+import { loadConfig } from '@internal/config-loader';
+import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type { CoreSchemaView } from '@internal/framework-components/control';
+import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
+import { notOk, ok, type Result } from '@internal/utils/result';
 import { relative, resolve } from 'pathe';
 import { createControlClient } from '../control-api/client';
 import {

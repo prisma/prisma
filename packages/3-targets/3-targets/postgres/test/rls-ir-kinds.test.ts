@@ -1,9 +1,14 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { StorageTable } from '@prisma-next/sql-contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';
 import { PostgresSchema } from '../src/core/postgres-schema';
+import { policyInputFromSerialized } from '../src/core/serialized-rls-policy';
+
+function policyOf(flat: Parameters<typeof policyInputFromSerialized>[0]): PostgresRlsPolicy {
+  return new PostgresRlsPolicy(policyInputFromSerialized(flat));
+}
 
 const emptyTableInput = {
   columns: {},
@@ -63,7 +68,7 @@ describe('PostgresRlsPolicy', () => {
   };
 
   it('constructs with all fields', () => {
-    const policy = new PostgresRlsPolicy(policyInput);
+    const policy = policyOf(policyInput);
     expect(policy.kind).toBe('policy');
     expect(policy.name).toBe('user_select_a1b2c3d4');
     expect(policy.prefix).toBe('user_select');
@@ -75,13 +80,13 @@ describe('PostgresRlsPolicy', () => {
   });
 
   it('omits withCheck when not provided', () => {
-    const policy = new PostgresRlsPolicy(policyInput);
+    const policy = policyOf(policyInput);
     expect(Object.hasOwn(policy, 'withCheck')).toBe(false);
     expect('withCheck' in JSON.parse(JSON.stringify(policy))).toBe(false);
   });
 
   it('omits using when not provided', () => {
-    const policy = new PostgresRlsPolicy({
+    const policy = policyOf({
       name: 'user_insert_a1b2c3d4',
       prefix: 'user_insert',
       tableName: 'user',
@@ -96,12 +101,12 @@ describe('PostgresRlsPolicy', () => {
   });
 
   it('freezes the roles array', () => {
-    const policy = new PostgresRlsPolicy(policyInput);
+    const policy = policyOf(policyInput);
     expect(Object.isFrozen(policy.roles)).toBe(true);
   });
 
   it('is frozen — mutation throws in strict mode', () => {
-    const policy = new PostgresRlsPolicy(policyInput);
+    const policy = policyOf(policyInput);
     expect(Object.isFrozen(policy)).toBe(true);
     expect(() => {
       (policy as { name: string }).name = 'mutated';
@@ -109,7 +114,7 @@ describe('PostgresRlsPolicy', () => {
   });
 
   it('kind is enumerable and survives JSON round-trip', () => {
-    const policy = new PostgresRlsPolicy(policyInput);
+    const policy = policyOf(policyInput);
     const json = JSON.parse(JSON.stringify(policy)) as Record<string, unknown>;
     expect(json['kind']).toBe('policy');
     expect(json['name']).toBe('user_select_a1b2c3d4');
@@ -120,7 +125,7 @@ describe('PostgresRlsPolicy', () => {
 
   it('does not share roles array reference with input', () => {
     const roles = ['authenticated', 'anon'];
-    const policy = new PostgresRlsPolicy({ ...policyInput, roles });
+    const policy = policyOf({ ...policyInput, roles });
     expect(policy.roles).not.toBe(roles);
   });
 });

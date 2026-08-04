@@ -19,6 +19,18 @@
 const REPUBLISH_BLOCKED_MESSAGE = /You cannot publish over the previously published versions/;
 
 /**
+ * Sigstore transparency-log conflict during a provenance publish
+ * (`TLOG_CREATE_ENTRY_ERROR`, HTTP 409 "an equivalent entry already
+ * exists"). This is NOT a success: the log has the entry but the
+ * version may never have reached the registry (observed live — the
+ * 409 fired and the version was absent afterwards). It is a transient
+ * race worth one retry; on the retry the registry either accepts the
+ * publish or answers with the republish-blocked message above, and
+ * that result is the truth.
+ */
+const TLOG_CONFLICT_MESSAGE = /TLOG_CREATE_ENTRY_ERROR|creating tlog entry - \(409\)/;
+
+/**
  * Decide whether a `pnpm publish` invocation should count as a success.
  *
  * A non-zero exit with npm's "cannot publish over previously published
@@ -35,10 +47,13 @@ const REPUBLISH_BLOCKED_MESSAGE = /You cannot publish over the previously publis
  */
 export function classifyPublishResult({ code, output }) {
   if (code === 0) {
-    return { ok: true, alreadyPublished: false };
+    return { ok: true, alreadyPublished: false, retryable: false };
   }
   if (REPUBLISH_BLOCKED_MESSAGE.test(output)) {
-    return { ok: true, alreadyPublished: true };
+    return { ok: true, alreadyPublished: true, retryable: false };
   }
-  return { ok: false, alreadyPublished: false };
+  if (TLOG_CONFLICT_MESSAGE.test(output)) {
+    return { ok: false, alreadyPublished: false, retryable: true };
+  }
+  return { ok: false, alreadyPublished: false, retryable: false };
 }

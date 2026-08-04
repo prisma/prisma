@@ -1,6 +1,6 @@
-import type { CodecRef } from '@prisma-next/framework-components/codec';
-import { createSqlOperationRegistry } from '@prisma-next/sql-operations';
-import { OperationExpr, ParamRef } from '@prisma-next/sql-relational-core/ast';
+import type { CodecRef } from '@internal/framework-components/codec';
+import { createSqlOperationRegistry } from '@internal/sql-operations';
+import { OperationExpr, ParamRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import pgvectorDescriptor from '../src/exports/runtime';
 

@@ -18,7 +18,7 @@ The engine currently does one pass over positional args, one over named args, th
 - Delete the now-dead `positionalParsed`/`namedParsed`/`resolveKey` machinery. The behaviour (codes, spans, the set of diagnostics for each error path) must stay within the parity bar; keep all engine + relation tests green.
 
 ### T2 — Reuse shared type helpers (`types.ts:8,10`)
-`Simplify` and `UnionToIntersection` are redefined locally but exist in ~7 places across the repo with no canonical home. **Centralize** them in `@prisma-next/utils` (psl-parser already depends on it — add a small `types` module/export there, e.g. `@prisma-next/utils/types`) and import them in `attribute-spec/types.ts`; do not keep the local redefinitions. Scope: just centralize + import here — do NOT migrate the other 6 copies (out of scope; note as a possible future cleanup). If `@prisma-next/utils` is the wrong home per `lint:deps` layering, surface the finding rather than forcing a bad dependency.
+`Simplify` and `UnionToIntersection` are redefined locally but exist in ~7 places across the repo with no canonical home. **Centralize** them in `@internal/utils` (psl-parser already depends on it — add a small `types` module/export there, e.g. `@internal/utils/types`) and import them in `attribute-spec/types.ts`; do not keep the local redefinitions. Scope: just centralize + import here — do NOT migrate the other 6 copies (out of scope; note as a possible future cleanup). If `@internal/utils` is the wrong home per `lint:deps` layering, surface the finding rather than forcing a bad dependency.
 
 ### T3 — Remove variadic positional support (`types.ts:85`)
 No attribute uses a variadic positional (`@@index([a,b])` is a single positional bound to a `list`, not a variadic; `@@base(Base, "v")` is two fixed positionals). Remove `PositionalParam.variadic`, the variadic branch in `PosEntryObject`/`PosOut`, and the engine's variadic handling. YAGNI — re-add only when a real variadic attribute appears.
@@ -42,7 +42,7 @@ CodeRabbit `psl-relation-resolution.ts:89` asks to restore `PSL_UNSUPPORTED_REFE
 - [ ] `optional` returns an `ArgType`; `OptionalParam`/`Param`-union collapsed; `sqlRelation` infers the same output type.
 - [ ] `interpretRelationAttribute` renaming layer gone; downstream uses the spec output keys; relation suites green.
 - [ ] `oneOf()` with zero args is a compile error.
-- [ ] Gates: `pnpm --filter @prisma-next/psl-parser typecheck && test && lint`; `pnpm --filter @prisma-next/sql-contract-psl test`; `pnpm fixtures:check`; after `pnpm --filter @prisma-next/psl-parser build` (and `@prisma-next/utils` build if you added an export there), workspace `pnpm typecheck`; `pnpm lint:deps` (T2 adds a dependency edge — verify it's clean).
+- [ ] Gates: `pnpm --filter @internal/psl-parser typecheck && test && lint`; `pnpm --filter @internal/sql-contract-psl test`; `pnpm fixtures:check`; after `pnpm --filter @internal/psl-parser build` (and `@internal/utils` build if you added an export there), workspace `pnpm typecheck`; `pnpm lint:deps` (T2 adds a dependency edge — verify it's clean).
 
 ## Constraints
 No `any`; no bare `as` (narrow `blindCast`/`castAs` with reason, or types that avoid it); no file-ext imports; no reexport outside `exports/`; tests-first for the reshaped surfaces. Explicit-staging commits (one per task or coherent group), no amend, **no push**. Read-only on `projects/**/reviews/**`, `spec.md`, plan files. Transient-ID scan on the `+` diff. Do NOT post to GitHub or resolve threads.

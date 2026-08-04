@@ -9,7 +9,7 @@ Today, `RuntimeMiddleware` is observer-only: `beforeExecute`, `onRow`, and `afte
 Two prerequisites have already landed on `main`:
 
 - **`beforeCompile` rewrite hook (TML-2306).** SQL middleware can rewrite the AST between lane `.build()` and `adapter.lower()`. The chain runs inside `SqlRuntimeImpl.runBeforeCompile()` (an override of `RuntimeCore`'s template).
-- **Single-tier runtime (TML-2242, ADR 204).** The `runtime-executor` package has been collapsed into `@prisma-next/framework-components`. Both `SqlRuntimeImpl` and `MongoRuntimeImpl` now extend an abstract `RuntimeCore<TPlan, TExec, TMiddleware>` whose `execute()` template is `runBeforeCompile → lower → runWithMiddleware(beforeExecute → driver loop → onRow → afterExecute)`. The `runWithMiddleware` helper is the single canonical implementation of the middleware lifecycle; both families inherit it.
+- **Single-tier runtime (TML-2242, ADR 204).** The `runtime-executor` package has been collapsed into `@internal/framework-components`. Both `SqlRuntimeImpl` and `MongoRuntimeImpl` now extend an abstract `RuntimeCore<TPlan, TExec, TMiddleware>` whose `execute()` template is `runBeforeCompile → lower → runWithMiddleware(beforeExecute → driver loop → onRow → afterExecute)`. The `runWithMiddleware` helper is the single canonical implementation of the middleware lifecycle; both families inherit it.
 
 This project adds the second piece of the TML-2143 vision — short-circuiting with static results — and the minimum annotation surface needed to make interception opt-in on a per-query basis. The third piece (full middleware-API redesign, composition ordering metadata, cache invalidation semantics beyond TTL) is explicitly deferred to May.
 
@@ -74,7 +74,7 @@ const users = await db.orm.User.take(10).all()
 **After** — applicability-typed annotations:
 
 ```typescript
-import { cacheAnnotation } from '@prisma-next/middleware-cache'
+import { cacheAnnotation } from '@internal/middleware-cache'
 
 // SQL DSL — chainable per builder kind. SelectQueryBuilder accepts read
 // annotations; Insert/Update/DeleteQueryBuilder accepts write annotations.
@@ -100,7 +100,7 @@ const created = await db.orm.User.create(
 ## Caching middleware usage
 
 ```typescript
-import { createCacheMiddleware, cacheAnnotation } from '@prisma-next/middleware-cache'
+import { createCacheMiddleware, cacheAnnotation } from '@internal/middleware-cache'
 
 const db = postgres<Contract, TypeMaps>({
   contractJson,
@@ -130,9 +130,9 @@ const c = await db.orm.User.all()  // always hits DB
 
 ### Intercept hook (framework SPI)
 
-0. **`contentHash` on `RuntimeMiddlewareContext`.** Required method `contentHash(exec: ExecutionPlan): Promise<string>` on `RuntimeMiddlewareContext` in `@prisma-next/framework-components/runtime`. Family runtimes compose a canonical string and pipe it through `hashContent` (SHA-512 via WebCrypto, from `@prisma-next/utils/hash-content`) to produce a bounded, opaque digest. The method is async because `hashContent` uses `crypto.subtle.digest`, which returns a `Promise`; the resolved value is the literal string `sha512:` followed by a 128-character lowercase hex digest (a fixed 135-character total). SQL composes `meta.storageHash + '|' + exec.sql + '|' + canonicalStringify(exec.params)`; Mongo composes `meta.storageHash + '|' + canonicalStringify(exec.command)`. Two semantically equivalent executions produce the same digest. **The contract is "an opaque, bounded-size string"** — implementations must not return raw concatenated output. Two reasons for hashing: (a) **bounded memory** — a query bound to a 10 MB JSON column would otherwise produce a 10 MB cache key, scaling to gigabytes at `maxEntries=1000`; (b) **sensitive-data isolation** — parameter values appear verbatim in the canonical string and would otherwise leak into debug logs, Redis `KEYS` / `MONITOR` output, persistence dumps, monitoring tools, and any user-supplied `CacheStore` implementation. **Note:** `computeSqlFingerprint` (which exists in `sql-runtime/src/fingerprint.ts` for telemetry) strips literals to group executions by statement shape — the *opposite* of what `contentHash` needs. Do not reuse it; `contentHash` wants the raw SQL plus canonicalized params so it discriminates between executions of the same statement with different parameter values.
+0. **`contentHash` on `RuntimeMiddlewareContext`.** Required method `contentHash(exec: ExecutionPlan): Promise<string>` on `RuntimeMiddlewareContext` in `@internal/framework-components/runtime`. Family runtimes compose a canonical string and pipe it through `hashContent` (SHA-512 via WebCrypto, from `@internal/utils/hash-content`) to produce a bounded, opaque digest. The method is async because `hashContent` uses `crypto.subtle.digest`, which returns a `Promise`; the resolved value is the literal string `sha512:` followed by a 128-character lowercase hex digest (a fixed 135-character total). SQL composes `meta.storageHash + '|' + exec.sql + '|' + canonicalStringify(exec.params)`; Mongo composes `meta.storageHash + '|' + canonicalStringify(exec.command)`. Two semantically equivalent executions produce the same digest. **The contract is "an opaque, bounded-size string"** — implementations must not return raw concatenated output. Two reasons for hashing: (a) **bounded memory** — a query bound to a 10 MB JSON column would otherwise produce a 10 MB cache key, scaling to gigabytes at `maxEntries=1000`; (b) **sensitive-data isolation** — parameter values appear verbatim in the canonical string and would otherwise leak into debug logs, Redis `KEYS` / `MONITOR` output, persistence dumps, monitoring tools, and any user-supplied `CacheStore` implementation. **Note:** `computeSqlFingerprint` (which exists in `sql-runtime/src/fingerprint.ts` for telemetry) strips literals to group executions by statement shape — the *opposite* of what `contentHash` needs. Do not reuse it; `contentHash` wants the raw SQL plus canonicalized params so it discriminates between executions of the same statement with different parameter values.
 
-1. **`intercept` hook on `RuntimeMiddleware`.** Optional async method on the cross-family `RuntimeMiddleware<TPlan>` interface in `@prisma-next/framework-components/runtime`. Signature: `intercept(plan: TPlan, ctx: RuntimeMiddlewareContext): Promise<InterceptResult | undefined>`. Returning `undefined` signals passthrough; returning an `InterceptResult` short-circuits execution. The `TPlan` parameter follows the existing `RuntimeMiddleware<TPlan>` generic — middleware sees the post-lowering `TExec` plan, the same shape `beforeExecute` / `onRow` / `afterExecute` already see.
+1. **`intercept` hook on `RuntimeMiddleware`.** Optional async method on the cross-family `RuntimeMiddleware<TPlan>` interface in `@internal/framework-components/runtime`. Signature: `intercept(plan: TPlan, ctx: RuntimeMiddlewareContext): Promise<InterceptResult | undefined>`. Returning `undefined` signals passthrough; returning an `InterceptResult` short-circuits execution. The `TPlan` parameter follows the existing `RuntimeMiddleware<TPlan>` generic — middleware sees the post-lowering `TExec` plan, the same shape `beforeExecute` / `onRow` / `afterExecute` already see.
 
 2. **Pipeline placement.** `intercept` runs inside `runWithMiddleware`, *after* the orchestrator receives the lowered plan and *before* any `beforeExecute` hook fires. On a hit: `beforeExecute`, the driver loop, and `onRow` are all skipped. `afterExecute` still fires.
 
@@ -152,9 +152,9 @@ const c = await db.orm.User.all()  // always hits DB
 
 ### Annotation surface
 
-1. **`OperationKind`.** `type OperationKind = 'read' | 'write'`. Exported from `@prisma-next/framework-components/runtime`. Read = `SELECT` / `find` / `first` / `all` / `count` / aggregates. Write = `INSERT` / `UPDATE` / `DELETE` / `create` / `update` / `delete` / `upsert`. Finer-grained kinds (`'select' | 'insert' | 'update' | 'delete' | 'upsert'`) are deferred; if an annotation appears that needs them, we widen.
+1. **`OperationKind`.** `type OperationKind = 'read' | 'write'`. Exported from `@internal/framework-components/runtime`. Read = `SELECT` / `find` / `first` / `all` / `count` / aggregates. Write = `INSERT` / `UPDATE` / `DELETE` / `create` / `update` / `delete` / `upsert`. Finer-grained kinds (`'select' | 'insert' | 'update' | 'delete' | 'upsert'`) are deferred; if an annotation appears that needs them, we widen.
 
-2. **`defineAnnotation` helper.** Exported from `@prisma-next/framework-components/runtime`. Two-step call form: `defineAnnotation<Payload>()({ namespace: string; applicableTo: readonly Kinds[] }): AnnotationHandle<Payload, Kinds>`. The first step takes only `Payload` as an explicit type argument; the second step takes the runtime options and infers `Kinds` from the `applicableTo` array via a `const` type parameter, so the operation kinds appear once at the call site rather than being repeated in the type-argument list. (TypeScript does not support partial type-argument inference within a single call: a single-step `defineAnnotation<Payload, const Kinds>` would still require both type arguments be passed explicitly because `Payload` cannot be inferred from anywhere; currying separates the explicit-from-inferred step. The cost is one extra `()` at definition; once defined, handles are used identically.) The returned handle is **callable**: invoking `handle(value)` produces an `AnnotationValue<Payload, Kinds>` ready to pass to a lane terminal's variadic `annotations` argument. The handle also exposes `namespace`, `applicableTo: ReadonlySet<Kinds>`, and `read(plan)` as properties on the function. Handles are the only supported public entry point for reading/writing annotations. (No `.apply(...)` method — calling the handle directly is the sole construction path; this keeps user-facing call sites compact: `cacheAnnotation({ ttl: 60 })` rather than `cacheAnnotation.apply({ ttl: 60 })`.)
+2. **`defineAnnotation` helper.** Exported from `@internal/framework-components/runtime`. Two-step call form: `defineAnnotation<Payload>()({ namespace: string; applicableTo: readonly Kinds[] }): AnnotationHandle<Payload, Kinds>`. The first step takes only `Payload` as an explicit type argument; the second step takes the runtime options and infers `Kinds` from the `applicableTo` array via a `const` type parameter, so the operation kinds appear once at the call site rather than being repeated in the type-argument list. (TypeScript does not support partial type-argument inference within a single call: a single-step `defineAnnotation<Payload, const Kinds>` would still require both type arguments be passed explicitly because `Payload` cannot be inferred from anywhere; currying separates the explicit-from-inferred step. The cost is one extra `()` at definition; once defined, handles are used identically.) The returned handle is **callable**: invoking `handle(value)` produces an `AnnotationValue<Payload, Kinds>` ready to pass to a lane terminal's variadic `annotations` argument. The handle also exposes `namespace`, `applicableTo: ReadonlySet<Kinds>`, and `read(plan)` as properties on the function. Handles are the only supported public entry point for reading/writing annotations. (No `.apply(...)` method — calling the handle directly is the sole construction path; this keeps user-facing call sites compact: `cacheAnnotation({ ttl: 60 })` rather than `cacheAnnotation.apply({ ttl: 60 })`.)
 
 3. **Applicability gate type.** `ValidAnnotations<K extends OperationKind, As extends readonly AnnotationValue<unknown, OperationKind>[]>` mapped tuple type that resolves each element of `As` to `never` when its declared `Kinds` does not include `K`. Lane terminals use this to constrain their variadic annotation argument.
 
@@ -168,11 +168,11 @@ const c = await db.orm.User.all()  // always hits DB
 
 8. **Type safety.** `defineAnnotation<Payload, Kinds>` preserves `Payload` and `Kinds` across the handle's call signature and `read`. Reading an absent annotation returns `undefined`. No `any` or unchecked casts in the public surface.
 
-### Cache middleware (`@prisma-next/middleware-cache`, new package)
+### Cache middleware (`@internal/middleware-cache`, new package)
 
 1. **Opt-in by annotation.** `cacheAnnotation = defineAnnotation<CachePayload>()({ namespace: 'cache', applicableTo: ['read'] })` (`Kinds` inferred as `'read'`). Payload: `{ ttl?: number; skip?: boolean; key?: string }`. A query without `cacheAnnotation`, or with `skip: true`, or without a `ttl`, passes through untouched. Because `cacheAnnotation` declares `applicableTo: ['read']`, the lane gate (type-level + runtime) rejects passing it to a write terminal — there is no in-middleware mutation guard.
 
-2. **Cache key resolution.** Two-tier priority: per-query `cacheAnnotation({ key })` overrides everything; otherwise `ctx.contentHash(exec)` from the family runtime. The cache middleware itself never reads `exec.sql`, `exec.command`, or any other family-specific field — it depends only on `@prisma-next/framework-components/runtime`.
+2. **Cache key resolution.** Two-tier priority: per-query `cacheAnnotation({ key })` overrides everything; otherwise `ctx.contentHash(exec)` from the family runtime. The cache middleware itself never reads `exec.sql`, `exec.command`, or any other family-specific field — it depends only on `@internal/framework-components/runtime`.
 
 3. **Cache hit path.** On lookup hit, `intercept` returns the cached raw rows. The SQL runtime decodes them through its normal codec pass (which wraps the orchestrator output). `afterExecute` observes `source: 'middleware'`.
 
@@ -226,11 +226,11 @@ const c = await db.orm.User.all()  // always hits DB
 
 ## Intercept hook
 
-- [ ] `RuntimeMiddlewareContext.contentHash(exec)` is declared in `@prisma-next/framework-components/runtime` returning `Promise<string>` (resolving to a `sha512:HEX128` digest produced via `hashContent`).
+- [ ] `RuntimeMiddlewareContext.contentHash(exec)` is declared in `@internal/framework-components/runtime` returning `Promise<string>` (resolving to a `sha512:HEX128` digest produced via `hashContent`).
 - [ ] `SqlRuntimeImpl` populates `contentHash` with `meta.storageHash` + `exec.sql` + canonicalized `exec.params`. Two executions of the same SQL with the same params produce the same string; different params produce different strings (unit test).
 - [ ] `MongoRuntimeImpl` populates `contentHash` with `meta.storageHash` + canonicalized `exec.command` (unit test in mongo-runtime).
 - [ ] All in-repo `RuntimeMiddlewareContext` fixtures compile after the addition (regression — three test files in `framework-components/test/` plus any others surfaced by `pnpm typecheck`).
-- [ ] `RuntimeMiddleware.intercept` is declared in `@prisma-next/framework-components/runtime` with the signature above.
+- [ ] `RuntimeMiddleware.intercept` is declared in `@internal/framework-components/runtime` with the signature above.
 - [ ] `AfterExecuteResult.source` is `'driver' | 'middleware'` and is populated by `runWithMiddleware`.
 - [ ] First middleware returning a non-`undefined` `InterceptResult` wins; subsequent interceptors' `intercept` does not fire (unit test against `runWithMiddleware`).
 - [ ] On a hit, `beforeExecute`, the driver loop, and `onRow` are skipped; `afterExecute` fires with `source: 'middleware'` (unit test).
@@ -242,8 +242,8 @@ const c = await db.orm.User.all()  // always hits DB
 
 ## Annotation surface
 
-- [ ] `OperationKind` exported from `@prisma-next/framework-components/runtime` as `'read' | 'write'` (type test).
-- [ ] `defineAnnotation<Payload>()({ namespace, applicableTo })` exists in `@prisma-next/framework-components/runtime`, typed as described (curried; `Kinds` inferred from `applicableTo` via a `const` type parameter on the inner call).
+- [ ] `OperationKind` exported from `@internal/framework-components/runtime` as `'read' | 'write'` (type test).
+- [ ] `defineAnnotation<Payload>()({ namespace, applicableTo })` exists in `@internal/framework-components/runtime`, typed as described (curried; `Kinds` inferred from `applicableTo` via a `const` type parameter on the inner call).
 - [ ] `read` returns `Payload | undefined` with full type preservation (type-level test).
 - [ ] Handle exposes `applicableTo: ReadonlySet<Kinds>` for runtime checks (unit test).
 - [ ] Two handles with different namespaces do not interfere (unit test).
@@ -262,10 +262,10 @@ const c = await db.orm.User.all()  // always hits DB
 
 ## Cache middleware
 
-- [ ] `@prisma-next/middleware-cache` package exists under `packages/3-extensions/`, following the layering conventions validated by `pnpm lint:deps`.
+- [ ] `@internal/middleware-cache` package exists under `packages/3-extensions/`, following the layering conventions validated by `pnpm lint:deps`.
 - [ ] `cacheAnnotation` handle is exported; payload shape matches the spec.
 - [ ] `CacheStore` interface is exported; default in-memory LRU implementation is exported.
-- [ ] `createCacheMiddleware(options)` returns a cross-family `RuntimeMiddleware` with `intercept` / `onRow` / `afterExecute` wired. The middleware reads cache keys from `ctx.contentHash(exec)` (or `cacheAnnotation({ key })` when supplied per-query). The package depends only on `@prisma-next/framework-components/runtime` — no SQL or Mongo runtime dependency.
+- [ ] `createCacheMiddleware(options)` returns a cross-family `RuntimeMiddleware` with `intercept` / `onRow` / `afterExecute` wired. The middleware reads cache keys from `ctx.contentHash(exec)` (or `cacheAnnotation({ key })` when supplied per-query). The package depends only on `@internal/framework-components/runtime` — no SQL or Mongo runtime dependency.
 - [ ] Un-annotated queries are never cached (unit test).
 - [ ] Queries with `skip: true` are never cached (unit test).
 - [ ] Queries with no `ttl` are never cached (unit test).
@@ -350,11 +350,11 @@ No infrastructure cost change. The default in-memory store trades memory for DB 
 
 4. **Default `maxEntries`.** 1000? 10000? Pick a sensible default; document it; make it overridable. Not a blocker.
 
-5. **~~Cache key hashing cost.~~** Resolved: hash via SHA-512 (WebCrypto `crypto.subtle.digest`). Earlier analysis (per prior Prisma query-plan caching work) was that V8's internal string-interning Map performance dominates any user-space hash, suggesting we should skip hashing. That analysis applies to **parametric** plan caching where keys are small structural fingerprints — it does not generalize to **per-execution** content hashes, which embed concrete parameter values and therefore inherit the size and sensitivity of those values. Two failure modes drove the reversal: (a) **memory** — a query bound to a 10 MB JSON column produces a 10 MB cache key, scaling to gigabytes at `maxEntries=1000`; (b) **PII / secrets isolation** — parameter values flow into debug logs, Redis `KEYS` output, persistence dumps, monitoring, and user-supplied `CacheStore` implementations. SHA-512 via WebCrypto was chosen: `crypto.subtle.digest` is built into Node and the browser (no native dependency), it is async (which is why `contentHash` returns `Promise<string>`), and the 512-bit output makes accidental collisions astronomically improbable at negligible cost over 256-bit output. Output format: the literal prefix `sha512:` followed by a 128-character lowercase hex digest (`sha512:HEX128`, a fixed 135-character total). `canonicalStringify` and `hashContent` both live in `@prisma-next/utils` so SQL and Mongo runtimes share a single source of truth.
+5. **~~Cache key hashing cost.~~** Resolved: hash via SHA-512 (WebCrypto `crypto.subtle.digest`). Earlier analysis (per prior Prisma query-plan caching work) was that V8's internal string-interning Map performance dominates any user-space hash, suggesting we should skip hashing. That analysis applies to **parametric** plan caching where keys are small structural fingerprints — it does not generalize to **per-execution** content hashes, which embed concrete parameter values and therefore inherit the size and sensitivity of those values. Two failure modes drove the reversal: (a) **memory** — a query bound to a 10 MB JSON column produces a 10 MB cache key, scaling to gigabytes at `maxEntries=1000`; (b) **PII / secrets isolation** — parameter values flow into debug logs, Redis `KEYS` output, persistence dumps, monitoring, and user-supplied `CacheStore` implementations. SHA-512 via WebCrypto was chosen: `crypto.subtle.digest` is built into Node and the browser (no native dependency), it is async (which is why `contentHash` returns `Promise<string>`), and the 512-bit output makes accidental collisions astronomically improbable at negligible cost over 256-bit output. Output format: the literal prefix `sha512:` followed by a 128-character lowercase hex digest (`sha512:HEX128`, a fixed 135-character total). `canonicalStringify` and `hashContent` both live in `@internal/utils` so SQL and Mongo runtimes share a single source of truth.
 
 6. **Family scope of cache middleware.** Resolved: cross-family `RuntimeMiddleware`. Cache keys come from `ctx.contentHash(exec)`, populated by the family runtime. The cache package depends only on `framework-components/runtime`. Mongo gets first-class support day one because `MongoRuntimeImpl` populates `contentHash` alongside SQL.
 
-7. **`contentHash` collision risk.** With no output hash, the only collision path is canonicalization losing information (dropping a param, unstable object-key order, type-confusion across BigInt/number boundaries). Mitigation: family runtimes own their `contentHash` implementation but delegate canonicalization to the shared `@prisma-next/utils/canonical-stringify` helper; canonicalization is unit-tested for stability across object-key order, BigInt/number distinctness, Date round-trip, Buffer hex-encoding, and nested structures. The cache middleware tests pin the end-to-end behavior.
+7. **`contentHash` collision risk.** With no output hash, the only collision path is canonicalization losing information (dropping a param, unstable object-key order, type-confusion across BigInt/number boundaries). Mitigation: family runtimes own their `contentHash` implementation but delegate canonicalization to the shared `@internal/utils/canonical-stringify` helper; canonicalization is unit-tested for stability across object-key order, BigInt/number distinctness, Date round-trip, Buffer hex-encoding, and nested structures. The cache middleware tests pin the end-to-end behavior.
 
 8. **Per-aggregate / per-mutation kind discrimination.** Future annotations may need finer-grained kinds (e.g. an audit annotation that applies to `update` and `delete` but not `insert`). The current `'read' | 'write'` binary is sufficient for `cacheAnnotation`; widening is additive (`OperationKind` becomes a wider union, existing handles' `Kinds` parameter still typechecks). Not a blocker for April.
 

@@ -8,12 +8,12 @@
 
 **New commits this round (6 commits, +649/-49 across 16 files):**
 
-- `5d39a134c` — `feat(@prisma-next/sqlite): add dependencies for facade subpaths`
-- `7ae032dc6` — `feat(@prisma-next/sqlite): add /config subpath`
-- `823e27ade` — `feat(@prisma-next/sqlite): add /contract-builder subpath with wrapped defineContract`
-- `de998a1dc` — `feat(@prisma-next/sqlite): add /control subpath`
-- `bff9ad09b` — `feat(@prisma-next/sqlite): add /migration re-export with parity tests`
-- `fbf1a25b4` — `docs(@prisma-next/sqlite): rewrite README to mirror Postgres structure`
+- `5d39a134c` — `feat(@internal/sqlite): add dependencies for facade subpaths`
+- `7ae032dc6` — `feat(@internal/sqlite): add /config subpath`
+- `823e27ade` — `feat(@internal/sqlite): add /contract-builder subpath with wrapped defineContract`
+- `de998a1dc` — `feat(@internal/sqlite): add /control subpath`
+- `bff9ad09b` — `feat(@internal/sqlite): add /migration re-export with parity tests`
+- `fbf1a25b4` — `docs(@internal/sqlite): rewrite README to mirror Postgres structure`
 
 Pull the diff via `git diff c0cbd4d05..fbf1a25b4` (skips the orchestrator's interceding brief commit; HEAD = `fbf1a25b4`).
 
@@ -29,11 +29,11 @@ The orchestrator does not have an implementer flag list this round. Items the or
 
 - **`createSqliteControlClient` SPI shape parity.** Mirror of `createMongoControlClient` (which mirrored `createPostgresControlClient`). Same `MongoControlClientOptions`-equivalent shape (`connection?`, `extensionPacks?`), same `ifDefined` conditional spreading, same `ControlClient` re-export. Any deviation surfaces as a `should-fix`.
 
-- **`/migration` re-export parity.** One-liner `export * from '@prisma-next/target-sqlite/migration'`. Test mirrors D1's postgres parity test (key-equality + per-symbol identity). 13 tests pass.
+- **`/migration` re-export parity.** One-liner `export * from '@internal/target-sqlite/migration'`. Test mirrors D1's postgres parity test (key-equality + per-symbol identity). 13 tests pass.
 
 - **`/config` mirror of Postgres.** `SqliteConfigOptions` shape should match `PostgresConfigOptions`. Notable: SQLite is file-based, so `connection` may semantically mean a file path rather than a URL — but the field name should still be `connection` for cross-target consistency unless the implementer explicitly justified renaming. Verify against `packages/3-extensions/postgres/src/config/define-config.ts`.
 
-- **Dep additions: 5 new workspace deps** (`@prisma-next/cli`, `@prisma-next/config`, `@prisma-next/sql-contract-psl`, `@prisma-next/sql-contract-ts`, `pathe`). Same dep pattern Postgres and Mongo facades already use. Orchestrator confirms `pnpm lint:deps` clean (no cycle introduced).
+- **Dep additions: 5 new workspace deps** (`@internal/cli`, `@internal/config`, `@internal/sql-contract-psl`, `@internal/sql-contract-ts`, `pathe`). Same dep pattern Postgres and Mongo facades already use. Orchestrator confirms `pnpm lint:deps` clean (no cycle introduced).
 
 - **`architecture.config.json` planes:** 4 new entries (config = shared, contract-builder = shared, control = migration, migration = migration). Should mirror Postgres + Mongo planes for the same surfaces.
 
@@ -41,10 +41,10 @@ The orchestrator does not have an implementer flag list this round. Items the or
 
 ## Acceptance bar for SATISFIED (D3)
 
-- **FR4 PASS:** `@prisma-next/sqlite/config` exports `defineConfig` + `SqliteConfigOptions`. Evidence = `define-config.test.ts` (8 tests).
-- **FR5 PASS:** `@prisma-next/sqlite/contract-builder` exports the SQL surface with the wrapped `defineContract`. Evidence = `re-export`-style test (in `define-contract.test.ts`/`define-contract.test-d.ts`).
-- **FR6 PASS:** `@prisma-next/sqlite/control` exports `createSqliteControlClient`. Evidence = `create-sqlite-control-client.test.ts` (3 tests).
-- **FR7 PASS:** `@prisma-next/sqlite/migration` re-exports the target's migration surface with parity. Evidence = `re-export.test.ts` (13 tests).
+- **FR4 PASS:** `@internal/sqlite/config` exports `defineConfig` + `SqliteConfigOptions`. Evidence = `define-config.test.ts` (8 tests).
+- **FR5 PASS:** `@internal/sqlite/contract-builder` exports the SQL surface with the wrapped `defineContract`. Evidence = `re-export`-style test (in `define-contract.test.ts`/`define-contract.test-d.ts`).
+- **FR6 PASS:** `@internal/sqlite/control` exports `createSqliteControlClient`. Evidence = `create-sqlite-control-client.test.ts` (3 tests).
+- **FR7 PASS:** `@internal/sqlite/migration` re-exports the target's migration surface with parity. Evidence = `re-export.test.ts` (13 tests).
 - **FR11 (SQLite facet) PASS:** wrapped `defineContract` pre-binds family + target, drops them from input type, preserves model-shape inference. Evidence = `define-contract.test-d.ts` positive assertions.
 - All "Done when" gates pass — orchestrator ran build, typecheck, test, lint:deps locally; results in the new orchestrator note.
 - Transient-ID scan zero hits on `+` diff.

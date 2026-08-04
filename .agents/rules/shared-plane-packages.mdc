@@ -21,7 +21,7 @@ Create a shared plane package when:
 
 ## Examples
 
-### SQL Contract Types (`@prisma-next/sql-contract`)
+### SQL Contract Types (`@internal/sql-contract`)
 
 Located at `packages/sql/contract/` (shared plane):
 - **Types**: `SqlContract`, `SqlStorage`, `StorageTable`, `ModelDefinition`
@@ -32,7 +32,7 @@ Used by:
 - Migration plane: authoring, emitter (for validation and IR construction)
 - Runtime plane: lanes, runtime (for type definitions)
 
-### SQL Operations Types (planned: `@prisma-next/sql-operations`)
+### SQL Operations Types (planned: `@internal/sql-operations`)
 
 When moved to shared plane at `packages/sql/operations/`:
 - **Types**: `LoweringSpec`, `OperationSignature`
@@ -78,7 +78,7 @@ Register shared plane packages in `architecture.config.json`:
 ## Dependencies
 
 Shared plane packages should:
-- **Depend on**: Framework core packages (`@prisma-next/contract`, `@prisma-next/operations`), validation libraries (Arktype)
+- **Depend on**: Framework core packages (`@internal/contract`, `@internal/operations`), validation libraries (Arktype)
 - **NOT depend on**: Migration-plane packages (emitter, CLI), runtime-plane packages (lanes, runtime), or packages with side effects
 
 ## Exports Pattern
@@ -104,18 +104,18 @@ Import using package name and export identifier (not `/exports/` paths):
 
 ```typescript
 // ✅ CORRECT
-import type { SqlContract } from '@prisma-next/sql-contract/types';
-import { validateSqlContract } from '@prisma-next/sql-contract/validators';
+import type { SqlContract } from '@internal/sql-contract/types';
+import { validateSqlContract } from '@internal/sql-contract/validators';
 
 // ❌ WRONG
-import type { SqlContract } from '@prisma-next/sql-contract/exports/types';
+import type { SqlContract } from '@internal/sql-contract/exports/types';
 ```
 
 ## Migration from Migration Plane
 
 When moving a package from migration plane to shared plane:
 
-1. **Remove migration-specific dependencies**: Remove imports of `@prisma-next/emitter`, file I/O, pack loading
+1. **Remove migration-specific dependencies**: Remove imports of `@internal/emitter`, file I/O, pack loading
 2. **Extract pure functions**: Keep only pure functions that take plain data structures
 3. **Move tooling logic**: Move pack reading/resolution to emitter/CLI (migration plane)
 4. **Update architecture.config.json**: Change plane from `migration` to `shared`

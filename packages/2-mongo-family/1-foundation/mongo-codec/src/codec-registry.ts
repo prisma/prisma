@@ -1,4 +1,4 @@
-import { structuredError } from '@prisma-next/utils/structured-error';
+import { structuredError } from '@internal/utils/structured-error';
 import type { MongoCodec } from './codecs';
 
 export interface MongoCodecRegistry {

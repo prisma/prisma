@@ -1,4 +1,4 @@
-import type { SqliteBinding } from '@prisma-next/driver-sqlite/runtime';
+import type { SqliteBinding } from '@internal/driver-sqlite/runtime';
 
 export type SqliteBindingInput = { readonly path: string };
 

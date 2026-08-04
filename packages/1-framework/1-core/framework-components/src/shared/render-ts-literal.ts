@@ -1,4 +1,4 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 
 /**
  * Renders a codec-encoded value as a TypeScript literal (e.g. `'low'`, `1`, `true`), or `undefined`

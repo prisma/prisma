@@ -1,4 +1,4 @@
-import type { SqlQueryPlan } from '@prisma-next/sql-relational-core/plan';
+import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { expectTypeOf, test } from 'vitest';
 import { db } from './preamble';
 

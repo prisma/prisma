@@ -193,7 +193,7 @@ Rationale: we want an explicit signal that these maps are for TypeScript inferen
 - No-emit workflows keep a **single configuration surface** (import codec column constructors once; types flow).
 - Lane typing remains deterministic and precise, including parameterized codecs.
 - Runtime composition remains where it belongs: `ExecutionContext` derived from descriptors.
-- Higher-level runtime clients (e.g. `@prisma-next/postgres/runtime`) can stay ergonomic:
+- Higher-level runtime clients (e.g. `@internal/postgres/runtime`) can stay ergonomic:
   - emitted workflow: `postgres<Contract, TypeMaps>({ contractJson, ... })`
   - no-emit workflow: `postgres({ contract })` where `contract` is `ContractWithTypeMaps<Contract, TypeMaps>`
 
@@ -225,5 +225,5 @@ Rationale: we want an explicit signal that these maps are for TypeScript inferen
 
 ## Implementation complete (2026-02-15)
 
-- Demo visualization (`examples/prisma-next-demo/src/app/`) renders directly from `validateContract<Contract>(contractJson)` output using React. Uses the `Contract` type directly for rendering and HMR (no separate IR-only alias).
-- Demo emitted workflow (`examples/prisma-next-demo/src/prisma/db.ts`) uses `postgres<Contract, TypeMaps>({ contractJson, ... })` with explicit `TypeMaps` from `contract.d.ts`.
+- Demo visualization (`examples/prisma-8-demo/src/app/`) renders directly from `validateContract<Contract>(contractJson)` output using React. Uses the `Contract` type directly for rendering and HMR (no separate IR-only alias).
+- Demo emitted workflow (`examples/prisma-8-demo/src/prisma/db.ts`) uses `postgres<Contract, TypeMaps>({ contractJson, ... })` with explicit `TypeMaps` from `contract.d.ts`.

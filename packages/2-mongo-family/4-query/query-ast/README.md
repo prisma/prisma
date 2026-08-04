@@ -1,4 +1,4 @@
-# @prisma-next/mongo-query-ast
+# @internal/mongo-query-ast
 
 Typed AST for MongoDB filters, pipeline stages, and command variants, plus the unified **query plan** envelope.
 
@@ -10,13 +10,13 @@ Typed AST for MongoDB filters, pipeline stages, and command variants, plus the u
 - **Query plan**: `MongoQueryPlan<Row>` — a branded typed representation with shape `{ collection, command: AnyMongoCommand, meta: PlanMeta }`
 - **Visitors**: `MongoFilterVisitor`, `MongoFilterRewriter`, `MongoStageVisitor` interfaces for traversing and transforming AST nodes
 
-Lowering typed nodes to wire BSON is performed by `@prisma-next/adapter-mongo` via `lower(plan)` on `MongoQueryPlan`, which dispatches on `command.kind` and uses internal helpers for filters and pipelines.
+Lowering typed nodes to wire BSON is performed by `@internal/adapter-mongo` via `lower(plan)` on `MongoQueryPlan`, which dispatches on `command.kind` and uses internal helpers for filters and pipelines.
 
 ## Dependencies
 
 - **Depends on**:
-  - `@prisma-next/contract` (plan metadata types)
-  - `@prisma-next/mongo-value` (document types, param resolution)
+  - `@internal/contract` (plan metadata types)
+  - `@internal/mongo-value` (document types, param resolution)
 - **Depended on by**:
-  - `@prisma-next/mongo-orm` (compiles ORM queries into `MongoQueryPlan`)
-  - `@prisma-next/adapter-mongo` (`lower(plan)` from `MongoQueryPlan` to wire commands)
+  - `@internal/mongo-orm` (compiles ORM queries into `MongoQueryPlan`)
+  - `@internal/adapter-mongo` (`lower(plan)` from `MongoQueryPlan` to wire commands)

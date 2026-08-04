@@ -16,11 +16,11 @@ Tests-first in each.
   codec-resolution + member loop unchanged.
 - **Member shapes:** `block.parameters` entries carry a `kind`. The interpreter already switches
   on `'bare'` vs value; the parser's exported param kinds are `PslExtensionBlockParamBare`,
-  `…ParamList`, `…ParamOption`, `…ParamRef` (`@prisma-next/psl-parser` exports). The classifier
+  `…ParamList`, `…ParamOption`, `…ParamRef` (`@internal/psl-parser` exports). The classifier
   must read the raw value (for a value param, `JSON.parse(raw)` then `typeof`/`Number.isInteger`)
   and treat list/option/ref as not-inferrable. Confirm the exact value-param kind name and raw
   accessor when implementing.
-- **Context:** `AuthoringEntityContext` (`@prisma-next/framework-components/authoring`) currently
+- **Context:** `AuthoringEntityContext` (`@internal/framework-components/authoring`) currently
   exposes `codecLookup`, `sourceId`, `diagnostics`. It gains the target's default enum codec ids.
   Find where each pack constructs/passes this context (the CLI/build authoring path + the
   control-stack path) and populate the new field there.
@@ -65,7 +65,7 @@ Tests-first in each.
 ## Open items to resolve during D1
 
 - The exact value-param `kind` name + raw accessor (grounding note above) — verify against
-  `@prisma-next/psl-parser` before writing the classifier.
+  `@internal/psl-parser` before writing the classifier.
 - Where exactly each pack builds `AuthoringEntityContext` (may be more than one call site —
   CLI/build vs control-stack). All construction sites must set `enumInferenceCodecs`.
 - Whether `enumInferenceCodecs` should be required (all packs must set it) or optional (absent →

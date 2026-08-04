@@ -10,9 +10,9 @@
  *   "name" type [DEFAULT ...] [NOT NULL] [PRIMARY KEY]
  */
 
-import { col, fn, lit } from '@prisma-next/sql-relational-core/contract-free';
-import { addColumnAction, alterTable } from '@prisma-next/target-postgres/contract-free';
-import { PostgresAlterTable } from '@prisma-next/target-postgres/ddl';
+import { col, fn, lit } from '@internal/sql-relational-core/contract-free';
+import { addColumnAction, alterTable } from '@internal/target-postgres/contract-free';
+import { PostgresAlterTable } from '@internal/target-postgres/ddl';
 import { describe, expect, it } from 'vitest';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../src/core/control-adapter';

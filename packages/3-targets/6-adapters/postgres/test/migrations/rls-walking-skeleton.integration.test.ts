@@ -1,16 +1,16 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import { normalizeSqlBody } from '@prisma-next/sql-schema-ir/naming';
-import { computeContentHash } from '@prisma-next/target-postgres/rls-canonicalize';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { normalizeSqlBody, parseNaming } from '@internal/sql-schema-ir/naming';
+import { computeContentHash } from '@internal/target-postgres/rls-canonicalize';
 import {
   PostgresRlsEnablement,
   PostgresRlsPolicy,
   PostgresRole,
   PostgresSchema,
-} from '@prisma-next/target-postgres/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+} from '@internal/target-postgres/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   controlAdapter,
@@ -44,8 +44,7 @@ function buildRlsWalkingSkeletonContract(): Contract<SqlStorage> {
   const role = new PostgresRole({ name: 'app_user', namespaceId: 'public' });
 
   const policy = new PostgresRlsPolicy({
-    name: POLICY_WIRE_NAME,
-    prefix: POLICY_PREFIX,
+    naming: parseNaming(POLICY_WIRE_NAME, POLICY_PREFIX),
     tableName: TABLE_NAME,
     namespaceId: 'public',
     operation: 'select',

@@ -4,7 +4,7 @@ import {
   type NamespaceMemberAst,
   type SourceFile,
   type TypesBlockAst,
-} from '@prisma-next/psl-parser/syntax';
+} from '@internal/psl-parser/syntax';
 import { type FoldingRange, FoldingRangeKind } from 'vscode-languageserver';
 
 type Declaration = NamespaceMemberAst | TypesBlockAst | NamespaceDeclarationAst;

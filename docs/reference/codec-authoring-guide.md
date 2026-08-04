@@ -10,7 +10,7 @@ A codec is **three artifacts**:
 2. A **descriptor class** that extends `CodecDescriptorImpl<P>` for a target-neutral codec, or the target-owned `PostgresCodecDescriptor<P>` / `SqliteCodecDescriptor<P>` for a target-bound SQL codec, and declares the codec id, traits, target types, params schema, and the curried factory that materializes codec instances.
 3. A **per-codec column helper function** that calls `descriptor.factory(...)` directly and packages the result into a `ColumnSpec` via the framework-supplied `column(...)` packager. The helper carries a `satisfies ColumnHelperFor<D>` clause that ties it to its descriptor at compile time.
 
-The framework imports live at `@prisma-next/framework-components/codec`:
+The framework imports live at `@internal/framework-components/codec`:
 
 - `CodecImpl<Id, TTraits, TWire, TInput>` — abstract codec base class.
 - `CodecDescriptorImpl<P>` — abstract descriptor base class.
@@ -21,7 +21,20 @@ The framework imports live at `@prisma-next/framework-components/codec`:
 
 SQL codecs use the same framework `CodecImpl` base. Their `encodeJson` and `decodeJson` methods define the codec's JSON-safe contract representation; `decode` remains responsible for the driver's ordinary column wire value. Keep that representation stable and mutually consistent, and keep `decodeJson` compatible with the values the current SQL JSON renderer returns for the codec. This distinction matters for types such as PostgreSQL `bytea` and extension-defined types whose values inside database-produced JSON may differ from their normal driver representation.
 
-PostgreSQL and SQLite target descriptors also declare AST-to-AST JSON projection hooks, described below. Those hooks are required target protocol declarations in 0.17, but production JSON renderers do not yet call `projectJson()`. Existing SQL rendering and `encodeJson` / `decodeJson` behavior therefore remain the compatibility contract for this transition. Do not infer that the current database-produced representation is canonical or lossless from the presence of a projection hook.
+PostgreSQL and SQLite target descriptors also declare AST-to-AST JSON projection hooks, described below. The production JSON renderers call `projectJson()` for every column-valued entry they build, so a descriptor's projection is what a database actually returns — see [The canonical JSON guarantee](#the-canonical-json-guarantee).
+
+## The canonical JSON guarantee
+
+**A value read back through database-produced JSON is the value that was stored.** Where a query returns JSON — an `.include()`'s nested rows, an aggregated child row set — each column reaches that JSON through its own codec's projection, and `decodeJson` returns the application value the column holds. A `numeric` arrives as its exact decimal text rather than rounded through a double; a `bytea` as base64 rather than a hex escape; a `bigint` as decimal text rather than a JSON number that cannot hold it. Absence is preserved: a `NULL` column reads back as `null`, never as a zero or an empty value.
+
+The guarantee is about **columns**. A value computed by the query rather than stored by it — an aggregate such as `count()`, `sum()` or `avg()` — has no column codec to be canonical against, so it reaches JSON as whatever the database's own conversion produces and is outside this guarantee. `count()` is the one you will meet first: it is typed `bigint` and the runtime hands back a string. Aggregate decoding is being addressed separately ([TML-3064](https://linear.app/prisma-company/issue/TML-3064)); until it is, treat an aggregate's value as needing your own conversion.
+
+The guarantee rests on the codec, not on the database's own JSON conversion, which is why it can be stated at all. It has exactly two limits, and both are real:
+
+- **`pg/geometry@1` is exempt.** The PostGIS geometry codec has no canonical JSON projection, so a geometry column inside database-produced JSON carries whatever PostGIS's own JSON conversion emits, and round-tripping it is not guaranteed. Tracked as [TML-3105](https://linear.app/prisma-company/issue/TML-3105).
+- **Float codecs need `extra_float_digits >= 1`.** `pg/float4@1`, `pg/float8@1`, `pg/float@1` and `sql/float@1` render through PostgreSQL's float-to-text conversion, which `extra_float_digits` controls. At `1` (the default since PostgreSQL 12) it prints the shortest decimal that round-trips exactly, and the guarantee holds. A session that lowers it to `0` or below prints fewer digits than the value needs, and a float read back through JSON may differ from the one stored. Nothing in the framework enforces the setting; if your deployment changes it, floats are outside the guarantee.
+
+Non-finite floats are rejected rather than silently mangled: JSON has no spelling for `NaN` or an infinity, and a database that holds one emits it as a *string*, so `sql/float@1` and `sqlite/real@1` refuse them in both directions rather than hand back a string typed as `number`. `pg/numeric@1` accepts all three, because its application value is already text.
 
 ## Three case studies
 
@@ -32,7 +45,7 @@ Case 1 carries the full framework import block; Cases 2 and 3 continue from it a
 ### Case 1 — Non-parameterized codec (`pg/text@1`)
 
 ```ts
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   type CodecInstanceContext,
@@ -40,9 +53,9 @@ import {
   type ColumnHelperFor,
   column,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
-import type { ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
-import { PostgresCodecDescriptor } from '@prisma-next/target-postgres/codec-descriptor';
+} from '@internal/framework-components/codec';
+import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
+import { PostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 
 class PgTextCodec extends CodecImpl<
   'pg/text@1',
@@ -226,11 +239,11 @@ A SQL extension binds each codec descriptor to the target that owns its native s
 Subclass `PostgresCodecDescriptor<P>` when the codec itself is PostgreSQL-bound. Keep all ordinary descriptor members from the generic authoring model, and add the two protected target hooks:
 
 ```ts
-import type { ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
+import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
 import {
   definePostgresCodecs,
   PostgresCodecDescriptor,
-} from '@prisma-next/target-postgres/codec-descriptor';
+} from '@internal/target-postgres/codec-descriptor';
 
 class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
   protected override nativeType(_params: VectorParams): string {
@@ -244,8 +257,8 @@ class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
     return expression;
   }
 
-  // codecId, traits, targetTypes, paramsSchema, factory, renderOutputType,
-  // and transitional meta/metaFor stay on the ordinary descriptor.
+  // codecId, traits, targetTypes, paramsSchema, factory and renderOutputType
+  // stay on the ordinary descriptor.
 }
 
 export const pgVectorDescriptor = new PgVectorDescriptor();
@@ -259,8 +272,8 @@ The public `projectJson(expression, ref)` method validates parameters and dispat
 Adapt a reusable generic descriptor with `postgresCodec(...)` instead of subclassing it solely to add target behavior:
 
 ```ts
-import { sqlIntDescriptor } from '@prisma-next/sql-relational-core/ast';
-import { postgresCodec } from '@prisma-next/target-postgres/codec-descriptor';
+import { sqlIntDescriptor } from '@internal/sql-relational-core/ast';
+import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
 
 const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
   nativeType: () => 'integer',
@@ -268,18 +281,18 @@ const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
 });
 ```
 
-The adapter delegates the wrapped descriptor's codec id, literals, parameter schema, factory, renderers, target types, and transitional metadata. It adds the PostgreSQL discriminant and target methods without changing codec materialization.
+The adapter delegates the wrapped descriptor's codec id, literals, parameter schema, factory, renderers and target types. It adds the PostgreSQL discriminant and target methods without changing codec materialization.
 
 ### SQLite
 
 Subclass `SqliteCodecDescriptor<P>` for a SQLite-bound codec and implement the scalar projection hook. SQLite has no stored scalar-array descriptor protocol; `projectJson()` rejects `CodecRef.many` rather than guessing a storage representation.
 
 ```ts
-import type { ProjectionExpr } from '@prisma-next/sql-relational-core/ast';
+import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
 import {
   defineSqliteCodecs,
   SqliteCodecDescriptor,
-} from '@prisma-next/target-sqlite/codec-descriptor';
+} from '@internal/target-sqlite/codec-descriptor';
 
 class SqliteTextDescriptor extends SqliteCodecDescriptor<void> {
   protected override jsonProjection(
@@ -299,8 +312,8 @@ export const codecDescriptors = defineSqliteCodecs([sqliteTextDescriptor]);
 Generic SQL descriptors are adapted explicitly with `sqliteCodec(...)`:
 
 ```ts
-import { sqlIntDescriptor } from '@prisma-next/sql-relational-core/ast';
-import { sqliteCodec } from '@prisma-next/target-sqlite/codec-descriptor';
+import { sqlIntDescriptor } from '@internal/sql-relational-core/ast';
+import { sqliteCodec } from '@internal/target-sqlite/codec-descriptor';
 
 const sqliteSqlIntDescriptor = sqliteCodec(sqlIntDescriptor, {
   jsonProjection: (expression) => expression,
@@ -340,8 +353,8 @@ export const controlExtension = {
 Runtime and control stacks may assemble through different framework paths, but each target adapter validates the resulting ordered descriptor set once and builds one coherent registry for ordinary codec materialization and target behavior. Bare adapters remain built-ins-only. For focused construction outside a stack, pass target-typed descriptors through the adapter's single coherent option; custom descriptors append to built-ins:
 
 ```ts
-import { createPostgresAdapter } from '@prisma-next/adapter-postgres/adapter';
-import { createSqliteAdapter } from '@prisma-next/adapter-sqlite/adapter';
+import { createPostgresAdapter } from '@internal/adapter-postgres/adapter';
+import { createSqliteAdapter } from '@internal/adapter-sqlite/adapter';
 
 const postgresAdapter = createPostgresAdapter({
   codecDescriptors: postgresExtensionCodecs,
@@ -354,11 +367,11 @@ const sqliteAdapter = createSqliteAdapter({
 
 Do not inject an independent generic codec lookup and target registry: both views are derived from the same validated target descriptors so they cannot drift. Stack composition order remains target contributions, the full adapter descriptor set, then ordered extension contributions.
 
-### Behavior-preserving transition
+### One source of target truth
 
-`CodecMeta`, descriptor `meta` / `metaFor`, and metadata lookups coexist with the target protocol in 0.17. Preserve them and keep their native-type declarations equivalent to the target hooks while existing emission and control consumers migrate. `PostgresCodecDescriptor.nativeTypeFor()` is used for PostgreSQL parameter-cast rendering, but production PostgreSQL and SQLite JSON renderers still pass their current projection variants through without invoking descriptor `projectJson()`.
+The descriptor is the only place a target's behaviour for a codec is declared. `nativeTypeFor()` gives PostgreSQL's parameter-cast rendering and the column's declared type; `projectJson()` gives the expression that produces the column's canonical JSON. There is no parallel metadata channel to keep in step with them.
 
-A required identity `jsonProjection` therefore means “preserve today's SQL JSON output while declaring the target boundary,” not “this representation is canonical or lossless.” Do not change codec ids, factories, column helpers, SQL, wire encoding, `encodeJson`, `decodeJson`, emitted contracts, or stored representations merely to adopt the descriptor protocol. New numeric, byte, BLOB, retagging, or document transformations require a separate behavior change.
+An identity `jsonProjection` is a claim, not a placeholder: it says this codec's stored form *is* its canonical JSON, as it is for `pg/text@1` and `pg/int4@1`. Write one only when that holds. A codec whose stored form cannot survive JSON — a wide integer, a byte string, a value whose text depends on a session setting — needs a projection that converts it, because the renderer will ask and then use the answer.
 
 ## `satisfies` discipline
 
@@ -367,15 +380,15 @@ The framework exports two helper-shape constraints:
 - `ColumnHelperFor<D>` — checks the helper returns a `ColumnSpec` whose typeParams shape matches `Parameters<D['factory']>[0]`. Catches wiring the wrong descriptor's factory in by typeParams shape; doesn't catch literal-preservation violations (those are covered by negative type tests).
 - `ColumnHelperForStrict<D>` — also checks the helper's promised codec type matches `ReturnType<D['factory']>`. Use this when the codec's resolved type is well-defined (most cases). The strict form fails for helpers like `arktypeJsonColumn` whose typed return is more specific than the descriptor's factory return; in that case use the coarse form and rely on `expectTypeOf` tests for the literal-preservation property.
 
-Both are exported from `@prisma-next/framework-components/codec`.
+Both are exported from `@internal/framework-components/codec`.
 
 ## Reusing generic SQL descriptors in PostgreSQL
 
 A reusable SQL-family descriptor remains target-neutral. Bind it to PostgreSQL with `postgresCodec(...)`; do not subclass the generic descriptor, because the PostgreSQL registry requires the target discriminant and target methods.
 
 ```ts
-import { sqlCharDescriptor } from '@prisma-next/sql-relational-core/ast';
-import { postgresCodec } from '@prisma-next/target-postgres/codec-descriptor';
+import { sqlCharDescriptor } from '@internal/sql-relational-core/ast';
+import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
 
 const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
   nativeType: () => 'character',
@@ -428,7 +441,7 @@ interface CodecDescriptorRegistry {
 }
 ```
 
-Registries are built from flat descriptor lists (see `buildCodecDescriptorRegistry` in `@prisma-next/sql-relational-core`); there is no imperative `register` on the public surface.
+Registries are built from flat descriptor lists (see `buildCodecDescriptorRegistry` in `@internal/sql-relational-core`); there is no imperative `register` on the public surface.
 
 `CodecDescriptor<P>` is invariant in `P` (the `factory` and `renderOutputType` slots use `P` contravariantly), so `CodecDescriptor<unknown>` is **not** assignable from concrete `CodecDescriptor<SpecificParams>` subclasses — the `<unknown>` shape would force `as` casts at every register/retrieve boundary. `AnyCodecDescriptor` is the only erasure form that admits cast-free heterogeneous storage.
 

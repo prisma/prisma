@@ -1,5 +1,5 @@
-import type { MongoFilterExpr, MongoQueryPlan } from '@prisma-next/mongo-query-ast/execution';
-import { MongoAggFieldRef, MongoLimitStage } from '@prisma-next/mongo-query-ast/execution';
+import type { MongoFilterExpr, MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import { MongoAggFieldRef, MongoLimitStage } from '@internal/mongo-query-ast/execution';
 import { expectTypeOf } from 'vitest';
 import { acc } from '../src/accumulator-helpers';
 import { fn } from '../src/expression-helpers';

@@ -1,4 +1,4 @@
-# @prisma-next/sql-lane-query-builder
+# @internal/sql-lane-query-builder
 
 SQL query builder lane for Prisma Next.
 

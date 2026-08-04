@@ -23,6 +23,7 @@ Legend:
 | `groupBy` + `take` (builder) | 🟡 | 🟡 | — | |
 | `groupBy` + `skip` (builder) | 🟡 | 🟡 | — | |
 | Per-field non-null counts (`count(field)`) | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/include.test.ts` (`scalar count()`) |
+| Relation-scoped count in `include()` over explicit many-to-many | ✅ | 🟡 | — | `test/integration/test/ports/prisma/functional/filter-count-relations/filter-count-relations.test.ts` (`many-to-many` cases); `test/integration/test/ports/prisma/functional/issues-11974/issues-11974.test.ts`; `test/integration/test/ports/prisma/functional/issues-12557/issues-12557.test.ts` |
 | Relation-scoped aggregate `sum` in `include()` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/include.test.ts` (`scalar sum()`) |
 | Relation-scoped aggregate `avg` in `include()` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/include.test.ts` (`scalar avg()`) |
 | Relation-scoped aggregate `min` in `include()` | ✅ | 🟡 | — | `test/integration/test/sql-orm-client/include.test.ts` (`scalar min()`) |

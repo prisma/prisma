@@ -1,5 +1,5 @@
-import { MongoFieldFilter, MongoOrExpr } from '@prisma-next/mongo-query-ast/execution';
-import { MongoParamRef } from '@prisma-next/mongo-value';
+import { MongoFieldFilter, MongoOrExpr } from '@prisma/orm-mongo/query-ast/execution';
+import { MongoParamRef } from '@prisma/orm-mongo/value';
 import type { FieldOutputTypes } from '../contract';
 import type { Db } from '../db';
 

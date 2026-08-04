@@ -4,12 +4,12 @@ to: "0.13"
 changes:
   - id: sqlite-create-table-method
     summary: |
-      SQLite migrations: `createTable` is no longer a free function exported from `@prisma-next/sqlite/migration`. It is now a protected method on the `Migration` base class. Replace every free `createTable(...)` call in your SQLite migration files with `this.createTable({ table: ..., columns: [...], constraints: [...] })`. The `col()`, `lit()`, `fn()`, `primaryKey()`, `foreignKey()`, and `unique()` builder helpers are now exported from `@prisma-next/sqlite/migration` directly, so your import line stays a single entry point.
+      SQLite migrations: `createTable` is no longer a free function exported from `@internal/sqlite/migration`. It is now a protected method on the `Migration` base class. Replace every free `createTable(...)` call in your SQLite migration files with `this.createTable({ table: ..., columns: [...], constraints: [...] })`. The `col()`, `lit()`, `fn()`, `primaryKey()`, `foreignKey()`, and `unique()` builder helpers are now exported from `@internal/sqlite/migration` directly, so your import line stays a single entry point.
     detection:
       glob: "**/migration.ts"
       contains:
         - "createTable"
-        - "@prisma-next/sqlite/migration"
+        - "@internal/sqlite/migration"
       anyMatch: false
   - id: re-emit-mti-variant-link-columns
     summary: |
@@ -65,7 +65,7 @@ Consumer impact is incidental: re-emitting `contract.json` /
 `contract.d.ts` via the existing `prisma-next contract emit` produces
 the new shape with no source change. No codemod is required.
 
-TML-2834: scaffolds the new `@prisma-next/extension-supabase` package
+TML-2834: scaffolds the new `@internal/extension-supabase` package
 and adds `examples/supabase` as the Supabase walking-skeleton app. Two
 enabling framework changes ride along: (a) the emitter now emits
 multi-namespace contracts (single-namespace output is byte-identical),
@@ -91,15 +91,15 @@ mongodb-memory-server 11.1.0→11.2.0. Touches examples/ only via
 package.json version fields; no runtime, contract, or public-API change.
 
 TML-2838: regenerates example-app migration snapshots via pnpm
-fixtures:emit. The prisma-next-demo initial migration was updated from
+fixtures:emit. The prisma-8-demo initial migration was updated from
 the removed standalone createTable function to this.createTable({...})
 (the base-class method introduced by the planner-create-table-adopts-ddl-ast
 refactor). The ops.json snapshots are regenerated accordingly. No
 user-side action required.
 
-TML-2843: `@prisma-next/sqlite` gained an additive facade transaction
+TML-2843: `@internal/sqlite` gained an additive facade transaction
 API (`db.transaction(async (tx) => …)`) demonstrated in
-`examples/prisma-next-demo-sqlite`. No user action required; incidental
+`examples/prisma-8-demo-sqlite`. No user action required; incidental
 substrate diff.
 
 Release bump 0.13.0 (#789): version-number changes across all workspace
@@ -113,14 +113,14 @@ action required.
 
 ## `sqlite-create-table-method`
 
-Starting at this release, `createTable` is no longer a free function exported from `@prisma-next/sqlite/migration`. It is now a protected method on the `Migration` base class — call it as `this.createTable({...})` inside `get operations()`.
+Starting at this release, `createTable` is no longer a free function exported from `@internal/sqlite/migration`. It is now a protected method on the `Migration` base class — call it as `this.createTable({...})` inside `get operations()`.
 
-The column builder helpers `col()`, `lit()`, `fn()`, `primaryKey()`, `foreignKey()`, and `unique()` are now exported from `@prisma-next/sqlite/migration` directly, so you do not need an additional import.
+The column builder helpers `col()`, `lit()`, `fn()`, `primaryKey()`, `foreignKey()`, and `unique()` are now exported from `@internal/sqlite/migration` directly, so you do not need an additional import.
 
 ### Before 0.13
 
 ```ts
-import { Migration, MigrationCLI, createTable, col, primaryKey } from '@prisma-next/sqlite/migration';
+import { Migration, MigrationCLI, createTable, col, primaryKey } from '@internal/sqlite/migration';
 
 export default class M extends Migration {
   override describe() { return { from: null, to: '...' }; }
@@ -141,7 +141,7 @@ MigrationCLI.run(import.meta.url, M);
 ### Starting at 0.13
 
 ```ts
-import { Migration, MigrationCLI, col, primaryKey } from '@prisma-next/sqlite/migration';
+import { Migration, MigrationCLI, col, primaryKey } from '@internal/sqlite/migration';
 
 export default class M extends Migration {
   override describe() { return { from: null, to: '...' }; }
@@ -164,7 +164,7 @@ MigrationCLI.run(import.meta.url, M);
 
 ### Migration steps
 
-1. Remove `createTable` from the import list for `@prisma-next/sqlite/migration`.
+1. Remove `createTable` from the import list for `@internal/sqlite/migration`.
 2. In `get operations()`, replace each `createTable(tableName, columns, constraints?)` call with `this.createTable({ table: tableName, columns, constraints? })`.
 3. Run `pnpm typecheck && pnpm test` to confirm the migration compiled and all tests pass.
 
@@ -335,5 +335,5 @@ DO_NOT_TRACK=1
 ```
 
 Either variable takes effect immediately — no config file change needed. See
-[Telemetry](https://github.com/prisma/prisma-next/blob/main/docs/Telemetry.md) for
+[Telemetry](https://github.com/prisma/prisma/blob/main/docs/Telemetry.md) for
 what is collected and how to opt out permanently.

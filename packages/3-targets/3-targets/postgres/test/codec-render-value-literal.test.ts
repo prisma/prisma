@@ -1,4 +1,4 @@
-import type { AnyCodecDescriptor } from '@prisma-next/framework-components/codec';
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import {
   pgBoolDescriptor,
@@ -61,8 +61,12 @@ describe('codec renderValueLiteral', () => {
   });
 
   describe('pg/int8@1', () => {
-    it('renders a numeric literal', () => {
-      expect(valueRendererFor(pgInt8Descriptor)?.(100, 'output')).toBe('100');
+    it('renders a bigint literal from the canonical decimal text', () => {
+      expect(valueRendererFor(pgInt8Descriptor)?.('100', 'output')).toBe('100n');
+    });
+
+    it('renders nothing for a value that is not decimal text', () => {
+      expect(valueRendererFor(pgInt8Descriptor)?.(100, 'output')).toBeUndefined();
     });
   });
 

@@ -10,7 +10,7 @@
 - **Outcome:** `pnpm test:dual-mode` is green — either both PSL and TS emit legs pass, or the TS contract source is removed and the demo is cleanly PSL-only (per Open Question 1).
 - **Builds on:** nothing in this project (it's a pre-existing demo bug).
 - **Hands to:** a demo whose contract source(s) are consistent — a clean base for the M:N example additions.
-- **Focus:** `examples/prisma-next-demo` dual-mode setup (`prisma-next.config.ts*`, `prisma/contract.ts`, `src/prisma/contract.prisma`, the `emit:psl`/`emit:ts`/`test:dual-mode` scripts).
+- **Focus:** `examples/prisma-8-demo` dual-mode setup (`prisma-next.config.ts*`, `prisma/contract.ts`, `src/prisma/contract.prisma`, the `emit:psl`/`emit:ts`/`test:dual-mode` scripts).
 
 ### Dispatch 2: PG demo M:N examples (blocked by slice 5)
 

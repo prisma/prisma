@@ -1,7 +1,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { timeouts } from '@prisma-next/test-utils';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+import { isStructuredError } from '@internal/utils/structured-error';
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { loadContractFromTs } from '../src/load-ts-contract';
 
@@ -147,7 +147,7 @@ describe('loadContractFromTs', () => {
       const contractPath = join(fixturesDir, 'custom-allowlist.ts');
 
       const contract = await loadContractFromTs(contractPath, {
-        allowlist: ['@custom/package/*', '@prisma-next/*', 'node:*'],
+        allowlist: ['@custom/package/*', '@internal/*', 'node:*'],
       });
 
       expect(contract).toBeDefined();
@@ -175,7 +175,7 @@ describe('loadContractFromTs', () => {
       const contractPath = join(fixturesDir, 'exact-prefix-import.ts');
 
       const contract = await loadContractFromTs(contractPath, {
-        allowlist: ['@prisma-next/*', 'node:*'],
+        allowlist: ['@internal/*', 'node:*'],
       });
 
       expect(contract).toBeDefined();

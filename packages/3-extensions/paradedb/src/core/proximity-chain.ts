@@ -1,10 +1,6 @@
-import {
-  type AnyExpression,
-  LiteralExpr,
-  OperationExpr,
-} from '@prisma-next/sql-relational-core/ast';
-import { type Expression, toExpr } from '@prisma-next/sql-relational-core/expression';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import { type AnyExpression, LiteralExpr, OperationExpr } from '@internal/sql-relational-core/ast';
+import { type Expression, toExpr } from '@internal/sql-relational-core/expression';
+import { InternalError } from '@internal/utils/internal-error';
 import { paradeDbError } from './errors';
 
 const TEXT = 'pg/text@1' as const;

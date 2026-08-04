@@ -1,4 +1,4 @@
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { describe, expect, it } from 'vitest';
 import {
   buildEdgeAnnotationsByHashFromListEntries,

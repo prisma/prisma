@@ -1,4 +1,4 @@
-import type { MigrationGraph } from '@prisma-next/migration-tools/graph';
+import type { MigrationGraph } from '@internal/migration-tools/graph';
 import type { GlyphMode } from '../glyph-mode';
 import {
   computeLabelColumn,

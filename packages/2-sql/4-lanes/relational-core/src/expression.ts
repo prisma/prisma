@@ -1,7 +1,7 @@
-import { runtimeError } from '@prisma-next/framework-components/runtime';
-import type { ParamSpec } from '@prisma-next/operations';
-import type { QueryOperationReturn } from '@prisma-next/sql-contract/types';
-import type { SqlLoweringSpec } from '@prisma-next/sql-operations';
+import { runtimeError } from '@internal/framework-components/runtime';
+import type { ParamSpec } from '@internal/operations';
+import type { QueryOperationReturn } from '@internal/sql-contract/types';
+import type { SqlLoweringSpec } from '@internal/sql-operations';
 import type { CodecRef } from './ast/codec-types';
 import type { AnyExpression as AstExpression, RawSqlLiteral } from './ast/types';
 import { OperationExpr, ParamRef, RawExpr } from './ast/types';

@@ -1,4 +1,4 @@
-# @prisma-next/sql-schema-ir
+# @internal/sql-schema-ir
 
 SQL Schema Intermediate Representation (IR) types for Prisma Next.
 
@@ -22,14 +22,14 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 ## Dependencies
 
-- **`@prisma-next/contract`**: For `Contract` type (used in `SqlSchemaIR`)
+- **`@internal/contract`**: For `Contract` type (used in `SqlSchemaIR`)
 
 **Dependents:**
 - **Migration Plane**:
-  - `@prisma-next/family-sql` - SQL family instance uses SqlSchemaIR for schema verification
-  - `@prisma-next/framework-components` - Core verification logic (via `./control`)
-  - `@prisma-next/adapter-postgres` - Postgres introspection
-  - `@prisma-next/extension-pgvector` - Extension verification hooks
+  - `@internal/family-sql` - SQL family instance uses SqlSchemaIR for schema verification
+  - `@internal/framework-components` - Core verification logic (via `./control`)
+  - `@internal/adapter-postgres` - Postgres introspection
+  - `@internal/extension-pgvector` - Extension verification hooks
 - **Runtime Plane** (future):
   - Migration planning logic
   - Schema diff utilities
@@ -54,14 +54,14 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 3. **Shared Plane**: This package is in the **shared plane**, meaning it can be safely imported by both migration-plane (verification, migration planning) and runtime-plane code.
 
-4. **Name-identified indexes**: `SqlIndexIR` is identified by its full physical name (its diff-tree `id` is the name, so same-column-tuple siblings and expression indexes are representable). Managed indexes carry a `prefix` plus a content-hash wire name; the shared naming helpers (`formatWireName`, `parseWireName`, `normalizeSqlBody`, `computeIndexContentHash`) live in `@prisma-next/sql-schema-ir/naming`.
+4. **Name-identified indexes**: `SqlIndexIR` is identified by its full physical name (its diff-tree `id` is the name, so same-column-tuple siblings and expression indexes are representable). Wire-named indexes carry a `prefix` plus a content-hash wire name; the shared naming helpers (`formatWireName`, `parseWireName`, `normalizeSqlBody`, `computeIndexContentHash`) live in `@internal/sql-schema-ir/naming`.
 
 ## Usage
 
 ### Basic Usage
 
 ```typescript
-import type { SqlSchemaIR, SqlTableIR, SqlColumnIR } from '@prisma-next/sql-schema-ir/types';
+import type { SqlSchemaIR, SqlTableIR, SqlColumnIR } from '@internal/sql-schema-ir/types';
 
 const schemaIR: SqlSchemaIR = {
   tables: {
@@ -100,8 +100,8 @@ Adapters produce `SqlSchemaIR` by querying database catalogs:
 
 ```typescript
 // In Postgres adapter
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 
 const controlAdapter = postgresAdapter.createControlInstance();
 const schemaIR: SqlSchemaIR = await controlAdapter.introspect(driver, contract);
@@ -113,8 +113,8 @@ Schema verification is performed via the `schemaVerify()` method on the SQL fami
 
 ```typescript
 // In SQL family instance
-import sql from '@prisma-next/family-sql/control';
-import type { SqlSchemaIR } from '@prisma-next/sql-schema-ir/types';
+import sql from '@internal/family-sql/control';
+import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 
 // Create family instance
 const familyInstance = sql.create({

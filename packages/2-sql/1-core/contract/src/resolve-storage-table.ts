@@ -1,4 +1,4 @@
-import { entityAt } from '@prisma-next/framework-components/ir';
+import { entityAt } from '@internal/framework-components/ir';
 import { contractError } from './contract-errors';
 import type { SqlStorage } from './ir/sql-storage';
 import type { StorageTable } from './ir/storage-table';

@@ -1,14 +1,14 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   ContractSerializer,
   DiffSubjectGranularity,
   MigratableTargetDescriptor,
   SchemaVerifier,
-} from '@prisma-next/framework-components/control';
-import type { PslDocumentAst } from '@prisma-next/framework-components/psl-ast';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { SqlOperationDescriptors } from '@prisma-next/sql-operations';
-import type { SqlSchemaIR, SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/framework-components/control';
+import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlOperationDescriptors } from '@internal/sql-operations';
+import type { SqlSchemaIR, SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import type { SqlControlAdapter } from './control-adapter';
 import type { SqlControlFamilyInstance } from './control-instance';
 import type { SqlSchemaDiffFn } from './migrations/schema-differ';

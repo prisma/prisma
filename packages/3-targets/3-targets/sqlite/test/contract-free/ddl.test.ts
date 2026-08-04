@@ -1,4 +1,4 @@
-import { col, fn, lit } from '@prisma-next/sql-relational-core/contract-free';
+import { col, fn, lit } from '@internal/sql-relational-core/contract-free';
 import { describe, expect, it } from 'vitest';
 import { createTable } from '../../src/exports/contract-free';
 

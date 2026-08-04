@@ -1,4 +1,4 @@
-import { blindCast } from '@prisma-next/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import { type Type, type } from 'arktype';
 import { asNamespaceId, type NamespaceId } from './namespace-id';
 

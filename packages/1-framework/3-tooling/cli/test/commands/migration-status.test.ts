@@ -1,11 +1,11 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import * as configLoader from '@prisma-next/config-loader';
-import type { MigrationPlanOperation } from '@prisma-next/framework-components/control';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { computeMigrationHash } from '@prisma-next/migration-tools/hash';
-import { formatMigrationDirName, writeMigrationPackage } from '@prisma-next/migration-tools/io';
-import type { MigrationMetadata } from '@prisma-next/migration-tools/metadata';
+import * as configLoader from '@internal/config-loader';
+import type { MigrationPlanOperation } from '@internal/framework-components/control';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { computeMigrationHash } from '@internal/migration-tools/hash';
+import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
+import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
@@ -20,7 +20,7 @@ import {
 import { parseGlobalFlags } from '../../src/utils/global-flags';
 import { createTerminalUI } from '../../src/utils/terminal-ui';
 
-vi.mock('@prisma-next/config-loader', { spy: true });
+vi.mock('@internal/config-loader', { spy: true });
 
 const mocks = vi.hoisted(() => ({
   readAllMarkers: vi.fn(),
@@ -123,7 +123,7 @@ async function writeLinearMigrations(
 describe('migration status --json golden', () => {
   afterAll(() => {
     vi.doUnmock('../../src/control-api/client');
-    vi.doUnmock('@prisma-next/config-loader');
+    vi.doUnmock('@internal/config-loader');
   });
 
   afterEach(async () => {

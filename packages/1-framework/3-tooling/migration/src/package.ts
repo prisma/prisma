@@ -1,7 +1,7 @@
 import type {
   MigrationPackage,
   MigrationPlanOperation,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 
 export type MigrationOps = readonly MigrationPlanOperation[];
 

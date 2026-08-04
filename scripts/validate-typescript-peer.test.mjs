@@ -8,7 +8,7 @@ import {
 } from './validate-typescript-peer.mjs';
 
 const CONFORMING_PKG = {
-  name: '@prisma-next/example',
+  name: '@internal/example',
   version: '1.0.0',
   license: 'Apache-2.0',
   peerDependencies: { typescript: MIN_TYPESCRIPT_PEER },
@@ -58,27 +58,27 @@ describe('classifyPackage', () => {
   });
 
   it('flags a missing typescript peer with reason "missing"', () => {
-    const result = classifyPackage({ name: '@prisma-next/example' });
-    strictEqual(result?.name, '@prisma-next/example');
+    const result = classifyPackage({ name: '@internal/example' });
+    strictEqual(result?.name, '@internal/example');
     strictEqual(result?.reason, 'missing');
   });
 
   it('flags a wrong range with reason "wrong-range"', () => {
     const result = classifyPackage({
-      name: '@prisma-next/example',
+      name: '@internal/example',
       peerDependencies: { typescript: '>=5.0' },
       peerDependenciesMeta: { typescript: { optional: true } },
     });
-    strictEqual(result?.name, '@prisma-next/example');
+    strictEqual(result?.name, '@internal/example');
     strictEqual(result?.reason, 'wrong-range');
   });
 
   it('flags a non-optional typescript peer with reason "not-optional"', () => {
     const result = classifyPackage({
-      name: '@prisma-next/example',
+      name: '@internal/example',
       peerDependencies: { typescript: MIN_TYPESCRIPT_PEER },
     });
-    strictEqual(result?.name, '@prisma-next/example');
+    strictEqual(result?.name, '@internal/example');
     strictEqual(result?.reason, 'not-optional');
   });
 

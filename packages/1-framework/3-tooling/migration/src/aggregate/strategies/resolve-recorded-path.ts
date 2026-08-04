@@ -1,5 +1,5 @@
-import type { MigrationPlan } from '@prisma-next/framework-components/control';
-import { InternalError } from '@prisma-next/utils/internal-error';
+import type { MigrationPlan } from '@internal/framework-components/control';
+import { InternalError } from '@internal/utils/internal-error';
 import { EMPTY_CONTRACT_HASH } from '../../constants';
 import { findPathWithDecision } from '../../migration-graph';
 import type { MigrationOps, OnDiskMigrationPackage } from '../../package';

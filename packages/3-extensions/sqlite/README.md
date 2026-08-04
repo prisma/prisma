@@ -1,4 +1,4 @@
-# @prisma-next/sqlite
+# @internal/sqlite
 
 One-package SQLite setup for Prisma Next. Install this single package to get config, runtime, contract authoring, control-plane access, and migration helpers — no reach-ins to internal packages required.
 
@@ -12,7 +12,7 @@ One-package SQLite setup for Prisma Next. Install this single package to get con
 
 ```typescript
 // prisma-next.config.ts
-import { defineConfig } from '@prisma-next/sqlite/config';
+import { defineConfig } from '@internal/sqlite/config';
 
 export default defineConfig({
   contract: './prisma/contract.prisma',
@@ -22,7 +22,7 @@ export default defineConfig({
 
 ```typescript
 // prisma/contract.ts
-import { defineContract, field, model } from '@prisma-next/sqlite/contract-builder';
+import { defineContract, field, model } from '@internal/sqlite/contract-builder';
 
 export default defineContract({
   models: {
@@ -33,12 +33,12 @@ export default defineContract({
 
 ## Exports
 
-### `@prisma-next/sqlite/config`
+### `@internal/sqlite/config`
 
 Simplified `defineConfig` that pre-wires all SQLite internals (family, target, adapter, driver, contract providers). Accepts `contract`, `db.connection`, `extensions`, and `migrations.dir`.
 
 ```typescript
-import { defineConfig } from '@prisma-next/sqlite/config';
+import { defineConfig } from '@internal/sqlite/config';
 
 export default defineConfig({
   contract: './prisma/contract.prisma',
@@ -47,12 +47,12 @@ export default defineConfig({
 });
 ```
 
-### `@prisma-next/sqlite/contract-builder`
+### `@internal/sqlite/contract-builder`
 
 TypeScript contract authoring DSL (`defineContract`, `field`, `model`, `rel`, …). The `defineContract` facade pre-binds `family` and `target` — callers do not pass those fields.
 
 ```typescript
-import { defineContract, field, model } from '@prisma-next/sqlite/contract-builder';
+import { defineContract, field, model } from '@internal/sqlite/contract-builder';
 
 export default defineContract({
   models: {
@@ -61,12 +61,12 @@ export default defineContract({
 });
 ```
 
-### `@prisma-next/sqlite/control`
+### `@internal/sqlite/control`
 
 Control-plane client factory. Collapses the family + target + adapter + driver wiring into a single call.
 
 ```typescript
-import { createSqliteControlClient } from '@prisma-next/sqlite/control';
+import { createSqliteControlClient } from '@internal/sqlite/control';
 
 const control = createSqliteControlClient({
   connection: 'path/to/app.db',
@@ -74,11 +74,11 @@ const control = createSqliteControlClient({
 await control.dbUpdate({ migrations: { dir: 'migrations/app' } });
 ```
 
-### `@prisma-next/sqlite/migration`
+### `@internal/sqlite/migration`
 
-Re-exports all migration operation helpers from `@prisma-next/target-sqlite/migration` (`Migration`, `MigrationCLI`, `col`, `lit`, `fn`, `primaryKey`, `foreignKey`, `unique`, `addColumn`, `dropTable`, `createIndex`, `dropIndex`, `dropColumn`, `recreateTable`, `dataTransform`, `placeholder`, `rawSql`). `createTable` is no longer a free export — it is a protected method on `Migration`; call it as `this.createTable({...})` inside `get operations()`.
+Re-exports all migration operation helpers from `@internal/target-sqlite/migration` (`Migration`, `MigrationCLI`, `col`, `lit`, `fn`, `primaryKey`, `foreignKey`, `unique`, `addColumn`, `dropTable`, `createIndex`, `dropIndex`, `dropColumn`, `recreateTable`, `dataTransform`, `placeholder`, `rawSql`). `createTable` is no longer a free export — it is a protected method on `Migration`; call it as `this.createTable({...})` inside `get operations()`.
 
-### `@prisma-next/sqlite/runtime`
+### `@internal/sqlite/runtime`
 
 Composes the SQLite execution stack and returns typed query roots (`db.sql`, `db.orm`, `db.context`, `db.stack`).
 
@@ -86,11 +86,11 @@ Composes the SQLite execution stack and returns typed query roots (`db.sql`, `db
 
 This package bundles all the transitive dependencies needed for a SQLite Prisma Next project:
 
-- `@prisma-next/target-sqlite` (target descriptor + migration surface)
-- `@prisma-next/adapter-sqlite` (adapter descriptor)
-- `@prisma-next/driver-sqlite` (driver descriptor)
-- `@prisma-next/sql-contract-ts` (TypeScript contract authoring)
-- `@prisma-next/sql-contract` (contract type definitions)
+- `@internal/target-sqlite` (target descriptor + migration surface)
+- `@internal/adapter-sqlite` (adapter descriptor)
+- `@internal/driver-sqlite` (driver descriptor)
+- `@internal/sql-contract-ts` (TypeScript contract authoring)
+- `@internal/sql-contract` (contract type definitions)
 
 ## Related Docs
 

@@ -1,4 +1,4 @@
-import { freezeNode, IRNodeBase } from '@prisma-next/framework-components/ir';
+import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 import type { MongoJsonObject } from '../contract-types';
 import {
   MongoChangeStreamPreAndPostImagesOptions,

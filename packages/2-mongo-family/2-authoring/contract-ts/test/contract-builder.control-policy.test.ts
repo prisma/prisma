@@ -1,13 +1,13 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { effectiveControlPolicy } from '@prisma-next/contract/types';
-import type { FamilyPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import type { ControlPolicy } from '@internal/contract/types';
+import { effectiveControlPolicy } from '@internal/contract/types';
+import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   createMongoContractSchema,
   type MongoCollection,
   type MongoContract,
   type MongoStorageShape,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, index, model } from '../src/contract-builder';

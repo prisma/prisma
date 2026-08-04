@@ -1,6 +1,6 @@
-import type { ParamSpec } from '@prisma-next/operations';
-import { blindCast } from '@prisma-next/utils/casts';
-import { structuredError } from '@prisma-next/utils/structured-error';
+import type { ParamSpec } from '@internal/operations';
+import { blindCast } from '@internal/utils/casts';
+import { structuredError } from '@internal/utils/structured-error';
 import {
   AggregateExpr,
   AndExpr,

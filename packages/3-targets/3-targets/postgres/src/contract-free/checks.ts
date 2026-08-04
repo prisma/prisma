@@ -1,11 +1,11 @@
-import type { SelectAst } from '@prisma-next/sql-relational-core/ast';
+import type { SelectAst } from '@internal/sql-relational-core/ast';
 import {
   type CfExpr,
   type CfExprSelectQuery,
   cfExpr,
   cfTable,
   exprSelect,
-} from '@prisma-next/sql-relational-core/contract-free';
+} from '@internal/sql-relational-core/contract-free';
 import { PostgresTableSource } from '../core/ast/table-source';
 import { PG_TEXT_CODEC_ID } from '../core/codec-ids';
 import { postgresCreateNamespace } from '../core/postgres-schema';

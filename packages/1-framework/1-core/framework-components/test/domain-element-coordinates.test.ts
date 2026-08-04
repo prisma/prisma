@@ -1,4 +1,4 @@
-import type { ApplicationDomain } from '@prisma-next/contract/types';
+import type { ApplicationDomain } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { domainElementCoordinates } from '../src/ir/domain';
 

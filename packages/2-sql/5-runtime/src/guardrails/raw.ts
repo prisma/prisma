@@ -1,4 +1,4 @@
-import type { PlanMeta } from '@prisma-next/contract/types';
+import type { PlanMeta } from '@internal/contract/types';
 
 export type LintSeverity = 'error' | 'warn';
 export type BudgetSeverity = 'error' | 'warn';

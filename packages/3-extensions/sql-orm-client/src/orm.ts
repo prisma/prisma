@@ -1,7 +1,7 @@
-import { type Contract, domainModelsAtDefaultNamespace } from '@prisma-next/contract/types';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { ExecutionContext } from '@prisma-next/sql-relational-core/query-lane-context';
-import { blindCast } from '@prisma-next/utils/casts';
+import { type Contract, domainModelsAtDefaultNamespace } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { blindCast } from '@internal/utils/casts';
 import { Collection } from './collection';
 import { ormError } from './orm-errors';
 import { domainModelNamesInNamespace, domainModelTableInNamespace } from './storage-resolution';

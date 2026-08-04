@@ -1,19 +1,18 @@
-import type { JsonValue } from '@prisma-next/contract/types';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   type CodecDescriptor,
   CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
-  type CodecMeta,
   type CodecRef,
-} from '@prisma-next/framework-components/codec';
+} from '@internal/framework-components/codec';
 import {
   ColumnRef,
   FunctionCallExpr,
   LiteralExpr,
   type ProjectionExpr,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { describe, expect, it } from 'vitest';
 import {
@@ -82,18 +81,11 @@ class GenericVectorDescriptor extends CodecDescriptorImpl<VectorParams> {
   override readonly codecId = 'demo/vector@1' as const;
   override readonly traits = ['equality'] as const;
   override readonly targetTypes = ['vector'] as const;
-  override readonly meta = {
-    db: { sql: { sqlite: { nativeType: 'TEXT' } } },
-  } satisfies CodecMeta;
   override readonly paramsSchema = vectorParamsSchema;
   readonly extensionOnly = 'wrapped-only' as const;
 
   extensionOnlyMethod(): 'wrapped-only' {
     return this.extensionOnly;
-  }
-
-  override metaFor(params: VectorParams): CodecMeta {
-    return { db: { sql: { sqlite: { nativeType: `VECTOR_${params.length}` } } } };
   }
 
   override renderOutputType(params: VectorParams): string {
@@ -187,10 +179,6 @@ describe('sqliteCodec', () => {
     expect(descriptor.targetTypes).toBe(genericVectorDescriptor.targetTypes);
     expect(descriptor.paramsSchema).toBe(genericVectorDescriptor.paramsSchema);
     expect(descriptor.isParameterized).toBe(genericVectorDescriptor.isParameterized);
-    expect(descriptor.meta).toBe(genericVectorDescriptor.meta);
-    expect(descriptor.metaFor?.({ length: 6 })).toEqual(
-      genericVectorDescriptor.metaFor({ length: 6 }),
-    );
     expect(descriptor.renderOutputType?.({ length: 6 })).toBe('Vector<6>');
     expect(descriptor.renderInputType?.({ length: 6 })).toBe(
       'ReadonlyArray<number> & { length: 6 }',

@@ -1,13 +1,13 @@
-import type { StorageHashBase } from '@prisma-next/contract/types';
-import type { AuthoringContributions } from '@prisma-next/framework-components/authoring';
+import type { StorageHashBase } from '@internal/contract/types';
+import type { AuthoringContributions } from '@internal/framework-components/authoring';
 import {
   freezeNode,
   isPlainRecord,
   type Namespace,
   NamespaceBase,
   type Storage,
-} from '@prisma-next/framework-components/ir';
-import { InternalError } from '@prisma-next/utils/internal-error';
+} from '@internal/framework-components/ir';
+import { InternalError } from '@internal/utils/internal-error';
 import { SqlNode } from './sql-node';
 import type { StorageTable } from './storage-table';
 import {
@@ -134,7 +134,7 @@ export abstract class SqlNamespaceBase extends NamespaceBase implements SqlNames
  * Realm-safe guard for hydrated `SqlNamespaceBase` concretions. Checks
  * `qualifyTable` structurally instead of `instanceof NamespaceBase`, so it
  * survives duplicate-module boundaries (e.g. dist e2e where the target and
- * the family carry separate copies of `@prisma-next/framework-components`).
+ * the family carry separate copies of `@internal/framework-components`).
  *
  * Every concrete `SqlNamespaceBase` subclass (`PostgresSchema`, `SqliteDatabase`,
  * `TestSqlNamespace`, …) implements `qualifyTable`. Raw `SqlNamespaceInput`

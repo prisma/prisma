@@ -1,14 +1,11 @@
-import type { Contract } from '@prisma-next/contract/types';
-import { coreHash, profileHash } from '@prisma-next/contract/types';
-import type {
-  CodecDescriptor,
-  CodecInstanceContext,
-} from '@prisma-next/framework-components/codec';
-import { voidParamsSchema } from '@prisma-next/framework-components/codec';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { Codec } from '@prisma-next/sql-relational-core/ast';
-import { applicationDomainOf } from '@prisma-next/test-utils';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { Contract } from '@internal/contract/types';
+import { coreHash, profileHash } from '@internal/contract/types';
+import type { CodecDescriptor, CodecInstanceContext } from '@internal/framework-components/codec';
+import { voidParamsSchema } from '@internal/framework-components/codec';
+import { SqlStorage } from '@internal/sql-contract/types';
+import type { Codec } from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
 import type {
@@ -117,7 +114,7 @@ function createTestContract(
       }
     >
   >,
-  types?: Record<string, import('@prisma-next/sql-contract/types').SqlStorageTypeEntry>,
+  types?: Record<string, import('@internal/sql-contract/types').SqlStorageTypeEntry>,
 ): Contract<SqlStorage> {
   const tableEntries = Object.fromEntries(
     Object.entries(tables).map(([tableName, columns]) => [

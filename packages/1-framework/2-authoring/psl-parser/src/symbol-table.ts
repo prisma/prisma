@@ -1,5 +1,5 @@
-import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
-import type { PslExtensionBlock, PslSpan } from '@prisma-next/framework-components/psl-ast';
+import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type { PslExtensionBlock, PslSpan } from '@internal/framework-components/psl-ast';
 import { reconstructExtensionBlock } from './block-reconstruction';
 import { findBlockDescriptor } from './extension-block';
 import type { ParseDiagnostic } from './parse';

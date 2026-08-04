@@ -3,9 +3,9 @@ import {
   int4Column,
   timestampColumn,
   timestamptzColumn,
-} from '@prisma-next/adapter-postgres/column-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/runtime';
-import type { JsonValue } from '@prisma-next/contract/types';
+} from '@internal/adapter-postgres/column-types';
+import postgresAdapter from '@internal/adapter-postgres/runtime';
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecDescriptorImpl,
@@ -13,15 +13,16 @@ import {
   type CodecInstanceContext,
   type ColumnTypeDescriptor,
   voidParamsSchema,
-} from '@prisma-next/framework-components/codec';
-import { defineContract, field, model, rel } from '@prisma-next/postgres/contract-builder';
-import { Collection } from '@prisma-next/sql-orm-client';
+} from '@internal/framework-components/codec';
+import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
+import { Collection } from '@internal/sql-orm-client';
 import {
   createExecutionContext,
   createSqlExecutionStack,
   type SqlRuntimeExtensionDescriptor,
-} from '@prisma-next/sql-runtime';
-import postgresTarget from '@prisma-next/target-postgres/runtime';
+} from '@internal/sql-runtime';
+import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
+import postgresTarget from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withCollectionRuntime } from './integration-helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';
@@ -69,7 +70,15 @@ class IncludedTextDescriptor extends CodecDescriptorImpl<void> {
   }
 }
 
-const includedTextDescriptor = new IncludedTextDescriptor();
+/**
+ * A PostgreSQL extension contributing a column codec has to say how that
+ * column reaches JSON, since the renderer asks the descriptor rather than
+ * assuming. This one stores and projects text unchanged.
+ */
+const includedTextDescriptor = postgresCodec(new IncludedTextDescriptor(), {
+  nativeType: () => 'text',
+  jsonProjection: (expression) => expression,
+});
 const includedTextColumn = {
   codecId: TEST_INCLUDED_TEXT_CODEC_ID,
   nativeType: 'text',
@@ -81,6 +90,9 @@ const includedTextExtension: SqlRuntimeExtensionDescriptor<'postgres'> = {
   version: '0.0.1',
   familyId: 'sql',
   targetId: 'postgres',
+  // The renderer resolves a column's JSON projection out of the assembled
+  // descriptor registry, which reads `types.codecTypes.codecDescriptors`.
+  types: { codecTypes: { codecDescriptors: [includedTextDescriptor] } },
   codecs: () => [includedTextDescriptor],
   create() {
     return { familyId: 'sql', targetId: 'postgres' };

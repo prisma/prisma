@@ -1,5 +1,5 @@
-import { cuid2 } from '@prisma-next/ids';
-import { defineContract, field, model } from '@prisma-next/postgres/contract-builder';
+import { cuid2 } from '@internal/ids';
+import { defineContract, field, model } from '@internal/postgres/contract-builder';
 
 export const contract = defineContract({
   models: {

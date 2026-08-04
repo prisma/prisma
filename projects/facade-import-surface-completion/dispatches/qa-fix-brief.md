@@ -6,14 +6,14 @@
 
 ---
 
-## Fix 1 — F-1 — `test/e2e/framework/package.json` missing `@prisma-next/sqlite`
+## Fix 1 — F-1 — `test/e2e/framework/package.json` missing `@internal/sqlite`
 
-**Symptom:** `pnpm typecheck` fails. `test/e2e/framework/test/sqlite/fixtures/contract.ts` and `test/e2e/framework/test/sqlite/migrations/harness.ts` import from `@prisma-next/sqlite/contract-builder`, but `test/e2e/framework/package.json` does not list `@prisma-next/sqlite` in `dependencies`.
+**Symptom:** `pnpm typecheck` fails. `test/e2e/framework/test/sqlite/fixtures/contract.ts` and `test/e2e/framework/test/sqlite/migrations/harness.ts` import from `@internal/sqlite/contract-builder`, but `test/e2e/framework/package.json` does not list `@internal/sqlite` in `dependencies`.
 
-**Exact edit:** add this line to `test/e2e/framework/package.json` `dependencies` (alphabetical position, between `@prisma-next/sql-runtime` and `@prisma-next/target-postgres`):
+**Exact edit:** add this line to `test/e2e/framework/package.json` `dependencies` (alphabetical position, between `@internal/sql-runtime` and `@internal/target-postgres`):
 
 ```json
-    "@prisma-next/sqlite": "workspace:0.9.0",
+    "@internal/sqlite": "workspace:0.9.0",
 ```
 
 **Then run:** `pnpm install` (from repo root) to update `pnpm-lock.yaml`. Per the workspace's `no-direct-lockfile-edits` rule, do NOT edit the lockfile by hand.
@@ -47,10 +47,10 @@ All five must pass. If `pnpm test:packages` was already passing before, it shoul
 ## Commit shape (one commit per fix; concise messages)
 
 ```
-fix(test/e2e/framework): add @prisma-next/sqlite dep (post-D5a)
+fix(test/e2e/framework): add @internal/sqlite dep (post-D5a)
 
 D5a (commit 308873659) migrated e2e SQLite fixtures to import from
-@prisma-next/sqlite/contract-builder but did not add the matching
+@internal/sqlite/contract-builder but did not add the matching
 workspace dep, breaking pnpm typecheck. Addresses F-1 from
 projects/facade-import-surface-completion/manual-qa-reports/
 2026-05-21-claude-opus-runner-1.md.
@@ -59,7 +59,7 @@ Signed-off-by: Will Madden <madden@prisma.io>
 ```
 
 ```
-fix(@prisma-next/sql-orm-client): correct emit script cd depth (post-D5c)
+fix(@internal/sql-orm-client): correct emit script cd depth (post-D5c)
 
 D5c (commit 7d9116a3b) wrote a 4-level cd in the relocated emit script,
 but sql-orm-client sits 3 levels deep -- the cd landed above the repo

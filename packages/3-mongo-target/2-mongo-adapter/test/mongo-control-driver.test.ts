@@ -1,4 +1,4 @@
-import type { ControlDriverInstance } from '@prisma-next/framework-components/control';
+import type { ControlDriverInstance } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { isMongoControlDriver } from '../src/core/mongo-control-driver';
 

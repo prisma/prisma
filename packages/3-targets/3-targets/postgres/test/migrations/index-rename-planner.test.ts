@@ -2,21 +2,22 @@
  * Index rename post-pass: a `not-found` and a `not-expected` index on the
  * same table collapse into one `ALTER INDEX … RENAME TO` in two phases.
  * Hash pairing pairs wire-parseable names by content hash (prefix-only
- * rename); content pairing pairs remaining managed-missing nodes against any-shape extras by
- * content (exact→managed adoption). Multi-candidate groups pair
+ * rename); content pairing pairs remaining wire-named-missing nodes against any-shape extras by
+ * content (exact→wire adoption). Multi-candidate groups pair
  * deterministically by sorted name; leftovers proceed as create/drop; under
  * an additive-only policy both phases are skipped and the pairing degrades
  * to the additive half.
  */
 
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import type { ExecuteRequestLowerer } from '@prisma-next/family-sql/control-adapter';
-import type { MigrationOperationClass } from '@prisma-next/framework-components/control';
-import { APP_SPACE_ID } from '@prisma-next/framework-components/control';
-import type { IndexInput } from '@prisma-next/sql-contract/types';
-import { SqlStorage, StorageTable } from '@prisma-next/sql-contract/types';
-import type { SqlIndexIRInput } from '@prisma-next/sql-schema-ir/types';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
+import type { MigrationOperationClass } from '@internal/framework-components/control';
+import { APP_SPACE_ID } from '@internal/framework-components/control';
+import type { SerializedIndex } from '@internal/sql-contract/types';
+import { indexInputFromSerialized, SqlStorage, StorageTable } from '@internal/sql-contract/types';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
+import type { SqlIndexIRInput } from '@internal/sql-schema-ir/types';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { PostgresSchema } from '../../src/core/postgres-schema';
@@ -48,7 +49,9 @@ type LooseIndexInput = {
 };
 
 function buildContract(looseIndexes: readonly LooseIndexInput[]): Contract<SqlStorage> {
-  const indexes = looseIndexes.map((i) => ({ unique: false, ...i }) as IndexInput);
+  const indexes = looseIndexes.map((i) =>
+    indexInputFromSerialized({ unique: false, ...i } as SerializedIndex),
+  );
   const schema = new PostgresSchema({
     id: 'public',
     entries: {
@@ -104,8 +107,7 @@ function actualSchema(indexes: readonly LiveIndex[]): PostgresDatabaseSchemaNode
             indexes: indexes.map(
               (idx) =>
                 ({
-                  name: idx.name,
-                  prefix: idx.prefix,
+                  naming: parseNaming(idx.name, idx.prefix),
                   columns: idx.columns ?? (idx.expression !== undefined ? undefined : ['email']),
                   expression: idx.expression,
                   where: idx.where,
@@ -149,7 +151,7 @@ async function planOpIds(
   return ops.map((op) => op.id);
 }
 
-function managedIndex(
+function wireNamedIndex(
   prefix: string,
   hash: string,
   rest?: Partial<LooseIndexInput>,
@@ -165,7 +167,7 @@ function managedIndex(
 
 describe('hash pairing (prefix-only rename)', () => {
   it('plans exactly one ALTER INDEX … RENAME TO — no drop, no create', async () => {
-    const contract = buildContract([managedIndex('items_email_lookup', 'ab12cd34')]);
+    const contract = buildContract([wireNamedIndex('items_email_lookup', 'ab12cd34')]);
     const schema = actualSchema([
       { name: 'items_email_idx_ab12cd34', prefix: 'items_email_idx', columns: ['email'] },
     ]);
@@ -175,7 +177,7 @@ describe('hash pairing (prefix-only rename)', () => {
   });
 
   it('plans the rename without the destructive allowance', async () => {
-    const contract = buildContract([managedIndex('items_email_lookup', 'ab12cd34')]);
+    const contract = buildContract([wireNamedIndex('items_email_lookup', 'ab12cd34')]);
     const schema = actualSchema([
       { name: 'items_email_idx_ab12cd34', prefix: 'items_email_idx', columns: ['email'] },
     ]);
@@ -185,7 +187,7 @@ describe('hash pairing (prefix-only rename)', () => {
   });
 
   it('degrades to a bare create of the new name under an additive-only policy', async () => {
-    const contract = buildContract([managedIndex('items_email_lookup', 'ab12cd34')]);
+    const contract = buildContract([wireNamedIndex('items_email_lookup', 'ab12cd34')]);
     const schema = actualSchema([
       { name: 'items_email_idx_ab12cd34', prefix: 'items_email_idx', columns: ['email'] },
     ]);
@@ -196,7 +198,7 @@ describe('hash pairing (prefix-only rename)', () => {
 
   it('a content edit (same prefix, different hash, different content) stays create + drop', async () => {
     const contract = buildContract([
-      managedIndex('items_email_idx', '11111111', { columns: ['email', 'value'] }),
+      wireNamedIndex('items_email_idx', '11111111', { columns: ['email', 'value'] }),
     ]);
     const schema = actualSchema([
       { name: 'items_email_idx_00000000', prefix: 'items_email_idx', columns: ['email'] },
@@ -232,8 +234,8 @@ describe('hash pairing (prefix-only rename)', () => {
 
   it('multi-candidate groups pair deterministically by sorted name', async () => {
     const contract = buildContract([
-      managedIndex('a_new', 'ab12cd34'),
-      managedIndex('b_new', 'ab12cd34'),
+      wireNamedIndex('a_new', 'ab12cd34'),
+      wireNamedIndex('b_new', 'ab12cd34'),
     ]);
     const schema = actualSchema([
       { name: 'z_old_ab12cd34', prefix: 'z_old', columns: ['email'] },
@@ -249,9 +251,9 @@ describe('hash pairing (prefix-only rename)', () => {
   });
 });
 
-describe('content pairing (exact→managed convergence)', () => {
-  it('pairs a managed-missing fields-only index against an unparseable live name', async () => {
-    const contract = buildContract([managedIndex('items_email_idx', 'ab12cd34')]);
+describe('content pairing (exact→wire convergence)', () => {
+  it('pairs a wire-named-missing fields-only index against an unparseable live name', async () => {
+    const contract = buildContract([wireNamedIndex('items_email_idx', 'ab12cd34')]);
     const schema = actualSchema([{ name: 'items_email_idx', columns: ['email'] }]);
 
     const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
@@ -303,7 +305,7 @@ describe('content pairing (exact→managed convergence)', () => {
 
   it("an authored 'btree' index content-pairs with a typeless live index", async () => {
     const contract = buildContract([
-      managedIndex('items_email_idx', 'ab12cd34', { type: 'btree' }),
+      wireNamedIndex('items_email_idx', 'ab12cd34', { type: 'btree' }),
     ]);
     const schema = actualSchema([{ name: 'legacy_email_idx', columns: ['email'] }]);
 
@@ -311,7 +313,7 @@ describe('content pairing (exact→managed convergence)', () => {
     expect(opIds).toEqual([`index.public.${TABLE_NAME}.legacy_email_idx.rename`]);
   });
 
-  it('an exact-named missing index never content-pairs (managed only)', async () => {
+  it('an exact-named missing index never content-pairs (wire-named only)', async () => {
     const contract = buildContract([
       { name: 'items_email_exact', columns: ['email'], unique: false },
     ]);
@@ -326,8 +328,8 @@ describe('content pairing (exact→managed convergence)', () => {
 
   it('remaining content pairs consume candidates deterministically by sorted name', async () => {
     const contract = buildContract([
-      managedIndex('a_managed', '11111111'),
-      managedIndex('b_managed', '22222222'),
+      wireNamedIndex('a_wire', '11111111'),
+      wireNamedIndex('b_wire', '22222222'),
     ]);
     const schema = actualSchema([
       { name: 'z_legacy', columns: ['email'] },
@@ -335,7 +337,7 @@ describe('content pairing (exact→managed convergence)', () => {
     ]);
 
     const opIds = await planOpIds(contract, schema, ALL_CLASSES_POLICY);
-    // Missing sorted: a_managed_…, b_managed_…; candidates sorted: y_legacy, z_legacy.
+    // Missing sorted: a_wire_…, b_wire_…; candidates sorted: y_legacy, z_legacy.
     expect(opIds).toEqual([
       `index.public.${TABLE_NAME}.y_legacy.rename`,
       `index.public.${TABLE_NAME}.z_legacy.rename`,
@@ -343,7 +345,7 @@ describe('content pairing (exact→managed convergence)', () => {
   });
 
   it('an unmatched extra stays a destructive drop leftover', async () => {
-    const contract = buildContract([managedIndex('items_email_idx', 'ab12cd34')]);
+    const contract = buildContract([wireNamedIndex('items_email_idx', 'ab12cd34')]);
     const schema = actualSchema([
       { name: 'items_email_idx_ab12cd34', prefix: 'items_email_idx', columns: ['email'] },
       { name: 'stray_value_idx', columns: ['value'] },

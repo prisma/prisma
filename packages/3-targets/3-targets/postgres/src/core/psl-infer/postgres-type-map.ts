@@ -1,4 +1,4 @@
-import type { PslTypeMap, PslTypeResolution } from '@prisma-next/family-sql/psl-infer';
+import type { PslTypeMap, PslTypeResolution } from '@internal/family-sql/psl-infer';
 
 const POSTGRES_TO_PSL: Record<string, string> = {
   text: 'String',

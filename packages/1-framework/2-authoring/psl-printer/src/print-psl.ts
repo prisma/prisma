@@ -1,7 +1,7 @@
-import type { AuthoringPslBlockDescriptorNamespace } from '@prisma-next/framework-components/authoring';
-import type { CodecLookup } from '@prisma-next/framework-components/codec';
-import type { PslDocumentAst } from '@prisma-next/framework-components/psl-ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
+import type { CodecLookup } from '@internal/framework-components/codec';
+import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
+import { ifDefined } from '@internal/utils/defined';
 import { astDocumentToPrintDocument } from './ast-to-print-document';
 import { serializePrintDocument } from './serialize-print-document';
 

@@ -1,13 +1,9 @@
 import {
   type AuthoringPslBlockDescriptorNamespace,
   isAuthoringPslBlockDescriptor,
-} from '@prisma-next/framework-components/authoring';
-import {
-  findBlockDescriptor,
-  type NamespaceSymbol,
-  type SymbolTable,
-} from '@prisma-next/psl-parser';
-import type { GenericBlockDeclarationAst, SourceFile } from '@prisma-next/psl-parser/syntax';
+} from '@internal/framework-components/authoring';
+import { findBlockDescriptor, type NamespaceSymbol, type SymbolTable } from '@internal/psl-parser';
+import type { GenericBlockDeclarationAst, SourceFile } from '@internal/psl-parser/syntax';
 import { type CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 import type {
   DeclarationKeywordCompletionContext,

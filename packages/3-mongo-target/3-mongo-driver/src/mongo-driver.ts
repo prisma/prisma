@@ -1,4 +1,4 @@
-import type { MongoDriver } from '@prisma-next/mongo-lowering';
+import type { MongoDriver } from '@internal/mongo-lowering';
 import type {
   AggregateWireCommand,
   AnyMongoDdlWireCommand,
@@ -22,8 +22,8 @@ import type {
   UpdateManyWireCommand,
   UpdateOneResult,
   UpdateOneWireCommand,
-} from '@prisma-next/mongo-wire';
-import { assertNever } from '@prisma-next/utils/internal-error';
+} from '@internal/mongo-wire';
+import { assertNever } from '@internal/utils/internal-error';
 import { type Db, MongoClient } from 'mongodb';
 import { DRIVER_INFO } from './core/driver-info';
 

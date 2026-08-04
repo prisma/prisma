@@ -1,4 +1,4 @@
-import type { JsonObject } from '@prisma-next/utils/json';
+import type { JsonObject } from '@internal/utils/json';
 import { describe, expect, it } from 'vitest';
 import { asNamespaceId } from '../src/namespace-id';
 
@@ -6,8 +6,8 @@ function crossRef(model: string, namespace = 'default') {
   return { namespace: asNamespaceId(namespace), model };
 }
 
-import { blindCast } from '@prisma-next/utils/casts';
-import { ifDefined } from '@prisma-next/utils/defined';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import {
   type CanonicalizeContractOptions,
   canonicalizeContract as canonicalizeContractRaw,

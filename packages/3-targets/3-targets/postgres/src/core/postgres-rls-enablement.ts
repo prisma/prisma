@@ -1,5 +1,5 @@
-import { freezeNode } from '@prisma-next/framework-components/ir';
-import { SqlNode } from '@prisma-next/sql-contract/types';
+import { freezeNode } from '@internal/framework-components/ir';
+import { SqlNode } from '@internal/sql-contract/types';
 
 export interface PostgresRlsEnablementInput {
   /** Name of the table this marker declares RLS-controlled. */

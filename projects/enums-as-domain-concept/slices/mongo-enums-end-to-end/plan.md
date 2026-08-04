@@ -136,7 +136,7 @@ Implementer tier: **sonnet**. Reviewer tier: **opus**.
   our D3-injected `$jsonSchema.enum` still rides through to `db.createCollection({validator})`
   — we don't edit this file. **Action:** rebase onto main after #816 lands, before opening
   the PR; flag interpreter.ts co-editing in the D2 brief. #816 also adds `ifDefined`/
-  `removeUndefined` in `utils/src/defined.ts` and `@prisma-next/mongo-value/mongodb-types`,
+  `removeUndefined` in `utils/src/defined.ts` and `@internal/mongo-value/mongodb-types`,
   reusable once it lands.
 - **Staging discipline.** Stage only named files; verify `git diff --staged --stat` before
   each commit (prior-slice guardrail — a broad `git add` once swept unrelated worktree files).

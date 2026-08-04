@@ -57,7 +57,7 @@ One facade gains one method plus its context type, with the tests that prove par
 
 - `packages/2-sql/5-runtime/src/sql-runtime.ts` — **(amended 2026-06-05, operator decision)** pre-iteration `invalidated` check in `withTransaction`'s guarded generators, so escaped results reject with `RUNTIME.TRANSACTION_CLOSED` before the driver is asked for rows. Discovered during D2: SQLite's synchronous driver closes the transaction connection on COMMIT/ROLLBACK and throws a raw `database is not open` on first row-fetch, so the existing in-loop guard never fires (Postgres keeps the connection alive, masking the gap). The pre-iteration check makes the guard deterministic across drivers; plus a runtime unit test pinning it.
 
-- `examples/prisma-next-demo-sqlite/**` — **(amended 2026-06-05, operator-approved)** a `db.transaction()` demo command (atomic user+posts create via `tx.orm` + `tx.sql`, with a rollback demonstration), plus the matching per-PR declaration in the user upgrade skill (`skills/upgrade/prisma-next-upgrade/upgrades/0.12-to-0.13/`).
+- `examples/prisma-8-demo-sqlite/**` — **(amended 2026-06-05, operator-approved)** a `db.transaction()` demo command (atomic user+posts create via `tx.orm` + `tx.sql`, with a rollback demonstration), plus the matching per-PR declaration in the user upgrade skill (`skills/upgrade/prisma-next-upgrade/upgrades/0.12-to-0.13/`).
 
 **Out:**
 

@@ -11,7 +11,7 @@ import {
   SubqueryExpr,
   TableSource,
   WindowFuncExpr,
-} from '@prisma-next/sql-relational-core/ast';
+} from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { POLYMORPHIC_DISCRIMINATOR_ALIAS } from '../src/collection-contract';
 import { compileSelectWithIncludes } from '../src/query-plan-select';

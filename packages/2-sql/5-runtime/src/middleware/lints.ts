@@ -1,12 +1,12 @@
-import { runtimeError } from '@prisma-next/framework-components/runtime';
+import { runtimeError } from '@internal/framework-components/runtime';
 import {
   type AnyFromSource,
   type AnyQueryAst,
   isQueryAst,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { assertNever } from '@prisma-next/utils/internal-error';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
+import { ifDefined } from '@internal/utils/defined';
+import { assertNever } from '@internal/utils/internal-error';
 import { evaluateRawGuardrails } from '../guardrails/raw';
 import type { SqlMiddleware, SqlMiddlewareContext } from './sql-middleware';
 

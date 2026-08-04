@@ -4,9 +4,9 @@ import {
   MongoExprFilter,
   MongoFieldFilter,
   MongoOrExpr,
-} from '@prisma-next/mongo-query-ast/control';
-import { MongoAggLiteral } from '@prisma-next/mongo-query-ast/execution';
-import { isStructuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/mongo-query-ast/control';
+import { MongoAggLiteral } from '@internal/mongo-query-ast/execution';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { FilterEvaluator } from '../src/core/filter-evaluator';
 

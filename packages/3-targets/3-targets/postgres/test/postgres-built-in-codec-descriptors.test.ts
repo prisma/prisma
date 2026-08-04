@@ -1,14 +1,17 @@
-import type { AnyCodecDescriptor, CodecRef } from '@prisma-next/framework-components/codec';
+import type { AnyCodecDescriptor, CodecRef } from '@internal/framework-components/codec';
 import {
+  CastExpr,
   ColumnRef,
+  FunctionCallExpr,
+  LiteralExpr,
   sqlCharDescriptor,
   sqlFloatDescriptor,
   sqlIntDescriptor,
   sqlTextDescriptor,
   sqlTimestampDescriptor,
   sqlVarcharDescriptor,
-} from '@prisma-next/sql-relational-core/ast';
-import { ifDefined } from '@prisma-next/utils/defined';
+} from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import type { AnyPostgresCodecDescriptor } from '../src/core/codec-descriptor';
 import { codecDescriptorMap } from '../src/core/codec-type-map';
@@ -94,20 +97,6 @@ const refFor = (
   ...ifDefined('typeParams', typeParams),
 });
 
-const metaNativeType = (
-  descriptor: AnyPostgresCodecDescriptor,
-  typeParams?: CodecRef['typeParams'],
-): string | undefined => {
-  const meta = descriptor.metaFor?.(typeParams) ?? descriptor.meta;
-  const sql = meta?.db?.['sql'];
-  if (typeof sql !== 'object' || sql === null || !('postgres' in sql)) return undefined;
-  const postgres = sql.postgres;
-  if (typeof postgres !== 'object' || postgres === null || !('nativeType' in postgres)) {
-    return undefined;
-  }
-  return typeof postgres.nativeType === 'string' ? postgres.nativeType : undefined;
-};
-
 describe('PostgreSQL built-in codec descriptors', () => {
   it('keeps the complete canonical order with only target descriptors', () => {
     expect(codecDescriptors.map((descriptor) => descriptor.codecId)).toEqual(EXPECTED_CODEC_IDS);
@@ -184,6 +173,8 @@ describe('PostgreSQL built-in codec descriptors', () => {
       descriptor: AnyPostgresCodecDescriptor;
       nativeType: string;
       typeParams?: CodecRef['typeParams'];
+      /** Codecs whose projection replaces the database's own JSON conversion rather than accepting it. */
+      jsonProjection?: 'decimal-text' | 'base64' | 'utc-iso' | 'iso-duration';
     }> = [
       { descriptor: pgTextDescriptor, nativeType: 'text' },
       {
@@ -201,10 +192,15 @@ describe('PostgreSQL built-in codec descriptors', () => {
       { descriptor: pgFloatDescriptor, nativeType: 'double precision' },
       { descriptor: pgInt4Descriptor, nativeType: 'integer' },
       { descriptor: pgInt2Descriptor, nativeType: 'smallint' },
-      { descriptor: pgInt8Descriptor, nativeType: 'bigint' },
+      { descriptor: pgInt8Descriptor, nativeType: 'bigint', jsonProjection: 'decimal-text' },
       { descriptor: pgFloat4Descriptor, nativeType: 'real' },
       { descriptor: pgFloat8Descriptor, nativeType: 'double precision' },
-      { descriptor: pgNumericDescriptor, nativeType: 'numeric', typeParams: {} },
+      {
+        descriptor: pgNumericDescriptor,
+        nativeType: 'numeric',
+        typeParams: {},
+        jsonProjection: 'decimal-text',
+      },
       { descriptor: pgDateDescriptor, nativeType: 'date' },
       {
         descriptor: pgTimestampDescriptor,
@@ -215,26 +211,60 @@ describe('PostgreSQL built-in codec descriptors', () => {
         descriptor: pgTimestamptzDescriptor,
         nativeType: 'timestamp with time zone',
         typeParams: { precision: 3 },
+        jsonProjection: 'utc-iso',
       },
       { descriptor: pgTimeDescriptor, nativeType: 'time', typeParams: { precision: 3 } },
       { descriptor: pgTimetzDescriptor, nativeType: 'timetz', typeParams: { precision: 3 } },
       { descriptor: pgBoolDescriptor, nativeType: 'boolean' },
       { descriptor: pgBitDescriptor, nativeType: 'bit', typeParams: { length: 8 } },
       { descriptor: pgVarbitDescriptor, nativeType: 'bit varying', typeParams: { length: 8 } },
-      { descriptor: pgByteaDescriptor, nativeType: 'bytea' },
+      { descriptor: pgByteaDescriptor, nativeType: 'bytea', jsonProjection: 'base64' },
       { descriptor: pgUuidDescriptor, nativeType: 'uuid' },
       { descriptor: pgInetDescriptor, nativeType: 'inet' },
-      { descriptor: pgIntervalDescriptor, nativeType: 'interval', typeParams: {} },
+      {
+        descriptor: pgIntervalDescriptor,
+        nativeType: 'interval',
+        typeParams: {},
+        jsonProjection: 'iso-duration',
+      },
       { descriptor: pgJsonDescriptor, nativeType: 'json' },
       { descriptor: pgJsonbDescriptor, nativeType: 'jsonb' },
       { descriptor: pgTextArrayDescriptor, nativeType: 'text[]' },
     ];
 
-    for (const { descriptor, nativeType, typeParams } of cases) {
+    for (const { descriptor, nativeType, typeParams, jsonProjection } of cases) {
       const ref = refFor(descriptor, typeParams);
       expect(descriptor.nativeTypeFor(ref)).toBe(nativeType);
-      expect(metaNativeType(descriptor, typeParams)).toBe(nativeType);
-      expect(descriptor.projectJson(expression, ref)).toBe(expression);
+      if (jsonProjection === 'decimal-text') {
+        expect(descriptor.projectJson(expression, ref)).toEqual(CastExpr.as(expression, 'text'));
+      } else if (jsonProjection === 'base64') {
+        // The line breaks RFC 2045 base64 carries are stripped inside the
+        // projection, so the encode call is wrapped rather than bare.
+        expect(descriptor.projectJson(expression, ref)).toEqual(
+          FunctionCallExpr.of('translate', [
+            FunctionCallExpr.of('encode', [expression, LiteralExpr.of('base64')]),
+            FunctionCallExpr.of('chr', [LiteralExpr.of(10)]),
+            LiteralExpr.of(''),
+          ]),
+        );
+      } else if (jsonProjection === 'iso-duration') {
+        // The assembled duration is large; that it is not the bare expression,
+        // and that a NULL interval short-circuits to NULL ahead of the
+        // assembly, is the claim. `concat` drops NULLs, so without that guard
+        // an absent interval would assemble to a zero one.
+        const projected = descriptor.projectJson(expression, ref);
+        expect(projected).not.toBe(expression);
+        expect(projected).toMatchObject({ kind: 'case' });
+      } else if (jsonProjection === 'utc-iso') {
+        expect(descriptor.projectJson(expression, ref)).toEqual(
+          FunctionCallExpr.of('to_char', [
+            FunctionCallExpr.of('timezone', [LiteralExpr.of('UTC'), expression]),
+            LiteralExpr.of('YYYY-MM-DD"T"HH24:MI:SS.MS"+00:00"'),
+          ]),
+        );
+      } else {
+        expect(descriptor.projectJson(expression, ref)).toBe(expression);
+      }
     }
   });
 

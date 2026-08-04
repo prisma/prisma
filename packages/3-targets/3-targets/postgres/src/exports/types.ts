@@ -6,7 +6,7 @@ export {
 export {
   PostgresRlsPolicy,
   type PostgresRlsPolicyInput,
-  type PostgresRlsPolicyMigrationInput,
+  type RenderedRlsPolicyLiteral,
   type RlsPolicyOperation,
 } from '../core/postgres-rls-policy';
 export { PostgresRole, type PostgresRoleInput } from '../core/postgres-role';
@@ -42,4 +42,8 @@ export {
   type PostgresTableSchemaNodeInput,
 } from '../core/schema-ir/postgres-table-schema-node';
 export { PostgresSchemaNodeKind } from '../core/schema-ir/schema-node-kinds';
+export {
+  policyInputFromSerialized,
+  type SerializedRlsPolicy,
+} from '../core/serialized-rls-policy';
 export type { PostgresColumnDefault } from '../core/types';

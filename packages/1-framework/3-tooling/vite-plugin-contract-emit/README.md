@@ -1,4 +1,4 @@
-# @prisma-next/vite-plugin-contract-emit
+# @internal/vite-plugin-contract-emit
 
 Vite plugin for automatic Prisma Next contract artifact emission during development.
 
@@ -29,7 +29,7 @@ This plugin integrates with Vite's dev server to automatically emit contract art
 Install the plugin alongside Vite 7 or Vite 8.
 
 ```bash
-pnpm add -D @prisma-next/vite-plugin-contract-emit vite
+pnpm add -D @internal/vite-plugin-contract-emit vite
 ```
 
 ## Usage
@@ -37,7 +37,7 @@ pnpm add -D @prisma-next/vite-plugin-contract-emit vite
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { prismaVitePlugin } from '@prisma-next/vite-plugin-contract-emit';
+import { prismaVitePlugin } from '@internal/vite-plugin-contract-emit';
 
 export default defineConfig({
   plugins: [prismaVitePlugin('prisma-next.config.ts')],
@@ -106,7 +106,7 @@ graph TD
 ## Canonical publish path
 
 > **For agents/contributors**: this plugin must publish through
-> `executeContractEmit` from `@prisma-next/cli/control-api`. Do NOT call
+> `executeContractEmit` from `@internal/cli/control-api`. Do NOT call
 > `publishContractArtifactPair` directly, do NOT re-implement the load → emit
 > → publish dance, and do NOT add a parallel "fast path" for any reason. The
 > atomic-rename invariant and the per-output FIFO queue live in one place;
@@ -122,13 +122,13 @@ graph TD
 
 ## Dependencies
 
-- **@prisma-next/cli**: Uses the control-api `executeContractEmit` and
+- **@internal/cli**: Uses the control-api `executeContractEmit` and
   `disposeEmitQueue` exports — the canonical publish path
 - **vite**: Peer dependency (`^7.0.0 || ^8.0.0`)
 
 ## Examples
 
-- `examples/prisma-next-demo` — plain Vite + React SPA, covers TS-first and PSL-first contracts. Run `pnpm dev`, edit `prisma/contract.ts`, watch the artifacts regenerate.
+- `examples/prisma-8-demo` — plain Vite + React SPA, covers TS-first and PSL-first contracts. Run `pnpm dev`, edit `prisma/contract.ts`, watch the artifacts regenerate.
 - `examples/react-router-demo` — React Router v7 Framework Mode (SSR). The plugin runs alongside `@react-router/dev/vite`; a `loader` and an `action` exercise the Prisma Next runtime on the server, and a smoke test proves a PSL edit re-emits the contract without a manual command. See `examples/react-router-demo/test/react-router.smoke.e2e.test.ts` for the validation flow.
 
 ## Related

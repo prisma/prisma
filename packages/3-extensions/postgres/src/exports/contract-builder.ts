@@ -13,14 +13,14 @@ export type {
   RelationNode,
   ScalarFieldBuilder,
   UniqueConstraintNode,
-} from '@prisma-next/sql-contract-ts/contract-builder';
+} from '@internal/sql-contract-ts/contract-builder';
 export {
   buildSqlContractFromDefinition,
   field,
   member,
   model,
   rel,
-} from '@prisma-next/sql-contract-ts/contract-builder';
+} from '@internal/sql-contract-ts/contract-builder';
 export { defineContract } from '../contract/define-contract';
 export { enumType } from '../contract/enum-type';
 export { type NativeEnumHandle, nativeEnum, pg } from '../contract/native-enum';

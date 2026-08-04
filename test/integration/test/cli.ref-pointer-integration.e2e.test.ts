@@ -2,12 +2,12 @@ import { execFile } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { createContractEmitCommand } from '@prisma-next/cli/commands/contract-emit';
-import { createMigrationPlanCommand } from '@prisma-next/cli/commands/migration-plan';
-import { createRefCommand } from '@prisma-next/cli/commands/ref';
-import { EMPTY_CONTRACT_HASH } from '@prisma-next/migration-tools/constants';
-import { contractSnapshotDir } from '@prisma-next/migration-tools/contract-snapshot-store';
-import { timeouts, withDevDatabase } from '@prisma-next/test-utils';
+import { createContractEmitCommand } from '@internal/cli/commands/contract-emit';
+import { createMigrationPlanCommand } from '@internal/cli/commands/migration-plan';
+import { createRefCommand } from '@internal/cli/commands/ref';
+import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
+import { timeouts, withDevDatabase } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {

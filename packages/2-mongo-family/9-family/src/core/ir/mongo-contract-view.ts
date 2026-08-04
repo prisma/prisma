@@ -2,7 +2,7 @@ import {
   buildMongoContractView,
   type MongoContract,
   type MongoContractView as MongoContractViewType,
-} from '@prisma-next/mongo-contract';
+} from '@internal/mongo-contract';
 import { MongoContractSerializer } from './mongo-contract-serializer';
 
 /**

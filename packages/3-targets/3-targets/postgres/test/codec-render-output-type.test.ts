@@ -1,5 +1,5 @@
-import type { AnyCodecDescriptor } from '@prisma-next/framework-components/codec';
-import { sqlCharDescriptor, sqlVarcharDescriptor } from '@prisma-next/sql-relational-core/ast';
+import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
+import { sqlCharDescriptor, sqlVarcharDescriptor } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import {
   pgBitDescriptor,
@@ -161,7 +161,7 @@ describe('codec renderOutputType', () => {
     });
   });
 
-  // Phase C: pg/json@1 and pg/jsonb@1 no longer carry renderOutputType. The schema-typed JSON column surface that drove typeParams.schemaJson / typeParams.type retired in favor of the per-library extension (`@prisma-next/extension-arktype-json`). Untyped raw json/jsonb columns have no typeParams; the framework emit path falls through to the generic CodecTypes accessor.
+  // Phase C: pg/json@1 and pg/jsonb@1 no longer carry renderOutputType. The schema-typed JSON column surface that drove typeParams.schemaJson / typeParams.type retired in favor of the per-library extension (`@internal/extension-arktype-json`). Untyped raw json/jsonb columns have no typeParams; the framework emit path falls through to the generic CodecTypes accessor.
   describe('pg/jsonb@1', () => {
     it('has no renderOutputType (raw JSONB)', () => {
       expect(rendererFor(pgJsonbDescriptor)).toBeUndefined();

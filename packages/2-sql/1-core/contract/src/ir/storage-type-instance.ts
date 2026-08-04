@@ -1,4 +1,4 @@
-import type { StorageType } from '@prisma-next/framework-components/ir';
+import type { StorageType } from '@internal/framework-components/ir';
 
 /**
  * Sentinel kind for the legacy codec-triple shape persisted under

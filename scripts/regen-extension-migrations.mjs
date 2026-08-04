@@ -48,11 +48,11 @@ import { fileURLToPath } from 'node:url';
 import {
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
-} from '@prisma-next/framework-components/control';
+} from '@internal/framework-components/control';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
-} from '@prisma-next/migration-tools/contract-snapshot-store';
+} from '@internal/migration-tools/contract-snapshot-store';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const extensionsDir = join(repoRoot, 'packages', '3-extensions');

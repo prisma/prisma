@@ -1,12 +1,12 @@
-import mongoAdapter from '@prisma-next/adapter-mongo/control';
-import mongoDriver from '@prisma-next/driver-mongo/control';
-import { mongoFamilyDescriptor } from '@prisma-next/family-mongo/control';
-import { collectScalarTypeConstructors } from '@prisma-next/framework-components/authoring';
-import { createControlStack } from '@prisma-next/framework-components/control';
-import { interpretPslDocumentToMongoContract } from '@prisma-next/mongo-contract-psl';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { mongoTargetDescriptor } from '@prisma-next/target-mongo/control';
+import mongoAdapter from '@internal/adapter-mongo/control';
+import mongoDriver from '@internal/driver-mongo/control';
+import { mongoFamilyDescriptor } from '@internal/family-mongo/control';
+import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
+import { createControlStack } from '@internal/framework-components/control';
+import { interpretPslDocumentToMongoContract } from '@internal/mongo-contract-psl';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { mongoTargetDescriptor } from '@internal/target-mongo/control';
 import { describe, expect, it } from 'vitest';
 
 const stack = createControlStack({

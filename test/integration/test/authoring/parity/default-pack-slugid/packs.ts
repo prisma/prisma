@@ -1,5 +1,5 @@
-import type { SqlControlExtensionDescriptor } from '@prisma-next/family-sql/control';
-import type { ControlMutationDefaultEntry } from '@prisma-next/framework-components/control';
+import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
+import type { ControlMutationDefaultEntry } from '@internal/framework-components/control';
 
 // `slugid()` takes no arguments; the empty signature makes arity a grammar concern, so any
 // `slugid(...)` call fails as invalid attribute syntax before the lower runs.

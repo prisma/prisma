@@ -1,15 +1,15 @@
-import type { Contract } from '@prisma-next/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   MigrationOperationClass,
   SqlMigrationPlanOperation,
-} from '@prisma-next/family-sql/control';
-import type { SqlControlAdapter } from '@prisma-next/family-sql/control-adapter';
-import { Migration as SqlMigration } from '@prisma-next/family-sql/migration';
-import type { ControlStack } from '@prisma-next/framework-components/control';
-import { MigrationContractViews } from '@prisma-next/migration-tools/migration';
-import type { SqlStorage } from '@prisma-next/sql-contract/types';
-import type { DdlColumn, DdlTableConstraint } from '@prisma-next/sql-relational-core/ast';
-import { blindCast } from '@prisma-next/utils/casts';
+} from '@internal/family-sql/control';
+import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import { Migration as SqlMigration } from '@internal/family-sql/migration';
+import type { ControlStack } from '@internal/framework-components/control';
+import { MigrationContractViews } from '@internal/migration-tools/migration';
+import type { SqlStorage } from '@internal/sql-contract/types';
+import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
 import { errorSqliteMigrationStackMissing } from '../errors';
 import { SqliteContractView } from '../sqlite-contract-view';
 import {

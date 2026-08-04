@@ -1,5 +1,5 @@
-import type { ExtensionPackRef, TargetPackRef } from '@prisma-next/framework-components/components';
-import type { IndexTypeRegistration } from '@prisma-next/sql-contract/index-types';
+import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
+import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
 import { describe, expectTypeOf, it } from 'vitest';
 import type {
   ExtractIndexTypesFromPack,

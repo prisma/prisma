@@ -1,17 +1,14 @@
-import type { ContractMarkerRecord, LedgerEntryRecord } from '@prisma-next/contract/types';
-import type {
-  ControlAdapterInstance,
-  ControlStack,
-} from '@prisma-next/framework-components/control';
-import type { SqlControlDriverInstance } from '@prisma-next/sql-contract/types';
+import type { ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
+import type { ControlAdapterInstance, ControlStack } from '@internal/framework-components/control';
+import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import type {
   AnyQueryAst,
   DdlNode,
   LoweredStatement,
   LowererContext,
   SqlExecuteRequest,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlSchemaIRNode } from '@prisma-next/sql-schema-ir/types';
+} from '@internal/sql-relational-core/ast';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import type { DefaultNormalizer, NativeTypeNormalizer } from './diff/sql-schema-diff';
 
 /**

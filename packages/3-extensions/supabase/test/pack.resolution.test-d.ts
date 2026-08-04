@@ -9,7 +9,7 @@
  * This file is intentionally type-level only (no runtime assertions).
  */
 
-import type { ControlExtensionDescriptor } from '@prisma-next/framework-components/control';
+import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
 import { expectTypeOf, test } from 'vitest';
 import supabasePack, { supabasePackWith } from '../src/exports/pack';
 

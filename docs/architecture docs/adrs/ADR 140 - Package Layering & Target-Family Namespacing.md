@@ -1,10 +1,10 @@
 # ADR 140 — Package Layering & Target-Family Namespacing
 
-> **Partially superseded by [ADR 204](./ADR%20204%20-%20Single-tier%20runtime.md):** the "Runtime Separation" portion of this ADR — which introduced a two-tier runtime model with a target-agnostic `runtime-executor` package and family runtimes composing it — has been collapsed into a single tier. `RuntimeCore` now lives in `@prisma-next/framework-components` (exposed via the `/runtime` subpath) and is extended directly by family runtimes (`@prisma-next/sql-runtime`, `@prisma-next/mongo-runtime`). The package-layering, plane-boundary, domain/family-namespacing, and naming guidance in the rest of this ADR is unchanged.
+> **Partially superseded by [ADR 204](./ADR%20204%20-%20Single-tier%20runtime.md):** the "Runtime Separation" portion of this ADR — which introduced a two-tier runtime model with a target-agnostic `runtime-executor` package and family runtimes composing it — has been collapsed into a single tier. `RuntimeCore` now lives in `@internal/framework-components` (exposed via the `/runtime` subpath) and is extended directly by family runtimes (`@internal/sql-runtime`, `@internal/mongo-runtime`). The package-layering, plane-boundary, domain/family-namespacing, and naming guidance in the rest of this ADR is unchanged.
 
 ## Context
 
-- The repository currently mixes contract authoring DSLs, relational schema builders, query lanes, and ORM logic in `@prisma-next/sql-query`. This makes changes risky and creates accidental coupling across unrelated features.
+- The repository currently mixes contract authoring DSLs, relational schema builders, query lanes, and ORM logic in `@internal/sql-query`. This makes changes risky and creates accidental coupling across unrelated features.
 - The runtime implementation (`packages/runtime/src/runtime.ts`) binds directly to SQL types (`SqlContract`, `SqlStorage`, SQL drivers), preventing a truly target-family agnostic runtime as envisioned by ADR 005 (Thin Core, Fat Targets).
 - We want the filesystem to reflect Clean Architecture layers organized by domains and planes so developers cannot accidentally introduce cyclic or upward dependencies.
 - We also want a repeatable, discoverable structure for future target families (e.g., document/mongo) without touching existing SQL packages.
@@ -66,7 +66,7 @@ packages/
 
 **Within a domain:**
 - Layers may depend laterally (same layer) and downward (toward core), never upward.
-- Example: `@prisma-next/sql-lane` and `@prisma-next/sql-orm-lane` both live in the Lanes layer, so they may share helpers via `@prisma-next/sql-relational-core`, but neither may depend on Runtime or Adapters.
+- Example: `@internal/sql-lane` and `@internal/sql-orm-lane` both live in the Lanes layer, so they may share helpers via `@internal/sql-relational-core`, but neither may depend on Runtime or Adapters.
 
 **Cross-domain:**
 - Cross-domain imports are forbidden except when importing framework packages.
@@ -75,7 +75,7 @@ packages/
 **Plane boundaries:**
 - Migration plane (authoring, tooling, targets) must not import runtime plane code.
 - Runtime plane may consume artifacts (JSON/manifests) from migration, but not code imports.
-- Example: `@prisma-next/sql-contract-ts` (migration plane) cannot import from `@prisma-next/sql-lane` (runtime plane).
+- Example: `@internal/sql-contract-ts` (migration plane) cannot import from `@internal/sql-lane` (runtime plane).
 
 **Enforcement:**
 - Enforce with data-driven configuration (`architecture.config.json`) and a CI import-graph check (`scripts/check-imports.mjs`).
@@ -93,9 +93,9 @@ packages/
 
 ### Package Naming Conventions
 
-- Package names use the `@prisma-next/<name>` convention.
-- Target families are encoded via prefixes (e.g., `sql-`), producing names like `@prisma-next/sql-lane`, regardless of nested folders.
-- Adapters/drivers retain conventional names (`@prisma-next/adapter-postgres`, `@prisma-next/driver-postgres`) and are located under `packages/3-targets/**` as separate packages (target, adapter, driver).
+- Package names use the `@internal/<name>` convention.
+- Target families are encoded via prefixes (e.g., `sql-`), producing names like `@internal/sql-lane`, regardless of nested folders.
+- Adapters/drivers retain conventional names (`@internal/adapter-postgres`, `@internal/driver-postgres`) and are located under `packages/3-targets/**` as separate packages (target, adapter, driver).
 - Layers are for dependency direction, not naming; only `runtime-core` carries its layer in the name for clarity.
 - See also: `docs/reference/Package Naming Conventions.md` for concrete path→package mappings.
 
@@ -117,13 +117,13 @@ packages/
 ## Migration Plan (High-Level)
 
 1) ✅  Scaffold the new folder skeleton; add import guardrails and CI checks.
-2) ✅  Extract `contract-authoring` out of `@prisma-next/sql-query` into `packages/1-framework/2-authoring/contract`.
+2) ✅  Extract `contract-authoring` out of `@internal/sql-query` into `packages/1-framework/2-authoring/contract`.
 3) ✅  Stand up `lanes/relational-core` and move schema/column builders and operation attachment there.
 4) ✅  Split lanes into `sql-lane` and `orm-lane`; keep tests with their respective packages.
 5) ✅ Restructure `sql-target` under `sql/tooling` and keep a curated entrypoint for adapters. **Complete**
 6) ✅ Extract `framework/runtime-core` and move SQL-specific execution into `sql/sql-runtime`. **Complete**
-7) ✅ Remove legacy re-exports; no external consumers means we can delete transitional shims once internal callsites are updated. **Complete** - `@prisma-next/sql-query` removed in Slice 7.
-8) ✅ Move pack assembly from framework CLI to family-provided helpers. **Complete** (Briefs 20 & 21, Decouple-Framework-CLI-from-SQL) - Generic assembly logic (looping over descriptors) lives in `packages/2-sql/3-tooling/family/src/core/assembly.ts`. Family-specific conversion delegated to `family.convertOperationManifest()`. Contract validation also decoupled via `family.validateContract()` hook. All CLI→SQL dependency exceptions removed. `@prisma-next/sql-tooling-assembly` package removed.
+7) ✅ Remove legacy re-exports; no external consumers means we can delete transitional shims once internal callsites are updated. **Complete** - `@internal/sql-query` removed in Slice 7.
+8) ✅ Move pack assembly from framework CLI to family-provided helpers. **Complete** (Briefs 20 & 21, Decouple-Framework-CLI-from-SQL) - Generic assembly logic (looping over descriptors) lives in `packages/2-sql/3-tooling/family/src/core/assembly.ts`. Family-specific conversion delegated to `family.convertOperationManifest()`. Contract validation also decoupled via `family.validateContract()` hook. All CLI→SQL dependency exceptions removed. `@internal/sql-tooling-assembly` package removed.
 9) ✅ Migrate Postgres adapter from SQL domain to Targets domain. **Complete** (Briefs: Separate-Dialect-Adapter-Driver, Migrate-Postgres-Adapter-to-Targets-Domain) - Adapter, target, and driver are now separate packages under `packages/3-targets/**` with multi-plane entrypoints.
 
 ## Alternatives Considered

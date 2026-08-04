@@ -1,5 +1,5 @@
-import { createExecutionStack } from '@prisma-next/framework-components/execution';
-import type { Codec } from '@prisma-next/sql-relational-core/ast';
+import { createExecutionStack } from '@internal/framework-components/execution';
+import type { Codec } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { createExecutionContext, createSqlExecutionStack } from '../src/exports';
 import type {

@@ -1,14 +1,14 @@
-import type { ControlPolicy } from '@prisma-next/contract/types';
-import { effectiveControlPolicy } from '@prisma-next/contract/types';
+import type { ControlPolicy } from '@internal/contract/types';
+import { effectiveControlPolicy } from '@internal/contract/types';
 import type {
   SchemaDiffIssue,
   SchemaVerifier,
   SchemaVerifyOptions,
   SchemaVerifyResult,
-} from '@prisma-next/framework-components/control';
-import type { Namespace } from '@prisma-next/framework-components/ir';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { MongoCollection, MongoStorage } from '@prisma-next/mongo-contract';
+} from '@internal/framework-components/control';
+import type { Namespace } from '@internal/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { MongoCollection, MongoStorage } from '@internal/mongo-contract';
 
 /**
  * Mongo family `SchemaVerifier` abstract base. Commits the Mongo family

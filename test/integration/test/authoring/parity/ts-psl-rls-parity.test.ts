@@ -9,12 +9,12 @@
  * `role('app_role')` in `entities` vs PSL `namespace unbound { role app_role {} }`
  * — and lands the same `PostgresRole` in `__unbound__.entries.role`.
  */
-import { int4Column, textColumn } from '@prisma-next/adapter-postgres/column-types';
-import postgresAdapter from '@prisma-next/adapter-postgres/control';
-import { anon, authenticated } from '@prisma-next/extension-supabase/contract';
-import sqlFamilyControl from '@prisma-next/family-sql/control';
-import { collectScalarTypeConstructors } from '@prisma-next/framework-components/authoring';
-import { createControlStack } from '@prisma-next/framework-components/control';
+import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import postgresAdapter from '@internal/adapter-postgres/control';
+import { anon, authenticated } from '@internal/extension-supabase/contract';
+import sqlFamilyControl from '@internal/family-sql/control';
+import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
+import { createControlStack } from '@internal/framework-components/control';
 import {
   defineContract,
   field,
@@ -26,14 +26,14 @@ import {
   policyUpdate,
   rlsEnabled,
   role,
-} from '@prisma-next/postgres/contract-builder';
-import { buildSymbolTable } from '@prisma-next/psl-parser';
-import { parse } from '@prisma-next/psl-parser/syntax';
-import { interpretPslDocumentToSqlContract } from '@prisma-next/sql-contract-psl';
-import postgresControl from '@prisma-next/target-postgres/control';
-import postgresPack from '@prisma-next/target-postgres/pack';
-import type { PostgresSchema } from '@prisma-next/target-postgres/types';
-import { postgresCreateNamespace } from '@prisma-next/target-postgres/types';
+} from '@internal/postgres/contract-builder';
+import { buildSymbolTable } from '@internal/psl-parser';
+import { parse } from '@internal/psl-parser/syntax';
+import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import postgresControl from '@internal/target-postgres/control';
+import postgresPack from '@internal/target-postgres/pack';
+import type { PostgresSchema } from '@internal/target-postgres/types';
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { describe, expect, it } from 'vitest';
 
 const stack = createControlStack({

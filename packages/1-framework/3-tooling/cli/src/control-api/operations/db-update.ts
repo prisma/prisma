@@ -1,14 +1,14 @@
-import type { Contract } from '@prisma-next/contract/types';
-import type { TargetBoundComponentDescriptor } from '@prisma-next/framework-components/components';
+import type { Contract } from '@internal/contract/types';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlAdapterInstance,
   ControlDriverInstance,
   ControlExtensionDescriptor,
   ControlFamilyInstance,
   TargetMigrationsCapability,
-} from '@prisma-next/framework-components/control';
-import { ifDefined } from '@prisma-next/utils/defined';
-import { notOk } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import { ifDefined } from '@internal/utils/defined';
+import { notOk } from '@internal/utils/result';
 import type { DbUpdateResult, OnControlProgress } from '../types';
 import { executeRun } from './db-run';
 

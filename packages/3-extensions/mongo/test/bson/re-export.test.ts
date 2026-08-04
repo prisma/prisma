@@ -2,7 +2,7 @@ import { Binary, Decimal128, Long, MongoClient, ObjectId, Timestamp } from 'mong
 import { describe, expect, it } from 'vitest';
 import * as bsonExports from '../../src/exports/bson';
 
-describe('@prisma-next/mongo/bson re-export parity', () => {
+describe('@internal/mongo/bson re-export parity', () => {
   it('re-exports all named exports from the mongodb BSON surface', () => {
     const expectedKeys = [
       'Binary',

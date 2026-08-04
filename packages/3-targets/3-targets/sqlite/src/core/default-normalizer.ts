@@ -7,7 +7,7 @@
  * `target-sqlite` reaching into `adapter-sqlite`.
  */
 
-import type { ColumnDefault } from '@prisma-next/contract/types';
+import type { ColumnDefault } from '@internal/contract/types';
 
 const NULL_PATTERN = /^NULL$/i;
 const INTEGER_PATTERN = /^-?\d+$/;

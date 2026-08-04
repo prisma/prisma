@@ -21,8 +21,8 @@ You are operating under the `drive-build-workflow` skill. Your persona, protocol
 
 **New commits this round:**
 
-- `5058518f2` — `feat(@prisma-next/postgres): add /migration re-export with parity tests`
-- `9ff5d1533` — `feat(@prisma-next/postgres): wrap defineContract to pre-bind family and target`
+- `5058518f2` — `feat(@internal/postgres): add /migration re-export with parity tests`
+- `9ff5d1533` — `feat(@internal/postgres): wrap defineContract to pre-bind family and target`
 
 Pull the diff via `git diff cd82609fd..HEAD` (base = the commit immediately before D1 R1 started; HEAD = `9ff5d1533`).
 
@@ -32,7 +32,7 @@ Pull the diff via `git diff cd82609fd..HEAD` (base = the commit immediately befo
 D1 is done. Here's a summary of what was delivered:
 
 Commit 1 — /migration re-export
-- src/exports/migration.ts: single `export * from '@prisma-next/target-postgres/migration'`
+- src/exports/migration.ts: single `export * from '@internal/target-postgres/migration'`
 - tsdown.config.ts: migration entry point added
 - package.json: `./migration` exports entry
 - architecture.config.json: new file registered
@@ -76,7 +76,7 @@ Specific items the orchestrator wants you to look at independently of the implem
 
 - **The wrapped `defineContract`'s generic signature, especially the 2-param `PostgresBaseResult`.** D1's one design judgment. The implementer wrote `type PostgresBaseResult = ReturnType<typeof baseDefineContract<SqlFamily, PostgresPack>>` (see `packages/3-extensions/postgres/src/contract/define-contract.ts` L46-47, comment: _"Using only 2 type params keeps the type chain portable and resolves target: 'postgres'"_). The base `defineContract` takes more type params for `Types`, `Models`, `ExtensionPacks`, `Capabilities`. By only passing 2 here, the wrap's return type is structurally less specific than the base would produce at a fully-parameterised call site. **Your task:** verify that this doesn't degrade call-site inference for downstream `Types`/`Models`/`ExtensionPacks`/`Capabilities` (e.g. that `schema(contract).models.X` still resolves to the right model shape after a fully-loaded `defineContract({ models: ..., types: ..., extensionPacks: ... })`). If inference degrades, it's `must-fix`. If it compiles but the downstream type is `any`/`unknown`/lossy on any of `Types`/`Models`/`ExtensionPacks`/`Capabilities`, it's `must-fix`. If the 2-param approach is genuinely necessary (e.g. base has cyclical type constraints D1 had to break), `Accept` with reasoning recorded under `## For orchestrator`.
 - **The `family`/`target` drop from input type.** Verify the type-level negative test asserts `family` and `target` are NOT accepted by the wrap. A wrap that accepts both (even if it discards them at runtime) defeats FR11's intent.
-- **No regression to other `@prisma-next/postgres/contract-builder` re-exports.** Verify `field`, `model`, `rel`, and the type re-exports still flow through unchanged.
+- **No regression to other `@internal/postgres/contract-builder` re-exports.** Verify `field`, `model`, `rel`, and the type re-exports still flow through unchanged.
 - **`architecture.config.json` entry.** Verify the new `/migration` entry's `domain`/`layer`/`plane` triplet matches the existing `/contract-builder` or `/control` entries' plane convention for migration-side exports.
 - **README updates.** Verify both the new `/migration` section in the Exports list AND the updated `/contract-builder` section's example reflect the new no-family/target shape.
 
@@ -84,9 +84,9 @@ Specific items the orchestrator wants you to look at independently of the implem
 
 Use the checklist in `.claude/skills/drive-build-workflow/agents/reviewer.md § The acceptance bar for SATISFIED`. For D1 specifically:
 
-- **FR1 PASS:** `@prisma-next/postgres/migration` re-exports `Migration`, `MigrationCLI`, `placeholder`, `dataTransform`, the documented op-factory surface. Evidence = parity test commit + test file path.
+- **FR1 PASS:** `@internal/postgres/migration` re-exports `Migration`, `MigrationCLI`, `placeholder`, `dataTransform`, the documented op-factory surface. Evidence = parity test commit + test file path.
 - **FR11 (Postgres facet) PASS:** wrapped `defineContract` pre-binds family + target, drops them from the input type, preserves inference. Evidence = wrap-shape test commit + test file path.
-- All "Done when" gates from the D1 brief pass (`pnpm build --filter @prisma-next/postgres`, `pnpm typecheck --filter @prisma-next/postgres`, `pnpm test:packages --filter @prisma-next/postgres`, `pnpm lint:deps`, workspace-wide `pnpm typecheck`, the brief's grep gates).
+- All "Done when" gates from the D1 brief pass (`pnpm build --filter @internal/postgres`, `pnpm typecheck --filter @internal/postgres`, `pnpm test:packages --filter @internal/postgres`, `pnpm lint:deps`, workspace-wide `pnpm typecheck`, the brief's grep gates).
 - Transient-ID scan emits zero hits against the `+` diff.
 
 D2's items (mongo) and D3's items (sqlite) are **out of scope** for this round. Their ACs (FR2, FR3, FR4–FR7, FR10) stay `NOT VERIFIED — D<x> R1 pending`.

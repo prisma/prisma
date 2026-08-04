@@ -1,10 +1,10 @@
-import { type Contract, coreHash, profileHash } from '@prisma-next/contract/types';
-import { INIT_ADDITIVE_POLICY } from '@prisma-next/family-sql/control';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { SqlStorage } from '@prisma-next/sql-contract/types';
-import { sqliteCreateNamespace } from '@prisma-next/target-sqlite/control';
-import type { SqlitePlanTargetDetails } from '@prisma-next/target-sqlite/planner-target-details';
-import { applicationDomainOf, timeouts } from '@prisma-next/test-utils';
+import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { SqlStorage } from '@internal/sql-contract/types';
+import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import type { SqlitePlanTargetDetails } from '@internal/target-sqlite/planner-target-details';
+import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   contract as appContract,

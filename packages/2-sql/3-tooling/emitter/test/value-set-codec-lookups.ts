@@ -1,4 +1,4 @@
-import { type CodecLookup, renderTsLiteral } from '@prisma-next/framework-components/codec';
+import { type CodecLookup, renderTsLiteral } from '@internal/framework-components/codec';
 
 /**
  * Mirrors the real Postgres primitive codecs' `renderValueLiteral`: `pg/text@1` and `pg/int4@1` are
@@ -9,7 +9,6 @@ import { type CodecLookup, renderTsLiteral } from '@prisma-next/framework-compon
 export const identityCodecLookup: CodecLookup = {
   get: () => undefined,
   targetTypesFor: () => undefined,
-  metaFor: () => undefined,
   renderOutputTypeFor: () => undefined,
   renderValueLiteralFor: (id, value) =>
     id === 'pg/text@1' || id === 'pg/int4@1' ? renderTsLiteral(value) : undefined,
@@ -30,7 +29,6 @@ const LEVEL_BY_INDEX = ['low', 'high', 'urgent'] as const;
 export const nonIdentityCodecLookup: CodecLookup = {
   get: () => undefined,
   targetTypesFor: () => undefined,
-  metaFor: () => undefined,
   renderOutputTypeFor: (id) => (id === NON_IDENTITY_CODEC_ID ? 'Level' : undefined),
   renderValueLiteralFor: (id, value) => {
     if (id !== NON_IDENTITY_CODEC_ID) return undefined;

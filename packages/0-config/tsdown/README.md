@@ -1,4 +1,4 @@
-# @prisma-next/tsdown
+# @repo/tsdown
 
 We're solving maintenance burden of lots of similar `tsdown.config.ts` files across many packages that need to be aligned on pretty much everything except for the `entry` property.
 
@@ -22,10 +22,10 @@ Your package needs to have:
 
 ## Usage
 
-Add `@prisma-next/tsdown` as a workspace devDependency in your package's `package.json`:
+Add `@repo/tsdown` as a workspace devDependency in your package's `package.json`:
 
 ```bash
-pnpm add -D --workspace @prisma-next/tsdown
+pnpm add -D --workspace @repo/tsdown
 ```
 
 Or add it manually to `package.json`:
@@ -33,7 +33,7 @@ Or add it manually to `package.json`:
 ```json
 {
   "devDependencies": {
-    "@prisma-next/tsdown": "workspace:*"
+    "@repo/tsdown": "workspace:*"
   }
 }
 ```
@@ -43,7 +43,7 @@ Or add it manually to `package.json`:
 For convenience, we provide a drop-in replacement for `defineConfig` that you can import and use in your `tsdown.config.ts` file:
 
 ```ts
-import { defineConfig } from '@prisma-next/tsdown'
+import { defineConfig } from '@repo/tsdown'
 
 export default defineConfig({
   entry: ['src/index.ts', 'src/stuff.ts'],
@@ -53,7 +53,7 @@ export default defineConfig({
 Alternatively, you can import and use the base configuration object directly:
 
 ```ts
-import { baseConfig } from '@prisma-next/tsdown'
+import { baseConfig } from '@repo/tsdown'
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({

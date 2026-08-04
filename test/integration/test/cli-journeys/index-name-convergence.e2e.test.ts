@@ -3,7 +3,7 @@
  *
  * Upgrade path: a database whose indexes carry pre-wire-name plain default
  * names (raw SQL fixture) is adopted exactly (infer → emit → sign), then
- * the contract switches to managed authoring (unnamed `@@index`, default
+ * the contract switches to wire-name authoring (unnamed `@@index`, default
  * FK-backing index). The first widening plan contains ONLY
  * `ALTER INDEX … RENAME` ops (byte-asserted); applying it converges the live
  * names to the content-hash wire names and `db verify` is clean.
@@ -17,7 +17,7 @@
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { withClient } from '@prisma-next/test-utils';
+import { withClient } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
@@ -72,7 +72,7 @@ withTempDir(({ createTempDir }) => {
     });
 
     it(
-      'adopt exactly → switch to managed authoring → widening plan is renames-only → apply → verify clean',
+      'adopt exactly → switch to wire-name authoring → widening plan is renames-only → apply → verify clean',
       async () => {
         const ctx: JourneyContext = setupJourney({
           connectionString: db.connectionString,
@@ -97,11 +97,11 @@ withTempDir(({ createTempDir }) => {
           migrationsApplied: 0,
         });
 
-        // switch to managed authoring — unnamed @@index + default
+        // switch to wire-name authoring — unnamed @@index + default
         // FK-backing index — and emit the re-based contract.
         swapPslContract(ctx, 'contract-index-upgrade');
         const emit2 = await runContractEmit(ctx);
-        expect(emit2.exitCode, `contract emit managed\n${stripAnsi(emit2.stderr)}`).toBe(0);
+        expect(emit2.exitCode, `contract emit wire\n${stripAnsi(emit2.stderr)}`).toBe(0);
 
         // the first widening plan is renames only, byte-asserted.
         const plan = await runMigrationPlanAndEmit(ctx, ['--name', 'converge-index-names']);

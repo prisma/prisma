@@ -1,7 +1,21 @@
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
-import { PostgresPolicySchemaNode } from '../src/core/schema-ir/postgres-policy-schema-node';
+import {
+  PostgresPolicySchemaNode,
+  type PostgresPolicySchemaNodeInput,
+} from '../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresRoleSchemaNode } from '../src/core/schema-ir/postgres-role-schema-node';
+
+type FlatPolicy = Omit<PostgresPolicySchemaNodeInput, 'naming'> & {
+  readonly name: string;
+  readonly prefix: string | undefined;
+};
+
+function policyNode(flat: FlatPolicy): PostgresPolicySchemaNode {
+  const { name: _name, prefix: _prefix, ...rest } = flat;
+  return new PostgresPolicySchemaNode({ ...rest, naming: parseNaming(flat.name, flat.prefix) });
+}
 
 const basePolicyInput = {
   name: 'read_own_profiles_a1b2c3d4',
@@ -18,24 +32,24 @@ const basePolicyInput = {
 
 describe('PostgresPolicySchemaNode', () => {
   it('id returns the wire name', () => {
-    const node = new PostgresPolicySchemaNode(basePolicyInput);
+    const node = policyNode(basePolicyInput);
     expect(node.id).toBe('read_own_profiles_a1b2c3d4');
   });
 
   it('children() returns empty array (leaf)', () => {
-    const node = new PostgresPolicySchemaNode(basePolicyInput);
+    const node = policyNode(basePolicyInput);
     expect(node.children()).toEqual([]);
   });
 
   it('isEqualTo returns true for same wire name', () => {
-    const a = new PostgresPolicySchemaNode(basePolicyInput);
-    const b = new PostgresPolicySchemaNode({ ...basePolicyInput });
+    const a = policyNode(basePolicyInput);
+    const b = policyNode({ ...basePolicyInput });
     expect(a.isEqualTo(b)).toBe(true);
   });
 
   it('isEqualTo returns false for different wire name', () => {
-    const a = new PostgresPolicySchemaNode(basePolicyInput);
-    const b = new PostgresPolicySchemaNode({
+    const a = policyNode(basePolicyInput);
+    const b = policyNode({
       ...basePolicyInput,
       name: 'read_own_profiles_deadbeef',
     });
@@ -43,13 +57,13 @@ describe('PostgresPolicySchemaNode', () => {
   });
 
   it('isEqualTo throws when other is not a PostgresPolicySchemaNode', () => {
-    const a = new PostgresPolicySchemaNode(basePolicyInput);
+    const a = policyNode(basePolicyInput);
     const b = new PostgresRoleSchemaNode({ name: 'app_user', namespaceId: UNBOUND_NAMESPACE_ID });
     expect(() => a.isEqualTo(b)).toThrow();
   });
 
   it('carries all fields from input', () => {
-    const node = new PostgresPolicySchemaNode(basePolicyInput);
+    const node = policyNode(basePolicyInput);
     expect(node.name).toBe(basePolicyInput.name);
     expect(node.prefix).toBe(basePolicyInput.prefix);
     expect(node.tableName).toBe(basePolicyInput.tableName);
@@ -61,12 +75,12 @@ describe('PostgresPolicySchemaNode', () => {
   });
 
   it('withCheck is absent when not provided', () => {
-    const node = new PostgresPolicySchemaNode(basePolicyInput);
+    const node = policyNode(basePolicyInput);
     expect(Object.hasOwn(node, 'withCheck')).toBe(false);
   });
 
   it('using is absent when not provided', () => {
-    const node = new PostgresPolicySchemaNode({
+    const node = policyNode({
       ...basePolicyInput,
       using: undefined,
       withCheck: 'true',
@@ -75,13 +89,13 @@ describe('PostgresPolicySchemaNode', () => {
   });
 
   it('instance is frozen', () => {
-    const node = new PostgresPolicySchemaNode(basePolicyInput);
+    const node = policyNode(basePolicyInput);
     expect(Object.isFrozen(node)).toBe(true);
   });
 
-  describe('prefix invariant (managed vs exact)', () => {
+  describe('prefix invariant (wire vs exact)', () => {
     it('an exact node carries no prefix — the property is absent', () => {
-      const exact = new PostgresPolicySchemaNode({
+      const exact = policyNode({
         ...basePolicyInput,
         prefix: undefined,
         name: 'Tenant members can read',
@@ -90,18 +104,13 @@ describe('PostgresPolicySchemaNode', () => {
       expect(Object.hasOwn(exact, 'prefix')).toBe(false);
     });
 
-    it('a declared prefix must match the wire name', () => {
-      expect(() => new PostgresPolicySchemaNode({ ...basePolicyInput, prefix: 'other' })).toThrow(
-        /prefix "other" does not match the wire name/,
+    it('a declared prefix must parse back out of the name — parseNaming rejects the pair, so the node is unconstructable', () => {
+      expect(() => parseNaming(basePolicyInput.name, 'other')).toThrow(
+        /does not match the wire name/,
       );
-      expect(
-        () =>
-          new PostgresPolicySchemaNode({
-            ...basePolicyInput,
-            name: 'not_wire_shaped',
-            prefix: 'not_wire_shaped',
-          }),
-      ).toThrow(/does not match the wire name/);
+      expect(() => parseNaming('not_wire_shaped', 'not_wire_shaped')).toThrow(
+        /does not match the wire name/,
+      );
     });
   });
 
@@ -113,34 +122,34 @@ describe('PostgresPolicySchemaNode', () => {
     };
 
     it('equal when every compared field matches', () => {
-      const a = new PostgresPolicySchemaNode(exactInput);
-      const b = new PostgresPolicySchemaNode({ ...exactInput });
+      const a = policyNode(exactInput);
+      const b = policyNode({ ...exactInput });
       expect(a.isEqualTo(b)).toBe(true);
     });
 
     it('operation drift breaks equality', () => {
-      const a = new PostgresPolicySchemaNode(exactInput);
-      const b = new PostgresPolicySchemaNode({ ...exactInput, operation: 'update' });
+      const a = policyNode(exactInput);
+      const b = policyNode({ ...exactInput, operation: 'update' });
       expect(a.isEqualTo(b)).toBe(false);
     });
 
     it('permissive drift breaks equality', () => {
-      const a = new PostgresPolicySchemaNode(exactInput);
-      const b = new PostgresPolicySchemaNode({ ...exactInput, permissive: false });
+      const a = policyNode(exactInput);
+      const b = policyNode({ ...exactInput, permissive: false });
       expect(a.isEqualTo(b)).toBe(false);
     });
 
     it('roles compare sorted — order does not matter, membership does', () => {
-      const a = new PostgresPolicySchemaNode({ ...exactInput, roles: ['b_role', 'a_role'] });
-      const sameSet = new PostgresPolicySchemaNode({ ...exactInput, roles: ['a_role', 'b_role'] });
-      const differentSet = new PostgresPolicySchemaNode({ ...exactInput, roles: ['a_role'] });
+      const a = policyNode({ ...exactInput, roles: ['b_role', 'a_role'] });
+      const sameSet = policyNode({ ...exactInput, roles: ['a_role', 'b_role'] });
+      const differentSet = policyNode({ ...exactInput, roles: ['a_role'] });
       expect(a.isEqualTo(sameSet)).toBe(true);
       expect(a.isEqualTo(differentSet)).toBe(false);
     });
 
     it('roles compare as a set — a duplicated role name is equal, matching the hash tuple', () => {
-      const a = new PostgresPolicySchemaNode({ ...exactInput, roles: ['a_role'] });
-      const duplicated = new PostgresPolicySchemaNode({
+      const a = policyNode({ ...exactInput, roles: ['a_role'] });
+      const duplicated = policyNode({
         ...exactInput,
         roles: ['a_role', 'a_role'],
       });
@@ -148,28 +157,28 @@ describe('PostgresPolicySchemaNode', () => {
     });
 
     it('using compares verbatim byte-for-byte — whitespace variants are unequal', () => {
-      const a = new PostgresPolicySchemaNode({ ...exactInput, using: '(user_id = 1)' });
-      const drifted = new PostgresPolicySchemaNode({ ...exactInput, using: '(user_id = 2)' });
-      const whitespace = new PostgresPolicySchemaNode({ ...exactInput, using: '( user_id = 1 )' });
+      const a = policyNode({ ...exactInput, using: '(user_id = 1)' });
+      const drifted = policyNode({ ...exactInput, using: '(user_id = 2)' });
+      const whitespace = policyNode({ ...exactInput, using: '( user_id = 1 )' });
       expect(a.isEqualTo(drifted)).toBe(false);
       expect(a.isEqualTo(whitespace)).toBe(false);
     });
 
     it('withCheck compares verbatim; absent equals empty', () => {
-      const a = new PostgresPolicySchemaNode({ ...exactInput, withCheck: 'true' });
-      const b = new PostgresPolicySchemaNode({ ...exactInput, withCheck: 'false' });
+      const a = policyNode({ ...exactInput, withCheck: 'true' });
+      const b = policyNode({ ...exactInput, withCheck: 'false' });
       expect(a.isEqualTo(b)).toBe(false);
 
-      const absent = new PostgresPolicySchemaNode(exactInput);
-      const empty = new PostgresPolicySchemaNode({ ...exactInput, withCheck: '' });
+      const absent = policyNode(exactInput);
+      const empty = policyNode({ ...exactInput, withCheck: '' });
       expect(absent.isEqualTo(empty)).toBe(true);
     });
   });
 
-  describe('isEqualTo — managed mode stays id-driven', () => {
+  describe('isEqualTo — wire mode stays id-driven', () => {
     it('same wire name is equal even when bodies differ (hash identity covers content)', () => {
-      const a = new PostgresPolicySchemaNode(basePolicyInput);
-      const b = new PostgresPolicySchemaNode({
+      const a = policyNode(basePolicyInput);
+      const b = policyNode({
         ...basePolicyInput,
         using: 'a completely different predicate',
         operation: 'select',
@@ -180,7 +189,7 @@ describe('PostgresPolicySchemaNode', () => {
 
   describe('PostgresPolicySchemaNode.is', () => {
     it('returns true for a PostgresPolicySchemaNode', () => {
-      const node = new PostgresPolicySchemaNode(basePolicyInput);
+      const node = policyNode(basePolicyInput);
       expect(PostgresPolicySchemaNode.is(node)).toBe(true);
     });
 
@@ -207,24 +216,24 @@ describe('PostgresPolicySchemaNode', () => {
     ];
 
     it('is readable when supplied', () => {
-      const node = new PostgresPolicySchemaNode({ ...basePolicyInput, dependsOn });
+      const node = policyNode({ ...basePolicyInput, dependsOn });
       expect(node.dependsOn).toEqual(dependsOn);
     });
 
     it('is absent when not supplied', () => {
-      const node = new PostgresPolicySchemaNode(basePolicyInput);
+      const node = policyNode(basePolicyInput);
       expect(node.dependsOn).toBeUndefined();
     });
 
     it('is non-enumerable — excluded from JSON and structural equality', () => {
-      const node = new PostgresPolicySchemaNode({ ...basePolicyInput, dependsOn });
+      const node = policyNode({ ...basePolicyInput, dependsOn });
       expect(Object.keys(node)).not.toContain('dependsOn');
       expect(JSON.parse(JSON.stringify(node))).not.toHaveProperty('dependsOn');
     });
 
     it('is ignored by isEqualTo', () => {
-      const a = new PostgresPolicySchemaNode({ ...basePolicyInput, dependsOn });
-      const b = new PostgresPolicySchemaNode(basePolicyInput);
+      const a = policyNode({ ...basePolicyInput, dependsOn });
+      const b = policyNode(basePolicyInput);
       expect(a.isEqualTo(b)).toBe(true);
     });
   });
@@ -264,7 +273,7 @@ describe('PostgresRoleSchemaNode', () => {
 
   it('isEqualTo throws when other is not a PostgresRoleSchemaNode', () => {
     const a = new PostgresRoleSchemaNode({ name: 'app_user', namespaceId: UNBOUND_NAMESPACE_ID });
-    const b = new PostgresPolicySchemaNode(basePolicyInput);
+    const b = policyNode(basePolicyInput);
     expect(() => a.isEqualTo(b)).toThrow();
   });
 
@@ -292,7 +301,7 @@ describe('PostgresRoleSchemaNode', () => {
     });
 
     it('returns false for a PostgresPolicySchemaNode', () => {
-      const policy = new PostgresPolicySchemaNode(basePolicyInput);
+      const policy = policyNode(basePolicyInput);
       expect(PostgresRoleSchemaNode.is(policy)).toBe(false);
     });
   });

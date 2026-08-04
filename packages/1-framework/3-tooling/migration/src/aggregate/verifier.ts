@@ -1,10 +1,10 @@
 import type {
   SchemaEntityCoordinate,
   VerifyDatabaseSchemaResult,
-} from '@prisma-next/framework-components/control';
-import { coordinateKey } from '@prisma-next/framework-components/ir';
-import type { Result } from '@prisma-next/utils/result';
-import { notOk, ok } from '@prisma-next/utils/result';
+} from '@internal/framework-components/control';
+import { coordinateKey } from '@internal/framework-components/ir';
+import type { Result } from '@internal/utils/result';
+import { notOk, ok } from '@internal/utils/result';
 import { requireHeadRef } from './aggregate';
 import type { ContractMarkerRecordLike } from './marker-types';
 import type { AggregateContractSpace, ContractSpaceAggregate } from './types';

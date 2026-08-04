@@ -1,4 +1,4 @@
-import { coreHash } from '@prisma-next/contract/types';
+import { coreHash } from '@internal/contract/types';
 import {
   AggregateExpr,
   ColumnRef,
@@ -7,8 +7,8 @@ import {
   SelectAst,
   type SqlCodecCallContext,
   TableSource,
-} from '@prisma-next/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@prisma-next/sql-relational-core/plan';
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it } from 'vitest';
 import { buildDecodeContext, decodeRow } from '../src/codecs/decoding';
 import { defineTestCodec } from './test-codec';

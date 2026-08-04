@@ -1,10 +1,10 @@
-import { createPostgresAdapter } from '@prisma-next/adapter-postgres/adapter';
-import type { Contract, ContractModelBase } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import type { SqlStorage as SqlStorageType } from '@prisma-next/sql-contract/types';
-import { SqlStorage, type SqlStorageInput, StorageTable } from '@prisma-next/sql-contract/types';
-import type { TableSource } from '@prisma-next/sql-relational-core/ast';
-import { applicationDomainOf } from '@prisma-next/test-utils';
+import { createPostgresAdapter } from '@internal/adapter-postgres/adapter';
+import type { Contract, ContractModelBase } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlStorage as SqlStorageType } from '@internal/sql-contract/types';
+import { SqlStorage, type SqlStorageInput, StorageTable } from '@internal/sql-contract/types';
+import type { TableSource } from '@internal/sql-relational-core/ast';
+import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { PostgresSchema } from '../../../3-targets/3-targets/postgres/src/core/postgres-schema';
 import { SqliteDatabase } from '../../../3-targets/3-targets/sqlite/src/core/sqlite-unbound-database';

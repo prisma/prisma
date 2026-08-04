@@ -1,3 +1,4 @@
+import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { PostgresNamespaceSchemaNode } from '../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../src/core/schema-ir/postgres-native-enum-schema-node';
@@ -7,8 +8,7 @@ import { PostgresTableSchemaNode } from '../src/core/schema-ir/postgres-table-sc
 import type { SqlSchemaDiffNode } from '../src/core/schema-ir/schema-node-kinds';
 
 const policy = new PostgresPolicySchemaNode({
-  name: 'read_own_a1b2c3d4',
-  prefix: 'read_own',
+  naming: parseNaming('read_own_a1b2c3d4', 'read_own'),
   tableName: 'profiles',
   namespaceId: 'public',
   operation: 'select' as const,

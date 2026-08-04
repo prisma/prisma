@@ -78,8 +78,8 @@ This keeps the framework independent of authoring formats, while still ensuring 
 Example (helper-first PSL path):
 
 ```ts
-import { defineConfig } from '@prisma-next/cli/config-types';
-import { prismaContract } from '@prisma-next/sql-contract-psl/provider';
+import { defineConfig } from '@internal/cli/config-types';
+import { prismaContract } from '@internal/sql-contract-psl/provider';
 
 export default defineConfig({
   // ... family/target/adapter wiring ...

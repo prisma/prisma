@@ -7,7 +7,7 @@
  * verify verdict (`schema-verify.ts`) and the control adapters.
  */
 
-import type { ColumnDefault } from '@prisma-next/contract/types';
+import type { ColumnDefault } from '@internal/contract/types';
 
 /**
  * Function type for normalizing raw database default expressions into ColumnDefault.

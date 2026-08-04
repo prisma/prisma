@@ -234,7 +234,7 @@ Account-level privacy mode applies to cloud agents. Run history is stored in Cur
 
 Cursor can be invoked from a failing CI workflow via the [CI autofix capability](https://cursor.com/docs/cloud-agent/capabilities#ci-autofix) — the agent reads the failure logs and proposes a fix as a PR. We don't currently wire this into our GitHub Actions workflows; if you want to enable it, that's a separate setup step on top of what's documented here.
 
-## prisma-next-specific notes
+## Prisma 8-specific notes
 
 - **Node version**: pinned to `>=24` via `engines.node` in [`package.json`](../../package.json). If the snapshot ships an older Node, install Node 24 once during the snapshot step at <https://cursor.com/onboard>; do not put Node installation in `install` (it should stay cheap).
 - **Sanity command**: `pnpm test:packages` is the cheapest end-to-end signal that the workspace is healthy — recommend it as a smoke test for any new snapshot.

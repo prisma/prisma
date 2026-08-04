@@ -1,14 +1,16 @@
-import { ContractValidationError } from '@prisma-next/contract/contract-validation-error';
-import { type ContractModel, type ContractRelation, crossRef } from '@prisma-next/contract/types';
-import { UNBOUND_NAMESPACE_ID } from '@prisma-next/framework-components/ir';
-import { createContract } from '@prisma-next/test-utils';
-import { blindCast } from '@prisma-next/utils/casts';
+import { ContractValidationError } from '@internal/contract/contract-validation-error';
+import { type ContractModel, type ContractRelation, crossRef } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { blindCast } from '@internal/utils/casts';
+import { createContract } from '@repo/test-utils';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { composeSqlEntityKinds } from '../src/entity-kinds';
 import { col, fk, index, model, pk, table, unique } from '../src/factories';
 import { CheckConstraint } from '../src/ir/check-constraint';
+import { Index } from '../src/ir/sql-index';
 import { StorageTable } from '../src/ir/storage-table';
+import { indexInputFromSerialized, type SerializedIndex } from '../src/serialized-index';
 import type { ReferentialAction, SqlModelFieldStorage, SqlStorage } from '../src/types';
 import {
   createSqlStorageSchema,
@@ -19,6 +21,11 @@ import {
   validateStorage,
   validateStorageSemantics,
 } from '../src/validators';
+
+/** Routes a stored (flat) index entry through the contract-JSON hydrator. */
+function serializedIndex(flat: SerializedIndex): Index {
+  return new Index(indexInputFromSerialized(flat));
+}
 
 function unboundTables<T extends Record<string, unknown>>(tables: T) {
   return {
@@ -1078,7 +1085,7 @@ describe('SQL contract validators', () => {
             },
             {
               pk: { columns: ['id'], name: 'user_pkey' },
-              indexes: [{ columns: ['id'], name: 'user_pkey', unique: false }],
+              indexes: [serializedIndex({ columns: ['id'], name: 'user_pkey', unique: false })],
             },
           ),
         }),
@@ -1091,7 +1098,7 @@ describe('SQL contract validators', () => {
       expect(errors[0]).toContain('index');
     });
 
-    it('rejects duplicate unique and index definitions within the same table', () => {
+    it('rejects duplicate uniques, and two index entries sharing one name', () => {
       const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: table(
@@ -1101,7 +1108,7 @@ describe('SQL contract validators', () => {
             },
             {
               uniques: [unique('email'), unique('email')],
-              indexes: [index('user_email_idx1', ['email']), index('user_email_idx2', ['email'])],
+              indexes: [index('user_email_idx', ['email']), index('user_email_idx', ['email'])],
             },
           ),
         }),
@@ -1109,8 +1116,49 @@ describe('SQL contract validators', () => {
 
       const errors = validateStorageSemantics(s);
       expect(errors).toHaveLength(2);
-      expect(errors[0]).toContain('duplicate unique constraint definition');
-      expect(errors[1]).toContain('duplicate index definition');
+      expect(errors[0]).toContain('"user_email_idx" is declared multiple times (index, index)');
+      expect(errors[1]).toContain('duplicate unique constraint definition');
+    });
+
+    it('two content-identical EXACT indexes under different names validate (legal twins)', () => {
+      const s = createContract<SqlStorage>({
+        storage: unboundTables({
+          user: table(
+            {
+              id: col('int4', 'pg/int4@1'),
+              email: col('text', 'pg/text@1'),
+            },
+            {
+              indexes: [index('user_email_idx1', ['email']), index('user_email_idx2', ['email'])],
+            },
+          ),
+        }),
+      }).storage;
+
+      expect(validateStorageSemantics(s)).toEqual([]);
+    });
+
+    it('two content-identical WIRE-NAMED indexes under different prefixes still reject', () => {
+      const s = createContract<SqlStorage>({
+        storage: unboundTables({
+          user: table(
+            {
+              id: col('int4', 'pg/int4@1'),
+              email: col('text', 'pg/text@1'),
+            },
+            {
+              indexes: [
+                index('a_idx_46df9cad', ['email'], { prefix: 'a_idx' }),
+                index('b_idx_46df9cad', ['email'], { prefix: 'b_idx' }),
+              ],
+            },
+          ),
+        }),
+      }).storage;
+
+      const errors = validateStorageSemantics(s);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('duplicate index definition');
     });
 
     it('rejects duplicate columns inside key, unique, and index definitions', () => {
@@ -1160,7 +1208,7 @@ describe('SQL contract validators', () => {
       expect(errors[0]).toContain('NOT NULL');
     });
 
-    it('detects duplicate index definitions whose options differ only in key order', () => {
+    it('detects duplicate wire-named index definitions whose options differ only in key order', () => {
       const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: table(
@@ -1170,20 +1218,22 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                {
-                  name: 'user_email_gin1',
+                serializedIndex({
+                  name: 'gin1_0695c6f4',
+                  prefix: 'gin1',
                   columns: ['email'],
                   unique: false,
                   type: 'gin',
                   options: { a: '1', b: '2' },
-                },
-                {
-                  name: 'user_email_gin2',
+                }),
+                serializedIndex({
+                  name: 'gin2_0695c6f4',
+                  prefix: 'gin2',
                   columns: ['email'],
                   unique: false,
                   type: 'gin',
                   options: { b: '2', a: '1' },
-                },
+                }),
               ],
             },
           ),
@@ -1205,8 +1255,16 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                { name: 'user_email_unique_idx', columns: ['email'], unique: true },
-                { name: 'user_email_plain_idx', columns: ['email'], unique: false },
+                serializedIndex({
+                  name: 'user_email_unique_idx',
+                  columns: ['email'],
+                  unique: true,
+                }),
+                serializedIndex({
+                  name: 'user_email_plain_idx',
+                  columns: ['email'],
+                  unique: false,
+                }),
               ],
             },
           ),
@@ -1226,8 +1284,16 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                { name: 'user_email_lower', expression: 'lower(email)', unique: false },
-                { name: 'user_email_upper', expression: 'upper(email)', unique: false },
+                serializedIndex({
+                  name: 'user_email_lower',
+                  expression: 'lower(email)',
+                  unique: false,
+                }),
+                serializedIndex({
+                  name: 'user_email_upper',
+                  expression: 'upper(email)',
+                  unique: false,
+                }),
               ],
             },
           ),
@@ -1247,13 +1313,13 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                {
+                serializedIndex({
                   name: 'user_email_active',
                   columns: ['email'],
                   where: 'deleted_at IS NULL',
                   unique: false,
-                },
-                { name: 'user_email_all', columns: ['email'], unique: false },
+                }),
+                serializedIndex({ name: 'user_email_all', columns: ['email'], unique: false }),
               ],
             },
           ),
@@ -1263,7 +1329,7 @@ describe('SQL contract validators', () => {
       expect(validateStorageSemantics(s)).toHaveLength(0);
     });
 
-    it('detects duplicate expression index definitions with identical bodies', () => {
+    it('detects duplicate WIRE-NAMED expression index definitions with identical bodies', () => {
       const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: table(
@@ -1273,8 +1339,18 @@ describe('SQL contract validators', () => {
             },
             {
               indexes: [
-                { name: 'user_email_lower1', expression: 'lower(email)', unique: false },
-                { name: 'user_email_lower2', expression: 'lower(email)', unique: false },
+                serializedIndex({
+                  name: 'lower1_17273133',
+                  prefix: 'lower1',
+                  expression: 'lower(email)',
+                  unique: false,
+                }),
+                serializedIndex({
+                  name: 'lower2_17273133',
+                  prefix: 'lower2',
+                  expression: 'lower(email)',
+                  unique: false,
+                }),
               ],
             },
           ),
@@ -1284,6 +1360,35 @@ describe('SQL contract validators', () => {
       const errors = validateStorageSemantics(s);
       expect(errors).toHaveLength(1);
       expect(errors[0]).toContain('duplicate index definition');
+    });
+
+    it('two content-identical EXACT expression indexes under different names validate (twins)', () => {
+      const s = createContract<SqlStorage>({
+        storage: unboundTables({
+          user: table(
+            {
+              id: col('int4', 'pg/int4@1'),
+              email: col('text', 'pg/text@1'),
+            },
+            {
+              indexes: [
+                serializedIndex({
+                  name: 'user_email_lower1',
+                  expression: 'lower(email)',
+                  unique: false,
+                }),
+                serializedIndex({
+                  name: 'user_email_lower2',
+                  expression: 'lower(email)',
+                  unique: false,
+                }),
+              ],
+            },
+          ),
+        }),
+      }).storage;
+
+      expect(validateStorageSemantics(s)).toEqual([]);
     });
 
     it('rejects duplicate foreign key definitions within the same table', () => {
@@ -1358,7 +1463,7 @@ describe('SQL contract validators', () => {
               role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
             },
             uniques: [],
-            indexes: [{ columns: ['id'], name: 'shared_name', unique: false }],
+            indexes: [serializedIndex({ columns: ['id'], name: 'shared_name', unique: false })],
             foreignKeys: [],
             checks: [
               new CheckConstraint({

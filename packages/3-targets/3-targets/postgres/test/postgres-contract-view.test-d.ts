@@ -1,4 +1,4 @@
-import type { Contract as ContractBase } from '@prisma-next/contract/types';
+import type { Contract as ContractBase } from '@internal/contract/types';
 import { expectTypeOf, test } from 'vitest';
 import { PostgresContractView } from '../src/core/postgres-contract-view';
 import type { Contract } from './fixtures/namespaced-contract.d';
@@ -61,7 +61,7 @@ test('schema names are NOT promoted to the contract root (no collision)', () => 
 test('the cross-schema foreign key on public.profile is reachable', () => {
   expectTypeOf<
     CV['namespace']['public']['table']['profile']['foreignKeys'][0]['target']['namespaceId']
-  >().toEqualTypeOf<'auth' & import('@prisma-next/contract/types').NamespaceId>();
+  >().toEqualTypeOf<'auth' & import('@internal/contract/types').NamespaceId>();
 });
 
 test('valueSet slot is present per schema (none emitted, so empty maps)', () => {

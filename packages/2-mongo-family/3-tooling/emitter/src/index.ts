@@ -3,14 +3,17 @@ import type {
   ContractModel,
   ContractModelBase,
   JsonValue,
-} from '@prisma-next/contract/types';
-import { serializeObjectKey, serializeValue } from '@prisma-next/emitter/domain-type-generation';
-import type { ValidationContext } from '@prisma-next/framework-components/emission';
-import type { Namespace } from '@prisma-next/framework-components/ir';
-import type { MongoCollection, MongoStorage } from '@prisma-next/mongo-contract';
-import { blindCast } from '@prisma-next/utils/casts';
-import type { StructuredError } from '@prisma-next/utils/structured-error';
-import { structuredError } from '@prisma-next/utils/structured-error';
+} from '@internal/contract/types';
+import { serializeObjectKey, serializeValue } from '@internal/emitter/domain-type-generation';
+import type {
+  ImportSpecifierResolver,
+  ValidationContext,
+} from '@internal/framework-components/emission';
+import type { Namespace } from '@internal/framework-components/ir';
+import type { MongoCollection, MongoStorage } from '@internal/mongo-contract';
+import { blindCast } from '@internal/utils/casts';
+import type { StructuredError } from '@internal/utils/structured-error';
+import { structuredError } from '@internal/utils/structured-error';
 
 function validationError(message: string, model?: string): StructuredError {
   return structuredError(
@@ -302,13 +305,13 @@ export const mongoEmission = {
     };
   },
 
-  getFamilyImports(): string[] {
+  getFamilyImports(resolveImportSpecifier: ImportSpecifierResolver): string[] {
     return [
       'import type {',
       '  MongoCollection,',
       '  MongoContractWithTypeMaps,',
       '  MongoTypeMaps,',
-      "} from '@prisma-next/mongo-contract';",
+      `} from '${resolveImportSpecifier('@internal/mongo-contract')}';`,
     ];
   },
 
