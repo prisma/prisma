@@ -31,4 +31,4 @@ const outcome = await runPostgresCodecProjection(connection, conformanceCase);
 
 ## Scope
 
-The harness, case types, and runner are the public API — the `dist`/`src` this package ships. The built-in PostgreSQL codec catalogue is not part of that surface: it lives in this package's own `test/` directory (excluded from the published tarball by `files`), where it dogfoods the same harness an extension author consumes, rather than being general-purpose vocabulary.
+The harness, case types, and runner are the public API — the `dist`/`src` this package ships. The built-in PostgreSQL codec catalogue is not part of that surface: it lives in this package's own `test/` directory (excluded from the published tarball by `files`), where it exercises the same harness an extension author consumes, rather than being general-purpose vocabulary.
