@@ -1,7 +1,7 @@
 {
   "name": "@internal/sql-relational-core",
   "private": true,
-  "version": "0.16.0",
+  "version": "0.17.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -17,21 +17,21 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@internal/contract": "workspace:0.16.0",
-    "@internal/framework-components": "workspace:0.16.0",
-    "@internal/operations": "workspace:0.16.0",
-    "@internal/sql-contract": "workspace:0.16.0",
-    "@internal/sql-operations": "workspace:0.16.0",
-    "@internal/utils": "workspace:0.16.0",
+    "@internal/contract": "workspace:0.17.0",
+    "@internal/framework-components": "workspace:0.17.0",
+    "@internal/operations": "workspace:0.17.0",
+    "@internal/sql-contract": "workspace:0.17.0",
+    "@internal/sql-operations": "workspace:0.17.0",
+    "@internal/utils": "workspace:0.17.0",
     "@standard-schema/spec": "^1.1.0",
     "arktype": "catalog:",
     "ts-toolbelt": "^9.6.0"
   },
   "devDependencies": {
-    "@internal/sql-contract-ts": "workspace:0.16.0",
-    "@repo/test-utils": "workspace:0.16.0",
-    "@repo/tsconfig": "workspace:0.16.0",
-    "@repo/tsdown": "workspace:0.16.0",
+    "@internal/sql-contract-ts": "workspace:0.17.0",
+    "@repo/test-utils": "workspace:0.17.0",
+    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/tsdown": "workspace:0.17.0",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

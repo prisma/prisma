@@ -799,3 +799,7 @@ Two smaller consequences follow:
 - `decodeJson` rejects an offset-bearing string instead of reinterpreting it. The codec cannot reproduce an offset, so accepting one would decode a value it could never encode back.
 
 `pg/timestamp@1` needs no attention: it already read as UTC and already emitted the zone-less form, and this change brings the generic codec into line with it.
+
+## Incidental release version bump to 0.17.0
+
+The `chore(release): bump to 0.17.0` commit rewrites every workspace manifest's `version` field and `workspace:` pins, which touches `examples/` manifests. No user action beyond the entries above.

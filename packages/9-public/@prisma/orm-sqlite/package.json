@@ -1,6 +1,6 @@
 {
   "name": "@prisma/orm-sqlite",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -14,16 +14,16 @@
     "clean": "rm -rf dist src-gen"
   },
   "dependencies": {
-    "@prisma/orm-family-sql": "workspace:0.16.0",
-    "@prisma/orm-framework": "workspace:0.16.0",
-    "@prisma/orm-target-sqlite": "workspace:0.16.0",
-    "@prisma/orm-toolchain": "workspace:0.16.0",
+    "@prisma/orm-family-sql": "workspace:0.17.0",
+    "@prisma/orm-framework": "workspace:0.17.0",
+    "@prisma/orm-target-sqlite": "workspace:0.17.0",
+    "@prisma/orm-toolchain": "workspace:0.17.0",
     "pathe": "^2.0.3"
   },
   "devDependencies": {
-    "@internal/sqlite": "workspace:0.16.0",
-    "@repo/tsconfig": "workspace:0.16.0",
-    "@repo/tsdown": "workspace:0.16.0",
+    "@internal/sqlite": "workspace:0.17.0",
+    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/tsdown": "workspace:0.17.0",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },

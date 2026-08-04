@@ -1,7 +1,49 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { type MutablePackageJson, rewriteWorkspaceDeps } from './set-version-utils.ts';
+import {
+  type MutablePackageJson,
+  participatesInLockstep,
+  rewriteWorkspaceDeps,
+} from './set-version-utils.ts';
+
+describe('participatesInLockstep', () => {
+  it('true for a project-boundary manifest with workspace pins (not a workspace member)', () => {
+    assert.equal(
+      participatesInLockstep({
+        name: 'bundle-size-postgres',
+        version: '0.16.0',
+        dependencies: { '@prisma/orm-postgres': 'workspace:0.16.0' },
+      }),
+      true,
+    );
+  });
+
+  it('true when the only workspace pin is a devDependency', () => {
+    assert.equal(
+      participatesInLockstep({
+        name: 'x',
+        devDependencies: { '@repo/tsconfig': 'workspace:*' },
+      }),
+      true,
+    );
+  });
+
+  it('false for a fixture manifest with only registry-style specs', () => {
+    assert.equal(
+      participatesInLockstep({
+        name: 'facade-only-app',
+        version: '0.16.0',
+        dependencies: { '@prisma/orm-postgres': '0.16.0', lodash: '^4.17.21' },
+      }),
+      false,
+    );
+  });
+
+  it('false for a manifest with no dependency fields', () => {
+    assert.equal(participatesInLockstep({ name: 'bare', version: '1.0.0' }), false);
+  });
+});
 
 describe('rewriteWorkspaceDeps', () => {
   it('leaves a package with no @internal/* deps unchanged (fixture A)', () => {

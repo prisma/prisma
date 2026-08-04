@@ -230,7 +230,7 @@
       "id": "supabase",
       "kind": "extension",
       "targetId": "postgres",
-      "version": "0.16.0"
+      "version": "0.17.0"
     }
   },
   "meta": {},

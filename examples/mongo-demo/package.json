@@ -17,15 +17,15 @@
     "lint": "biome check . --error-on-warnings"
   },
   "dependencies": {
-    "@prisma/orm-extension-middleware-cache": "workspace:0.16.0",
-    "@prisma/orm-mongo": "workspace:0.16.0",
+    "@prisma/orm-extension-middleware-cache": "workspace:0.17.0",
+    "@prisma/orm-mongo": "workspace:0.17.0",
     "mongodb": "catalog:",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "@repo/test-utils": "workspace:0.16.0",
-    "@repo/tsconfig": "workspace:0.16.0",
+    "@repo/test-utils": "workspace:0.17.0",
+    "@repo/tsconfig": "workspace:0.17.0",
     "@types/node": "catalog:",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
@@ -37,5 +37,5 @@
     "vite": "catalog:",
     "vitest": "catalog:"
   },
-  "version": "0.16.0"
+  "version": "0.17.0"
 }
