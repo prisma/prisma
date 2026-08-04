@@ -34,6 +34,7 @@ import {
   materializeCodec,
   resolveCodecDescriptorOrThrow,
 } from '../shared/resolve-codec';
+import { runtimeError } from '../shared/runtime-error';
 import type { TypesImportSpec } from '../shared/types-import-spec';
 import type {
   ControlAdapterDescriptor,
@@ -354,7 +355,7 @@ export function assembleControlMutationDefaults(
 /**
  * Collect every contributed {@link AggregateDescriptor} across the composed components, rejecting malformed shapes and second claims on one `(operation, input)` overload.
  *
- * Both planes read the same contribution slot: emission derives result types from these descriptors, and family runtimes build their resolution registry from them.
+ * Both planes read the same contribution slot: emission derives result types from these descriptors, and family runtimes build their resolution registry from them. Rejections are user-facing — an extension author's bad contribution surfaces here first, during `contract emit` — so a malformed shape raises `CONTRACT.AGGREGATE_DESCRIPTOR_INVALID` and a second claim raises `CONTRACT.AGGREGATE_DESCRIPTOR_DUPLICATE`, each naming the contributing component.
  */
 export function collectAggregateDescriptors(
   descriptors: ReadonlyArray<Pick<ComponentMetadata, 'types'> & { readonly id?: string }>,
@@ -366,20 +367,24 @@ export function collectAggregateDescriptors(
     const descriptorId = descriptor.id ?? '<unknown>';
     for (const contributed of descriptor.types?.aggregateDescriptors ?? []) {
       if (!isAggregateDescriptor(contributed)) {
-        throw new InternalError(
+        throw runtimeError(
+          'CONTRACT.AGGREGATE_DESCRIPTOR_INVALID',
           `Malformed aggregate descriptor contributed by "${descriptorId}". ` +
             'A descriptor declares a non-empty `operation`, an `input` match of kind `none`/`any`/`codec`/`trait`, ' +
             'an `output` of kind `self`/`codec`, and a boolean `nullable`; a `self` output needs an input to reuse.',
+          { contributedBy: descriptorId, descriptor: contributed },
         );
       }
 
       const key = aggregateDescriptorKey(contributed);
       const existingOwner = owners.get(key);
       if (existingOwner !== undefined) {
-        throw new InternalError(
+        throw runtimeError(
+          'CONTRACT.AGGREGATE_DESCRIPTOR_DUPLICATE',
           `Duplicate aggregate descriptor for "${key}". ` +
             `Descriptor "${descriptorId}" conflicts with "${existingOwner}". ` +
             'Each operation/input pair can only have one provider.',
+          { key, contributedBy: descriptorId, owner: existingOwner },
         );
       }
       owners.set(key, descriptorId);

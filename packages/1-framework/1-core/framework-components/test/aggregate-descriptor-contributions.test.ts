@@ -1,8 +1,18 @@
+import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { collectAggregateDescriptors } from '../src/control/control-stack';
 import type { AggregateDescriptor } from '../src/shared/aggregate-descriptor';
 import { aggregateDescriptorKey, isAggregateDescriptor } from '../src/shared/aggregate-descriptor';
 import type { ComponentMetadata } from '../src/shared/framework-components';
+
+function capture(fn: () => unknown): unknown {
+  try {
+    fn();
+  } catch (error) {
+    return error;
+  }
+  throw new Error('expected the call to throw');
+}
 
 function contributor(
   id: string,
@@ -132,28 +142,40 @@ describe('collectAggregateDescriptors', () => {
     ]);
   });
 
-  it('rejects two contributors claiming the same operation and input', () => {
-    expect(() =>
+  it('rejects two contributors claiming the same operation and input with a structured error', () => {
+    const error = capture(() =>
       collectAggregateDescriptors([
         contributor('target', [sumIntegers]),
         contributor('extension', [{ ...sumIntegers, nullable: false }]),
       ]),
-    ).toThrow(/Duplicate aggregate descriptor for "sum:trait:numeric"/);
+    );
+
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.AGGREGATE_DESCRIPTOR_DUPLICATE',
+      message: expect.stringMatching(/Duplicate aggregate descriptor for "sum:trait:numeric"/),
+      details: { key: 'sum:trait:numeric' },
+    });
   });
 
   it('names both the conflicting contributor and the incumbent owner', () => {
-    expect(() =>
+    const error = capture(() =>
       collectAggregateDescriptors([
         contributor('target', [countRows]),
         contributor('extension', [countRows]),
       ]),
-    ).toThrow(/"extension" conflicts with "target"/);
+    );
+
+    expect(error).toMatchObject({
+      message: expect.stringMatching(/"extension" conflicts with "target"/),
+      details: { contributedBy: 'extension', owner: 'target' },
+    });
   });
 
-  it('rejects a malformed contribution at collection time', () => {
+  it('rejects a malformed contribution at collection time with a structured error', () => {
     const malformed = { operation: 'sum', input: { kind: 'trait' }, nullable: true };
 
-    const collect = () =>
+    const error = capture(() =>
       collectAggregateDescriptors([
         {
           id: 'extension',
@@ -161,9 +183,17 @@ describe('collectAggregateDescriptors', () => {
             aggregateDescriptors: [malformed] as unknown as ReadonlyArray<AggregateDescriptor>,
           },
         },
-      ]);
+      ]),
+    );
 
-    expect(collect).toThrow(/Malformed aggregate descriptor contributed by "extension"/);
-    expect(collect).toThrow(/`none`\/`any`\/`codec`\/`trait`/);
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.AGGREGATE_DESCRIPTOR_INVALID',
+      message: expect.stringMatching(/Malformed aggregate descriptor contributed by "extension"/),
+      details: { contributedBy: 'extension', descriptor: malformed },
+    });
+    expect(error).toMatchObject({
+      message: expect.stringMatching(/`none`\/`any`\/`codec`\/`trait`/),
+    });
   });
 });

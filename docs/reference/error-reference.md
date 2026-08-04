@@ -157,6 +157,14 @@ A builder or helper on the contract-authoring surface is called with a bad argum
 
 The SQL emitter cannot name one result type for an aggregate: two trait-matching aggregate descriptors both claim a contributed codec, or a descriptor whose result reuses its input's codec also answers calls that carry no input. Raised while generating `contract.d.ts`, so the emitted types can never disagree with what the runtime registry resolves. Meta: `operation`; plus `codecId` and `traits` when two traits claim one codec, the contested codec being nameable only in that case.
 
+### CONTRACT.AGGREGATE_DESCRIPTOR_DUPLICATE
+
+Two composed components contribute an aggregate descriptor for the same `(operation, input)` overload — keyed as `sum:trait:numeric`, `sum:codec:pg/int8@1`, or `count:none`. Each overload resolves to exactly one result codec, so exactly one target, adapter, or extension may claim it. Raised while the control stack collects contributions (e.g. during `contract emit`); the runtime plane enforces the same rule as `RUNTIME.DUPLICATE_AGGREGATE_DESCRIPTOR`. Meta: `key`, `contributedBy`, `owner`.
+
+### CONTRACT.AGGREGATE_DESCRIPTOR_INVALID
+
+A composed component contributes an aggregate descriptor whose shape the framework cannot read: a missing or empty `operation`, an `input` match that is not `none` / `any` / `codec` / `trait`, an `output` that is not `self` / `codec`, a non-boolean `nullable`, or a `self` output on a match that may carry no input to reuse. Raised while the control stack collects contributions (e.g. during `contract emit`); the runtime plane enforces the same rule as `RUNTIME.AGGREGATE_DESCRIPTOR_INVALID`. Meta: `contributedBy`, `descriptor`.
+
 ### CONTRACT.AGGREGATE_OUTPUT_CODEC_MISSING
 
 The SQL emitter is asked to emit an aggregate result row whose declared result codec the composed stack does not contribute — the emitted type would name a codec absent from the contract's codec map, and every consumer reading it would resolve `never`. Contribute the codec, or declare a result codec the stack contributes. Raised while generating `contract.d.ts`. Meta: `operation`, `outputCodecId`.
