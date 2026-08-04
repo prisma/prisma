@@ -15,7 +15,7 @@ If you are a user of Prisma Next (your project imports `@internal/postgres`, `@i
 ### The skill (always-latest)
 
 ```bash
-npx skills add prisma/prisma/skills --skill prisma-8-extension-upgrade -y
+pnpm dlx skills add prisma/prisma/skills --skill prisma-8-extension-upgrade -y
 ```
 
 `--skill` selects this skill from the shared `skills` source and `-y` skips the confirmation prompt. To limit the install to one agent runtime, add `-a <agent>` (e.g. `-a claude-code`).
