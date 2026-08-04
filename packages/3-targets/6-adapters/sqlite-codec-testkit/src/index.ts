@@ -58,6 +58,7 @@ import {
 import type { AnySqliteCodecDescriptor } from '@internal/target-sqlite/codec-descriptor';
 import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
 import { ifDefined } from '@internal/utils/defined';
+import { structuredError } from '@internal/utils/structured-error';
 
 /**
  * Minimal execution surface the harness needs from a live database. A caller
@@ -204,8 +205,14 @@ function descriptorFor(conformanceCase: SqliteCodecConformanceCase) {
     conformanceCase.descriptor ??
     sqliteCodecDescriptorRegistry.descriptorFor(conformanceCase.codecId);
   if (descriptor === undefined) {
-    throw new Error(
-      `No SQLite codec descriptor for '${conformanceCase.codecId}'; an extension codec must supply one on the case.`,
+    throw structuredError(
+      'TESTKIT.CODEC_DESCRIPTOR_MISSING',
+      `No SQLite codec descriptor for '${conformanceCase.codecId}'.`,
+      {
+        why: 'The harness projects and decodes through the codec descriptor under test.',
+        fix: 'Supply the extension codec descriptor on the case.',
+        meta: { codecId: conformanceCase.codecId },
+      },
     );
   }
   return descriptor;
@@ -271,7 +278,11 @@ export async function runSqliteCodecProjection(
   const document: { readonly [key: string]: JsonValue } = JSON.parse(rawJson);
   const projected = document[DOCUMENT_KEY];
   if (projected === undefined) {
-    throw new Error(`Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`);
+    throw structuredError(
+      'TESTKIT.PROJECTION_MALFORMED',
+      `Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`,
+      { meta: { codecId: conformanceCase.codecId } },
+    );
   }
 
   if (conformanceCase.nullValue === true) {

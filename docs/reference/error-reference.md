@@ -1066,3 +1066,19 @@ The Supabase extension's runtime configuration is invalid — missing or contrad
 ### SUPABASE.JWT_INVALID
 
 A JWT handed to the Supabase runtime failed validation — malformed token, missing claims, or signature/JWKS mismatch (formerly the `InvalidJwtError` class, removed at 0.17). Meta: `reason`.
+
+## TESTKIT
+
+Raised by the codec conformance testkits (`@internal/postgres-codec-testkit`, `@internal/sqlite-codec-testkit`) while running an extension author's conformance cases against a live database.
+
+### TESTKIT.CODEC_DESCRIPTOR_MISSING
+
+A conformance case names a codec id the target's built-in descriptor registry does not know, and the case supplies no descriptor of its own. The harness projects and decodes through the codec descriptor under test, so an extension codec must be supplied on the case. Meta: `codecId`.
+
+### TESTKIT.CONFORMANCE_CASE_INVALID
+
+A `many` conformance case carries a value that is neither an array nor null — the harness maps element-wise over array cases and has nothing to map over. Give the case an array of element values, or null.
+
+### TESTKIT.PROJECTION_MALFORMED
+
+The executed JSON projection came back in a shape the codec descriptor does not declare: the projected document is missing its value key, or an array projection produced something other than a JSON array or null. This points at the projection SQL the descriptor under test renders. Meta: `codecId` (when the case is known).

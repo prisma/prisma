@@ -56,6 +56,7 @@ import {
 import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
 import { ifDefined } from '@internal/utils/defined';
+import { structuredError } from '@internal/utils/structured-error';
 
 /**
  * Minimal execution surface the harness needs from a live database. A caller
@@ -220,8 +221,14 @@ function descriptorFor(conformanceCase: PostgresCodecConformanceCase) {
     conformanceCase.descriptor ??
     postgresCodecDescriptorRegistry.descriptorFor(conformanceCase.codecId);
   if (descriptor === undefined) {
-    throw new Error(
-      `No PostgreSQL codec descriptor for '${conformanceCase.codecId}'; an extension codec must supply one on the case.`,
+    throw structuredError(
+      'TESTKIT.CODEC_DESCRIPTOR_MISSING',
+      `No PostgreSQL codec descriptor for '${conformanceCase.codecId}'.`,
+      {
+        why: 'The harness projects and decodes through the codec descriptor under test.',
+        fix: 'Supply the extension codec descriptor on the case.',
+        meta: { codecId: conformanceCase.codecId },
+      },
     );
   }
   return descriptor;
@@ -257,7 +264,11 @@ type ElementCodec = {
 function overElements<T>(value: unknown, mapper: (element: unknown) => T): T[] | null {
   if (value === null) return null;
   if (!Array.isArray(value)) {
-    throw new Error('A `many` conformance case must carry an array value or null.');
+    throw structuredError(
+      'TESTKIT.CONFORMANCE_CASE_INVALID',
+      'A `many` conformance case must carry an array value or null.',
+      { fix: 'Give the case an array of element values, or null.' },
+    );
   }
   return value.map((element) => mapper(element));
 }
@@ -294,7 +305,11 @@ function roundTripValue(
   if (conformanceCase.many !== true) return codec.decodeJson(projected);
   if (projected === null) return null;
   if (!Array.isArray(projected)) {
-    throw new Error('An array projection must produce a JSON array or null.');
+    throw structuredError(
+      'TESTKIT.PROJECTION_MALFORMED',
+      'An array projection must produce a JSON array or null.',
+      { why: 'The projected JSON does not have the shape the codec descriptor declares.' },
+    );
   }
   return projected.map((element) => (element === null ? null : codec.decodeJson(element)));
 }
@@ -351,7 +366,11 @@ export async function runPostgresCodecProjection(
   const document: { readonly [key: string]: JsonValue } = JSON.parse(rawJson);
   const projected = document[DOCUMENT_KEY];
   if (projected === undefined) {
-    throw new Error(`Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`);
+    throw structuredError(
+      'TESTKIT.PROJECTION_MALFORMED',
+      `Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`,
+      { meta: { codecId: conformanceCase.codecId } },
+    );
   }
 
   if (conformanceCase.nullValue === true) {

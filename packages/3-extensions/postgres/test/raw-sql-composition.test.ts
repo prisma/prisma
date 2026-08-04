@@ -12,7 +12,15 @@ import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-
 import { describe, expect, it } from 'vitest';
 import type { Contract } from './fixtures/namespaced-contract';
 
-const noAggregates = { resolve: () => undefined, values: function* () {} };
+// These cases exercise the raw-SQL tag, not aggregate resolution — but the one
+// count() call still resolves, so the stub answers count and nothing else.
+const noAggregates = {
+  resolve: (operation: string) =>
+    operation === 'count'
+      ? { operation, output: { codecId: 'pg/int8@1' }, nullable: false, lower: undefined }
+      : undefined,
+  values: function* () {},
+};
 
 // Stub ExecutionContext used across all composition tests. The concrete fixture
 // contract gives `sql()` a typed `public` namespace, so the builder surface
@@ -85,8 +93,6 @@ describe('rawSql composition with the typed builder', () => {
     const tag = createRawSql(adapter);
 
     // Use createAggregateFunctions directly — same dispatch path as the aliased-select branch.
-    // These cases exercise the raw-SQL tag rather than any aggregate, so the
-    // registry answers nothing.
     const fns = createAggregateFunctions({}, adapter, noAggregates);
     const rawSql = rawSqlOf(fns, tag);
 
@@ -114,8 +120,6 @@ describe('rawSql composition with the typed builder', () => {
     const tag = createRawSql(adapter);
 
     // Use createAggregateFunctions directly — same dispatch path as the bulk-object-select branch.
-    // These cases exercise the raw-SQL tag rather than any aggregate, so the
-    // registry answers nothing.
     const fns = createAggregateFunctions({}, adapter, noAggregates);
     const rawSql = rawSqlOf(fns, tag);
 
@@ -154,8 +158,6 @@ describe('rawSql composition with the typed builder', () => {
     const tag = createRawSql(adapter);
 
     // Use createAggregateFunctions directly — same dispatch path as the .where branch.
-    // These cases exercise the raw-SQL tag rather than any aggregate, so the
-    // registry answers nothing.
     const fns = createAggregateFunctions({}, adapter, noAggregates);
     const rawSql = rawSqlOf(fns, tag);
 
@@ -189,8 +191,6 @@ describe('rawSql composition with the typed builder', () => {
     const adapter = postgresRawCodecInferer;
     const tag = createRawSql(adapter);
 
-    // These cases exercise the raw-SQL tag rather than any aggregate, so the
-    // registry answers nothing.
     const fns = createAggregateFunctions({}, adapter, noAggregates);
     const rawSql = rawSqlOf(fns, tag);
 
@@ -223,8 +223,6 @@ describe('rawSql composition with the typed builder', () => {
     const adapter = postgresRawCodecInferer;
     const tag = createRawSql(adapter);
 
-    // These cases exercise the raw-SQL tag rather than any aggregate, so the
-    // registry answers nothing.
     const fns = createAggregateFunctions({}, adapter, noAggregates);
     const rawSql = rawSqlOf(fns, tag);
 
@@ -259,8 +257,6 @@ describe('rawSql composition with the typed builder', () => {
     const adapter = postgresRawCodecInferer;
     const tag = createRawSql(adapter);
 
-    // These cases exercise the raw-SQL tag rather than any aggregate, so the
-    // registry answers nothing.
     const fns = createAggregateFunctions({}, adapter, noAggregates);
     const rawSql = rawSqlOf(fns, tag);
 
