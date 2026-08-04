@@ -55,6 +55,18 @@ const numericCodecDescriptor: AnyCodecDescriptor = {
     }),
 };
 
+const bigintCodecDescriptor: AnyCodecDescriptor = {
+  ...numericCodecDescriptor,
+  codecId: 'test/bigint@1',
+  targetTypes: ['bigint'],
+  factory: () => () =>
+    defineTestCodec({
+      typeId: 'test/bigint@1',
+      encode: (v: number) => v,
+      decode: (w: number) => w,
+    }),
+};
+
 const countRows: AggregateDescriptor = {
   operation: 'count',
   input: { kind: 'none' },
@@ -74,7 +86,7 @@ function targetContributing(
 ): SqlRuntimeTargetDescriptor<'postgres'> {
   return {
     ...createTestTargetDescriptor(),
-    codecs: () => [numericCodecDescriptor],
+    codecs: () => [numericCodecDescriptor, bigintCodecDescriptor],
     types: { codecTypes: { aggregateDescriptors } },
   };
 }
@@ -177,5 +189,18 @@ describe('createExecutionContext — aggregate descriptors', () => {
         stack: stackWith({ target: targetContributing(malformed) }),
       }),
     ).toThrow(/is not a valid SQL aggregate descriptor/);
+  });
+
+  it('fails at context construction when a descriptor names a result codec the stack does not compose', () => {
+    expect(() =>
+      createExecutionContext({
+        contract: testContract,
+        stack: stackWith({
+          target: targetContributing([
+            { ...countRows, output: { kind: 'codec', codecId: 'test/absent@1' } },
+          ]),
+        }),
+      }),
+    ).toThrow(/names result codec 'test\/absent@1', which the composed stack does not register/);
   });
 });

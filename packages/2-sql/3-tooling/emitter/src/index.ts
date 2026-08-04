@@ -68,15 +68,19 @@ function generateAggregateTypes(options?: GenerateContractTypesOptions): string 
       .filter(([codecId]) => contributedIds.has(codecId))
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([codecId, descriptor]) => {
-        return `readonly ${serializeObjectKey(codecId)}: ${renderAggregateResult(descriptor, codecId)}`;
+        return `readonly ${serializeObjectKey(codecId)}: ${renderAggregateResult(descriptor, codecId, contributedIds)}`;
       });
     const members = [`readonly byCodec: { ${rows.join('; ')} }`];
     const withoutInput = entry.noInput ?? entry.anyInput;
     if (withoutInput !== undefined) {
-      members.push(`readonly withoutInput: ${renderAggregateResult(withoutInput, undefined)}`);
+      members.push(
+        `readonly withoutInput: ${renderAggregateResult(withoutInput, undefined, contributedIds)}`,
+      );
     }
     if (entry.anyInput !== undefined) {
-      members.push(`readonly anyInput: ${renderAggregateResult(entry.anyInput, undefined)}`);
+      members.push(
+        `readonly anyInput: ${renderAggregateResult(entry.anyInput, undefined, contributedIds)}`,
+      );
     }
     return `readonly ${serializeObjectKey(operation)}: { ${members.join('; ')} }`;
   });
@@ -88,6 +92,7 @@ function generateAggregateTypes(options?: GenerateContractTypesOptions): string 
 function renderAggregateResult(
   descriptor: AggregateDescriptor,
   inputCodecId: string | undefined,
+  contributedIds: ReadonlySet<string>,
 ): string {
   const output = descriptor.output.kind === 'self' ? inputCodecId : descriptor.output.codecId;
   if (output === undefined) {
@@ -98,6 +103,17 @@ function renderAggregateResult(
         why: 'A result that reuses its input needs an input to reuse.',
         fix: 'Name the result codec on the descriptor.',
         meta: { operation: descriptor.operation },
+      },
+    );
+  }
+  if (!contributedIds.has(output)) {
+    throw sqlEmitterError(
+      'CONTRACT.AGGREGATE_OUTPUT_CODEC_MISSING',
+      `Aggregate '${descriptor.operation}' names result codec '${output}', which the stack does not contribute.`,
+      {
+        why: 'An emitted result type names a codec in the contract codec map; a codec the stack does not contribute has no emitted type to name.',
+        fix: 'Contribute the codec, or declare a result codec the stack contributes.',
+        meta: { operation: descriptor.operation, outputCodecId: output },
       },
     );
   }

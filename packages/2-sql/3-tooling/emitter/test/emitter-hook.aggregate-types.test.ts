@@ -127,4 +127,13 @@ describe('emitted AggregateTypes', () => {
       }),
     ).toThrow(/has no single result type over codec/);
   });
+
+  it('refuses to emit a row whose result codec the stack does not contribute', () => {
+    expect(() =>
+      aggregateTypesFor({
+        aggregateDescriptors: [{ ...SUM_INT2, output: { kind: 'codec', codecId: 'pg/missing@1' } }],
+        codecDescriptors: CONTRIBUTED,
+      }),
+    ).toThrow(/names result codec 'pg\/missing@1', which the stack does not contribute/);
+  });
 });

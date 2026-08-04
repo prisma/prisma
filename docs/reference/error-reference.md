@@ -157,6 +157,10 @@ A builder or helper on the contract-authoring surface is called with a bad argum
 
 The SQL emitter cannot name one result type for an aggregate: two trait-matching aggregate descriptors both claim a contributed codec, or a descriptor whose result reuses its input's codec also answers calls that carry no input. Raised while generating `contract.d.ts`, so the emitted types can never disagree with what the runtime registry resolves. Meta: `operation`; plus `codecId` and `traits` when two traits claim one codec, the contested codec being nameable only in that case.
 
+### CONTRACT.AGGREGATE_OUTPUT_CODEC_MISSING
+
+The SQL emitter is asked to emit an aggregate result row whose declared result codec the composed stack does not contribute — the emitted type would name a codec absent from the contract's codec map, and every consumer reading it would resolve `never`. Contribute the codec, or declare a result codec the stack contributes. Raised while generating `contract.d.ts`. Meta: `operation`, `outputCodecId`.
+
 ### CONTRACT.CODEC_DESCRIPTOR_MISSING
 
 The control plane resolves a codec referenced by the contract (a `CodecRef.codecId`) against the contract's pack stack and finds no registered codec descriptor for that id. Hit during control-plane operations (emit, migration tooling) when a contract references a codec no composed pack provides. Meta: `codecId`.
@@ -474,6 +478,10 @@ An in-flight `execute()` was cancelled via the per-query `AbortSignal` passed as
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
 A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `self` output on an operation that consumes no input, or a non-callable `lower`. Raised while the execution context assembles the registry. Meta: `descriptor`.
+
+### RUNTIME.AGGREGATE_OUTPUT_CODEC_MISSING
+
+An aggregate descriptor names a result codec the composed stack does not register — either its `output` names the codec outright, or a `self` output over an exact input match reuses an input codec the stack never composes. A resolved aggregate decodes its result through the declared codec, so an unregistered one could never decode anything. Raised while the execution context assembles the aggregate registry. Meta: `operation`, `key`, `outputCodecId`.
 
 ### RUNTIME.AMBIGUOUS_AGGREGATE_DESCRIPTOR
 

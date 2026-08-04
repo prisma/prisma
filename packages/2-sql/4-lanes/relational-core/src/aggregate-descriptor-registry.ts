@@ -92,6 +92,30 @@ export function buildSqlAggregateDescriptorRegistry(
     );
   }
 
+  for (const descriptor of validated) {
+    const outputCodecId =
+      descriptor.output.kind === 'codec'
+        ? descriptor.output.codecId
+        : descriptor.input.kind === 'codec'
+          ? descriptor.input.codecId
+          : undefined;
+    if (
+      outputCodecId !== undefined &&
+      codecDescriptors.descriptorFor(outputCodecId) === undefined
+    ) {
+      const key = aggregateDescriptorKey(descriptor);
+      throw structuredError(
+        'RUNTIME.AGGREGATE_OUTPUT_CODEC_MISSING',
+        `Aggregate descriptor '${key}' names result codec '${outputCodecId}', which the composed stack does not register.`,
+        {
+          why: 'A resolved aggregate decodes its result through the declared codec; a codec the stack does not compose cannot decode anything.',
+          fix: 'Register the codec on the composed stack, or declare a result codec the stack composes.',
+          meta: { operation: descriptor.operation, key, outputCodecId },
+        },
+      );
+    }
+  }
+
   const tables = new Map<string, OperationTable>();
   for (const [operation, entry] of settled.operations) {
     tables.set(operation, {

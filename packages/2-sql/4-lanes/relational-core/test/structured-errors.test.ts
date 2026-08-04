@@ -95,6 +95,17 @@ describe('relational-core structured error codes', () => {
     });
   });
 
+  it('unregistered aggregate output codec raises RUNTIME.AGGREGATE_OUTPUT_CODEC_MISSING', () => {
+    const error = capture(() =>
+      buildSqlAggregateDescriptorRegistry([sumOverNumeric], buildCodecDescriptorRegistry([])),
+    );
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.AGGREGATE_OUTPUT_CODEC_MISSING',
+      meta: { operation: 'sum', key: 'sum:trait:numeric', outputCodecId: 'lib/int8@1' },
+    });
+  });
+
   it('aggregate function without expression raises ORM.ARGUMENT_INVALID', () => {
     const error = capture(() => new AggregateExpr('sum'));
     expect(isStructuredError(error)).toBe(true);

@@ -278,6 +278,31 @@ describe('buildSqlAggregateDescriptorRegistry — composition-time validation', 
     ).toThrow(/is not a valid SQL aggregate descriptor/);
   });
 
+  it('rejects a named output codec the composed stack does not register', () => {
+    expect(() =>
+      buildSqlAggregateDescriptorRegistry(
+        [{ ...sumNumeric, output: { kind: 'codec', codecId: 'lib/missing@1' } }],
+        codecs,
+      ),
+    ).toThrow(/names result codec 'lib\/missing@1', which the composed stack does not register/);
+  });
+
+  it('rejects a self output over an exact input the composed stack does not register', () => {
+    expect(() =>
+      buildSqlAggregateDescriptorRegistry(
+        [
+          {
+            operation: 'max',
+            input: { kind: 'codec', codecId: 'ext/money@1' },
+            output: { kind: 'self' },
+            nullable: true,
+          },
+        ],
+        codecs,
+      ),
+    ).toThrow(/names result codec 'ext\/money@1', which the composed stack does not register/);
+  });
+
   it('rejects two trait descriptors that both claim a registered codec', () => {
     expect(() =>
       buildSqlAggregateDescriptorRegistry(
@@ -294,7 +319,11 @@ describe('buildSqlAggregateDescriptorRegistry — composition-time validation', 
         { ...sumNumeric, input: { kind: 'trait', trait: 'order' } },
         { ...sumInt8, input: { kind: 'codec', codecId: 'lib/text@1' } },
       ],
-      buildCodecDescriptorRegistry([codecStub('lib/text@1', ['textual', 'order'])]),
+      buildCodecDescriptorRegistry([
+        codecStub('lib/text@1', ['textual', 'order']),
+        codecStub('lib/int8@1', ['numeric']),
+        codecStub('lib/numeric@1', ['numeric']),
+      ]),
     );
 
     expect(registry.resolve('sum', { codecId: 'lib/text@1' })?.output).toEqual({

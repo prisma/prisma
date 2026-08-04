@@ -28,6 +28,8 @@ export type AggregateInputMatch =
 
 /**
  * Result identity that names its codec outright. The optional `typeParams` resolver derives the result's type parameters from the input reference; it cannot change which codec id the result carries.
+ *
+ * The resolved parameters refine which codec instance decodes the result. The emitted aggregate rows select the result's application type from the codec id alone — the same granularity every emitted codec type has — so the parameters never widen or narrow the static result type.
  */
 export interface NamedAggregateOutput {
   readonly kind: 'codec';
