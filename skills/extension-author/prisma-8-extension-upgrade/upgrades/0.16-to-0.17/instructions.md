@@ -725,3 +725,7 @@ The route matters as much as the destination here. Casting a vector's text form 
 Before this change the emitted type said a literal default had the codec's *application* type. That was true only while the two coincided. For a codec whose application value is a `bigint` and whose canonical JSON is a decimal string, it described a `bigint` sitting in a file that holds `"0"` — which surfaced as an assignability failure rather than as a wrong-but-quiet type.
 
 Regenerating is sufficient; no hand edits to a `contract.d.ts` are needed.
+
+## Incidental release version bump to 0.17.0
+
+The `chore(release): bump to 0.17.0` commit rewrites every workspace manifest's `version` field and `workspace:` pins, which touches `packages/3-extensions/` manifests. No extension-author action beyond the entries above.
