@@ -254,7 +254,7 @@ describe('Studio BFF', () => {
       schemaVersion: 'v1',
       sql: 'select 1',
     })
-    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    expect(response.headers.has('access-control-allow-origin')).toBe(false)
     expect(await response.json()).toEqual([
       null,
       {
@@ -401,6 +401,54 @@ describe('Studio BFF', () => {
     expect(await response.json()).toEqual([null, [[{ id: 1 }], [{ id: 2 }]]])
   })
 
+  test('rejects cross-origin BFF requests before executing a query', async () => {
+    const executeMock = vi.fn()
+
+    await startStudioBff({
+      execute: executeMock,
+    })
+
+    const response = await getServerResponse('http://localhost:5555/bff', {
+      body: JSON.stringify({
+        procedure: 'query',
+        query: { parameters: [], sql: 'delete from User' },
+      }),
+      headers: {
+        'content-type': 'text/plain',
+        origin: 'https://attacker.example',
+      },
+      method: 'POST',
+    })
+
+    expect(response.status).toBe(403)
+    expect(response.headers.has('access-control-allow-origin')).toBe(false)
+    expect(executeMock).not.toHaveBeenCalled()
+  })
+
+  test('allows same-origin BFF requests', async () => {
+    const executeMock = vi.fn(() => Promise.resolve([null, [{ id: 1 }]]))
+
+    await startStudioBff({
+      execute: executeMock,
+    })
+
+    const response = await getServerResponse('http://localhost:5555/bff', {
+      body: JSON.stringify({
+        procedure: 'query',
+        query: { parameters: [], sql: 'select 1 as id' },
+      }),
+      headers: {
+        'content-type': 'application/json',
+        origin: 'http://localhost:5555',
+      },
+      method: 'POST',
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.headers.has('access-control-allow-origin')).toBe(false)
+    expect(executeMock).toHaveBeenCalledWith({ parameters: [], sql: 'select 1 as id' })
+  })
+
   test('returns an explicit error when query insights are unsupported', async () => {
     await startStudioBff({
       execute: vi.fn(),
@@ -440,7 +488,7 @@ describe('Studio BFF', () => {
     const html = await response.text()
 
     expect(response.status).toBe(200)
-    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    expect(response.headers.has('access-control-allow-origin')).toBe(false)
     expect(html).toContain('<link rel="icon"')
     expect(html).toContain('<link rel="stylesheet" href="/studio.css">')
     expect(html).toContain('<script type="module" src="/studio.js"></script>')
@@ -470,20 +518,21 @@ describe('Studio BFF', () => {
     expect(await cssResponse.text()).toBe('.ps { color: black; }')
   })
 
-  test('responds to OPTIONS requests with CORS preflight headers', async () => {
+  test('rejects cross-origin preflight requests', async () => {
     await startStudioBff({
       execute: vi.fn(),
     })
 
     const response = await getServerResponse('http://localhost:5555/bff', {
+      headers: {
+        'access-control-request-method': 'POST',
+        origin: 'https://attacker.example',
+      },
       method: 'OPTIONS',
     })
 
-    expect(response.status).toBe(204)
-    expect(response.headers.get('access-control-allow-origin')).toBe('*')
-    expect(response.headers.get('access-control-allow-methods')).toBe('GET, HEAD, POST, OPTIONS')
-    expect(response.headers.get('access-control-allow-headers')).toBe('Content-Type')
-    expect(await response.text()).toBe('')
+    expect(response.status).toBe(403)
+    expect(response.headers.has('access-control-allow-origin')).toBe(false)
   })
 
   test('no longer serves adapter.js', async () => {

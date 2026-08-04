@@ -308,15 +308,15 @@ ${bold('Examples')}
     )
     const version = packageJson.dependencies['@prisma/studio-core']
     const ppgDbInfo = await getPpgInfo(connectionString)
+    const port = args['--port'] || (await getPort({ port: DEFAULT_PORT, portRange: [MIN_PORT, DEFAULT_PORT - 1] }))
     const handler = createStudioRequestHandler({
       adapter: studioStuff.adapter,
       executor,
       ppgDbInfo,
+      port,
       protocol,
       version,
     })
-
-    const port = args['--port'] || (await getPort({ port: DEFAULT_PORT, portRange: [MIN_PORT, DEFAULT_PORT - 1] }))
 
     const url = `http://localhost:${port}`
 
@@ -474,23 +474,25 @@ function createStudioRequestHandler({
   adapter,
   executor,
   ppgDbInfo,
+  port,
   protocol,
   version,
 }: {
   adapter: StudioAdapterType
   executor: Executor
   ppgDbInfo: Awaited<ReturnType<typeof getPpgInfo>>
+  port: number
   protocol: string
   version: string
 }): (request: Request) => Promise<Response> {
   let projectHash: string | null = null
 
   return async (request) => {
-    const { pathname } = new URL(request.url)
-
-    if (request.method === 'OPTIONS') {
-      return optionsResponse()
+    if (!isAllowedStudioOrigin(request, port)) {
+      return textResponse('Forbidden', 403)
     }
+
+    const { pathname } = new URL(request.url)
 
     if (isGetOrHeadRequest(request.method) && pathname === '/') {
       const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname('index.html')]
@@ -630,12 +632,10 @@ async function serveStudioAsset(requestPath: string): Promise<Response> {
   const contentType = FILE_EXTENSION_TO_CONTENT_TYPE[extname(fileName)]
 
   try {
-    return withCors(
-      new Response(await readStudioAsset(fileName), {
-        headers: { 'Content-Type': contentType },
-        status: 200,
-      }),
-    )
+    return new Response(await readStudioAsset(fileName), {
+      headers: { 'Content-Type': contentType },
+      status: 200,
+    })
   } catch (error: unknown) {
     if (isNotFoundError(error)) {
       return textResponse('Not Found', 404)
@@ -676,36 +676,22 @@ function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
 }
 
 function jsonResponse(payload: unknown): Response {
-  return withCors(Response.json(payload))
+  return Response.json(payload)
 }
 
 function emptyResponse(status: number, headers?: Record<string, string>): Response {
-  return withCors(new Response(null, { headers, status }))
-}
-
-function optionsResponse(): Response {
-  return emptyResponse(204, {
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
-  })
+  return new Response(null, { headers, status })
 }
 
 function textResponse(text: string, status: number, headers?: Record<string, string>): Response {
-  return withCors(
-    new Response(text, {
-      headers,
-      status,
-    }),
-  )
+  return new Response(text, {
+    headers,
+    status,
+  })
 }
 
-function withCors(response: Response): Response {
-  const headers = new Headers(response.headers)
-  headers.set('Access-Control-Allow-Origin', '*')
+function isAllowedStudioOrigin(request: Request, port: number): boolean {
+  const origin = request.headers.get('Origin')
 
-  return new Response(response.body, {
-    headers,
-    status: response.status,
-    statusText: response.statusText,
-  })
+  return origin === null || origin === `http://localhost:${port}` || origin === `http://127.0.0.1:${port}`
 }

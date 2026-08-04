@@ -1,3 +1,6 @@
+import { connect } from 'node:net'
+import { networkInterfaces } from 'node:os'
+
 import { getPort } from 'get-port-please'
 import { afterEach, expect, test, vi } from 'vitest'
 
@@ -22,6 +25,19 @@ test('streams GET response bodies from the Node Studio server', async () => {
   expect(await response.text()).toBe('hello from studio')
 })
 
+test('only accepts connections on the IPv4 loopback address', async () => {
+  const { port } = await startTestServer(() => new Response('hello from studio', { status: 200 }))
+  const nonLoopbackAddress = Object.values(networkInterfaces())
+    .flat()
+    .find((address) => address?.family === 'IPv4' && !address.internal)?.address
+
+  if (!nonLoopbackAddress) {
+    throw new Error('Test requires a non-loopback IPv4 address')
+  }
+
+  await expect(canConnect(nonLoopbackAddress, port)).resolves.toBe(false)
+})
+
 test('preserves HEAD semantics without dropping GET bodies', async () => {
   const { port } = await startTestServer(() => new Response('hello from studio', { status: 200 }))
 
@@ -41,7 +57,7 @@ test('logs server errors and returns the error message in the response body', as
   const response = await fetch(`http://127.0.0.1:${port}/`)
 
   expect(response.status).toBe(500)
-  expect(response.headers.get('access-control-allow-origin')).toBe('*')
+  expect(response.headers.has('access-control-allow-origin')).toBe(false)
   expect(await response.text()).toBe('boom')
   expect(consoleErrorSpy).toHaveBeenCalledWith('[Prisma Studio]', error)
 })
@@ -89,7 +105,7 @@ async function startTestServer(
   handler: (request: Request) => Response | Promise<Response>,
   onNodeRequestSettled?: () => void,
 ): Promise<{ port: number }> {
-  const port = await getPort({ host: '127.0.0.1' })
+  const port = await getPort({ host: '127.0.0.1', random: true })
 
   await new Promise<void>((resolve) => {
     const server = startStudioServer({
@@ -103,4 +119,18 @@ async function startTestServer(
   })
 
   return { port }
+}
+
+function canConnect(host: string, port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = connect({ host, port })
+    const settle = (connected: boolean) => {
+      socket.destroy()
+      resolve(connected)
+    }
+
+    socket.setTimeout(1_000, () => settle(false))
+    socket.once('connect', () => settle(true))
+    socket.once('error', () => settle(false))
+  })
 }
