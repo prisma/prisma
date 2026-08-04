@@ -125,13 +125,18 @@ export function tryInstallShells(
   // through to the npm registry and strict-peer settings silently lapse.
   const overrideLines = shells
     .filter((s) => s.override !== false)
-    .map((s) => `  "${s.name}": "file:${s.tarball}"`);
+    .map((s) => `  ${JSON.stringify(s.name)}: ${JSON.stringify(`file:${s.tarball}`)}`);
   const settingLines = (options.npmrc ?? []).map((line) => {
-    const [key, value] = line.split('=', 2);
-    const camelKey = (key ?? '').replaceAll(/-([a-z])/g, (_, letter: string) =>
-      letter.toUpperCase(),
-    );
-    return `${camelKey}: ${value}`;
+    // Split on the first `=` only — an npmrc value may itself contain `=`
+    // (e.g. a base64 auth token), and String#split's limit truncates it.
+    const separator = line.indexOf('=');
+    const key = separator === -1 ? line : line.slice(0, separator);
+    const value = separator === -1 ? '' : line.slice(separator + 1);
+    const camelKey = key.replaceAll(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+    // Booleans and numbers must stay bare scalars — quoting would turn them
+    // into strings for pnpm's settings parser; everything else is quoted.
+    const scalar = /^(true|false|\d+)$/.test(value) ? value : JSON.stringify(value);
+    return `${camelKey}: ${scalar}`;
   });
   const workspaceYaml = [
     ...(overrideLines.length > 0 ? ['overrides:', ...overrideLines] : []),
