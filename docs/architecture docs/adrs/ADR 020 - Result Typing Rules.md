@@ -178,7 +178,7 @@ db.order.select('a', (f, fns) => fns.avg(f.amount))
 // PostgreSQL: { a: string | null }   SQLite: { a: number | null }
 ```
 
-See [the codec authoring guide's aggregate section](../../reference/codec-authoring-guide.md#aggregate-result-codecs) for how a target declares these.
+See [the aggregate descriptor guide](../../reference/aggregate-descriptor-guide.md) for how a target declares these.
 
 ### ORM 1:N nested via json_agg
 
