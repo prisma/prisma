@@ -20,6 +20,7 @@ import { describe, expect, it } from 'vitest';
 import type { ExpressionImpl } from '../../src/runtime/expression-impl';
 import { createAggregateFunctions } from '../../src/runtime/functions';
 import { sql } from '../../src/runtime/sql';
+import type { QueryContext } from '../../src/scope';
 import { contract as contractJson } from '../fixtures/contract';
 import type { Contract } from '../fixtures/generated/contract';
 
@@ -88,9 +89,20 @@ function db() {
   });
 }
 
+/** The static face of {@link loweringAggregateRegistry}: count answers without an input. */
+type LoweringQC = QueryContext & {
+  aggregateTypes: {
+    count: {
+      byCodec: Record<never, never>;
+      withoutInput: { output: 'lib/int8@1'; nullable: false };
+      anyInput: { output: 'lib/int8@1'; nullable: false };
+    };
+  };
+};
+
 describe('aggregate() with a lowering descriptor', () => {
   it('builds the plain aggregate and carries the lowered form for projection', () => {
-    const fns = createAggregateFunctions({}, stubInferer, loweringAggregateRegistry());
+    const fns = createAggregateFunctions<LoweringQC>({}, stubInferer, loweringAggregateRegistry());
     const result = fns.count() as ExpressionImpl;
 
     expect(result.buildAst()).toEqual(AggregateExpr.count());

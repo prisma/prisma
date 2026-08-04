@@ -16,11 +16,11 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Functions } from '../../src/expression';
+import type { AggregateFunctions, Functions } from '../../src/expression';
 import { ExpressionImpl } from '../../src/runtime/expression-impl';
 import { createFieldProxy } from '../../src/runtime/field-proxy';
 import { createAggregateFunctions, createFunctions } from '../../src/runtime/functions';
-import type { ScopeField } from '../../src/scope';
+import type { QueryContext, ScopeField } from '../../src/scope';
 import { joinedScope, makeSubquery, usersScope } from './test-helpers';
 
 const f = () => createFieldProxy(usersScope);
@@ -311,11 +311,30 @@ function testAggregateRegistry() {
   );
 }
 
+/**
+ * The static face these AST-shape cases run under. The scope proxy here is
+ * broadly typed, so every operation carries an `anyInput` row; the precise
+ * admit/reject proofs live in `test/types/aggregate-count.types.test-d.ts`.
+ */
+type TestAggregateQC = QueryContext & {
+  aggregateTypes: {
+    count: {
+      byCodec: Record<never, never>;
+      withoutInput: { output: 'lib/int8@1'; nullable: false };
+      anyInput: { output: 'lib/int8@1'; nullable: false };
+    };
+    sum: { byCodec: Record<never, never>; anyInput: { output: 'lib/int8@1'; nullable: true } };
+    avg: { byCodec: Record<never, never>; anyInput: { output: 'lib/int8@1'; nullable: true } };
+    min: { byCodec: Record<never, never>; anyInput: { output: 'lib/int8@1'; nullable: true } };
+    max: { byCodec: Record<never, never>; anyInput: { output: 'lib/int8@1'; nullable: true } };
+  };
+};
+
 describe('createAggregateFunctions', () => {
-  let fns: ReturnType<typeof createAggregateFunctions>;
+  let fns: AggregateFunctions<TestAggregateQC>;
 
   beforeEach(() => {
-    fns = createAggregateFunctions({}, stubInferer, testAggregateRegistry());
+    fns = createAggregateFunctions<TestAggregateQC>({}, stubInferer, testAggregateRegistry());
   });
 
   it('count() produces AggregateExpr with fn count and no expr', () => {
@@ -355,7 +374,8 @@ describe('createAggregateFunctions', () => {
       codec: { codecId: 'lib/text@1' },
     });
 
-    expect(() => fns.sum(textField)).toThrow(
+    // The pair is unsayable on the typed surface; the cast reproduces a dynamic invocation.
+    expect(() => fns.sum(textField as never)).toThrow(
       /The composed target declares no 'sum' aggregate over codec 'lib\/text@1'/,
     );
   });
