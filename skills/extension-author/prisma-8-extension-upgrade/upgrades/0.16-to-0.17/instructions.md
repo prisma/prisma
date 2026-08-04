@@ -558,11 +558,13 @@ changes:
       anyMatch: true
   - id: codec-conformance-harness-moves-to-testkit-packages
     summary: |
-      The database-backed codec conformance harness ships as two published dev-only packages,
-      `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`. A pack that
-      reached the in-repo harness through a relative cross-package import
+      The database-backed codec conformance harness moves into two dedicated dev-only packages,
+      `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`. Like every
+      `@internal/*` package they are workspace-private — a published home under the `@prisma/*`
+      scope is a follow-up — so today's consumers are packs developed in this repository. A pack
+      that reached the in-repo harness through a relative cross-package import
       (`../../../3-targets/6-adapters/postgres/test/codec-conformance/harness`) adds the matching
-      testkit as a devDependency and imports `runPostgresCodecProjection` /
+      testkit as a workspace devDependency and imports `runPostgresCodecProjection` /
       `runSqliteCodecProjection` from the package instead; a `tsconfig` whose `rootDir` was widened
       to reach across that boundary can be narrowed back to the pack. The harness API is unchanged —
       caller-supplied connection, one case per codec and value — so the cases themselves move
@@ -604,12 +606,12 @@ changes:
 
 ## `codec-conformance-harness-moves-to-testkit-packages`
 
-The conformance harness that measures a codec's JSON projection against a real database is published, as `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`. Packs that reached it by relative path across the adapter's `test/` directory install the package instead:
+The conformance harness that measures a codec's JSON projection against a real database lives in dedicated packages, `@internal/postgres-codec-testkit` and `@internal/sqlite-codec-testkit`. They are workspace-private like every `@internal/*` package (a published `@prisma/*` home is a follow-up), so packs developed in this repository that reached the harness by relative path across the adapter's `test/` directory declare the workspace dependency instead:
 
 ```jsonc
 // package.json
 "devDependencies": {
-  "@internal/postgres-codec-testkit": "^0.17.0"
+  "@internal/postgres-codec-testkit": "workspace:*"
 }
 ```
 

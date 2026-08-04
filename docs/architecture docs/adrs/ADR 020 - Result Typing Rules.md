@@ -158,6 +158,10 @@ db.user
 
 An aggregate's result type is the target's to declare, resolved from the contract's emitted `aggregateTypes` map per operation and input codec — not the input column's type restated. Nullability comes from the same declaration.
 
+The same map decides availability. A pair with no row — no `byCodec` entry for the input's codec, no `anyInput` fallback, and for a no-input call no `withoutInput` row — is unavailable: the ORM and SQL DSL reject the call at the type level, and both runtimes refuse a dynamic invocation with a structured `ORM.AGGREGATE_UNSUPPORTED` error before building SQL. There is no untyped fallback; a result the target never declared is a result nothing can decode.
+
+A target may also declare a transport lowering for an aggregate — SQLite renders bigint-valued aggregates as text so its driver can carry them. The lowering changes how the value leaves SQL, never what the aggregate means inside it: projection sites apply it, while HAVING, ORDER BY, GROUP BY, and operands of larger expressions keep the plain aggregate expression, where the rendered form would change comparison and ordering semantics.
+
 ```typescript
 // Count is never null, and reads through its target's count codec
 db.order.select('c', (_f, fns) => fns.count())
