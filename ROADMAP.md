@@ -2,13 +2,13 @@
 
 Prisma Next — the contract-first rewrite of Prisma — ships as **Prisma 8**. On **July 31** we publish **`prisma@8.0.0-rc.1`** from the `prisma/prisma` repository: the same repository and the same npm package Prisma users already know. The release candidate is published under a pre-release tag, so `npm install prisma` keeps installing Prisma 7 until 8.0.0 final ships. Prisma 8 carries **PostgreSQL to general availability** — and that is all: **MongoDB ships in early access**, and **SQLite is a proof of concept** at this stage. A release candidate freezes the public API; it does not promise Prisma 7 feature parity. Its promise is different: **everything it ships works and is proven by a test**, everything experimental is labeled, and everything absent is named rather than silently missing.
 
-**Updated July 30 · Health: on track · Ships July 31 · Tasks: 7 done / 11 in flight / 18 not started · [Scoreboard](https://github.com/prisma/prisma-next/pull/1000): ~450 proven / ~500 unproven / ~30 experimental / ~250 not in 8.0**
+**Updated July 31 · Health: on track · Ships July 31 · Tasks: 9 done / 10 in flight / 16 not started · [Scoreboard](https://github.com/prisma/prisma-next/pull/1000): ~450 proven / ~500 unproven / ~30 experimental / ~250 not in 8.0**
 
 ## What needs to happen to release v8-RC1
 
 Six things must be true on release day. Everything on this page belongs to one of them.
 
-1. **[Queries must return correct values](#1-queries-must-return-correct-values)** — *in progress · Alexey.* The main remaining defect: values read through relation-loading corrupt or fail.
+1. **[Queries must return correct values](#1-queries-must-return-correct-values)** — *in progress · Alexey.* The relation-loading codec defect is fixed and verified; aggregate typing and the type/runtime mismatches remain.
 2. **[The schema language must reach its final form](#2-the-schema-language-must-reach-its-final-form)** — *in flight · Serhii.* Whatever syntax the RC ships is permanent for the life of v8; three language projects are running.
 3. **[Every name and format users depend on must be final](#3-every-name-and-format-users-depend-on-must-be-final)** — *in progress · Will.* Error codes, hashes, the migration snapshot layout, and the config-key rename are done; the `prisma-next` name sweep remains.
 4. **[The release's claims must be proven](#4-the-releases-claims-must-be-proven)** — *scoreboard drafted, proofs open · everyone.* "It works" and "you can migrate incrementally" each need a runnable receipt.
@@ -21,15 +21,15 @@ Two dated decisions still bound the work. One is now overdue: the minimum suppor
 
 ## 1. Queries must return correct values
 
-Prisma 8's core promise at the RC is that the query paths it ships are correct. One significant defect class remains, plus the tail of an almost-finished one.
+Prisma 8's core promise at the RC is that the query paths it ships are correct. The one significant defect class — relation-loading bypassing type codecs — is fixed as of July 31; what remains is the aggregate-typing tail, the type/runtime mismatches, and the polymorphism call.
 
-<details><summary>⏳ <b>Values read through relation-loading bypass their type codecs — big numbers silently corrupt, date columns throw</b> · critical path</summary>
+<details><summary>✅ <b>Values read through relation-loading bypass their type codecs — big numbers silently corrupt, date columns throw</b> · landed</summary>
 
-When a query loads a relation (say, a post together with its author), Postgres assembles the nested rows into JSON inside the database, using its `json_agg` function. JSON numbers cannot represent everything a database column can hold: a 64-bit integer or arbitrary-precision decimal gets silently rounded to the nearest JavaScript-representable number before Prisma's type codecs ever see it, and date/time values arrive in a format the decoder rejects — so a plain `DateTime` column read through `.include()` throws today.
+When a query loads a relation (say, a post together with its author), Postgres assembles the nested rows into JSON inside the database, using its `json_agg` function. JSON numbers cannot represent everything a database column can hold: a 64-bit integer or arbitrary-precision decimal got silently rounded to the nearest JavaScript-representable number before Prisma's type codecs ever saw it, and date/time values arrived in a format the decoder rejects — so a plain `DateTime` column read through `.include()` threw.
 
-The fix: every type codec gains an explicit *lossless* JSON form (big numbers travel as strings, for example), and the SQL we generate is changed to produce that form inside the database. It lands as four pull requests in strict sequence — foundations, per-database codec descriptors, the switch-over, then aggregate typing. The switch-over is a breaking change: users regenerate their contract files, and some aggregate result types change (a `count()` becomes a `bigint`, decimal sums become strings — precise instead of approximately convenient).
+The fix landed July 31: every type codec states an explicit *lossless* canonical JSON form (big numbers travel as decimal strings, binary as base64), and the SQL we generate produces that form inside the database. It shipped as three pull requests in strict sequence — the projection AST foundations ([TML-3062](https://linear.app/prisma-company/issue/TML-3062), [#1023](https://github.com/prisma/prisma-next/pull/1023)), the per-database codec descriptors ([TML-3061](https://linear.app/prisma-company/issue/TML-3061), [#1051](https://github.com/prisma/prisma-next/pull/1051)), and the switch-over carrying the per-codec projections and their database-backed conformance harness ([TML-3100](https://linear.app/prisma-company/issue/TML-3100), [TML-3063](https://linear.app/prisma-company/issue/TML-3063), [#29844](https://github.com/prisma/prisma/pull/29844)). The switch-over is the promised breaking change: users regenerate their contract files, nine codecs change their JSON form on the read path, and zone-less timestamps now read as UTC. Integration tests prove each renderer produces the canonical form against a real database.
 
-Tracked as [TML-3060](https://linear.app/prisma-company/issue/TML-3060/plan-codec-json-projections); in flight now — the first of the four PRs, the explicit-JSON-projection AST foundations, has landed ([TML-3062](https://linear.app/prisma-company/issue/TML-3062), [#1023](https://github.com/prisma/prisma-next/pull/1023)).
+Two remainders are accepted knowingly: aggregate values are not yet decoded through codecs ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), tracked in the type-mismatch item below), and `pg/geometry@1` keeps its non-canonical form until its SRID representation is decided and a PostGIS-capable test database exists ([TML-3105](https://linear.app/prisma-company/issue/TML-3105)).
 </details>
 
 <details><summary>✅ <b>`date` columns fail at runtime when read through relation-loading</b> · landed</summary>
@@ -37,19 +37,20 @@ Tracked as [TML-3060](https://linear.app/prisma-company/issue/TML-3060/plan-code
 The codec that correctly handles Postgres `date` values exists and is strict (it rejects impossible dates like February 31st rather than silently normalizing them), but nothing connected the `date` column type to it — so reading a `date` column through `.include()` threw at decode time, because the column inherited the `timestamptz` codec, which rejects the bare `YYYY-MM-DD` that `json_agg` renders. `@db.Date` now binds to `pg/date@1`, and a test proves an included `date` column comes back as a `Date` ([TML-3086](https://linear.app/prisma-company/issue/TML-3086), landed as [#1038](https://github.com/prisma/prisma-next/pull/1038)).
 </details>
 
-<details><summary>⏳ <b>Binary columns read through relation-loading return hex text instead of bytes</b></summary>
+<details><summary>✅ <b>Binary columns read through relation-loading return hex text instead of bytes</b> · landed</summary>
 
-Same disease as the big one above, concrete instance: a `Bytes` column selected inside `.include()` comes back as the raw hexadecimal text Postgres uses in JSON (`\x48656c6c6f`) while the TypeScript types promise a `Uint8Array`. Fixed by the same lossless-JSON work; a separate ticket ([TML-2990](https://linear.app/prisma-company/issue/TML-2990)) tracks it so it can't be forgotten in the sweep. In progress.
+Same disease as the big one above, concrete instance: a `Bytes` column selected inside `.include()` came back as the raw hexadecimal text Postgres uses in JSON (`\x48656c6c6f`) while the TypeScript types promise a `Uint8Array`. Fixed by the lossless-JSON switch-over: `pg/bytea@1`'s canonical JSON form is base64, and an integration test reads an included `bytea` column back as its exact bytes ([TML-2990](https://linear.app/prisma-company/issue/TML-2990), landed as part of [#29844](https://github.com/prisma/prisma/pull/29844)).
 </details>
 
 <details><summary>⏳ <b>Places where the TypeScript types and the runtime disagree</b></summary>
 
-Two known mismatches, both "the type signature promises one thing, the running code returns another":
+Three known mismatches, all "the type signature promises one thing, the running code returns another":
 
 - `Timestamp`/`Timestamptz` columns: the declared output type is a branded string, but the codec actually returns a JavaScript `Date` ([TML-2391](https://linear.app/prisma-company/issue/TML-2391), in progress).
 - Projects that use the schema types directly without running contract emission (`typeof contract`) get types that ignore per-instance codec parameters and enum value sets — so a column can typecheck against values the database will reject ([TML-2960](https://linear.app/prisma-company/issue/TML-2960), in progress).
+- Aggregate results: a `count()` is typed `bigint`, but the runtime still returns the text the database sent — aggregate values are not yet decoded through codecs. This is the final PR of the lossless-JSON sequence, which also delivers the public target testkits for extensions ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), open).
 
-A type that lies is a correctness bug with a delay on it; both must be resolved (or the type corrected to tell the truth) before the types freeze.
+A type that lies is a correctness bug with a delay on it; all must be resolved (or the type corrected to tell the truth) before the types freeze.
 </details>
 
 <details><summary>⏳ <b>Finish the polymorphism bug tail — then decide: stable or experimental</b></summary>
@@ -312,6 +313,7 @@ Support statements that end up in the announcement get checked first: Windows, B
 ## Recently landed
 
 - **Expression, partial, and unique indexes landed end-to-end** — authorable in PSL and TypeScript, name-identified (a wire name carries a content-hash suffix; `map:` adopts the live name verbatim), and emitted at full fidelity by `contract infer` so existing databases adopt cleanly (section 4).
+- **Relation-loading now reads every value losslessly through its type codec** — nested JSON is canonical per codec: big integers arrive as `bigint`, decimals as exact strings, `Bytes` as bytes; a breaking change that regenerates contracts and changes nine codecs' JSON form (section 1).
 - **One error-code scheme, delivered end-to-end** — every published error is a structural envelope with a dotted code; the ORM and contract-authoring planes' codeless throws were swept onto it; the 221-code reference page ships with a CI check that keeps it complete (section 3).
 - **Contract snapshots deduplicated into one content-addressed store** — migration folders stopped carrying full contract copies, ref-paired snapshots folded in too, closing the migrations-folder layout ahead of the freeze (section 3).
 - **Hashes lost their `sha256:` prefix** — the textual form of every content hash froze without the redundant algorithm tag (section 3).
