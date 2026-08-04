@@ -1153,20 +1153,43 @@ function buildIncludeChildScalarSelect(
   include: IncludeExpr,
   scalar: IncludeScalar<unknown>,
 ): SelectAst {
-  const parentLocalRefs = resolveParentLocalRefs(parentSource, include, [include.localColumn]);
-  const parentLocalRef = parentLocalRefs[0];
-  assertDefined(parentLocalRef, `Include '${include.relationName}' has no parent-local column ref`);
+  const parentLocalRefs = resolveParentLocalRefs(
+    parentSource,
+    include,
+    localColumnsForRowInclude(include),
+  );
   const childSource = resolveChildTableSource(include, parentLocalRefs);
   const childTableAlias = childSource.alias;
   const childTableRef = childSource.tableRef;
   const state = scalar.state;
-
-  const joinExpr = BinaryExpr.eq(ColumnRef.of(childTableRef, include.targetColumn), parentLocalRef);
   const childWhere = buildStateWhere(contract, childTableRef, state, {
     filterTableName: include.relatedTableName,
     namespaceId: include.relatedNamespaceId,
   });
-  const whereExpr = childWhere ? AndExpr.of([joinExpr, childWhere]) : joinExpr;
+
+  let whereExpr: AnyExpression;
+  let junctionJoins: JoinAst[] = [];
+
+  if (include.through !== undefined) {
+    const artifacts = buildManyToManyJunctionArtifacts(
+      parentLocalRefs,
+      childTableRef,
+      include.through,
+    );
+    whereExpr = childWhere ? AndExpr.of([artifacts.whereExpr, childWhere]) : artifacts.whereExpr;
+    junctionJoins = [artifacts.junctionJoin];
+  } else {
+    const parentLocalRef = parentLocalRefs[0];
+    assertDefined(
+      parentLocalRef,
+      `Include '${include.relationName}' has no parent-local column ref`,
+    );
+    const joinExpr = BinaryExpr.eq(
+      ColumnRef.of(childTableRef, include.targetColumn),
+      parentLocalRef,
+    );
+    whereExpr = childWhere ? AndExpr.of([joinExpr, childWhere]) : joinExpr;
+  }
 
   // Self-relations rename the inner table source via `childTableAlias`;
   // remap any ColumnRef the user-supplied `orderBy` carries against
@@ -1190,7 +1213,7 @@ function buildIncludeChildScalarSelect(
     const jsonObjectExpr = JsonObjectExpr.fromEntries([
       JsonObjectExpr.entry('value', jsonEntryProjection(aggregateExpr, {})),
     ]);
-    return SelectAst.from(
+    let select = SelectAst.from(
       tableSourceForContract(
         contract,
         include.relatedNamespaceId,
@@ -1200,6 +1223,10 @@ function buildIncludeChildScalarSelect(
     )
       .withProjection([ProjectionItem.of(include.relationName, jsonObjectExpr)])
       .withWhere(whereExpr);
+    if (junctionJoins.length > 0) {
+      select = select.withJoins(junctionJoins);
+    }
+    return select;
   }
 
   // Inner SELECT: materialise the shaped row set. Project only what
@@ -1244,6 +1271,9 @@ function buildIncludeChildScalarSelect(
   )
     .withProjection(innerProjection)
     .withWhere(whereExpr);
+  if (junctionJoins.length > 0) {
+    inner = inner.withJoins(junctionJoins);
+  }
 
   if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
     inner = inner.withDistinctOn(
