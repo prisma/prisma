@@ -97,6 +97,38 @@ describe('settleAggregateOverloads', () => {
     ]);
   });
 
+  it('reports a second claim on one (operation, input) key beside ambiguities', () => {
+    const later = { ...sumInt8, nullable: false };
+    const settled = settleAggregateOverloads([sumInt8, later], codecs);
+
+    expect(settled.duplicates).toEqual([
+      { operation: 'sum', key: 'sum:codec:lib/int8@1', first: sumInt8, second: later },
+    ]);
+  });
+
+  it('settles the first claim on a duplicated key, not the later one', () => {
+    const later = { ...countRows, nullable: true };
+    const settled = settleAggregateOverloads([countRows, later], codecs);
+
+    expect(operation(settled, 'count').noInput).toBe(countRows);
+  });
+
+  it('reports a duplicated trait overload as a duplicate, not an ambiguity', () => {
+    const later = { ...sumNumeric, nullable: false };
+    const settled = settleAggregateOverloads([sumNumeric, later], codecs);
+
+    expect(settled.duplicates).toEqual([
+      { operation: 'sum', key: 'sum:trait:numeric', first: sumNumeric, second: later },
+    ]);
+    expect(settled.ambiguities).toEqual([]);
+  });
+
+  it('reports no duplicates when every key has one claim', () => {
+    const settled = settleAggregateOverloads([countRows, countAnything, sumNumeric], codecs);
+
+    expect(settled.duplicates).toEqual([]);
+  });
+
   it('reports no ambiguity where an exact overload settles the codec', () => {
     const settled = settleAggregateOverloads(
       [

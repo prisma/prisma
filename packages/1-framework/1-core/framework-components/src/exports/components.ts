@@ -17,6 +17,7 @@ export {
 export type {
   AggregateCodecTraits,
   AggregateOverloadAmbiguity,
+  AggregateOverloadDuplicate,
   SettledAggregateOperation,
   SettledAggregateOverloads,
 } from '../shared/aggregate-overloads';
