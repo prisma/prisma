@@ -12,44 +12,10 @@ import {
   keepInternalSpecifiers,
   type TypesImportSpec,
 } from '@internal/framework-components/emission';
-import { type ImportRequirement, renderImports } from '@internal/ts-render';
+import { type ImportRequirement, renderImports, tsStringLiteral } from '@internal/ts-render';
 import { blindCast } from '@internal/utils/casts';
 import { emitterError } from './emitter-errors';
 import { isSafeTypeExpression } from './type-expression-safety';
-
-const LITERAL_ESCAPES: Readonly<Record<string, string>> = {
-  '\\': '\\\\',
-  "'": "\\'",
-  '\b': '\\b',
-  '\f': '\\f',
-  '\n': '\\n',
-  '\r': '\\r',
-  '\t': '\\t',
-  '\v': '\\v',
-};
-
-/**
- * Escapes a string for embedding in a single-quoted TypeScript literal. Raw
- * line terminators are a syntax error inside a quoted literal and U+2028/U+2029
- * terminate lines in legacy parsers, so every character that a physical name may
- * legally carry (Postgres quoted identifiers permit all of them) is escaped.
- */
-function escapeSingleQuotedLiteral(value: string): string {
-  let escaped = '';
-  for (const char of value) {
-    const known = LITERAL_ESCAPES[char];
-    if (known !== undefined) {
-      escaped += known;
-      continue;
-    }
-    const code = char.codePointAt(0) ?? 0;
-    escaped +=
-      code < 0x20 || code === 0x7f || code === 0x2028 || code === 0x2029
-        ? `\\u${code.toString(16).padStart(4, '0')}`
-        : char;
-  }
-  return escaped;
-}
 
 export function serializeValue(value: unknown): string {
   if (value === null) {
@@ -59,7 +25,7 @@ export function serializeValue(value: unknown): string {
     return 'undefined';
   }
   if (typeof value === 'string') {
-    return `'${escapeSingleQuotedLiteral(value)}'`;
+    return tsStringLiteral(value);
   }
   if (typeof value === 'number' || typeof value === 'boolean') {
     return String(value);
@@ -123,10 +89,10 @@ export function generateModelFieldEntry(fieldName: string, field: ContractField)
       type.typeParams && Object.keys(type.typeParams).length > 0
         ? `; readonly typeParams: ${serializeValue(type.typeParams)}`
         : '';
-    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: { readonly kind: 'scalar'; readonly codecId: ${serializeValue(type.codecId)}${typeParamsSpec} }${mods} }`;
+    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: { readonly kind: "scalar"; readonly codecId: ${serializeValue(type.codecId)}${typeParamsSpec} }${mods} }`;
   }
   if (type.kind === 'valueObject') {
-    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: { readonly kind: 'valueObject'; readonly name: ${serializeValue(type.name)} }${mods} }`;
+    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: { readonly kind: "valueObject"; readonly name: ${serializeValue(type.name)} }${mods} }`;
   }
   return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: ${serializeValue(type)}${mods} }`;
 }
@@ -306,13 +272,13 @@ export function generateHashTypeAliases(hashes: {
   readonly profileHash: string;
 }): string {
   const executionHashType = hashes.executionHash
-    ? `ExecutionHashBase<'${hashes.executionHash}'>`
+    ? `ExecutionHashBase<${serializeValue(hashes.executionHash)}>`
     : 'ExecutionHashBase<string>';
 
   return [
-    `export type StorageHash = StorageHashBase<'${hashes.storageHash}'>;`,
+    `export type StorageHash = StorageHashBase<${serializeValue(hashes.storageHash)}>;`,
     `export type ExecutionHash = ${executionHashType};`,
-    `export type ProfileHash = ProfileHashBase<'${hashes.profileHash}'>;`,
+    `export type ProfileHash = ProfileHashBase<${serializeValue(hashes.profileHash)}>;`,
   ].join('\n');
 }
 
@@ -421,8 +387,8 @@ export function resolveFieldType(
       }
       const codecAccessor = `CodecTypes[${serializeValue(type.codecId)}]`;
       return {
-        output: applyModifiers(outputResolved ?? `${codecAccessor}['output']`, field),
-        input: applyModifiers(inputResolved ?? `${codecAccessor}['input']`, field),
+        output: applyModifiers(outputResolved ?? `${codecAccessor}["output"]`, field),
+        input: applyModifiers(inputResolved ?? `${codecAccessor}["input"]`, field),
       };
     }
     case 'valueObject':
@@ -433,12 +399,12 @@ export function resolveFieldType(
     case 'union': {
       const outputMembers = type.members.map((m) =>
         m.kind === 'scalar'
-          ? `CodecTypes[${serializeValue(m.codecId)}]['output']`
+          ? `CodecTypes[${serializeValue(m.codecId)}]["output"]`
           : `${m.name}Output`,
       );
       const inputMembers = type.members.map((m) =>
         m.kind === 'scalar'
-          ? `CodecTypes[${serializeValue(m.codecId)}]['input']`
+          ? `CodecTypes[${serializeValue(m.codecId)}]["input"]`
           : `${m.name}Input`,
       );
       return {
@@ -601,10 +567,10 @@ export function generateContractFieldDescriptor(fieldName: string, field: Contra
       type.typeParams && Object.keys(type.typeParams).length > 0
         ? `; readonly typeParams: ${serializeValue(type.typeParams)}`
         : '';
-    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: { readonly kind: 'scalar'; readonly codecId: ${serializeValue(type.codecId)}${typeParamsSpec} }${modStr} }`;
+    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: { readonly kind: "scalar"; readonly codecId: ${serializeValue(type.codecId)}${typeParamsSpec} }${modStr} }`;
   }
   if (type.kind === 'valueObject') {
-    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: { readonly kind: 'valueObject'; readonly name: ${serializeValue(type.name)} }${modStr} }`;
+    return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: { readonly kind: "valueObject"; readonly name: ${serializeValue(type.name)} }${modStr} }`;
   }
   return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${field.nullable}; readonly type: ${serializeValue(type)}${modStr} }`;
 }

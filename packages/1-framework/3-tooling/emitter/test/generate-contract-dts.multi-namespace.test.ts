@@ -50,7 +50,7 @@ describe('generateContractDts domain namespace handling', () => {
       },
     };
     const dts = generateContractDts(contract, mockSqlHook, [], HASHES);
-    expect(dts).toContain("readonly 'report data':");
+    expect(dts).toContain('readonly "report data":');
   });
 
   it("emits each namespace's same-bare-name model under its own coordinate", () => {

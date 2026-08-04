@@ -443,9 +443,9 @@ export const sqlEmission = {
       // it, so a default stays as precise as the file it came from.
       'type DefaultLiteralValue<CodecId extends string, Encoded> =',
       '  CodecId extends keyof CodecTypes',
-      "    ? Encoded extends CodecTypes[CodecId]['json']",
+      '    ? Encoded extends CodecTypes[CodecId]["json"]',
       '      ? Encoded',
-      "      : CodecTypes[CodecId]['json']",
+      '      : CodecTypes[CodecId]["json"]',
       '    : Encoded;',
     ].join('\n');
   },
@@ -587,7 +587,7 @@ function generateDocumentScopedStorageTypesType(types: SqlStorage['types']): str
     const nativeType = serializeValue(codecInstanceShape.nativeType);
     const typeParamsStr = serializeTypeParamsLiteral(codecInstanceShape.typeParams);
     typeEntries.push(
-      `readonly ${serializeObjectKey(typeName)}: { readonly kind: 'codec-instance'; readonly codecId: ${codecId}; readonly nativeType: ${nativeType}; readonly typeParams: ${typeParamsStr} }`,
+      `readonly ${serializeObjectKey(typeName)}: { readonly kind: "codec-instance"; readonly codecId: ${codecId}; readonly nativeType: ${nativeType}; readonly typeParams: ${typeParamsStr} }`,
     );
   }
 
@@ -614,7 +614,7 @@ function namespaceSerializedKind(ns: Namespace): string {
   if (kind === 'schema') {
     const id = ns.id;
     const lit = id === UNBOUND_NAMESPACE_ID ? 'postgres-unbound-schema' : 'postgres-schema';
-    return `readonly kind: '${lit}'`;
+    return `readonly kind: "${lit}"`;
   }
   if (typeof kind === 'string') {
     return `readonly kind: ${serializeValue(kind)}`;
@@ -638,10 +638,10 @@ function generateTableLiteralType(table: StorageTable): string {
     const codecId = serializeValue(col.codecId);
     const defaultSpec = col.default
       ? col.default.kind === 'literal'
-        ? `; readonly default: { readonly kind: 'literal'; readonly value: DefaultLiteralValue<${codecId}, ${serializeValue(
+        ? `; readonly default: { readonly kind: "literal"; readonly value: DefaultLiteralValue<${codecId}, ${serializeValue(
             col.default.value,
           )}> }`
-        : `; readonly default: { readonly kind: 'function'; readonly expression: ${serializeValue(
+        : `; readonly default: { readonly kind: "function"; readonly expression: ${serializeValue(
             col.default.expression,
           )} }`
       : '';

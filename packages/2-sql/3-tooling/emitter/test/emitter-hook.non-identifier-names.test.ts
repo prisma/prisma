@@ -110,15 +110,15 @@ describe('non-identifier physical names', () => {
 
   it('quotes a column name that is not a bare identifier', () => {
     expect(emitDts()).toContain(
-      "readonly 'has space': { readonly nativeType: 'text'; readonly codecId: 'pg/text@1'; readonly nullable: true }",
+      'readonly "has space": { readonly nativeType: "text"; readonly codecId: "pg/text@1"; readonly nullable: true }',
     );
   });
 
   it('quotes a table name that is not a bare identifier', () => {
-    expect(emitDts()).toContain("readonly 'data rows': { columns: {");
+    expect(emitDts()).toContain('readonly "data rows": { columns: {');
   });
 
   it('quotes a document-scoped storage type name that is not a bare identifier', () => {
-    expect(emitDts()).toContain("readonly 'my type': { readonly kind: 'codec-instance'");
+    expect(emitDts()).toContain('readonly "my type": { readonly kind: "codec-instance"');
   });
 });

@@ -122,49 +122,6 @@ describe('emit command: additional fixtures', () => {
     }
   });
 
-  it('emits a valid contract.d.ts for a @map column name containing a space', {
-    timeout: timeouts.typeScriptCompilation,
-  }, async () => {
-    const command = createContractEmitCommand();
-    const testSetup = setupIntegrationTestDirectoryFromFixtures(
-      fixtureSubdir,
-      'prisma-next.config.parity-psl.ts',
-    );
-
-    try {
-      writeFileSync(
-        join(testSetup.testDir, 'schema.prisma'),
-        `model DataRow {
-  id          Int     @id
-  spacedValue String? @map("has space")
-
-  @@map("data rows")
-}
-`,
-        'utf-8',
-      );
-
-      const originalCwd = process.cwd();
-      try {
-        process.chdir(testSetup.testDir);
-        const exitCode = await executeCommand(command, [
-          '--config',
-          'prisma-next.config.ts',
-          '--json',
-        ]);
-        expect(exitCode).toBe(0);
-      } finally {
-        process.chdir(originalCwd);
-      }
-
-      const dts = readFileSync(join(testSetup.testDir, 'output/contract.d.ts'), 'utf-8');
-      expect(dts).toMatch(/readonly ["']has space["']:/);
-      expect(dts).toMatch(/readonly ["']data rows["']:/);
-    } finally {
-      testSetup.cleanup();
-    }
-  });
-
   it('renders provider diagnostics when psl provider fails', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {

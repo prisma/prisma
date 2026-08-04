@@ -109,9 +109,9 @@ describe('StorageColumnTypes', () => {
 
     expect(dts).toContain('export type StorageColumnTypes =');
     // The column entry must be a plain literal union — no ContractBase[...] expression.
-    expect(dts).toContain("readonly priority: 'low' | 'high' | 'urgent'");
+    expect(dts).toContain('readonly priority: "low" | "high" | "urgent"');
     expect(dts).not.toContain('ContractBase[');
-    expect(dts).not.toContain("['members'][number]");
+    expect(dts).not.toContain('["members"][number]');
   });
 
   it('emits a codec output entry for a non-enum column', () => {
@@ -160,7 +160,7 @@ describe('StorageColumnTypes', () => {
 
     expect(dts).toContain('export type StorageColumnTypes =');
     // Non-enum column: codec output access.
-    expect(dts).toContain("readonly email: CodecTypes['pg/text@1']['output']");
+    expect(dts).toContain('readonly email: CodecTypes["pg/text@1"]["output"]');
   });
 
   it('emits a literal union for a numeric-codec (int) enum column', () => {
@@ -364,7 +364,7 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    expect(dts).toContain("readonly action: 'create' | 'update' | 'delete'");
+    expect(dts).toContain('readonly action: "create" | "update" | "delete"');
     const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({[\s\S]*?});/);
     expect(fieldOutputMatch).not.toBeNull();
     const fieldOutputBlock = fieldOutputMatch![0];
@@ -456,9 +456,9 @@ describe('StorageColumnTypes', () => {
     );
 
     // FieldOutputTypes must show the plain literal union, not a ContractBase expression.
-    expect(dts).toContain("readonly priority: 'low' | 'high' | 'urgent'");
+    expect(dts).toContain('readonly priority: "low" | "high" | "urgent"');
     expect(dts).not.toContain('ContractBase[');
-    expect(dts).not.toContain("['members'][number]");
+    expect(dts).not.toContain('["members"][number]');
   });
 
   it('bakes the parameterized-codec-refined type for a typeRef column (not the raw accessor)', () => {
@@ -531,7 +531,7 @@ describe('StorageColumnTypes', () => {
     expect(storageColumnMatch).not.toBeNull();
     // The refined codec output is baked in, NOT the raw codec accessor.
     expect(storageColumnMatch![0]).toContain('readonly embedding: Vector<1536> | null');
-    expect(storageColumnMatch![0]).not.toContain("CodecTypes['pg/vector@1']['output']");
+    expect(storageColumnMatch![0]).not.toContain('CodecTypes["pg/vector@1"]["output"]');
   });
 
   it('emits a StorageColumnInputTypes map (param-refined input side)', () => {
@@ -603,7 +603,7 @@ describe('StorageColumnTypes', () => {
     expect(inputMatch).not.toBeNull();
     // Refined input render for the parameterized column; codec input accessor for the plain one.
     expect(inputMatch![0]).toContain('readonly embedding: VectorInput<1536>');
-    expect(inputMatch![0]).toContain("readonly title: CodecTypes['pg/text@1']['input']");
+    expect(inputMatch![0]).toContain('readonly title: CodecTypes["pg/text@1"]["input"]');
   });
 
   it('narrows StorageColumnInputTypes to the value-set union for an enum column', () => {
@@ -681,7 +681,7 @@ describe('StorageColumnTypes', () => {
 
     const inputMatch = dts.match(/export type StorageColumnInputTypes = ({.+?});/s);
     expect(inputMatch).not.toBeNull();
-    expect(inputMatch![0]).toContain("readonly priority: 'low' | 'high' | 'urgent'");
+    expect(inputMatch![0]).toContain('readonly priority: "low" | "high" | "urgent"');
   });
 
   it('FieldOutputTypes uses the field element codec for a many[] field, not the storage column codec', () => {
@@ -722,13 +722,13 @@ describe('StorageColumnTypes', () => {
     const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({.+?});/s);
     expect(fieldOutputMatch).not.toBeNull();
     expect(fieldOutputMatch![0]).toContain(
-      "readonly tags: ReadonlyArray<CodecTypes['pg/text@1']['output']>",
+      'readonly tags: ReadonlyArray<CodecTypes["pg/text@1"]["output"]>',
     );
     expect(fieldOutputMatch![0]).not.toContain('jsonb');
 
     const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
     expect(storageColumnMatch).not.toBeNull();
-    expect(storageColumnMatch![0]).toContain("readonly tags: CodecTypes['pg/jsonb@1']['output']");
+    expect(storageColumnMatch![0]).toContain('readonly tags: CodecTypes["pg/jsonb@1"]["output"]');
   });
 
   function nonIdentityEnumColumnContract() {
@@ -804,7 +804,7 @@ describe('StorageColumnTypes', () => {
     const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
     expect(storageColumnMatch).not.toBeNull();
     // Codec OUTPUT (decoded literals), not the raw encoded ints 0 | 1 | 2.
-    expect(storageColumnMatch![0]).toContain("readonly level: 'low' | 'high' | 'urgent'");
+    expect(storageColumnMatch![0]).toContain('readonly level: "low" | "high" | "urgent"');
     expect(storageColumnMatch![0]).not.toContain('0 | 1 | 2');
   });
 
@@ -829,7 +829,7 @@ describe('StorageColumnTypes', () => {
     const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
     expect(storageColumnMatch).not.toBeNull();
     expect(storageColumnMatch![0]).toContain(
-      `readonly level: CodecTypes['${NON_IDENTITY_CODEC_ID}']['output']`,
+      `readonly level: CodecTypes["${NON_IDENTITY_CODEC_ID}"]["output"]`,
     );
     expect(storageColumnMatch![0]).not.toContain('0 | 1 | 2');
   });
@@ -840,7 +840,7 @@ describe('StorageColumnTypes', () => {
     const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
     expect(storageColumnMatch).not.toBeNull();
     expect(storageColumnMatch![0]).toContain(
-      `readonly level: CodecTypes['${NON_IDENTITY_CODEC_ID}']['output']`,
+      `readonly level: CodecTypes["${NON_IDENTITY_CODEC_ID}"]["output"]`,
     );
   });
 
@@ -858,12 +858,12 @@ describe('StorageColumnTypes', () => {
     expect(fieldOutputMatch).not.toBeNull();
     // The SQL field resolves through its column's value set, so the FIELD type matches the COLUMN
     // type: the codec OUTPUT (decoded literals), not the raw encoded ints 0 | 1 | 2.
-    expect(fieldOutputMatch![0]).toContain("readonly level: 'low' | 'high' | 'urgent'");
+    expect(fieldOutputMatch![0]).toContain('readonly level: "low" | "high" | "urgent"');
     expect(fieldOutputMatch![0]).not.toContain('0 | 1 | 2');
 
     // Field type and column type must be byte-identical.
     const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch![0]).toContain("readonly level: 'low' | 'high' | 'urgent'");
+    expect(storageColumnMatch![0]).toContain('readonly level: "low" | "high" | "urgent"');
   });
 
   describe('a native-enum column (pg/enum@1, value-set-typed, no domain enum)', () => {
@@ -950,8 +950,8 @@ describe('StorageColumnTypes', () => {
 
       const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
       expect(storageColumnMatch).not.toBeNull();
-      expect(storageColumnMatch![0]).toContain("readonly aal: 'aal1' | 'aal2' | 'aal3'");
-      expect(storageColumnMatch![0]).not.toContain("CodecTypes['pg/enum@1']");
+      expect(storageColumnMatch![0]).toContain('readonly aal: "aal1" | "aal2" | "aal3"');
+      expect(storageColumnMatch![0]).not.toContain('CodecTypes["pg/enum@1"]');
     });
 
     it('types the column input side as the same literal union (StorageColumnInputTypes)', () => {
@@ -966,7 +966,7 @@ describe('StorageColumnTypes', () => {
 
       const inputMatch = dts.match(/export type StorageColumnInputTypes = ({.+?});/s);
       expect(inputMatch).not.toBeNull();
-      expect(inputMatch![0]).toContain("readonly aal: 'aal1' | 'aal2' | 'aal3'");
+      expect(inputMatch![0]).toContain('readonly aal: "aal1" | "aal2" | "aal3"');
     });
 
     it('falls back to the codec output type when no codec lookup is supplied (no renderValueLiteral)', () => {
@@ -974,7 +974,7 @@ describe('StorageColumnTypes', () => {
 
       const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
       expect(storageColumnMatch).not.toBeNull();
-      expect(storageColumnMatch![0]).toContain(`readonly aal: CodecTypes['pg/enum@1']['output']`);
+      expect(storageColumnMatch![0]).toContain(`readonly aal: CodecTypes["pg/enum@1"]["output"]`);
     });
 
     it("also types FieldOutputTypes as the literal union, via the storage column's valueSet (no domain field valueSet involved)", () => {
@@ -995,7 +995,7 @@ describe('StorageColumnTypes', () => {
 
       const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({[\s\S]*?});/);
       expect(fieldOutputMatch).not.toBeNull();
-      expect(fieldOutputMatch![0]).toContain("readonly aal: 'aal1' | 'aal2' | 'aal3'");
+      expect(fieldOutputMatch![0]).toContain('readonly aal: "aal1" | "aal2" | "aal3"');
     });
   });
 
@@ -1035,19 +1035,19 @@ describe('StorageColumnTypes', () => {
     const outputMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
     expect(outputMatch).not.toBeNull();
     expect(outputMatch![0]).toContain(
-      "readonly tags: ReadonlyArray<CodecTypes['pg/text@1']['output']>",
+      'readonly tags: ReadonlyArray<CodecTypes["pg/text@1"]["output"]>',
     );
     expect(outputMatch![0]).toContain(
-      "readonly labels: ReadonlyArray<CodecTypes['pg/text@1']['output']> | null",
+      'readonly labels: ReadonlyArray<CodecTypes["pg/text@1"]["output"]> | null',
     );
 
     const inputMatch = dts.match(/export type StorageColumnInputTypes = ({.+?});/s);
     expect(inputMatch).not.toBeNull();
     expect(inputMatch![0]).toContain(
-      "readonly tags: ReadonlyArray<CodecTypes['pg/text@1']['input']>",
+      'readonly tags: ReadonlyArray<CodecTypes["pg/text@1"]["input"]>',
     );
     expect(inputMatch![0]).toContain(
-      "readonly labels: ReadonlyArray<CodecTypes['pg/text@1']['input']> | null",
+      'readonly labels: ReadonlyArray<CodecTypes["pg/text@1"]["input"]> | null',
     );
   });
 });
