@@ -1,6 +1,6 @@
 /**
  * Strongly-typed ORM round-trip over a `@map`ped column whose physical name is
- * not a bare TypeScript identifier (prisma/prisma-next#981).
+ * not a bare TypeScript identifier (https://github.com/prisma/prisma-next/issues/981).
  *
  * The test consumes the precise emitted contract fixture (not a widened
  * `Contract<SqlStorage>`), so the generated `contract.d.ts` has to typecheck

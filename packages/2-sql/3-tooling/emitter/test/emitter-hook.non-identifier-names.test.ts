@@ -14,7 +14,7 @@ const SPACED_COLUMN = 'has space';
 const SPACED_TYPE = 'my type';
 
 /**
- * Mirrors the reproduction in prisma/prisma-next#981: `@map` / `@@schema` accept
+ * Mirrors the reproduction in https://github.com/prisma/prisma-next/issues/981: `@map` / `@@schema` accept
  * physical names that are legal quoted SQL identifiers but not bare TS
  * identifiers, and each one reaches `contract.d.ts` as a property key.
  */
