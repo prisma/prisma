@@ -21,16 +21,16 @@ export function createAggregateBuilder<
       };
     },
     sum(field) {
-      return createFieldAggregateSelector(fieldToColumn, field as string, 'sum');
+      return createFieldAggregateSelector(fieldToColumn, field, 'sum');
     },
     avg(field) {
-      return createFieldAggregateSelector(fieldToColumn, field as string, 'avg');
+      return createFieldAggregateSelector(fieldToColumn, field, 'avg');
     },
     min(field) {
-      return createFieldAggregateSelector(fieldToColumn, field as string, 'min');
+      return createFieldAggregateSelector(fieldToColumn, field, 'min');
     },
     max(field) {
-      return createFieldAggregateSelector(fieldToColumn, field as string, 'max');
+      return createFieldAggregateSelector(fieldToColumn, field, 'max');
     },
   };
 }

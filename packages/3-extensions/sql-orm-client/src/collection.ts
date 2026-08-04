@@ -1220,7 +1220,10 @@ export class Collection<
     for (const [alias, selector] of entries) {
       result[alias] = row[alias] ?? emptyAggregateResult(selector.fn);
     }
-    return result as AggregateResult<Spec>;
+    return blindCast<
+      AggregateResult<Spec>,
+      "aliases are the aggregateSpec's own keys; values decoded by the projection codecs the same spec resolved"
+    >(result);
   }
 
   /**
