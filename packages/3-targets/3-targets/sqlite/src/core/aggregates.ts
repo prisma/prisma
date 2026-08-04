@@ -8,7 +8,7 @@
  * - **`sum` of integers does not widen.** An `INTEGER` sum that exceeds a 64-bit integer raises `integer overflow` rather than promoting to a float, so the result is an integer or it is nothing. It is declared as `sqlite/bigint@1` and not `sqlite/integer@1`: a sum of small integers is free to exceed 2^53 while remaining a perfectly good SQLite integer, and only the bigint codec carries such a value into the application without rounding.
  * - **`sum` and `avg` coerce rather than refuse.** Over `TEXT` or `BLOB`, SQLite reads a leading number where it can and 0 otherwise, so `sum` over a column of words is `0.0` and over a column of numerals is their total — a result whose very storage class depends on the rows. No descriptor claims those pairs: an aggregate whose result cannot be typed from the schema is one this target declines to offer, and the conformance suite pins the list of pairs left unclaimed for that reason.
  *
- * Result identity is declared, not lowered: SQLite's own results already carry these codecs' storage classes, so no descriptor needs a lowering hook.
+ * Result identity is declared; lowering hooks exist only for transport. Descriptors whose declared result is `sqlite/bigint@1` cast the aggregate to text (`castResultToText`) so values past 2^53 survive the driver's numeric reads; every other result already leaves SQLite in its declared storage class and needs no hook.
  */
 
 import type { CodecTrait } from '@internal/framework-components/codec';
