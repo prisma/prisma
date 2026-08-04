@@ -71,13 +71,13 @@ importers:
         specifier: ^1.0.24
         version: 1.0.24
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:packages/1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:packages/1-framework/3-tooling/migration
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -152,7 +152,7 @@ importers:
         specifier: ^34.1.3
         version: 34.1.3
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       monaco-editor:
         specifier: ^0.56.0
@@ -180,7 +180,7 @@ importers:
         version: 8.21.1
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -204,7 +204,7 @@ importers:
   apps/telemetry-backend:
     dependencies:
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       arktype:
         specifier: 'catalog:'
@@ -220,10 +220,10 @@ importers:
         specifier: ^1.47.0
         version: 1.53.0
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/bun':
         specifier: ^1.2.18
@@ -253,10 +253,10 @@ importers:
   examples/bundle-size:
     dependencies:
       '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-mongo
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       mongodb:
         specifier: 'catalog:'
@@ -272,10 +272,10 @@ importers:
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.0(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@size-limit/file':
         specifier: ^12.1.0
@@ -311,14 +311,14 @@ importers:
   examples/mongo-blog-leaderboard:
     dependencies:
       '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-mongo
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -342,10 +342,10 @@ importers:
   examples/mongo-demo:
     dependencies:
       '@prisma/orm-extension-middleware-cache':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-extension-middleware-cache
       '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-mongo
       mongodb:
         specifier: 'catalog:'
@@ -358,10 +358,10 @@ importers:
         version: 19.2.8(react@19.2.8)
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -397,14 +397,14 @@ importers:
   examples/multi-extension-monorepo:
     dependencies:
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -419,10 +419,10 @@ importers:
   examples/paradedb-demo:
     dependencies:
       '@prisma/orm-extension-paradedb':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-extension-paradedb
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       arktype:
         specifier: ^2.2.2
@@ -435,10 +435,10 @@ importers:
         version: 8.22.0
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -459,7 +459,7 @@ importers:
   examples/prisma-8-cloudflare-worker:
     dependencies:
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       arktype:
         specifier: 'catalog:'
@@ -475,7 +475,7 @@ importers:
         specifier: 4.20260702.1
         version: 4.20260702.1
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -499,13 +499,13 @@ importers:
   examples/prisma-8-demo:
     dependencies:
       '@prisma/orm-extension-middleware-cache':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-extension-middleware-cache
       '@prisma/orm-extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-extension-pgvector
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       arktype:
         specifier: ^2.2.2
@@ -527,10 +527,10 @@ importers:
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.0(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@testing-library/jest-dom':
         specifier: ^6.9.1
@@ -572,7 +572,7 @@ importers:
   examples/prisma-8-demo-sqlite:
     dependencies:
       '@prisma/orm-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-sqlite
       arktype:
         specifier: ^2.2.2
@@ -582,7 +582,7 @@ importers:
         version: 17.4.2
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -597,10 +597,10 @@ importers:
   examples/prisma-8-postgis-demo:
     dependencies:
       '@prisma/orm-extension-postgis':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-extension-postgis
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       arktype:
         specifier: ^2.2.2
@@ -628,10 +628,10 @@ importers:
         version: 5.0.0(leaflet@1.9.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/leaflet':
         specifier: ^1.9.12
@@ -661,7 +661,7 @@ importers:
   examples/react-router-demo:
     dependencies:
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       '@react-router/node':
         specifier: ^8.1.0
@@ -695,10 +695,10 @@ importers:
         specifier: ^8.1.0
         version: 8.3.0(@react-router/serve@8.3.0(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@5.9.3))(react-router@8.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@5.9.3)(vite@8.1.0(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))(wrangler@4.114.0)
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -731,10 +731,10 @@ importers:
   examples/retail-store:
     dependencies:
       '@prisma/orm-extension-middleware-cache':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-extension-middleware-cache
       '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-mongo
       '@radix-ui/react-dropdown-menu':
         specifier: ^2.1.24
@@ -789,10 +789,10 @@ importers:
         version: 4.3.3
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -822,10 +822,10 @@ importers:
   examples/supabase:
     dependencies:
       '@prisma/orm-extension-supabase':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-extension-supabase
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/9-public/@prisma/orm-postgres
       jose:
         specifier: ^6
@@ -835,10 +835,10 @@ importers:
         version: 8.22.0
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -861,10 +861,10 @@ importers:
   packages/0-config/tsdown:
     devDependencies:
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-shared/publish-surface
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../tsconfig
       es-module-lexer:
         specifier: ^2.3.1
@@ -885,7 +885,7 @@ importers:
   packages/0-shared/publish-surface:
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       tsdown:
         specifier: 'catalog:'
@@ -900,7 +900,7 @@ importers:
   packages/1-framework/0-foundation/contract:
     dependencies:
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../utils
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -910,10 +910,10 @@ importers:
         version: 2.2.3
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -928,10 +928,10 @@ importers:
   packages/1-framework/0-foundation/utils:
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -946,13 +946,13 @@ importers:
   packages/1-framework/1-core/config:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       arktype:
         specifier: ^2.2.2
@@ -962,10 +962,10 @@ importers:
         version: 2.0.3
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -980,17 +980,17 @@ importers:
   packages/1-framework/1-core/errors:
     dependencies:
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1005,16 +1005,16 @@ importers:
   packages/1-framework/1-core/framework-components:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/contract
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../operations
       '@internal/ts-render':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../ts-render
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -1024,10 +1024,10 @@ importers:
         version: 2.2.3
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1042,17 +1042,17 @@ importers:
   packages/1-framework/1-core/operations:
     dependencies:
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1067,14 +1067,14 @@ importers:
   packages/1-framework/1-core/ts-render:
     dependencies:
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1089,17 +1089,17 @@ importers:
   packages/1-framework/2-authoring/contract:
     dependencies:
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1114,23 +1114,23 @@ importers:
   packages/1-framework/2-authoring/ids:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       uniku:
         specifier: ^0.4.3
         version: 0.4.3
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1145,23 +1145,23 @@ importers:
   packages/1-framework/2-authoring/psl-parser:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1176,23 +1176,23 @@ importers:
   packages/1-framework/2-authoring/psl-printer:
     dependencies:
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
     devDependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/contract
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../psl-parser
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -1213,43 +1213,43 @@ importers:
         specifier: ^1.7.0
         version: 1.7.0
       '@internal/cli-telemetry':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../cli-telemetry
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/config
       '@internal/config-loader':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../config-loader
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/contract
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../emitter
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/framework-components
       '@internal/language-server':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../language-server
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../migration
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-authoring/psl-parser
       '@internal/psl-printer':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-authoring/psl-printer
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       arktype:
         specifier: ^2.2.2
@@ -1292,28 +1292,28 @@ importers:
         version: 10.0.0
     devDependencies:
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-contract-emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/3-tooling/emitter
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/2-authoring/contract-ts
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/operations
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/5-runtime
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@types/node':
         specifier: 'catalog:'
@@ -1331,10 +1331,10 @@ importers:
   packages/1-framework/3-tooling/cli-telemetry:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/config
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       '@vercel/detect-agent':
         specifier: ^1.2.3
@@ -1350,13 +1350,13 @@ importers:
         version: 2.0.3
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@types/node':
         specifier: 'catalog:'
@@ -1374,16 +1374,16 @@ importers:
   packages/1-framework/3-tooling/config-loader:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/config
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../emitter
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/errors
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       c12:
         specifier: ^3.3.4
@@ -1393,13 +1393,13 @@ importers:
         version: 2.0.3
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@types/node':
         specifier: 'catalog:'
@@ -1417,19 +1417,19 @@ importers:
   packages/1-framework/3-tooling/emitter:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/framework-components
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/operations
       '@internal/ts-render':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/ts-render
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       arktype:
         specifier: ^2.2.2
@@ -1439,16 +1439,16 @@ importers:
         version: 3.9.6
     devDependencies:
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@types/node':
         specifier: 'catalog:'
@@ -1466,22 +1466,22 @@ importers:
   packages/1-framework/3-tooling/language-server:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/config
       '@internal/config-loader':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../config-loader
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/framework-components
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-authoring/psl-parser
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       pathe:
         specifier: ^2.0.3
@@ -1494,13 +1494,13 @@ importers:
         version: 1.0.12
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@types/node':
         specifier: 'catalog:'
@@ -1518,13 +1518,13 @@ importers:
   packages/1-framework/3-tooling/migration:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-foundation/utils
       arktype:
         specifier: 'catalog:'
@@ -1537,13 +1537,13 @@ importers:
         version: 3.9.6
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1558,23 +1558,23 @@ importers:
   packages/1-framework/3-tooling/vite-plugin-contract-emit:
     dependencies:
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../cli
       '@internal/config-loader':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../config-loader
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../emitter
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@types/node':
         specifier: 'catalog:'
@@ -1595,23 +1595,23 @@ importers:
   packages/2-mongo-family/1-foundation/mongo-codec:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1626,16 +1626,16 @@ importers:
   packages/2-mongo-family/1-foundation/mongo-contract:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../mongo-value
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       arktype:
         specifier: 'catalog:'
@@ -1645,13 +1645,13 @@ importers:
         version: 7.5.0(socks@2.8.9)
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1670,10 +1670,10 @@ importers:
         version: 7.5.0(socks@2.8.9)
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1688,31 +1688,31 @@ importers:
   packages/2-mongo-family/2-authoring/contract-psl:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-contract
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-value
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       mongodb:
         specifier: 'catalog:'
@@ -1722,10 +1722,10 @@ importers:
         version: 2.0.3
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1740,38 +1740,38 @@ importers:
   packages/2-mongo-family/2-authoring/contract-ts:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-contract
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1786,32 +1786,32 @@ importers:
   packages/2-mongo-family/3-tooling/emitter:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/emitter
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-contract
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1826,26 +1826,26 @@ importers:
   packages/2-mongo-family/3-tooling/mongo-schema-ir:
     dependencies:
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-contract
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-value
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1860,32 +1860,32 @@ importers:
   packages/2-mongo-family/4-query/query-ast:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-contract
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-value
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1900,47 +1900,47 @@ importers:
   packages/2-mongo-family/5-query-builders/orm:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-contract
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../4-query/query-ast
       '@internal/mongo-query-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../query-builder
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-value
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@internal/adapter-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-mongo-target/2-mongo-adapter
       '@internal/driver-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-mongo-target/3-mongo-driver
       '@internal/mongo-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../7-runtime
       '@internal/target-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-mongo-target/1-mongo-target
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
@@ -1961,26 +1961,26 @@ importers:
   packages/2-mongo-family/5-query-builders/query-builder:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-contract
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../4-query/query-ast
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-value
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -1995,20 +1995,20 @@ importers:
   packages/2-mongo-family/6-transport/mongo-lowering:
     dependencies:
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../4-query/query-ast
       '@internal/mongo-wire':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../mongo-wire
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
@@ -2026,20 +2026,20 @@ importers:
   packages/2-mongo-family/6-transport/mongo-wire:
     dependencies:
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../4-query/query-ast
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-foundation/mongo-value
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2054,56 +2054,56 @@ importers:
   packages/2-mongo-family/7-runtime:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/mongo-codec':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-foundation/mongo-codec
       '@internal/mongo-lowering':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../6-transport/mongo-lowering
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../4-query/query-ast
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-foundation/mongo-value
       '@internal/mongo-wire':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../6-transport/mongo-wire
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
     devDependencies:
       '@internal/adapter-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-mongo-target/2-mongo-adapter
       '@internal/driver-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-mongo-target/3-mongo-driver
       '@internal/family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../9-family
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-foundation/mongo-contract
       '@internal/mongo-query-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../5-query-builders/query-builder
       '@internal/target-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-mongo-target/1-mongo-target
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
@@ -2124,37 +2124,37 @@ importers:
   packages/2-mongo-family/9-family:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/emitter
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/migration
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-foundation/mongo-contract
       '@internal/mongo-emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../3-tooling/emitter
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../4-query/query-ast
       '@internal/mongo-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../3-tooling/mongo-schema-ir
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-foundation/mongo-value
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       arktype:
         specifier: 'catalog:'
@@ -2167,16 +2167,16 @@ importers:
         version: 2.0.3
     devDependencies:
       '@internal/mongo-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../2-authoring/contract-ts
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2191,29 +2191,29 @@ importers:
   packages/2-sql/1-core/contract:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../schema-ir
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2228,13 +2228,13 @@ importers:
   packages/2-sql/1-core/errors:
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2249,26 +2249,26 @@ importers:
   packages/2-sql/1-core/operations:
     dependencies:
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/operations
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../contract
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/emitter
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2283,23 +2283,23 @@ importers:
   packages/2-sql/1-core/schema-ir:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2314,41 +2314,41 @@ importers:
   packages/2-sql/2-authoring/contract-psl:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/contract
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../contract-ts
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/contract
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       arktype:
         specifier: ^2.2.2
@@ -2366,22 +2366,22 @@ importers:
   packages/2-sql/2-authoring/contract-ts:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/contract
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       arktype:
         specifier: ^2.2.2
@@ -2394,13 +2394,13 @@ importers:
         version: 9.6.0
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
@@ -2421,32 +2421,32 @@ importers:
   packages/2-sql/3-tooling/emitter:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/emitter
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/contract
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2461,23 +2461,23 @@ importers:
   packages/2-sql/4-lanes/query-builder:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/contract
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
     devDependencies:
       '@internal/sql-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../sql-builder
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2492,22 +2492,22 @@ importers:
   packages/2-sql/4-lanes/relational-core:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/operations
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/contract
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/operations
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -2520,16 +2520,16 @@ importers:
         version: 9.6.0
     devDependencies:
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-authoring/contract-ts
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2544,44 +2544,44 @@ importers:
   packages/2-sql/4-lanes/sql-builder:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/contract
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../relational-core
     devDependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-targets/6-adapters/postgres
       '@internal/ids':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/ids
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-authoring/contract-ts
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-targets/3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2596,41 +2596,41 @@ importers:
   packages/2-sql/5-runtime:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/ids':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/ids
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/operations
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-core/contract
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../4-lanes/relational-core
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
@@ -2651,43 +2651,43 @@ importers:
   packages/2-sql/9-family:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/emitter
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/migration
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/operations
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-core/contract
       '@internal/sql-contract-emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../3-tooling/emitter
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../2-authoring/contract-ts
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../1-core/schema-ir
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       arktype:
         specifier: ^2.2.2
@@ -2697,25 +2697,25 @@ importers:
         version: 8.0.0
     devDependencies:
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/postgres
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/psl-parser
       '@internal/psl-printer':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/psl-printer
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../2-authoring/contract-psl
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       '@types/pluralize':
         specifier: ^0.0.33
@@ -2733,25 +2733,25 @@ importers:
   packages/3-extensions/arktype-json:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/contract
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/5-runtime
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/3-targets/postgres
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -2761,25 +2761,25 @@ importers:
         version: 2.2.3
     devDependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/postgres
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2794,17 +2794,17 @@ importers:
   packages/3-extensions/middleware-cache:
     dependencies:
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
     devDependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2819,71 +2819,71 @@ importers:
   packages/3-extensions/mongo:
     dependencies:
       '@internal/adapter-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-mongo-target/2-mongo-adapter
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/driver-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-mongo-target/3-mongo-driver
       '@internal/family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/1-foundation/mongo-contract
       '@internal/mongo-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/2-authoring/contract-psl
       '@internal/mongo-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/2-authoring/contract-ts
       '@internal/mongo-orm':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/5-query-builders/orm
       '@internal/mongo-query-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/5-query-builders/query-builder
       '@internal/mongo-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/7-runtime
       '@internal/target-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-mongo-target/1-mongo-target
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/emitter
       '@internal/mongo-emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/3-tooling/emitter
       '@internal/psl-parser':
-        specifier: workspace:0.14.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/psl-parser
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
@@ -2904,62 +2904,62 @@ importers:
   packages/3-extensions/paradedb:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/contract
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/migration
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/5-runtime
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/operations
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-ts
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/3-targets/postgres
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -2974,40 +2974,40 @@ importers:
   packages/3-extensions/pgvector:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/contract
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/migration
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/schema-ir
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -3017,31 +3017,31 @@ importers:
         version: 2.2.3
     devDependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/postgres
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/operations
       '@internal/postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../postgres
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-ts
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -3056,40 +3056,40 @@ importers:
   packages/3-extensions/postgis:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/contract
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/migration
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/schema-ir
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -3099,28 +3099,28 @@ importers:
         version: 2.2.3
     devDependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/operations
       '@internal/postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../postgres
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-ts
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -3135,52 +3135,52 @@ importers:
   packages/3-extensions/postgres:
     dependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/postgres
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/sql-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/sql-builder
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-psl
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-ts
       '@internal/sql-orm-client':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../sql-orm-client
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/5-runtime
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       '@types/pg':
         specifier: 'catalog:'
@@ -3193,25 +3193,25 @@ importers:
         version: 8.22.0
     devDependencies:
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/emitter
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract-emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/3-tooling/emitter
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/schema-ir
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -3226,62 +3226,62 @@ importers:
   packages/3-extensions/sql-orm-client:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/operations
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
       '@internal/sql-errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/errors
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/5-runtime
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
     devDependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/postgres
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/9-family
       '@internal/ids':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/ids
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-ts
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/3-targets/postgres
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
@@ -3302,68 +3302,68 @@ importers:
   packages/3-extensions/sqlite:
     dependencies:
       '@internal/adapter-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/sqlite
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/driver-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/sqlite
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/sql-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/sql-builder
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-psl
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-ts
       '@internal/sql-orm-client':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../sql-orm-client
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/5-runtime
       '@internal/target-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/3-targets/sqlite
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
       '@internal/psl-parser':
-        specifier: workspace:0.14.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/psl-parser
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -3378,58 +3378,58 @@ importers:
   packages/3-extensions/supabase:
     dependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/contract
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/postgres
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/migration
       '@internal/postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../postgres
       '@internal/sql-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/sql-builder
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-ts
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/operations
       '@internal/sql-orm-client':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../sql-orm-client
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/schema-ir
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -3448,25 +3448,25 @@ importers:
         version: 8.22.0
     devDependencies:
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/operations
       '@internal/psl-printer':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/psl-printer
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-psl
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       ci-info:
         specifier: ^4.3.1
@@ -3487,80 +3487,80 @@ importers:
   packages/3-mongo-target/1-mongo-target:
     dependencies:
       '@internal/adapter-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../2-mongo-adapter
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/cli
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/driver-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../3-mongo-driver
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/errors
       '@internal/family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/migration
       '@internal/mongo-codec':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/1-foundation/mongo-codec
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/1-foundation/mongo-contract
       '@internal/mongo-lowering':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/6-transport/mongo-lowering
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/4-query/query-ast
       '@internal/mongo-query-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/5-query-builders/query-builder
       '@internal/mongo-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/3-tooling/mongo-schema-ir
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/1-foundation/mongo-value
       '@internal/ts-render':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/ts-render
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       arktype:
         specifier: 'catalog:'
         version: 2.2.3
     devDependencies:
       '@internal/mongo-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/2-authoring/contract-psl
       '@internal/mongo-wire':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/6-transport/mongo-wire
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/psl-parser
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-shared/publish-surface
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
@@ -3584,52 +3584,52 @@ importers:
   packages/3-mongo-target/2-mongo-adapter:
     dependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/errors
       '@internal/family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/3-tooling/migration
       '@internal/mongo-codec':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/1-foundation/mongo-codec
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/1-foundation/mongo-contract
       '@internal/mongo-lowering':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/6-transport/mongo-lowering
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/4-query/query-ast
       '@internal/mongo-query-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/5-query-builders/query-builder
       '@internal/mongo-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/3-tooling/mongo-schema-ir
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/1-foundation/mongo-value
       '@internal/mongo-wire':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/6-transport/mongo-wire
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/operations
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
       arktype:
         specifier: 'catalog:'
@@ -3639,22 +3639,22 @@ importers:
         version: 7.3.1
     devDependencies:
       '@internal/driver-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../3-mongo-driver
       '@internal/mongo-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/2-authoring/contract-psl
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/2-authoring/psl-parser
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
@@ -3675,29 +3675,29 @@ importers:
   packages/3-mongo-target/3-mongo-driver:
     dependencies:
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/1-core/framework-components
       '@internal/mongo-lowering':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/6-transport/mongo-lowering
       '@internal/mongo-wire':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../2-mongo-family/6-transport/mongo-wire
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../1-framework/0-foundation/utils
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../0-config/tsdown
       mongodb:
         specifier: 'catalog:'
@@ -3718,46 +3718,46 @@ importers:
   packages/3-targets/3-targets/postgres:
     dependencies:
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/cli
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/migration
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/errors
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/schema-ir
       '@internal/ts-render':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/ts-render
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -3770,22 +3770,22 @@ importers:
         version: 2.0.3
     devDependencies:
       '@internal/psl-printer':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/psl-printer
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/2-authoring/contract-psl
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -3800,62 +3800,62 @@ importers:
   packages/3-targets/3-targets/sqlite:
     dependencies:
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/cli
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/migration
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/errors
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/schema-ir
       '@internal/ts-render':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/ts-render
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       '@standard-schema/spec':
         specifier: 1.1.0
         version: 1.1.0
     devDependencies:
       '@internal/driver-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../7-drivers/sqlite
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -3870,74 +3870,74 @@ importers:
   packages/3-targets/6-adapters/postgres:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/ids':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/ids
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/2-authoring/contract-psl
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/2-authoring/contract-ts
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/schema-ir
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/cli
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../7-drivers/postgres
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/migration
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       pathe:
         specifier: ^2.0.3
@@ -3955,74 +3955,74 @@ importers:
   packages/3-targets/6-adapters/sqlite:
     dependencies:
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/cli
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/ids':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/ids
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/2-authoring/contract-psl
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/2-authoring/contract-ts
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/schema-ir
       '@internal/target-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/sqlite
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
       '@internal/driver-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../7-drivers/sqlite
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/migration
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       pathe:
         specifier: ^2.0.3
@@ -4040,28 +4040,28 @@ importers:
   packages/3-targets/7-drivers/postgres:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/errors
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       '@types/pg':
         specifier: 'catalog:'
@@ -4083,13 +4083,13 @@ importers:
         specifier: 0.2.7
         version: 0.2.7(@electric-sql/pglite-age@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pg_hashids@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pg_ivm@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pg_textsearch@0.0.6(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pg_uuidv7@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pgtap@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite-pgvector@0.0.5(@electric-sql/pglite@0.5.4))(@electric-sql/pglite@0.5.4)
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       '@types/pg-cursor':
         specifier: ^2.4.6
@@ -4110,38 +4110,38 @@ importers:
   packages/3-targets/7-drivers/sqlite:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/errors
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/operations
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4156,10 +4156,10 @@ importers:
   packages/9-public/@prisma/orm-extension-arktype-json:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -4169,16 +4169,16 @@ importers:
         version: 2.2.3
     devDependencies:
       '@internal/extension-arktype-json':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/arktype-json
       '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-target-postgres
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4190,17 +4190,17 @@ importers:
   packages/9-public/@prisma/orm-extension-middleware-cache:
     dependencies:
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
     devDependencies:
       '@internal/middleware-cache':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/middleware-cache
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4212,29 +4212,29 @@ importers:
   packages/9-public/@prisma/orm-extension-paradedb:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-target-postgres
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       arktype:
         specifier: ^2.2.2
         version: 2.2.3
     devDependencies:
       '@internal/extension-paradedb':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/paradedb
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4246,13 +4246,13 @@ importers:
   packages/9-public/@prisma/orm-extension-pgvector:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -4262,19 +4262,19 @@ importers:
         version: 2.2.3
     devDependencies:
       '@internal/extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/pgvector
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-target-postgres
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4289,13 +4289,13 @@ importers:
   packages/9-public/@prisma/orm-extension-postgis:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -4305,16 +4305,16 @@ importers:
         version: 2.2.3
     devDependencies:
       '@internal/extension-postgis':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/postgis
       '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-target-postgres
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4326,16 +4326,16 @@ importers:
   packages/9-public/@prisma/orm-extension-supabase:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-postgres
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -4354,16 +4354,16 @@ importers:
         version: 8.22.0
     devDependencies:
       '@internal/extension-supabase':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/supabase
       '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-target-postgres
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4375,10 +4375,10 @@ importers:
   packages/9-public/@prisma/orm-family-mongo:
     dependencies:
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       arktype:
         specifier: 'catalog:'
@@ -4391,52 +4391,52 @@ importers:
         version: 2.0.3
     devDependencies:
       '@internal/family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/9-family
       '@internal/mongo-codec':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/1-foundation/mongo-codec
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/1-foundation/mongo-contract
       '@internal/mongo-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/2-authoring/contract-psl
       '@internal/mongo-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/2-authoring/contract-ts
       '@internal/mongo-emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/3-tooling/emitter
       '@internal/mongo-lowering':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/6-transport/mongo-lowering
       '@internal/mongo-orm':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/5-query-builders/orm
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/4-query/query-ast
       '@internal/mongo-query-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/5-query-builders/query-builder
       '@internal/mongo-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/7-runtime
       '@internal/mongo-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/3-tooling/mongo-schema-ir
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/1-foundation/mongo-value
       '@internal/mongo-wire':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-mongo-family/6-transport/mongo-wire
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4448,10 +4448,10 @@ importers:
   packages/9-public/@prisma/orm-family-sql:
     dependencies:
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -4470,49 +4470,49 @@ importers:
         version: 9.6.0
     devDependencies:
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/9-family
       '@internal/sql-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/sql-builder
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-contract-emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/3-tooling/emitter
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/2-authoring/contract-psl
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/2-authoring/contract-ts
       '@internal/sql-errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/errors
       '@internal/sql-lane-query-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/query-builder
       '@internal/sql-operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/operations
       '@internal/sql-orm-client':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/sql-orm-client
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/schema-ir
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4537,46 +4537,46 @@ importers:
         version: 0.4.3
     devDependencies:
       '@internal/config':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/config
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/contract-authoring':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/contract
       '@internal/errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/errors
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/ids':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/ids
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/operations
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/psl-parser
       '@internal/psl-printer':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/2-authoring/psl-printer
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@internal/ts-render':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/ts-render
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4591,16 +4591,16 @@ importers:
   packages/9-public/@prisma/orm-mongo:
     dependencies:
       '@prisma/orm-family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-mongo
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-target-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-target-mongo
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       mongodb:
         specifier: ^7.0.0
@@ -4610,13 +4610,13 @@ importers:
         version: 2.0.3
     devDependencies:
       '@internal/mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/mongo
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4628,16 +4628,16 @@ importers:
   packages/9-public/@prisma/orm-postgres:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-target-postgres
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       '@types/pg':
         specifier: 'catalog:'
@@ -4650,16 +4650,16 @@ importers:
         version: 8.22.0
     devDependencies:
       '@internal/postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/postgres
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4674,29 +4674,29 @@ importers:
   packages/9-public/@prisma/orm-sqlite:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-target-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-target-sqlite
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
       '@internal/sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-extensions/sqlite
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4708,13 +4708,13 @@ importers:
   packages/9-public/@prisma/orm-target-mongo:
     dependencies:
       '@prisma/orm-family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-mongo
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       arktype:
         specifier: 'catalog:'
@@ -4727,19 +4727,19 @@ importers:
         version: 7.5.0(socks@2.8.9)
     devDependencies:
       '@internal/adapter-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-mongo-target/2-mongo-adapter
       '@internal/driver-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-mongo-target/3-mongo-driver
       '@internal/target-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-mongo-target/1-mongo-target
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4751,13 +4751,13 @@ importers:
   packages/9-public/@prisma/orm-target-postgres:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       '@standard-schema/spec':
         specifier: ^1.1.0
@@ -4779,19 +4779,19 @@ importers:
         version: 2.21.0(pg@8.22.0)
     devDependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-targets/6-adapters/postgres
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-targets/7-drivers/postgres
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-targets/3-targets/postgres
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4806,13 +4806,13 @@ importers:
   packages/9-public/@prisma/orm-target-sqlite:
     dependencies:
       '@prisma/orm-family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-family-sql
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-toolchain
       '@standard-schema/spec':
         specifier: 1.1.0
@@ -4822,19 +4822,19 @@ importers:
         version: 2.2.3
     devDependencies:
       '@internal/adapter-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-targets/6-adapters/sqlite
       '@internal/driver-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-targets/7-drivers/sqlite
       '@internal/target-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../3-targets/3-targets/sqlite
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4849,7 +4849,7 @@ importers:
         specifier: ^1.7.0
         version: 1.7.0
       '@prisma/orm-framework':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../orm-framework
       '@vercel/detect-agent':
         specifier: ^1.2.3
@@ -4910,34 +4910,34 @@ importers:
         version: 10.0.0
     devDependencies:
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/cli
       '@internal/cli-telemetry':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/cli-telemetry
       '@internal/config-loader':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/config-loader
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/emitter
       '@internal/language-server':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/language-server
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/migration
       '@internal/publish-surface':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-shared/publish-surface
       '@internal/vite-plugin-contract-emit':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/3-tooling/vite-plugin-contract-emit
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4949,7 +4949,7 @@ importers:
   packages/9-public/prisma-next:
     dependencies:
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../@prisma/orm-toolchain
       typescript:
         specifier: '>=5.9'
@@ -4958,26 +4958,26 @@ importers:
   test/e2e/framework:
     dependencies:
       '@prisma/orm-extension-arktype-json':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../packages/9-public/@prisma/orm-extension-arktype-json
       '@prisma/orm-extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../packages/9-public/@prisma/orm-extension-pgvector
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../packages/9-public/@prisma/orm-postgres
       '@prisma/orm-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../packages/9-public/@prisma/orm-sqlite
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../utils
       arktype:
         specifier: 'catalog:'
         version: 2.2.3
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../packages/0-config/tsconfig
       '@types/node':
         specifier: 'catalog:'
@@ -4998,13 +4998,13 @@ importers:
   test/e2e/framework/test/fixtures:
     dependencies:
       '@prisma/orm-extension-arktype-json':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../packages/9-public/@prisma/orm-extension-arktype-json
       '@prisma/orm-extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../packages/9-public/@prisma/orm-extension-pgvector
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../packages/9-public/@prisma/orm-postgres
       arktype:
         specifier: 'catalog:'
@@ -5013,173 +5013,173 @@ importers:
   test/e2e/framework/test/sqlite/fixtures:
     dependencies:
       '@prisma/orm-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-sqlite
 
   test/integration:
     dependencies:
       '@internal/adapter-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-mongo-target/2-mongo-adapter
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-targets/6-adapters/postgres
       '@internal/adapter-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-targets/6-adapters/sqlite
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/3-tooling/cli
       '@internal/config-loader':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/3-tooling/config-loader
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/0-foundation/contract
       '@internal/driver-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-mongo-target/3-mongo-driver
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-targets/7-drivers/postgres
       '@internal/driver-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-targets/7-drivers/sqlite
       '@internal/emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/3-tooling/emitter
       '@internal/extension-arktype-json':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/arktype-json
       '@internal/extension-paradedb':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/paradedb
       '@internal/extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/pgvector
       '@internal/extension-supabase':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/supabase
       '@internal/family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/9-family
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/9-family
       '@internal/ids':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/2-authoring/ids
       '@internal/migration-tools':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/3-tooling/migration
       '@internal/mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/mongo
       '@internal/mongo-codec':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/1-foundation/mongo-codec
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/1-foundation/mongo-contract
       '@internal/mongo-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/2-authoring/contract-psl
       '@internal/mongo-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/2-authoring/contract-ts
       '@internal/mongo-orm':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/5-query-builders/orm
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/4-query/query-ast
       '@internal/mongo-query-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/5-query-builders/query-builder
       '@internal/mongo-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/7-runtime
       '@internal/mongo-value':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/1-foundation/mongo-value
       '@internal/operations':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/1-core/operations
       '@internal/postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/postgres
       '@internal/psl-parser':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/2-authoring/psl-parser
       '@internal/psl-printer':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/2-authoring/psl-printer
       '@internal/sql-builder':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/4-lanes/sql-builder
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/1-core/contract
       '@internal/sql-contract-emitter':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/3-tooling/emitter
       '@internal/sql-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/2-authoring/contract-psl
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/2-authoring/contract-ts
       '@internal/sql-errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/1-core/errors
       '@internal/sql-orm-client':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/sql-orm-client
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/4-lanes/relational-core
       '@internal/sql-runtime':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/5-runtime
       '@internal/sql-schema-ir':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-sql/1-core/schema-ir
       '@internal/sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/sqlite
       '@internal/target-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-mongo-target/1-mongo-target
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-targets/3-targets/postgres
       '@internal/target-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-targets/3-targets/sqlite
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/0-foundation/utils
       '@internal/vite-plugin-contract-emit':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/3-tooling/vite-plugin-contract-emit
       arktype:
         specifier: 'catalog:'
         version: 2.2.3
     devDependencies:
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/1-core/framework-components
       '@internal/middleware-cache':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/3-extensions/middleware-cache
       '@internal/mongo-lowering':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/2-mongo-family/6-transport/mongo-lowering
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@types/pg':
         specifier: 'catalog:'
@@ -5221,76 +5221,76 @@ importers:
   test/integration/test/cli-journeys:
     dependencies:
       '@prisma/orm-extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../packages/9-public/@prisma/orm-extension-pgvector
       '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../packages/9-public/@prisma/orm-mongo
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../packages/9-public/@prisma/orm-postgres
 
   test/integration/test/fixtures/cli/cli-e2e-test-app:
     dependencies:
       '@internal/adapter-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-mongo-target/2-mongo-adapter
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-targets/6-adapters/postgres
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/1-framework/3-tooling/cli
       '@internal/driver-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-mongo-target/3-mongo-driver
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-targets/7-drivers/postgres
       '@internal/family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-mongo-family/9-family
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/1-framework/1-core/framework-components
       '@internal/mongo-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-mongo-family/1-foundation/mongo-contract
       '@internal/mongo-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-mongo-family/2-authoring/contract-ts
       '@internal/mongo-orm':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-mongo-family/5-query-builders/orm
       '@internal/mongo-query-ast':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-mongo-family/4-query/query-ast
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-sql/2-authoring/contract-ts
       '@internal/target-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-mongo-target/1-mongo-target
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-targets/3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/1-framework/0-foundation/utils
       '@prisma/orm-extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-extension-pgvector
       '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-mongo
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-postgres
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-toolchain
       mongodb:
         specifier: 'catalog:'
@@ -5302,67 +5302,67 @@ importers:
   test/integration/test/fixtures/cli/cli-integration-test-app:
     dependencies:
       '@internal/adapter-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-mongo-target/2-mongo-adapter
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-targets/6-adapters/postgres
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/1-framework/3-tooling/cli
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/1-framework/0-foundation/contract
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-targets/7-drivers/postgres
       '@internal/family-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-mongo-family/9-family
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-sql/9-family
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/1-framework/1-core/framework-components
       '@internal/mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-extensions/mongo
       '@internal/mongo-contract-psl':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-mongo-family/2-authoring/contract-psl
       '@internal/mongo-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-mongo-family/2-authoring/contract-ts
       '@internal/postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-extensions/postgres
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-sql/1-core/contract
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-sql/2-authoring/contract-ts
       '@internal/target-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-mongo-target/1-mongo-target
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-targets/3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/1-framework/0-foundation/utils
       '@prisma/orm-extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-extension-pgvector
       '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-mongo
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-postgres
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-toolchain
       '@types/node':
         specifier: 'catalog:'
@@ -5377,31 +5377,31 @@ importers:
   test/integration/test/fixtures/cli/cli-test-app:
     dependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-targets/6-adapters/postgres
       '@internal/cli':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/1-framework/3-tooling/cli
       '@internal/family-sql':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-sql/9-family
       '@internal/sql-contract-ts':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/2-sql/2-authoring/contract-ts
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/3-targets/3-targets/postgres
       '@prisma/orm-extension-pgvector':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-extension-pgvector
       '@prisma/orm-mongo':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-mongo
       '@prisma/orm-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-postgres
       '@prisma/orm-toolchain':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../../../packages/9-public/@prisma/orm-toolchain
       pg:
         specifier: 'catalog:'
@@ -5410,20 +5410,20 @@ importers:
   test/utils:
     dependencies:
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/0-foundation/contract
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/1-framework/0-foundation/utils
     devDependencies:
       '@prisma/dev':
         specifier: 'catalog:'
         version: 0.25.1(typescript@5.9.3)(vite@8.1.0(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../packages/0-config/tsdown
       '@types/pg':
         specifier: 'catalog:'
