@@ -1,141 +1,105 @@
 # Package Naming Conventions
 
-This document defines the relationship between the repository directory layout and published package names.
+This document defines the relationship between the repository directory layout, workspace package names, and the published npm surface. The published surface itself is decided in [ADR 242](../architecture%20docs/adrs/ADR%20242%20-%20Public%20npm%20surface%20-%20single%20%40prisma%20scope%20with%20consolidated%20publish%20packages.md); this page records the conventions that implement it.
 
-## Directory Structure
+## Three scopes
+
+Every workspace package belongs to exactly one scope, and the scope tells you its audience:
+
+| Scope | Audience | Published? | Where |
+|---|---|---|---|
+| `@prisma/*` | Users. The supported public API. | Yes — the only published scope | `packages/9-public/@prisma/*` |
+| `@internal/*` | This repository. ORM implementation packages. | No — `private: true`; code reaches npm only bundled inside published packages | `packages/{0-shared,1-framework,2-*,3-*}/**` |
+| `@repo/*` | This repository. Build/tooling config consumed by other workspace packages (tsconfig, tsdown presets). | No | `packages/0-config/*` |
+
+Two things intentionally fall outside the scopes: the unscoped **`prisma-next`** bin shim (published; a launcher whose only dependency is `@prisma/orm-toolchain` — see [ADR 211](../architecture%20docs/adrs/ADR%20211%20-%20prisma-next%20bin-only%20distribution.md) as amended), and the private example/app/test packages, which use bare directory names.
+
+## The published surface
+
+17 packages publish, all in lockstep at the workspace version:
+
+- **3 database facades** — `@prisma/orm-postgres`, `@prisma/orm-sqlite`, `@prisma/orm-mongo`. An application depends on exactly one; everything else arrives as its exact-pinned dependencies.
+- **6 extension packs** — `@prisma/orm-extension-{postgis,pgvector,paradedb,supabase,arktype-json,middleware-cache}`, peer-depending on their target package.
+- **7 platform packages** — `@prisma/orm-framework`, `@prisma/orm-toolchain`, `@prisma/orm-family-sql`, `@prisma/orm-family-mongo`, `@prisma/orm-target-{postgres,sqlite,mongo}`. These are shells: each bundles a set of `@internal/*` packages and re-exposes them as subpath entrypoints (e.g. `packages/2-sql/5-runtime` → `@prisma/orm-family-sql/runtime`).
+- **1 bin shim** — `prisma-next`.
+
+**Publishability is a directory property.** Everything under `packages/9-public/` is publishable and nothing else is; `pnpm lint:publishability` enforces both directions. One module lives in exactly one published package — shells re-export, never copy — so `instanceof` and shared-registry identity hold across package boundaries.
+
+The canonical internal-package → shell-entrypoint mapping is code, not prose: [`packages/0-shared/publish-surface/src/shells.ts`](../../packages/0-shared/publish-surface/src/shells.ts). Emitters and generators resolve published import specifiers through it; do not hand-maintain a copy of that table here or anywhere else.
+
+## Directory structure
 
 The repository uses numbered prefixes in directory names to reflect the architecture hierarchy:
 
-```
+```text
 packages/
+  0-config/              # @repo/* build config (tsconfig, tsdown)
+  0-shared/              # Cross-cutting internal packages (publish-surface, extension-author-tools)
   1-framework/           # Domain 1: Framework (target-agnostic)
     0-foundation/        # Layer 0: Foundation
     1-core/              # Layer 1: Core
     2-authoring/         # Layer 2: Authoring
     3-tooling/           # Layer 3: Tooling
-  2-document/            # Domain 2: Document (placeholder)
   2-mongo-family/        # Domain 2: Mongo family
   2-sql/                 # Domain 2: SQL family
-    1-core/              # Layer 1: Core
-    2-authoring/         # Layer 2: Authoring
-    3-tooling/           # Layer 3: Tooling
-    4-lanes/             # Layer 4: Lanes
-    5-runtime/           # Layer 5: Runtime
+  3-extensions/          # Domain 3: Extensions (internal sources of the extension packs)
   3-mongo-target/        # Domain 3: Mongo target packages
-  3-extensions/          # Domain 3: Extensions
-  3-targets/             # Domain 3: Targets
-    3-targets/           # Layer 3: Target descriptors
-    6-adapters/          # Layer 6: Adapters
-    7-drivers/           # Layer 7: Drivers
+  3-targets/             # Domain 3: SQL targets (descriptors, adapters, drivers)
+  9-public/              # The published surface — every publishable package, nothing else
+    @prisma/*            # The 17 @prisma packages (16 dirs) …
+    prisma-next/         # … plus the unscoped bin shim
 ```
 
 The numbered prefixes serve two purposes:
-1. **Visual hierarchy**: Makes domain/layer relationships clear at a glance
-2. **Dependency direction**: Lower numbers can be imported by higher numbers, never the reverse
 
-Planes are a conceptual grouping recorded in `architecture.config.json` but do not appear as intermediate subdirectories.
+1. **Visual hierarchy**: domain/layer relationships are clear at a glance.
+2. **Dependency direction**: lower numbers can be imported by higher numbers, never the reverse.
 
-## Naming Rules
+Planes are a conceptual grouping recorded in `architecture.config.json` and do not appear as directories.
 
-- Use the published package name as the only import specifier. The directory layout is for humans and guardrails.
-- Encode target family with a family-specific prefix such as `sql-` or `mongo-` for discoverability.
+## Naming rules for internal packages
+
+- Use the workspace package name as the only import specifier. The directory layout is for humans and guardrails.
+- Encode target family with a family prefix such as `sql-` or `mongo-` for discoverability (`@internal/sql-runtime`, `@internal/mongo-orm`).
 - Collapse nested dirs to hyphenated names; no slashes after the scope.
-- Keep conventional names for adapters/drivers (e.g., `@internal/adapter-postgres`, `@internal/driver-postgres`) even when nested under `packages/3-targets/**`.
+- Keep conventional names for adapters/drivers (`@internal/adapter-postgres`, `@internal/driver-postgres`) even when nested under `packages/3-targets/**`.
 - Layers (core/authoring/tooling/lanes/runtime/adapters) constrain dependency direction and generally do not appear in package names.
+- The retired legacy scope (the pre-ADR-242 published name) must not reappear anywhere; `pnpm lint:legacy-name` enforces zero occurrences outside allowlisted historical documents.
 
-## Path → Package Name Examples
+## Path → package name examples
 
-**Framework Domain:**
+A representative sample (the source of truth is each directory's `package.json`; all `@internal/*` and `@repo/*` rows are `private: true`):
 
-| Directory | Package Name |
+| Directory | Package name |
 |-----------|--------------|
+| `packages/0-config/tsdown/` | `@repo/tsdown` |
+| `packages/0-shared/publish-surface/` | `@internal/publish-surface` |
 | `packages/1-framework/0-foundation/contract/` | `@internal/contract` |
-| `packages/1-framework/1-core/operations/` | `@internal/operations` |
 | `packages/1-framework/1-core/framework-components/` | `@internal/framework-components` |
-| `packages/1-framework/1-core/errors/` | `@internal/errors` |
-| `packages/1-framework/1-core/config/` | `@internal/config` |
 | `packages/1-framework/2-authoring/contract/` | `@internal/contract-authoring` |
-| `packages/1-framework/2-authoring/psl-parser/` | `@internal/psl-parser` |
 | `packages/1-framework/3-tooling/cli/` | `@internal/cli` |
-| `packages/9-public/prisma-next/` | `prisma-next` (bin-only shim — see [ADR 211](../architecture%20docs/adrs/ADR%20211%20-%20prisma-next%20bin-only%20distribution.md)) |
-| `packages/1-framework/3-tooling/emitter/` | `@internal/emitter` |
-
-**SQL Domain:**
-
-| Directory | Package Name |
-|-----------|--------------|
 | `packages/2-sql/1-core/contract/` | `@internal/sql-contract` |
-| `packages/2-sql/1-core/operations/` | `@internal/sql-operations` |
-| `packages/2-sql/1-core/schema-ir/` | `@internal/sql-schema-ir` |
-| `packages/2-sql/2-authoring/contract-ts/` | `@internal/sql-contract-ts` |
-| `packages/2-sql/3-tooling/emitter/` | `@internal/sql-contract-emitter` |
-| `packages/2-sql/3-tooling/family/` | `@internal/family-sql` |
-| `packages/2-sql/4-lanes/relational-core/` | `@internal/sql-relational-core` |
-| `packages/2-sql/4-lanes/sql-lane/` | `@internal/sql-lane` |
 | `packages/2-sql/5-runtime/` | `@internal/sql-runtime` |
-
-**Mongo Family Domain:**
-
-| Directory | Package Name |
-|-----------|--------------|
-| `packages/2-mongo-family/1-foundation/mongo-contract/` | `@internal/mongo-contract` |
-| `packages/2-mongo-family/2-authoring/contract-psl/` | `@internal/mongo-contract-psl` |
-| `packages/2-mongo-family/2-authoring/contract-ts/` | `@internal/mongo-contract-ts` |
-| `packages/2-mongo-family/3-tooling/emitter/` | `@internal/mongo-emitter` |
-| `packages/2-mongo-family/4-query/query-ast/` | `@internal/mongo-query-ast` |
+| `packages/2-sql/9-family/` | `@internal/family-sql` |
 | `packages/2-mongo-family/5-query-builders/orm/` | `@internal/mongo-orm` |
-| `packages/2-mongo-family/5-query-builders/query-builder/` | `@internal/mongo-query-builder` |
-| `packages/2-mongo-family/6-transport/mongo-lowering/` | `@internal/mongo-lowering` |
-| `packages/2-mongo-family/6-transport/mongo-wire/` | `@internal/mongo-wire` |
-| `packages/2-mongo-family/7-runtime/` | `@internal/mongo-runtime` |
-| `packages/2-mongo-family/9-family/` | `@internal/family-mongo` |
-
-**Mongo Target Domain:**
-
-| Directory | Package Name |
-|-----------|--------------|
-| `packages/3-mongo-target/1-mongo-target/` | `@internal/target-mongo` |
-| `packages/3-mongo-target/2-mongo-adapter/` | `@internal/adapter-mongo` |
-| `packages/3-mongo-target/3-mongo-driver/` | `@internal/driver-mongo` |
-
-**Targets Domain:**
-
-| Directory | Package Name |
-|-----------|--------------|
-| `packages/3-targets/3-targets/postgres/` | `@internal/target-postgres` |
+| `packages/3-extensions/postgres/` | `@internal/postgres` (source of the `@prisma/orm-postgres` facade) |
+| `packages/3-extensions/pgvector/` | `@internal/extension-pgvector` (source of `@prisma/orm-extension-pgvector`) |
 | `packages/3-targets/6-adapters/postgres/` | `@internal/adapter-postgres` |
-| `packages/3-targets/7-drivers/postgres/` | `@internal/driver-postgres` |
+| `packages/9-public/@prisma/orm-postgres/` | `@prisma/orm-postgres` |
+| `packages/9-public/prisma-next/` | `prisma-next` |
 
-**Extensions Domain:**
+## Workspace dependencies
 
-| Directory | Package Name |
-|-----------|--------------|
-| `packages/3-extensions/pgvector/` | `@internal/extension-pgvector` |
-
-## Workspace Dependencies
-
-Every import from another `@internal/*` package requires an explicit `workspace:*` dependency in `package.json`. TypeScript resolves imports through `node_modules` symlinks created by pnpm.
-
-### Adding a Dependency
+Every import from another workspace package requires an explicit dependency in `package.json`. Internal consumers use `workspace:*`; published packages pin exact lockstep versions (`workspace:<version>`), which `pnpm publish` rewrites to the literal version — the reason only `pnpm publish` (never a raw registry client) may pack these packages.
 
 ```bash
 # From the package directory
 pnpm add @internal/some-package@workspace:*
 ```
 
-Or manually add to `package.json` (keep alphabetical order):
-
-```json
-{
-  "dependencies": {
-    "@internal/some-package": "workspace:*"
-  }
-}
-```
-
 Then run `pnpm install` from the repository root to update the lockfile.
 
-### Subpath Exports
+### Subpath exports
 
 Packages expose specific entrypoints via the `exports` field. Import from these subpaths, not internal file paths:
 
@@ -147,17 +111,23 @@ import { createRuntime } from '@internal/adapter-postgres/runtime';
 import { createRuntime } from '@internal/adapter-postgres/dist/exports/runtime';
 ```
 
-## Workspace Globs (pnpm)
+## Workspace globs (pnpm)
 
 ```yaml
 packages:
   - packages/**
   - examples/*
+  - apps/*
   - test/**
+  - '!**/dist-*'
 ```
 
 ## Enforcement
 
-- Use `scripts/check-imports.mjs` with `architecture.config.json` to enforce dependency direction: `core → authoring → tooling → lanes → runtime → adapters`.
-- The import validation script enforces domain/layer/plane rules: same-layer imports allowed, downward imports allowed, upward imports denied, cross-domain imports denied except framework domain, migration→runtime imports denied, runtime→migration imports allowed for artifacts only.
-- Numbered directory prefixes provide visual reinforcement of dependency direction.
+Every convention above has a check; run them locally before relying on CI:
+
+- `pnpm lint:deps` — dependency direction and domain/layer/plane rules (dependency-cruiser + `architecture.config.json`), framework/target import rules, single-import-root rule for consumer projects.
+- `pnpm lint:publishability` — publishability matches the directory layout, both directions.
+- `pnpm lint:manifests` — every publishable package declares `license: Apache-2.0`, the canonical `repository` object (npm provenance verification rejects tarballs without it), and the TypeScript optional peer.
+- `pnpm lint:legacy-name` — zero occurrences of the retired name outside allowlisted historical documents.
+- `pnpm check:publish-deps` — packed tarballs leak no `workspace:`/`catalog:` specifiers, no un-pinned internal names, no undeclared declaration-file dependencies.

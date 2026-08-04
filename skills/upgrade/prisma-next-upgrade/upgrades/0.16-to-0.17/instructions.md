@@ -2,6 +2,40 @@
 from: "0.16"
 to: "0.17"
 changes:
+  - id: one-prisma-package-per-application
+    summary: |
+      Do this first — nothing else in this upgrade can run until the project installs. From
+      0.17 the `@prisma-next/*` scope is retired: nothing publishes under it again, so a
+      manifest that still names it fails at install. The public surface is the `@prisma`
+      scope, and an application depends on exactly ONE database facade —
+      `@prisma/orm-postgres`, `@prisma/orm-sqlite`, or `@prisma/orm-mongo` — plus any
+      extension packs it uses, which remain direct dependencies. Everything else that used
+      to be a separate dependency (framework, family, target, adapter, driver, CLI) arrives
+      transitively as the facade's exact-pinned dependencies. In `package.json`: delete
+      EVERY `@prisma-next/*` entry across dependencies/devDependencies/peerDependencies,
+      add the one facade for your database, and keep your extension packs — renamed
+      (`@prisma-next/extension-<x>` → `@prisma/orm-extension-<x>`; the middleware cache is
+      `@prisma/orm-extension-middleware-cache`). Drop the `prisma-next` devDependency if you
+      have one — the facade provides the `prisma-next` bin; the standalone `prisma-next`
+      package remains only as the bootstrap path for projects with no Prisma dependencies
+      yet. Reinstall, then regenerate your contract artefacts (`prisma-next contract emit`):
+      generated files now import facade entrypoints (e.g. `@prisma/orm-postgres/components`)
+      instead of old-scope package names. The `contractHash` is unchanged by regeneration —
+      `prisma-next db verify` passes with no database work. Finally rewrite hand-written
+      imports: same-package entrypoints keep their subpath under the facade
+      (`@prisma-next/postgres/config` → `@prisma/orm-postgres/config`, likewise `/runtime`,
+      `/target`, `/family`, `/migration`, `/control`, …); programmatic tooling imports
+      (`@prisma-next/cli/*`, `@prisma-next/config-loader`, `@prisma-next/migration-tools/*`,
+      `@prisma-next/emitter`) move to the matching `@prisma/orm-toolchain/*` subpath
+      (`@prisma/orm-toolchain/cli/config-types`, `/cli/control-api`, `/config-loader`,
+      `/migration-tools/<subpath>`, `/emitter`). The rule for every rewrite: import only
+      from packages your manifest names directly — the facade, your extension packs, and
+      (for tooling authors) `@prisma/orm-toolchain`.
+    detection:
+      glob: "**/*.{json,ts,tsx,mts,cts,js,mjs,cjs}"
+      contains:
+        - '@prisma-next/'
+      anyMatch: true
   - id: strip-sha256-hash-prefixes
     summary: |
       Content hashes are bare lowercase hex from 0.17 — the `sha256:` prefix is gone from every
