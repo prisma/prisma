@@ -97,6 +97,7 @@ import {
 } from './query-plan';
 import {
   type AggregateBuilder,
+  type AggregateFieldNames,
   type AggregateFieldResultFor,
   type AggregateResult,
   type AggregateResultFor,
@@ -116,7 +117,6 @@ import {
   type MutationCreateInput,
   type MutationCreateInputWithRelations,
   type MutationUpdateInput,
-  type NumericFieldNames,
   type RelatedModelName,
   type RelationTargetNamespace,
   type ResolvedCreateInput,
@@ -748,16 +748,14 @@ export class Collection<
    * // each user row: { ...user, posts: bigint | null } — an int4 column's sum widens to int8
    * ```
    */
-  sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', State['nsId']>>(
     field: FieldName,
-  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName>> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, State['nsId']>> {
     this.#assertIncludeRefinementMode('sum()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName>>(
-      'sum',
-      this.state,
-      columnName,
-    );
+    return createIncludeScalar<
+      AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, State['nsId']>
+    >('sum', this.state, columnName);
   }
 
   /**
@@ -771,16 +769,14 @@ export class Collection<
    * // each user row: { ...user, posts: string | null } — PostgreSQL averages integers as numeric
    * ```
    */
-  avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', State['nsId']>>(
     field: FieldName,
-  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName>> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, State['nsId']>> {
     this.#assertIncludeRefinementMode('avg()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName>>(
-      'avg',
-      this.state,
-      columnName,
-    );
+    return createIncludeScalar<
+      AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, State['nsId']>
+    >('avg', this.state, columnName);
   }
 
   /**
@@ -793,16 +789,14 @@ export class Collection<
    * const users = await db.orm.User.include('posts', (posts) => posts.min('views')).all();
    * ```
    */
-  min<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', State['nsId']>>(
     field: FieldName,
-  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName>> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, State['nsId']>> {
     this.#assertIncludeRefinementMode('min()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName>>(
-      'min',
-      this.state,
-      columnName,
-    );
+    return createIncludeScalar<
+      AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, State['nsId']>
+    >('min', this.state, columnName);
   }
 
   /**
@@ -815,16 +809,14 @@ export class Collection<
    * const users = await db.orm.User.include('posts', (posts) => posts.max('views')).all();
    * ```
    */
-  max<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', State['nsId']>>(
     field: FieldName,
-  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName>> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, State['nsId']>> {
     this.#assertIncludeRefinementMode('max()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName>>(
-      'max',
-      this.state,
-      columnName,
-    );
+    return createIncludeScalar<
+      AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, State['nsId']>
+    >('max', this.state, columnName);
   }
 
   /**

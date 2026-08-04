@@ -573,7 +573,18 @@ describe('compileSelectWithIncludes', () => {
       ];
       for (const [fn, expected, resultCodecId] of reducers) {
         const { collection } = createCollection();
-        const state = collection.include('posts', (posts) => posts[fn]('views')).state;
+        const state = collection.include('posts', (posts) => {
+          switch (fn) {
+            case 'sum':
+              return posts.sum('views');
+            case 'avg':
+              return posts.avg('views');
+            case 'min':
+              return posts.min('views');
+            case 'max':
+              return posts.max('views');
+          }
+        }).state;
         const plan = compileSelectWithIncludes(
           baseContract,
           getTestAggregates(),

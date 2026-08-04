@@ -10,9 +10,16 @@
  */
 
 import type { TypeMapsPhantomKey } from '@internal/sql-contract/types';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { expectTypeOf, test } from 'vitest';
-import type { AggregateBuilder, AggregateSelector, HavingBuilder } from '../src/types';
-import type { TestContract } from './helpers';
+import { Collection } from '../src/collection';
+import type {
+  AggregateBuilder,
+  AggregateSelector,
+  HavingBuilder,
+  IncludeScalar,
+} from '../src/types';
+import { createMockRuntime, type TestContract } from './helpers';
 
 declare const agg: AggregateBuilder<TestContract, 'User'>;
 declare const having: HavingBuilder<TestContract, 'User'>;
@@ -94,4 +101,35 @@ test('each namespace facet resolves its own column codec for the same field name
   expectTypeOf(publicAgg.sum('id')).toEqualTypeOf<AggregateSelector<bigint | null>>();
   // auth User.id is pg/float8@1, whose sum stays pg/float8@1 (number).
   expectTypeOf(authAgg.sum('id')).toEqualTypeOf<AggregateSelector<number | null>>();
+});
+
+// The include scalar reducers read the same declaration surface as the
+// top-level builder: what a refinement admits is what the contract's
+// aggregate map declares for the related model's fields.
+const runtime = createMockRuntime();
+const executionContext = {} as ExecutionContext<TestContract>;
+const users = new Collection({ runtime, context: executionContext }, 'User', {
+  namespaceId: 'public',
+});
+
+test('include reducers admit a declared textual extremum with its declared result', () => {
+  users.include('posts', (posts) => {
+    expectTypeOf(posts.min('title')).toEqualTypeOf<IncludeScalar<string | null>>();
+    return posts.max('title');
+  });
+});
+
+test('include reducers read the declared widened result for a numeric sum', () => {
+  users.include('posts', (posts) => {
+    // Post.views is pg/int4@1, whose sum widens to pg/int8@1 (bigint).
+    expectTypeOf(posts.sum('views')).toEqualTypeOf<IncludeScalar<bigint | null>>();
+    return posts.sum('views');
+  });
+});
+
+test('include reducers reject a pair the target never declared', () => {
+  users.include('posts', (posts) => {
+    // @ts-expect-error — the target declares no sum over pg/text@1
+    return posts.sum('title');
+  });
 });
