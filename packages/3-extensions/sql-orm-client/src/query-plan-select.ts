@@ -35,7 +35,7 @@ import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { assertDefined, invariant } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
-import { assertNever, InternalError } from '@internal/utils/internal-error';
+import { InternalError } from '@internal/utils/internal-error';
 import { resolveAggregate } from './aggregate-codecs';
 import {
   getCompleteColumnToFieldMap,
@@ -1374,34 +1374,13 @@ function buildIncludeAggregateExpr(
   lower: SqlAggregateLowering | undefined,
   inputCodec: CodecRef | undefined,
 ): AnyExpression {
-  if (scalar.fn === 'count') {
-    // A count over rows has no value to carry a codec, so the lowering is told
-    // as much rather than told nothing.
-    return lower !== undefined ? lower({ expr: undefined, inputCodec }) : AggregateExpr.count();
-  }
-  if (scalar.column === undefined) {
-    throw ormError(
-      'ORM.AGGREGATE_SELECTOR_INVALID',
-      `Aggregate selector "${scalar.fn}" requires a column`,
-      {
-        meta: { fn: scalar.fn },
-      },
-    );
-  }
-  const columnRef = ColumnRef.of(childTableRef, scalar.column);
-  if (lower !== undefined) return lower({ expr: columnRef, inputCodec });
-  switch (scalar.fn) {
-    case 'sum':
-      return AggregateExpr.sum(columnRef);
-    case 'avg':
-      return AggregateExpr.avg(columnRef);
-    case 'min':
-      return AggregateExpr.min(columnRef);
-    case 'max':
-      return AggregateExpr.max(columnRef);
-    default:
-      return assertNever(scalar.fn);
-  }
+  // A call without a column has no value to carry a codec, so the lowering is
+  // told as much rather than told nothing. Whether the operation answers such
+  // a call at all was the descriptor's to declare — resolution already failed
+  // any pair the target does not answer.
+  const expr = scalar.column === undefined ? undefined : ColumnRef.of(childTableRef, scalar.column);
+  if (lower !== undefined) return lower({ expr, inputCodec });
+  return new AggregateExpr(scalar.fn, expr);
 }
 
 /**

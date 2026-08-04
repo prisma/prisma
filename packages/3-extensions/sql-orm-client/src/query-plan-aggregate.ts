@@ -30,21 +30,14 @@ function toAggregateProjection(
   tableName: string,
   selector: AggregateSelector<unknown>,
 ): { expr: AnyExpression; codec: CodecRef | undefined } {
-  if (selector.fn !== 'count' && !selector.column) {
-    throw ormError(
-      'ORM.AGGREGATE_SELECTOR_INVALID',
-      `Aggregate selector "${selector.fn}" requires a field`,
-      {
-        meta: { fn: selector.fn },
-      },
-    );
-  }
-
   // The result's codec is the target's to declare: `count` is a wide integer,
   // `sum` widens or preserves per input, and `min`/`max` keep the column's own
   // codec — all of which the aggregate registry answers per operation and input.
-  // A target that also needs the result rendered a particular way says so with a
-  // lowering, which builds the expression in place of the plain call.
+  // Whether an operation answers a call without an input is equally the
+  // descriptor's to declare: a selector with no column resolves through the
+  // no-input rung and fails there when the target declares none. A target that
+  // also needs the result rendered a particular way says so with a lowering,
+  // which builds the expression in place of the plain call.
   const {
     codec,
     input: inputCodec,
@@ -63,9 +56,7 @@ function toAggregateProjection(
   const expr =
     lower !== undefined
       ? lower({ expr: inputExpr, inputCodec })
-      : inputExpr === undefined
-        ? AggregateExpr.count()
-        : new AggregateExpr(selector.fn, inputExpr);
+      : new AggregateExpr(selector.fn, inputExpr);
 
   return { expr, codec };
 }

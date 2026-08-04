@@ -57,11 +57,13 @@ describe('query plan aggregate', () => {
     expect(() =>
       compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {}),
     ).toThrow('aggregate() requires at least one aggregation selector');
+    // Whether an operation answers a call without an input is the descriptor's
+    // to declare; the target declares no such overload for sum.
     expect(() =>
       compileAggregate(baseContract, getTestAggregates(), 'public', 'posts', [], {
         totalViews: { kind: 'aggregate', fn: 'sum' },
       }),
-    ).toThrow('Aggregate selector "sum" requires a field');
+    ).toThrow("The composed target declares no 'sum' aggregate for a call without an input");
 
     expect(() =>
       compileGroupedAggregate(
