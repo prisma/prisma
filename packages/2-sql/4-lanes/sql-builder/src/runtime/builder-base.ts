@@ -40,6 +40,7 @@ import type {
   ScopeField,
   ScopeTable,
 } from '../scope';
+import { projectionAstOf } from './expression-impl';
 import { createFieldProxy } from './field-proxy';
 import { createAggregateFunctions, createFunctions } from './functions';
 
@@ -328,7 +329,7 @@ export function resolveSelectArgs(
     );
     const result = exprFn(createFieldProxy(scope), fns);
     const field = result.returnType;
-    projections.push(ProjectionItem.of(alias, result.buildAst(), field.codec));
+    projections.push(ProjectionItem.of(alias, projectionAstOf(result), field.codec));
     newRowFields[alias] = field;
     return { projections, newRowFields };
   }
@@ -346,7 +347,7 @@ export function resolveSelectArgs(
     const record = callbackFn(createFieldProxy(scope), fns);
     for (const [key, expr] of Object.entries(record)) {
       const field = expr.returnType;
-      projections.push(ProjectionItem.of(key, expr.buildAst(), field.codec));
+      projections.push(ProjectionItem.of(key, projectionAstOf(expr), field.codec));
       newRowFields[key] = field;
     }
     return { projections, newRowFields };

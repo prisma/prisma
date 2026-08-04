@@ -135,6 +135,12 @@ function inOrNotIn(
  * and may want the result rendered a particular way. All three come from the
  * registry, and the result carries the codec it declared so decoding resolves
  * through the ordinary path.
+ *
+ * The declared rendering (`lower`) exists to carry the value across the driver
+ * boundary — a projection concern. It is carried beside the plain form so only
+ * the projection site consumes it; HAVING and ORDER BY compare the value inside
+ * the database, where the rendering would change SQL semantics (SQLite's
+ * `CAST(count(*) AS TEXT)` compares and sorts lexicographically).
  */
 function aggregate(
   aggregates: SqlAggregateDescriptorRegistry,
@@ -146,10 +152,8 @@ function aggregate(
   const resolved = aggregates.resolve(fn, inputCodec);
   const inputAst = expr?.buildAst();
 
-  const ast =
-    resolved?.lower !== undefined
-      ? resolved.lower({ expr: inputAst, inputCodec })
-      : new AggregateExpr(fn, inputAst);
+  const ast = new AggregateExpr(fn, inputAst);
+  const projectionAst = resolved?.lower?.({ expr: inputAst, inputCodec });
 
   // An operation the target declares no overload for carries no codec: the
   // value reads back as the driver hands it over, which is honest, where naming
@@ -159,11 +163,16 @@ function aggregate(
   // `codecId` keeps the input's, since operator gating still has to say
   // something about the expression's shape.
   const output = resolved?.output;
-  return new ExpressionImpl(ast, {
-    codecId: output?.codecId ?? field?.codecId ?? 'unknown',
-    nullable: resolved?.nullable ?? true,
-    ...ifDefined('codec', output),
-  });
+  return new ExpressionImpl(
+    ast,
+    {
+      codecId: output?.codecId ?? field?.codecId ?? 'unknown',
+      nullable: resolved?.nullable ?? true,
+      ...ifDefined('codec', output),
+    },
+    undefined,
+    projectionAst,
+  );
 }
 
 function createBuiltinFunctions(rawCodecInferer: RawCodecInferer) {
