@@ -711,10 +711,10 @@ export class Collection<
    */
   groupBy<
     Fields extends readonly [
-      keyof DefaultModelRow<TContract, ModelName> & string,
-      ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
+      keyof DefaultModelRow<TContract, ModelName, State['nsId']> & string,
+      ...(keyof DefaultModelRow<TContract, ModelName, State['nsId']> & string)[],
     ],
-  >(...fields: Fields): GroupedCollection<TContract, ModelName, Fields> {
+  >(...fields: Fields): GroupedCollection<TContract, ModelName, Fields, State['nsId']> {
     const groupByColumns = mapFieldsToColumns(
       this.contract,
       this.namespaceId,
@@ -1167,11 +1167,15 @@ export class Collection<
    * Annotations are merged into the compiled plan's `meta.annotations`.
    */
   async aggregate<Spec extends AggregateSpec>(
-    fn: (aggregate: AggregateBuilder<TContract, ModelName>) => Spec,
+    fn: (aggregate: AggregateBuilder<TContract, ModelName, State['nsId']>) => Spec,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<AggregateResult<Spec>> {
     const aggregateSpec = fn(
-      createAggregateBuilder(this.contract, this.namespaceId, this.modelName),
+      createAggregateBuilder<TContract, ModelName, State['nsId']>(
+        this.contract,
+        this.namespaceId,
+        this.modelName,
+      ),
     );
     const entries = Object.entries(aggregateSpec);
     if (entries.length === 0) {

@@ -66,3 +66,38 @@ test('count(expr) reads the anyInput row for an unclaimed input codec', () => {
     Expression<{ codecId: 'syn/count-of-any@1'; nullable: false }>
   >();
 });
+
+// A map that declares only `sum` over one exact codec, with no anyInput
+// fallback: every other operation/input pair is unavailable and must be a
+// call-site type error, not a broadly-typed expression.
+type SparseQC = Omit<QC, 'aggregateTypes'> & {
+  aggregateTypes: {
+    sum: {
+      byCodec: {
+        'syn/uuid@1': { output: 'syn/sum-of-uuid@1'; nullable: true };
+      };
+    };
+  };
+};
+declare const sparseFns: AggregateOnlyFunctions<SparseQC>;
+
+test('an input codec no row claims is rejected at the call site', () => {
+  // @ts-expect-error — no byCodec row for syn/text@1 and no anyInput fallback
+  sparseFns.sum(f.name);
+});
+
+test('an operation the map does not declare is rejected at the call site', () => {
+  // @ts-expect-error — the map declares no min rows at all
+  sparseFns.min(f.id);
+});
+
+test('count() without a withoutInput row is rejected at the call site', () => {
+  // @ts-expect-error — the map declares no count rows at all
+  sparseFns.count();
+});
+
+test('a declared pair still types through the sparse map', () => {
+  expectTypeOf(sparseFns.sum(f.id)).toEqualTypeOf<
+    Expression<{ codecId: 'syn/sum-of-uuid@1'; nullable: true }>
+  >();
+});

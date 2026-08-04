@@ -10,10 +10,12 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
+import { ifDefined } from '@internal/utils/defined';
+import { ormError } from './orm-errors';
 
 export interface ResolvedAggregate {
   /** The codec the result carries. */
-  readonly codec: CodecRef | undefined;
+  readonly codec: CodecRef;
   /** The codec of the value being aggregated, absent for an aggregate over rows. A lowering reads it to render per input where it must. */
   readonly input: CodecRef | undefined;
   /** Builds the expression, where the target declares one; absent means a plain aggregate call. */
@@ -34,16 +36,38 @@ export interface AggregateCodecQuery {
  * What an aggregate resolves to: the codec its result carries, and the expression the target wants built for it.
  *
  * An aggregate over a column resolves against that column's own codec, so a target that widens `sum` over small integers and preserves it over decimals answers differently per column without the caller knowing either rule. Where a target also needs the result rendered a particular way — a value its driver cannot otherwise carry — the descriptor's lowering says so, and the codec it declared stays the codec regardless.
+ *
+ * A pair the composed stack declares no overload for is rejected before any SQL is built: an undeclared aggregate has no result identity to project or decode, and executing it anyway would hand back the driver-native value the declared-codec path exists to replace.
  */
 export function resolveAggregate(query: AggregateCodecQuery): ResolvedAggregate {
   const input = inputCodecRef(query);
   const resolved = query.aggregates.resolve(query.fn, input);
-  return { codec: resolved?.output, input, lower: resolved?.lower };
+  if (resolved === undefined) throw unsupportedAggregate(query, input);
+  return { codec: resolved.output, input, lower: resolved.lower };
 }
 
-/** The codec an aggregate's result carries, or `undefined` when the composed stack declares no overload for it. */
-export function resolveAggregateOutputCodec(query: AggregateCodecQuery): CodecRef | undefined {
-  return query.aggregates.resolve(query.fn, inputCodecRef(query))?.output;
+/** The codec an aggregate's result carries. Rejects a pair the composed stack declares no overload for, exactly as planning does. */
+export function resolveAggregateOutputCodec(query: AggregateCodecQuery): CodecRef {
+  return resolveAggregate(query).codec;
+}
+
+function unsupportedAggregate(query: AggregateCodecQuery, input: CodecRef | undefined) {
+  return ormError(
+    'ORM.AGGREGATE_UNSUPPORTED',
+    input === undefined
+      ? `The composed target declares no '${query.fn}' aggregate for a call without an input.`
+      : `The composed target declares no '${query.fn}' aggregate over codec '${input.codecId}' (column '${query.column}' of table '${query.tableName}').`,
+    {
+      why: 'An aggregate result decodes through the codec its target declares; an undeclared pair has no declared result to type or decode.',
+      fix: `Aggregate a column the target declares '${query.fn}' for, or contribute an aggregate descriptor for this pair.`,
+      meta: {
+        operation: query.fn,
+        table: query.tableName,
+        ...ifDefined('column', query.column),
+        ...ifDefined('inputCodecId', input?.codecId),
+      },
+    },
+  );
 }
 
 /** The codec of the value being aggregated — the column's own, or none where the aggregate is over rows. */

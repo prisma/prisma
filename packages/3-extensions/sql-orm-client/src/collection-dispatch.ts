@@ -680,7 +680,6 @@ function decodeScalarIncludePayload(
     fn: scalar.fn,
     column: scalar.column,
   });
-  if (codecRef === undefined) return value;
 
   return decodeIncludedJsonValue(
     { table: include.relatedTableName, column: include.relationName },

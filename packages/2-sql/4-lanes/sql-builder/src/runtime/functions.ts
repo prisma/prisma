@@ -18,6 +18,7 @@ import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import { codecOf, createRawSql, toExpr } from '@internal/sql-relational-core/expression';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { ifDefined } from '@internal/utils/defined';
+import { structuredError } from '@internal/utils/structured-error';
 import type {
   AggregateFunctions,
   BooleanCodecType,
@@ -141,6 +142,12 @@ function inOrNotIn(
  * the projection site consumes it; HAVING and ORDER BY compare the value inside
  * the database, where the rendering would change SQL semantics (SQLite's
  * `CAST(count(*) AS TEXT)` compares and sorts lexicographically).
+ *
+ * A pair the target declares no overload for is rejected outright. The typed
+ * surface already makes it inexpressible; this backs that up for dynamic
+ * invocation, instead of executing SQL whose result no declaration types or
+ * decodes — SQLite's `sum` over text, which reads whatever leading numbers the
+ * rows happened to hold, is the shape of value that path would hand back.
  */
 function aggregate(
   aggregates: SqlAggregateDescriptorRegistry,
@@ -150,25 +157,30 @@ function aggregate(
   const field = expr?.returnType;
   const inputCodec = field === undefined ? undefined : (field.codec ?? { codecId: field.codecId });
   const resolved = aggregates.resolve(fn, inputCodec);
+  if (resolved === undefined) {
+    throw structuredError(
+      'ORM.AGGREGATE_UNSUPPORTED',
+      inputCodec === undefined
+        ? `The composed target declares no '${fn}' aggregate for a call without an input.`
+        : `The composed target declares no '${fn}' aggregate over codec '${inputCodec.codecId}'.`,
+      {
+        why: 'An aggregate result decodes through the codec its target declares; an undeclared pair has no declared result to type or decode.',
+        fix: `Aggregate an input the target declares '${fn}' for, or contribute an aggregate descriptor for this pair.`,
+        meta: { operation: fn, ...ifDefined('inputCodecId', inputCodec?.codecId) },
+      },
+    );
+  }
   const inputAst = expr?.buildAst();
 
   const ast = new AggregateExpr(fn, inputAst);
-  const projectionAst = resolved?.lower?.({ expr: inputAst, inputCodec });
+  const projectionAst = resolved.lower?.({ expr: inputAst, inputCodec });
 
-  // An operation the target declares no overload for carries no codec: the
-  // value reads back as the driver hands it over, which is honest, where naming
-  // the input's codec would claim the result decodes like its input. SQLite has
-  // pairs of exactly this kind — `sum` over text reads whatever leading numbers
-  // the rows happened to hold — and the claim would be false for every one.
-  // `codecId` keeps the input's, since operator gating still has to say
-  // something about the expression's shape.
-  const output = resolved?.output;
   return new ExpressionImpl(
     ast,
     {
-      codecId: output?.codecId ?? field?.codecId ?? 'unknown',
-      nullable: resolved?.nullable ?? true,
-      ...ifDefined('codec', output),
+      codecId: resolved.output.codecId,
+      nullable: resolved.nullable,
+      codec: resolved.output,
     },
     undefined,
     projectionAst,

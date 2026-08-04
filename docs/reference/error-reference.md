@@ -377,6 +377,10 @@ An `aggregate()` or `groupBy().aggregate()` selector is not a valid aggregation 
 
 `aggregate()` or `groupBy().aggregate()` was called with zero aggregation selectors; at least one is required. Meta: `method`, `model` (or `namespaceId`, `tableName`).
 
+### ORM.AGGREGATE_UNSUPPORTED
+
+An aggregate was invoked for an operation/input pair the composed target declares no descriptor for — an undeclared pair has no result identity to type or decode, so it is rejected before any SQL is built rather than executed into a driver-native value. Raised by ORM aggregate planning and decoding, and by the SQL-builder lane's aggregate functions; the typed surfaces already make such a call a type error, so reaching this at runtime means a dynamic or cast invocation. Meta: `operation`, plus `table`/`column`/`inputCodecId` where an input is involved. Contribute an aggregate descriptor for the pair, or aggregate an input the target declares.
+
 ### ORM.ARGUMENT_INVALID
 
 A method argument on the ORM client — or on the `sql()` / Mongo query-builder DSLs — is malformed or missing a required part: a `null` where-arg, `upsert()` without conflict columns or without a create value for a conflict column, a custom collection registered as an instance / against a nonexistent model in `orm({ collections })`, invalid builder argument shapes, `$and`/`$or` with no expressions, non-integer limit/skip, or malformed lookup/group/update specs. Meta: `method`, `argument`, `model`, `column`, `key`.

@@ -621,23 +621,66 @@ export type AggregateResult<Spec extends AggregateSpec> = {
   [K in keyof Spec]: Spec[K] extends AggregateSelector<infer Result> ? Result : never;
 };
 
+declare const aggregateUnavailable: unique symbol;
+
+/**
+ * The impossible argument `count()` demands when the contract's aggregate map
+ * declares no row for it — a contract emitted before aggregate types existed,
+ * or a stack that contributes none. The call becomes a type error naming the
+ * reason instead of a selector whose result no declaration types.
+ */
+export interface AggregateUnavailable<Op extends string> {
+  readonly [aggregateUnavailable]: `the contract declares no '${Op}' aggregate for this call`;
+}
+
+/**
+ * The model fields an aggregate operation admits, read from the contract's
+ * emitted aggregate map: a field whose codec a `byCodec` row claims, or any
+ * field when the operation declares an `anyInput` row. Availability is the
+ * target's declaration, not a generic codec trait — textual or temporal
+ * extrema a target declares are admitted, and a pair it never declared is
+ * unsayable here before it can fail anywhere else.
+ */
+export type AggregateFieldNames<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  NsId extends string = never,
+> = {
+  [K in keyof DefaultModelRow<TContract, ModelName, NsId> & string]: FieldCodecId<
+    TContract,
+    ModelName,
+    K,
+    NsId
+  > extends infer Id extends string
+    ? AggregateRowFor<TContract, Op, Id> extends never
+      ? never
+      : K
+    : never;
+}[keyof DefaultModelRow<TContract, ModelName, NsId> & string];
+
 export interface AggregateBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
+  NsId extends string = never,
 > {
-  count(): AggregateSelector<AggregateResultFor<TContract, 'count'>>;
-  sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  count(
+    ...args: AggregateRowFor<TContract, 'count', never> extends never
+      ? [AggregateUnavailable<'count'>]
+      : []
+  ): AggregateSelector<AggregateResultFor<TContract, 'count'>>;
+  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', NsId>>(
     field: FieldName,
-  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName>>;
-  avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, NsId>>;
+  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', NsId>>(
     field: FieldName,
-  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName>>;
-  min<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, NsId>>;
+  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', NsId>>(
     field: FieldName,
-  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName>>;
-  max<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, NsId>>;
+  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', NsId>>(
     field: FieldName,
-  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName>>;
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, NsId>>;
 }
 
 export type HavingComparisonMethods<T> = Pick<
@@ -645,18 +688,26 @@ export type HavingComparisonMethods<T> = Pick<
   'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte'
 >;
 
-export interface HavingBuilder<TContract extends Contract<SqlStorage>, ModelName extends string> {
-  count(): HavingComparisonMethods<number>;
-  sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
+export interface HavingBuilder<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+> {
+  count(
+    ...args: AggregateRowFor<TContract, 'count', never> extends never
+      ? [AggregateUnavailable<'count'>]
+      : []
+  ): HavingComparisonMethods<number>;
+  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', NsId>>(
     field: FieldName,
   ): HavingComparisonMethods<number | null>;
-  avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', NsId>>(
     field: FieldName,
   ): HavingComparisonMethods<number | null>;
-  min<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', NsId>>(
     field: FieldName,
   ): HavingComparisonMethods<number | null>;
-  max<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', NsId>>(
     field: FieldName,
   ): HavingComparisonMethods<number | null>;
 }

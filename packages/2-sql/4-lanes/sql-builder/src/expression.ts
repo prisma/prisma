@@ -160,26 +160,48 @@ type WithoutInputRow<Operation> = Operation extends { readonly withoutInput: inf
  */
 export type CountField<QC extends QueryContext> = AggregateField<QC, 'count', never>;
 
+declare const aggregateUnavailable: unique symbol;
+
+/**
+ * The impossible operand an aggregate call demands when the contract's
+ * aggregate map declares no row for the operation and input. Intersecting it
+ * with the operand type turns an undeclared pair into a call-site type error
+ * that names the reason, instead of an expression whose runtime value the
+ * target never declared.
+ */
+export interface AggregateUnavailable<Op extends string> {
+  readonly [aggregateUnavailable]: `the composed target declares no '${Op}' aggregate for this input`;
+}
+
+type AggregateOperand<
+  QC extends QueryContext,
+  Op extends string,
+  T extends ScopeField,
+> = Expression<T> &
+  (AggregateRow<QC, Op, T['codecId']> extends never ? AggregateUnavailable<Op> : unknown);
+
 export type AggregateOnlyFunctions<QC extends QueryContext> = {
   // Two overloads because the runtime resolves them through different rows:
   // `count()` through `withoutInput`, `count(expr)` through `byCodec[input] ?? anyInput`.
   count: {
-    (): Expression<CountField<QC>>;
+    (
+      ...args: AggregateRow<QC, 'count', never> extends never ? [AggregateUnavailable<'count'>] : []
+    ): Expression<CountField<QC>>;
     <T extends ScopeField>(
-      expr: Expression<T>,
+      expr: AggregateOperand<QC, 'count', T>,
     ): Expression<AggregateField<QC, 'count', T['codecId']>>;
   };
   sum: <T extends ScopeField>(
-    expr: Expression<T>,
+    expr: AggregateOperand<QC, 'sum', T>,
   ) => Expression<AggregateField<QC, 'sum', T['codecId']>>;
   avg: <T extends ScopeField>(
-    expr: Expression<T>,
+    expr: AggregateOperand<QC, 'avg', T>,
   ) => Expression<AggregateField<QC, 'avg', T['codecId']>>;
   min: <T extends ScopeField>(
-    expr: Expression<T>,
+    expr: AggregateOperand<QC, 'min', T>,
   ) => Expression<AggregateField<QC, 'min', T['codecId']>>;
   max: <T extends ScopeField>(
-    expr: Expression<T>,
+    expr: AggregateOperand<QC, 'max', T>,
   ) => Expression<AggregateField<QC, 'max', T['codecId']>>;
 };
 

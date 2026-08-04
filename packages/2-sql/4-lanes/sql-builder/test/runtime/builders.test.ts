@@ -16,9 +16,12 @@ import { sql } from '../../src/runtime/sql';
 import { contract as contractJson } from '../fixtures/contract';
 import type { Contract } from '../fixtures/generated/contract';
 
-/** No target contributes aggregates to these plan-shape cases; resolution answers nothing and the codec slot stays empty. */
+/** The one aggregate these plan-shape cases invoke; every other pair stays undeclared and is rejected. */
 const emptyAggregateRegistry = {
-  resolve: () => undefined,
+  resolve: (operation: string) =>
+    operation === 'count'
+      ? { operation, output: { codecId: 'pg/int8@1' }, nullable: false, lower: undefined }
+      : undefined,
   values: function* () {},
 };
 

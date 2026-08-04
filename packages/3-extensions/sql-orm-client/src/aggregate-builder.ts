@@ -6,11 +6,12 @@ import type { AggregateBuilder, AggregateSelector } from './types';
 export function createAggregateBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
+  NsId extends string = never,
 >(
   contract: TContract,
   namespaceId: string,
   modelName: ModelName,
-): AggregateBuilder<TContract, ModelName> {
+): AggregateBuilder<TContract, ModelName, NsId> {
   const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
 
   return {
