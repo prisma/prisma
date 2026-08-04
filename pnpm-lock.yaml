@@ -2767,7 +2767,7 @@ importers:
         specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/postgres
       '@internal/postgres-codec-testkit':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres-codec-testkit
       '@internal/sql-contract':
         specifier: workspace:0.17.0
@@ -3035,7 +3035,7 @@ importers:
         specifier: workspace:0.17.0
         version: link:../postgres
       '@internal/postgres-codec-testkit':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/6-adapters/postgres-codec-testkit
       '@internal/sql-contract-ts':
         specifier: workspace:0.17.0
@@ -3961,41 +3961,41 @@ importers:
   packages/3-targets/6-adapters/postgres-codec-testkit:
     dependencies:
       '@internal/adapter-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../postgres
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/target-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/postgres
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@internal/driver-postgres':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../7-drivers/postgres
       '@internal/sql-errors':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/errors
       '@repo/test-utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../../test/utils
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
@@ -4095,32 +4095,32 @@ importers:
   packages/3-targets/6-adapters/sqlite-codec-testkit:
     dependencies:
       '@internal/adapter-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../sqlite
       '@internal/contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/contract
       '@internal/framework-components':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/1-core/framework-components
       '@internal/sql-contract':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/1-core/contract
       '@internal/sql-relational-core':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../2-sql/4-lanes/relational-core
       '@internal/target-sqlite':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../3-targets/sqlite
       '@internal/utils':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../1-framework/0-foundation/utils
     devDependencies:
       '@repo/tsconfig':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsconfig
       '@repo/tsdown':
-        specifier: workspace:0.16.0
+        specifier: workspace:0.17.0
         version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
