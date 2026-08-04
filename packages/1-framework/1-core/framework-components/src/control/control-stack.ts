@@ -364,7 +364,7 @@ export function collectAggregateDescriptors(
 
   for (const descriptor of descriptors) {
     const descriptorId = descriptor.id ?? '<unknown>';
-    for (const contributed of descriptor.types?.codecTypes?.aggregateDescriptors ?? []) {
+    for (const contributed of descriptor.types?.aggregateDescriptors ?? []) {
       if (!isAggregateDescriptor(contributed)) {
         throw new InternalError(
           `Malformed aggregate descriptor contributed by "${descriptorId}". ` +

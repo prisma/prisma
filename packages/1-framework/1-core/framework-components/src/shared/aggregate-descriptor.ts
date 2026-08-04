@@ -3,7 +3,7 @@
  *
  * Result identity is operation- and target-specific, so it lives beside codec descriptors rather than on them: one input codec produces different results under different operations, and one operation produces different results on different targets.
  *
- * Components contribute descriptors through `types.codecTypes.aggregateDescriptors`. This module owns the declarative half of the protocol — the half emission reads and the half ownership validation keys on. Families extend {@link AggregateDescriptor} with their own lowering hook; because such a hook returns an expression and never a codec, a descriptor's declared `output` is the only source of result identity.
+ * Components contribute descriptors through `types.aggregateDescriptors`. This module owns the declarative half of the protocol — the half emission reads and the half ownership validation keys on. Families extend {@link AggregateDescriptor} with their own lowering hook; because such a hook returns an expression and never a codec, a descriptor's declared `output` is the only source of result identity.
  */
 
 import type { JsonValue } from '@internal/contract/types';

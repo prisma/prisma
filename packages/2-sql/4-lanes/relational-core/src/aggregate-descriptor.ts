@@ -21,7 +21,7 @@ export type SqlAggregateLowering = (context: SqlAggregateLoweringContext) => Any
 /**
  * The SQL specialization of {@link AggregateDescriptor}: the same declarative `(operation, input) -> output codec + nullability` mapping, plus an optional hook that builds the expression.
  *
- * Targets and extensions contribute these through `types.codecTypes.aggregateDescriptors`; the runtime assembles them into a `SqlAggregateDescriptorRegistry` once at execution-context construction.
+ * Targets and extensions contribute these through `types.aggregateDescriptors`; the runtime assembles them into a `SqlAggregateDescriptorRegistry` once at execution-context construction.
  */
 export type SqlAggregateDescriptor = AggregateDescriptor & {
   readonly lower?: SqlAggregateLowering;

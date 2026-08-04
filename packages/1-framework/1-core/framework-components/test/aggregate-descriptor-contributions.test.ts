@@ -8,7 +8,7 @@ function contributor(
   id: string,
   aggregateDescriptors: ReadonlyArray<AggregateDescriptor>,
 ): Pick<ComponentMetadata, 'types'> & { readonly id: string } {
-  return { id, types: { codecTypes: { aggregateDescriptors } } };
+  return { id, types: { aggregateDescriptors } };
 }
 
 const countRows: AggregateDescriptor = {
@@ -158,9 +158,7 @@ describe('collectAggregateDescriptors', () => {
         {
           id: 'extension',
           types: {
-            codecTypes: {
-              aggregateDescriptors: [malformed] as unknown as ReadonlyArray<AggregateDescriptor>,
-            },
+            aggregateDescriptors: [malformed] as unknown as ReadonlyArray<AggregateDescriptor>,
           },
         },
       ]);

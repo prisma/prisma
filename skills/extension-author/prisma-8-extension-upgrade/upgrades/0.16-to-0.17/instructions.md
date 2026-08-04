@@ -577,7 +577,7 @@ changes:
   - id: aggregate-result-codecs-are-target-declared
     summary: |
       Targets declare what each aggregate returns, through `SqlAggregateDescriptor` contributions on
-      `types.codecTypes.aggregateDescriptors`. A descriptor maps an operation and an input match —
+      `types.aggregateDescriptors`. A descriptor maps an operation and an input match —
       no input, an exact codec id, a codec trait, or input-agnostic — to a result codec and a
       declared nullability, and resolution consults exact matches, then traits, then the
       input-agnostic entry. Emission and the runtime read the same contributions, so an extension
@@ -621,7 +621,7 @@ The harness API is the same one the in-repo version had — you supply the conne
 
 ## `aggregate-result-codecs-are-target-declared`
 
-Aggregate result typing is now declared rather than inferred. A target (or an extension) contributes `SqlAggregateDescriptor`s on `types.codecTypes.aggregateDescriptors`, beside `codecDescriptors`:
+Aggregate result typing is now declared rather than inferred. A target (or an extension) contributes `SqlAggregateDescriptor`s on `types.aggregateDescriptors`, a sibling of `codecTypes`:
 
 ```ts
 import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';

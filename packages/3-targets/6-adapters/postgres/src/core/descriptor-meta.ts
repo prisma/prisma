@@ -189,9 +189,9 @@ export const postgresAdapterDescriptorMeta = {
     },
   },
   types: {
+    aggregateDescriptors: postgresAggregateDescriptors,
     codecTypes: {
       codecDescriptors: Array.from(postgresCodecRegistry.values()),
-      aggregateDescriptors: postgresAggregateDescriptors,
       import: {
         package: '@internal/target-postgres/codec-types',
         named: 'CodecTypes',

@@ -104,7 +104,7 @@ const orderingDescriptors = (operation: 'min' | 'max'): ReadonlyArray<SqlAggrega
 ];
 
 /**
- * Every aggregate overload the SQLite target contributes. The adapter lists these on `types.codecTypes.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
+ * Every aggregate overload the SQLite target contributes. The adapter lists these on `types.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
  */
 export const sqliteAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> = [
   // `count` returns an integer whether it counts rows or non-null values, which is what makes it input-agnostic rather than merely input-less. Counts are unbounded in principle, so they carry the bigint codec.

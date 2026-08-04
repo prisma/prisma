@@ -28,9 +28,9 @@ export const sqliteAdapterDescriptorMeta = {
     },
   },
   types: {
+    aggregateDescriptors: sqliteAggregateDescriptors,
     codecTypes: {
       codecDescriptors: executionCodecDescriptors,
-      aggregateDescriptors: sqliteAggregateDescriptors,
       import: {
         package: '@internal/adapter-sqlite/codec-types',
         named: 'CodecTypes',

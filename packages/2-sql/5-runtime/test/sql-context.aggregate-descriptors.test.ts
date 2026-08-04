@@ -87,7 +87,7 @@ function targetContributing(
   return {
     ...createTestTargetDescriptor(),
     codecs: () => [numericCodecDescriptor, bigintCodecDescriptor],
-    types: { codecTypes: { aggregateDescriptors } },
+    types: { aggregateDescriptors },
   };
 }
 
@@ -101,7 +101,7 @@ function extensionContributing(
     familyId: 'sql' as const,
     targetId: 'postgres' as const,
     codecs: () => [],
-    types: { codecTypes: { aggregateDescriptors } },
+    types: { aggregateDescriptors },
     create() {
       return { familyId: 'sql' as const, targetId: 'postgres' as const };
     },

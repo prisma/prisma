@@ -305,9 +305,7 @@ function collectCodecDescriptors(contributors: ReadonlyArray<SqlStaticContributi
 function collectAggregateDescriptorContributions(
   contributors: ReadonlyArray<ComponentMetadata>,
 ): ReadonlyArray<unknown> {
-  return contributors.flatMap(
-    (contributor) => contributor.types?.codecTypes?.aggregateDescriptors ?? [],
-  );
+  return contributors.flatMap((contributor) => contributor.types?.aggregateDescriptors ?? []);
 }
 
 function collectTypeRefSites(

@@ -41,11 +41,11 @@ export interface ComponentMetadata {
        * Codec descriptors contributed by this component. Source of truth for codec-id-keyed metadata (`traits`, `targetTypes`, `renderOutputType`) consumed by `extractCodecLookup`, and used to materialize representative `Codec` instances for codec-dispatched type rendering during emission.
        */
       readonly codecDescriptors?: ReadonlyArray<AnyCodecDescriptor>;
-      /**
-       * Aggregate descriptors contributed by this component. Source of truth for the result codec, nullability, and (family-side) lowering of each `(aggregate operation, input codec)` overload; each overload has exactly one contributor across the composed stack.
-       */
-      readonly aggregateDescriptors?: ReadonlyArray<AggregateDescriptor>;
     };
+    /**
+     * Aggregate descriptors contributed by this component — a sibling of `codecTypes`, not a member: an aggregate descriptor relates an operation, a target, and an input codec, which is why it is modeled apart from codecs. Source of truth for the result codec, nullability, and (family-side) lowering of each `(aggregate operation, input codec)` overload; each overload has exactly one contributor across the composed stack.
+     */
+    readonly aggregateDescriptors?: ReadonlyArray<AggregateDescriptor>;
     readonly queryOperationTypes?: { readonly import: TypesImportSpec };
     readonly storage?: ReadonlyArray<{
       readonly typeId: string;

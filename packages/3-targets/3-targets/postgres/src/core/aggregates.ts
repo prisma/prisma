@@ -114,7 +114,7 @@ const orderingDescriptors = (operation: 'min' | 'max'): ReadonlyArray<SqlAggrega
 ];
 
 /**
- * Every aggregate overload the PostgreSQL target contributes. The adapter lists these on `types.codecTypes.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
+ * Every aggregate overload the PostgreSQL target contributes. The adapter lists these on `types.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
  */
 export const postgresAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> = [
   // `count` returns `bigint` whether it counts entries or non-null values, which is what makes it input-agnostic rather than merely input-less.
