@@ -256,7 +256,7 @@ describe('integration/include canonical JSON', () => {
         // exact, which the same values read as numbers are not.
         expect(stats).toEqual({ total: '9007199254740995', peak: 9007199254740993n });
         expect(String(Number(stats.total))).not.toBe(stats.total);
-        expect(Number(stats.peak)).not.toBe(9007199254740993n);
+        expect(BigInt(Number(stats.peak))).not.toBe(9007199254740993n);
 
         // The include refinement's cardinality inference does not read a
         // `hasMany` attached to a model declared in this file as to-many, so it
