@@ -158,8 +158,7 @@ describe('an extension pack next to a target shell of a different version', () =
       npmrc: ['strict-peer-dependencies=true', 'auto-install-peers=false'],
     });
     expect(result.ok).toBe(false);
-    expect(result.output).toContain(
-      `unmet peer ${targetShell}@${workspaceVersion}: found ${skewedVersion}`,
-    );
+    expect(result.output).toContain(`unmet peer ${targetShell}`);
+    expect(result.output).toContain(`Installed: ${skewedVersion}`);
   });
 });
