@@ -130,10 +130,13 @@ describe('integration/aggregate', () => {
         // as a bigint, not a number that happens to fit today.
         expect(stats).toEqual({ count: 2n, total: 4000000000n });
 
-        const [row] = await users.include('posts', (related) => related.count()).all();
+        const rows = await users
+          .select('id')
+          .include('posts', (related) => related.count())
+          .all();
 
         // An include count reads through the same codec: a bigint inside JSON.
-        expect(row?.posts).toBe(2n);
+        expect(rows).toEqual([{ id: 1, posts: 2n }]);
       });
     },
     timeouts.spinUpPpgDev,
