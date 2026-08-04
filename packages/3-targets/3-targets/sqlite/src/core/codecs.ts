@@ -446,6 +446,13 @@ export class SqliteBigintCodec extends CodecImpl<
    * rather than a value.
    */
   async decode(wire: number | bigint | string, _ctx: CodecCallContext): Promise<bigint> {
+    if (typeof wire === 'string' && !DECIMAL_INTEGER.test(wire)) {
+      throw sqliteError(
+        'RUNTIME.DECODE_FAILED',
+        'sqlite/bigint@1 wire value must be a decimal string',
+        { meta: { codecId: SQLITE_BIGINT_CODEC_ID, received: wire } },
+      );
+    }
     return BigInt(wire);
   }
   encodeJson(value: bigint): JsonValue {
