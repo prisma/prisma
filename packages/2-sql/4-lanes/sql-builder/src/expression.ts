@@ -161,7 +161,14 @@ type WithoutInputRow<Operation> = Operation extends { readonly withoutInput: inf
 export type CountField<QC extends QueryContext> = AggregateField<QC, 'count', never>;
 
 export type AggregateOnlyFunctions<QC extends QueryContext> = {
-  count: (expr?: Expression<ScopeField>) => Expression<CountField<QC>>;
+  // Two overloads because the runtime resolves them through different rows:
+  // `count()` through `withoutInput`, `count(expr)` through `byCodec[input] ?? anyInput`.
+  count: {
+    (): Expression<CountField<QC>>;
+    <T extends ScopeField>(
+      expr: Expression<T>,
+    ): Expression<AggregateField<QC, 'count', T['codecId']>>;
+  };
   sum: <T extends ScopeField>(
     expr: Expression<T>,
   ) => Expression<AggregateField<QC, 'sum', T['codecId']>>;
