@@ -157,13 +157,30 @@ describe.sequential('SQLite aggregate conformance', () => {
     return body();
   }
 
-  /** The storage class SQLite gives `operation` over the fixture's column, or `undefined` when it refuses the call. */
+  /**
+   * The messages `node:sqlite` raises for a call SQLite refuses outright: an
+   * aggregate it does not have, or one invoked with a shape it rejects. Probed
+   * empirically — every SQLite error carries the same `ERR_SQLITE_ERROR` code
+   * (`no such table` and `integer overflow` included), so the message is the
+   * only thing that separates refusal from infrastructure failure.
+   */
+  const REFUSED_CALL =
+    /^(no such function|wrong number of arguments to function|misuse of aggregate)/;
+
+  /**
+   * The storage class SQLite gives `operation` over the fixture's column, or
+   * `undefined` when it refuses the call. Anything else — a missing table, an
+   * overflow, a locked database — is rethrown rather than read as refusal: in
+   * the unclaimed direction a swallowed infrastructure error would pass the
+   * matrix vacuously.
+   */
   function probeStorageClass(operation: string): string | undefined {
     try {
       const rows = run(`SELECT typeof(${operation}("${COLUMN}")) AS result FROM "${TABLE}"`);
       return String(rows[0]?.['result']);
-    } catch {
-      return undefined;
+    } catch (error) {
+      if (error instanceof Error && REFUSED_CALL.test(error.message)) return undefined;
+      throw error;
     }
   }
 

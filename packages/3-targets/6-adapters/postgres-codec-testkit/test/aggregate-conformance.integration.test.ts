@@ -24,6 +24,7 @@
 import type { JsonValue } from '@prisma-next/contract/types';
 import postgresControlDriverDescriptor from '@prisma-next/driver-postgres/control';
 import type { CodecRef } from '@prisma-next/framework-components/codec';
+import { SqlQueryError } from '@prisma-next/sql-errors';
 import { buildSqlAggregateDescriptorRegistry } from '@prisma-next/sql-relational-core/aggregate-descriptor-registry';
 import { postgresAggregateDescriptors } from '@prisma-next/target-postgres/aggregates';
 import {
@@ -120,15 +121,26 @@ function nativeTypeOf(ref: CodecRef): string {
 
 type Query = (sql: string) => Promise<ReadonlyArray<Record<string, unknown>>>;
 
-/** The result type PostgreSQL gives `operation` over the fixture's column, or `undefined` when it has no such aggregate. */
+/** SQLSTATE `undefined_function` — what PostgreSQL raises for an aggregate it does not have over this type (probed: `sum(bool)` → 42883). */
+const UNDEFINED_FUNCTION = '42883';
+
+/**
+ * The result type PostgreSQL gives `operation` over the fixture's column, or
+ * `undefined` when it has no such aggregate. Only `undefined_function` reads as
+ * refusal — the harness driver normalizes SQLSTATE errors onto
+ * `SqlQueryError.sqlState`, and anything else (a missing table's 42P01, a
+ * dropped connection, a syntax slip) is rethrown: in the unclaimed direction a
+ * swallowed infrastructure error would pass the matrix vacuously.
+ */
 async function probeResultType(query: Query, operation: string): Promise<string | undefined> {
   try {
     const rows = await query(
       `SELECT pg_typeof(${operation}("${COLUMN}"))::text AS result FROM "${TABLE}"`,
     );
     return String(rows[0]?.['result']);
-  } catch {
-    return undefined;
+  } catch (error) {
+    if (SqlQueryError.is(error) && error.sqlState === UNDEFINED_FUNCTION) return undefined;
+    throw error;
   }
 }
 
