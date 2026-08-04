@@ -52,7 +52,7 @@ describe('ports/prisma/functional/issues-20261-group-by-shortcut', () => {
 
         expectTypeOf(result).toMatchTypeOf<
           Array<{
-            _sum: number | null;
+            _sum: bigint | null;
             teamName: string;
           }>
         >();

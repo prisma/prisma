@@ -150,13 +150,10 @@ test('HAVING without GROUP BY — type error', () => {
 
 // A pair the target declares no overload for — `sum` over a text column, which
 // PostgreSQL refuses outright and SQLite computes without a typeable result.
-// The emitted map carries no row for it, so the value reads as `unknown`: the
-// untyped channel, matching a runtime that carries no codec for it either. What
-// matters is that it is not typed as the input, which would promise a text
-// value the database never returns.
-test('an aggregate the target declares no overload for reads as unknown', () => {
-  const unclaimed = db.public.users.select('summedName', (f, fns) => fns.sum(f.name)).build();
-
-  type Row = typeof unclaimed extends SqlQueryPlan<infer R> ? R : never;
-  expectTypeOf<Row['summedName']>().toEqualTypeOf<unknown>();
+// The emitted map carries no row for it, so the call is rejected where it is
+// written: an undeclared pair has no result identity to type or decode, and
+// typing it as the input would promise a text value the database never returns.
+test('an aggregate the target declares no overload for is rejected at the call site', () => {
+  // @ts-expect-error — the target declares no sum over pg/text@1
+  db.public.users.select('summedName', (f, fns) => fns.sum(f.name)).build();
 });
