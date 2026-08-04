@@ -22,6 +22,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import type { Simplify } from '@internal/utils/types';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
+import { emptyAggregateResult } from './aggregate-empty-result';
 import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-column-mapping';
 import {
   assertReturningCapability,
@@ -128,19 +129,6 @@ import {
   type VariantNames,
 } from './types';
 import { normalizeWhereArg } from './where-interop';
-
-/**
- * What an aggregate reads as when there is no row to read at all.
- *
- * SQL answers an empty input set itself — `count` collapses to zero, the rest
- * to null — so this covers only the degenerate case of a result set with no
- * row. Zero is a `bigint` because that is what both targets' `count` codecs
- * decode to; a count is a cardinality, and cardinalities are not capped at
- * 2^53.
- */
-function emptyAggregateResult(fn: string): bigint | null {
-  return fn === 'count' ? 0n : null;
-}
 
 function applyCreateDefaults(
   ctx: CollectionContext<Contract<SqlStorage>>,

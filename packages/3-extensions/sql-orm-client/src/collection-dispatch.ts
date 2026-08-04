@@ -34,6 +34,7 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { resolveAggregateOutputCodec } from './aggregate-codecs';
+import { emptyAggregateResult } from './aggregate-empty-result';
 import {
   isToOneCardinality,
   resolvePolymorphismInfo,
@@ -660,7 +661,7 @@ function decodeScalarIncludePayload(
   raw: unknown,
 ): unknown {
   if (raw === null || raw === undefined) {
-    return emptyScalarResult(scalar.fn);
+    return emptyAggregateResult(scalar.fn);
   }
   const parsed = parseIncludePayload(raw);
   if (!isPlainObjectEnvelope(parsed)) {
@@ -670,7 +671,7 @@ function decodeScalarIncludePayload(
   }
 
   const value = parsed['value'];
-  if (value === null || value === undefined) return emptyScalarResult(scalar.fn);
+  if (value === null || value === undefined) return emptyAggregateResult(scalar.fn);
 
   const codecRef = resolveAggregateOutputCodec({
     aggregates: context.aggregateDescriptors,
@@ -729,8 +730,4 @@ function coerceSingleQueryIncludeResult(
   cardinality: RelationCardinalityTag | undefined,
 ): Record<string, unknown>[] | Record<string, unknown> | null {
   return isToOneCardinality(cardinality) ? (rows[0] ?? null) : rows;
-}
-
-function emptyScalarResult(fn: IncludeScalar<unknown>['fn']): bigint | null {
-  return fn === 'count' ? 0n : null;
 }
