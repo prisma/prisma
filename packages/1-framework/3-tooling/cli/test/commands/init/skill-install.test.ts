@@ -38,7 +38,7 @@ function withCleanEnv<T>(fn: () => T): T {
   }
 }
 
-const usageSource = DEFAULT_SKILL_SOURCES.find((s) => s.skill === 'prisma-next');
+const usageSource = DEFAULT_SKILL_SOURCES.find((s) => s.skill === 'prisma-8');
 const upgradeSource = DEFAULT_SKILL_SOURCES.find((s) => s.skill === 'prisma-next-upgrade');
 const extAuthorSource = DEFAULT_SKILL_SOURCES.find((s) => s.skill === 'prisma-8-extension-upgrade');
 
@@ -93,23 +93,23 @@ describe('formatSkillInstallCommand', () => {
   it.each([
     [
       'npm',
-      `npx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-next')}`,
+      `npx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-8')}`,
     ],
     [
       'pnpm',
-      `pnpm dlx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-next')}`,
+      `pnpm dlx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-8')}`,
     ],
     [
       'yarn',
-      `yarn dlx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-next')}`,
+      `yarn dlx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-8')}`,
     ],
     [
       'bun',
-      `bunx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-next')}`,
+      `bunx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-8')}`,
     ],
     [
       'deno',
-      `deno run -A npm:skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-next')}`,
+      `deno run -A npm:skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} ${agentFlags('prisma-8')}`,
     ],
   ] satisfies ReadonlyArray<readonly [PackageManager, string]>)(
     'formats %s command with the version-pinned usage source',
@@ -141,7 +141,7 @@ describe('formatSkillInstallCommand', () => {
       expect(
         formatSkillInstallCommand({ pm: 'npm', source: usageSource, agents: ['windsurf'] }),
       ).toBe(
-        `npx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} --agent windsurf --skill prisma-next -y`,
+        `npx skills@latest add ${DEFAULT_SKILL_BASE}/skills#v${cliVersion} --agent windsurf --skill prisma-8 -y`,
       );
     });
   });
@@ -174,13 +174,14 @@ describe('legacySkillDirs', () => {
 
   it('covers the pre-rename spellings of the renamed skills', () => {
     const dirs = legacySkillDirs();
+    expect(dirs).toContain('.agents/skills/prisma-next');
     expect(dirs).toContain('.claude/skills/prisma-next-extension-upgrade');
     expect(dirs).toContain('.claude/skills/prisma-8-migration-review');
   });
 
   it('never names the consolidated skill or the current upgrade skills', () => {
     for (const dir of legacySkillDirs()) {
-      expect(dir.endsWith('/prisma-next')).toBe(false);
+      expect(dir.endsWith('/prisma-8')).toBe(false);
       expect(dir).not.toContain('/prisma-next-upgrade');
       expect(dir).not.toContain('prisma-8-extension-upgrade');
     }

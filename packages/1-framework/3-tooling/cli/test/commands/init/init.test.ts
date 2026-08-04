@@ -155,8 +155,8 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
     expect(existsSync(join(tmpDir, 'prisma-next.config.ts'))).toBe(true);
     expect(existsSync(join(tmpDir, 'src/prisma/db.ts'))).toBe(true);
     expect(existsSync(join(tmpDir, 'prisma-next.md'))).toBe(true);
-    // init must not emit `.agents/skills/prisma-next/SKILL.md`.
-    expect(existsSync(join(tmpDir, '.agents/skills/prisma-next/SKILL.md'))).toBe(false);
+    // init must not emit `.agents/skills/prisma-8/SKILL.md`.
+    expect(existsSync(join(tmpDir, '.agents/skills/prisma-8/SKILL.md'))).toBe(false);
   });
 
   it('removes retired per-workflow skill directories left by pre-consolidation installs', async () => {
@@ -165,6 +165,8 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
     writeFileSync(join(tmpDir, '.claude/skills/prisma-next-queries/postgres.md'), '# stale');
     mkdirSync(join(tmpDir, '.agents/skills/prisma-next-contract'), { recursive: true });
     writeFileSync(join(tmpDir, '.agents/skills/prisma-next-contract/SKILL.md'), '# stale');
+    mkdirSync(join(tmpDir, '.agents/skills/prisma-next'), { recursive: true });
+    writeFileSync(join(tmpDir, '.agents/skills/prisma-next/SKILL.md'), '# pre-rename');
 
     const exit = await runInitTest(tmpDir, {
       options: { install: false },
@@ -173,6 +175,7 @@ describe('runInit (interactive)', { timeout: timeouts.databaseOperation }, () =>
     expect(exit).toBe(INIT_EXIT_OK);
     expect(existsSync(join(tmpDir, '.claude/skills/prisma-next-queries'))).toBe(false);
     expect(existsSync(join(tmpDir, '.agents/skills/prisma-next-contract'))).toBe(false);
+    expect(existsSync(join(tmpDir, '.agents/skills/prisma-next'))).toBe(false);
   });
 
   it('generates config with single facade import and contract as string path', async () => {

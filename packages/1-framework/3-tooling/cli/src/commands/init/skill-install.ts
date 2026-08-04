@@ -24,7 +24,7 @@ export const DEFAULT_SKILL_BASE = 'prisma/prisma';
  * `ref` semantics:
  * - `cli`: pin to the CLI's own package version (lockstep with the
  *   skills' SPI). Used for the consolidated usage skill
- *   (`skills/prisma-next`), which describes the public package API
+ *   (`skills/prisma-8`), which describes the public package API
  *   and is pinned to the version of `@internal/*` currently
  *   installed in the consumer's project.
  * - `null`: no ref. The skill is "always-latest" — the cumulative
@@ -42,7 +42,7 @@ export interface SkillSource {
 export const DEFAULT_SKILL_SOURCES: readonly SkillSource[] = [
   {
     subpath: 'skills',
-    skill: 'prisma-next',
+    skill: 'prisma-8',
     ref: 'cli',
     description: 'usage skill (version-locked to installed Prisma Next)',
   },
@@ -245,23 +245,18 @@ export function redactSecrets(stderr: string): string {
 // -------------------------------------------------------------------
 
 /**
- * Hand-rolled skill stub path that init must not leave behind. Removed
- * on every init run so a project's `.agents/skills/prisma-next/` does
- * not shadow the installed Prisma Next skill.
- */
-export const LEGACY_SKILL_FILE = '.agents/skills/prisma-next/SKILL.md';
-
-/**
- * Skill directories that predate the consolidated `prisma-next`
- * skill: the per-workflow usage cluster (including the renamed
- * `prisma-8-migration-review` spelling it briefly shipped under) and
- * the pre-rename spelling of the extension-author upgrade skill.
- * Projects initialised before the consolidation carry these as
+ * Skill directories that predate the consolidated `prisma-8` skill:
+ * the per-workflow usage cluster (including the renamed
+ * `prisma-8-migration-review` spelling it briefly shipped under), the
+ * pre-rename spellings of the consolidated skill and the
+ * extension-author upgrade skill, and any hand-rolled `prisma-next`
+ * stub. Projects initialised before the consolidation carry these as
  * sibling directories in each agent's install root; left in place
  * they compete with the current skills for activation, so init
  * removes them on every run.
  */
 export const RETIRED_SKILL_NAMES = [
+  'prisma-next',
   'prisma-next-quickstart',
   'prisma-next-contract',
   'prisma-next-migrations',

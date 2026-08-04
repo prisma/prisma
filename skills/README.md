@@ -12,7 +12,7 @@ Three skills:
 
 | Skill | Scope | Ref policy |
 |---|---|---|
-| [`prisma-next`](./prisma-next/) | The consolidated usage skill. `SKILL.md` is a router: a description trigger that fires on any Prisma Next work, a routing table, and progressive disclosure into [`prisma-next/references/`](./prisma-next/references/) — adoption/quickstart, contract authoring, migration authoring, migration review on deploy, queries (with Postgres/SQLite and Mongo companions), runtime wiring, build integration, Supabase/RLS, structured-error debugging, and feedback routing. | Version-pinned (`#v<version>`) |
+| [`prisma-8`](./prisma-8/) | The consolidated usage skill. `SKILL.md` is a router: a description trigger that fires on any Prisma Next work, a routing table, and progressive disclosure into [`prisma-8/references/`](./prisma-8/references/) — adoption/quickstart, contract authoring, migration authoring, migration review on deploy, queries (with Postgres/SQLite and Mongo companions), runtime wiring, build integration, Supabase/RLS, structured-error debugging, and feedback routing. | Version-pinned (`#v<version>`) |
 | [`prisma-next-upgrade`](./prisma-next-upgrade/) | Upgrade a consumer project across Prisma Next versions — per-transition `upgrades/<from>-to-<to>/` instructions and codemods. | Always tracks `main` |
 | [`prisma-8-extension-upgrade`](./prisma-8-extension-upgrade/) | Same, for extension authors upgrading `@internal/*` peer pins. | Always tracks `main` |
 
@@ -31,7 +31,7 @@ To install standalone (existing project or a new agent runtime added after `init
 
 ```bash
 # Usage skill — pin to your Prisma Next version.
-pnpm dlx skills add prisma/prisma/skills#v<your-prisma-next-version> --skill prisma-next -y
+pnpm dlx skills add prisma/prisma/skills#v<your-prisma-8-version> --skill prisma-8 -y
 
 # Upgrade skills — always latest.
 pnpm dlx skills add prisma/prisma/skills --skill prisma-next-upgrade -y
@@ -54,7 +54,7 @@ The skills source is versioned with the rest of Prisma Next. Keep the git ref al
 
 ## Contributing / authoring
 
-Authoring rules, reference-file conventions, and the worked example for *concepts-over-procedures* live in [`DEVELOPING.md`](./DEVELOPING.md). Read that before adding or rewriting a reference file. Skill sources live in this `skills/` directory in the `prisma-next` monorepo.
+Authoring rules, reference-file conventions, and the worked example for *concepts-over-procedures* live in [`DEVELOPING.md`](./DEVELOPING.md). Read that before adding or rewriting a reference file. Skill sources live in this `skills/` directory in the `prisma/prisma` monorepo.
 
 ## License
 

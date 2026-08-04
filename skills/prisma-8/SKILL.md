@@ -1,5 +1,5 @@
 ---
-name: prisma-next
+name: prisma-8
 description: >-
   Comprehensive guide for building with Prisma 8 (Prisma Next), the
   contract-first data layer. Use whenever working on Prisma code in a project

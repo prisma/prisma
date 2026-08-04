@@ -54,7 +54,6 @@ import { findStaleArtifacts, removeDependency } from './reinit-cleanup';
 import {
   DEFAULT_SKILL_SOURCES,
   formatSkillInstallCommand,
-  LEGACY_SKILL_FILE,
   legacySkillDirs,
   runProjectLevelSkillInstall,
 } from './skill-install';
@@ -208,16 +207,8 @@ export async function runInit(
   // and missing-on-disk-at-write-time is tolerated.
   const filesToDelete: string[] = inputs.reinit ? [...findStaleArtifacts(baseDir, schemaDir)] : [];
 
-  // `init` delegates the skill to `npx skills add prisma/prisma#v<version>`,
-  // so a hand-rolled `.agents/skills/prisma-next/SKILL.md` in the project
-  // would shadow the published package. Queue it for deletion on every
-  // run (not gated on `--reinit`).
-  if (existsSync(join(baseDir, LEGACY_SKILL_FILE))) {
-    filesToDelete.push(LEGACY_SKILL_FILE);
-  }
-
   // Retired per-workflow skill directories from pre-consolidation
-  // installs compete with the consolidated `prisma-next` skill for
+  // installs compete with the consolidated `prisma-8` skill for
   // activation. Queue every existing one for recursive deletion on
   // every run (not gated on `--reinit`).
   const legacyDirsToDelete = legacySkillDirs().filter((rel) => existsSync(join(baseDir, rel)));

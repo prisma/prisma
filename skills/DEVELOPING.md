@@ -4,7 +4,7 @@ Contributor guide for the Prisma Next skills cluster. If you are *using* the ski
 
 ## What this tree is
 
-Skills that teach an LLM agent how to operate Prisma Next end-to-end. The usage surface is one consolidated skill: [`skills/prisma-next/SKILL.md`](./prisma-next/SKILL.md) is the runtime-matched entry point (its `description:` frontmatter fires on any Prisma Next work) and routes via its routing table into workflow-scoped reference files under [`skills/prisma-next/references/`](./prisma-next/references/) — one user goal per reference file. The two upgrade skills ([`prisma-next-upgrade`](./prisma-next-upgrade/), [`prisma-8-extension-upgrade`](./prisma-8-extension-upgrade/)) stay separate because their install ref policy differs (always `main`, never version-pinned).
+Skills that teach an LLM agent how to operate Prisma Next end-to-end. The usage surface is one consolidated skill: [`skills/prisma-8/SKILL.md`](./prisma-8/SKILL.md) is the runtime-matched entry point (its `description:` frontmatter fires on any Prisma Next work) and routes via its routing table into workflow-scoped reference files under [`skills/prisma-8/references/`](./prisma-8/references/) — one user goal per reference file. The two upgrade skills ([`prisma-next-upgrade`](./prisma-next-upgrade/), [`prisma-8-extension-upgrade`](./prisma-8-extension-upgrade/)) stay separate because their install ref policy differs (always `main`, never version-pinned).
 
 ## Design principles
 
@@ -84,7 +84,7 @@ Procedural workflow sections — *"step 1: run X; step 2: read Y; step 3: if Z, 
 
 #### Worked example — `references/migration-review.md`
 
-The pilot rewrite of [`skills/prisma-next/references/migration-review.md`](./prisma-next/references/migration-review.md) is the canonical worked example for this principle in this cluster. Before that rewrite, the skill contained:
+The pilot rewrite of [`skills/prisma-8/references/migration-review.md`](./prisma-next/references/migration-review.md) is the canonical worked example for this principle in this cluster. Before that rewrite, the skill contained:
 
 - A five-step *"diamond convergence procedure"* for resolving concurrent migrations.
 - A four-step *"detect that main advanced"* workflow.
@@ -106,7 +106,7 @@ A skill that teaches the verbose form has handed the agent a worse mental model 
 **Verify each user-authored import:**
 
 ```bash
-rg "from '@internal/" skills/prisma-next/references/<topic>.md \
+rg "from '@internal/" skills/prisma-8/references/<topic>.md \
   | rg -v '@internal/(postgres|mongo|sqlite|extension-|[a-z]+-plugin-)' \
   | rg -v 'framework-rendered'
 ```
@@ -142,7 +142,7 @@ These are well-trodden but worth listing in one place:
 
 1. Read [`README.md`](./README.md) for the user-facing scope of the skills.
 2. Read the [`skill-specialist` persona](https://github.com/prisma/ignite/blob/main/skills/.curated/drive-agent-personas/personas/skill-specialist.md) in the Ignite persona library — it's the canonical lens for skill work.
-3. Read [`skills/prisma-next/references/migration-review.md`](./prisma-next/references/migration-review.md) for the worked example of concepts-over-procedures.
+3. Read [`skills/prisma-8/references/migration-review.md`](./prisma-next/references/migration-review.md) for the worked example of concepts-over-procedures.
 4. Draft the reference file, **verifying each tool-surface claim against the framework source as you write it** (see *Verify the tool surface as you author* above for the ripgrep commands). The shape:
    - A routing-table row in `SKILL.md` as the matcher (CLI flags, error codes, feature names — all verified).
    - Preamble + canonical mental-model headline.
