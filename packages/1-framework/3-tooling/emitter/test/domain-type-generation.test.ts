@@ -114,11 +114,15 @@ describe('serializeValue', () => {
       expect(serializeValue('double\\\\back')).toBe("'double\\\\\\\\back'");
     });
 
-    it('passes through control characters and line separators as raw bytes', () => {
-      // U+2028/U+2029 are JavaScript line terminators in legacy parsers. The current emitter does not escape them but they cannot break the single-quoted literal since they are not \' or \\. Pin the behavior.
-      expect(serializeValue('a\u2028b')).toBe("'a\u2028b'");
-      expect(serializeValue('a\u2029b')).toBe("'a\u2029b'");
-      expect(serializeValue('a\nb')).toBe("'a\nb'");
+    it('escapes control characters and line separators', () => {
+      // Raw line terminators inside a single-quoted literal are a syntax error,
+      // and U+2028/U+2029 terminate lines in legacy parsers.
+      expect(serializeValue('a\u2028b')).toBe("'a\\u2028b'");
+      expect(serializeValue('a\u2029b')).toBe("'a\\u2029b'");
+      expect(serializeValue('a\nb')).toBe("'a\\nb'");
+      expect(serializeValue('a\rb')).toBe("'a\\rb'");
+      expect(serializeValue('a\tb')).toBe("'a\\tb'");
+      expect(serializeValue('ab')).toBe("'a\\u0007b'");
     });
 
     it('quotes object keys that look like identifier bypass attempts', () => {
@@ -140,6 +144,8 @@ describe('serializeObjectKey', () => {
     expect(serializeObjectKey('has space')).toBe("'has space'");
     expect(serializeObjectKey('has-dash')).toBe("'has-dash'");
     expect(serializeObjectKey('ns/name@1')).toBe("'ns/name@1'");
+    expect(serializeObjectKey('has\nnewline')).toBe("'has\\nnewline'");
+    expect(serializeObjectKey('1leading-digit')).toBe("'1leading-digit'");
   });
 });
 
@@ -207,6 +213,11 @@ describe('generateModelsType', () => {
     expect(result).toContain("readonly namespace: '__unbound__'");
     expect(result).toContain("readonly model: 'Post'");
     expect(result).toContain("readonly table: 'users'");
+  });
+
+  it('quotes model names that are not bare identifiers', () => {
+    const models: Record<string, ContractModel> = { 'Data Row': makeModel() };
+    expect(generateModelsType(models, noopStorage)).toContain("readonly 'Data Row': {");
   });
 
   it('sorts models by name', () => {

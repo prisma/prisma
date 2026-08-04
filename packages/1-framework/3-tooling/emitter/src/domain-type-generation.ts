@@ -17,6 +17,40 @@ import { blindCast } from '@internal/utils/casts';
 import { emitterError } from './emitter-errors';
 import { isSafeTypeExpression } from './type-expression-safety';
 
+const LITERAL_ESCAPES: Readonly<Record<string, string>> = {
+  '\\': '\\\\',
+  "'": "\\'",
+  '\b': '\\b',
+  '\f': '\\f',
+  '\n': '\\n',
+  '\r': '\\r',
+  '\t': '\\t',
+  '\v': '\\v',
+};
+
+/**
+ * Escapes a string for embedding in a single-quoted TypeScript literal. Raw
+ * line terminators are a syntax error inside a quoted literal and U+2028/U+2029
+ * terminate lines in legacy parsers, so every character that a physical name may
+ * legally carry (Postgres quoted identifiers permit all of them) is escaped.
+ */
+function escapeSingleQuotedLiteral(value: string): string {
+  let escaped = '';
+  for (const char of value) {
+    const known = LITERAL_ESCAPES[char];
+    if (known !== undefined) {
+      escaped += known;
+      continue;
+    }
+    const code = char.codePointAt(0) ?? 0;
+    escaped +=
+      code < 0x20 || code === 0x7f || code === 0x2028 || code === 0x2029
+        ? `\\u${code.toString(16).padStart(4, '0')}`
+        : char;
+  }
+  return escaped;
+}
+
 export function serializeValue(value: unknown): string {
   if (value === null) {
     return 'null';
@@ -25,8 +59,7 @@ export function serializeValue(value: unknown): string {
     return 'undefined';
   }
   if (typeof value === 'string') {
-    const escaped = value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    return `'${escaped}'`;
+    return `'${escapeSingleQuotedLiteral(value)}'`;
   }
   if (typeof value === 'number' || typeof value === 'boolean') {
     return String(value);
@@ -217,7 +250,7 @@ export function generateModelsType(
       modelParts.push(`readonly base: ${serializeCrossReference(model.base)}`);
     }
 
-    modelTypes.push(`readonly ${modelName}: { ${modelParts.join('; ')} }`);
+    modelTypes.push(`readonly ${serializeObjectKey(modelName)}: { ${modelParts.join('; ')} }`);
   }
 
   return `{ ${modelTypes.join('; ')} }`;

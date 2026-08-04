@@ -142,7 +142,7 @@ export function generateContractDts(
           ? `\n        readonly valueObjects: ${nsValueObjectsDescriptor};`
           : '';
       const enumLine = nsEnumBlock !== undefined ? `\n        readonly enum: ${nsEnumBlock};` : '';
-      return `      readonly ${nsId}: {\n        readonly models: ${nsModelsType};${voLine}${enumLine}\n      }`;
+      return `      readonly ${serializeObjectKey(nsId)}: {\n        readonly models: ${nsModelsType};${voLine}${enumLine}\n      }`;
     })
     .join(';\n');
 

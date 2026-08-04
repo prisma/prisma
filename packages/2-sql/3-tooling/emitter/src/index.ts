@@ -587,7 +587,7 @@ function generateDocumentScopedStorageTypesType(types: SqlStorage['types']): str
     const nativeType = serializeValue(codecInstanceShape.nativeType);
     const typeParamsStr = serializeTypeParamsLiteral(codecInstanceShape.typeParams);
     typeEntries.push(
-      `readonly ${typeName}: { readonly kind: 'codec-instance'; readonly codecId: ${codecId}; readonly nativeType: ${nativeType}; readonly typeParams: ${typeParamsStr} }`,
+      `readonly ${serializeObjectKey(typeName)}: { readonly kind: 'codec-instance'; readonly codecId: ${codecId}; readonly nativeType: ${nativeType}; readonly typeParams: ${typeParamsStr} }`,
     );
   }
 
@@ -651,7 +651,7 @@ function generateTableLiteralType(table: StorageTable): string {
         : '';
     const typeRefSpec = col.typeRef ? `; readonly typeRef: ${serializeValue(col.typeRef)}` : '';
     columns.push(
-      `readonly ${colName}: { readonly nativeType: ${nativeType}; readonly codecId: ${codecId}; readonly nullable: ${nullable}${defaultSpec}${typeParamsSpec}${typeRefSpec} }`,
+      `readonly ${serializeObjectKey(colName)}: { readonly nativeType: ${nativeType}; readonly codecId: ${codecId}; readonly nullable: ${nullable}${defaultSpec}${typeParamsSpec}${typeRefSpec} }`,
     );
   }
 
@@ -728,7 +728,9 @@ function generateTableLiteralType(table: StorageTable): string {
 function generateTablesMapType(tables: Readonly<Record<string, StorageTable>>): string {
   const tableEntries: string[] = [];
   for (const [tableName, table] of Object.entries(tables).sort(([a], [b]) => a.localeCompare(b))) {
-    tableEntries.push(`readonly ${tableName}: ${generateTableLiteralType(table)}`);
+    tableEntries.push(
+      `readonly ${serializeObjectKey(tableName)}: ${generateTableLiteralType(table)}`,
+    );
   }
   if (tableEntries.length === 0) {
     // Empty namespaces must emit `{}` (whose `keyof` is `never`), not
