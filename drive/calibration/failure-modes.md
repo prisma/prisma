@@ -514,22 +514,22 @@ Patterns to **catch** the F-family modes live in [`grep-library.md`](./grep-libr
 
 **Reference incident.** 2026-07-02→06, native-postgres-enums (PR #906). Round 1: `CodecRef.nativeType` flagged ("SQL-specific, cannot live in the framework domain") — fixed by moving the cast to a codec hook placed on the *framework* `CodecDescriptor`. Round 2: the hook flagged ("NATIVETYPE CANNOT BE REFERENCED IN THE FRAMEWORK DOMAIN") — relocated, but a new framework type (`AuthoringEntityRefResolution`) kept `nativeType` + a `valueSetEnforcement` strategy string-enum under a grandfathering argument. Round 3: both flagged, plus derivation logic (`deriveValueSet`) in framework core. Three rounds, one class. Operator intervention produced the class-sweep rule, the vocabulary ratchet, and this entry.
 
-### F27. Mid-merge `git checkout` silently discards MERGE_HEAD; the "merge" commits with one parent
+### F27. Mid-merge branch checkout or hard reset silently discards MERGE_HEAD; the "merge" commits with one parent
 
-**Symptom.** An agent resolving merge conflicts runs `git checkout <ref> -- <path>` (or an equivalent tree-reset) mid-merge, which drops `.git/MERGE_HEAD`. The subsequent `git commit` produces an ordinary single-parent commit that *looks* like a merge — merge-shaped message, conflict-resolution diff — but records no second parent. History silently loses the merged branch; a later `git merge` of the same branch replays already-resolved conflicts.
+**Symptom.** An agent resolving merge conflicts switches branches (`git checkout <branch>` / `git switch <branch>`) or runs `git reset --hard` mid-merge. Either aborts the in-progress merge state and drops `.git/MERGE_HEAD`. The agent then re-applies its conflict resolutions and commits; the result is an ordinary single-parent commit that *looks* like a merge — merge-shaped message, conflict-resolution diff — but records no second parent. History silently loses the merged branch; a later `git merge` of the same branch replays already-resolved conflicts. Pathspec checkouts (`git checkout <ref> -- <path>`, `git checkout --ours/--theirs -- <path>`) are the safe forms: they overwrite files but leave MERGE_HEAD in place.
 
 **Detection signal.**
 
-- `git cat-file -p <sha>` shows one `parent` line under a "Merge …" subject.
-- `git merge-base --is-ancestor <merged-branch> <result>` exits non-zero.
+- `git cat-file -p <sha> | grep -c '^parent '` prints 1 (a true merge prints 2) under a "Merge …" subject.
+- `git merge-base --is-ancestor <merged-branch> <result>` exits non-zero. Note the converse is weak: this check passes trivially when the merged ref was already an ancestor of the base, so it can only refute a merge claim, not confirm one — pair it with the parent count.
 - The agent's report says "merged X into Y" without pasting verification output.
 
 **Mitigation.**
 
-- Acceptance criterion for any dispatched merge: the report must include the **printed output** of `git merge-base --is-ancestor <merged-ref> HEAD && echo ancestor-ok`. A claim without the printed check is not a merge.
-- Brief rule: during conflict resolution use `git checkout --ours/--theirs -- <path>` or edit in place; never a bare `git checkout <ref> -- .` sweep, and never `git checkout <branch>` while a merge is in progress.
+- Acceptance criterion for any dispatched merge: the report must include the **printed output** of both checks — `git cat-file -p HEAD | grep -c '^parent '` (must print 2) and `git merge-base --is-ancestor <merged-ref> HEAD && echo ancestor-ok`. A claim without both printed checks is not a merge.
+- Brief rule: never `git checkout <branch>` / `git switch <branch>` and never `git reset --hard` while a merge is in progress. During conflict resolution use the pathspec forms — `git checkout --ours/--theirs -- <path>`, `git checkout <ref> -- <path>` — or edit in place; those keep MERGE_HEAD.
 
-**Reference incident.** 2026-08, public-npm-surface rename consolidation: a subagent's "merge" of the rename branch had one parent (mid-merge checkout discarded MERGE_HEAD). Caught by the ancestor check before the branch was folded into the delivery PR; re-merged properly.
+**Reference incident.** 2026-08, public-npm-surface rename consolidation: a subagent's "merge" of the rename branch had one parent (a mid-merge state reset discarded MERGE_HEAD before the commit). Caught by the ancestor check before the branch was folded into the delivery PR; re-merged properly.
 
 ### F28. Test file written for a runner no suite invokes — coverage that never runs
 

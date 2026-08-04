@@ -7,12 +7,13 @@ changes:
       Do this first — nothing else in this upgrade can run until the project installs. From
       0.17 the `@prisma-next/*` scope is retired: nothing publishes under it again, so a
       manifest that still names it fails at install. The public surface is the `@prisma`
-      scope, and an application depends on exactly ONE package: `@prisma/orm-postgres`,
-      `@prisma/orm-sqlite`, or `@prisma/orm-mongo`. Everything that used to be a separate
-      dependency (framework, family, target, adapter, driver, CLI) arrives transitively as
-      that facade's exact-pinned dependencies. In `package.json`: delete EVERY
-      `@prisma-next/*` entry across dependencies/devDependencies/peerDependencies, add the
-      one facade for your database, and rename any extension packs
+      scope, and an application depends on exactly ONE database facade —
+      `@prisma/orm-postgres`, `@prisma/orm-sqlite`, or `@prisma/orm-mongo` — plus any
+      extension packs it uses, which remain direct dependencies. Everything else that used
+      to be a separate dependency (framework, family, target, adapter, driver, CLI) arrives
+      transitively as the facade's exact-pinned dependencies. In `package.json`: delete
+      EVERY `@prisma-next/*` entry across dependencies/devDependencies/peerDependencies,
+      add the one facade for your database, and keep your extension packs — renamed
       (`@prisma-next/extension-<x>` → `@prisma/orm-extension-<x>`; the middleware cache is
       `@prisma/orm-extension-middleware-cache`). Drop the `prisma-next` devDependency if you
       have one — the facade provides the `prisma-next` bin; the standalone `prisma-next`

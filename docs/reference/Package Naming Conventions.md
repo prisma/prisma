@@ -31,7 +31,7 @@ The canonical internal-package → shell-entrypoint mapping is code, not prose: 
 
 The repository uses numbered prefixes in directory names to reflect the architecture hierarchy:
 
-```
+```text
 packages/
   0-config/              # @repo/* build config (tsconfig, tsdown)
   0-shared/              # Cross-cutting internal packages (publish-surface, extension-author-tools)
