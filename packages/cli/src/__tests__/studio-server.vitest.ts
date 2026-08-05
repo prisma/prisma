@@ -1,10 +1,9 @@
-import { connect } from 'node:net'
-import { networkInterfaces } from 'node:os'
+import { Server } from 'node:http'
 
 import { getPort } from 'get-port-please'
 import { afterEach, expect, test, vi } from 'vitest'
 
-import { startStudioServer, type StudioServer } from '../studio-server'
+import { startStudioServer, STUDIO_SERVER_HOST, type StudioServer } from '../studio-server'
 
 const activeServers: StudioServer[] = []
 
@@ -25,17 +24,21 @@ test('streams GET response bodies from the Node Studio server', async () => {
   expect(await response.text()).toBe('hello from studio')
 })
 
-test('only accepts connections on the IPv4 loopback address', async () => {
-  const { port } = await startTestServer(() => new Response('hello from studio', { status: 200 }))
-  const nonLoopbackAddress = Object.values(networkInterfaces())
-    .flat()
-    .find((address) => address?.family === 'IPv4' && !address.internal)?.address
+test('binds the listener to the IPv4 loopback address', async () => {
+  const port = await getPort({ host: STUDIO_SERVER_HOST, random: true })
+  const listenSpy = vi.spyOn(Server.prototype, 'listen')
 
-  if (!nonLoopbackAddress) {
-    throw new Error('Test requires a non-loopback IPv4 address')
-  }
+  await new Promise<void>((resolve) => {
+    const server = startStudioServer({
+      handler: () => new Response('hello from studio', { status: 200 }),
+      onListen: resolve,
+      port,
+    })
 
-  await expect(canConnect(nonLoopbackAddress, port)).resolves.toBe(false)
+    activeServers.push(server)
+  })
+
+  expect(listenSpy).toHaveBeenCalledWith(port, STUDIO_SERVER_HOST, expect.any(Function))
 })
 
 test('preserves HEAD semantics without dropping GET bodies', async () => {
@@ -119,18 +122,4 @@ async function startTestServer(
   })
 
   return { port }
-}
-
-function canConnect(host: string, port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const socket = connect({ host, port })
-    const settle = (connected: boolean) => {
-      socket.destroy()
-      resolve(connected)
-    }
-
-    socket.setTimeout(1_000, () => settle(false))
-    socket.once('connect', () => settle(true))
-    socket.once('error', () => settle(false))
-  })
 }

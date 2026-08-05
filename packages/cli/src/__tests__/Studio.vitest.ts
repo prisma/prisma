@@ -185,6 +185,21 @@ describe('Studio port selection', () => {
     expect(getPortMock).not.toHaveBeenCalled()
     expect(startStudioServerMock).toHaveBeenCalledWith(expect.objectContaining({ port: 5_555 }))
   })
+
+  test('rejects an explicitly requested ephemeral port', async () => {
+    const { Studio } = await import('../Studio')
+
+    const result = await Studio.new().parse(
+      ['--browser', 'none', '--port', '0', '--url', 'postgresql://user:password@localhost:5432/db'],
+      defaultTestConfig(),
+    )
+
+    expect(result).toBeInstanceOf(Error)
+    expect((result as Error).name).toBe('UserFacingError')
+    expect((result as Error).message).toContain('The Studio port must be greater than 0.')
+    expect(getPortMock).not.toHaveBeenCalled()
+    expect(startStudioServerMock).not.toHaveBeenCalled()
+  })
 })
 
 describe('Studio MySQL URL compatibility', () => {

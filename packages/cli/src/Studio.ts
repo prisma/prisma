@@ -278,6 +278,12 @@ ${bold('Examples')}
       return this.help()
     }
 
+    const requestedPort = args['--port']
+
+    if (requestedPort === 0) {
+      return new UserFacingError('The Studio port must be greater than 0.')
+    }
+
     const connectionString = args['--url'] || config.datasource?.url
 
     if (!connectionString) {
@@ -308,7 +314,7 @@ ${bold('Examples')}
     )
     const version = packageJson.dependencies['@prisma/studio-core']
     const ppgDbInfo = await getPpgInfo(connectionString)
-    const port = await resolveStudioPort(args['--port'])
+    const port = await resolveStudioPort(requestedPort)
     const handler = createStudioRequestHandler({
       adapter: studioStuff.adapter,
       executor,

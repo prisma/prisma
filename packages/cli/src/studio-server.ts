@@ -4,6 +4,7 @@ import { pipeline } from 'node:stream/promises'
 
 import { runtime } from 'std-env'
 
+/** Must remain the IPv4 loopback host used by Studio's listener and port probing. */
 export const STUDIO_SERVER_HOST = '127.0.0.1'
 
 export type StudioRequestHandler = (request: Request) => Promise<Response> | Response
