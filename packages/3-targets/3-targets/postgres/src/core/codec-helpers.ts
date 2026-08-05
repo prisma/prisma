@@ -135,15 +135,12 @@ export const pgInt8NumberDecodeJson = (json: JsonValue): number => {
 };
 
 /**
- * Renders an `int8` default as a `bigint` literal. The canonical JSON is decimal
- * text but the application type is `bigint`, so a plain string literal would not
+ * Renders a decimal-text default as a `bigint` literal, for the codecs whose
+ * canonical JSON is decimal text while the application type is `bigint`
+ * (`pg/int8@1`, `pg/unboundedint@1`) — a plain string literal would not
  * typecheck against the emitted column type.
  */
-export const pgInt8RenderValueLiteral = (value: JsonValue): string | undefined =>
-  typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
-
-/** Renders an unbounded-integer default as a `bigint` literal, mirroring the `int8` rendering. */
-export const pgUnboundedIntRenderValueLiteral = (value: JsonValue): string | undefined =>
+export const decimalTextBigintLiteral = (value: JsonValue): string | undefined =>
   typeof value === 'string' && DECIMAL_INTEGER.test(value) ? `${value}n` : undefined;
 
 export const pgNumericRenderOutputType = (typeParams: {

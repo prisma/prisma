@@ -48,6 +48,7 @@ import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { type as arktype } from 'arktype';
 import { definePostgresCodecs, PostgresCodecDescriptor, postgresCodec } from './codec-descriptor';
 import {
+  decimalTextBigintLiteral,
   type PgInterval,
   pgByteaDecodeJson,
   pgByteaEncodeJson,
@@ -60,7 +61,6 @@ import {
   pgInt8NumberDecodeJson,
   pgInt8NumberEncode,
   pgInt8NumberEncodeJson,
-  pgInt8RenderValueLiteral,
   pgIntervalDecode,
   pgIntervalDecodeJson,
   pgIntervalEncodeJson,
@@ -76,7 +76,6 @@ import {
   pgTimestamptzDecodeJson,
   pgTimestamptzEncodeJson,
   pgUnboundedIntDecode,
-  pgUnboundedIntRenderValueLiteral,
   renderLength,
   renderPrecision,
 } from './codec-helpers';
@@ -709,7 +708,7 @@ export class PgInt8Descriptor extends PostgresCodecDescriptor<void> {
   override readonly targetTypes = ['int8'] as const;
   override readonly paramsSchema: StandardSchemaV1<void> = voidParamsSchema;
   override renderValueLiteral(value: JsonValue): string | undefined {
-    return pgInt8RenderValueLiteral(value);
+    return decimalTextBigintLiteral(value);
   }
   override factory(): (ctx: CodecInstanceContext) => PgInt8Codec {
     return () => new PgInt8Codec(this);
@@ -1028,7 +1027,7 @@ export class PgUnboundedIntDescriptor extends PostgresCodecDescriptor<void> {
   override readonly targetTypes = [] as const;
   override readonly paramsSchema: StandardSchemaV1<void> = voidParamsSchema;
   override renderValueLiteral(value: JsonValue): string | undefined {
-    return pgUnboundedIntRenderValueLiteral(value);
+    return decimalTextBigintLiteral(value);
   }
   override factory(): (ctx: CodecInstanceContext) => PgUnboundedIntCodec {
     return () => new PgUnboundedIntCodec(this);
