@@ -8,8 +8,8 @@ Each slice is named for what a developer can **rely on** when it merges. The sta
 
 | # | Slice | Delivers | Status | Ticket |
 | --- | --- | --- | --- | --- |
-| 1 | `checks-are-declared-opaque-expressions` | Every physical CHECK is a contract-declared, wire-named opaque expression; authoring emits enum-membership (scalar and array) and element-non-null checks; introspection captures every live check verbatim; the planner only reconciles — synthesis, the direct-walk strategy, and the predicate parser are deleted. | ⬜ next | _TBD_ |
-| 2 | `check-prefix-renames-plan-as-rename-constraint` | A prefix-only check rename plans as a single `ALTER TABLE … RENAME CONSTRAINT` under `widening`, via hash pairing mirroring `pairIndexRenames`. | ⬜ | _TBD_ |
+| 1 | `checks-are-declared-opaque-expressions` | Every physical CHECK is a contract-declared, wire-named opaque expression; authoring emits enum-membership (scalar and array) and element-non-null checks; introspection captures every live check verbatim; the planner only reconciles — synthesis, the direct-walk strategy, and the predicate parser are deleted. | ✅ in review ([#29892](https://github.com/prisma/prisma/pull/29892)) | _TBD_ |
+| 2 | `check-prefix-renames-plan-as-rename-constraint` | A prefix-only check rename plans as a single `ALTER TABLE … RENAME CONSTRAINT` under `widening`, via hash pairing mirroring `pairIndexRenames`. | 🔨 in build | _TBD_ |
 
 | 3 | `check-enforcement-opt-out` | An authoring-surface opt-out for each generated check kind — element non-null, scalar enum membership, enum-list membership — restoring "pulled schemas verify clean" as the infer default. | ⬜ to spec | — |
 
