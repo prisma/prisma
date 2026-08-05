@@ -188,10 +188,18 @@ describe('check planning is diff-driven', () => {
   });
 });
 
-describe('a prefix-only change plans as drop + add (rename pairing is a later slice)', () => {
-  it('plans an add for the new wire name and a drop for the old one', () => {
+describe('a prefix-only change reaches the mapper as a missing/extra pair', () => {
+  it('maps the pair to an add and a drop', () => {
     // Same predicate, different prefix: the hashes agree but the physical
     // names do not, so the differ reports one missing and one extra.
+    //
+    // This is the ISSUE MAPPER, which sits below the rename post-pass and
+    // therefore never sees a pairing opportunity — drop + add is the correct
+    // answer at this layer, and stays correct. Whether the two issues ever
+    // reach it depends on the policy: `pairCheckRenames` consumes them into a
+    // single RENAME CONSTRAINT when `widening` is allowed, and leaves them
+    // alone otherwise. Both halves are pinned end-to-end through
+    // `planner.plan` in `check-rename-planner.test.ts`.
     const expected = wireCheck('user_state_check', EXPRESSION);
     const actual = wireCheck(PREFIX, EXPRESSION);
     const result = planIssues({
