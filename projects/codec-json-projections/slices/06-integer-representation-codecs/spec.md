@@ -26,7 +26,7 @@ Each is an ordinary codec class + target descriptor pair beside its sibling (`Pg
 
 ### Aggregate descriptor rows
 
-Columns typed with the new codecs must aggregate, so both targets' matrices (`packages/3-targets/3-targets/{postgres,sqlite}/src/core/aggregates.ts`) gain exact-input rows, database-probed like the rest: PostgreSQL `sum`/`avg` over `int8number` → `pg/numeric@1` (storage-determined widening), `min`/`max` → self; `sum` over `unboundedint` → `pg/unboundedint@1`, `avg` → `pg/numeric@1`, `min`/`max` → self; SQLite `sum` over `bigintnumber` → `sqlite/bigint@1` with the existing cast-to-text lowering, `min`/`max` → self. This slice changes no existing row and no operation vocabulary.
+Columns typed with the new codecs must aggregate, so both targets' matrices (`packages/3-targets/3-targets/{postgres,sqlite}/src/core/aggregates.ts`) gain exact-input rows, database-probed like the rest: PostgreSQL `sum`/`avg` over `int8number` → `pg/numeric@1` (storage-determined widening); `sum` over `unboundedint` → `pg/unboundedint@1`, `avg` → `pg/numeric@1`; SQLite `sum` over `bigintnumber` → `sqlite/bigint@1` with the existing cast-to-text lowering, `avg` per probe. `min`/`max` need no rows — amended 2026-08-05 during D1, when execution surfaced that the existing `preservesInput`-over-trait-`numeric` fallback already resolves them to `self` for any codec carrying the trait; the codecs' registration alone radiates those rows into emitted contracts. This slice changes no existing row and no operation vocabulary.
 
 ### Errors
 
@@ -63,7 +63,7 @@ One concern — the integer representation vocabulary — delivered whole: three
 
 ## Contract impact
 
-New codec IDs appear in `codecTypes` (and in aggregate `byCodec` rows) only for contracts that use the presets; no existing entry changes. Fixtures gain coverage rather than churn.
+New codec IDs appear in `codecTypes` only for contracts that use the presets; no existing entry changes. Amended 2026-08-05 during D1: registering the codecs expands the `min`/`max` numeric-trait fallback over them at emission, so **every** emitted PostgreSQL contract gains two inert `byCodec` self rows regardless of preset use — a purely additive re-emission (verified zero deletions), committed with D1. Fixture movement in later dispatches must be fully attributable to the new rows and fixtures, not byte-identity.
 
 ## Adapter impact
 
