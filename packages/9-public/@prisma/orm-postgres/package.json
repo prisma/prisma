@@ -131,7 +131,6 @@
     "./static": "./dist/static.mjs",
     "./target": "./dist/target.mjs",
     "./target/aggregates": "./dist/target__aggregates.mjs",
-    "./target/check-expressions": "./dist/target__check-expressions.mjs",
     "./target/codec-descriptor": "./dist/target__codec-descriptor.mjs",
     "./target/codec-ids": "./dist/target__codec-ids.mjs",
     "./target/codec-types": "./dist/target__codec-types.mjs",
