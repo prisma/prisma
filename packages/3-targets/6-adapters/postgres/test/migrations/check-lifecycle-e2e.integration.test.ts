@@ -118,6 +118,57 @@ function contractOf(
   };
 }
 
+const SECOND_NAMESPACE_ID = 'audit';
+
+/**
+ * The same `Item` table in two schemas. Both carry a `role` column, so the
+ * checks the builder derives for them have identical physical names — the
+ * shape the deleted direct-walk strategy could not plan.
+ */
+function twoNamespaceContractOf(
+  columns: Record<string, ColumnSpec>,
+  publicChecks: readonly CheckConstraint[],
+  auditChecks: readonly CheckConstraint[],
+): Contract<SqlStorage> {
+  const tableOf = (checks: readonly CheckConstraint[]) => ({
+    columns,
+    primaryKey: { columns: ['id'] },
+    uniques: [],
+    indexes: [],
+    foreignKeys: [],
+    checks: [...checks],
+  });
+  return {
+    target: 'postgres',
+    targetFamily: 'sql',
+    profileHash: profileHash('check-lifecycle'),
+    storage: new SqlStorage({
+      storageHash: coreHash(
+        JSON.stringify([
+          Object.keys(columns),
+          publicChecks.map((c) => c.name),
+          auditChecks.map((c) => c.name),
+        ]),
+      ),
+      namespaces: {
+        [UNBOUND_NAMESPACE_ID]: postgresCreateNamespace({
+          id: UNBOUND_NAMESPACE_ID,
+          entries: { table: { Item: tableOf(publicChecks) } },
+        }),
+        [SECOND_NAMESPACE_ID]: postgresCreateNamespace({
+          id: SECOND_NAMESPACE_ID,
+          entries: { table: { Item: tableOf(auditChecks) } },
+        }),
+      },
+    }),
+    roots: {},
+    domain: applicationDomainOf({ models: {} }),
+    capabilities: {},
+    extensions: {},
+    meta: {},
+  };
+}
+
 const idColumn: ColumnSpec = { nativeType: 'text', codecId: 'pg/text@1', nullable: false };
 
 function declaredCheckNames(contract: Contract<SqlStorage>): readonly string[] {
@@ -140,6 +191,9 @@ describe.sequential('check-constraint lifecycle', () => {
   beforeEach(async () => {
     driver = await createDriver(database.connectionString);
     await resetDatabase(driver);
+    // `resetDatabase` only knows about `public`; the multi-namespace scenario
+    // creates a second schema that has to go with it.
+    await driver.query(`drop schema if exists "${SECOND_NAMESPACE_ID}" cascade`);
   }, testTimeout);
 
   afterEach(async () => {
@@ -199,7 +253,8 @@ describe.sequential('check-constraint lifecycle', () => {
     if (!runResult.ok) {
       throw new Error(`runner failed:\n${formatRunnerFailure(runResult.failure)}`);
     }
-    return { opIds };
+    const ops = await Promise.all(planResult.plan.operations);
+    return { opIds, ops };
   }
 
   async function verify(contract: Contract<SqlStorage>, strict = true) {
@@ -207,13 +262,14 @@ describe.sequential('check-constraint lifecycle', () => {
     return familyInstance.verifySchema({ contract, schema, strict, frameworkComponents });
   }
 
-  async function liveCheckNames(): Promise<readonly string[]> {
+  async function liveCheckNames(schemaName = 'public'): Promise<readonly string[]> {
     const rows = await driver!.query<{ conname: string }>(
       `SELECT c.conname FROM pg_catalog.pg_constraint c
          JOIN pg_catalog.pg_class t ON t.oid = c.conrelid
          JOIN pg_catalog.pg_namespace n ON n.oid = t.relnamespace
-        WHERE n.nspname = 'public' AND t.relname = 'Item' AND c.contype = 'c'
+        WHERE n.nspname = $1 AND t.relname = 'Item' AND c.contype = 'c'
         ORDER BY c.conname`,
+      [schemaName],
     );
     return rows.rows.map((r) => r.conname);
   }
@@ -533,5 +589,53 @@ describe.sequential('check-constraint lifecycle', () => {
     expect((await verify(contract)).ok).toBe(true);
     // Stable across a second introspect + verify.
     expect((await verify(contract)).ok).toBe(true);
+  });
+
+  // The deleted direct-walk strategy probed one namespace, so two schemas
+  // holding identically named tables and checks planned against each other.
+  it('identically named checks in two schemas migrate and plan independently', {
+    timeout: testTimeout,
+  }, async () => {
+    const columns = {
+      id: idColumn,
+      role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false } as ColumnSpec,
+    };
+    const twoMembers = checksForColumn('Item', 'role', {
+      many: false,
+      memberValues: ['user', 'admin'],
+    });
+    const sharedName = twoMembers[0]?.name ?? '';
+    const both = twoNamespaceContractOf(columns, twoMembers, twoMembers);
+
+    await migrate(both);
+
+    // One physical name, one constraint per schema.
+    expect(await liveCheckNames('public')).toEqual([sharedName]);
+    expect(await liveCheckNames(SECOND_NAMESPACE_ID)).toEqual([sharedName]);
+    expect((await verify(both)).ok).toBe(true);
+
+    // Widen the member set in `audit` only. The predicate changes, so the
+    // hash and the name change with it — in that schema alone.
+    const threeMembers = checksForColumn('Item', 'role', {
+      many: false,
+      memberValues: ['user', 'admin', 'root'],
+    });
+    const widenedName = threeMembers[0]?.name ?? '';
+    expect(widenedName).not.toBe(sharedName);
+
+    const changed = twoNamespaceContractOf(columns, twoMembers, threeMembers);
+    const { ops } = await migrate(changed, { from: both, policy: FULL_POLICY });
+
+    const checkOps = ops
+      .filter((op) => op.id.includes('heckConstraint.'))
+      .map((op) => ({ id: op.id, schema: op.target.details?.schema }));
+    expect(checkOps).toEqual([
+      { id: `dropCheckConstraint.Item.${sharedName}`, schema: SECOND_NAMESPACE_ID },
+      { id: `checkConstraint.Item.${widenedName}`, schema: SECOND_NAMESPACE_ID },
+    ]);
+
+    expect(await liveCheckNames('public')).toEqual([sharedName]);
+    expect(await liveCheckNames(SECOND_NAMESPACE_ID)).toEqual([widenedName]);
+    expect((await verify(changed)).ok).toBe(true);
   });
 });
