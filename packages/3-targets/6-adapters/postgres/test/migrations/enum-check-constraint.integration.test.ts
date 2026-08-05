@@ -5,7 +5,7 @@ import {
   APP_SPACE_ID,
   type MigrationOperationPolicy,
 } from '@internal/framework-components/control';
-import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { buildBoundContract, enumType, member } from '@internal/sql-contract-ts/contract-builder';
 import postgresPack from '@internal/target-postgres/pack';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
@@ -63,6 +63,19 @@ function makeRoleContract(members: { name: string; value: string }[]): Contract<
       },
     }),
   ) as Contract<SqlStorage>;
+}
+
+/**
+ * The single check the contract declares on `User`. Authoring names it
+ * `User_role_check_<hash>`, where the hash commits to the predicate — so a
+ * member change re-suffixes the name, and the test reads the name off the
+ * contract rather than restating it.
+ */
+function declaredCheck(contract: Contract<SqlStorage>): { name: string; expression: string } {
+  const table = contract.storage.namespaces['public']?.entries.table?.['User'];
+  const check = (table as StorageTable | undefined)?.checks?.[0];
+  if (check === undefined) throw new Error('expected the contract to declare a check on User');
+  return { name: check.name, expression: check.expression };
 }
 
 // ---------------------------------------------------------------------------
@@ -172,12 +185,18 @@ describe.sequential('enum check-constraint — end-to-end PGlite', () => {
       throw new Error(`Runner failed:\n${formatRunnerFailure(executeResult.failure)}`);
     }
 
-    // The check constraint must exist in pg_constraint
-    const constraintDef = await queryPgConstraint(driver!, 'User', 'User_role_check');
+    // The wire-named check must exist, installed inline by CREATE TABLE.
+    const { name } = declaredCheck(contract);
+    expect(name).toMatch(/^User_role_check_[0-9a-f]{8}$/);
+    const constraintDef = await queryPgConstraint(driver!, 'User', name);
     expect(constraintDef).not.toBeNull();
-    // Postgres may rewrite 'role IN (...)' to 'role = ANY (ARRAY[...])', so assert membership
+    // Postgres reprints 'role IN (...)' as 'role = ANY (ARRAY[...])', so assert membership.
     expect(constraintDef).toMatch(/user/);
     expect(constraintDef).toMatch(/admin/);
+
+    // Nothing installed it after the fact: the table came with it.
+    const addOps = (await Promise.all(result.plan.operations)).map((op) => op.id);
+    expect(addOps.filter((id) => id.startsWith('checkConstraint.'))).toEqual([]);
   });
 
   it('db verify passes after initial migration', { timeout: testTimeout }, async () => {
@@ -329,15 +348,16 @@ describe.sequential('enum check-constraint — end-to-end PGlite', () => {
       throw new Error(`v2 planner failed: ${JSON.stringify(v2PlanResult, null, 2)}`);
     }
 
-    // The migration plan must include both a drop and an add of the check constraint
+    // Changing the member set changes the predicate, so the hash — and with it
+    // the physical name — changes: the plan drops the old wire name and adds
+    // the new one.
+    const v1Name = declaredCheck(v1Contract).name;
+    const v2Name = declaredCheck(v2Contract).name;
+    expect(v2Name).not.toBe(v1Name);
     const resolvedOps = await Promise.all(v2PlanResult.plan.operations);
     const opIds = resolvedOps.map((op) => op.id);
-    expect(opIds).toContain('dropCheckConstraint.User.User_role_check');
-    expect(opIds).toContain('checkConstraint.User.User_role_check');
-    // Drop must precede add
-    expect(opIds.indexOf('dropCheckConstraint.User.User_role_check')).toBeLessThan(
-      opIds.indexOf('checkConstraint.User.User_role_check'),
-    );
+    expect(opIds).toContain(`dropCheckConstraint.User.${v1Name}`);
+    expect(opIds).toContain(`checkConstraint.User.${v2Name}`);
 
     const v2ExecResult = await runner.execute({
       driver: driver!,

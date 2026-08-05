@@ -2,7 +2,9 @@ import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { SqlStorage } from '@internal/sql-contract/types';
+import { CheckConstraint, SqlStorage } from '@internal/sql-contract/types';
+import { computeCheckContentHash } from '@internal/sql-schema-ir/naming';
+import { postgresRenderCheckExpressions } from '@internal/target-postgres/check-expressions';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -20,6 +22,36 @@ import {
   synthEdges,
   testTimeout,
 } from './fixtures/runner-fixtures';
+
+const ARRAY_COLUMNS = ['tags', 'labels', 'scores', 'tagsWithDefault'] as const;
+
+/**
+ * The element-non-null checks exactly as authoring emits them: the Postgres
+ * pack renders the predicate, and the wire name is the prefix plus the
+ * predicate's content hash. The planner installs whatever the contract
+ * declares and synthesizes nothing, so a contract that wants these checks has
+ * to carry them.
+ */
+function elementNonNullChecks(): CheckConstraint[] {
+  return ARRAY_COLUMNS.flatMap((columnName) =>
+    postgresRenderCheckExpressions({
+      tableName: 'ArrayTest',
+      columnName,
+      many: true,
+      memberValues: undefined,
+    }).map(
+      (candidate) =>
+        new CheckConstraint({
+          naming: {
+            kind: 'wire',
+            prefix: candidate.prefix,
+            hash: computeCheckContentHash(candidate.expression),
+          },
+          expression: candidate.expression,
+        }),
+    ),
+  );
+}
 
 function buildArrayContract(): Contract<SqlStorage> {
   return {
@@ -51,6 +83,7 @@ function buildArrayContract(): Contract<SqlStorage> {
                 uniques: [],
                 indexes: [],
                 foreignKeys: [],
+                checks: elementNonNullChecks(),
               },
             },
           },
@@ -323,13 +356,11 @@ describe.sequential('native array columns DDL', () => {
            ORDER BY c.conname`,
     );
     const checkNames = checkRows.rows.map((r) => r.constraint_name).sort();
+    // Wire names: the declared prefix plus the content hash of the predicate.
     expect(checkNames).toEqual(
-      [
-        'ArrayTest_labels_elem_not_null',
-        'ArrayTest_scores_elem_not_null',
-        'ArrayTest_tags_elem_not_null',
-        'ArrayTest_tagsWithDefault_elem_not_null',
-      ].sort(),
+      elementNonNullChecks()
+        .map((c) => c.name)
+        .sort(),
     );
     expect(checkRows.rows.every((r) => /array_position/i.test(r.constraintdef))).toBe(true);
   });
