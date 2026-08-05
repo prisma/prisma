@@ -7,6 +7,8 @@
 
 This is a strict five-PR stack: target-neutral AST foundations → target descriptor foundations → target projection implementations → lossless JSON projection hard cut → aggregate typing/testkit hard cut. There is no honest parallel group because every slice consumes a type or runtime boundary established by the preceding slice, while separating the stack keeps each conceptual change reviewable and every merge state coherent.
 
+An ad-hoc extension (added 2026-08-04, slices 6–8) resolves the DX consequences of the slice-5 aggregate hard cut. Unlike the original stack, it contains a genuine parallel pair: slices 6 and 7 touch disjoint surfaces and both build only on slice 5; slice 8 needs both.
+
 ## Composition
 
 ### Stack (deliver in order)
@@ -41,6 +43,28 @@ This is a strict five-PR stack: target-neutral AST foundations → target descri
    - **Hands to:** Project close-out: exact-over-trait aggregate resolution, target-accurate bigint/decimal results across top-level and include aggregate paths, public PostgreSQL/SQLite codec testkits exercised by extension suites, regenerated contracts/fixtures, durable docs/ADR, and upgrade instructions.
    - **Focus:** Separate aggregate descriptor contributions/registry, complete database-verified PostgreSQL/SQLite aggregate matrices, `aggregateTypes` emission and type-level resolution, ORM aggregate decoding, package/dependency boundaries for testkits, extension adoption, documentation, fixtures, and migration guidance.
 
+### Ad-hoc extension (added 2026-08-04): slices 6 ∥ 7 → 8
+
+Settled design: [`design-notes.md` § Integer representation and the aggregate operation split](./design-notes.md).
+
+6. **Slice `06-integer-representation-codecs`** — Linear: [TML-3163](https://linear.app/prisma-company/issue/TML-3163/opt-in-number-representation-integer-codecs-bigintnumber-unboundedint) — parallel with slice 7
+   - **Outcome:** Two opt-in column presets make integer representation a per-column contract choice: `BigIntNumber` (PostgreSQL + SQLite) decodes 64-bit integers as JS `number` with a throwing safe-range guard and JSON-number canonical form; `UnboundedInt` (PostgreSQL) stores unconstrained `numeric` with an integrality-checked `bigint` decode. Bare `BigInt` keeps the lossless default; nothing breaks.
+   - **Builds on:** Slice 5's aggregate descriptor matrices and codec testkits; slice 2's target descriptor classes.
+   - **Hands to:** The output codec IDs slice 8's `count()`/`sum()` defaults and `sumBigInt` descriptor rows name.
+   - **Focus:** Three codec class/descriptor pairs, their presets, exact-input aggregate rows, conformance boundary evidence. No default or operation changes.
+
+7. **Slice `07-contributed-aggregate-operations`** — Linear: [TML-3164](https://linear.app/prisma-company/issue/TML-3164/contributed-aggregate-operations-de-hardcode-the-sql-builder-and-orm) — parallel with slice 6
+   - **Outcome:** The aggregate operation set is a target/extension contribution end to end: descriptor `operation` opens to `string`, and the sql-builder lane and sql-orm-client derive their method surfaces from emitted `aggregateTypes` (mapped types, generic name-keyed dispatch) with no literal operation names or per-operation logic. Strictly behaviour-preserving; fixtures byte-identical.
+   - **Builds on:** Slice 5's descriptor contributions, registries, and `aggregateTypes` emission.
+   - **Hands to:** The mechanism by which slice 8's new operations reach users without any client or lane change.
+   - **Focus:** The `string` widening, derived call surfaces (top-level, grouped, include reducers), composition-time lowering and reserved-name validation, extensibility proof. The AST `AggregateFn` union stays closed — SQL's alphabet, not the operation namespace.
+
+8. **Slice `08-native-number-aggregate-defaults`** — Linear: [TML-3165](https://linear.app/prisma-company/issue/TML-3165/native-number-aggregate-defaults-countcountbigint-sumsumbigint) — after slices 6 and 7
+   - **Outcome:** Bare aggregate operations favour JS-native `number` and throw rather than silently lose precision; suffixed variants are lossless: `count`/`countBigInt`, `sum`/`sumBigInt`, `avg`/`avgDecimal`; `min`/`max` untouched; bare operations over Float/Decimal columns stay in the column's family. Breaking for `count()`/`sum()`/`avg()` result types; carries upgrade instructions.
+   - **Builds on:** Slice 6's codecs (`count()`/`sum()` outputs; `sumBigInt`'s unbounded decode) and slice 7's contribution mechanism.
+   - **Hands to:** Project close-out with the DX conflict resolved.
+   - **Focus:** Target descriptor matrix changes and new operation contributions, the `avg` result-cast lowering, renegotiated test baselines, regenerated fixtures, upgrade instructions.
+
 ## Stacked PR contract
 
 | Stack position | Issue | Branch base at creation | PR target until predecessor merges |
@@ -50,8 +74,11 @@ This is a strict five-PR stack: target-neutral AST foundations → target descri
 | 3 | TML-3100 | TML-3061 branch | TML-3061 branch |
 | 4 | TML-3063 | TML-3100 branch | TML-3100 branch |
 | 5 | TML-3064 | TML-3063 branch | TML-3063 branch |
+| 6 | TML-3163 | TML-3064 branch | TML-3064 branch |
+| 7 | TML-3164 | TML-3064 branch | TML-3064 branch |
+| 8 | TML-3165 | Synchronized `main` after 6 and 7 merge | `main` |
 
-After a predecessor merges, downstream branches are synchronized and PR targets advance without changing the slice's outcome. Every PR title carries its Linear identifier, every slice receives its own spec and dispatch plan at pickup, and no downstream slice is merged around an unmerged predecessor.
+Slices 6 and 7 are parallel branches off the same base, not stacked on each other. After a predecessor merges, downstream branches are synchronized and PR targets advance without changing the slice's outcome. Every PR title carries its Linear identifier, every slice receives its own spec and dispatch plan at pickup, and no downstream slice is merged around an unmerged predecessor.
 
 ## Prototype preservation and pickup
 
@@ -83,3 +110,5 @@ That split exists because the combined slice failed slice-INVEST *Small*: the me
 Aggregate output codecs remain a distinct operation/target problem rather than being smuggled onto codec descriptors, so slice 5 builds on the proven projection substrate and changes runtime, emitted types, public results, testkits, fixtures, and upgrade guidance together.
 
 The stack is serial by data dependency, not by convention. Running descriptor, projection, or aggregate slices in parallel would either duplicate temporary APIs or require sibling PRs to merge together, violating slice independence and making intermediate `main` states contradictory.
+
+The 2026-08-04 extension does not inherit that serial rationale. Slice 6 (target codec/preset definitions) and slice 7 (client/lane consumer derivation) touch disjoint surfaces and share only slice 5 as a base, so they run in parallel. Slice 8 is serial after both by data dependency: its descriptor rows name slice 6's codec IDs, and its new operations reach users only through slice 7's derived surfaces. Keeping 8 separate from 7 also keeps a strictly behaviour-preserving refactor and a breaking behaviour change in different reviews.
