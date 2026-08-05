@@ -9,6 +9,12 @@ import { describe, expect, it } from 'vitest';
 import { sql } from '../../src/runtime/sql';
 import type { Contract } from '../fixtures/generated/contract';
 
+/** No target contributes aggregates to these plan-shape cases; resolution answers nothing and the codec slot stays empty. */
+const emptyAggregateRegistry = {
+  resolve: () => undefined,
+  values: function* () {},
+};
+
 function column(codecId: string) {
   return { codecId, nativeType: codecId, nullable: false } as const;
 }
@@ -52,6 +58,7 @@ const stubBase = {
   operations: {},
   codecs: {},
   queryOperations: { entries: () => ({}) },
+  aggregateDescriptors: emptyAggregateRegistry,
   types: {},
   applyMutationDefaults: () => [],
 };

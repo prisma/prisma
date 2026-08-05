@@ -1,10 +1,17 @@
 import type { Contract, ContractModelBase, JsonValue } from '@internal/contract/types';
+import type { AggregateDescriptor } from '../shared/aggregate-descriptor';
+import type { AnyCodecDescriptor } from '../shared/codec-descriptor';
 import type { CodecLookup } from '../shared/codec-types';
 import type { ImportSpecifierResolver } from '../shared/import-specifier-resolver';
 import type { TypesImportSpec } from '../shared/types-import-spec';
 
 export interface GenerateContractTypesOptions {
   readonly queryOperationTypeImports?: ReadonlyArray<TypesImportSpec>;
+  /**
+   * The aggregate overloads the composed stack contributes, and the codec descriptors they are settled against. A family emits result types from these — the same declarations its runtime registry resolves against, so emitted types and decoded results cannot disagree.
+   */
+  readonly aggregateDescriptors?: ReadonlyArray<AggregateDescriptor>;
+  readonly codecDescriptors?: ReadonlyArray<AnyCodecDescriptor>;
 }
 
 export interface ValidationContext {

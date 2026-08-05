@@ -6,6 +6,7 @@ import {
   type TraitExpression,
   toExpr,
 } from '@internal/sql-relational-core/expression';
+import { postgresAggregateDescriptors } from '@internal/target-postgres/aggregates';
 import {
   PG_BIT_CODEC_ID,
   PG_BOOL_CODEC_ID,
@@ -188,6 +189,7 @@ export const postgresAdapterDescriptorMeta = {
     },
   },
   types: {
+    aggregateDescriptors: postgresAggregateDescriptors,
     codecTypes: {
       codecDescriptors: Array.from(postgresCodecRegistry.values()),
       import: {

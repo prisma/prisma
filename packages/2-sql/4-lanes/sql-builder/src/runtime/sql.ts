@@ -24,6 +24,7 @@ export function sql<C extends Contract<SqlStorage> & TableProxyContract>(
     storage: context.contract.storage,
     applyMutationDefaults: (options) => context.applyMutationDefaults(options),
     rawCodecInferer,
+    aggregates: context.aggregateDescriptors,
   };
 
   const { storage } = context.contract;

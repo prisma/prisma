@@ -1,6 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { AnnotationValue, OperationKind } from '@internal/framework-components/runtime';
 import type {
+  ExtractAggregateTypes,
   ExtractCodecTypes,
   ExtractFieldOutputTypes,
   ExtractQueryOperationTypes,
@@ -551,6 +552,60 @@ export type VariantModelRow<
       : DefaultModelRow<TContract, ModelName, NsId>
     : DefaultModelRow<TContract, ModelName, NsId>;
 
+/**
+ * The value an aggregate hands the application, read from the contract's emitted aggregate map.
+ *
+ * The map is already settled per input codec — an exact overload having beaten a trait one at emit time — so resolution here is two lookups: the row for this input codec, else the row that answers any input; then that row's output codec, whose application type the codec map names. An operation the target does not declare over this input resolves to `never`, which is what makes an unavailable aggregate unsayable rather than merely wrong at runtime.
+ */
+type AggregateOperationOf<
+  TContract extends Contract<SqlStorage>,
+  Op extends string,
+> = Op extends keyof ExtractAggregateTypes<TContract>
+  ? ExtractAggregateTypes<TContract>[Op]
+  : never;
+
+type AggregateRowFor<TContract extends Contract<SqlStorage>, Op extends string, InputCodecId> = [
+  InputCodecId,
+] extends [never]
+  ? WithoutInputRow<AggregateOperationOf<TContract, Op>>
+  : InputCodecId extends keyof OperationRows<AggregateOperationOf<TContract, Op>>
+    ? OperationRows<AggregateOperationOf<TContract, Op>>[InputCodecId]
+    : AnyInputRow<AggregateOperationOf<TContract, Op>>;
+
+type OperationRows<Operation> = Operation extends { readonly byCodec: infer Rows } ? Rows : never;
+type AnyInputRow<Operation> = Operation extends { readonly anyInput: infer Row } ? Row : never;
+type WithoutInputRow<Operation> = Operation extends { readonly withoutInput: infer Row }
+  ? Row
+  : never;
+
+/** The application value an aggregate produces, `| null` where the target declares the result nullable. */
+export type AggregateResultFor<
+  TContract extends Contract<SqlStorage>,
+  Op extends string,
+  InputCodecId = never,
+> =
+  AggregateRowFor<TContract, Op, InputCodecId> extends {
+    readonly output: infer Output extends string;
+    readonly nullable: infer Nullable extends boolean;
+  }
+    ? Output extends keyof ExtractCodecTypes<TContract>
+      ? ExtractCodecTypes<TContract>[Output] extends { readonly output: infer Value }
+        ? Nullable extends true
+          ? Value | null
+          : Value
+        : never
+      : never
+    : never;
+
+/** The application value an aggregate over `FieldName` produces. */
+export type AggregateFieldResultFor<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  FieldName extends string,
+  NsId extends string = never,
+> = AggregateResultFor<TContract, Op, FieldCodecId<TContract, ModelName, FieldName, NsId>>;
+
 declare const aggregateResultBrand: unique symbol;
 
 export interface AggregateSelector<Result> {
@@ -566,23 +621,66 @@ export type AggregateResult<Spec extends AggregateSpec> = {
   [K in keyof Spec]: Spec[K] extends AggregateSelector<infer Result> ? Result : never;
 };
 
+declare const aggregateUnavailable: unique symbol;
+
+/**
+ * The impossible argument `count()` demands when the contract's aggregate map
+ * declares no row for it — a contract emitted before aggregate types existed,
+ * or a stack that contributes none. The call becomes a type error naming the
+ * reason instead of a selector whose result no declaration types.
+ */
+export interface AggregateUnavailable<Op extends string> {
+  readonly [aggregateUnavailable]: `the contract declares no '${Op}' aggregate for this call`;
+}
+
+/**
+ * The model fields an aggregate operation admits, read from the contract's
+ * emitted aggregate map: a field whose codec a `byCodec` row claims, or any
+ * field when the operation declares an `anyInput` row. Availability is the
+ * target's declaration, not a generic codec trait — textual or temporal
+ * extrema a target declares are admitted, and a pair it never declared is
+ * unsayable here before it can fail anywhere else.
+ */
+export type AggregateFieldNames<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  Op extends string,
+  NsId extends string = never,
+> = {
+  [K in keyof DefaultModelRow<TContract, ModelName, NsId> & string]: FieldCodecId<
+    TContract,
+    ModelName,
+    K,
+    NsId
+  > extends infer Id extends string
+    ? AggregateRowFor<TContract, Op, Id> extends never
+      ? never
+      : K
+    : never;
+}[keyof DefaultModelRow<TContract, ModelName, NsId> & string];
+
 export interface AggregateBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
+  NsId extends string = never,
 > {
-  count(): AggregateSelector<number>;
-  sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  count(
+    ...args: AggregateRowFor<TContract, 'count', never> extends never
+      ? [AggregateUnavailable<'count'>]
+      : []
+  ): AggregateSelector<AggregateResultFor<TContract, 'count'>>;
+  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', NsId>>(
     field: FieldName,
-  ): AggregateSelector<number | null>;
-  avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, NsId>>;
+  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', NsId>>(
     field: FieldName,
-  ): AggregateSelector<number | null>;
-  min<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, NsId>>;
+  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', NsId>>(
     field: FieldName,
-  ): AggregateSelector<number | null>;
-  max<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, NsId>>;
+  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', NsId>>(
     field: FieldName,
-  ): AggregateSelector<number | null>;
+  ): AggregateSelector<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, NsId>>;
 }
 
 export type HavingComparisonMethods<T> = Pick<
@@ -590,18 +688,26 @@ export type HavingComparisonMethods<T> = Pick<
   'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte'
 >;
 
-export interface HavingBuilder<TContract extends Contract<SqlStorage>, ModelName extends string> {
-  count(): HavingComparisonMethods<number>;
-  sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
+export interface HavingBuilder<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+> {
+  count(
+    ...args: AggregateRowFor<TContract, 'count', never> extends never
+      ? [AggregateUnavailable<'count'>]
+      : []
+  ): HavingComparisonMethods<number>;
+  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', NsId>>(
     field: FieldName,
   ): HavingComparisonMethods<number | null>;
-  avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', NsId>>(
     field: FieldName,
   ): HavingComparisonMethods<number | null>;
-  min<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', NsId>>(
     field: FieldName,
   ): HavingComparisonMethods<number | null>;
-  max<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', NsId>>(
     field: FieldName,
   ): HavingComparisonMethods<number | null>;
 }

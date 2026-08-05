@@ -176,9 +176,9 @@ describe('integration/include', () => {
           .all();
 
         expect(rows).toEqual([
-          { id: 10, title: 'Post A', userId: 1, views: 100, embedding: null, comments: 2 },
-          { id: 11, title: 'Post B', userId: 1, views: 200, embedding: null, comments: 0 },
-          { id: 12, title: 'Post C', userId: 2, views: 300, embedding: null, comments: 1 },
+          { id: 10, title: 'Post A', userId: 1, views: 100, embedding: null, comments: 2n },
+          { id: 11, title: 'Post B', userId: 1, views: 200, embedding: null, comments: 0n },
+          { id: 12, title: 'Post C', userId: 2, views: 300, embedding: null, comments: 1n },
         ]);
         // Scalar `count()` lowers to a correlated subquery `(SELECT
         // json_build_object('value', count(*)) ...)` — the whole
@@ -230,7 +230,7 @@ describe('integration/include', () => {
             email: 'alice@example.com',
             invitedById: null,
             address: null,
-            posts: 2,
+            posts: 2n,
           },
         ]);
         expect(runtime.executions).toHaveLength(1);
@@ -288,7 +288,7 @@ describe('integration/include', () => {
             email: 'alice@example.com',
             invitedById: null,
             address: null,
-            posts: 700,
+            posts: 700n,
           },
         ]);
         expect(runtime.executions).toHaveLength(1);
@@ -328,7 +328,7 @@ describe('integration/include', () => {
             email: 'alice@example.com',
             invitedById: null,
             address: null,
-            posts: 300,
+            posts: 300n,
           },
           {
             id: 2,
@@ -336,7 +336,7 @@ describe('integration/include', () => {
             email: 'bob@example.com',
             invitedById: null,
             address: null,
-            posts: 300,
+            posts: 300n,
           },
           {
             id: 3,
@@ -392,7 +392,7 @@ describe('integration/include', () => {
             email: 'alice@example.com',
             invitedById: null,
             address: null,
-            posts: { avgViews: 150, minViews: 100, maxViews: 200 },
+            posts: { avgViews: '150.0000000000000000', minViews: 100, maxViews: 200 },
           },
           {
             id: 2,
@@ -400,7 +400,7 @@ describe('integration/include', () => {
             email: 'bob@example.com',
             invitedById: null,
             address: null,
-            posts: { avgViews: 300, minViews: 300, maxViews: 300 },
+            posts: { avgViews: '300.0000000000000000', minViews: 300, maxViews: 300 },
           },
           {
             id: 3,
@@ -470,7 +470,7 @@ describe('integration/include', () => {
               // The `take(3)` paginates the `recent` row branch but
               // does NOT enter the scalar count's scope — Alice has 4
               // posts total, not 3.
-              total: 4,
+              total: 4n,
             },
           },
           {
@@ -481,7 +481,7 @@ describe('integration/include', () => {
             address: null,
             posts: {
               recent: [{ id: 14, title: 'Post E', userId: 2, views: 500, embedding: null }],
-              total: 1,
+              total: 1n,
             },
           },
         ]);
@@ -529,7 +529,7 @@ describe('integration/include', () => {
             posts: {
               popular: [{ id: 11, title: 'Post B', userId: 1, views: 250, embedding: null }],
               latestOne: [{ id: 11, title: 'Post B', userId: 1, views: 250, embedding: null }],
-              totalCount: 2,
+              totalCount: 2n,
             },
           },
           {
@@ -541,7 +541,7 @@ describe('integration/include', () => {
             posts: {
               popular: [{ id: 12, title: 'Post C', userId: 2, views: 300, embedding: null }],
               latestOne: [{ id: 12, title: 'Post C', userId: 2, views: 300, embedding: null }],
-              totalCount: 1,
+              totalCount: 1n,
             },
           },
         ]);

@@ -6,6 +6,10 @@ import { Collection } from '../src/collection';
 import { createMockRuntime } from './helpers';
 
 type GeneratedLikeCodecTypes = {
+  'pg/int8@1': {
+    output: bigint;
+    traits: 'equality' | 'order' | 'numeric';
+  };
   'pg/text@1': {
     output: string;
     traits: 'equality' | 'order' | 'textual';
@@ -37,10 +41,23 @@ type GeneratedLikeFieldOutputTypes = {
   };
 };
 
+/** The aggregate map a PostgreSQL stack emits, narrowed to the operations these assertions exercise. */
+type GeneratedLikeAggregateTypes = {
+  readonly count: {
+    readonly byCodec: Record<string, never>;
+    readonly withoutInput: { readonly output: 'pg/int8@1'; readonly nullable: false };
+    readonly anyInput: { readonly output: 'pg/int8@1'; readonly nullable: false };
+  };
+};
+
 type GeneratedLikeTypeMaps = TypeMaps<
   GeneratedLikeCodecTypes,
   Record<string, never>,
-  GeneratedLikeFieldOutputTypes
+  GeneratedLikeFieldOutputTypes,
+  Record<string, never>,
+  Record<string, never>,
+  Record<string, never>,
+  GeneratedLikeAggregateTypes
 >;
 
 type GeneratedLikeStorage = {
@@ -318,9 +335,9 @@ export type GeneratedContractTypeAssertions = [
   Assert<Equal<SelectedUserWithPostsRow['posts'][number]['id'], string>>,
   Assert<Equal<SelectedUserWithPostsRow['posts'][number]['userId'], string>>,
   Assert<Equal<SelectedUserWithPostsRow['posts'][number]['title'], string>>,
-  Assert<Equal<UsersWithPostCountRow['posts'], number>>,
+  Assert<Equal<UsersWithPostCountRow['posts'], bigint>>,
   Assert<Equal<keyof UsersWithPostSummaryRow['posts'], 'allPosts' | 'totalCount'>>,
-  Assert<Equal<UsersWithPostSummaryRow['posts']['totalCount'], number>>,
+  Assert<Equal<UsersWithPostSummaryRow['posts']['totalCount'], bigint>>,
   Assert<
     Equal<keyof UsersWithPostSummaryRow['posts']['allPosts'][number], 'id' | 'userId' | 'title'>
   >,
@@ -329,10 +346,12 @@ export type GeneratedContractTypeAssertions = [
   Assert<Equal<CursorPagedUsersState['hasOrderBy'], true>>,
   Assert<Equal<DistinctUsersState['hasOrderBy'], false>>,
   Assert<Equal<DistinctOnUsersState['hasOrderBy'], true>>,
-  Assert<Equal<UserAggregateResult, { count: number }>>,
+  // `count` types as the contract's aggregate map declares it — PostgreSQL
+  // counts through `pg/int8@1`, whose application value is a bigint.
+  Assert<Equal<UserAggregateResult, { count: bigint }>>,
   Assert<Equal<keyof GroupedUserStatsRow, 'email' | 'count'>>,
   Assert<Equal<GroupedUserStatsRow['email'], string>>,
-  Assert<Equal<GroupedUserStatsRow['count'], number>>,
+  Assert<Equal<GroupedUserStatsRow['count'], bigint>>,
 ];
 
 // ---------------------------------------------------------------------------

@@ -6,12 +6,19 @@ import { sql } from '../../src/runtime/sql';
 import { contract as contractJson } from '../fixtures/contract';
 import type { Contract } from '../fixtures/generated/contract';
 
+/** No target contributes aggregates to these plan-shape cases; resolution answers nothing and the codec slot stays empty. */
+const emptyAggregateRegistry = {
+  resolve: () => undefined,
+  values: function* () {},
+};
+
 const sqlContract = validateSqlContractFully<Contract>(contractJson);
 
 const stubBase = {
   operations: {},
   codecs: {},
   queryOperations: { entries: () => ({}) },
+  aggregateDescriptors: emptyAggregateRegistry,
   types: {},
   applyMutationDefaults: () => [],
 };

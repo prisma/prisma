@@ -25,7 +25,7 @@ describe('integration/aggregate', () => {
           count: aggregate.count(),
         }));
 
-        expect(stats).toEqual({ count: 2 });
+        expect(stats).toEqual({ count: 2n });
         expect(runtime.executions).toHaveLength(1);
         expect(runtime.executions[0]?.sql.toLowerCase()).toContain('count(*)');
       });
@@ -56,10 +56,14 @@ describe('integration/aggregate', () => {
             max: aggregate.max(numericField),
           }));
 
+        // Each value is the target's declared result codec speaking: `count`
+        // and a widened `sum` over int4 are bigints, `avg` is a numeric whose
+        // canonical form is a decimal string, and `min`/`max` keep the column's
+        // own int4.
         expect(stats).toEqual({
-          count: 2,
-          total: 50,
-          avg: 25,
+          count: 2n,
+          total: 50n,
+          avg: '25.0000000000000000',
           min: 20,
           max: 30,
         });
@@ -88,12 +92,51 @@ describe('integration/aggregate', () => {
           }));
 
         expect(stats).toEqual({
-          count: 0,
+          count: 0n,
           total: null,
           avg: null,
           min: null,
           max: null,
         });
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  // The value-level proof that an aggregate past 2^53 survives both paths needs
+  // a column whose single value exceeds a double's integers; this fixture's
+  // widest numeric column is int4. The decimal-string channel is proven above:
+  // `avg` returns '25.0000000000000000', a form no number carries.
+  it(
+    'reads a widened sum as a bigint and a numeric average as its decimal string',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        const posts = createPostsCollection(runtime);
+        const users = createUsersCollection(runtime);
+
+        await seedUsers(runtime, [{ id: 1, name: 'Alice', email: 'alice@example.com' }]);
+        await seedPosts(runtime, [
+          { id: 10, title: 'a', userId: 1, views: 2000000000 },
+          { id: 11, title: 'b', userId: 1, views: 2000000000 },
+        ]);
+
+        const numericField = 'views' as never;
+        const stats = await posts.aggregate((aggregate) => ({
+          count: aggregate.count(),
+          total: aggregate.sum(numericField),
+        }));
+
+        // The sum exceeds int4 and comes back as the int8 the target declares —
+        // as a bigint, not a number that happens to fit today.
+        expect(stats).toEqual({ count: 2n, total: 4000000000n });
+
+        const rows = await users
+          .select('id')
+          .include('posts', (related) => related.count())
+          .all();
+
+        // An include count reads through the same codec: a bigint inside JSON.
+        expect(rows).toEqual([{ id: 1, posts: 2n }]);
       });
     },
     timeouts.spinUpPpgDev,

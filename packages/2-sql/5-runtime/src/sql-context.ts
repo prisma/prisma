@@ -4,7 +4,10 @@ import type {
   CodecDescriptor,
   CodecRef,
 } from '@internal/framework-components/codec';
-import type { ComponentDescriptor } from '@internal/framework-components/components';
+import type {
+  ComponentDescriptor,
+  ComponentMetadata,
+} from '@internal/framework-components/components';
 import {
   checkContractComponentRequirements,
   mergeCapabilityMatrices,
@@ -36,6 +39,7 @@ function documentScopedCodecTypes(
 }
 
 import { createSqlOperationRegistry, type SqlOperationDescriptors } from '@internal/sql-operations';
+import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import type {
   Adapter,
   AnyQueryAst,
@@ -293,6 +297,15 @@ function collectCodecDescriptors(contributors: ReadonlyArray<SqlStaticContributi
   }
 
   return { all, parameterized };
+}
+
+/**
+ * Flatten every aggregate descriptor the SQL stack contributes. Shape validation, single-ownership of each `(operation, input)` pair, and trait-overlap resolution all happen inside {@link buildSqlAggregateDescriptorRegistry}, so contributions reach it unchecked and fail there — at composition, never mid-query.
+ */
+function collectAggregateDescriptorContributions(
+  contributors: ReadonlyArray<ComponentMetadata>,
+): ReadonlyArray<unknown> {
+  return contributors.flatMap((contributor) => contributor.types?.aggregateDescriptors ?? []);
 }
 
 function collectTypeRefSites(
@@ -796,6 +809,10 @@ export function createExecutionContext<
 
   const codecDescriptors = buildCodecDescriptorRegistry(allCodecDescriptors, contract.storage);
   assertColumnCodecIntegrity(contract.storage, codecDescriptors);
+  const aggregateDescriptors = buildSqlAggregateDescriptorRegistry(
+    collectAggregateDescriptorContributions(contributors),
+    codecDescriptors,
+  );
   const mutationDefaultGeneratorRegistry = collectMutationDefaultGenerators(contributors);
   assertMutationDefaultGeneratorsAvailable(contract, mutationDefaultGeneratorRegistry);
 
@@ -815,6 +832,7 @@ export function createExecutionContext<
     contract,
     contractCodecs,
     codecDescriptors,
+    aggregateDescriptors,
     queryOperations: queryOperationRegistry,
     types,
     applyMutationDefaults: (options) =>

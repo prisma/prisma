@@ -22,7 +22,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import type { Simplify } from '@internal/utils/types';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
-import { normalizeAggregateResult } from './collection-aggregate-result';
+import { emptyAggregateResult } from './aggregate-empty-result';
 import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-column-mapping';
 import {
   assertReturningCapability,
@@ -97,7 +97,10 @@ import {
 } from './query-plan';
 import {
   type AggregateBuilder,
+  type AggregateFieldNames,
+  type AggregateFieldResultFor,
   type AggregateResult,
+  type AggregateResultFor,
   type AggregateSpec,
   type CollectionContext,
   type CollectionState,
@@ -114,7 +117,6 @@ import {
   type MutationCreateInput,
   type MutationCreateInputWithRelations,
   type MutationUpdateInput,
-  type NumericFieldNames,
   type RelatedModelName,
   type RelationTargetNamespace,
   type ResolvedCreateInput,
@@ -692,15 +694,15 @@ export class Collection<
    *   .where({ published: true })
    *   .groupBy('userId')
    *   .aggregate((agg) => ({ count: agg.count(), totalViews: agg.sum('views') }));
-   * // [{ userId: 1, count: 3, totalViews: 120 }, ...]
+   * // [{ userId: 1, count: 3n, totalViews: 120n }, ...]
    * ```
    */
   groupBy<
     Fields extends readonly [
-      keyof DefaultModelRow<TContract, ModelName> & string,
-      ...(keyof DefaultModelRow<TContract, ModelName> & string)[],
+      keyof DefaultModelRow<TContract, ModelName, State['nsId']> & string,
+      ...(keyof DefaultModelRow<TContract, ModelName, State['nsId']> & string)[],
     ],
-  >(...fields: Fields): GroupedCollection<TContract, ModelName, Fields> {
+  >(...fields: Fields): GroupedCollection<TContract, ModelName, Fields, State['nsId']> {
     const groupByColumns = mapFieldsToColumns(
       this.contract,
       this.namespaceId,
@@ -727,12 +729,12 @@ export class Collection<
    *
    * ```typescript
    * const users = await db.orm.User.include('posts', (posts) => posts.count()).all();
-   * // each user row: { ...user, posts: number }
+   * // each user row: { ...user, posts: bigint }
    * ```
    */
-  count(): IncludeScalar<number> {
+  count(): IncludeScalar<AggregateResultFor<TContract, 'count'>> {
     this.#assertIncludeRefinementMode('count()');
-    return createIncludeScalar<number>('count', this.state);
+    return createIncludeScalar<AggregateResultFor<TContract, 'count'>>('count', this.state);
   }
 
   /**
@@ -743,15 +745,17 @@ export class Collection<
    *
    * ```typescript
    * const users = await db.orm.User.include('posts', (posts) => posts.sum('views')).all();
-   * // each user row: { ...user, posts: number | null }
+   * // each user row: { ...user, posts: bigint | null } — an int4 column's sum widens to int8
    * ```
    */
-  sum<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  sum<FieldName extends AggregateFieldNames<TContract, ModelName, 'sum', State['nsId']>>(
     field: FieldName,
-  ): IncludeScalar<number | null> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, State['nsId']>> {
     this.#assertIncludeRefinementMode('sum()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<number | null>('sum', this.state, columnName);
+    return createIncludeScalar<
+      AggregateFieldResultFor<TContract, ModelName, 'sum', FieldName, State['nsId']>
+    >('sum', this.state, columnName);
   }
 
   /**
@@ -762,15 +766,17 @@ export class Collection<
    *
    * ```typescript
    * const users = await db.orm.User.include('posts', (posts) => posts.avg('views')).all();
-   * // each user row: { ...user, posts: number | null }
+   * // each user row: { ...user, posts: string | null } — PostgreSQL averages integers as numeric
    * ```
    */
-  avg<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  avg<FieldName extends AggregateFieldNames<TContract, ModelName, 'avg', State['nsId']>>(
     field: FieldName,
-  ): IncludeScalar<number | null> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, State['nsId']>> {
     this.#assertIncludeRefinementMode('avg()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<number | null>('avg', this.state, columnName);
+    return createIncludeScalar<
+      AggregateFieldResultFor<TContract, ModelName, 'avg', FieldName, State['nsId']>
+    >('avg', this.state, columnName);
   }
 
   /**
@@ -783,12 +789,14 @@ export class Collection<
    * const users = await db.orm.User.include('posts', (posts) => posts.min('views')).all();
    * ```
    */
-  min<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  min<FieldName extends AggregateFieldNames<TContract, ModelName, 'min', State['nsId']>>(
     field: FieldName,
-  ): IncludeScalar<number | null> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, State['nsId']>> {
     this.#assertIncludeRefinementMode('min()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<number | null>('min', this.state, columnName);
+    return createIncludeScalar<
+      AggregateFieldResultFor<TContract, ModelName, 'min', FieldName, State['nsId']>
+    >('min', this.state, columnName);
   }
 
   /**
@@ -801,12 +809,14 @@ export class Collection<
    * const users = await db.orm.User.include('posts', (posts) => posts.max('views')).all();
    * ```
    */
-  max<FieldName extends NumericFieldNames<TContract, ModelName>>(
+  max<FieldName extends AggregateFieldNames<TContract, ModelName, 'max', State['nsId']>>(
     field: FieldName,
-  ): IncludeScalar<number | null> {
+  ): IncludeScalar<AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, State['nsId']>> {
     this.#assertIncludeRefinementMode('max()');
     const columnName = resolveFieldToColumn(this.contract, this.namespaceId, this.modelName, field);
-    return createIncludeScalar<number | null>('max', this.state, columnName);
+    return createIncludeScalar<
+      AggregateFieldResultFor<TContract, ModelName, 'max', FieldName, State['nsId']>
+    >('max', this.state, columnName);
   }
 
   /**
@@ -826,7 +836,7 @@ export class Collection<
    * ).all();
    * // each user row: {
    * //   ...user,
-   * //   posts: { recent: Post[]; total: number; averageViews: number | null };
+   * //   posts: { recent: Post[]; total: bigint; averageViews: string | null };
    * // }
    * ```
    */
@@ -1129,7 +1139,7 @@ export class Collection<
    *     averageViews: agg.avg('views'),
    *     maxViews: agg.max('views'),
    *   }));
-   * // { total: 42, averageViews: 17.3, maxViews: 9001 }
+   * // { total: 42n, averageViews: '17.3000000000000000', maxViews: 9001 }
    * ```
    *
    * Accepts an optional `configure` callback that receives a
@@ -1137,11 +1147,15 @@ export class Collection<
    * Annotations are merged into the compiled plan's `meta.annotations`.
    */
   async aggregate<Spec extends AggregateSpec>(
-    fn: (aggregate: AggregateBuilder<TContract, ModelName>) => Spec,
+    fn: (aggregate: AggregateBuilder<TContract, ModelName, State['nsId']>) => Spec,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<AggregateResult<Spec>> {
     const aggregateSpec = fn(
-      createAggregateBuilder(this.contract, this.namespaceId, this.modelName),
+      createAggregateBuilder<TContract, ModelName, State['nsId']>(
+        this.contract,
+        this.namespaceId,
+        this.modelName,
+      ),
     );
     const entries = Object.entries(aggregateSpec);
     if (entries.length === 0) {
@@ -1169,6 +1183,7 @@ export class Collection<
     const compiled = mergeAnnotations(
       compileAggregate(
         this.contract,
+        this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.tableName,
         this.state.filters,
@@ -1180,7 +1195,19 @@ export class Collection<
       this.ctx.runtime,
       compiled,
     ).toArray();
-    return normalizeAggregateResult(aggregateSpec, rows[0] ?? {});
+    // Values arrive decoded: the projection carries each aggregate's resolved
+    // output codec, so the runtime's decode pass has already turned the wire
+    // value into the application one. An absent alias means an empty input set,
+    // whose SQL answer for `count` is zero and for the rest is null.
+    const row = rows[0] ?? {};
+    const result: Record<string, unknown> = {};
+    for (const [alias, selector] of entries) {
+      result[alias] = row[alias] ?? emptyAggregateResult(selector.fn);
+    }
+    return blindCast<
+      AggregateResult<Spec>,
+      "aliases are the aggregateSpec's own keys; values decoded by the projection codecs the same spec resolved"
+    >(result);
   }
 
   /**

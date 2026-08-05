@@ -389,8 +389,8 @@ describe('integration/mutation-include-readback', () => {
 
           const sorted = [...updated].sort((a, b) => a.email.localeCompare(b.email));
           expect(sorted).toEqual([
-            { email: 'a@example.com', posts: 2 },
-            { email: 'b@example.com', posts: 1 },
+            { email: 'a@example.com', posts: 2n },
+            { email: 'b@example.com', posts: 1n },
           ]);
         });
       },
@@ -431,12 +431,12 @@ describe('integration/mutation-include-readback', () => {
               name: 'Alice',
               posts: {
                 recent: [{ title: 'Post C' }, { title: 'Post B' }],
-                total: 3,
+                total: 3n,
               },
             },
             {
               name: 'Bob',
-              posts: { recent: [], total: 0 },
+              posts: { recent: [], total: 0n },
             },
           ]);
         });
