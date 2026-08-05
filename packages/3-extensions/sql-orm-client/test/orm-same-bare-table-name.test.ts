@@ -1,7 +1,11 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type {
+import {
+  AndExpr,
+  BinaryExpr,
   ColumnRef,
+  ExistsExpr,
+  ParamRef,
   ProjectionItem,
   SelectAst,
   TableSource,
@@ -9,17 +13,22 @@ import type {
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
+import { createModelAccessor } from '../src/model-accessor';
 import { orm } from '../src/orm';
-import { createMockRuntime, getTestAggregates, type MockRuntime } from './helpers';
+import { createMockRuntime, getTestAggregates, getTestContext, type MockRuntime } from './helpers';
 
-function model(table: string, fieldColumns: Record<string, string>) {
+function model(
+  table: string,
+  fieldColumns: Record<string, string>,
+  relations: Record<string, unknown> = {},
+) {
   const fields: Record<string, { type: { kind: string; codecId: string } }> = {};
   const storageFields: Record<string, { column: string }> = {};
   for (const [field, column] of Object.entries(fieldColumns)) {
     fields[field] = { type: { kind: 'scalar', codecId: 'pg/text@1' } };
     storageFields[field] = { column };
   }
-  return { fields, relations: {}, storage: { table, fields: storageFields } };
+  return { fields, relations, storage: { table, fields: storageFields } };
 }
 
 function storageTable(columnCodecs: Record<string, string>) {
@@ -45,8 +54,24 @@ const twoNamespaceContract = blindCast<Contract<SqlStorage>, 'hand-built multi-n
   capabilities: { returning: { enabled: true } },
   domain: {
     namespaces: {
-      public: { models: { User: model('users', { id: 'id', email: 'email_addr' }) } },
-      auth: { models: { User: model('users', { id: 'id', token: 'token_col' }) } },
+      public: {
+        models: {
+          User: model(
+            'users',
+            { id: 'id', email: 'email_addr' },
+            {
+              sessions: {
+                to: { namespace: 'auth', model: 'User' },
+                cardinality: '1:N',
+                on: { localFields: ['id'], targetFields: ['id'] },
+              },
+            },
+          ),
+        },
+      },
+      auth: {
+        models: { User: model('users', { id: 'id', token: 'token_col' }) },
+      },
     },
   },
   storage: {
@@ -58,7 +83,11 @@ const twoNamespaceContract = blindCast<Contract<SqlStorage>, 'hand-built multi-n
       },
       auth: {
         id: 'auth',
-        entries: { table: { users: storageTable({ id: 'pg/int4@1', token_col: 'pg/varchar@1' }) } },
+        entries: {
+          table: {
+            users: storageTable({ id: 'pg/int4@1', token_col: 'pg/varchar@1' }),
+          },
+        },
       },
     },
   },
@@ -92,22 +121,26 @@ type CrudCollection = {
 };
 type TwoNamespaceOrm = { public: { User: CrudCollection }; auth: { User: CrudCollection } };
 
-function setup(): { db: TwoNamespaceOrm; runtime: MockRuntime } {
+function setup(): {
+  db: TwoNamespaceOrm;
+  runtime: MockRuntime;
+  context: ExecutionContext<Contract<SqlStorage>>;
+} {
   const runtime = createMockRuntime();
+  const testContext = getTestContext();
+  const context = blindCast<ExecutionContext<Contract<SqlStorage>>, 'stub execution context'>({
+    contract: twoNamespaceContract,
+    applyMutationDefaults: () => [],
+    codecDescriptors: testContext.codecDescriptors,
+    // The real registry: what a `max` over each namespace's column resolves
+    // to is the target's answer, which is the whole subject of these cases.
+    aggregateDescriptors: getTestAggregates(),
+    queryOperations: testContext.queryOperations,
+  });
   const db = blindCast<TwoNamespaceOrm, 'loose runtime view of the namespaced orm client'>(
-    orm({
-      runtime,
-      context: blindCast<ExecutionContext<Contract<SqlStorage>>, 'stub execution context'>({
-        contract: twoNamespaceContract,
-        applyMutationDefaults: () => [],
-        codecDescriptors: { descriptorFor: () => ({ traits: ['equality'] }) },
-        // The real registry: what a `max` over each namespace's column resolves
-        // to is the target's answer, which is the whole subject of these cases.
-        aggregateDescriptors: getTestAggregates(),
-      }),
-    }),
+    orm({ runtime, context }),
   );
-  return { db, runtime };
+  return { db, runtime, context };
 }
 
 function lastPlanAst(runtime: MockRuntime): SelectAst {
@@ -173,6 +206,38 @@ function codecByAlias(ast: SelectAst): Record<string, string | undefined> {
 }
 
 describe('orm same bare table name across namespaces', () => {
+  it('aliases a cross-namespace relation filter target sharing the parent table name', () => {
+    const { context } = setup();
+    const user = blindCast<
+      {
+        sessions: {
+          some(
+            predicate: (session: { token: { eq(value: string): unknown } }) => unknown,
+          ): ExistsExpr;
+        };
+      },
+      'focused runtime view of the relation filter accessor'
+    >(createModelAccessor(context, 'public', 'User'));
+
+    const filter = user.sessions.some((session) => session.token.eq('secret'));
+
+    expect(filter).toEqual(
+      ExistsExpr.exists(
+        SelectAst.from(TableSource.named('users', 'sessions__child', 'auth'))
+          .withProjection([ProjectionItem.of('_exists', ColumnRef.of('sessions__child', 'id'))])
+          .withWhere(
+            AndExpr.of([
+              BinaryExpr.eq(ColumnRef.of('sessions__child', 'id'), ColumnRef.of('users', 'id')),
+              BinaryExpr.eq(
+                ColumnRef.of('sessions__child', 'token_col'),
+                ParamRef.of('secret', { codec: { codecId: 'pg/varchar@1' } }),
+              ),
+            ]),
+          ),
+      ),
+    );
+  });
+
   it('projects the per-namespace columns, discriminating by namespace', async () => {
     const { db, runtime } = setup();
 

@@ -640,9 +640,9 @@ describe('createModelAccessor', () => {
 
       const expr = feature['subtasks']!.some() as ExistsExpr;
 
-      expect(expr.subquery.from).toEqual(TableSource.named('tasks', undefined, 'public'));
+      expect(expr.subquery.from).toEqual(TableSource.named('tasks', 'subtasks__child', 'public'));
       expect(expr.subquery.where).toEqual(
-        BinaryExpr.eq(ColumnRef.of('tasks', 'parent_id'), ColumnRef.of('tasks', 'id')),
+        BinaryExpr.eq(ColumnRef.of('subtasks__child', 'parent_id'), ColumnRef.of('tasks', 'id')),
       );
     });
   });
