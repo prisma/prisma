@@ -386,16 +386,16 @@ describe('check emission — guards', () => {
 
   it('columns whose truncated prefixes collide still get distinct names', () => {
     // Both prefixes truncate to the same 54 characters — the columns differ
-    // only past the cap — while the differing member sets give the predicates,
-    // and so the hashes, different content.
+    // only past the cap. Same enum on both, so the member set is identical and
+    // the ONLY thing separating the two predicates is the column name they
+    // embed. That is precisely the property the truncation decision rests on.
     const shared = 'c'.repeat(50);
-    const Other = enumType('Other', pgText, member('X', 'x'));
     const contract = defineContract(
       {
         family: sqlFamilyPack,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,
-        enums: { Role, Other },
+        enums: { Role },
       },
       ({ field: f, model: m }) =>
         ({
@@ -404,7 +404,7 @@ describe('check emission — guards', () => {
               fields: {
                 id: f.text().id(),
                 [`${shared}a`]: f.namedType(Role),
-                [`${shared}b`]: f.namedType(Other),
+                [`${shared}b`]: f.namedType(Role),
               },
             }),
           },
@@ -413,6 +413,8 @@ describe('check emission — guards', () => {
 
     const checks = checksOf(contract);
     expect(checks).toHaveLength(2);
+    // Identical member sets: the predicates differ only by column name.
+    expect(checks[0]?.expression).not.toBe(checks[1]?.expression);
     expect(checks[0]?.prefix).toBe(checks[1]?.prefix);
     expect(checks[0]?.name).not.toBe(checks[1]?.name);
   });

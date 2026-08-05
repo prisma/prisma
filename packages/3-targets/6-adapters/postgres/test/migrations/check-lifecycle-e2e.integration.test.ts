@@ -332,6 +332,59 @@ describe.sequential('check-constraint lifecycle', () => {
     expect((await verify(contract, false)).ok).toBe(true);
   });
 
+  // The array-enum form is the latent bug this project fixes: the old renderer
+  // emitted `IN (…)` for an array column, which Postgres rejects outright with
+  // `operator does not exist: text[] = text`. A string assertion cannot tell
+  // legal DDL from that, so this scenario has to reach a real database — the
+  // migration applying at all is the proof.
+  it('an array domain enum installs both checks and enforces them', {
+    timeout: testTimeout,
+  }, async () => {
+    const checks = checksForColumn('Item', 'roles', {
+      many: true,
+      memberValues: ['user', 'admin'],
+    });
+    expect(checks).toHaveLength(2);
+    const contract = contractOf(
+      {
+        id: idColumn,
+        roles: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
+      },
+      checks,
+    );
+
+    await migrate(contract);
+
+    // Containment and element-non-null both live on the column.
+    expect(await liveCheckNames()).toEqual([...declaredCheckNames(contract)].sort());
+
+    const membershipName = checks[0]?.name ?? '';
+    await driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('a', ARRAY['user','admin'])`);
+    // Naming the constraint in the assertion proves the containment check is
+    // what rejected the row, not some incidental failure.
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('b', ARRAY['user','root'])`),
+    ).rejects.toThrow(new RegExp(membershipName));
+    // `<@` does not match a NULL element either, so containment rejects this
+    // one too — the element-non-null check is belt for a different hole (a
+    // list column with no member set at all).
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('c', ARRAY['user',NULL])`),
+    ).rejects.toThrow(/Item_roles/);
+
+    const schema = await familyInstance.introspect({ driver: driver!, contract });
+    PostgresDatabaseSchemaNode.assert(schema);
+    const live = schema.namespaces['public']?.tables['Item']?.checks ?? [];
+    expect([...live.map((c) => c.expression)].sort()).toEqual([
+      '(array_position(roles, NULL::text) IS NULL)',
+      `(roles <@ ARRAY['user'::text, 'admin'::text])`,
+    ]);
+
+    expect((await verify(contract)).ok).toBe(true);
+    // Reprint stability: the containment shape does not drift on re-verify.
+    expect((await verify(contract)).ok).toBe(true);
+  });
+
   it('a varchar-column membership check does not drift after apply', {
     timeout: testTimeout,
   }, async () => {
