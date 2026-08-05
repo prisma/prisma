@@ -78,6 +78,7 @@
 - **CLI commands**: Most commands already accept `--config` for custom config paths. Upcoming work removes `--schema` / `--url` in favour of config-based resolution. When editing CLI help text, keep examples aligned with new config-first workflow.
   - For isolated Studio verification, you can run `packages/cli/src/Studio.ts` directly via `pnpm exec tsx` and pass a config object that preserves `loadedFromFile`; this keeps SQLite URLs resolving relative to the config file while avoiding unrelated `packages/cli/src/bin.ts` imports.
   - Studio is now pre-bundled into `packages/cli/build/studio.js` and `packages/cli/build/studio.css`, served only through explicit routes in `packages/cli/src/Studio.ts` via the runtime-specific `packages/cli/src/studio-server.ts` bindings, and should keep listener-level coverage in `packages/cli/src/__tests__/studio-server.vitest.ts` because a past Node regression dropped `GET` bodies by treating them like `HEAD`.
+  - Studio's local HTTP server must bind explicitly to `127.0.0.1`. Its request handler must reject browser requests whose `Origin` is not the active localhost or loopback URL before routing `/bff` or `/telemetry`; removing CORS response headers alone does not prevent cross-origin writes.
   - If Enter or click does not open a cell editor in Studio, verify that the current table and column are writable before assuming a keyboard regression; views/system tables and read-only columns legitimately stay non-editable.
 
 - **Driver adapters datasource**:
