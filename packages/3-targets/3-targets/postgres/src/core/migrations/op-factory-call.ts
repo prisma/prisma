@@ -1052,24 +1052,17 @@ export class AddCheckConstraintCall extends PostgresOpFactoryCallNode {
   readonly schemaName: string;
   readonly tableName: string;
   readonly constraintName: string;
-  readonly column: string;
-  readonly values: readonly string[];
+  /** Opaque SQL: the predicate body, rendered verbatim inside `CHECK (…)`. */
+  readonly expression: string;
   readonly label: string;
 
-  constructor(
-    schemaName: string,
-    tableName: string,
-    constraintName: string,
-    column: string,
-    values: readonly string[],
-  ) {
+  constructor(schemaName: string, tableName: string, constraintName: string, expression: string) {
     super();
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.constraintName = constraintName;
-    this.column = column;
-    this.values = values;
-    this.label = `Add check constraint "${constraintName}" on "${tableName}"."${column}"`;
+    this.expression = expression;
+    this.label = `Add check constraint "${constraintName}" on "${tableName}"`;
     this.freeze();
   }
 
@@ -1085,14 +1078,13 @@ export class AddCheckConstraintCall extends PostgresOpFactoryCallNode {
       this.schemaName,
       this.tableName,
       this.constraintName,
-      this.column,
-      this.values,
+      this.expression,
       lowerer,
     );
   }
 
   renderTypeScript(): string {
-    return `this.addCheckConstraint({ ${constraintCallOptions(this.schemaName, this.tableName, this.constraintName)}, column: ${jsonToTsSource(this.column)}, values: ${jsonToTsSource(this.values)} })`;
+    return `this.addCheckConstraint({ ${constraintCallOptions(this.schemaName, this.tableName, this.constraintName)}, expression: ${jsonToTsSource(this.expression)} })`;
   }
 
   override importRequirements(): readonly ImportRequirement[] {

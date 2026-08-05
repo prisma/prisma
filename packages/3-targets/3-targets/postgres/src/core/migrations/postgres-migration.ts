@@ -278,15 +278,13 @@ export abstract class PostgresMigration<
     readonly schema: string;
     readonly table: string;
     readonly constraint: string;
-    readonly column: string;
-    readonly values: readonly string[];
+    readonly expression: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new AddCheckConstraintCall(
       options.schema,
       options.table,
       options.constraint,
-      options.column,
-      options.values,
+      options.expression,
     ).toOp(this.controlAdapterFor('addCheckConstraint'));
   }
 

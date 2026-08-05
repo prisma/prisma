@@ -119,8 +119,7 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly schema: string;
     readonly table: string;
     readonly constraint: string;
-    readonly column: string;
-    readonly values: readonly string[];
+    readonly expression: string;
   }): Promise<Op> {
     return this.addCheckConstraint(options);
   }
@@ -316,8 +315,7 @@ const cases: ReadonlyArray<{
         schema: 'public',
         table: 'widget',
         constraint: 'widget_status_check',
-        column: 'status',
-        values: ['active', 'inactive'],
+        expression: `"status" IN ('active', 'inactive')`,
       }),
   },
   {

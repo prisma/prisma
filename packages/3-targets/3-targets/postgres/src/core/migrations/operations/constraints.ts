@@ -2,7 +2,7 @@ import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import { InternalError } from '@internal/utils/internal-error';
 import { constraintExistsAst } from '../../../contract-free/checks';
-import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
+import { quoteIdentifier } from '../../sql-utils';
 import { qualifyTableName } from '../planner-sql-checks';
 import { type ForeignKeySpec, type Op, step, targetDetails } from './shared';
 
@@ -134,12 +134,10 @@ export async function addCheckConstraint(
   schemaName: string,
   tableName: string,
   constraintName: string,
-  column: string,
-  values: readonly string[],
+  expression: string,
   lowerer: ExecuteRequestLowerer,
 ): Promise<Op> {
   const qualified = qualifyTableName(schemaName, tableName);
-  const valueList = values.map((v) => `'${escapeLiteral(v)}'`).join(', ');
   const { absent, present } = await constraintCheckSteps(lowerer, {
     constraintName,
     schema: schemaName,
@@ -147,7 +145,7 @@ export async function addCheckConstraint(
   });
   return {
     id: `checkConstraint.${tableName}.${constraintName}`,
-    label: `Add check constraint "${constraintName}" on "${tableName}"."${column}"`,
+    label: `Add check constraint "${constraintName}" on "${tableName}"`,
     operationClass: 'additive',
     target: targetDetails('checkConstraint', constraintName, schemaName, tableName),
     precheck: [
@@ -156,7 +154,7 @@ export async function addCheckConstraint(
     execute: [
       step(
         `add check constraint "${constraintName}"`,
-        `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} CHECK (${quoteIdentifier(column)} IN (${valueList}))`,
+        `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} CHECK (${expression})`,
       ),
     ],
     postcheck: [step(`verify constraint "${constraintName}" exists`, present.sql, present.params)],

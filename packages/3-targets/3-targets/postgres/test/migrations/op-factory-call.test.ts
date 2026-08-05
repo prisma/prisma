@@ -155,10 +155,12 @@ describe('AddForeignKeyCall', () => {
 describe('AddCheckConstraintCall', () => {
   it('lowers typed checks and renders this.addCheckConstraint', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const call = new AddCheckConstraintCall('public', 'post', 'post_priority_check', 'priority', [
-      'low',
-      'high',
-    ]);
+    const call = new AddCheckConstraintCall(
+      'public',
+      'post',
+      'post_priority_check',
+      `"priority" IN ('low', 'high')`,
+    );
     const op = await call.toOp(lowerer);
     const checks = () =>
       constraintExistsAst({
@@ -170,7 +172,7 @@ describe('AddCheckConstraintCall', () => {
     expect(op.execute[0]?.sql).toContain("CHECK (\"priority\" IN ('low', 'high'))");
     expect(op.precheck[0]).toMatchObject({ sql: 'LOWERED 1', params: ['p1'] });
     expect(call.renderTypeScript()).toBe(
-      'this.addCheckConstraint({ schema: "public", table: "post", constraint: "post_priority_check", column: "priority", values: ["low", "high"] })',
+      `this.addCheckConstraint({ schema: "public", table: "post", constraint: "post_priority_check", expression: "\\"priority\\" IN ('low', 'high')" })`,
     );
     expect(call.importRequirements()).toEqual([]);
   });
