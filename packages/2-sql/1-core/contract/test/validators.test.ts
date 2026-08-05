@@ -1,6 +1,7 @@
 import { ContractValidationError } from '@internal/contract/contract-validation-error';
 import { type ContractModel, type ContractRelation, crossRef } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { createContract } from '@repo/test-utils';
 import { type } from 'arktype';
@@ -31,6 +32,13 @@ const roleInCheck = `"role" IN ('user', 'admin')`;
 
 function checkConstraint(name: string, expression: string): CheckConstraint {
   return new CheckConstraint({ naming: { kind: 'exact', name }, expression });
+}
+
+function wireCheckConstraint(prefix: string, expression: string): CheckConstraint {
+  return new CheckConstraint({
+    naming: { kind: 'wire', prefix, hash: computeCheckContentHash(expression) },
+    expression,
+  });
 }
 
 function unboundTables<T extends Record<string, unknown>>(tables: T) {
@@ -1471,7 +1479,7 @@ describe('SQL contract validators', () => {
       expect(errors[0]).toContain('index');
     });
 
-    it('rejects two check constraints declaring the same expression', () => {
+    it('accepts two exact-named checks sharing one expression (the legacy adoption shape)', () => {
       const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: new StorageTable({
@@ -1486,10 +1494,28 @@ describe('SQL contract validators', () => {
           }),
         }),
       }).storage;
+      expect(validateStorageSemantics(s)).toEqual([]);
+    });
+
+    it('rejects two wire-named checks whose expressions differ only in whitespace', () => {
+      const spacedOut = roleInCheck.replace(' IN ', '  IN  ');
+      const s = createContract<SqlStorage>({
+        storage: unboundTables({
+          user: new StorageTable({
+            columns: { role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false } },
+            uniques: [],
+            indexes: [],
+            foreignKeys: [],
+            checks: [
+              wireCheckConstraint('user_role_check', roleInCheck),
+              wireCheckConstraint('user_role_alt_check', spacedOut),
+            ],
+          }),
+        }),
+      }).storage;
       const errors = validateStorageSemantics(s);
       expect(errors).toHaveLength(1);
       expect(errors[0]).toContain('duplicate check constraint definition');
-      expect(errors[0]).toContain(roleInCheck);
     });
   });
 

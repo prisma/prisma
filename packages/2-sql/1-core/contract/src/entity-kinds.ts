@@ -2,6 +2,7 @@ import type {
   AnyEntityKindDescriptor,
   EntityKindDescriptor,
 } from '@internal/framework-components/ir';
+import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import { CheckConstraint } from './ir/check-constraint';
 import { Index } from './ir/sql-index';
@@ -31,11 +32,12 @@ export const tableEntityKind: EntityKindDescriptor<HydratableStorageTable, Stora
     new StorageTable({
       ...input,
       indexes: input.indexes.map((i) => (i instanceof Index ? i : indexInputFromSerialized(i))),
-      ...(input.checks !== undefined && {
-        checks: input.checks.map((c) =>
+      ...ifDefined(
+        'checks',
+        input.checks?.map((c) =>
           c instanceof CheckConstraint ? c : checkConstraintInputFromSerialized(c),
         ),
-      }),
+      ),
     }),
 };
 
