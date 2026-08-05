@@ -1,5 +1,3 @@
-import type { RuntimeErrorEnvelope } from '@internal/framework-components/runtime';
-import { runtimeError } from '@internal/framework-components/runtime';
 import type {
   PreparedExecuteRequest,
   SqlConnection,
@@ -23,6 +21,7 @@ import type {
 import { Pool } from 'pg';
 import Cursor from 'pg-cursor';
 import { callbackToPromise } from './callback-to-promise';
+import { type DriverRuntimeError, driverError } from './driver-error';
 import { NamedCursor } from './named-cursor';
 import { isAlreadyConnectedError, isPostgresError, normalizePgError } from './normalize-error';
 
@@ -740,13 +739,14 @@ function rethrowNormalizedError(error: unknown): never {
   throw normalizePgError(error);
 }
 
-// ADR 210 § Stale-handle retry: a re-prepare that fails again surfaces the
-// stable code reserved for this surface, carrying the driver error as `cause`.
-function prepareFailedError(retryError: unknown, handle: string): RuntimeErrorEnvelope {
+// ADR 210 § Stale-handle retry: a re-prepare that fails again surfaces a
+// stable code, carrying the driver error as `cause`. ADR 239 governs the
+// namespace — `DRIVER` covers driver transport and error normalization.
+function prepareFailedError(retryError: unknown, handle: string): DriverRuntimeError {
   const cause = normalizePgError(retryError);
   return Object.assign(
-    runtimeError(
-      'ADAPTER.PREPARE_FAILED',
+    driverError(
+      'DRIVER.PREPARE_FAILED',
       `Prepared statement failed again after re-preparing with a fresh handle: ${cause.message}`,
       { handle },
     ),

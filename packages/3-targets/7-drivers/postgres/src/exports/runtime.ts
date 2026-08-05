@@ -11,6 +11,7 @@ import type {
   SqlQueryResult,
 } from '@internal/sql-relational-core/ast';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
+import { driverError } from '../driver-error';
 import {
   createBoundDriverFromBinding,
   type PostgresBinding,
@@ -24,32 +25,6 @@ const USE_BEFORE_CONNECT_MESSAGE =
   'Postgres driver not connected. Call connect(binding) before acquireConnection or execute.';
 const ALREADY_CONNECTED_MESSAGE =
   'Postgres driver already connected. Call close() before reconnecting with a new binding.';
-
-interface DriverRuntimeError extends Error {
-  readonly code: 'DRIVER.NOT_CONNECTED' | 'DRIVER.ALREADY_CONNECTED';
-  readonly category: 'DRIVER';
-  readonly severity: 'error';
-  readonly details?: Record<string, unknown>;
-}
-
-function driverError(
-  code: DriverRuntimeError['code'],
-  message: string,
-  details?: Record<string, unknown>,
-): DriverRuntimeError {
-  const error = new Error(message) as DriverRuntimeError;
-  Object.defineProperty(error, 'name', {
-    value: 'RuntimeError',
-    configurable: true,
-  });
-  return Object.assign(error, {
-    code,
-    category: 'DRIVER' as const,
-    severity: 'error' as const,
-    message,
-    details,
-  });
-}
 
 function unboundExecute<Row>(): AsyncIterable<Row> {
   return {

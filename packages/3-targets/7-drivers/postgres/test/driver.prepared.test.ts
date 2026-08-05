@@ -118,7 +118,7 @@ describe('postgres prepared statements', () => {
   });
 
   describe('stale-handle retry', () => {
-    it('surfaces ADAPTER.PREPARE_FAILED with the originating error as cause when the retry fails', async () => {
+    it('surfaces DRIVER.PREPARE_FAILED with the originating error as cause when the retry fails', async () => {
       const retryError = makePgError('26000', 'statement gone after re-prepare');
       const { client, calls } = makeMockClient({
         handler: (_call, callIndex) =>
@@ -138,10 +138,12 @@ describe('postgres prepared statements', () => {
       expect(calls).toHaveLength(2);
       const envelope = rejection as Error & {
         code?: unknown;
+        category?: unknown;
         severity?: unknown;
         details?: Record<string, unknown>;
       };
-      expect(envelope.code).toBe('ADAPTER.PREPARE_FAILED');
+      expect(envelope.code).toBe('DRIVER.PREPARE_FAILED');
+      expect(envelope.category).toBe('DRIVER');
       expect(envelope.severity).toBe('error');
       expect(envelope.details).toEqual({ handle: snapshot() });
 
