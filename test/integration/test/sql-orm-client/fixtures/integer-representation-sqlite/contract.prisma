@@ -1,0 +1,29 @@
+// Real emitted fixture for the SQLite integer-representation preset
+// round-trip.
+//
+// `Meter.peak` and `Sample.reading` opt into `bigIntNumber()` —
+// `sqlite/bigintnumber@1`: INTEGER storage decoded as a JS number, throwing
+// outside ±(2^53 − 1). `Sample.reading` sits on the child side of a relation
+// so an include read traverses the codec's JSON-number projection through the
+// nested-document path. SQLite declares no `unboundedInt` preset (it has no
+// lossless unbounded integer storage), so this fixture exercises only the
+// number-representation preset.
+
+model Meter {
+  id   Int @id
+  peak bigIntNumber()
+
+  samples Sample[]
+
+  @@map("int_repr_meters")
+}
+
+model Sample {
+  id      Int @id
+  meterId Int @map("meter_id")
+  reading bigIntNumber()
+
+  meter Meter @relation(fields: [meterId], references: [id])
+
+  @@map("int_repr_samples")
+}
