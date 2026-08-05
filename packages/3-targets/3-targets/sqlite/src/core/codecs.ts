@@ -154,6 +154,7 @@ const safeIntegerNumber = (
       { meta: { codecId: SQLITE_BIGINT_NUMBER_CODEC_ID, received: String(value) } },
     );
   }
+  if (Object.is(value, -0)) return 0;
   return value;
 };
 

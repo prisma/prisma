@@ -65,6 +65,12 @@ describe('pg/int8number@1', () => {
       expect(await codec.encode(-9007199254740991, {})).toBe('-9007199254740991');
     });
 
+    it('negative zero encodes as plain zero', async () => {
+      const wire = await codec.encode(-0, {});
+      expect(wire).toBe('0');
+      expect(await codec.decode(wire, {})).toBe(0);
+    });
+
     it('rejects out-of-range writes at 2^53 and -(2^53)', async () => {
       await expect(codec.encode(9007199254740992, {})).rejects.toThrow(
         'pg/int8number@1 value must be an integer within the safe integer range',
