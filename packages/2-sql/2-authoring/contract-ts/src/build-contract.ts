@@ -347,13 +347,6 @@ function checkMemberValues(
   return values;
 }
 
-/**
- * Turns the target's rendered candidates into the name-identified check
- * entities `contract.json` persists. Naming is family mechanics — the prefix
- * is capped at the wire-name limit and the content hash of the predicate
- * becomes the name's suffix — exactly as `lowerAuthoredIndex` does for
- * indexes.
- */
 /** The trailing segment a check's wire-name prefix carries, per kind. */
 const CHECK_KIND_SUFFIX = {
   membership: 'check',
