@@ -12,6 +12,8 @@ import {
 } from '@internal/emitter/domain-type-generation';
 import { isSafeTypeExpression } from '@internal/emitter/type-expression-safety';
 import type { CodecLookup } from '@internal/framework-components/codec';
+import type { AggregateDescriptor } from '@internal/framework-components/components';
+import { settleAggregateOverloads } from '@internal/framework-components/components';
 import type {
   GenerateContractTypesOptions,
   ImportSpecifierResolver,
@@ -28,6 +30,95 @@ import type {
 } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { sqlEmitterError, sqlEmitterValidationError } from './errors';
+
+/**
+ * Render the aggregate result map from the overloads the stack contributes, settled against the codecs it contributes.
+ *
+ * Every emitted row is keyed by a contributed codec, whichever rung settled it. Trait fallbacks reach only the contributed codecs to begin with, and an exact overload naming an uncontributed codec is dropped here — settling keeps such a row, because naming a codec id is a claim that stands on its own and the runtime honours it for whatever ref reaches it, but a target may register codecs its adapter withholds, and an emitted type over one of those would advertise availability no contract can use.
+ *
+ * Only the two rungs that name a codec are materialized; the input-agnostic overload stays a single row, which a consumer reads when no per-codec row claims its input.
+ */
+function generateAggregateTypes(options?: GenerateContractTypesOptions): string {
+  const descriptors = options?.aggregateDescriptors ?? [];
+  const codecs = options?.codecDescriptors ?? [];
+  if (descriptors.length === 0) return 'Record<string, never>';
+
+  const contributedIds = new Set(codecs.map((codec) => codec.codecId));
+  const settled = settleAggregateOverloads(descriptors, codecs);
+  const ambiguity = settled.ambiguities[0];
+  if (ambiguity !== undefined) {
+    throw sqlEmitterError(
+      'CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS',
+      `Aggregate '${ambiguity.operation}' has no single result type over codec '${ambiguity.codecId}': traits ${ambiguity.traits.join(', ')} all claim it.`,
+      {
+        why: 'Emitted result types must name one codec per aggregate and input.',
+        fix: `Contribute an exact descriptor for '${ambiguity.operation}' over '${ambiguity.codecId}', or narrow the overlapping trait contributions.`,
+        meta: {
+          operation: ambiguity.operation,
+          codecId: ambiguity.codecId,
+          traits: ambiguity.traits,
+        },
+      },
+    );
+  }
+
+  const operations = [...settled.operations].sort(([left], [right]) => left.localeCompare(right));
+  const entries = operations.map(([operation, entry]) => {
+    const rows = [...entry.byCodecId]
+      .filter(([codecId]) => contributedIds.has(codecId))
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([codecId, descriptor]) => {
+        return `readonly ${serializeObjectKey(codecId)}: ${renderAggregateResult(descriptor, codecId, contributedIds)}`;
+      });
+    const members = [`readonly byCodec: { ${rows.join('; ')} }`];
+    const withoutInput = entry.noInput ?? entry.anyInput;
+    if (withoutInput !== undefined) {
+      members.push(
+        `readonly withoutInput: ${renderAggregateResult(withoutInput, undefined, contributedIds)}`,
+      );
+    }
+    if (entry.anyInput !== undefined) {
+      members.push(
+        `readonly anyInput: ${renderAggregateResult(entry.anyInput, undefined, contributedIds)}`,
+      );
+    }
+    return `readonly ${serializeObjectKey(operation)}: { ${members.join('; ')} }`;
+  });
+
+  return `{ ${entries.join('; ')} }`;
+}
+
+/** One row of the map: the codec the result carries, and whether it can be null. A `self` result carries the codec of the input it was resolved for. */
+function renderAggregateResult(
+  descriptor: AggregateDescriptor,
+  inputCodecId: string | undefined,
+  contributedIds: ReadonlySet<string>,
+): string {
+  const output = descriptor.output.kind === 'self' ? inputCodecId : descriptor.output.codecId;
+  if (output === undefined) {
+    throw sqlEmitterError(
+      'CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS',
+      `Aggregate '${descriptor.operation}' declares its own input's codec as its result but answers calls that carry no input.`,
+      {
+        why: 'A result that reuses its input needs an input to reuse.',
+        fix: 'Name the result codec on the descriptor.',
+        meta: { operation: descriptor.operation },
+      },
+    );
+  }
+  if (!contributedIds.has(output)) {
+    throw sqlEmitterError(
+      'CONTRACT.AGGREGATE_OUTPUT_CODEC_MISSING',
+      `Aggregate '${descriptor.operation}' names result codec '${output}', which the stack does not contribute.`,
+      {
+        why: 'An emitted result type names a codec in the contract codec map; a codec the stack does not contribute has no emitted type to name.',
+        fix: 'Contribute the codec, or declare a result codec the stack contributes.',
+        meta: { operation: descriptor.operation, outputCodecId: output },
+      },
+    );
+  }
+  return `{ readonly output: ${serializeValue(output)}; readonly nullable: ${descriptor.nullable} }`;
+}
 
 function serializeTypeParamsLiteral(params: Record<string, unknown> | undefined): string {
   if (!params || Object.keys(params).length === 0) {
@@ -436,6 +527,7 @@ export const sqlEmission = {
     return [
       'export type LaneCodecTypes = CodecTypes;',
       `export type QueryOperationTypes = ${queryOperationTypes};`,
+      `export type AggregateTypes = ${generateAggregateTypes(options)};`,
       // A literal default is stored in `contract.json`, so it is typed by the
       // codec's JSON channel rather than its application type — the two diverge
       // wherever a codec's canonical JSON differs from the value it hands the
@@ -451,7 +543,7 @@ export const sqlEmission = {
   },
 
   getTypeMapsExpression(): string {
-    return 'TypeMapsType<CodecTypes, QueryOperationTypes, FieldOutputTypes, FieldInputTypes, StorageColumnTypes, StorageColumnInputTypes>';
+    return 'TypeMapsType<CodecTypes, QueryOperationTypes, FieldOutputTypes, FieldInputTypes, StorageColumnTypes, StorageColumnInputTypes, AggregateTypes>';
   },
 
   getContractWrapper(contractBaseName: string, typeMapsName: string): string {

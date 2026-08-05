@@ -38,6 +38,7 @@
     "@internal/driver-postgres": "workspace:0.17.0",
     "@internal/operations": "workspace:0.17.0",
     "@internal/postgres": "workspace:0.17.0",
+    "@internal/postgres-codec-testkit": "workspace:0.17.0",
     "@internal/sql-contract-ts": "workspace:0.17.0",
     "@repo/test-utils": "workspace:0.17.0",
     "@repo/tsconfig": "workspace:0.17.0",

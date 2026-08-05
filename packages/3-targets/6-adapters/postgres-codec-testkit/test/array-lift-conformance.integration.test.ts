@@ -18,11 +18,8 @@ import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
 import { ifDefined } from '@internal/utils/defined';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type {
-  ConformanceConnection,
-  PostgresCodecConformanceCase,
-} from './codec-conformance/harness';
-import { runPostgresCodecProjection } from './codec-conformance/harness';
+import type { ConformanceConnection, PostgresCodecConformanceCase } from '../src/index';
+import { runPostgresCodecProjection } from '../src/index';
 
 function arrayCase(
   codecId: string,

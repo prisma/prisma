@@ -47,12 +47,12 @@ describe('ports/prisma/functional/issues-20261-group-by-shortcut', () => {
         }));
 
         expect(result).toHaveLength(2);
-        expect(result).toContainEqual({ _sum: 10, teamName: 'Blue' });
-        expect(result).toContainEqual({ _sum: 9, teamName: 'Red' });
+        expect(result).toContainEqual({ _sum: 10n, teamName: 'Blue' });
+        expect(result).toContainEqual({ _sum: 9n, teamName: 'Red' });
 
         expectTypeOf(result).toMatchTypeOf<
           Array<{
-            _sum: number | null;
+            _sum: bigint | null;
             teamName: string;
           }>
         >();

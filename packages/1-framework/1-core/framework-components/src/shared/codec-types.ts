@@ -3,7 +3,15 @@ import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Codec } from './codec';
 import type { AnyCodecDescriptor } from './codec-descriptor';
 
-export type CodecTrait = 'equality' | 'order' | 'boolean' | 'numeric' | 'textual';
+/** Every semantic trait a codec may advertise. The runtime tuple backs validation of trait-keyed contributions arriving from JavaScript. */
+export const CODEC_TRAITS = ['equality', 'order', 'boolean', 'numeric', 'textual'] as const;
+
+export type CodecTrait = (typeof CODEC_TRAITS)[number];
+
+/** Whether `value` names one of the {@link CODEC_TRAITS}. */
+export function isCodecTrait(value: unknown): value is CodecTrait {
+  return CODEC_TRAITS.some((trait) => trait === value);
+}
 
 /**
  * Serializable codec identity carried by every codec-bearing AST node.

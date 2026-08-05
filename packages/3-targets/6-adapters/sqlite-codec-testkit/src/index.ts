@@ -39,10 +39,14 @@
  */
 
 import { isDeepStrictEqual } from 'node:util';
+import { renderLoweredSql } from '@internal/adapter-sqlite/sql-renderer';
+import type { SqliteContract } from '@internal/adapter-sqlite/types';
+import { computeProfileHash, computeStorageHash } from '@internal/contract/hashing';
 import type { JsonValue } from '@internal/contract/types';
+import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
 import type { CodecRef } from '@internal/framework-components/codec';
 import { validateCodecTypeParams } from '@internal/framework-components/codec';
-import type { SqlStorage } from '@internal/sql-contract/types';
+import { SqlStorage } from '@internal/sql-contract/types';
 import {
   ColumnRef,
   JsonObjectExpr,
@@ -51,11 +55,10 @@ import {
   SelectAst,
   TableSource,
 } from '@internal/sql-relational-core/ast';
+import type { AnySqliteCodecDescriptor } from '@internal/target-sqlite/codec-descriptor';
 import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
 import { ifDefined } from '@internal/utils/defined';
-import { createContract } from '@repo/test-utils';
-import { renderLoweredSql } from '../../src/core/adapter';
-import type { SqliteContract } from '../../src/core/types';
+import { structuredError } from '@internal/utils/structured-error';
 
 /**
  * Minimal execution surface the harness needs from a live database. A caller
@@ -97,8 +100,13 @@ export interface ExpectedProjectionFailure {
 }
 
 export interface SqliteCodecConformanceCase {
-  /** Codec id resolved against the target's built-in descriptor registry. */
+  /** Codec id, resolved against the target's built-in descriptor registry unless `descriptor` is given. */
   readonly codecId: string;
+  /**
+   * Descriptor to project through, for a codec an extension contributes rather
+   * than the target registering. The registry only knows the built-ins.
+   */
+  readonly descriptor?: AnySqliteCodecDescriptor;
   /** Identifies the value under test within its codec's cases. */
   readonly label: string;
   /** Application-level value handed to `codec.encode` and `codec.encodeJson`. */
@@ -152,10 +160,34 @@ const VALUE_COLUMN = 'value';
 const DOCUMENT_ALIAS = 'document';
 const DOCUMENT_KEY = 'value';
 
-const conformanceContract: SqliteContract = {
-  ...createContract<SqlStorage>({ target: 'sqlite', targetFamily: 'sql' }),
-  target: 'sqlite',
-};
+/**
+ * A synthetic contract whose only role is to satisfy `renderLoweredSql`'s
+ * signature: the harness renders a single unqualified table reference, so the
+ * renderer never resolves a namespace out of `storage.namespaces`.
+ */
+function buildConformanceContract(): SqliteContract {
+  const target = 'sqlite';
+  const targetFamily = 'sql';
+  const namespaces = {};
+  const storage = new SqlStorage({
+    namespaces,
+    storageHash: computeStorageHash({ target, targetFamily, storage: { namespaces } }),
+  });
+
+  return {
+    target,
+    targetFamily,
+    roots: {},
+    domain: { namespaces: { [UNBOUND_DOMAIN_NAMESPACE_ID]: { models: {} } } },
+    storage,
+    capabilities: {},
+    extensions: {},
+    profileHash: computeProfileHash({ target, targetFamily, capabilities: {} }),
+    meta: {},
+  };
+}
+
+const conformanceContract: SqliteContract = buildConformanceContract();
 
 function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -168,17 +200,27 @@ function codecRefOf(conformanceCase: SqliteCodecConformanceCase): CodecRef {
   };
 }
 
-function descriptorFor(codecId: string) {
-  const descriptor = sqliteCodecDescriptorRegistry.descriptorFor(codecId);
+function descriptorFor(conformanceCase: SqliteCodecConformanceCase) {
+  const descriptor =
+    conformanceCase.descriptor ??
+    sqliteCodecDescriptorRegistry.descriptorFor(conformanceCase.codecId);
   if (descriptor === undefined) {
-    throw new Error(`No built-in SQLite codec descriptor is registered for '${codecId}'.`);
+    throw structuredError(
+      'TESTKIT.CODEC_DESCRIPTOR_MISSING',
+      `No SQLite codec descriptor for '${conformanceCase.codecId}'.`,
+      {
+        why: 'The harness projects and decodes through the codec descriptor under test.',
+        fix: 'Supply the extension codec descriptor on the case.',
+        meta: { codecId: conformanceCase.codecId },
+      },
+    );
   }
   return descriptor;
 }
 
 /** Builds `SELECT json_object('value', <projection>)`, whose result is already text. */
 export function buildProjectionSql(conformanceCase: SqliteCodecConformanceCase): string {
-  const descriptor = descriptorFor(conformanceCase.codecId);
+  const descriptor = descriptorFor(conformanceCase);
   const projection = descriptor.projectJson(
     ColumnRef.of(STORAGE_TABLE, VALUE_COLUMN),
     codecRefOf(conformanceCase),
@@ -197,7 +239,7 @@ export async function runSqliteCodecProjection(
   connection: ConformanceConnection,
   conformanceCase: SqliteCodecConformanceCase,
 ): Promise<CodecProjectionOutcome> {
-  const descriptor = descriptorFor(conformanceCase.codecId);
+  const descriptor = descriptorFor(conformanceCase);
   const ref = codecRefOf(conformanceCase);
   const params = validateCodecTypeParams(descriptor, ref);
   const codec = descriptor.factory(params)({ name: VALUE_COLUMN });
@@ -236,7 +278,11 @@ export async function runSqliteCodecProjection(
   const document: { readonly [key: string]: JsonValue } = JSON.parse(rawJson);
   const projected = document[DOCUMENT_KEY];
   if (projected === undefined) {
-    throw new Error(`Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`);
+    throw structuredError(
+      'TESTKIT.PROJECTION_MALFORMED',
+      `Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`,
+      { meta: { codecId: conformanceCase.codecId } },
+    );
   }
 
   if (conformanceCase.nullValue === true) {

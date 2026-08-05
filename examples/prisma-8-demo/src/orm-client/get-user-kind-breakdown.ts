@@ -8,7 +8,7 @@ type UserKind = DefaultModelRow<Contract, 'User'>['kind'];
 export async function ormClientGetUserKindBreakdown(
   minUsers: number,
   runtime: Runtime,
-): Promise<Array<{ kind: UserKind; totalUsers: number }>> {
+): Promise<Array<{ kind: UserKind; totalUsers: bigint }>> {
   const db = createOrmClient(runtime);
   const grouped = await db.User.groupBy('kind')
     .having((having) => having.count().gte(minUsers))

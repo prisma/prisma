@@ -16,4 +16,19 @@ describe('SQLite codec JSON representations', () => {
       'sqlite/bigint@1 database JSON value must be a decimal string',
     );
   });
+
+  it('decodes number, bigint, and decimal-text wires to the same bigint', async () => {
+    expect(await bigintCodec.decode(42, {})).toBe(42n);
+    expect(await bigintCodec.decode(42n, {})).toBe(42n);
+    expect(await bigintCodec.decode('9223372036854775807', {})).toBe(9223372036854775807n);
+    expect(await bigintCodec.decode('-42', {})).toBe(-42n);
+  });
+
+  it('rejects a malformed string wire with a structured decode error', async () => {
+    await expect(bigintCodec.decode('not-a-number', {})).rejects.toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      message: 'sqlite/bigint@1 wire value must be a decimal string',
+      meta: { codecId: 'sqlite/bigint@1' },
+    });
+  });
 });

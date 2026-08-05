@@ -27,7 +27,7 @@
  */
 
 import type { PgInterval } from '@internal/target-postgres/codecs';
-import type { PostgresCodecConformanceCase } from './harness';
+import type { PostgresCodecConformanceCase } from '../../src/index';
 
 /** Spells out an interval's three fields so a case reads as the value it is. */
 const interval = (fields: Partial<PgInterval>): PgInterval => ({

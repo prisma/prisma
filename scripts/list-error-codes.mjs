@@ -40,6 +40,7 @@ const NAMESPACES = [
   'POSTGIS',
   'PGVECTOR',
   'PARADEDB',
+  'TESTKIT',
 ];
 
 const CODE_RE = new RegExp(`'((?:${NAMESPACES.join('|')})\\.[A-Z][A-Z0-9_]*)'`, 'g');

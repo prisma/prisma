@@ -2769,6 +2769,9 @@ importers:
       '@internal/driver-postgres':
         specifier: workspace:0.17.0
         version: link:../../3-targets/7-drivers/postgres
+      '@internal/postgres-codec-testkit':
+        specifier: workspace:0.17.0
+        version: link:../../3-targets/6-adapters/postgres-codec-testkit
       '@internal/sql-contract':
         specifier: workspace:0.17.0
         version: link:../../2-sql/1-core/contract
@@ -3034,6 +3037,9 @@ importers:
       '@internal/postgres':
         specifier: workspace:0.17.0
         version: link:../postgres
+      '@internal/postgres-codec-testkit':
+        specifier: workspace:0.17.0
+        version: link:../../3-targets/6-adapters/postgres-codec-testkit
       '@internal/sql-contract-ts':
         specifier: workspace:0.17.0
         version: link:../../2-sql/2-authoring/contract-ts
@@ -3955,6 +3961,55 @@ importers:
         specifier: 'catalog:'
         version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.0(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
 
+  packages/3-targets/6-adapters/postgres-codec-testkit:
+    dependencies:
+      '@internal/adapter-postgres':
+        specifier: workspace:0.17.0
+        version: link:../postgres
+      '@internal/contract':
+        specifier: workspace:0.17.0
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/framework-components':
+        specifier: workspace:0.17.0
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-contract':
+        specifier: workspace:0.17.0
+        version: link:../../../2-sql/1-core/contract
+      '@internal/sql-relational-core':
+        specifier: workspace:0.17.0
+        version: link:../../../2-sql/4-lanes/relational-core
+      '@internal/target-postgres':
+        specifier: workspace:0.17.0
+        version: link:../../3-targets/postgres
+      '@internal/utils':
+        specifier: workspace:0.17.0
+        version: link:../../../1-framework/0-foundation/utils
+    devDependencies:
+      '@internal/driver-postgres':
+        specifier: workspace:0.17.0
+        version: link:../../7-drivers/postgres
+      '@internal/sql-errors':
+        specifier: workspace:0.17.0
+        version: link:../../../2-sql/1-core/errors
+      '@repo/test-utils':
+        specifier: workspace:0.17.0
+        version: link:../../../../test/utils
+      '@repo/tsconfig':
+        specifier: workspace:0.17.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.17.0
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.0(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+
   packages/3-targets/6-adapters/sqlite:
     dependencies:
       '@internal/cli':
@@ -4030,6 +4085,46 @@ importers:
       pathe:
         specifier: ^2.0.3
         version: 2.0.3
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.1)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@8.1.0(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.1)(yaml@2.9.0))
+
+  packages/3-targets/6-adapters/sqlite-codec-testkit:
+    dependencies:
+      '@internal/adapter-sqlite':
+        specifier: workspace:0.17.0
+        version: link:../sqlite
+      '@internal/contract':
+        specifier: workspace:0.17.0
+        version: link:../../../1-framework/0-foundation/contract
+      '@internal/framework-components':
+        specifier: workspace:0.17.0
+        version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-contract':
+        specifier: workspace:0.17.0
+        version: link:../../../2-sql/1-core/contract
+      '@internal/sql-relational-core':
+        specifier: workspace:0.17.0
+        version: link:../../../2-sql/4-lanes/relational-core
+      '@internal/target-sqlite':
+        specifier: workspace:0.17.0
+        version: link:../../3-targets/sqlite
+      '@internal/utils':
+        specifier: workspace:0.17.0
+        version: link:../../../1-framework/0-foundation/utils
+    devDependencies:
+      '@repo/tsconfig':
+        specifier: workspace:0.17.0
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:0.17.0
+        version: link:../../../0-config/tsdown
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.1)(typescript@5.9.3)

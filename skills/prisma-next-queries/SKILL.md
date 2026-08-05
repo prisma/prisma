@@ -11,9 +11,10 @@ description: >-
   lookup, first, all, count, aggregate, group, create, update, delete, upsert,
   returning, transaction, db.close, script teardown, variant, polymorphism,
   drizzle-style, kysely-style. Notes: `.all()` is a Thenable (just `await` it),
-  iterators are single-use (`RUNTIME.ITERATOR_CONSUMED`), Postgres `count` is
-  `number` while sum/avg/min/max are `number | null`, ranges use chained
-  `.where()` or `and(...)` (no `.between(...)`).
+  iterators are single-use (`RUNTIME.ITERATOR_CONSUMED`), aggregate types are
+  target-declared (`count` is `bigint`, integer sums widen to `bigint`, PG's
+  integer average is a decimal string), ranges use chained `.where()` or
+  `and(...)` (no `.between(...)`).
 ---
 
 # Prisma Next — Queries

@@ -3,9 +3,14 @@ export type {
   StorageColumnTypeAcrossNamespaces,
 } from '../column-type-resolution';
 export type {
+  AggregateOperationTypes,
+  AggregateResultType,
+  AggregateTypesBase,
+  AggregateTypesOf,
   CheckConstraintInput,
   CodecTypesOf,
   ContractWithTypeMaps,
+  ExtractAggregateTypes,
   ExtractCodecTypes,
   ExtractFieldInputTypes,
   ExtractFieldOutputTypes,

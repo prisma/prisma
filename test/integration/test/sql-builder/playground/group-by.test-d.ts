@@ -109,10 +109,14 @@ test('sum/avg/min/max aggregate functions', () => {
     .groupBy((f) => f.user_id)
     .build();
 
+  // Each result type is the contract's answer for that operation over an int4
+  // column on PostgreSQL: `sum` widens to int8 and reads as a bigint, `avg`
+  // becomes a numeric whose canonical form is a decimal string, and `min`/`max`
+  // keep the column's own int4.
   expectTypeOf(aggregates).toEqualTypeOf<
     SqlQueryPlan<{
-      totalViews: number | null;
-      avgViews: number | null;
+      totalViews: bigint | null;
+      avgViews: string | null;
       minViews: number | null;
       maxViews: number | null;
     }>
@@ -142,4 +146,14 @@ test('HAVING without GROUP BY — type error', () => {
     // @ts-expect-error having only exists on GroupedQuery, not SelectQuery
     .having((_f, fns) => fns.gt(fns.count(), 5))
     .build();
+});
+
+// A pair the target declares no overload for — `sum` over a text column, which
+// PostgreSQL refuses outright and SQLite computes without a typeable result.
+// The emitted map carries no row for it, so the call is rejected where it is
+// written: an undeclared pair has no result identity to type or decode, and
+// typing it as the input would promise a text value the database never returns.
+test('an aggregate the target declares no overload for is rejected at the call site', () => {
+  // @ts-expect-error — the target declares no sum over pg/text@1
+  db.public.users.select('summedName', (f, fns) => fns.sum(f.name)).build();
 });
