@@ -714,5 +714,18 @@ function textResponse(text: string, status: number, headers?: Record<string, str
 function isAllowedStudioOrigin(request: Request, port: number): boolean {
   const origin = request.headers.get('Origin')
 
-  return origin === null || origin === `http://localhost:${port}` || origin === `http://127.0.0.1:${port}`
+  if (origin === null) {
+    return true
+  }
+
+  try {
+    const normalizedOrigin = new URL(origin).origin
+
+    return (
+      normalizedOrigin === new URL(`http://localhost:${port}`).origin ||
+      normalizedOrigin === new URL(`http://127.0.0.1:${port}`).origin
+    )
+  } catch {
+    return false
+  }
 }

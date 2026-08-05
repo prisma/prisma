@@ -516,6 +516,60 @@ describe('Studio BFF', () => {
     expect(executeMock).toHaveBeenCalledWith({ parameters: [], sql: 'select 1 as id' })
   })
 
+  test.each(['http://localhost', 'http://127.0.0.1'])('allows default-port BFF requests from %s', async (origin) => {
+    const executeMock = vi.fn(() => Promise.resolve([null, [{ id: 1 }]]))
+
+    await startStudioBff(
+      {
+        execute: executeMock,
+      },
+      80,
+    )
+
+    const response = await getServerResponse(`${origin}/bff`, {
+      body: JSON.stringify({
+        procedure: 'query',
+        query: { parameters: [], sql: 'select 1 as id' },
+      }),
+      headers: {
+        'content-type': 'application/json',
+        origin,
+      },
+      method: 'POST',
+    })
+
+    expect(response.status).toBe(200)
+    expect(executeMock).toHaveBeenCalledWith({ parameters: [], sql: 'select 1 as id' })
+  })
+
+  test.each(['http://localhost', 'http://127.0.0.1'])(
+    'allows default-port telemetry requests from %s',
+    async (origin) => {
+      await startStudioBff(
+        {
+          execute: vi.fn(),
+        },
+        80,
+      )
+
+      const response = await getServerResponse(`${origin}/telemetry`, {
+        body: JSON.stringify({
+          eventId: 'event-id',
+          name: 'studio_closed',
+          payload: {},
+          timestamp: '2026-08-05T00:00:00.000Z',
+        }),
+        headers: {
+          'content-type': 'application/json',
+          origin,
+        },
+        method: 'POST',
+      })
+
+      expect(response.status).toBe(200)
+    },
+  )
+
   test('returns an explicit error when query insights are unsupported', async () => {
     await startStudioBff({
       execute: vi.fn(),
@@ -635,17 +689,20 @@ async function getServerResponse(input: string, init?: RequestInit): Promise<Res
   return fetchHandler(new Request(input, init))
 }
 
-async function startStudioBff(executor: {
-  execute: ReturnType<typeof vi.fn>
-  executeTransaction?: ReturnType<typeof vi.fn>
-  lintSql?: ReturnType<typeof vi.fn>
-}) {
+async function startStudioBff(
+  executor: {
+    execute: ReturnType<typeof vi.fn>
+    executeTransaction?: ReturnType<typeof vi.fn>
+    lintSql?: ReturnType<typeof vi.fn>
+  },
+  port = 5555,
+) {
   createPostgresJSExecutorMock.mockReturnValueOnce(executor)
 
   const { Studio } = await import('../Studio')
 
   await Studio.new().parse(
-    ['--browser', 'none', '--port', '5555', '--url', 'postgresql://user:password@localhost:5432/db'],
+    ['--browser', 'none', '--port', String(port), '--url', 'postgresql://user:password@localhost:5432/db'],
     defaultTestConfig(),
   )
 }
