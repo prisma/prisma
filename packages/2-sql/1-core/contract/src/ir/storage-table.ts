@@ -65,9 +65,7 @@ export class StorageTable extends SqlNode {
     );
     if (input.control !== undefined) this.control = input.control;
     if (input.checks !== undefined && input.checks.length > 0) {
-      this.checks = Object.freeze(
-        input.checks.map((cc) => (cc instanceof CheckConstraint ? cc : new CheckConstraint(cc))),
-      );
+      this.checks = Object.freeze(input.checks.map(CheckConstraint.from));
     }
     freezeNode(this);
   }

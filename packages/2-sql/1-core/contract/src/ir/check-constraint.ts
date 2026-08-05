@@ -47,4 +47,14 @@ export class CheckConstraint extends SqlNode {
     this.expression = input.expression;
     freezeNode(this);
   }
+
+  /**
+   * Normalizes either shape into an instance: an existing `CheckConstraint`
+   * passes through, canonical input is constructed. Callers that accept
+   * "instance or input" go through this, so the constructor keeps one
+   * canonical shape instead of widening to a union.
+   */
+  static from(value: CheckConstraint | CheckConstraintInput): CheckConstraint {
+    return value instanceof CheckConstraint ? value : new CheckConstraint(value);
+  }
 }
