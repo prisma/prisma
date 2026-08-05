@@ -1,6 +1,6 @@
 # Unified SQL CHECK constraint representation — Spec
 
-**Linear:** _to be created_ · **Branch:** `worktree/sql-check-constraint-unify-41b068`
+**Branch:** `worktree/sql-check-constraint-unify-41b068`
 
 ## Purpose
 

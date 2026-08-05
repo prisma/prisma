@@ -1,6 +1,6 @@
 # Slice 2 — `check-prefix-renames-plan-as-rename-constraint`
 
-**Project:** [sql-check-constraint-unification](../../spec.md) · **Linear:** _TBD_ · **Builds on:** slice 1 ([#29892](https://github.com/prisma/prisma/pull/29892))
+**Project:** [sql-check-constraint-unification](../../spec.md) · **Builds on:** slice 1 ([#29892](https://github.com/prisma/prisma/pull/29892))
 
 ## At a glance
 

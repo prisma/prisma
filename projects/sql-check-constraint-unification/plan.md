@@ -1,6 +1,6 @@
 # Unified SQL CHECK constraint representation — Plan
 
-**Spec:** [`spec.md`](./spec.md) · **Linear:** _to be created (operator)_ · **Branch:** _`tml-XXXX-sql-check-constraint-unification` once the Linear Project exists_
+**Spec:** [`spec.md`](./spec.md) · **Linear:** none (operator waived tracker integration for this project)
 
 Each slice is named for what a developer can **rely on** when it merges. The stack is serial: slice 2 pairs wire names that only exist once slice 1 lands.
 
@@ -60,4 +60,3 @@ Slice-INVEST note: this is large but single-outcome — "one representation ever
 
 - The project ADR (spec § ADR pointer) — **Check constraints are opaque wire-named expressions** — is authored at close-out and extends ADR 234.
 - The migration-system subsystem doc gains the unified-check section; `projects/sql-check-constraint-unification/` is deleted per the project lifecycle.
-- Operator items outstanding: create the Linear Project + two slice issues (no Linear tooling in this session); name the working branch from the Linear ID.
