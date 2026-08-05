@@ -32,7 +32,7 @@ const ARRAY_COLUMNS = ['tags', 'labels', 'scores', 'tagsWithDefault'] as const;
  * declares and synthesizes nothing, so a contract that wants these checks has
  * to carry them.
  */
-function elementNonNullChecks(): CheckConstraint[] {
+function declaredArrayElementChecks(): CheckConstraint[] {
   return ARRAY_COLUMNS.flatMap((columnName) =>
     postgresRenderCheckExpressions({
       tableName: 'ArrayTest',
@@ -83,7 +83,7 @@ function buildArrayContract(): Contract<SqlStorage> {
                 uniques: [],
                 indexes: [],
                 foreignKeys: [],
-                checks: elementNonNullChecks(),
+                checks: declaredArrayElementChecks(),
               },
             },
           },
@@ -358,7 +358,7 @@ describe.sequential('native array columns DDL', () => {
     const checkNames = checkRows.rows.map((r) => r.constraint_name).sort();
     // Wire names: the declared prefix plus the content hash of the predicate.
     expect(checkNames).toEqual(
-      elementNonNullChecks()
+      declaredArrayElementChecks()
         .map((c) => c.name)
         .sort(),
     );
