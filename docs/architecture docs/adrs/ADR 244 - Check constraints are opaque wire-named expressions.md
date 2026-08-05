@@ -153,6 +153,7 @@ Rename *within* the new model — a prefix change with an unchanged predicate, w
 - **Constraint names in the catalog are uglier.** A DBA reading `pg_constraint` sees `user_kind_check_836d43ef`. The hash suffix is data the user is asked to ignore.
 - **A truncated prefix is not reconstructible.** Two checks on one table can legitimately share a prefix and differ only in hash. Anything that treats a prefix as a stable identity — a rename pass pairing on it, a human reading a plan — must know that `prefix` is not injective for checks, unlike for indexes and policies.
 - **Retargeting silently drops invariants**, as above.
+- **A contract inferred from a foreign database declares checks that database does not have.** The element-non-null rule is applied to every list column at build time, and `contract infer` does not read checks back out of the catalog. Round-tripping a pulled schema therefore re-derives a constraint the live database never had. On a schema the contract owns this is harmless — the next plan installs it. On a schema under an `external` control policy it is not: `external` suppresses extras but not `declaredMissing`, so verify fails permanently and no plan is allowed to repair it. The Supabase pack's inferred `auth` schema is a live instance of this.
 - **This is a breaking contract change.** `CheckConstraint` and its arktype wire schema change shape, so every emitted contract regenerates and every storage hash moves. Databases carrying old-model names need one migration under a destructive policy to converge.
 
 ## Alternatives considered
