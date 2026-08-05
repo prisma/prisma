@@ -16,7 +16,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // Upstream test 1: findMany with _count: { select: { upVotedUsers, downVotedUsers } }
 //   → include('upVotedUsers', rel => rel.count())
 //     .include('downVotedUsers', rel => rel.count())
-//   Assertion: [{ id: '1', upVotedUsers: 1, downVotedUsers: 1 }]
+//   Assertion: [{ id: '1', upVotedUsers: 1n, downVotedUsers: 1n }] (counts decode as bigint)
 //
 // Upstream test 2: aggregate with where: { AND: [downVotedUsers.every, upVotedUsers.every] }, _count: true
 //   → where((c) => and(c.downVotedUsers.every(...), c.upVotedUsers.every(...)))
@@ -43,7 +43,7 @@ describe('ports/prisma/functional/issues-11974', () => {
           .select('id')
           .all();
 
-        expect(response).toMatchObject([{ id: '1', upVotedUsers: 1, downVotedUsers: 1 }]);
+        expect(response).toMatchObject([{ id: '1', upVotedUsers: 1n, downVotedUsers: 1n }]);
       }),
     timeouts.spinUpPpgDev,
   );
