@@ -668,6 +668,13 @@ export const postgresAuthoringFieldPresets = {
       nativeType: 'int8',
     },
   },
+  bigIntNumber: {
+    kind: 'fieldPreset',
+    output: {
+      codecId: 'pg/int8number@1',
+      nativeType: 'int8',
+    },
+  },
   float: {
     kind: 'fieldPreset',
     output: {
@@ -679,6 +686,13 @@ export const postgresAuthoringFieldPresets = {
     kind: 'fieldPreset',
     output: {
       codecId: 'pg/numeric@1',
+      nativeType: 'numeric',
+    },
+  },
+  unboundedInt: {
+    kind: 'fieldPreset',
+    output: {
+      codecId: 'pg/unboundedint@1',
       nativeType: 'numeric',
     },
   },

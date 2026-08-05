@@ -39,6 +39,36 @@ describe('postgresAuthoringFieldPresets', () => {
       },
     });
   });
+
+  it('exposes bigIntNumber preset with pg/int8number@1 and nativeType int8', () => {
+    expect(postgresAuthoringFieldPresets.bigIntNumber).toEqual({
+      kind: 'fieldPreset',
+      output: {
+        codecId: 'pg/int8number@1',
+        nativeType: 'int8',
+      },
+    });
+  });
+
+  it('exposes unboundedInt preset with pg/unboundedint@1 and nativeType numeric', () => {
+    expect(postgresAuthoringFieldPresets.unboundedInt).toEqual({
+      kind: 'fieldPreset',
+      output: {
+        codecId: 'pg/unboundedint@1',
+        nativeType: 'numeric',
+      },
+    });
+  });
+
+  it('keeps the lossless bigint preset on pg/int8@1, so bigIntNumber is opt-in', () => {
+    expect(postgresAuthoringFieldPresets.bigint).toEqual({
+      kind: 'fieldPreset',
+      output: {
+        codecId: 'pg/int8@1',
+        nativeType: 'int8',
+      },
+    });
+  });
 });
 
 describe('postgres temporal per-codec presets', () => {
