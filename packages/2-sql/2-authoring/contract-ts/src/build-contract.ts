@@ -279,9 +279,11 @@ function hasColumnTypeQualifier(
 /**
  * A target's contract-construction-time check renderer, contributed through
  * `target.authoring.renderCheckExpressions`. Given one column's shape it
- * returns the checks that column needs, each as a wire-name prefix plus an
- * opaque predicate body (no surrounding `CHECK (…)`); the target owns the SQL,
- * including identifier quoting and literal escaping. `memberValues` is
+ * returns the checks that column needs, each as a kind, the column it
+ * constrains, and an opaque predicate body (no surrounding `CHECK (…)`). The
+ * target owns the SQL — quoting, escaping, predicate choice — and nothing
+ * else: naming is composed here, so the family never depends on a property of
+ * text it cannot read. `memberValues` is
  * supplied only for a domain enum authored through an `enumType()` handle, so
  * a target cannot accidentally write a membership check for a column whose
  * native type already enforces its member set. Targets without the hook write
@@ -292,7 +294,11 @@ type CheckExpressionRenderer = (input: {
   readonly columnName: string;
   readonly many: boolean;
   readonly memberValues: readonly string[] | undefined;
-}) => ReadonlyArray<{ readonly prefix: string; readonly expression: string }>;
+}) => ReadonlyArray<{
+  readonly kind: 'membership' | 'elementNotNull';
+  readonly columnName: string;
+  readonly expression: string;
+}>;
 
 /**
  * Structural check for a target that contributes a `renderCheckExpressions`
@@ -348,17 +354,35 @@ function checkMemberValues(
  * becomes the name's suffix — exactly as `lowerAuthoredIndex` does for
  * indexes.
  */
+/** The trailing segment a check's wire-name prefix carries, per kind. */
+const CHECK_KIND_SUFFIX = {
+  membership: 'check',
+  elementNotNull: 'elem_not_null',
+} as const;
+
+/**
+ * Names the target's rendered checks and lowers them into contract entities.
+ *
+ * Naming is composed here rather than by the target: the prefix is
+ * `${table}_${column}_${kindSuffix}`, capped at the wire-name byte budget, and
+ * suffixed with the predicate's content hash. Composing family-side is what
+ * makes the truncation safe — two prefixes that truncate alike still differ in
+ * their hashes, and the family can see that the (table, column, kind) triple
+ * they were built from is unique per table, rather than having to assume
+ * something about SQL text it declares itself unable to read.
+ */
 function lowerRenderedChecks(
-  candidates: ReadonlyArray<{ readonly prefix: string; readonly expression: string }>,
+  tableName: string,
+  candidates: ReadonlyArray<{
+    readonly kind: 'membership' | 'elementNotNull';
+    readonly columnName: string;
+    readonly expression: string;
+  }>,
 ): CheckConstraint[] {
   return candidates.map((candidate) => {
-    // A check prefix is derived from the table and column names, so an author
-    // has no way to shorten one that overruns Postgres's identifier limit —
-    // unlike an index, where `name:` is the escape hatch the throw-stance
-    // assumes. Truncating is safe because identity lives in the hash: two
-    // prefixes that truncate alike still carry the hashes of their own
-    // predicates, and the predicates embed the column name.
-    const prefix = truncateToWireNamePrefixBytes(candidate.prefix);
+    const prefix = truncateToWireNamePrefixBytes(
+      `${tableName}_${candidate.columnName}_${CHECK_KIND_SUFFIX[candidate.kind]}`,
+    );
     return new CheckConstraint({
       naming: {
         kind: 'wire',
@@ -926,6 +950,7 @@ export function buildSqlContractFromDefinition(
       if (renderCheckExpressions !== undefined) {
         checksForTable.push(
           ...lowerRenderedChecks(
+            tableName,
             renderCheckExpressions({
               tableName,
               columnName: field.columnName,

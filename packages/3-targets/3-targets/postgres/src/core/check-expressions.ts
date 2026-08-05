@@ -1,6 +1,13 @@
 import { escapeLiteral, quoteIdentifier } from './sql-utils';
 
 /**
+ * What a rendered check enforces. The contract builder turns this into the
+ * wire-name prefix's trailing segment, so the kind stays readable in the
+ * physical constraint name.
+ */
+export type PostgresCheckKind = 'membership' | 'elementNotNull';
+
+/**
  * One column's shape, as the contract builder knows it. `memberValues` is
  * present only for a domain enum authored through an `enumType()` handle —
  * a column bound to a native enum type carries its enforcement in the type
@@ -14,12 +21,16 @@ export interface PostgresCheckExpressionInput {
 }
 
 /**
- * A check the target wants written, before naming: the wire-name prefix and
- * the predicate body without its surrounding `CHECK (…)`. The contract
- * builder appends the content-hash suffix.
+ * A check the target wants written. The target contributes only what it
+ * uniquely knows — which predicate, spelled how — while the family owns the
+ * naming: it composes the prefix from the table, the column, and the kind,
+ * caps it, and appends the content hash. Nothing here is a name.
  */
 export interface PostgresCheckExpressionCandidate {
-  readonly prefix: string;
+  readonly kind: PostgresCheckKind;
+  /** The column this predicate constrains; the family names the check after it. */
+  readonly columnName: string;
+  /** Opaque SQL: the predicate body, without the surrounding `CHECK (…)`. */
   readonly expression: string;
 }
 
@@ -47,7 +58,8 @@ export function postgresRenderCheckExpressions(
   if (input.memberValues !== undefined) {
     const members = input.memberValues.map((value) => `'${escapeLiteral(value)}'`).join(', ');
     candidates.push({
-      prefix: `${input.tableName}_${input.columnName}_check`,
+      kind: 'membership',
+      columnName: input.columnName,
       expression: input.many
         ? `${column}::text[] <@ ARRAY[${members}]::text[]`
         : `${column} IN (${members})`,
@@ -56,7 +68,8 @@ export function postgresRenderCheckExpressions(
 
   if (input.many) {
     candidates.push({
-      prefix: `${input.tableName}_${input.columnName}_elem_not_null`,
+      kind: 'elementNotNull',
+      columnName: input.columnName,
       expression: `array_position(${column}, NULL) IS NULL`,
     });
   }

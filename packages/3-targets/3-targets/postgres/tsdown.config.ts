@@ -3,7 +3,6 @@ import { defineConfig } from '@repo/tsdown';
 export default defineConfig({
   entry: [
     'src/exports/aggregates.ts',
-    'src/exports/check-expressions.ts',
     'src/exports/codec-ids.ts',
     'src/exports/codec-types.ts',
     'src/exports/codec-descriptor.ts',

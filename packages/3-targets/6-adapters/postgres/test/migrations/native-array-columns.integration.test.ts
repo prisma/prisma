@@ -4,8 +4,11 @@ import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage } from '@internal/sql-contract/types';
 import { computeCheckContentHash } from '@internal/sql-schema-ir/naming';
-import { postgresRenderCheckExpressions } from '@internal/target-postgres/check-expressions';
-import { postgresCreateNamespace } from '@internal/target-postgres/types';
+
+import {
+  postgresCreateNamespace,
+  postgresRenderCheckExpressions,
+} from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -44,7 +47,7 @@ function declaredArrayElementChecks(): CheckConstraint[] {
         new CheckConstraint({
           naming: {
             kind: 'wire',
-            prefix: candidate.prefix,
+            prefix: `ArrayTest_${candidate.columnName}_elem_not_null`,
             hash: computeCheckContentHash(candidate.expression),
           },
           expression: candidate.expression,

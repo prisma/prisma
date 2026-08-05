@@ -6,7 +6,7 @@ const base = { tableName: 'User', columnName: 'role', many: false, memberValues:
 describe('postgresRenderCheckExpressions', () => {
   it('renders a scalar domain enum as an IN membership predicate', () => {
     expect(postgresRenderCheckExpressions({ ...base, memberValues: ['user', 'admin'] })).toEqual([
-      { prefix: 'User_role_check', expression: `"role" IN ('user', 'admin')` },
+      { kind: 'membership', columnName: 'role', expression: `"role" IN ('user', 'admin')` },
     ]);
   });
 
@@ -20,11 +20,13 @@ describe('postgresRenderCheckExpressions', () => {
       }),
     ).toEqual([
       {
-        prefix: 'User_roles_check',
+        kind: 'membership',
+        columnName: 'roles',
         expression: `"roles"::text[] <@ ARRAY['user', 'admin']::text[]`,
       },
       {
-        prefix: 'User_roles_elem_not_null',
+        kind: 'elementNotNull',
+        columnName: 'roles',
         expression: `array_position("roles", NULL) IS NULL`,
       },
     ]);
@@ -33,7 +35,8 @@ describe('postgresRenderCheckExpressions', () => {
   it('renders element-non-null only for a list column with no member set', () => {
     expect(postgresRenderCheckExpressions({ ...base, columnName: 'tags', many: true })).toEqual([
       {
-        prefix: 'User_tags_elem_not_null',
+        kind: 'elementNotNull',
+        columnName: 'tags',
         expression: `array_position("tags", NULL) IS NULL`,
       },
     ]);
@@ -51,6 +54,8 @@ describe('postgresRenderCheckExpressions', () => {
         many: false,
         memberValues: ["o'brien"],
       }),
-    ).toEqual([{ prefix: 'Order_sta"tus_check', expression: `"sta""tus" IN ('o''brien')` }]);
+    ).toEqual([
+      { kind: 'membership', columnName: 'sta"tus', expression: `"sta""tus" IN ('o''brien')` },
+    ]);
   });
 });

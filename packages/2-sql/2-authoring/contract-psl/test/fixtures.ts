@@ -221,21 +221,31 @@ export function testRenderCheckExpressions(input: {
   readonly columnName: string;
   readonly many: boolean;
   readonly memberValues: readonly string[] | undefined;
-}): ReadonlyArray<{ readonly prefix: string; readonly expression: string }> {
-  const candidates: Array<{ prefix: string; expression: string }> = [];
+}): ReadonlyArray<{
+  readonly kind: 'membership' | 'elementNotNull';
+  readonly columnName: string;
+  readonly expression: string;
+}> {
+  const candidates: Array<{
+    kind: 'membership' | 'elementNotNull';
+    columnName: string;
+    expression: string;
+  }> = [];
   const column = `"${input.columnName}"`;
   if (input.memberValues !== undefined) {
     const members = input.memberValues.map((v) => `'${v}'`).join(', ');
     candidates.push({
-      prefix: `${input.tableName}_${input.columnName}_check`,
+      kind: 'membership',
+      columnName: input.columnName,
       expression: input.many
-        ? `${column} <@ ARRAY[${members}]::text[]`
+        ? `${column}::text[] <@ ARRAY[${members}]::text[]`
         : `${column} IN (${members})`,
     });
   }
   if (input.many) {
     candidates.push({
-      prefix: `${input.tableName}_${input.columnName}_elem_not_null`,
+      kind: 'elementNotNull',
+      columnName: input.columnName,
       expression: `array_position(${column}, NULL) IS NULL`,
     });
   }

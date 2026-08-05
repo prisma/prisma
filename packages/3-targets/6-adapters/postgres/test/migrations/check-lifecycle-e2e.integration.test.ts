@@ -10,10 +10,11 @@ import {
   computeCheckContentHash,
   truncateToWireNamePrefixBytes,
 } from '@internal/sql-schema-ir/naming';
-import { postgresRenderCheckExpressions } from '@internal/target-postgres/check-expressions';
+
 import {
   PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
+  postgresRenderCheckExpressions,
 } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -43,6 +44,20 @@ type ColumnSpec = {
   readonly many?: true;
 };
 
+const CHECK_KIND_SUFFIX = { membership: 'check', elementNotNull: 'elem_not_null' } as const;
+
+/**
+ * Composes a check's wire prefix exactly as the contract builder does, so
+ * these fixtures carry the names authoring would actually emit.
+ */
+function checkPrefix(
+  tableName: string,
+  columnName: string,
+  kind: 'membership' | 'elementNotNull',
+): string {
+  return truncateToWireNamePrefixBytes(`${tableName}_${columnName}_${CHECK_KIND_SUFFIX[kind]}`);
+}
+
 /** Builds the checks the Postgres pack would emit for one column. */
 function checksForColumn(
   tableName: string,
@@ -59,9 +74,7 @@ function checksForColumn(
       new CheckConstraint({
         naming: {
           kind: 'wire',
-          // The same byte-cap the contract builder applies, so these fixtures
-          // carry the names authoring would actually emit.
-          prefix: truncateToWireNamePrefixBytes(candidate.prefix),
+          prefix: checkPrefix(tableName, candidate.columnName, candidate.kind),
           hash: computeCheckContentHash(candidate.expression),
         },
         expression: candidate.expression,
