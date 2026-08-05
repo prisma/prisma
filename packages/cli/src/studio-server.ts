@@ -4,7 +4,7 @@ import { pipeline } from 'node:stream/promises'
 
 import { runtime } from 'std-env'
 
-const STUDIO_SERVER_HOST = '127.0.0.1'
+export const STUDIO_SERVER_HOST = '127.0.0.1'
 
 export type StudioRequestHandler = (request: Request) => Promise<Response> | Response
 

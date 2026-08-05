@@ -18,7 +18,7 @@ import { runtime } from 'std-env'
 
 import packageJson from '../package.json' assert { type: 'json' }
 import { STUDIO_CSS_FILE_NAME, STUDIO_JS_FILE_NAME, type StudioAdapterType } from './studio-frontend-shared'
-import { startStudioServer } from './studio-server'
+import { startStudioServer, STUDIO_SERVER_HOST } from './studio-server'
 import { UserFacingError } from './utils/errors'
 import { getPpgInfo } from './utils/ppgInfo'
 
@@ -308,7 +308,7 @@ ${bold('Examples')}
     )
     const version = packageJson.dependencies['@prisma/studio-core']
     const ppgDbInfo = await getPpgInfo(connectionString)
-    const port = args['--port'] || (await getPort({ port: DEFAULT_PORT, portRange: [MIN_PORT, DEFAULT_PORT - 1] }))
+    const port = await resolveStudioPort(args['--port'])
     const handler = createStudioRequestHandler({
       adapter: studioStuff.adapter,
       executor,
@@ -343,6 +343,18 @@ ${bold('Examples')}
 
 function getUrlBasePath(url: string | undefined, configPath: string | null): string {
   return url ? process.cwd() : configPath ? dirname(configPath) : process.cwd()
+}
+
+async function resolveStudioPort(requestedPort: number | undefined): Promise<number> {
+  if (requestedPort !== undefined) {
+    return requestedPort
+  }
+
+  return getPort({
+    host: STUDIO_SERVER_HOST,
+    port: DEFAULT_PORT,
+    portRange: [MIN_PORT, DEFAULT_PORT - 1],
+  })
 }
 
 function serializeBffError(error: unknown): SerializedError {

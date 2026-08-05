@@ -2,6 +2,7 @@ import { defaultTestConfig } from '@prisma/config'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const createPoolMock = vi.fn(() => ({ end: vi.fn() }))
+const getPortMock = vi.fn(() => Promise.resolve(55_555))
 const readFileMock = vi.fn((filePath: string) => {
   if (/[\\/]studio\.js$/.test(filePath)) {
     return Promise.resolve('window.__studioBundle = true;')
@@ -39,6 +40,12 @@ vi.mock('mysql2/promise', () => {
   }
 })
 
+vi.mock('get-port-please', () => {
+  return {
+    getPort: getPortMock,
+  }
+})
+
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()
 
@@ -50,6 +57,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
 
 vi.mock('../studio-server', () => {
   return {
+    STUDIO_SERVER_HOST: '127.0.0.1',
     startStudioServer: startStudioServerMock,
   }
 })
@@ -80,6 +88,11 @@ vi.mock('@prisma/studio-core/data/postgresjs', () => {
   return {
     createPostgresJSExecutor: createPostgresJSExecutorMock,
   }
+})
+
+beforeEach(() => {
+  getPortMock.mockReset()
+  getPortMock.mockResolvedValue(55_555)
 })
 
 describe('Studio URL validation', () => {
@@ -135,6 +148,42 @@ describe('Studio URL validation', () => {
     expect(new URL(createPoolMock.mock.calls[0][0]).protocol).toBe('mysql:')
     expect(new URL(createPoolMock.mock.calls[0][0]).hostname).toBe('aws.connect.psdb.cloud')
     expect(new URL(createPoolMock.mock.calls[0][0]).pathname).toBe('/db')
+  })
+})
+
+describe('Studio port selection', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    createPostgresJSExecutorMock.mockClear()
+    startStudioServerMock.mockClear()
+  })
+
+  test('checks for an available port on the loopback interface when no port is requested', async () => {
+    const { Studio } = await import('../Studio')
+
+    await Studio.new().parse(
+      ['--browser', 'none', '--url', 'postgresql://user:password@localhost:5432/db'],
+      defaultTestConfig(),
+    )
+
+    expect(getPortMock).toHaveBeenCalledWith({
+      host: '127.0.0.1',
+      port: 51_212,
+      portRange: [49_152, 51_211],
+    })
+    expect(startStudioServerMock).toHaveBeenCalledWith(expect.objectContaining({ port: 55_555 }))
+  })
+
+  test('uses a requested port without probing for an available port', async () => {
+    const { Studio } = await import('../Studio')
+
+    await Studio.new().parse(
+      ['--browser', 'none', '--port', '5555', '--url', 'postgresql://user:password@localhost:5432/db'],
+      defaultTestConfig(),
+    )
+
+    expect(getPortMock).not.toHaveBeenCalled()
+    expect(startStudioServerMock).toHaveBeenCalledWith(expect.objectContaining({ port: 5_555 }))
   })
 })
 
