@@ -64,7 +64,7 @@ describe('emitted AggregateTypes', () => {
     });
 
     expect(emitted).toContain(
-      "readonly 'pg/int2@1': { readonly output: 'pg/int8@1'; readonly nullable: true }",
+      'readonly "pg/int2@1": { readonly output: "pg/int8@1"; readonly nullable: true }',
     );
   });
 
@@ -75,9 +75,9 @@ describe('emitted AggregateTypes', () => {
     });
 
     expect(emitted).toContain(
-      "readonly 'pg/text@1': { readonly output: 'pg/text@1'; readonly nullable: true }",
+      'readonly "pg/text@1": { readonly output: "pg/text@1"; readonly nullable: true }',
     );
-    expect(emitted).not.toContain("readonly 'pg/int2@1'");
+    expect(emitted).not.toContain('readonly "pg/int2@1"');
   });
 
   it('lets an exact overload shadow the trait fallback that would otherwise serve the codec', () => {
@@ -87,7 +87,7 @@ describe('emitted AggregateTypes', () => {
     });
 
     expect(emitted).toContain(
-      "readonly 'pg/varchar@1': { readonly output: 'pg/text@1'; readonly nullable: true }",
+      'readonly "pg/varchar@1": { readonly output: "pg/text@1"; readonly nullable: true }',
     );
   });
 
@@ -98,7 +98,7 @@ describe('emitted AggregateTypes', () => {
     });
 
     expect(emitted).toContain(
-      "readonly count: { readonly byCodec: {  }; readonly withoutInput: { readonly output: 'pg/int8@1'; readonly nullable: false }; readonly anyInput: { readonly output: 'pg/int8@1'; readonly nullable: false } }",
+      'readonly count: { readonly byCodec: {  }; readonly withoutInput: { readonly output: "pg/int8@1"; readonly nullable: false }; readonly anyInput: { readonly output: "pg/int8@1"; readonly nullable: false } }',
     );
   });
 
@@ -112,7 +112,7 @@ describe('emitted AggregateTypes', () => {
       codecDescriptors: CONTRIBUTED.filter((entry) => entry.codecId !== 'pg/varchar@1'),
     });
 
-    expect(emitted).toContain("readonly 'pg/text@1'");
+    expect(emitted).toContain('readonly "pg/text@1"');
     expect(emitted).not.toContain('pg/varchar@1');
   });
 
