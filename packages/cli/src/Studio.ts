@@ -280,8 +280,11 @@ ${bold('Examples')}
 
     const requestedPort = args['--port']
 
-    if (requestedPort === 0) {
-      return new UserFacingError('The Studio port must be greater than 0.')
+    if (
+      requestedPort !== undefined &&
+      (!Number.isInteger(requestedPort) || requestedPort < 1 || requestedPort > 65_535)
+    ) {
+      return new UserFacingError('The Studio port must be an integer between 1 and 65535.')
     }
 
     const connectionString = args['--url'] || config.datasource?.url
