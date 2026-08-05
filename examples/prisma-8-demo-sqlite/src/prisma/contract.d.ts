@@ -45,6 +45,10 @@ export type AggregateTypes = {
       readonly 'sql/float@1': { readonly output: 'sql/float@1'; readonly nullable: true };
       readonly 'sql/int@1': { readonly output: 'sql/int@1'; readonly nullable: true };
       readonly 'sqlite/bigint@1': { readonly output: 'sqlite/bigint@1'; readonly nullable: true };
+      readonly 'sqlite/bigintnumber@1': {
+        readonly output: 'sqlite/bigintnumber@1';
+        readonly nullable: true;
+      };
       readonly 'sqlite/blob@1': { readonly output: 'sqlite/blob@1'; readonly nullable: true };
       readonly 'sqlite/datetime@1': {
         readonly output: 'sqlite/datetime@1';
@@ -61,6 +65,10 @@ export type AggregateTypes = {
       readonly 'sql/float@1': { readonly output: 'sql/float@1'; readonly nullable: true };
       readonly 'sql/int@1': { readonly output: 'sql/int@1'; readonly nullable: true };
       readonly 'sqlite/bigint@1': { readonly output: 'sqlite/bigint@1'; readonly nullable: true };
+      readonly 'sqlite/bigintnumber@1': {
+        readonly output: 'sqlite/bigintnumber@1';
+        readonly nullable: true;
+      };
       readonly 'sqlite/blob@1': { readonly output: 'sqlite/blob@1'; readonly nullable: true };
       readonly 'sqlite/datetime@1': {
         readonly output: 'sqlite/datetime@1';
