@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Pre-publish + PR-CI presence gate for per-release notes files.
+// Pre-publish + PR-CI presence check for per-release notes files.
 //
-// Every stable (`latest`) release publishes a committed, hand-curated
-// `docs/releases/v<version>.md` as the GitHub Release body — there is
-// no auto-generated fallback. This gate asserts that file exists so a
-// release can never ship with missing or flat notes.
+// Every `latest` release publishes a committed,
+// hand-curated `docs/releases/v<version>.md` as the GitHub Release
+// body — there is no auto-generated fallback. This check asserts that
+// file exists so a release can never ship with missing or flat notes.
 //
 // `package.json.version` on a given ref is the *currently published*
 // version on that ref. A change to that value across a branch is a
@@ -31,7 +31,8 @@
 //
 // Wired into root `package.json` as `pnpm check:release-notes`.
 // Invoked from `.github/workflows/ci.yml` (mode pr) and
-// `.github/workflows/publish.yml` (mode publish, gated on tag == 'latest').
+// `.github/workflows/publish.yml` (mode publish, scoped to dist-
+// tag `latest`).
 
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -178,7 +179,7 @@ function renderViolations(result, write) {
       `check-release-notes: missing release notes for v${v.version}\n` +
         '  expected a committed notes file at:\n' +
         `    ${v.notesFile}\n` +
-        '  A stable release requires a hand-authored notes file — there is no\n' +
+        '  A latest/next release requires a hand-authored notes file — there is no\n' +
         '  auto-generated fallback. Author one (see docs/releases/README.md for\n' +
         '  the template and section order) and commit it before publishing.\n',
     );

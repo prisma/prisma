@@ -63,7 +63,7 @@ Apply each step in order, fully: bump, install, run instructions, check pins, va
 
 ## Per-step flow
 
-This flow assumes you are an **external extension author** — your extension lives in its own repo and consumes `@internal/*` from npm. (Extensions inside the `prisma/prisma` monorepo itself are bumped via `pnpm bump-minor` / `scripts/set-version.ts`, which rewrites every `workspace:<X.Y.Z>` spec in lockstep with the root version; they do not run this skill.)
+This flow assumes you are an **external extension author** — your extension lives in its own repo and consumes `@internal/*` from npm. (Extensions inside the `prisma/prisma` monorepo itself are bumped via `pnpm bump-version` / `scripts/set-version.ts`, which rewrites every `workspace:<X.Y.Z>` spec in lockstep with the root version; they do not run this skill.)
 
 For each `(from, to)` step in the chain:
 
