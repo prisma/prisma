@@ -39,8 +39,9 @@ changes:
       the target's descriptor renders the cast that keeps the value readable. Regenerate contracts —
       the emitted `contract.d.ts` gains an `AggregateTypes` block that the ORM and SQL builder
       resolve their result types from. The re-emitted `byCodec` table also lists `min`/`max` rows
-      for the opt-in integer representation codecs (`pg/int8number@1`, `pg/unboundedint@1`); those
-      rows are self-typed and touch nothing unless a column opts into the matching presets.
+      for the opt-in integer representation codecs (`pg/int8number@1`, `pg/unboundedint@1`,
+      `sqlite/bigintnumber@1`); those rows are self-typed and touch nothing unless a column opts
+      into the matching presets.
     detection:
       glob: "**/*.{ts,tsx}"
       contains:
