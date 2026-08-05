@@ -18,22 +18,25 @@ Three rules follow from the decision and are the reason it is worth recording:
 
 ## A worked example
 
-A model with a text-backed domain enum and two list columns:
+A model with a text-backed domain enum and a scalar-list column:
 
 ```prisma
-enum Kind {
+enum user_type {
+  @@type("pg/text@1")
   admin
   user
 }
 
 model User {
-  id   Int      @id
-  kind Kind
+  id   Uuid      @id @default(uuid())
+  kind user_type
   tags String[]
+
+  @@map("user")
 }
 ```
 
-Authoring emits two checks into the `user` table. This is the shape as it appears in an emitted `contract.json`:
+A text-backed enum has no type-level enforcement in the database, so membership becomes a predicate; a list column gets an element-non-null predicate, which no Postgres column type can express. Authoring emits both into the `user` table, and this is the shape they take in the emitted `contract.json`:
 
 ```jsonc
 "checks": [
@@ -52,9 +55,9 @@ The planner renders the checks inline at `CREATE TABLE`:
 
 ```sql
 CREATE TABLE "user" (
-  "id"   integer NOT NULL,
-  "kind" text    NOT NULL,
-  "tags" text[]  NOT NULL,
+  "id"   uuid   NOT NULL,
+  "kind" text   NOT NULL,
+  "tags" text[] NOT NULL,
   CONSTRAINT "user_kind_check_836d43ef" CHECK ("kind" IN ('admin', 'user')),
   CONSTRAINT "user_tags_elem_not_null_aecbe9e2" CHECK (array_position("tags", NULL) IS NULL)
 );
