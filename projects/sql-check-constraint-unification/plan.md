@@ -1,0 +1,54 @@
+# Unified SQL CHECK constraint representation — Plan
+
+**Spec:** [`spec.md`](./spec.md) · **Linear:** _to be created (operator)_ · **Branch:** _`tml-XXXX-sql-check-constraint-unification` once the Linear Project exists_
+
+Each slice is named for what a developer can **rely on** when it merges. The stack is serial: slice 2 pairs wire names that only exist once slice 1 lands.
+
+## Slices
+
+| # | Slice | Delivers | Status | Ticket |
+| --- | --- | --- | --- | --- |
+| 1 | `checks-are-declared-opaque-expressions` | Every physical CHECK is a contract-declared, wire-named opaque expression; authoring emits enum-membership (scalar and array) and element-non-null checks; introspection captures every live check verbatim; the planner only reconciles — synthesis, the direct-walk strategy, and the predicate parser are deleted. | ⬜ next | _TBD_ |
+| 2 | `check-prefix-renames-plan-as-rename-constraint` | A prefix-only check rename plans as a single `ALTER TABLE … RENAME CONSTRAINT` under `widening`, via hash pairing mirroring `pairIndexRenames`. | ⬜ | _TBD_ |
+
+## Sequencing
+
+```mermaid
+graph LR
+  S1["1 · checks are declared opaque expressions"] --> S2["2 · prefix renames plan as RENAME CONSTRAINT"]
+```
+
+- **Slice 1 first.** It is the hard cut: the contract shape change forces authoring, schema IR, introspection, and planner to move in the same PR (the old value-set path cannot coexist with complete introspection — the current planner would start dropping newly visible constraints). Splitting further would ship transitional shims the next PR deletes.
+- **Slice 2 second, not parallel.** Its pairing pass consumes wire-named check nodes on both diff sides, which exist only after slice 1. Until it lands, a prefix-only change plans as drop + add — correct, just destructive-requiring; that interim behavior is acceptable and tested in slice 1.
+
+## Per-slice notes
+
+### 1 — `checks-are-declared-opaque-expressions`
+
+The substrate hard-cut, one concept end-to-end (the sandwich shape: contract/IR → authoring/emitter → adapter/planner):
+
+- Contract IR `CheckConstraint` → `{ name, prefix?, expression }`, arktype wire schema, canonical sort by physical name, check content hash beside `computeIndexContentHash` in `naming.ts`.
+- Duck-typed Postgres authoring hook (beside the `qualifyColumnType` precedent) renders expressions at emit time: scalar enum `IN`, array enum `<@ ARRAY[…]::text[]` (fixes the latent array-enum DDL bug — currently unplannable SQL, zero integration coverage), `array_position(…) IS NULL` for every `many` column. `ENUM_INVALID` moves to render time.
+- `SqlCheckConstraintIR` → `{ name, prefix?, expression }` with index-style equality; the `valueDrift` classification branch is removed.
+- Introspection: `pg_get_expr(c.conbin, c.conrelid)` + `AND c.conislocal` + `AND c.conrelid <> 0`; `parseCheckConstraintDef` deleted; bodies stored verbatim; naming via `namingOfLiveName`.
+- Planner: `checkConstraintPlanCallStrategy`, `elementNonNullCheck*`, `isManyColumn` deleted; `mapCheckNodeIssue` handles `not-found` → add, `not-expected` → drop, `not-equal` → conflict; `AddCheckConstraintCall` takes `expression`; CREATE TABLE renders checks inline from the table node's children.
+- Lifecycle integration suite (templates: `rls-lifecycle-e2e`, `rls-introspection`): create, introspect-raw-SQL, no-drift (incl. `varchar` reprint shape), expression change → drop/add, add-list-column installs its check, manual constraint loss repaired, adoption of old-model unsuffixed names converges via drop + add, multi-namespace independence, array-enum element rejection (out-of-set and NULL element `INSERT`s fail).
+- Rides along per doc-maintenance rules: stale `verifyCheckConstraints` doc references removed; [contract-free-migration-planning/plan.md](../contract-free-migration-planning/plan.md) updated to record the strategy deletion delivered here.
+
+Slice-INVEST note: this is large but single-outcome — "one representation everywhere, planner only reconciles." The reviewer reads one concept across layers, not unrelated changes. Fixture regen is expected (contract shape change).
+
+**Builds on:** current main. **Hands to:** wire-named check nodes on both diff sides; diff-driven check planning; the adoption drop+add path as tested interim behavior for renames.
+
+### 2 — `check-prefix-renames-plan-as-rename-constraint`
+
+- `RenameCheckConstraintCall` (`widening`) + `renameCheckConstraint` DDL op (raw-SQL style of the constraint family; prechecks old-present + new-absent from `constraintExistsAst`, postcheck new-present), registered in the op union, migration class, `classifyCall` bucket, export barrel.
+- `pairCheckRenames` planner post-pass cloned from `pairIndexRenames` **pass 1 only** (wire-hash pairing per `(schema, table, hash)`, sorted deterministic, requires `widening`, consumes both issues). No content/adoption pass — spec locks drop + add for exact-named live checks.
+- Unit tests mirroring `index-rename-planner.test.ts`; integration test: prefix-only PSL rename plans exactly one `RENAME CONSTRAINT` and verifies clean after apply.
+
+**Builds on:** slice 1. **Hands to:** project close-out.
+
+## Close-out obligations (tracked here so no slice forgets them)
+
+- The project ADR (spec § ADR pointer) — **Check constraints are opaque wire-named expressions** — is authored at close-out and extends ADR 234.
+- The migration-system subsystem doc gains the unified-check section; `projects/sql-check-constraint-unification/` is deleted per the project lifecycle.
+- Operator items outstanding: create the Linear Project + two slice issues (no Linear tooling in this session); name the working branch from the Linear ID.
