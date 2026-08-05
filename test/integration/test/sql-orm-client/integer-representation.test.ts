@@ -157,6 +157,42 @@ describe('integration/integer representation presets', () => {
   );
 
   it(
+    'reading a stored value past the safe range through an include raises RUNTIME.DECODE_FAILED',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        await setupTables(runtime);
+        const meters = createMeters(runtime);
+        await meters.create({ id: 1, peak: 0, lifetime: 0n });
+        // Out of band on purpose: the encode guard refuses to write this
+        // value, so only raw SQL can arrange the stored state the decode
+        // guard exists for.
+        await runtime.query(
+          `insert into int_repr_samples (id, meter_id, reading) values (10, 1, ${FIRST_UNSAFE})`,
+        );
+
+        await expect(
+          meters
+            .select('id')
+            .where((meter) => meter.id.eq(1))
+            .include('samples', (sample) => sample.select('id', 'reading'))
+            .all(),
+        ).rejects.toMatchObject({
+          code: 'RUNTIME.DECODE_FAILED',
+          // The include decode wraps the codec's structured error in the
+          // runtime's column-context envelope, with the codec error on `cause`.
+          details: {
+            table: 'int_repr_samples',
+            column: 'reading',
+            codec: 'pg/int8number@1',
+          },
+          cause: { code: 'RUNTIME.DECODE_FAILED', meta: { codecId: 'pg/int8number@1' } },
+        });
+      }, contract);
+    },
+    timeouts.databaseOperation,
+  );
+
+  it(
     'writing past the safe range through BigIntNumber raises RUNTIME.ENCODE_FAILED',
     async () => {
       await withCollectionRuntime(async (runtime) => {
