@@ -58,7 +58,7 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _sum: agg.sum('age') }));
-        expect(result).toEqual({ _sum: 188 });
+        expect(result).toEqual({ _sum: 188n });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -68,7 +68,7 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _count: agg.count() }));
-        expect(result).toEqual({ _count: 4 });
+        expect(result).toEqual({ _count: 4n });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -78,7 +78,7 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _count: agg.count() }));
-        expect(result).toEqual({ _count: 4 });
+        expect(result).toEqual({ _count: 4n });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -88,7 +88,10 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _avg: agg.avg('age') }));
-        expect(result).toEqual({ _avg: 47 });
+        // PostgreSQL's avg over an integer column is numeric, whose canonical
+        // form is a decimal string — the port's `number` was the driver's
+        // rounding, not the database's answer.
+        expect(result).toEqual({ _avg: '47.0000000000000000' });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -104,7 +107,13 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
           _min: agg.min('age'),
           _sum: agg.sum('age'),
         }));
-        expect(result).toEqual({ _avg: 47, _count: 4, _max: 63, _min: 20, _sum: 188 });
+        expect(result).toEqual({
+          _avg: '47.0000000000000000',
+          _count: 4n,
+          _max: 63,
+          _min: 20,
+          _sum: 188n,
+        });
       }),
     timeouts.spinUpPpgDev,
   );
@@ -120,7 +129,13 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
           _min: agg.min('age'),
           _sum: agg.sum('age'),
         }));
-        expect(result).toEqual({ _avg: 56, _count: 3, _max: 63, _min: 45, _sum: 168 });
+        expect(result).toEqual({
+          _avg: '56.0000000000000000',
+          _count: 3n,
+          _max: 63,
+          _min: 45,
+          _sum: 168n,
+        });
       }),
     timeouts.spinUpPpgDev,
   );

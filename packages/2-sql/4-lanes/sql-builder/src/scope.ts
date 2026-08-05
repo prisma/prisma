@@ -1,4 +1,8 @@
-import type { QueryOperationTypesBase, StorageTable } from '@internal/sql-contract/types';
+import type {
+  AggregateTypesBase,
+  QueryOperationTypesBase,
+  StorageTable,
+} from '@internal/sql-contract/types';
 import type { AnyFromSource, SelectAst } from '@internal/sql-relational-core/ast';
 import type { CodecTypesBase, ScopeField } from '@internal/sql-relational-core/expression';
 
@@ -82,6 +86,8 @@ export type QueryContext = {
   readonly capabilities: Record<string, Record<string, boolean>>;
   readonly queryOperationTypes: QueryOperationTypesBase;
   readonly resolvedColumnOutputTypes: Record<string, unknown>;
+  /** The aggregate result map the contract emits, settled per operation and input codec. */
+  readonly aggregateTypes: AggregateTypesBase;
 };
 
 export type { StorageTable };

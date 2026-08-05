@@ -36,10 +36,14 @@
  */
 
 import { isDeepStrictEqual } from 'node:util';
+import { renderLoweredSql } from '@internal/adapter-postgres/sql-renderer';
+import type { PostgresContract } from '@internal/adapter-postgres/types';
+import { computeProfileHash, computeStorageHash } from '@internal/contract/hashing';
 import type { JsonValue } from '@internal/contract/types';
+import { UNBOUND_DOMAIN_NAMESPACE_ID } from '@internal/contract/types';
 import type { CodecRef } from '@internal/framework-components/codec';
 import { validateCodecTypeParams } from '@internal/framework-components/codec';
-import type { SqlStorage } from '@internal/sql-contract/types';
+import { SqlStorage } from '@internal/sql-contract/types';
 import {
   CastExpr,
   ColumnRef,
@@ -52,9 +56,7 @@ import {
 import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
 import { ifDefined } from '@internal/utils/defined';
-import { createContract } from '@repo/test-utils';
-import { renderLoweredSql } from '../../src/core/sql-renderer';
-import type { PostgresContract } from '../../src/core/types';
+import { structuredError } from '@internal/utils/structured-error';
 
 /**
  * Minimal execution surface the harness needs from a live database. A caller
@@ -162,10 +164,34 @@ const VALUE_COLUMN = 'value';
 const DOCUMENT_ALIAS = 'document';
 const DOCUMENT_KEY = 'value';
 
-const conformanceContract: PostgresContract = {
-  ...createContract<SqlStorage>({ target: 'postgres', targetFamily: 'sql' }),
-  target: 'postgres',
-};
+/**
+ * A synthetic contract whose only role is to satisfy `renderLoweredSql`'s
+ * signature: the harness renders a single unqualified table reference, so the
+ * renderer never resolves a namespace out of `storage.namespaces`.
+ */
+function buildConformanceContract(): PostgresContract {
+  const target = 'postgres';
+  const targetFamily = 'sql';
+  const namespaces = {};
+  const storage = new SqlStorage({
+    namespaces,
+    storageHash: computeStorageHash({ target, targetFamily, storage: { namespaces } }),
+  });
+
+  return {
+    target,
+    targetFamily,
+    roots: {},
+    domain: { namespaces: { [UNBOUND_DOMAIN_NAMESPACE_ID]: { models: {} } } },
+    storage,
+    capabilities: {},
+    extensions: {},
+    profileHash: computeProfileHash({ target, targetFamily, capabilities: {} }),
+    meta: {},
+  };
+}
+
+const conformanceContract: PostgresContract = buildConformanceContract();
 
 /**
  * Widens a codec's wire value to the shape `pg` serializes unambiguously: a
@@ -195,8 +221,14 @@ function descriptorFor(conformanceCase: PostgresCodecConformanceCase) {
     conformanceCase.descriptor ??
     postgresCodecDescriptorRegistry.descriptorFor(conformanceCase.codecId);
   if (descriptor === undefined) {
-    throw new Error(
-      `No PostgreSQL codec descriptor for '${conformanceCase.codecId}'; an extension codec must supply one on the case.`,
+    throw structuredError(
+      'TESTKIT.CODEC_DESCRIPTOR_MISSING',
+      `No PostgreSQL codec descriptor for '${conformanceCase.codecId}'.`,
+      {
+        why: 'The harness projects and decodes through the codec descriptor under test.',
+        fix: 'Supply the extension codec descriptor on the case.',
+        meta: { codecId: conformanceCase.codecId },
+      },
     );
   }
   return descriptor;
@@ -232,7 +264,11 @@ type ElementCodec = {
 function overElements<T>(value: unknown, mapper: (element: unknown) => T): T[] | null {
   if (value === null) return null;
   if (!Array.isArray(value)) {
-    throw new Error('A `many` conformance case must carry an array value or null.');
+    throw structuredError(
+      'TESTKIT.CONFORMANCE_CASE_INVALID',
+      'A `many` conformance case must carry an array value or null.',
+      { fix: 'Give the case an array of element values, or null.' },
+    );
   }
   return value.map((element) => mapper(element));
 }
@@ -269,7 +305,11 @@ function roundTripValue(
   if (conformanceCase.many !== true) return codec.decodeJson(projected);
   if (projected === null) return null;
   if (!Array.isArray(projected)) {
-    throw new Error('An array projection must produce a JSON array or null.');
+    throw structuredError(
+      'TESTKIT.PROJECTION_MALFORMED',
+      'An array projection must produce a JSON array or null.',
+      { why: 'The projected JSON does not have the shape the codec descriptor declares.' },
+    );
   }
   return projected.map((element) => (element === null ? null : codec.decodeJson(element)));
 }
@@ -326,7 +366,11 @@ export async function runPostgresCodecProjection(
   const document: { readonly [key: string]: JsonValue } = JSON.parse(rawJson);
   const projected = document[DOCUMENT_KEY];
   if (projected === undefined) {
-    throw new Error(`Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`);
+    throw structuredError(
+      'TESTKIT.PROJECTION_MALFORMED',
+      `Projection for '${conformanceCase.codecId}' produced no document: ${rawJson}`,
+      { meta: { codecId: conformanceCase.codecId } },
+    );
   }
 
   if (conformanceCase.nullValue === true) {

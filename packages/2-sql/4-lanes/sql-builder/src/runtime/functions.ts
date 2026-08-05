@@ -1,4 +1,5 @@
 import type { SqlOperationEntry } from '@internal/sql-operations';
+import type { AggregateFn } from '@internal/sql-relational-core/ast';
 import {
   AggregateExpr,
   AndExpr,
@@ -15,9 +16,11 @@ import {
 } from '@internal/sql-relational-core/ast';
 import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import { codecOf, createRawSql, toExpr } from '@internal/sql-relational-core/expression';
+import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
+import { ifDefined } from '@internal/utils/defined';
+import { structuredError } from '@internal/utils/structured-error';
 import type {
   AggregateFunctions,
-  AggregateOnlyFunctions,
   BooleanCodecType,
   BuiltinFunctions,
   CodecExpression,
@@ -125,14 +128,63 @@ function inOrNotIn(
   return boolExpr(binaryFn(left, SubqueryExpr.of(valuesOrSubquery.buildAst())));
 }
 
-function numericAgg(
-  fn: 'sum' | 'avg' | 'min' | 'max',
-  expr: Expression<ScopeField>,
-): ExpressionImpl<{ codecId: string; nullable: true }> {
-  return new ExpressionImpl(AggregateExpr[fn](expr.buildAst()), {
-    codecId: expr.returnType.codecId,
-    nullable: true as const,
-  });
+/**
+ * Build an aggregate through the target's own answer for it.
+ *
+ * What an aggregate returns is neither the input's codec nor a fixed id: a
+ * target widens `sum` over small integers, takes `avg` somewhere else again,
+ * and may want the result rendered a particular way. All three come from the
+ * registry, and the result carries the codec it declared so decoding resolves
+ * through the ordinary path.
+ *
+ * The declared rendering (`lower`) exists to carry the value across the driver
+ * boundary — a projection concern. It is carried beside the plain form so only
+ * the projection site consumes it; HAVING and ORDER BY compare the value inside
+ * the database, where the rendering would change SQL semantics (SQLite's
+ * `CAST(count(*) AS TEXT)` compares and sorts lexicographically).
+ *
+ * A pair the target declares no overload for is rejected outright. The typed
+ * surface already makes it inexpressible; this backs that up for dynamic
+ * invocation, instead of executing SQL whose result no declaration types or
+ * decodes — SQLite's `sum` over text, which reads whatever leading numbers the
+ * rows happened to hold, is the shape of value that path would hand back.
+ */
+function aggregate(
+  aggregates: SqlAggregateDescriptorRegistry,
+  fn: AggregateFn,
+  expr: Expression<ScopeField> | undefined,
+): ExpressionImpl<{ codecId: string; nullable: boolean; codec?: CodecRef }> {
+  const field = expr?.returnType;
+  const inputCodec = field === undefined ? undefined : (field.codec ?? { codecId: field.codecId });
+  const resolved = aggregates.resolve(fn, inputCodec);
+  if (resolved === undefined) {
+    throw structuredError(
+      'ORM.AGGREGATE_UNSUPPORTED',
+      inputCodec === undefined
+        ? `The composed target declares no '${fn}' aggregate for a call without an input.`
+        : `The composed target declares no '${fn}' aggregate over codec '${inputCodec.codecId}'.`,
+      {
+        why: 'An aggregate result decodes through the codec its target declares; an undeclared pair has no declared result to type or decode.',
+        fix: `Aggregate an input the target declares '${fn}' for, or contribute an aggregate descriptor for this pair.`,
+        meta: { operation: fn, ...ifDefined('inputCodecId', inputCodec?.codecId) },
+      },
+    );
+  }
+  const inputAst = expr?.buildAst();
+
+  const ast = new AggregateExpr(fn, inputAst);
+  const projectionAst = resolved.lower?.({ expr: inputAst, inputCodec });
+
+  return new ExpressionImpl(
+    ast,
+    {
+      codecId: resolved.output.codecId,
+      nullable: resolved.nullable,
+      codec: resolved.output,
+    },
+    undefined,
+    projectionAst,
+  );
 }
 
 function createBuiltinFunctions(rawCodecInferer: RawCodecInferer) {
@@ -163,20 +215,21 @@ function createBuiltinFunctions(rawCodecInferer: RawCodecInferer) {
   } satisfies BuiltinFunctions<CodecTypes>;
 }
 
-function createAggregateOnlyFunctions() {
+/**
+ * The aggregate implementations, erased.
+ *
+ * What each returns is the contract's answer — a function of the target's map
+ * and the input's codec — which no runtime value can state. The typed surface
+ * is `AggregateFunctions<QC>`, applied where these are handed out.
+ */
+function createAggregateOnlyFunctions(aggregates: SqlAggregateDescriptorRegistry) {
   return {
-    count: (expr?: Expression<ScopeField>) => {
-      const astExpr = expr ? expr.buildAst() : undefined;
-      return new ExpressionImpl(AggregateExpr.count(astExpr), {
-        codecId: 'pg/int8@1',
-        nullable: false,
-      });
-    },
-    sum: (expr: Expression<ScopeField>) => numericAgg('sum', expr),
-    avg: (expr: Expression<ScopeField>) => numericAgg('avg', expr),
-    min: (expr: Expression<ScopeField>) => numericAgg('min', expr),
-    max: (expr: Expression<ScopeField>) => numericAgg('max', expr),
-  } satisfies AggregateOnlyFunctions;
+    count: (expr?: Expression<ScopeField>) => aggregate(aggregates, 'count', expr),
+    sum: (expr: Expression<ScopeField>) => aggregate(aggregates, 'sum', expr),
+    avg: (expr: Expression<ScopeField>) => aggregate(aggregates, 'avg', expr),
+    min: (expr: Expression<ScopeField>) => aggregate(aggregates, 'min', expr),
+    max: (expr: Expression<ScopeField>) => aggregate(aggregates, 'max', expr),
+  };
 }
 
 export function createFunctions<QC extends QueryContext>(
@@ -201,9 +254,10 @@ export function createFunctions<QC extends QueryContext>(
 export function createAggregateFunctions<QC extends QueryContext>(
   operations: Readonly<Record<string, SqlOperationEntry>>,
   rawCodecInferer: RawCodecInferer,
+  aggregateRegistry: SqlAggregateDescriptorRegistry,
 ): AggregateFunctions<QC> {
   const baseFns = createFunctions<QC>(operations, rawCodecInferer);
-  const aggregates = createAggregateOnlyFunctions();
+  const aggregates = createAggregateOnlyFunctions(aggregateRegistry);
 
   return new Proxy({} as AggregateFunctions<QC>, {
     get(_target, prop: string) {

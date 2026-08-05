@@ -85,3 +85,59 @@ describe('sql emitter structured error codes', () => {
     });
   });
 });
+
+describe('sql emitter aggregate result-type error codes', () => {
+  const contributedCodecs = [
+    { codecId: 'pg/text@1', traits: ['textual', 'order'] },
+    { codecId: 'pg/varchar@1', traits: ['textual', 'order'] },
+  ] as never;
+
+  const minTextual = {
+    operation: 'min',
+    input: { kind: 'trait', trait: 'textual' },
+    output: { kind: 'self' },
+    nullable: true,
+  } as const;
+
+  it('raises CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS for a codec two traits both claim', () => {
+    const error = captureError(() =>
+      sqlEmission.getFamilyTypeAliases({
+        aggregateDescriptors: [
+          minTextual,
+          { ...minTextual, input: { kind: 'trait', trait: 'order' } },
+        ],
+        codecDescriptors: contributedCodecs,
+      }),
+    );
+
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS',
+      meta: { operation: 'min', codecId: 'pg/text@1', traits: ['textual', 'order'] },
+    });
+  });
+
+  // The descriptor union rejects this pairing outright, so only a component
+  // assembled in JavaScript reaches the branch — which is exactly why the
+  // emitter checks rather than trusts.
+  it('raises CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS for a result that reuses an input the call need not carry', () => {
+    const selfOverAnyInput = {
+      ...minTextual,
+      operation: 'count',
+      input: { kind: 'any' },
+    } as unknown as Parameters<typeof sqlEmission.getFamilyTypeAliases>[0];
+
+    const error = captureError(() =>
+      sqlEmission.getFamilyTypeAliases({
+        aggregateDescriptors: [selfOverAnyInput] as never,
+        codecDescriptors: contributedCodecs,
+      }),
+    );
+
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS',
+      meta: { operation: 'count' },
+    });
+  });
+});

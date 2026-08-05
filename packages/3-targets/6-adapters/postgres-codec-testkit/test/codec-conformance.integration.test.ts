@@ -17,9 +17,9 @@ import postgresControlDriverDescriptor from '@internal/driver-postgres/control';
 import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { ConformanceConnection } from '../src/index';
+import { runPostgresCodecProjection } from '../src/index';
 import { postgresConformanceCases } from './codec-conformance/cases';
-import type { ConformanceConnection } from './codec-conformance/harness';
-import { runPostgresCodecProjection } from './codec-conformance/harness';
 
 describe.sequential('PostgreSQL codec JSON-projection conformance', () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>> | undefined;

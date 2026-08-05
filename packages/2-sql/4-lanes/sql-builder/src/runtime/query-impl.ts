@@ -272,6 +272,7 @@ export class GroupedQueryImpl<
     const fns = createAggregateFunctions<QC>(
       this.ctx.queryOperationTypes,
       this.ctx.rawCodecInferer,
+      this.ctx.aggregates,
     );
     const result = expr(createFieldProxy(combined), fns);
     return new GroupedQueryImpl(cloneState(this.state, { having: result.buildAst() }), this.ctx);

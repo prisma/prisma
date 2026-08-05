@@ -4,6 +4,7 @@ export default defineConfig({
   entry: [
     'src/index.ts',
     'src/exports/types.ts',
+    'src/exports/aggregate-descriptor-registry.ts',
     'src/exports/ast.ts',
     'src/exports/codec-descriptor-registry.ts',
     'src/exports/contract-free.ts',

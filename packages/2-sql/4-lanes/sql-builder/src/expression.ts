@@ -119,22 +119,91 @@ export type BuiltinFunctions<CT extends Record<string, { readonly input: unknown
 export type Functions<QC extends QueryContext> = BuiltinFunctions<QC['codecTypes']> &
   DeriveExtFunctions<QC['queryOperationTypes']>;
 
-export type CountField = { codecId: 'pg/int8@1'; nullable: false };
+/**
+ * The field an aggregate produces, read from the contract's emitted aggregate map.
+ *
+ * The map is settled per input codec at emit time, so this is two lookups: the
+ * row for the input's codec, else the row that answers any input; and for a call
+ * with no input, the row for that. What a target widens, preserves, or renames
+ * is its own answer — this states it rather than restating the input.
+ */
+type AggregateField<QC extends QueryContext, Op extends string, InputCodecId> =
+  AggregateRow<QC, Op, InputCodecId> extends {
+    readonly output: infer Output extends string;
+    readonly nullable: infer Nullable extends boolean;
+  }
+    ? { codecId: Output; nullable: Nullable }
+    : ScopeField;
 
-export type AggregateOnlyFunctions = {
-  count: (expr?: Expression<ScopeField>) => Expression<CountField>;
+type AggregateRow<
+  QC extends QueryContext,
+  Op extends string,
+  InputCodecId,
+> = Op extends keyof QC['aggregateTypes']
+  ? [InputCodecId] extends [never]
+    ? WithoutInputRow<QC['aggregateTypes'][Op]>
+    : InputCodecId extends keyof ByCodecRows<QC['aggregateTypes'][Op]>
+      ? ByCodecRows<QC['aggregateTypes'][Op]>[InputCodecId]
+      : AnyInputRow<QC['aggregateTypes'][Op]>
+  : never;
+
+type ByCodecRows<Operation> = Operation extends { readonly byCodec: infer Rows } ? Rows : never;
+type AnyInputRow<Operation> = Operation extends { readonly anyInput: infer Row } ? Row : never;
+type WithoutInputRow<Operation> = Operation extends { readonly withoutInput: infer Row }
+  ? Row
+  : never;
+
+/**
+ * A count reads through the codec its target declares for it. Both built-in
+ * targets count into a 64-bit integer, so the application value is a `bigint`
+ * either way — but which codec carries it is the contract's to say.
+ */
+export type CountField<QC extends QueryContext> = AggregateField<QC, 'count', never>;
+
+declare const aggregateUnavailable: unique symbol;
+
+/**
+ * The impossible operand an aggregate call demands when the contract's
+ * aggregate map declares no row for the operation and input. Intersecting it
+ * with the operand type turns an undeclared pair into a call-site type error
+ * that names the reason, instead of an expression whose runtime value the
+ * target never declared.
+ */
+export interface AggregateUnavailable<Op extends string> {
+  readonly [aggregateUnavailable]: `the composed target declares no '${Op}' aggregate for this input`;
+}
+
+type AggregateOperand<
+  QC extends QueryContext,
+  Op extends string,
+  T extends ScopeField,
+> = Expression<T> &
+  (AggregateRow<QC, Op, T['codecId']> extends never ? AggregateUnavailable<Op> : unknown);
+
+export type AggregateOnlyFunctions<QC extends QueryContext> = {
+  // Two overloads because the runtime resolves them through different rows:
+  // `count()` through `withoutInput`, `count(expr)` through `byCodec[input] ?? anyInput`.
+  count: {
+    (
+      ...args: AggregateRow<QC, 'count', never> extends never ? [AggregateUnavailable<'count'>] : []
+    ): Expression<CountField<QC>>;
+    <T extends ScopeField>(
+      expr: AggregateOperand<QC, 'count', T>,
+    ): Expression<AggregateField<QC, 'count', T['codecId']>>;
+  };
   sum: <T extends ScopeField>(
-    expr: Expression<T>,
-  ) => Expression<{ codecId: T['codecId']; nullable: true }>;
+    expr: AggregateOperand<QC, 'sum', T>,
+  ) => Expression<AggregateField<QC, 'sum', T['codecId']>>;
   avg: <T extends ScopeField>(
-    expr: Expression<T>,
-  ) => Expression<{ codecId: T['codecId']; nullable: true }>;
+    expr: AggregateOperand<QC, 'avg', T>,
+  ) => Expression<AggregateField<QC, 'avg', T['codecId']>>;
   min: <T extends ScopeField>(
-    expr: Expression<T>,
-  ) => Expression<{ codecId: T['codecId']; nullable: true }>;
+    expr: AggregateOperand<QC, 'min', T>,
+  ) => Expression<AggregateField<QC, 'min', T['codecId']>>;
   max: <T extends ScopeField>(
-    expr: Expression<T>,
-  ) => Expression<{ codecId: T['codecId']; nullable: true }>;
+    expr: AggregateOperand<QC, 'max', T>,
+  ) => Expression<AggregateField<QC, 'max', T['codecId']>>;
 };
 
-export type AggregateFunctions<QC extends QueryContext> = Functions<QC> & AggregateOnlyFunctions;
+export type AggregateFunctions<QC extends QueryContext> = Functions<QC> &
+  AggregateOnlyFunctions<QC>;

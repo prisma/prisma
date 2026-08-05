@@ -153,6 +153,22 @@ The migration-file CLI (`prisma-next migration`) received a flag it does not rec
 
 A builder or helper on the contract-authoring surface is called with a bad argument: a composed authoring helper receives too many arguments or a malformed trailing options object, `field.sql({ id })` / `field.sql({ unique })` is used without a matching inline `.id(...)` / `.unique(...)` declaration, `model("Name", ...)` is called without a model definition, a nanoid ID generator is given a size outside 2–255, or an authored index combines its cross-field parameters invalidly (fields and an expression together or neither, an expression without `name:`/`map:`, or `map:` combined with `name:`). Also raised when a contract targets SQLite and declares an expression or partial index — SQLite's namespace construction rejects `expression:`/`where:` because the target does not support them. Raised while authoring/building the contract, before emit. Meta: varies per site.
 
+### CONTRACT.AGGREGATE_DESCRIPTOR_AMBIGUOUS
+
+The SQL emitter cannot name one result type for an aggregate: two trait-matching aggregate descriptors both claim a contributed codec, or a descriptor whose result reuses its input's codec also answers calls that carry no input. Raised while generating `contract.d.ts`, so the emitted types can never disagree with what the runtime registry resolves. Meta: `operation`; plus `codecId` and `traits` when two traits claim one codec, the contested codec being nameable only in that case.
+
+### CONTRACT.AGGREGATE_DESCRIPTOR_DUPLICATE
+
+Two composed components contribute an aggregate descriptor for the same `(operation, input)` overload — keyed as `sum:trait:numeric`, `sum:codec:pg/int8@1`, or `count:none`. Each overload resolves to exactly one result codec, so exactly one target, adapter, or extension may claim it. Raised while the control stack collects contributions (e.g. during `contract emit`); the runtime plane enforces the same rule as `RUNTIME.DUPLICATE_AGGREGATE_DESCRIPTOR`. Meta: `key`, `contributedBy`, `owner`.
+
+### CONTRACT.AGGREGATE_DESCRIPTOR_INVALID
+
+A composed component contributes an aggregate descriptor whose shape the framework cannot read: a missing or empty `operation`, an `input` match that is not `none` / `any` / `codec` / `trait`, an `output` that is not `self` / `codec`, a non-boolean `nullable`, or a `self` output on a match that may carry no input to reuse. Raised while the control stack collects contributions (e.g. during `contract emit`); the runtime plane enforces the same rule as `RUNTIME.AGGREGATE_DESCRIPTOR_INVALID`. Meta: `contributedBy`, `descriptor`.
+
+### CONTRACT.AGGREGATE_OUTPUT_CODEC_MISSING
+
+The SQL emitter is asked to emit an aggregate result row whose declared result codec the composed stack does not contribute — the emitted type would name a codec absent from the contract's codec map, and every consumer reading it would resolve `never`. Contribute the codec, or declare a result codec the stack contributes. Raised while generating `contract.d.ts`. Meta: `operation`, `outputCodecId`.
+
 ### CONTRACT.CODEC_DESCRIPTOR_MISSING
 
 The control plane resolves a codec referenced by the contract (a `CodecRef.codecId`) against the contract's pack stack and finds no registered codec descriptor for that id. Hit during control-plane operations (emit, migration tooling) when a contract references a codec no composed pack provides. Meta: `codecId`.
@@ -369,6 +385,10 @@ An `aggregate()` or `groupBy().aggregate()` selector is not a valid aggregation 
 
 `aggregate()` or `groupBy().aggregate()` was called with zero aggregation selectors; at least one is required. Meta: `method`, `model` (or `namespaceId`, `tableName`).
 
+### ORM.AGGREGATE_UNSUPPORTED
+
+An aggregate was invoked for an operation/input pair the composed target declares no descriptor for — an undeclared pair has no result identity to type or decode, so it is rejected before any SQL is built rather than executed into a driver-native value. Raised by ORM aggregate planning and decoding, and by the SQL-builder lane's aggregate functions; the typed surfaces already make such a call a type error, so reaching this at runtime means a dynamic or cast invocation. Meta: `operation`, plus `table`/`column`/`inputCodecId` where an input is involved. Contribute an aggregate descriptor for the pair, or aggregate an input the target declares.
+
 ### ORM.ARGUMENT_INVALID
 
 A method argument on the ORM client — or on the `sql()` / Mongo query-builder DSLs — is malformed or missing a required part: a `null` where-arg, `upsert()` without conflict columns or without a create value for a conflict column, a custom collection registered as an instance / against a nonexistent model in `orm({ collections })`, invalid builder argument shapes, `$and`/`$or` with no expressions, non-integer limit/skip, or malformed lookup/group/update specs. Meta: `method`, `argument`, `model`, `column`, `key`.
@@ -467,6 +487,18 @@ A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()
 
 An in-flight `execute()` was cancelled via the per-query `AbortSignal` passed as `execute(plan, { signal })`. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeExecute` / `afterExecute` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Meta: `phase`.
 
+### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
+
+A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `self` output on an operation that consumes no input, or a non-callable `lower`. Raised while the execution context assembles the registry. Meta: `descriptor`.
+
+### RUNTIME.AGGREGATE_OUTPUT_CODEC_MISSING
+
+An aggregate descriptor names a result codec the composed stack does not register — either its `output` names the codec outright, or a `self` output over an exact input match reuses an input codec the stack never composes. A resolved aggregate decodes its result through the declared codec, so an unregistered one could never decode anything. Raised while the execution context assembles the aggregate registry. Meta: `operation`, `key`, `outputCodecId`.
+
+### RUNTIME.AMBIGUOUS_AGGREGATE_DESCRIPTOR
+
+Two trait-matching aggregate descriptors for one operation both claim a registered codec — the codec advertises both traits, so the result codec is undetermined. Contribute an exact codec descriptor for that operation, or narrow the overlapping trait contributions. Raised while the execution context assembles the aggregate registry, so it never surfaces mid-query. Meta: `operation`, `codecId`, `traits`.
+
 ### RUNTIME.ANNOTATION_INAPPLICABLE
 
 A lane terminal (SQL DSL `.build()`, ORM collection terminal) received an annotation whose declared `applicableTo` set does not include the operation kind being built — the runtime check that backs up the type-level annotation validation when it is bypassed via casts or dynamic invocation. Meta: `namespace`, `terminalName`, `kind`, `applicableTo`.
@@ -518,6 +550,10 @@ At SQL context construction, the contract's target (e.g. `sqlite`) does not matc
 ### RUNTIME.DECODE_FAILED
 
 A codec's `decode` threw while converting a wire value into its output type during result decoding — surfaces per column (SQL), per document field (Mongo), or per included-relation column (ORM client), with the original error attached as `cause`. Also thrown when a returned row is missing an expected projection alias, or when the JSON array for an include alias fails to parse. Meta: `table`, `column` (or `alias` / `collection` + `path`), `codec`, `wirePreview`.
+
+### RUNTIME.DUPLICATE_AGGREGATE_DESCRIPTOR
+
+Two components claim the same aggregate overload — the same `(operation, input)` pair, keyed as `sum:trait:numeric`, `sum:codec:pg/int8@1`, or `count:none`. Each overload resolves to exactly one result codec, so exactly one target, adapter, or extension may contribute it. Meta: `key`.
 
 ### RUNTIME.DUPLICATE_AUTHORING_DISCRIMINATOR
 
@@ -1030,3 +1066,19 @@ The Supabase extension's runtime configuration is invalid — missing or contrad
 ### SUPABASE.JWT_INVALID
 
 A JWT handed to the Supabase runtime failed validation — malformed token, missing claims, or signature/JWKS mismatch (formerly the `InvalidJwtError` class, removed at 0.17). Meta: `reason`.
+
+## TESTKIT
+
+Raised by the codec conformance testkits (`@internal/postgres-codec-testkit`, `@internal/sqlite-codec-testkit`) while running an extension author's conformance cases against a live database.
+
+### TESTKIT.CODEC_DESCRIPTOR_MISSING
+
+A conformance case names a codec id the target's built-in descriptor registry does not know, and the case supplies no descriptor of its own. The harness projects and decodes through the codec descriptor under test, so an extension codec must be supplied on the case. Meta: `codecId`.
+
+### TESTKIT.CONFORMANCE_CASE_INVALID
+
+A `many` conformance case carries a value that is neither an array nor null — the harness maps element-wise over array cases and has nothing to map over. Give the case an array of element values, or null.
+
+### TESTKIT.PROJECTION_MALFORMED
+
+The executed JSON projection came back in a shape the codec descriptor does not declare: the projected document is missing its value key, or an array projection produced something other than a JSON array or null. This points at the projection SQL the descriptor under test renders. Meta: `codecId` (when the case is known).

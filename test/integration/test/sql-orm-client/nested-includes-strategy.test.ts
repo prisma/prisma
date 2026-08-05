@@ -275,7 +275,7 @@ describe('integration/nested-includes/strategy', () => {
                   { id: 10, title: 'A', userId: 1, views: 1, embedding: null },
                   { id: 11, title: 'B', userId: 1, views: 2, embedding: null },
                 ],
-                total: 2,
+                total: 2n,
               },
             },
           ]);
@@ -314,7 +314,7 @@ describe('integration/nested-includes/strategy', () => {
               email: 'alice@example.com',
               invitedById: null,
               address: null,
-              posts: [{ id: 10, title: 'A', userId: 1, views: 1, embedding: null, comments: 2 }],
+              posts: [{ id: 10, title: 'A', userId: 1, views: 1, embedding: null, comments: 2n }],
             },
           ]);
           expect(runtime.executions).toHaveLength(1);
@@ -351,7 +351,7 @@ describe('integration/nested-includes/strategy', () => {
               email: 'alice@example.com',
               invitedById: null,
               address: null,
-              posts: 2,
+              posts: 2n,
             },
             {
               id: 2,
@@ -359,7 +359,7 @@ describe('integration/nested-includes/strategy', () => {
               email: 'bob@example.com',
               invitedById: null,
               address: null,
-              posts: 1,
+              posts: 1n,
             },
           ]);
           expect(runtime.executions).toHaveLength(1);
@@ -400,7 +400,7 @@ describe('integration/nested-includes/strategy', () => {
               email: 'alice@example.com',
               invitedById: null,
               address: null,
-              posts: 2,
+              posts: 2n,
             },
           ]);
           expect(runtime.executions).toHaveLength(1);
@@ -442,7 +442,7 @@ describe('integration/nested-includes/strategy', () => {
               email: 'alice@example.com',
               invitedById: null,
               address: null,
-              posts: 700,
+              posts: 700n,
             },
           ]);
           expect(runtime.executions).toHaveLength(1);
@@ -486,7 +486,7 @@ describe('integration/nested-includes/strategy', () => {
                   { id: 13, title: 'D', userId: 1, views: 4, embedding: null },
                   { id: 12, title: 'C', userId: 1, views: 3, embedding: null },
                 ],
-                total: 4,
+                total: 4n,
               },
             },
           ]);

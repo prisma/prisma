@@ -45,7 +45,7 @@ When a contract declares more than one namespace (e.g. `public` and `auth`), mod
 
 The flat `db.orm.User` / `db.sql.users` form still works for single-namespace contracts (or when all table names are unique across namespaces). When the same bare name appears in more than one namespace, you must use the namespace coordinate.
 
-See [`queries-postgres.md` § Namespace-aware accessors](./postgres.md#namespace-aware-accessors) for a worked example.
+See [`queries-postgres.md` § Namespace-aware accessors](./queries-postgres.md#namespace-aware-accessors) for a worked example.
 
 ## Consuming the result: `await`, `.toArray()`, or `for await`
 
@@ -154,8 +154,8 @@ Target-specific pitfalls live in the per-target guides.
 
 This skill is split for selective loading. Target-specific reference paths live in the per-target guides:
 
-- **Postgres** — [`queries-postgres.md` § Reference Files](./postgres.md#reference-files)
-- **Mongo** — [`queries-mongo.md` § Reference Files](./mongo.md#reference-files)
+- **Postgres** — [`queries-postgres.md` § Reference Files](./queries-postgres.md#reference-files)
+- **Mongo** — [`queries-mongo.md` § Reference Files](./queries-mongo.md#reference-files)
 
 ## Checklist
 

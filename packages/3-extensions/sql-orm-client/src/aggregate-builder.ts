@@ -1,16 +1,17 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { getFieldToColumnMap } from './collection-contract';
-import type { AggregateBuilder, AggregateSelector, NumericFieldNames } from './types';
+import type { AggregateBuilder, AggregateSelector } from './types';
 
 export function createAggregateBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
+  NsId extends string = never,
 >(
   contract: TContract,
   namespaceId: string,
   modelName: ModelName,
-): AggregateBuilder<TContract, ModelName> {
+): AggregateBuilder<TContract, ModelName, NsId> {
   const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
 
   return {
@@ -54,18 +55,17 @@ export function isAggregateSelector(value: unknown): value is AggregateSelector<
   );
 }
 
-function createFieldAggregateSelector<
-  TContract extends Contract<SqlStorage>,
-  ModelName extends string,
->(
+/**
+ * The selector's result type is the contract's to state — it varies by target, operation, and the field's own codec — so the builder erases it here and each method's declared return type names it.
+ */
+function createFieldAggregateSelector<Result>(
   fieldToColumn: Record<string, string>,
-  field: NumericFieldNames<TContract, ModelName>,
+  field: string,
   fn: 'sum' | 'avg' | 'min' | 'max',
-): AggregateSelector<number | null> {
-  const fieldName = field as string;
+): AggregateSelector<Result> {
   return {
     kind: 'aggregate',
     fn,
-    column: fieldToColumn[fieldName] ?? fieldName,
+    column: fieldToColumn[field] ?? field,
   };
 }

@@ -33,6 +33,8 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
+import { resolveAggregateOutputCodec } from './aggregate-codecs';
+import { emptyAggregateResult } from './aggregate-empty-result';
 import {
   isToOneCardinality,
   resolvePolymorphismInfo,
@@ -119,6 +121,7 @@ function dispatchWithIncludes<Row>(
     try {
       const compiled = compileSelectWithIncludes(
         contract,
+        context.aggregateDescriptors,
         namespaceId,
         tableName,
         state,
@@ -318,7 +321,9 @@ async function decodeIncludePayload(
   raw: unknown,
 ): Promise<unknown> {
   if (include.scalar) {
-    return Promise.resolve(decodeScalarIncludePayload(include, include.scalar, raw));
+    return Promise.resolve(
+      decodeScalarIncludePayload(contract, context, include, include.scalar, raw),
+    );
   }
   if (include.combine) {
     return decodeCombineIncludePayload(contract, context, include, include.combine, raw);
@@ -367,9 +372,13 @@ async function decodeIncludePayload(
   return coerceSingleQueryIncludeResult(mappedChildren, include.cardinality);
 }
 
-interface IncludedColumnRef {
+/** How a decoded value is named when its decode fails. */
+interface DecodedValueRef {
   readonly table: string;
   readonly column: string;
+}
+
+interface IncludedColumnRef extends DecodedValueRef {
   readonly storageColumn: StorageColumn;
 }
 
@@ -502,8 +511,9 @@ async function decodeIncludedColumnValue(
   return decodeIncludedJsonValue(ref, codecId, codec, value);
 }
 
+/** `ref` names the value for a decode failure; an aggregate names its relation where a column would name itself. */
 function decodeIncludedJsonValue(
-  ref: IncludedColumnRef,
+  ref: DecodedValueRef,
   codecId: string,
   codec: Codec,
   value: unknown,
@@ -518,7 +528,7 @@ function decodeIncludedJsonValue(
   }
 }
 
-function wrapIncludedDecodeFailure(error: unknown, ref: IncludedColumnRef, codecId: string): never {
+function wrapIncludedDecodeFailure(error: unknown, ref: DecodedValueRef, codecId: string): never {
   const message = error instanceof Error ? error.message : String(error);
   const wrapped = runtimeError(
     'RUNTIME.DECODE_FAILED',
@@ -581,7 +591,13 @@ async function decodeCombineIncludePayload(
         branchRaw,
       );
     } else {
-      result[branchName] = decodeScalarIncludePayload(include, branch.selector, branchRaw);
+      result[branchName] = decodeScalarIncludePayload(
+        contract,
+        context,
+        include,
+        branch.selector,
+        branchRaw,
+      );
     }
   }
   return result;
@@ -627,8 +643,9 @@ function describeEnvelopeShape(value: unknown): string {
  * loudly naming the include relation rather than soft-handling.
  * Mirrors `parseCombineEnvelope`'s strict shape gate.
  *
- * Values are passed through unchanged — no JS-side `Number()` coercion
- * and no JS-side empty-relation defaulting. SQL semantics drive the
+ * The value passes through its own codec — the one the planner projected it
+ * under — because it arrived inside a JSON document, where a count past 2^53
+ * would otherwise have been read as a rounded number. SQL semantics drive the
  * empty-relation case: `COUNT(*)` over an empty input set is `0`;
  * `SUM` / `AVG` / `MIN` / `MAX` over an empty input set return SQL
  * `NULL`, which surfaces as `null` here. The outer `raw === null`
@@ -637,12 +654,14 @@ function describeEnvelopeShape(value: unknown): string {
  * envelope's `value` is always set by SQL.
  */
 function decodeScalarIncludePayload(
+  contract: Contract<SqlStorage>,
+  context: CodecExecutionContext,
   include: IncludeExpr,
   scalar: IncludeScalar<unknown>,
   raw: unknown,
 ): unknown {
   if (raw === null || raw === undefined) {
-    return emptyScalarResult(scalar.fn);
+    return emptyAggregateResult(scalar.fn);
   }
   const parsed = parseIncludePayload(raw);
   if (!isPlainObjectEnvelope(parsed)) {
@@ -650,7 +669,25 @@ function decodeScalarIncludePayload(
       `scalar() envelope for include "${include.relationName}" has unexpected shape (expected object, got ${describeEnvelopeShape(parsed)}); this indicates a planner or decoder bug.`,
     );
   }
-  return parsed['value'];
+
+  const value = parsed['value'];
+  if (value === null || value === undefined) return emptyAggregateResult(scalar.fn);
+
+  const codecRef = resolveAggregateOutputCodec({
+    aggregates: context.aggregateDescriptors,
+    contract,
+    namespaceId: include.relatedNamespaceId,
+    tableName: include.relatedTableName,
+    fn: scalar.fn,
+    column: scalar.column,
+  });
+
+  return decodeIncludedJsonValue(
+    { table: include.relatedTableName, column: include.relationName },
+    codecRef.codecId,
+    context.contractCodecs.forCodecRef(codecRef),
+    value,
+  );
 }
 
 function parseIncludedRows(include: IncludeExpr, value: unknown): Record<string, unknown>[] {
@@ -693,8 +730,4 @@ function coerceSingleQueryIncludeResult(
   cardinality: RelationCardinalityTag | undefined,
 ): Record<string, unknown>[] | Record<string, unknown> | null {
   return isToOneCardinality(cardinality) ? (rows[0] ?? null) : rows;
-}
-
-function emptyScalarResult(fn: IncludeScalar<unknown>['fn']): number | null {
-  return fn === 'count' ? 0 : null;
 }

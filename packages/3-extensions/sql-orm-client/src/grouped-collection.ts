@@ -44,12 +44,14 @@ interface GroupedCollectionInit {
 type GroupByFieldName<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
-> = keyof DefaultModelRow<TContract, ModelName> & string;
+  NsId extends string = never,
+> = keyof DefaultModelRow<TContract, ModelName, NsId> & string;
 
 export class GroupedCollection<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
-  GroupFields extends readonly GroupByFieldName<TContract, ModelName>[],
+  GroupFields extends readonly GroupByFieldName<TContract, ModelName, NsId>[],
+  NsId extends string = never,
 > {
   readonly ctx: CollectionContext<TContract>;
   private readonly contract: TContract;
@@ -78,10 +80,15 @@ export class GroupedCollection<
   }
 
   having(
-    predicate: (having: HavingBuilder<TContract, ModelName>) => AnyExpression,
-  ): GroupedCollection<TContract, ModelName, GroupFields> {
+    predicate: (having: HavingBuilder<TContract, ModelName, NsId>) => AnyExpression,
+  ): GroupedCollection<TContract, ModelName, GroupFields, NsId> {
     const havingExpr = predicate(
-      createHavingBuilder(this.contract, this.namespaceId, this.modelName, this.tableName),
+      createHavingBuilder<TContract, ModelName, NsId>(
+        this.contract,
+        this.namespaceId,
+        this.modelName,
+        this.tableName,
+      ),
     );
     return new GroupedCollection(this.ctx, this.modelName, {
       tableName: this.tableName,
@@ -90,7 +97,7 @@ export class GroupedCollection<
       groupByFields: this.groupByFields,
       groupByColumns: this.groupByColumns,
       havingFilters: [...this.havingFilters, havingExpr],
-    }) as GroupedCollection<TContract, ModelName, GroupFields>;
+    }) as GroupedCollection<TContract, ModelName, GroupFields, NsId>;
   }
 
   /**
@@ -101,17 +108,22 @@ export class GroupedCollection<
    * Annotations are merged into the compiled plan's `meta.annotations`.
    */
   async aggregate<Spec extends AggregateSpec>(
-    fn: (aggregate: AggregateBuilder<TContract, ModelName>) => Spec,
+    fn: (aggregate: AggregateBuilder<TContract, ModelName, NsId>) => Spec,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<
     Array<
       SimplifyDeep<
-        Pick<DefaultModelRow<TContract, ModelName>, GroupFields[number]> & AggregateResult<Spec>
+        Pick<DefaultModelRow<TContract, ModelName, NsId>, GroupFields[number]> &
+          AggregateResult<Spec>
       >
     >
   > {
     const aggregateSpec = fn(
-      createAggregateBuilder(this.contract, this.namespaceId, this.modelName),
+      createAggregateBuilder<TContract, ModelName, NsId>(
+        this.contract,
+        this.namespaceId,
+        this.modelName,
+      ),
     );
     const aggregateEntries = Object.entries(aggregateSpec);
     if (aggregateEntries.length === 0) {
@@ -144,6 +156,7 @@ export class GroupedCollection<
     const compiled = mergeAnnotations(
       compileGroupedAggregate(
         this.contract,
+        this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.tableName,
         this.baseFilters,
@@ -165,24 +178,29 @@ export class GroupedCollection<
         this.modelName,
         row,
       );
-      for (const [alias, selector] of aggregateEntries) {
-        mapped[alias] = coerceAggregateValue(selector.fn, row[alias]);
+      for (const [alias] of aggregateEntries) {
+        mapped[alias] = row[alias];
       }
       return mapped;
     }) as Array<
       SimplifyDeep<
-        Pick<DefaultModelRow<TContract, ModelName>, GroupFields[number]> & AggregateResult<Spec>
+        Pick<DefaultModelRow<TContract, ModelName, NsId>, GroupFields[number]> &
+          AggregateResult<Spec>
       >
     >;
   }
 }
 
-function createHavingBuilder<TContract extends Contract<SqlStorage>, ModelName extends string>(
+function createHavingBuilder<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+>(
   contract: TContract,
   namespaceId: string,
   modelName: ModelName,
   tableName: string,
-): HavingBuilder<TContract, ModelName> {
+): HavingBuilder<TContract, ModelName, NsId> {
   const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
   const createMetricExpr = (
     fn: Exclude<AggregateExpr['fn'], 'count'>,
@@ -235,29 +253,4 @@ function createHavingComparisonMethods<T extends number | null>(
       return buildBinaryExpr('lte', value);
     },
   };
-}
-
-function coerceAggregateValue(fn: string, value: unknown): unknown {
-  if (value === null) {
-    return null;
-  }
-
-  if (value === undefined) {
-    return fn === 'count' ? 0 : null;
-  }
-
-  if (typeof value === 'number') {
-    return value;
-  }
-
-  if (typeof value === 'bigint') {
-    return Number(value);
-  }
-
-  if (typeof value === 'string') {
-    const numeric = Number(value);
-    return Number.isNaN(numeric) ? value : numeric;
-  }
-
-  return value;
 }

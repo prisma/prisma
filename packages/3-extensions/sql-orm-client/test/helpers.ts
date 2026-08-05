@@ -194,6 +194,15 @@ export function getTestContext(): ExecutionContext<TestContract> {
   return testContext;
 }
 
+/**
+ * The aggregate registry the composed PostgreSQL stack contributes — what plan
+ * builders resolve result codecs against, so a plan test measures the real
+ * matrix rather than a stub of it.
+ */
+export function getTestAggregates(): ExecutionContext<TestContract>['aggregateDescriptors'] {
+  return testContext.aggregateDescriptors;
+}
+
 export interface MockExecution {
   plan: SqlExecutionPlan | SqlQueryPlan<unknown>;
   rows: Record<string, unknown>[];
