@@ -54,6 +54,10 @@ export {
   UniqueConstraint,
   type UniqueConstraintInput,
 } from './ir/unique-constraint';
+export {
+  checkConstraintInputFromSerialized,
+  type SerializedCheckConstraint,
+} from './serialized-check-constraint';
 export { indexInputFromSerialized, type SerializedIndex } from './serialized-index';
 
 export type ForeignKeyOptions = {
