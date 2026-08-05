@@ -3,19 +3,25 @@ import type {
   EntityKindDescriptor,
 } from '@internal/framework-components/ir';
 import { contractError } from './contract-errors';
+import { CheckConstraint } from './ir/check-constraint';
 import { Index } from './ir/sql-index';
 import { StorageTableSchema, StorageValueSetSchema } from './ir/storage-entry-schemas';
 import { StorageTable, type StorageTableInput } from './ir/storage-table';
 import { StorageValueSet, type StorageValueSetInput } from './ir/storage-value-set';
+import {
+  checkConstraintInputFromSerialized,
+  type SerializedCheckConstraint,
+} from './serialized-check-constraint';
 import { indexInputFromSerialized, type SerializedIndex } from './serialized-index';
 
 /**
- * A table entry as it reaches hydration: from `contract.json` its indexes are
- * still the stored flat records, from authoring they are already `Index`
- * nodes.
+ * A table entry as it reaches hydration: from `contract.json` its indexes and
+ * checks are still the stored flat records, from authoring they are already
+ * `Index` / `CheckConstraint` nodes.
  */
-export type HydratableStorageTable = Omit<StorageTableInput, 'indexes'> & {
+export type HydratableStorageTable = Omit<StorageTableInput, 'indexes' | 'checks'> & {
   readonly indexes: ReadonlyArray<Index | SerializedIndex>;
+  readonly checks?: ReadonlyArray<CheckConstraint | SerializedCheckConstraint>;
 };
 
 export const tableEntityKind: EntityKindDescriptor<HydratableStorageTable, StorageTable> = {
@@ -25,6 +31,11 @@ export const tableEntityKind: EntityKindDescriptor<HydratableStorageTable, Stora
     new StorageTable({
       ...input,
       indexes: input.indexes.map((i) => (i instanceof Index ? i : indexInputFromSerialized(i))),
+      ...(input.checks !== undefined && {
+        checks: input.checks.map((c) =>
+          c instanceof CheckConstraint ? c : checkConstraintInputFromSerialized(c),
+        ),
+      }),
     }),
 };
 

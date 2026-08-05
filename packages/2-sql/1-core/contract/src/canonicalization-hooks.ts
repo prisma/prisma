@@ -44,7 +44,10 @@ const isColumnDefaultValuePath = (path: readonly string[]): boolean =>
   matchesPathPattern(path.slice(0, columnDefaultValuePrefix.length), columnDefaultValuePrefix);
 
 const sortTargets = [
-  { path: ['namespaces', '*', 'entries', 'table', '*'], arrayKeys: ['indexes', 'uniques'] },
+  {
+    path: ['namespaces', '*', 'entries', 'table', '*'],
+    arrayKeys: ['checks', 'indexes', 'uniques'],
+  },
 ] as const satisfies readonly NamedArraySortTarget[];
 
 const matchesPreserveEmptyPattern = createPreserveEmptyPredicate(preserveEmptyPatterns);

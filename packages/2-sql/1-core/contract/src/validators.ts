@@ -656,16 +656,15 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
       }
     }
 
-    const seenCheckDefinitions = new Set<string>();
+    const seenCheckExpressions = new Set<string>();
     for (const check of table.checks ?? []) {
-      const signature = JSON.stringify({ column: check.column, valueSet: check.valueSet });
-      if (seenCheckDefinitions.has(signature)) {
+      if (seenCheckExpressions.has(check.expression)) {
         errors.push(
-          `Namespace "${namespaceId}" table "${tableName}": duplicate check constraint definition on column "${check.column}"`,
+          `Namespace "${namespaceId}" table "${tableName}": duplicate check constraint definition (expression "${check.expression}")`,
         );
         continue;
       }
-      seenCheckDefinitions.add(signature);
+      seenCheckExpressions.add(check.expression);
     }
   }
 
@@ -773,15 +772,6 @@ export function validateSqlStorageConsistency(contract: Contract<SqlStorage>): v
             'storage',
           );
         }
-      }
-    }
-
-    for (const check of table.checks ?? []) {
-      if (!columnNames.has(check.column)) {
-        throw new ContractValidationError(
-          `Namespace "${namespaceId}" table "${tableName}" check constraint "${check.name}" references non-existent column "${check.column}"`,
-          'storage',
-        );
       }
     }
 
