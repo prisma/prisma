@@ -1,0 +1,628 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "people": {
+      "model": "Person",
+      "namespace": "public"
+    },
+    "person_connections": {
+      "model": "PersonConnection",
+      "namespace": "public"
+    },
+    "person_follows": {
+      "model": "PersonFollow",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Person": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "managerId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "partnerId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "followers": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "followee_id"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "follower_id"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "followee_id"
+                  ],
+                  "table": "person_follows",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              },
+              "following": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "follower_id"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "followee_id"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "follower_id"
+                  ],
+                  "table": "person_follows",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              },
+              "incomingLinks": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "targetId"
+                  ]
+                },
+                "to": {
+                  "model": "PersonConnection",
+                  "namespace": "public"
+                }
+              },
+              "manager": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "managerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              },
+              "outgoingLinks": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sourceId"
+                  ]
+                },
+                "to": {
+                  "model": "PersonConnection",
+                  "namespace": "public"
+                }
+              },
+              "partner": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "partnerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              },
+              "partneredBy": {
+                "cardinality": "1:1",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "partnerId"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              },
+              "reports": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "managerId"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "managerId": {
+                  "column": "manager_id"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "partnerId": {
+                  "column": "partner_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "people"
+            }
+          },
+          "PersonConnection": {
+            "fields": {
+              "sourceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "targetId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "weight": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "source": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "sourceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              },
+              "target": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "targetId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "sourceId": {
+                  "column": "source_id"
+                },
+                "targetId": {
+                  "column": "target_id"
+                },
+                "weight": {
+                  "column": "weight"
+                }
+              },
+              "namespaceId": "public",
+              "table": "person_connections"
+            }
+          },
+          "PersonFollow": {
+            "fields": {
+              "followeeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "followerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "followee": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "followeeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              },
+              "follower": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "followerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Person",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "followeeId": {
+                  "column": "followee_id"
+                },
+                "followerId": {
+                  "column": "follower_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "person_follows"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "people": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "manager_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "partner_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "manager_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "people"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "people"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "partner_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "people"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "people"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "manager_id"
+                  ],
+                  "name": "people_manager_id_idx_c3dee277",
+                  "prefix": "people_manager_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "partner_id"
+                  ]
+                }
+              ]
+            },
+            "person_connections": {
+              "columns": {
+                "source_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "target_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "weight": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "source_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "person_connections"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "people"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "target_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "person_connections"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "people"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "source_id"
+                  ],
+                  "name": "person_connections_source_id_idx_b2d19e21",
+                  "prefix": "person_connections_source_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "target_id"
+                  ],
+                  "name": "person_connections_target_id_idx_7e52b3aa",
+                  "prefix": "person_connections_target_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "source_id",
+                  "target_id"
+                ]
+              },
+              "uniques": []
+            },
+            "person_follows": {
+              "columns": {
+                "followee_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "follower_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "follower_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "person_follows"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "people"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "followee_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "person_follows"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "people"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "followee_id"
+                  ],
+                  "name": "person_follows_followee_id_idx_c86a372f",
+                  "prefix": "person_follows_followee_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "follower_id"
+                  ],
+                  "name": "person_follows_follower_id_idx_e343d705",
+                  "prefix": "person_follows_follower_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "follower_id",
+                  "followee_id"
+                ]
+              },
+              "uniques": []
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "03064b14cc66f1a136c019a42aef7f614624869dca2bd20211872b482eb8fb2a"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}
