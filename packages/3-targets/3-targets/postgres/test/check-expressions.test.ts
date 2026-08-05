@@ -21,7 +21,7 @@ describe('postgresRenderCheckExpressions', () => {
     ).toEqual([
       {
         prefix: 'User_roles_check',
-        expression: `"roles" <@ ARRAY['user', 'admin']::text[]`,
+        expression: `"roles"::text[] <@ ARRAY['user', 'admin']::text[]`,
       },
       {
         prefix: 'User_roles_elem_not_null',

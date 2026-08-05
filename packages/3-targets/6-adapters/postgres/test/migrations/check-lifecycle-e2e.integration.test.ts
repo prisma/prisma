@@ -416,6 +416,45 @@ describe.sequential('check-constraint lifecycle', () => {
     expect((await verify(contract)).ok).toBe(true);
   });
 
+  // The `<@` operands must share a type. A varchar-backed array enum meeting a
+  // bare `text[]` literal raises `operator does not exist: character varying[]
+  // <@ text[]` — the same class of defect as the original IN-on-an-array bug,
+  // and equally invisible to a rendered-string assertion.
+  it('a varchar-backed array domain enum installs and enforces', {
+    timeout: testTimeout,
+  }, async () => {
+    const checks = checksForColumn('Item', 'roles', {
+      many: true,
+      memberValues: ['user', 'admin'],
+    });
+    const contract = contractOf(
+      {
+        id: idColumn,
+        roles: {
+          nativeType: 'character varying',
+          codecId: 'pg/varchar@1',
+          nullable: false,
+          many: true,
+        },
+      },
+      checks,
+    );
+
+    await migrate(contract);
+    expect(await liveCheckNames()).toEqual([...declaredCheckNames(contract)].sort());
+
+    await driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('a', ARRAY['user','admin'])`);
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('b', ARRAY['user','root'])`),
+    ).rejects.toThrow(new RegExp(checks[0]?.name ?? ''));
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('c', ARRAY['user',NULL])`),
+    ).rejects.toThrow(/Item_roles/);
+
+    expect((await verify(contract)).ok).toBe(true);
+    expect((await verify(contract)).ok).toBe(true);
+  });
+
   it('a varchar-column membership check does not drift after apply', {
     timeout: testTimeout,
   }, async () => {

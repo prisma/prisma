@@ -31,6 +31,12 @@ export interface PostgresCheckExpressionCandidate {
  * column cannot use `IN` at all (`operator does not exist: text[] = text`),
  * and containment additionally rejects NULL elements. Every list column also
  * gets an element-non-null check, which no Postgres column type can express.
+ *
+ * The array side casts the COLUMN to `text[]` rather than assuming its element
+ * type already is: `<@` needs both operands in one type, so a `varchar[]` or
+ * `char[]` column meeting a bare `text[]` literal raises the same
+ * `operator does not exist` this project exists to eliminate. The scalar `IN`
+ * form needs no cast — `varchar = text` resolves on its own.
  */
 export function postgresRenderCheckExpressions(
   input: PostgresCheckExpressionInput,
@@ -43,7 +49,7 @@ export function postgresRenderCheckExpressions(
     candidates.push({
       prefix: `${input.tableName}_${input.columnName}_check`,
       expression: input.many
-        ? `${column} <@ ARRAY[${members}]::text[]`
+        ? `${column}::text[] <@ ARRAY[${members}]::text[]`
         : `${column} IN (${members})`,
     });
   }
