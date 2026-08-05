@@ -22,6 +22,7 @@
     "@internal/contract-authoring": "workspace:0.17.0",
     "@internal/framework-components": "workspace:0.17.0",
     "@internal/sql-contract": "workspace:0.17.0",
+    "@internal/sql-schema-ir": "workspace:0.17.0",
     "@internal/utils": "workspace:0.17.0",
     "arktype": "^2.2.2",
     "pathe": "^2.0.3",

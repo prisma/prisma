@@ -21,7 +21,11 @@ import {
   type StorageHashBase,
   type ValueSetRef,
 } from '@internal/contract/types';
-import { type CapabilityMatrix, mergeCapabilityMatrices } from '@internal/contract-authoring';
+import {
+  type CapabilityMatrix,
+  type EnumTypeHandle,
+  mergeCapabilityMatrices,
+} from '@internal/contract-authoring';
 import type {
   AuthoringContributions,
   AuthoringEntityTypeDescriptor,
@@ -49,7 +53,7 @@ import {
 } from '@internal/sql-contract/index-types';
 import {
   applyFkDefaults,
-  type CheckConstraintInput,
+  CheckConstraint,
   Index,
   type SqlNamespaceInput,
   SqlStorage,
@@ -62,6 +66,10 @@ import {
 } from '@internal/sql-contract/types';
 import { validateStorageSemantics } from '@internal/sql-contract/validators';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
+import {
+  assertWireNamePrefixLength,
+  computeCheckContentHash,
+} from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -266,6 +274,94 @@ function hasColumnTypeQualifier(
   authoring: AuthoringContributions,
 ): authoring is AuthoringContributions & { readonly qualifyColumnType: ColumnTypeQualifier } {
   return 'qualifyColumnType' in authoring && typeof authoring.qualifyColumnType === 'function';
+}
+
+/**
+ * A target's contract-construction-time check renderer, contributed through
+ * `target.authoring.renderCheckExpressions`. Given one column's shape it
+ * returns the checks that column needs, each as a wire-name prefix plus an
+ * opaque predicate body (no surrounding `CHECK (…)`); the target owns the SQL,
+ * including identifier quoting and literal escaping. `memberValues` is
+ * supplied only for a domain enum authored through an `enumType()` handle, so
+ * a target cannot accidentally write a membership check for a column whose
+ * native type already enforces its member set. Targets without the hook write
+ * no checks.
+ */
+type CheckExpressionRenderer = (input: {
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly many: boolean;
+  readonly memberValues: readonly string[] | undefined;
+}) => ReadonlyArray<{ readonly prefix: string; readonly expression: string }>;
+
+/**
+ * Structural check for a target that contributes a `renderCheckExpressions`
+ * hook, duck-typed for the same reason {@link hasColumnTypeQualifier} is: the
+ * SQL family stays blind to the target's predicate syntax.
+ */
+function hasCheckExpressionRenderer(
+  authoring: AuthoringContributions,
+): authoring is AuthoringContributions & {
+  readonly renderCheckExpressions: CheckExpressionRenderer;
+} {
+  return (
+    'renderCheckExpressions' in authoring && typeof authoring.renderCheckExpressions === 'function'
+  );
+}
+
+function resolveCheckExpressionRenderer(
+  target: ContractDefinition['target'],
+): CheckExpressionRenderer | undefined {
+  const authoring = target.authoring;
+  if (authoring === undefined) return undefined;
+  return hasCheckExpressionRenderer(authoring) ? authoring.renderCheckExpressions : undefined;
+}
+
+/**
+ * The member values a membership check must enforce, encoded exactly as the
+ * column stores them. Only string members can be written as a predicate, so a
+ * numeric enum fails here rather than emitting a wrong text-shaped check.
+ */
+function checkMemberValues(
+  handle: EnumTypeHandle,
+  codecLookup: CodecLookup | undefined,
+): readonly string[] {
+  const encoded = handle.values.map((value) => encodeViaCodec(value, handle.codecId, codecLookup));
+  const values: string[] = [];
+  for (const value of encoded) {
+    if (typeof value !== 'string') {
+      throw contractError(
+        'CONTRACT.ENUM_INVALID',
+        `enumType("${handle.enumName}"): has a non-string value; numeric-enum CHECK constraints are not yet supported.`,
+        { meta: { enumName: handle.enumName, reason: 'non-string-member-value' } },
+      );
+    }
+    values.push(value);
+  }
+  return values;
+}
+
+/**
+ * Turns the target's rendered candidates into the name-identified check
+ * entities `contract.json` persists. Naming is family mechanics — the prefix
+ * is capped at the wire-name limit and the content hash of the predicate
+ * becomes the name's suffix — exactly as `lowerAuthoredIndex` does for
+ * indexes.
+ */
+function lowerRenderedChecks(
+  candidates: ReadonlyArray<{ readonly prefix: string; readonly expression: string }>,
+): CheckConstraint[] {
+  return candidates.map((candidate) => {
+    assertWireNamePrefixLength(candidate.prefix, 'check constraint prefix');
+    return new CheckConstraint({
+      naming: {
+        kind: 'wire',
+        prefix: candidate.prefix,
+        hash: computeCheckContentHash(candidate.expression),
+      },
+      expression: candidate.expression,
+    });
+  });
 }
 
 function resolveColumnTypeQualifier(
@@ -670,6 +766,7 @@ export function buildSqlContractFromDefinition(
   const target = definition.target.targetId;
   const defaultNamespaceId = definition.target.defaultNamespaceId;
   const qualifyColumnType = resolveColumnTypeQualifier(definition.target);
+  const renderCheckExpressions = resolveCheckExpressionRenderer(definition.target);
   const targetFamily = 'sql';
   const resolveNamespaceId = (m: ModelNode): string =>
     m.namespaceId !== undefined && m.namespaceId.length > 0 ? m.namespaceId : defaultNamespaceId;
@@ -721,7 +818,7 @@ export function buildSqlContractFromDefinition(
     const fieldToColumn: Record<string, string> = {};
     const domainFields: Record<string, ContractField> = {};
     const domainFieldRefs: Record<string, DomainFieldRef> = {};
-    const checksForTable: CheckConstraintInput[] = [];
+    const checksForTable: CheckConstraint[] = [];
 
     for (const field of semanticModel.fields) {
       const executionDefaultPhases =
@@ -813,23 +910,25 @@ export function buildSqlContractFromDefinition(
       columns[field.columnName] = column;
       fieldToColumn[field.fieldName] = field.columnName;
 
-      // A domain enum (`storageValueSetRef`, from an `enumType()` handle) is
-      // stored as a plain scalar column (`text`, `int4`, …) with no native
-      // type of its own to enforce membership, so it needs an explicit
-      // CHECK — scalar or array, since a `text[]` array has no element-level
-      // enforcement either. A value set resolved by an entity-ref type
-      // constructor (`field.descriptor.valueSet`, e.g. `pg.enum(Ref)`) binds
-      // the column to a codec/native-type pairing that IS the storage-level
-      // enforcement (a Postgres native enum type, or another target's
-      // equivalent) — including array columns, since the target enforces
-      // membership on every element of a native-typed array — so no CHECK
-      // for those.
-      if (column.valueSet !== undefined && storageValueSetRef !== undefined) {
-        checksForTable.push({
-          name: `${tableName}_${field.columnName}_check`,
-          column: field.columnName,
-          valueSet: column.valueSet,
-        });
+      // Member values reach the renderer only on the `enumType()` handle
+      // path: that column is a plain scalar (`text`, `int4`, …) with no
+      // native type of its own to enforce membership. A value set resolved by
+      // an entity-ref type constructor (`field.descriptor.valueSet`, e.g.
+      // `pg.enum(Ref)`) binds the column to a codec/native-type pairing that
+      // IS the storage-level enforcement — including array columns, since the
+      // target enforces membership on every element of a native-typed array.
+      if (renderCheckExpressions !== undefined) {
+        checksForTable.push(
+          ...lowerRenderedChecks(
+            renderCheckExpressions({
+              tableName,
+              columnName: field.columnName,
+              many: column.many === true,
+              memberValues:
+                enumHandle !== undefined ? checkMemberValues(enumHandle, codecLookup) : undefined,
+            }),
+          ),
+        );
       }
 
       domainFields[field.fieldName] = buildDomainField(field, column, domainValueSetRef);

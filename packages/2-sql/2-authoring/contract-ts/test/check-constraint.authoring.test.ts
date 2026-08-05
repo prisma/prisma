@@ -2,10 +2,11 @@ import type { Contract } from '@internal/contract/types';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import {
   CheckConstraint,
+  checkConstraintInputFromSerialized,
   type SqlStorage,
-  StorageTable,
-  type StorageTableInput,
+  type StorageTable,
 } from '@internal/sql-contract/types';
+import { computeCheckContentHash, formatWireName } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { defineContract } from '../src/contract-builder';
@@ -26,7 +27,61 @@ const sqlFamilyPack = {
   },
 } as const satisfies FamilyPackRef<'sql'>;
 
+interface RenderInput {
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly many: boolean;
+  readonly memberValues: readonly string[] | undefined;
+}
+
+/**
+ * Stands in for the Postgres pack's `renderCheckExpressions`, reproducing the
+ * forms it emits. The real hook is unit-tested in the Postgres target package;
+ * this file pins what the contract builder does with whatever a hook returns,
+ * which is why the stub also records its calls.
+ */
+const hookCalls: RenderInput[] = [];
+
+function renderCheckExpressions(
+  input: RenderInput,
+): ReadonlyArray<{ readonly prefix: string; readonly expression: string }> {
+  hookCalls.push(input);
+  const candidates: Array<{ prefix: string; expression: string }> = [];
+  const column = `"${input.columnName}"`;
+  if (input.memberValues !== undefined) {
+    const members = input.memberValues.map((v) => `'${v}'`).join(', ');
+    candidates.push({
+      prefix: `${input.tableName}_${input.columnName}_check`,
+      expression: input.many
+        ? `${column} <@ ARRAY[${members}]::text[]`
+        : `${column} IN (${members})`,
+    });
+  }
+  if (input.many) {
+    candidates.push({
+      prefix: `${input.tableName}_${input.columnName}_elem_not_null`,
+      expression: `array_position(${column}, NULL) IS NULL`,
+    });
+  }
+  return candidates;
+}
+
+// `AuthoringContributions` does not name the duck-typed hooks (the whole point
+// of the pattern), so the pack carrying one is not written `satisfies
+// TargetPackRef` — the real Postgres descriptor meta is not either.
 const postgresTargetPack = {
+  kind: 'target',
+  id: 'postgres',
+  familyId: 'sql',
+  targetId: 'postgres',
+  version: '0.0.1',
+  defaultNamespaceId: 'public',
+  // `field: {}` is what makes this a real `AuthoringContributions` rather
+  // than a weak-type mismatch; the production pack carries presets here.
+  authoring: { field: {}, renderCheckExpressions },
+} as const;
+
+const bareTargetPack = {
   kind: 'target',
   id: 'postgres',
   familyId: 'sql',
@@ -37,14 +92,36 @@ const postgresTargetPack = {
 
 const pgText = { codecId: 'pg/text@1' as const, nativeType: 'text' } as const;
 
-// ---------------------------------------------------------------------------
-// Lowering: check constraints emitted per enum-restricted column
-// ---------------------------------------------------------------------------
+const Role = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
+const Status = enumType('Status', pgText, member('Active', 'active'));
 
-describe('check-constraint lowering', () => {
-  it('emits a check constraint for each enum-restricted column', () => {
-    const Role = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
+const nativeRoleDescriptor = {
+  codecId: 'test/native-role@1',
+  nativeType: 'native_role',
+  valueSet: {
+    plane: 'storage',
+    entityKind: 'valueSet',
+    namespaceId: 'public',
+    entityName: 'NativeRole',
+  },
+} as const;
 
+function checksOf(contract: Contract<SqlStorage>): readonly CheckConstraint[] {
+  const ns = contract.storage.namespaces['public'];
+  const table = ns !== undefined ? ns.entries.table?.['User'] : undefined;
+  return (table as StorageTable | undefined)?.checks ?? [];
+}
+
+function flatten(checks: readonly CheckConstraint[]) {
+  return checks.map((c) => ({ name: c.name, prefix: c.prefix, expression: c.expression }));
+}
+
+function wire(prefix: string, expression: string) {
+  return { name: formatWireName(prefix, computeCheckContentHash(expression)), prefix, expression };
+}
+
+describe('check emission — scalar domain enum', () => {
+  it('emits one wire-named membership check whose suffix hashes the expression', () => {
     const contract = defineContract(
       {
         family: sqlFamilyPack,
@@ -54,42 +131,16 @@ describe('check-constraint lowering', () => {
       },
       ({ field: f, model: m }) =>
         ({
-          models: {
-            User: m('User', {
-              fields: {
-                id: f.text().id(),
-                role: f.namedType(Role),
-              },
-            }),
-          },
+          models: { User: m('User', { fields: { id: f.text().id(), role: f.namedType(Role) } }) },
         }) as const,
     ) as Contract<SqlStorage>;
 
-    const storageNs = contract.storage.namespaces['public'];
-    const userTable = storageNs !== undefined ? storageNs.entries.table?.['User'] : undefined;
-
-    expect(userTable?.checks).toHaveLength(1);
-    expect(userTable?.checks?.[0]).toMatchObject({
-      name: 'User_role_check',
-      column: 'role',
-      valueSet: {
-        plane: 'storage',
-        entityKind: 'valueSet',
-        namespaceId: 'public',
-        entityName: 'Role',
-      },
-    });
+    expect(flatten(checksOf(contract))).toEqual([
+      wire('User_role_check', `"role" IN ('user', 'admin')`),
+    ]);
   });
 
-  it('emits one check per enum-restricted column when multiple columns are restricted', () => {
-    const Role = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
-    const Status = enumType(
-      'Status',
-      pgText,
-      member('Active', 'active'),
-      member('Inactive', 'inactive'),
-    );
-
+  it('emits one check per enum-restricted column', () => {
     const contract = defineContract(
       {
         family: sqlFamilyPack,
@@ -101,94 +152,21 @@ describe('check-constraint lowering', () => {
         ({
           models: {
             User: m('User', {
-              fields: {
-                id: f.text().id(),
-                role: f.namedType(Role),
-                status: f.namedType(Status),
-              },
+              fields: { id: f.text().id(), role: f.namedType(Role), status: f.namedType(Status) },
             }),
           },
         }) as const,
     ) as Contract<SqlStorage>;
 
-    const storageNs = contract.storage.namespaces['public'];
-    const userTable = storageNs !== undefined ? storageNs.entries.table?.['User'] : undefined;
-
-    expect(userTable?.checks).toHaveLength(2);
-    const checkNames = userTable?.checks?.map((c) => c.name).sort();
-    expect(checkNames).toEqual(['User_role_check', 'User_status_check']);
-  });
-
-  it('leaves checks absent when no enum-restricted columns exist', () => {
-    const contract = defineContract(
-      {
-        family: sqlFamilyPack,
-        target: postgresTargetPack,
-        createNamespace: createTestSqlNamespace,
-      },
-      ({ field: f, model: m }) =>
-        ({
-          models: {
-            User: m('User', {
-              fields: {
-                id: f.text().id(),
-                name: f.text(),
-              },
-            }),
-          },
-        }) as const,
-    ) as Contract<SqlStorage>;
-
-    const storageNs = contract.storage.namespaces['public'];
-    const userTable = storageNs !== undefined ? storageNs.entries.table?.['User'] : undefined;
-
-    expect(userTable?.checks).toBeUndefined();
-  });
-
-  it('check constraint items are CheckConstraint instances', () => {
-    const Role = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
-
-    const contract = defineContract(
-      {
-        family: sqlFamilyPack,
-        target: postgresTargetPack,
-        createNamespace: createTestSqlNamespace,
-        enums: { Role },
-      },
-      ({ field: f, model: m }) =>
-        ({
-          models: {
-            User: m('User', {
-              fields: {
-                id: f.text().id(),
-                role: f.namedType(Role),
-              },
-            }),
-          },
-        }) as const,
-    ) as Contract<SqlStorage>;
-
-    const storageNs = contract.storage.namespaces['public'];
-    const userTable = storageNs !== undefined ? storageNs.entries.table?.['User'] : undefined;
-
-    expect(userTable?.checks?.[0]).toHaveProperty('valueSet');
+    expect(checksOf(contract).map((c) => c.prefix)).toEqual([
+      'User_role_check',
+      'User_status_check',
+    ]);
   });
 });
 
-// ---------------------------------------------------------------------------
-// CHECK is always written for a domain enum (`enumType()` + `namedType()`):
-// this authoring surface has no entity-ref-resolved, storage-enforced-type
-// path (that only exists via PSL's `pg.enum(Ref)` — see
-// `target-postgres/test/psl-pg-enum-column.test.ts` for the no-CHECK case),
-// so a domain enum's column is always a plain scalar column and always
-// needs a CHECK to enforce its member set, regardless of the codec bound to
-// it.
-// ---------------------------------------------------------------------------
-
-describe('check-constraint always written for a domain enum, regardless of codec', () => {
-  it('writes a CHECK for a domain-enum array column (many)', () => {
-    const Role = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
-
+describe('check emission — array domain enum', () => {
+  it('emits the containment membership check plus the element-non-null check', () => {
     const contract = defineContract(
       {
         family: sqlFamilyPack,
@@ -199,40 +177,115 @@ describe('check-constraint always written for a domain enum, regardless of codec
       ({ field: f, model: m }) =>
         ({
           models: {
+            User: m('User', { fields: { id: f.text().id(), roles: f.namedType(Role).many() } }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(contract))).toEqual([
+      wire('User_roles_check', `"roles" <@ ARRAY['user', 'admin']::text[]`),
+      wire('User_roles_elem_not_null', `array_position("roles", NULL) IS NULL`),
+    ]);
+  });
+});
+
+describe('check emission — plain list column', () => {
+  it('emits only the element-non-null check', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: { User: m('User', { fields: { id: f.text().id(), tags: f.text().many() } }) },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(contract))).toEqual([
+      wire('User_tags_elem_not_null', `array_position("tags", NULL) IS NULL`),
+    ]);
+  });
+});
+
+describe('check emission — entity-ref-resolved value set (native enum shape)', () => {
+  it('emits no membership check for a scalar native-enum column', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
             User: m('User', {
-              fields: {
-                id: f.text().id(),
-                roles: f.namedType(Role).many(),
-              },
+              fields: { id: f.text().id(), role: f.column(nativeRoleDescriptor) },
             }),
           },
         }) as const,
     ) as Contract<SqlStorage>;
 
-    const storageNs = contract.storage.namespaces['public'];
-    const userTable = storageNs !== undefined ? storageNs.entries.table?.['User'] : undefined;
-
-    expect(userTable?.checks).toHaveLength(1);
-    expect(userTable?.checks?.[0]).toMatchObject({
-      name: 'User_roles_check',
-      column: 'roles',
-      valueSet: {
-        plane: 'storage',
-        entityKind: 'valueSet',
-        namespaceId: 'public',
-        entityName: 'Role',
-      },
-    });
+    expect(checksOf(contract)).toEqual([]);
   });
 
-  it('still writes a CHECK for a domain enum using a codec id other than pg/text@1', () => {
+  it('emits only element-non-null for a native-enum array column', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), roles: f.column(nativeRoleDescriptor).many() },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    expect(flatten(checksOf(contract))).toEqual([
+      wire('User_roles_elem_not_null', `array_position("roles", NULL) IS NULL`),
+    ]);
+  });
+
+  it('the hook sees no member values on the entity-ref path', () => {
+    hookCalls.length = 0;
+    defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), role: f.column(nativeRoleDescriptor) },
+            }),
+          },
+        }) as const,
+    );
+
+    expect(hookCalls).toContainEqual({
+      tableName: 'User',
+      columnName: 'role',
+      many: false,
+      memberValues: undefined,
+    });
+  });
+});
+
+describe('check emission — domain enum on a non-pg codec', () => {
+  it('still emits a membership check (a domain enum is always a plain scalar column)', () => {
     const NativeRole = enumType(
       'NativeRole',
       { codecId: 'test/native-enum@1', nativeType: 'native_role' },
       member('User', 'user'),
-      member('Admin', 'admin'),
     );
-
     const contract = defineContract(
       {
         family: sqlFamilyPack,
@@ -243,103 +296,78 @@ describe('check-constraint always written for a domain enum, regardless of codec
       ({ field: f, model: m }) =>
         ({
           models: {
-            User: m('User', {
-              fields: {
-                id: f.text().id(),
-                role: f.namedType(NativeRole),
-              },
-            }),
+            User: m('User', { fields: { id: f.text().id(), role: f.namedType(NativeRole) } }),
           },
         }) as const,
     ) as Contract<SqlStorage>;
 
-    const storageNs = contract.storage.namespaces['public'];
-    const userTable = storageNs !== undefined ? storageNs.entries.table?.['User'] : undefined;
-
-    expect(userTable?.checks).toHaveLength(1);
+    expect(flatten(checksOf(contract))).toEqual([wire('User_role_check', `"role" IN ('user')`)]);
   });
 });
 
-// ---------------------------------------------------------------------------
-// A value set resolved by an entity-ref type constructor (`field.descriptor.valueSet`
-// set, no `enumTypeHandle`) mirrors what PSL's `pg.enum(Ref)` produces after
-// resolution — the column's codec/native-type pairing IS the storage-level
-// enforcement, so no CHECK is written, scalar or array.
-// ---------------------------------------------------------------------------
-
-describe('check-constraint omitted for an entity-ref-resolved value set (native enum shape)', () => {
-  const nativeRoleDescriptor = {
-    codecId: 'test/native-role@1',
-    nativeType: 'native_role',
-    valueSet: {
-      plane: 'storage',
-      entityKind: 'valueSet',
-      namespaceId: 'public',
-      entityName: 'NativeRole',
-    },
-  } as const;
-
-  it('writes no CHECK for a scalar entity-ref-resolved column', () => {
+describe('check emission — a target with no hook writes no checks', () => {
+  it('leaves checks absent even for an enum-restricted column', () => {
     const contract = defineContract(
       {
         family: sqlFamilyPack,
-        target: postgresTargetPack,
+        target: bareTargetPack,
         createNamespace: createTestSqlNamespace,
+        enums: { Role },
       },
       ({ field: f, model: m }) =>
         ({
-          models: {
-            User: m('User', {
-              fields: {
-                id: f.text().id(),
-                role: f.column(nativeRoleDescriptor),
-              },
-            }),
-          },
+          models: { User: m('User', { fields: { id: f.text().id(), role: f.namedType(Role) } }) },
         }) as const,
     ) as Contract<SqlStorage>;
 
-    const storageNs = contract.storage.namespaces['public'];
-    const userTable = storageNs !== undefined ? storageNs.entries.table?.['User'] : undefined;
-
-    expect(userTable?.checks ?? []).toEqual([]);
-  });
-
-  it('writes no CHECK for an array entity-ref-resolved column (many)', () => {
-    const contract = defineContract(
-      {
-        family: sqlFamilyPack,
-        target: postgresTargetPack,
-        createNamespace: createTestSqlNamespace,
-      },
-      ({ field: f, model: m }) =>
-        ({
-          models: {
-            User: m('User', {
-              fields: {
-                id: f.text().id(),
-                roles: f.column(nativeRoleDescriptor).many(),
-              },
-            }),
-          },
-        }) as const,
-    ) as Contract<SqlStorage>;
-
-    const storageNs = contract.storage.namespaces['public'];
-    const userTable = storageNs !== undefined ? storageNs.entries.table?.['User'] : undefined;
-
-    expect(userTable?.checks ?? []).toEqual([]);
+    expect(checksOf(contract)).toEqual([]);
   });
 });
 
-// ---------------------------------------------------------------------------
-// Serialize → deserialize round-trip
-// ---------------------------------------------------------------------------
+describe('check emission — guards', () => {
+  it('rejects a wire-name prefix over the 54-character cap', () => {
+    const longName = 'r'.repeat(60);
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+          enums: { Role },
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), [longName]: f.namedType(Role) } }),
+            },
+          }) as const,
+      ),
+    ).toThrow(/exceeds the 54-character maximum/);
+  });
 
-describe('check-constraint serialize→hydrate round-trip', () => {
-  it('preserves checks through JSON round-trip', () => {
-    const Role = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
+  it('rejects a value set with a non-string member', () => {
+    const Level = enumType('Level', { codecId: 'pg/int4@1', nativeType: 'int4' }, member('One', 1));
+    expect(() =>
+      defineContract(
+        {
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+          enums: { Level },
+        },
+        ({ field: f, model: m }) =>
+          ({
+            models: {
+              User: m('User', { fields: { id: f.text().id(), level: f.namedType(Level) } }),
+            },
+          }) as const,
+      ),
+    ).toThrow(/numeric-enum CHECK constraints are not yet supported/);
+  });
+});
 
+describe('check emission — JSON round-trip', () => {
+  it('hydrates checks back through the stored flat shape', () => {
     const contract = defineContract(
       {
         family: sqlFamilyPack,
@@ -351,35 +379,33 @@ describe('check-constraint serialize→hydrate round-trip', () => {
         ({
           models: {
             User: m('User', {
-              fields: {
-                id: f.text().id(),
-                role: f.namedType(Role),
-              },
+              fields: { id: f.text().id(), role: f.namedType(Role), tags: f.text().many() },
             }),
           },
         }) as const,
     ) as Contract<SqlStorage>;
 
-    // Serialize to JSON and back
     const json = JSON.parse(JSON.stringify(contract)) as {
       storage: {
-        namespaces: Record<string, { entries: { table: Record<string, unknown> } }>;
+        namespaces: Record<
+          string,
+          {
+            entries: {
+              table: Record<
+                string,
+                { checks: ReadonlyArray<{ name: string; prefix?: string; expression: string }> }
+              >;
+            };
+          }
+        >;
       };
     };
+    const stored = json.storage.namespaces['public']?.entries.table['User']?.checks ?? [];
+    const hydrated = stored.map(
+      (flat) => new CheckConstraint(checkConstraintInputFromSerialized(flat)),
+    );
 
-    // Re-hydrate via StorageTable constructor (simulating deserialization)
-    const rawTable = json.storage.namespaces['public']?.entries.table['User'];
-    const hydratedTable = new StorageTable(rawTable as StorageTableInput);
-
-    expect(hydratedTable.checks).toHaveLength(1);
-    expect(hydratedTable.checks![0]).toBeInstanceOf(CheckConstraint);
-    expect(hydratedTable.checks![0]!.name).toBe('User_role_check');
-    expect(hydratedTable.checks![0]!.column).toBe('role');
-    expect(hydratedTable.checks![0]!.valueSet).toEqual({
-      plane: 'storage',
-      entityKind: 'valueSet',
-      namespaceId: 'public',
-      entityName: 'Role',
-    });
+    expect(flatten(hydrated)).toEqual(flatten(checksOf(contract)));
+    expect(hydrated).toHaveLength(2);
   });
 });
