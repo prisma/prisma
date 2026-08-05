@@ -71,6 +71,18 @@ Supported timestamp authoring surface:
 - The Prisma-flavored `@updatedAt` attribute is not supported; references produce `PSL_UNSUPPORTED_FIELD_ATTRIBUTE` with a migration hint pointing at `temporal.updatedAt()`. The hint is suppressed when the field already declares any `temporal.*` preset.
 - `@createdAt` is not supported as a PSL alias.
 
+Field-preset calls in type position:
+
+- A field may use a registered field-preset call as its type (`createdAt temporal.createdAt()`, `peak bigIntNumber()`). A preset is a complete field declaration — it carries its own codec, native type, and any default semantics.
+- Preset-call fields reject the modifiers the preset already decides: `?` optional (`PSL_PRESET_NOT_OPTIONAL`), `@default(...)` (`PSL_PRESET_AND_DEFAULT_CONFLICT`), `@id` unless the preset contributes id semantics (`PSL_PRESET_AND_ID_CONFLICT`), and list use (`PSL_PRESET_NOT_LIST`).
+
+Integer representation authoring surface:
+
+- `BigInt` keeps the lossless `bigint` codec (`pg/int8@1` / `sqlite/bigint@1`): values read and write as JS `bigint`, and 64-bit integers travel through database-produced JSON as decimal text.
+- `bigIntNumber()` (PostgreSQL and SQLite) opts an `int8`/INTEGER column into JS `number` reads and writes. Both directions throw structured errors outside ±(2^53 − 1) or on non-integral values: `RUNTIME.ENCODE_FAILED` on write, `RUNTIME.DECODE_FAILED` on read.
+- `unboundedInt()` (PostgreSQL only) stores an unconstrained `numeric` read and written as JS `bigint`, exact at any magnitude; decode rejects non-integral values. SQLite declares no equivalent — it has no lossless unbounded integer storage.
+- Canonical JSON forms and the safe-range soundness argument: [codec authoring guide § The integer representation presets](../../../../docs/reference/codec-authoring-guide.md#the-integer-representation-presets).
+
 `@@index` parameter surface:
 
 ```prisma
