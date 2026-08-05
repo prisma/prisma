@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   assertWireNamePrefixLength,
+  computeCheckContentHash,
   computeIndexContentHash,
   formatWireName,
   normalizeSqlBody,
@@ -108,6 +109,36 @@ describe('normalizeSqlBody', () => {
       const b = normalizeSqlBody('user_id = auth.uid()');
       expect(a).toBe(b);
     });
+  });
+});
+
+describe('computeCheckContentHash', () => {
+  it('returns 8 lowercase hex characters', () => {
+    expect(computeCheckContentHash(`"role" IN ('user', 'admin')`)).toMatch(/^[0-9a-f]{8}$/);
+  });
+
+  it('matches the expected SHA-256 first-8-hex for a known input', () => {
+    const expression = `"role"  IN ('user', 'admin')`;
+    const tuple = JSON.stringify([`"role" IN ('user', 'admin')`]);
+    const expected = createHash('sha256').update(tuple).digest('hex').slice(0, 8);
+    expect(computeCheckContentHash(expression)).toBe(expected);
+  });
+
+  it('is stable across calls', () => {
+    const expression = 'array_position("tags", NULL) IS NULL';
+    expect(computeCheckContentHash(expression)).toBe(computeCheckContentHash(expression));
+  });
+
+  it('whitespace variants hash identically', () => {
+    expect(computeCheckContentHash('  array_position("tags",   NULL)\n IS NULL ')).toBe(
+      computeCheckContentHash('array_position("tags", NULL) IS NULL'),
+    );
+  });
+
+  it('materially different expressions hash differently', () => {
+    expect(computeCheckContentHash(`"role" IN ('user')`)).not.toBe(
+      computeCheckContentHash(`"role" IN ('admin')`),
+    );
   });
 });
 

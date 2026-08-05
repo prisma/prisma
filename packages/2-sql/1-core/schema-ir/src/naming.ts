@@ -126,6 +126,25 @@ export function normalizeSqlBody(sql: string): string {
   return sql.replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Returns the first 8 lowercase hex characters of the SHA-256 digest over the
+ * canonical content tuple for a check constraint:
+ *
+ *   [normalizeSqlBody(expression)]
+ *
+ * The predicate is the whole of a check's content — the constraint name,
+ * schema, and table are orthogonal to its equivalence. The one-element tuple
+ * keeps the encoding in the same shape as the index and RLS tuples so a member
+ * can be added later without re-reading which encoding a kind uses.
+ *
+ * The tuple order and encoding are a stability commitment: any change
+ * re-suffixes every wire name.
+ */
+export function computeCheckContentHash(expression: string): string {
+  const tuple = JSON.stringify([normalizeSqlBody(expression)]);
+  return createHash('sha256').update(tuple).digest('hex').slice(0, 8);
+}
+
 export interface IndexContentHashParts {
   readonly expression?: string;
   readonly where?: string;
