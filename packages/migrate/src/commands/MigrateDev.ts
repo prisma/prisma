@@ -24,6 +24,7 @@ import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
+import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
@@ -32,8 +33,17 @@ import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { getMigrationName } from '../utils/promptForMigrationName'
+import { askToResetShadowDatabase, isShadowDatabaseNotEmptyError } from '../utils/shadow-database-consent'
 
 const debug = Debug('prisma:migrate:dev')
+
+type DevArgs = {
+  '--create-only'?: boolean
+  '--name'?: string
+  '--reset-shadow-database'?: boolean
+  '--schema'?: string
+  '--url'?: string
+}
 
 export class MigrateDev implements Command {
   public static new(): MigrateDev {
@@ -60,6 +70,9 @@ ${bold('Options')}
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
+  --reset-shadow-database
+                    Allow the configured shadow database to be reset even when it is not
+                    empty, destroying everything in it
 
 ${bold('Examples')}
 
@@ -82,6 +95,7 @@ ${bold('Examples')}
       // '--force': Boolean,
       // '-f': '--force',
       '--create-only': Boolean,
+      '--reset-shadow-database': Boolean,
       '--schema': String,
       '--config': String,
       '--url': String,
@@ -96,6 +110,35 @@ ${bold('Examples')}
       return this.help()
     }
 
+    if (args['--reset-shadow-database']) {
+      aiAgentConfirmationCheckpoint()
+    }
+
+    try {
+      return await this.runDevFlow(args, config, baseDir, args['--reset-shadow-database'] ?? false)
+    } catch (e) {
+      // The engine refused to reset a shadow database that holds data. Asking the user is only
+      // this command's business when they have not already answered on the command line.
+      if (args['--reset-shadow-database'] || !isShadowDatabaseNotEmptyError(e)) {
+        throw e
+      }
+
+      if (!(await askToResetShadowDatabase(config.datasource))) {
+        throw e
+      }
+
+      // A consented run starts over rather than resuming: it diagnoses the database again,
+      // which is what it would have done had the consent been given on the command line.
+      return await this.runDevFlow(args, config, baseDir, true)
+    }
+  }
+
+  private async runDevFlow(
+    args: DevArgs,
+    config: PrismaConfigInternal,
+    baseDir: string,
+    resetShadowDatabase: boolean,
+  ): Promise<string | Error> {
     const schemaContext = await loadSchemaContext({
       schemaPath: createSchemaPathInput({
         schemaPathFromArgs: args['--schema'],
@@ -150,6 +193,7 @@ ${bold('Examples')}
       schemaFilter,
       shadowDbInitScript: cmdSpecificConfig.migrations?.initShadowDb,
       extensions: cmdSpecificConfig['extensions'],
+      resetShadowDatabase,
     })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput

@@ -31,6 +31,7 @@ Flags
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it
 "
 `;
 
@@ -65,6 +66,7 @@ Flags
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it
 "
 `;
 
@@ -99,6 +101,7 @@ Flags
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it
 "
 `;
 
@@ -133,6 +136,7 @@ Flags
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it
 "
 `;
 
@@ -167,6 +171,7 @@ Flags
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it
 "
 `;
 
@@ -201,6 +206,7 @@ Flags
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it
 "
 `;
 
@@ -235,6 +241,7 @@ Flags
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it
 "
 `;
 
@@ -269,5 +276,6 @@ Flags
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+  --reset-shadow-database  Allow the configured shadow database to be reset even when it is not empty, destroying everything in it
 "
 `;

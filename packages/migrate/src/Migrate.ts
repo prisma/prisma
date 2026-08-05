@@ -10,6 +10,8 @@ import { listMigrations } from './utils/listMigrations'
 
 type MigrateSetupInput = {
   schemaEngineConfig: SchemaEngineConfigInternal
+  /** Consent to reset a shadow database that is not empty, given for this invocation. */
+  resetShadowDatabase?: boolean
   migrationsDirPath?: string
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
