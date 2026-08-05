@@ -25,7 +25,7 @@ import type {
 } from '@internal/framework-components/control';
 import { dispositionForCategory, issueOutcome } from '@internal/framework-components/control';
 import { isStorageTypeInstance, type SqlStorage } from '@internal/sql-contract/types';
-import { RelationalSchemaNodeKind, type SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { extractCodecControlHooks } from '../assembly';
@@ -91,9 +91,9 @@ export function classifyDiffEntityKind(
  * issue reason. The vocabulary maps one-to-one: an undeclared live entity or
  * namespace is `extraTopLevelObject`, an undeclared live field
  * `extraNestedElement`, undeclared auxiliaries (constraints, indexes,
- * defaults) and structural leaves (policies) `extraAuxiliary`; a value-set
- * drift on a check node is `valueDrift`; every other paired divergence is
- * `declaredIncompatible`; anything the database lacks is `declaredMissing`.
+ * defaults) and structural leaves (policies) `extraAuxiliary`; every paired
+ * divergence is `declaredIncompatible`; anything the database lacks is
+ * `declaredMissing`.
  * `granularityOf` is the target's classifier, so target and extension node
  * kinds classify without the family importing them.
  */
@@ -113,9 +113,6 @@ export function classifySqlDiffIssue(
       return 'extraNestedElement';
     }
     return 'extraAuxiliary';
-  }
-  if (issueNode(issue)?.nodeKind === RelationalSchemaNodeKind.check) {
-    return 'valueDrift';
   }
   return 'declaredIncompatible';
 }

@@ -34,7 +34,10 @@ const index = new SqlIndexIR({
   annotations: undefined,
   dependsOn: undefined,
 });
-const check = new SqlCheckConstraintIR({ name: 'chk', column: 'c', permittedValues: ['a'] });
+const check = new SqlCheckConstraintIR({
+  naming: { kind: 'exact', name: 'chk' },
+  expression: `"c" IN ('a')`,
+});
 
 function issueOf(change: ExpectationFailureReason, node: DiffableNode) {
   return {
@@ -76,9 +79,9 @@ describe('classifySqlDiffIssue keys on subject granularity', () => {
     ).toBe(category);
   });
 
-  it('not-equal on a check node is valueDrift; on any other node declaredIncompatible', () => {
+  it('not-equal on a check node is declaredIncompatible, like every other paired divergence', () => {
     expect(classifySqlDiffIssue(issueOf('not-equal', check), fixedGranularity('auxiliary'))).toBe(
-      'valueDrift',
+      'declaredIncompatible',
     );
     expect(classifySqlDiffIssue(issueOf('not-equal', column), fixedGranularity('field'))).toBe(
       'declaredIncompatible',
