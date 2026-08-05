@@ -21,6 +21,7 @@ import {
   PG_INT2_CODEC_ID,
   PG_INT4_CODEC_ID,
   PG_INT8_CODEC_ID,
+  PG_INT8_NUMBER_CODEC_ID,
   PG_INTERVAL_CODEC_ID,
   PG_NUMERIC_CODEC_ID,
   PG_TEXT_ARRAY_CODEC_ID,
@@ -29,6 +30,7 @@ import {
   PG_TIMESTAMP_CODEC_ID,
   PG_TIMESTAMPTZ_CODEC_ID,
   PG_TIMETZ_CODEC_ID,
+  PG_UNBOUNDED_INT_CODEC_ID,
   PG_VARCHAR_CODEC_ID,
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,
@@ -127,19 +129,26 @@ export const postgresAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor>
 
   ...SUM_WIDENS_TO_INT8.map((codecId) => produces('sum', overCodec(codecId), PG_INT8_CODEC_ID)),
   produces('sum', overCodec(PG_INT8_CODEC_ID), PG_NUMERIC_CODEC_ID),
+  // `int8number` stores `int8`, so its sum follows `int8` into `numeric` — the total is free to leave the safe range the codec itself guards.
+  produces('sum', overCodec(PG_INT8_NUMBER_CODEC_ID), PG_NUMERIC_CODEC_ID),
   produces('sum', overCodec(PG_FLOAT4_CODEC_ID), PG_FLOAT4_CODEC_ID),
   ...DOUBLE_PRECISION_CODECS.map((codecId) =>
     produces('sum', overCodec(codecId), PG_FLOAT8_CODEC_ID),
   ),
   produces('sum', overCodec(PG_NUMERIC_CODEC_ID), PG_NUMERIC_CODEC_ID),
+  // `sum` over the unbounded integer keeps its codec: the expression's SQL type is `numeric`, and a sum of integral values is integral, so the codec's integrality-checked `bigint` decode is the right reader for the total.
+  produces('sum', overCodec(PG_UNBOUNDED_INT_CODEC_ID), PG_UNBOUNDED_INT_CODEC_ID),
   produces('sum', overCodec(PG_INTERVAL_CODEC_ID), PG_INTERVAL_CODEC_ID),
   produces('sum', overCodec(PG_TIME_CODEC_ID), PG_INTERVAL_CODEC_ID),
 
   ...AVG_IS_NUMERIC.map((codecId) => produces('avg', overCodec(codecId), PG_NUMERIC_CODEC_ID)),
+  produces('avg', overCodec(PG_INT8_NUMBER_CODEC_ID), PG_NUMERIC_CODEC_ID),
   ...[PG_FLOAT4_CODEC_ID, ...DOUBLE_PRECISION_CODECS].map((codecId) =>
     produces('avg', overCodec(codecId), PG_FLOAT8_CODEC_ID),
   ),
   produces('avg', overCodec(PG_NUMERIC_CODEC_ID), PG_NUMERIC_CODEC_ID),
+  // An average of integers can be fractional, so `avg` over the unbounded integer leaves it for `numeric`.
+  produces('avg', overCodec(PG_UNBOUNDED_INT_CODEC_ID), PG_NUMERIC_CODEC_ID),
   produces('avg', overCodec(PG_INTERVAL_CODEC_ID), PG_INTERVAL_CODEC_ID),
   produces('avg', overCodec(PG_TIME_CODEC_ID), PG_INTERVAL_CODEC_ID),
 
