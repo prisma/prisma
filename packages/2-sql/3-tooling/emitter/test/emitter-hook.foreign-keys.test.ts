@@ -45,10 +45,10 @@ describe('generateContractDts — FK literal (FK1)', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
 
-    expect(types).toContain("readonly tableName: 'post'; readonly columns: readonly ['userId']");
-    expect(types).toContain("readonly tableName: 'user'; readonly columns: readonly ['id']");
+    expect(types).toContain('readonly tableName: "post"; readonly columns: readonly ["userId"]');
+    expect(types).toContain('readonly tableName: "user"; readonly columns: readonly ["id"]');
     expect(types).toContain(
-      "indexes: readonly [{ readonly name: 'post_userId_idx'; readonly columns: readonly ['userId']; readonly unique: false }]",
+      'indexes: readonly [{ readonly name: "post_userId_idx"; readonly columns: readonly ["userId"]; readonly unique: false }]',
     );
 
     // No leftover `constraint`/`index` fields anywhere near a foreign key.
@@ -94,7 +94,7 @@ describe('generateContractDts — FK literal (FK1)', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
 
-    expect(types).toContain("readonly name: 'post_userId_fkey'");
+    expect(types).toContain('readonly name: "post_userId_fkey"');
     const fkLiteralStart = types.indexOf('readonly foreignKeys:');
     const fkLiteralEnd = types.indexOf('}]', fkLiteralStart) + 2;
     const fkLiteral = types.slice(fkLiteralStart, fkLiteralEnd);

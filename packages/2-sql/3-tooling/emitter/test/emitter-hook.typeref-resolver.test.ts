@@ -88,12 +88,12 @@ describe('sqlEmission.resolveFieldTypeParams (integration via generateContractDt
     // FieldOutputTypes must use the rendered Vector<1536> type, not the raw codec accessor.
     const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({.+?});/s);
     expect(fieldOutputMatch).not.toBeNull();
-    expect(fieldOutputMatch![0]).not.toContain("CodecTypes['pg/vector@1']['output']");
+    expect(fieldOutputMatch![0]).not.toContain('CodecTypes["pg/vector@1"]["output"]');
     // StorageColumnTypes is now param-refined too (it carries the full column type).
     const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
     expect(storageColumnMatch).not.toBeNull();
     expect(storageColumnMatch![0]).toContain('Vector<1536>');
-    expect(storageColumnMatch![0]).not.toContain("CodecTypes['pg/vector@1']['output']");
+    expect(storageColumnMatch![0]).not.toContain('CodecTypes["pg/vector@1"]["output"]');
   });
 
   it('inline column typeParams continue to win over the resolver', () => {

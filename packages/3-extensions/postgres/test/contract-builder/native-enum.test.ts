@@ -324,11 +324,11 @@ describe('nativeEnum + pg.enum (TS native-enum authoring)', () => {
 
       const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
       expect(storageColumnMatch).not.toBeNull();
-      expect(storageColumnMatch![0]).toContain("readonly aal: 'aal1' | 'aal2' | 'aal3' | null");
+      expect(storageColumnMatch![0]).toContain('readonly aal: "aal1" | "aal2" | "aal3" | null');
 
       const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({.+?});/s);
       expect(fieldOutputMatch).not.toBeNull();
-      expect(fieldOutputMatch![0]).toContain("readonly aal: 'aal1' | 'aal2' | 'aal3' | null");
+      expect(fieldOutputMatch![0]).toContain('readonly aal: "aal1" | "aal2" | "aal3" | null');
     });
 
     it("nativeEnum's handle preserves name, mapped type name, and the literal member tuple", () => {

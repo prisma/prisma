@@ -136,9 +136,9 @@ describe('sql-target-family-hook', () => {
         },
       });
       const types = generateContractDts(ir, sqlEmission, [], testHashes);
-      expect(types).not.toContain("'__@internal/sql-contract/codecTypes@__'");
-      expect(types).not.toContain("'__@internal/sql-contract/operationTypes@__'");
-      expect(types).not.toContain("'__@internal/sql-contract/typeMaps@__'");
+      expect(types).not.toContain('"__@internal/sql-contract/codecTypes@__"');
+      expect(types).not.toContain('"__@internal/sql-contract/operationTypes@__"');
+      expect(types).not.toContain('"__@internal/sql-contract/typeMaps@__"');
     });
   });
 
@@ -179,7 +179,7 @@ describe('sql-target-family-hook', () => {
     expect(types).toContain('ContractWithTypeMaps,');
     expect(types).toContain('TypeMaps as TypeMapsType,');
     expect(types).toContain("from '@internal/sql-contract/types';");
-    expect(types).not.toContain("from './contract-types'");
+    expect(types).not.toContain('from "./contract-types"');
   });
 
   it('gets types imports', () => {
@@ -317,7 +317,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('uniques: readonly');
-    expect(types).toContain("readonly columns: readonly ['email']");
+    expect(types).toContain('readonly columns: readonly ["email"]');
   });
 
   it('generates contract types with uniques with names in storage', () => {
@@ -342,7 +342,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('uniques: readonly');
-    expect(types).toContain("readonly name: 'unique_email'");
+    expect(types).toContain('readonly name: "unique_email"');
   });
 
   it('generates contract types with composite uniques in storage', () => {
@@ -368,7 +368,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('uniques: readonly');
-    expect(types).toContain("readonly columns: readonly ['first_name', 'last_name']");
+    expect(types).toContain('readonly columns: readonly ["first_name", "last_name"]');
   });
 
   it('generates contract types with indexes in storage', () => {
@@ -400,7 +400,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain(
-      "indexes: readonly [{ readonly name: 'user_email_idx_46df9cad'; readonly prefix: 'user_email_idx'; readonly columns: readonly ['email']; readonly unique: false }]",
+      'indexes: readonly [{ readonly name: "user_email_idx_46df9cad"; readonly prefix: "user_email_idx"; readonly columns: readonly ["email"]; readonly unique: false }]',
     );
   });
 
@@ -433,7 +433,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain(
-      "indexes: readonly [{ readonly name: 'users_email_eq'; readonly expression: 'lower(email)'; readonly where: 'deleted_at IS NULL'; readonly unique: true }]",
+      'indexes: readonly [{ readonly name: "users_email_eq"; readonly expression: "lower(email)"; readonly where: "deleted_at IS NULL"; readonly unique: true }]',
     );
   });
 
@@ -459,7 +459,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain(
-      "indexes: readonly [{ readonly name: 'idx_email'; readonly columns: readonly ['email']; readonly unique: false }]",
+      'indexes: readonly [{ readonly name: "idx_email"; readonly columns: readonly ["email"]; readonly unique: false }]',
     );
   });
 
@@ -504,9 +504,9 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('foreignKeys: readonly');
-    expect(types).toContain("readonly columns: readonly ['userId']");
-    expect(types).toContain("readonly tableName: 'user'");
-    expect(types).toContain("readonly columns: readonly ['id']");
+    expect(types).toContain('readonly columns: readonly ["userId"]');
+    expect(types).toContain('readonly tableName: "user"');
+    expect(types).toContain('readonly columns: readonly ["id"]');
   });
 
   it('generates contract types with foreignKeys with names in storage', () => {
@@ -551,7 +551,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('foreignKeys: readonly');
-    expect(types).toContain("readonly name: 'fk_post_user'");
+    expect(types).toContain('readonly name: "fk_post_user"');
   });
 
   it('generates contract types with primaryKey with name in storage', () => {
@@ -574,7 +574,7 @@ describe('sql-target-family-hook', () => {
     });
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
-    expect(types).toContain("readonly name: 'pk_user'");
+    expect(types).toContain('readonly name: "pk_user"');
   });
 
   it('generates contract types with nullable columns', () => {
@@ -617,10 +617,10 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain(
-      "readonly name: { readonly nullable: true; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' } }",
+      'readonly name: { readonly nullable: true; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" } }',
     );
     expect(types).toContain(
-      "readonly email: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' } }",
+      'readonly email: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" } }',
     );
   });
 
@@ -661,7 +661,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain(
-      "readonly email: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' } }",
+      'readonly email: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" } }',
     );
   });
 
@@ -699,7 +699,7 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain(
-      "readonly id: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' } }",
+      'readonly id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/int4@1" } }',
     );
   });
 
@@ -764,10 +764,10 @@ describe('sql-target-family-hook', () => {
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain(
-      "readonly id: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' } }",
+      'readonly id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/int4@1" } }',
     );
     expect(types).not.toContain(
-      "readonly id: { readonly nullable: true; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' } }",
+      'readonly id: { readonly nullable: true; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/int4@1" } }',
     );
   });
 
@@ -813,7 +813,7 @@ describe('sql-target-family-hook', () => {
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
 
     expect(types).toContain(
-      "readonly vector: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/vector@1'; readonly typeParams: { readonly length: 1536 } } }",
+      'readonly vector: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/vector@1"; readonly typeParams: { readonly length: 1536 } } }',
     );
     expect(types).not.toContain('Vector<1536>');
   });
@@ -884,12 +884,12 @@ describe('sql-target-family-hook', () => {
     });
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
-    expect(types).toContain("readonly type: 'bm25'");
-    expect(types).toContain("readonly options: { readonly keyField: 'id'");
-    expect(types).toContain("readonly name: 'search_idx'");
-    expect(types).toContain("readonly column: 'description'");
-    expect(types).toContain("readonly tokenizer: 'simple'");
-    expect(types).toContain("readonly stemmer: 'english'");
+    expect(types).toContain('readonly type: "bm25"');
+    expect(types).toContain('readonly options: { readonly keyField: "id"');
+    expect(types).toContain('readonly name: "search_idx"');
+    expect(types).toContain('readonly column: "description"');
+    expect(types).toContain('readonly tokenizer: "simple"');
+    expect(types).toContain('readonly stemmer: "english"');
   });
 
   it('generates contract types with expression entries in extension config', () => {
@@ -928,8 +928,8 @@ describe('sql-target-family-hook', () => {
     });
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
-    expect(types).toContain("readonly expression: 'description || \\' \\' || category'");
-    expect(types).toContain("readonly alias: 'concat'");
+    expect(types).toContain(`readonly expression: "description || ' ' || category"`);
+    expect(types).toContain('readonly alias: "concat"');
   });
 
   it('quotes non-identifier keys in extension index config', () => {
@@ -963,8 +963,8 @@ describe('sql-target-family-hook', () => {
     });
 
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
-    expect(types).toContain("readonly 'min-token-size': 2");
-    expect(types).toContain("readonly 'max-ngram': 5");
+    expect(types).toContain('readonly "min-token-size": 2');
+    expect(types).toContain('readonly "max-ngram": 5');
   });
 
   it('includes execution section in ContractBase when IR has execution defaults', () => {
@@ -1015,10 +1015,10 @@ describe('sql-target-family-hook', () => {
       executionHash: 'test-exec-hash',
     });
     expect(types).toContain('readonly execution:');
-    expect(types).toContain("readonly table: 'tags'");
-    expect(types).toContain("readonly column: 'id'");
-    expect(types).toContain("readonly kind: 'generator'");
-    expect(types).toContain("readonly id: 'uuidv4'");
+    expect(types).toContain('readonly table: "tags"');
+    expect(types).toContain('readonly column: "id"');
+    expect(types).toContain('readonly kind: "generator"');
+    expect(types).toContain('readonly id: "uuidv4"');
   });
 
   it('omits execution field when IR has no execution', () => {
@@ -1070,8 +1070,8 @@ describe('sql-target-family-hook', () => {
       expect(types).toContain('export type AddressOutput =');
       expect(types).toContain('export type AddressInput =');
       expect(types).not.toMatch(/export type Address =/);
-      expect(types).toContain("readonly street: CodecTypes['pg/text@1']['output']");
-      expect(types).toContain("readonly city: CodecTypes['pg/text@1']['output']");
+      expect(types).toContain('readonly street: CodecTypes["pg/text@1"]["output"]');
+      expect(types).toContain('readonly city: CodecTypes["pg/text@1"]["output"]');
     });
 
     it('emits valueObjects descriptor on ContractBase', () => {
@@ -1136,7 +1136,7 @@ describe('sql-target-family-hook', () => {
       });
       const types = generateContractDts(ir, sqlEmission, [], testHashes);
       expect(types).toContain(
-        "readonly homeAddress: { readonly nullable: true; readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' } }",
+        'readonly homeAddress: { readonly nullable: true; readonly type: { readonly kind: "valueObject"; readonly name: "Address" } }',
       );
     });
 
@@ -1187,7 +1187,7 @@ describe('sql-target-family-hook', () => {
       });
       const types = generateContractDts(ir, sqlEmission, [], testHashes);
       expect(types).toContain(
-        "readonly addresses: { readonly nullable: false; readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' }; readonly many: true }",
+        'readonly addresses: { readonly nullable: false; readonly type: { readonly kind: "valueObject"; readonly name: "Address" }; readonly many: true }',
       );
     });
 
@@ -1233,7 +1233,7 @@ describe('sql-target-family-hook', () => {
         storage: { tables: {} },
       });
       const types = generateContractDts(ir, sqlEmission, [], testHashes);
-      expect(types).toContain("readonly zip: CodecTypes['pg/text@1']['output'] | null");
+      expect(types).toContain('readonly zip: CodecTypes["pg/text@1"]["output"] | null');
     });
   });
 });

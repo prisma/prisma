@@ -58,13 +58,14 @@ describe('serializeValue', () => {
     expect(serializeValue(undefined)).toBe('undefined');
   });
 
-  it('serializes strings with single quotes', () => {
-    expect(serializeValue('hello')).toBe("'hello'");
+  it('serializes strings as double-quoted literals', () => {
+    expect(serializeValue('hello')).toBe('"hello"');
   });
 
-  it('escapes backslashes and single quotes in strings', () => {
-    expect(serializeValue("it's")).toBe("'it\\'s'");
-    expect(serializeValue('back\\slash')).toBe("'back\\\\slash'");
+  it('escapes backslashes and double quotes in strings', () => {
+    expect(serializeValue('say "hi"')).toBe('"say \\"hi\\""');
+    expect(serializeValue("it's")).toBe('"it\'s"');
+    expect(serializeValue('back\\slash')).toBe('"back\\\\slash"');
   });
 
   it('serializes numbers', () => {
@@ -82,11 +83,11 @@ describe('serializeValue', () => {
   });
 
   it('serializes arrays as readonly tuples', () => {
-    expect(serializeValue(['a', 'b'])).toBe("readonly ['a', 'b']");
+    expect(serializeValue(['a', 'b'])).toBe('readonly ["a", "b"]');
   });
 
   it('serializes objects with readonly properties', () => {
-    expect(serializeValue({ key: 'val' })).toBe("{ readonly key: 'val' }");
+    expect(serializeValue({ key: 'val' })).toBe('{ readonly key: "val" }');
   });
 
   it('serializes nested objects', () => {
@@ -99,31 +100,35 @@ describe('serializeValue', () => {
   });
 
   describe('injection safety', () => {
-    // Lock the escape behavior so attacker-controlled (or merely weird) strings in a schema.prisma cannot break out of the emitted single-quoted literal and inject arbitrary TypeScript into contract.d.ts.
+    // Lock the escape behavior so attacker-controlled (or merely weird) strings in a schema.prisma cannot break out of the emitted double-quoted literal and inject arbitrary TypeScript into contract.d.ts.
 
     it('escapes a string attempting to terminate the literal', () => {
-      const injected = "x'; export let foo = 'bar";
+      const injected = 'x"; export let foo = "bar';
       const serialized = serializeValue(injected);
-      expect(serialized).toBe("'x\\'; export let foo = \\'bar'");
-      // The serialized form is a single valid string literal: exactly two outer single quotes, and every inner single quote is backslash-escaped.
-      expect(serialized.match(/(?<!\\)'/g)?.length).toBe(2);
+      expect(serialized).toBe('"x\\"; export let foo = \\"bar"');
+      // The serialized form is a single valid string literal: exactly two outer double quotes, and every inner double quote is backslash-escaped.
+      expect(serialized.match(/(?<!\\)"/g)?.length).toBe(2);
     });
 
     it('escapes backslash-terminated strings (no lookahead break-out)', () => {
-      expect(serializeValue('ends with \\')).toBe("'ends with \\\\'");
-      expect(serializeValue('double\\\\back')).toBe("'double\\\\\\\\back'");
+      expect(serializeValue('ends with \\')).toBe('"ends with \\\\"');
+      expect(serializeValue('double\\\\back')).toBe('"double\\\\\\\\back"');
     });
 
-    it('passes through control characters and line separators as raw bytes', () => {
-      // U+2028/U+2029 are JavaScript line terminators in legacy parsers. The current emitter does not escape them but they cannot break the single-quoted literal since they are not \' or \\. Pin the behavior.
-      expect(serializeValue('a\u2028b')).toBe("'a\u2028b'");
-      expect(serializeValue('a\u2029b')).toBe("'a\u2029b'");
-      expect(serializeValue('a\nb')).toBe("'a\nb'");
+    it('escapes control characters and line separators', () => {
+      // Raw line terminators inside a quoted literal are a syntax error,
+      // and U+2028/U+2029 terminate lines in legacy parsers.
+      expect(serializeValue('a\u2028b')).toBe('"a\\u2028b"');
+      expect(serializeValue('a\u2029b')).toBe('"a\\u2029b"');
+      expect(serializeValue('a\nb')).toBe('"a\\nb"');
+      expect(serializeValue('a\rb')).toBe('"a\\rb"');
+      expect(serializeValue('a\tb')).toBe('"a\\tb"');
+      expect(serializeValue('ab')).toBe('"a\\u0007b"');
     });
 
     it('quotes object keys that look like identifier bypass attempts', () => {
-      expect(serializeObjectKey("k'; injected: 'v")).toBe("'k\\'; injected: \\'v'");
-      expect(serializeObjectKey('')).toBe("''");
+      expect(serializeObjectKey('k"; injected: "v')).toBe('"k\\"; injected: \\"v"');
+      expect(serializeObjectKey('')).toBe('""');
     });
   });
 });
@@ -137,9 +142,11 @@ describe('serializeObjectKey', () => {
   });
 
   it('quotes keys with special characters', () => {
-    expect(serializeObjectKey('has space')).toBe("'has space'");
-    expect(serializeObjectKey('has-dash')).toBe("'has-dash'");
-    expect(serializeObjectKey('ns/name@1')).toBe("'ns/name@1'");
+    expect(serializeObjectKey('has space')).toBe('"has space"');
+    expect(serializeObjectKey('has-dash')).toBe('"has-dash"');
+    expect(serializeObjectKey('ns/name@1')).toBe('"ns/name@1"');
+    expect(serializeObjectKey('has\nnewline')).toBe('"has\\nnewline"');
+    expect(serializeObjectKey('1leading-digit')).toBe('"1leading-digit"');
   });
 });
 
@@ -153,7 +160,7 @@ describe('generateModelFieldsType', () => {
       name: { type: { kind: 'scalar', codecId: 'sql/text@1' }, nullable: false },
     });
     expect(result).toBe(
-      "{ readonly name: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'sql/text@1' } } }",
+      '{ readonly name: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "sql/text@1" } } }',
     );
   });
 
@@ -163,10 +170,10 @@ describe('generateModelFieldsType', () => {
       email: { type: { kind: 'scalar', codecId: 'sql/text@1' }, nullable: true },
     });
     expect(result).toContain(
-      "readonly id: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'sql/int4@1' } }",
+      'readonly id: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "sql/int4@1" } }',
     );
     expect(result).toContain(
-      "readonly email: { readonly nullable: true; readonly type: { readonly kind: 'scalar'; readonly codecId: 'sql/text@1' } }",
+      'readonly email: { readonly nullable: true; readonly type: { readonly kind: "scalar"; readonly codecId: "sql/text@1" } }',
     );
   });
 
@@ -174,7 +181,7 @@ describe('generateModelFieldsType', () => {
     const result = generateModelFieldsType({
       'field-name': { type: { kind: 'scalar', codecId: 'sql/text@1' }, nullable: false },
     });
-    expect(result).toContain("readonly 'field-name':");
+    expect(result).toContain('readonly "field-name":');
   });
 });
 
@@ -201,12 +208,17 @@ describe('generateModelsType', () => {
         relations: { posts: { to: crossRef('Post'), cardinality: '1:N' } },
       }),
     };
-    const result = generateModelsType(models, () => "{ readonly table: 'users' }");
+    const result = generateModelsType(models, () => '{ readonly table: "users" }');
     expect(result).toContain('readonly User:');
-    expect(result).toContain("readonly codecId: 'sql/text@1'");
-    expect(result).toContain("readonly namespace: '__unbound__'");
-    expect(result).toContain("readonly model: 'Post'");
-    expect(result).toContain("readonly table: 'users'");
+    expect(result).toContain('readonly codecId: "sql/text@1"');
+    expect(result).toContain('readonly namespace: "__unbound__"');
+    expect(result).toContain('readonly model: "Post"');
+    expect(result).toContain('readonly table: "users"');
+  });
+
+  it('quotes model names that are not bare identifiers', () => {
+    const models: Record<string, ContractModel> = { 'Data Row': makeModel() };
+    expect(generateModelsType(models, noopStorage)).toContain('readonly "Data Row": {');
   });
 
   it('sorts models by name', () => {
@@ -233,7 +245,7 @@ describe('generateModelsType', () => {
       Comment: makeModel({ owner: 'Post' }),
     };
     const result = generateModelsType(models, noopStorage);
-    expect(result).toContain("readonly owner: 'Post'");
+    expect(result).toContain('readonly owner: "Post"');
   });
 
   it('includes discriminator when present', () => {
@@ -241,7 +253,7 @@ describe('generateModelsType', () => {
       Animal: makeModel({ discriminator: { field: 'type' } }),
     };
     const result = generateModelsType(models, noopStorage);
-    expect(result).toContain("readonly discriminator: { readonly field: 'type' }");
+    expect(result).toContain('readonly discriminator: { readonly field: "type" }');
   });
 
   it('includes variants when present', () => {
@@ -259,8 +271,8 @@ describe('generateModelsType', () => {
       Dog: makeModel({ base: crossRef('Animal') }),
     };
     const result = generateModelsType(models, noopStorage);
-    expect(result).toContain("readonly namespace: '__unbound__'");
-    expect(result).toContain("readonly model: 'Animal'");
+    expect(result).toContain('readonly namespace: "__unbound__"');
+    expect(result).toContain('readonly model: "Animal"');
   });
 });
 
@@ -276,10 +288,10 @@ describe('generateRootsType', () => {
   it('generates literal object type for roots', () => {
     const result = generateRootsType({ users: crossRef('User'), posts: crossRef('Post') });
     expect(result).toContain(
-      "readonly users: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'User' }",
+      'readonly users: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "User" }',
     );
     expect(result).toContain(
-      "readonly posts: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Post' }",
+      'readonly posts: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Post" }',
     );
   });
 });
@@ -293,9 +305,9 @@ describe('generateModelRelationsType', () => {
     const result = generateModelRelationsType({
       posts: { to: crossRef('Post'), cardinality: '1:N' },
     });
-    expect(result).toContain("readonly namespace: '__unbound__'");
-    expect(result).toContain("readonly model: 'Post'");
-    expect(result).toContain("readonly cardinality: '1:N'");
+    expect(result).toContain('readonly namespace: "__unbound__"');
+    expect(result).toContain('readonly model: "Post"');
+    expect(result).toContain('readonly cardinality: "1:N"');
   });
 
   it('generates relation with on (localFields/targetFields)', () => {
@@ -306,10 +318,10 @@ describe('generateModelRelationsType', () => {
         on: { localFields: ['authorId'], targetFields: ['_id'] },
       },
     });
-    expect(result).toContain("readonly model: 'User'");
-    expect(result).toContain("readonly cardinality: 'N:1'");
-    expect(result).toContain("readonly localFields: readonly ['authorId']");
-    expect(result).toContain("readonly targetFields: readonly ['_id']");
+    expect(result).toContain('readonly model: "User"');
+    expect(result).toContain('readonly cardinality: "N:1"');
+    expect(result).toContain('readonly localFields: readonly ["authorId"]');
+    expect(result).toContain('readonly targetFields: readonly ["_id"]');
   });
 
   it('skips non-object relations', () => {
@@ -332,7 +344,7 @@ describe('generateModelRelationsType', () => {
     const result = generateModelRelationsType({
       rel: { cardinality: '1:N' },
     });
-    expect(result).toContain("readonly cardinality: '1:N'");
+    expect(result).toContain('readonly cardinality: "1:N"');
     expect(result).not.toContain('readonly to:');
   });
 
@@ -340,7 +352,7 @@ describe('generateModelRelationsType', () => {
     const result = generateModelRelationsType({
       rel: { to: crossRef('Post') },
     });
-    expect(result).toContain("readonly model: 'Post'");
+    expect(result).toContain('readonly model: "Post"');
     expect(result).not.toContain('readonly cardinality:');
   });
 
@@ -418,14 +430,14 @@ describe('generateModelRelationsType', () => {
         },
       },
     });
-    expect(result).toContain("readonly model: 'Tag'");
-    expect(result).toContain("readonly cardinality: 'N:M'");
+    expect(result).toContain('readonly model: "Tag"');
+    expect(result).toContain('readonly cardinality: "N:M"');
     expect(result).toContain('readonly through:');
-    expect(result).toContain("readonly table: 'post_tags'");
-    expect(result).toContain("readonly namespaceId: 'public'");
-    expect(result).toContain("readonly parentColumns: readonly ['postId']");
-    expect(result).toContain("readonly childColumns: readonly ['tagId']");
-    expect(result).toContain("readonly targetColumns: readonly ['id']");
+    expect(result).toContain('readonly table: "post_tags"');
+    expect(result).toContain('readonly namespaceId: "public"');
+    expect(result).toContain('readonly parentColumns: readonly ["postId"]');
+    expect(result).toContain('readonly childColumns: readonly ["tagId"]');
+    expect(result).toContain('readonly targetColumns: readonly ["id"]');
   });
 
   it('emits through with multi-column keys', () => {
@@ -442,7 +454,7 @@ describe('generateModelRelationsType', () => {
         },
       },
     });
-    expect(result).toContain("readonly parentColumns: readonly ['userId', 'tenantId']");
+    expect(result).toContain('readonly parentColumns: readonly ["userId", "tenantId"]');
   });
 
   it('omits through when not present (non-N:M relations unchanged)', () => {
@@ -454,7 +466,7 @@ describe('generateModelRelationsType', () => {
       },
     });
     expect(result).not.toContain('readonly through:');
-    expect(result).toContain("readonly localFields: readonly ['authorId']");
+    expect(result).toContain('readonly localFields: readonly ["authorId"]');
   });
 });
 
@@ -573,8 +585,8 @@ describe('generateHashTypeAliases', () => {
       storageHash: 'abc123',
       profileHash: 'def456',
     });
-    expect(result).toContain("StorageHashBase<'abc123'>");
-    expect(result).toContain("ProfileHashBase<'def456'>");
+    expect(result).toContain('StorageHashBase<"abc123">');
+    expect(result).toContain('ProfileHashBase<"def456">');
   });
 
   it('generates concrete execution hash when provided', () => {
@@ -583,7 +595,7 @@ describe('generateHashTypeAliases', () => {
       executionHash: 'exec',
       profileHash: 'prof',
     });
-    expect(result).toContain("ExecutionHashBase<'exec'>");
+    expect(result).toContain('ExecutionHashBase<"exec">');
   });
 
   it('generates generic execution hash when not provided', () => {
@@ -611,7 +623,7 @@ describe('serializeExecutionType', () => {
       mutations: { defaults: [{ kind: 'autoIncrement' }] },
     });
     expect(result).toContain('readonly mutations:');
-    expect(result).toContain("readonly kind: 'autoIncrement'");
+    expect(result).toContain('readonly kind: "autoIncrement"');
   });
 });
 
@@ -621,7 +633,7 @@ describe('generateFieldResolvedType', () => {
       nullable: false,
       type: { kind: 'scalar', codecId: 'mongo/string@1' },
     };
-    expect(generateFieldResolvedType(field)).toBe("CodecTypes['mongo/string@1']['output']");
+    expect(generateFieldResolvedType(field)).toBe('CodecTypes["mongo/string@1"]["output"]');
   });
 
   it('generates suffixed type reference for value object fields', () => {
@@ -648,7 +660,7 @@ describe('generateFieldResolvedType', () => {
       dict: true,
     };
     expect(generateFieldResolvedType(field)).toBe(
-      "Readonly<Record<string, CodecTypes['mongo/string@1']['output']>>",
+      'Readonly<Record<string, CodecTypes["mongo/string@1"]["output"]>>',
     );
   });
 
@@ -681,7 +693,7 @@ describe('generateFieldResolvedType', () => {
       },
     };
     expect(generateFieldResolvedType(field)).toBe(
-      "CodecTypes['mongo/string@1']['output'] | AddressOutput",
+      'CodecTypes["mongo/string@1"]["output"] | AddressOutput',
     );
   });
 
@@ -691,7 +703,7 @@ describe('generateFieldResolvedType', () => {
       type: { kind: 'scalar', codecId: 'mongo/string@1' },
     };
     expect(generateFieldResolvedType(field, undefined, 'input')).toBe(
-      "CodecTypes['mongo/string@1']['input']",
+      'CodecTypes["mongo/string@1"]["input"]',
     );
   });
 
@@ -715,7 +727,7 @@ describe('generateFieldResolvedType', () => {
       },
     };
     expect(generateFieldResolvedType(field, undefined, 'input')).toBe(
-      "CodecTypes['mongo/string@1']['input'] | AddressInput",
+      'CodecTypes["mongo/string@1"]["input"] | AddressInput',
     );
   });
 });
@@ -732,9 +744,9 @@ describe('generateValueObjectType', () => {
 
   it('generates object type with all fields', () => {
     const result = generateValueObjectType('Address', addressVo, valueObjects);
-    expect(result).toContain("readonly street: CodecTypes['mongo/string@1']['output']");
-    expect(result).toContain("readonly city: CodecTypes['mongo/string@1']['output']");
-    expect(result).toContain("readonly zip: CodecTypes['mongo/string@1']['output']");
+    expect(result).toContain('readonly street: CodecTypes["mongo/string@1"]["output"]');
+    expect(result).toContain('readonly city: CodecTypes["mongo/string@1"]["output"]');
+    expect(result).toContain('readonly zip: CodecTypes["mongo/string@1"]["output"]');
   });
 
   it('handles value object field referencing another value object (output)', () => {
@@ -791,7 +803,7 @@ describe('generateContractFieldDescriptor', () => {
     };
     const result = generateContractFieldDescriptor('name', field);
     expect(result).toBe(
-      "readonly name: { readonly nullable: false; readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' } }",
+      'readonly name: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" } }',
     );
   });
 
@@ -802,7 +814,7 @@ describe('generateContractFieldDescriptor', () => {
     };
     const result = generateContractFieldDescriptor('homeAddress', field);
     expect(result).toBe(
-      "readonly homeAddress: { readonly nullable: true; readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' } }",
+      'readonly homeAddress: { readonly nullable: true; readonly type: { readonly kind: "valueObject"; readonly name: "Address" } }',
     );
   });
 
@@ -855,8 +867,8 @@ describe('generateValueObjectsDescriptorType', () => {
     };
     const result = generateValueObjectsDescriptorType(valueObjects);
     expect(result).toContain('readonly Address: { readonly fields:');
-    expect(result).toContain("readonly kind: 'scalar'");
-    expect(result).toContain("readonly codecId: 'mongo/string@1'");
+    expect(result).toContain('readonly kind: "scalar"');
+    expect(result).toContain('readonly codecId: "mongo/string@1"');
   });
 });
 
@@ -880,8 +892,8 @@ describe('generateValueObjectTypeAliases', () => {
     const result = generateValueObjectTypeAliases(valueObjects);
     expect(result).toContain('export type AddressOutput =');
     expect(result).toContain('export type AddressInput =');
-    expect(result).toContain("readonly street: CodecTypes['mongo/string@1']['output']");
-    expect(result).toContain("readonly street: CodecTypes['mongo/string@1']['input']");
+    expect(result).toContain('readonly street: CodecTypes["mongo/string@1"]["output"]');
+    expect(result).toContain('readonly street: CodecTypes["mongo/string@1"]["input"]');
     expect(result).not.toMatch(/export type Address =/);
   });
 
@@ -950,7 +962,7 @@ describe('generateFieldResolvedType', () => {
       nullable: false,
       type: { kind: 'scalar', codecId: 'pg/int4@1' },
     };
-    expect(generateFieldResolvedType(field)).toBe("CodecTypes['pg/int4@1']['output']");
+    expect(generateFieldResolvedType(field)).toBe('CodecTypes["pg/int4@1"]["output"]');
   });
 
   it('falls back to CodecTypes when renderOutputType returns unsafe expression', () => {
@@ -964,7 +976,7 @@ describe('generateFieldResolvedType', () => {
       nullable: false,
       type: { kind: 'scalar', codecId: 'test@1', typeParams: { x: 1 } },
     };
-    expect(generateFieldResolvedType(field, lookup)).toBe("CodecTypes['test@1']['output']");
+    expect(generateFieldResolvedType(field, lookup)).toBe('CodecTypes["test@1"]["output"]');
   });
 
   it('falls back to CodecTypes when codec has no renderOutputType', () => {
@@ -975,7 +987,7 @@ describe('generateFieldResolvedType', () => {
       nullable: false,
       type: { kind: 'scalar', codecId: 'pg/int4@1', typeParams: { x: 1 } },
     };
-    expect(generateFieldResolvedType(field, lookup)).toBe("CodecTypes['pg/int4@1']['output']");
+    expect(generateFieldResolvedType(field, lookup)).toBe('CodecTypes["pg/int4@1"]["output"]');
   });
 
   it('falls back to CodecTypes when typeParams is empty', () => {
@@ -989,7 +1001,7 @@ describe('generateFieldResolvedType', () => {
       nullable: false,
       type: { kind: 'scalar', codecId: 'pg/char@1', typeParams: {} },
     };
-    expect(generateFieldResolvedType(field, lookup)).toBe("CodecTypes['pg/char@1']['output']");
+    expect(generateFieldResolvedType(field, lookup)).toBe('CodecTypes["pg/char@1"]["output"]');
   });
 });
 
@@ -1019,7 +1031,7 @@ describe('generateFieldOutputTypesMap', () => {
     };
     const result = generateFieldOutputTypesMap(models, lookup);
     expect(result).toContain('Char<36>');
-    expect(result).toContain("CodecTypes['pg/text@1']['output']");
+    expect(result).toContain('CodecTypes["pg/text@1"]["output"]');
   });
 
   it('returns Record<string, never> for empty models', () => {
@@ -1060,7 +1072,7 @@ describe('generateFieldInputTypesMap', () => {
       },
     };
     const result = generateFieldInputTypesMap(models);
-    expect(result).toContain("CodecTypes['mongo/string@1']['input']");
+    expect(result).toContain('CodecTypes["mongo/string@1"]["input"]');
   });
 
   it('references {Name}Input for value object fields', () => {
@@ -1098,8 +1110,8 @@ describe('generateBothFieldTypesMaps', () => {
       },
     };
     const result = generateBothFieldTypesMaps(models);
-    expect(result.output).toContain("CodecTypes['mongo/objectId@1']['output']");
-    expect(result.input).toContain("CodecTypes['mongo/objectId@1']['input']");
+    expect(result.output).toContain('CodecTypes["mongo/objectId@1"]["output"]');
+    expect(result.input).toContain('CodecTypes["mongo/objectId@1"]["input"]');
   });
 
   it('returns Record<string, never> for empty models on both sides', () => {
@@ -1116,8 +1128,8 @@ describe('resolveFieldType', () => {
       type: { kind: 'scalar', codecId: 'mongo/string@1' },
     };
     const result = resolveFieldType(field);
-    expect(result.output).toBe("CodecTypes['mongo/string@1']['output']");
-    expect(result.input).toBe("CodecTypes['mongo/string@1']['input']");
+    expect(result.output).toBe('CodecTypes["mongo/string@1"]["output"]');
+    expect(result.input).toBe('CodecTypes["mongo/string@1"]["input"]');
   });
 
   it('returns suffixed types for value object fields', () => {
@@ -1143,7 +1155,7 @@ describe('resolveFieldType', () => {
     };
     const result = resolveFieldType(field, lookup);
     expect(result.output).toBe('Char<36>');
-    expect(result.input).toBe("CodecTypes['pg/char@1']['input']");
+    expect(result.input).toBe('CodecTypes["pg/char@1"]["input"]');
   });
 
   it('uses renderInputType for the input side when the codec renders one (enum literal union)', () => {
@@ -1167,15 +1179,15 @@ describe('resolveFieldType', () => {
     const lookup: CodecLookup = {
       get: () => undefined,
       targetTypesFor: () => undefined,
-      renderOutputTypeFor: () => "'a' | 'b'",
+      renderOutputTypeFor: () => '"a" | "b"',
     };
     const field: ContractField = {
       nullable: false,
       type: { kind: 'scalar', codecId: 'pg/enum@1', typeParams: { values: ['a', 'b'] } },
     };
     const result = resolveFieldType(field, lookup);
-    expect(result.output).toBe("'a' | 'b'");
-    expect(result.input).toBe("CodecTypes['pg/enum@1']['input']");
+    expect(result.output).toBe('"a" | "b"');
+    expect(result.input).toBe('CodecTypes["pg/enum@1"]["input"]');
   });
 });
 
@@ -1213,9 +1225,9 @@ describe('generateBothFieldTypesMaps with resolveFieldValueSet', () => {
       undefined,
       resolveFieldValueSet,
     );
-    expect(result.output).toContain("readonly priority: 'low' | 'high' | 'urgent'");
-    expect(result.input).toContain("readonly priority: 'low' | 'high' | 'urgent'");
-    expect(result.output).toContain("readonly title: CodecTypes['pg/text@1']['output']");
+    expect(result.output).toContain('readonly priority: "low" | "high" | "urgent"');
+    expect(result.input).toContain('readonly priority: "low" | "high" | "urgent"');
+    expect(result.output).toContain('readonly title: CodecTypes["pg/text@1"]["output"]');
   });
 
   it('falls through to the codec channel for non-enum scalar fields', () => {
@@ -1237,7 +1249,7 @@ describe('generateBothFieldTypesMaps with resolveFieldValueSet', () => {
       undefined,
       () => undefined,
     );
-    expect(result.output).toContain("readonly title: CodecTypes['pg/text@1']['output']");
+    expect(result.output).toContain('readonly title: CodecTypes["pg/text@1"]["output"]');
   });
 });
 
@@ -1271,7 +1283,7 @@ describe('generateBothFieldTypesMaps with resolveFieldTypeParams', () => {
       modelName === 'Post' && fieldName === 'embedding' ? { length: 1536 } : undefined;
     const result = generateBothFieldTypesMaps(models, lookup, resolveFieldTypeParams);
     expect(result.output).toContain('readonly embedding: Vector<1536> | null');
-    expect(result.output).not.toContain("CodecTypes['pg/vector@1']['output']");
+    expect(result.output).not.toContain('CodecTypes["pg/vector@1"]["output"]');
   });
 
   it('prefers inline typeParams over the resolver (regression guard)', () => {
@@ -1349,8 +1361,8 @@ describe('resolveFieldType value-set narrowing edge cases', () => {
       encodedValues: ['low'],
       codecId: 'pg/text@1',
     });
-    expect(result.output).toBe("'low' | null");
-    expect(result.input).toBe("'low' | null");
+    expect(result.output).toBe('"low" | null');
+    expect(result.input).toBe('"low" | null');
   });
 
   it('falls through to the codec channel when no resolved value-set is supplied', () => {
@@ -1360,7 +1372,7 @@ describe('resolveFieldType value-set narrowing edge cases', () => {
       valueSet: priorityRef,
     };
     const result = resolveFieldType(field, literalCodecLookup(), undefined, undefined);
-    expect(result.output).toBe("CodecTypes['pg/text@1']['output']");
+    expect(result.output).toBe('CodecTypes["pg/text@1"]["output"]');
   });
 
   it('falls through to the codec channel when the value set is empty', () => {
@@ -1373,7 +1385,7 @@ describe('resolveFieldType value-set narrowing edge cases', () => {
       encodedValues: [],
       codecId: 'pg/text@1',
     });
-    expect(result.output).toBe("CodecTypes['pg/text@1']['output']");
+    expect(result.output).toBe('CodecTypes["pg/text@1"]["output"]');
   });
 
   it('falls through to the codec channel when a value is non-literal-expressible', () => {
@@ -1386,7 +1398,7 @@ describe('resolveFieldType value-set narrowing edge cases', () => {
       encodedValues: [{ nested: 1 }],
       codecId: 'pg/jsonb@1',
     });
-    expect(result.output).toBe("CodecTypes['pg/jsonb@1']['output']");
+    expect(result.output).toBe('CodecTypes["pg/jsonb@1"]["output"]');
   });
 
   it('does not narrow non-scalar (union) fields even with a resolved value-set present', () => {
@@ -1405,16 +1417,16 @@ describe('resolveFieldType value-set narrowing edge cases', () => {
       encodedValues: ['low', 'high'],
       codecId: 'pg/text@1',
     });
-    expect(result.output).toBe("CodecTypes['pg/text@1']['output'] | AddressOutput");
-    expect(result.input).toBe("CodecTypes['pg/text@1']['input'] | AddressInput");
-    expect(result.output).not.toContain("'low'");
+    expect(result.output).toBe('CodecTypes["pg/text@1"]["output"] | AddressOutput');
+    expect(result.input).toBe('CodecTypes["pg/text@1"]["input"] | AddressInput');
+    expect(result.output).not.toContain('"low"');
   });
 });
 
 describe('renderValueSetType', () => {
   it('renders a literal union via the codec renderValueLiteral', () => {
     expect(renderValueSetType(['low', 'high'], 'pg/text@1', 'output', literalCodecLookup())).toBe(
-      "'low' | 'high'",
+      '"low" | "high"',
     );
   });
 
@@ -1478,7 +1490,7 @@ describe('generateFieldTypesMapsByNamespace edge cases', () => {
 describe('serializeCrossReference with space', () => {
   it('includes the space discriminator when the ref carries one', () => {
     const result = generateRootsType({ user: crossRef('User', 'public', 'authSpace') });
-    expect(result).toContain("readonly space: 'authSpace'");
+    expect(result).toContain('readonly space: "authSpace"');
   });
 });
 
