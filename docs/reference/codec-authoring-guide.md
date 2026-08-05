@@ -36,6 +36,27 @@ The guarantee rests on the codec, not on the database's own JSON conversion, whi
 
 Non-finite floats are rejected rather than silently mangled: JSON has no spelling for `NaN` or an infinity, and a database that holds one emits it as a *string*, so `sql/float@1` and `sqlite/real@1` refuse them in both directions rather than hand back a string typed as `number`. `pg/numeric@1` accepts all three, because its application value is already text.
 
+## The integer representation presets
+
+64-bit integers travel through database-produced JSON as decimal text — with one deliberate exception, described here. Two opt-in field presets give a column a different integer representation, each backed by a preset-only codec beside its siblings in the target's `codecs.ts`:
+
+| Preset | Targets | Codec | Storage | Application value | Canonical JSON |
+| --- | --- | --- | --- | --- | --- |
+| `bigIntNumber()` | PostgreSQL, SQLite | `pg/int8number@1` / `sqlite/bigintnumber@1` | `int8` / INTEGER | `number` | JSON number |
+| `unboundedInt()` | PostgreSQL | `pg/unboundedint@1` | unconstrained `numeric` | `bigint` | decimal text |
+
+Bare `BigInt` keeps the lossless `bigint` codec (`pg/int8@1` / `sqlite/bigint@1`); the presets are how a column opts out. SQLite declares no `unboundedInt` — it has no lossless unbounded integer storage, and preset availability is the target's declaration.
+
+**`bigIntNumber()` guards instead of rounding.** The codec accepts integers within ±(2^53 − 1), the range a JS `number` holds exactly, and throws a structured error on anything else in both directions: `RUNTIME.ENCODE_FAILED` on write, `RUNTIME.DECODE_FAILED` on read (wire and JSON), each carrying `meta.codecId`. Non-integral values are refused the same way. A `bigint` or decimal-text wire value is range-checked exactly before any conversion to `number`, so an out-of-range value throws rather than rounds. See the [error reference](./error-reference.md#runtimedecode_failed) for how the envelopes surface, including the SQLite flat-read caveat.
+
+**The JSON-number canonical form is sound.** `pg/int8number@1` and `sqlite/bigintnumber@1` project their column as a plain JSON number — the one deliberate exception to "64-bit integers travel as decimal text", and the codecs' purpose. The exception is safe here and nowhere else: ECMAScript mandates IEEE 754 binary64, `Number.MAX_SAFE_INTEGER` is exactly 2^53 − 1, and double rounding is monotone with 2^53 exactly representable — so no true value outside ±(2^53 − 1) can parse into the safe range. `decodeJson` checks the range after `JSON.parse`, and that post-parse guard cannot false-pass.
+
+**`unboundedInt()` stays on decimal text.** Its projection is `decimalTextJsonProjection`, like `numeric` and `int8`; encode writes the `bigint`'s decimal digits, and decode rejects non-integral values — including `NaN` and the infinities, which are `numeric` values but not integers. The round-trip is exact at any magnitude, proven past 2^63 by the conformance suite.
+
+**Preset-only: the descriptors claim no target type.** All three descriptors declare `targetTypes: []`, so `int8`, `numeric`, and SQLite's `integer` in type position keep their current codecs and introspection stays unambiguous. The codecs are reachable only through the field presets — `bigIntNumber` on both targets' authoring field namespaces, `unboundedInt` on PostgreSQL's. This is the pattern for a codec that offers an alternative representation of a storage type another codec already owns: claim no type name, contribute a preset.
+
+Aggregates over these columns resolve through the targets' descriptor matrices ([aggregate descriptor guide](./aggregate-descriptor-guide.md)). PostgreSQL `sum` and `avg` over `int8number` widen to `numeric` and read as decimal strings — the total is free to leave the safe range the codec guards. `sum` over `unboundedint` keeps its own codec, because a sum of integers is integral, and reads as an exact `bigint`; `avg` goes to `numeric`. SQLite `sum` over `bigintnumber` is declared `sqlite/bigint@1` and reads as `bigint` through the existing cast-to-text lowering; `avg` reads as `number`. `min`/`max` return the column's own type on both targets through the numeric-trait fallback.
+
 ## Three case studies
 
 The same three artifacts express the full spectrum: non-parameterized, parameterized with literal preservation, and parameterized with a typed schema.
