@@ -1,3 +1,5 @@
+import type { RuntimeErrorEnvelope } from '@internal/framework-components/runtime';
+import { runtimeError } from '@internal/framework-components/runtime';
 import type {
   PreparedExecuteRequest,
   SqlConnection,
@@ -212,7 +214,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       try {
         yield* attempt(retryHandle);
       } catch (retryError) {
-        throw normalizePgError(retryError);
+        throw prepareFailedError(retryError, retryHandle);
       }
     }
   }
@@ -736,4 +738,18 @@ function closeCursor(cursor: Cursor<unknown>): Promise<void> {
 
 function rethrowNormalizedError(error: unknown): never {
   throw normalizePgError(error);
+}
+
+// ADR 210 § Stale-handle retry: a re-prepare that fails again surfaces the
+// stable code reserved for this surface, carrying the driver error as `cause`.
+function prepareFailedError(retryError: unknown, handle: string): RuntimeErrorEnvelope {
+  const cause = normalizePgError(retryError);
+  return Object.assign(
+    runtimeError(
+      'ADAPTER.PREPARE_FAILED',
+      `Prepared statement failed again after re-preparing with a fresh handle: ${cause.message}`,
+      { handle },
+    ),
+    { cause },
+  );
 }

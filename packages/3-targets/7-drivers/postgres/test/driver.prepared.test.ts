@@ -116,4 +116,39 @@ describe('postgres prepared statements', () => {
       expect(invocations).toBe(1);
     });
   });
+
+  describe('stale-handle retry', () => {
+    it('surfaces ADAPTER.PREPARE_FAILED with the originating error as cause when the retry fails', async () => {
+      const retryError = makePgError('26000', 'statement gone after re-prepare');
+      const { client, calls } = makeMockClient({
+        handler: (_call, callIndex) =>
+          callIndex === 0 ? makePgError('26000', 'statement gone') : retryError,
+      });
+      const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+      cleanups.push(() => driver.close());
+
+      const { slot, snapshot } = makeSlot();
+      const rejection = await consume(
+        driver.executePrepared({ sql: 'select 1', params: [], handle: slot }),
+      ).then(
+        () => undefined,
+        (error: unknown) => error,
+      );
+
+      expect(calls).toHaveLength(2);
+      const envelope = rejection as Error & {
+        code?: unknown;
+        severity?: unknown;
+        details?: Record<string, unknown>;
+      };
+      expect(envelope.code).toBe('ADAPTER.PREPARE_FAILED');
+      expect(envelope.severity).toBe('error');
+      expect(envelope.details).toEqual({ handle: snapshot() });
+
+      const cause = envelope.cause as SqlQueryError;
+      expect(cause).toBeInstanceOf(SqlQueryError);
+      expect(cause.sqlState).toBe('26000');
+      expect(cause.cause).toBe(retryError);
+    });
+  });
 });
