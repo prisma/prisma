@@ -43,6 +43,10 @@ Deletes the planner's contract parameter by relocating its five reads: control โ
 
 **Builds on:** slice 1 (issue graph anchoring). **Hands to:** the final `plan(start, end, options)` signature; project close-out.
 
+## Direct-walk inventory shrunk elsewhere
+
+- `checkConstraintPlanCallStrategy` was deleted by [sql-check-constraint-unification / checks-are-declared-opaque-expressions](../sql-check-constraint-unification/slices/checks-are-declared-opaque-expressions/spec.md). Check planning is now driven purely by diff issues, so one direct contract walk (and with it the strategy's single-namespace probing) is already gone before slice 3 removes the planner's contract parameter.
+
 ## Close-out obligations (tracked here so no slice forgets them)
 
 - The two project ADRs (spec ยง ADR pointer) are authored at close-out; the migration-system subsystem doc gains the dependency-graph + declared-prerequisite sections.
