@@ -89,8 +89,15 @@ changes:
       enum CHECK is re-serialized into the new shape with a wire name, and every list (`many`)
       column gains a declared element-non-null CHECK that the Postgres planner used to
       synthesize without ever declaring. Prefixes derived from long table and column names are
-      truncated to 54 characters so the wire name fits Postgres's 63-character identifier
-      limit; identity lives in the hash, so truncated prefixes still yield distinct names.
+      truncated to 54 UTF-8 bytes so the wire name fits Postgres's 63-byte identifier limit;
+      identity lives in the hash, so truncated prefixes still yield distinct names.
+      Postgres introspection also stopped parsing predicates and now captures every CHECK
+      constraint verbatim, so any hand-written or platform-installed check on a table your
+      extension manages is visible for the first time: it verifies as an undeclared extra under
+      `--strict` and becomes a `dropCheckConstraint` under a policy that allows `destructive`.
+      If your extension installs checks out of band — through a raw-SQL migration step rather
+      than through the contract — declare them instead, or expect the first plan against an
+      upgraded database to offer to drop them.
     detection:
       glob: "**/contract.json"
       contains:
@@ -156,6 +163,21 @@ byte-for-byte.
 Check emission is driven by a duck-typed `renderCheckExpressions` hook on the pack's
 `authoring` contributions, resolved the same way `qualifyColumnType` is. It receives one
 column's shape (`tableName`, `columnName`, `many`, and `memberValues` — the last present only
-for a value set the toolchain owns) and returns `{ prefix, expression }` candidates. A pack
-without the hook emits no checks at all, which is how SQLite keeps its no-CHECK stance. The
-contract builder owns naming: it truncates the prefix and appends the content hash.
+for a value set the toolchain owns) and returns `{ kind, columnName, expression }` candidates,
+where `kind` is `'membership'` or `'elementNotNull'`. A pack without the hook emits no checks
+at all, which is how SQLite keeps its no-CHECK stance. Nothing in the return value is a name:
+the contract builder composes the prefix from the table, the column, and the kind, truncates it
+to 54 UTF-8 bytes, and appends the content hash.
+
+## Hand-written checks are visible now
+
+Postgres introspection reads `pg_get_expr(c.conbin, c.conrelid)` and stores the predicate
+verbatim; it no longer recognises only the two shapes the old parser could parse. Every CHECK
+constraint on a managed table therefore reaches the differ, and one the contract does not
+declare is an ordinary undeclared extra: reported by `db verify --strict`, and dropped by a plan
+whose control policy allows `destructive`.
+
+For an extension this matters in one specific case — a check your extension installs through a
+raw-SQL migration step rather than declaring in its contract space. That constraint used to be
+invisible and is now drop-eligible against any database the extension manages. Declare it, or
+document that the tables carrying it stay under an additive-only policy.

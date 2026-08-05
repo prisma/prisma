@@ -45,6 +45,13 @@ changes:
       until you allow the drop. Every list (`many`) column now also carries a declared
       element-non-null CHECK that the planner previously invented behind your back; it appears
       in the contract and in the plan for the first time.
+      Introspection also stopped parsing predicates, so every CHECK constraint on a managed
+      table is now visible — including hand-written ones (`price > 0`, a composite `AND`, a
+      `NOT VALID` constraint) that earlier versions could not see at all. An undeclared check
+      is an extra: `prisma-next db verify --strict` reports it, and a plan run under a policy
+      that allows `destructive` emits a `dropCheckConstraint` operation for it. Read the first
+      plan for `dropCheckConstraint` operations naming constraints you wrote by hand, and
+      either declare them or run that plan under an additive-only policy, before applying.
     detection:
       glob: "**/contract.json"
       contains:
@@ -138,3 +145,19 @@ wire-named one. For each list column: an ADD of an element-non-null constraint t
 previously created without ever being declared. Neither is a data change — but the DROP is
 classified `destructive`, so a plan run under an additive-only policy converges only partway
 and `db verify --strict` will report the leftovers until you allow it.
+
+There may also be a third kind of operation, and it is the one to read carefully. Introspection
+no longer parses predicates: it captures every CHECK constraint on a managed table verbatim,
+including the hand-written and platform-installed ones that earlier versions were structurally
+unable to see. A check the contract does not declare is an undeclared extra, so
+`db verify --strict` reports it and a plan run under a policy that allows `destructive` emits a
+`dropCheckConstraint` for it — a constraint you wrote by hand and that has been enforcing your
+data all along. Grep the first plan for `dropCheckConstraint` and check every constraint named:
+
+- if you want to keep it, declare it, or leave that table under an additive-only policy until
+  you can;
+- if it was already dead, let the drop through.
+
+Nothing drops silently — an additive-only policy never emits the operation at all — but the
+first plan after upgrading is the moment to look, because it is the first plan that can see
+these constraints.
