@@ -225,6 +225,37 @@ describe.sequential('check-constraint lifecycle', () => {
     expect((await verify(after)).ok).toBe(true);
   });
 
+  // Dropping the column drops its check with it, so the plan must order the
+  // check's drop BEFORE the column's. `attrs` sorts before the literal
+  // `check:` prefix, so without a dependency edge the lexicographic tiebreak
+  // puts the column first and the constraint drop then fails its precheck.
+  it('dropping a list column removes its element check in the same plan', {
+    timeout: testTimeout,
+  }, async () => {
+    const attrsChecks = checksForColumn('Item', 'attrs', { many: true });
+    const before = contractOf(
+      {
+        id: idColumn,
+        attrs: { nativeType: 'text', codecId: 'pg/text@1', nullable: true, many: true },
+      },
+      attrsChecks,
+    );
+    await migrate(before);
+    expect(await liveCheckNames()).toEqual([attrsChecks[0]?.name]);
+
+    const after = contractOf({ id: idColumn }, []);
+    const { opIds } = await migrate(after, { from: before, policy: FULL_POLICY });
+
+    const dropCheckAt = opIds.findIndex((id) => id.startsWith('dropCheckConstraint.'));
+    const dropColumnAt = opIds.findIndex((id) => id.startsWith('dropColumn.'));
+    expect(dropCheckAt).toBeGreaterThanOrEqual(0);
+    expect(dropColumnAt).toBeGreaterThanOrEqual(0);
+    expect(dropCheckAt).toBeLessThan(dropColumnAt);
+
+    expect(await liveCheckNames()).toEqual([]);
+    expect((await verify(after)).ok).toBe(true);
+  });
+
   it('a manually dropped check is reported missing and repaired by the next plan', {
     timeout: testTimeout,
   }, async () => {

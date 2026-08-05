@@ -1374,11 +1374,23 @@ describe('contractToSchemaIR — resolved leaf values', () => {
       new SqlCheckConstraintIR({
         naming: { kind: 'wire', prefix: 'T_status_check', hash },
         expression,
+        dependsOn: undefined,
       }),
       new SqlCheckConstraintIR({
         naming: { kind: 'exact', name: 'T_legacy_check' },
         expression: `"status" <> ''`,
+        dependsOn: undefined,
       }),
+    ]);
+    // Chains to every column of the table: the predicate is opaque, so the
+    // derivation cannot know which columns it names. Without the edge a check
+    // could be ordered after the drop of a column it depends on.
+    expect(result.tables['T']!.checks?.[0]?.dependsOn).toEqual([
+      [
+        { nodeKind: 'sql-schema', id: 'database' },
+        { nodeKind: 'sql-table', id: 'T' },
+        { nodeKind: 'sql-column', id: 'column:status' },
+      ],
     ]);
   });
 });

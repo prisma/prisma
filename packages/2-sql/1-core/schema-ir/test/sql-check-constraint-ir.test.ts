@@ -10,11 +10,16 @@ function wireCheck(prefix: string, body: string): SqlCheckConstraintIR {
   return new SqlCheckConstraintIR({
     naming: { kind: 'wire', prefix, hash: computeCheckContentHash(body) },
     expression: body,
+    dependsOn: undefined,
   });
 }
 
 function exactCheck(name: string, body: string): SqlCheckConstraintIR {
-  return new SqlCheckConstraintIR({ naming: { kind: 'exact', name }, expression: body });
+  return new SqlCheckConstraintIR({
+    naming: { kind: 'exact', name },
+    expression: body,
+    dependsOn: undefined,
+  });
 }
 
 describe('SqlCheckConstraintIR', () => {
@@ -60,6 +65,7 @@ describe('SqlCheckConstraintIR', () => {
       const live = new SqlCheckConstraintIR({
         naming: { kind: 'wire', prefix: 'T_status_check', hash },
         expression: `((status)::text = ANY ((ARRAY['active'::character varying])::text[]))`,
+        dependsOn: undefined,
       });
       expect(expected.isEqualTo(live)).toBe(true);
     });

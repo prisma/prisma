@@ -37,6 +37,7 @@ const index = new SqlIndexIR({
 const check = new SqlCheckConstraintIR({
   naming: { kind: 'exact', name: 'chk' },
   expression: `"c" IN ('a')`,
+  dependsOn: undefined,
 });
 
 function issueOf(change: ExpectationFailureReason, node: DiffableNode) {

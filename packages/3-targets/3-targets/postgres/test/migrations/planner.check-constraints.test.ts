@@ -20,11 +20,19 @@ function wireNaming(prefix: string, expression: string) {
 }
 
 function wireCheck(prefix: string, expression: string): SqlCheckConstraintIR {
-  return new SqlCheckConstraintIR({ naming: wireNaming(prefix, expression), expression });
+  return new SqlCheckConstraintIR({
+    naming: wireNaming(prefix, expression),
+    expression,
+    dependsOn: undefined,
+  });
 }
 
 function exactCheck(name: string, expression: string): SqlCheckConstraintIR {
-  return new SqlCheckConstraintIR({ naming: { kind: 'exact', name }, expression });
+  return new SqlCheckConstraintIR({
+    naming: { kind: 'exact', name },
+    expression,
+    dependsOn: undefined,
+  });
 }
 
 /** A contract whose table declares `checks`, replicated into each namespace. */

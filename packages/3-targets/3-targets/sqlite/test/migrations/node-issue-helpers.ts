@@ -109,6 +109,7 @@ export function checkConstraint(input: {
   return new SqlCheckConstraintIR({
     naming: { kind: 'exact', name: input.name },
     expression: input.expression,
+    dependsOn: undefined,
   });
 }
 

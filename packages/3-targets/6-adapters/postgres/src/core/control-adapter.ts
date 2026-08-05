@@ -1221,6 +1221,11 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         (checkRow) => ({
           naming: namingOfLiveName(checkRow.constraint_name),
           expression: checkRow.check_expression,
+          // Every column of the table — the predicate is opaque, so which
+          // columns it constrains is unknowable here. Postgres drops a check
+          // along with any column it covers, so the check must be torn down
+          // first.
+          dependsOn: postgresColumnDependsOn(schema, tableName, Object.keys(columns)),
         }),
       );
 

@@ -212,10 +212,18 @@ function resolveColumnTypeMetadata(
   );
 }
 
-function convertCheck(check: CheckConstraint): SqlCheckConstraintIRInput {
+function convertCheck(
+  check: CheckConstraint,
+  tableName: string,
+  tableColumns: readonly string[],
+): SqlCheckConstraintIRInput {
   return {
     naming: namingOf(check.name, check.prefix),
     expression: check.expression,
+    // Every column of the table: the predicate is opaque, so which columns it
+    // actually names is unknowable here — the same deterministic
+    // over-approximation an expression index makes.
+    dependsOn: flatColumnDependsOn(tableName, tableColumns),
   };
 }
 
@@ -338,7 +346,9 @@ function convertTable(
   }
 
   const checks: SqlCheckConstraintIRInput[] | undefined =
-    table.checks && table.checks.length > 0 ? table.checks.map(convertCheck) : undefined;
+    table.checks && table.checks.length > 0
+      ? table.checks.map((c) => convertCheck(c, name, Object.keys(table.columns)))
+      : undefined;
 
   const primaryKey =
     table.primaryKey !== undefined

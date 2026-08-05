@@ -62,6 +62,7 @@ describe('PostgresControlAdapter.introspect — check constraints are opaque', (
       new SqlCheckConstraintIR({
         naming: { kind: 'exact', name: 'positive_amount' },
         expression: '(amount > (0)::numeric)',
+        dependsOn: undefined,
       }),
     ]);
   });
@@ -71,7 +72,11 @@ describe('PostgresControlAdapter.introspect — check constraints are opaque', (
     expect(
       await checksOf('post', [{ constraint_name: 'post_both', check_expression: expression }]),
     ).toEqual([
-      new SqlCheckConstraintIR({ naming: { kind: 'exact', name: 'post_both' }, expression }),
+      new SqlCheckConstraintIR({
+        naming: { kind: 'exact', name: 'post_both' },
+        expression,
+        dependsOn: undefined,
+      }),
     ]);
   });
 
@@ -86,6 +91,7 @@ describe('PostgresControlAdapter.introspect — check constraints are opaque', (
       new SqlCheckConstraintIR({
         naming: { kind: 'exact', name: 'post_status_check' },
         expression,
+        dependsOn: undefined,
       }),
     ]);
   });

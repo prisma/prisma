@@ -141,6 +141,7 @@ describe('PostgresTableSchemaNode', () => {
         {
           naming: { kind: 'exact', name: 'chk_status' },
           expression: `"status" IN ('active', 'inactive')`,
+          dependsOn: undefined,
         },
       ],
       rlsEnabled: false,

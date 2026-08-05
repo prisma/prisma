@@ -764,6 +764,7 @@ describe('differ verdict — check constraints', () => {
           checks: checks.map((c) => ({
             naming: namingOf(c.name, c.prefix),
             expression: c.expression,
+            dependsOn: undefined,
           })),
         },
       },

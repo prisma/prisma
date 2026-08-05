@@ -1,15 +1,24 @@
-import type { DiffableNode } from '@internal/framework-components/control';
+import type { DiffableNode, SchemaNodeRef } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
 import { blindCast } from '@internal/utils/casts';
 import { nameOf, type SqlObjectNaming } from '../naming';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
-import { assertNode, SqlSchemaIRNode } from './sql-schema-ir-node';
+import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './sql-schema-ir-node';
 
 export interface SqlCheckConstraintIRInput {
   /** The node's identity. Read back off a built node with `namingOf`. */
   readonly naming: SqlObjectNaming;
   /** Opaque SQL: the predicate body, without the surrounding `CHECK (…)`. */
   readonly expression: string;
+  /**
+   * The check's own column nodes, as root-anchored chains. The derivation
+   * stamps chains to every column of its table — a deterministic
+   * over-approximation, since the opaque predicate is never parsed — so a
+   * check is dropped before the columns it constrains (Postgres drops the
+   * constraint along with a covered column, which would strand the
+   * constraint's own drop). Never compared by `isEqualTo`.
+   */
+  readonly dependsOn: readonly SchemaNodeRef[] | undefined;
 }
 
 /**
@@ -31,12 +40,15 @@ export class SqlCheckConstraintIR extends SqlSchemaIRNode implements DiffableNod
   readonly name: string;
   declare readonly prefix?: string;
   readonly expression: string;
+  /** See {@link SqlCheckConstraintIRInput.dependsOn}. Non-enumerable so it stays out of JSON and structural equality, matching `SqlIndexIR.dependsOn`. */
+  declare readonly dependsOn?: readonly SchemaNodeRef[];
 
   constructor(input: SqlCheckConstraintIRInput) {
     super();
     this.name = nameOf(input.naming);
     if (input.naming.kind === 'wire') this.prefix = input.naming.prefix;
     this.expression = input.expression;
+    defineNonEnumerable(this, 'dependsOn', input.dependsOn);
     freezeNode(this);
   }
 
