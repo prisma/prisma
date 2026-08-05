@@ -19,11 +19,13 @@ import {
   postgresEnumInferenceCodecs,
   postgresScalarTypeDescriptors,
   postgresTarget,
+  postgresTargetRenderingChecks,
   sqliteEnumInferenceCodecs,
   sqliteScalarColumnDescriptors,
   sqliteTarget,
   symbolTableInputFromParseArgs,
   testEnumEntityContributions,
+  testRenderCheckExpressions,
 } from './fixtures';
 
 // ---------------------------------------------------------------------------
@@ -129,7 +131,8 @@ function interpret(schema: string, overrides?: Partial<InterpretPslDocumentToSql
 
 describe('enum PSL ↔ TS parity', () => {
   it('emits domain enum, storage valueSet, field/column valueSet refs, and table check equal to TS enumType authoring', () => {
-    const pslResult = interpret(`
+    const pslResult = interpret(
+      `
 enum Priority {
   @@type("pg/text@1")
   Low    = "low"
@@ -141,7 +144,9 @@ model Post {
   id       Int    @id
   priority Priority
 }
-`);
+`,
+      { target: postgresTargetRenderingChecks },
+    );
 
     expect(pslResult.ok).toBe(true);
     if (!pslResult.ok) return;
@@ -161,6 +166,8 @@ model Post {
       familyId: 'sql' as const,
       version: '0.0.1',
     };
+    // Same hook as the PSL side's target fixture: the parity claim is that one
+    // emission site serves both surfaces, so both must actually render checks.
     const postgresTargetPack = {
       kind: 'target' as const,
       id: 'postgres',
@@ -168,6 +175,7 @@ model Post {
       targetId: 'postgres' as const,
       version: '0.0.1',
       defaultNamespaceId: 'public',
+      authoring: { field: {}, renderCheckExpressions: testRenderCheckExpressions },
     };
 
     const tsContract = defineContract({
@@ -211,7 +219,8 @@ model Post {
   });
 
   it('parity holds with a defaulted field: @default(Low) produces the same column as .default(members.Low)', () => {
-    const pslResult = interpret(`
+    const pslResult = interpret(
+      `
 enum Priority {
   @@type("pg/text@1")
   Low    = "low"
@@ -223,7 +232,9 @@ model Post {
   id       Int      @id
   priority Priority @default(Low)
 }
-`);
+`,
+      { target: postgresTargetRenderingChecks },
+    );
 
     expect(pslResult.ok).toBe(true);
     if (!pslResult.ok) return;
@@ -243,6 +254,8 @@ model Post {
       familyId: 'sql' as const,
       version: '0.0.1',
     };
+    // Same hook as the PSL side's target fixture: the parity claim is that one
+    // emission site serves both surfaces, so both must actually render checks.
     const postgresTargetPack = {
       kind: 'target' as const,
       id: 'postgres',
@@ -250,6 +263,7 @@ model Post {
       targetId: 'postgres' as const,
       version: '0.0.1',
       defaultNamespaceId: 'public',
+      authoring: { field: {}, renderCheckExpressions: testRenderCheckExpressions },
     };
 
     const tsContract = defineContract({

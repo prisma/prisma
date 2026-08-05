@@ -23,6 +23,7 @@ import {
   postgresAuthoringPslBlockDescriptors,
   postgresAuthoringTypes,
 } from '../src/core/authoring';
+import { postgresRenderCheckExpressions } from '../src/core/check-expressions';
 import { PG_ENUM_CODEC_ID } from '../src/core/codec-ids';
 import { pgEnumDescriptor, postgresQualifyColumnType } from '../src/core/codecs';
 import type { PostgresSchema } from '../src/core/postgres-schema';
@@ -74,7 +75,14 @@ const postgresTarget = {
   // carry it (production reads it off the real Postgres pack). `type` is
   // included only so `authoring` shares a property with `AuthoringContributions`
   // (a weak, all-optional type); build-contract reads `qualifyColumnType`.
-  authoring: { type: postgresAuthoringTypes, qualifyColumnType: postgresQualifyColumnType },
+  // `renderCheckExpressions` is the production renderer, not a stub: without it
+  // no column could receive a check under any condition, and the no-CHECK
+  // assertion below would hold for the wrong reason.
+  authoring: {
+    type: postgresAuthoringTypes,
+    qualifyColumnType: postgresQualifyColumnType,
+    renderCheckExpressions: postgresRenderCheckExpressions,
+  },
 };
 
 const scalarColumnDescriptors = new Map<string, { codecId: string; nativeType: string }>([
