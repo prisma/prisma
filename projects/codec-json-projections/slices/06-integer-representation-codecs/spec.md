@@ -63,7 +63,7 @@ One concern — the integer representation vocabulary — delivered whole: three
 
 ## Contract impact
 
-New codec IDs appear in `codecTypes` only for contracts that use the presets; no existing entry changes. Amended 2026-08-05 during D1: registering the codecs expands the `min`/`max` numeric-trait fallback over them at emission, so **every** emitted PostgreSQL contract gains two inert `byCodec` self rows regardless of preset use — a purely additive re-emission (verified zero deletions), committed with D1. Fixture movement in later dispatches must be fully attributable to the new rows and fixtures, not byte-identity.
+New codec IDs appear in `codecTypes` only for contracts that use the presets; no existing entry changes. Amended 2026-08-05 during D1, extended after D3 and slice review: registration alone radiates inert `byCodec` rows into **every** emitted contract on both targets regardless of preset use — the `min`/`max` numeric-trait fallback expands over the new codecs, and D3's exact `sum`/`avg` rows radiate the same way (PostgreSQL contracts gain sum/avg/min/max rows for both codecs; SQLite contracts the `bigintnumber` set) — purely additive re-emissions, verified zero deletions. Fixture movement in later dispatches must be fully attributable to the new rows and fixtures, not byte-identity.
 
 ## Adapter impact
 
