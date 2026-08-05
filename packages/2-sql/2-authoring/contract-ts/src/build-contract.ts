@@ -68,7 +68,7 @@ import { validateStorageSemantics } from '@internal/sql-contract/validators';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
   computeCheckContentHash,
-  WIRE_NAME_PREFIX_MAX_LENGTH,
+  truncateToWireNamePrefixBytes,
 } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -358,7 +358,7 @@ function lowerRenderedChecks(
     // assumes. Truncating is safe because identity lives in the hash: two
     // prefixes that truncate alike still carry the hashes of their own
     // predicates, and the predicates embed the column name.
-    const prefix = candidate.prefix.slice(0, WIRE_NAME_PREFIX_MAX_LENGTH);
+    const prefix = truncateToWireNamePrefixBytes(candidate.prefix);
     return new CheckConstraint({
       naming: {
         kind: 'wire',

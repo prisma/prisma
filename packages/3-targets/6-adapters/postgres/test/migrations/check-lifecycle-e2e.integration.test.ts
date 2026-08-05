@@ -6,7 +6,10 @@ import {
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage, type StorageTable } from '@internal/sql-contract/types';
-import { computeCheckContentHash } from '@internal/sql-schema-ir/naming';
+import {
+  computeCheckContentHash,
+  truncateToWireNamePrefixBytes,
+} from '@internal/sql-schema-ir/naming';
 import { postgresRenderCheckExpressions } from '@internal/target-postgres/check-expressions';
 import {
   PostgresDatabaseSchemaNode,
@@ -56,7 +59,9 @@ function checksForColumn(
       new CheckConstraint({
         naming: {
           kind: 'wire',
-          prefix: candidate.prefix,
+          // The same byte-cap the contract builder applies, so these fixtures
+          // carry the names authoring would actually emit.
+          prefix: truncateToWireNamePrefixBytes(candidate.prefix),
           hash: computeCheckContentHash(candidate.expression),
         },
         expression: candidate.expression,
@@ -452,6 +457,36 @@ describe.sequential('check-constraint lifecycle', () => {
     ).rejects.toThrow(/Item_roles/);
 
     expect((await verify(contract)).ok).toBe(true);
+    expect((await verify(contract)).ok).toBe(true);
+  });
+
+  // Postgres truncates identifiers at 63 BYTES. A prefix of Cyrillic
+  // characters sits far under 54 characters and far over 54 bytes, so a
+  // character-based cap would declare a name the database silently shortens —
+  // leaving the check permanently missing and the live one permanently extra.
+  it('a multibyte column name yields a check name Postgres stores unmangled', {
+    timeout: testTimeout,
+  }, async () => {
+    const columnName = 'электронная_почта_адрес';
+    const checks = checksForColumn('Item', columnName, {
+      many: false,
+      memberValues: ['да', 'нет'],
+    });
+    const contract = contractOf(
+      {
+        id: idColumn,
+        [columnName]: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+      },
+      checks,
+    );
+
+    const declared = checks[0]?.name ?? '';
+    expect(new TextEncoder().encode(declared).length).toBeLessThanOrEqual(63);
+
+    await migrate(contract);
+
+    // The catalog holds the declared name byte-for-byte — nothing truncated.
+    expect(await liveCheckNames()).toEqual([declared]);
     expect((await verify(contract)).ok).toBe(true);
   });
 

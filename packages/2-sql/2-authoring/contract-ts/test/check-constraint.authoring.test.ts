@@ -10,7 +10,7 @@ import {
   computeCheckContentHash,
   formatWireName,
   parseNaming,
-  WIRE_NAME_PREFIX_MAX_LENGTH,
+  WIRE_NAME_PREFIX_MAX_BYTES,
 } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
@@ -353,7 +353,7 @@ describe('check emission — guards', () => {
     ) as Contract<SqlStorage>;
 
     const check = checksOf(contract)[0];
-    expect(check?.prefix).toHaveLength(WIRE_NAME_PREFIX_MAX_LENGTH);
+    expect(check?.prefix).toHaveLength(WIRE_NAME_PREFIX_MAX_BYTES);
     expect(`User_${longColumn}_check`.startsWith(check?.prefix ?? '')).toBe(true);
     // Postgres caps identifiers at 63; the wire name must fit.
     expect(check?.name.length).toBeLessThanOrEqual(63);

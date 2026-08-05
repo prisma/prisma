@@ -202,21 +202,52 @@ export function computeIndexContentHash(parts: IndexContentHashParts): string {
 }
 
 /**
- * Postgres identifiers cap at 63 characters and the wire name appends a
- * 9-character `_<8hex>` suffix, so an authored prefix is bounded at 54.
+ * Postgres truncates identifiers at `NAMEDATALEN - 1` = 63 **bytes**, not
+ * characters, and the wire name appends a 9-byte `_<8hex>` suffix — so a
+ * prefix is bounded at 54 bytes. A prefix of non-ASCII characters can sit well
+ * under 54 characters and still overrun: the database would silently truncate
+ * the name, leaving the declared object permanently unmatchable against the
+ * live one.
  */
-export const WIRE_NAME_PREFIX_MAX_LENGTH = 54;
+export const WIRE_NAME_PREFIX_MAX_BYTES = 54;
+
+const utf8 = new TextEncoder();
+
+/** UTF-8 byte length — the unit Postgres measures identifiers in. */
+function byteLength(value: string): number {
+  return utf8.encode(value).length;
+}
 
 /**
- * Rejects a wire-name prefix over {@link WIRE_NAME_PREFIX_MAX_LENGTH}.
+ * Rejects a wire-name prefix over {@link WIRE_NAME_PREFIX_MAX_BYTES}.
  * `subject` opens the error message (e.g. `defineContract: policy prefix`).
  */
 export function assertWireNamePrefixLength(prefix: string, subject: string): void {
-  if (prefix.length > WIRE_NAME_PREFIX_MAX_LENGTH) {
+  if (byteLength(prefix) > WIRE_NAME_PREFIX_MAX_BYTES) {
     throw structuredError(
       'CONTRACT.WIRE_NAME_PREFIX_TOO_LONG',
-      `${subject} "${prefix}" exceeds the ${WIRE_NAME_PREFIX_MAX_LENGTH}-character maximum (Postgres identifiers cap at 63 characters and the wire name appends a 9-character hash suffix).`,
-      { meta: { prefix, maxLength: WIRE_NAME_PREFIX_MAX_LENGTH } },
+      `${subject} "${prefix}" exceeds the ${WIRE_NAME_PREFIX_MAX_BYTES}-byte maximum (Postgres identifiers cap at 63 bytes and the wire name appends a 9-byte hash suffix).`,
+      { meta: { prefix, maxBytes: WIRE_NAME_PREFIX_MAX_BYTES } },
     );
   }
+}
+
+/**
+ * Shortens a DERIVED wire-name prefix to {@link WIRE_NAME_PREFIX_MAX_BYTES},
+ * cutting on a code-point boundary so a multibyte character is never split.
+ * Only derived prefixes truncate — an authored one throws
+ * ({@link assertWireNamePrefixLength}), because its author can shorten it.
+ */
+export function truncateToWireNamePrefixBytes(prefix: string): string {
+  if (byteLength(prefix) <= WIRE_NAME_PREFIX_MAX_BYTES) return prefix;
+  let out = '';
+  let bytes = 0;
+  // Iterating a string yields code points, so a surrogate pair stays whole.
+  for (const character of prefix) {
+    const size = byteLength(character);
+    if (bytes + size > WIRE_NAME_PREFIX_MAX_BYTES) break;
+    out += character;
+    bytes += size;
+  }
+  return out;
 }
