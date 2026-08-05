@@ -4830,6 +4830,18 @@
               "uniques": []
             },
             "custom_oauth_providers": {
+              "checks": [
+                {
+                  "expression": "array_position(\"acceptable_client_ids\", NULL) IS NULL",
+                  "name": "custom_oauth_providers_acceptable_client_ids_elem_not__d3736bcb",
+                  "prefix": "custom_oauth_providers_acceptable_client_ids_elem_not_"
+                },
+                {
+                  "expression": "array_position(\"scopes\", NULL) IS NULL",
+                  "name": "custom_oauth_providers_scopes_elem_not_null_de6fcc8e",
+                  "prefix": "custom_oauth_providers_scopes_elem_not_null"
+                }
+              ],
               "columns": {
                 "acceptable_client_ids": {
                   "codecId": "pg/text@1",
@@ -8556,7 +8568,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "9241c85398daf30cf58953a6489fad3bbd27616aebe4075597acd3cfc51a0634",
+    "storageHash": "e3524408ed130910d092fd3d742054da5038f9506d45b37caae7801a2d9257a5",
     "types": {
       "CreatedAt": {
         "codecId": "pg/timestamp@1",

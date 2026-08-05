@@ -67,8 +67,8 @@ import {
 import { validateStorageSemantics } from '@internal/sql-contract/validators';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
-  assertWireNamePrefixLength,
   computeCheckContentHash,
+  WIRE_NAME_PREFIX_MAX_LENGTH,
 } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -352,11 +352,17 @@ function lowerRenderedChecks(
   candidates: ReadonlyArray<{ readonly prefix: string; readonly expression: string }>,
 ): CheckConstraint[] {
   return candidates.map((candidate) => {
-    assertWireNamePrefixLength(candidate.prefix, 'check constraint prefix');
+    // A check prefix is derived from the table and column names, so an author
+    // has no way to shorten one that overruns Postgres's identifier limit —
+    // unlike an index, where `name:` is the escape hatch the throw-stance
+    // assumes. Truncating is safe because identity lives in the hash: two
+    // prefixes that truncate alike still carry the hashes of their own
+    // predicates, and the predicates embed the column name.
+    const prefix = candidate.prefix.slice(0, WIRE_NAME_PREFIX_MAX_LENGTH);
     return new CheckConstraint({
       naming: {
         kind: 'wire',
-        prefix: candidate.prefix,
+        prefix,
         hash: computeCheckContentHash(candidate.expression),
       },
       expression: candidate.expression,

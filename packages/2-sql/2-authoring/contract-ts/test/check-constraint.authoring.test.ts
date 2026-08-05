@@ -6,7 +6,12 @@ import {
   type SqlStorage,
   type StorageTable,
 } from '@internal/sql-contract/types';
-import { computeCheckContentHash, formatWireName } from '@internal/sql-schema-ir/naming';
+import {
+  computeCheckContentHash,
+  formatWireName,
+  parseNaming,
+  WIRE_NAME_PREFIX_MAX_LENGTH,
+} from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { defineContract } from '../src/contract-builder';
@@ -325,24 +330,91 @@ describe('check emission — a target with no hook writes no checks', () => {
 });
 
 describe('check emission — guards', () => {
-  it('rejects a wire-name prefix over the 54-character cap', () => {
-    const longName = 'r'.repeat(60);
-    expect(() =>
-      defineContract(
-        {
-          family: sqlFamilyPack,
-          target: postgresTargetPack,
-          createNamespace: createTestSqlNamespace,
-          enums: { Role },
-        },
-        ({ field: f, model: m }) =>
-          ({
-            models: {
-              User: m('User', { fields: { id: f.text().id(), [longName]: f.namedType(Role) } }),
-            },
-          }) as const,
-      ),
-    ).toThrow(/exceeds the 54-character maximum/);
+  // A check prefix is derived from the table and column names, so an author
+  // has no way to shorten one — unlike an index, where `name:` is the escape
+  // hatch the throw-stance assumes. Identity lives in the hash, so truncating
+  // is safe: two prefixes that truncate alike still carry distinct hashes.
+  it('truncates a derived prefix to the cap instead of throwing', () => {
+    // `User_` + 44 + `_check` = 55 > 54.
+    const longColumn = 'c'.repeat(44);
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', { fields: { id: f.text().id(), [longColumn]: f.namedType(Role) } }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    const check = checksOf(contract)[0];
+    expect(check?.prefix).toHaveLength(WIRE_NAME_PREFIX_MAX_LENGTH);
+    expect(`User_${longColumn}_check`.startsWith(check?.prefix ?? '')).toBe(true);
+    // Postgres caps identifiers at 63; the wire name must fit.
+    expect(check?.name.length).toBeLessThanOrEqual(63);
+  });
+
+  it('the truncated prefix still round-trips through parseNaming', () => {
+    const longColumn = 'c'.repeat(44);
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', { fields: { id: f.text().id(), [longColumn]: f.namedType(Role) } }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    const check = checksOf(contract)[0];
+    expect(parseNaming(check?.name ?? '', check?.prefix)).toEqual({
+      kind: 'wire',
+      prefix: check?.prefix,
+      hash: check?.name.slice((check?.prefix?.length ?? 0) + 1),
+    });
+  });
+
+  it('columns whose truncated prefixes collide still get distinct names', () => {
+    // Both prefixes truncate to the same 54 characters — the columns differ
+    // only past the cap — while the differing member sets give the predicates,
+    // and so the hashes, different content.
+    const shared = 'c'.repeat(50);
+    const Other = enumType('Other', pgText, member('X', 'x'));
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role, Other },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: {
+                id: f.text().id(),
+                [`${shared}a`]: f.namedType(Role),
+                [`${shared}b`]: f.namedType(Other),
+              },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    const checks = checksOf(contract);
+    expect(checks).toHaveLength(2);
+    expect(checks[0]?.prefix).toBe(checks[1]?.prefix);
+    expect(checks[0]?.name).not.toBe(checks[1]?.name);
   });
 
   it('rejects a value set with a non-string member', () => {
