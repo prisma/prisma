@@ -2,6 +2,26 @@ import { temporalAuthoringPresets, temporalCodecPreset } from '@internal/family-
 import { describe, expect, it } from 'vitest';
 import { sqliteAuthoringFieldPresets } from '../src/core/authoring';
 
+describe('sqliteAuthoringFieldPresets', () => {
+  it('exposes bigIntNumber preset with sqlite/bigintnumber@1 and nativeType integer', () => {
+    expect(sqliteAuthoringFieldPresets.bigIntNumber).toEqual({
+      kind: 'fieldPreset',
+      output: {
+        codecId: 'sqlite/bigintnumber@1',
+        nativeType: 'integer',
+      },
+    });
+  });
+
+  it('carries no bigint preset, so bare BigInt stays on the scalar-resolved sqlite/bigint@1', () => {
+    expect(sqliteAuthoringFieldPresets).not.toHaveProperty('bigint');
+  });
+
+  it('carries no unboundedInt preset: SQLite has no lossless unbounded integer storage', () => {
+    expect(sqliteAuthoringFieldPresets).not.toHaveProperty('unboundedInt');
+  });
+});
+
 describe('sqlite temporal per-codec presets', () => {
   it('registers datetime against sqlite/datetime@1, named for the codec base name', () => {
     expect(sqliteAuthoringFieldPresets.temporal.datetime).toEqual(

@@ -2,6 +2,13 @@ import { temporalAuthoringPresets, temporalCodecPreset } from '@internal/family-
 import type { AuthoringFieldNamespace } from '@internal/framework-components/authoring';
 
 export const sqliteAuthoringFieldPresets = {
+  bigIntNumber: {
+    kind: 'fieldPreset',
+    output: {
+      codecId: 'sqlite/bigintnumber@1',
+      nativeType: 'integer',
+    },
+  },
   temporal: {
     .../* @__PURE__ */ temporalAuthoringPresets({
       codecId: 'sqlite/datetime@1',
