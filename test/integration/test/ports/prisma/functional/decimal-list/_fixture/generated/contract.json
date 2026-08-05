@@ -55,6 +55,13 @@
         "entries": {
           "table": {
             "user": {
+              "checks": [
+                {
+                  "expression": "array_position(\"decimals\", NULL) IS NULL",
+                  "name": "user_decimals_elem_not_null_bb250a18",
+                  "prefix": "user_decimals_elem_not_null"
+                }
+              ],
               "columns": {
                 "decimals": {
                   "codecId": "pg/numeric@1",
@@ -84,7 +91,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "0918505845664d9f6582900a179197052dde640479a136110aac46a40fb6e864",
+    "storageHash": "b19e28967332f25efa131fe414093daebeece9ea3d36b1ceb0e456dfff804ae0",
     "types": {
       "D": {
         "codecId": "pg/numeric@1",
