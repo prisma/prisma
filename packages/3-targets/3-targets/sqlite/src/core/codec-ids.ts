@@ -11,3 +11,4 @@ export const SQLITE_BLOB_CODEC_ID = 'sqlite/blob@1' as const;
 export const SQLITE_DATETIME_CODEC_ID = 'sqlite/datetime@1' as const;
 export const SQLITE_JSON_CODEC_ID = 'sqlite/json@1' as const;
 export const SQLITE_BIGINT_CODEC_ID = 'sqlite/bigint@1' as const;
+export const SQLITE_BIGINT_NUMBER_CODEC_ID = 'sqlite/bigintnumber@1' as const;
