@@ -347,7 +347,7 @@ describe('verifyMarker', () => {
   });
 
   it('single-flights the marker read under concurrent first queries', async () => {
-    // Hold the marker read open until we have N concurrent execute() calls
+    // Hold the marker read open until we have N concurrent query() calls
     // sitting at the verifyMarker gate. Without single-flight, each one would
     // call readMarker() and emit a log line independently.
     let releaseMarker: (result: MarkerReadResult) => void = () => {};
