@@ -1,6 +1,6 @@
 /**
  * End-to-end test for the user-facing path: contract types →
- * `mongoQuery(...).from(...).<chain>.build()` → `runtime.execute(plan)` →
+ * `mongoQuery(...).from(...).<chain>.build()` → `runtime.query(plan)` →
  * decoded rows.
  *
  * This file is the single artifact tying contract type inference, lane
@@ -59,7 +59,7 @@ describe('Mongo runtime decode integration via query-builder', () => {
       // declare, so the row type matches.
       expectTypeOf<Row['embeddings']>().toEqualTypeOf<readonly number[]>();
 
-      const rows = await ctx.runtime.execute(plan).toArray();
+      const rows = await ctx.runtime.query(plan).toArray();
       expect(rows).toHaveLength(1);
       const row = rows[0]!;
       expect(typeof row['_id']).toBe('string');
