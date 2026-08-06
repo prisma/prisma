@@ -1,5 +1,7 @@
 # Design — Composer programmatic API (`@prisma/composer/control`)
 
+> **Amendment (operator ruling, 2026-08-06, post-review):** the effect-mismatch defenses are scar tissue from a transient upstream issue and are shrunk. The `effect-resolution` failure kind is removed from `OperationFailure`; the per-operation preflight is deleted — operations catch a throwing dynamic import and map it to a `pipeline` failure, using `checkEffectResolution` only to produce the diagnostic message; the in-process adversarial CI probe is reverted; `bin.ts`'s own guard stays (and is removable once alchemy/effect stabilize). The entry's import-light static graph with lazy executors is retained on general no-import-side-effects grounds, not as an effect-specific contract. §3.1, §3.2's failure union, §4, and the `check-npm-effect-resolution.mjs` row of §5 are superseded accordingly.
+
 Status: ACCEPTED 2026-08-06 — all six ambiguities ruled by the operator: recommendations adopted (`./control` entrypoint; optional summary; keep `stdio: 'inherit'`; coarse `pipeline` failure kind; minimal dev session; **plus a short ADR** for the `./control` surface and the `DEPLOYMENT_RESULT_FILE_ENV` cross-process contract — in scope for this slice). PR targets composer `main`. Implementer executes this design exactly; deviations require orchestrator sign-off.
 
 All paths relative to the composer repo root (working clone: `wip/repos/composer`).
