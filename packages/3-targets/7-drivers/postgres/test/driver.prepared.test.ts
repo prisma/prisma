@@ -43,7 +43,7 @@ function makeSlot(initial?: unknown) {
       set: (v: unknown) => {
         value = v;
       },
-    } satisfies PreparedExecuteRequest['handle'],
+    } satisfies PreparedExecuteRequest['preparedStatementHandle'],
     snapshot: () => value,
   };
 }
@@ -89,8 +89,8 @@ describe('postgres prepared statements', () => {
 
       const { slot, snapshot } = makeSlot();
       const sql = 'select id from t where x = $1';
-      await consume(driver.executePrepared({ sql, params: [42], handle: slot }));
-      await consume(driver.executePrepared({ sql, params: [99], handle: slot }));
+      await consume(driver.query({ sql, params: [42], preparedStatementHandle: slot }));
+      await consume(driver.query({ sql, params: [99], preparedStatementHandle: slot }));
 
       expect(snapshot()).toBeUndefined();
       expect(calls).toHaveLength(2);
@@ -111,9 +111,26 @@ describe('postgres prepared statements', () => {
 
       const { slot } = makeSlot();
       await expect(
-        consume(driver.executePrepared({ sql: 'select 1', params: [], handle: slot })),
+        consume(driver.query({ sql: 'select 1', params: [], preparedStatementHandle: slot })),
       ).rejects.toBeInstanceOf(SqlQueryError);
       expect(invocations).toBe(1);
+    });
+  });
+
+  it('maps pg rowCount to affectedRows', async () => {
+    const { client, calls } = makeMockClient({
+      handler: () => ({ rows: [], rowCount: 3 }),
+    });
+    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    cleanups.push(() => driver.close());
+
+    await expect(driver.execute({ sql: 'update t set x = $1', params: [42] })).resolves.toEqual({
+      affectedRows: 3,
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.arg).toEqual({
+      text: 'update t set x = $1',
+      values: [42],
     });
   });
 
@@ -129,7 +146,7 @@ describe('postgres prepared statements', () => {
 
       const { slot, snapshot } = makeSlot();
       const rejection = await consume(
-        driver.executePrepared({ sql: 'select 1', params: [], handle: slot }),
+        driver.query({ sql: 'select 1', params: [], preparedStatementHandle: slot }),
       ).then(
         () => undefined,
         (error: unknown) => error,

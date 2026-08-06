@@ -1,12 +1,12 @@
 import type {
-  PreparedExecuteRequest,
+  PreparedStatementHandle,
   SqlConnection,
   SqlDriver,
   SqlDriverState,
   SqlExecuteRequest,
   SqlExplainResult,
   SqlQueryable,
-  SqlQueryResult,
+  SqlStatementStats,
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
 import type {
@@ -53,7 +53,8 @@ interface PostgresDriverOptions {
   readonly connect: { client: Client } | { pool: PoolType };
   readonly cursor?: PostgresCursorOptions | undefined;
   /**
-   * Use server-side prepared statements for `executePrepared`. Default
+   * Use server-side prepared statements for `query()` requests with a
+   * prepared-statement handle. Default
    * `true`. Set `false` when running behind a transaction-mode pooler that
    * does not support session-scoped prepared statements (e.g. PgBouncer
    * transaction mode).
@@ -160,36 +161,54 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     this.options = options;
   }
 
-  async *execute<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
+  async *query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
     try {
-      yield* this.runQuery<Row>(request);
+      const preparedStatementHandle = request.preparedStatementHandle;
+      if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
+        yield* this.runQuery<Row>(request);
+        return;
+      }
+      const handle = this.preparedStatementName(preparedStatementHandle);
+      yield* this.withStaleHandleRetry<Row>(preparedStatementHandle, handle, (name) =>
+        this.runQuery<Row>(request, name),
+      );
     } catch (error) {
       throw normalizePgError(error);
     }
   }
 
-  async *executePrepared<Row = Record<string, unknown>>(
-    request: PreparedExecuteRequest,
-  ): AsyncIterable<Row> {
-    if (!this.options.preparedStatementsEnabled) {
-      // Skip server-side prepare entirely; route as a regular ad-hoc execute.
-      yield* this.execute<Row>(request);
-      return;
+  async execute(request: SqlExecuteRequest): Promise<SqlStatementStats> {
+    const client = await this.acquireClient();
+    try {
+      const releaseLock = await acquireClientQueryLock(client);
+      try {
+        const result = await client.query({
+          text: request.sql,
+          values: [...(request.params ?? [])],
+        });
+        return { affectedRows: result.rowCount ?? 0 };
+      } finally {
+        releaseLock();
+      }
+    } catch (error) {
+      throw normalizePgError(error);
+    } finally {
+      await this.releaseClient(client);
     }
+  }
 
-    let handle = request.handle.get();
-    if (handle === undefined) {
-      handle = this.options.handleAllocator.mint();
-      request.handle.set(handle);
+  private preparedStatementName(handle: PreparedStatementHandle): string {
+    const existingHandle = handle.get();
+    if (typeof existingHandle === 'string') {
+      return existingHandle;
     }
-
-    yield* this.withStaleHandleRetry<Row>(request, handle as string, (h) =>
-      this.runQuery<Row>(request, h),
-    );
+    const mintedHandle = this.options.handleAllocator.mint();
+    handle.set(mintedHandle);
+    return mintedHandle;
   }
 
   private async *withStaleHandleRetry<Row>(
-    request: PreparedExecuteRequest,
+    preparedStatementHandle: PreparedStatementHandle,
     handle: string,
     attempt: (handle: string) => AsyncIterable<Row>,
   ): AsyncIterable<Row> {
@@ -209,7 +228,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       // pg's parsedStatements still records the old name; only a fresh name
       // forces pg to re-Parse on this Client.
       const retryHandle = this.options.handleAllocator.mint();
-      request.handle.set(retryHandle);
+      preparedStatementHandle.set(retryHandle);
       try {
         yield* attempt(retryHandle);
       } catch (retryError) {
@@ -279,26 +298,6 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
           .query(text, request.params as unknown[] | undefined)
           .catch(rethrowNormalizedError);
         return { rows: result.rows as ReadonlyArray<Record<string, unknown>> };
-      } finally {
-        releaseLock();
-      }
-    } finally {
-      await this.releaseClient(client);
-    }
-  }
-
-  async query<Row = Record<string, unknown>>(
-    sql: string,
-    params?: readonly unknown[],
-  ): Promise<SqlQueryResult<Row>> {
-    const client = await this.acquireClient();
-    try {
-      const releaseLock = await acquireClientQueryLock(client);
-      try {
-        const result = await client
-          .query(sql, params as unknown[] | undefined)
-          .catch(rethrowNormalizedError);
-        return result as unknown as SqlQueryResult<Row>;
       } finally {
         releaseLock();
       }
