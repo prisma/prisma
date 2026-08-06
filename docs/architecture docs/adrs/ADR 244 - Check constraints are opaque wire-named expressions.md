@@ -6,7 +6,7 @@ Related: [ADR 234 — Content-addressed wire names for Postgres-normalized objec
 
 ## Decision
 
-A check constraint in the contract is **one opaque SQL predicate carried under a content-addressed wire name**. It is the third object kind on ADR 234's naming convention, after RLS policies and indexes, and it follows that convention without exception: the name is `<prefix>_<8 hex of SHA-256(canonical(predicate))>`, equivalence between a declared check and a live one is name equality, and nothing ever parses the predicate.
+A check constraint in the contract is **one opaque SQL predicate carried under a content-addressed wire name**. It is the third object kind on ADR 234's naming convention, after RLS policies and indexes, and for a wire-named check the convention holds in full: the name is `<prefix>_<8 hex of SHA-256(canonical(predicate))>`, equivalence between a declared check and a live one is name equality, and nothing ever parses the predicate. An exact-named check — one adopted verbatim from a live database ([ADR 243](<./ADR 243 - Name-identified indexes and exact-name adoption.md>)'s exact-name mode) — keeps its physical name and compares expression bodies byte-for-byte instead.
 
 This reverses the check-constraint half of ADR 156, which defined `tables.*.checks[]` as a structured `{ kind: "inSet", column, setRef }` entry and said the shape was "intentionally not a general-purpose SQL expression system in the contract." It is now exactly that. ADR 156's other half — `storage.sets` and the `column.valueSet` that references it — is untouched and remains in force: value sets still drive generated union types, declaration-order sorting, and `db.enums`. They simply no longer travel into the check node.
 
