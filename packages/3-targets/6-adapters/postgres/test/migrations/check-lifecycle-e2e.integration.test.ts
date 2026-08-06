@@ -300,9 +300,13 @@ describe.sequential('check-constraint lifecycle', () => {
   });
 
   // Dropping the column drops its check with it, so the plan must order the
-  // check's drop BEFORE the column's. `attrs` sorts before the literal
-  // `check:` prefix, so without a dependency edge the lexicographic tiebreak
-  // puts the column first and the constraint drop then fails its precheck.
+  // check's drop BEFORE the column's. The diff-tree ids happen to order that
+  // way for every column name (`check:` sorts before `column:`), so this
+  // ordering assertion holds with or without the check node's `dependsOn`
+  // edge; the edge — which makes the order declared rather than incidental —
+  // is pinned by the unit assertion in contract-to-schema-ir.test.ts. What
+  // this scenario proves is the lifecycle outcome: column and check drop
+  // together in one plan that applies cleanly and verifies clean after.
   it('dropping a list column removes its element check in the same plan', {
     timeout: testTimeout,
   }, async () => {
