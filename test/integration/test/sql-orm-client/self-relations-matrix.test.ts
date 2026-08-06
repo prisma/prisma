@@ -8,7 +8,7 @@ import type { Contract as SelfRelationsContract } from './fixtures/self-relation
 import selfRelationsContractJson from './fixtures/self-relations/generated/contract.json' with {
   type: 'json',
 };
-import { timeouts, withCollectionRuntime } from './integration-helpers';
+import { timeouts, withPushedContractRuntime } from './integration-helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';
 
 const selfRelationsContract =
@@ -26,33 +26,7 @@ function createPeopleCollection(runtime: PgIntegrationRuntime) {
   });
 }
 
-async function setupSelfRelationGraph(runtime: PgIntegrationRuntime): Promise<void> {
-  await runtime.query('drop table if exists person_connections');
-  await runtime.query('drop table if exists person_follows');
-  await runtime.query('drop table if exists people');
-  await runtime.query(`
-    create table people (
-      id integer primary key,
-      name text not null,
-      manager_id integer,
-      partner_id integer unique
-    )
-  `);
-  await runtime.query(`
-    create table person_follows (
-      follower_id integer not null,
-      followee_id integer not null,
-      primary key (follower_id, followee_id)
-    )
-  `);
-  await runtime.query(`
-    create table person_connections (
-      source_id integer not null,
-      target_id integer not null,
-      weight integer not null,
-      primary key (source_id, target_id)
-    )
-  `);
+async function seedSelfRelationGraph(runtime: PgIntegrationRuntime): Promise<void> {
   await runtime.query(`
     insert into people (id, name, manager_id, partner_id) values
       (1, 'Ada', null, 2),
@@ -83,10 +57,10 @@ async function withSelfRelationGraph(
     people: ReturnType<typeof createPeopleCollection>,
   ) => Promise<void>,
 ): Promise<void> {
-  await withCollectionRuntime(async (runtime) => {
-    await setupSelfRelationGraph(runtime);
+  await withPushedContractRuntime(selfRelationsContract, async (runtime) => {
+    await seedSelfRelationGraph(runtime);
     await fn(runtime, createPeopleCollection(runtime));
-  }, selfRelationsContext.contract);
+  });
 }
 
 describe('integration/self-relation matrix', () => {
