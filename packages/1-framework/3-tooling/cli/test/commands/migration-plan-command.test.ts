@@ -16,7 +16,7 @@ import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MigrationPlanResult } from '../../src/commands/migration-plan';
+import type { MigrationPlanResult } from '../../src/control-api/operations/migration-plan';
 import { executeCommand, setupCommandMocks } from '../utils/test-helpers';
 
 type CreateMigrationPlanCommand =
@@ -49,11 +49,11 @@ vi.mock('node:fs/promises', async () => {
   };
 });
 
-vi.mock('../../src/utils/contract-space-seed-phase', () => ({
+vi.mock('../../src/control-api/operations/contract-space-seed-phase', () => ({
   runContractSpaceSeedPhase: mocks.runContractSpaceSeedPhase,
 }));
 
-vi.mock('../../src/utils/contract-space-aggregate-loader', () => ({
+vi.mock('../../src/control-api/operations/contract-space-aggregate-loader', () => ({
   buildContractSpaceAggregate: mocks.buildContractSpaceAggregate,
   loadContractSpaceAggregateForCli: mocks.loadContractSpaceAggregateForCli,
 }));
@@ -346,8 +346,8 @@ describe('migration plan command', () => {
     mocks.runContractSpaceSeedPhase.mockResolvedValue({ seeded: [] });
     mocks.buildContractSpaceAggregate.mockImplementation(async (inputs) => {
       const loader = await vi.importActual<
-        typeof import('../../src/utils/contract-space-aggregate-loader')
-      >('../../src/utils/contract-space-aggregate-loader');
+        typeof import('../../src/control-api/operations/contract-space-aggregate-loader')
+      >('../../src/control-api/operations/contract-space-aggregate-loader');
       return loader.buildContractSpaceAggregate(
         inputs as Parameters<typeof loader.buildContractSpaceAggregate>[0],
       );
@@ -381,8 +381,8 @@ describe('migration plan command', () => {
     vi.doUnmock('../../src/utils/framework-components');
     vi.doUnmock('../../src/control-api/operations/extract-sql-ddl');
     vi.doUnmock('@internal/framework-components/control');
-    vi.doUnmock('../../src/utils/contract-space-seed-phase');
-    vi.doUnmock('../../src/utils/contract-space-aggregate-loader');
+    vi.doUnmock('../../src/control-api/operations/contract-space-seed-phase');
+    vi.doUnmock('../../src/control-api/operations/contract-space-aggregate-loader');
     vi.resetModules();
   });
 

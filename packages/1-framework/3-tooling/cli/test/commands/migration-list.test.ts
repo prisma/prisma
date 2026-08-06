@@ -12,12 +12,12 @@ import { writeRef } from '@internal/migration-tools/refs';
 import { createSqlContract } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { renderMigrationListHumanOutput } from '../../src/commands/migration-list';
 import {
   migrationSpaceListEntriesFromAggregate,
   type RunMigrationListInputs,
-  renderMigrationListHumanOutput,
   runMigrationList,
-} from '../../src/commands/migration-list';
+} from '../../src/control-api/operations/migration-list';
 import { renderMigrationList } from '../../src/utils/formatters/migration-list-render';
 import type { MigrationListResult } from '../../src/utils/formatters/migration-list-types';
 import { parseGlobalFlags } from '../../src/utils/global-flags';

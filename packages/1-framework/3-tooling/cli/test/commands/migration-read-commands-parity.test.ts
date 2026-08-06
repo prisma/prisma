@@ -25,21 +25,14 @@ import {
   migrationShowResultSchema,
   migrationStatusJsonResultSchema,
 } from '../../src/commands/json/schemas';
-import {
-  createMigrationCheckCommand,
-  enumerateCheckSpaces,
-  runMigrationCheck,
-} from '../../src/commands/migration-check';
+import { createMigrationCheckCommand } from '../../src/commands/migration-check';
 import {
   createMigrationGraphCommand,
   formatMigrationGraphHumanOutput,
 } from '../../src/commands/migration-graph';
 import {
   createMigrationListCommand,
-  listRefsByContractHash,
-  migrationSpaceListEntriesFromAggregate,
   renderMigrationListHumanOutput,
-  runMigrationList,
 } from '../../src/commands/migration-list';
 import {
   createMigrationLogCommand,
@@ -54,7 +47,16 @@ import {
   createMigrationStatusCommand,
   formatStatusHumanOutput,
 } from '../../src/commands/migration-status';
-import { deriveStatusEdgeAnnotations } from '../../src/commands/migration-status-overlay';
+import {
+  enumerateCheckSpaces,
+  runMigrationCheck,
+} from '../../src/control-api/operations/migration-check';
+import {
+  listRefsByContractHash,
+  migrationSpaceListEntriesFromAggregate,
+  runMigrationList,
+} from '../../src/control-api/operations/migration-list';
+import { deriveStatusEdgeAnnotations } from '../../src/control-api/operations/migration-status-overlay';
 import { getCommandSeeAlso } from '../../src/utils/command-helpers';
 import {
   computeGlobalMaxDirNameWidth,
