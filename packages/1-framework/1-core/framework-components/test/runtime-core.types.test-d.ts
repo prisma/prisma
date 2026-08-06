@@ -3,7 +3,11 @@ import { expectTypeOf, test } from 'vitest';
 import type { AsyncIterableResult } from '../src/execution/async-iterable-result';
 import type { ExecutionPlan, QueryPlan } from '../src/execution/query-plan';
 import { RuntimeCore } from '../src/execution/runtime-core';
-import type { RuntimeExecutor, RuntimeMiddleware } from '../src/execution/runtime-middleware';
+import type {
+  RuntimeExecutor,
+  RuntimeMiddleware,
+  RuntimeStatementStats,
+} from '../src/execution/runtime-middleware';
 
 interface FixturePlan extends QueryPlan {
   readonly draftId: string;
@@ -22,6 +26,9 @@ class MinimalRuntime extends RuntimeCore<FixturePlan, FixtureExec, RuntimeMiddle
       async *[Symbol.asyncIterator]() {},
     };
   }
+  protected async runExecute(): Promise<{ affectedRows: number }> {
+    return { affectedRows: 0 };
+  }
   async close(): Promise<void> {}
 }
 
@@ -35,6 +42,7 @@ test('a minimal RuntimeCore subclass typechecks', () => {
       log: { info: () => {}, warn: () => {}, error: () => {} },
       contentHash: async () => 'mock-hash',
       scope: 'runtime',
+      operation: 'query',
       planExecutionId: 'test-fixture-plan-execution-id',
     },
   });
@@ -44,7 +52,7 @@ test('RuntimeCore is a RuntimeExecutor of TPlan', () => {
   expectTypeOf<MinimalRuntime>().toExtend<RuntimeExecutor<FixturePlan>>();
 });
 
-test('execute(plan) enforces the TPlan constraint and returns AsyncIterableResult<Row>', () => {
+test('query(plan) enforces the TPlan constraint and returns AsyncIterableResult<Row>', () => {
   const meta: PlanMeta = {
     target: 'mock',
     storageHash: 'test',
@@ -61,11 +69,13 @@ test('execute(plan) enforces the TPlan constraint and returns AsyncIterableResul
       log: { info: () => {}, warn: () => {}, error: () => {} },
       contentHash: async () => 'mock-hash',
       scope: 'runtime',
+      operation: 'query',
       planExecutionId: 'test-fixture-plan-execution-id',
     },
   });
-  const result = runtime.execute(plan);
+  const result = runtime.query(plan);
   expectTypeOf(result).toEqualTypeOf<AsyncIterableResult<Row>>();
+  expectTypeOf(runtime.execute(plan)).toEqualTypeOf<Promise<RuntimeStatementStats>>();
 });
 
 test('a subclass cannot declare lower returning a non-TExec type', () => {
@@ -82,6 +92,9 @@ test('a subclass cannot declare lower returning a non-TExec type', () => {
       return {
         async *[Symbol.asyncIterator]() {},
       };
+    }
+    protected async runExecute(): Promise<{ affectedRows: number }> {
+      return { affectedRows: 0 };
     }
     async close(): Promise<void> {}
   }

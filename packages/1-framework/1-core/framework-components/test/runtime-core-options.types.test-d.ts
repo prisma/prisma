@@ -20,6 +20,9 @@ class FixtureRuntime extends RuntimeCore<FixturePlan, FixtureExec, RuntimeMiddle
       async *[Symbol.asyncIterator]() {},
     };
   }
+  protected async runExecute(): Promise<{ affectedRows: number }> {
+    return { affectedRows: 0 };
+  }
   async close(): Promise<void> {}
 }
 
@@ -29,7 +32,7 @@ const meta: PlanMeta = {
   lane: 'raw-sql',
 };
 
-test('execute accepts an optional second argument carrying { signal }', () => {
+test('query and execute accept an optional second argument carrying { signal }', () => {
   const runtime = new FixtureRuntime({
     middleware: [],
     ctx: {
@@ -39,20 +42,30 @@ test('execute accepts an optional second argument carrying { signal }', () => {
       log: { info: () => {}, warn: () => {}, error: () => {} },
       contentHash: async () => 'mock-hash',
       scope: 'runtime',
+      operation: 'query',
       planExecutionId: 'test-fixture-plan-execution-id',
     },
   });
   const plan: FixturePlan = { draftId: 'd', meta };
   // All three call shapes must compile.
+  void runtime.query(plan);
+  void runtime.query(plan, undefined);
+  void runtime.query(plan, {});
+  void runtime.query(plan, { signal: new AbortController().signal });
   void runtime.execute(plan);
   void runtime.execute(plan, undefined);
   void runtime.execute(plan, {});
   void runtime.execute(plan, { signal: new AbortController().signal });
 });
 
-test('RuntimeExecutor.execute accepts options arg', () => {
+test('RuntimeExecutor operations accept options arg', () => {
   type Executor = RuntimeExecutor<FixturePlan>;
+  type QueryParams = Parameters<Executor['query']>;
   type ExecuteParams = Parameters<Executor['execute']>;
+  expectTypeOf<QueryParams[1]>().toEqualTypeOf<
+    | { readonly signal?: AbortSignal; readonly scope?: 'runtime' | 'connection' | 'transaction' }
+    | undefined
+  >();
   expectTypeOf<ExecuteParams[1]>().toEqualTypeOf<
     | { readonly signal?: AbortSignal; readonly scope?: 'runtime' | 'connection' | 'transaction' }
     | undefined

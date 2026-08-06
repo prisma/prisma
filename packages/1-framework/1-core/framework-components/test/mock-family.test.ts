@@ -71,6 +71,10 @@ class MockRuntime extends RuntimeCore<MockPlan, MockExec, RuntimeMiddleware<Mock
     };
   }
 
+  protected async runExecute(): Promise<{ affectedRows: number }> {
+    return { affectedRows: 0 };
+  }
+
   async close(): Promise<void> {
     this.closeCalls++;
   }
@@ -83,6 +87,7 @@ const ctx: RuntimeMiddlewareContext = {
   log: { info: () => {}, warn: () => {}, error: () => {} },
   contentHash: async () => 'mock-hash',
   scope: 'runtime',
+  operation: 'query',
   planExecutionId: 'test-fixture-plan-execution-id',
 };
 
@@ -99,7 +104,7 @@ describe('RuntimeCore with mock family', () => {
 
     const plan: MockPlan = { draftId: 'd-1', meta };
 
-    const results = await runtime.execute(plan).toArray();
+    const results = await runtime.query(plan).toArray();
 
     expect(results).toHaveLength(1);
     expect(results[0]).toEqual({ id: 1, name: 'test' });
@@ -118,7 +123,7 @@ describe('RuntimeCore with mock family', () => {
       },
     };
 
-    await expect(runtime.execute(invalidPlan).toArray()).rejects.toThrow(
+    await expect(runtime.query(invalidPlan).toArray()).rejects.toThrow(
       'Plan target other does not match contract target mock',
     );
   });
@@ -144,7 +149,7 @@ describe('RuntimeCore with mock family', () => {
     const contract: MockContract = { target: 'mock', storageHash: 'test-core' };
     const runtime = new MockRuntime([middleware], ctx, contract, [{ id: 1 }]);
 
-    await runtime.execute({ draftId: 'd-3', meta }).toArray();
+    await runtime.query({ draftId: 'd-3', meta }).toArray();
 
     expect(beforeExecuteCalled).toBe(true);
     expect(onRowCalled).toBe(true);

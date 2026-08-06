@@ -10,9 +10,9 @@ export interface RuntimeLog {
 }
 
 /**
- * Per-execute context threaded through every middleware phase
+ * Per-operation context threaded through every middleware phase
  * (`beforeExecute`, `onRow`, `afterExecute`). Allocated once per
- * `runtime.execute()` call and shared by reference across all
+ * runtime operation and shared by reference across all
  * middleware in the chain.
  *
  * - `signal` carries the per-query `AbortSignal` -- the same
@@ -61,11 +61,10 @@ export interface RuntimeMiddlewareContext {
   /**
    * Identifies the queryable scope this execution is running under.
    *
-   * - `'runtime'` — top-level `runtime.execute(plan)`. The default scope
-   *   used by the standard read/write paths.
-   * - `'connection'` — `connection.execute(plan)` after
+   * - `'runtime'` — top-level runtime query or statistics execution.
+   * - `'connection'` — an operation after
    *   `runtime.connection()` checked out a connection from the pool.
-   * - `'transaction'` — `transaction.execute(plan)` inside an explicit
+   * - `'transaction'` — an operation inside an explicit
    *   transaction, or a query routed through `withTransaction`.
    *
    * Middleware that should only act at the top level read this field to
@@ -79,8 +78,10 @@ export interface RuntimeMiddlewareContext {
    * scope. Existing middleware that ignore the field are unaffected.
    */
   readonly scope: 'runtime' | 'connection' | 'transaction';
+  /** The caller-selected semantic operation for this execution. */
+  readonly operation: 'query' | 'execute';
   /**
-   * Identity for one `execute()` call. The runtime mints a fresh value via
+   * Identity for one runtime operation call. The runtime mints a fresh value via
    * `crypto.randomUUID()` when it constructs the per-execute context, and
    * the same context reference is threaded through every middleware phase
    * (`beforeExecute`, `intercept`, `onRow`, `afterExecute`). Every hook in
@@ -92,49 +93,48 @@ export interface RuntimeMiddlewareContext {
   readonly planExecutionId: string;
 }
 
-export interface AfterExecuteResult {
-  readonly rowCount: number;
+export interface RuntimeStatementStats {
+  readonly affectedRows: number;
+}
+
+interface AfterExecuteResultBase {
   readonly latencyMs: number;
-  readonly completed: boolean;
-  /**
-   * Indicates where the rows observed during this execution came from.
-   *
-   * - `'driver'` — the default. Rows came from the underlying driver via
-   *   `runDriver` / `runWithMiddleware`'s normal path.
-   * - `'middleware'` — a `RuntimeMiddleware.intercept` hook short-circuited
-   *   execution and supplied the rows directly. The driver was not invoked.
-   *
-   * Observers (telemetry, lints, budgets) that need to distinguish between
-   * driver-served and middleware-served executions read this field.
-   * Observers that don't care can ignore it.
-   */
   readonly source: 'driver' | 'middleware';
 }
 
-/**
- * Result of a successful `RuntimeMiddleware.intercept` hook.
- *
- * Carries the rows that the middleware wishes to return in place of
- * invoking the driver. The runtime iterates `rows` in order and yields
- * each row to the consumer; `beforeExecute`, `runDriver`, and `onRow` are
- * all skipped on the hit path. `afterExecute` still fires with
- * `source: 'middleware'`.
- *
- * `rows` accepts both `Iterable` (arrays, sync generators) and
- * `AsyncIterable` (async generators). `for await` natively handles both
- * via `Symbol.asyncIterator` / `Symbol.iterator` fallback, so the
- * orchestrator does not need to branch on the variant. Cached arrays in
- * the cache middleware are the common case; streaming variants support
- * future use cases like mock layers replaying recordings.
- *
- * Row shape is `Record<string, unknown>` — the same untyped shape
- * `onRow` receives. The SQL runtime decodes intercepted rows through its
- * normal codec pass, so interceptors cache and return raw (undecoded)
- * rows.
- */
-export interface InterceptResult {
+export interface QueryAfterExecuteResult extends AfterExecuteResultBase {
+  readonly operation: 'query';
+  readonly rowCount: number;
+  readonly completed: boolean;
+}
+
+export type StatementAfterExecuteResult = AfterExecuteResultBase &
+  (
+    | {
+        readonly operation: 'execute';
+        readonly completed: true;
+        readonly stats: RuntimeStatementStats;
+      }
+    | {
+        readonly operation: 'execute';
+        readonly completed: false;
+      }
+  );
+
+export type AfterExecuteResult = QueryAfterExecuteResult | StatementAfterExecuteResult;
+
+export interface QueryInterceptResult {
+  readonly operation: 'query';
   readonly rows: AsyncIterable<Record<string, unknown>> | Iterable<Record<string, unknown>>;
 }
+
+export interface StatementInterceptResult {
+  readonly operation: 'execute';
+  readonly stats: RuntimeStatementStats;
+}
+
+/** A middleware short-circuit result for exactly one caller-selected operation. */
+export type InterceptResult = QueryInterceptResult | StatementInterceptResult;
 
 /**
  * Marker interface for family-specific param-ref mutators threaded into
@@ -172,14 +172,10 @@ export interface RuntimeMiddleware<
   readonly familyId?: string;
   readonly targetId?: string;
   /**
-   * Optional short-circuit hook. Runs inside `runWithMiddleware`, after
-   * the orchestrator receives the lowered plan and before any
-   * `beforeExecute` hook fires. Middleware run in registration order; the
-   * first to return a non-`undefined` `InterceptResult` wins, and
-   * subsequent middleware's `intercept` does not fire.
-   *
-   * On a hit, `beforeExecute`, `runDriver`, and `onRow` are all skipped.
-   * `afterExecute` still fires with `source: 'middleware'`.
+   * Optional short-circuit hook. Middleware run in registration order; the
+   * first to return a non-`undefined` result wins. The result's operation
+   * must match `ctx.operation`; mismatches fail instead of converting rows
+   * to statistics or discarding statistics.
    *
    * Returning `undefined` (or omitting the hook entirely) signals
    * passthrough — execution proceeds through the normal driver path.
@@ -261,7 +257,7 @@ export type CrossFamilyMiddleware<TPlan extends QueryPlan = QueryPlan> =
   };
 
 /**
- * Optional per-`execute` options accepted by every family runtime.
+ * Optional per-operation options accepted by every family runtime.
  *
  * `signal` is the per-query cancellation signal. The runtime threads the
  * signal through to every codec call for the query and uses it to short-
@@ -275,18 +271,19 @@ export interface RuntimeExecuteOptions {
 }
 
 /**
- * Cross-family SPI for any runtime that can execute plans and be shut down.
+ * Cross-family SPI for any runtime that can query or execute plans and be shut down.
  * Each family runtime (SQL, Mongo) satisfies this interface — SQL nominally,
  * Mongo structurally (due to its phantom Row parameter using a unique symbol).
  *
- * The `_row` intersection on `execute` connects the `Row` type parameter to the
+ * The `_row` intersection on `query` connects the `Row` type parameter to the
  * plan, mirroring how `QueryPlan<Row>` carries a phantom `_row?: Row`.
  */
 export interface RuntimeExecutor<TPlan extends QueryPlan> {
-  execute<Row>(
+  query<Row>(
     plan: TPlan & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row>;
+  execute(plan: TPlan, options?: RuntimeExecuteOptions): Promise<RuntimeStatementStats>;
   close(): Promise<void>;
 }
 
