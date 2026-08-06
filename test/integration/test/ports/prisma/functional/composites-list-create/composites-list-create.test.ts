@@ -12,9 +12,8 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // Upstream `set null` / `set null shorthand` assert BOTH a type error and a
 // runtime Prisma "Argument `set`/`contents` must not be null" throw. In
 // prisma-next `contents` is a required non-null list: `null` is rejected at the
-// type level (the @ts-expect-error holds), but the mongo runtime has no
-// "must not be null" validation for the embedded list, so it does not throw —
-// faithful port, it.fails.
+// type level (the @ts-expect-error holds), and MongoDB rejects it through the
+// provisioned collection validator.
 
 function withComposites(fn: Parameters<typeof withMongoPort<Contract>>[1]) {
   return withMongoPort<Contract>({ contractJson }, fn);
@@ -77,7 +76,7 @@ describe('ports/prisma/functional/composites/list/create', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it.fails(
+  it(
     'set null',
     () =>
       withComposites(async ({ db }) => {
@@ -91,7 +90,7 @@ describe('ports/prisma/functional/composites/list/create', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it.fails(
+  it(
     'set null shorthand',
     () =>
       withComposites(async ({ db }) => {
