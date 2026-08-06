@@ -9,6 +9,7 @@ import type {
   SqlStatementStats,
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
 import type {
   Client,
   ClientBase,
@@ -104,10 +105,10 @@ function buildConnectionOptions(options: PostgresDriverOptions): ConnectionOptio
 }
 
 function isStalePreparedStatementError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
+  if (!(error instanceof Error) || !('code' in error) || typeof error.code !== 'string') {
     return false;
   }
-  const code = (error as { code?: string }).code;
+  const code = error.code;
   // 26000 — invalid_sql_statement_name (server lost the named statement,
   //         e.g. after DEALLOCATE ALL).
   // 0A000 — cached plan invalidated by DDL (row shape changed).
@@ -169,7 +170,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
         return;
       }
       const handle = this.preparedStatementName(preparedStatementHandle);
-      yield* this.withStaleHandleRetry<Row>(preparedStatementHandle, handle, (name) =>
+      yield* this.withStaleHandleStreamRetry<Row>(preparedStatementHandle, handle, (name) =>
         this.runQuery<Row>(request, name),
       );
     } catch (error) {
@@ -178,22 +179,17 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
   }
 
   async execute(request: SqlExecuteRequest): Promise<SqlStatementStats> {
-    const client = await this.acquireClient();
     try {
-      const releaseLock = await acquireClientQueryLock(client);
-      try {
-        const result = await client.query({
-          text: request.sql,
-          values: [...(request.params ?? [])],
-        });
-        return { affectedRows: result.rowCount ?? 0 };
-      } finally {
-        releaseLock();
+      const preparedStatementHandle = request.preparedStatementHandle;
+      if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
+        return await this.runExecute(request);
       }
+      const handle = this.preparedStatementName(preparedStatementHandle);
+      return await this.withStaleHandleRetry(preparedStatementHandle, handle, (name) =>
+        this.runExecute(request, name),
+      );
     } catch (error) {
       throw normalizePgError(error);
-    } finally {
-      await this.releaseClient(client);
     }
   }
 
@@ -207,33 +203,81 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     return mintedHandle;
   }
 
-  private async *withStaleHandleRetry<Row>(
+  private async withStaleHandleRetry<Result>(
     preparedStatementHandle: PreparedStatementHandle,
     handle: string,
-    attempt: (handle: string) => AsyncIterable<Row>,
-  ): AsyncIterable<Row> {
-    let yielded = false;
+    attempt: (handle: string) => Promise<Result>,
+  ): Promise<Result> {
     try {
-      for await (const row of attempt(handle)) {
-        yielded = true;
-        yield row;
-      }
-      return;
+      return await attempt(handle);
     } catch (error) {
-      // If a row was already yielded, the error came from mid-stream and a
-      // retry would re-yield prior rows to the consumer.
-      if (yielded || !isStalePreparedStatementError(error)) {
-        throw normalizePgError(error);
+      if (!isStalePreparedStatementError(error)) {
+        throw error;
       }
       // pg's parsedStatements still records the old name; only a fresh name
       // forces pg to re-Parse on this Client.
       const retryHandle = this.options.handleAllocator.mint();
       preparedStatementHandle.set(retryHandle);
       try {
-        yield* attempt(retryHandle);
+        return await attempt(retryHandle);
       } catch (retryError) {
         throw prepareFailedError(retryError, retryHandle);
       }
+    }
+  }
+
+  private async *withStaleHandleStreamRetry<Row>(
+    preparedStatementHandle: PreparedStatementHandle,
+    handle: string,
+    attempt: (handle: string) => AsyncIterable<Row>,
+  ): AsyncIterable<Row> {
+    const stream = await this.withStaleHandleRetry(
+      preparedStatementHandle,
+      handle,
+      async (name) => {
+        const iterator = attempt(name)[Symbol.asyncIterator]();
+        return { iterator, first: await iterator.next() };
+      },
+    );
+
+    if (stream.first.done) {
+      return;
+    }
+
+    let streamCompleted = false;
+    try {
+      yield stream.first.value;
+      while (true) {
+        const next = await stream.iterator.next();
+        if (next.done) {
+          streamCompleted = true;
+          return;
+        }
+        yield next.value;
+      }
+    } finally {
+      if (!streamCompleted) {
+        await stream.iterator.return?.();
+      }
+    }
+  }
+
+  private async runExecute(request: SqlExecuteRequest, name?: string): Promise<SqlStatementStats> {
+    const client = await this.acquireClient();
+    try {
+      const releaseLock = await acquireClientQueryLock(client);
+      try {
+        const result = await client.query({
+          name,
+          text: request.sql,
+          values: [...(request.params ?? [])],
+        });
+        return { affectedRows: result.rowCount ?? 0 };
+      } finally {
+        releaseLock();
+      }
+    } finally {
+      await this.releaseClient(client);
     }
   }
 
@@ -264,7 +308,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
             this.options.cursorBatchSize,
             name,
           )) {
-            yield row as Row;
+            yield blindCast<Row, 'postgres cursor rows are dynamically shaped'>(row);
           }
           return;
         } catch (cursorError) {
@@ -279,7 +323,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       }
 
       for await (const row of this.executeBuffered(client, request.sql, request.params, name)) {
-        yield row as Row;
+        yield blindCast<Row, 'postgres query rows are dynamically shaped'>(row);
       }
     } finally {
       await this.releaseClient(client);
@@ -295,9 +339,13 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       const releaseLock = await acquireClientQueryLock(client);
       try {
         const result = await client
-          .query(text, request.params as unknown[] | undefined)
+          .query(text, request.params === undefined ? undefined : [...request.params])
           .catch(rethrowNormalizedError);
-        return { rows: result.rows as ReadonlyArray<Record<string, unknown>> };
+        return {
+          rows: blindCast<ReadonlyArray<Record<string, unknown>>, 'pg does not type query rows'>(
+            result.rows,
+          ),
+        };
       } finally {
         releaseLock();
       }
@@ -369,7 +417,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     cursorBatchSize: number,
     name?: string,
   ): AsyncIterable<Record<string, unknown>> {
-    const values = (params ?? []) as unknown[];
+    const values = [...(params ?? [])];
     const cursor = client.query(
       name === undefined ? new Cursor(sql, values) : new NamedCursor({ name, text: sql, values }),
     );
@@ -399,7 +447,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     params: readonly unknown[] | undefined,
     name?: string,
   ): AsyncIterable<Record<string, unknown>> {
-    const config: QueryConfig = { name, text: sql, values: (params ?? []) as unknown[] };
+    const config: QueryConfig = { name, text: sql, values: [...(params ?? [])] };
     const releaseLock = await acquireClientQueryLock(client);
     let result: PgQueryResult;
     try {
@@ -407,7 +455,10 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     } finally {
       releaseLock();
     }
-    for (const row of result.rows as Record<string, unknown>[]) {
+    for (const row of blindCast<
+      ReadonlyArray<Record<string, unknown>>,
+      'pg does not type query rows'
+    >(result.rows)) {
       yield row;
     }
   }
