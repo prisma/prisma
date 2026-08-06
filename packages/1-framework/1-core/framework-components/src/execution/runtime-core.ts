@@ -119,6 +119,7 @@ export abstract class RuntimeCore<
     const codecCtx: CodecCallContext = signal === undefined ? {} : { signal };
     const execCtx: RuntimeMiddlewareContext = {
       ...self.ctx,
+      ...codecCtx,
       operation: 'query',
       planExecutionId: crypto.randomUUID(),
     };
@@ -144,6 +145,7 @@ export abstract class RuntimeCore<
     const codecCtx: CodecCallContext = signal === undefined ? {} : { signal };
     const execCtx: RuntimeMiddlewareContext = {
       ...this.ctx,
+      ...codecCtx,
       operation: 'execute',
       planExecutionId: crypto.randomUUID(),
     };

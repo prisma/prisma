@@ -13,6 +13,14 @@ const meta: PlanMeta = {
   lane: 'raw-sql',
 };
 
+function deferred(): { readonly promise: Promise<void>; readonly resolve: () => void } {
+  let resolve = () => {};
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
 interface MockPlan<Row = Record<string, unknown>> extends QueryPlan<Row> {
   readonly draftId: string;
 }
@@ -264,6 +272,131 @@ describe('RuntimeCore', () => {
     expect(runtime.closeCalls).toBe(0);
     await runtime.close();
     expect(runtime.closeCalls).toBe(1);
+  });
+
+  describe('signal propagation', () => {
+    it('exposes the query signal by identity to every middleware hook', async () => {
+      const controller = new AbortController();
+      const observed: AbortSignal[] = [];
+      const middleware: RuntimeMiddleware<MockExec> = {
+        name: 'signal-observer',
+        beforeExecute(_plan, hookCtx) {
+          if (hookCtx.signal) observed.push(hookCtx.signal);
+        },
+        async intercept(_plan, hookCtx) {
+          if (hookCtx.signal) observed.push(hookCtx.signal);
+          return undefined;
+        },
+        async onRow(_row, _plan, hookCtx) {
+          if (hookCtx.signal) observed.push(hookCtx.signal);
+        },
+        async afterExecute(_plan, _result, hookCtx) {
+          if (hookCtx.signal) observed.push(hookCtx.signal);
+        },
+      };
+      const runtime = new MockRuntime([middleware], ctx, [{ id: 1 }]);
+
+      await runtime
+        .query({ draftId: 'query-signal', meta }, { signal: controller.signal })
+        .toArray();
+
+      expect(observed).toEqual([
+        controller.signal,
+        controller.signal,
+        controller.signal,
+        controller.signal,
+      ]);
+    });
+
+    it('exposes the execute signal by identity to every applicable middleware hook', async () => {
+      const controller = new AbortController();
+      const observed: AbortSignal[] = [];
+      const middleware: RuntimeMiddleware<MockExec> = {
+        name: 'signal-observer',
+        beforeExecute(_plan, hookCtx) {
+          if (hookCtx.signal) observed.push(hookCtx.signal);
+        },
+        async intercept(_plan, hookCtx) {
+          if (hookCtx.signal) observed.push(hookCtx.signal);
+          return undefined;
+        },
+        async afterExecute(_plan, _result, hookCtx) {
+          if (hookCtx.signal) observed.push(hookCtx.signal);
+        },
+      };
+      const runtime = new MockRuntime([middleware], ctx, []);
+
+      await runtime.execute({ draftId: 'execute-signal', meta }, { signal: controller.signal });
+
+      expect(observed).toEqual([controller.signal, controller.signal, controller.signal]);
+    });
+
+    it('omits signal when neither operation supplies one', async () => {
+      const observed: boolean[] = [];
+      const middleware: RuntimeMiddleware<MockExec> = {
+        name: 'signal-observer',
+        beforeExecute(_plan, hookCtx) {
+          observed.push('signal' in hookCtx);
+        },
+      };
+      const runtime = new MockRuntime([middleware], ctx, []);
+
+      await runtime.query({ draftId: 'query-without-signal', meta }).toArray();
+      await runtime.execute({ draftId: 'execute-without-signal', meta });
+
+      expect(observed).toEqual([false, false]);
+    });
+
+    it('aborts an in-flight query beforeExecute hook', async () => {
+      const controller = new AbortController();
+      const entered = deferred();
+      const middleware: RuntimeMiddleware<MockExec> = {
+        name: 'blocking-before-execute',
+        beforeExecute() {
+          entered.resolve();
+          return new Promise<void>(() => {});
+        },
+      };
+      const runtime = new MockRuntime([middleware], ctx, []);
+      const pending = runtime
+        .query({ draftId: 'query-abort', meta }, { signal: controller.signal })
+        .toArray();
+
+      await entered.promise;
+      controller.abort(new Error('query cancelled'));
+
+      await expect(pending).rejects.toMatchObject({
+        code: 'RUNTIME.ABORTED',
+        details: { phase: 'beforeExecute' },
+        cause: controller.signal.reason,
+      });
+    });
+
+    it('aborts an in-flight execute beforeExecute hook', async () => {
+      const controller = new AbortController();
+      const entered = deferred();
+      const middleware: RuntimeMiddleware<MockExec> = {
+        name: 'blocking-before-execute',
+        beforeExecute() {
+          entered.resolve();
+          return new Promise<void>(() => {});
+        },
+      };
+      const runtime = new MockRuntime([middleware], ctx, []);
+      const pending = runtime.execute(
+        { draftId: 'execute-abort', meta },
+        { signal: controller.signal },
+      );
+
+      await entered.promise;
+      controller.abort(new Error('execute cancelled'));
+
+      await expect(pending).rejects.toMatchObject({
+        code: 'RUNTIME.ABORTED',
+        details: { phase: 'beforeExecute' },
+        cause: controller.signal.reason,
+      });
+    });
   });
 
   describe('planExecutionId', () => {
