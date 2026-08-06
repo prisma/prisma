@@ -112,35 +112,35 @@ async function drain(iter: AsyncIterable<unknown>): Promise<unknown[]> {
   return out;
 }
 
-describe('MongoRuntime — execute(plan, options?) abort + ctx threading', () => {
-  it('execute(plan) with no options threads a ctx whose signal is undefined', async () => {
+describe('MongoRuntime operations abort + ctx threading', () => {
+  it('query(plan) with no options threads a ctx whose signal is undefined', async () => {
     const { adapter, observed } = recordingAdapter();
     const runtime = createMongoRuntime({
       context: makeContext(adapter),
       driver: rowsDriver([{ _id: '1' }]),
     });
 
-    const rows = await drain(runtime.execute(createPlan()));
+    const rows = await drain(runtime.query(createPlan()));
     expect(rows).toHaveLength(1);
     expect(observed).toHaveLength(1);
     expect(observed[0]?.signal).toBeUndefined();
   });
 
-  it('execute(plan, undefined) and execute(plan, {}) thread ctx with undefined signal', async () => {
+  it('query(plan, undefined) and query(plan, {}) thread ctx with undefined signal', async () => {
     const { adapter, observed } = recordingAdapter();
     const runtime = createMongoRuntime({
       context: makeContext(adapter),
       driver: rowsDriver([]),
     });
 
-    await drain(runtime.execute(createPlan(), undefined));
-    await drain(runtime.execute(createPlan(), {}));
+    await drain(runtime.query(createPlan(), undefined));
+    await drain(runtime.query(createPlan(), {}));
     expect(observed).toHaveLength(2);
     expect(observed[0]?.signal).toBeUndefined();
     expect(observed[1]?.signal).toBeUndefined();
   });
 
-  it('threads { signal } through execute → resolveParams as a CodecCallContext (signal identity preserved)', async () => {
+  it('threads { signal } through query → resolveParams as a CodecCallContext (signal identity preserved)', async () => {
     const { adapter, observed } = recordingAdapter();
     const runtime = createMongoRuntime({
       context: makeContext(adapter),
@@ -148,14 +148,14 @@ describe('MongoRuntime — execute(plan, options?) abort + ctx threading', () =>
     });
 
     const controller = new AbortController();
-    await drain(runtime.execute(createPlan(), { signal: controller.signal }));
+    await drain(runtime.query(createPlan(), { signal: controller.signal }));
 
     expect(observed).toHaveLength(1);
     expect(observed[0]).toBeDefined();
     expect(observed[0]?.signal).toBe(controller.signal);
   });
 
-  it('already-aborted signal at execute() entry rejects with RUNTIME.ABORTED { phase: stream } before structuralLower or driver.execute', async () => {
+  it('already-aborted signal at query() entry rejects with RUNTIME.ABORTED { phase: stream } before structuralLower or driver.execute', async () => {
     const { adapter, resolveCallCount } = recordingAdapter();
     const driver = rowsDriver([{ _id: '1' }]);
     const runtime = createMongoRuntime({
@@ -168,7 +168,7 @@ describe('MongoRuntime — execute(plan, options?) abort + ctx threading', () =>
     controller.abort(reason);
 
     await expect(
-      drain(runtime.execute(createPlan(), { signal: controller.signal })),
+      drain(runtime.query(createPlan(), { signal: controller.signal })),
     ).rejects.toMatchObject({
       code: 'RUNTIME.ABORTED',
       details: { phase: 'stream' },
@@ -177,6 +177,29 @@ describe('MongoRuntime — execute(plan, options?) abort + ctx threading', () =>
     expect(resolveCallCount.current).toBe(0);
     expect(adapter.structuralLower).not.toHaveBeenCalled();
     expect(adapter.resolveParams).not.toHaveBeenCalled();
+    expect(
+      (driver as unknown as { execute: { mock: { calls: unknown[] } } }).execute.mock.calls,
+    ).toHaveLength(0);
+  });
+
+  it('rejects already-aborted execute before lowering or driver delegation', async () => {
+    const { adapter, resolveCallCount } = recordingAdapter();
+    const driver = rowsDriver([{ modifiedCount: 1 }]);
+    const runtime = createMongoRuntime({ context: makeContext(adapter), driver });
+    const controller = new AbortController();
+    const reason = new Error('statistics execution aborted');
+    controller.abort(reason);
+
+    await expect(
+      runtime.execute(createPlan(), { signal: controller.signal }),
+    ).rejects.toMatchObject({
+      code: 'RUNTIME.ABORTED',
+      details: { phase: 'stream' },
+      cause: reason,
+    });
+
+    expect(resolveCallCount.current).toBe(0);
+    expect(adapter.structuralLower).not.toHaveBeenCalled();
     expect(
       (driver as unknown as { execute: { mock: { calls: unknown[] } } }).execute.mock.calls,
     ).toHaveLength(0);

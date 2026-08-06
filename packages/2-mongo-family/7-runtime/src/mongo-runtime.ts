@@ -5,8 +5,10 @@ import {
   checkMiddlewareCompatibility,
   RuntimeCore,
   type RuntimeExecuteOptions,
-  type RuntimeMiddlewareContext,
+  type RuntimeStatementStats,
   runBeforeExecuteChain,
+  runExecuteWithMiddleware,
+  runtimeError,
   runWithMiddleware,
 } from '@internal/framework-components/runtime';
 import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
@@ -25,6 +27,31 @@ import {
 } from './param-ref-mutator';
 
 function noop() {}
+
+function isUnknownRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function statisticsCountField(commandKind: string): 'modifiedCount' | 'deletedCount' | undefined {
+  switch (commandKind) {
+    case 'updateOne':
+    case 'updateMany':
+      return 'modifiedCount';
+    case 'deleteOne':
+    case 'deleteMany':
+      return 'deletedCount';
+    default:
+      return undefined;
+  }
+}
+
+function invalidStatisticsResult(commandKind: string, countField: string): Error {
+  return runtimeError(
+    'RUNTIME.MONGO_STATISTICS_RESULT_INVALID',
+    `Mongo command '${commandKind}' did not return exactly one numeric '${countField}' result`,
+    { commandKind, countField },
+  );
+}
 
 /**
  * Mongo runtime options.
@@ -46,7 +73,7 @@ export interface MongoRuntimeOptions {
 
 export interface MongoRuntime {
   /**
-   * Execute a `MongoQueryPlan` and return an async iterable of rows.
+   * Query a `MongoQueryPlan` and return an async iterable of rows.
    *
    * The optional `options.signal` is threaded through
    * `lower → adapter.lower → resolveValue → codec.encode` so codec authors
@@ -56,7 +83,7 @@ export interface MongoRuntime {
    *
    * - **Already-aborted at entry** — first `next()` throws
    *   `RUNTIME.ABORTED { phase: 'stream' }` before any work is done.
-   *   (Inherited from `RuntimeCore.execute`.)
+   *   (Inherited from `RuntimeCore.query`.)
    * - **Mid-encode abort** — surfaces as
    *   `RUNTIME.ABORTED { phase: 'encode' }` from inside `resolveValue`'s
    *   per-level `Promise.all` race.
@@ -66,10 +93,8 @@ export interface MongoRuntime {
    * call, so async decoders that respect the signal get cancellation; the
    * runtime itself does not currently emit a `phase: 'decode'` envelope.
    */
-  execute<Row>(
-    plan: MongoQueryPlan<Row>,
-    options?: RuntimeExecuteOptions,
-  ): AsyncIterableResult<Row>;
+  query<Row>(plan: MongoQueryPlan<Row>, options?: RuntimeExecuteOptions): AsyncIterableResult<Row>;
+  execute(plan: MongoQueryPlan, options?: RuntimeExecuteOptions): Promise<RuntimeStatementStats>;
   close(): Promise<void>;
 }
 
@@ -105,10 +130,10 @@ class MongoRuntimeImpl
       // derive a scope-narrowed ctx per call (mirror
       // SqlRuntime#executeAgainstQueryable in `sql-runtime.ts`).
       scope: 'runtime',
+      operation: 'query',
       // Placeholder satisfying the required field on the cross-family base. The
-      // stored ctx is a runtime-level template; the per-execute ctx constructed
-      // in `execute()` spreads this template and overrides `planExecutionId`
-      // with a fresh UUID. ADR 220.
+      // stored ctx is a runtime-level template; each operation overrides
+      // `planExecutionId` with a fresh UUID. ADR 220.
       planExecutionId: '',
     };
 
@@ -121,7 +146,7 @@ class MongoRuntimeImpl
     this.#codecs = options.context.codecs;
   }
 
-  /* v8 ignore start -- one-phase lower satisfies RuntimeCore; execute uses structuralLower + resolveParams */
+  /* v8 ignore start -- one-phase lower satisfies RuntimeCore; operations use the split preparation pipeline */
   protected override async lower(
     plan: MongoQueryPlan,
     ctx: CodecCallContext,
@@ -138,88 +163,81 @@ class MongoRuntimeImpl
     return this.#driver.execute<Record<string, unknown>>(exec.command);
   }
 
-  override execute<Row>(
+  protected override runExecute(exec: MongoExecutionPlan): Promise<RuntimeStatementStats> {
+    return this.#readDriverStatistics(exec);
+  }
+
+  private createOperationContexts(
+    options: RuntimeExecuteOptions | undefined,
+    operation: 'query' | 'execute',
+  ): {
+    readonly codecCtx: CodecCallContext;
+    readonly middlewareCtx: MongoMiddlewareContext;
+  } {
+    const signal = options?.signal;
+    const codecCtx: CodecCallContext = signal === undefined ? {} : { signal };
+    const middlewareCtx: MongoMiddlewareContext = {
+      ...this.ctx,
+      ...ifDefined('signal', signal),
+      operation,
+      planExecutionId: crypto.randomUUID(),
+    };
+    return { codecCtx, middlewareCtx };
+  }
+
+  private async prepareExecution(
+    plan: MongoQueryPlan,
+    codecCtx: CodecCallContext,
+    middlewareCtx: MongoMiddlewareContext,
+  ): Promise<MongoExecutionPlan> {
+    checkAborted(codecCtx, 'stream');
+    const compiled = await this.runBeforeCompile(plan);
+    const draft = this.#adapter.structuralLower(compiled);
+    const mutator: MongoParamRefMutatorInternal = createMongoParamRefMutator(draft);
+    const draftExec: MongoExecutionPlan = {
+      meta: compiled.meta,
+      ...ifDefined('resultShape', compiled.resultShape),
+      command: blindCast<
+        MongoExecutionPlan['command'],
+        'MongoLoweredDraft held in command slot for the beforeExecute view; resolveParams runs after the chain'
+      >(draft),
+    };
+
+    await runBeforeExecuteChain<MongoExecutionPlan, MongoParamRefMutator>(
+      draftExec,
+      this.middleware,
+      middlewareCtx,
+      mutator,
+    );
+
+    return {
+      meta: compiled.meta,
+      ...ifDefined('resultShape', compiled.resultShape),
+      command: await this.#adapter.resolveParams(mutator.currentDraft(), codecCtx),
+    };
+  }
+
+  override query<Row>(
     plan: MongoQueryPlan & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
     const self = this;
-    const signal = options?.signal;
-    const codecCtx: CodecCallContext = signal === undefined ? {} : { signal };
-
-    // Per-execute middleware context. Spread the stored runtime-level
-    // template and mint a fresh `planExecutionId` so every hook in this
-    // call observes the same value, and two executions of the same plan
-    // observe distinct values. ADR 220. The plan itself flows through
-    // unchanged.
-    const execCtx: RuntimeMiddlewareContext = {
-      ...self.ctx,
-      planExecutionId: crypto.randomUUID(),
-    };
-
+    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'query');
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-      checkAborted(codecCtx, 'stream');
-      const compiled = await self.runBeforeCompile(plan);
-
-      // Phase 1: structural lower — transforms the AST but leaves MongoParamRef
-      // nodes in place so middleware can inspect and rewrite them before
-      // codec resolution.
-      const draft = self.#adapter.structuralLower(compiled);
-      const mutator: MongoParamRefMutatorInternal = createMongoParamRefMutator(draft);
-
-      // Build the plan view for the beforeExecute chain. Middleware accesses
-      // plan.meta and the mutator's entries(); plan.command carries the
-      // unresolved draft at this stage.
-      // The cast is necessary because MongoExecutionPlan.command is typed as
-      // AnyMongoWireCommand (the post-resolution shape). No beforeExecute
-      // middleware reads plan.command structurally — params are observed via
-      // the mutator's entries(). The cast is narrowed to the command slot
-      // only so no whole-object information is lost.
-      const draftExec: MongoExecutionPlan = {
-        meta: compiled.meta,
-        ...ifDefined('resultShape', compiled.resultShape),
-        command: blindCast<
-          MongoExecutionPlan['command'],
-          'MongoLoweredDraft held in command slot for the beforeExecute view; resolveParams runs after the chain'
-        >(draft),
-      };
-
-      await runBeforeExecuteChain<MongoExecutionPlan, MongoParamRefMutator>(
-        draftExec,
-        self.middleware,
-        execCtx,
-        mutator,
-      );
-
-      // Phase 2: resolve params — converts the (possibly mutated) draft into
-      // a frozen wire command. currentDraft() returns the original draft by
-      // reference when no middleware called replaceValue/replaceValues (fast path).
-      const resolvedCommand = await self.#adapter.resolveParams(mutator.currentDraft(), codecCtx);
-      const exec: MongoExecutionPlan = {
-        meta: compiled.meta,
-        ...ifDefined('resultShape', compiled.resultShape),
-        command: resolvedCommand,
-      };
-
-      // Phase 3: driver pipeline — runWithMiddleware and decodeMongoRow both
-      // receive the fully resolved exec. computeMongoContentHash (called via
-      // ctx.contentHash during intercept/afterExecute) therefore hashes the
-      // resolved command; no MongoParamRef instance reaches canonicalStringify.
+      const exec = await self.prepareExecution(plan, codecCtx, middlewareCtx);
       const stream = runWithMiddleware<MongoExecutionPlan, Record<string, unknown>>(
         exec,
         self.middleware,
-        execCtx,
+        middlewareCtx,
         () => self.runDriver(exec),
       );
       for await (const rawRow of stream) {
+        checkAborted(codecCtx, 'stream');
         if (exec.resultShape === undefined) {
           yield blindCast<Row, 'driver row matches plan _row phantom when resultShape is absent'>(
             rawRow,
           );
         } else {
-          // Source the collection from the lowered exec rather than the
-          // pre-lowering plan: a runBeforeCompile middleware is allowed to
-          // rewrite collection names during compilation, and the wire command
-          // carried by exec is always authoritative for what just ran.
           const decoded = await decodeMongoRow(
             rawRow,
             exec.resultShape,
@@ -232,6 +250,45 @@ class MongoRuntimeImpl
       }
     };
     return new AsyncIterableResult(generator());
+  }
+
+  override async execute(
+    plan: MongoQueryPlan,
+    options?: RuntimeExecuteOptions,
+  ): Promise<RuntimeStatementStats> {
+    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'execute');
+    const exec = await this.prepareExecution(plan, codecCtx, middlewareCtx);
+    checkAborted(codecCtx, 'stream');
+    return runExecuteWithMiddleware(exec, this.middleware, middlewareCtx, () =>
+      this.#readDriverStatistics(exec),
+    );
+  }
+
+  async #readDriverStatistics(exec: MongoExecutionPlan): Promise<RuntimeStatementStats> {
+    const countField = statisticsCountField(exec.command.kind);
+    if (countField === undefined) {
+      throw runtimeError(
+        'RUNTIME.MONGO_STATISTICS_UNSUPPORTED',
+        `Mongo command '${exec.command.kind}' does not expose statement statistics`,
+        { commandKind: exec.command.kind },
+      );
+    }
+
+    let affectedRows: number | undefined;
+    for await (const result of this.#driver.execute<unknown>(exec.command)) {
+      if (affectedRows !== undefined || !isUnknownRecord(result)) {
+        throw invalidStatisticsResult(exec.command.kind, countField);
+      }
+      const count = result[countField];
+      if (typeof count !== 'number') {
+        throw invalidStatisticsResult(exec.command.kind, countField);
+      }
+      affectedRows = count;
+    }
+    if (affectedRows === undefined) {
+      throw invalidStatisticsResult(exec.command.kind, countField);
+    }
+    return { affectedRows };
   }
 
   override async close(): Promise<void> {
