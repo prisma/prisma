@@ -10,6 +10,7 @@ import { ok } from '@internal/utils/result';
 import { extname } from 'pathe';
 import { buildSqlContractFromDefinition } from './build-contract';
 import { contractError } from './contract-errors';
+import { stripDerivedChecksFromNonManagedTables } from './derived-checks';
 
 /**
  * Derives the emit output path from the TS contract input so artefacts land
@@ -43,7 +44,12 @@ export function emptyContract(options: {
           createNamespace: options.createNamespace,
           models: [],
         });
-        return ok(applySpecifierDefaultControlPolicy(built, options.defaultControlPolicy));
+        return ok(
+          stripDerivedChecksFromNonManagedTables(
+            applySpecifierDefaultControlPolicy(built, options.defaultControlPolicy),
+            options.createNamespace,
+          ),
+        );
       },
     },
     ...ifDefined('output', options.output),

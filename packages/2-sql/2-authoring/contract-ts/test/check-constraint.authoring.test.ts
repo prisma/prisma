@@ -1,10 +1,13 @@
-import type { Contract } from '@internal/contract/types';
+import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-specifier-default-control-policy';
+import type { Contract, ControlPolicy } from '@internal/contract/types';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import {
   CheckConstraint,
   checkConstraintInputFromSerialized,
   type SqlStorage,
+  SqlStorage as SqlStorageClass,
   type StorageTable,
+  StorageTable as StorageTableClass,
 } from '@internal/sql-contract/types';
 import {
   computeCheckContentHash,
@@ -12,9 +15,11 @@ import {
   parseNaming,
   WIRE_NAME_PREFIX_MAX_BYTES,
 } from '@internal/sql-schema-ir/naming';
+import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { defineContract } from '../src/contract-builder';
+import { stripDerivedChecksFromNonManagedTables } from '../src/derived-checks';
 import { enumType, member } from '../src/enum-type';
 
 const sqlFamilyPack = {
@@ -489,5 +494,154 @@ describe('check emission — JSON round-trip', () => {
 
     expect(flatten(hydrated)).toEqual(flatten(checksOf(contract)));
     expect(hydrated).toHaveLength(2);
+  });
+});
+
+// Enforcement is derived only for tables Prisma Next owns. The policy reaches
+// the builder two ways — declared in the source, or stamped onto the finished
+// contract by a contract specifier — so the rule is applied twice.
+describe('check emission — derivation is scoped to managed tables', () => {
+  function buildUser(options: {
+    readonly control?: ControlPolicy;
+    readonly defaultControlPolicy?: ControlPolicy;
+  }): Contract<SqlStorage> {
+    return defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+        ...ifDefined('defaultControlPolicy', options.defaultControlPolicy),
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), role: f.namedType(Role), tags: f.text().many() },
+            }).sql(options.control === undefined ? {} : { control: options.control }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+  }
+
+  it('a managed table derives its checks', () => {
+    expect(checksOf(buildUser({})).map((c) => c.prefix)).toEqual([
+      'User_role_check',
+      'User_tags_elem_not_null',
+    ]);
+  });
+
+  it.each(['external', 'tolerated', 'observed'] as const)(
+    'a table declared %s derives none',
+    (control) => {
+      expect(checksOf(buildUser({ control }))).toEqual([]);
+    },
+  );
+
+  it('a contract-wide external default suppresses derivation', () => {
+    expect(checksOf(buildUser({ defaultControlPolicy: 'external' }))).toEqual([]);
+  });
+
+  it('a managed table overriding an external default still derives', () => {
+    expect(
+      checksOf(buildUser({ control: 'managed', defaultControlPolicy: 'external' })),
+    ).toHaveLength(2);
+  });
+
+  it('an external table overriding a managed default derives none', () => {
+    expect(checksOf(buildUser({ control: 'external', defaultControlPolicy: 'managed' }))).toEqual(
+      [],
+    );
+  });
+});
+
+// The Supabase shape: the pack's PSL declares no policy at all, and the
+// contract specifier stamps `external` onto the finished contract. Emission has
+// already run by then, so the strip is what carries the consequence.
+describe('check emission — a specifier-applied policy strips derived checks', () => {
+  function buildManagedUser(): Contract<SqlStorage> {
+    return defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), role: f.namedType(Role), tags: f.text().many() },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+  }
+
+  it('strips them and rehashes the storage', () => {
+    const built = buildManagedUser();
+    expect(checksOf(built)).toHaveLength(2);
+
+    const stamped = applySpecifierDefaultControlPolicy(built, 'external');
+    const stripped = stripDerivedChecksFromNonManagedTables(
+      stamped,
+      createTestSqlNamespace,
+    ) as Contract<SqlStorage>;
+
+    expect(checksOf(stripped)).toEqual([]);
+    expect(stripped.storage.storageHash).not.toBe(built.storage.storageHash);
+    expect(stripped.defaultControlPolicy).toBe('external');
+  });
+
+  it('leaves a managed contract untouched, by reference', () => {
+    const built = buildManagedUser();
+    expect(stripDerivedChecksFromNonManagedTables(built, createTestSqlNamespace)).toBe(built);
+  });
+
+  it('keeps an exact-named check, which no derivation produced', () => {
+    const built = buildManagedUser();
+    const derived = '"tags" IS NOT NULL';
+    const adopted = '"role" <> \'\'';
+    const withAdopted: Contract<SqlStorage> = {
+      ...built,
+      defaultControlPolicy: 'external',
+      storage: new SqlStorageClass({
+        storageHash: built.storage.storageHash,
+        namespaces: {
+          public: createTestSqlNamespace({
+            id: 'public',
+            entries: {
+              table: {
+                User: new StorageTableClass({
+                  columns: {},
+                  uniques: [],
+                  indexes: [],
+                  foreignKeys: [],
+                  checks: [
+                    { naming: { kind: 'exact', name: 'User_hand_written' }, expression: adopted },
+                    {
+                      naming: {
+                        kind: 'wire',
+                        prefix: 'User_tags_elem_not_null',
+                        hash: computeCheckContentHash(derived),
+                      },
+                      expression: derived,
+                    },
+                  ],
+                }),
+              },
+            },
+          }),
+        },
+      }),
+    };
+
+    const stripped = stripDerivedChecksFromNonManagedTables(
+      withAdopted,
+      createTestSqlNamespace,
+    ) as Contract<SqlStorage>;
+    expect(flatten(checksOf(stripped))).toEqual([
+      { name: 'User_hand_written', prefix: undefined, expression: adopted },
+    ]);
   });
 });

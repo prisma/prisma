@@ -17,6 +17,7 @@ import {
   coreHash,
   crossRef,
   type ExecutionMutationDefault,
+  effectiveControlPolicy,
   type JsonValue,
   type StorageHashBase,
   type ValueSetRef,
@@ -842,6 +843,13 @@ export function buildSqlContractFromDefinition(
     const domainFields: Record<string, ContractField> = {};
     const domainFieldRefs: Record<string, DomainFieldRef> = {};
     const checksForTable: CheckConstraint[] = [];
+    // Enforcement is derived only for tables Prisma Next owns: the contract
+    // describes an external schema, it does not prescribe enforcement for it.
+    // This reads the policy the source declares; a policy applied by a contract
+    // specifier lands after the build and is handled by
+    // `stripDerivedChecksFromNonManagedTables`.
+    const derivesChecks =
+      effectiveControlPolicy(semanticModel.control, definition.defaultControlPolicy) === 'managed';
 
     for (const field of semanticModel.fields) {
       const executionDefaultPhases =
@@ -940,7 +948,7 @@ export function buildSqlContractFromDefinition(
       // `pg.enum(Ref)`) binds the column to a codec/native-type pairing that
       // IS the storage-level enforcement — including array columns, since the
       // target enforces membership on every element of a native-typed array.
-      if (renderCheckExpressions !== undefined) {
+      if (renderCheckExpressions !== undefined && derivesChecks) {
         checksForTable.push(
           ...lowerRenderedChecks(
             tableName,

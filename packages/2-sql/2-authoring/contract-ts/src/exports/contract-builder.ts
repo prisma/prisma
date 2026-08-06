@@ -29,6 +29,8 @@ export type {
 export type { TargetFieldRef } from '../contract-dsl';
 export { buildContractDefinition } from '../contract-lowering';
 export type { ExtractCodecTypesFromPack } from '../contract-types';
+export type { SqlNamespaceFactory } from '../derived-checks';
+export { stripDerivedChecksFromNonManagedTables } from '../derived-checks';
 export type {
   BoundEnumType,
   CodecInput,
