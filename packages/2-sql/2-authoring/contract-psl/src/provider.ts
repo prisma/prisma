@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises';
 import type { ContractConfig, ContractSourceDiagnostic } from '@internal/config/config-types';
-import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-specifier-default-control-policy';
 import type { ControlPolicy } from '@internal/contract/types';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
@@ -10,7 +9,7 @@ import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import type { ParseDiagnostic, SourceFile } from '@internal/psl-parser/syntax';
 import { parse } from '@internal/psl-parser/syntax';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
-import { stripDerivedChecksFromNonManagedTables } from '@internal/sql-contract-ts/contract-builder';
+import { applySqlSpecifierControlPolicy } from '@internal/sql-contract-ts/contract-builder';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
@@ -142,11 +141,12 @@ export function prismaContract(schemaPath: string, options: PrismaContractOption
       }
 
       // The specifier's policy lands after the contract is built, so the
-      // strip runs here rather than at the emission site: a table that only
+      // funnel runs here rather than at the emission site: a table that only
       // becomes non-managed now must still shed its derived checks.
       return ok(
-        stripDerivedChecksFromNonManagedTables(
-          applySpecifierDefaultControlPolicy(interpreted.value, options.defaultControlPolicy),
+        applySqlSpecifierControlPolicy(
+          interpreted.value,
+          options.defaultControlPolicy,
           options.createNamespace,
         ),
       );

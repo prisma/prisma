@@ -1,3 +1,4 @@
+import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-specifier-default-control-policy';
 import { computeStorageHash } from '@internal/contract/hashing';
 import type { Contract, ControlPolicy } from '@internal/contract/types';
 import { effectiveControlPolicy } from '@internal/contract/types';
@@ -17,6 +18,24 @@ import { ifDefined } from '@internal/utils/defined';
  * `createNamespace` a contract specifier already threads through.
  */
 export type SqlNamespaceFactory = (input: SqlNamespaceInput) => SqlNamespaceBase;
+
+/**
+ * The one step every SQL contract specifier funnels its loaded contract
+ * through: stamp the specifier's default control policy, then strip derived
+ * checks from every table the stamped policy leaves non-managed. Composing the
+ * two here is what keeps the managed-only consequence from being skipped on
+ * any specifier route.
+ */
+export function applySqlSpecifierControlPolicy(
+  contract: Contract,
+  defaultControlPolicy: ControlPolicy | undefined,
+  createNamespace: SqlNamespaceFactory,
+): Contract {
+  return stripDerivedChecksFromNonManagedTables(
+    applySpecifierDefaultControlPolicy(contract, defaultControlPolicy),
+    createNamespace,
+  );
+}
 
 /**
  * Removes generated enforcement checks from every table whose effective
@@ -39,7 +58,8 @@ export type SqlNamespaceFactory = (input: SqlNamespaceInput) => SqlNamespaceBase
  * This is the post-build half of the rule. Authoring skips derivation for a
  * table whose policy is known in the source; this pass catches the policy a
  * contract *specifier* applies after the contract is already built, which is
- * the only signal a pack like the Supabase extension gives.
+ * the only signal a pack like the Supabase extension gives. Specifiers reach
+ * it through `applySqlSpecifierControlPolicy` above.
  *
  * Returns the contract unchanged (same reference) when nothing is stripped.
  * When something is, the storage hash is recomputed — the stripped contract
@@ -50,7 +70,7 @@ export function stripDerivedChecksFromNonManagedTables(
   createNamespace: SqlNamespaceFactory,
 ): Contract {
   const storage = contract.storage;
-  if (!(storage instanceof SqlStorage)) return contract;
+  if (!isSqlStorageShaped(storage)) return contract;
 
   let anyStripped = false;
   const namespaces: Record<string, SqlNamespaceBase> = {};
@@ -104,6 +124,16 @@ export function stripDerivedChecksFromNonManagedTables(
       }),
     }),
   };
+}
+
+/**
+ * Structural stand-in for `instanceof SqlStorage`: like the checks it wraps, a
+ * storage instance can arrive from a realm whose IR classes are a separate
+ * copy (the dist e2e shape), where an `instanceof` test would miss.
+ */
+function isSqlStorageShaped(x: unknown): x is SqlStorage {
+  if (typeof x !== 'object' || x === null || !('namespaces' in x)) return false;
+  return typeof x.namespaces === 'object' && x.namespaces !== null;
 }
 
 /** The table itself when it keeps every check, a rebuilt one when it does not. */

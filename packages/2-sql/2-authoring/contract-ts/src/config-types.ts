@@ -1,6 +1,5 @@
 import { pathToFileURL } from 'node:url';
 import type { ContractConfig } from '@internal/config/config-types';
-import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-specifier-default-control-policy';
 import type { Contract, ControlPolicy } from '@internal/contract/types';
 import type { TargetPackRef } from '@internal/framework-components/components';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
@@ -10,7 +9,7 @@ import { ok } from '@internal/utils/result';
 import { extname } from 'pathe';
 import { buildSqlContractFromDefinition } from './build-contract';
 import { contractError } from './contract-errors';
-import { stripDerivedChecksFromNonManagedTables } from './derived-checks';
+import { applySqlSpecifierControlPolicy, type SqlNamespaceFactory } from './derived-checks';
 
 /**
  * Derives the emit output path from the TS contract input so artefacts land
@@ -24,8 +23,14 @@ function defaultOutputFromContractPath(contractPath: string): string {
   return `${contractPath.slice(0, -ext.length)}.json`;
 }
 
+/**
+ * Stamping a default control policy carries a consequence — derived checks are
+ * stripped from tables the policy leaves non-managed — and the strip rebuilds
+ * namespaces through the target's factory, so the two travel together.
+ */
 export interface TypeScriptContractSpecifierOptions {
-  readonly defaultControlPolicy?: ControlPolicy;
+  readonly defaultControlPolicy: ControlPolicy;
+  readonly createNamespace: SqlNamespaceFactory;
 }
 
 export function emptyContract(options: {
@@ -45,8 +50,9 @@ export function emptyContract(options: {
           models: [],
         });
         return ok(
-          stripDerivedChecksFromNonManagedTables(
-            applySpecifierDefaultControlPolicy(built, options.defaultControlPolicy),
+          applySqlSpecifierControlPolicy(
+            built,
+            options.defaultControlPolicy,
             options.createNamespace,
           ),
         );
@@ -65,7 +71,15 @@ export function typescriptContract(
     source: {
       format: 'typescript',
       load: async () =>
-        ok(applySpecifierDefaultControlPolicy(contract, options?.defaultControlPolicy)),
+        ok(
+          options === undefined
+            ? contract
+            : applySqlSpecifierControlPolicy(
+                contract,
+                options.defaultControlPolicy,
+                options.createNamespace,
+              ),
+        ),
     },
     // The in-memory variant has no input path to anchor on; fall through to
     // the global default in `normalizeContractConfig` when caller doesn't pin it.
@@ -98,7 +112,15 @@ export function typescriptContractFromPath(
             { meta: { path: absolutePath } },
           );
         }
-        return ok(applySpecifierDefaultControlPolicy(contract, options?.defaultControlPolicy));
+        return ok(
+          options === undefined
+            ? contract
+            : applySqlSpecifierControlPolicy(
+                contract,
+                options.defaultControlPolicy,
+                options.createNamespace,
+              ),
+        );
       },
     },
     output: output ?? defaultOutputFromContractPath(contractPath),
