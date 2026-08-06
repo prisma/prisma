@@ -18,7 +18,7 @@ export interface PreparedStatementInternals {
   readonly paramMetadata: readonly ParamMetadata[];
 }
 
-export class PreparedStatementImpl<Params, Row>
+export class PreparedStatementImpl<Params extends Record<string, unknown>, Row>
   implements PreparedStatement<Params, Row>, PreparedStatementInternals
 {
   readonly sql: string;
@@ -43,7 +43,7 @@ export class PreparedStatementImpl<Params, Row>
     params: Params,
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
-    return target.executePrepared(this, params, options);
+    return target.execute(this, params, options);
   }
 }
 

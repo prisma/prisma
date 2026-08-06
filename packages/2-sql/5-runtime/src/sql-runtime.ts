@@ -34,6 +34,7 @@ import {
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import type { RuntimeScope } from '@internal/sql-relational-core/types';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { buildDecodeContext, type DecodeContext, decodeRow } from './codecs/decoding';
 import { deriveParamMetadata, encodeParams, encodeParamsWithMetadata } from './codecs/encoding';
@@ -124,13 +125,16 @@ export interface RuntimeTransaction extends RuntimeQueryable {
 }
 
 export interface RuntimeQueryable extends RuntimeScope {
+  execute<Row>(
+    plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row>;
   /**
-   * Run a prepared statement against this scope. Required for the explicit
-   * `PreparedStatement.execute(target, params)` API — every scope (top-level
-   * runtime, connection, transaction) routes prepared executions through the
-   * `SqlQueryable` it is backed by.
+   * Run a prepared statement against this scope. The existing `execute` entry
+   * point carries preparedness on the statement request rather than exposing a
+   * second runtime method.
    */
-  executePrepared<Params, Row>(
+  execute<Params extends Record<string, unknown>, Row>(
     ps: PreparedStatement<Params, Row>,
     params: Params,
     options?: RuntimeExecuteOptions,
@@ -189,7 +193,10 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       now: () => Date.now(),
       log: log ?? noopLog,
       // ctx is only invoked by runWithMiddleware with execs this runtime lowered; the framework parameter type is the cross-family base.
-      contentHash: (exec) => computeSqlContentHash(exec as SqlExecutionPlan),
+      contentHash: (exec) =>
+        computeSqlContentHash(
+          blindCast<SqlExecutionPlan, 'framework execution is lowered by this SQL runtime'>(exec),
+        ),
       scope: 'runtime',
       // Placeholder satisfying the required field on the cross-family base. The
       // stored ctx is a runtime-level template; the per-execute ctxs constructed
@@ -297,20 +304,25 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   override execute<Row>(
     plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
-  ): AsyncIterableResult<Row> {
-    return this.executeAgainstQueryable<Row>(plan, this.driver, options);
-  }
-
-  executePrepared<Params, Row>(
+  ): AsyncIterableResult<Row>;
+  override execute<Params extends Record<string, unknown>, Row>(
     ps: PreparedStatement<Params, Row>,
     params: Params,
     options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row>;
+  override execute<Params extends Record<string, unknown>, Row>(
+    planOrStatement:
+      | ((SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row })
+      | PreparedStatement<Params, Row>,
+    paramsOrOptions?: Params | RuntimeExecuteOptions,
+    preparedOptions?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
-    return this.executePreparedAgainstQueryable<Params, Row>(
-      ps as PreparedStatementImpl<Params, Row>,
-      params as Record<string, unknown>,
+    return this.executeOnQueryable(
       this.driver,
-      options,
+      undefined,
+      planOrStatement,
+      paramsOrOptions,
+      preparedOptions,
     );
   }
 
@@ -364,7 +376,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
             break;
           }
           const decodedRow = await decodeRow(next.value, decodeContext, codecCtx);
-          yield decodedRow as Row;
+          yield blindCast<Row, 'decoded row is shaped by the plan row type'>(decodedRow);
         }
       } finally {
         // Best-effort iterator cleanup so the driver can release its
@@ -558,20 +570,20 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
    * Execute a prepared statement against a caller-supplied queryable, running
    * the full middleware/codec/telemetry pipeline.
    */
-  protected executePreparedAgainstQueryable<P, Row>(
-    ps: PreparedStatementImpl<P, Row>,
-    userParams: Record<string, unknown>,
+  protected executeBoundStatementAgainstQueryable<Params extends Record<string, unknown>, Row>(
+    ps: PreparedStatementImpl<Params, Row>,
+    userParams: Params,
     queryable: SqlQueryable,
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
     return this.executeWithRequestBuilder<Row>(queryable, options, (codecCtx, execMiddlewareCtx) =>
-      this.buildPreparedExecutionRequest(ps, userParams, codecCtx, execMiddlewareCtx),
+      this.buildBoundStatementExecutionRequest(ps, userParams, codecCtx, execMiddlewareCtx),
     );
   }
 
-  private async buildPreparedExecutionRequest<P, Row>(
-    ps: PreparedStatementImpl<P, Row>,
-    userParams: Record<string, unknown>,
+  private async buildBoundStatementExecutionRequest<Params extends Record<string, unknown>, Row>(
+    ps: PreparedStatementImpl<Params, Row>,
+    userParams: Params,
     codecCtx: SqlCodecCallContext,
     execMiddlewareCtx: RuntimeMiddlewareContext,
   ): Promise<ExecutionRequest> {
@@ -624,6 +636,75 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     };
   }
 
+  private executeOnQueryable<Params extends Record<string, unknown>, Row>(
+    queryable: SqlQueryable,
+    scope: RuntimeExecuteOptions['scope'] | undefined,
+    planOrStatement:
+      | ((SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row })
+      | PreparedStatement<Params, Row>,
+    paramsOrOptions: Params | RuntimeExecuteOptions | undefined,
+    preparedOptions: RuntimeExecuteOptions | undefined,
+  ): AsyncIterableResult<Row> {
+    if (planOrStatement instanceof PreparedStatementImpl) {
+      const options = scope === undefined ? preparedOptions : { ...preparedOptions, scope };
+      return this.executeBoundStatementAgainstQueryable(
+        planOrStatement,
+        blindCast<Params, 'prepared execute overload always receives statement parameters'>(
+          paramsOrOptions,
+        ),
+        queryable,
+        options,
+      );
+    }
+
+    const options = blindCast<
+      RuntimeExecuteOptions | undefined,
+      'plan execute overload always receives execution options'
+    >(paramsOrOptions);
+    return this.executeAgainstQueryable(
+      blindCast<
+        (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+        'plan execute overload always receives a SQL plan'
+      >(planOrStatement),
+      queryable,
+      scope === undefined ? options : { ...options, scope },
+    );
+  }
+
+  protected createScopedExecutor(
+    queryable: SqlQueryable,
+    scope: NonNullable<RuntimeExecuteOptions['scope']>,
+  ): RuntimeQueryable['execute'] {
+    const self = this;
+
+    function execute<Row>(
+      plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+      options?: RuntimeExecuteOptions,
+    ): AsyncIterableResult<Row>;
+    function execute<Params extends Record<string, unknown>, Row>(
+      ps: PreparedStatement<Params, Row>,
+      params: Params,
+      options?: RuntimeExecuteOptions,
+    ): AsyncIterableResult<Row>;
+    function execute<Params extends Record<string, unknown>, Row>(
+      planOrStatement:
+        | ((SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row })
+        | PreparedStatement<Params, Row>,
+      paramsOrOptions?: Params | RuntimeExecuteOptions,
+      preparedOptions?: RuntimeExecuteOptions,
+    ): AsyncIterableResult<Row> {
+      return self.executeOnQueryable(
+        queryable,
+        scope,
+        planOrStatement,
+        paramsOrOptions,
+        preparedOptions,
+      );
+    }
+
+    return execute;
+  }
+
   async connection(): Promise<RuntimeConnection> {
     const driverConn = await this.driver.acquireConnection();
     const self = this;
@@ -639,34 +720,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       async destroy(reason?: unknown): Promise<void> {
         await driverConn.destroy(reason);
       },
-      execute<Row>(
-        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return self.executeAgainstQueryable<Row>(plan, driverConn, {
-          ...options,
-          scope: 'connection',
-        });
-      },
-      executePrepared<Params, Row>(
-        ps: PreparedStatement<Params, Row>,
-        params: Params,
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return self.executePreparedAgainstQueryable<Params, Row>(
-          ps as PreparedStatementImpl<Params, Row>,
-          params as Record<string, unknown>,
-          driverConn,
-          { ...options, scope: 'connection' },
-        );
-      },
+      execute: self.createScopedExecutor(driverConn, 'connection'),
     };
 
     return wrappedConnection;
   }
 
   private wrapTransaction(driverTx: SqlTransaction): RuntimeTransaction {
-    const self = this;
     return {
       async commit(): Promise<void> {
         await driverTx.commit();
@@ -674,27 +734,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       async rollback(): Promise<void> {
         await driverTx.rollback();
       },
-      execute<Row>(
-        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return self.executeAgainstQueryable<Row>(plan, driverTx, {
-          ...options,
-          scope: 'transaction',
-        });
-      },
-      executePrepared<Params, Row>(
-        ps: PreparedStatement<Params, Row>,
-        params: Params,
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return self.executePreparedAgainstQueryable<Params, Row>(
-          ps as PreparedStatementImpl<Params, Row>,
-          params as Record<string, unknown>,
-          driverTx,
-          { ...options, scope: 'transaction' },
-        );
-      },
+      execute: this.createScopedExecutor(driverTx, 'transaction'),
     };
   }
 
@@ -752,7 +792,9 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     outcome: TelemetryOutcome,
     durationMs?: number,
   ): void {
-    const contract = this.contract as { target: string };
+    const contract = blindCast<{ target: string }, 'contract target is required by RuntimeOptions'>(
+      this.contract,
+    );
     this._telemetry = Object.freeze({
       lane: plan.meta.lane,
       target: contract.target,
@@ -799,31 +841,59 @@ export async function withTransaction<R>(
     }
   }
 
+  function execute<Row>(
+    plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row>;
+  function execute<Params extends Record<string, unknown>, Row>(
+    ps: PreparedStatement<Params, Row>,
+    params: Params,
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row>;
+  function execute<Params extends Record<string, unknown>, Row>(
+    planOrStatement:
+      | ((SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row })
+      | PreparedStatement<Params, Row>,
+    paramsOrOptions?: Params | RuntimeExecuteOptions,
+    preparedOptions?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row> {
+    if (invalidated) {
+      throw transactionClosedError();
+    }
+    if (planOrStatement instanceof PreparedStatementImpl) {
+      return new AsyncIterableResult(
+        guardedStream(
+          transaction.execute(
+            planOrStatement,
+            blindCast<Params, 'prepared execute overload always receives statement parameters'>(
+              paramsOrOptions,
+            ),
+            preparedOptions,
+          ),
+        ),
+      );
+    }
+    return new AsyncIterableResult(
+      guardedStream(
+        transaction.execute<Row>(
+          blindCast<
+            (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+            'plan execute overload always receives a SQL plan'
+          >(planOrStatement),
+          blindCast<
+            RuntimeExecuteOptions | undefined,
+            'plan execute overload always receives execution options'
+          >(paramsOrOptions),
+        ),
+      ),
+    );
+  }
+
   const txContext: TransactionContext = {
     get invalidated() {
       return invalidated;
     },
-    execute<Row>(
-      plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return new AsyncIterableResult(guardedStream(transaction.execute(plan, options)));
-    },
-    executePrepared<Params, Row>(
-      ps: PreparedStatement<Params, Row>,
-      params: Params,
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return new AsyncIterableResult(
-        guardedStream(transaction.executePrepared(ps, params, options)),
-      );
-    },
+    execute,
   };
 
   let connectionDisposed = false;

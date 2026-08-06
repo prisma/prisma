@@ -92,16 +92,13 @@ function createStubAdapter(codecs: ReadonlyArray<Codec<string>>) {
 }
 
 function createMockDriver(): SqlDriver {
-  const rootExecute = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
+  const query = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
     // Default driver path; real test cases below either intercept (skipping this) or assert it was called.
     yield {} as Record<string, unknown>;
   });
 
-  const query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
-
   return {
-    execute: rootExecute,
-    executePrepared: vi.fn().mockRejectedValue(new Error('executePrepared not used in this test')),
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
     query,
     connect: vi.fn().mockImplementation(async (_binding?: undefined) => undefined),
     acquireConnection: vi.fn().mockRejectedValue(new Error('not used in this test')),
@@ -222,7 +219,7 @@ describe('intercepted rows go through codec decoding', () => {
 
     // The consumer must see the *decoded* value (a parsed object), not the raw wire string.
     expect(out).toEqual([{ profile: { name: 'Alice', tags: ['admin', 'staff'] } }]);
-    expect(driver.execute).not.toHaveBeenCalled();
+    expect(driver.query).not.toHaveBeenCalled();
   });
 
   it('decodes multiple intercepted rows independently', async () => {
@@ -246,7 +243,7 @@ describe('intercepted rows go through codec decoding', () => {
     const out = await runtime.execute(plan).toArray();
 
     expect(out).toEqual([{ profile: { id: 1 } }, { profile: { id: 2 } }, { profile: { id: 3 } }]);
-    expect(driver.execute).not.toHaveBeenCalled();
+    expect(driver.query).not.toHaveBeenCalled();
   });
 
   it('decodes intercepted rows yielded from an AsyncIterable', async () => {
@@ -269,7 +266,7 @@ describe('intercepted rows go through codec decoding', () => {
     const out = await runtime.execute(plan).toArray();
 
     expect(out).toEqual([{ profile: { kind: 'first' } }, { profile: { kind: 'second' } }]);
-    expect(driver.execute).not.toHaveBeenCalled();
+    expect(driver.query).not.toHaveBeenCalled();
   });
 
   it('decodes driver rows and intercepted rows the same way (round-trip via the same codec path)', async () => {
@@ -281,7 +278,7 @@ describe('intercepted rows go through codec decoding', () => {
       const { runtime, driver } = createTestSetup([]);
 
       // Override the driver to produce the wire value.
-      (driver.execute as ReturnType<typeof vi.fn>).mockImplementation(async function* (
+      (driver.query as ReturnType<typeof vi.fn>).mockImplementation(async function* (
         _request: SqlExecuteRequest,
       ) {
         yield { profile: wireValue };

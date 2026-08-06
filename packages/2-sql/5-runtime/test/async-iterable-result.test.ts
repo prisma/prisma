@@ -21,29 +21,20 @@ class MockDriver {
     this.rows = rows;
   }
 
-  async query<Row = Record<string, unknown>>(
-    _sql: string,
-    _params?: readonly unknown[],
-  ): Promise<{ rows: ReadonlyArray<Row> }> {
-    return { rows: [] };
-  }
-
-  async *execute<Row = Record<string, unknown>>(_options: {
+  async *query<Row = Record<string, unknown>>(_request: {
     sql: string;
-    params: readonly unknown[];
+    params?: readonly unknown[];
   }): AsyncIterable<Row> {
     for (const row of this.rows) {
       yield row as Row;
     }
   }
 
-  async *executePrepared<Row = Record<string, unknown>>(_options: {
+  async execute(_request: {
     sql: string;
-    params: readonly unknown[];
-  }): AsyncIterable<Row> {
-    for (const row of this.rows) {
-      yield row as Row;
-    }
+    params?: readonly unknown[];
+  }): Promise<{ affectedRows: number }> {
+    return { affectedRows: 0 };
   }
 
   async acquireConnection(): Promise<never> {

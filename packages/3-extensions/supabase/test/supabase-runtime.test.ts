@@ -48,7 +48,6 @@ interface RecordingTransaction {
   readonly id: symbol;
   readonly queryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>;
   execute: ReturnType<typeof vi.fn>;
-  executePrepared: ReturnType<typeof vi.fn>;
   query: ReturnType<typeof vi.fn>;
   commit: ReturnType<typeof vi.fn>;
   rollback: ReturnType<typeof vi.fn>;
@@ -59,7 +58,6 @@ interface RecordingConnection {
   readonly queryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>;
   readonly beginTransactionSpy: ReturnType<typeof vi.fn>;
   execute: ReturnType<typeof vi.fn>;
-  executePrepared: ReturnType<typeof vi.fn>;
   query: ReturnType<typeof vi.fn>;
   release: ReturnType<typeof vi.fn>;
   destroy: ReturnType<typeof vi.fn>;
@@ -70,7 +68,6 @@ interface RecordingConnection {
 interface RecordingDriver {
   readonly acquireConnectionSpy: ReturnType<typeof vi.fn>;
   execute: ReturnType<typeof vi.fn>;
-  executePrepared: ReturnType<typeof vi.fn>;
   query: ReturnType<typeof vi.fn>;
   connect: ReturnType<typeof vi.fn>;
   close: ReturnType<typeof vi.fn>;
@@ -91,13 +88,10 @@ function createRecordingDriver(
     get queryCalls() {
       return txQueryCalls;
     },
-    execute: vi.fn().mockImplementation(async function* (_req: SqlExecuteRequest) {
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: vi.fn().mockImplementation(async function* (request: SqlExecuteRequest) {
+      txQueryCalls.push({ sql: request.sql, params: request.params });
       for (const row of executeRows) yield row;
-    }),
-    executePrepared: vi.fn().mockImplementation(async function* () {}),
-    query: vi.fn().mockImplementation(async (sql: string, params?: readonly unknown[]) => {
-      txQueryCalls.push({ sql, params });
-      return { rows: [], rowCount: 0 };
     }),
     commit: vi.fn().mockResolvedValue(undefined),
     rollback: vi.fn().mockResolvedValue(undefined),
@@ -113,13 +107,10 @@ function createRecordingDriver(
     get transaction() {
       return transaction;
     },
-    execute: vi.fn().mockImplementation(async function* (_req: SqlExecuteRequest) {
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: vi.fn().mockImplementation(async function* (request: SqlExecuteRequest) {
+      connQueryCalls.push({ sql: request.sql, params: request.params });
       for (const row of executeRows) yield row;
-    }),
-    executePrepared: vi.fn().mockImplementation(async function* () {}),
-    query: vi.fn().mockImplementation(async (sql: string, params?: readonly unknown[]) => {
-      connQueryCalls.push({ sql, params });
-      return { rows: [], rowCount: 0 };
     }),
     release: vi.fn().mockResolvedValue(undefined),
     destroy: vi.fn().mockResolvedValue(undefined),
@@ -132,9 +123,8 @@ function createRecordingDriver(
     get connection() {
       return connection;
     },
-    execute: vi.fn().mockImplementation(async function* () {}),
-    executePrepared: vi.fn().mockImplementation(async function* () {}),
-    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: vi.fn().mockImplementation(async function* () {}),
     connect: vi.fn().mockResolvedValue(undefined),
     close: vi.fn().mockResolvedValue(undefined),
     acquireConnection: () => acquireConnectionSpy(),
@@ -285,19 +275,17 @@ describe('SupabaseRuntimeImpl', () => {
       const queriedOnConn: symbol[] = [];
       const executedOnConn: symbol[] = [];
 
-      driver.connection.query = vi
-        .fn()
-        .mockImplementation(async (sql: string, params?: readonly unknown[]) => {
-          if (sql.startsWith('SELECT set_config')) {
-            queriedOnConn.push(driver.connection.id);
-          }
-          driver.connection.queryCalls.push({ sql, params });
-          return { rows: [], rowCount: 0 };
-        });
-
-      driver.connection.execute = vi.fn().mockImplementation(async function* () {
-        executedOnConn.push(driver.connection.id);
-        yield { id: 1 };
+      driver.connection.query = vi.fn().mockImplementation(async function* (
+        request: SqlExecuteRequest,
+      ) {
+        if (request.sql.startsWith('SELECT set_config')) {
+          queriedOnConn.push(driver.connection.id);
+        }
+        driver.connection.queryCalls.push({ sql: request.sql, params: request.params });
+        if (request.sql !== 'RESET ALL' && !request.sql.startsWith('SELECT set_config')) {
+          executedOnConn.push(driver.connection.id);
+          yield { id: 1 };
+        }
       });
 
       const session = await runtime.openRoleSession({ role: 'anon' });
@@ -389,15 +377,15 @@ describe('SupabaseRuntimeImpl', () => {
       const { runtime, driver } = createTestSetup();
       const resetCalls: string[] = [];
 
-      driver.connection.query = vi
-        .fn()
-        .mockImplementation(async (sql: string, params?: readonly unknown[]) => {
-          driver.connection.queryCalls.push({ sql, params });
-          if (sql === 'RESET ALL') {
-            resetCalls.push(sql);
-          }
-          return { rows: [], rowCount: 0 };
-        });
+      driver.connection.query = vi.fn().mockImplementation(async function* (
+        request: SqlExecuteRequest,
+      ) {
+        driver.connection.queryCalls.push({ sql: request.sql, params: request.params });
+        if (request.sql === 'RESET ALL') {
+          resetCalls.push(request.sql);
+        }
+        yield* [];
+      });
 
       const session = await runtime.openRoleSession({ role: 'anon' });
       await session.release();
@@ -411,15 +399,15 @@ describe('SupabaseRuntimeImpl', () => {
       const { runtime, driver } = createTestSetup();
       const resetError = new Error('RESET ALL failed');
 
-      driver.connection.query = vi
-        .fn()
-        .mockImplementation(async (sql: string, params?: readonly unknown[]) => {
-          driver.connection.queryCalls.push({ sql, params });
-          if (sql === 'RESET ALL') {
-            throw resetError;
-          }
-          return { rows: [], rowCount: 0 };
-        });
+      driver.connection.query = vi.fn().mockImplementation(async function* (
+        request: SqlExecuteRequest,
+      ) {
+        driver.connection.queryCalls.push({ sql: request.sql, params: request.params });
+        if (request.sql === 'RESET ALL') {
+          throw resetError;
+        }
+        yield* [];
+      });
 
       const session = await runtime.openRoleSession({ role: 'anon' });
       await session.release();
@@ -435,12 +423,12 @@ describe('SupabaseRuntimeImpl', () => {
       const bindError = new Error('set_config denied');
       let callCount = 0;
 
-      driver.connection.query = vi.fn().mockImplementation(async () => {
+      driver.connection.query = vi.fn().mockImplementation(async function* () {
         callCount++;
         if (callCount === 1) {
           throw bindError;
         }
-        return { rows: [], rowCount: 0 };
+        yield* [];
       });
 
       await expect(runtime.openRoleSession({ role: 'anon' })).rejects.toBe(bindError);
@@ -466,7 +454,7 @@ describe('SupabaseRuntimeImpl', () => {
       const { runtime, driver } = createTestSetup();
       const streamError = new Error('mid-stream failure');
 
-      driver.connection.execute = vi.fn().mockReturnValue({
+      driver.connection.query = vi.fn().mockReturnValue({
         [Symbol.asyncIterator]() {
           return {
             next(): Promise<IteratorResult<unknown>> {

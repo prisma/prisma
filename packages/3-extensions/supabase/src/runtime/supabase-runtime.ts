@@ -4,13 +4,7 @@ import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import { type PostgresRuntime, PostgresRuntimeImpl } from '@internal/postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import type {
-  PreparedStatement,
-  PreparedStatementImpl,
-  RuntimeConnection,
-  RuntimeTransaction,
-} from '@internal/sql-runtime';
-import { blindCast } from '@internal/utils/casts';
+import type { RuntimeConnection, RuntimeTransaction } from '@internal/sql-runtime';
 import type { SupabaseRole } from '../contract/roles';
 
 export interface SupabaseRuntime extends PostgresRuntime {}
@@ -56,31 +50,7 @@ export class SupabaseRuntimeImpl<
     const self = this;
 
     const session: RoleSession = {
-      execute<Row>(
-        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return self.executeAgainstQueryable<Row>(plan, conn, { ...options, scope: 'connection' });
-      },
-
-      executePrepared<Params, Row>(
-        ps: PreparedStatement<Params, Row>,
-        params: Params,
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return self.executePreparedAgainstQueryable(
-          blindCast<
-            PreparedStatementImpl<Params, Row>,
-            'PreparedStatement is PreparedStatementImpl; the impl class is the only concrete form'
-          >(ps),
-          blindCast<
-            Record<string, unknown>,
-            'params are structurally Record<string, unknown> at runtime'
-          >(params),
-          conn,
-          { ...options, scope: 'connection' },
-        );
-      },
+      execute: self.createScopedExecutor(conn, 'connection'),
 
       async transaction(): Promise<RuntimeTransaction> {
         const tx = await conn.beginTransaction();
@@ -91,33 +61,7 @@ export class SupabaseRuntimeImpl<
           async rollback(): Promise<void> {
             await tx.rollback();
           },
-          execute<Row>(
-            plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-            options?: RuntimeExecuteOptions,
-          ): AsyncIterableResult<Row> {
-            return self.executeAgainstQueryable<Row>(plan, tx, {
-              ...options,
-              scope: 'transaction',
-            });
-          },
-          executePrepared<Params, Row>(
-            ps: PreparedStatement<Params, Row>,
-            params: Params,
-            options?: RuntimeExecuteOptions,
-          ): AsyncIterableResult<Row> {
-            return self.executePreparedAgainstQueryable(
-              blindCast<
-                PreparedStatementImpl<Params, Row>,
-                'PreparedStatement is PreparedStatementImpl; the impl class is the only concrete form'
-              >(ps),
-              blindCast<
-                Record<string, unknown>,
-                'params are structurally Record<string, unknown> at runtime'
-              >(params),
-              tx,
-              { ...options, scope: 'transaction' },
-            );
-          },
+          execute: self.createScopedExecutor(tx, 'transaction'),
         };
       },
 
