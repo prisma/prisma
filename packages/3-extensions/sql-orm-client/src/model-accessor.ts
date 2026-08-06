@@ -67,7 +67,7 @@ interface PredicateTableSource {
 }
 
 interface RelationAliasAllocator {
-  allocate(kind: RelationAliasKind, visibleTableRefs: ReadonlySet<string>): string;
+  allocate(kind: RelationAliasKind, visibleSources: readonly PredicateTableSource[]): string;
 }
 
 interface ModelAccessorScope {
@@ -79,11 +79,11 @@ interface ModelAccessorScope {
 function createRelationAliasAllocator(): RelationAliasAllocator {
   let nextId = 1;
   return {
-    allocate(kind, visibleTableRefs) {
+    allocate(kind, visibleSources) {
       while (true) {
         const alias = `__orm_${kind}_${nextId}`;
         nextId += 1;
-        if (!visibleTableRefs.has(alias)) {
+        if (!visibleSources.some((source) => source.tableRef === alias)) {
           return alias;
         }
       }
@@ -109,9 +109,8 @@ function appendPredicateSource(
   readonly source: PredicateTableSource;
   readonly visibleSources: readonly PredicateTableSource[];
 } {
-  const visibleTableRefs = new Set(scope.visibleSources.map((source) => source.tableRef));
-  const tableRef = visibleTableRefs.has(tableName)
-    ? scope.aliases.allocate(aliasKind, visibleTableRefs)
+  const tableRef = scope.visibleSources.some((source) => source.tableRef === tableName)
+    ? scope.aliases.allocate(aliasKind, scope.visibleSources)
     : tableName;
   const source = { namespaceId, tableName, tableRef };
   return { source, visibleSources: [...scope.visibleSources, source] };
