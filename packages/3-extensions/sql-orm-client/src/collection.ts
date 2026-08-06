@@ -89,7 +89,6 @@ import {
   compileInsertCountSplit,
   compileInsertReturning,
   compileInsertReturningSplit,
-  compileSelect,
   compileUpdateCount,
   compileUpdateReturning,
   compileUpsertReturning,
@@ -2055,31 +2054,7 @@ export class Collection<
 
     applyUpdateDefaults(this.ctx, this.namespaceId, this.tableName, mappedData);
 
-    // Annotations attach to the write, not the matching read.
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'updateAndCount');
-
-    const primaryKeyColumn = resolvePrimaryKeyColumn(
-      this.contract,
-      this.namespaceId,
-      this.tableName,
-    );
-    const countState: CollectionState = {
-      ...emptyState(),
-      filters: this.state.filters,
-      selectedFields: [primaryKeyColumn],
-      variantName: this.state.variantName,
-    };
-    const countCompiled = compileSelect(
-      this.contract,
-      this.namespaceId,
-      this.tableName,
-      countState,
-      this.modelName,
-    );
-    const matchingRows = await executeQueryPlan<Record<string, unknown>>(
-      this.ctx.runtime,
-      countCompiled,
-    ).toArray();
 
     const compiled = mergeAnnotations(
       compileUpdateCount(
@@ -2093,9 +2068,8 @@ export class Collection<
       ),
       annotationsMap,
     );
-    await executeQueryPlan<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
-
-    return matchingRows.length;
+    const stats = await this.ctx.runtime.execute(compiled);
+    return stats.affectedRows;
   }
 
   /**
@@ -2270,31 +2244,7 @@ export class Collection<
     this: State['hasWhere'] extends true ? Collection<TContract, ModelName, Row, State> : never,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<number> {
-    // Annotations attach to the write, not the matching read.
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'deleteAndCount');
-
-    const primaryKeyColumn = resolvePrimaryKeyColumn(
-      this.contract,
-      this.namespaceId,
-      this.tableName,
-    );
-    const countState: CollectionState = {
-      ...emptyState(),
-      filters: this.state.filters,
-      selectedFields: [primaryKeyColumn],
-      variantName: this.state.variantName,
-    };
-    const countCompiled = compileSelect(
-      this.contract,
-      this.namespaceId,
-      this.tableName,
-      countState,
-      this.modelName,
-    );
-    const matchingRows = await executeQueryPlan<Record<string, unknown>>(
-      this.ctx.runtime,
-      countCompiled,
-    ).toArray();
 
     const compiled = mergeAnnotations(
       compileDeleteCount(
@@ -2307,9 +2257,8 @@ export class Collection<
       ),
       annotationsMap,
     );
-    await executeQueryPlan<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
-
-    return matchingRows.length;
+    const stats = await this.ctx.runtime.execute(compiled);
+    return stats.affectedRows;
   }
 
   #buildUpsertConflictCriterion(

@@ -1,3 +1,4 @@
+import type { SqlMiddleware } from '@internal/sql-runtime';
 import { describe, expect, it } from 'vitest';
 import {
   createReturningUsersCollection,
@@ -12,27 +13,43 @@ describe('integration/update', () => {
   it(
     'updateAndCount() returns matched row count and updates data',
     async () => {
-      await withCollectionRuntime(async (runtime) => {
-        const users = createUsersCollection(runtime);
+      const observedStatements: string[] = [];
+      const observer: SqlMiddleware = {
+        name: 'update-count-observer',
+        familyId: 'sql',
+        beforeExecute(exec) {
+          observedStatements.push(exec.sql);
+        },
+      };
+      await withCollectionRuntime(
+        async (runtime) => {
+          const users = createUsersCollection(runtime);
 
-        await seedUsers(runtime, [
-          { id: 1, name: 'Stale', email: 'a@example.com' },
-          { id: 2, name: 'Stale', email: 'b@example.com' },
-          { id: 3, name: 'Fresh', email: 'c@example.com' },
-        ]);
+          await seedUsers(runtime, [
+            { id: 1, name: 'Stale', email: 'a@example.com' },
+            { id: 2, name: 'Stale', email: 'b@example.com' },
+            { id: 3, name: 'Fresh', email: 'c@example.com' },
+          ]);
+          observedStatements.length = 0;
 
-        const count = await users.where({ name: 'Stale' }).updateAndCount({ name: 'Updated' });
-        expect(count).toBe(2);
+          const count = await users.where({ name: 'Stale' }).updateAndCount({ name: 'Updated' });
+          expect(count).toBe(2);
+          expect(observedStatements).toHaveLength(1);
+          expect(observedStatements[0]?.toLowerCase()).toContain('update');
 
-        const rows = await runtime.query<{ id: number; name: string }>(
-          'select id, name from users order by id',
-        );
-        expect(rows).toEqual([
-          { id: 1, name: 'Updated' },
-          { id: 2, name: 'Updated' },
-          { id: 3, name: 'Fresh' },
-        ]);
-      });
+          const rows = await runtime.query<{ id: number; name: string }>(
+            'select id, name from users order by id',
+          );
+          expect(rows).toEqual([
+            { id: 1, name: 'Updated' },
+            { id: 2, name: 'Updated' },
+            { id: 3, name: 'Fresh' },
+          ]);
+        },
+        undefined,
+        [],
+        [observer],
+      );
     },
     timeouts.spinUpPpgDev,
   );

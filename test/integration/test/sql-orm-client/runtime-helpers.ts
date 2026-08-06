@@ -10,11 +10,12 @@ import type {
 import { PostgresRuntimeImpl } from '@internal/postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { RuntimeQueryable } from '@internal/sql-orm-client';
+import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import {
   createExecutionContext,
   createSqlExecutionStack,
-  type PreparedStatement,
+  type SqlMiddleware,
   type SqlRuntimeExtensionDescriptor,
   type RuntimeQueryable as SqlRuntimeQueryable,
 } from '@internal/sql-runtime';
@@ -73,6 +74,10 @@ interface SeedUserRole {
 
 export interface PgIntegrationRuntime extends RuntimeQueryable {
   readonly executions: readonly SqlExecutionPlan[];
+  query<Row>(
+    plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row>;
   query<Row extends Record<string, unknown> = Record<string, unknown>>(
     sqlText: string,
     params?: readonly unknown[],
@@ -89,6 +94,7 @@ export async function createPgIntegrationRuntime(
   // sql-orm-client fixture.
   contractOverride?: Contract<SqlStorage>,
   additionalExtensions: readonly SqlRuntimeExtensionDescriptor<'postgres'>[] = [],
+  middleware: readonly SqlMiddleware[] = [],
 ): Promise<PgIntegrationRuntime> {
   // Use a single client, not a pool: the `@prisma/dev` server is PGlite-backed
   // and allows only one concurrent connection. The mutation path opens a
@@ -147,6 +153,7 @@ export async function createPgIntegrationRuntime(
         context,
         adapter: stackInstance.adapter,
         driver,
+        middleware,
       });
       return { adapter, realRuntime, contract };
     } catch (err) {
@@ -178,90 +185,76 @@ export async function createPgIntegrationRuntime(
     };
   };
 
-  // Records every executed plan (for the per-test execution-count assertions)
-  // before delegating to the real scope. Used by the top-level `execute` and by
-  // the scopes returned from `connection()`/`transaction()` so reads and
-  // mutations are instrumented identically regardless of which path runs them.
-  const recordAndDelegate = <Row>(
-    delegate: (
-      plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
-    ) => AsyncIterableResult<Row>,
-    plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
-  ): AsyncIterableResult<Row> => {
+  const record = (plan: SqlExecutionPlan | SqlQueryPlan): void => {
     executions.push(toLoweredPlan(plan));
-    return delegate(plan);
   };
 
-  function isPreparedStatement<Params extends Record<string, unknown>, Row>(
-    execution:
-      | ((SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row })
-      | PreparedStatement<Params, Row>,
-  ): execution is PreparedStatement<Params, Row> {
-    return 'slots' in execution;
-  }
-
-  function createRecordingExecutor(target: SqlRuntimeQueryable): SqlRuntimeQueryable['execute'] {
-    function execute<Row>(
+  function createRecordingQuery(target: SqlRuntimeQueryable): SqlRuntimeQueryable['query'] {
+    return function query<Row>(
       plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
       options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row>;
-    function execute<Params extends Record<string, unknown>, Row>(
-      ps: PreparedStatement<Params, Row>,
-      params: Params,
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row>;
-    function execute<Params extends Record<string, unknown>, Row>(
-      planOrStatement:
-        | ((SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row })
-        | PreparedStatement<Params, Row>,
-      paramsOrOptions?: Params | RuntimeExecuteOptions,
-      preparedOptions?: RuntimeExecuteOptions,
     ): AsyncIterableResult<Row> {
-      if (isPreparedStatement(planOrStatement)) {
-        return target.executePrepared(
-          planOrStatement,
-          blindCast<Params, 'prepared execute overload always receives statement parameters'>(
-            paramsOrOptions,
-          ),
-          preparedOptions,
-        );
-      }
+      record(plan);
+      return target.query(plan, options);
+    };
+  }
 
-      return recordAndDelegate(
-        (plan) =>
-          target.execute(
-            plan,
-            blindCast<
-              RuntimeExecuteOptions | undefined,
-              'plan execute overload always receives execution options'
-            >(paramsOrOptions),
-          ),
-        planOrStatement,
-      );
+  function createRecordingExecute(target: SqlRuntimeQueryable): SqlRuntimeQueryable['execute'] {
+    return async function execute(
+      plan: SqlExecutionPlan | SqlQueryPlan,
+      options?: RuntimeExecuteOptions,
+    ): Promise<SqlStatementStats> {
+      record(plan);
+      return await target.execute(plan, options);
+    };
+  }
+
+  function query<Row>(
+    plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row>;
+  function query<Row extends Record<string, unknown> = Record<string, unknown>>(
+    sqlText: string,
+    params?: readonly unknown[],
+  ): Promise<readonly Row[]>;
+  function query(
+    planOrSql: SqlExecutionPlan | SqlQueryPlan | string,
+    optionsOrParams?: RuntimeExecuteOptions | readonly unknown[],
+  ): AsyncIterableResult<unknown> | Promise<readonly Record<string, unknown>[]> {
+    if (typeof planOrSql === 'string') {
+      const params = blindCast<
+        readonly unknown[],
+        'raw SQL query overload receives positional parameters rather than execution options'
+      >(optionsOrParams ?? []);
+      return client
+        .query<Record<string, unknown>>(planOrSql, [...params])
+        .then((result) => result.rows);
     }
-
-    return execute;
+    record(planOrSql);
+    return realRuntime.query(
+      planOrSql,
+      blindCast<
+        RuntimeExecuteOptions | undefined,
+        'plan query overload receives execution options rather than raw params'
+      >(optionsOrParams),
+    );
   }
 
   const runtime: PgIntegrationRuntime = {
     executions,
-    async query<Row extends Record<string, unknown> = Record<string, unknown>>(
-      sqlText: string,
-      params: readonly unknown[] = [],
-    ): Promise<readonly Row[]> {
-      const result = await client.query<Row>(sqlText, [...params]);
-      return result.rows;
-    },
+    query,
     resetExecutions() {
       executions.length = 0;
     },
     async close() {
       await realRuntime.close();
     },
-    execute<Row>(
-      plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
-    ): AsyncIterableResult<Row> {
-      return recordAndDelegate((p) => realRuntime.execute(p), plan);
+    async execute(
+      plan: SqlExecutionPlan | SqlQueryPlan,
+      options?: RuntimeExecuteOptions,
+    ): Promise<SqlStatementStats> {
+      record(plan);
+      return await realRuntime.execute(plan, options);
     },
     // Expose a connection so `withMutationScope` takes the transactional path
     // (`connection().transaction()`): nested-write graphs commit/roll back
@@ -275,12 +268,14 @@ export async function createPgIntegrationRuntime(
 
       const recordingConnection: PgConnection = {
         ...conn,
-        execute: createRecordingExecutor(conn),
+        query: createRecordingQuery(conn),
+        execute: createRecordingExecute(conn),
         transaction: async (): Promise<PgTransaction> => {
           const tx = await conn.transaction();
           const recordingTransaction: PgTransaction = {
             ...tx,
-            execute: createRecordingExecutor(tx),
+            query: createRecordingQuery(tx),
+            execute: createRecordingExecute(tx),
           };
           return recordingTransaction;
         },

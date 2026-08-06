@@ -402,7 +402,7 @@ describe('Mixed STI+MTI polymorphic query pipeline', () => {
 
   it('updateAndCount after variant(Feature) scopes MTI scalar predicates through the write subquery', async () => {
     const { collection, runtime } = createMixedPolyCollection();
-    runtime.setNextResults([[{ id: 2 }], []]);
+    runtime.setNextStats([{ affectedRows: 1 }]);
 
     const mixedPoly = blindCast<
       MixedPolyCountCollection,
@@ -414,11 +414,10 @@ describe('Mixed STI+MTI polymorphic query pipeline', () => {
       .updateAndCount({ title: 'Queued' });
 
     expect(count).toBe(1);
-    expect(runtime.executions).toHaveLength(2);
+    expect(runtime.executions).toHaveLength(1);
+    expect(runtime.executions[0]?.operation).toBe('execute');
 
-    expectSelectWithFeatureJoin(runtime.executions[0]!.plan.ast);
-
-    const writeAst = runtime.executions[1]!.plan.ast;
+    const writeAst = runtime.executions[0]!.plan.ast;
     expect(writeAst.kind).toBe('update');
     if (writeAst.kind !== 'update') {
       throw new Error('Expected an UPDATE plan');
@@ -433,7 +432,7 @@ describe('Mixed STI+MTI polymorphic query pipeline', () => {
 
   it('deleteAndCount after variant(Feature) scopes MTI relation predicates through the write subquery', async () => {
     const { collection, runtime } = createMixedPolyCollection();
-    runtime.setNextResults([[{ id: 2 }], []]);
+    runtime.setNextStats([{ affectedRows: 1 }]);
 
     const mixedPoly = blindCast<
       MixedPolyCountCollection,
@@ -445,11 +444,10 @@ describe('Mixed STI+MTI polymorphic query pipeline', () => {
       .deleteAndCount();
 
     expect(count).toBe(1);
-    expect(runtime.executions).toHaveLength(2);
+    expect(runtime.executions).toHaveLength(1);
+    expect(runtime.executions[0]?.operation).toBe('execute');
 
-    expectSelectWithFeatureJoin(runtime.executions[0]!.plan.ast);
-
-    const writeAst = runtime.executions[1]!.plan.ast;
+    const writeAst = runtime.executions[0]!.plan.ast;
     expect(writeAst.kind).toBe('delete');
     if (writeAst.kind !== 'delete') {
       throw new Error('Expected a DELETE plan');
@@ -655,6 +653,7 @@ describe('MTI variant create (two-INSERT orchestration)', () => {
     const txRuntime = {
       ...baseRuntime,
       transaction: vi.fn().mockResolvedValue({
+        query: baseRuntime.query.bind(baseRuntime),
         execute: baseRuntime.execute.bind(baseRuntime),
         commit,
         rollback,
