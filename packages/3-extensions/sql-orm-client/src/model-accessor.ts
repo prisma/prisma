@@ -66,13 +66,12 @@ interface StorageTableCoordinate {
 }
 
 class SqlTableBinding {
-  private readonly storage: StorageTableCoordinate;
+  readonly #storage: StorageTableCoordinate;
+  readonly #reference: string;
 
-  private constructor(
-    storage: StorageTableCoordinate,
-    private readonly reference: string,
-  ) {
-    this.storage = Object.freeze({ ...storage });
+  private constructor(storage: StorageTableCoordinate, reference: string) {
+    this.#storage = Object.freeze({ ...storage });
+    this.#reference = reference;
     Object.freeze(this);
   }
 
@@ -85,61 +84,53 @@ class SqlTableBinding {
   }
 
   column(columnName: string): ColumnRef {
-    return ColumnRef.of(this.reference, columnName);
+    return ColumnRef.of(this.#reference, columnName);
   }
 
   tableSource(contract: Contract<SqlStorage>): TableSource {
     return tableSourceForContract(
       contract,
-      this.storage.namespaceId,
-      this.storage.tableName,
-      this.reference,
+      this.#storage.namespaceId,
+      this.#storage.tableName,
+      this.#reference,
     );
   }
 
   isReferencedAs(candidate: string): boolean {
-    return this.reference === candidate;
+    return this.#reference === candidate;
   }
 
   isStoredAt(namespaceId: string, tableName: string): boolean {
-    return this.storage.namespaceId === namespaceId && this.storage.tableName === tableName;
+    return this.#storage.namespaceId === namespaceId && this.#storage.tableName === tableName;
   }
 }
 
-class RelationAliasAllocator {
-  private nextId = 1;
-
-  allocate(kind: RelationAliasKind, visibleBindings: readonly SqlTableBinding[]): string {
-    while (true) {
-      const alias = `__orm_${kind}_${this.nextId}`;
-      this.nextId += 1;
-      if (!visibleBindings.some((binding) => binding.isReferencedAs(alias))) {
-        return alias;
-      }
-    }
-  }
+interface RelationAliasCounter {
+  nextId: number;
 }
 
 class ModelAccessorScope {
-  private readonly visibleBindings: readonly SqlTableBinding[];
+  readonly #visibleBindings: readonly SqlTableBinding[];
+  readonly #aliasCounter: RelationAliasCounter;
 
   private constructor(
     readonly current: SqlTableBinding,
     visibleBindings: readonly SqlTableBinding[],
-    private readonly aliases: RelationAliasAllocator,
+    aliasCounter: RelationAliasCounter,
   ) {
-    this.visibleBindings = Object.freeze([...visibleBindings]);
+    this.#visibleBindings = Object.freeze([...visibleBindings]);
+    this.#aliasCounter = aliasCounter;
     Object.freeze(this);
   }
 
   static root(namespaceId: string, tableName: string): ModelAccessorScope {
     const binding = SqlTableBinding.unaliased({ namespaceId, tableName });
-    return new ModelAccessorScope(binding, [binding], new RelationAliasAllocator());
+    return new ModelAccessorScope(binding, [binding], { nextId: 1 });
   }
 
   forRelation(namespaceId: string, tableName: string): ModelAccessorScope {
-    const binding = this.allocateBinding(namespaceId, tableName, 'rel');
-    return new ModelAccessorScope(binding, [...this.visibleBindings, binding], this.aliases);
+    const binding = this.#allocateBinding(namespaceId, tableName, 'rel');
+    return new ModelAccessorScope(binding, [...this.#visibleBindings, binding], this.#aliasCounter);
   }
 
   forManyToManyRelation(
@@ -149,15 +140,15 @@ class ModelAccessorScope {
     junctionTableName: string,
   ): { readonly childScope: ModelAccessorScope; readonly junctionBinding: SqlTableBinding } {
     const initialChildScope = this.forRelation(childNamespaceId, childTableName);
-    const junctionBinding = initialChildScope.allocateBinding(
+    const junctionBinding = initialChildScope.#allocateBinding(
       junctionNamespaceId,
       junctionTableName,
       'junction',
     );
     const childScope = new ModelAccessorScope(
       initialChildScope.current,
-      [...initialChildScope.visibleBindings, junctionBinding],
-      this.aliases,
+      [...initialChildScope.#visibleBindings, junctionBinding],
+      this.#aliasCounter,
     );
     return { childScope, junctionBinding };
   }
@@ -167,19 +158,29 @@ class ModelAccessorScope {
       return this;
     }
     const binding = SqlTableBinding.unaliased({ namespaceId, tableName });
-    return new ModelAccessorScope(binding, [...this.visibleBindings, binding], this.aliases);
+    return new ModelAccessorScope(binding, [...this.#visibleBindings, binding], this.#aliasCounter);
   }
 
-  private allocateBinding(
+  #allocateBinding(
     namespaceId: string,
     tableName: string,
     aliasKind: RelationAliasKind,
   ): SqlTableBinding {
     const storage = { namespaceId, tableName };
-    if (!this.visibleBindings.some((binding) => binding.isReferencedAs(tableName))) {
+    if (!this.#visibleBindings.some((binding) => binding.isReferencedAs(tableName))) {
       return SqlTableBinding.unaliased(storage);
     }
-    return SqlTableBinding.aliased(storage, this.aliases.allocate(aliasKind, this.visibleBindings));
+    return SqlTableBinding.aliased(storage, this.#allocateAlias(aliasKind));
+  }
+
+  #allocateAlias(kind: RelationAliasKind): string {
+    while (true) {
+      const alias = `__orm_${kind}_${this.#aliasCounter.nextId}`;
+      this.#aliasCounter.nextId += 1;
+      if (!this.#visibleBindings.some((binding) => binding.isReferencedAs(alias))) {
+        return alias;
+      }
+    }
   }
 }
 
