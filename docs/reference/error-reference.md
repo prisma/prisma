@@ -389,6 +389,10 @@ An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds th
 
 ## ORM
 
+### ORM.AGGREGATE_PROJECTION_ONLY
+
+An aggregate operation contributed from outside the closed SQL aggregate alphabet (`count`, `sum`, `avg`, `min`, `max`) was used in HAVING, ORDER BY, or another comparison position. Such an operation reaches SQL only through its descriptor's lowering hook — a rendering meant for the SELECT projection, where the value crosses the driver boundary. HAVING and ORDER BY compare the value inside the database, where that rendering would change SQL semantics (a textual rendering compares and sorts lexicographically), so the query builder refuses at authoring time. Project the aggregate in a select and filter or order on the projected value, or use an operation from the alphabet. Meta: `operation`.
+
 ### ORM.AGGREGATE_SELECTOR_INVALID
 
 An `aggregate()` or `groupBy().aggregate()` selector is not a valid aggregation descriptor, or an aggregate function that requires a column/field (e.g. sum, avg) was given none. Thrown when the ORM client builds the aggregate query plan. Meta: `method`, `model`, `alias`, `fn`.

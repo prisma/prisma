@@ -13,13 +13,20 @@ import { describe, expect, it } from 'vitest';
 import type { Contract } from './fixtures/namespaced-contract';
 
 // These cases exercise the raw-SQL tag, not aggregate resolution — but the one
-// count() call still resolves, so the stub answers count and nothing else.
+// count() call still resolves, so the stub contributes count and nothing else.
 const noAggregates = {
   resolve: (operation: string) =>
     operation === 'count'
       ? { operation, output: { codecId: 'pg/int8@1' }, nullable: false, lower: undefined }
       : undefined,
-  values: function* () {},
+  values: function* () {
+    yield {
+      operation: 'count',
+      input: { kind: 'any' as const },
+      output: { kind: 'codec' as const, codecId: 'pg/int8@1' },
+      nullable: false,
+    };
+  },
 };
 
 // Stub ExecutionContext used across all composition tests. The concrete fixture

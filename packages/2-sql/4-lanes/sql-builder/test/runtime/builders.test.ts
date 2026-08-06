@@ -22,7 +22,14 @@ const emptyAggregateRegistry = {
     operation === 'count'
       ? { operation, output: { codecId: 'pg/int8@1' }, nullable: false, lower: undefined }
       : undefined,
-  values: function* () {},
+  values: function* () {
+    yield {
+      operation: 'count',
+      input: { kind: 'any' as const },
+      output: { kind: 'codec' as const, codecId: 'pg/int8@1' },
+      nullable: false,
+    };
+  },
 };
 
 // ---------------------------------------------------------------------------
