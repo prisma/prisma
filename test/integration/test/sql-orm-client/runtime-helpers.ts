@@ -209,7 +209,7 @@ export async function createPgIntegrationRuntime(
       preparedOptions?: RuntimeExecuteOptions,
     ): AsyncIterableResult<Row> {
       if (isPreparedStatement(planOrStatement)) {
-        return target.execute(
+        return target.executePrepared(
           planOrStatement,
           blindCast<Params, 'prepared execute overload always receives statement parameters'>(
             paramsOrOptions,

@@ -1,0 +1,9 @@
+// Faithful PostgreSQL translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/driver-adapters/team-orm-687-bytes/prisma/_schema.ts.
+
+model A {
+  id    String @id
+  bytes Bytes
+
+  @@map("A")
+}
