@@ -3,6 +3,7 @@ import type { RuntimeExecuteOptions } from '@internal/framework-components/runti
 import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import { type PostgresRuntime, PostgresRuntimeImpl } from '@internal/postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlQueryable, SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   PreparedStatement,
@@ -13,7 +14,18 @@ import type {
 import { blindCast } from '@internal/utils/casts';
 import type { SupabaseRole } from '../contract/roles';
 
-export interface SupabaseRuntime extends PostgresRuntime {}
+export interface SupabaseRuntime extends PostgresRuntime {
+  queryWithRole<Row>(
+    plan: SqlExecutionPlan<Row> | SqlQueryPlan<Row>,
+    binding: SupabaseRoleBinding,
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row>;
+  executeWithRole(
+    plan: SqlExecutionPlan | SqlQueryPlan,
+    binding: SupabaseRoleBinding,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats>;
+}
 
 export interface SupabaseRoleBinding {
   readonly role: SupabaseRole;
@@ -54,29 +66,29 @@ export class SupabaseRuntimeImpl<
     const self = this;
 
     const session: RoleSession = {
-      execute<Row>(
+      query<Row>(
         plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
         options?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        return self.executeAgainstQueryable<Row>(plan, conn, { ...options, scope: 'connection' });
+        return self.queryAgainstQueryable<Row>(plan, conn, { ...options, scope: 'connection' });
       },
-
-      executePrepared<Params, Row>(
-        ps: PreparedStatement<Params, Row>,
+      execute(
+        plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        return self.executeAgainstQueryable(plan, conn, { ...options, scope: 'connection' });
+      },
+      queryPrepared<Params, Row>(
+        prepared: PreparedStatement<Params, Row>,
         params: Params,
         options?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        return self.executePreparedAgainstQueryable(
-          blindCast<
-            PreparedStatementImpl<Params, Row>,
-            'PreparedStatement is PreparedStatementImpl; the impl class is the only concrete form'
-          >(ps),
-          blindCast<
-            Record<string, unknown>,
-            'params are structurally Record<string, unknown> at runtime'
-          >(params),
+        return self.queryPreparedAgainstRoleQueryable(
+          prepared,
+          params,
           conn,
-          { ...options, scope: 'connection' },
+          options,
+          'connection',
         );
       },
 
@@ -89,31 +101,29 @@ export class SupabaseRuntimeImpl<
           async rollback(): Promise<void> {
             await tx.rollback();
           },
-          execute<Row>(
+          query<Row>(
             plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
             options?: RuntimeExecuteOptions,
           ): AsyncIterableResult<Row> {
-            return self.executeAgainstQueryable<Row>(plan, tx, {
-              ...options,
-              scope: 'transaction',
-            });
+            return self.queryAgainstQueryable<Row>(plan, tx, { ...options, scope: 'transaction' });
           },
-          executePrepared<Params, Row>(
-            ps: PreparedStatement<Params, Row>,
+          execute(
+            plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+            options?: RuntimeExecuteOptions,
+          ): Promise<SqlStatementStats> {
+            return self.executeAgainstQueryable(plan, tx, { ...options, scope: 'transaction' });
+          },
+          queryPrepared<Params, Row>(
+            prepared: PreparedStatement<Params, Row>,
             params: Params,
             options?: RuntimeExecuteOptions,
           ): AsyncIterableResult<Row> {
-            return self.executePreparedAgainstQueryable(
-              blindCast<
-                PreparedStatementImpl<Params, Row>,
-                'PreparedStatement is PreparedStatementImpl; the impl class is the only concrete form'
-              >(ps),
-              blindCast<
-                Record<string, unknown>,
-                'params are structurally Record<string, unknown> at runtime'
-              >(params),
+            return self.queryPreparedAgainstRoleQueryable(
+              prepared,
+              params,
               tx,
-              { ...options, scope: 'transaction' },
+              options,
+              'transaction',
             );
           },
         };
@@ -141,10 +151,10 @@ export class SupabaseRuntimeImpl<
   }
 
   /**
-   * Opens a role session, executes the plan, then releases after the stream drains.
+   * Opens a role session, queries the plan, then releases after the stream drains.
    * On mid-stream error, destroys the session instead of releasing.
    */
-  executeWithRole<Row>(
+  queryWithRole<Row>(
     plan: SqlExecutionPlan<Row> | SqlQueryPlan<Row>,
     binding: SupabaseRoleBinding,
     options?: RuntimeExecuteOptions,
@@ -155,7 +165,7 @@ export class SupabaseRuntimeImpl<
       const session = await self.openRoleSession(binding);
       let errored = false;
       try {
-        for await (const row of session.execute(plan, options)) {
+        for await (const row of session.query(plan, options)) {
           yield row;
         }
       } catch (err) {
@@ -170,5 +180,41 @@ export class SupabaseRuntimeImpl<
     };
 
     return new AsyncIterableResult(generator());
+  }
+
+  async executeWithRole(
+    plan: SqlExecutionPlan | SqlQueryPlan,
+    binding: SupabaseRoleBinding,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats> {
+    const session = await this.openRoleSession(binding);
+    try {
+      const stats = await session.execute(plan, options);
+      await session.release();
+      return stats;
+    } catch (err) {
+      await session.destroy(err).catch(() => undefined);
+      throw err;
+    }
+  }
+
+  private queryPreparedAgainstRoleQueryable<Params, Row>(
+    prepared: PreparedStatement<Params, Row>,
+    params: Params,
+    queryable: SqlQueryable,
+    options: RuntimeExecuteOptions | undefined,
+    scope: 'connection' | 'transaction',
+  ): AsyncIterableResult<Row> {
+    return this.queryPreparedAgainstQueryable<Params, Row>(
+      blindCast<
+        PreparedStatementImpl<Params, Row>,
+        'SQL runtime prepare returns PreparedStatementImpl instances'
+      >(prepared),
+      blindCast<Record<string, unknown>, 'Prepared params follow their declared record shape'>(
+        params,
+      ),
+      queryable,
+      { ...options, scope },
+    );
   }
 }
