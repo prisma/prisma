@@ -1,6 +1,6 @@
 # Design — Prisma 8: route all migration/db commands through the control client
 
-Status: DRAFT — ambiguities 1–5 (end of file) pending operator ruling. Implementer executes this design exactly; deviations require orchestrator sign-off.
+Status: ACCEPTED 2026-08-06 — all five ambiguities ruled by the operator: recommendations adopted (`Result<T, CliStructuredError>` failure type; touchpoint extraction for migration-status/migrate; `tsPreCompilationDeps: 'specify'` + dep-cruiser rule; test files relocate to `test/control-api/`; moved executors keep `…Command` names). Implementer executes this design exactly; deviations require orchestrator sign-off.
 
 Paths relative to `packages/1-framework/3-tooling/cli/` unless noted.
 

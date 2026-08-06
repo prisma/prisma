@@ -1,6 +1,6 @@
 # Design — Composer programmatic API (`@prisma/composer/control`)
 
-Status: DRAFT — ambiguities 1–6 (end of file) pending operator ruling. Implementer executes this design exactly; deviations require orchestrator sign-off.
+Status: ACCEPTED 2026-08-06 — all six ambiguities ruled by the operator: recommendations adopted (`./control` entrypoint; optional summary; keep `stdio: 'inherit'`; coarse `pipeline` failure kind; minimal dev session; **plus a short ADR** for the `./control` surface and the `DEPLOYMENT_RESULT_FILE_ENV` cross-process contract — in scope for this slice). PR targets composer `main`. Implementer executes this design exactly; deviations require orchestrator sign-off.
 
 All paths relative to the composer repo root (working clone: `wip/repos/composer`).
 
