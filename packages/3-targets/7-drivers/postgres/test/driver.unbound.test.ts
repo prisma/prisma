@@ -2,8 +2,8 @@ import { createDevDatabase, timeouts } from '@repo/test-utils';
 import type { Client, Pool } from 'pg';
 import { newDb } from 'pg-mem';
 import { afterEach, describe, expect, it } from 'vitest';
-
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
+import { executeSql, queryRows } from './sql-queryable-test-utils';
 
 describe('@internal/driver-postgres runtime driver lifecycle', () => {
   let cleanup: (() => Promise<void>) | undefined;
@@ -57,7 +57,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
 
     it('throws when query is called', async () => {
       const driver = createDriver();
-      await expect(driver.query('select 1')).rejects.toMatchObject({
+      await expect(queryRows(driver, 'select 1')).rejects.toMatchObject({
         code: 'DRIVER.NOT_CONNECTED',
         category: 'DRIVER',
         message: useBeforeConnectMessage,
@@ -66,7 +66,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
 
     it('throws when execute is iterated', async () => {
       const driver = createDriver();
-      const iter = driver.execute({ sql: 'select 1' });
+      const iter = driver.query({ sql: 'select 1' });
       const iterator = iter[Symbol.asyncIterator]();
       await expect(iterator.next()).rejects.toMatchObject({
         code: 'DRIVER.NOT_CONNECTED',
@@ -119,14 +119,15 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const driver = createDriver();
           await driver.connect({ kind: 'pgPool', pool: memPool as unknown as Pool });
 
-          await driver.query('create table items(id serial primary key, name text)');
-          await driver.query('insert into items(name) values ($1)', ['test']);
+          await executeSql(driver, 'create table items(id serial primary key, name text)');
+          await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
 
-          const result = await driver.query<{ id: number; name: string }>(
+          const result = await queryRows<{ id: number; name: string }>(
+            driver,
             'select id, name from items',
           );
-          expect(result.rows).toHaveLength(1);
-          expect(result.rows[0]?.name).toBe('test');
+          expect(result).toHaveLength(1);
+          expect(result[0]?.name).toBe('test');
         },
         timeouts.spinUpPpgDev,
       );
@@ -149,11 +150,12 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
               'Postgres driver already connected. Call close() before reconnecting with a new binding.',
           });
 
-          await driver.query('create table items(id serial primary key, name text)');
-          const result = await driver.query<{ id: number; name: string }>(
+          await executeSql(driver, 'create table items(id serial primary key, name text)');
+          const result = await queryRows<{ id: number; name: string }>(
+            driver,
             'select id, name from items',
           );
-          expect(result.rows).toBeDefined();
+          expect(result).toBeDefined();
         },
         timeouts.spinUpPpgDev,
       );
@@ -188,14 +190,15 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const driver = createDriver();
           await driver.connect({ kind: 'pgClient', client: memClient as unknown as Client });
 
-          await driver.query('create table items(id serial primary key, name text)');
-          await driver.query('insert into items(name) values ($1)', ['test']);
+          await executeSql(driver, 'create table items(id serial primary key, name text)');
+          await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
 
-          const result = await driver.query<{ id: number; name: string }>(
+          const result = await queryRows<{ id: number; name: string }>(
+            driver,
             'select id, name from items',
           );
-          expect(result.rows).toHaveLength(1);
-          expect(result.rows[0]?.name).toBe('test');
+          expect(result).toHaveLength(1);
+          expect(result[0]?.name).toBe('test');
         },
         timeouts.spinUpPpgDev,
       );
@@ -241,7 +244,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
             code: 'DRIVER.NOT_CONNECTED',
             category: 'DRIVER',
           });
-          await expect(driver.query('select 1')).rejects.toMatchObject({
+          await expect(queryRows(driver, 'select 1')).rejects.toMatchObject({
             code: 'DRIVER.NOT_CONNECTED',
             category: 'DRIVER',
           });
@@ -263,15 +266,16 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           };
 
           await driver.connect({ kind: 'url', url: database.connectionString });
-          await driver.query('create table url_items(id serial primary key, name text)');
-          await driver.query('insert into url_items(name) values ($1)', ['url-test']);
+          await executeSql(driver, 'create table url_items(id serial primary key, name text)');
+          await executeSql(driver, 'insert into url_items(name) values ($1)', ['url-test']);
 
-          const result = await driver.query<{ id: number; name: string }>(
+          const result = await queryRows<{ id: number; name: string }>(
+            driver,
             'select id, name from url_items where name = $1',
             ['url-test'],
           );
-          expect(result.rows).toHaveLength(1);
-          expect(result.rows[0]?.name).toBe('url-test');
+          expect(result).toHaveLength(1);
+          expect(result[0]?.name).toBe('url-test');
         },
         timeouts.spinUpPpgDev,
       );

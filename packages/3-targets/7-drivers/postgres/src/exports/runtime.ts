@@ -3,14 +3,14 @@ import type {
   RuntimeDriverInstance,
 } from '@internal/framework-components/execution';
 import type {
-  PreparedExecuteRequest,
   SqlConnection,
   SqlDriver,
   SqlExecuteRequest,
   SqlExplainResult,
-  SqlQueryResult,
+  SqlStatementStats,
 } from '@internal/sql-relational-core/ast';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
+import { driverError } from '../driver-error';
 import {
   createBoundDriverFromBinding,
   type PostgresBinding,
@@ -25,33 +25,7 @@ const USE_BEFORE_CONNECT_MESSAGE =
 const ALREADY_CONNECTED_MESSAGE =
   'Postgres driver already connected. Call close() before reconnecting with a new binding.';
 
-interface DriverRuntimeError extends Error {
-  readonly code: 'DRIVER.NOT_CONNECTED' | 'DRIVER.ALREADY_CONNECTED';
-  readonly category: 'DRIVER';
-  readonly severity: 'error';
-  readonly details?: Record<string, unknown>;
-}
-
-function driverError(
-  code: DriverRuntimeError['code'],
-  message: string,
-  details?: Record<string, unknown>,
-): DriverRuntimeError {
-  const error = new Error(message) as DriverRuntimeError;
-  Object.defineProperty(error, 'name', {
-    value: 'RuntimeError',
-    configurable: true,
-  });
-  return Object.assign(error, {
-    code,
-    category: 'DRIVER' as const,
-    severity: 'error' as const,
-    message,
-    details,
-  });
-}
-
-function unboundExecute<Row>(): AsyncIterable<Row> {
+function unboundQuery<Row>(): AsyncIterable<Row> {
   return {
     [Symbol.asyncIterator]() {
       return {
@@ -130,9 +104,8 @@ class PostgresUnboundDriverImpl implements PostgresRuntimeDriver {
     };
     const wrapped: SqlConnection = {
       beginTransaction: connection.beginTransaction.bind(connection),
-      execute: connection.execute.bind(connection),
-      executePrepared: connection.executePrepared.bind(connection),
       query: connection.query.bind(connection),
+      execute: connection.execute.bind(connection),
       release: async () => {
         try {
           await connection.release();
@@ -163,22 +136,17 @@ class PostgresUnboundDriverImpl implements PostgresRuntimeDriver {
     this.#closed = true;
   }
 
-  execute<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
+  query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
     const delegate = this.#delegate;
-    if (delegate === null) {
-      return unboundExecute<Row>();
-    }
-    return delegate.execute<Row>(request);
+    return delegate === null ? unboundQuery<Row>() : delegate.query<Row>(request);
   }
 
-  executePrepared<Row = Record<string, unknown>>(
-    request: PreparedExecuteRequest,
-  ): AsyncIterable<Row> {
+  async execute(request: SqlExecuteRequest): Promise<SqlStatementStats> {
     const delegate = this.#delegate;
     if (delegate === null) {
-      return unboundExecute<Row>();
+      throw driverError('DRIVER.NOT_CONNECTED', USE_BEFORE_CONNECT_MESSAGE);
     }
-    return delegate.executePrepared<Row>(request);
+    return delegate.execute(request);
   }
 
   async explain(request: SqlExecuteRequest): Promise<SqlExplainResult> {
@@ -188,14 +156,6 @@ class PostgresUnboundDriverImpl implements PostgresRuntimeDriver {
       throw driverError('DRIVER.NOT_CONNECTED', USE_BEFORE_CONNECT_MESSAGE);
     }
     return explain.call(delegate, request);
-  }
-
-  async query<Row = Record<string, unknown>>(
-    sql: string,
-    params?: readonly unknown[],
-  ): Promise<SqlQueryResult<Row>> {
-    const delegate = this.#requireDelegate();
-    return delegate.query<Row>(sql, params);
   }
 }
 

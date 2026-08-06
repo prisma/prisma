@@ -14,23 +14,27 @@ const exec = promisify(execFile);
 export const DEFAULT_SKILL_BASE = 'prisma/prisma';
 
 /**
- * One discovery scope inside the Prisma Next monorepo. The CLI emits
- * one `skills add <base>/<subpath>[#ref] --agent ... --skill '*' -y`
- * invocation per source during `init`.
+ * One skill install inside the Prisma Next monorepo. The CLI emits
+ * one `skills add <base>/<subpath>[#ref] --agent ... --skill <name> -y`
+ * invocation per source during `init`. Every skill lives directly
+ * under the `skills/` subpath; the explicit `--skill` name keeps a
+ * pinned install from capturing sibling skills with a different ref
+ * policy.
  *
  * `ref` semantics:
  * - `cli`: pin to the CLI's own package version (lockstep with the
- *   skills' SPI). Used for the version-locked usage cluster — the
- *   skills under `skills/<X>/SKILL.md`, which describe the public
- *   package API and are pinned to the version of `@internal/*`
- *   currently installed in the consumer's project.
- * - `null`: no ref. The cluster is "always-latest" — the cumulative
+ *   skills' SPI). Used for the consolidated usage skill
+ *   (`skills/prisma-8`), which describes the public package API
+ *   and is pinned to the version of `@internal/*` currently
+ *   installed in the consumer's project.
+ * - `null`: no ref. The skill is "always-latest" — the cumulative
  *   instruction set is the source of truth, and the latest revision
  *   on `main` includes bug fixes for every prior transition. Used
- *   for the upgrade and extension-author clusters.
+ *   for the upgrade and extension-author-upgrade skills.
  */
 export interface SkillSource {
   readonly subpath: string;
+  readonly skill: string;
   readonly ref: 'cli' | null;
   readonly description: string;
 }
@@ -38,18 +42,21 @@ export interface SkillSource {
 export const DEFAULT_SKILL_SOURCES: readonly SkillSource[] = [
   {
     subpath: 'skills',
+    skill: 'prisma-8',
     ref: 'cli',
-    description: 'usage skills (version-locked to installed Prisma Next)',
+    description: 'usage skill (version-locked to installed Prisma Next)',
   },
   {
-    subpath: 'skills/upgrade',
+    subpath: 'skills',
+    skill: 'prisma-next-upgrade',
     ref: null,
     description: 'upgrade skill (always tracks `main`)',
   },
   {
-    subpath: 'skills/extension-author',
+    subpath: 'skills',
+    skill: 'prisma-8-extension-upgrade',
     ref: null,
-    description: 'extension-author skill (always tracks `main`)',
+    description: 'extension-author upgrade skill (always tracks `main`)',
   },
 ];
 
@@ -109,8 +116,9 @@ export function formatSkillSourceUrl(source: SkillSource): string {
  * rest of the install step so a single project consistently uses one
  * runner.
  *
- * `--agent` takes space-separated slugs on one flag; `--skill '*'` and `-y`
- * skip the multi-select prompts a non-interactive scaffold step cannot show.
+ * `--agent` takes space-separated slugs on one flag; the explicit
+ * `--skill <name>` and `-y` skip the multi-select prompts a
+ * non-interactive scaffold step cannot show.
  *
  * Exported for unit tests so the per-PM dispatch can be asserted
  * without a live subprocess.
@@ -128,7 +136,7 @@ export function formatSkillInstallCommand(args: {
     '--agent',
     ...agents,
     '--skill',
-    "'*'",
+    args.source.skill,
     '-y',
   ];
   return formatPackageManagerCommand(args.pm, cliArgs);
@@ -161,8 +169,9 @@ function formatPackageManagerCommand(pm: PackageManager, args: readonly string[]
  * format-then-parse split keeps the user-facing command string the same
  * as the surface the structured error advertises, so a user who copies
  * the error's `fix` line gets the same invocation that init just
- * attempted. Single quotes are preserved in the display form so `*` is
- * safe to copy into a shell, then stripped before `execFile`.
+ * attempted. Single-quoted tokens are preserved in the display form so
+ * shell-sensitive characters stay copy-safe, then stripped before
+ * `execFile`.
  */
 function commandToExec(command: string): {
   readonly file: string;
@@ -236,8 +245,45 @@ export function redactSecrets(stderr: string): string {
 // -------------------------------------------------------------------
 
 /**
- * Hand-rolled skill stub path that init must not leave behind. Removed
- * on every init run so a project's `.agents/skills/prisma-next/` does
- * not shadow the installed Prisma Next skill cluster.
+ * Skill directories that predate the consolidated `prisma-8` skill:
+ * the per-workflow usage cluster (including the renamed
+ * `prisma-8-migration-review` spelling it briefly shipped under), the
+ * pre-rename spellings of the consolidated skill and the
+ * extension-author upgrade skill, and any hand-rolled `prisma-next`
+ * stub. Projects initialised before the consolidation carry these as
+ * sibling directories in each agent's install root; left in place
+ * they compete with the current skills for activation, so init
+ * removes them on every run.
  */
-export const LEGACY_SKILL_FILE = '.agents/skills/prisma-next/SKILL.md';
+export const RETIRED_SKILL_NAMES = [
+  'prisma-next',
+  'prisma-next-quickstart',
+  'prisma-next-contract',
+  'prisma-next-migrations',
+  'prisma-next-migration-review',
+  'prisma-8-migration-review',
+  'prisma-next-queries',
+  'prisma-next-runtime',
+  'prisma-next-build',
+  'prisma-next-supabase',
+  'prisma-next-debug',
+  'prisma-next-feedback',
+  'prisma-next-extension-upgrade',
+] as const;
+
+/**
+ * Project-level install roots the upstream `skills` CLI uses for the
+ * agents in `DEFAULT_SKILL_AGENTS`: cursor and codex install into
+ * `.agents/skills`, claude-code into `.claude/skills`, windsurf into
+ * `.windsurf/skills`.
+ */
+export const AGENT_SKILL_ROOTS = ['.agents/skills', '.claude/skills', '.windsurf/skills'] as const;
+
+/**
+ * Every directory a retired per-workflow skill may occupy in a
+ * consumer project. Init deletes each (recursively) before running the
+ * skill install.
+ */
+export function legacySkillDirs(): readonly string[] {
+  return AGENT_SKILL_ROOTS.flatMap((root) => RETIRED_SKILL_NAMES.map((name) => `${root}/${name}`));
+}

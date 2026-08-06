@@ -65,7 +65,7 @@ describe('storage namespace entries type emission', () => {
     );
 
     expect(dts).toContain(
-      "readonly valueSet: { readonly AalLevel: { readonly kind: 'valueSet'; readonly values: readonly ['aal1', 'aal2', 'aal3'] } }",
+      'readonly valueSet: { readonly AalLevel: { readonly kind: "valueSet"; readonly values: readonly ["aal1", "aal2", "aal3"] } }',
     );
   });
 

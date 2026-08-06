@@ -1,5 +1,5 @@
 import { generateContractDts } from '@internal/emitter';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import { type CodecLookup, renderTsLiteral } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { ExtractMongoFieldOutputTypes } from '@internal/mongo-contract';
 import { deriveJsonSchema, type FieldValueSets } from '@internal/mongo-contract-psl';
@@ -68,7 +68,7 @@ const codecLookup: CodecLookup = {
   // identity codec, so it renders the encoded string straight to a quoted literal —
   // mirroring the real `mongo/string@1` descriptor's `renderValueLiteral`.
   renderValueLiteralFor: (id, value) =>
-    id === 'mongo/string@1' && typeof value === 'string' ? `'${value}'` : undefined,
+    id === 'mongo/string@1' && typeof value === 'string' ? renderTsLiteral(value) : undefined,
 };
 
 // Derive the $jsonSchema validator from the contract via the production deriver.
@@ -303,14 +303,14 @@ describe('emit-then-consume: value-union narrowing through the emitted contract.
     );
 
     // The enum field narrows to the literal value union (not the codec channel).
-    expect(outputMap).toContain("readonly role: 'user' | 'admin'");
-    expect(outputMap).not.toContain("readonly role: CodecTypes['mongo/string@1']['output']");
+    expect(outputMap).toContain('readonly role: "user" | "admin"');
+    expect(outputMap).not.toContain('readonly role: CodecTypes["mongo/string@1"]["output"]');
     // Negative: must not widen to a union with string or the full codec channel.
-    expect(outputMap).not.toContain("readonly role: 'user' | 'admin' | string");
+    expect(outputMap).not.toContain('readonly role: "user" | "admin" | string');
     expect(outputMap).not.toContain('readonly role: string');
 
     // The non-enum fields are unchanged.
-    expect(dts).toContain("CodecTypes['mongo/objectId@1']");
+    expect(dts).toContain('CodecTypes["mongo/objectId@1"]');
   });
 
   it('emits null-inclusive union for a nullable enum field', () => {
@@ -328,8 +328,8 @@ describe('emit-then-consume: value-union narrowing through the emitted contract.
       dts.indexOf('export type FieldInputTypes'),
     );
 
-    expect(outputMap).toContain("readonly mood: 'user' | 'admin' | null");
-    expect(outputMap).not.toContain("readonly mood: 'user' | 'admin' | null | string");
+    expect(outputMap).toContain('readonly mood: "user" | "admin" | null');
+    expect(outputMap).not.toContain('readonly mood: "user" | "admin" | null | string');
     expect(outputMap).not.toContain('readonly mood: string | null');
   });
 
@@ -348,8 +348,8 @@ describe('emit-then-consume: value-union narrowing through the emitted contract.
       dts.indexOf('export type FieldInputTypes'),
     );
 
-    expect(outputMap).toContain("readonly tags: ReadonlyArray<'user' | 'admin'>");
-    expect(outputMap).not.toContain("readonly tags: ReadonlyArray<'user' | 'admin' | string>");
+    expect(outputMap).toContain('readonly tags: ReadonlyArray<"user" | "admin">');
+    expect(outputMap).not.toContain('readonly tags: ReadonlyArray<"user" | "admin" | string>');
     expect(outputMap).not.toContain('readonly tags: ReadonlyArray<string>');
   });
 
@@ -368,10 +368,10 @@ describe('emit-then-consume: value-union narrowing through the emitted contract.
     // FieldOutputTypes narrowing above would not fire.
     expect(dts).toContain('readonly enum:');
     expect(dts).toContain('readonly Role:');
-    expect(dts).toContain("readonly codecId: 'mongo/string@1'");
-    expect(dts).toContain("readonly name: 'User'");
-    expect(dts).toContain("readonly value: 'user'");
-    expect(dts).toContain("readonly name: 'Admin'");
-    expect(dts).toContain("readonly value: 'admin'");
+    expect(dts).toContain('readonly codecId: "mongo/string@1"');
+    expect(dts).toContain('readonly name: "User"');
+    expect(dts).toContain('readonly value: "user"');
+    expect(dts).toContain('readonly name: "Admin"');
+    expect(dts).toContain('readonly value: "admin"');
   });
 });

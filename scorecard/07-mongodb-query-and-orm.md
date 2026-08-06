@@ -41,7 +41,7 @@ Legend:
 | ORM `deleteAll` | — | — | 🟡 | |
 | ORM `deleteAndCount` | — | — | 🟡 | |
 | ORM `upsert` | — | — | 🟡 | |
-| Runtime rejection of `null` writes to required composites | — | — | ❌ | `test/integration/test/ports/prisma/functional/composites-object-create/composites-object-create.test.ts`; corresponding object/list createMany, update, updateMany, and upsert port suites |
+| Rejection of `null` writes to required composites | — | — | ✅ | `test/integration/test/ports/prisma/functional/composites-object-create/composites-object-create.test.ts`; corresponding object/list createMany, update, updateMany, and upsert port suites |
 | Update operator `set` | — | — | 🟡 | |
 | Update operator `unset` | — | — | 🟡 | |
 | Update operator `push` | — | — | 🟡 | |

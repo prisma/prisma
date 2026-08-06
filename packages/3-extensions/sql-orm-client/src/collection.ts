@@ -1837,9 +1837,10 @@ export class Collection<
   }
 
   /**
-   * Write terminal: update matching rows and return the first one (or
-   * `null` when no row matched). Requires a prior `.where(...)` —
-   * calling `update(...)` on an unfiltered collection is a type error.
+   * Write terminal: update a single matching row — the first one the
+   * filter matches — and return it (or `null` when no row matched).
+   * Requires a prior `.where(...)` — calling `update(...)` on an
+   * unfiltered collection is a type error.
    *
    * Related rows can be created or relinked through relation
    * callbacks on parent/child-owned relations (one-to-one or
@@ -2098,9 +2099,10 @@ export class Collection<
   }
 
   /**
-   * Write terminal: delete matching rows and return the first deleted
-   * row (or `null` when no row matched). Requires a prior `.where(...)`
-   * — calling `delete()` on an unfiltered collection is a type error.
+   * Write terminal: delete a single matching row — the first one the
+   * filter matches — and return it (or `null` when no row matched).
+   * Requires a prior `.where(...)` — calling `delete()` on an
+   * unfiltered collection is a type error.
    *
    * ```typescript
    * const deleted = await db.orm.User.where({ id: 1 }).delete();

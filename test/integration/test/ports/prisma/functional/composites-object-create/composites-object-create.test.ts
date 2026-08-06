@@ -22,7 +22,7 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // Note: upstream "set null" for the required variant throws a runtime error;
 // in prisma-next the required constraint is enforced at compile time by the type
 // system (content cannot be null/undefined on CommentRequired), so that branch
-// has no runtime equivalent and is not ported.
+// is covered below through the provisioned collection validator.
 //
 // Note: create() returns the input data merged with the server-assigned _id.
 // Upstream asserts `id: expect.any(String)`; prisma-next decodes write results
@@ -112,10 +112,9 @@ describe('ports/prisma/functional/composites/object/create', () => {
 
     // Upstream asserts null on required `content` is BOTH a type error and a
     // runtime throw (`Argument must not be null`). prisma-next rejects it at the
-    // type level (the @ts-expect-error holds), but mongo has no runtime
-    // validation for the required embedded field, so it does not throw — faithful
-    // port, it.fails.
-    it.fails(
+    // type level (the @ts-expect-error holds), and MongoDB rejects it through the
+    // provisioned collection validator.
+    it(
       'set null',
       () =>
         withComposites(async ({ db }) => {
@@ -129,7 +128,7 @@ describe('ports/prisma/functional/composites/object/create', () => {
       timeouts.spinUpMongoMemoryServer,
     );
 
-    it.fails(
+    it(
       'set null shorthand',
       () =>
         withComposites(async ({ db }) => {

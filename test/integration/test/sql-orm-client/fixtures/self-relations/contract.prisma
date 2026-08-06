@@ -1,0 +1,43 @@
+model Person {
+  id        Int    @id
+  name      String
+  managerId Int?   @map("manager_id")
+  partnerId Int?   @unique @map("partner_id")
+
+  manager Person?  @relation("Management", fields: [managerId], references: [id])
+  reports Person[] @relation("Management")
+
+  partner     Person? @relation("Partnership", fields: [partnerId], references: [id])
+  partneredBy Person? @relation("Partnership")
+
+  following Person[] @relation("follower")
+  followers Person[] @relation("followee")
+
+  outgoingLinks PersonConnection[] @relation("connectionSource")
+  incomingLinks PersonConnection[] @relation("connectionTarget")
+
+  @@map("people")
+}
+
+model PersonFollow {
+  followerId Int @map("follower_id")
+  followeeId Int @map("followee_id")
+
+  follower Person @relation("follower", fields: [followerId], references: [id])
+  followee Person @relation("followee", fields: [followeeId], references: [id])
+
+  @@id([followerId, followeeId])
+  @@map("person_follows")
+}
+
+model PersonConnection {
+  sourceId Int @map("source_id")
+  targetId Int @map("target_id")
+  weight   Int
+
+  source Person @relation("connectionSource", fields: [sourceId], references: [id])
+  target Person @relation("connectionTarget", fields: [targetId], references: [id])
+
+  @@id([sourceId, targetId])
+  @@map("person_connections")
+}

@@ -3,8 +3,8 @@ import type { Client, Pool } from 'pg';
 import { Pool as PgPool } from 'pg';
 import { newDb } from 'pg-mem';
 import { afterEach, describe, expect, it } from 'vitest';
-
 import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
+import { executeSql, queryRows } from './sql-queryable-test-utils';
 
 describe('@internal/driver-postgres', () => {
   let cleanup: (() => Promise<void>) | undefined;
@@ -41,11 +41,11 @@ describe('@internal/driver-postgres', () => {
     'streams rows using buffered fallback when cursor disabled',
     async () => {
       const driver = await createMemPoolDriver({ cursor: { disabled: true } });
-      await driver.query('create table items(id serial primary key, name text)');
-      await driver.query('insert into items(name) values ($1), ($2)', ['a', 'b']);
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
+      await executeSql(driver, 'insert into items(name) values ($1), ($2)', ['a', 'b']);
 
       const rows: Array<{ id: number; name: string }> = [];
-      for await (const row of driver.execute<{ id: number; name: string }>({
+      for await (const row of driver.query<{ id: number; name: string }>({
         sql: 'select id, name from items order by id asc',
       })) {
         rows.push(row);
@@ -63,11 +63,11 @@ describe('@internal/driver-postgres', () => {
     'streams rows using cursor mode when enabled',
     async () => {
       const driver = await createMemPoolDriver({ cursor: { batchSize: 1 } });
-      await driver.query('create table items(id serial primary key, name text)');
-      await driver.query('insert into items(name) values ($1), ($2), ($3)', ['a', 'b', 'c']);
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
+      await executeSql(driver, 'insert into items(name) values ($1), ($2), ($3)', ['a', 'b', 'c']);
 
       const rows: Array<{ id: number; name: string }> = [];
-      for await (const row of driver.execute<{ id: number; name: string }>({
+      for await (const row of driver.query<{ id: number; name: string }>({
         sql: 'select id, name from items order by id asc',
       })) {
         rows.push(row);
@@ -86,8 +86,8 @@ describe('@internal/driver-postgres', () => {
     'uses custom cursor batch size',
     async () => {
       const driver = await createMemPoolDriver({ cursor: { batchSize: 2 } });
-      await driver.query('create table items(id serial primary key, name text)');
-      await driver.query('insert into items(name) values ($1), ($2), ($3), ($4)', [
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
+      await executeSql(driver, 'insert into items(name) values ($1), ($2), ($3), ($4)', [
         'a',
         'b',
         'c',
@@ -95,7 +95,7 @@ describe('@internal/driver-postgres', () => {
       ]);
 
       const rows: Array<{ id: number; name: string }> = [];
-      for await (const row of driver.execute<{ id: number; name: string }>({
+      for await (const row of driver.query<{ id: number; name: string }>({
         sql: 'select id, name from items order by id asc',
       })) {
         rows.push(row);
@@ -112,7 +112,7 @@ describe('@internal/driver-postgres', () => {
     'executes explain query',
     async () => {
       const driver = await createMemPoolDriver();
-      await driver.query('create table items(id serial primary key, name text)');
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
 
       // pg-mem doesn't support EXPLAIN (FORMAT JSON), so we test that explain() is callable
       // In a real environment, this would return explain results
@@ -137,16 +137,17 @@ describe('@internal/driver-postgres', () => {
     'executes query with params',
     async () => {
       const driver = await createMemPoolDriver();
-      await driver.query('create table items(id serial primary key, name text)');
-      await driver.query('insert into items(name) values ($1)', ['test']);
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
+      await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
 
-      const result = await driver.query<{ id: number; name: string }>(
+      const result = await queryRows<{ id: number; name: string }>(
+        driver,
         'select id, name from items where name = $1',
         ['test'],
       );
 
-      expect(result.rows).toHaveLength(1);
-      expect(result.rows[0]?.name).toBe('test');
+      expect(result).toHaveLength(1);
+      expect(result[0]?.name).toBe('test');
     },
     timeouts.spinUpPpgDev,
   );
@@ -165,13 +166,16 @@ describe('@internal/driver-postgres', () => {
       };
 
       await driver.connect({ kind: 'pgClient', client: client as unknown as Client });
-      await driver.query('create table items(id serial primary key, name text)');
-      await driver.query('insert into items(name) values ($1)', ['test']);
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
+      await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
 
-      const result = await driver.query<{ id: number; name: string }>('select id, name from items');
+      const result = await queryRows<{ id: number; name: string }>(
+        driver,
+        'select id, name from items',
+      );
 
-      expect(result.rows).toHaveLength(1);
-      expect(result.rows[0]?.name).toBe('test');
+      expect(result).toHaveLength(1);
+      expect(result[0]?.name).toBe('test');
     },
     timeouts.spinUpPpgDev,
   );
@@ -196,10 +200,13 @@ describe('@internal/driver-postgres', () => {
         'Postgres driver already connected. Call close() before reconnecting with a new binding.',
       );
 
-      await driver.query('create table items(id serial primary key, name text)');
-      const result = await driver.query<{ id: number; name: string }>('select id, name from items');
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
+      const result = await queryRows<{ id: number; name: string }>(
+        driver,
+        'select id, name from items',
+      );
 
-      expect(result.rows).toBeDefined();
+      expect(result).toBeDefined();
     },
     timeouts.spinUpPpgDev,
   );
@@ -221,10 +228,13 @@ describe('@internal/driver-postgres', () => {
 
       await driver.connect({ kind: 'pgClient', client: client as unknown as Client });
       // acquireClient should detect client is already connected and skip connect()
-      await driver.query('create table items(id serial primary key, name text)');
-      const result = await driver.query<{ id: number; name: string }>('select id, name from items');
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
+      const result = await queryRows<{ id: number; name: string }>(
+        driver,
+        'select id, name from items',
+      );
 
-      expect(result.rows).toBeDefined();
+      expect(result).toBeDefined();
     },
     timeouts.spinUpPpgDev,
   );
@@ -257,10 +267,10 @@ describe('@internal/driver-postgres', () => {
     'handles empty result set',
     async () => {
       const driver = await createMemPoolDriver();
-      await driver.query('create table items(id serial primary key, name text)');
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
 
       const rows: Array<{ id: number; name: string }> = [];
-      for await (const row of driver.execute<{ id: number; name: string }>({
+      for await (const row of driver.query<{ id: number; name: string }>({
         sql: 'select id, name from items',
       })) {
         rows.push(row);
@@ -287,11 +297,15 @@ describe('@internal/driver-postgres', () => {
       };
 
       await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
-      await driver.query('create table cursor_items(id serial primary key, name text)');
-      await driver.query('insert into cursor_items(name) values ($1), ($2), ($3)', ['a', 'b', 'c']);
+      await executeSql(driver, 'create table cursor_items(id serial primary key, name text)');
+      await executeSql(driver, 'insert into cursor_items(name) values ($1), ($2), ($3)', [
+        'a',
+        'b',
+        'c',
+      ]);
 
       const rows: Array<{ id: number; name: string }> = [];
-      for await (const row of driver.execute<{ id: number; name: string }>({
+      for await (const row of driver.query<{ id: number; name: string }>({
         sql: 'select id, name from cursor_items order by id asc',
       })) {
         rows.push(row);
@@ -320,8 +334,8 @@ describe('@internal/driver-postgres', () => {
       };
 
       await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
-      await driver.query('create table explain_items(id serial primary key, name text)');
-      await driver.query('insert into explain_items(name) values ($1)', ['test']);
+      await executeSql(driver, 'create table explain_items(id serial primary key, name text)');
+      await executeSql(driver, 'insert into explain_items(name) values ($1)', ['test']);
 
       const result = await driver.explain!({
         sql: 'select id, name from explain_items where id = $1',
@@ -348,12 +362,15 @@ describe('@internal/driver-postgres', () => {
       };
 
       await driver.connect({ kind: 'url', url: database.connectionString });
-      await driver.query('create table items(id serial primary key, name text)');
-      await driver.query('insert into items(name) values ($1)', ['test']);
+      await executeSql(driver, 'create table items(id serial primary key, name text)');
+      await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
 
-      const result = await driver.query<{ id: number; name: string }>('select id, name from items');
-      expect(result.rows).toHaveLength(1);
-      expect(result.rows[0]?.name).toBe('test');
+      const result = await queryRows<{ id: number; name: string }>(
+        driver,
+        'select id, name from items',
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0]?.name).toBe('test');
     },
     timeouts.spinUpPpgDev,
   );
@@ -363,20 +380,21 @@ describe('@internal/driver-postgres', () => {
       'acquires and releases connections from pool',
       async () => {
         const driver = await createMemPoolDriver();
-        await driver.query('create table items(id serial primary key, name text)');
+        await executeSql(driver, 'create table items(id serial primary key, name text)');
 
         const connection = await driver.acquireConnection();
         expect(connection).toBeDefined();
 
         // Test that the connection can execute queries
-        await connection.query('insert into items(name) values ($1)', ['test-connection']);
-        const result = await connection.query<{ id: number; name: string }>(
+        await executeSql(connection, 'insert into items(name) values ($1)', ['test-connection']);
+        const result = await queryRows<{ id: number; name: string }>(
+          connection,
           'select id, name from items where name = $1',
           ['test-connection'],
         );
 
-        expect(result.rows).toHaveLength(1);
-        expect(result.rows[0]?.name).toBe('test-connection');
+        expect(result).toHaveLength(1);
+        expect(result[0]?.name).toBe('test-connection');
 
         // Release the connection
         await connection.release();
@@ -398,20 +416,21 @@ describe('@internal/driver-postgres', () => {
         };
 
         await driver.connect({ kind: 'pgClient', client: client as unknown as Client });
-        await driver.query('create table items(id serial primary key, name text)');
+        await executeSql(driver, 'create table items(id serial primary key, name text)');
 
         const connection = await driver.acquireConnection();
         expect(connection).toBeDefined();
 
         // Test that the connection can execute queries
-        await connection.query('insert into items(name) values ($1)', ['test-direct']);
-        const result = await connection.query<{ id: number; name: string }>(
+        await executeSql(connection, 'insert into items(name) values ($1)', ['test-direct']);
+        const result = await queryRows<{ id: number; name: string }>(
+          connection,
           'select id, name from items where name = $1',
           ['test-direct'],
         );
 
-        expect(result.rows).toHaveLength(1);
-        expect(result.rows[0]?.name).toBe('test-direct');
+        expect(result).toHaveLength(1);
+        expect(result[0]?.name).toBe('test-direct');
 
         // Release the connection
         await connection.release();
@@ -433,7 +452,7 @@ describe('@internal/driver-postgres', () => {
         };
 
         await driver.connect({ kind: 'pgClient', client: client as unknown as Client });
-        await driver.query('create table items(id serial primary key, name text)');
+        await executeSql(driver, 'create table items(id serial primary key, name text)');
 
         const first = await driver.acquireConnection();
         let secondResolved = false;
@@ -457,13 +476,13 @@ describe('@internal/driver-postgres', () => {
       'connection can stream data with execute method',
       async () => {
         const driver = await createMemPoolDriver({ cursor: { disabled: true } });
-        await driver.query('create table items(id serial primary key, name text)');
-        await driver.query('insert into items(name) values ($1), ($2)', ['a', 'b']);
+        await executeSql(driver, 'create table items(id serial primary key, name text)');
+        await executeSql(driver, 'insert into items(name) values ($1), ($2)', ['a', 'b']);
 
         const connection = await driver.acquireConnection();
 
         const rows: Array<{ id: number; name: string }> = [];
-        for await (const row of connection.execute<{ id: number; name: string }>({
+        for await (const row of connection.query<{ id: number; name: string }>({
           sql: 'select id, name from items order by id asc',
         })) {
           rows.push(row);
@@ -496,7 +515,7 @@ describe('@internal/driver-postgres', () => {
         };
 
         await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
-        await driver.query('create table tx_items(id serial primary key, name text)');
+        await executeSql(driver, 'create table tx_items(id serial primary key, name text)');
 
         const connection = await driver.acquireConnection();
         const transaction = await connection.beginTransaction();
@@ -504,19 +523,20 @@ describe('@internal/driver-postgres', () => {
         expect(transaction).toBeDefined();
 
         // Insert data within the transaction
-        await transaction.query('insert into tx_items(name) values ($1)', ['tx-test']);
+        await executeSql(transaction, 'insert into tx_items(name) values ($1)', ['tx-test']);
 
         // Commit the transaction
         await transaction.commit();
 
         // Verify the data was committed
-        const result = await connection.query<{ id: number; name: string }>(
+        const result = await queryRows<{ id: number; name: string }>(
+          connection,
           'select id, name from tx_items where name = $1',
           ['tx-test'],
         );
 
-        expect(result.rows).toHaveLength(1);
-        expect(result.rows[0]?.name).toBe('tx-test');
+        expect(result).toHaveLength(1);
+        expect(result[0]?.name).toBe('tx-test');
 
         await connection.release();
       },
@@ -538,13 +558,16 @@ describe('@internal/driver-postgres', () => {
         };
 
         await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
-        await driver.query('create table tx_rollback_items(id serial primary key, name text)');
+        await executeSql(
+          driver,
+          'create table tx_rollback_items(id serial primary key, name text)',
+        );
 
         const connection = await driver.acquireConnection();
         const transaction = await connection.beginTransaction();
 
         // Insert data within the transaction
-        await transaction.query('insert into tx_rollback_items(name) values ($1)', [
+        await executeSql(transaction, 'insert into tx_rollback_items(name) values ($1)', [
           'rollback-test',
         ]);
 
@@ -552,12 +575,13 @@ describe('@internal/driver-postgres', () => {
         await transaction.rollback();
 
         // Verify the data was not committed
-        const result = await connection.query<{ id: number; name: string }>(
+        const result = await queryRows<{ id: number; name: string }>(
+          connection,
           'select id, name from tx_rollback_items where name = $1',
           ['rollback-test'],
         );
 
-        expect(result.rows).toHaveLength(0);
+        expect(result).toHaveLength(0);
 
         await connection.release();
       },
@@ -581,14 +605,17 @@ describe('@internal/driver-postgres', () => {
         };
 
         await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
-        await driver.query('create table tx_stream_items(id serial primary key, name text)');
-        await driver.query('insert into tx_stream_items(name) values ($1), ($2)', ['tx-a', 'tx-b']);
+        await executeSql(driver, 'create table tx_stream_items(id serial primary key, name text)');
+        await executeSql(driver, 'insert into tx_stream_items(name) values ($1), ($2)', [
+          'tx-a',
+          'tx-b',
+        ]);
 
         const connection = await driver.acquireConnection();
         const transaction = await connection.beginTransaction();
 
         const rows: Array<{ id: number; name: string }> = [];
-        for await (const row of transaction.execute<{ id: number; name: string }>({
+        for await (const row of transaction.query<{ id: number; name: string }>({
           sql: 'select id, name from tx_stream_items where name like $1 order by id asc',
           params: ['tx-%'],
         })) {
@@ -621,7 +648,7 @@ describe('@internal/driver-postgres', () => {
         };
 
         await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
-        await driver.query('create table tx_explain_items(id serial primary key, name text)');
+        await executeSql(driver, 'create table tx_explain_items(id serial primary key, name text)');
 
         const connection = await driver.acquireConnection();
         const transaction = await connection.beginTransaction();
@@ -655,32 +682,33 @@ describe('@internal/driver-postgres', () => {
         };
 
         await driver.connect({ kind: 'pgPool', pool: pool as unknown as Pool });
-        await driver.query('create table tx_multi_items(id serial primary key, name text)');
+        await executeSql(driver, 'create table tx_multi_items(id serial primary key, name text)');
 
         const connection = await driver.acquireConnection();
 
         // First transaction - commit
         const tx1 = await connection.beginTransaction();
-        await tx1.query('insert into tx_multi_items(name) values ($1)', ['first-tx']);
+        await executeSql(tx1, 'insert into tx_multi_items(name) values ($1)', ['first-tx']);
         await tx1.commit();
 
         // Second transaction - rollback
         const tx2 = await connection.beginTransaction();
-        await tx2.query('insert into tx_multi_items(name) values ($1)', ['second-tx']);
+        await executeSql(tx2, 'insert into tx_multi_items(name) values ($1)', ['second-tx']);
         await tx2.rollback();
 
         // Third transaction - commit
         const tx3 = await connection.beginTransaction();
-        await tx3.query('insert into tx_multi_items(name) values ($1)', ['third-tx']);
+        await executeSql(tx3, 'insert into tx_multi_items(name) values ($1)', ['third-tx']);
         await tx3.commit();
 
         // Verify only committed data is present
-        const result = await connection.query<{ id: number; name: string }>(
+        const result = await queryRows<{ id: number; name: string }>(
+          connection,
           'select name from tx_multi_items order by id',
         );
 
-        expect(result.rows).toHaveLength(2);
-        expect(result.rows.map((r) => r.name)).toEqual(['first-tx', 'third-tx']);
+        expect(result).toHaveLength(2);
+        expect(result.map((r) => r.name)).toEqual(['first-tx', 'third-tx']);
 
         await connection.release();
       },

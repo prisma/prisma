@@ -226,13 +226,13 @@ describe('default-literal typing', () => {
   it('resolves a literal default through the codec JSON channel, not its application type', () => {
     const declaration = defaultLiteralValueDeclaration();
 
-    expect(declaration).toContain("CodecTypes[CodecId]['json']");
-    expect(declaration).not.toContain("CodecTypes[CodecId]['output']");
+    expect(declaration).toContain('CodecTypes[CodecId]["json"]');
+    expect(declaration).not.toContain('CodecTypes[CodecId]["output"]');
   });
 
   it('keeps the emitted literal when the codec JSON channel admits it', () => {
     expect(defaultLiteralValueDeclaration()).toContain(
-      "Encoded extends CodecTypes[CodecId]['json'] ? Encoded",
+      'Encoded extends CodecTypes[CodecId]["json"] ? Encoded',
     );
   });
 });

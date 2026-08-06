@@ -125,15 +125,12 @@ description: Wire this skill with adapterPacks: [examplePack] for the example ta
     strictEqual(offences[0].errors[0].startsWith('frontmatter parse error:'), true);
   });
 
-  it('scans skills/upgrade and skills/extension-author, the other roots prisma-next init installs', () => {
+  it('scans the hoisted upgrade skills under the skills/ root', () => {
     const root = mkdtempSync(join(tmpdir(), 'validate-skills-nested-'));
-    for (const subpath of ['skills/upgrade', 'skills/extension-author']) {
-      const skillDir = join(root, subpath, 'nested-skill');
+    for (const name of ['prisma-next-upgrade', 'prisma-8-extension-upgrade']) {
+      const skillDir = join(root, 'skills', name);
       mkdirSync(skillDir, { recursive: true });
-      writeFileSync(
-        join(skillDir, 'SKILL.md'),
-        validSkill.replace('example-skill', 'nested-skill'),
-      );
+      writeFileSync(join(skillDir, 'SKILL.md'), validSkill.replace('example-skill', name));
     }
 
     deepStrictEqual(runCheck({ root }), []);
@@ -141,12 +138,7 @@ description: Wire this skill with adapterPacks: [examplePack] for the example ta
 });
 
 describe('SKILL_ROOTS', () => {
-  it('covers skills-contrib plus every subpath prisma-next init installs from', () => {
-    deepStrictEqual(SKILL_ROOTS, [
-      'skills-contrib',
-      'skills',
-      'skills/upgrade',
-      'skills/extension-author',
-    ]);
+  it('covers skills-contrib plus the consolidated skills/ root prisma-next init installs from', () => {
+    deepStrictEqual(SKILL_ROOTS, ['skills-contrib', 'skills']);
   });
 });

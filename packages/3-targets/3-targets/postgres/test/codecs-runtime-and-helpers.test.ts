@@ -228,11 +228,11 @@ describe('pg/text-array@1 codec', () => {
 
 describe('renderValueLiteral for the SQL-aliased descriptors', () => {
   it('pg/char@1 renders a quoted string literal', () => {
-    expect(pgCharDescriptor.renderValueLiteral?.('A')).toBe("'A'");
+    expect(pgCharDescriptor.renderValueLiteral?.('A')).toBe('"A"');
   });
 
   it('pg/varchar@1 renders a quoted string literal', () => {
-    expect(pgVarcharDescriptor.renderValueLiteral?.('hello')).toBe("'hello'");
+    expect(pgVarcharDescriptor.renderValueLiteral?.('hello')).toBe('"hello"');
   });
 
   it('pg/int@1 renders a numeric literal', () => {

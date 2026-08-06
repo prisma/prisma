@@ -9,6 +9,7 @@ import {
   type SqliteBinding,
   SqliteConnectionImpl,
 } from '../src/sqlite-driver';
+import { executeSql, queryRows } from './sql-queryable-test-utils';
 
 let testDir: string;
 let testPath: string;
@@ -34,25 +35,25 @@ describe('SqliteBoundDriver', () => {
     await driver.close();
   });
 
-  it('executes CREATE TABLE and INSERT via query()', async () => {
+  it('executes CREATE TABLE and INSERT via execute()', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY, name TEXT)');
-    await driver.query('INSERT INTO t VALUES (?, ?)', [1, 'alice']);
-    const result = await driver.query<{ id: number; name: string }>('SELECT * FROM t');
-    expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]).toMatchObject({ id: 1, name: 'alice' });
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, name TEXT)');
+    await executeSql(driver, 'INSERT INTO t VALUES (?, ?)', [1, 'alice']);
+    const result = await queryRows<{ id: number; name: string }>(driver, 'SELECT * FROM t');
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ id: 1, name: 'alice' });
     await driver.close();
   });
 
-  it('executes SELECT via execute() returning AsyncIterable', async () => {
+  it('streams SELECT rows via query()', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
-    await driver.query('INSERT INTO t VALUES (1, ?)', ['a']);
-    await driver.query('INSERT INTO t VALUES (2, ?)', ['b']);
-    await driver.query('INSERT INTO t VALUES (3, ?)', ['c']);
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
+    await executeSql(driver, 'INSERT INTO t VALUES (1, ?)', ['a']);
+    await executeSql(driver, 'INSERT INTO t VALUES (2, ?)', ['b']);
+    await executeSql(driver, 'INSERT INTO t VALUES (3, ?)', ['c']);
 
     const rows: Array<{ id: number; val: string }> = [];
-    for await (const row of driver.execute<{ id: number; val: string }>({
+    for await (const row of driver.query<{ id: number; val: string }>({
       sql: 'SELECT * FROM t ORDER BY id',
     })) {
       rows.push(row);
@@ -66,9 +67,36 @@ describe('SqliteBoundDriver', () => {
     await driver.close();
   });
 
+  it('reports affected rows from stmt.run().changes', async () => {
+    const run = vi.fn(() => ({ changes: 3, lastInsertRowid: 0 }));
+    const db = {
+      prepare: vi.fn(() => ({ columns: () => [], run })),
+    } as unknown as DatabaseSync;
+    const connection = new SqliteConnectionImpl(db);
+
+    await expect(connection.execute({ sql: 'UPDATE t SET value = ?' })).resolves.toEqual({
+      affectedRows: 3,
+    });
+    expect(run).toHaveBeenCalledOnce();
+  });
+
+  it('rejects RETURNING statements routed through execute()', async () => {
+    const driver = createDriver();
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, value TEXT)');
+
+    await expect(
+      driver.execute({ sql: "INSERT INTO t(value) VALUES ('lost') RETURNING id" }),
+    ).rejects.toThrow('cannot execute statements that return rows');
+
+    await expect(
+      queryRows<{ id: number; value: string }>(driver, 'SELECT * FROM t'),
+    ).resolves.toEqual([]);
+    await driver.close();
+  });
+
   it('supports EXPLAIN QUERY PLAN', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
 
     const explain = await driver.explain!({ sql: 'SELECT * FROM t WHERE id = 1' });
     expect(explain.rows.length).toBeGreaterThan(0);
@@ -77,13 +105,14 @@ describe('SqliteBoundDriver', () => {
 
   it('enables foreign keys by default', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE parent(id INTEGER PRIMARY KEY)');
-    await driver.query(
+    await executeSql(driver, 'CREATE TABLE parent(id INTEGER PRIMARY KEY)');
+    await executeSql(
+      driver,
       'CREATE TABLE child(id INTEGER PRIMARY KEY, pid INTEGER REFERENCES parent(id))',
     );
-    await driver.query('INSERT INTO parent VALUES (?)', [1]);
+    await executeSql(driver, 'INSERT INTO parent VALUES (?)', [1]);
 
-    await expect(driver.query('INSERT INTO child VALUES (?, ?)', [1, 999])).rejects.toThrow(
+    await expect(executeSql(driver, 'INSERT INTO child VALUES (?, ?)', [1, 999])).rejects.toThrow(
       SqlQueryError,
     );
     await driver.close();
@@ -99,11 +128,11 @@ describe('SqliteBoundDriver', () => {
 
   it('normalizes unique constraint errors to SqlQueryError', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT UNIQUE)');
-    await driver.query('INSERT INTO t VALUES (?, ?)', [1, 'a']);
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT UNIQUE)');
+    await executeSql(driver, 'INSERT INTO t VALUES (?, ?)', [1, 'a']);
 
     try {
-      await driver.query('INSERT INTO t VALUES (?, ?)', [2, 'a']);
+      await executeSql(driver, 'INSERT INTO t VALUES (?, ?)', [2, 'a']);
       expect.unreachable('should have thrown');
     } catch (error) {
       expect(SqlQueryError.is(error)).toBe(true);
@@ -114,13 +143,14 @@ describe('SqliteBoundDriver', () => {
 
   it('normalizes foreign key constraint errors to SqlQueryError', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE parent(id INTEGER PRIMARY KEY)');
-    await driver.query(
+    await executeSql(driver, 'CREATE TABLE parent(id INTEGER PRIMARY KEY)');
+    await executeSql(
+      driver,
       'CREATE TABLE child(id INTEGER PRIMARY KEY, pid INTEGER REFERENCES parent(id))',
     );
 
     try {
-      await driver.query('INSERT INTO child VALUES (?, ?)', [1, 999]);
+      await executeSql(driver, 'INSERT INTO child VALUES (?, ?)', [1, 999]);
       expect.unreachable('should have thrown');
     } catch (error) {
       expect(SqlQueryError.is(error)).toBe(true);
@@ -133,28 +163,28 @@ describe('SqliteBoundDriver', () => {
 describe('SqliteConnection', () => {
   it('acquireConnection returns a connection that shares database state', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY)');
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY)');
     const conn = await driver.acquireConnection();
-    const result = await conn.query<{ id: number }>('SELECT * FROM t');
-    expect(result.rows).toHaveLength(0);
+    const result = await queryRows<{ id: number }>(conn, 'SELECT * FROM t');
+    expect(result).toHaveLength(0);
     await conn.release();
     await driver.close();
   });
 
   it('independent connections have isolated transactions', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
 
     const conn1 = await driver.acquireConnection();
     const conn2 = await driver.acquireConnection();
 
     const tx1 = await conn1.beginTransaction();
-    await tx1.query('INSERT INTO t VALUES (?, ?)', [1, 'from-tx1']);
+    await executeSql(tx1, 'INSERT INTO t VALUES (?, ?)', [1, 'from-tx1']);
     await tx1.commit();
 
     // conn2 sees committed data
-    const after = await conn2.query<{ id: number }>('SELECT * FROM t');
-    expect(after.rows).toHaveLength(1);
+    const after = await queryRows<{ id: number }>(conn2, 'SELECT * FROM t');
+    expect(after).toHaveLength(1);
 
     await conn1.release();
     await conn2.release();
@@ -165,46 +195,46 @@ describe('SqliteConnection', () => {
 describe('SqliteTransaction', () => {
   it('commits a transaction', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
 
     const conn = await driver.acquireConnection();
     const tx = await conn.beginTransaction();
-    await tx.query('INSERT INTO t VALUES (?, ?)', [1, 'a']);
-    await tx.query('INSERT INTO t VALUES (?, ?)', [2, 'b']);
+    await executeSql(tx, 'INSERT INTO t VALUES (?, ?)', [1, 'a']);
+    await executeSql(tx, 'INSERT INTO t VALUES (?, ?)', [2, 'b']);
     await tx.commit();
     await conn.release();
 
-    const result = await driver.query<{ id: number }>('SELECT * FROM t');
-    expect(result.rows).toHaveLength(2);
+    const result = await queryRows<{ id: number }>(driver, 'SELECT * FROM t');
+    expect(result).toHaveLength(2);
     await driver.close();
   });
 
   it('rolls back a transaction', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
-    await driver.query('INSERT INTO t VALUES (?, ?)', [1, 'before']);
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
+    await executeSql(driver, 'INSERT INTO t VALUES (?, ?)', [1, 'before']);
 
     const conn = await driver.acquireConnection();
     const tx = await conn.beginTransaction();
-    await tx.query('INSERT INTO t VALUES (?, ?)', [2, 'rolled-back']);
+    await executeSql(tx, 'INSERT INTO t VALUES (?, ?)', [2, 'rolled-back']);
     await tx.rollback();
     await conn.release();
 
-    const result = await driver.query<{ id: number }>('SELECT * FROM t');
-    expect(result.rows).toHaveLength(1);
+    const result = await queryRows<{ id: number }>(driver, 'SELECT * FROM t');
+    expect(result).toHaveLength(1);
     await driver.close();
   });
 
   it('supports execute() within a transaction', async () => {
     const driver = createDriver();
-    await driver.query('CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
+    await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
 
     const conn = await driver.acquireConnection();
     const tx = await conn.beginTransaction();
-    await tx.query('INSERT INTO t VALUES (?, ?)', [1, 'a']);
+    await executeSql(tx, 'INSERT INTO t VALUES (?, ?)', [1, 'a']);
 
     const rows: Array<{ id: number; val: string }> = [];
-    for await (const row of tx.execute<{ id: number; val: string }>({
+    for await (const row of tx.query<{ id: number; val: string }>({
       sql: 'SELECT * FROM t',
     })) {
       rows.push(row);

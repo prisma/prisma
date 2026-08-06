@@ -95,14 +95,12 @@ function createStubAdapter(codecs: ReadonlyArray<Codec<string>>) {
 }
 
 function createStubDriver(): SqlDriver {
-  const query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
-  const execute = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
+  const query = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
     yield {} as Record<string, unknown>;
   });
 
   return {
-    execute,
-    executePrepared: vi.fn().mockRejectedValue(new Error('executePrepared not used in this test')),
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
     query,
     connect: vi.fn().mockImplementation(async (_binding?: undefined) => undefined),
     acquireConnection: vi.fn().mockRejectedValue(new Error('not used in this test')),
