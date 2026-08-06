@@ -23,7 +23,7 @@ class MockDriver {
 
   async *query<Row = Record<string, unknown>>(_options: {
     sql: string;
-    params?: readonly unknown[];
+    params: readonly unknown[];
   }): AsyncIterable<Row> {
     for (const row of this.rows) {
       yield row as Row;
