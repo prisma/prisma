@@ -80,7 +80,7 @@ Integer representation authoring surface:
 
 - `BigInt` keeps the lossless `bigint` codec (`pg/int8@1` / `sqlite/bigint@1`): values read and write as JS `bigint`, and 64-bit integers travel through database-produced JSON as decimal text.
 - `bigIntNumber()` (PostgreSQL and SQLite) opts an `int8`/INTEGER column into JS `number` reads and writes. Both directions throw structured errors outside ±(2^53 − 1) or on non-integral values: `RUNTIME.ENCODE_FAILED` on write, `RUNTIME.DECODE_FAILED` on read.
-- `unboundedInt()` (PostgreSQL only) stores an unconstrained `numeric` read and written as JS `bigint`, exact at any magnitude; decode rejects non-integral values. SQLite declares no equivalent — it has no lossless unbounded integer storage.
+- `unboundedInt()` (PostgreSQL only) reads and writes an unconstrained `numeric` as a JS `bigint`, exact at any magnitude; decode rejects non-integral values. SQLite declares no equivalent — it has no lossless unbounded integer storage.
 - Canonical JSON forms and the safe-range soundness argument: [codec authoring guide § The integer representation presets](../../../../docs/reference/codec-authoring-guide.md#the-integer-representation-presets).
 
 `@@index` parameter surface:
