@@ -17,7 +17,7 @@ import {
   TableSource,
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
-import { buildPairedColumnExprs, createModelAccessor } from '../src/model-accessor';
+import { createModelAccessor } from '../src/model-accessor';
 import {
   buildMixedPolyContract,
   getTestContext,
@@ -705,6 +705,20 @@ describe('createModelAccessor', () => {
         BinaryExpr.eq(ColumnRef.of('__orm_rel_1', 'parent_id'), ColumnRef.of('tasks', 'id')),
       );
     });
+
+    it('does not consume an alias when resolving an already joined variant source', () => {
+      const feature = createModelAccessor(
+        polyContext,
+        'public',
+        'Task',
+        'Feature',
+      ) as unknown as RelationBag;
+
+      feature['assignee']!.some();
+      const expr = feature['subtasks']!.some() as ExistsExpr;
+
+      expect(expr.subquery.from).toEqual(TableSource.named('tasks', '__orm_rel_1', 'public'));
+    });
   });
 
   describe('M:N relation filters via junction', () => {
@@ -922,20 +936,61 @@ describe('createModelAccessor', () => {
     });
 
     it('throws when M:N join metadata column counts differ', () => {
-      expect(() =>
-        buildPairedColumnExprs('project_links', ['dst_tenant_id', 'dst_id'], 'projects', [
-          'tenant_id',
-        ]),
-      ).toThrow(/Relation metadata has mismatched join column counts/);
+      const malformedContract = withPatchedDomainModels(getTestContract(), (models) => {
+        const project = models['Project'] as { relations: Record<string, unknown> };
+        const related = project.relations['related'] as { through: Record<string, unknown> };
+        return {
+          ...models,
+          Project: {
+            ...project,
+            relations: {
+              ...project.relations,
+              related: {
+                ...related,
+                through: { ...related.through, targetColumns: ['tenant_id'] },
+              },
+            },
+          },
+        };
+      });
+      const accessor = createModelAccessor(
+        { ...context, contract: malformedContract } as never,
+        'public',
+        'Project',
+      ) as unknown as Record<string, { some: () => unknown }>;
+
+      expect(() => accessor['related']!.some()).toThrow(
+        /Relation metadata has mismatched join column counts/,
+      );
     });
 
     it('throws when M:N join metadata omits a paired column', () => {
-      expect(() =>
-        buildPairedColumnExprs('project_links', ['dst_tenant_id', ''], 'projects', [
-          'tenant_id',
-          'id',
-        ]),
-      ).toThrow(/Relation metadata is missing a join column pair/);
+      const malformedContract = withPatchedDomainModels(getTestContract(), (models) => {
+        const project = models['Project'] as { relations: Record<string, unknown> };
+        const related = project.relations['related'] as { through: Record<string, unknown> };
+        return {
+          ...models,
+          Project: {
+            ...project,
+            relations: {
+              ...project.relations,
+              related: {
+                ...related,
+                through: { ...related.through, childColumns: ['dst_tenant_id', ''] },
+              },
+            },
+          },
+        };
+      });
+      const accessor = createModelAccessor(
+        { ...context, contract: malformedContract } as never,
+        'public',
+        'Project',
+      ) as unknown as Record<string, { some: () => unknown }>;
+
+      expect(() => accessor['related']!.some()).toThrow(
+        /Relation metadata is missing a join column pair/,
+      );
     });
   });
 
