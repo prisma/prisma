@@ -2,15 +2,16 @@ import type { SQLInputValue } from 'node:sqlite';
 import { DatabaseSync } from 'node:sqlite';
 import type { RuntimeDriverInstance } from '@internal/framework-components/execution';
 import type {
-  PreparedExecuteRequest,
   SqlConnection,
   SqlDriver,
   SqlDriverState,
   SqlExecuteRequest,
   SqlExplainResult,
-  SqlQueryResult,
+  SqlQueryable,
+  SqlStatementStats,
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
+import { InternalError } from '@internal/utils/internal-error';
 import { normalizeSqliteError } from './normalize-error';
 
 export type SqliteBinding = { readonly kind: 'path'; readonly path: string };
@@ -63,16 +64,16 @@ function openConnection(path: string): DatabaseSync {
   }
 }
 
-export class SqliteConnectionImpl implements SqlConnection {
-  readonly #db: DatabaseSync;
+abstract class SqliteQueryable implements SqlQueryable {
+  protected readonly db: DatabaseSync;
 
   constructor(db: DatabaseSync) {
-    this.#db = db;
+    this.db = db;
   }
 
-  async *execute<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
+  async *query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
     try {
-      const stmt = this.#db.prepare(request.sql);
+      const stmt = this.db.prepare(request.sql);
       for (const row of stmt.iterate(...toSqliteParams(request.params))) {
         yield row as Row;
       }
@@ -81,113 +82,58 @@ export class SqliteConnectionImpl implements SqlConnection {
     }
   }
 
-  executePrepared<Row = Record<string, unknown>>(
-    request: PreparedExecuteRequest,
-  ): AsyncIterable<Row> {
-    return this.execute<Row>({ sql: request.sql, params: request.params });
+  async execute(request: SqlExecuteRequest): Promise<SqlStatementStats> {
+    try {
+      const stmt = this.db.prepare(request.sql);
+      if (stmt.columns().length !== 0) {
+        throw new InternalError('SQLite cannot execute statements that return rows.');
+      }
+      return { affectedRows: Number(stmt.run(...toSqliteParams(request.params)).changes) };
+    } catch (error) {
+      throw normalizeSqliteError(error);
+    }
   }
 
   async explain(request: SqlExecuteRequest): Promise<SqlExplainResult> {
     try {
-      const stmt = this.#db.prepare(`EXPLAIN QUERY PLAN ${request.sql}`);
+      const stmt = this.db.prepare(`EXPLAIN QUERY PLAN ${request.sql}`);
       const rows = stmt.all(...toSqliteParams(request.params)) as ReadonlyArray<
         Record<string, unknown>
       >;
       return { rows };
-    } catch (error) {
-      throw normalizeSqliteError(error);
-    }
-  }
-
-  async query<Row = Record<string, unknown>>(
-    sql: string,
-    params?: readonly unknown[],
-  ): Promise<SqlQueryResult<Row>> {
-    try {
-      const stmt = this.#db.prepare(sql);
-      const rows = stmt.all(...toSqliteParams(params)) as Row[];
-      return { rows };
-    } catch (error) {
-      throw normalizeSqliteError(error);
-    }
-  }
-
-  async beginTransaction(): Promise<SqlTransaction> {
-    try {
-      this.#db.exec('BEGIN');
-      return new SqliteTransactionImpl(this.#db);
-    } catch (error) {
-      throw normalizeSqliteError(error);
-    }
-  }
-
-  async release(): Promise<void> {
-    // SQLite connections are not pooled — release is equivalent to destroy
-    // (close the underlying DatabaseSync handle).
-    return this.destroy();
-  }
-
-  async destroy(_reason?: unknown): Promise<void> {
-    try {
-      this.#db.close();
     } catch (error) {
       throw normalizeSqliteError(error);
     }
   }
 }
 
-class SqliteTransactionImpl implements SqlTransaction {
-  readonly #db: DatabaseSync;
-
-  constructor(db: DatabaseSync) {
-    this.#db = db;
-  }
-
-  async *execute<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
+export class SqliteConnectionImpl extends SqliteQueryable implements SqlConnection {
+  async beginTransaction(): Promise<SqlTransaction> {
     try {
-      const stmt = this.#db.prepare(request.sql);
-      for (const row of stmt.iterate(...toSqliteParams(request.params))) {
-        yield row as Row;
-      }
+      this.db.exec('BEGIN');
+      return new SqliteTransactionImpl(this.db);
     } catch (error) {
       throw normalizeSqliteError(error);
     }
   }
 
-  executePrepared<Row = Record<string, unknown>>(
-    request: PreparedExecuteRequest,
-  ): AsyncIterable<Row> {
-    return this.execute<Row>({ sql: request.sql, params: request.params });
+  async release(): Promise<void> {
+    return this.destroy();
   }
 
-  async explain(request: SqlExecuteRequest): Promise<SqlExplainResult> {
+  async destroy(_reason?: unknown): Promise<void> {
     try {
-      const stmt = this.#db.prepare(`EXPLAIN QUERY PLAN ${request.sql}`);
-      const rows = stmt.all(...toSqliteParams(request.params)) as ReadonlyArray<
-        Record<string, unknown>
-      >;
-      return { rows };
+      this.db.close();
     } catch (error) {
       throw normalizeSqliteError(error);
     }
   }
+}
 
-  async query<Row = Record<string, unknown>>(
-    sql: string,
-    params?: readonly unknown[],
-  ): Promise<SqlQueryResult<Row>> {
-    try {
-      const stmt = this.#db.prepare(sql);
-      const rows = stmt.all(...toSqliteParams(params)) as Row[];
-      return { rows };
-    } catch (error) {
-      throw normalizeSqliteError(error);
-    }
-  }
-
+class SqliteTransactionImpl extends SqliteQueryable implements SqlTransaction {
   async commit(): Promise<void> {
     try {
-      this.#db.exec('COMMIT');
+      this.db.exec('COMMIT');
     } catch (error) {
       throw normalizeSqliteError(error);
     }
@@ -195,7 +141,7 @@ class SqliteTransactionImpl implements SqlTransaction {
 
   async rollback(): Promise<void> {
     try {
-      this.#db.exec('ROLLBACK');
+      this.db.exec('ROLLBACK');
     } catch (error) {
       throw normalizeSqliteError(error);
     }
@@ -209,6 +155,18 @@ interface ConnectedState {
 }
 
 type DriverState = { readonly kind: 'unbound' } | ConnectedState | { readonly kind: 'closed' };
+
+function unboundQuery<Row>(): AsyncIterable<Row> {
+  return {
+    [Symbol.asyncIterator]() {
+      return {
+        async next() {
+          throw driverError('DRIVER.NOT_CONNECTED', NOT_CONNECTED_MESSAGE);
+        },
+      };
+    },
+  };
+}
 
 export class SqliteDriver implements SqliteRuntimeDriver {
   readonly familyId = 'sql' as const;
@@ -256,47 +214,19 @@ export class SqliteDriver implements SqliteRuntimeDriver {
     await conn.release();
   }
 
-  execute<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
+  query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
     if (this.#state.kind !== 'connected') {
-      return {
-        [Symbol.asyncIterator]() {
-          return {
-            async next() {
-              throw driverError('DRIVER.NOT_CONNECTED', NOT_CONNECTED_MESSAGE);
-            },
-          };
-        },
-      };
+      return unboundQuery<Row>();
     }
-    return this.#state.conn.execute<Row>(request);
+    return this.#state.conn.query<Row>(request);
   }
 
-  executePrepared<Row = Record<string, unknown>>(
-    request: PreparedExecuteRequest,
-  ): AsyncIterable<Row> {
-    if (this.#state.kind !== 'connected') {
-      return {
-        [Symbol.asyncIterator]() {
-          return {
-            async next() {
-              throw driverError('DRIVER.NOT_CONNECTED', NOT_CONNECTED_MESSAGE);
-            },
-          };
-        },
-      };
-    }
-    return this.#state.conn.executePrepared<Row>(request);
+  async execute(request: SqlExecuteRequest): Promise<SqlStatementStats> {
+    return this.#requireConnected().conn.execute(request);
   }
 
   async explain(request: SqlExecuteRequest): Promise<SqlExplainResult> {
     return this.#requireConnected().conn.explain(request);
-  }
-
-  async query<Row = Record<string, unknown>>(
-    sql: string,
-    params?: readonly unknown[],
-  ): Promise<SqlQueryResult<Row>> {
-    return this.#requireConnected().conn.query<Row>(sql, params);
   }
 }
 
