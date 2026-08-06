@@ -96,8 +96,11 @@ changes:
       extension manages is visible for the first time: it verifies as an undeclared extra under
       `--strict` and becomes a `dropCheckConstraint` under a policy that allows `destructive`.
       If your extension installs checks out of band — through a raw-SQL migration step rather
-      than through the contract — declare them instead, or expect the first plan against an
-      upgraded database to offer to drop them.
+      than through the contract — there is no way to declare them in 0.18 (checks have no
+      authoring surface, and derivation from column shape is not one). Keep the tables carrying
+      them under an additive-only policy — the checks survive, and only `--strict` verify
+      reports them — or expect the first destructive plan against an upgraded database to
+      offer to drop them. An authoring/opt-out surface is planned for a later release.
     detection:
       glob: "**/contract.json"
       contains:
@@ -178,6 +181,10 @@ declare is an ordinary undeclared extra: reported by `db verify --strict`, and d
 whose control policy allows `destructive`.
 
 For an extension this matters in one specific case — a check your extension installs through a
-raw-SQL migration step rather than declaring in its contract space. That constraint used to be
-invisible and is now drop-eligible against any database the extension manages. Declare it, or
-document that the tables carrying it stay under an additive-only policy.
+raw-SQL migration step rather than deriving in its contract space. That constraint used to be
+invisible and is now drop-eligible against any database the extension manages. Declaring it is
+not possible in 0.18: a contract space derives checks from column shape (enum membership,
+list element-non-null) and has no surface for an arbitrary hand-written predicate. Document
+that the tables carrying it stay under an additive-only policy — the check survives, plain
+`db verify` tolerates it, and only `--strict` reports it — or accept the drop under a
+destructive plan. An authoring/opt-out surface for checks is planned for a later release.

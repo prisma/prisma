@@ -50,8 +50,12 @@ changes:
       `NOT VALID` constraint) that earlier versions could not see at all. An undeclared check
       is an extra: `prisma-next db verify --strict` reports it, and a plan run under a policy
       that allows `destructive` emits a `dropCheckConstraint` operation for it. Read the first
-      plan for `dropCheckConstraint` operations naming constraints you wrote by hand, and
-      either declare them or run that plan under an additive-only policy, before applying.
+      plan for `dropCheckConstraint` operations naming constraints you wrote by hand. There is
+      no way to declare a hand-written check in 0.18 — checks have no authoring surface — so
+      to keep one, run plans for that table under an additive-only policy: the constraint
+      stays enforced, plain `db verify` tolerates it, and only `--strict` lists it. Let the
+      drop through only when the constraint is deliberately retired. An authoring/opt-out
+      surface for checks is planned for a later release.
     detection:
       glob: "**/contract.json"
       contains:
@@ -154,9 +158,13 @@ unable to see. A check the contract does not declare is an undeclared extra, so
 `dropCheckConstraint` for it — a constraint you wrote by hand and that has been enforcing your
 data all along. Grep the first plan for `dropCheckConstraint` and check every constraint named:
 
-- if you want to keep it, declare it, or leave that table under an additive-only policy until
-  you can;
-- if it was already dead, let the drop through.
+- to keep it, run plans for that table under an additive-only policy. The constraint stays in
+  place and keeps enforcing; plain `db verify` tolerates it, and only `--strict` reports it as
+  an undeclared extra. Declaring it is not an option in 0.18 — there is no authoring surface
+  for a hand-written check (in PSL or in a TypeScript contract), and `contract infer` does not
+  read checks back out of the catalog. An authoring/opt-out surface is planned for a later
+  release;
+- if it was already dead, let the drop through under the destructive plan.
 
 Nothing drops silently — an additive-only policy never emits the operation at all — but the
 first plan after upgrading is the moment to look, because it is the first plan that can see
