@@ -12,7 +12,6 @@ import {
   executeRefAdvancement,
   resolveRefAdvancementFields,
 } from '../../src/control-api/operations/ref-advancement';
-import { mapMigrationToolsError } from '../../src/utils/cli-errors';
 
 const HASH_A = `${'a'.repeat(64)}`;
 const PROFILE_HASH = `${'c'.repeat(64)}`;
@@ -234,9 +233,7 @@ describe('resolveRefAdvancementFields', () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.failure.toEnvelope()).toEqual(
-        mapMigrationToolsError(errorInvalidRefName('Invalid Name')).toEnvelope(),
-      );
+      expect(result.failure.toEnvelope()).toEqual(errorInvalidRefName('Invalid Name').toEnvelope());
     }
     expect(existsSync(contractSnapshotDir(migrationsDir, HASH_A))).toBe(false);
   });
@@ -280,9 +277,7 @@ describe('advanceRefSafely', () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.failure.toEnvelope()).toEqual(
-        mapMigrationToolsError(errorInvalidRefName('')).toEnvelope(),
-      );
+      expect(result.failure.toEnvelope()).toEqual(errorInvalidRefName('').toEnvelope());
     }
     expect(existsSync(contractSnapshotDir(migrationsDir, HASH_A))).toBe(false);
   });

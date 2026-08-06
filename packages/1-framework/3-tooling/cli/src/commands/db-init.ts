@@ -1,9 +1,12 @@
-import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { Command } from 'commander';
+import {
+  type RefAdvancementFields,
+  resolveRefAdvancementFields,
+} from '../control-api/operations/ref-advancement';
 import type { DbInitFailure } from '../control-api/types';
 import {
   CliStructuredError,
@@ -31,12 +34,6 @@ import {
   addMigrationCommandOptions,
   prepareMigrationContext,
 } from '../utils/migration-command-scaffold';
-import {
-  buildRefAdvancementFields,
-  computeRefAdvancementName,
-  type RefAdvancementFields,
-  readContractIR,
-} from '../utils/ref-advancement';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI, type TerminalUI } from '../utils/terminal-ui';
 
@@ -159,34 +156,20 @@ async function executeDbInitCommand(
         ? (result.value.marker?.storageHash ?? result.value.destination.storageHash)
         : result.value.destination.storageHash;
 
-    let refAdvancementFields: RefAdvancementFields = {
-      advancedRef: null,
-      plannedAdvanceRef: null,
-    };
-    if (
-      computeRefAdvancementName({
-        ...ifDefined('advanceRef', options.advanceRef),
-        ...ifDefined('db', options.db),
-      }) !== null
-    ) {
-      try {
-        const contractIR = await readContractIR(contractJson, contractPathAbsolute);
-        refAdvancementFields = await buildRefAdvancementFields({
-          ...ifDefined('advanceRef', options.advanceRef),
-          ...ifDefined('db', options.db),
-          refsDir,
-          migrationsDir,
-          contractIR,
-          mode: result.value.mode,
-          hash: advancementHash,
-        });
-      } catch (error) {
-        if (MigrationToolsError.is(error)) {
-          return notOk(error);
-        }
-        throw error;
-      }
+    const advancement = await resolveRefAdvancementFields({
+      ...ifDefined('advanceRef', options.advanceRef),
+      ...ifDefined('db', options.db),
+      refsDir,
+      migrationsDir,
+      contractJson,
+      contractJsonPath: contractPathAbsolute,
+      mode: result.value.mode,
+      hash: advancementHash,
+    });
+    if (!advancement.ok) {
+      return notOk(advancement.failure);
     }
+    const refAdvancementFields: RefAdvancementFields = advancement.value;
 
     // Convert success result to CLI output format
     const dbInitResult: MigrationCommandResult = {

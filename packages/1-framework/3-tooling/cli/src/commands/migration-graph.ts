@@ -1,9 +1,15 @@
 import { loadConfig } from '@internal/config-loader';
-import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import type { MigrationGraph } from '@internal/migration-tools/graph';
 import { ifDefined } from '@internal/utils/defined';
 import { ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
+import { buildReadAggregate } from '../control-api/operations/contract-space-aggregate-loader';
+import { buildMigrationSpaceGraphEntries } from '../control-api/operations/migration-graph';
+import {
+  listRefsByContractHash,
+  migrationSpaceListEntriesFromAggregate,
+  runMigrationList,
+} from '../control-api/operations/migration-list';
 import type { CliStructuredError } from '../utils/cli-errors';
 import {
   addGlobalOptions,
@@ -12,7 +18,6 @@ import {
   setCommandExamples,
   setCommandSeeAlso,
 } from '../utils/command-helpers';
-import { buildReadAggregate } from '../utils/contract-space-aggregate-loader';
 import { renderMigrationGraphLegend } from '../utils/formatters/migration-graph-labels';
 import {
   computeGlobalMaxDirNameWidth,
@@ -27,11 +32,6 @@ import { shouldShowLegend, validateLegendOptions } from '../utils/legend';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI, type TerminalUI } from '../utils/terminal-ui';
 import type { MigrationGraphJsonResult, MigrationSpaceGraphEntry } from './json/schemas';
-import {
-  listRefsByContractHash,
-  migrationSpaceListEntriesFromAggregate,
-  runMigrationList,
-} from './migration-list';
 
 interface MigrationGraphOptions extends CommonCommandOptions {
   readonly config?: string;
@@ -152,7 +152,6 @@ export async function executeMigrationGraphCommand(
     globalLayoutInputs.length > 0 ? computeGlobalMaxDirNameWidth(globalLayoutInputs) : undefined;
 
   const treeSections: MigrationGraphTreeSection[] = [];
-  const spaces: MigrationSpaceGraphEntry[] = [];
   for (const spaceEntry of scopedSpaces) {
     const space = aggregate.space(spaceEntry.space);
     if (space === undefined) {
@@ -182,20 +181,10 @@ export async function executeMigrationGraphCommand(
       tree: displayTree,
       showHeading: showSpaceHeadings,
     });
-    spaces.push({
-      space: spaceEntry.space,
-      contracts: [...graph.nodes].map((hash) => ({
-        hash,
-        refs: [...(refsByHash.get(hash) ?? [])],
-      })),
-      migrations: [...graph.migrationByHash.values()].map((edge) => ({
-        name: edge.dirName,
-        hash: edge.migrationHash,
-        fromContract: edge.from === EMPTY_CONTRACT_HASH ? null : edge.from,
-        toContract: edge.to,
-      })),
-    });
   }
+  const spaces: MigrationSpaceGraphEntry[] = [
+    ...buildMigrationSpaceGraphEntries({ aggregate, scopedSpaces }),
+  ];
 
   return ok({
     ok: true,

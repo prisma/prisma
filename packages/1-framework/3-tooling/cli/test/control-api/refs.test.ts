@@ -4,7 +4,6 @@ import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readMigrationRefs } from '../../src/control-api/operations/refs';
-import { mapMigrationToolsError } from '../../src/utils/cli-errors';
 
 const mocks = vi.hoisted(() => ({
   readRefs: vi.fn(),
@@ -54,7 +53,7 @@ describe('readMigrationRefs', () => {
     });
   });
 
-  it('maps a corrupt ref file to the mapMigrationToolsError envelope', async () => {
+  it('passes a corrupt-ref-file MigrationToolsError through unchanged', async () => {
     await mkdir(refsDir, { recursive: true });
     await writeFile(join(refsDir, 'staging.json'), '{not json');
 
@@ -72,7 +71,7 @@ describe('readMigrationRefs', () => {
     const result = await readMigrationRefs(refsDir);
     expect(result.ok).toBe(false);
     if (!result.ok && MigrationToolsError.is(thrown)) {
-      expect(result.failure.toEnvelope()).toEqual(mapMigrationToolsError(thrown).toEnvelope());
+      expect(result.failure.toEnvelope()).toEqual(thrown.toEnvelope());
     }
   });
 

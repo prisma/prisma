@@ -6,22 +6,21 @@ import {
   createControlStack,
   type MigrationPlanOperation,
 } from '@internal/framework-components/control';
-import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
 import type { OnDiskMigrationPackage } from '@internal/migration-tools/package';
-import { parseMigrationRef } from '@internal/migration-tools/ref-resolution';
 import { castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { relative } from 'pathe';
 import { createControlClient } from '../control-api/client';
+import { loadContractSpaceAggregateForCli } from '../control-api/operations/contract-space-aggregate-loader';
+import { resolveMigrationRef } from '../control-api/operations/ref-resolution';
 import {
   type CliStructuredError,
   errorContractValidationFailed,
   errorFileNotFound,
   errorRuntime,
   errorUnexpected,
-  mapRefResolutionError,
 } from '../utils/cli-errors';
 import {
   addGlobalOptions,
@@ -158,11 +157,17 @@ async function executeMigrationShowCommand(
     );
   }
 
-  const aggregate = await loadContractSpaceAggregate({
+  const loadedAggregate = await loadContractSpaceAggregateForCli({
+    targetId: config.target.targetId,
     migrationsDir,
     appContract,
-    deserializeContract: (json: unknown) => familyInstance.deserializeContract(json),
+    extensions: [],
+    deserializeContract: (json) => familyInstance.deserializeContract(json),
   });
+  if (!loadedAggregate.ok) {
+    return notOk(loadedAggregate.failure);
+  }
+  const aggregate = loadedAggregate.value;
 
   const packages = aggregate.app.packages;
   const graph = aggregate.app.graph();
@@ -191,9 +196,9 @@ async function executeMigrationShowCommand(
         }),
       );
     }
-    const migResult = parseMigrationRef(target, { graph, refs });
+    const migResult = resolveMigrationRef(target, { graph, refs });
     if (!migResult.ok) {
-      return notOk(mapRefResolutionError(migResult.failure));
+      return notOk(migResult.failure);
     }
     const matchedPkg = packages.find(
       (p) => p.metadata.migrationHash === migResult.value.migrationHash,

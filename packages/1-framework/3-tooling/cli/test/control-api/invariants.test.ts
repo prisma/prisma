@@ -6,7 +6,6 @@ import {
   refuseMissingInvariantPath,
   refuseUnknownInvariants,
 } from '../../src/control-api/operations/invariants';
-import { mapMigrationToolsError } from '../../src/utils/cli-errors';
 import { collectDeclaredInvariants, toStructuralEdge } from '../../src/utils/command-helpers';
 import { buildGraph, entry } from '../utils/graph-helpers';
 
@@ -49,13 +48,11 @@ describe('refuseUnknownInvariants', () => {
     });
     const declared = collectDeclaredInvariants(graph);
     expect(refusal?.toEnvelope()).toEqual(
-      mapMigrationToolsError(
-        errorUnknownInvariant({
-          refName: 'production',
-          unknown: ['inv-x'],
-          declared: [...declared].sort(),
-        }),
-      ).toEnvelope(),
+      errorUnknownInvariant({
+        refName: 'production',
+        unknown: ['inv-x'],
+        declared: [...declared].sort(),
+      }).toEnvelope(),
     );
   });
 });
@@ -89,14 +86,12 @@ describe('refuseMissingInvariantPath', () => {
     expect(outcome.kind).toBe('unsatisfiable');
     if (outcome.kind === 'unsatisfiable') {
       expect(refusal?.toEnvelope()).toEqual(
-        mapMigrationToolsError(
-          errorNoInvariantPath({
-            refName: 'production',
-            required: [...missing].sort(),
-            missing: outcome.missing,
-            structuralPath: outcome.structuralPath.map(toStructuralEdge),
-          }),
-        ).toEnvelope(),
+        errorNoInvariantPath({
+          refName: 'production',
+          required: [...missing].sort(),
+          missing: outcome.missing,
+          structuralPath: outcome.structuralPath.map(toStructuralEdge),
+        }).toEnvelope(),
       );
     }
   });

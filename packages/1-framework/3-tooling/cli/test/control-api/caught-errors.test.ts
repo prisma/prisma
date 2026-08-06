@@ -1,18 +1,17 @@
 import { errorInvalidRefName } from '@internal/migration-tools/errors';
 import { describe, expect, it } from 'vitest';
 import { mapCaughtMigrationError } from '../../src/control-api/operations/caught-errors';
-import { errorRuntime, mapMigrationToolsError } from '../../src/utils/cli-errors';
+import { errorRuntime } from '../../src/utils/cli-errors';
 
 describe('mapCaughtMigrationError', () => {
   it('returns a CliStructuredError unchanged', () => {
-    const error = errorRuntime('already structured');
+    const error = errorRuntime('CLI.UNEXPECTED', 'already structured');
     expect(mapCaughtMigrationError(error)).toBe(error);
   });
 
-  it('maps a MigrationToolsError through mapMigrationToolsError', () => {
+  it('passes a MigrationToolsError through unchanged (it is a CliStructuredError)', () => {
     const error = errorInvalidRefName('Bad Name');
-    const mapped = mapCaughtMigrationError(error);
-    expect(mapped?.toEnvelope()).toEqual(mapMigrationToolsError(error).toEnvelope());
+    expect(mapCaughtMigrationError(error)).toBe(error);
   });
 
   it('returns null for anything else so the caller rethrows or wraps', () => {
