@@ -366,10 +366,11 @@ describe('check emission — guards', () => {
     ) as Contract<SqlStorage>;
 
     const check = checksOf(contract)[0];
-    expect(check?.prefix).toHaveLength(WIRE_NAME_PREFIX_MAX_BYTES);
+    // The cap is in UTF-8 bytes, so measure encoded bytes, not code units.
+    expect(Buffer.byteLength(check?.prefix ?? '', 'utf8')).toBe(WIRE_NAME_PREFIX_MAX_BYTES);
     expect(`User_${longColumn}_check`.startsWith(check?.prefix ?? '')).toBe(true);
-    // Postgres caps identifiers at 63; the wire name must fit.
-    expect(check?.name.length).toBeLessThanOrEqual(63);
+    // Postgres caps identifiers at 63 bytes; the wire name must fit.
+    expect(Buffer.byteLength(check?.name ?? '', 'utf8')).toBeLessThanOrEqual(63);
   });
 
   it('the truncated prefix still round-trips through parseNaming', () => {
