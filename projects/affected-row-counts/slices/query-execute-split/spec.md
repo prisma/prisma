@@ -117,7 +117,7 @@ One interface changes shape and every implementation and fake follows it in the 
 
 - [ ] `grep -rn 'executePrepared' --include='*.ts' packages/ test/` returns zero results outside `node_modules`/`dist` (baseline: 96 occurrences across 25 files).
 - [ ] `SqlQueryResult` is deleted, not left unreferenced.
-- [ ] `ADAPTER.PREPARE_FAILED` is emitted by the postgres driver and asserted by a test — it currently appears only in ADR 210, ADR 027, and this project's docs, never in source.
+- [ ] `DRIVER.PREPARE_FAILED` is emitted by the postgres driver and asserted by a test. No stale-retry stable code appears in source today.
 - [ ] Both drivers have a test pinning the count source each relies on: pg's command-tag `rowCount`, sqlite's `run().changes` plus the `RETURNING`-misroute guard.
 - [ ] `pnpm lint:deps` clean (the SPI is an exported surface; imports move).
 - [ ] No net increase in bare-`as` casts — the `handle as string` at `postgres-driver.ts:185` should go, not be relocated.
@@ -141,6 +141,6 @@ None. No contract entity, kind, or capability changes; `contract.json` / `contra
 
 - Parent project: `projects/affected-row-counts/spec.md`
 - Linear issue: [TML-3167](https://linear.app/prisma-company/issue/TML-3167) (sub-issue of [TML-3166](https://linear.app/prisma-company/issue/TML-3166))
-- [ADR 210 — Prepared Statements](../../../../docs/architecture%20docs/adrs/ADR%20210%20-%20Prepared%20Statements%20-%20Author%20Surface%20and%20Driver%20SPI.md) — amended by this project; principles preserved, shape changed. `§ Stale-handle retry` is the conformance target.
-- [ADR 027 — Error Envelope Stable Codes](../../../../docs/architecture%20docs/adrs/ADR%20027%20-%20Error%20Envelope%20Stable%20Codes.md) — reserves `ADAPTER.PREPARE_FAILED`.
+- [ADR 210 — Prepared Statements](../../../../docs/architecture%20docs/adrs/ADR%20210%20-%20Prepared%20Statements%20-%20Author%20Surface%20and%20Driver%20SPI.md) — amended by this project; principles preserved, shape changed. `§ Stale-handle retry` is the conformance target. **Its `ADAPTER.PREPARE_FAILED` reference is stale** — see below.
+- [ADR 239 — Errors are structural envelopes with dotted namespace codes](../../../../docs/architecture%20docs/adrs/ADR%20239%20-%20Errors%20are%20structural%20envelopes%20with%20dotted%20namespace%20codes.md) — **Accepted; governs the error code.** Supersedes ADR 027 and closes the namespace list: `ADAPTER` is not on it, `DRIVER` is. Implemented as `structuredError` / `isStructuredError` in `packages/1-framework/0-foundation/utils/src/structured-error.ts`. The legacy `runtimeError` factory carries a `category` field ADR 239 deleted — do not use it for new codes. Operator decision 2026-08-05 at D1 review: the code is `DRIVER.PREPARE_FAILED`, matching the `DRIVER.NOT_CONNECTED` / `DRIVER.ALREADY_CONNECTED` both drivers already emit.
 - [ADR 220](../../../../docs/architecture%20docs/adrs/) — `planExecutionId` minted per execute call; both generators do this independently today and the merged path must preserve it.

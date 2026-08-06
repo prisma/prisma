@@ -1,0 +1,85 @@
+# Slice `count-terminals` — Dispatch plan
+
+**Slice spec:** `projects/affected-row-counts/slices/count-terminals/spec.md`
+**Linear:** [TML-3168](https://linear.app/prisma-company/issue/TML-3168)
+
+## Shape
+
+Six sequential dispatches deliver a hard-cut runtime migration: framework contract → SQL reference implementation → Mongo conformance → Supabase scopes → count-terminal consumer → mechanical fan-out and closing gates.
+
+**Expected intermediate state: repo-wide `pnpm typecheck` may be red from D1 through D5.** Renaming the cross-family row operation and changing `RuntimeScope` invalidates family runtimes, scopes, callers, and test doubles together. Each dispatch gates its owned production package(s); D6 owns workspace-wide green. This is the same hard-cut migration shape Slice 1 used successfully.
+
+Every dispatch inherits these execution constraints:
+
+- Tests are written or updated before implementation, per repository policy.
+- Use `rg` to enumerate callers before editing and use test suites as verification, not discovery ([`failure-modes.md` F3](../../../../drive/calibration/failure-modes.md)).
+- Destructive git operations are forbidden without orchestrator approval ([F5](../../../../drive/calibration/failure-modes.md)).
+- The brief states the architectural property, not only the rename mechanic ([F17](../../../../drive/calibration/failure-modes.md)); reviewers trace every public API change through all callers ([F19](../../../../drive/calibration/failure-modes.md)).
+- Package lint and test-project typecheck mirror CI ([F14](../../../../drive/calibration/failure-modes.md)).
+- Behavioral count claims are verified through populated fixtures, not code reading ([F15](../../../../drive/calibration/failure-modes.md)).
+- Relevant closing greps come from [`grep-library.md` § Cross-cutting anti-patterns](../../../../drive/calibration/grep-library.md#cross-cutting-anti-patterns), plus the slice-specific retired-name gates below.
+
+### Dispatch 1: operation-aware framework runtime and middleware contract
+
+- **Outcome:** The family-agnostic runtime contract distinguishes row queries from statistics executions, such that middleware interception and completion results state which operation they satisfy and no framework path can derive `affectedRows` from rows.
+- **Builds on:** Slice 1's settled `query` / `execute` driver vocabulary and this slice's chosen middleware properties.
+- **Hands to:** A typed framework substrate on which SQL and Mongo runtimes can implement explicit query/statistics operations without duplicating lifecycle semantics.
+- **Focus:** Framework runtime interfaces, `RuntimeCore`, middleware context/result types, the canonical row runner plus the statistics sibling/generalization, and framework type/runtime tests. Preserve ordering, abort, source, latency, `afterExecute` error behavior, and `planExecutionId`. A query interceptor returning statistics or an execute interceptor returning rows fails loudly. Model tier: orchestrator, because this is a published substrate design judgment. Gate: build, typecheck (including tests), test, and lint for `@internal/framework-components`. Deliberately out of scope: family runtimes and their callers.
+
+### Dispatch 2: SQL runtime exposes query and statistics end to end
+
+- **Outcome:** SQL runtime, connection, transaction, and guarded transaction context expose `query`, `queryPrepared`, and statistics-returning `execute`, such that both operations share one compile/lower/encode/middleware/telemetry setup and delegate through the supplied `SqlQueryable`.
+- **Builds on:** D1's operation-aware framework contract and Slice 1's `SqlQueryable.query` / `execute` implementation.
+- **Hands to:** The canonical SQL `RuntimeScope` shape with every native SQL scope able to stream rows or return real statement statistics on its bound driver/connection/transaction.
+- **Focus:** `sql-relational-core` runtime scope/types and `sql-runtime` production code. Rename the row helper/API rather than retaining compatibility aliases; prepared rows become `queryPrepared`; no prepared statistics method. Preserve marker verification, codecs, abort phases, telemetry, fresh `planExecutionId`, and post-callback transaction invalidation. Model tier: orchestrator, because this is the reference implementation and lifecycle judgment site. Gate: build the changed exported-type producers, then production-source typecheck/build plus package lint for relational-core and SQL runtime; D6 owns the still-invalid test tree. Deliberately out of scope: Supabase, ORM callers, and mechanical test fakes.
+
+### Dispatch 3: Mongo adopts explicit row/statistics operations
+
+- **Outcome:** Mongo runtime and ORM use `query` for row/result streams and `execute` for update/delete statistics, such that update counts remain `modifiedCount`, delete counts remain `deletedCount`, and the existing fake-row casts in `updateAndCount` / `deleteAndCount` disappear.
+- **Builds on:** D1's cross-family contract and operation-aware middleware lifecycle.
+- **Hands to:** Both runtime families conforming to the same caller-selected vocabulary without normalizing their target-specific count semantics.
+- **Focus:** Mongo runtime, query executor, and count terminals. Preserve middleware, codec, abort, and result-shape behavior for row queries. Other command-result consumers, including `createAndCount`, remain row-query consumers per the slice non-goals. Model tier: orchestrator, because command/result classification and target semantics are judgment-heavy. Gate: Mongo runtime and Mongo ORM build/typecheck, focused count/runtime tests, and package lint; wider Mongo test-literal fan-out may defer to D6 only when it is a uniform rename. Halt if supporting statistics requires inferring intent from a raw command whose caller did not choose the operation.
+
+### Dispatch 4: Supabase role-bound scopes conform
+
+- **Outcome:** Every Supabase app-role and secondary-root scope exposes row `query` and statistics `execute`, such that role binding, same-connection execution, transaction pinning, reset-before-release, and destroy-on-error guarantees hold for both operations.
+- **Builds on:** D2's SQL runtime scope and helpers.
+- **Hands to:** All production SQL runtime scopes conforming; only SQL ORM consumers and mechanical test doubles remain.
+- **Focus:** Supabase runtime/facade production code and focused lifecycle tests. Keep raw session-control statements below the runtime API; they are not an ORM count source. Model tier: mid, because the reference pattern exists but connection cleanup remains load-bearing. Gate: Supabase build/typecheck/test/lint. Deliberately out of scope: SQL ORM terminal behavior.
+
+### Dispatch 5: count terminals consume the write statistics
+
+- **Outcome:** SQL `updateAndCount` and `deleteAndCount` issue one DML statement and return its `affectedRows`, such that annotations stay on the write, transaction scope stays pinned, and an interleaved newly matching row is included in the returned count.
+- **Builds on:** D2's SQL `RuntimeScope.execute` and D4's complete production scope set.
+- **Hands to:** The project's user-visible purpose delivered in production code with focused unit and real-driver evidence; only mechanical caller/fake cleanup and workspace gates remain.
+- **Focus:** Write tests first. Delete the primary-key `compileSelect` / `matchingRows.length` path, route both compiled non-returning plans through statistics execution, and preserve the empty-update zero-statement no-op. Add middleware-observed one-statement tests and an independent-runtime, one-shot interleaving integration fixture that fails under the old read-then-write implementation. Update annotation tests to prove the one execution is the annotated write. Model tier: orchestrator, because the integration seam and behavioral proof are judgment sites. Gate: SQL ORM build/typecheck/focused tests/lint plus the relevant Postgres and SQLite integration tests. Deliberately out of scope: `createAndCount` and returning terminals.
+
+### Dispatch 6: mechanical fan-out closes the hard-cut gate
+
+- **Outcome:** Every remaining runtime caller, test double, type test, example, and integration helper conforms to the settled query/statistics vocabulary, and all slice and workspace gates are green.
+- **Builds on:** The union of D1–D5: settled framework contract, both families, every production SQL scope, and count-terminal behavior.
+- **Hands to:** Slice DoD and PR-open readiness.
+- **Focus:** Uniformly migrate residual row `execute` / `executePrepared` sites to `query` / `queryPrepared`; update fake queues so query rows and execute statistics are distinct; do not introduce compatibility aliases. This is a mechanical fan-out—any site requiring a new semantic choice is a halt signal. Model tier: mid because the fan-out crosses multiple packages and must preserve cross-family invariants. Closing greps:
+  - `rg '\bexecutePrepared\b|executePreparedAgainstQueryable|executeAgainstQueryable|executeQueryPlan' packages/ test/` returns zero.
+  - `rg 'matchingRows|countCompiled' packages/3-extensions/sql-orm-client/src/collection.ts` returns zero.
+  - Cross-cutting banned-pattern greps add no new hits.
+  Gate: build changed exported-type producers before downstream checks; `pnpm typecheck`; touched-package lint; `pnpm lint:deps`; `pnpm test:packages`; `pnpm test:integration`; `pnpm test:e2e`; `pnpm fixtures:check` because the slice touches extensions (expected no fixture delta). Re-fetch and sync `origin/main`, then repeat always-run and affected integration gates before push.
+
+## Handoff linearity
+
+D1 → D2 → D3 → D4 → D5 → D6 is sequential. D3 depends directly on D1 rather than D2's SQL implementation; its brief needs D1's framework contract, not SQL-specific mechanics. D4 and D5 depend on D2. D6 depends on the union of all prior dispatches and must receive each operation's settled caller contract, not only D5's terminal diff.
+
+## Slice-DoD reachability
+
+| Slice-DoD condition | Closed by |
+| --- | --- |
+| One statement per non-empty count terminal | D5 behavior tests · D6 integration gate |
+| Interleaved write reflected in returned count | D5 real-driver fixture |
+| No SQL row caller uses retired runtime names | D2 production · D4/D5 consumers · D6 closing grep |
+| Statistics intercept supplies statistics | D1 contract/tests · D2 runtime use |
+| Bound SQL transaction and Supabase scope preserved | D2 transaction tests · D4 role-bound tests |
+| Integration/e2e green | D6 closing gates |
+
+## Open items
+
+None. If D1 discovers that the operation-discriminated middleware contract cannot remain cross-family without optional or cast-based escape hatches, halt and route through `drive-discussion`; do not weaken the result contract silently.
