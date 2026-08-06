@@ -163,7 +163,7 @@ describe('integration: rawSql expression in typed builder', {
       // posts.views values: 100, 50, 200, 10 — doubled they become 200, 100, 400, 20.
       // fns.raw is RawSqlTag (always present) because BuiltinFunctions declares it
       // concretely; the callback receives AggregateFunctions<QC>.
-      const rows = await runtime.execute(
+      const rows = await runtime.query(
         db.public.posts
           .select('id')
           .select('doubled', (f, fns) => fns.raw`${f.views} * 2`.returns('pg/int4@1'))
@@ -180,7 +180,7 @@ describe('integration: rawSql expression in typed builder', {
       const db = sql({ context, rawCodecInferer: adapter });
       const runtime = buildRuntime();
 
-      const rows = await runtime.execute(
+      const rows = await runtime.query(
         db.public.posts
           .select('id')
           .select('magic', (_f, fns) => fns.raw`42`.returns('pg/int4@1'))

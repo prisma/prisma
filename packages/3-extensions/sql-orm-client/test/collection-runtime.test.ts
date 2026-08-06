@@ -98,7 +98,8 @@ describe('collection-runtime', () => {
 
   it('acquireRuntimeScope() handles direct runtimes and connection scopes', async () => {
     const directRuntime = {
-      execute: () => new AsyncIterableResult((async function* () {})()),
+      query: () => new AsyncIterableResult((async function* () {})()),
+      execute: async () => ({ affectedRows: 0 }),
     } as never;
     const direct = await acquireRuntimeScope(directRuntime);
     expect(direct.scope).toBe(directRuntime);
@@ -108,7 +109,8 @@ describe('collection-runtime', () => {
     const connectionRuntime = {
       async connection() {
         return {
-          execute: () => new AsyncIterableResult((async function* () {})()),
+          query: () => new AsyncIterableResult((async function* () {})()),
+          execute: async () => ({ affectedRows: 0 }),
           release: async () => {
             released = true;
           },
@@ -123,7 +125,8 @@ describe('collection-runtime', () => {
     const noReleaseRuntime = {
       async connection() {
         return {
-          execute: () => new AsyncIterableResult((async function* () {})()),
+          query: () => new AsyncIterableResult((async function* () {})()),
+          execute: async () => ({ affectedRows: 0 }),
         };
       },
     } as never;
@@ -135,7 +138,8 @@ describe('collection-runtime', () => {
     const runtime = {
       async connection() {
         return {
-          execute: () => new AsyncIterableResult((async function* () {})()),
+          query: () => new AsyncIterableResult((async function* () {})()),
+          execute: async () => ({ affectedRows: 0 }),
           release: () => undefined,
         };
       },

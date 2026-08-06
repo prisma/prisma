@@ -97,7 +97,7 @@ describe('Mongo runtime decode integration via query-builder', () => {
           name: { kind: 'leaf', codecId: 'mongo/string@1', nullable: false },
         },
       });
-      const rows = await ctx.runtime.execute(plan).toArray();
+      const rows = await ctx.runtime.query(plan).toArray();
       expect(rows).toHaveLength(1);
       const row = rows[0] as Record<string, unknown>;
       expect(Object.keys(row).sort()).toEqual(['_id', 'name']);
@@ -132,7 +132,7 @@ describe('Mongo runtime decode integration via query-builder', () => {
       // pipelines so the runtime passes rows through unchanged.
       expect(plan.resultShape).toEqual({ kind: 'unknown' });
 
-      const rows = await ctx.runtime.execute(plan).toArray();
+      const rows = await ctx.runtime.query(plan).toArray();
       expect(rows).toHaveLength(2);
       // No decode at the boundary: `_id` from `$group` is the raw wire
       // value (an `ObjectId`, since we grouped by `userId`). The runtime
@@ -188,7 +188,7 @@ describe('Mongo runtime decode integration via query-builder', () => {
       // through additively.
       expect(plan.resultShape).toEqual({ kind: 'unknown' });
 
-      const rows = await ctx.runtime.execute(plan).toArray();
+      const rows = await ctx.runtime.query(plan).toArray();
       expect(rows).toHaveLength(1);
       const row = rows[0] as { _id: unknown; name: unknown; posts: unknown[] };
       expect(Object.getPrototypeOf(row._id).constructor.name).toBe('ObjectId');

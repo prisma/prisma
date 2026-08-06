@@ -103,7 +103,7 @@ describe('computeMongoContentHash unresolved-command guard', () => {
 
     await expect(
       runtime
-        .execute({
+        .query({
           collection: 'users',
           command: new InsertOneCommand('users', { name: new MongoParamRef('Alice') }),
           meta: baseMeta,

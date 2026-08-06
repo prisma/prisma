@@ -27,7 +27,7 @@ export async function enumDefaultDemo(): Promise<void> {
         .build(),
     );
 
-  const rows = await db.runtime().execute(
+  const rows = await db.runtime().query(
     db.sql.public.post
       .select('id', 'priority')
       .where((f, fns) => fns.eq(f.id, demoPostId))

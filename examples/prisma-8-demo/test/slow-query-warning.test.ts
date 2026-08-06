@@ -25,6 +25,7 @@ function makeContext(warnEvents: unknown[]): SqlMiddlewareContext {
     },
     contentHash: async () => 'test-content-hash',
     scope: 'runtime',
+    operation: 'query',
     planExecutionId: 'test-plan-execution',
   };
 }
@@ -40,7 +41,7 @@ function makeExecutionPlan() {
 }
 
 function makeResult(latencyMs: number): AfterExecuteResult {
-  return { rowCount: 1, latencyMs, completed: true, source: 'driver' };
+  return { operation: 'query', rowCount: 1, latencyMs, completed: true, source: 'driver' };
 }
 
 describe('slowQueryWarning middleware', () => {

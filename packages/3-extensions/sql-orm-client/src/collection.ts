@@ -64,7 +64,6 @@ import {
   executeMutationReturningSingleRow,
 } from './collection-mutation-dispatch';
 import { mapModelDataToStorageRow, mapPolymorphicRow } from './collection-runtime';
-import { executeQueryPlan } from './execute-query-plan';
 import { shorthandToWhereExpr } from './filters';
 import { GroupedCollection } from './grouped-collection';
 import {
@@ -96,6 +95,7 @@ import {
   compileUpsertReturning,
   mergeAnnotations,
 } from './query-plan';
+import { queryPlanRows } from './query-plan-rows';
 import {
   type AggregateBuilder,
   type AggregateIncludeReducers,
@@ -1146,10 +1146,7 @@ class CollectionImpl<
       ),
       annotationsMap,
     );
-    const rows = await executeQueryPlan<Record<string, unknown>>(
-      this.ctx.runtime,
-      compiled,
-    ).toArray();
+    const rows = await queryPlanRows<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
     // Values arrive decoded: the projection carries each aggregate's resolved
     // output codec, so the runtime's decode pass has already turned the wire
     // value into the application one. An absent alias means an empty input
@@ -1489,7 +1486,7 @@ class CollectionImpl<
             [baseRow],
             undefined,
           );
-          const baseResult = await executeQueryPlan<Record<string, unknown>>(
+          const baseResult = await queryPlanRows<Record<string, unknown>>(
             scope,
             baseCompiled,
           ).toArray();
@@ -1519,7 +1516,7 @@ class CollectionImpl<
             [variantRow],
             undefined,
           );
-          const variantResult = await executeQueryPlan<Record<string, unknown>>(
+          const variantResult = await queryPlanRows<Record<string, unknown>>(
             scope,
             variantCompiled,
           ).toArray();
@@ -1648,7 +1645,7 @@ class CollectionImpl<
         mappedRows,
       ).map((plan) => mergeAnnotations(plan, annotationsMap));
       for (const plan of plans) {
-        await executeQueryPlan<Record<string, unknown>>(this.ctx.runtime, plan).toArray();
+        await queryPlanRows<Record<string, unknown>>(this.ctx.runtime, plan).toArray();
       }
       return data.length;
     }
@@ -1657,7 +1654,7 @@ class CollectionImpl<
       compileInsertCount(this.contract, this.namespaceId, this.tableName, mappedRows),
       annotationsMap,
     );
-    await executeQueryPlan<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
+    await queryPlanRows<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
     return data.length;
   }
 
@@ -2174,7 +2171,7 @@ class CollectionImpl<
           ),
           annotationsMap,
         );
-        await executeQueryPlan<Record<string, unknown>>(scope, deletePlan).toArray();
+        await queryPlanRows<Record<string, unknown>>(scope, deletePlan).toArray();
         return rows;
       });
       for (const row of snapshot) {

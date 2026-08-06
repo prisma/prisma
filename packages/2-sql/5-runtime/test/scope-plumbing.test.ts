@@ -264,7 +264,7 @@ describe('SQL runtime scope plumbing', () => {
     expect(seen).toEqual(['transaction']);
   });
 
-  it('populates ctx.scope = "runtime" on top-level prepared .execute(runtime, ...)', async () => {
+  it('populates ctx.scope = "runtime" on top-level runtime.queryPrepared(statement, ...)', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
@@ -286,11 +286,11 @@ describe('SQL runtime scope plumbing', () => {
       },
     }));
 
-    await ps.execute(runtime, {}).toArray();
+    await runtime.queryPrepared(ps, {}).toArray();
     expect(seen).toEqual(['runtime']);
   });
 
-  it('populates ctx.scope = "connection" on prepared .execute(connection, ...)', async () => {
+  it('populates ctx.scope = "connection" on connection.queryPrepared(statement, ...)', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
@@ -314,7 +314,7 @@ describe('SQL runtime scope plumbing', () => {
 
     const connection = await runtime.connection();
     try {
-      await ps.execute(connection, {}).toArray();
+      await connection.queryPrepared(ps, {}).toArray();
     } finally {
       await connection.release();
     }
@@ -322,7 +322,7 @@ describe('SQL runtime scope plumbing', () => {
     expect(seen).toEqual(['connection']);
   });
 
-  it('populates ctx.scope = "transaction" on prepared .execute(transaction, ...)', async () => {
+  it('populates ctx.scope = "transaction" on transaction.queryPrepared(statement, ...)', async () => {
     const seen: Array<'runtime' | 'connection' | 'transaction'> = [];
     const observer: SqlMiddleware = {
       name: 'scope-observer',
@@ -347,7 +347,7 @@ describe('SQL runtime scope plumbing', () => {
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
     try {
-      await ps.execute(transaction, {}).toArray();
+      await transaction.queryPrepared(ps, {}).toArray();
       await transaction.commit();
     } finally {
       await connection.release();

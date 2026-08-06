@@ -75,7 +75,7 @@ describe('MongoRuntime execute param-mutator wiring', () => {
 
     const secretRef = new MongoParamRef('secret', { codecId: BULK_CODEC_ID });
     await runtime
-      .execute({
+      .query({
         collection: 'users',
         command: new InsertOneCommand('users', { token: secretRef }),
         meta: baseMeta,
@@ -114,7 +114,7 @@ describe('MongoRuntime execute param-mutator wiring', () => {
     });
 
     await runtime
-      .execute({
+      .query({
         collection: 'users',
         command: new InsertOneCommand('users', {
           token: new MongoParamRef('alpha', { codecId: BULK_CODEC_ID }),
@@ -166,7 +166,7 @@ describe('MongoRuntime execute param-mutator wiring', () => {
     const runtime = createMongoRuntime({ context: patchedContext, driver });
 
     await runtime
-      .execute({
+      .query({
         collection: 'users',
         command: new InsertOneCommand('users', { name: new MongoParamRef('Alice') }),
         meta: baseMeta,
@@ -209,7 +209,7 @@ describe('MongoRuntime execute param-mutator wiring', () => {
         middleware: [middleware, observer],
       });
       await runtime
-        .execute({
+        .query({
           collection: 'users',
           command: new InsertOneCommand('users', { label: new MongoParamRef('same') }),
           meta: baseMeta,

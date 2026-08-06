@@ -16,7 +16,7 @@ export interface RuntimeLog {
  * middleware in the chain.
  *
  * - `signal` carries the per-query `AbortSignal` -- the same
- *   reference that `runtime.execute(plan, { signal })` was invoked
+ *   reference that `runtime.query(plan, { signal })` was invoked
  *   with, and the same reference threaded into the per-call
  *   `CodecCallContext` (ADR 207). Middleware that wraps a
  *   network-backed SDK forwards `ctx.signal` into that SDK to

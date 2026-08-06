@@ -35,7 +35,7 @@ export interface CacheMiddlewareOptions {
  * The plan-identity invariant required by this `WeakMap` correlation is
  * documented in the runtime subsystem doc and pinned by a regression
  * test: family runtimes produce a fresh, frozen `exec` per call (SQL
- * `executeAgainstQueryable` constructs `Object.freeze({...lowered, ...})`
+ * `executeStatisticsAgainstQueryable` constructs `Object.freeze({...lowered, ...})`
  * on each invocation; Mongo lowers fresh per call). If a future plan-
  * memoization change ever recycles `exec` objects across calls, this
  * correlation would silently leak rows between concurrent executions
@@ -161,8 +161,14 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
   async function intercept(
     exec: ExecutionPlan,
     ctx: RuntimeMiddlewareContext,
-  ): Promise<{ readonly rows: Iterable<Record<string, unknown>> } | undefined> {
-    if (ctx.scope !== 'runtime') {
+  ): Promise<
+    | {
+        readonly operation: 'query';
+        readonly rows: Iterable<Record<string, unknown>>;
+      }
+    | undefined
+  > {
+    if (ctx.scope !== 'runtime' || ctx.operation !== 'query') {
       return undefined;
     }
 
@@ -183,7 +189,7 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
       ctx.log.debug?.({ event: 'middleware.cache.hit', middleware: 'cache', key });
       // Hit path leaves no WeakMap entry — afterExecute's lookup will
       // return undefined and short-circuit.
-      return { rows: hit.rows };
+      return { operation: 'query', rows: hit.rows };
     }
 
     // Miss: record the pending buffer so onRow / afterExecute can
@@ -219,7 +225,7 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
     // any state we leave behind is dead weight on the GC.
     pending.delete(exec);
 
-    if (!result.completed || result.source !== 'driver') {
+    if (result.operation !== 'query' || !result.completed || result.source !== 'driver') {
       return;
     }
 

@@ -112,13 +112,14 @@ type Params<D extends Record<string, unknown>> = {
 };
 
 describe('runtime.prepare', () => {
-  it('returns a PreparedStatement with a typed .execute method', async () => {
+  it('returns a PreparedStatement consumed by queryPrepared', async () => {
     const { runtime } = createSetup();
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
     );
     expect(ps).toBeDefined();
-    expect(typeof ps.execute).toBe('function');
+    expect('execute' in ps).toBe(false);
+    expect(typeof runtime.queryPrepared).toBe('function');
   });
 
   it('performs no driver I/O at prepare time', async () => {
@@ -149,7 +150,7 @@ describe('runtime.prepare', () => {
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
     );
-    await ps.execute(runtime, { userId: 1 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 1 }).toArray();
     expect(firstHandleGet).toBeUndefined();
   });
 
@@ -222,9 +223,9 @@ describe('runtime.prepare', () => {
     expect(beforeCompile).toHaveBeenCalledTimes(1);
     expect(beforeExecute).toHaveBeenCalledTimes(0);
 
-    // Each .execute() runs beforeExecute but NOT beforeCompile.
-    await ps.execute(runtime, { userId: 1 }).toArray();
-    await ps.execute(runtime, { userId: 2 }).toArray();
+    // Each queryPrepared() runs beforeExecute but NOT beforeCompile.
+    await runtime.queryPrepared(ps, { userId: 1 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 2 }).toArray();
     expect(beforeCompile).toHaveBeenCalledTimes(1);
     expect(beforeExecute).toHaveBeenCalledTimes(2);
   });
@@ -236,8 +237,8 @@ describe('runtime.prepare', () => {
     );
 
     expect(adapter.lower).toHaveBeenCalledTimes(1);
-    await ps.execute(runtime, { userId: 1 }).toArray();
-    await ps.execute(runtime, { userId: 2 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 1 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 2 }).toArray();
 
     // No additional lower() calls — the lowered SQL is reused.
     expect(adapter.lower).toHaveBeenCalledTimes(1);
@@ -250,7 +251,7 @@ describe('runtime.prepare', () => {
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
     );
-    await ps.execute(runtime, { userId: 42 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 42 }).toArray();
     const lastCall = driver.__spies.query.mock.calls.at(-1);
     expect(lastCall).toBeDefined();
     const req = lastCall?.[0] as PreparedExecuteRequest;
@@ -278,8 +279,8 @@ describe('runtime.prepare', () => {
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
     );
-    await ps.execute(runtime, { userId: 1 }).toArray();
-    await ps.execute(runtime, { userId: 2 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 1 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 2 }).toArray();
     expect(observed).toEqual([undefined, 'pn_42']);
   });
 
@@ -295,8 +296,8 @@ describe('runtime.prepare', () => {
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
     );
-    const a = await ps.execute(runtime, { userId: 1 }).toArray();
-    const b = await ps.execute(runtime, { userId: 2 }).toArray();
+    const a = await runtime.queryPrepared(ps, { userId: 1 }).toArray();
+    const b = await runtime.queryPrepared(ps, { userId: 2 }).toArray();
     expect(captured).toEqual([[1], [2]]);
     expect(a).toEqual([{ id: 1 }]);
     expect(b).toEqual([{ id: 2 }]);
@@ -307,7 +308,9 @@ describe('runtime.prepare', () => {
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
     );
-    await expect(ps.execute(runtime, {} as { userId: number }).toArray()).rejects.toMatchObject({
+    await expect(
+      runtime.queryPrepared(ps, {} as { userId: number }).toArray(),
+    ).rejects.toMatchObject({
       code: 'RUNTIME.PREPARE_MISSING_PARAM',
       details: { name: 'userId' },
     });
@@ -335,7 +338,7 @@ describe('runtime.prepare', () => {
       buildEqUserIdPlan((p as Params<{ userId: unknown }>).userId),
     );
 
-    await ps.execute(runtime, { userId: 42 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 42 }).toArray();
 
     // The mutator surfaces the pre-encode user value, not the encoded one.
     expect(captured).toEqual([42]);

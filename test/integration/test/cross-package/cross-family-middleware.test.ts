@@ -66,7 +66,7 @@ function collectingObserver() {
         lane: plan.meta.lane,
         target: plan.meta.target,
         storageHash: plan.meta.storageHash,
-        rowCount: result.rowCount,
+        ...(result.operation === 'query' ? { rowCount: result.rowCount } : {}),
         completed: result.completed,
         source: result.source,
       });
@@ -113,6 +113,10 @@ class MockSqlRuntime extends RuntimeCore<MockSqlPlan, MockSqlExec, RuntimeMiddle
         }
       },
     };
+  }
+
+  protected runExecute(): Promise<{ affectedRows: number }> {
+    return Promise.resolve({ affectedRows: 0 });
   }
 
   async close(): Promise<void> {}
@@ -202,6 +206,7 @@ const sqlCtx: RuntimeMiddlewareContext = {
   log: { info: () => {}, warn: () => {}, error: () => {} },
   contentHash: async () => 'mock-hash',
   scope: 'runtime',
+  operation: 'query',
   planExecutionId: 'test-fixture-plan-execution-id',
 };
 
@@ -221,7 +226,7 @@ describe('cross-family middleware proof', () => {
       },
     };
 
-    for await (const _row of sqlRuntime.execute(sqlPlan)) {
+    for await (const _row of sqlRuntime.query(sqlPlan)) {
       void _row;
     }
 
@@ -256,7 +261,7 @@ describe('cross-family middleware proof', () => {
 
     const plan = createMongoPlan(mongoMeta);
 
-    for await (const _row of mongoRuntime.execute(plan)) {
+    for await (const _row of mongoRuntime.query(plan)) {
       void _row;
     }
 
@@ -296,7 +301,7 @@ describe('cross-family middleware proof', () => {
       },
     };
 
-    for await (const _row of sqlRuntime.execute(sqlPlan2)) {
+    for await (const _row of sqlRuntime.query(sqlPlan2)) {
       void _row;
     }
 
@@ -307,7 +312,7 @@ describe('cross-family middleware proof', () => {
       lane: 'orm',
     });
 
-    for await (const _row of mongoRuntime.execute(mongoPlan)) {
+    for await (const _row of mongoRuntime.query(mongoPlan)) {
       void _row;
     }
 
@@ -331,7 +336,7 @@ describe('cross-family middleware proof', () => {
       name: 'mock-interceptor',
       async intercept(plan) {
         interceptCalls.push(plan.meta.target);
-        return { rows: [{ intercepted: true }] };
+        return { operation: 'query', rows: [{ intercepted: true }] };
       },
     };
 
@@ -357,7 +362,7 @@ describe('cross-family middleware proof', () => {
     };
 
     const sqlOut: unknown[] = [];
-    for await (const row of sqlRuntime.execute(sqlPlan)) {
+    for await (const row of sqlRuntime.query(sqlPlan)) {
       sqlOut.push(row);
     }
 
@@ -369,7 +374,7 @@ describe('cross-family middleware proof', () => {
     });
 
     const mongoOut: unknown[] = [];
-    for await (const row of mongoRuntime.execute(mongoPlan)) {
+    for await (const row of mongoRuntime.query(mongoPlan)) {
       mongoOut.push(row);
     }
 

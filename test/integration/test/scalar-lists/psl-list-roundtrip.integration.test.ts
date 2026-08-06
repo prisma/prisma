@@ -228,7 +228,7 @@ model Reading {
             amounts: ParamRef.of(amounts, { codec: amountsRef }),
           },
         ]);
-        await runtime.execute(planFromAst(insert, contract)).toArray();
+        await runtime.query(planFromAst(insert, contract)).toArray();
 
         const select = SelectAst.from(table)
           .withProjection([
@@ -243,7 +243,7 @@ model Reading {
             ),
           );
 
-        const rows = await runtime.execute(planFromAst(select, contract)).toArray();
+        const rows = await runtime.query(planFromAst(select, contract)).toArray();
         expect(rows).toHaveLength(1);
         const row = rows[0] as unknown as {
           dates: Date[];
@@ -313,7 +313,7 @@ model Reading {
             scores: ParamRef.of(scores, { codec: scoresRef }),
           },
         ]);
-        await runtime.execute(planFromAst(insert, contract)).toArray();
+        await runtime.query(planFromAst(insert, contract)).toArray();
 
         const select = SelectAst.from(table)
           .withProjection([
@@ -327,7 +327,7 @@ model Reading {
             ),
           );
 
-        const rows = await runtime.execute(planFromAst(select, contract)).toArray();
+        const rows = await runtime.query(planFromAst(select, contract)).toArray();
         expect(rows).toHaveLength(1);
         const row = rows[0] as unknown as {
           tags: string[];

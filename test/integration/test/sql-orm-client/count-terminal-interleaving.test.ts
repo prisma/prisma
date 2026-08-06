@@ -3,9 +3,9 @@ import { tmpdir } from 'node:os';
 import { DatabaseSync } from 'node:sqlite';
 import { integerColumn, textColumn } from '@internal/adapter-sqlite/column-types';
 import sqliteAdapter from '@internal/adapter-sqlite/runtime';
-import { soleDomainNamespaceId } from '@internal/contract/types';
 import sqliteDriver from '@internal/driver-sqlite/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { sql } from '@internal/sql-builder/runtime';
 import { Collection } from '@internal/sql-orm-client';
 import {
@@ -29,7 +29,7 @@ const User = model('User', {
 }).sql({ table: 'count_users' });
 
 const contract = defineContract({ models: { User } });
-const namespaceId = soleDomainNamespaceId(contract.domain);
+const namespaceId = UNBOUND_NAMESPACE_ID;
 
 async function createRuntime(path: string, middleware: readonly SqlMiddleware[] = []) {
   const stack = createSqlExecutionStack({

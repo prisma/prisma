@@ -229,7 +229,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     const dates = [new Date('2026-01-02T03:04:05.000Z'), new Date('2025-06-15T12:00:00.000Z')];
 
     await runtime!
-      .execute(
+      .query(
         planFromAst(
           buildInsertAst({ id: 100, dates, bytes: null, decimals: null, bigints: null }),
           contract,
@@ -237,7 +237,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
       )
       .toArray();
 
-    const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(100), contract)).toArray();
+    const rows = await runtime!.query(planFromAst(buildSelectByIdAst(100), contract)).toArray();
 
     expect(rows).toHaveLength(1);
     const row = rows[0] as unknown as { dates: Date[] };
@@ -255,7 +255,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     const bytes = [new Uint8Array([1, 2, 3]), new Uint8Array([255, 0, 127])];
 
     await runtime!
-      .execute(
+      .query(
         planFromAst(
           buildInsertAst({ id: 200, dates: null, bytes, decimals: null, bigints: null }),
           contract,
@@ -263,7 +263,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
       )
       .toArray();
 
-    const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(200), contract)).toArray();
+    const rows = await runtime!.query(planFromAst(buildSelectByIdAst(200), contract)).toArray();
 
     expect(rows).toHaveLength(1);
     const row = rows[0] as unknown as { bytes: Uint8Array[] };
@@ -284,7 +284,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     const decimals = ['1.5', '999999999999.99', '-0.001'];
 
     await runtime!
-      .execute(
+      .query(
         planFromAst(
           buildInsertAst({ id: 300, dates: null, bytes: null, decimals, bigints: null }),
           contract,
@@ -292,7 +292,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
       )
       .toArray();
 
-    const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(300), contract)).toArray();
+    const rows = await runtime!.query(planFromAst(buildSelectByIdAst(300), contract)).toArray();
 
     expect(rows).toHaveLength(1);
     const row = rows[0] as unknown as { decimals: string[] };
@@ -313,7 +313,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     const bigints = [12345678n, 9876543n];
 
     await runtime!
-      .execute(
+      .query(
         planFromAst(
           buildInsertAst({ id: 400, dates: null, bytes: null, decimals: null, bigints }),
           contract,
@@ -321,7 +321,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
       )
       .toArray();
 
-    const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(400), contract)).toArray();
+    const rows = await runtime!.query(planFromAst(buildSelectByIdAst(400), contract)).toArray();
 
     expect(rows).toHaveLength(1);
     const row = rows[0] as unknown as { bigints: bigint[] };
@@ -338,7 +338,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
     // Insert a row with a NULL element via the driver directly so the test
     // exercises the decode-side NULL tolerance independent of encode.
     await runtime!
-      .execute(
+      .query(
         planFromAst(
           buildInsertAst({ id: 500, dates: null, bytes: null, decimals: null, bigints: null }),
           contract,
@@ -359,7 +359,7 @@ describe.sequential('scalar-list codec round-trip (element-wise encode/decode)',
       );
     });
 
-    const rows = await runtime!.execute(planFromAst(buildSelectByIdAst(501), contract)).toArray();
+    const rows = await runtime!.query(planFromAst(buildSelectByIdAst(501), contract)).toArray();
 
     expect(rows).toHaveLength(1);
     // Elements decode through the int8 codec to `bigint`; null elements stay null.

@@ -137,7 +137,7 @@ describe('service_role queries auth/storage via the .supabase secondary root', (
 
         // SQL path: read auth.users via the secondary root.
         const rows = await internal
-          .execute(
+          .query(
             internal.sql.auth.users
               .select('id', 'email')
               .where((f, fns) => fns.eq(f.id, userId))
@@ -158,7 +158,7 @@ describe('service_role queries auth/storage via the .supabase secondary root', (
         // as service_role, not as the pool's owner/superuser (which would also
         // have had grants and passed the read above). This is the security boundary.
         const [boundRole] = await internal
-          .execute(
+          .query(
             internal.sql.auth.users
               .select('role', (_f, fns) => fns.raw`current_setting('role')`.returns('pg/text@1'))
               .where((f, fns) => fns.eq(f.id, userId))
@@ -226,11 +226,11 @@ describe('service_role queries auth/storage via the .supabase secondary root', (
         const sr = db.asServiceRole();
 
         // Primary root: the app contract, exactly as asUser/asAnon see it.
-        await sr.execute(sr.sql.public.profile.select('id').build()).toArray();
+        await sr.query(sr.sql.public.profile.select('id').build()).toArray();
 
         // Secondary root: the Supabase-internal contract, reached only here.
         const authRows = await sr.supabase
-          .execute(sr.supabase.sql.auth.users.select('email').build())
+          .query(sr.supabase.sql.auth.users.select('email').build())
           .toArray();
 
         expect(authRows.some((r) => r.email === 'admin@example.com')).toBe(true);

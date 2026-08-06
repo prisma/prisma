@@ -460,13 +460,13 @@ describe('mongo() facade', () => {
     it('lazily instantiates the runtime on first consumption', async () => {
       const fakeRows = [{ id: 1 }, { id: 2 }];
       const fakePlan = { id: 'fake-plan' };
-      const fakeRuntimeWithExecute = {
+      const fakeRuntimeWithQuery = {
         ...fakeRuntime,
-        execute: vi.fn(async function* () {
+        query: vi.fn(async function* () {
           yield* fakeRows;
         }),
       };
-      mocks.createMongoRuntime.mockReturnValue(fakeRuntimeWithExecute);
+      mocks.createMongoRuntime.mockReturnValue(fakeRuntimeWithQuery);
 
       const db = mongo({ contract: fakeContract, url: 'mongodb://localhost:27017/mydb' });
       const result = db.execute(fakePlan as never);
@@ -482,15 +482,15 @@ describe('mongo() facade', () => {
       }
       expect(collected).toEqual(fakeRows);
       expect(mocks.driverFromConnection).toHaveBeenCalledTimes(1);
-      expect(fakeRuntimeWithExecute.execute).toHaveBeenCalledWith(fakePlan);
+      expect(fakeRuntimeWithQuery.query).toHaveBeenCalledWith(fakePlan);
     });
 
     it('rejects after close()', async () => {
-      const fakeRuntimeWithExecute = {
+      const fakeRuntimeWithQuery = {
         ...fakeRuntime,
-        execute: vi.fn(async function* () {}),
+        query: vi.fn(async function* () {}),
       };
-      mocks.createMongoRuntime.mockReturnValue(fakeRuntimeWithExecute);
+      mocks.createMongoRuntime.mockReturnValue(fakeRuntimeWithQuery);
 
       const db = mongo({ contract: fakeContract, url: 'mongodb://localhost:27017/mydb' });
       await db.close();

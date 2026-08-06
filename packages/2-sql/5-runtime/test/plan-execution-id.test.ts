@@ -175,7 +175,7 @@ describe('SqlRuntime.queryPrepared planExecutionId (ADR 220)', () => {
       buildEqUserIdPlan(params.userId),
     );
 
-    await ps.execute(runtime, { userId: 1 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 1 }).toArray();
 
     expect(log).toHaveLength(2);
     expect(log[0]?.planExecutionId).toBeTypeOf('string');
@@ -189,8 +189,8 @@ describe('SqlRuntime.queryPrepared planExecutionId (ADR 220)', () => {
       buildEqUserIdPlan(params.userId),
     );
 
-    await ps.execute(runtime, { userId: 1 }).toArray();
-    await ps.execute(runtime, { userId: 2 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 1 }).toArray();
+    await runtime.queryPrepared(ps, { userId: 2 }).toArray();
 
     expect(log).toHaveLength(4);
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);

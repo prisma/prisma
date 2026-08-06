@@ -9,7 +9,7 @@ export async function loader() {
     .orderBy('createdAt', { direction: 'desc' })
     .limit(20)
     .build();
-  const rows = await db.runtime().execute(plan);
+  const rows = await db.runtime().query(plan);
   return { rows };
 }
 
@@ -26,7 +26,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
   const db = getDb();
   const plan = db.sql.public.user.insert([{ email }]).build();
-  await db.runtime().execute(plan);
+  await db.runtime().query(plan);
   return redirect('/');
 }
 

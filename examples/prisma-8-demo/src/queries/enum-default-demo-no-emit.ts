@@ -20,7 +20,7 @@ export async function enumDefaultDemoNoEmit(runtime: Runtime): Promise<void> {
     sql.post.insert([{ id: demoPostId, title: 'Enum-default demo', userId: demoUserId }]).build(),
   );
 
-  const rows = await runtime.execute(
+  const rows = await runtime.query(
     sql.post
       .select('id', 'priority')
       .where((f, fns) => fns.eq(f.id, demoPostId))

@@ -6,7 +6,7 @@ describe('integration: execution methods', { timeout: timeouts.databaseOperation
 
   it('executes plan and returns rows', async () => {
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.select('id', 'name')
           .where((f, fns) => fns.eq(f.id, 1))
@@ -19,7 +19,7 @@ describe('integration: execution methods', { timeout: timeouts.databaseOperation
 
   it('returns empty array for no matches', async () => {
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.select('id')
           .where((f, fns) => fns.eq(f.id, 9999))
@@ -31,7 +31,7 @@ describe('integration: execution methods', { timeout: timeouts.databaseOperation
 
   it('returns matching row', async () => {
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.select('id', 'name')
           .where((f, fns) => fns.eq(f.id, 2))
