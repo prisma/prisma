@@ -3,6 +3,7 @@ import { timeouts } from '@repo/test-utils';
 import type { Client, Pool } from 'pg';
 import { describe, expect, it } from 'vitest';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
+import { queryRows } from './sql-queryable-test-utils';
 
 interface ConcurrencyState {
   inFlight: number;
@@ -58,7 +59,7 @@ async function consume<T>(iterable: AsyncIterable<T>): Promise<T[]> {
   return out;
 }
 
-function makeHandleSlot(): PreparedExecuteRequest['handle'] {
+function makeHandleSlot(): PreparedExecuteRequest['preparedStatementHandle'] {
   let value: unknown;
   return {
     get: () => value,
@@ -74,9 +75,9 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const driver = makeDirectDriver(state);
 
     await Promise.all([
-      driver.query('select 1'),
-      driver.query('select 2'),
-      driver.query('select 3'),
+      queryRows(driver, 'select 1'),
+      queryRows(driver, 'select 2'),
+      queryRows(driver, 'select 3'),
     ]);
 
     expect(state.maxInFlight).toBe(1);
@@ -84,7 +85,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     expect(state.completed).toEqual(['select 1', 'select 2', 'select 3']);
   });
 
-  it('serializes mixed execute/executePrepared/explain/query overlap on a direct driver', async () => {
+  it('serializes mixed query/explain overlap on a direct driver', async () => {
     const state = createConcurrencyState();
     const driver = makeDirectDriver(state);
     const explain = driver.explain;
@@ -93,10 +94,12 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     }
 
     await Promise.all([
-      consume(driver.execute({ sql: 'select a' })),
-      consume(driver.executePrepared({ sql: 'select b', params: [], handle: makeHandleSlot() })),
+      consume(driver.query({ sql: 'select a' })),
+      consume(
+        driver.query({ sql: 'select b', params: [], preparedStatementHandle: makeHandleSlot() }),
+      ),
       explain.call(driver, { sql: 'select c' }),
-      driver.query('select d'),
+      queryRows(driver, 'select d'),
     ]);
 
     expect(state.maxInFlight).toBe(1);
@@ -108,7 +111,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const driver = makeDirectDriver(state);
     const connection = await driver.acquireConnection();
 
-    await Promise.all([connection.query('select 1'), connection.query('select 2')]);
+    await Promise.all([queryRows(connection, 'select 1'), queryRows(connection, 'select 2')]);
     await connection.release();
 
     expect(state.maxInFlight).toBe(1);
@@ -122,9 +125,9 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const transaction = await connection.beginTransaction();
 
     await Promise.all([
-      transaction.query('select 1'),
-      transaction.query('select 2'),
-      consume(transaction.execute({ sql: 'select 3' })),
+      queryRows(transaction, 'select 1'),
+      queryRows(transaction, 'select 2'),
+      consume(transaction.query({ sql: 'select 3' })),
     ]);
     await transaction.commit();
     await connection.release();
@@ -139,7 +142,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const driver = makeDirectDriver(state);
     const connection = await driver.acquireConnection();
 
-    await Promise.all([connection.query('select lease'), driver.query('select driver')]);
+    await Promise.all([queryRows(connection, 'select lease'), queryRows(driver, 'select driver')]);
     await connection.release();
 
     expect(state.maxInFlight).toBe(1);
@@ -151,10 +154,10 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const connection = await driver.acquireConnection();
 
     const nested: unknown[] = [];
-    for await (const row of connection.execute<{ echo: string }>({ sql: 'select outer' })) {
+    for await (const row of connection.query<{ echo: string }>({ sql: 'select outer' })) {
       expect(row).toEqual({ echo: 'select outer' });
-      const inner = await connection.query<{ echo: string }>('select inner');
-      nested.push(inner.rows[0]);
+      const inner = await queryRows<{ echo: string }>(connection, 'select inner');
+      nested.push(inner[0]);
     }
     await connection.release();
 
@@ -169,10 +172,10 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const transaction = await connection.beginTransaction();
 
     const nested: unknown[] = [];
-    for await (const row of transaction.execute<{ echo: string }>({ sql: 'select outer' })) {
+    for await (const row of transaction.query<{ echo: string }>({ sql: 'select outer' })) {
       expect(row).toEqual({ echo: 'select outer' });
-      const inner = await transaction.query<{ echo: string }>('select inner');
-      nested.push(inner.rows[0]);
+      const inner = await queryRows<{ echo: string }>(transaction, 'select inner');
+      nested.push(inner[0]);
     }
     await transaction.commit();
     await connection.release();
@@ -186,13 +189,13 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const driver = makeDirectDriver(state);
 
     const iterator = driver
-      .execute<{ echo: string }>({ sql: 'select abandoned' })
+      .query<{ echo: string }>({ sql: 'select abandoned' })
       [Symbol.asyncIterator]();
     const first = await iterator.next();
     expect(first.done).toBe(false);
 
-    const after = await driver.query<{ echo: string }>('select after');
-    expect(after.rows).toEqual([{ echo: 'select after' }]);
+    const after = await queryRows<{ echo: string }>(driver, 'select after');
+    expect(after).toEqual([{ echo: 'select after' }]);
   });
 
   it('commits a transaction while a buffered stream on it is still open', async () => {
@@ -202,7 +205,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const transaction = await connection.beginTransaction();
 
     const iterator = transaction
-      .execute<{ echo: string }>({ sql: 'select open-stream' })
+      .query<{ echo: string }>({ sql: 'select open-stream' })
       [Symbol.asyncIterator]();
     const first = await iterator.next();
     expect(first.done).toBe(false);
@@ -226,7 +229,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
       { disabled: true },
     );
 
-    await Promise.all([driver.query('select 1'), driver.query('select 2')]);
+    await Promise.all([queryRows(driver, 'select 1'), queryRows(driver, 'select 2')]);
 
     expect(state.maxInFlight).toBe(2);
   });

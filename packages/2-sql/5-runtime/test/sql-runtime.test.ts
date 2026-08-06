@@ -118,20 +118,16 @@ function createMockDriver(): MockSqlDriver {
     yield { id: 3 };
   });
 
-  const query = vi.fn().mockResolvedValue({ rows: [], rowCount: 0 });
-
   const transaction = {
-    execute: transactionExecute,
-    executePrepared: transactionExecute,
-    query,
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: transactionExecute,
     commit: vi.fn().mockResolvedValue(undefined),
     rollback: vi.fn().mockResolvedValue(undefined),
   };
 
   const connection = {
-    execute: connectionExecute,
-    executePrepared: connectionExecute,
-    query,
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: connectionExecute,
     release: vi.fn().mockResolvedValue(undefined),
     destroy: vi.fn().mockResolvedValue(undefined),
     beginTransaction: vi.fn().mockResolvedValue(transaction),
@@ -140,9 +136,8 @@ function createMockDriver(): MockSqlDriver {
   const driverClose = vi.fn().mockResolvedValue(undefined);
 
   const driver: SqlDriver = {
-    execute: rootExecute,
-    executePrepared: rootExecute,
-    query,
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: rootExecute,
     connect: vi.fn().mockImplementation(async (_binding?: undefined) => undefined),
     acquireConnection: vi.fn().mockResolvedValue(connection),
     close: driverClose,

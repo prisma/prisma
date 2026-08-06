@@ -267,7 +267,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
    */
   // v8 ignore next 6
   protected override runDriver(exec: SqlExecutionPlan): AsyncIterable<Record<string, unknown>> {
-    return this.driver.execute<Record<string, unknown>>({
+    return this.driver.query<Record<string, unknown>>({
       sql: exec.sql,
       params: exec.params,
     });
@@ -469,7 +469,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       yield* self.streamRows<Row>(
         exec,
         decodeContext,
-        () => queryable.execute<Record<string, unknown>>({ sql: exec.sql, params: exec.params }),
+        () => queryable.query<Record<string, unknown>>({ sql: exec.sql, params: exec.params }),
         codecCtx,
         execMiddlewareCtx,
       );
@@ -588,7 +588,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       const request: PreparedExecuteRequest = {
         sql: exec.sql,
         params: exec.params,
-        handle: {
+        preparedStatementHandle: {
           get: () => handles.get(ps),
           set: (value) => {
             handles.set(ps, value);
@@ -599,7 +599,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       yield* self.streamRows<Row>(
         exec,
         ps.decodeContext,
-        () => queryable.executePrepared<Record<string, unknown>>(request),
+        () => queryable.query<Record<string, unknown>>(request),
         codecCtx,
         execMiddlewareCtx,
       );

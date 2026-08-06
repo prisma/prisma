@@ -1,14 +1,15 @@
 import type {
-  PreparedExecuteRequest,
+  PreparedStatementHandle,
   SqlConnection,
   SqlDriver,
   SqlDriverState,
   SqlExecuteRequest,
   SqlExplainResult,
   SqlQueryable,
-  SqlQueryResult,
+  SqlStatementStats,
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
+import { blindCast } from '@internal/utils/casts';
 import type {
   Client,
   ClientBase,
@@ -21,6 +22,7 @@ import type {
 import { Pool } from 'pg';
 import Cursor from 'pg-cursor';
 import { callbackToPromise } from './callback-to-promise';
+import { type DriverRuntimeError, driverError } from './driver-error';
 import { NamedCursor } from './named-cursor';
 import { isAlreadyConnectedError, isPostgresError, normalizePgError } from './normalize-error';
 
@@ -52,7 +54,8 @@ interface PostgresDriverOptions {
   readonly connect: { client: Client } | { pool: PoolType };
   readonly cursor?: PostgresCursorOptions | undefined;
   /**
-   * Use server-side prepared statements for `executePrepared`. Default
+   * Use server-side prepared statements for `query()` requests with a
+   * prepared-statement handle. Default
    * `true`. Set `false` when running behind a transaction-mode pooler that
    * does not support session-scoped prepared statements (e.g. PgBouncer
    * transaction mode).
@@ -102,10 +105,10 @@ function buildConnectionOptions(options: PostgresDriverOptions): ConnectionOptio
 }
 
 function isStalePreparedStatementError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
+  if (!(error instanceof Error) || !('code' in error) || typeof error.code !== 'string') {
     return false;
   }
-  const code = (error as { code?: string }).code;
+  const code = error.code;
   // 26000 — invalid_sql_statement_name (server lost the named statement,
   //         e.g. after DEALLOCATE ALL).
   // 0A000 — cached plan invalidated by DDL (row shape changed).
@@ -159,61 +162,121 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     this.options = options;
   }
 
-  async *execute<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
+  async *query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
     try {
-      yield* this.runQuery<Row>(request);
+      const preparedStatementHandle = request.preparedStatementHandle;
+      if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
+        yield* this.runQuery<Row>(request);
+        return;
+      }
+      const name = this.preparedStatementName(preparedStatementHandle);
+      yield* this.withStaleHandleStreamRetry<Row>(preparedStatementHandle, name, (name) =>
+        this.runQuery<Row>(request, name),
+      );
     } catch (error) {
       throw normalizePgError(error);
     }
   }
 
-  async *executePrepared<Row = Record<string, unknown>>(
-    request: PreparedExecuteRequest,
-  ): AsyncIterable<Row> {
-    if (!this.options.preparedStatementsEnabled) {
-      // Skip server-side prepare entirely; route as a regular ad-hoc execute.
-      yield* this.execute<Row>(request);
-      return;
+  async execute(request: SqlExecuteRequest): Promise<SqlStatementStats> {
+    try {
+      const preparedStatementHandle = request.preparedStatementHandle;
+      if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
+        return await this.runExecute(request);
+      }
+      const name = this.preparedStatementName(preparedStatementHandle);
+      return await this.withStaleHandleRetry(preparedStatementHandle, name, (name) =>
+        this.runExecute(request, name),
+      );
+    } catch (error) {
+      throw normalizePgError(error);
     }
-
-    let handle = request.handle.get();
-    if (handle === undefined) {
-      handle = this.options.handleAllocator.mint();
-      request.handle.set(handle);
-    }
-
-    yield* this.withStaleHandleRetry<Row>(request, handle as string, (h) =>
-      this.runQuery<Row>(request, h),
-    );
   }
 
-  private async *withStaleHandleRetry<Row>(
-    request: PreparedExecuteRequest,
-    handle: string,
-    attempt: (handle: string) => AsyncIterable<Row>,
-  ): AsyncIterable<Row> {
-    let yielded = false;
+  private preparedStatementName(handle: PreparedStatementHandle): string {
+    const existingName = handle.get();
+    if (typeof existingName === 'string') {
+      return existingName;
+    }
+    const mintedName = this.options.handleAllocator.mint();
+    handle.set(mintedName);
+    return mintedName;
+  }
+
+  private async withStaleHandleRetry<Result>(
+    preparedStatementHandle: PreparedStatementHandle,
+    name: string,
+    attempt: (name: string) => Promise<Result>,
+  ): Promise<Result> {
     try {
-      for await (const row of attempt(handle)) {
-        yielded = true;
-        yield row;
-      }
-      return;
+      return await attempt(name);
     } catch (error) {
-      // If a row was already yielded, the error came from mid-stream and a
-      // retry would re-yield prior rows to the consumer.
-      if (yielded || !isStalePreparedStatementError(error)) {
-        throw normalizePgError(error);
+      if (!isStalePreparedStatementError(error)) {
+        throw error;
       }
       // pg's parsedStatements still records the old name; only a fresh name
       // forces pg to re-Parse on this Client.
-      const retryHandle = this.options.handleAllocator.mint();
-      request.handle.set(retryHandle);
+      const retryName = this.options.handleAllocator.mint();
+      preparedStatementHandle.set(retryName);
       try {
-        yield* attempt(retryHandle);
+        return await attempt(retryName);
       } catch (retryError) {
-        throw normalizePgError(retryError);
+        throw prepareFailedError(retryError, retryName);
       }
+    }
+  }
+
+  private async *withStaleHandleStreamRetry<Row>(
+    preparedStatementHandle: PreparedStatementHandle,
+    name: string,
+    attempt: (name: string) => AsyncIterable<Row>,
+  ): AsyncIterable<Row> {
+    const stream = await this.withStaleHandleRetry(preparedStatementHandle, name, async (name) => {
+      const iterator = attempt(name)[Symbol.asyncIterator]();
+      return { iterator, first: await iterator.next() };
+    });
+
+    if (stream.first.done) {
+      return;
+    }
+
+    let streamCompleted = false;
+    try {
+      yield stream.first.value;
+      while (true) {
+        const next = await stream.iterator.next();
+        if (next.done) {
+          streamCompleted = true;
+          return;
+        }
+        yield next.value;
+      }
+    } finally {
+      if (!streamCompleted) {
+        await stream.iterator.return?.();
+      }
+    }
+  }
+
+  private async runExecute(request: SqlExecuteRequest, name?: string): Promise<SqlStatementStats> {
+    const client = await this.acquireClient();
+    try {
+      const releaseLock = await acquireClientQueryLock(client);
+      try {
+        const result = await client.query({
+          name,
+          text: request.sql,
+          values: blindCast<
+            unknown[],
+            'pg query types require a mutable array but pg does not mutate execution params'
+          >(request.params ?? []),
+        });
+        return { affectedRows: result.rowCount ?? 0 };
+      } finally {
+        releaseLock();
+      }
+    } finally {
+      await this.releaseClient(client);
     }
   }
 
@@ -244,7 +307,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
             this.options.cursorBatchSize,
             name,
           )) {
-            yield row as Row;
+            yield blindCast<Row, 'postgres cursor rows are dynamically shaped'>(row);
           }
           return;
         } catch (cursorError) {
@@ -259,7 +322,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       }
 
       for await (const row of this.executeBuffered(client, request.sql, request.params, name)) {
-        yield row as Row;
+        yield blindCast<Row, 'postgres query rows are dynamically shaped'>(row);
       }
     } finally {
       await this.releaseClient(client);
@@ -275,29 +338,13 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       const releaseLock = await acquireClientQueryLock(client);
       try {
         const result = await client
-          .query(text, request.params as unknown[] | undefined)
+          .query(text, request.params === undefined ? undefined : [...request.params])
           .catch(rethrowNormalizedError);
-        return { rows: result.rows as ReadonlyArray<Record<string, unknown>> };
-      } finally {
-        releaseLock();
-      }
-    } finally {
-      await this.releaseClient(client);
-    }
-  }
-
-  async query<Row = Record<string, unknown>>(
-    sql: string,
-    params?: readonly unknown[],
-  ): Promise<SqlQueryResult<Row>> {
-    const client = await this.acquireClient();
-    try {
-      const releaseLock = await acquireClientQueryLock(client);
-      try {
-        const result = await client
-          .query(sql, params as unknown[] | undefined)
-          .catch(rethrowNormalizedError);
-        return result as unknown as SqlQueryResult<Row>;
+        return {
+          rows: blindCast<ReadonlyArray<Record<string, unknown>>, 'pg does not type query rows'>(
+            result.rows,
+          ),
+        };
       } finally {
         releaseLock();
       }
@@ -369,7 +416,10 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     cursorBatchSize: number,
     name?: string,
   ): AsyncIterable<Record<string, unknown>> {
-    const values = (params ?? []) as unknown[];
+    const values = blindCast<
+      unknown[],
+      'pg cursor types require a mutable array but pg does not mutate execution params'
+    >(params ?? []);
     const cursor = client.query(
       name === undefined ? new Cursor(sql, values) : new NamedCursor({ name, text: sql, values }),
     );
@@ -399,7 +449,14 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     params: readonly unknown[] | undefined,
     name?: string,
   ): AsyncIterable<Record<string, unknown>> {
-    const config: QueryConfig = { name, text: sql, values: (params ?? []) as unknown[] };
+    const config: QueryConfig = {
+      name,
+      text: sql,
+      values: blindCast<
+        unknown[],
+        'pg query types require a mutable array but pg does not mutate execution params'
+      >(params ?? []),
+    };
     const releaseLock = await acquireClientQueryLock(client);
     let result: PgQueryResult;
     try {
@@ -407,7 +464,10 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     } finally {
       releaseLock();
     }
-    for (const row of result.rows as Record<string, unknown>[]) {
+    for (const row of blindCast<
+      ReadonlyArray<Record<string, unknown>>,
+      'pg does not type query rows'
+    >(result.rows)) {
       yield row;
     }
   }
@@ -736,4 +796,19 @@ function closeCursor(cursor: Cursor<unknown>): Promise<void> {
 
 function rethrowNormalizedError(error: unknown): never {
   throw normalizePgError(error);
+}
+
+// ADR 210 § Stale-handle retry: a re-prepare that fails again surfaces a
+// stable code, carrying the driver error as `cause`. ADR 239 governs the
+// namespace — `DRIVER` covers driver transport and error normalization.
+function prepareFailedError(retryError: unknown, handle: string): DriverRuntimeError {
+  const cause = normalizePgError(retryError);
+  return Object.assign(
+    driverError(
+      'DRIVER.PREPARE_FAILED',
+      `Prepared statement failed again after re-preparing with a fresh handle: ${cause.message}`,
+      { handle },
+    ),
+    { cause },
+  );
 }

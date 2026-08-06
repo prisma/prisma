@@ -31,7 +31,6 @@ import {
   ProjectionItem,
   SelectAst,
   type SqlQueryable,
-  type SqlQueryResult,
   SubqueryExpr,
   TableSource,
   UpdateAst,
@@ -511,15 +510,10 @@ describe('Postgres adapter', () => {
   it('readMarker returns no-table when the information_schema probe yields no rows', async () => {
     const calls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
     const queryable: SqlQueryable = {
-      execute() {
-        throw new Error('not used in this test');
-      },
-      executePrepared() {
-        throw new Error('not used in this test');
-      },
-      async query<Row>(sql: string, params?: readonly unknown[]): Promise<SqlQueryResult<Row>> {
-        calls.push({ sql, params });
-        return { rows: [], rowCount: 0 } as SqlQueryResult<Row>;
+      execute: async () => ({ affectedRows: 0 }),
+      async *query<Row>(request: { sql: string; params?: readonly unknown[] }): AsyncIterable<Row> {
+        calls.push({ sql: request.sql, params: request.params });
+        yield* [];
       },
     };
 
@@ -534,17 +528,13 @@ describe('Postgres adapter', () => {
   it('readMarker returns absent when the table exists but holds no row for this space', async () => {
     let call = 0;
     const queryable: SqlQueryable = {
-      execute() {
-        throw new Error('not used in this test');
-      },
-      executePrepared() {
-        throw new Error('not used in this test');
-      },
-      async query<Row>(): Promise<SqlQueryResult<Row>> {
+      execute: async () => ({ affectedRows: 0 }),
+      async *query<Row>() {
         call += 1;
-        const result = call === 1 ? { rows: [{ '1': 1 }], rowCount: 1 } : { rows: [], rowCount: 0 };
-        // Cast through `unknown`: the mock returns concrete row shapes, but the generic `Row` parameter on `SqlQueryable.query` is the caller's choice. The two cannot be unified structurally; the caller (adapter `readMarker`) consumes the result with its own row decoders.
-        return result as unknown as SqlQueryResult<Row>;
+        const rows = call === 1 ? [{ '1': 1 }] : [];
+        for (const row of rows) {
+          yield row as Row;
+        }
       },
     };
 
@@ -680,18 +670,13 @@ describe('Postgres adapter', () => {
     };
     let call = 0;
     const queryable: SqlQueryable = {
-      execute() {
-        throw new Error('not used in this test');
-      },
-      executePrepared() {
-        throw new Error('not used in this test');
-      },
-      async query<Row>(): Promise<SqlQueryResult<Row>> {
+      execute: async () => ({ affectedRows: 0 }),
+      async *query<Row>() {
         call += 1;
-        const result =
-          call === 1 ? { rows: [{ '1': 1 }], rowCount: 1 } : { rows: [markerRow], rowCount: 1 };
-        // Cast through `unknown`: see note in the sibling readMarker test.
-        return result as unknown as SqlQueryResult<Row>;
+        const rows = call === 1 ? [{ '1': 1 }] : [markerRow];
+        for (const row of rows) {
+          yield row as Row;
+        }
       },
     };
 

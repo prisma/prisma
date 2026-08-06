@@ -90,36 +90,27 @@ function createStubAdapter() {
 
 function createMockDriver(): SqlDriver {
   const transaction = {
-    execute: vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
       yield { id: 3 } as Record<string, unknown>;
     }),
-    executePrepared: vi.fn().mockImplementation(async function* () {
-      yield { id: 3 } as Record<string, unknown>;
-    }),
-    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
     commit: vi.fn().mockResolvedValue(undefined),
     rollback: vi.fn().mockResolvedValue(undefined),
   };
   const connection = {
-    execute: vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
       yield { id: 2 } as Record<string, unknown>;
     }),
-    executePrepared: vi.fn().mockImplementation(async function* () {
-      yield { id: 2 } as Record<string, unknown>;
-    }),
-    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
     release: vi.fn().mockResolvedValue(undefined),
     destroy: vi.fn().mockResolvedValue(undefined),
     beginTransaction: vi.fn().mockResolvedValue(transaction),
   };
   return {
-    execute: vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
+    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    query: vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
       yield { id: 1 } as Record<string, unknown>;
     }),
-    executePrepared: vi.fn().mockImplementation(async function* () {
-      yield { id: 1 } as Record<string, unknown>;
-    }),
-    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
     connect: vi.fn().mockImplementation(async (_binding?: undefined) => undefined),
     acquireConnection: vi.fn().mockResolvedValue(connection),
     close: vi.fn().mockResolvedValue(undefined),
