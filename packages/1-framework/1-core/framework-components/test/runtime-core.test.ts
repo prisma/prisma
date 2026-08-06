@@ -26,6 +26,7 @@ interface RecorderEntry {
     | 'runBeforeCompile'
     | 'lower'
     | 'runDriver'
+    | 'runExecute'
     | 'beforeExecute'
     | 'onRow'
     | 'afterExecute';
@@ -67,6 +68,11 @@ class MockRuntime extends RuntimeCore<MockPlan, MockExec, RuntimeMiddleware<Mock
     return iter;
   }
 
+  protected async runExecute(_exec: MockExec): Promise<{ affectedRows: number }> {
+    this.events.push({ stage: 'runExecute' });
+    return { affectedRows: 3 };
+  }
+
   async close(): Promise<void> {
     this.closeCalls++;
   }
@@ -94,6 +100,7 @@ const ctx: RuntimeMiddlewareContext = {
   log: { info: () => {}, warn: () => {}, error: () => {} },
   contentHash: async () => 'mock-hash',
   scope: 'runtime',
+  operation: 'query',
   planExecutionId: 'test-fixture-plan-execution-id',
 };
 
@@ -103,7 +110,7 @@ describe('RuntimeCore', () => {
     const runtime = new MockRuntime([recorder('A', log)], ctx, [{ id: 1 }]);
 
     const plan: MockPlan = { draftId: 'd-1', meta };
-    const out = await runtime.execute(plan).toArray();
+    const out = await runtime.query(plan).toArray();
 
     expect(out).toEqual([{ id: 1 }]);
     expect([...runtime.events, ...log]).toEqual([
@@ -125,7 +132,7 @@ describe('RuntimeCore', () => {
     );
 
     const plan: MockPlan = { draftId: 'd-2', meta };
-    await runtime.execute(plan).toArray();
+    await runtime.query(plan).toArray();
 
     const middlewareOrder = log.map((e) => `${e.stage}:${e.label ?? ''}`);
     expect(middlewareOrder).toEqual([
@@ -159,13 +166,16 @@ describe('RuntimeCore', () => {
           async *[Symbol.asyncIterator](): AsyncIterator<Record<string, unknown>> {},
         };
       }
+      protected async runExecute(): Promise<{ affectedRows: number }> {
+        return { affectedRows: 0 };
+      }
       async close(): Promise<void> {}
     }
 
     const runtime = new IdentityRuntime({ middleware: [], ctx });
     const plan: MockPlan = { draftId: 'd-3', meta };
 
-    await runtime.execute(plan).toArray();
+    await runtime.query(plan).toArray();
 
     expect(runtime.observed).toBe(plan);
   });
@@ -186,6 +196,9 @@ describe('RuntimeCore', () => {
           },
         };
       }
+      protected async runExecute(): Promise<{ affectedRows: number }> {
+        return { affectedRows: 0 };
+      }
       async close(): Promise<void> {}
     }
 
@@ -198,12 +211,52 @@ describe('RuntimeCore', () => {
 
     const runtime = new ForwardingRuntime({ middleware: [observer], ctx });
     const plan: MockPlan = { draftId: 'd-4', meta };
-    await runtime.execute(plan).toArray();
+    await runtime.query(plan).toArray();
 
     expect(seenByMiddleware).toHaveLength(1);
     expect(seenByMiddleware[0]).toMatchObject({ compiledId: 'compiled:d-4' });
     expect(seenByDriver).toHaveLength(1);
     expect(seenByDriver[0]).toBe(seenByMiddleware[0]);
+  });
+
+  it('executes statistics through the same lifecycle without deriving them from rows', async () => {
+    const log: Array<{ stage: string; result?: unknown; operation?: string }> = [];
+    const middleware: RuntimeMiddleware<MockExec> = {
+      name: 'observer',
+      async beforeExecute(_plan, hookCtx) {
+        log.push({ stage: 'beforeExecute', operation: hookCtx.operation });
+      },
+      async onRow() {
+        log.push({ stage: 'onRow' });
+      },
+      async afterExecute(_plan, result, hookCtx) {
+        log.push({ stage: 'afterExecute', result, operation: hookCtx.operation });
+      },
+    };
+    const runtime = new MockRuntime([middleware], ctx, [{ id: 'not-a-statistic' }]);
+
+    await expect(runtime.execute({ draftId: 'stats', meta })).resolves.toEqual({
+      affectedRows: 3,
+    });
+
+    expect(runtime.events).toEqual([
+      { stage: 'runBeforeCompile' },
+      { stage: 'lower' },
+      { stage: 'runExecute' },
+    ]);
+    expect(log).toEqual([
+      { stage: 'beforeExecute', operation: 'execute' },
+      {
+        stage: 'afterExecute',
+        operation: 'execute',
+        result: expect.objectContaining({
+          operation: 'execute',
+          completed: true,
+          source: 'driver',
+          stats: { affectedRows: 3 },
+        }),
+      },
+    ]);
   });
 
   it('subclasses can implement close() and it is invoked', async () => {
@@ -231,12 +284,12 @@ describe('RuntimeCore', () => {
       };
     }
 
-    it('assigns the same planExecutionId to beforeExecute and afterExecute within one execute call', async () => {
+    it('assigns the same planExecutionId to beforeExecute and afterExecute within one query call', async () => {
       const log: Observation[] = [];
       const runtime = new MockRuntime([observer(log)], ctx, [{ id: 1 }]);
       const plan: MockPlan = { draftId: 'one-execute', meta };
 
-      await runtime.execute(plan).toArray();
+      await runtime.query(plan).toArray();
 
       expect(log).toHaveLength(2);
       expect(log[0]?.hook).toBe('beforeExecute');
@@ -245,24 +298,22 @@ describe('RuntimeCore', () => {
       expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
     });
 
-    it('assigns distinct planExecutionIds to two executions of the same plan instance', async () => {
+    it('assigns distinct planExecutionIds to query and execute calls of the same plan instance', async () => {
       const log: Observation[] = [];
       const runtime = new MockRuntime([observer(log)], ctx, [{ id: 1 }]);
       const plan: MockPlan = { draftId: 'shared-plan', meta };
 
-      await runtime.execute(plan).toArray();
-      await runtime.execute(plan).toArray();
+      await runtime.query(plan).toArray();
+      await runtime.execute(plan);
 
       expect(log).toHaveLength(4);
-      const firstExecId = log[0]?.planExecutionId;
-      const secondExecId = log[2]?.planExecutionId;
-      expect(firstExecId).toBeTypeOf('string');
-      expect(secondExecId).toBeTypeOf('string');
-      // Within each execute call, beforeExecute and afterExecute see the same ID.
+      const queryId = log[0]?.planExecutionId;
+      const executeId = log[2]?.planExecutionId;
+      expect(queryId).toBeTypeOf('string');
+      expect(executeId).toBeTypeOf('string');
       expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
       expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
-      // Across execute calls, the IDs differ.
-      expect(firstExecId).not.toBe(secondExecId);
+      expect(queryId).not.toBe(executeId);
     });
   });
 });

@@ -3,12 +3,13 @@ import { AsyncIterableResult } from './async-iterable-result';
 import { runBeforeExecuteChain } from './before-execute-chain';
 import type { ExecutionPlan, QueryPlan } from './query-plan';
 import { checkAborted } from './race-against-abort';
-import { runWithMiddleware } from './run-with-middleware';
+import { runExecuteWithMiddleware, runWithMiddleware } from './run-with-middleware';
 import type {
   RuntimeExecuteOptions,
   RuntimeExecutor,
   RuntimeMiddleware,
   RuntimeMiddlewareContext,
+  RuntimeStatementStats,
 } from './runtime-middleware';
 
 /**
@@ -26,7 +27,7 @@ export interface RuntimeCoreOptions<TMiddleware extends RuntimeMiddleware<Execut
 /**
  * Family-agnostic abstract runtime base.
  *
- * Defines the entire `execute(plan)` template in one place:
+ * Defines the shared query/statistics preparation lifecycle in one place:
  *
  * 1. `runBeforeCompile(plan)` — concrete; defaults to identity. SQL overrides
  *    this to run its `beforeCompile` middleware-hook chain.
@@ -36,7 +37,7 @@ export interface RuntimeCoreOptions<TMiddleware extends RuntimeMiddleware<Execut
  *    runs every middleware's `beforeExecute` hook after lowering but
  *    before the row source is opened. Family runtimes that need a
  *    params mutator visible to a downstream encode step (SQL) override
- *    `execute` and call this helper themselves at the equivalent
+ *    the operation methods and call this helper themselves at the equivalent
  *    pre-encode point.
  * 4. `runWithMiddleware(exec, this.middleware, this.ctx,
  *    () => runDriver(exec))` — concrete; runs the intercept chain,
@@ -87,7 +88,7 @@ export abstract class RuntimeCore<
    * `CodecCallContext`); concrete subclasses forward it to the
    * encode-side codec dispatch site (e.g. SQL's `encodeParams` in m2,
    * Mongo's `resolveValue` in m3). The runtime allocates one ctx per
-   * `execute()` call and threads the same reference everywhere; the
+   * operation call and threads the same reference everywhere; the
    * `signal` field inside may be `undefined`, but the ctx object itself
    * is always present.
    */
@@ -97,53 +98,36 @@ export abstract class RuntimeCore<
    * Drive the underlying transport for a lowered `TExec`. Yields raw rows
    * directly from the driver as `Record<string, unknown>`; codec decoding
    * (if any) is the subclass's responsibility, applied by wrapping
-   * `execute()` rather than living inside this hook.
+   * `query()` rather than living inside this hook.
    *
-   * The `Row` type parameter on `execute()` is satisfied by the caller via
+   * The `Row` type parameter on `query()` is satisfied by the caller via
    * the plan's phantom `_row`; the runtime treats rows as opaque records
    * here and trusts the caller's row typing.
    */
   protected abstract runDriver(exec: TExec): AsyncIterable<Record<string, unknown>>;
 
+  protected abstract runExecute(exec: TExec): Promise<RuntimeStatementStats>;
+
   abstract close(): Promise<void>;
 
-  execute<Row>(
+  query<Row>(
     plan: TPlan & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
     const self = this;
     const signal = options?.signal;
-    // One ctx per execute() call. The ctx object is always allocated; the
-    // `signal` field is only included when a signal was supplied (required
-    // under exactOptionalPropertyTypes — `{ signal: undefined }` would not
-    // satisfy `signal?: AbortSignal`).
     const codecCtx: CodecCallContext = signal === undefined ? {} : { signal };
-
-    // Per-execute middleware context. Spread the stored runtime-level
-    // template and mint a fresh `planExecutionId` so every hook in this
-    // call observes the same value, and two executions of the same plan
-    // observe distinct values. ADR 220. The same reference is threaded
-    // through `runBeforeExecuteChain` and `runWithMiddleware`; the plan
-    // itself flows through unchanged.
     const execCtx: RuntimeMiddlewareContext = {
       ...self.ctx,
+      operation: 'query',
       planExecutionId: crypto.randomUUID(),
     };
 
     async function* generator(): AsyncGenerator<Row, void, unknown> {
-      // Pre-check the signal at entry so an already-aborted caller observes
-      // RUNTIME.ABORTED on the first `next()` without any work being done.
       checkAborted(codecCtx, 'stream');
-
       const compiled = await self.runBeforeCompile(plan);
       const exec = await self.lower(compiled, codecCtx);
-      // Fire the framework-level `beforeExecute` chain on the lowered
-      // plan before opening the row source. Families that need
-      // pre-encode mutator visibility (SQL) override `execute` to
-      // inject the same chain at the equivalent point.
       await runBeforeExecuteChain<TExec>(exec, self.middleware, execCtx);
-      // The driver yields raw `Record<string, unknown>`; we cast to `Row` here.
-      // The Row contract is enforced by the caller via `plan._row`.
       yield* runWithMiddleware<TExec, Row>(
         exec,
         self.middleware,
@@ -153,5 +137,21 @@ export abstract class RuntimeCore<
     }
 
     return new AsyncIterableResult(generator());
+  }
+
+  async execute(plan: TPlan, options?: RuntimeExecuteOptions): Promise<RuntimeStatementStats> {
+    const signal = options?.signal;
+    const codecCtx: CodecCallContext = signal === undefined ? {} : { signal };
+    const execCtx: RuntimeMiddlewareContext = {
+      ...this.ctx,
+      operation: 'execute',
+      planExecutionId: crypto.randomUUID(),
+    };
+
+    checkAborted(codecCtx, 'stream');
+    const compiled = await this.runBeforeCompile(plan);
+    const exec = await this.lower(compiled, codecCtx);
+    await runBeforeExecuteChain<TExec>(exec, this.middleware, execCtx);
+    return runExecuteWithMiddleware(exec, this.middleware, execCtx, () => this.runExecute(exec));
   }
 }
