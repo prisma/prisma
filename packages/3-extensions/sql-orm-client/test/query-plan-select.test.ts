@@ -79,6 +79,24 @@ function expectDerivedTableSource(source: unknown): asserts source is DerivedTab
 }
 
 describe('compileSelectWithIncludes', () => {
+  it('binds unbound state filters at the select-plan boundary', () => {
+    const state: CollectionState = {
+      ...emptyState(),
+      filters: [BinaryExpr.eq(ColumnRef.of('users', 'email'), LiteralExpr.of('alice@example.com'))],
+    };
+
+    const plan = compileSelect(baseContract, 'public', 'users', state);
+
+    expectSelectAst(plan.ast);
+    expect(plan.ast.where).toEqual(
+      BinaryExpr.eq(
+        ColumnRef.of('users', 'email'),
+        ParamRef.of('alice@example.com', { codec: { codecId: 'pg/text@1' } }),
+      ),
+    );
+    expect(plan.params).toEqual(['alice@example.com']);
+  });
+
   it('collects params in AST traversal order (includes before top-level)', () => {
     const { collection } = createCollection();
     const state = collection

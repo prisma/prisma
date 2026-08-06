@@ -341,12 +341,15 @@ function buildStateWhere(
   const filterTableName = options?.filterTableName;
   const cursorTableName = filterTableName ?? tableName;
   const cursorWhere = buildCursorWhere(cursorTableName, state.orderBy, state.cursor);
+  const boundFilters = state.filters.map((filter) =>
+    bindWhereExpr(contract, filter, options?.namespaceId),
+  );
   const remappedFilters =
     filterTableName && filterTableName !== tableName
-      ? state.filters.map((filter) =>
+      ? boundFilters.map((filter) =>
           filter.rewrite(createTableRefRemapper(filterTableName, tableName)),
         )
-      : state.filters;
+      : boundFilters;
   const boundCursorWhere = cursorWhere
     ? bindWhereExpr(contract, cursorWhere, options?.namespaceId)
     : undefined;
