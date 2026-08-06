@@ -55,6 +55,7 @@ interface RecordingTransaction {
 
 interface RecordingConnection {
   readonly id: symbol;
+  readonly executeCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>;
   readonly queryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>;
   readonly beginTransactionSpy: ReturnType<typeof vi.fn>;
   execute: ReturnType<typeof vi.fn>;
@@ -81,6 +82,7 @@ function createRecordingDriver(
   const txId = Symbol('transaction');
   const connId = Symbol('connection');
   const txQueryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
+  const connExecuteCalls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
   const connQueryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
 
   const transaction: RecordingTransaction = {
@@ -100,6 +102,9 @@ function createRecordingDriver(
   const beginTransactionSpy = vi.fn().mockResolvedValue(transaction);
   const connection: RecordingConnection = {
     id: connId,
+    get executeCalls() {
+      return connExecuteCalls;
+    },
     get queryCalls() {
       return connQueryCalls;
     },
@@ -107,7 +112,10 @@ function createRecordingDriver(
     get transaction() {
       return transaction;
     },
-    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    execute: vi.fn().mockImplementation(async (request: SqlExecuteRequest) => {
+      connExecuteCalls.push({ sql: request.sql, params: request.params });
+      return { affectedRows: 0 };
+    }),
     query: vi.fn().mockImplementation(async function* (request: SqlExecuteRequest) {
       connQueryCalls.push({ sql: request.sql, params: request.params });
       for (const row of executeRows) yield row;
@@ -258,7 +266,7 @@ describe('SupabaseRuntimeImpl', () => {
       await session.execute(stubPlan()).toArray();
       await session.release();
 
-      const setConfigCalls = driver.connection.queryCalls.filter((c) =>
+      const setConfigCalls = driver.connection.executeCalls.filter((c) =>
         c.sql.startsWith('SELECT set_config'),
       );
       expect(setConfigCalls).toEqual([
@@ -272,29 +280,29 @@ describe('SupabaseRuntimeImpl', () => {
 
     it('set_config and the typed execute land on the same connection', async () => {
       const { runtime, driver } = createTestSetup();
+      const sessionControlOnConn: symbol[] = [];
       const queriedOnConn: symbol[] = [];
-      const executedOnConn: symbol[] = [];
 
+      driver.connection.execute = vi.fn().mockImplementation(async (request: SqlExecuteRequest) => {
+        sessionControlOnConn.push(driver.connection.id);
+        driver.connection.executeCalls.push({ sql: request.sql, params: request.params });
+        return { affectedRows: 0 };
+      });
       driver.connection.query = vi.fn().mockImplementation(async function* (
         request: SqlExecuteRequest,
       ) {
-        if (request.sql.startsWith('SELECT set_config')) {
-          queriedOnConn.push(driver.connection.id);
-        }
+        queriedOnConn.push(driver.connection.id);
         driver.connection.queryCalls.push({ sql: request.sql, params: request.params });
-        if (request.sql !== 'RESET ALL' && !request.sql.startsWith('SELECT set_config')) {
-          executedOnConn.push(driver.connection.id);
-          yield { id: 1 };
-        }
+        yield { id: 1 };
       });
 
       const session = await runtime.openRoleSession({ role: 'anon' });
       await session.execute(stubPlan()).toArray();
       await session.release();
 
-      expect(queriedOnConn).toHaveLength(2);
-      expect(executedOnConn).toHaveLength(1);
-      expect(queriedOnConn[0]).toBe(executedOnConn[0]);
+      expect(sessionControlOnConn).toHaveLength(3);
+      expect(queriedOnConn).toHaveLength(1);
+      expect(sessionControlOnConn[0]).toBe(queriedOnConn[0]);
     });
 
     it('claims default to {} when not provided', async () => {
@@ -304,7 +312,7 @@ describe('SupabaseRuntimeImpl', () => {
       await session.execute(stubPlan()).toArray();
       await session.release();
 
-      const claimsCall = driver.connection.queryCalls.find(
+      const claimsCall = driver.connection.executeCalls.find(
         (c) => (c.params as string[])?.[0] === 'request.jwt.claims',
       );
       expect(claimsCall?.params).toEqual(['request.jwt.claims', '{}']);
@@ -317,7 +325,7 @@ describe('SupabaseRuntimeImpl', () => {
       await session.execute(stubPlan()).toArray();
       await session.release();
 
-      const claimsCall = driver.connection.queryCalls.find(
+      const claimsCall = driver.connection.executeCalls.find(
         (c) => (c.params as string[])?.[0] === 'request.jwt.claims',
       );
       expect(claimsCall?.params).toEqual(['request.jwt.claims', '{}']);
@@ -377,14 +385,12 @@ describe('SupabaseRuntimeImpl', () => {
       const { runtime, driver } = createTestSetup();
       const resetCalls: string[] = [];
 
-      driver.connection.query = vi.fn().mockImplementation(async function* (
-        request: SqlExecuteRequest,
-      ) {
-        driver.connection.queryCalls.push({ sql: request.sql, params: request.params });
+      driver.connection.execute = vi.fn().mockImplementation(async (request: SqlExecuteRequest) => {
+        driver.connection.executeCalls.push({ sql: request.sql, params: request.params });
         if (request.sql === 'RESET ALL') {
           resetCalls.push(request.sql);
         }
-        yield* [];
+        return { affectedRows: 0 };
       });
 
       const session = await runtime.openRoleSession({ role: 'anon' });
@@ -399,14 +405,12 @@ describe('SupabaseRuntimeImpl', () => {
       const { runtime, driver } = createTestSetup();
       const resetError = new Error('RESET ALL failed');
 
-      driver.connection.query = vi.fn().mockImplementation(async function* (
-        request: SqlExecuteRequest,
-      ) {
-        driver.connection.queryCalls.push({ sql: request.sql, params: request.params });
+      driver.connection.execute = vi.fn().mockImplementation(async (request: SqlExecuteRequest) => {
+        driver.connection.executeCalls.push({ sql: request.sql, params: request.params });
         if (request.sql === 'RESET ALL') {
           throw resetError;
         }
-        yield* [];
+        return { affectedRows: 0 };
       });
 
       const session = await runtime.openRoleSession({ role: 'anon' });
@@ -423,12 +427,12 @@ describe('SupabaseRuntimeImpl', () => {
       const bindError = new Error('set_config denied');
       let callCount = 0;
 
-      driver.connection.query = vi.fn().mockImplementation(async function* () {
+      driver.connection.execute = vi.fn().mockImplementation(async () => {
         callCount++;
         if (callCount === 1) {
           throw bindError;
         }
-        yield* [];
+        return { affectedRows: 0 };
       });
 
       await expect(runtime.openRoleSession({ role: 'anon' })).rejects.toBe(bindError);
@@ -444,7 +448,7 @@ describe('SupabaseRuntimeImpl', () => {
       await runtime.executeWithRole(stubPlan(), { role: 'anon' }).toArray();
 
       // RESET ALL sent, then release called
-      const resetCall = driver.connection.queryCalls.find((c) => c.sql === 'RESET ALL');
+      const resetCall = driver.connection.executeCalls.find((c) => c.sql === 'RESET ALL');
       expect(resetCall).toBeDefined();
       expect(driver.connection.release).toHaveBeenCalledOnce();
       expect(driver.connection.destroy).not.toHaveBeenCalled();
