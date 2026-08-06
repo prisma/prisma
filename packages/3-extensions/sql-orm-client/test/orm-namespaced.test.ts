@@ -55,11 +55,19 @@ type TwoNamespaceOrm = {
   auth: { User: Accessor; Session: Accessor };
 };
 
+// The derived aggregate surface enumerates the registry at collection
+// construction and ORM composition, so the stub context must carry one.
+const noAggregates = {
+  resolve: () => undefined,
+  values: function* () {},
+};
+
 function db() {
   return orm({
     runtime: createMockRuntime(),
     context: {
       contract: twoNamespaceContract,
+      aggregateDescriptors: noAggregates,
     } as unknown as ExecutionContext<TestContract>,
   }) as unknown as TwoNamespaceOrm;
 }
