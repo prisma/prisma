@@ -62,6 +62,7 @@ function makeStubContext(): ExecutionContext<Contract> {
       },
     },
     queryOperations: { entries: () => ({}) },
+    aggregateDescriptors: noAggregates,
     applyMutationDefaults: () => [],
   } as unknown as ExecutionContext<Contract>;
 }
