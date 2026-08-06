@@ -72,6 +72,7 @@ function setup(): { db: TwoNamespaceOrm; runtime: MockRuntime } {
         contract: twoNamespaceContract,
         applyMutationDefaults: () => [],
         codecDescriptors: { descriptorFor: () => ({ traits: ['equality'] }) },
+        aggregateDescriptors: { resolve: () => undefined, values: function* () {} },
       }),
     }),
   );

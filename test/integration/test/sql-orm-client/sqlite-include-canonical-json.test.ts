@@ -12,7 +12,7 @@ import sqliteAdapter from '@internal/adapter-sqlite/runtime';
 import { soleDomainNamespaceId } from '@internal/contract/types';
 import sqliteDriver from '@internal/driver-sqlite/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import { Collection } from '@internal/sql-orm-client';
+import { type AggregateSpec, Collection } from '@internal/sql-orm-client';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import { defineContract, field, model, rel } from '@internal/sqlite/contract-builder';
 import { SqliteRuntimeImpl } from '@internal/sqlite/runtime';
@@ -245,10 +245,13 @@ describe('integration/sqlite include canonical JSON', () => {
   // integer a JS number cannot hold. The target's descriptor answers with the
   // cast that makes the wire form text, which is what the bigint codec reads.
   it('carries a top-level sum past 2^53 through the ORM', async () => {
-    const counterField = 'counter' as never;
-    const stats = await readings!.aggregate((aggregate) => ({
-      total: aggregate.sum(counterField),
-    }));
+    // The contract is authored in this file, so its static aggregate map is
+    // unknown and the typed builder surface is empty; dispatch dynamically,
+    // as the include reducer above already does.
+    const stats = await readings!.aggregate((aggregate) => {
+      const dynamic = aggregate as Record<string, (field?: string) => AggregateSpec[string]>;
+      return { total: dynamic['sum']!('counter') };
+    });
 
     expect(stats).toEqual({ total: WIDE_BIGINT });
     expect(BigInt(Number(stats.total))).not.toBe(stats.total);

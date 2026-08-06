@@ -97,7 +97,10 @@ describe('namespace-scoped metadata resolution', () => {
       context: blindCast<
         ExecutionContext<Contract<SqlStorage>>,
         'stub execution context for metadata resolution'
-      >({ contract: twoNamespaceContract }),
+      >({
+        contract: twoNamespaceContract,
+        aggregateDescriptors: { resolve: () => undefined, values: function* () {} },
+      }),
     };
     const publicUsers = new Collection(ctx, 'User', { namespaceId: 'public' });
     const authUsers = new Collection(ctx, 'User', { namespaceId: 'auth' });
