@@ -84,7 +84,7 @@ function createTestRuntime(mockDriver: MockDriver): Runtime {
 }
 
 describe('SqlRuntime AsyncIterableResult integration', () => {
-  it('returns AsyncIterableResult from execute', async () => {
+  it('returns AsyncIterableResult from query', async () => {
     const driver = new MockDriver();
     driver.setRows([
       { id: 1, email: 'test1@example.com' },
