@@ -38,11 +38,16 @@ export class SupabaseRuntimeImpl<
     const conn = await this.acquireRawConnection();
 
     try {
-      await conn.query('SELECT set_config($1, $2, false)', ['role', binding.role]);
-      await conn.query('SELECT set_config($1, $2, false)', [
-        'request.jwt.claims',
-        JSON.stringify(binding.claims ?? {}),
-      ]);
+      for await (const _row of conn.query({
+        sql: 'SELECT set_config($1, $2, false)',
+        params: ['role', binding.role],
+      })) {
+      }
+      for await (const _row of conn.query({
+        sql: 'SELECT set_config($1, $2, false)',
+        params: ['request.jwt.claims', JSON.stringify(binding.claims ?? {})],
+      })) {
+      }
     } catch (err) {
       await conn.destroy(err).catch(() => undefined);
       throw err;
@@ -122,7 +127,8 @@ export class SupabaseRuntimeImpl<
        */
       async release(): Promise<void> {
         try {
-          await conn.query('RESET ALL');
+          for await (const _row of conn.query({ sql: 'RESET ALL' })) {
+          }
           await conn.release();
         } catch (resetError) {
           await conn.destroy(resetError).catch(() => undefined);
