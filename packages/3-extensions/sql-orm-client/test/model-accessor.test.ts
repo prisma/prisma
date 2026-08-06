@@ -231,6 +231,19 @@ describe('createModelAccessor', () => {
     );
   });
 
+  it('allocates distinct aliases for sibling predicates from one accessor', () => {
+    const accessor = createModelAccessor(context, 'public', 'User');
+    const children = accessor['invitedUsers']!.some((invitee) =>
+      invitee['name']!.eq('Bob'),
+    ) as ExistsExpr;
+    const inviter = accessor['invitedBy']!.some((invitedBy) =>
+      invitedBy['name']!.eq('Alice'),
+    ) as ExistsExpr;
+
+    expect(children.subquery.from).toEqual(TableSource.named('users', '__orm_rel_1', 'public'));
+    expect(inviter.subquery.from).toEqual(TableSource.named('users', '__orm_rel_2', 'public'));
+  });
+
   it('correlates repeated self-relation predicates to the immediate parent alias', () => {
     const expr = createModelAccessor(context, 'public', 'User')['invitedUsers']!.some((child) =>
       child['invitedUsers']!.some((grandchild) => grandchild['name']!.eq('Dan')),

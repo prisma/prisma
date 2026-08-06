@@ -66,70 +66,81 @@ interface PredicateTableSource {
   readonly tableRef: string;
 }
 
-interface RelationAliasAllocator {
-  allocate(kind: RelationAliasKind, visibleSources: readonly PredicateTableSource[]): string;
-}
+class RelationAliasAllocator {
+  private nextId = 1;
 
-interface ModelAccessorScope {
-  readonly source: PredicateTableSource;
-  readonly visibleSources: readonly PredicateTableSource[];
-  readonly aliases: RelationAliasAllocator;
-}
-
-function createRelationAliasAllocator(): RelationAliasAllocator {
-  let nextId = 1;
-  return {
-    allocate(kind, visibleSources) {
-      while (true) {
-        const alias = `__orm_${kind}_${nextId}`;
-        nextId += 1;
-        if (!visibleSources.some((source) => source.tableRef === alias)) {
-          return alias;
-        }
+  allocate(kind: RelationAliasKind, visibleSources: readonly PredicateTableSource[]): string {
+    while (true) {
+      const alias = `__orm_${kind}_${this.nextId}`;
+      this.nextId += 1;
+      if (!visibleSources.some((source) => source.tableRef === alias)) {
+        return alias;
       }
-    },
-  };
-}
-
-function rootAccessorScope(namespaceId: string, tableName: string): ModelAccessorScope {
-  const source = { namespaceId, tableName, tableRef: tableName };
-  return {
-    source,
-    visibleSources: [source],
-    aliases: createRelationAliasAllocator(),
-  };
-}
-
-function appendPredicateSource(
-  scope: ModelAccessorScope,
-  namespaceId: string,
-  tableName: string,
-  aliasKind: RelationAliasKind,
-): {
-  readonly source: PredicateTableSource;
-  readonly visibleSources: readonly PredicateTableSource[];
-} {
-  const tableRef = scope.visibleSources.some((source) => source.tableRef === tableName)
-    ? scope.aliases.allocate(aliasKind, scope.visibleSources)
-    : tableName;
-  const source = { namespaceId, tableName, tableRef };
-  return { source, visibleSources: [...scope.visibleSources, source] };
-}
-
-function scopeForExistingSource(
-  scope: ModelAccessorScope,
-  namespaceId: string,
-  tableName: string,
-): ModelAccessorScope {
-  if (scope.source.namespaceId === namespaceId && scope.source.tableName === tableName) {
-    return scope;
+    }
   }
-  const source = { namespaceId, tableName, tableRef: tableName };
-  return {
-    source,
-    visibleSources: [...scope.visibleSources, source],
-    aliases: scope.aliases,
-  };
+}
+
+class ModelAccessorScope {
+  private constructor(
+    private readonly source: PredicateTableSource,
+    private readonly visibleSources: readonly PredicateTableSource[],
+    private readonly aliases: RelationAliasAllocator,
+  ) {
+    Object.freeze(this);
+  }
+
+  static root(namespaceId: string, tableName: string): ModelAccessorScope {
+    const source = { namespaceId, tableName, tableRef: tableName };
+    return new ModelAccessorScope(source, [source], new RelationAliasAllocator());
+  }
+
+  get tableRef(): string {
+    return this.source.tableRef;
+  }
+
+  forRelation(namespaceId: string, tableName: string): ModelAccessorScope {
+    const source = this.allocateSource(namespaceId, tableName, 'rel');
+    return new ModelAccessorScope(source, [...this.visibleSources, source], this.aliases);
+  }
+
+  forManyToManyRelation(
+    childNamespaceId: string,
+    childTableName: string,
+    junctionNamespaceId: string,
+    junctionTableName: string,
+  ): { readonly childScope: ModelAccessorScope; readonly junctionTableRef: string } {
+    const initialChildScope = this.forRelation(childNamespaceId, childTableName);
+    const junctionSource = initialChildScope.allocateSource(
+      junctionNamespaceId,
+      junctionTableName,
+      'junction',
+    );
+    const childScope = new ModelAccessorScope(
+      initialChildScope.source,
+      [...initialChildScope.visibleSources, junctionSource],
+      this.aliases,
+    );
+    return { childScope, junctionTableRef: junctionSource.tableRef };
+  }
+
+  forJoinedSource(namespaceId: string, tableName: string): ModelAccessorScope {
+    if (this.source.namespaceId === namespaceId && this.source.tableName === tableName) {
+      return this;
+    }
+    const source = { namespaceId, tableName, tableRef: tableName };
+    return new ModelAccessorScope(source, [...this.visibleSources, source], this.aliases);
+  }
+
+  private allocateSource(
+    namespaceId: string,
+    tableName: string,
+    aliasKind: RelationAliasKind,
+  ): PredicateTableSource {
+    const tableRef = this.visibleSources.some((source) => source.tableRef === tableName)
+      ? this.aliases.allocate(aliasKind, this.visibleSources)
+      : tableName;
+    return { namespaceId, tableName, tableRef };
+  }
 }
 
 export function createModelAccessor<
@@ -148,7 +159,7 @@ export function createModelAccessor<
     namespaceId,
     modelName,
     variantName,
-    rootAccessorScope(namespaceId, tableName),
+    ModelAccessorScope.root(namespaceId, tableName),
   );
 }
 
@@ -235,7 +246,7 @@ function createModelAccessorInScope<
               context,
               namespaceId,
               variantCoordinates.name,
-              scopeForExistingSource(scope, namespaceId, variantCoordinates.tableName),
+              scope.forJoinedSource(namespaceId, variantCoordinates.tableName),
               variantRelation,
             );
           }
@@ -248,7 +259,7 @@ function createModelAccessorInScope<
 
         const variantField = variantFieldColumns[prop];
         const resolvedTable = variantField?.table ?? tableName;
-        const tableRef = resolvedTable === tableName ? scope.source.tableRef : resolvedTable;
+        const tableRef = resolvedTable === tableName ? scope.tableRef : resolvedTable;
         const columnName = variantField?.column ?? fieldToColumn[prop] ?? prop;
         const column = resolveColumn(contract, namespaceId, resolvedTable, columnName);
         // Unknown fields return `undefined`, matching plain JS object semantics.
@@ -451,23 +462,13 @@ function buildExistsExpr<TContract extends Contract<SqlStorage>>(
     );
   }
 
-  const childSource = appendPredicateSource(
-    parentScope,
-    relation.toNamespace,
-    relatedTableName,
-    'rel',
-  );
-  const childScope: ModelAccessorScope = {
-    source: childSource.source,
-    visibleSources: childSource.visibleSources,
-    aliases: parentScope.aliases,
-  };
+  const childScope = parentScope.forRelation(relation.toNamespace, relatedTableName);
   const joinWhere = buildJoinWhere(
     context.contract,
     parentNamespaceId,
     parentModelName,
-    parentScope.source.tableRef,
-    childScope.source.tableRef,
+    parentScope.tableRef,
+    childScope.tableRef,
     relation,
   );
   const childWhere = toRelationWhereExpr(
@@ -489,14 +490,11 @@ function buildExistsExpr<TContract extends Contract<SqlStorage>>(
       context.contract,
       relation.toNamespace,
       relatedTableName,
-      childScope.source.tableRef,
+      childScope.tableRef,
     ),
   )
     .withProjection([
-      ProjectionItem.of(
-        '_exists',
-        ColumnRef.of(childScope.source.tableRef, selectProjectionColumn),
-      ),
+      ProjectionItem.of('_exists', ColumnRef.of(childScope.tableRef, selectProjectionColumn)),
     ])
     .withWhere(filterPlan.where);
 
@@ -516,30 +514,13 @@ function buildManyToManyExistsExpr<TContract extends Contract<SqlStorage>>(
   },
 ): AnyExpression {
   const { through } = relation;
-  const childSource = appendPredicateSource(
-    parentScope,
+  const { childScope, junctionTableRef } = parentScope.forManyToManyRelation(
     relation.toNamespace,
     relatedTableName,
-    'rel',
-  );
-  const childVisibleScope: ModelAccessorScope = {
-    source: childSource.source,
-    visibleSources: childSource.visibleSources,
-    aliases: parentScope.aliases,
-  };
-  const junctionSource = appendPredicateSource(
-    childVisibleScope,
     through.namespaceId,
     through.table,
-    'junction',
   );
-  const childScope: ModelAccessorScope = {
-    source: childSource.source,
-    visibleSources: junctionSource.visibleSources,
-    aliases: parentScope.aliases,
-  };
-  const relatedTableRef = childScope.source.tableRef;
-  const junctionTableRef = junctionSource.source.tableRef;
+  const relatedTableRef = childScope.tableRef;
 
   const junctionJoinOn = buildPairedColumnExprs(
     junctionTableRef,
@@ -554,7 +535,7 @@ function buildManyToManyExistsExpr<TContract extends Contract<SqlStorage>>(
   const junctionCorrelation = buildPairedColumnExprs(
     junctionTableRef,
     through.parentColumns,
-    parentScope.source.tableRef,
+    parentScope.tableRef,
     parentLocalColumns,
   );
 
