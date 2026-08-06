@@ -177,10 +177,10 @@ describe('resolveRefAdvancementFields', () => {
       mode: 'apply',
       hash: HASH_A,
     });
-    expect(result).toEqual({
-      ok: true,
-      value: { advancedRef: null, plannedAdvanceRef: null },
-    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual({ advancedRef: null, plannedAdvanceRef: null });
+    }
     expect(existsSync(refsDir)).toBe(false);
   });
 
@@ -194,10 +194,13 @@ describe('resolveRefAdvancementFields', () => {
       mode: 'plan',
       hash: HASH_A,
     });
-    expect(result).toEqual({
-      ok: true,
-      value: { advancedRef: null, plannedAdvanceRef: { name: 'staging', hash: HASH_A } },
-    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual({
+        advancedRef: null,
+        plannedAdvanceRef: { name: 'staging', hash: HASH_A },
+      });
+    }
     expect(existsSync(refPointerPath(refsDir, 'staging'))).toBe(false);
   });
 
@@ -211,10 +214,13 @@ describe('resolveRefAdvancementFields', () => {
       mode: 'apply',
       hash: HASH_A,
     });
-    expect(result).toEqual({
-      ok: true,
-      value: { advancedRef: { name: 'staging', hash: HASH_A }, plannedAdvanceRef: null },
-    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual({
+        advancedRef: { name: 'staging', hash: HASH_A },
+        plannedAdvanceRef: null,
+      });
+    }
     expect(existsSync(refPointerPath(refsDir, 'staging'))).toBe(true);
     expect(existsSync(join(contractSnapshotDir(migrationsDir, HASH_A), 'contract.json'))).toBe(
       true,
@@ -263,7 +269,10 @@ describe('advanceRefSafely', () => {
       hash: HASH_A,
       contractIR: sampleContractIR(),
     });
-    expect(result).toEqual({ ok: true, value: { name: 'production', hash: HASH_A } });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual({ name: 'production', hash: HASH_A });
+    }
     expect(existsSync(refPointerPath(refsDir, 'production'))).toBe(true);
   });
 

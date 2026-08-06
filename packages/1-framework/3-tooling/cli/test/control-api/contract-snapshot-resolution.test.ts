@@ -101,15 +101,15 @@ describe('resolveContractRefToSnapshot', () => {
       contractPathAbsolute,
       fallbackToEmitted: true,
     });
-    expect(result).toEqual({
-      ok: true,
-      value: {
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual({
         hash: HASH_A,
         contractJson: contractJsonForHash(HASH_A),
         contractJsonPath: join(contractSnapshotDir(migrationsDir, HASH_A), 'contract.json'),
         source: 'snapshot',
-      },
-    });
+      });
+    }
   });
 
   it('falls back to the emitted contract when its storage hash matches', async () => {
@@ -122,15 +122,15 @@ describe('resolveContractRefToSnapshot', () => {
       contractPathAbsolute,
       fallbackToEmitted: true,
     });
-    expect(result).toEqual({
-      ok: true,
-      value: {
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual({
         hash: HASH_FLOAT,
         contractJson: contractJsonForHash(HASH_FLOAT),
         contractJsonPath: contractPathAbsolute,
         source: 'emitted',
-      },
-    });
+      });
+    }
   });
 
   it('refuses a non-matching fallback with the exact "No contract file found" envelope', async () => {
@@ -170,10 +170,11 @@ describe('resolveContractRefToSnapshot', () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
+      // errorUnexpected keeps the fixed 'Unexpected error' summary; the
+      // command-specific text lives in `why`/`fix` (same envelope db update
+      // produced before the extraction).
       const envelope = result.failure.toEnvelope();
-      expect(envelope.summary).toBe(
-        `No migration bundle found for --to "floating" (resolved hash: ${HASH_FLOAT})`,
-      );
+      expect(envelope.code).toBe('CLI.UNEXPECTED');
       expect(envelope.why).toBe(
         `The ref resolved successfully but no on-disk migration package has a destination (\`to\`) hash matching ${HASH_FLOAT}.`,
       );
