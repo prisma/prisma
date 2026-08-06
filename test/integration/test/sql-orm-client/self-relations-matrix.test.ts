@@ -11,9 +11,10 @@ import selfRelationsContractJson from './fixtures/self-relations/generated/contr
 import { timeouts, withCollectionRuntime } from './integration-helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';
 
-const selfRelationsContract = new PostgresContractSerializer().deserializeContract(
-  selfRelationsContractJson,
-) as SelfRelationsContract;
+const selfRelationsContract =
+  new PostgresContractSerializer().deserializeContract<SelfRelationsContract>(
+    selfRelationsContractJson,
+  );
 const selfRelationsContext: ExecutionContext<SelfRelationsContract> = createExecutionContext({
   contract: selfRelationsContract,
   stack: createSqlExecutionStack({ target: postgresTarget, adapter: postgresAdapter }),

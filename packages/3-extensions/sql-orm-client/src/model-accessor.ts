@@ -485,10 +485,13 @@ function buildExistsExpr<TContract extends Contract<SqlStorage>>(
   }
 
   const selectProjectionColumn = firstTargetColumn(context.contract, relation) ?? 'id';
-  const childAlias =
-    childScope.source.tableRef === relatedTableName ? undefined : childScope.source.tableRef;
   const subquery = SelectAst.from(
-    tableSourceForContract(context.contract, relation.toNamespace, relatedTableName, childAlias),
+    tableSourceForContract(
+      context.contract,
+      relation.toNamespace,
+      relatedTableName,
+      childScope.source.tableRef,
+    ),
   )
     .withProjection([
       ProjectionItem.of(
@@ -570,14 +573,13 @@ function buildManyToManyExistsExpr<TContract extends Contract<SqlStorage>>(
   }
 
   const firstTargetCol = firstJoinColumn(through.targetColumns, 'targetColumns');
-  const relatedTableAlias = relatedTableRef === relatedTableName ? undefined : relatedTableRef;
   const junctionTableAlias = junctionTableRef === through.table ? undefined : junctionTableRef;
   const subquery = SelectAst.from(
     tableSourceForContract(
       context.contract,
       relation.toNamespace,
       relatedTableName,
-      relatedTableAlias,
+      relatedTableRef,
     ),
   )
     .withJoins([
