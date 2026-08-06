@@ -53,7 +53,12 @@ export const pgNumericDecode = (wire: string | number): string => {
 
 const DECIMAL_INTEGER = /^-?\d+$/;
 
-/** Reads a wire or JSON value as a `bigint`, rejecting anything `BigInt()` would misread. */
+/**
+ * Reads a wire or JSON value as a `bigint`, rejecting anything `BigInt()` would
+ * misread. A number-typed wire value must also be a safe integer: past
+ * ±(2^53 − 1) the driver's `number` has already rounded, so stringifying it
+ * would mint a spuriously-exact `bigint` that need not equal the stored value.
+ */
 const decimalIntegerDecode = (codecId: string, wire: string | number | bigint): bigint => {
   if (typeof wire === 'bigint') return wire;
   const text = String(wire);
@@ -61,6 +66,13 @@ const decimalIntegerDecode = (codecId: string, wire: string | number | bigint): 
     throw postgresError('RUNTIME.DECODE_FAILED', `${codecId} value must be a decimal integer`, {
       meta: { codecId, received: text },
     });
+  }
+  if (typeof wire === 'number' && !Number.isSafeInteger(wire)) {
+    throw postgresError(
+      'RUNTIME.DECODE_FAILED',
+      `${codecId} wire number must be an integer within the safe integer range, got ${text}`,
+      { meta: { codecId, received: text } },
+    );
   }
   return BigInt(text);
 };

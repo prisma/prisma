@@ -162,6 +162,28 @@ describe('pg/int8number@1', () => {
   });
 });
 
+describe('pg/int8@1 number wire values', () => {
+  const codec = pgInt8Descriptor.factory()(instanceCtx);
+
+  it('reads a safe-integer number wire value exactly', async () => {
+    expect(await codec.decode(42, {})).toBe(42n);
+    expect(await codec.decode(9007199254740991, {})).toBe(9007199254740991n);
+  });
+
+  it('rejects a number wire value past the safe range, which has already lost precision', async () => {
+    await expect(codec.decode(9007199254740992, {})).rejects.toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      message:
+        'pg/int8@1 wire number must be an integer within the safe integer range, got 9007199254740992',
+      meta: { codecId: 'pg/int8@1', received: '9007199254740992' },
+    });
+    await expect(codec.decode(-9007199254740992, {})).rejects.toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      meta: { codecId: 'pg/int8@1', received: '-9007199254740992' },
+    });
+  });
+});
+
 describe('pg/unboundedint@1', () => {
   const codec = pgUnboundedIntDescriptor.factory()(instanceCtx);
 
@@ -173,6 +195,24 @@ describe('pg/unboundedint@1', () => {
 
     it('reads a bigint wire value as-is', async () => {
       expect(await codec.decode(42n, {})).toBe(42n);
+    });
+
+    it('reads a safe-integer number wire value exactly', async () => {
+      expect(await codec.decode(9007199254740991, {})).toBe(9007199254740991n);
+      expect(await codec.decode(-9007199254740991, {})).toBe(-9007199254740991n);
+    });
+
+    it('rejects a number wire value past the safe range, which has already lost precision', async () => {
+      await expect(codec.decode(9007199254740992, {})).rejects.toMatchObject({
+        code: 'RUNTIME.DECODE_FAILED',
+        message:
+          'pg/unboundedint@1 wire number must be an integer within the safe integer range, got 9007199254740992',
+        meta: { codecId: 'pg/unboundedint@1', received: '9007199254740992' },
+      });
+      await expect(codec.decode(-9007199254740992, {})).rejects.toMatchObject({
+        code: 'RUNTIME.DECODE_FAILED',
+        meta: { codecId: 'pg/unboundedint@1', received: '-9007199254740992' },
+      });
     });
 
     it('rejects non-integral values', async () => {

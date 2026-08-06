@@ -483,9 +483,18 @@ export class SqliteBigintCodec extends CodecImpl<
    * The wire value is text wherever the value could outrun a JS number: an
    * aggregate SQLite computes leaves the database through the descriptor's cast
    * to text, because the driver reads an integer no number can hold as an error
-   * rather than a value.
+   * rather than a value. A number-typed wire value must therefore be a safe
+   * integer — past ±(2^53 − 1) it has already rounded, and converting it would
+   * mint a spuriously-exact `bigint` that need not equal the stored value.
    */
   async decode(wire: number | bigint | string, _ctx: CodecCallContext): Promise<bigint> {
+    if (typeof wire === 'number' && !Number.isSafeInteger(wire)) {
+      throw sqliteError(
+        'RUNTIME.DECODE_FAILED',
+        `sqlite/bigint@1 wire number must be an integer within the safe integer range, got ${String(wire)}`,
+        { meta: { codecId: SQLITE_BIGINT_CODEC_ID, received: String(wire) } },
+      );
+    }
     if (typeof wire === 'string' && !DECIMAL_INTEGER.test(wire)) {
       throw sqliteError(
         'RUNTIME.DECODE_FAILED',

@@ -11,6 +11,38 @@ import { sqliteCodecDescriptorRegistry, sqliteCodecRegistry } from '../src/core/
 
 const instanceCtx: CodecInstanceContext = { name: 'test' };
 
+describe('sqlite/bigint@1 number wire values', () => {
+  const codec = sqliteBigintDescriptor.factory()(instanceCtx);
+
+  it('reads a safe-integer number wire value exactly', async () => {
+    expect(await codec.decode(42, {})).toBe(42n);
+    expect(await codec.decode(9007199254740991, {})).toBe(9007199254740991n);
+    expect(await codec.decode(-9007199254740991, {})).toBe(-9007199254740991n);
+  });
+
+  it('rejects a number wire value past the safe range, which has already lost precision', async () => {
+    await expect(codec.decode(9007199254740992, {})).rejects.toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      message:
+        'sqlite/bigint@1 wire number must be an integer within the safe integer range, got 9007199254740992',
+      meta: { codecId: 'sqlite/bigint@1', received: '9007199254740992' },
+    });
+    await expect(codec.decode(-9007199254740992, {})).rejects.toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      meta: { codecId: 'sqlite/bigint@1', received: '-9007199254740992' },
+    });
+  });
+
+  it('rejects a non-integral number wire value with a structured error', async () => {
+    await expect(codec.decode(1.5, {})).rejects.toMatchObject({
+      code: 'RUNTIME.DECODE_FAILED',
+      message:
+        'sqlite/bigint@1 wire number must be an integer within the safe integer range, got 1.5',
+      meta: { codecId: 'sqlite/bigint@1', received: '1.5' },
+    });
+  });
+});
+
 describe('sqlite/bigintnumber@1', () => {
   const codec = sqliteBigintNumberDescriptor.factory()(instanceCtx);
 
