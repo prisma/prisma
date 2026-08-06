@@ -10,12 +10,12 @@ import {
   computeCheckContentHash,
   truncateToWireNamePrefixBytes,
 } from '@internal/sql-schema-ir/naming';
-
 import {
   PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
   postgresRenderCheckExpressions,
 } from '@internal/target-postgres/types';
+import { assertDefined } from '@internal/utils/assertions';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -467,7 +467,8 @@ describe.sequential('check-constraint lifecycle', () => {
     // Containment and element-non-null both live on the column.
     expect(await liveCheckNames()).toEqual([...declaredCheckNames(contract)].sort());
 
-    const membershipName = checks[0]?.name ?? '';
+    const membershipName = checks[0]?.name;
+    assertDefined(membershipName, 'membership check must be named');
     await driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('a', ARRAY['user','admin'])`);
     // Naming the constraint in the assertion proves the containment check is
     // what rejected the row, not some incidental failure.
@@ -521,10 +522,12 @@ describe.sequential('check-constraint lifecycle', () => {
     await migrate(contract);
     expect(await liveCheckNames()).toEqual([...declaredCheckNames(contract)].sort());
 
+    const varcharMembershipName = checks[0]?.name;
+    assertDefined(varcharMembershipName, 'membership check must be named');
     await driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('a', ARRAY['user','admin'])`);
     await expect(
       driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('b', ARRAY['user','root'])`),
-    ).rejects.toThrow(new RegExp(checks[0]?.name ?? ''));
+    ).rejects.toThrow(new RegExp(varcharMembershipName));
     await expect(
       driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('c', ARRAY['user',NULL])`),
     ).rejects.toThrow(/Item_roles/);
