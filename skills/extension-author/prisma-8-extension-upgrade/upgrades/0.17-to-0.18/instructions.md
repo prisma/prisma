@@ -82,6 +82,26 @@ changes:
         - 'AddCheckConstraintCall'
         - 'addCheckConstraint'
       anyMatch: true
+  - id: specifier-default-control-policy-requires-create-namespace
+    summary: |
+      The options bag on `typescriptContract` / `typescriptContractFromPath` now requires
+      `createNamespace` alongside `defaultControlPolicy`. Stamping a specifier default carries
+      a consequence — derived CHECK constraints are stripped from tables the stamped policy
+      leaves non-managed — and the strip rebuilds storage namespaces through the target's
+      factory, so the two options travel together. Pass the same factory the PSL specifier
+      already takes:
+      `typescriptContract(contract, output, { defaultControlPolicy: 'external' })` becomes
+      `typescriptContract(contract, output, { defaultControlPolicy: 'external',
+      createNamespace: postgresCreateNamespace })`, with `postgresCreateNamespace` imported
+      from the Postgres target's types entrypoint (`@internal/target-postgres/types`).
+      Calls without an options bag are unchanged, and `emptyContract` already took
+      `createNamespace`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - 'typescriptContract'
+        - 'defaultControlPolicy'
+      anyMatch: false
   - id: re-emit-extension-contract-spaces
     summary: |
       Run your extension's `contract emit` (the `build:contract-space` script, if you have one)

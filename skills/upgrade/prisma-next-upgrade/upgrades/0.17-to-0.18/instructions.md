@@ -80,6 +80,25 @@ changes:
       contains:
         - 'addCheckConstraint'
       anyMatch: true
+  - id: specifier-default-control-policy-requires-create-namespace
+    summary: |
+      If your `prisma-next.config.ts` passes `defaultControlPolicy` in the options bag of
+      `typescriptContract` or `typescriptContractFromPath`, that bag now also requires
+      `createNamespace`. Stamping a default policy strips derived CHECK constraints from
+      tables the policy leaves non-managed, and the strip rebuilds storage namespaces through
+      the target's factory, so the two options travel together.
+      `typescriptContract(contract, output, { defaultControlPolicy: 'external' })` becomes
+      `typescriptContract(contract, output, { defaultControlPolicy: 'external',
+      createNamespace: postgresCreateNamespace })`, with `postgresCreateNamespace` imported
+      from the Postgres target's types entrypoint (`@internal/target-postgres/types`) — the
+      same factory the PSL specifier already takes. Calls without an options bag are
+      unchanged, and `emptyContract` already took `createNamespace`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      contains:
+        - 'typescriptContract'
+        - 'defaultControlPolicy'
+      anyMatch: false
   - id: int-backed-enums-fail-at-authoring
     summary: |
       An `enumType()` whose codec is numeric (e.g. `pg/int4@1`) used to build fine and fail
