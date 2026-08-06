@@ -446,7 +446,14 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     params: readonly unknown[] | undefined,
     name?: string,
   ): AsyncIterable<Record<string, unknown>> {
-    const config: QueryConfig = { name, text: sql, values: [...(params ?? [])] };
+    const config: QueryConfig = {
+      name,
+      text: sql,
+      values: blindCast<
+        unknown[],
+        'pg query types require a mutable array but pg does not mutate execution params'
+      >(params ?? []),
+    };
     const releaseLock = await acquireClientQueryLock(client);
     let result: PgQueryResult;
     try {
