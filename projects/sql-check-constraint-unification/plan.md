@@ -11,6 +11,15 @@ Each slice is named for what a developer can **rely on** when it merges. The sta
 | 1 | `checks-are-declared-opaque-expressions` | Every physical CHECK is a contract-declared, wire-named opaque expression; authoring emits enum-membership (scalar and array) and element-non-null checks; introspection captures every live check verbatim; the planner only reconciles — synthesis, the direct-walk strategy, and the predicate parser are deleted. | ⬜ next | _TBD_ |
 | 2 | `check-prefix-renames-plan-as-rename-constraint` | A prefix-only check rename plans as a single `ALTER TABLE … RENAME CONSTRAINT` under `widening`, via hash pairing mirroring `pairIndexRenames`. | ⬜ | _TBD_ |
 
+| 3 | `check-enforcement-opt-out` | An authoring-surface opt-out for each generated check kind — element non-null, scalar enum membership, enum-list membership — restoring "pulled schemas verify clean" as the infer default. | ⬜ to spec | — |
+
+## Slice 3 locked decisions (settled with the operator during slice 1 review)
+
+- Generated enforcement checks are derived only for `managed` tables (landed in slice 1's rework as the immediate fix); the opt-out surface generalizes this per column.
+- **Opting out of enforcement does not change declared types.** The enum union and non-null element types stand; runtime values may diverge from types once enforcement is waived — that is the user's accepted risk, stated in docs.
+- Infer emission is conservative by necessity (opaque introspection cannot classify live predicates): the enforced form is emitted only when a live check's name matches the derived wire name; otherwise the unenforced form, with any hand-written check surfacing separately.
+- Interim until slice 3 lands: infer fidelity asserts convergence (pulled schema → one additive plan → clean), not immediate cleanliness.
+
 ## Sequencing
 
 ```mermaid
