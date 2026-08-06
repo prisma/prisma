@@ -139,3 +139,7 @@ Two things worth knowing when you update these:
   needed, and the artefacts your pack ships (`contract.json`, `contract.d.ts`, migrations) are
   unchanged. If your pack's committed contract artefacts do show a diff after upgrading, that is
   a different change in this transition, not this one.
+
+<!--
+TML-3171 (nested SQL ORM self-relation predicate scopes): `changes: []`. The `packages/3-extensions/sql-orm-client` diff fixes internal query planning and adds regression coverage; it changes no public API, contract shape, emitted artefact, extension-authoring surface, adapter API, or downstream source translation. Incidental substrate diff only.
+-->
