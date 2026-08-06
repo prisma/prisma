@@ -582,18 +582,18 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
    * Execute a prepared statement against a caller-supplied queryable, running
    * the full middleware/codec/telemetry pipeline.
    */
-  protected executeBoundStatementAgainstQueryable<Params extends Record<string, unknown>, Row>(
+  protected executePreparedStatementAgainstQueryable<Params extends Record<string, unknown>, Row>(
     ps: PreparedStatementImpl<Params, Row>,
     userParams: Params,
     queryable: SqlQueryable,
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
     return this.executeWithRequestBuilder<Row>(queryable, options, (codecCtx, execMiddlewareCtx) =>
-      this.buildBoundStatementExecutionRequest(ps, userParams, codecCtx, execMiddlewareCtx),
+      this.buildPreparedStatementExecutionRequest(ps, userParams, codecCtx, execMiddlewareCtx),
     );
   }
 
-  private async buildBoundStatementExecutionRequest<Params extends Record<string, unknown>, Row>(
+  private async buildPreparedStatementExecutionRequest<Params extends Record<string, unknown>, Row>(
     ps: PreparedStatementImpl<Params, Row>,
     userParams: Params,
     codecCtx: SqlCodecCallContext,
@@ -651,7 +651,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   ): AsyncIterableResult<Row> {
     if (planOrStatement instanceof PreparedStatementImpl) {
       const options = scope === undefined ? preparedOptions : { ...preparedOptions, scope };
-      return this.executeBoundStatementAgainstQueryable(
+      return this.executePreparedStatementAgainstQueryable(
         planOrStatement,
         blindCast<Params, 'prepared execute overload always receives statement parameters'>(
           paramsOrOptions,
