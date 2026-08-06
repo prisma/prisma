@@ -861,7 +861,7 @@ describe('withTransaction', () => {
     });
 
     expect(() => savedTx!.query(createRawExecutionPlan())).toThrow(
-      'Cannot read from a query result after the transaction has ended',
+      'Cannot use a transaction operation after the transaction has ended',
     );
   });
 
@@ -887,7 +887,7 @@ describe('withTransaction', () => {
     });
 
     await expect(escaped.result.toArray()).rejects.toThrow(
-      'Cannot read from a query result after the transaction has ended',
+      'Cannot use a transaction operation after the transaction has ended',
     );
   });
 

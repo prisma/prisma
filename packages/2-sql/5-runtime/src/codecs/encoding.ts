@@ -71,7 +71,7 @@ function wrapEncodeFailure(
 /**
  * Encodes a single parameter through its codec. Always awaits codec.encode so a Promise can never leak into the driver, even if a sync-authored codec is lifted to async by the codec factory. Structured envelopes thrown by the codec body (anything passing `isStructuredError`) pass through unchanged; all other failures are wrapped in `RUNTIME.ENCODE_FAILED` with `{ label, codec, paramIndex }` and the original error attached on `cause`.
  *
- * `ctx` is forwarded verbatim to `codec.encode` so codec authors who opt into the `(value, ctx)` arity see the same `SqlCodecCallContext` the runtime built for the surrounding `runtime operation call. The ctx is always present; its `signal` field may be `undefined`. Encode call sites do not populate `ctx.column` — encode-time column context is the middleware's domain.
+ * `ctx` is forwarded verbatim to `codec.encode` so codec authors who opt into the `(value, ctx)` arity see the same `SqlCodecCallContext` the runtime built for the surrounding `query` or `execute` call. The ctx is always present; its `signal` field may be `undefined`. Encode call sites do not populate `ctx.column` — encode-time column context is the middleware's domain.
  */
 export async function encodeParam(
   value: unknown,

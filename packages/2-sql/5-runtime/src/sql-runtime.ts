@@ -189,9 +189,8 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       scope: 'runtime',
       operation: 'query',
       // Placeholder satisfying the required field on the cross-family base. The
-      // stored ctx is a runtime-level template; the per-execute ctxs constructed
-      // in `executeAgainstQueryable` / `queryPreparedAgainstQueryable` spread
-      // this template and override `planExecutionId` with a fresh UUID. ADR 220.
+      // stored ctx is a runtime-level template; `createOperationContexts`
+      // spreads it and overrides `planExecutionId` with a fresh UUID. ADR 220.
       planExecutionId: '',
     };
 
@@ -421,7 +420,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   private async prepareExecution(
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
     codecCtx: SqlCodecCallContext,
-    middlewareCtx: RuntimeMiddlewareContext,
+    middlewareCtx: SqlMiddlewareContext,
   ): Promise<SqlExecutionPlan> {
     checkAborted(codecCtx, 'stream');
 
@@ -791,7 +790,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
 function transactionClosedError(): Error {
   return runtimeError(
     'RUNTIME.TRANSACTION_CLOSED',
-    'Cannot read from a query result after the transaction has ended. Await the result or call .toArray() inside the transaction callback.',
+    'Cannot use a transaction operation after the transaction has ended. Consume query results and await execute calls inside the transaction callback.',
     {},
   );
 }

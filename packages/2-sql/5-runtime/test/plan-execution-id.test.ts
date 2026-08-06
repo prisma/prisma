@@ -23,9 +23,9 @@ import {
 } from './utils';
 
 /**
- * Pins ADR 220 semantics for the SQL runtime: every `execute()` and every
- * `queryPrepared()` call mints a fresh `ctx.planExecutionId` for the
- * per-execute middleware context. Hooks within one call observe the same
+ * Pins ADR 220 semantics for the SQL runtime: every `query()`, `execute()`,
+ * and `queryPrepared()` call mints a fresh `ctx.planExecutionId` for the
+ * per-operation middleware context. Hooks within one call observe the same
  * ID; hooks across two calls of the same plan/prepared-statement observe
  * distinct IDs.
  */
@@ -145,10 +145,10 @@ describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
     const secondExecId = log[2]?.planExecutionId;
     expect(firstExecId).toBeTypeOf('string');
     expect(secondExecId).toBeTypeOf('string');
-    // Within one execute: beforeExecute and afterExecute share the ID.
+    // Within one query: beforeExecute and afterExecute share the ID.
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
     expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
-    // Across two executes: distinct IDs.
+    // Across two queries: distinct IDs.
     expect(firstExecId).not.toBe(secondExecId);
   });
 
