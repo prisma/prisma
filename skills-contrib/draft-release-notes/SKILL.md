@@ -1,20 +1,21 @@
 ---
 name: draft-release-notes
 description: >-
-  Author the committed release-notes file for a stable Prisma Next release by
-  enumerating the merged PRs since the previous stable `v*` tag, resolving
-  opaque `TML-NNNN:` titles via Linear context (never copied verbatim),
-  triaging public-worthiness, and writing categorized notes — breaking changes
-  first — into `docs/releases/v<version>.md` plus a mirrored `CHANGELOG.md`
-  entry. Use when cutting a release, when the `publish-npm-version` skill
-  reaches its "draft the release notes" step, when asked to "draft the release
-  notes", "write the changelog for this release", "author docs/releases/v<x>.md",
-  or "summarize what shipped since the last stable tag".
+  Author the committed release-notes file for a Prisma Next release
+  (stable or `8.0.0-rc.N`) by enumerating the merged PRs since the previous
+  release `v*` tag (stable or `-rc.N`), resolving opaque `TML-NNNN:` titles via Linear context
+  (never copied verbatim), triaging public-worthiness, and writing categorized
+  notes — breaking changes first — into `docs/releases/v<version>.md` plus a
+  mirrored `CHANGELOG.md` entry. Use when cutting a release, when the
+  `publish-npm-version` skill reaches its "draft the release notes" step, when
+  asked to "draft the release notes", "write the changelog for this release",
+  "author docs/releases/v<x>.md", or "summarize what shipped since the last
+  release".
 ---
 
 # Draft release notes
 
-This skill fires inside a stable-release cut. The release-cutting agent runs it from the `release/<version>` worktree that [`publish-npm-version`](../publish-npm-version/SKILL.md) created, with the target version already known, and produces the committed notes file that **is** the GitHub Release body (the publish workflow ships it verbatim via `gh release create --notes-file docs/releases/v<version>.md`). There is no `--generate-notes` fallback — the file you author here is what every consumer reads.
+This skill fires inside a release cut (stable or RC-line, both published under `latest`). The release-cutting agent runs it from the `release/<version>` worktree that [`publish-npm-version`](../publish-npm-version/SKILL.md) created, with the target version already known, and produces the committed notes file that **is** the GitHub Release body (the publish workflow ships it verbatim via `gh release create --notes-file docs/releases/v<version>.md`). There is no `--generate-notes` fallback — the file you author here is what every consumer reads.
 
 The skill is **prose-driven**: there is no codemod or script to run. You — the agent — do the enumeration, the Linear-context lookup, the triage, and the writing directly, the same way [`record-upgrade-instructions`](../record-upgrade-instructions/SKILL.md) walks you through authoring an upgrade entry rather than running one for you.
 
@@ -22,7 +23,7 @@ The skill is **prose-driven**: there is no codemod or script to run. You — the
 
 Run this skill when **all** of the following hold:
 
-- A stable (`latest`) release is being cut — the target version `$NEXT` is known (computed by `publish-npm-version` step 1, e.g. `0.12.0`).
+- A release is being cut (stable or `8.0.0-rc.N`) — the target version `$NEXT` is known (computed by `publish-npm-version` step 1, e.g. `8.0.0-rc.2`).
 - You are in the `release/<version>` worktree checked out at the bump commit (HEAD carries the bumped root `version`).
 - `docs/releases/v$NEXT.md` does not exist yet (the PR-mode release-notes gate, `pnpm check:release-notes --mode pr`, fails the release PR until it does).
 
@@ -49,9 +50,9 @@ Every entry links its PR (`#NNN`) so the human reviewer can check your one-line 
 
 ## Procedure
 
-### 1. Resolve the range lower bound — the previous *stable* tag
+### 1. Resolve the range lower bound — the previous *release* tag
 
-The range is "everything since the last `latest` release", so the lower bound is the most recent **stable** `v*` tag, excluding `-dev.*` / `-beta.*` pre-release tags:
+The range is "everything since the last release", so the lower bound is the most recent release `v*` tag — stable or `-rc.N` — excluding `-dev.*` / `-beta.*` build tags (an `-rc.N` tag is a release and deliberately **not** excluded, so an RC respin's notes cover exactly what changed since the previous RC):
 
 ```bash
 PREV_TAG=$(git describe --abbrev=0 --tags --match 'v[0-9]*' --exclude '*-dev.*' --exclude '*-beta.*')
@@ -64,7 +65,7 @@ Equivalently, list and filter explicitly (useful when `describe` can't find an a
 git tag --list 'v*' --sort=-v:refname | grep -Ev -- '-(dev|beta)\.' | head
 ```
 
-The dev/beta exclusion matters: a `-dev.N` tag is cut on most merges, so an unfiltered "previous tag" would scope the range to a single PR. Filtering to stable gives the full set of changes since consumers last saw a `latest` release.
+The dev/beta exclusion matters: a `-dev.N` tag is cut on most merges, so an unfiltered "previous tag" would scope the range to a single PR. Filtering to release tags gives the full set of changes since consumers last saw a release.
 
 ### 2. Enumerate the commit set, then resolve PR metadata
 
