@@ -68,7 +68,7 @@ changes:
       column, values })` is now `this.addCheckConstraint({ schema, table, constraint,
       expression })`. Replace the `column` and `values` pair with the predicate they used to
       describe — `column: 'kind', values: ['admin', 'user']` becomes
-      `expression: `"kind" IN ('admin', 'user')`` — and use the wire name from your
+      `` expression: `"kind" IN ('admin', 'user')` `` — and use the wire name from your
       regenerated contract as `constraint`. If the constraint was created by the same
       migration's `createTable`, prefer moving it inline: add
       `checkExpression(<name>, <expression>)` to that table's `constraints` array and delete
