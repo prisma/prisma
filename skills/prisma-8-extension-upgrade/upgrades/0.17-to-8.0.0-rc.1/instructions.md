@@ -40,8 +40,8 @@ changes:
       the emitted `contract.d.ts` gains an `AggregateTypes` block that the ORM and SQL builder
       resolve their result types from. The re-emitted `byCodec` table also lists `min`/`max` and
       `sum`/`avg` rows for the opt-in integer representation codecs (`pg/int8number@1`,
-      `pg/unboundedint@1`, `sqlite/bigintnumber@1`); those rows touch nothing unless a column opts
-      into the matching presets.
+      `pg/unboundedint@1`, `sqlite/bigintnumber@1`); those rows touch nothing unless a column uses
+      the matching target-scoped `BigIntNumber` or `UnboundedInt` type.
     detection:
       glob: "**/*.{ts,tsx}"
       contains:

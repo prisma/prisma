@@ -12,11 +12,10 @@ import { timeouts, withCollectionRuntime } from './integration-helpers';
 import type { PgIntegrationRuntime } from './runtime-helpers';
 
 /**
- * End-to-end proof of the integer-representation presets on PostgreSQL,
- * driven through the real emitted fixture
- * (`fixtures/integer-representation/generated/`): `Meter.peak` is
- * `bigIntNumber()` (`pg/int8number@1`, int8 read as a JS number) and
- * `Meter.lifetime` is `unboundedInt()` (`pg/unboundedint@1`, unconstrained
+ * End-to-end proof of the integer-representation types on PostgreSQL, driven
+ * through the real emitted fixture (`fixtures/integer-representation/generated/`):
+ * `Meter.peak` is `BigIntNumber` (`pg/int8number@1`, int8 read as a JS number)
+ * and `Meter.lifetime` is `UnboundedInt` (`pg/unboundedint@1`, unconstrained
  * numeric read as a bigint). Boundary values only — a value inside the safe
  * range proves nothing about the guard.
  */
@@ -65,9 +64,9 @@ async function setupTables(runtime: PgIntegrationRuntime): Promise<void> {
   `);
 }
 
-describe('integration/integer representation presets', () => {
+describe('integration/integer representation types', () => {
   it(
-    'writes and reads both presets at the safe-range boundary and past 2^63',
+    'writes and reads both types at the safe-range boundary and past 2^63',
     async () => {
       await withCollectionRuntime(async (runtime) => {
         await setupTables(runtime);

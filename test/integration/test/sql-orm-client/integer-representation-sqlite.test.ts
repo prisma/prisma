@@ -14,12 +14,11 @@ import contractJson from './fixtures/integer-representation-sqlite/generated/con
 };
 
 /**
- * End-to-end proof of the `bigIntNumber()` preset on SQLite, driven through
- * the real emitted fixture
- * (`fixtures/integer-representation-sqlite/generated/`): `Meter.peak` and
- * `Sample.reading` are `sqlite/bigintnumber@1` — INTEGER storage read as a JS
- * number. Boundary values only — a value inside the safe range proves nothing
- * about the guard.
+ * End-to-end proof of the `BigIntNumber` type on SQLite, driven through the
+ * real emitted fixture (`fixtures/integer-representation-sqlite/generated/`):
+ * `Meter.peak` and `Sample.reading` are `sqlite/bigintnumber@1` — INTEGER
+ * storage read as a JS number. Boundary values only — a value inside the safe
+ * range proves nothing about the guard.
  *
  * The decode guard is proven through an include: the nested-document path
  * carries the column as a canonical JSON number, which is where a stored
@@ -32,7 +31,7 @@ const MAX_SAFE = 9007199254740991;
 /** 2^53, the first integer past the safe range on either side. */
 const FIRST_UNSAFE = 9007199254740992;
 
-describe('integration/integer representation preset on sqlite', () => {
+describe('integration/integer representation type on sqlite', () => {
   let directory: string | undefined;
   let database: DatabaseSync | undefined;
   let client: SqliteClient<Contract> | undefined;

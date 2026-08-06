@@ -546,8 +546,8 @@ sqliteBigintColumn satisfies ColumnHelperForStrict<SqliteBigintDescriptor>;
  * round: decode (wire and JSON) and encode throw a structured error on
  * out-of-range or non-integral input. The canonical JSON is a JSON number —
  * the deliberate exception to the decimal-text rule for 64-bit integers, and
- * the codec's purpose. Preset-only: the descriptor claims no target type, so
- * `integer` in type position keeps its current codecs.
+ * the codec's purpose. The descriptor claims no target type, so `integer` in
+ * type position keeps its current codecs.
  */
 export class SqliteBigintNumberCodec extends CodecImpl<
   typeof SQLITE_BIGINT_NUMBER_CODEC_ID,

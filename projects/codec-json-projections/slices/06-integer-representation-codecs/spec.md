@@ -1,10 +1,10 @@
 # Slice: 06-integer-representation-codecs
 
-_(Parent project `projects/codec-json-projections/`. Outcome this slice contributes: the integer representation vocabulary becomes a per-column contract choice — lossless `bigint` stays the default, and two opt-in presets give users native-`number` decoding with a throwing guard and arbitrary-precision integers.)_
+_(Parent project `projects/codec-json-projections/`. Outcome this slice contributes: the integer representation vocabulary becomes a per-column contract choice — lossless `bigint` stays the default, and two opt-in types give users native-`number` decoding with a throwing guard and arbitrary-precision integers.)_
 
 ## At a glance
 
-Adds two opt-in column presets and three codecs: **`BigIntNumber`** (PostgreSQL + SQLite) — 64-bit integer storage decoded as JS `number`, throwing outside the safe-integer range — and **`UnboundedInt`** (PostgreSQL only) — unconstrained `numeric` storage with integrality-checked decode to JS `bigint`. Bare `BigInt` keeps the lossless codec, so this slice breaks nothing. It unblocks slice 08, whose `count()`/`sum()` defaults and `sumBigInt` output name these codec IDs in aggregate descriptor rows.
+Adds two opt-in target-contributed types and three codecs: **`BigIntNumber`** (PostgreSQL + SQLite) — 64-bit integer storage decoded as JS `number`, throwing outside the safe-integer range — and **`UnboundedInt`** (PostgreSQL only) — unconstrained `numeric` storage with integrality-checked decode to JS `bigint`. Bare `BigInt` keeps the lossless codec, so this slice breaks nothing. It unblocks slice 08, whose `count()`/`sum()` defaults and `sumBigInt` output name these codec IDs in aggregate descriptor rows.
 
 ## Chosen design
 
@@ -22,7 +22,7 @@ Each is an ordinary codec class + target descriptor pair beside its sibling (`Pg
 
 **The JSON-number canonical form is sound.** ECMAScript mandates IEEE 754 binary64, `MAX_SAFE_INTEGER` is exactly 2^53 − 1, and double rounding is monotone with 2^53 exactly representable — so no true value outside ±(2^53 − 1) can parse into the safe range and slip past the post-parse guard. `decodeJson` checks the range after `JSON.parse`; the guard cannot false-pass. This is the one deliberate exception to "64-bit integers travel as decimal text", and it is the codec's purpose. `UnboundedInt` keeps decimal-text projection (`decimalTextJsonProjection`) like `numeric` and `int8`.
 
-**Preset-only, no target-type claim.** `PgInt8Descriptor` claims `targetTypes: ['int8']` and the numeric codec claims `numeric`; the new descriptors claim no target-type name, so type-position constructors and introspection stay unambiguous. Selection is by preset: `bigIntNumber` joins `postgresAuthoringFieldPresets` (`packages/3-targets/3-targets/postgres/src/core/authoring.ts:664`) and the SQLite table; `unboundedInt` is PostgreSQL-only (SQLite has no lossless unbounded integer storage — availability is the target's declaration). PSL spelling — amended 2026-08-05 during D4: the presets surface as field-preset calls, `peak bigIntNumber()` / `lifetime unboundedInt()`, matching the sibling presets' call syntax rather than bare scalar names; preset-call fields cannot be `?`-optional or carry `@default(...)` (a pre-existing interpreter constraint on the preset surface, documented in D5 and a candidate follow-up ticket). Introspection keeps inferring `int8 → BigInt` and `numeric → Decimal`; the presets are reached by editing the PSL, acceptable for opt-in types.
+**Target-contributed types, no target-type claim.** `PgInt8Descriptor` claims `targetTypes: ['int8']` and the numeric codec claims `numeric`; the new descriptors keep `targetTypes: []`, so reverse storage-type lookup and introspection stay unambiguous. The active target instead contributes top-level zero-argument type constructors: PostgreSQL contributes `BigIntNumber` and `UnboundedInt`, while SQLite contributes only `BigIntNumber` because it has no lossless unbounded integer storage. The unified authoring registry exposes them as ordinary bare PSL types (`peak BigIntNumber`, `lifetime UnboundedInt`) and as typed TS builders (`type.BigIntNumber()`, `type.UnboundedInt()`); direct TS authoring may also use the exported per-codec column helpers. Introspection remains canonical and independent: PostgreSQL `int8 → BigInt` and `numeric → Numeric`, while SQLite retains its existing integer mapping. The earlier D4 field-preset spelling is removed before merge rather than preserved as a compatibility surface, restoring ordinary optional/default/list composition for these types.
 
 ### Aggregate descriptor rows
 
@@ -34,11 +34,11 @@ Out-of-range and non-integral decodes raise structured errors with dotted namesp
 
 ## Coherence rationale
 
-One concern — the integer representation vocabulary — delivered whole: three codecs sharing one guard rationale and one canonical-JSON argument, their presets, their aggregate rows, and their conformance evidence. Splitting codecs from presets would merge unusable halves; splitting `UnboundedInt` out would force slice 08 to define an aggregate-output codec inline, which is this slice's subject.
+One concern — the integer representation vocabulary — delivered whole: three codecs sharing one guard rationale and one canonical-JSON argument, their target-scoped type constructors, their aggregate rows, and their conformance evidence. Splitting codecs from their authored types would merge unusable halves; splitting `UnboundedInt` out would force slice 08 to define an aggregate-output codec inline, which is this slice's subject.
 
 ## Scope
 
-**In:** the three codec class/descriptor pairs; `bigIntNumber` and `unboundedInt` presets in both targets' authoring contributions (PostgreSQL) and the applicable one (SQLite); exact-input aggregate descriptor rows for the new codecs; conformance testkit cases on both targets including safe-range boundary values; a PSL fixture exercising both presets; error-reference entry; codec authoring guide and PSL type documentation updates.
+**In:** the three codec class/descriptor pairs; target-scoped `BigIntNumber` and `UnboundedInt` type constructors in PostgreSQL and the applicable `BigIntNumber` constructor in SQLite; removal of the corresponding field presets; exact-input aggregate descriptor rows for the new codecs; conformance testkit cases on both targets including safe-range boundary values; PSL fixtures exercising the types; TS authoring coverage for the composed `type.*` builders and direct column helpers; error-reference entry; codec authoring guide and PSL type documentation updates.
 
 **Out:** any change to `BigInt`'s default codec or to any aggregate operation's output (slices 07/08); target-type or introspection claims for the new codecs; Mongo; a Decimal application type (`numeric` keeps decoding to string); `UnboundedInt` on SQLite.
 
@@ -48,13 +48,13 @@ One concern — the integer representation vocabulary — delivered whole: three
 | --------- | ----------- | ----- |
 | A value outside ±(2^53 − 1) surviving `JSON.parse` and passing the range guard | Impossible; monotone rounding with 2^53 exactly representable — pinned by boundary tests at 2^53 − 1, 2^53, −(2^53) | The discussion's soundness argument; the reason JSON-number canonical form is safe here and nowhere else |
 | SQLite driver hands INTEGER wire as `number` or `bigint` depending on safe-integer mode | `bigintnumber` decode accepts both wire shapes and applies the same guard | Same driver split slice 05 handled for `sqlite/bigint@1` |
-| `UnboundedInt` claiming the `numeric` target-type name | Must not — preset-only | Would collide with the Decimal codec in type position |
+| `UnboundedInt` claiming the `numeric` target-type name | Must not — authoring-only type constructor with `targetTypes: []` | Would make reverse native-type resolution ambiguous with the canonical Numeric codec |
 | Non-integral write to `BigIntNumber` (e.g. `1.5`) | Structured encode error, same code family as the decode guard | Write path is new; the aggregate-only design had no encode |
 
 ## Slice-specific done conditions
 
-- [ ] Conformance suites cover all three codecs on their targets, including JSON round-trips at the safe-range boundary and an `UnboundedInt` value past 2^63.
-- [ ] A committed PSL fixture uses both presets and `pnpm fixtures:check` passes.
+- [x] Conformance suites cover all three codecs on their targets, including JSON round-trips at the safe-range boundary and an `UnboundedInt` value past 2^63.
+- [x] Committed PSL fixtures use the target-contributed types, TS authoring tests cover the composed type builders and direct column helpers, the removed preset calls have no remaining docs/tests, and `pnpm fixtures:check` passes.
 
 ## Open Questions
 
@@ -63,7 +63,7 @@ One concern — the integer representation vocabulary — delivered whole: three
 
 ## Contract impact
 
-New codec IDs appear in `codecTypes` only for contracts that use the presets; no existing entry changes. Amended 2026-08-05 during D1, extended after D3 and slice review: registration alone radiates inert `byCodec` rows into **every** emitted contract on both targets regardless of preset use — the `min`/`max` numeric-trait fallback expands over the new codecs, and D3's exact `sum`/`avg` rows radiate the same way (PostgreSQL contracts gain sum/avg/min/max rows for both codecs; SQLite contracts the `bigintnumber` set) — purely additive re-emissions, verified zero deletions. Fixture movement in later dispatches must be fully attributable to the new rows and fixtures, not byte-identity.
+New codec IDs appear in field maps only for contracts that use the target-contributed types; no existing type changes. Registration alone radiates inert `byCodec` rows into **every** emitted contract on both targets regardless of field use — the `min`/`max` numeric-trait fallback expands over the new codecs, and D3's exact `sum`/`avg` rows radiate the same way (PostgreSQL contracts gain sum/avg/min/max rows for both codecs; SQLite contracts the `bigintnumber` set) — purely additive re-emissions, verified zero deletions. Fixture movement in later dispatches must be fully attributable to the new rows and fixtures, not byte-identity.
 
 ## Adapter impact
 

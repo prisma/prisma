@@ -2,8 +2,9 @@ import {
   temporalAuthoringPresets,
   temporalCodecPresetWithPrecision,
 } from '@internal/family-sql/control';
+import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
-import { postgresAuthoringFieldPresets } from '../src/core/authoring';
+import { postgresAuthoringFieldPresets, postgresAuthoringTypes } from '../src/core/authoring';
 
 describe('postgresAuthoringFieldPresets', () => {
   it('exposes uuidNative preset with pg/uuid@1 and nativeType uuid', () => {
@@ -40,27 +41,25 @@ describe('postgresAuthoringFieldPresets', () => {
     });
   });
 
-  it('exposes bigIntNumber preset with pg/int8number@1 and nativeType int8', () => {
-    expect(postgresAuthoringFieldPresets.bigIntNumber).toEqual({
-      kind: 'fieldPreset',
-      output: {
-        codecId: 'pg/int8number@1',
-        nativeType: 'int8',
-      },
+  it('contributes integer representations as bare-eligible top-level types', () => {
+    const types = collectScalarTypeConstructors(postgresAuthoringTypes);
+
+    expect(types.get('BigIntNumber')).toEqual({
+      codecId: 'pg/int8number@1',
+      nativeType: 'int8',
+    });
+    expect(types.get('UnboundedInt')).toEqual({
+      codecId: 'pg/unboundedint@1',
+      nativeType: 'numeric',
     });
   });
 
-  it('exposes unboundedInt preset with pg/unboundedint@1 and nativeType numeric', () => {
-    expect(postgresAuthoringFieldPresets.unboundedInt).toEqual({
-      kind: 'fieldPreset',
-      output: {
-        codecId: 'pg/unboundedint@1',
-        nativeType: 'numeric',
-      },
-    });
+  it('does not expose integer representations as field presets', () => {
+    expect(postgresAuthoringFieldPresets).not.toHaveProperty('bigIntNumber');
+    expect(postgresAuthoringFieldPresets).not.toHaveProperty('unboundedInt');
   });
 
-  it('keeps the lossless bigint preset on pg/int8@1, so bigIntNumber is opt-in', () => {
+  it('keeps the lossless bigint preset on pg/int8@1, so BigIntNumber is opt-in', () => {
     expect(postgresAuthoringFieldPresets.bigint).toEqual({
       kind: 'fieldPreset',
       output: {

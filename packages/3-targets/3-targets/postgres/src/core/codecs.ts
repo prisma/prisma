@@ -729,8 +729,8 @@ pgInt8Column satisfies ColumnHelperForStrict<PgInt8Descriptor>;
  * round: decode (wire and JSON) and encode throw a structured error on
  * out-of-range or non-integral input. The canonical JSON is a JSON number —
  * the deliberate exception to the decimal-text rule for 64-bit integers, and
- * the codec's purpose. Preset-only: the descriptor claims no target type, so
- * `int8` in type position stays `pg/int8@1`.
+ * the codec's purpose. The descriptor claims no target type, so `int8` in type
+ * position stays `pg/int8@1`.
  */
 export class PgInt8NumberCodec extends CodecImpl<
   typeof PG_INT8_NUMBER_CODEC_ID,
@@ -984,9 +984,8 @@ pgNumericColumn satisfies ColumnHelperForStrict<PgNumericDescriptor>;
 /**
  * A genuinely unbounded integer over unconstrained Postgres `numeric` storage.
  * Application values are `bigint` and the canonical JSON is decimal text, like
- * `pg/int8@1`; decode rejects non-integral values. Preset-only: the descriptor
- * claims no target type, so `numeric` and `decimal` in type position stay
- * `pg/numeric@1`.
+ * `pg/int8@1`; decode rejects non-integral values. The descriptor claims no
+ * target type, so `numeric` and `decimal` in type position stay `pg/numeric@1`.
  */
 export class PgUnboundedIntCodec extends CodecImpl<
   typeof PG_UNBOUNDED_INT_CODEC_ID,

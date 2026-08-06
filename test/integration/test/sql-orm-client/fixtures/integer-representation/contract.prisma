@@ -1,18 +1,18 @@
-// Real emitted fixture for the integer-representation preset round-trips.
+// Real emitted fixture for the integer-representation type round-trips.
 //
-// `Meter.peak` opts into `bigIntNumber()` — `pg/int8number@1`: int8 storage
+// `Meter.peak` uses bare `BigIntNumber` — `pg/int8number@1`: int8 storage
 // decoded as a JS number, throwing outside ±(2^53 − 1) — and `Meter.lifetime`
-// into `unboundedInt()` — `pg/unboundedint@1`: unconstrained numeric storage
+// uses bare `UnboundedInt` — `pg/unboundedint@1`: unconstrained numeric storage
 // decoded as a bigint, rejecting non-integral values. `Sample.reading` carries
-// `bigIntNumber()` on the child side of a relation so an include read
-// traverses the codec's JSON-number projection through the nested-document
-// path. Bare `BigInt` stays on the lossless `pg/int8@1`; both presets here are
-// the opt-in alternatives.
+// `BigIntNumber` on the child side of a relation so an include read traverses
+// the codec's JSON-number projection through the nested-document path. Bare
+// `BigInt` stays on the lossless `pg/int8@1`; both target-contributed types here
+// are opt-in alternatives.
 
 model Meter {
   id       Int @id
-  peak     bigIntNumber()
-  lifetime unboundedInt()
+  peak     BigIntNumber
+  lifetime UnboundedInt
 
   samples Sample[]
 
@@ -22,7 +22,7 @@ model Meter {
 model Sample {
   id      Int @id
   meterId Int @map("meter_id")
-  reading bigIntNumber()
+  reading BigIntNumber
 
   meter Meter @relation(fields: [meterId], references: [id])
 

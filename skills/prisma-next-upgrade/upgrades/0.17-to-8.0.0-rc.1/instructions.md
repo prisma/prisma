@@ -25,7 +25,7 @@ changes:
       resolves to `never` in the ORM and to `unknown` in the SQL builder. The re-emitted `byCodec`
       table also lists `min`/`max` and `sum`/`avg` rows for the opt-in integer representation
       codecs (`pg/int8number@1`, `pg/unboundedint@1`, `sqlite/bigintnumber@1`); those rows touch
-      nothing unless a column opts into the matching presets.
+      nothing unless a column uses the matching target-scoped `BigIntNumber` or `UnboundedInt` type.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:

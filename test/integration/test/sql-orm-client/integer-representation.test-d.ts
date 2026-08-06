@@ -1,6 +1,6 @@
 /**
  * Type-tests over the emitted integer-representation fixtures: a
- * `bigIntNumber()` column reads as `number` and an `unboundedInt()` column as
+ * `BigIntNumber` column reads as `number` and an `UnboundedInt` column as
  * `bigint` through the ORM result surface, and aggregate result types resolve
  * per the contracts' emitted `aggregateTypes` rows — including the `min`/`max`
  * self rows, whose resolved output is the input codec itself.
