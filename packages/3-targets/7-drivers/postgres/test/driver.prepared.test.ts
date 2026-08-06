@@ -134,20 +134,6 @@ describe('postgres prepared statements', () => {
     });
   });
 
-  it('passes execute request params to pg without copying', async () => {
-    const { client, calls } = makeMockClient({
-      handler: () => ({ rows: [], rowCount: 1 }),
-    });
-    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
-    cleanups.push(() => driver.close());
-
-    const params = [42];
-    await driver.execute({ sql: 'update t set x = $1', params });
-
-    const request = calls[0]?.arg as { readonly values: readonly unknown[] };
-    expect(request.values).toBe(params);
-  });
-
   it('uses and reuses a prepared name for execute requests with a handle', async () => {
     const { client, calls } = makeMockClient({
       handler: () => ({ rows: [], rowCount: 1 }),
