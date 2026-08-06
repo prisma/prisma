@@ -83,7 +83,7 @@ Tuple identity could have been kept for plain column indexes, reserving name ide
 
 ## Naming and hashing
 
-The format, parsing, prefix-length budget (54 characters plus a 9-character suffix, within Postgres's 63), normalizer (trim and internal-whitespace collapse of the *authored* input only), and the normalizer-stability commitments are all ADR 234's, unchanged. They are now family-shared in `@prisma-next/sql-schema-ir/naming`, because `SqlIndexIR` is family-shared.
+The format, parsing, prefix-length budget (54 UTF-8 bytes plus a 9-byte suffix, within Postgres's 63-byte identifier limit; **Amended:** [ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>) corrected the unit from characters to bytes), normalizer (trim and internal-whitespace collapse of the *authored* input only), and the normalizer-stability commitments are all ADR 234's, unchanged. They are now family-shared in `@prisma-next/sql-schema-ir/naming`, because `SqlIndexIR` is family-shared.
 
 The index content tuple is a stability commitment — changing it re-suffixes every wire name in every deployed database:
 
