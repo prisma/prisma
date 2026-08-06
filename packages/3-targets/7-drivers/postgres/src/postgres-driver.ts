@@ -416,7 +416,10 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     cursorBatchSize: number,
     name?: string,
   ): AsyncIterable<Record<string, unknown>> {
-    const values = [...(params ?? [])];
+    const values = blindCast<
+      unknown[],
+      'pg cursor types require a mutable array but pg does not mutate execution params'
+    >(params ?? []);
     const cursor = client.query(
       name === undefined ? new Cursor(sql, values) : new NamedCursor({ name, text: sql, values }),
     );
