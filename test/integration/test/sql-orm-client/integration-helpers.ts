@@ -7,7 +7,7 @@ import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregat
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { Collection } from '@internal/sql-orm-client';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
-import type { SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
+import type { SqlMiddleware, SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import postgresTargetControl from '@internal/target-postgres/control';
 import { timeouts, withDevDatabase } from '@repo/test-utils';
 import { withReturningCapability } from './collection-fixtures';
@@ -139,6 +139,7 @@ export async function withCollectionRuntime(
   // plan's storageHash against the contract it was built with.
   contractOverride?: Contract<SqlStorage>,
   additionalExtensions: readonly SqlRuntimeExtensionDescriptor<'postgres'>[] = [],
+  middleware: readonly SqlMiddleware[] = [],
 ): Promise<void> {
   await withDevDatabase(
     async ({ connectionString }) => {
@@ -146,6 +147,7 @@ export async function withCollectionRuntime(
         connectionString,
         contractOverride,
         additionalExtensions,
+        middleware,
       );
 
       try {

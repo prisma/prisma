@@ -6,5 +6,5 @@ export function executeQueryPlan<Row>(
   scope: RuntimeScope,
   plan: SqlExecutionPlan<Row> | SqlQueryPlan<Row>,
 ): AsyncIterableResult<Row> {
-  return scope.execute(plan);
+  return scope.query(plan);
 }
