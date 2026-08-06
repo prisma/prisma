@@ -46,6 +46,23 @@ describe('postgresRenderCheckExpressions', () => {
     expect(postgresRenderCheckExpressions(base)).toEqual([]);
   });
 
+  it('throws on an empty member set for a scalar column', () => {
+    expect(() => postgresRenderCheckExpressions({ ...base, memberValues: [] })).toThrow(
+      /empty member set/,
+    );
+  });
+
+  it('throws on an empty member set for an array column', () => {
+    expect(() =>
+      postgresRenderCheckExpressions({
+        ...base,
+        columnName: 'roles',
+        many: true,
+        memberValues: [],
+      }),
+    ).toThrow(/empty member set/);
+  });
+
   it('quotes identifiers and escapes literal quotes', () => {
     expect(
       postgresRenderCheckExpressions({

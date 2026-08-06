@@ -1,3 +1,4 @@
+import { invariant } from '@internal/utils/assertions';
 import { escapeLiteral, quoteIdentifier } from './sql-utils';
 
 /**
@@ -56,6 +57,10 @@ export function postgresRenderCheckExpressions(
   const column = quoteIdentifier(input.columnName);
 
   if (input.memberValues !== undefined) {
+    invariant(
+      input.memberValues.length > 0,
+      `check for "${input.tableName}"."${input.columnName}": empty member set; both authoring surfaces reject a member-less enum before rendering`,
+    );
     const members = input.memberValues.map((value) => `'${escapeLiteral(value)}'`).join(', ');
     candidates.push({
       kind: 'membership',
