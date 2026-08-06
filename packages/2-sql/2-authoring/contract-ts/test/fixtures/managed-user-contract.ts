@@ -18,7 +18,7 @@ const sqlFamilyPack = {
   },
 } as const satisfies FamilyPackRef<'sql'>;
 
-function renderCheckExpressions(input: {
+export function renderCheckExpressions(input: {
   readonly tableName: string;
   readonly columnName: string;
   readonly many: boolean;

@@ -11,6 +11,7 @@ import { typescriptContract, typescriptContractFromPath } from '../src/config-ty
 import { defineContract } from '../src/contract-builder';
 import { applySqlSpecifierControlPolicy } from '../src/derived-checks';
 import { enumType, member } from '../src/enum-type';
+import { renderCheckExpressions } from './fixtures/managed-user-contract';
 
 const sqlFamilyPack = {
   kind: 'family',
@@ -26,42 +27,6 @@ const sqlFamilyPack = {
     },
   },
 } as const satisfies FamilyPackRef<'sql'>;
-
-function renderCheckExpressions(input: {
-  readonly tableName: string;
-  readonly columnName: string;
-  readonly many: boolean;
-  readonly memberValues: readonly string[] | undefined;
-}): ReadonlyArray<{
-  readonly kind: 'membership' | 'elementNotNull';
-  readonly columnName: string;
-  readonly expression: string;
-}> {
-  const candidates: Array<{
-    kind: 'membership' | 'elementNotNull';
-    columnName: string;
-    expression: string;
-  }> = [];
-  const column = `"${input.columnName}"`;
-  if (input.memberValues !== undefined) {
-    const members = input.memberValues.map((v) => `'${v}'`).join(', ');
-    candidates.push({
-      kind: 'membership',
-      columnName: input.columnName,
-      expression: input.many
-        ? `${column}::text[] <@ ARRAY[${members}]::text[]`
-        : `${column} IN (${members})`,
-    });
-  }
-  if (input.many) {
-    candidates.push({
-      kind: 'elementNotNull',
-      columnName: input.columnName,
-      expression: `array_position(${column}, NULL) IS NULL`,
-    });
-  }
-  return candidates;
-}
 
 const postgresTargetPack = {
   kind: 'target',
@@ -95,10 +60,32 @@ function buildUser(options?: { readonly control?: ControlPolicy }): Contract<Sql
   ) as Contract<SqlStorage>;
 }
 
-function checksOf(contract: Contract): readonly CheckConstraint[] {
+function buildMixedControl(): Contract<SqlStorage> {
+  return defineContract(
+    {
+      family: sqlFamilyPack,
+      target: postgresTargetPack,
+      createNamespace: createTestSqlNamespace,
+      enums: { Role },
+    },
+    ({ field: f, model: m }) =>
+      ({
+        models: {
+          User: m('User', {
+            fields: { id: f.text().id(), role: f.namedType(Role), tags: f.text().many() },
+          }).sql({ control: 'managed' }),
+          Item: m('Item', {
+            fields: { id: f.text().id(), role: f.namedType(Role), tags: f.text().many() },
+          }),
+        },
+      }) as const,
+  ) as Contract<SqlStorage>;
+}
+
+function checksOf(contract: Contract, tableName = 'User'): readonly CheckConstraint[] {
   const storage = contract.storage as SqlStorage;
   const ns = storage.namespaces['public'];
-  const table = ns !== undefined ? ns.entries.table?.['User'] : undefined;
+  const table = ns !== undefined ? ns.entries.table?.[tableName] : undefined;
   return (table as StorageTable | undefined)?.checks ?? [];
 }
 
@@ -143,6 +130,19 @@ describe('applySqlSpecifierControlPolicy', () => {
     expect(applied.defaultControlPolicy).toBe('external');
     expect(checksOf(applied)).toHaveLength(2);
     expect((applied.storage as SqlStorage).storageHash).toBe(built.storage.storageHash);
+  });
+
+  it('strips only the tables not declaring managed under a specifier external default', () => {
+    const built = buildMixedControl();
+    expect(checksOf(built, 'User')).toHaveLength(2);
+    expect(checksOf(built, 'Item')).toHaveLength(2);
+
+    const applied = applySqlSpecifierControlPolicy(built, 'external', createTestSqlNamespace);
+
+    expect(applied.defaultControlPolicy).toBe('external');
+    expect(checksOf(applied, 'User')).toHaveLength(2);
+    expect(checksOf(applied, 'Item')).toEqual([]);
+    expect((applied.storage as SqlStorage).storageHash).not.toBe(built.storage.storageHash);
   });
 
   it('returns the contract by reference when the specifier stamps no policy', () => {
