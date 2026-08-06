@@ -77,7 +77,7 @@ describe('transaction E2E', { timeout: 30000 }, () => {
       });
 
       await expect(escaped.rows.toArray()).rejects.toThrow(
-        'Cannot read from a query result after the transaction has ended',
+        'Cannot use a transaction operation after the transaction has ended',
       );
     });
   });

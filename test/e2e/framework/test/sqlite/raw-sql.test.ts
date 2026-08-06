@@ -161,7 +161,7 @@ describe('e2e: rawSql expression on SQLite', { timeout: timeouts.databaseOperati
       // The where clause embeds a param() inside a rawSql expression.
       // After lowering, the plan carries one ParamRef (value 50, codec sqlite/integer@1).
       // The middleware's beforeExecute should see it via params.entries().
-      await harness.runtime.execute(
+      await harness.runtime.query(
         harness.db[UNBOUND_NAMESPACE_ID].posts
           .select('id')
           .where((_f, fns) =>
@@ -197,7 +197,7 @@ describe('e2e: rawSql expression on SQLite', { timeout: timeouts.databaseOperati
       cleanup = harness.close;
 
       // Two param() calls: param(10) and param(200).
-      await harness.runtime.execute(
+      await harness.runtime.query(
         harness.db[UNBOUND_NAMESPACE_ID].posts
           .select('id')
           .where((_f, fns) =>
