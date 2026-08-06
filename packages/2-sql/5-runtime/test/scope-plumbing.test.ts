@@ -215,7 +215,7 @@ describe('SQL runtime scope plumbing', () => {
     };
 
     const { runtime } = createTestSetup([observer]);
-    await runtime.execute(createRawExecutionPlan()).toArray();
+    await runtime.query(createRawExecutionPlan()).toArray();
 
     expect(seen).toEqual(['runtime']);
   });
@@ -233,7 +233,7 @@ describe('SQL runtime scope plumbing', () => {
     const { runtime } = createTestSetup([observer]);
     const connection = await runtime.connection();
     try {
-      await connection.execute(createRawExecutionPlan()).toArray();
+      await connection.query(createRawExecutionPlan()).toArray();
     } finally {
       await connection.release();
     }
@@ -255,7 +255,7 @@ describe('SQL runtime scope plumbing', () => {
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
     try {
-      await transaction.execute(createRawExecutionPlan()).toArray();
+      await transaction.query(createRawExecutionPlan()).toArray();
       await transaction.commit();
     } finally {
       await connection.release();
@@ -369,20 +369,20 @@ describe('SQL runtime scope plumbing', () => {
     const { runtime } = createTestSetup([observer]);
 
     // Top-level.
-    await runtime.execute(createRawExecutionPlan()).toArray();
+    await runtime.query(createRawExecutionPlan()).toArray();
 
     // Connection-scoped.
     const connection = await runtime.connection();
-    await connection.execute(createRawExecutionPlan()).toArray();
+    await connection.query(createRawExecutionPlan()).toArray();
 
     // Transaction-scoped.
     const transaction = await connection.transaction();
-    await transaction.execute(createRawExecutionPlan()).toArray();
+    await transaction.query(createRawExecutionPlan()).toArray();
     await transaction.commit();
     await connection.release();
 
     // And another top-level after returning the connection to the pool.
-    await runtime.execute(createRawExecutionPlan()).toArray();
+    await runtime.query(createRawExecutionPlan()).toArray();
 
     expect(seen).toEqual(['runtime', 'connection', 'transaction', 'runtime']);
   });

@@ -153,6 +153,18 @@ describe('runtime.prepare', () => {
     expect(firstHandleGet).toBeUndefined();
   });
 
+  it('queries prepared rows through the explicit runtime operation', async () => {
+    const { runtime, driver } = createSetup({ rows: [{ id: 1 }] });
+    const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
+      buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
+    );
+
+    await expect(runtime.queryPrepared(ps, { userId: 1 }).toArray()).resolves.toEqual([{ id: 1 }]);
+
+    expect(driver.__spies.query).toHaveBeenCalledOnce();
+    expect(driver.__spies.execute).not.toHaveBeenCalled();
+  });
+
   it('threads typeParams from the declaration onto PreparedParamRef.codec', async () => {
     const { runtime } = createSetup();
     const ps = await runtime.prepare(
@@ -333,7 +345,7 @@ describe('runtime.prepare', () => {
     expect(req.params).toEqual([999]);
   });
 
-  it('does not supply a prepared handle when ad-hoc .execute(plan) is used (regression)', async () => {
+  it('does not supply a prepared handle for an ad-hoc query', async () => {
     const { runtime, driver } = createSetup({ rows: [{ id: 1 }] });
     const ref = ParamRef.of(7, { codec: { codecId: 'pg/int4@1' } });
     const users = TableSource.named('users');
@@ -349,7 +361,7 @@ describe('runtime.prepare', () => {
       ),
       meta,
     });
-    await runtime.execute(plan).toArray();
+    await runtime.query(plan).toArray();
     expect(driver.__spies.query).toHaveBeenCalledTimes(1);
     expect(driver.__spies.query).toHaveBeenCalledWith(
       expect.not.objectContaining({ preparedStatementHandle: expect.anything() }),

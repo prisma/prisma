@@ -74,6 +74,7 @@ interface DriverOptions {
 
 function createControlledDriver(options?: DriverOptions): SqlDriver & {
   __executeMock: ReturnType<typeof vi.fn>;
+  __statsMock: ReturnType<typeof vi.fn>;
 } {
   const rows = options?.rows ?? [{ id: 1 }];
   const rowGate = options?.rowGate;
@@ -85,8 +86,9 @@ function createControlledDriver(options?: DriverOptions): SqlDriver & {
     }
   });
 
+  const execute = vi.fn().mockResolvedValue({ affectedRows: 0 });
   const driver: SqlDriver = {
-    execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
+    execute,
     query,
     connect: vi.fn().mockResolvedValue(undefined),
     acquireConnection: vi.fn().mockResolvedValue({
@@ -99,7 +101,7 @@ function createControlledDriver(options?: DriverOptions): SqlDriver & {
     close: vi.fn().mockResolvedValue(undefined),
   };
 
-  return Object.assign(driver, { __executeMock: query });
+  return Object.assign(driver, { __executeMock: query, __statsMock: execute });
 }
 
 function createStubAdapter(extraCodecs: readonly Codec<string>[] = []) {
@@ -213,7 +215,7 @@ function projectingExecutionPlan(
   };
 }
 
-describe('SqlRuntime.execute({ signal }) — abort semantics', () => {
+describe('SqlRuntime operations with signals — abort semantics', () => {
   it('regression — omitting options is bit-for-bit identical to today (no signal supplied)', async () => {
     const { stackInstance, context, driver } = createTestSetup();
     const runtime = createRuntime({
@@ -222,7 +224,7 @@ describe('SqlRuntime.execute({ signal }) — abort semantics', () => {
       driver,
       verifyMarker: false,
     });
-    const rows = await runtime.execute(rawExecutionPlan()).toArray();
+    const rows = await runtime.query(rawExecutionPlan()).toArray();
     expect(rows).toEqual([{ id: 1 }]);
   });
 
@@ -240,7 +242,7 @@ describe('SqlRuntime.execute({ signal }) — abort semantics', () => {
     controller.abort(reason);
 
     await expect(
-      runtime.execute(rawExecutionPlan(), { signal: controller.signal }).toArray(),
+      runtime.query(rawExecutionPlan(), { signal: controller.signal }).toArray(),
     ).rejects.toMatchObject({
       code: 'RUNTIME.ABORTED',
       details: { phase: 'stream' },
@@ -248,6 +250,24 @@ describe('SqlRuntime.execute({ signal }) — abort semantics', () => {
     });
 
     expect(driver.__executeMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects an already-aborted statistics execution before driver delegation', async () => {
+    const { stackInstance, context, driver } = createTestSetup();
+    const runtime = createRuntime({ stackInstance, context, driver, verifyMarker: false });
+    const controller = new AbortController();
+    const reason = new Error('caller aborted before statistics execution');
+    controller.abort(reason);
+
+    await expect(
+      runtime.execute(rawExecutionPlan(), { signal: controller.signal }),
+    ).rejects.toMatchObject({
+      code: 'RUNTIME.ABORTED',
+      details: { phase: 'stream' },
+      cause: reason,
+    });
+
+    expect(driver.__statsMock).not.toHaveBeenCalled();
   });
 
   it('between-rows abort exits the stream loop with RUNTIME.ABORTED { phase: stream } before pulling the next row', async () => {
@@ -276,7 +296,7 @@ describe('SqlRuntime.execute({ signal }) — abort semantics', () => {
     const controller = new AbortController();
     const reason = new Error('mid-stream abort');
 
-    const result = runtime.execute(rawExecutionPlan(), {
+    const result = runtime.query(rawExecutionPlan(), {
       signal: controller.signal,
     });
     const collected: unknown[] = [];
@@ -341,7 +361,7 @@ describe('SqlRuntime.execute({ signal }) — abort semantics', () => {
     });
 
     const controller = new AbortController();
-    const collector = runtime.execute(plan, { signal: controller.signal }).toArray();
+    const collector = runtime.query(plan, { signal: controller.signal }).toArray();
 
     await blockingDecodeStarted.promise;
     controller.abort(new Error('forwarded'));
@@ -384,7 +404,7 @@ describe('SqlRuntime.execute({ signal }) — abort semantics', () => {
 
     const controller = new AbortController();
     const reason = new Error('runtime aborted while codec body still running');
-    const collector = runtime.execute(plan, { signal: controller.signal }).toArray();
+    const collector = runtime.query(plan, { signal: controller.signal }).toArray();
 
     // Wait until the decode body has actually started (we're now mid-decode); then abort. The race in raceAgainstAbort surfaces RUNTIME.ABORTED with phase: 'decode', even though the codec body is still running and does not honour the signal.
     await decodeStarted.promise;
