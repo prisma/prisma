@@ -316,7 +316,7 @@ function testAggregateRegistry() {
  * broadly typed, so every operation carries an `anyInput` row; the precise
  * admit/reject proofs live in `test/types/aggregate-count.types.test-d.ts`.
  */
-type TestAggregateQC = QueryContext & {
+type TestAggregateQC = Omit<QueryContext, 'aggregateTypes'> & {
   aggregateTypes: {
     count: {
       byCodec: Record<never, never>;
