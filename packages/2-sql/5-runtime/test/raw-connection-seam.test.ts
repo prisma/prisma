@@ -155,12 +155,12 @@ class TestRuntime extends SqlRuntimeBase {
     return this.acquireRawConnection();
   }
 
-  runAgainstQueryable<Row>(
-    plan: Parameters<SqlRuntimeBase['executeAgainstQueryable']>[0],
-    queryable: Parameters<SqlRuntimeBase['executeAgainstQueryable']>[1],
+  runQueryAgainstQueryable<Row>(
+    plan: Parameters<SqlRuntimeBase['queryAgainstQueryable']>[0],
+    queryable: Parameters<SqlRuntimeBase['queryAgainstQueryable']>[1],
     options?: RuntimeExecuteOptions,
   ) {
-    return this.executeAgainstQueryable<Row>(plan, queryable, options);
+    return this.queryAgainstQueryable<Row>(plan, queryable, options);
   }
 }
 
@@ -251,7 +251,7 @@ describe('acquireRawConnection', () => {
   });
 });
 
-describe('executeAgainstQueryable', () => {
+describe('queryAgainstQueryable', () => {
   it('runs a typed plan through middleware against the supplied queryable', async () => {
     const observedSqls: string[] = [];
     const observer: SqlMiddleware = {
@@ -266,7 +266,7 @@ describe('executeAgainstQueryable', () => {
     const raw = await runtime.acquireRawConn();
 
     const plan = rawPlan({ sql: 'select id from users' });
-    await runtime.runAgainstQueryable(plan, raw).toArray();
+    await runtime.runQueryAgainstQueryable(plan, raw).toArray();
 
     expect(observedSqls).toEqual(['select id from users']);
     expect(connection.query).toHaveBeenCalledOnce();
@@ -276,7 +276,7 @@ describe('executeAgainstQueryable', () => {
     const { runtime, driver, connection } = createTestSetup();
     const raw = await runtime.acquireRawConn();
 
-    await runtime.runAgainstQueryable(rawPlan(), raw).toArray();
+    await runtime.runQueryAgainstQueryable(rawPlan(), raw).toArray();
 
     expect(connection.query).toHaveBeenCalledOnce();
     expect(driver.query).not.toHaveBeenCalled();

@@ -219,7 +219,7 @@ describe('verifyMarker', () => {
     const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
     const runtime = buildRuntime({ markerResult: { kind: 'absent' }, log });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.execute(createPlan());
 
     expect(log.warn).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
@@ -239,7 +239,7 @@ describe('verifyMarker', () => {
     const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
     const runtime = buildRuntime({ markerResult: { kind: 'no-table' }, log });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(log.warn).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
@@ -258,7 +258,7 @@ describe('verifyMarker', () => {
       log,
     });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(log.warn).not.toHaveBeenCalled();
   });
@@ -273,7 +273,7 @@ describe('verifyMarker', () => {
       log,
     });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(log.warn).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
@@ -299,7 +299,7 @@ describe('verifyMarker', () => {
       log,
     });
 
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(log.warn).toHaveBeenCalledOnce();
     expect(log.warn).toHaveBeenCalledWith(
@@ -322,8 +322,8 @@ describe('verifyMarker', () => {
       readMarkerSpy,
     });
 
-    await runtime.execute(createPlan()).toArray();
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(readMarkerSpy).not.toHaveBeenCalled();
     expect(log.warn).not.toHaveBeenCalled();
@@ -338,9 +338,9 @@ describe('verifyMarker', () => {
       readMarkerSpy,
     });
 
-    await runtime.execute(createPlan()).toArray();
-    await runtime.execute(createPlan()).toArray();
-    await runtime.execute(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
+    await runtime.query(createPlan()).toArray();
 
     expect(readMarkerSpy).toHaveBeenCalledTimes(1);
     expect(log.warn).toHaveBeenCalledTimes(1);
@@ -363,10 +363,10 @@ describe('verifyMarker', () => {
     });
 
     const inflight = [
-      runtime.execute(createPlan()).toArray(),
-      runtime.execute(createPlan()).toArray(),
-      runtime.execute(createPlan()).toArray(),
-      runtime.execute(createPlan()).toArray(),
+      runtime.query(createPlan()).toArray(),
+      runtime.query(createPlan()).toArray(),
+      runtime.query(createPlan()).toArray(),
+      runtime.query(createPlan()).toArray(),
     ];
 
     releaseMarker({ kind: 'absent' });

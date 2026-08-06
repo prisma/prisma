@@ -43,7 +43,7 @@ export class PreparedStatementImpl<Params, Row>
     params: Params,
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
-    return target.executePrepared(this, params, options);
+    return target.queryPrepared(this, params, options);
   }
 }
 

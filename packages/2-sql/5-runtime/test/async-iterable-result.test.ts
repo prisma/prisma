@@ -104,7 +104,7 @@ describe('SqlRuntime AsyncIterableResult integration', () => {
       },
     };
 
-    const result = runtime.execute(plan);
+    const result = runtime.query(plan);
 
     expect(result).toBeInstanceOf(Object);
     expect(typeof result.toArray).toBe('function');
@@ -130,7 +130,7 @@ describe('SqlRuntime AsyncIterableResult integration', () => {
       },
     };
 
-    const result: AsyncIterableResult<{ id: number; email: string }> = runtime.execute(plan);
+    const result: AsyncIterableResult<{ id: number; email: string }> = runtime.query(plan);
     const rows = await result.toArray();
 
     expect(rows.length).toBe(1);

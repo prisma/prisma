@@ -208,14 +208,14 @@ describe('intercepted rows go through codec decoding', () => {
       familyId: 'sql',
       async intercept() {
         // Raw wire row, as the driver would have produced it: a string containing JSON-encoded data.
-        return { rows: [{ profile: wireValue }] };
+        return { operation: 'query', rows: [{ profile: wireValue }] };
       },
     };
 
     const { runtime, driver } = createTestSetup([interceptor]);
     const plan = createJsonProjectionPlan('profile');
 
-    const out = await runtime.execute(plan).toArray();
+    const out = await runtime.query(plan).toArray();
 
     // The consumer must see the *decoded* value (a parsed object), not the raw wire string.
     expect(out).toEqual([{ profile: { name: 'Alice', tags: ['admin', 'staff'] } }]);
@@ -228,6 +228,7 @@ describe('intercepted rows go through codec decoding', () => {
       familyId: 'sql',
       async intercept() {
         return {
+          operation: 'query',
           rows: [
             { profile: JSON.stringify({ id: 1 }) },
             { profile: JSON.stringify({ id: 2 }) },
@@ -240,7 +241,7 @@ describe('intercepted rows go through codec decoding', () => {
     const { runtime, driver } = createTestSetup([interceptor]);
     const plan = createJsonProjectionPlan('profile');
 
-    const out = await runtime.execute(plan).toArray();
+    const out = await runtime.query(plan).toArray();
 
     expect(out).toEqual([{ profile: { id: 1 } }, { profile: { id: 2 } }, { profile: { id: 3 } }]);
     expect(driver.execute).not.toHaveBeenCalled();
@@ -256,14 +257,14 @@ describe('intercepted rows go through codec decoding', () => {
       name: 'mock-cache',
       familyId: 'sql',
       async intercept() {
-        return { rows: asyncRows() };
+        return { operation: 'query', rows: asyncRows() };
       },
     };
 
     const { runtime, driver } = createTestSetup([interceptor]);
     const plan = createJsonProjectionPlan('profile');
 
-    const out = await runtime.execute(plan).toArray();
+    const out = await runtime.query(plan).toArray();
 
     expect(out).toEqual([{ profile: { kind: 'first' } }, { profile: { kind: 'second' } }]);
     expect(driver.query).not.toHaveBeenCalled();
@@ -284,7 +285,7 @@ describe('intercepted rows go through codec decoding', () => {
         yield { profile: wireValue };
       });
 
-      const out = await runtime.execute(createJsonProjectionPlan('profile')).toArray();
+      const out = await runtime.query(createJsonProjectionPlan('profile')).toArray();
       return out;
     })();
 
@@ -298,12 +299,12 @@ describe('intercepted rows go through codec decoding', () => {
         name: 'mock-cache',
         familyId: 'sql',
         async intercept() {
-          return { rows: [{ profile: wireValue }] };
+          return { operation: 'query', rows: [{ profile: wireValue }] };
         },
       };
 
       const { runtime } = createTestSetup([interceptor]);
-      return runtime.execute(createJsonProjectionPlan('profile')).toArray();
+      return runtime.query(createJsonProjectionPlan('profile')).toArray();
     })();
 
     // Both paths produce identical decoded output.
