@@ -21,7 +21,7 @@ class MockDriver {
     this.rows = rows;
   }
 
-  async *query<Row = Record<string, unknown>>(_request: {
+  async *query<Row = Record<string, unknown>>(_options: {
     sql: string;
     params?: readonly unknown[];
   }): AsyncIterable<Row> {
@@ -30,10 +30,7 @@ class MockDriver {
     }
   }
 
-  async execute(_request: {
-    sql: string;
-    params?: readonly unknown[];
-  }): Promise<{ affectedRows: number }> {
+  async execute(): Promise<{ affectedRows: number }> {
     return { affectedRows: 0 };
   }
 

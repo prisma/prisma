@@ -1,5 +1,9 @@
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import type { SqlDriver, SqlExecuteRequest } from '@internal/sql-relational-core/ast';
+import type {
+  PreparedExecuteRequest,
+  SqlDriver,
+  SqlExecuteRequest,
+} from '@internal/sql-relational-core/ast';
 import {
   BinaryExpr,
   ColumnRef,
@@ -38,10 +42,10 @@ interface DriverSpies {
 function createMockDriver(rows: ReadonlyArray<Record<string, unknown>>): SqlDriver & {
   __spies: DriverSpies;
 } {
-  const execute = vi.fn().mockResolvedValue({ affectedRows: 0 });
   const query = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
     for (const row of rows) yield row;
   });
+  const execute = vi.fn().mockResolvedValue({ affectedRows: 0 });
   const close = vi.fn().mockResolvedValue(undefined);
   const acquireConnection = vi.fn();
 
@@ -138,8 +142,8 @@ describe('runtime.prepare', () => {
   it('hands the driver an initially-unset handle slot on first execute', async () => {
     const { runtime, driver } = createSetup({ rows: [] });
     let firstHandleGet: unknown = 'unobserved';
-    driver.__spies.query.mockImplementation(async function* (req: SqlExecuteRequest) {
-      firstHandleGet = req.preparedStatementHandle?.get();
+    driver.__spies.query.mockImplementation(async function* (req: PreparedExecuteRequest) {
+      firstHandleGet = req.preparedStatementHandle.get();
       yield* [];
     });
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
@@ -213,7 +217,7 @@ describe('runtime.prepare', () => {
     expect(beforeExecute).toHaveBeenCalledTimes(2);
   });
 
-  it('routes prepared reads through driver.query and reuses lowered SQL', async () => {
+  it('routes .execute() through driver.query with a prepared handle and reuses lowered SQL', async () => {
     const { runtime, driver, adapter } = createSetup({ rows: [{ id: 1 }] });
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
@@ -237,10 +241,12 @@ describe('runtime.prepare', () => {
     await ps.execute(runtime, { userId: 42 }).toArray();
     const lastCall = driver.__spies.query.mock.calls.at(-1);
     expect(lastCall).toBeDefined();
-    const req = lastCall?.[0] as SqlExecuteRequest;
+    const req = lastCall?.[0] as PreparedExecuteRequest;
     expect(req.params).toEqual([42]);
+    const params = req.params;
+    if (params === undefined) throw new Error('expected params');
     // No slot markers leak into the wire-format params.
-    for (const p of req.params ?? []) {
+    for (const p of params) {
       expect(p).not.toMatchObject({ __preparedSlotMarker: true });
     }
   });
@@ -248,13 +254,12 @@ describe('runtime.prepare', () => {
   it('persists handle.set(value) across executes (round-trip via the slot wrapper)', async () => {
     const { runtime, driver } = createSetup({ rows: [] });
     const observed: unknown[] = [];
-    driver.__spies.query.mockImplementation(async function* (req: SqlExecuteRequest) {
+    driver.__spies.query.mockImplementation(async function* (req: PreparedExecuteRequest) {
       // Simulate a driver allocating a handle on first call and observing
       // the persisted value on subsequent calls.
-      const handle = req.preparedStatementHandle;
-      observed.push(handle?.get());
-      if (handle?.get() === undefined) {
-        handle?.set('pn_42');
+      observed.push(req.preparedStatementHandle.get());
+      if (req.preparedStatementHandle.get() === undefined) {
+        req.preparedStatementHandle.set('pn_42');
       }
       yield* [];
     });
@@ -269,8 +274,9 @@ describe('runtime.prepare', () => {
   it('produces independent results for two .execute() calls on the same handle', async () => {
     const { runtime, driver } = createSetup();
     const captured: Array<readonly unknown[]> = [];
-    driver.__spies.query.mockImplementation(async function* (req: SqlExecuteRequest) {
-      const params = req.params ?? [];
+    driver.__spies.query.mockImplementation(async function* (req: PreparedExecuteRequest) {
+      const params = req.params;
+      if (params === undefined) throw new Error('expected params');
       captured.push(params);
       yield { id: params[0] };
     });
@@ -323,11 +329,11 @@ describe('runtime.prepare', () => {
     expect(captured).toEqual([42]);
     // The replacement reaches the driver — encode runs after mutation.
     const lastCall = driver.__spies.query.mock.calls.at(-1);
-    const req = lastCall?.[0] as SqlExecuteRequest;
+    const req = lastCall?.[0] as PreparedExecuteRequest;
     expect(req.params).toEqual([999]);
   });
 
-  it('sends ad-hoc reads through query without a prepared handle', async () => {
+  it('does not supply a prepared handle when ad-hoc .execute(plan) is used (regression)', async () => {
     const { runtime, driver } = createSetup({ rows: [{ id: 1 }] });
     const ref = ParamRef.of(7, { codec: { codecId: 'pg/int4@1' } });
     const users = TableSource.named('users');
@@ -345,6 +351,9 @@ describe('runtime.prepare', () => {
     });
     await runtime.execute(plan).toArray();
     expect(driver.__spies.query).toHaveBeenCalledTimes(1);
-    expect(driver.__spies.query.mock.calls[0]?.[0]?.preparedStatementHandle).toBeUndefined();
+    expect(driver.__spies.query).toHaveBeenCalledWith(
+      expect.not.objectContaining({ preparedStatementHandle: expect.anything() }),
+    );
+    expect(driver.__spies.execute).not.toHaveBeenCalled();
   });
 });

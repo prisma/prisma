@@ -23,8 +23,8 @@ import {
 } from './utils';
 
 /**
- * Pins ADR 220 semantics for the SQL runtime: every ad-hoc and prepared
- * execution mints a fresh `ctx.planExecutionId` for the
+ * Pins ADR 220 semantics for the SQL runtime: every `execute()` and every
+ * `executePrepared()` call mints a fresh `ctx.planExecutionId` for the
  * per-execute middleware context. Hooks within one call observe the same
  * ID; hooks across two calls of the same plan/prepared-statement observe
  * distinct IDs.
@@ -153,8 +153,8 @@ describe('SqlRuntime.execute planExecutionId (ADR 220)', () => {
   });
 });
 
-describe('SqlRuntime prepared execution planExecutionId (ADR 220)', () => {
-  it('assigns the same planExecutionId to beforeExecute and afterExecute within one prepared execution', async () => {
+describe('SqlRuntime.executePrepared planExecutionId (ADR 220)', () => {
+  it('assigns the same planExecutionId to beforeExecute and afterExecute within one executePrepared call', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
@@ -168,7 +168,7 @@ describe('SqlRuntime prepared execution planExecutionId (ADR 220)', () => {
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
   });
 
-  it('assigns distinct planExecutionIds to two calls on the same prepared statement', async () => {
+  it('assigns distinct planExecutionIds to two executePrepared calls on the same prepared statement', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>

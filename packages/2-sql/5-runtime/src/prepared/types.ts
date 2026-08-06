@@ -45,7 +45,7 @@ export type ParamsFromDeclaration<D, CT extends CodecTypesBase> = {
 
 export type PrepareCallback<D, Row> = (params: BindSiteParams<D>) => SqlQueryPlan<Row>;
 
-export interface PreparedStatement<Params extends Record<string, unknown>, Row> {
+export interface PreparedStatement<Params, Row> {
   readonly sql: string;
   readonly ast: AnyQueryAst;
   readonly meta: PlanMeta;

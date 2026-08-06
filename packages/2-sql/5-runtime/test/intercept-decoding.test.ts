@@ -92,14 +92,14 @@ function createStubAdapter(codecs: ReadonlyArray<Codec<string>>) {
 }
 
 function createMockDriver(): SqlDriver {
-  const query = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
+  const rootExecute = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
     // Default driver path; real test cases below either intercept (skipping this) or assert it was called.
     yield {} as Record<string, unknown>;
   });
 
   return {
     execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
-    query,
+    query: rootExecute,
     connect: vi.fn().mockImplementation(async (_binding?: undefined) => undefined),
     acquireConnection: vi.fn().mockRejectedValue(new Error('not used in this test')),
     close: vi.fn().mockResolvedValue(undefined),
@@ -219,7 +219,7 @@ describe('intercepted rows go through codec decoding', () => {
 
     // The consumer must see the *decoded* value (a parsed object), not the raw wire string.
     expect(out).toEqual([{ profile: { name: 'Alice', tags: ['admin', 'staff'] } }]);
-    expect(driver.query).not.toHaveBeenCalled();
+    expect(driver.execute).not.toHaveBeenCalled();
   });
 
   it('decodes multiple intercepted rows independently', async () => {
@@ -243,7 +243,7 @@ describe('intercepted rows go through codec decoding', () => {
     const out = await runtime.execute(plan).toArray();
 
     expect(out).toEqual([{ profile: { id: 1 } }, { profile: { id: 2 } }, { profile: { id: 3 } }]);
-    expect(driver.query).not.toHaveBeenCalled();
+    expect(driver.execute).not.toHaveBeenCalled();
   });
 
   it('decodes intercepted rows yielded from an AsyncIterable', async () => {

@@ -229,7 +229,7 @@ describe('marker verification runs before intercept', () => {
       }),
     );
     expect(intercept).toHaveBeenCalled();
-    expect(driver.query).not.toHaveBeenCalled();
+    expect(driver.execute).not.toHaveBeenCalled();
     expect(callOrder).toEqual(['verify', 'intercept']);
   });
 });

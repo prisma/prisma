@@ -242,7 +242,8 @@ describe('acquireRawConnection', () => {
     const { runtime, connection } = createTestSetup({ middleware: [observer] });
     const raw = await runtime.acquireRawConn();
 
-    for await (const _row of raw.query({ sql: 'SET LOCAL role = $1', params: ['viewer'] })) {
+    for await (const row of raw.query({ sql: 'SET LOCAL role = $1', params: ['viewer'] })) {
+      void row;
     }
 
     expect(connection.queryCalls).toEqual([{ sql: 'SET LOCAL role = $1', params: ['viewer'] }]);
