@@ -2640,7 +2640,7 @@ export type Collection<
  * intersection surface, whose reducer members the constructor installs from
  * the registry the execution context carries.
  */
-interface CollectionSurfaceConstructor extends Function {
+interface CollectionSurfaceConstructor {
   new <
     TContract extends Contract<SqlStorage>,
     ModelName extends string,
@@ -2657,3 +2657,12 @@ export const Collection = blindCast<
   CollectionSurfaceConstructor,
   'the constructor installs one reducer per aggregate operation the registry contributes'
 >(CollectionImpl);
+
+/**
+ * The class behind {@link Collection}, for package-internal prototype-chain
+ * checks (`instanceof`) and default construction. The public constructor
+ * surface carries a single construct signature returning the intersection,
+ * which heritage clauses require; the raw class keeps the `Function` shape
+ * those checks need.
+ */
+export const CollectionBase = CollectionImpl;

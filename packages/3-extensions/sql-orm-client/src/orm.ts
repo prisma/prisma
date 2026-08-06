@@ -6,7 +6,7 @@ import type {
 } from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
 import { aggregateOperationNames } from './aggregate-operations';
-import { Collection, reservedCollectionMemberNames } from './collection';
+import { type Collection, CollectionBase, reservedCollectionMemberNames } from './collection';
 import { ormError } from './orm-errors';
 import { domainModelNamesInNamespace, domainModelTableInNamespace } from './storage-resolution';
 import type {
@@ -135,7 +135,7 @@ export function orm<
     modelName: string,
     tableName?: string,
   ): AnyCollection {
-    const CollectionClass = collectionRegistry.get(modelName) ?? Collection;
+    const CollectionClass = collectionRegistry.get(modelName) ?? CollectionBase;
     const CollectionCtor = blindCast<
       new (
         ctx: CollectionContext<TContract>,
@@ -245,5 +245,5 @@ function isCollectionClass(value: unknown): value is AnyCollectionClass {
   if (!candidate.prototype || typeof candidate.prototype !== 'object') {
     return false;
   }
-  return candidate.prototype instanceof Collection;
+  return candidate.prototype instanceof CollectionBase;
 }
