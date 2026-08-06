@@ -39,7 +39,7 @@ export type SqlNamespaceFactory = (input: SqlNamespaceInput) => SqlNamespaceBase
  * This is the post-build half of the rule. Authoring skips derivation for a
  * table whose policy is known in the source; this pass catches the policy a
  * contract *specifier* applies after the contract is already built, which is
- * the only signal a pack like `@internal/extension-supabase` gives.
+ * the only signal a pack like the Supabase extension gives.
  *
  * Returns the contract unchanged (same reference) when nothing is stripped.
  * When something is, the storage hash is recomputed — the stripped contract
