@@ -19,9 +19,9 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 //   - set null shorthand → updateAndCount({ content: null })
 //   - unset              → updateAndCount((u) => [u.content.unset()])
 //
-// Ported (required variant, it.fails):
-//   - set null           → type rejects null; mongo does not throw at runtime
-//   - set null shorthand → same
+// Ported (required variant):
+//   - set null
+//   - set null shorthand
 //
 // Non-ported — see non-ported ledger:
 //   - optional/required `update` sub-operator, `update push/set nested list` — no partial
@@ -78,8 +78,9 @@ describe('ports/prisma/functional/composites/object/updateMany', () => {
     );
 
     // Upstream asserts null on required `content` is both a type error and a runtime throw.
-    // prisma-next rejects it at the type level but mongo does not throw — it.fails.
-    it.fails(
+    // Prisma Next rejects it at the type level, and MongoDB rejects it through the
+    // provisioned collection validator.
+    it(
       'set null',
       () =>
         withComposites(async ({ db }) => {
@@ -100,7 +101,7 @@ describe('ports/prisma/functional/composites/object/updateMany', () => {
       timeouts.spinUpMongoMemoryServer,
     );
 
-    it.fails(
+    it(
       'set null shorthand',
       () =>
         withComposites(async ({ db }) => {

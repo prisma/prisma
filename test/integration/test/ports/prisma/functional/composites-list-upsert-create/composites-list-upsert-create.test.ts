@@ -11,8 +11,8 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // prisma-next: `.where({ _id }).upsert({ create, update: {} })`.
 //
 // `set null` / `set null shorthand` assert BOTH a type error and a runtime
-// "must not be null" throw. prisma-next rejects null at the type level but the
-// mongo runtime does not throw — faithful port, it.fails.
+// "must not be null" throw. Prisma Next rejects null at the type level, and
+// MongoDB rejects it through the provisioned collection validator.
 
 function withComposites(fn: Parameters<typeof withMongoPort<Contract>>[1]) {
   return withMongoPort<Contract>({ contractJson }, fn);
@@ -85,7 +85,7 @@ describe('ports/prisma/functional/composites/list/upsert-create', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it.fails(
+  it(
     'set null',
     () =>
       withComposites(async ({ db }) => {
@@ -103,7 +103,7 @@ describe('ports/prisma/functional/composites/list/upsert-create', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it.fails(
+  it(
     'set null shorthand',
     () =>
       withComposites(async ({ db }) => {
