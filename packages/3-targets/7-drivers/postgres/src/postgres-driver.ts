@@ -169,8 +169,8 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
         yield* this.runQuery<Row>(request);
         return;
       }
-      const handle = this.preparedStatementName(preparedStatementHandle);
-      yield* this.withStaleHandleStreamRetry<Row>(preparedStatementHandle, handle, (name) =>
+      const name = this.preparedStatementName(preparedStatementHandle);
+      yield* this.withStaleHandleStreamRetry<Row>(preparedStatementHandle, name, (name) =>
         this.runQuery<Row>(request, name),
       );
     } catch (error) {
@@ -184,8 +184,8 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
         return await this.runExecute(request);
       }
-      const handle = this.preparedStatementName(preparedStatementHandle);
-      return await this.withStaleHandleRetry(preparedStatementHandle, handle, (name) =>
+      const name = this.preparedStatementName(preparedStatementHandle);
+      return await this.withStaleHandleRetry(preparedStatementHandle, name, (name) =>
         this.runExecute(request, name),
       );
     } catch (error) {
@@ -194,51 +194,47 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
   }
 
   private preparedStatementName(handle: PreparedStatementHandle): string {
-    const existingHandle = handle.get();
-    if (typeof existingHandle === 'string') {
-      return existingHandle;
+    const existingName = handle.get();
+    if (typeof existingName === 'string') {
+      return existingName;
     }
-    const mintedHandle = this.options.handleAllocator.mint();
-    handle.set(mintedHandle);
-    return mintedHandle;
+    const mintedName = this.options.handleAllocator.mint();
+    handle.set(mintedName);
+    return mintedName;
   }
 
   private async withStaleHandleRetry<Result>(
     preparedStatementHandle: PreparedStatementHandle,
-    handle: string,
-    attempt: (handle: string) => Promise<Result>,
+    name: string,
+    attempt: (name: string) => Promise<Result>,
   ): Promise<Result> {
     try {
-      return await attempt(handle);
+      return await attempt(name);
     } catch (error) {
       if (!isStalePreparedStatementError(error)) {
         throw error;
       }
       // pg's parsedStatements still records the old name; only a fresh name
       // forces pg to re-Parse on this Client.
-      const retryHandle = this.options.handleAllocator.mint();
-      preparedStatementHandle.set(retryHandle);
+      const retryName = this.options.handleAllocator.mint();
+      preparedStatementHandle.set(retryName);
       try {
-        return await attempt(retryHandle);
+        return await attempt(retryName);
       } catch (retryError) {
-        throw prepareFailedError(retryError, retryHandle);
+        throw prepareFailedError(retryError, retryName);
       }
     }
   }
 
   private async *withStaleHandleStreamRetry<Row>(
     preparedStatementHandle: PreparedStatementHandle,
-    handle: string,
-    attempt: (handle: string) => AsyncIterable<Row>,
+    name: string,
+    attempt: (name: string) => AsyncIterable<Row>,
   ): AsyncIterable<Row> {
-    const stream = await this.withStaleHandleRetry(
-      preparedStatementHandle,
-      handle,
-      async (name) => {
-        const iterator = attempt(name)[Symbol.asyncIterator]();
-        return { iterator, first: await iterator.next() };
-      },
-    );
+    const stream = await this.withStaleHandleRetry(preparedStatementHandle, name, async (name) => {
+      const iterator = attempt(name)[Symbol.asyncIterator]();
+      return { iterator, first: await iterator.next() };
+    });
 
     if (stream.first.done) {
       return;
@@ -270,7 +266,10 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
         const result = await client.query({
           name,
           text: request.sql,
-          values: [...(request.params ?? [])],
+          values: blindCast<
+            unknown[],
+            'pg query types require a mutable array but pg does not mutate execution params'
+          >(request.params ?? []),
         });
         return { affectedRows: result.rowCount ?? 0 };
       } finally {

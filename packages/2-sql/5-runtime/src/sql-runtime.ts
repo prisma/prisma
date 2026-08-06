@@ -513,10 +513,22 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       exec = await this.encodeDraftParams(draftWithMutations, codecCtx);
     }
 
+    return this.createExecutionRequest(exec);
+  }
+
+  private createExecutionRequest(
+    exec: SqlExecutionPlan,
+    decodeContext = buildDecodeContext(exec.ast, this.contractCodecs),
+    preparedStatementHandle?: SqlExecuteRequest['preparedStatementHandle'],
+  ): ExecutionRequest {
     return {
       exec,
-      decodeContext: buildDecodeContext(exec.ast, this.contractCodecs),
-      request: { sql: exec.sql, params: exec.params },
+      decodeContext,
+      request: {
+        sql: exec.sql,
+        params: exec.params,
+        ...ifDefined('preparedStatementHandle', preparedStatementHandle),
+      },
     };
   }
 
@@ -620,20 +632,12 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     };
 
     const handles = this.#preparedStatementHandles;
-    return {
-      exec,
-      decodeContext: ps.decodeContext,
-      request: {
-        sql: exec.sql,
-        params: exec.params,
-        preparedStatementHandle: {
-          get: () => handles.get(ps),
-          set: (value) => {
-            handles.set(ps, value);
-          },
-        },
+    return this.createExecutionRequest(exec, ps.decodeContext, {
+      get: () => handles.get(ps),
+      set: (value) => {
+        handles.set(ps, value);
       },
-    };
+    });
   }
 
   private executeOnQueryable<Params extends Record<string, unknown>, Row>(
