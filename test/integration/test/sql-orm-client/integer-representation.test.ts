@@ -3,6 +3,7 @@ import { Collection } from '@internal/sql-orm-client';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { describe, expect, expectTypeOf, it } from 'vitest';
+import { rejectionShape } from './error-shape';
 import type { Contract } from './fixtures/integer-representation/generated/contract';
 import contractJson from './fixtures/integer-representation/generated/contract.json' with {
   type: 'json',
@@ -142,14 +143,17 @@ describe('integration/integer representation presets', () => {
         );
         const meters = createMeters(runtime);
 
-        await expect(
+        const shape = await rejectionShape(
           meters
             .select('id', 'peak')
             .where((meter) => meter.id.eq(10))
             .all(),
-        ).rejects.toMatchObject({
+        );
+        expect(shape).toEqual({
+          name: 'StructuredError',
+          message: `pg/int8number@1 value must be an integer within the safe integer range, got ${FIRST_UNSAFE}`,
           code: 'RUNTIME.DECODE_FAILED',
-          meta: { codecId: 'pg/int8number@1' },
+          meta: { codecId: 'pg/int8number@1', received: String(FIRST_UNSAFE) },
         });
       }, contract);
     },
@@ -170,22 +174,32 @@ describe('integration/integer representation presets', () => {
           `insert into int_repr_samples (id, meter_id, reading) values (10, 1, ${FIRST_UNSAFE})`,
         );
 
-        await expect(
+        const shape = await rejectionShape(
           meters
             .select('id')
             .where((meter) => meter.id.eq(1))
             .include('samples', (sample) => sample.select('id', 'reading'))
             .all(),
-        ).rejects.toMatchObject({
+        );
+        // The include decode wraps the codec's structured error in the
+        // runtime's column-context envelope, with the codec error on `cause`.
+        expect(shape).toEqual({
+          name: 'RuntimeError',
+          message: `Failed to decode column int_repr_samples.reading with codec 'pg/int8number@1': pg/int8number@1 value must be an integer within the safe integer range, got ${FIRST_UNSAFE}`,
           code: 'RUNTIME.DECODE_FAILED',
-          // The include decode wraps the codec's structured error in the
-          // runtime's column-context envelope, with the codec error on `cause`.
+          category: 'RUNTIME',
+          severity: 'error',
           details: {
             table: 'int_repr_samples',
             column: 'reading',
             codec: 'pg/int8number@1',
           },
-          cause: { code: 'RUNTIME.DECODE_FAILED', meta: { codecId: 'pg/int8number@1' } },
+          cause: {
+            name: 'StructuredError',
+            message: `pg/int8number@1 value must be an integer within the safe integer range, got ${FIRST_UNSAFE}`,
+            code: 'RUNTIME.DECODE_FAILED',
+            meta: { codecId: 'pg/int8number@1', received: String(FIRST_UNSAFE) },
+          },
         });
       }, contract);
     },
@@ -199,11 +213,14 @@ describe('integration/integer representation presets', () => {
         await setupTables(runtime);
         const meters = createMeters(runtime);
 
-        await expect(
+        const shape = await rejectionShape(
           meters.create({ id: 20, peak: FIRST_UNSAFE, lifetime: 0n }),
-        ).rejects.toMatchObject({
+        );
+        expect(shape).toEqual({
+          name: 'StructuredError',
+          message: `pg/int8number@1 value must be an integer within the safe integer range, got ${FIRST_UNSAFE}`,
           code: 'RUNTIME.ENCODE_FAILED',
-          meta: { codecId: 'pg/int8number@1' },
+          meta: { codecId: 'pg/int8number@1', received: String(FIRST_UNSAFE) },
         });
       }, contract);
     },
@@ -217,9 +234,13 @@ describe('integration/integer representation presets', () => {
         await setupTables(runtime);
         const meters = createMeters(runtime);
 
-        await expect(meters.create({ id: 21, peak: 1.5, lifetime: 0n })).rejects.toMatchObject({
+        const shape = await rejectionShape(meters.create({ id: 21, peak: 1.5, lifetime: 0n }));
+        expect(shape).toEqual({
+          name: 'StructuredError',
+          message:
+            'pg/int8number@1 value must be an integer within the safe integer range, got 1.5',
           code: 'RUNTIME.ENCODE_FAILED',
-          meta: { codecId: 'pg/int8number@1' },
+          meta: { codecId: 'pg/int8number@1', received: '1.5' },
         });
       }, contract);
     },

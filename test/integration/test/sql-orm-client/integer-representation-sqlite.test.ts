@@ -7,6 +7,7 @@ import type { SqliteClient } from '@internal/sqlite/runtime';
 import sqlite from '@internal/sqlite/runtime';
 import { join } from 'pathe';
 import { afterAll, beforeAll, describe, expect, expectTypeOf, it } from 'vitest';
+import { rejectionShape } from './error-shape';
 import type { Contract } from './fixtures/integer-representation-sqlite/generated/contract';
 import contractJson from './fixtures/integer-representation-sqlite/generated/contract.json' with {
   type: 'json',
@@ -122,41 +123,58 @@ describe('integration/integer representation preset on sqlite', () => {
       `insert into int_repr_samples (id, meter_id, reading) values (10, 1, ${FIRST_UNSAFE})`,
     );
 
-    await expect(
+    const shape = await rejectionShape(
       db![UNBOUND_NAMESPACE_ID].Meter.select('id')
         .where((meter) => meter.id.eq(1))
         .include('samples', (sample) => sample.select('id', 'reading'))
         .all(),
-    ).rejects.toMatchObject({
+    );
+    // The include decode wraps the codec's structured error in the
+    // runtime's column-context envelope, with the codec error on `cause`.
+    expect(shape).toEqual({
+      name: 'RuntimeError',
+      message: `Failed to decode column int_repr_samples.reading with codec 'sqlite/bigintnumber@1': sqlite/bigintnumber@1 value must be an integer within the safe integer range, got ${FIRST_UNSAFE}`,
       code: 'RUNTIME.DECODE_FAILED',
-      // The include decode wraps the codec's structured error in the
-      // runtime's column-context envelope, with the codec error on `cause`.
+      category: 'RUNTIME',
+      severity: 'error',
       details: {
         table: 'int_repr_samples',
         column: 'reading',
         codec: 'sqlite/bigintnumber@1',
       },
-      cause: { code: 'RUNTIME.DECODE_FAILED', meta: { codecId: 'sqlite/bigintnumber@1' } },
+      cause: {
+        name: 'StructuredError',
+        message: `sqlite/bigintnumber@1 value must be an integer within the safe integer range, got ${FIRST_UNSAFE}`,
+        code: 'RUNTIME.DECODE_FAILED',
+        meta: { codecId: 'sqlite/bigintnumber@1', received: String(FIRST_UNSAFE) },
+      },
     });
 
     database!.exec('delete from int_repr_samples where id = 10');
   });
 
   it('writing past the safe range through BigIntNumber raises RUNTIME.ENCODE_FAILED', async () => {
-    await expect(
+    const shape = await rejectionShape(
       db![UNBOUND_NAMESPACE_ID].Meter.create({ id: 20, peak: FIRST_UNSAFE }),
-    ).rejects.toMatchObject({
+    );
+    expect(shape).toEqual({
+      name: 'StructuredError',
+      message: `sqlite/bigintnumber@1 value must be an integer within the safe integer range, got ${FIRST_UNSAFE}`,
       code: 'RUNTIME.ENCODE_FAILED',
-      meta: { codecId: 'sqlite/bigintnumber@1' },
+      meta: { codecId: 'sqlite/bigintnumber@1', received: String(FIRST_UNSAFE) },
     });
   });
 
   it('writing a non-integral number through BigIntNumber raises RUNTIME.ENCODE_FAILED', async () => {
-    await expect(
+    const shape = await rejectionShape(
       db![UNBOUND_NAMESPACE_ID].Meter.create({ id: 21, peak: 1.5 }),
-    ).rejects.toMatchObject({
+    );
+    expect(shape).toEqual({
+      name: 'StructuredError',
+      message:
+        'sqlite/bigintnumber@1 value must be an integer within the safe integer range, got 1.5',
       code: 'RUNTIME.ENCODE_FAILED',
-      meta: { codecId: 'sqlite/bigintnumber@1' },
+      meta: { codecId: 'sqlite/bigintnumber@1', received: '1.5' },
     });
   });
 });
