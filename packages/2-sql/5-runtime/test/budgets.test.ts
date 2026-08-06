@@ -33,6 +33,7 @@ function createMiddlewareContext(overrides?: Partial<SqlMiddlewareContext>): Sql
     scope: 'runtime' as const,
     planExecutionId: 'test-fixture-plan-execution-id',
     ...overrides,
+    operation: overrides?.operation ?? 'query',
   };
 }
 
@@ -112,6 +113,7 @@ describe('budgets middleware', () => {
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'permissive' });
         const result: AfterExecuteResult = {
+          operation: 'query',
           rowCount: 1,
           latencyMs: 200,
           completed: true,
@@ -133,6 +135,7 @@ describe('budgets middleware', () => {
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'strict' });
         const result: AfterExecuteResult = {
+          operation: 'query',
           rowCount: 1,
           latencyMs: 200,
           completed: true,
@@ -154,6 +157,7 @@ describe('budgets middleware', () => {
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'strict' });
         const result: AfterExecuteResult = {
+          operation: 'query',
           rowCount: 1,
           latencyMs: 200,
           completed: true,
@@ -175,6 +179,7 @@ describe('budgets middleware', () => {
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'permissive' });
         const result: AfterExecuteResult = {
+          operation: 'query',
           rowCount: 1,
           latencyMs: 200,
           completed: true,
@@ -196,6 +201,7 @@ describe('budgets middleware', () => {
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'permissive' });
         const result: AfterExecuteResult = {
+          operation: 'query',
           rowCount: 1,
           latencyMs: 200,
           completed: true,
@@ -217,6 +223,7 @@ describe('budgets middleware', () => {
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext();
         const result: AfterExecuteResult = {
+          operation: 'query',
           rowCount: 1,
           latencyMs: 50,
           completed: true,

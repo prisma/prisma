@@ -46,14 +46,14 @@ async function main() {
       .build(),
   );
 
-  const aliceRows = await runtime.execute(
+  const aliceRows = await runtime.query(
     db.sql.public.user
       .select('id', 'email')
       .where((f, fns) => fns.eq(f.email, 'alice@example.com'))
       .limit(1)
       .build(),
   );
-  const bobRows = await runtime.execute(
+  const bobRows = await runtime.query(
     db.sql.public.user
       .select('id', 'email')
       .where((f, fns) => fns.eq(f.email, 'bob@example.com'))

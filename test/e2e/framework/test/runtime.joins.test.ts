@@ -24,7 +24,7 @@ describe('end-to-end JOIN queries', () => {
           [1, 'First Post', true, 'Second Post', false, 2, 'Third Post', true],
         );
 
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db.public.user
             .innerJoin(db.public.post, (f, fns) => fns.eq(f.user.id, f.post.userId))
             .select((f) => ({
@@ -63,7 +63,7 @@ describe('end-to-end JOIN queries', () => {
           true,
         ]);
 
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db.public.user
             .outerLeftJoin(db.public.post, (f, fns) => fns.eq(f.user.id, f.post.userId))
             .select((f) => ({
@@ -112,7 +112,7 @@ describe('end-to-end JOIN queries', () => {
           [1, 'First Post', true, 999, 'Orphan Post', true],
         );
 
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db.public.user
             .outerRightJoin(db.public.post, (f, fns) => fns.eq(f.user.id, f.post.userId))
             .select((f) => ({
@@ -157,7 +157,7 @@ describe('end-to-end JOIN queries', () => {
           [1, 'First Post', true, 999, 'Orphan Post', true],
         );
 
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db.public.user
             .outerFullJoin(db.public.post, (f, fns) => fns.eq(f.user.id, f.post.userId))
             .select((f) => ({
@@ -212,7 +212,7 @@ describe('end-to-end JOIN queries', () => {
           'Second Comment',
         ]);
 
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db.public.user
             .innerJoin(db.public.post, (f, fns) => fns.eq(f.user.id, f.post.userId))
             .outerLeftJoin(db.public.comment, (f, fns) => fns.eq(f.post.id, f.comment.postId))

@@ -120,12 +120,7 @@ export interface RuntimeTransaction extends RuntimeQueryable {
 }
 
 export interface RuntimeQueryable extends RuntimeScope {
-  /**
-   * Query a prepared statement against this scope. Required for the explicit
-   * `PreparedStatement.execute(target, params)` API — every scope (top-level
-   * runtime, connection, transaction) routes prepared queries through the
-   * `SqlQueryable` it is backed by.
-   */
+  /** Query prepared rows against this scope through its bound `SqlQueryable`. */
   queryPrepared<Params, Row>(
     ps: PreparedStatement<Params, Row>,
     params: Params,
@@ -308,7 +303,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
     options?: RuntimeExecuteOptions,
   ): Promise<SqlStatementStats> {
-    return this.executeAgainstQueryable(plan, this.driver, options);
+    return this.executeStatisticsAgainstQueryable(plan, this.driver, options);
   }
 
   queryPrepared<Params, Row>(
@@ -484,7 +479,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   /** Execute statistics against a caller-supplied queryable through the shared preparation pipeline. */
-  protected async executeAgainstQueryable(
+  protected async executeStatisticsAgainstQueryable(
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
     queryable: SqlQueryable,
     options?: RuntimeExecuteOptions,
@@ -658,7 +653,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
         options?: RuntimeExecuteOptions,
       ): Promise<SqlStatementStats> {
-        return self.executeAgainstQueryable(plan, driverConn, {
+        return self.executeStatisticsAgainstQueryable(plan, driverConn, {
           ...options,
           scope: 'connection',
         });
@@ -702,7 +697,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
         options?: RuntimeExecuteOptions,
       ): Promise<SqlStatementStats> {
-        return self.executeAgainstQueryable(plan, driverTx, {
+        return self.executeStatisticsAgainstQueryable(plan, driverTx, {
           ...options,
           scope: 'transaction',
         });

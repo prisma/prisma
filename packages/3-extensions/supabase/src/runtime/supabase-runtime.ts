@@ -76,7 +76,10 @@ export class SupabaseRuntimeImpl<
         plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
         options?: RuntimeExecuteOptions,
       ): Promise<SqlStatementStats> {
-        return self.executeAgainstQueryable(plan, conn, { ...options, scope: 'connection' });
+        return self.executeStatisticsAgainstQueryable(plan, conn, {
+          ...options,
+          scope: 'connection',
+        });
       },
       queryPrepared<Params, Row>(
         prepared: PreparedStatement<Params, Row>,
@@ -111,7 +114,10 @@ export class SupabaseRuntimeImpl<
             plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
             options?: RuntimeExecuteOptions,
           ): Promise<SqlStatementStats> {
-            return self.executeAgainstQueryable(plan, tx, { ...options, scope: 'transaction' });
+            return self.executeStatisticsAgainstQueryable(plan, tx, {
+              ...options,
+              scope: 'transaction',
+            });
           },
           queryPrepared<Params, Row>(
             prepared: PreparedStatement<Params, Row>,

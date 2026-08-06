@@ -12,7 +12,7 @@ describe('insertOne integration', () => {
         name: new MongoParamRef('Dave'),
         age: new MongoParamRef(28),
       });
-      const rows = await ctx.runtime.execute({
+      const rows = await ctx.runtime.query({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,

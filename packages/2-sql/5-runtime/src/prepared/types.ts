@@ -1,8 +1,4 @@
 import type { JsonValue, PlanMeta } from '@internal/contract/types';
-import type {
-  AsyncIterableResult,
-  RuntimeExecuteOptions,
-} from '@internal/framework-components/runtime';
 import type { AnyQueryAst, LoweredParam } from '@internal/sql-relational-core/ast';
 import type {
   CodecTypesBase,
@@ -10,7 +6,6 @@ import type {
   Expression,
 } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import type { RuntimeQueryable } from '../sql-runtime';
 
 export type ParamSpec<CT extends CodecTypesBase = CodecTypesBase> =
   | (keyof CT & string)
@@ -50,16 +45,6 @@ export interface PreparedStatement<Params, Row> {
   readonly ast: AnyQueryAst;
   readonly meta: PlanMeta;
   readonly slots: readonly LoweredParam[];
-
-  /**
-   * Run this prepared statement against the given target. The target carries
-   * the execution scope (top-level runtime, an explicit connection, an active
-   * transaction). It is required and explicit — there is no implicit binding
-   * back to the runtime that produced this statement.
-   */
-  execute(
-    target: RuntimeQueryable,
-    params: Params,
-    options?: RuntimeExecuteOptions,
-  ): AsyncIterableResult<Row>;
+  readonly _params?: Params;
+  readonly _row?: Row;
 }

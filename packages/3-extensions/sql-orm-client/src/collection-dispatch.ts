@@ -47,9 +47,9 @@ import {
   mapStorageRowToModelFields,
   type RowEnvelope,
 } from './collection-runtime';
-import { executeQueryPlan } from './execute-query-plan';
 import { ormError } from './orm-errors';
 import { compileSelect, compileSelectWithIncludes } from './query-plan';
+import { queryPlanRows } from './query-plan-rows';
 import {
   type CollectionContext,
   type CollectionState,
@@ -81,7 +81,7 @@ export function dispatchCollectionRows<Row>(
 
   if (state.includes.length === 0) {
     const compiled = compileSelect(contract, namespaceId, tableName, state, modelName);
-    const source = executeQueryPlan<Record<string, unknown>>(runtime, compiled);
+    const source = queryPlanRows<Record<string, unknown>>(runtime, compiled);
     const mapper = polyInfo
       ? (rawRow: Record<string, unknown>) =>
           blindCast<
@@ -128,10 +128,7 @@ function dispatchWithIncludes<Row>(
         modelName,
       );
 
-      const parentRowsRaw = await executeQueryPlan<Record<string, unknown>>(
-        scope,
-        compiled,
-      ).toArray();
+      const parentRowsRaw = await queryPlanRows<Record<string, unknown>>(scope, compiled).toArray();
       if (parentRowsRaw.length === 0) {
         return;
       }

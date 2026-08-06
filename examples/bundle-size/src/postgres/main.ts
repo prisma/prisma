@@ -10,7 +10,7 @@ async function main(): Promise<void> {
   }
   const runtime = await db.connect({ url: databaseUrl });
   try {
-    const notes = await runtime.execute(db.sql.public.Note.select('id').limit(10).build());
+    const notes = await runtime.query(db.sql.public.Note.select('id').limit(10).build());
     console.log(JSON.stringify(notes, null, 2));
   } finally {
     await db.close();

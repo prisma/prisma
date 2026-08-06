@@ -1,12 +1,7 @@
 import type { PlanMeta } from '@internal/contract/types';
-import type {
-  AsyncIterableResult,
-  RuntimeExecuteOptions,
-} from '@internal/framework-components/runtime';
 import type { AnyQueryAst, LoweredParam } from '@internal/sql-relational-core/ast';
 import type { DecodeContext } from '../codecs/decoding';
 import type { ParamMetadata } from '../codecs/encoding';
-import type { RuntimeQueryable } from '../sql-runtime';
 import type { ParamsFromDeclaration, PreparedStatement } from './types';
 
 export interface PreparedStatementInternals {
@@ -36,14 +31,6 @@ export class PreparedStatementImpl<Params, Row>
     this.decodeContext = internals.decodeContext;
     this.paramMetadata = internals.paramMetadata;
     Object.freeze(this);
-  }
-
-  execute(
-    target: RuntimeQueryable,
-    params: Params,
-    options?: RuntimeExecuteOptions,
-  ): AsyncIterableResult<Row> {
-    return target.queryPrepared(this, params, options);
   }
 }
 

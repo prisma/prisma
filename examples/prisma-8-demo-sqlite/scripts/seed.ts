@@ -43,7 +43,7 @@ async function main() {
         .build(),
     );
 
-    const aliceRows = await runtime.execute(
+    const aliceRows = await runtime.query(
       db.sql.user
         .select('id', 'email')
         .where((f, fns) => fns.eq(f.email, 'alice@example.com'))
@@ -52,7 +52,7 @@ async function main() {
     );
     const alice = aliceRows[0] ?? null;
 
-    const bobRows = await runtime.execute(
+    const bobRows = await runtime.query(
       db.sql.user
         .select('id', 'email')
         .where((f, fns) => fns.eq(f.email, 'bob@example.com'))
@@ -68,13 +68,13 @@ async function main() {
     console.log(`Created user: ${alice.email} (id: ${alice.id})`);
     console.log(`Created user: ${bob.email} (id: ${bob.id})`);
 
-    const firstPostRows = await runtime.execute(
+    const firstPostRows = await runtime.query(
       db.sql.post
         .insert([{ title: 'First Post', userId: alice.id, createdAt: new Date() }])
         .returning('id', 'title')
         .build(),
     );
-    const secondPostRows = await runtime.execute(
+    const secondPostRows = await runtime.query(
       db.sql.post
         .insert([{ title: 'Second Post', userId: alice.id, createdAt: new Date() }])
         .returning('id', 'title')
@@ -93,19 +93,19 @@ async function main() {
     console.log(`Created post: ${firstPost.title} (id: ${firstPost.id})`);
     console.log(`Created post: ${secondPost.title} (id: ${secondPost.id})`);
 
-    const tagTypeScriptRows = await runtime.execute(
+    const tagTypeScriptRows = await runtime.query(
       db.sql.tag
         .insert([{ label: 'typescript' }])
         .returning('id', 'label')
         .build(),
     );
-    const tagOrmRows = await runtime.execute(
+    const tagOrmRows = await runtime.query(
       db.sql.tag
         .insert([{ label: 'orm' }])
         .returning('id', 'label')
         .build(),
     );
-    const tagDemoRows = await runtime.execute(
+    const tagDemoRows = await runtime.query(
       db.sql.tag
         .insert([{ label: 'demo' }])
         .returning('id', 'label')

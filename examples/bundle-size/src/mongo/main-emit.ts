@@ -9,7 +9,7 @@ async function main(): Promise<void> {
   const runtime = await db.connect({ url, dbName });
   try {
     const plan = db.query.from('notes').limit(10).build();
-    const notes = await runtime.execute(plan).toArray();
+    const notes = await runtime.query(plan).toArray();
     console.log(JSON.stringify(notes, null, 2));
   } finally {
     await db.close();

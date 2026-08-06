@@ -19,9 +19,9 @@ describe('e2e: prepared statements (SQLite)', { timeout: timeouts.databaseOperat
           .build(),
       );
 
-      const alice = await ps.execute(runtime, { id: 1 });
-      const bob = await ps.execute(runtime, { id: 2 });
-      const missing = await ps.execute(runtime, { id: 999 });
+      const alice = await runtime.queryPrepared(ps, { id: 1 });
+      const bob = await runtime.queryPrepared(ps, { id: 2 });
+      const missing = await runtime.queryPrepared(ps, { id: 999 });
 
       expect(alice).toHaveLength(1);
       expect(alice[0]).toMatchObject({ id: 1, name: 'Alice' });
@@ -42,13 +42,13 @@ describe('e2e: prepared statements (SQLite)', { timeout: timeouts.databaseOperat
           .build(),
       );
 
-      const page1 = await ps.execute(runtime, { take: 2, skip: 0 });
-      const page2 = await ps.execute(runtime, { take: 2, skip: 2 });
+      const page1 = await runtime.queryPrepared(ps, { take: 2, skip: 0 });
+      const page2 = await runtime.queryPrepared(ps, { take: 2, skip: 2 });
 
       expect(page1.map((r) => r.name)).toEqual(['Alice', 'Bob']);
       expect(page2.map((r) => r.name)).toEqual(['Charlie', 'Diana']);
 
-      const wide = await ps.execute(runtime, { take: 10, skip: 0 });
+      const wide = await runtime.queryPrepared(ps, { take: 10, skip: 0 });
       expect(wide).toHaveLength(4);
     });
   });

@@ -78,6 +78,7 @@ function addConnection(
   onRelease: () => void,
 ): MockRuntime & {
   connection: () => Promise<{
+    query: MockRuntime['query'];
     execute: MockRuntime['execute'];
     release: () => Promise<void>;
   }>;
@@ -85,6 +86,7 @@ function addConnection(
   return Object.assign(runtime, {
     async connection() {
       return {
+        query: runtime.query.bind(runtime),
         execute: runtime.execute.bind(runtime),
         async release() {
           onRelease();

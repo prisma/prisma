@@ -111,7 +111,7 @@ describe('e2e: rawSql expression on SQLite', { timeout: timeouts.databaseOperati
       cleanup = harness.close;
 
       // posts.views values: 100, 50, 200, 10 — doubled they become 200, 100, 400, 20.
-      const rows = await harness.runtime.execute(
+      const rows = await harness.runtime.query(
         harness.db[UNBOUND_NAMESPACE_ID].posts
           .select('id')
           .select('doubled', (f, fns) => fns.raw`${f.views} * 2`.returns('sqlite/integer@1'))
@@ -127,7 +127,7 @@ describe('e2e: rawSql expression on SQLite', { timeout: timeouts.databaseOperati
       const harness = await buildHarness();
       cleanup = harness.close;
 
-      const rows = await harness.runtime.execute(
+      const rows = await harness.runtime.query(
         harness.db[UNBOUND_NAMESPACE_ID].posts
           .select('id')
           .select('magic', (_f, fns) => fns.raw`42`.returns('sqlite/integer@1'))

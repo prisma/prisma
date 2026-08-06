@@ -92,7 +92,7 @@ const publicRows = await db.asAnon().orm.public.Profile.select('id', 'username')
 // service_role — BYPASSRLS. Its .sql / .orm stay app-only; .supabase reaches auth.*/storage.*.
 const admin = db.asServiceRole();
 const users = await admin.supabase
-  .execute(admin.supabase.sql.auth.users.select('id', 'email').build())
+  .query(admin.supabase.sql.auth.users.select('id', 'email').build())
   .toArray();
 ```
 

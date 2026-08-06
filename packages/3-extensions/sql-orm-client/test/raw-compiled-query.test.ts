@@ -6,7 +6,7 @@ import {
 } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it, vi } from 'vitest';
-import { executeQueryPlan } from '../src/execute-query-plan';
+import { queryPlanRows } from '../src/query-plan-rows';
 
 describe('execute query plan', () => {
   it('forwards SQL query plans to runtime.query', () => {
@@ -25,7 +25,7 @@ describe('execute query plan', () => {
       },
     };
 
-    executeQueryPlan(executor, plan);
+    queryPlanRows(executor, plan);
 
     expect(query).toHaveBeenCalledOnce();
     expect(query.mock.calls[0]?.[0]).toBe(plan);
@@ -47,7 +47,7 @@ describe('execute query plan', () => {
       },
     };
 
-    executeQueryPlan(executor, plan);
+    queryPlanRows(executor, plan);
 
     expect(query).toHaveBeenCalledOnce();
     expect(query.mock.calls[0]?.[0]).toBe(plan);

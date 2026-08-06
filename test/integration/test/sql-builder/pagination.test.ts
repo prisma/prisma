@@ -5,21 +5,21 @@ describe('integration: LIMIT / OFFSET', { timeout: timeouts.databaseOperation },
   const { db, runtime } = setupIntegrationTest();
 
   it('LIMIT restricts row count', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db().public.users.select('id').orderBy('id').limit(2).build(),
     );
     expect(rows).toHaveLength(2);
   });
 
   it('OFFSET skips rows', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db().public.users.select('id').orderBy('id').offset(2).build(),
     );
     expect(rows[0]!.id).toBe(3);
   });
 
   it('LIMIT + OFFSET paginates correctly', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db().public.users.select('id').orderBy('id').limit(2).offset(1).build(),
     );
     expect(rows).toHaveLength(2);

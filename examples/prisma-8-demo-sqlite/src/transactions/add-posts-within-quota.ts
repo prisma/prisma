@@ -24,7 +24,7 @@ export interface AddPostsWithinQuotaInput {
 export async function addPostsWithinQuota(input: AddPostsWithinQuotaInput) {
   return db.transaction(async (tx) => {
     // Count existing posts with the SQL builder — the native aggregate surface.
-    const countRows = await tx.execute(
+    const countRows = await tx.query(
       tx.sql.post
         .select('postCount', (_f, fns) => fns.count())
         .where((f, fns) => fns.eq(f.userId, input.userId))

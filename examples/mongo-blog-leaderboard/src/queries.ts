@@ -29,5 +29,5 @@ export async function getAuthorLeaderboard(db: Db, runtime: Runtime) {
     )
     .build();
 
-  return runtime.execute(leaderboard);
+  return runtime.query(leaderboard);
 }

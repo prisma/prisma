@@ -63,7 +63,7 @@ test('ParamsFromDeclaration threads codec input types through', () => {
   }>();
 });
 
-test('PreparedStatement.execute(target, params) is typed by the declaration', () => {
+test('runtime.queryPrepared(statement, params) is typed by the declaration', () => {
   type Decl = { readonly userId: 'pg/int4@1' };
   type Params = ParamsFromDeclaration<Decl, FixtureCT>;
   type Row = { readonly id: number };
@@ -72,12 +72,12 @@ test('PreparedStatement.execute(target, params) is typed by the declaration', ()
   const ps = {} as PS;
   const runtime = {} as Runtime;
   // Accepts the inferred params shape.
-  ps.execute(runtime, { userId: 7 });
+  runtime.queryPrepared(ps, { userId: 7 });
   // Row stream is typed.
-  expectTypeOf(ps.execute(runtime, { userId: 7 })).toExtend<AsyncIterable<Row>>();
+  expectTypeOf(runtime.queryPrepared(ps, { userId: 7 })).toExtend<AsyncIterable<Row>>();
 });
 
-test('PreparedStatement.execute rejects mismatched param shapes', () => {
+test('queryPrepared rejects mismatched param shapes', () => {
   type Decl = { readonly userId: 'pg/int4@1' };
   type Params = ParamsFromDeclaration<Decl, FixtureCT>;
   type PS = PreparedStatement<Params, { id: number }>;
@@ -85,11 +85,11 @@ test('PreparedStatement.execute rejects mismatched param shapes', () => {
   const runtime = {} as Runtime;
 
   // @ts-expect-error — userId must be number, not string
-  ps.execute(runtime, { userId: 'not-a-number' });
+  runtime.queryPrepared(ps, { userId: 'not-a-number' });
   // @ts-expect-error — missing userId
-  ps.execute(runtime, {});
+  runtime.queryPrepared(ps, {});
   // @ts-expect-error — unknown key
-  ps.execute(runtime, { userId: 1, extra: 2 });
+  runtime.queryPrepared(ps, { userId: 1, extra: 2 });
 });
 
 test('PrepareCallback returns the plan whose Row drives the statement', () => {

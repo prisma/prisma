@@ -40,7 +40,7 @@ describe('raw command integration', () => {
         { $group: { _id: '$department', total: { $sum: '$amount' } } },
         { $sort: { _id: 1 } },
       ]);
-      const rows = await ctx.runtime.execute(rawPlan(col, command));
+      const rows = await ctx.runtime.query(rawPlan(col, command));
       expect(rows).toHaveLength(2);
 
       const typed = rows as Array<{ _id: string; total: number }>;
@@ -55,12 +55,12 @@ describe('raw command integration', () => {
         name: 'Alice',
         email: 'alice@example.com',
       });
-      const insertRows = await ctx.runtime.execute(rawPlan(col, insertCmd));
+      const insertRows = await ctx.runtime.query(rawPlan(col, insertCmd));
       expect(insertRows).toHaveLength(1);
       expect(insertRows[0]).toHaveProperty('insertedId');
 
       const readCmd = new RawAggregateCommand(col, [{ $match: { name: 'Alice' } }]);
-      const readRows = await ctx.runtime.execute(rawPlan(col, readCmd));
+      const readRows = await ctx.runtime.query(rawPlan(col, readCmd));
       expect(readRows).toHaveLength(1);
       expect((readRows[0] as Record<string, unknown>)['email']).toBe('alice@example.com');
     });
@@ -73,14 +73,14 @@ describe('raw command integration', () => {
         { name: 'Carol', status: 'active' },
         { name: 'Dave', status: 'inactive' },
       ]);
-      await ctx.runtime.execute(rawPlan(col, insertCmd));
+      await ctx.runtime.query(rawPlan(col, insertCmd));
 
       const updateCmd = new RawUpdateManyCommand(
         col,
         { status: 'active' },
         { $set: { status: 'archived' } },
       );
-      const updateRows = await ctx.runtime.execute(rawPlan(col, updateCmd));
+      const updateRows = await ctx.runtime.query(rawPlan(col, updateCmd));
       expect(updateRows).toHaveLength(1);
       expect(updateRows[0]).toMatchObject({ matchedCount: 2, modifiedCount: 2 });
 
@@ -100,7 +100,7 @@ describe('raw command integration', () => {
       ]);
 
       const deleteCmd = new RawDeleteManyCommand(col, { temp: true });
-      const deleteRows = await ctx.runtime.execute(rawPlan(col, deleteCmd));
+      const deleteRows = await ctx.runtime.query(rawPlan(col, deleteCmd));
       expect(deleteRows).toHaveLength(1);
       expect(deleteRows[0]).toMatchObject({ deletedCount: 2 });
 
@@ -120,11 +120,11 @@ describe('raw command integration', () => {
         undefined,
         'after',
       );
-      const rows = await ctx.runtime.execute(rawPlan(col, upsertCmd));
+      const rows = await ctx.runtime.query(rawPlan(col, upsertCmd));
       expect(rows).toHaveLength(1);
       expect((rows[0] as Record<string, unknown>)['count']).toBe(1);
 
-      const rows2 = await ctx.runtime.execute(rawPlan(col, upsertCmd));
+      const rows2 = await ctx.runtime.query(rawPlan(col, upsertCmd));
       expect(rows2).toHaveLength(1);
       expect((rows2[0] as Record<string, unknown>)['count']).toBe(2);
     });
@@ -141,7 +141,7 @@ describe('raw command integration', () => {
       const updateCmd = new RawUpdateManyCommand(col, { firstName: { $exists: true } }, [
         { $set: { fullName: { $concat: ['$firstName', ' ', '$lastName'] } } },
       ]);
-      const updateRows = await ctx.runtime.execute(rawPlan(col, updateCmd));
+      const updateRows = await ctx.runtime.query(rawPlan(col, updateCmd));
       expect(updateRows).toHaveLength(1);
       expect(updateRows[0]).toMatchObject({ matchedCount: 2, modifiedCount: 2 });
 
@@ -160,7 +160,7 @@ describe('raw command integration', () => {
       ]);
 
       const updateCmd = new RawUpdateOneCommand(col, { name: 'Alice' }, { $set: { score: 99 } });
-      const rows = await ctx.runtime.execute(rawPlan(col, updateCmd));
+      const rows = await ctx.runtime.query(rawPlan(col, updateCmd));
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ matchedCount: 1, modifiedCount: 1 });
 
@@ -178,7 +178,7 @@ describe('raw command integration', () => {
       ]);
 
       const deleteCmd = new RawDeleteOneCommand(col, { name: 'Alice' });
-      const rows = await ctx.runtime.execute(rawPlan(col, deleteCmd));
+      const rows = await ctx.runtime.query(rawPlan(col, deleteCmd));
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ deletedCount: 1 });
 
@@ -194,7 +194,7 @@ describe('raw command integration', () => {
       await db.collection(col).insertOne({ name: 'Alice', role: 'admin' });
 
       const deleteCmd = new RawFindOneAndDeleteCommand(col, { name: 'Alice' });
-      const rows = await ctx.runtime.execute(rawPlan(col, deleteCmd));
+      const rows = await ctx.runtime.query(rawPlan(col, deleteCmd));
       expect(rows).toHaveLength(1);
       expect(rows[0]).toMatchObject({ name: 'Alice', role: 'admin' });
 

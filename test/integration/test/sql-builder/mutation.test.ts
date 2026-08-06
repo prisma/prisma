@@ -6,7 +6,7 @@ describe('integration: mutations', { timeout: timeouts.databaseOperation }, () =
 
   it('INSERT returns inserted row via returning', async () => {
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.insert([{ id: 100, name: 'NewUser', email: 'new@test.com' }])
           .returning('id', 'name')
@@ -16,13 +16,13 @@ describe('integration: mutations', { timeout: timeouts.databaseOperation }, () =
     expect(row.id).toBe(100);
     expect(row.name).toBe('NewUser');
 
-    const allRows = await runtime().execute(db().public.users.select('id', 'name').build());
+    const allRows = await runtime().query(db().public.users.select('id', 'name').build());
     expect(allRows.find((r) => r.id === 100)).toEqual({ id: 100, name: 'NewUser' });
   });
 
   it('UPDATE with WHERE returns updated row', async () => {
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.update({ name: 'UpdatedAlice' })
           .where((f, fns) => fns.eq(f.id, 1))
@@ -33,7 +33,7 @@ describe('integration: mutations', { timeout: timeouts.databaseOperation }, () =
     expect(row.name).toBe('UpdatedAlice');
 
     const verified = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.select('id', 'name')
           .where((f, fns) => fns.eq(f.id, 1))
@@ -45,7 +45,7 @@ describe('integration: mutations', { timeout: timeouts.databaseOperation }, () =
 
   it('DELETE with WHERE returns deleted row', async () => {
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.delete()
           .where((f, fns) => fns.eq(f.id, 4))
@@ -56,7 +56,7 @@ describe('integration: mutations', { timeout: timeouts.databaseOperation }, () =
     expect(row.id).toBe(4);
 
     const deleted = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.select('id')
           .where((f, fns) => fns.eq(f.id, 4))
@@ -74,7 +74,7 @@ describe('integration: mutations', { timeout: timeouts.databaseOperation }, () =
     );
 
     const row = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.update({ name: 'MultiUpdated' })
           .where((f, fns) => fns.eq(f.name, 'Multi'))
@@ -87,7 +87,7 @@ describe('integration: mutations', { timeout: timeouts.databaseOperation }, () =
   });
 
   it('multi-row INSERT with returning yields one result per row', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.users.insert([
           { id: 401, name: 'First', email: 'first@test.com' },
@@ -100,18 +100,16 @@ describe('integration: mutations', { timeout: timeouts.databaseOperation }, () =
     expect(rows.map((r) => r.id).sort()).toEqual([401, 402]);
   });
 
-  it('INSERT without returning executes silently', async () => {
-    const row = await runtime()
-      .execute(
-        db()
-          .public.users.insert([{ id: 200, name: 'Silent', email: 'silent@test.com' }])
-          .build(),
-      )
-      .first();
-    expect(row).toBeNull();
+  it('INSERT without returning returns statement statistics', async () => {
+    const stats = await runtime().execute(
+      db()
+        .public.users.insert([{ id: 200, name: 'Silent', email: 'silent@test.com' }])
+        .build(),
+    );
+    expect(stats).toEqual({ affectedRows: 1 });
 
     const inserted = await runtime()
-      .execute(
+      .query(
         db()
           .public.users.select('id', 'name')
           .where((f, fns) => fns.eq(f.id, 200))

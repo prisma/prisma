@@ -192,8 +192,8 @@ describe('multi-namespace runtime', () => {
           }).sql;
           expect(noteSql).toContain('FROM "public"."note"');
 
-          expect([...(await runtime.execute(userSelect))]).toEqual([{ id: 1, name: 'Ada' }]);
-          expect([...(await runtime.execute(noteSelect))]).toEqual([{ id: 10, body: 'hello' }]);
+          expect([...(await runtime.query(userSelect))]).toEqual([{ id: 1, name: 'Ada' }]);
+          expect([...(await runtime.query(noteSelect))]).toEqual([{ id: 10, body: 'hello' }]);
         } finally {
           await pool.end();
         }

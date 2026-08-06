@@ -144,35 +144,29 @@ describe('explicit namespaced accessors end-to-end (PGlite)', () => {
             }).sql,
           ).toContain('"auth"."users"');
 
-          await rows(
-            runtime.execute(sql.public.users.insert([{ id: 1, email: 'pub@x.io' }]).build()),
-          );
-          await rows(runtime.execute(sql.auth.users.insert([{ id: 1, token: 'tok-1' }]).build()));
+          await runtime.execute(sql.public.users.insert([{ id: 1, email: 'pub@x.io' }]).build());
+          await runtime.execute(sql.auth.users.insert([{ id: 1, token: 'tok-1' }]).build());
 
           // Distinct columns prove qualification: public.users has `email`,
           // auth.users has `token`.
-          expect(
-            await rows(runtime.execute(sql.public.users.select('id', 'email').build())),
-          ).toEqual([{ id: 1, email: 'pub@x.io' }]);
-          expect(await rows(runtime.execute(sql.auth.users.select('id', 'token').build()))).toEqual(
-            [{ id: 1, token: 'tok-1' }],
+          expect(await rows(runtime.query(sql.public.users.select('id', 'email').build()))).toEqual(
+            [{ id: 1, email: 'pub@x.io' }],
           );
+          expect(await rows(runtime.query(sql.auth.users.select('id', 'token').build()))).toEqual([
+            { id: 1, token: 'tok-1' },
+          ]);
 
-          await rows(
-            runtime.execute(
-              sql.public.users
-                .update({ email: 'pub2@x.io' })
-                .where((f, fns) => fns.eq(f.id, 1))
-                .build(),
-            ),
+          await runtime.execute(
+            sql.public.users
+              .update({ email: 'pub2@x.io' })
+              .where((f, fns) => fns.eq(f.id, 1))
+              .build(),
           );
-          await rows(
-            runtime.execute(
-              sql.auth.users
-                .update({ token: 'tok-2' })
-                .where((f, fns) => fns.eq(f.id, 1))
-                .build(),
-            ),
+          await runtime.execute(
+            sql.auth.users
+              .update({ token: 'tok-2' })
+              .where((f, fns) => fns.eq(f.id, 1))
+              .build(),
           );
           expect(
             (await client.query('select email from "public"."users" where id = 1')).rows[0],
@@ -181,21 +175,17 @@ describe('explicit namespaced accessors end-to-end (PGlite)', () => {
             (await client.query('select token from "auth"."users" where id = 1')).rows[0],
           ).toEqual({ token: 'tok-2' });
 
-          await rows(
-            runtime.execute(
-              sql.public.users
-                .delete()
-                .where((f, fns) => fns.eq(f.id, 1))
-                .build(),
-            ),
+          await runtime.execute(
+            sql.public.users
+              .delete()
+              .where((f, fns) => fns.eq(f.id, 1))
+              .build(),
           );
-          await rows(
-            runtime.execute(
-              sql.auth.users
-                .delete()
-                .where((f, fns) => fns.eq(f.id, 1))
-                .build(),
-            ),
+          await runtime.execute(
+            sql.auth.users
+              .delete()
+              .where((f, fns) => fns.eq(f.id, 1))
+              .build(),
           );
           expect((await client.query('select * from "public"."users"')).rows).toHaveLength(0);
           expect((await client.query('select * from "auth"."users"')).rows).toHaveLength(0);

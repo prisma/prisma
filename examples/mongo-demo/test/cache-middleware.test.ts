@@ -96,13 +96,13 @@ describe('mongo-demo cache middleware integration', {
         { ttl: 60_000 },
       );
 
-      const first = await runtime.execute(plan).toArray();
+      const first = await runtime.query(plan).toArray();
       const callsAfterFirst = driverExecuteSpy.mock.calls.length;
       expect(callsAfterFirst).toBeGreaterThan(0);
       expect(first.length).toBeGreaterThan(0);
 
       // Same plan, identical annotation → cache hit, driver not invoked.
-      const second = await runtime.execute(plan).toArray();
+      const second = await runtime.query(plan).toArray();
       expect(driverExecuteSpy.mock.calls.length).toBe(callsAfterFirst);
       expect(second).toEqual(first);
     } finally {
@@ -119,11 +119,11 @@ describe('mongo-demo cache middleware integration', {
 
       const plan = query.from('posts').sort({ createdAt: -1 }).limit(5).build();
 
-      await runtime.execute(plan).toArray();
+      await runtime.query(plan).toArray();
       const callsAfterFirst = driverExecuteSpy.mock.calls.length;
 
       // Un-annotated plan: the cache middleware passes through.
-      await runtime.execute(plan).toArray();
+      await runtime.query(plan).toArray();
       expect(driverExecuteSpy.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     } finally {
       await runtime.close();
@@ -142,11 +142,11 @@ describe('mongo-demo cache middleware integration', {
         { ttl: 60_000, skip: true },
       );
 
-      await runtime.execute(plan).toArray();
+      await runtime.query(plan).toArray();
       const callsAfterFirst = driverExecuteSpy.mock.calls.length;
 
       // Same plan, but skip: true bypasses the cache. Driver hit again.
-      await runtime.execute(plan).toArray();
+      await runtime.query(plan).toArray();
       expect(driverExecuteSpy.mock.calls.length).toBeGreaterThan(callsAfterFirst);
     } finally {
       await runtime.close();

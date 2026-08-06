@@ -20,7 +20,7 @@ export default {
 
     if (url.pathname === '/sql/users') {
       const limit = parseLimit(url.searchParams.get('limit'), 10);
-      const rows = await runtime.execute(
+      const rows = await runtime.query(
         db.sql.public.user
           .select('id', 'email', 'displayName', 'kind', 'createdAt')
           .limit(limit)
@@ -124,7 +124,7 @@ export default {
         // server-side cursor and streams in ~100-row batches; an early
         // `break` only fetches one batch and closes. With cursor disabled
         // the driver buffers all 10_000 rows before the first yield.
-        const iter = runtime.execute(
+        const iter = runtime.query(
           db.sql.public.post
             .select('id', 'title')
             .orderBy((f) => f.createdAt, { direction: 'asc' })
