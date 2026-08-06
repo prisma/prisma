@@ -30,6 +30,7 @@ import {
   type JourneyContext,
   runContractEmit,
   runContractInfer,
+  runDbUpdate,
   runDbVerify,
   setupJourney,
   timeouts,
@@ -108,6 +109,54 @@ function fixOneToOneBackRelation(psl: string): string {
 /** Strips the non-btree `type:` argument infer prints on both `@@index` attributes. */
 function fixIndexTypes(psl: string): string {
   return psl.replace(/,\s*type: "(?:gin|hash)"/g, '');
+}
+
+/**
+ * Asserts a pulled schema converges rather than verifying clean immediately.
+ *
+ * Authoring derives an element-non-null check for every list column, and
+ * `contract infer` reads no checks back out of the catalog, so an emitted
+ * contract declares checks the source database never had. The difference is
+ * real and plannable, not drift: verify names exactly those checks, and the
+ * next plan carries an `ADD CONSTRAINT` for each one.
+ *
+ * The plan is read, not applied. Every test in this journey shares one seeded
+ * database, so applying here would change what the later tests infer. That the
+ * planned add actually installs the check and clears the issue is proven
+ * against a real database in the adapter's check-lifecycle suite
+ * (`packages/3-targets/6-adapters/postgres/test/migrations/check-lifecycle-e2e.integration.test.ts`,
+ * "a manually dropped check is reported missing and repaired by the next plan").
+ *
+ * Interim: the opt-out surface in slice 3 restores verify-clean-by-default for
+ * a pulled schema. See `projects/sql-check-constraint-unification/plan.md`
+ * § Slice 3 locked decisions.
+ */
+async function expectConvergesOnDerivedChecks(ctx: JourneyContext, subject: string): Promise<void> {
+  const pending = await runDbVerify(ctx, ['--schema-only']);
+  const pendingOutput = `${stripAnsi(pending.stderr)}\n${stripAnsi(pending.stdout)}`;
+  const issues = [...pendingOutput.matchAll(/✖ (?:missing|extra): (\S+)/g)].flatMap((m) =>
+    m[1] === undefined ? [] : [m[1]],
+  );
+  expect(
+    issues,
+    `${subject}: the only difference after a pull should be derived checks; instead got:\n${pendingOutput}`,
+  ).not.toHaveLength(0);
+  for (const issue of issues) {
+    expect(issue, `${subject}: unexpected schema issue after a pull`).toMatch(
+      /\/check:\w+_elem_not_null_[0-9a-f]{8}$/,
+    );
+  }
+
+  const plan = await runDbUpdate(ctx, ['--dry-run']);
+  const planOutput = `${stripAnsi(plan.stderr)}\n${stripAnsi(plan.stdout)}`;
+  expect(plan.exitCode, `${subject}: db update --dry-run\n${planOutput}`).toBe(0);
+  for (const issue of issues) {
+    const constraintName = issue.slice(issue.lastIndexOf('check:') + 'check:'.length);
+    expect(
+      planOutput,
+      `${subject}: the next plan should add ${constraintName}; instead got:\n${planOutput}`,
+    ).toContain(`Add check constraint "${constraintName}"`);
+  }
 }
 
 withTempDir(({ createTempDir }) => {
@@ -269,11 +318,7 @@ withTempDir(({ createTempDir }) => {
             `instead got:\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
-        const verify = await runDbVerify(ctx, ['--schema-only']);
-        expect(
-          verify.exitCode,
-          `db verify --schema-only should be clean for Users.tags; instead got:\n${stripAnsi(verify.stderr)}\n${stripAnsi(verify.stdout)}`,
-        ).toBe(0);
+        await expectConvergesOnDerivedChecks(ctx, 'Users.tags');
       },
       timeouts.spinUpPpgDev,
     );
@@ -383,11 +428,7 @@ withTempDir(({ createTempDir }) => {
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
 
-        const verify = await runDbVerify(ctx, ['--schema-only']);
-        expect(
-          verify.exitCode,
-          `db verify --schema-only should be clean for Users.metadata; instead got:\n${stripAnsi(verify.stderr)}\n${stripAnsi(verify.stdout)}`,
-        ).toBe(0);
+        await expectConvergesOnDerivedChecks(ctx, 'Users.metadata');
       },
       timeouts.spinUpPpgDev,
     );
@@ -520,11 +561,7 @@ withTempDir(({ createTempDir }) => {
           `contract emit (unmodified inferred PSL)\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
-        const verify = await runDbVerify(ctx, ['--schema-only']);
-        expect(
-          verify.exitCode,
-          `db verify --schema-only\n${stripAnsi(verify.stderr)}\n${stripAnsi(verify.stdout)}`,
-        ).toBe(0);
+        await expectConvergesOnDerivedChecks(ctx, 'unmodified inferred PSL');
       },
       timeouts.spinUpPpgDev,
     );
