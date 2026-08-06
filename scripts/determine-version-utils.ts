@@ -5,7 +5,12 @@
 
 const NUM = '(0|[1-9]\\d*)';
 const STABLE_BASE_PATTERN = new RegExp(`^${NUM}\\.${NUM}\\.${NUM}$`);
-const RC_BASE_PATTERN = new RegExp(`^${NUM}\\.${NUM}\\.${NUM}-rc\\.${NUM}$`);
+// The one supported RC line (docs/oss/versioning.md): `8.0.0-rc.N`,
+// counting from rc.1. Deliberately not a general X.Y.Z-rc.N shape — this
+// is a publish guard, and a base like `9.2.3-rc.1` or `8.0.0-rc.0`
+// reaching the pipeline is a mistake to fail on, not a case to support.
+// A future RC line widens this constant.
+const RC_BASE_PATTERN = /^8\.0\.0-rc\.([1-9]\d*)$/;
 
 export interface ParsedVersion {
   major: number;
@@ -47,8 +52,7 @@ export function computeNextReleaseVersion(current: string): string {
   assertCanonicalBase(current);
   const rcMatch = current.match(RC_BASE_PATTERN);
   if (rcMatch) {
-    const [, major, minor, patch, rc] = rcMatch;
-    return `${major}.${minor}.${patch}-rc.${Number(rc) + 1}`;
+    return `8.0.0-rc.${Number(rcMatch[1]) + 1}`;
   }
   if (parseVersion(current).major < 8) {
     return '8.0.0-rc.1';
@@ -93,18 +97,18 @@ export function composeDevVersion(
 
 /**
  * Asserts that a base version is canonical: either a clean release
- * (`major.minor.patch`) or an RC-line version (`major.minor.patch-rc.N`).
- * Used to fail-fast in the publish workflow if root `package.json` was
- * edited to something other than a release shape — without this guard,
- * a malformed root would compose nonsense publish versions like
- * `0.7.0-foo-dev.1`.
+ * (`major.minor.patch`) or a version on the supported RC line
+ * (`8.0.0-rc.N`, N ≥ 1). Used to fail-fast in the publish workflow if
+ * root `package.json` was edited to something other than a release
+ * shape — without this guard, a malformed root would compose nonsense
+ * publish versions like `0.7.0-foo-dev.1`.
  */
 export function assertCanonicalBase(base: string): void {
   if (!STABLE_BASE_PATTERN.test(base) && !RC_BASE_PATTERN.test(base)) {
     throw new Error(
       `Base version "${base}" is not canonical. ` +
         'The root package.json `version` must be a clean release shape ("0.7.0") ' +
-        'or an RC-line shape ("8.0.0-rc.1"); no other pre-release suffixes are permitted on `main`.',
+        'or on the supported RC line ("8.0.0-rc.N", N >= 1); nothing else is permitted on `main`.',
     );
   }
 }

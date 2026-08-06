@@ -113,6 +113,19 @@ jobs:
       - name: Check upgrade-instruction coverage
         run: pnpm check:upgrade-coverage --mode publish
 
+      # Publish-time check (releases only): a `latest` Release publishes
+      # the committed notes file as its body, so that file must exist
+      # before anything reaches the registry — a release with missing or
+      # flat notes must fail here, not after the packages are already
+      # public. There is no auto-generated fallback. Dev/beta builds
+      # create no Release, so the check is scoped to `latest`, matching
+      # the Release step's own condition.
+      - name: Check release notes
+        if: ${{ steps.version.outputs.tag == 'latest' && (github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true') }}
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: pnpm check:release-notes --mode publish --version "$VERSION"
+
       # Both publish paths fan out across `PUBLISH_CONCURRENCY` workers
       # (default 8) via `scripts/publish-packages.mjs`. `pnpm -r publish` is
       # intentionally serialized (it rejects `--workspace-concurrency`
@@ -165,19 +178,6 @@ jobs:
               -f ref="refs/tags/v$VERSION" \
               -f "sha=$GITHUB_SHA"
           fi
-
-      # Publish-time check (releases only): a `latest` Release publishes
-      # the committed notes file as its body, so that file must exist
-      # before the Release step runs. There is no auto-generated
-      # fallback — a release bump without docs/releases/v$VERSION.md fails
-      # here rather than shipping flat notes. Dev/beta builds create no
-      # Release, so the check is scoped to `latest`, matching the Release
-      # step's own condition.
-      - name: Check release notes
-        if: ${{ steps.version.outputs.tag == 'latest' && (github.event_name != 'workflow_dispatch' || github.event.inputs.dry-run != 'true') }}
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: pnpm check:release-notes --mode publish --version "$VERSION"
 
       # Emit a GitHub Release for `latest` publishes only (marked
       # pre-release when the version is on the RC line). Dev / PR / beta

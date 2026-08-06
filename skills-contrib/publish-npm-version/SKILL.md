@@ -53,7 +53,7 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
    echo "$CURRENT → $NEXT"
    ```
 
-   (`$NEXT` is only for naming the branch and PR — the authoritative bump in step 3 recomputes it with the same helper.)
+   (`$NEXT` is only for naming the branch and PR — the authoritative bump in step 3 recomputes it inside the fresh `origin/main` worktree. The command above runs the helper from *your* checkout, which may be older than `origin/main`; step 3 therefore ends by verifying the two agree.)
 
 2. **Create a fresh worktree off `origin/main`.** Use the convention `release/<version>` for both the branch and the sibling worktree path:
 
@@ -67,6 +67,8 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
 3. **Bump.** From the new worktree, run `pnpm bump-version`. The script reads the root `package.json` `version` from `git show HEAD:package.json` (in this worktree, HEAD is `origin/main`), computes the next release version, and writes it to every workspace `package.json` via `scripts/set-version.ts`.
 
    Note: `bump-version` requires `node_modules` to resolve its dependencies (e.g. `pathe`). If the fresh worktree has no `node_modules`, run `pnpm install --frozen-lockfile --ignore-scripts` first.
+
+   Then confirm the version it wrote matches `$NEXT` from step 1. A mismatch means the helper in your original checkout has diverged from `origin/main` (step 1 ran the local copy); the worktree's value is authoritative — remove the worktree and branch, and restart from step 1 using the value the bump printed.
 
 4. **Refresh the lockfile.** Workspace-internal dependencies in this repo are pinned as `workspace:<version>` (not `workspace:*`), so the bump changes their specifiers in `pnpm-lock.yaml`. Run:
 
@@ -111,7 +113,7 @@ If either precondition is unmet, stop and surface the issue. Do **not** try to a
 
 ## Idempotency
 
-`pnpm bump-version` is idempotent because it reads the root version from `git show HEAD:package.json` rather than from the working tree. A maintainer who runs the skill twice without committing in between still ends up with the same target version, not a double-bump. If you find yourself in that situation (working tree dirty with a previous bump), reset and re-run; do not stack bumps.
+`pnpm bump-version` is idempotent because it reads the root version from `git show HEAD:package.json` rather than from the working tree: running it twice in the same worktree without committing produces the same target version, not a double-bump. The skill as a whole is not — step 2's `git worktree add -b "release/$NEXT" …` fails if the branch or sibling worktree already exists from an earlier run. To rerun from scratch, remove them first (`git worktree remove ../release-$NEXT` and `git branch -D release/$NEXT`), or skip straight to step 3 inside the existing worktree. Do not stack bumps.
 
 ## Out of scope
 

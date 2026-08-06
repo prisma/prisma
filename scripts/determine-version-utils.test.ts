@@ -60,6 +60,12 @@ describe('computeNextReleaseVersion', () => {
   it('rejects a non-canonical base', () => {
     assert.throws(() => computeNextReleaseVersion('8.0.0-dev.1'), /not canonical/);
   });
+
+  it('rejects rc bases outside the 8.0.0 line', () => {
+    assert.throws(() => computeNextReleaseVersion('0.17.0-rc.1'), /not canonical/);
+    assert.throws(() => computeNextReleaseVersion('8.0.1-rc.1'), /not canonical/);
+    assert.throws(() => computeNextReleaseVersion('9.0.0-rc.1'), /not canonical/);
+  });
 });
 
 describe('composeDevVersion', () => {
@@ -130,6 +136,17 @@ describe('assertCanonicalBase', () => {
     assert.throws(() => assertCanonicalBase('8.0.0-beta.1'), /not canonical/);
     assert.throws(() => assertCanonicalBase('8.0.0-rc'), /not canonical/);
     assert.throws(() => assertCanonicalBase('8.0.0-rc.'), /not canonical/);
+  });
+
+  it('rejects rc bases outside the 8.0.0 line', () => {
+    assert.throws(() => assertCanonicalBase('0.17.0-rc.1'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('8.0.1-rc.1'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('8.1.0-rc.1'), /not canonical/);
+    assert.throws(() => assertCanonicalBase('9.0.0-rc.1'), /not canonical/);
+  });
+
+  it('rejects rc.0 — the counter starts at rc.1', () => {
+    assert.throws(() => assertCanonicalBase('8.0.0-rc.0'), /not canonical/);
   });
 
   it('rejects a missing component', () => {
