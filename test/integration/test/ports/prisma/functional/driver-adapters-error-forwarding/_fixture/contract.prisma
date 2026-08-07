@@ -1,0 +1,17 @@
+// Faithful PostgreSQL translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/driver-adapters/error-forwarding/prisma/_schema.ts.
+
+model User {
+  id      String   @id
+  profile Profile?
+
+  @@map("User")
+}
+
+model Profile {
+  id     String @id
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("Profile")
+}

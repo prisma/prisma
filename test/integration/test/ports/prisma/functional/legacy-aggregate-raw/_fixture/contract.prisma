@@ -1,0 +1,25 @@
+// Faithful MongoDB translation of prisma/prisma@a6d0155
+// packages/client/tests/functional/0-legacy-ports/aggregate-raw/prisma/_schema.ts.
+
+model User {
+  id    ObjectId @id @map("_id")
+  email String   @unique
+  age   Int
+  name  String?
+  posts Post[]
+
+  @@map("User")
+}
+
+model Post {
+  id        ObjectId @id @map("_id")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
+
+  @@map("Post")
+}
