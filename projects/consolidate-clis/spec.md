@@ -65,6 +65,8 @@ One `prisma.config.ts`, value imports preserved:
 
 ## Open questions
 
+- **Emulator daemon vs emulated instance** (parked for the `emulator`-root work, which the grammar doc defers): the flat `emulator start|stop|status` grammar conflates the machine-global daemon per kind (`@prisma/dev`'s one-server-many-databases model; composer's compute daemon) with the project-scoped emulated instances a config declares. The distinction is real today — machine-global daemons already cause cross-project port ownership conflicts — and the grammar's nested-noun rule has room for it (daemon at the root, instances as a subresource or owned by `project dev`). Solve when the emulator surface is designed; flag to Luan as an input to that design.
+
 - **Compute-without-Composer path**: do users who consume Compute but not Composer keep a dedicated deployment path? One shape: retain product-specific CLIs (`prisma-composer`, `prisma-next` (or `prisma-orm`), `prisma-compute`) as supported side doors while `prisma` is the public normal path. If side doors survive, they must be thin wrappers over the same host machinery and config file.
 - **`prisma` npm takeover sequencing** (ROADMAP §5): dist-tag/major scheme for the host claiming the `prisma` name, and what Prisma 7 users encounter.
 - **Deprecation window** for the `prisma-next`, `prisma-cli`, `prisma-composer` binaries relative to launch.
