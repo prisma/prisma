@@ -51,6 +51,7 @@ import {
   decimalTextBigintLiteral,
   type PgInterval,
   pgBigintEncode,
+  pgBigintEncodeJson,
   pgByteaDecodeJson,
   pgByteaEncodeJson,
   pgDateDecode,
@@ -683,7 +684,7 @@ export class PgInt8Codec extends CodecImpl<
     return pgInt8Decode(wire);
   }
   encodeJson(value: bigint): JsonValue {
-    return pgBigintEncode(PG_INT8_CODEC_ID, value);
+    return pgBigintEncodeJson(PG_INT8_CODEC_ID, value);
   }
   decodeJson(json: JsonValue): bigint {
     if (typeof json !== 'string') {
@@ -1001,7 +1002,7 @@ export class PgUnboundedIntCodec extends CodecImpl<
     return pgUnboundedIntDecode(wire);
   }
   encodeJson(value: bigint): JsonValue {
-    return pgBigintEncode(PG_UNBOUNDED_INT_CODEC_ID, value);
+    return pgBigintEncodeJson(PG_UNBOUNDED_INT_CODEC_ID, value);
   }
   decodeJson(json: JsonValue): bigint {
     if (typeof json !== 'string') {

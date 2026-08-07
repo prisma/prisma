@@ -173,6 +173,32 @@ const requireJsType = (codecId: string, expected: 'number' | 'bigint', value: un
 };
 
 /**
+ * Writes an application value as the decimal text `sqlite/bigint@1` carries as
+ * its canonical JSON.
+ *
+ * A schema-written literal default (`BigInt @default(0)`) arrives here as a
+ * `number`, since a number literal is the only integer a schema language
+ * writes, and one that is a safe integer names its value exactly. Past that
+ * range the literal was rounded before any of this ran, so the value written is
+ * not the value meant — which this refuses rather than minting an exact-looking
+ * value from it. A non-integral number is refused on the same terms.
+ */
+const bigintEncodeJson = (codecId: string, value: bigint | number): string => {
+  if (typeof value !== 'number') {
+    requireJsType(codecId, 'bigint', value);
+    return value.toString();
+  }
+  if (!Number.isSafeInteger(value)) {
+    throw sqliteError(
+      'RUNTIME.ENCODE_FAILED',
+      `${codecId} number literal must be an integer within the safe integer range, got ${String(value)}`,
+      { meta: { codecId, received: String(value) } },
+    );
+  }
+  return BigInt(value).toString();
+};
+
+/**
  * Requires an integer within ±(2^53 − 1), the range a JS `number` holds
  * exactly. The guard throws rather than rounding: past the boundary a `number`
  * silently loses digits, which is the failure mode this codec exists to refuse.
@@ -546,8 +572,7 @@ export class SqliteBigintCodec extends CodecImpl<
     return BigInt(wire);
   }
   encodeJson(value: bigint): JsonValue {
-    requireJsType(SQLITE_BIGINT_CODEC_ID, 'bigint', value);
-    return value.toString();
+    return bigintEncodeJson(SQLITE_BIGINT_CODEC_ID, value);
   }
   decodeJson(json: JsonValue): bigint {
     if (typeof json !== 'string' || !DECIMAL_INTEGER.test(json)) {

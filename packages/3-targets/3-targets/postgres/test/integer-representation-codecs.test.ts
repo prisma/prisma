@@ -196,8 +196,22 @@ describe('pg/int8@1 number wire values', () => {
       message: 'pg/int8@1 value must be a bigint, got number 9',
       meta: { codecId: 'pg/int8@1', received: 'number' },
     });
-    expect(() => codec.encodeJson(wrongTyped(9))).toThrow(
-      'pg/int8@1 value must be a bigint, got number 9',
+  });
+
+  // A schema literal (`BigInt @default(0)`) reaches the JSON boundary as a
+  // number, because that is the only integer a schema language writes.
+  it('reads a schema-written integer literal at the JSON boundary', () => {
+    expect(codec.encodeJson(wrongTyped(0))).toBe('0');
+    expect(codec.encodeJson(wrongTyped(9007199254740991))).toBe('9007199254740991');
+    expect(codec.encodeJson(wrongTyped(-42))).toBe('-42');
+  });
+
+  it('rejects a written number the literal does not name exactly', () => {
+    expect(() => codec.encodeJson(wrongTyped(1.5))).toThrow(
+      'pg/int8@1 number literal must be an integer within the safe integer range, got 1.5',
+    );
+    expect(() => codec.encodeJson(wrongTyped(9007199254740992))).toThrow(
+      'pg/int8@1 number literal must be an integer within the safe integer range, got 9007199254740992',
     );
   });
 
@@ -281,8 +295,12 @@ describe('pg/unboundedint@1', () => {
       message: 'pg/unboundedint@1 value must be a bigint, got number 9',
       meta: { codecId: 'pg/unboundedint@1', received: 'number' },
     });
-    expect(() => codec.encodeJson(wrongTyped(9))).toThrow(
-      'pg/unboundedint@1 value must be a bigint, got number 9',
+  });
+
+  it('reads a schema-written integer literal at the JSON boundary', () => {
+    expect(codec.encodeJson(wrongTyped(0))).toBe('0');
+    expect(() => codec.encodeJson(wrongTyped(9007199254740992))).toThrow(
+      'pg/unboundedint@1 number literal must be an integer within the safe integer range, got 9007199254740992',
     );
   });
 
