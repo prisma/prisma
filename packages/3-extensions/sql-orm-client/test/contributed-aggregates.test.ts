@@ -8,6 +8,7 @@
  * composition.
  */
 
+import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import { type AnyExpression, FunctionCallExpr } from '@internal/sql-relational-core/ast';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
@@ -19,23 +20,22 @@ import type { AggregateSelector } from '../src/types';
 import { emptyState } from '../src/types';
 import { createMockRuntime, getTestContext, type TestContract } from './helpers';
 
-const countAny = {
+const countAny: SqlAggregateDescriptor = {
   operation: 'count',
   input: { kind: 'any' },
   output: { kind: 'codec', codecId: 'pg/int8@1' },
   nullable: false,
 };
 
-const medianOverNumeric = {
+const medianOverNumeric: SqlAggregateDescriptor = {
   operation: 'median',
   input: { kind: 'trait', trait: 'numeric' },
   output: { kind: 'codec', codecId: 'pg/float8@1' },
   nullable: true,
-  lower: ({ expr }: { expr?: AnyExpression }) =>
-    FunctionCallExpr.of('median', expr === undefined ? [] : [expr]),
+  lower: ({ expr }) => FunctionCallExpr.of('median', expr === undefined ? [] : [expr]),
 };
 
-const tallyWithoutInput = {
+const tallyWithoutInput: SqlAggregateDescriptor = {
   operation: 'tally',
   input: { kind: 'none' },
   output: { kind: 'codec', codecId: 'pg/int8@1' },
@@ -170,15 +170,14 @@ describe('projection-only operations in HAVING', () => {
 });
 
 describe('reserved operation names', () => {
-  const shadowingBuilderMethod = {
+  const shadowingBuilderMethod: SqlAggregateDescriptor = {
     operation: 'where',
     input: { kind: 'any' },
     output: { kind: 'codec', codecId: 'pg/int8@1' },
     nullable: false,
-    lower: ({ expr }: { expr?: AnyExpression }) =>
-      FunctionCallExpr.of('shadow', expr === undefined ? [] : [expr]),
+    lower: ({ expr }) => FunctionCallExpr.of('shadow', expr === undefined ? [] : [expr]),
   };
-  const shadowingInstanceMember = {
+  const shadowingInstanceMember: SqlAggregateDescriptor = {
     ...shadowingBuilderMethod,
     operation: 'state',
   };
