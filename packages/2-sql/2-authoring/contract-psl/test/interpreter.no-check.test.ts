@@ -192,6 +192,69 @@ model Post {
   });
 });
 
+describe('@noCheck on a non-managed table is tolerated', () => {
+  it('an inapplicable kind on an external table builds cleanly', () => {
+    const result = interpret(`
+model Post {
+  id   Int    @id
+  name String @noCheck(membership)
+
+  @@control(external)
+}
+`);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.failure.diagnostics)).toBe(true);
+  });
+
+  it('a bare @noCheck on an external table builds cleanly', () => {
+    const result = interpret(`
+model Post {
+  id   Int    @id
+  name String @noCheck
+
+  @@control(external)
+}
+`);
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.failure.diagnostics)).toBe(true);
+  });
+
+  it('the tolerated form matches the TS equivalent byte-for-byte', () => {
+    const pslResult = interpret(`
+model Post {
+  id   Int    @id
+  name String @noCheck(membership)
+
+  @@control(external)
+}
+`);
+    expect(pslResult.ok).toBe(true);
+    if (!pslResult.ok) return;
+
+    const tsContract = defineContract({
+      family: sqlFamilyPack,
+      target: postgresTargetPack,
+      createNamespace: createTestSqlNamespace,
+      models: {
+        Post: model('Post', {
+          fields: {
+            id: field.column({ codecId: 'pg/int4@1', nativeType: 'int4' }).id(),
+            name: field.column({ codecId: 'pg/text@1', nativeType: 'text' }).noCheck('membership'),
+          },
+        }).sql({ table: 'post', control: 'external' }),
+      },
+    });
+
+    const pslStorage = pslResult.value.storage as unknown as SqlStorage;
+    const tsStorage = tsContract.storage as unknown as SqlStorage;
+    const pslTable = pslStorage.namespaces['public']?.entries.table?.['post'];
+    const tsTable = tsStorage.namespaces['public']?.entries.table?.['post'];
+    expect(pslTable).toBeDefined();
+    // The flag is dropped on both surfaces, so the tables agree byte-for-byte.
+    expect(JSON.stringify(pslTable)).toBe(JSON.stringify(tsTable));
+    expect(pslTable?.columns['name']).not.toHaveProperty('noCheck');
+    expect(pslStorage.storageHash).toBe(tsStorage.storageHash);
+  });
+});
+
 describe('@noCheck diagnostics', () => {
   function expectDiagnostic(schema: string, code: string, messagePattern: RegExp): void {
     const result = interpret(schema);

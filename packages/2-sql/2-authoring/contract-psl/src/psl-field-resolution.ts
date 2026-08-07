@@ -413,6 +413,22 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
   const resolvedFields: ResolvedField[] = [];
   const valueObjectStorageTypeName = authoringContributions?.valueObjectStorageType;
 
+  // Mirrors the TS build's tolerance for non-managed tables
+  // (build-contract.ts, resolveNoCheckKinds call site): a table whose
+  // source-declared policy is not `managed` derives no checks, so `@noCheck`
+  // there is a no-op — neither shape-validated nor carried into the
+  // definition tree. Only the model's own `@@control` matters here: on the
+  // PSL path a contract-level default policy is a specifier concern, applied
+  // after the build (`applySqlSpecifierControlPolicy`), where the same drop
+  // semantics hold via the strip pass. The raw attribute argument is read
+  // without interpreting the spec so a malformed `@@control` is diagnosed
+  // once, by the interpreter's own model-attribute pass.
+  const declaredControlPolicy = getAttribute(model.attributes, 'control')
+    ?.args.find((arg) => arg.kind === 'positional')
+    ?.value.trim();
+  const modelDerivesChecks =
+    declaredControlPolicy === undefined || declaredControlPolicy === 'managed';
+
   for (const field of Object.values(model.fields)) {
     const isModelField = modelNames.has(field.typeName);
 
@@ -660,15 +676,17 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     const fieldExecutionDefaults =
       presetContributions?.executionDefaults ?? loweredDefault.executionDefaults;
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
-    const noCheckKinds = lowerNoCheckForField({
-      model,
-      field,
-      sourceFile: input.sourceFile,
-      sourceId,
-      isListField,
-      isDomainEnum: enumHandle !== undefined,
-      diagnostics,
-    });
+    const noCheckKinds = modelDerivesChecks
+      ? lowerNoCheckForField({
+          model,
+          field,
+          sourceFile: input.sourceFile,
+          sourceId,
+          isListField,
+          isDomainEnum: enumHandle !== undefined,
+          diagnostics,
+        })
+      : undefined;
     resolvedFields.push({
       field,
       columnName: mappedColumnName,
