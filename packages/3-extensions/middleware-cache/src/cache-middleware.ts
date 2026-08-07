@@ -99,17 +99,17 @@ async function resolveCacheKey(
  *
  * The middleware uses three hooks:
  *
- * - `intercept` — on each execution, checks the cache. On a hit, returns
+ * - `interceptQuery` — on each execution, checks the cache. On a hit, returns
  *   the cached raw rows; the runtime skips `runDriver` and `onRow`
- *   (`beforeExecute` is not affected — it has already run for every
- *   middleware before any `intercept` is consulted) and yields the
+ *   (`beforeQuery` is not affected — it has already run for every
+ *   middleware before any `interceptQuery` is consulted) and yields the
  *   cached rows to the consumer (which, in the SQL runtime, sees them
  *   after the standard `decodeRow` pass — i.e. the cache stores
  *   wire-format values). On a miss, records a pending buffer keyed on
  *   the `exec` object identity and returns `undefined` (passthrough).
  * - `onRow` — on the miss path, appends each row yielded by the driver
  *   to the pending buffer.
- * - `afterExecute` — on the miss path, commits the buffer to the store
+ * - `afterQuery` — on the miss path, commits the buffer to the store
  *   if and only if `result.completed === true && result.source === 'driver'`.
  *   Failed executions and middleware-served executions never populate
  *   the cache. The pending buffer is cleared in all branches so a stale
@@ -153,7 +153,7 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
 
   // Per-execution scratch space, keyed on the post-lowering `exec`
   // object identity. WeakMap keeps cleanup automatic: if an execution is
-  // dropped without `afterExecute` firing (e.g. an early throw before
+  // dropped without `afterQuery` firing (e.g. an early throw before
   // `operation-specific middleware runner` even starts), the entry is GC'd alongside the
   // exec object.
   const pending = new WeakMap<object, PendingMiss>();
