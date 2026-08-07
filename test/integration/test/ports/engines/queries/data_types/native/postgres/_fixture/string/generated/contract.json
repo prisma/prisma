@@ -269,7 +269,24 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "childId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Parent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Child"
+                  }
+                }
+              ],
               "indexes": [],
               "primaryKey": {
                 "columns": [
@@ -290,7 +307,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "c1180cd3e9edd6951aee8d0a5ee55212a16e264cdbdc550db0a1a123430e8d76"
+    "storageHash": "84b18a808b869a4018521f0bb9e4c8dea1f4f7fc725cc2e9c7420eafdfb00d50"
   },
   "capabilities": {
     "postgres": {
