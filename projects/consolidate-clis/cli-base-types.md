@@ -61,9 +61,11 @@ From `packages/1-framework/1-core/errors/src/control.ts` (lines 9–111 only —
 3. The `@prisma/composer/control` `OperationFailure` members gain the structured error as their payload where one exists (exact mapping in the slice design; the `kind` discriminants stay — they are the operation-level taxonomy, the `code` is the failure-level one).
 4. Composer's exit codes align with the shared rule (bug=1 vs expected=2 split replaces "everything nonzero").
 
-## Follow-up slice (separate, later)
+## Follow-up slice (separate, later): the shared package lives in prisma/prisma-cli
 
-Extract a new repo, publish the foundation as a shared package; both repos replace their copies with the dependency; `CliErrorEnvelope.ok` drops as the envelope nests under the shared success/error wrapper. Compute's NDJSON streaming event shape (`{ type, command, timestamp, data }`) is specified in that round.
+No new repo. The foundation is published as a **zero-dependency package defined in the prisma/prisma-cli repo** (the consolidated host), colocating the CLI types/SPI with the contract's owner. Layering is acyclic at the artifact level — `base-types ← products (@prisma/orm-toolchain, @prisma/composer) ← host CLI` — even though the first and last layers ship from one repo; that repo already publishes multiple packages on independent cadences. The zero-dependency constraint is enforced by a publish check (empty dependency block), which is also what rules out a real cycle by construction. The host consumes the package via `workspace:` (instant iteration); products consume published versions (decoupled). Structural recognition means copies and package versions interoperate during any migration window.
+
+In that slice: both repos swap their duplicated copies for the dependency; `CliErrorEnvelope.ok` drops as the envelope nests under the shared success/error wrapper; Compute's NDJSON streaming event shape (`{ type, command, timestamp, data }`) is specified. This folds into the Phase 1a host/product contract work, which was already homed in that repo.
 
 ## Alternatives considered
 
