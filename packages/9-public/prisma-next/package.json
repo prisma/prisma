@@ -1,6 +1,6 @@
 {
   "name": "prisma-next",
-  "version": "0.17.0",
+  "version": "8.0.0-rc.1",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -12,7 +12,7 @@
     "lint": "node ./scripts/lint-sync.mjs"
   },
   "dependencies": {
-    "@prisma/orm-toolchain": "workspace:0.17.0"
+    "@prisma/orm-toolchain": "workspace:8.0.0-rc.1"
   },
   "peerDependencies": {
     "typescript": ">=5.9"
