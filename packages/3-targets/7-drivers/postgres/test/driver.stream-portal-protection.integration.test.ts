@@ -328,4 +328,33 @@ describe('streamed execute on a shared single-session backend', () => {
     },
     timeouts.spinUpDbServer,
   );
+
+  it(
+    'a driver-level streamed query during an open connection transaction does not end it',
+    async () => {
+      const h = await createSharedSessionHarness({ cursorBatchSize: 10 });
+      await seedRows(h, 5);
+
+      const connection = await h.driver.acquireConnection();
+      const tx = await connection.beginTransaction();
+      try {
+        await executeSql(tx, 'insert into items (id, n) values (100, 200)');
+
+        // A driver-level read on the shared socket (the runtime's lazy
+        // verify-marker read does exactly this mid-mutation). The portal
+        // protection wrap must be skipped: its COMMIT would end the open
+        // transaction and the rollback below would undo nothing.
+        const rows = await queryRows(h.driver, 'select id from items where id = 100');
+        expect(rows).toHaveLength(1);
+        expect(h.recordedQueryTexts).not.toContain('COMMIT');
+      } finally {
+        await tx.rollback();
+        await connection.release();
+      }
+
+      const after = await queryRows(h.driver, 'select id from items where id = 100');
+      expect(after).toEqual([]);
+    },
+    timeouts.spinUpDbServer,
+  );
 });
