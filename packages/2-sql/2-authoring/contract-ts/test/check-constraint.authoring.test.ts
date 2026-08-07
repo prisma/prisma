@@ -9,6 +9,7 @@ import {
   type StorageTable,
   StorageTable as StorageTableClass,
 } from '@internal/sql-contract/types';
+import { validateStorage } from '@internal/sql-contract/validators';
 import {
   computeCheckContentHash,
   formatWireName,
@@ -495,6 +496,60 @@ describe('check emission — JSON round-trip', () => {
 
     expect(flatten(hydrated)).toEqual(flatten(checksOf(contract)));
     expect(hydrated).toHaveLength(2);
+  });
+});
+
+describe('noCheck — wire schema', () => {
+  function rawStorageWith(noCheck: unknown): unknown {
+    return {
+      storageHash: 'test',
+      namespaces: {
+        public: {
+          id: 'public',
+          kind: 'test-sql-namespace',
+          entries: {
+            table: {
+              User: {
+                columns: {
+                  tags: {
+                    nativeType: 'text',
+                    codecId: 'pg/text@1',
+                    nullable: false,
+                    many: true,
+                    ...(noCheck !== undefined ? { noCheck } : {}),
+                  },
+                },
+                uniques: [],
+                indexes: [],
+                foreignKeys: [],
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  it('a contract JSON with noCheck hydrates', () => {
+    const raw = rawStorageWith(['elementNotNull', 'membership']);
+    expect(() => validateStorage(raw)).not.toThrow();
+  });
+
+  it.each([
+    ['unsorted', ['membership', 'elementNotNull']],
+    ['empty', []],
+    ['duplicate', ['membership', 'membership']],
+    ['unknown kind', ['bogus']],
+  ])('rejects a %s noCheck array', (_label, noCheck) => {
+    expect(() => validateStorage(rawStorageWith(noCheck))).toThrow();
+  });
+
+  it('flag ordering is stable under serialize → hydrate → serialize', () => {
+    const raw = rawStorageWith(['elementNotNull', 'membership']);
+    const first = JSON.stringify(raw);
+    const parsed = JSON.parse(first) as unknown;
+    validateStorage(parsed);
+    expect(JSON.stringify(parsed)).toBe(first);
   });
 });
 

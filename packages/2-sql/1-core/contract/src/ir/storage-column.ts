@@ -22,6 +22,8 @@ export interface StorageColumnInput {
   readonly default?: ColumnDefault;
   readonly control?: ControlPolicy;
   readonly valueSet?: ValueSetRef;
+  /** Generated-check kinds the author declined for this column. Presence means opted out; never an empty array. */
+  readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
 }
 
 /**
@@ -47,6 +49,8 @@ export class StorageColumn extends SqlNode {
   declare readonly default?: ColumnDefault;
   declare readonly control?: ControlPolicy;
   declare readonly valueSet?: ValueSetRef;
+  /** Generated-check kinds the author declined for this column. Presence means opted out; never an empty array. */
+  declare readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
 
   constructor(input: StorageColumnInput) {
     super();
@@ -59,6 +63,7 @@ export class StorageColumn extends SqlNode {
     if (input.default !== undefined) this.default = input.default;
     if (input.control !== undefined) this.control = input.control;
     if (input.valueSet !== undefined) this.valueSet = input.valueSet;
+    if (input.noCheck !== undefined) this.noCheck = input.noCheck;
     freezeNode(this);
   }
 }
