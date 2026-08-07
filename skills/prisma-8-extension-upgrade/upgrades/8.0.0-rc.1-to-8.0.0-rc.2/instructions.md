@@ -113,11 +113,12 @@ changes:
       carries that block is unaffected — the same five methods are there, with the same result
       types. A contract whose block is unknown — an in-code `defineContract(...)` value, or a
       contract emitted before `AggregateTypes` existed — resolves every one of those surfaces to
-      `AggregateOperationsUnavailable`, an empty type, so the call is a
-      `Property 'count' does not exist` error rather than a selector no declaration types. This
-      is a compile-time change only: the runtime builds its methods from the composed registry
-      and dispatches exactly as before. Either emit the contract and type the client from the
-      emitted `Contract`, or cast the builder to a dynamic record — see the body for the shape.
+      `AggregateOperationsUnavailable`, an empty type, so the call fails with
+      `Property 'count' does not exist` rather than offering selector types the declaration
+      cannot supply. This is a compile-time change only: the runtime builds its methods from the
+      composed registry and dispatches exactly as before. Either emit the contract and type the
+      client from the emitted `Contract`, or cast the builder to a dynamic record — see the body
+      for the shape.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
