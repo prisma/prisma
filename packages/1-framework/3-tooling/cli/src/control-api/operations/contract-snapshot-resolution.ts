@@ -114,12 +114,14 @@ export async function resolveContractRefToSnapshot(
           errorFileNotFound(options.contractPathAbsolute, {
             why: `Contract file not found at ${options.contractPathAbsolute}`,
             fix: 'Run `prisma-next contract emit` first to generate the contract',
+            cause: error,
           }),
         );
       }
       return notOk(
         errorUnexpected(error instanceof Error ? error.message : String(error), {
           why: `Failed to read contract file: ${error instanceof Error ? error.message : String(error)}`,
+          cause: error,
         }),
       );
     }
@@ -128,21 +130,18 @@ export async function resolveContractRefToSnapshot(
       parsed = castAs<unknown>(JSON.parse(defaultRaw));
     } catch (error) {
       return notOk(
-        mapMigrationToolsError(
-          errorContractDeserializationFailed(
-            options.contractPathAbsolute,
-            error instanceof Error ? error.message : String(error),
-          ),
+        errorContractDeserializationFailed(
+          options.contractPathAbsolute,
+          error instanceof Error ? error.message : String(error),
+          { cause: error },
         ),
       );
     }
     if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
       return notOk(
-        mapMigrationToolsError(
-          errorContractDeserializationFailed(
-            options.contractPathAbsolute,
-            `expected a JSON object, got ${parsed === null ? 'null' : Array.isArray(parsed) ? 'an array' : `a ${typeof parsed}`}`,
-          ),
+        errorContractDeserializationFailed(
+          options.contractPathAbsolute,
+          `expected a JSON object, got ${parsed === null ? 'null' : Array.isArray(parsed) ? 'an array' : `a ${typeof parsed}`}`,
         ),
       );
     }
@@ -166,10 +165,14 @@ export async function resolveContractRefToSnapshot(
       });
     }
     return notOk(
-      errorRuntime('MIGRATION.SNAPSHOT_MISSING', `No contract file found for hash "${targetHash}"`, {
-        why: `Resolved contract reference "${options.refInput}" to hash "${targetHash}" but no migration produces that hash and the emitted contract does not match.`,
-        fix: 'Ensure the target contract exists on disk — either as a migration endpoint or as the emitted contract.json.',
-      }),
+      errorRuntime(
+        'MIGRATION.SNAPSHOT_MISSING',
+        `No contract file found for hash "${targetHash}"`,
+        {
+          why: `Resolved contract reference "${options.refInput}" to hash "${targetHash}" but no migration produces that hash and the emitted contract does not match.`,
+          fix: 'Ensure the target contract exists on disk — either as a migration endpoint or as the emitted contract.json.',
+        },
+      ),
     );
   } catch (error) {
     if (MigrationToolsError.is(error)) {

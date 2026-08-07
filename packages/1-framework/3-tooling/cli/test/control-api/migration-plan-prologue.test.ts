@@ -31,9 +31,9 @@ describe('executeMigrationPlanCommand — mutation-prologue guard', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     const envelope = result.failure.toEnvelope();
+    expect(envelope.code).toBe('MIGRATION.INVALID_JSON');
     expect(envelope.summary).toBe(toolsError.message);
     expect(envelope.why).toBe(toolsError.why);
-    expect(envelope.meta).toMatchObject({ code: 'MIGRATION.INVALID_JSON' });
   });
 
   it('maps an unknown prologue throw to the CLI.UNEXPECTED envelope', async () => {

@@ -229,9 +229,6 @@ export async function executeMigrationPlanCommand(
     if (CliStructuredError.is(error)) {
       return notOk(error);
     }
-    if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
-    }
     const message = error instanceof Error ? error.message : String(error);
     return notOk(
       errorUnexpected(message, {

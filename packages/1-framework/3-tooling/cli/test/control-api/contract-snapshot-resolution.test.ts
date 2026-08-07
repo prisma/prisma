@@ -221,10 +221,8 @@ describe('resolveContractRefToSnapshot', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       const envelope = result.failure.toEnvelope();
-      expect(envelope.meta).toMatchObject({
-        code: 'MIGRATION.CONTRACT_DESERIALIZATION_FAILED',
-        filePath: contractPathAbsolute,
-      });
+      expect(envelope.code).toBe('MIGRATION.CONTRACT_DESERIALIZATION_FAILED');
+      expect(envelope.meta).toMatchObject({ filePath: contractPathAbsolute });
       expect(envelope.why).toContain(contractPathAbsolute);
     }
   });
@@ -243,10 +241,8 @@ describe('resolveContractRefToSnapshot', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       const envelope = result.failure.toEnvelope();
-      expect(envelope.meta).toMatchObject({
-        code: 'MIGRATION.CONTRACT_DESERIALIZATION_FAILED',
-        filePath: contractPathAbsolute,
-      });
+      expect(envelope.code).toBe('MIGRATION.CONTRACT_DESERIALIZATION_FAILED');
+      expect(envelope.meta).toMatchObject({ filePath: contractPathAbsolute });
       expect(envelope.meta?.['message']).toContain('null');
     }
   });
