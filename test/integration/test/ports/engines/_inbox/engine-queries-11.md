@@ -50,10 +50,10 @@ FAIL `test/integration/test/ports/engines/queries/filters/filters/filters.test.t
 
 ## queries/filters/json.rs
 
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/json.rs` › `queries::filters::json::basic` — JSON equality/not-equality plus SQL-null exclusion — prisma-next's JSON codec exposes no equality trait, so both shorthand equality and comparison-method equality are rejected
+PASS `test/integration/test/ports/engines/queries/filters/json/json.test.ts` › `basic` — JSONB equality, inequality with SQL-null exclusion, and non-null filtering
 - `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/json.rs` › `queries::filters::json::basic_null_eq` — distinct DbNull, JsonNull, and AnyNull equality inputs — prisma-next has no JSON null sentinels and cannot distinguish these three input forms
 - `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/json.rs` › `queries::filters::json::basic_not_null_eq` — negated distinct DbNull, JsonNull, and AnyNull equality inputs — prisma-next has no JSON null sentinels and cannot express the three predicates faithfully
 - `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/json.rs` › `queries::filters::json::req_json_null_filters` — required JSON null-sentinel filters plus DbNull create rejection — prisma-next has no DbNull/JsonNull/AnyNull input sentinels
 - `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/json.rs` › `queries::filters::json::basic_null_eq_defaults` — JsonNull and AnyNull filters against a JSON default — prisma-next has no JSON null sentinels
-FAIL `test/integration/test/ports/engines/queries/filters/json/json.test.ts` › `no_shorthands` — JSON object and null shorthand filters are both rejected — prisma-next rejects object shorthand because JSON lacks equality but accepts null shorthand as an SQL-null filter
+FAIL `test/integration/test/ports/engines/queries/filters/json/json.test.ts` › `no_shorthands` — JSON object and null shorthand filters are both rejected — prisma-next's faithful JSONB codec accepts object shorthand as equality and null shorthand as an SQL-null filter
 - `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/json.rs` › `queries::filters::json::nested_not_shorthand` — GraphQL input validation rejects nested JSON not/equality objects — prisma-next has no GraphQL query-input validation surface, and this case excludes the PostgreSQL connector

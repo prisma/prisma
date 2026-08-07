@@ -27,7 +27,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'44664a05bbb83c6f33a706e9f69ea993b93732ae8824023924b831cdd98af1b4'>;
+  StorageHashBase<'8b57e2ed59e74d03bed17819d7544cd88789c5c84372698273aca5326207c2d5'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -144,7 +144,7 @@ export type FieldOutputTypes = {
   readonly public: {
     readonly TestModel: {
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly json: CodecTypes['pg/json@1']['output'] | null;
+      readonly json: CodecTypes['pg/jsonb@1']['output'] | null;
     };
   };
 };
@@ -152,7 +152,7 @@ export type FieldInputTypes = {
   readonly public: {
     readonly TestModel: {
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly json: CodecTypes['pg/json@1']['input'] | null;
+      readonly json: CodecTypes['pg/jsonb@1']['input'] | null;
     };
   };
 };
@@ -160,7 +160,7 @@ export type StorageColumnTypes = {
   readonly public: {
     readonly testModel: {
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly json: CodecTypes['pg/json@1']['output'] | null;
+      readonly json: CodecTypes['pg/jsonb@1']['output'] | null;
     };
   };
 };
@@ -168,7 +168,7 @@ export type StorageColumnInputTypes = {
   readonly public: {
     readonly testModel: {
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly json: CodecTypes['pg/json@1']['input'] | null;
+      readonly json: CodecTypes['pg/jsonb@1']['input'] | null;
     };
   };
 };
@@ -198,8 +198,8 @@ type ContractBase = Omit<
                   readonly nullable: false;
                 };
                 readonly json: {
-                  readonly nativeType: 'json';
-                  readonly codecId: 'pg/json@1';
+                  readonly nativeType: 'jsonb';
+                  readonly codecId: 'pg/jsonb@1';
                   readonly nullable: true;
                 };
               };
@@ -233,7 +233,7 @@ type ContractBase = Omit<
               };
               readonly json: {
                 readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/json@1' };
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/jsonb@1' };
               };
             };
             readonly relations: Record<string, never>;
