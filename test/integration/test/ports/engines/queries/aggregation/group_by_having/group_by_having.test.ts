@@ -1,39 +1,33 @@
-import { postgresRawCodecInferer } from '@internal/adapter-postgres/adapter';
-import { sql } from '@internal/sql-builder/runtime';
 import { describe, expect, it } from 'vitest';
-import { timeouts, withPostgresPort } from '../../../../_harness/postgres';
+import { timeouts } from '../../../../_harness/postgres';
 import type { Contract as CommonContract } from './_fixture/common/generated/contract';
 import commonContractJson from './_fixture/common/generated/contract.json' with { type: 'json' };
 import type { Contract as DecimalContract } from './_fixture/decimal/generated/contract';
 import decimalContractJson from './_fixture/decimal/generated/contract.json' with { type: 'json' };
+import { withPostgresClient } from './with-postgres-client';
 
-function withCommonGroupByHaving(fn: Parameters<typeof withPostgresPort<CommonContract>>[1]) {
-  return withPostgresPort<CommonContract>({ contractJson: commonContractJson }, fn);
+function withCommonGroupByHaving(fn: Parameters<typeof withPostgresClient<CommonContract>>[1]) {
+  return withPostgresClient<CommonContract>(commonContractJson, fn);
 }
 
-function withDecimalGroupByHaving(fn: Parameters<typeof withPostgresPort<DecimalContract>>[1]) {
-  return withPostgresPort<DecimalContract>({ contractJson: decimalContractJson }, fn);
+function withDecimalGroupByHaving(fn: Parameters<typeof withPostgresClient<DecimalContract>>[1]) {
+  return withPostgresClient<DecimalContract>(decimalContractJson, fn);
 }
 
 describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'basic_having_scalar_filter',
     () =>
-      withCommonGroupByHaving(async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withCommonGroupByHaving(async (client) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, float: 10.1, int: 5, bInt: 12n, string: 'group1' },
           { id: 2, float: 5.5, int: 0, bInt: 3n, string: 'group1' },
           { id: 3, float: 10, int: 5, bInt: 3n, string: 'group2' },
           { id: 4, float: 10, int: 5, bInt: 3n, string: 'group3' },
         ]);
 
-        const collection = db.public.TestModel;
-        const query = sql<CommonContract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
-        const result = await collection.ctx.runtime.execute(
-          query.public.testModel
+        const result = await client.runtime().execute(
+          client.sql.public.testModel
             .select('string', 'int')
             .select('count', (_fields, functions) => functions.count())
             .select('sum', (fields, functions) => functions.sum(fields.testModel.int))
@@ -58,8 +52,8 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_count_scalar_filter',
     () =>
-      withCommonGroupByHaving(async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withCommonGroupByHaving(async (client) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, int: 1, string: 'group1' },
           { id: 2, int: 2, string: 'group1' },
           { id: 3, int: 3, string: 'group2' },
@@ -68,29 +62,24 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
           { id: 6, string: 'group3' },
         ]);
 
-        const collection = db.public.TestModel;
-        const query = sql<CommonContract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
         const grouped = () =>
-          query.public.testModel
+          client.sql.public.testModel
             .select('string')
             .select('count', (fields, functions) => functions.count(fields.testModel.int))
             .groupBy('string')
             .orderBy('string');
 
-        const equals = await collection.ctx.runtime.execute(
+        const equals = await client.runtime().execute(
           grouped()
             .having((fields, functions) => functions.eq(functions.count(fields.testModel.int), 2n))
             .build(),
         );
-        const notEquals = await collection.ctx.runtime.execute(
+        const notEquals = await client.runtime().execute(
           grouped()
             .having((fields, functions) => functions.ne(functions.count(fields.testModel.int), 2n))
             .build(),
         );
-        const included = await collection.ctx.runtime.execute(
+        const included = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.in(functions.count(fields.testModel.int), [0n, 2n]),
@@ -114,8 +103,8 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_sum_scalar_filter',
     () =>
-      withCommonGroupByHaving(async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withCommonGroupByHaving(async (client) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 6, int: 6, string: 'group1' },
           { id: 3, float: 5, int: 5, string: 'group2' },
@@ -124,19 +113,14 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
           { id: 6, string: 'group3' },
         ]);
 
-        const collection = db.public.TestModel;
-        const query = sql<CommonContract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
         const grouped = () =>
-          query.public.testModel
+          client.sql.public.testModel
             .select('string')
             .select('float', (fields, functions) => functions.sum(fields.testModel.float))
             .select('int', (fields, functions) => functions.sum(fields.testModel.int))
             .groupBy('string')
             .orderBy('string');
-        const equals = await collection.ctx.runtime.execute(
+        const equals = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -146,7 +130,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             )
             .build(),
         );
-        const notEquals = await collection.ctx.runtime.execute(
+        const notEquals = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -156,7 +140,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             )
             .build(),
         );
-        const included = await collection.ctx.runtime.execute(
+        const included = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -180,8 +164,8 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_min_scalar_filter',
     () =>
-      withCommonGroupByHaving(async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withCommonGroupByHaving(async (client) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 0, int: 0, string: 'group1' },
           { id: 3, float: 0, int: 0, string: 'group2' },
@@ -190,20 +174,15 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
           { id: 6, string: 'group3' },
         ]);
 
-        const collection = db.public.TestModel;
-        const query = sql<CommonContract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
         const grouped = () =>
-          query.public.testModel
+          client.sql.public.testModel
             .select('string')
             .select('float', (fields, functions) => functions.min(fields.testModel.float))
             .select('int', (fields, functions) => functions.min(fields.testModel.int))
             .groupBy('string')
             .orderBy('string');
 
-        const equals = await collection.ctx.runtime.execute(
+        const equals = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -213,7 +192,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             )
             .build(),
         );
-        const notEquals = await collection.ctx.runtime.execute(
+        const notEquals = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -223,7 +202,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             )
             .build(),
         );
-        const included = await collection.ctx.runtime.execute(
+        const included = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -250,8 +229,8 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_max_scalar_filter',
     () =>
-      withCommonGroupByHaving(async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withCommonGroupByHaving(async (client) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 0, int: 0, string: 'group1' },
           { id: 3, float: 10, int: 10, string: 'group2' },
@@ -260,20 +239,15 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
           { id: 6, string: 'group3' },
         ]);
 
-        const collection = db.public.TestModel;
-        const query = sql<CommonContract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
         const grouped = () =>
-          query.public.testModel
+          client.sql.public.testModel
             .select('string')
             .select('float', (fields, functions) => functions.max(fields.testModel.float))
             .select('int', (fields, functions) => functions.max(fields.testModel.int))
             .groupBy('string')
             .orderBy('string');
 
-        const equals = await collection.ctx.runtime.execute(
+        const equals = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -283,7 +257,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             )
             .build(),
         );
-        const notEquals = await collection.ctx.runtime.execute(
+        const notEquals = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -293,7 +267,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
             )
             .build(),
         );
-        const included = await collection.ctx.runtime.execute(
+        const included = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -320,19 +294,14 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_count_non_numerical_field',
     () =>
-      withCommonGroupByHaving(async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withCommonGroupByHaving(async (client) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 0, int: 0, string: 'group1' },
         ]);
 
-        const collection = db.public.TestModel;
-        const query = sql<CommonContract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
-        const result = await collection.ctx.runtime.execute(
-          query.public.testModel
+        const result = await client.runtime().execute(
+          client.sql.public.testModel
             .select('string')
             .select('count', (fields, functions) => functions.count(fields.testModel.string))
             .groupBy('string')
@@ -350,8 +319,8 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_without_aggr_sel',
     () =>
-      withCommonGroupByHaving(async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withCommonGroupByHaving(async (client) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 0, int: 0, string: 'group1' },
           { id: 3, float: 10, int: 10, string: 'group2' },
@@ -360,18 +329,13 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
           { id: 6, string: 'group3' },
         ]);
 
-        const collection = db.public.TestModel;
-        const query = sql<CommonContract>({
-          context: collection.ctx.context,
-          rawCodecInferer: postgresRawCodecInferer,
-        });
-        const grouped = () => query.public.testModel.select('string').groupBy('string');
-        const maxResult = await collection.ctx.runtime.execute(
+        const grouped = () => client.sql.public.testModel.select('string').groupBy('string');
+        const maxResult = await client.runtime().execute(
           grouped()
             .having((fields, functions) => functions.gt(functions.max(fields.testModel.int), 1))
             .build(),
         );
-        const combinedResult = await collection.ctx.runtime.execute(
+        const combinedResult = await client.runtime().execute(
           grouped()
             .having((fields, functions) =>
               functions.and(
@@ -395,8 +359,8 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_avg_scalar_filter',
     () =>
-      withDecimalGroupByHaving(async ({ db }) => {
-        await db.public.TestModel.createAll([
+      withDecimalGroupByHaving(async (client) => {
+        await client.orm.public.TestModel.createAll([
           { id: 1, decimal: '10', string: 'group1' },
           { id: 2, decimal: '6', string: 'group1' },
           { id: 3, decimal: '5', string: 'group2' },
@@ -405,7 +369,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
           { id: 6, decimal: null, string: 'group3' },
         ]);
 
-        const result = await db.public.TestModel.groupBy('string')
+        const result = await client.orm.public.TestModel.groupBy('string')
           .having((having) => having.avg('decimal').eq(8))
           .aggregate((aggregate) => ({ decimal: aggregate.avg('decimal') }));
 
@@ -418,7 +382,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
     it(
       `decimal having_${operation}_scalar_filter`,
       () =>
-        withDecimalGroupByHaving(async ({ db }) => {
+        withDecimalGroupByHaving(async (client) => {
           const values =
             operation === 'sum'
               ? [
@@ -431,20 +395,15 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
                   { id: 2, decimal: '0', string: 'group1' },
                   { id: 3, decimal: operation === 'min' ? '0' : '10', string: 'group2' },
                 ];
-          await db.public.TestModel.createAll([
+          await client.orm.public.TestModel.createAll([
             ...values,
             { id: 4, decimal: null, string: 'group2' },
             { id: 5, decimal: null, string: 'group3' },
             { id: 6, decimal: null, string: 'group3' },
           ]);
 
-          const collection = db.public.TestModel;
-          const query = sql<DecimalContract>({
-            context: collection.ctx.context,
-            rawCodecInferer: postgresRawCodecInferer,
-          });
           const grouped = () =>
-            query.public.testModel
+            client.sql.public.testModel
               .select('string')
               .select('decimal', (fields, functions) =>
                 functions[operation](fields.testModel.decimal),
@@ -453,21 +412,21 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
               .orderBy('string');
           const filterValues =
             operation === 'sum' ? ['16', '5'] : operation === 'min' ? ['0'] : ['10'];
-          const equals = await collection.ctx.runtime.execute(
+          const equals = await client.runtime().execute(
             grouped()
               .having((fields, functions) =>
                 functions.eq(functions[operation](fields.testModel.decimal), filterValues[0]!),
               )
               .build(),
           );
-          const notEquals = await collection.ctx.runtime.execute(
+          const notEquals = await client.runtime().execute(
             grouped()
               .having((fields, functions) =>
                 functions.ne(functions[operation](fields.testModel.decimal), filterValues[0]!),
               )
               .build(),
           );
-          const included = await collection.ctx.runtime.execute(
+          const included = await client.runtime().execute(
             grouped()
               .having((fields, functions) =>
                 functions.in(functions[operation](fields.testModel.decimal), filterValues),
