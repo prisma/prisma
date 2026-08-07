@@ -371,7 +371,7 @@ withTempDir(({ createTempDir }) => {
             const plan = await runMigrationPlan(ctx, ['--json']);
             expect(plan.exitCode).toBe(2);
             const err = parseJsonOutput<PlanJsonResult>(plan);
-            expect(err.meta?.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
+            expect(err.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
             expect(err.fix).toMatch(/--from/);
           });
         });
