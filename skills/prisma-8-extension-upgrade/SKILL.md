@@ -47,17 +47,19 @@ If detection is ambiguous, ask the user which role to operate under.
 ## Version detection
 
 - **From-version.** Read the currently-installed Prisma Next version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@internal/*` entry. If the lockfile shows multiple `@internal/*` packages at different minors, the lowest minor is the from-version.
-- **To-version.** Either the version the user specified, or the latest stable from `npm view @internal/contract dist-tags.latest`.
+- **To-version.** Either the version the user specified, or whatever `npm view @internal/contract dist-tags.latest` reports. Do not assume that is a stable version: while Prisma 8 is a release candidate, `latest` tracks the newest release, `8.0.0-rc.N` included. If the user wants a stable version specifically, they must name it.
 
 Report both back to the user before continuing.
 
 ## Transition chain
 
-If the from-to delta spans multiple minor versions (e.g. `0.6 → 0.8`), build the chain of one-minor steps:
+If the from-to delta spans more than one release (e.g. `0.6 → 0.8`), build the chain of steps between them:
 
 ```text
 0.6 → 0.7 → 0.8
 ```
+
+The `upgrades/` directories in this package name the steps — read the chain off the directory names rather than deriving it arithmetically. Each directory is `<from>-to-<to>`. A step is one minor while the version line is stable (`0.7-to-0.8`); on the v8 release-candidate line a step is one release candidate (`8.0.0-rc.1-to-8.0.0-rc.2`), because an RC may carry breaking changes and each one needs its own translation. Moving onto the RC line from the last stable minor is a single step of its own (`0.17-to-8.0.0-rc.1`).
 
 Apply each step in order, fully: bump, install, run instructions, check pins, validate, commit — before moving to the next. Halt the chain on the first failed step.
 

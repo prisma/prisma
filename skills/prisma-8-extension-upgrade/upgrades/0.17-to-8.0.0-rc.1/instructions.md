@@ -1,6 +1,6 @@
 ---
 from: "0.17"
-to: "0.18"
+to: "8.0.0-rc.1"
 changes:
   - id: codec-conformance-harness-moves-to-testkit-packages
     summary: |
@@ -68,7 +68,7 @@ changes:
       anyMatch: true
 ---
 
-# 0.17 → 0.18 — Extension-author upgrade instructions
+# 0.17 → 8.0.0-rc.1 — Extension-author upgrade instructions
 
 ## `codec-conformance-harness-moves-to-testkit-packages`
 

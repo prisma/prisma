@@ -1,6 +1,6 @@
 {
   "name": "@internal/publish-surface",
-  "version": "0.17.0",
+  "version": "8.0.0-rc.1",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -17,7 +17,7 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "devDependencies": {
-    "@repo/tsconfig": "workspace:0.17.0",
+    "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
