@@ -245,4 +245,60 @@ describe('integration/integer representation types', () => {
     },
     timeouts.databaseOperation,
   );
+
+  // The aggregate method set and its result decoding are both derived from the
+  // contract's emitted rows, so this reduces columns whose codecs the derivation
+  // never names: `sum` over `pg/int8number@1` widens to `pg/numeric@1` (the total
+  // is free to leave the safe range the column guards), `sum` over
+  // `pg/unboundedint@1` stays unbounded, and `min`/`max` resolve to the input
+  // codec itself.
+  it(
+    'reduces BigIntNumber and UnboundedInt columns through their declared result codecs',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        await setupTables(runtime);
+        const meters = createMeters(runtime);
+
+        await meters.create({ id: 1, peak: MAX_SAFE, lifetime: PAST_TWO_63 });
+        await meters.create({ id: 2, peak: MAX_SAFE, lifetime: PAST_TWO_63 });
+
+        const stats = await meters.aggregate((agg) => ({
+          peakSum: agg.sum('peak'),
+          peakAvg: agg.avg('peak'),
+          peakMin: agg.min('peak'),
+          peakMax: agg.max('peak'),
+          lifetimeSum: agg.sum('lifetime'),
+          lifetimeAvg: agg.avg('lifetime'),
+          lifetimeMin: agg.min('lifetime'),
+          lifetimeMax: agg.max('lifetime'),
+        }));
+
+        // Both sums leave the range their column's codec holds a value to;
+        // decimal text and an unbounded bigint carry them exactly. The averages
+        // keep PostgreSQL's own numeric scale for each input type.
+        expect(stats).toEqual({
+          peakSum: '18014398509481982',
+          peakAvg: '9007199254740991.0000',
+          peakMin: MAX_SAFE,
+          peakMax: MAX_SAFE,
+          lifetimeSum: 36893488147419103234n,
+          lifetimeAvg: '18446744073709551617',
+          lifetimeMin: PAST_TWO_63,
+          lifetimeMax: PAST_TWO_63,
+        });
+
+        expectTypeOf(stats).toEqualTypeOf<{
+          peakSum: string | null;
+          peakAvg: string | null;
+          peakMin: number | null;
+          peakMax: number | null;
+          lifetimeSum: bigint | null;
+          lifetimeAvg: string | null;
+          lifetimeMin: bigint | null;
+          lifetimeMax: bigint | null;
+        }>();
+      }, contract);
+    },
+    timeouts.databaseOperation,
+  );
 });
