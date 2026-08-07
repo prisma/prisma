@@ -564,6 +564,7 @@ describe.sequential('check-constraint lifecycle', () => {
     // The catalog holds the declared name byte-for-byte — nothing truncated.
     expect(await liveCheckNames()).toEqual([declared]);
     expect((await verify(contract)).ok).toBe(true);
+  });
 
   // A prefix-only change keeps the predicate — and so the content hash —
   // identical, so the two sides pair and collapse into one RENAME CONSTRAINT
