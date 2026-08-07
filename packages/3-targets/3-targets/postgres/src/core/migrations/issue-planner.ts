@@ -158,6 +158,7 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
     case 'dropDefault':
       return 'drop';
     case 'addCheckConstraint':
+    case 'renameCheckConstraint':
       return 'unique'; // after uniques, before indexes
     case 'createTable':
       return 'table';
@@ -251,6 +252,7 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
     indexName?: string;
     newIndexName?: string;
     constraintName?: string;
+    newConstraintName?: string;
     typeName?: string;
     policyName?: string;
     newPolicyName?: string;
@@ -276,7 +278,10 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
   // contract-side identity, so it is the conflict location.
   if (anyCall.indexName) location.index = anyCall.indexName;
   else if (anyCall.newIndexName) location.index = anyCall.newIndexName;
+  // Same convention as indexes and policies: a rename call's NEW name is the
+  // constraint's contract-side identity.
   if (anyCall.constraintName) location.constraint = anyCall.constraintName;
+  else if (anyCall.newConstraintName) location.constraint = anyCall.newConstraintName;
   // Same convention as indexes: a rename call's NEW name is the policy's
   // contract-side identity.
   if (anyCall.policyName) location.rlsPolicy = anyCall.policyName;

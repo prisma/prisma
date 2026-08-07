@@ -29,7 +29,7 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
-import { SqlIndexIR } from '@internal/sql-schema-ir/types';
+import { SqlCheckConstraintIR, SqlIndexIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { PostgresRlsPolicy } from '../postgres-rls-policy';
@@ -56,6 +56,7 @@ import type { PostgresOpFactoryCall } from './op-factory-call';
 import {
   CreatePostgresRlsPolicyCall,
   DropPostgresRlsPolicyCall,
+  RenameCheckConstraintCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
 } from './op-factory-call';
@@ -254,10 +255,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     // `planIssues`; the rename calls go through the same call-side
     // control-policy partition the policy ops use.
     const indexRenames = this.pairIndexRenames(options, schemaIssues);
+    const checkRenames = this.pairCheckRenames(options, schemaIssues);
+    const renameConsumed = new Set([...indexRenames.consumed, ...checkRenames.consumed]);
     const plannableIssues =
-      indexRenames.consumed.size === 0
+      renameConsumed.size === 0
         ? schemaIssues
-        : schemaIssues.filter((issue) => !indexRenames.consumed.has(issue));
+        : schemaIssues.filter((issue) => !renameConsumed.has(issue));
 
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
     const storageTypes = options.contract.storage.types ?? {};
@@ -309,7 +312,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
 
     const indexRenamePartition = partitionCallsByControlPolicy({
-      calls: indexRenames.calls,
+      calls: [...indexRenames.calls, ...checkRenames.calls],
       contract: options.contract,
       resolveControlPolicySubject: (call) =>
         resolvePostgresCallControlPolicySubject(call, options.contract),
@@ -507,6 +510,105 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       );
       if (candidate === undefined) continue;
       rename(missingFinding, candidate);
+    }
+
+    return { calls, consumed };
+  }
+
+  /**
+   * Check-constraint rename post-pass: a `not-found` and a `not-expected`
+   * check on the same table whose wire-name content hashes match but whose
+   * prefixes differ is a prefix-only rename, and collapses into one
+   * `ALTER TABLE … RENAME CONSTRAINT`.
+   *
+   * This is the index pass's hash-pairing phase and nothing else. There is
+   * deliberately no content-pairing phase: a live check body is whatever
+   * Postgres reprinted, so it never byte-matches the authored text, and
+   * pairing an exact-named live check by content would bless whatever
+   * predicate is actually live. Adoption of an old exact-named check stays
+   * drop + add.
+   *
+   * Runs only when the policy allows `widening` (rename's class). Without it
+   * the pass no-ops and the pair degrades to the slice-1 behavior: an add,
+   * plus a drop when `destructive` is allowed too.
+   */
+  private pairCheckRenames(
+    options: PlannerOptionsWithComponents,
+    issues: readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
+  ): {
+    readonly calls: readonly RenameCheckConstraintCall[];
+    readonly consumed: ReadonlySet<SchemaDiffIssue<SqlSchemaDiffNode>>;
+  } {
+    const consumed = new Set<SchemaDiffIssue<SqlSchemaDiffNode>>();
+    const calls: RenameCheckConstraintCall[] = [];
+    if (!options.policy.allowedOperationClasses.includes('widening')) {
+      return { calls, consumed };
+    }
+
+    interface CheckFinding {
+      readonly issue: SchemaDiffIssue<SqlSchemaDiffNode>;
+      readonly node: SqlCheckConstraintIR;
+      readonly ddlSchema: string;
+      readonly tableName: string;
+    }
+    const missing: CheckFinding[] = [];
+    const extra: CheckFinding[] = [];
+    for (const issue of issues) {
+      const node = issueNode(issue);
+      if (node === undefined || !SqlCheckConstraintIR.is(node)) continue;
+      const ddlSchema = issue.path[1];
+      const tableName = issue.path[2];
+      if (ddlSchema === undefined || tableName === undefined) continue;
+      if (issueOutcome(issue) === 'not-found') {
+        missing.push({ issue, node, ddlSchema, tableName });
+      } else if (issueOutcome(issue) === 'not-expected') {
+        extra.push({ issue, node, ddlSchema, tableName });
+      }
+    }
+    if (missing.length === 0 || extra.length === 0) {
+      return { calls, consumed };
+    }
+
+    const byName = (a: CheckFinding, b: CheckFinding): number =>
+      a.node.name < b.node.name ? -1 : a.node.name > b.node.name ? 1 : 0;
+    // DDL emission must stay unqualified for the unbound namespace, exactly
+    // like the per-issue mapping's `emissionSchemaName`.
+    const emissionSchema = (ddlSchema: string): string =>
+      resolveNamespaceIdForDdlSchema(options.contract, ddlSchema) === UNBOUND_NAMESPACE_ID
+        ? UNBOUND_NAMESPACE_ID
+        : ddlSchema;
+    const pairingKey = (finding: CheckFinding, hash: string): string =>
+      JSON.stringify([finding.ddlSchema, finding.tableName, hash]);
+
+    const sortedMissing = [...missing].sort(byName);
+
+    const extrasByHash = new Map<string, CheckFinding[]>();
+    for (const finding of extra) {
+      const parsed = parseWireName(finding.node.name);
+      if (parsed === undefined) continue;
+      const key = pairingKey(finding, parsed.hash);
+      const group = extrasByHash.get(key) ?? [];
+      group.push(finding);
+      extrasByHash.set(key, group);
+    }
+    for (const group of extrasByHash.values()) {
+      group.sort(byName);
+    }
+    for (const missingFinding of sortedMissing) {
+      const parsed = parseWireName(missingFinding.node.name);
+      if (parsed === undefined) continue;
+      const candidate = extrasByHash.get(pairingKey(missingFinding, parsed.hash))?.shift();
+      if (candidate === undefined) continue;
+      consumed.add(missingFinding.issue);
+      consumed.add(candidate.issue);
+      calls.push(
+        new RenameCheckConstraintCall(
+          emissionSchema(missingFinding.ddlSchema),
+          missingFinding.tableName,
+          candidate.node.name,
+          missingFinding.node.name,
+        ),
+      );
     }
 
     return { calls, consumed };

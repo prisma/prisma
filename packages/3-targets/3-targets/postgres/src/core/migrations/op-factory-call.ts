@@ -73,6 +73,7 @@ import {
   addUnique,
   dropCheckConstraint,
   dropConstraint,
+  renameCheckConstraint,
 } from './operations/constraints';
 import { createExtension } from './operations/dependencies';
 import {
@@ -1046,6 +1047,67 @@ export class DropConstraintCall extends PostgresOpFactoryCallNode {
   }
 }
 
+export class RenameCheckConstraintCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'renameCheckConstraint' as const;
+  // `widening` is chosen so the rename plans under every allowance set except
+  // additive-only init — a rename is neither additive-creation nor
+  // destructive, and the class vocabulary has no neutral middle class. It is
+  // NOT that a rename widens anything; this is the accepted typology tradeoff.
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly tableName: string;
+  readonly oldConstraintName: string;
+  readonly newConstraintName: string;
+  readonly label: string;
+
+  constructor(
+    schemaName: string,
+    tableName: string,
+    oldConstraintName: string,
+    newConstraintName: string,
+  ) {
+    super();
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.oldConstraintName = oldConstraintName;
+    this.newConstraintName = newConstraintName;
+    this.label = `Rename check constraint "${oldConstraintName}" to "${newConstraintName}" on "${tableName}"`;
+    this.freeze();
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    if (lowerer === undefined) {
+      throw postgresError(
+        'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
+        `RenameCheckConstraintCall.toOp: a lowerer is required on the Postgres planner path (constraint "${this.oldConstraintName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
+        { meta: { factory: 'RenameCheckConstraintCall' } },
+      );
+    }
+    return renameCheckConstraint(
+      this.schemaName,
+      this.tableName,
+      this.oldConstraintName,
+      this.newConstraintName,
+      lowerer,
+    );
+  }
+
+  renderTypeScript(): string {
+    const opts: string[] = [];
+    if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
+      opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
+    }
+    opts.push(`table: ${jsonToTsSource(this.tableName)}`);
+    opts.push(`from: ${jsonToTsSource(this.oldConstraintName)}`);
+    opts.push(`to: ${jsonToTsSource(this.newConstraintName)}`);
+    return `this.renameCheckConstraint({ ${opts.join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
 export class AddCheckConstraintCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'addCheckConstraint' as const;
   readonly operationClass = 'additive' as const;
@@ -1910,6 +1972,7 @@ export type PostgresOpFactoryCall =
   | AddForeignKeyCall
   | AddUniqueCall
   | AddCheckConstraintCall
+  | RenameCheckConstraintCall
   | DropCheckConstraintCall
   | CreateIndexCall
   | RenameIndexCall
