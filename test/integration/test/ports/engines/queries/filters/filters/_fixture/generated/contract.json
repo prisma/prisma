@@ -112,7 +112,7 @@
                   "kind": "scalar"
                 }
               },
-              "vehicleId": {
+              "vehicle_id": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -125,7 +125,7 @@
                 "cardinality": "N:1",
                 "on": {
                   "localFields": [
-                    "vehicleId"
+                    "vehicle_id"
                   ],
                   "targetFields": [
                     "id"
@@ -151,8 +151,8 @@
                 "unique": {
                   "column": "unique"
                 },
-                "vehicleId": {
-                  "column": "vehicleId"
+                "vehicle_id": {
+                  "column": "vehicle_id"
                 }
               },
               "namespaceId": "public",
@@ -198,7 +198,7 @@
                     "id"
                   ],
                   "targetFields": [
-                    "vehicleId"
+                    "vehicle_id"
                   ]
                 },
                 "to": {
@@ -300,7 +300,7 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
-                "vehicleId": {
+                "vehicle_id": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -310,7 +310,7 @@
                 {
                   "source": {
                     "columns": [
-                      "vehicleId"
+                      "vehicle_id"
                     ],
                     "namespaceId": "public",
                     "tableName": "user"
@@ -338,7 +338,7 @@
                 },
                 {
                   "columns": [
-                    "vehicleId"
+                    "vehicle_id"
                   ]
                 }
               ]
@@ -387,7 +387,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a0c00dbfa9c12667553a05868cd9c11d4baca80dfcb684e54cc525da1ed362b1"
+    "storageHash": "b7a5ff65b8153c01d91b9b7050632394ce8d90f58ae6577d7b2641c02595c21e"
   },
   "capabilities": {
     "postgres": {

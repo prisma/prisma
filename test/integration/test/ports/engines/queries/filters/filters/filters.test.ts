@@ -12,9 +12,9 @@ function withFilters(fn: Parameters<typeof withPostgresPort<Contract>>[1]) {
       { id: 'vehicle-3', unique: 3, brand: 'Mercedes', parked: true },
     ]);
     await ctx.db.public.User.createAll([
-      { id: 'user-1', name: 'Paul', unique: 1, vehicleId: 'vehicle-1' },
-      { id: 'user-2', name: 'Bernd', unique: 2, vehicleId: 'vehicle-2' },
-      { id: 'user-3', name: 'Michael', unique: 3, vehicleId: 'vehicle-3' },
+      { id: 'user-1', name: 'Paul', unique: 1, vehicle_id: 'vehicle-1' },
+      { id: 'user-2', name: 'Bernd', unique: 2, vehicle_id: 'vehicle-2' },
+      { id: 'user-3', name: 'Michael', unique: 3, vehicle_id: 'vehicle-3' },
       { id: 'user-4', name: 'John', unique: 4 },
     ]);
     await ctx.db.public.ParkingLot.createAll([

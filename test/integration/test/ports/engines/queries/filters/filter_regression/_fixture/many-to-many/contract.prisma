@@ -1,12 +1,14 @@
 model Location {
   id               Int               @id
   name             String?
+  companies        Company[]
   companyLocations CompanyLocation[]
 }
 
 model Company {
   id               Int               @id
   name             String?
+  locations        Location[]
   companyLocations CompanyLocation[]
 }
 

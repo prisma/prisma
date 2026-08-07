@@ -27,7 +27,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a0c00dbfa9c12667553a05868cd9c11d4baca80dfcb684e54cc525da1ed362b1'>;
+  StorageHashBase<'b7a5ff65b8153c01d91b9b7050632394ce8d90f58ae6577d7b2641c02595c21e'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -154,7 +154,7 @@ export type FieldOutputTypes = {
       readonly unique: CodecTypes['pg/int4@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'] | null;
       readonly optional: CodecTypes['pg/text@1']['output'] | null;
-      readonly vehicleId: CodecTypes['pg/text@1']['output'] | null;
+      readonly vehicle_id: CodecTypes['pg/text@1']['output'] | null;
     };
     readonly Vehicle: {
       readonly id: CodecTypes['pg/text@1']['output'];
@@ -178,7 +178,7 @@ export type FieldInputTypes = {
       readonly unique: CodecTypes['pg/int4@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'] | null;
       readonly optional: CodecTypes['pg/text@1']['input'] | null;
-      readonly vehicleId: CodecTypes['pg/text@1']['input'] | null;
+      readonly vehicle_id: CodecTypes['pg/text@1']['input'] | null;
     };
     readonly Vehicle: {
       readonly id: CodecTypes['pg/text@1']['input'];
@@ -202,7 +202,7 @@ export type StorageColumnTypes = {
       readonly name: CodecTypes['pg/text@1']['output'] | null;
       readonly optional: CodecTypes['pg/text@1']['output'] | null;
       readonly unique: CodecTypes['pg/int4@1']['output'];
-      readonly vehicleId: CodecTypes['pg/text@1']['output'] | null;
+      readonly vehicle_id: CodecTypes['pg/text@1']['output'] | null;
     };
     readonly vehicle: {
       readonly brand: CodecTypes['pg/text@1']['output'] | null;
@@ -226,7 +226,7 @@ export type StorageColumnInputTypes = {
       readonly name: CodecTypes['pg/text@1']['input'] | null;
       readonly optional: CodecTypes['pg/text@1']['input'] | null;
       readonly unique: CodecTypes['pg/int4@1']['input'];
-      readonly vehicleId: CodecTypes['pg/text@1']['input'] | null;
+      readonly vehicle_id: CodecTypes['pg/text@1']['input'] | null;
     };
     readonly vehicle: {
       readonly brand: CodecTypes['pg/text@1']['input'] | null;
@@ -309,7 +309,7 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
                 };
-                readonly vehicleId: {
+                readonly vehicle_id: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
@@ -318,7 +318,7 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [
                 { readonly columns: readonly ['unique'] },
-                { readonly columns: readonly ['vehicleId'] },
+                { readonly columns: readonly ['vehicle_id'] },
               ];
               indexes: readonly [];
               foreignKeys: readonly [
@@ -326,7 +326,7 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'user';
-                    readonly columns: readonly ['vehicleId'];
+                    readonly columns: readonly ['vehicle_id'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
@@ -440,7 +440,7 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly vehicleId: {
+              readonly vehicle_id: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -453,7 +453,7 @@ type ContractBase = Omit<
                 };
                 readonly cardinality: 'N:1';
                 readonly on: {
-                  readonly localFields: readonly ['vehicleId'];
+                  readonly localFields: readonly ['vehicle_id'];
                   readonly targetFields: readonly ['id'];
                 };
               };
@@ -466,7 +466,7 @@ type ContractBase = Omit<
                 readonly unique: { readonly column: 'unique' };
                 readonly name: { readonly column: 'name' };
                 readonly optional: { readonly column: 'optional' };
-                readonly vehicleId: { readonly column: 'vehicleId' };
+                readonly vehicle_id: { readonly column: 'vehicle_id' };
               };
             };
           };
@@ -495,7 +495,7 @@ type ContractBase = Omit<
                 readonly cardinality: '1:1';
                 readonly on: {
                   readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['vehicleId'];
+                  readonly targetFields: readonly ['vehicle_id'];
                 };
               };
             };
