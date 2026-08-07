@@ -1,0 +1,3 @@
+model ModelA { id String @id idTest String? optString String? optInt Int? optFloat Float? optBoolean Boolean? optDateTime DateTime? optEnum Enum? b_id String? b ModelB? @relation(fields: [b_id], references: [id]) }
+model ModelB { id String @id int Int? @unique m ModelA[] }
+enum Enum { A B }

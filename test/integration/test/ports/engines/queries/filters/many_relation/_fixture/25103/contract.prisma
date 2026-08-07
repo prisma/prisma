@@ -1,0 +1,4 @@
+model Contact { id String @id identities Identity[] }
+model Identity { id String @id contactId String contact Contact @relation(fields: [contactId], references: [id]) subscriptions Subscription[] }
+model Subscription { id String @id identityId String audienceId String optedOutAt DateTime? audience Audience @relation(fields: [audienceId], references: [id]) identity Identity @relation(fields: [identityId], references: [id]) }
+model Audience { id String @id deletedAt DateTime? subscriptions Subscription[] }

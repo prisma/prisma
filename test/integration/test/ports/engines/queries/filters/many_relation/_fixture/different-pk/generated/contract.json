@@ -1,0 +1,519 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "bottom": {
+      "model": "Bottom",
+      "namespace": "public"
+    },
+    "middle": {
+      "model": "Middle",
+      "namespace": "public"
+    },
+    "top": {
+      "model": "Top",
+      "namespace": "public"
+    },
+    "topBottom": {
+      "model": "TopBottom",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Bottom": {
+            "fields": {
+              "bottomId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "relatedMiddleId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "middle": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "relatedMiddleId"
+                  ],
+                  "targetFields": [
+                    "middleId"
+                  ]
+                },
+                "to": {
+                  "model": "Middle",
+                  "namespace": "public"
+                }
+              },
+              "tops": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "bottomId"
+                  ],
+                  "targetFields": [
+                    "bottomId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "topId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "bottomId"
+                  ],
+                  "table": "topBottom",
+                  "targetColumns": [
+                    "topId"
+                  ]
+                },
+                "to": {
+                  "model": "Top",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "bottomId": {
+                  "column": "bottomId"
+                },
+                "relatedMiddleId": {
+                  "column": "relatedMiddleId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "bottom"
+            }
+          },
+          "Middle": {
+            "fields": {
+              "middleId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "bottoms": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "middleId"
+                  ],
+                  "targetFields": [
+                    "relatedMiddleId"
+                  ]
+                },
+                "to": {
+                  "model": "Bottom",
+                  "namespace": "public"
+                }
+              },
+              "tops": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "middleId"
+                  ],
+                  "targetFields": [
+                    "relatedMiddleId"
+                  ]
+                },
+                "to": {
+                  "model": "Top",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "middleId": {
+                  "column": "middleId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "middle"
+            }
+          },
+          "Top": {
+            "fields": {
+              "relatedMiddleId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "topId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "bottoms": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "topId"
+                  ],
+                  "targetFields": [
+                    "topId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "bottomId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "topId"
+                  ],
+                  "table": "topBottom",
+                  "targetColumns": [
+                    "bottomId"
+                  ]
+                },
+                "to": {
+                  "model": "Bottom",
+                  "namespace": "public"
+                }
+              },
+              "middle": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "relatedMiddleId"
+                  ],
+                  "targetFields": [
+                    "middleId"
+                  ]
+                },
+                "to": {
+                  "model": "Middle",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "relatedMiddleId": {
+                  "column": "relatedMiddleId"
+                },
+                "topId": {
+                  "column": "topId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "top"
+            }
+          },
+          "TopBottom": {
+            "fields": {
+              "bottomId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "topId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "bottom": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "bottomId"
+                  ],
+                  "targetFields": [
+                    "bottomId"
+                  ]
+                },
+                "to": {
+                  "model": "Bottom",
+                  "namespace": "public"
+                }
+              },
+              "top": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "topId"
+                  ],
+                  "targetFields": [
+                    "topId"
+                  ]
+                },
+                "to": {
+                  "model": "Top",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "bottomId": {
+                  "column": "bottomId"
+                },
+                "topId": {
+                  "column": "topId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "topBottom"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "bottom": {
+              "columns": {
+                "bottomId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "relatedMiddleId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "relatedMiddleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "bottom"
+                  },
+                  "target": {
+                    "columns": [
+                      "middleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "middle"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "relatedMiddleId"
+                  ],
+                  "name": "bottom_relatedMiddleId_idx_ec5ed7cd",
+                  "prefix": "bottom_relatedMiddleId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "bottomId"
+                ]
+              },
+              "uniques": []
+            },
+            "middle": {
+              "columns": {
+                "middleId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "middleId"
+                ]
+              },
+              "uniques": []
+            },
+            "top": {
+              "columns": {
+                "relatedMiddleId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "topId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "relatedMiddleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "top"
+                  },
+                  "target": {
+                    "columns": [
+                      "middleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "middle"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "relatedMiddleId"
+                  ],
+                  "name": "top_relatedMiddleId_idx_ec5ed7cd",
+                  "prefix": "top_relatedMiddleId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "topId"
+                ]
+              },
+              "uniques": []
+            },
+            "topBottom": {
+              "columns": {
+                "bottomId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "topId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "topId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "topBottom"
+                  },
+                  "target": {
+                    "columns": [
+                      "topId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "top"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "bottomId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "topBottom"
+                  },
+                  "target": {
+                    "columns": [
+                      "bottomId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "bottom"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "bottomId"
+                  ],
+                  "name": "topBottom_bottomId_idx_ea943a00",
+                  "prefix": "topBottom_bottomId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "topId"
+                  ],
+                  "name": "topBottom_topId_idx_706dce97",
+                  "prefix": "topBottom_topId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "topId",
+                  "bottomId"
+                ]
+              },
+              "uniques": []
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "b24705cefe51680d6901a854971dc9ce26e4522065f1777c28426c53cecf0d5a"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}
