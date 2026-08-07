@@ -59,7 +59,7 @@ Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma-next.config.ts` a
 
 ### CONFIG.VALIDATION_FAILED
 
-`prisma-next.config.ts` loaded but failed validation: a required field is missing or malformed. Raised by the config loader and by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`. Meta: none.
+`prisma-next.config.ts` loaded but failed validation: a required field is missing or malformed. Raised by the config loader and by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`; also raised by contract-path resolution when `config.contract.output` is absent. Meta: none.
 
 ## CLI
 
@@ -69,7 +69,7 @@ The migration-file CLI (`prisma-next migration`) received `--config` without a p
 
 ### CLI.FILE_NOT_FOUND
 
-A file the command needs does not exist at the given path. Produced by several commands: the migration command scaffold, `migrate`, `migration plan`, `migration show`, `db sign`, `db verify`, and `ref` all raise it when the emitted `contract.json` (or another required file) is missing from the expected location. The path is carried in `where.path` rather than meta. Meta: none (`where.path` holds the file path).
+A file the command needs does not exist at the given path. Produced by several commands: the migration command scaffold, `migrate`, `migration plan`, `migration show`, `db sign`, `db verify`, and `ref` all raise it when the emitted `contract.json` (or another required file) is missing from the expected location. Most sites carry the path in `where.path`; the `migration new` contract-file site carries it in the summary text only. Meta: none.
 
 ### CLI.FILE_WRITE_FAILED
 
@@ -243,7 +243,7 @@ A Mongo variant model declares an index that conflicts with the discriminator sc
 
 ### CONTRACT.INFER_UNSUPPORTED
 
-`contract infer` met a database shape it cannot express yet: duplicate table names across schemas, a column typed by a native enum that an extension pack space already describes in another schema, or native enum adoption with content spanning multiple schemas. Meta: `tableName`, `columnName`, `schemas`.
+`contract infer` is not available: either the configured family does not implement the `PslContractInferCapable` capability (no meta at that site), or the family supports inference but the database shape cannot be expressed yet — duplicate table names across schemas, a column typed by a native enum that an extension pack space already describes in another schema, or native enum adoption with content spanning multiple schemas. Meta at the shape sites: `tableName`, `columnName`, `schemas`.
 
 ### CONTRACT.INTROSPECTION_UNSUPPORTED
 
@@ -367,7 +367,7 @@ The emitted contract file could not be read or parsed while computing `migration
 
 ### CONTRACT.VALIDATION_FAILED
 
-Aggregate contract validation failed: structural validation of the contract JSON (`ContractValidationError` with a `phase` of structural/domain/storage), semantic validation during `buildContract`, or storage/model validators rejecting the built contract. Raised at emit/authoring time and whenever a contract is loaded and validated. Meta: `errors` (aggregate site); the error class also carries `phase`.
+Aggregate contract validation failed: structural validation of the contract JSON (`ContractValidationError` with a `phase` of structural/domain/storage), semantic validation during `buildContract`, or storage/model validators rejecting the built contract. Raised at emit/authoring time and whenever a contract is loaded and validated. Also raised by `migration new` when the emitted contract has no `storageHash`; that site has no meta. Meta: `errors` (aggregate site); the error class also carries `phase`.
 
 ### CONTRACT.VERIFY_FAILED
 
@@ -385,7 +385,7 @@ An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds th
 
 ### PSL.PARSE_FAILED
 
-`format()` was asked to format PSL source that has parse errors; formatting refuses to run on an unparseable document. The message carries the first diagnostic and a count of the rest; the CLI `format` command wraps this into a structured failure telling the user to fix the parse errors. Meta: `diagnostics`.
+`format()` was asked to format PSL source that has parse errors; formatting refuses to run on an unparseable document. The message carries the first diagnostic and a count of the rest; the CLI `format` command wraps this into a structured failure telling the user to fix the parse errors, attaching the parser error as `cause`. Meta: `diagnostics`.
 
 ## ORM
 
@@ -773,7 +773,7 @@ A `migration check` failure row: a migration's `from` hash is not produced by an
 
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
-A contract snapshot on disk was found but failed to deserialize into a valid contract while migration tooling resolved a contract at a ref or hash. Re-emit the owning migration package or restore it from version control. Meta: `filePath`, `message`.
+A contract snapshot on disk was found but failed to deserialize into a valid contract while migration tooling resolved a contract at a ref or hash. Re-emit the owning migration package or restore it from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
 
 ### MIGRATION.CONTRACT_SNAPSHOT_HASH_MISMATCH
 
@@ -937,7 +937,7 @@ While reconstructing the migration graph, no migration starts from the empty con
 
 ### MIGRATION.NO_INVARIANT_PATH
 
-The target (or named ref) requires data invariants, and no path through the migration graph from the current state covers all of them. Add a migration on the path that runs a `dataTransform` with each missing `invariantId`, or retarget the ref. Meta: `required`, `missing`, `structuralPath` (edges: `dirName`, `migrationHash`, `from`, `to`, `invariants`), `refName` (when applicable).
+The target (or named ref) requires data invariants, and no path through the migration graph from the current state covers all of them. Add a migration on the path that runs a `dataTransform` with each missing `invariantId`, or retarget the ref. Meta: `required`, `missing`, `structuralPath` (edges: `dirName`, `migrationHash`, `from`, `to`, `invariants`), `refName` (when applicable). Also raised per space by `migrate` in show/plan mode when a space's path requires invariants not available on disk; that site's meta is `spaceId`, `missing`.
 
 ### MIGRATION.NO_MIGRATIONS
 
@@ -1017,7 +1017,7 @@ A reference parsed, but as the wrong kind for the argument position — e.g. a m
 
 ### MIGRATION.RUNNER_FAILED
 
-Generic wrapper for a migration runner failure during execution that has no more specific code; the summary/why carry the underlying detail (also used to surface the legacy-marker-shape condition from marker reads, with `meta.runnerErrorCode`). Inspect the reported conflict and reconcile schema drift.
+Generic wrapper for a migration runner failure during execution that has no more specific code; the summary/why carry the underlying detail (also used to surface the legacy-marker-shape condition from marker reads, with `meta.runnerErrorCode`). `migrate` and `db init` map unrecognized apply failures through it, passing the failure's own meta through unchanged. Inspect the reported conflict and reconcile schema drift. Meta: the wrapped failure's meta, when it has any; `runnerErrorCode` at the legacy-marker-shape site.
 
 ### MIGRATION.SAME_SOURCE_AND_TARGET
 
@@ -1029,7 +1029,7 @@ After applying migrations, the runner introspected the database and the resultin
 
 ### MIGRATION.SNAPSHOT_MISSING
 
-A `--from` reference cannot produce a contract: either a ref name has no pointer file and the fallback hash is not a graph node (`viaRef: true`), or an explicit `--from <hash>` was given on an empty migration graph and names no ref (`viaRef: false`). Meta: `identifier`, `viaRef`.
+A `--from` reference cannot produce a contract: either a ref name has no pointer file and the fallback hash is not a graph node (`viaRef: true`), or an explicit `--from <hash>` was given on an empty migration graph and names no ref (`viaRef: false`). Meta: `identifier`, `viaRef`. Also raised by `db sign` when a contract reference resolves to a hash but no migration produces that hash and the emitted contract does not match; that site has no meta.
 
 ### MIGRATION.SPACE_NOT_FOUND
 

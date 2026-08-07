@@ -415,6 +415,7 @@ async function executeMigrateShowCommand(
           `Missing required invariants for space "${outcome.spaceId}"`,
           {
             why: `The path requires invariants not available on disk: ${outcome.missing.join(', ')}`,
+            fix: 'Add a migration on the path that runs `dataTransform({ invariantId: "<id>", … })` for each missing invariant, or retarget the ref to a hash whose path already provides them.',
             meta: { spaceId: outcome.spaceId, missing: [...outcome.missing] },
           },
         ),

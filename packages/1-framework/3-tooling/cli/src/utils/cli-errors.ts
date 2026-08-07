@@ -375,7 +375,7 @@ export function mapMigrationToolsError(error: MigrationToolsError): CliStructure
   return errorRuntime(error.code, error.message, {
     why: error.why,
     fix: error.fix,
-    ...ifDefined('meta', error.details),
+    ...ifDefined('meta', error.details && { ...error.details }),
     cause: error,
   });
 }

@@ -68,7 +68,6 @@ interface PlanJsonResult {
   readonly baselineDir?: string;
   readonly noOp?: boolean;
   readonly code?: string;
-  readonly meta?: { readonly code?: string };
   readonly why?: string;
   readonly fix?: string;
 }
