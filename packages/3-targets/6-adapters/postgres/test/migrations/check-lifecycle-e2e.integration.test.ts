@@ -6,10 +6,7 @@ import {
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage, type StorageTable } from '@internal/sql-contract/types';
-import {
-  computeCheckContentHash,
-  truncateToWireNamePrefixBytes,
-} from '@internal/sql-schema-ir/naming';
+import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import {
   PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
@@ -44,20 +41,6 @@ type ColumnSpec = {
   readonly many?: true;
 };
 
-const CHECK_KIND_SUFFIX = { membership: 'check', elementNotNull: 'elem_not_null' } as const;
-
-/**
- * Composes a check's wire prefix exactly as the contract builder does, so
- * these fixtures carry the names authoring would actually emit.
- */
-function checkPrefix(
-  tableName: string,
-  columnName: string,
-  kind: 'membership' | 'elementNotNull',
-): string {
-  return truncateToWireNamePrefixBytes(`${tableName}_${columnName}_${CHECK_KIND_SUFFIX[kind]}`);
-}
-
 /** Builds the checks the Postgres pack would emit for one column. */
 function checksForColumn(
   tableName: string,
@@ -74,7 +57,7 @@ function checksForColumn(
       new CheckConstraint({
         naming: {
           kind: 'wire',
-          prefix: checkPrefix(tableName, candidate.columnName, candidate.kind),
+          prefix: composeCheckWirePrefix(tableName, candidate.columnName, candidate.kind),
           hash: computeCheckContentHash(candidate.expression),
         },
         expression: candidate.expression,

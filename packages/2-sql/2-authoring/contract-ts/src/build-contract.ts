@@ -67,10 +67,7 @@ import {
 } from '@internal/sql-contract/types';
 import { validateStorageSemantics } from '@internal/sql-contract/validators';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
-import {
-  computeCheckContentHash,
-  truncateToWireNamePrefixBytes,
-} from '@internal/sql-schema-ir/naming';
+import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -348,22 +345,16 @@ function checkMemberValues(
   return values;
 }
 
-/** The trailing segment a check's wire-name prefix carries, per kind. */
-const CHECK_KIND_SUFFIX = {
-  membership: 'check',
-  elementNotNull: 'elem_not_null',
-} as const;
-
 /**
  * Names the target's rendered checks and lowers them into contract entities.
  *
- * Naming is composed here rather than by the target: the prefix is
- * `${table}_${column}_${kindSuffix}`, capped at the wire-name byte budget, and
- * suffixed with the predicate's content hash. Composing family-side is what
- * makes the truncation safe — two prefixes that truncate alike still differ in
- * their hashes, and the family can see that the (table, column, kind) triple
- * they were built from is unique per table, rather than having to assume
- * something about SQL text it declares itself unable to read.
+ * Naming is composed family-side ({@link composeCheckWirePrefix}) rather than
+ * by the target, and suffixed with the predicate's content hash. Composing
+ * family-side is what makes the truncation safe — two prefixes that truncate
+ * alike still differ in their hashes, and the family can see that the
+ * (table, column, kind) triple they were built from is unique per table,
+ * rather than having to assume something about SQL text it declares itself
+ * unable to read.
  */
 function lowerRenderedChecks(
   tableName: string,
@@ -373,19 +364,17 @@ function lowerRenderedChecks(
     readonly expression: string;
   }>,
 ): CheckConstraint[] {
-  return candidates.map((candidate) => {
-    const prefix = truncateToWireNamePrefixBytes(
-      `${tableName}_${candidate.columnName}_${CHECK_KIND_SUFFIX[candidate.kind]}`,
-    );
-    return new CheckConstraint({
-      naming: {
-        kind: 'wire',
-        prefix,
-        hash: computeCheckContentHash(candidate.expression),
-      },
-      expression: candidate.expression,
-    });
-  });
+  return candidates.map(
+    (candidate) =>
+      new CheckConstraint({
+        naming: {
+          kind: 'wire',
+          prefix: composeCheckWirePrefix(tableName, candidate.columnName, candidate.kind),
+          hash: computeCheckContentHash(candidate.expression),
+        },
+        expression: candidate.expression,
+      }),
+  );
 }
 
 function resolveColumnTypeQualifier(

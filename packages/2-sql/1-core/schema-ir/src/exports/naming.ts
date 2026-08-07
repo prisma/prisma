@@ -1,5 +1,6 @@
 export {
   assertWireNamePrefixLength,
+  composeCheckWirePrefix,
   computeCheckContentHash,
   computeIndexContentHash,
   defaultIndexName,
