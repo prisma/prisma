@@ -20,7 +20,6 @@ import {
   errorFileNotFound,
   errorRuntime,
   errorUnexpected,
-  mapMigrationToolsError,
   mapRefResolutionError,
 } from '../utils/cli-errors';
 import {
@@ -140,7 +139,7 @@ async function executeDbSignCommand(
         }
       }
     } catch (error) {
-      if (MigrationToolsError.is(error)) return notOk(mapMigrationToolsError(error));
+      if (MigrationToolsError.is(error)) return notOk(error);
       if (error instanceof CliStructuredError) return notOk(error);
       return notOk(
         errorUnexpected(error instanceof Error ? error.message : String(error), {

@@ -73,7 +73,9 @@ export function assertFromIsGraphNode(
     assertHashIsGraphNode(fromHash, graph);
   } catch (error) {
     if (MigrationToolsError.is(error) && error.code === 'MIGRATION.HASH_NOT_IN_GRAPH') {
-      throw errorPlanForgotTheFlag(fromHash, getReachableRefs(refs, graph), graphTipHash);
+      throw errorPlanForgotTheFlag(fromHash, getReachableRefs(refs, graph), graphTipHash, {
+        cause: error,
+      });
     }
     throw error;
   }

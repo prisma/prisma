@@ -53,7 +53,7 @@ import {
 } from '@internal/errors/control';
 import { errorMigrationTargetMismatch } from '@internal/errors/migration';
 import { createControlStack } from '@internal/framework-components/control';
-import { errorInvalidJson, MigrationToolsError } from '@internal/migration-tools/errors';
+import { errorInvalidJson } from '@internal/migration-tools/errors';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { buildMigrationArtifacts, type Migration } from '@internal/migration-tools/migration';
 import { Cli, Command, Option, UsageError } from 'clipanion';
@@ -310,15 +310,10 @@ async function orchestrate(
     return 0;
   } catch (err) {
     if (CliStructuredError.is(err)) {
-      writeStructuredError(ctx.stderr, err);
-    } else if (MigrationToolsError.is(err)) {
       // Migration-tools errors (e.g. `errorInvalidJson` thrown by
-      // `readExistingMetadata` when migration.json is malformed) carry
-      // their own `code`/`why`/`fix` shape. Render them with the same
-      // visual structure as `CliStructuredError` so consumers grepping
-      // for `MIGRATION.<CODE>` see consistent output across surfaces.
-      const fix = err.fix ? `\n${err.fix}` : '';
-      ctx.stderr.write(`${err.code}: ${err.message}\n${err.why}${fix}\n`);
+      // `readExistingMetadata` when migration.json is malformed) are
+      // `CliStructuredError`s and render through the same surface.
+      writeStructuredError(ctx.stderr, err);
     } else {
       ctx.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`);
     }

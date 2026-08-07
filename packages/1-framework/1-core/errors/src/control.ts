@@ -152,6 +152,7 @@ export function errorContractValidationFailed(
   reason: string,
   options?: {
     readonly where?: { readonly path?: string; readonly line?: number };
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
   return new CliStructuredError('CONTRACT.VALIDATION_FAILED', 'Contract validation failed', {
@@ -159,6 +160,7 @@ export function errorContractValidationFailed(
     fix: 'Re-run `prisma-next contract emit`, or fix the contract file and try again',
     docsUrl: docsUrlFor('CONTRACT.VALIDATION_FAILED'),
     ...(options?.where ? { where: options.where } : {}),
+    ...ifDefined('cause', options?.cause),
   });
 }
 
@@ -171,6 +173,7 @@ export function errorFileNotFound(
     readonly why?: string;
     readonly fix?: string;
     readonly docsUrl?: string;
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
   return new CliStructuredError('CLI.FILE_NOT_FOUND', 'File not found', {
@@ -178,6 +181,7 @@ export function errorFileNotFound(
     fix: options?.fix ?? 'Check that the file path is correct',
     where: { path: filePath },
     ...(options?.docsUrl ? { docsUrl: options.docsUrl } : {}),
+    ...ifDefined('cause', options?.cause),
   });
 }
 

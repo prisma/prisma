@@ -22,7 +22,6 @@ import { createControlClient } from '../control-api/client';
 import {
   CliStructuredError,
   errorUnexpected,
-  mapMigrationToolsError,
   mapRefResolutionError,
   requireLiveDatabase,
 } from '../utils/cli-errors';
@@ -302,7 +301,7 @@ export async function executeMigrationStatusCommand(
     allRefs = await readRefs(refsDir);
   } catch (error) {
     if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
+      return notOk(error);
     }
     throw error;
   }
@@ -453,13 +452,11 @@ export async function executeMigrationStatusCommand(
     const unknown = activeRefEntry.invariants.filter((id) => !known.has(id));
     if (unknown.length > 0) {
       return notOk(
-        mapMigrationToolsError(
-          errorUnknownInvariant({
-            ...ifDefined('refName', activeRefName),
-            unknown,
-            declared: [...declared].sort(),
-          }),
-        ),
+        errorUnknownInvariant({
+          ...ifDefined('refName', activeRefName),
+          unknown,
+          declared: [...declared].sort(),
+        }),
       );
     }
   }
@@ -597,14 +594,12 @@ export async function executeMigrationStatusCommand(
         });
         if (outcome.kind === 'unsatisfiable') {
           return notOk(
-            mapMigrationToolsError(
-              errorNoInvariantPath({
-                ...ifDefined('refName', activeRefName),
-                required: [...missing].sort(),
-                missing: outcome.missing,
-                structuralPath: outcome.structuralPath.map(toStructuralEdge),
-              }),
-            ),
+            errorNoInvariantPath({
+              ...ifDefined('refName', activeRefName),
+              required: [...missing].sort(),
+              missing: outcome.missing,
+              structuralPath: outcome.structuralPath.map(toStructuralEdge),
+            }),
           );
         }
       }

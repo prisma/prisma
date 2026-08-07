@@ -12,7 +12,6 @@ import {
   errorRunnerFailed,
   errorRuntime,
   errorUnexpected,
-  mapMigrationToolsError,
 } from '../utils/cli-errors';
 import type { MigrationCommandOptions } from '../utils/command-helpers';
 import {
@@ -182,7 +181,7 @@ async function executeDbInitCommand(
         });
       } catch (error) {
         if (MigrationToolsError.is(error)) {
-          return notOk(mapMigrationToolsError(error));
+          return notOk(error);
         }
         throw error;
       }

@@ -26,7 +26,6 @@ import {
   errorUnexpected,
 } from '@internal/errors/control';
 import { errorRuntime } from '@internal/errors/execution';
-import type { MigrationToolsError } from '@internal/migration-tools/errors';
 import type { RefResolutionError } from '@internal/migration-tools/ref-resolution';
 import { ifDefined } from '@internal/utils/defined';
 import type { MigrateFailure } from '../control-api/types';
@@ -202,6 +201,7 @@ export function errorPlanForgotTheFlag(
   resolvedHash: string,
   reachableRefs: ReadonlyArray<{ readonly name: string; readonly hash: string }>,
   graphTipHash: string | null,
+  options?: { readonly cause?: unknown },
 ): CliStructuredError {
   const reachableList =
     reachableRefs.length > 0
@@ -224,6 +224,7 @@ export function errorPlanForgotTheFlag(
         reachableRefs: reachableRefs.map((r) => r.name),
         ...(graphTipHash !== null ? { graphTipHash } : {}),
       },
+      ...ifDefined('cause', options?.cause),
     },
   );
 }
@@ -238,7 +239,7 @@ export function errorPlanForgotTheFlag(
  */
 export function errorSnapshotMissing(
   identifier: string,
-  options?: { readonly viaRef?: boolean },
+  options?: { readonly viaRef?: boolean; readonly cause?: unknown },
 ): CliStructuredError {
   const viaRef = options?.viaRef !== false;
   const fix = viaRef
@@ -258,6 +259,7 @@ export function errorSnapshotMissing(
         identifier,
         viaRef,
       },
+      ...ifDefined('cause', options?.cause),
     },
   );
 }
@@ -353,30 +355,6 @@ export function errorPathUnreachable(failure: MigrateFailure): CliStructuredErro
     meta: {
       ...meta,
     },
-  });
-}
-
-/**
- * Maps a `MigrationToolsError` raised by the migration-tools loader/graph
- * surface (`readMigrationPackage`, `readMigrationsDir`, `readRefs`,
- * `resolveRef`, `reconstructGraph`, ...) into a CLI `errorRuntime` envelope.
- *
- * The full `error.details` payload is forwarded into `meta` so machine
- * consumers (`--json`) see structural fields like `dir`, `storedHash`,
- * `computedHash` (for `MIGRATION.HASH_MISMATCH`) alongside the stable
- * `code`. The user-visible `summary`/`why`/`fix` text is unchanged.
- *
- * Callers are expected to gate on `MigrationToolsError.is(error)` first
- * (mirroring the original inline pattern); non-`MigrationToolsError`
- * values are caller-classified (rethrow, wrap with command-specific
- * `errorUnexpected`, etc.).
- */
-export function mapMigrationToolsError(error: MigrationToolsError): CliStructuredError {
-  return errorRuntime(error.code, error.message, {
-    why: error.why,
-    fix: error.fix,
-    ...ifDefined('meta', error.details && { ...error.details }),
-    cause: error,
   });
 }
 

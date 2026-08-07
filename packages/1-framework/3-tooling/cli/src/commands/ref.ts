@@ -26,7 +26,6 @@ import {
   errorRefSetHashNotInGraph,
   errorRuntime,
   errorUnexpected,
-  mapMigrationToolsError,
   mapRefResolutionError,
 } from '../utils/cli-errors';
 import {
@@ -60,7 +59,7 @@ interface RefListResult {
 
 function mapError(error: unknown): CliStructuredError {
   if (MigrationToolsError.is(error)) {
-    return mapMigrationToolsError(error);
+    return error;
   }
   return errorUnexpected(error instanceof Error ? error.message : String(error));
 }

@@ -14,7 +14,7 @@ vi.mock('@internal/config-loader', () => ({
 
 const HASH_A = `${'a'.repeat(64)}`;
 
-describe('migration-ref MigrationToolsError envelope mapping', () => {
+describe('migration-ref MigrationToolsError envelope passthrough', () => {
   let tempDir: string;
   let configPath: string;
 
@@ -43,7 +43,7 @@ describe('migration-ref MigrationToolsError envelope mapping', () => {
   });
 
   it(
-    'forwards MigrationToolsError details into the CliStructuredError meta payload',
+    'surfaces the MigrationToolsError meta payload unchanged in the envelope',
     async () => {
       const { executeRefDeleteCommand } = await import('../../src/commands/ref');
 

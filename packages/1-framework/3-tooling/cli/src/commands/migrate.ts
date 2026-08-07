@@ -32,7 +32,6 @@ import {
   errorRuntime,
   errorTargetMigrationNotSupported,
   errorUnexpected,
-  mapMigrationToolsError,
   mapRefResolutionError,
   requireLiveDatabase,
 } from '../utils/cli-errors';
@@ -191,7 +190,7 @@ async function executeMigrateShowCommand(
     allRefs = await readRefs(refsDir);
   } catch (error) {
     if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
+      return notOk(error);
     }
     throw error;
   }
@@ -342,9 +341,6 @@ async function executeMigrateShowCommand(
     } catch (error) {
       if (CliStructuredError.is(error)) {
         return notOk(error);
-      }
-      if (MigrationToolsError.is(error)) {
-        return notOk(mapMigrationToolsError(error));
       }
       return notOk(
         errorUnexpected(error instanceof Error ? error.message : String(error), {
@@ -770,13 +766,11 @@ async function executeMigrateCommand(
       const unknown = refEntry.invariants.filter((id) => !known.has(id));
       if (unknown.length > 0) {
         return notOk(
-          mapMigrationToolsError(
-            errorUnknownInvariant({
-              ...ifDefined('refName', toArg),
-              unknown,
-              declared: [...declared].sort(),
-            }),
-          ),
+          errorUnknownInvariant({
+            ...ifDefined('refName', toArg),
+            unknown,
+            declared: [...declared].sort(),
+          }),
         );
       }
     }
@@ -842,7 +836,7 @@ async function executeMigrateCommand(
         );
       } catch (error) {
         if (MigrationToolsError.is(error)) {
-          return notOk(mapMigrationToolsError(error));
+          return notOk(error);
         }
         throw error;
       }
@@ -863,9 +857,6 @@ async function executeMigrateCommand(
   } catch (error) {
     if (CliStructuredError.is(error)) {
       return notOk(error);
-    }
-    if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
     }
     return notOk(
       errorUnexpected(error instanceof Error ? error.message : String(error), {

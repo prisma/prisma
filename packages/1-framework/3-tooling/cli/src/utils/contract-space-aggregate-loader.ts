@@ -14,7 +14,7 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { blindCast } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import { CliStructuredError, errorUnexpected, mapMigrationToolsError } from './cli-errors';
+import { CliStructuredError, errorUnexpected } from './cli-errors';
 import { readContractEnvelope, resolveContractPath } from './command-helpers';
 import { toDeclaredExtensionsFromRaw } from './extension-pack-inputs';
 
@@ -384,7 +384,7 @@ export async function buildReadAggregate(
     return ok({ aggregate: loaded.value, contractHash });
   } catch (error) {
     if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
+      return notOk(error);
     }
     return notOk(
       errorUnexpected(error instanceof Error ? error.message : String(error), {
