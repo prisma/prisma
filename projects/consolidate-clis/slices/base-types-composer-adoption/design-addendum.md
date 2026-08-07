@@ -1,6 +1,6 @@
 # Design ADDENDUM — TML-3181: base-type rules 6–7 applied to composer
 
-Status: ambiguities 1, 2, 4 RULED (2026-08-07 — 1 is stronger than option (a): delete `OperationFailure` outright, see §A7–A8); 3, 5, 6 pending ruling, implementation proceeds on their recommendations (operator: "do it now") and a contrary ruling reworks them. Applies ON TOP of [design.md](./design.md); sections not named stand. Normative parents: [cli-base-types.md](../../cli-base-types.md) rules 6–7. Repo paths relative to the composer clone.
+Status: all six ambiguities RULED (2026-08-07). 1 is stronger than option (a): delete `OperationFailure` outright, see §A7–A8. 2, 3, 4, 5, 6: option (a) / the recommendation, accepted by the operator. Post-implementation rulings, same day: the `DeployResult`/`DestroyResult`/`DevStartResult`/`LogResult` aliases are DELETED (semver 0, no consumers — signatures name the `Result` shapes directly), and every internal manifest's `repository` slug is corrected to `prisma/composer` (not just `@internal/cli`'s). Applies ON TOP of [design.md](./design.md); sections not named stand. Normative parents: [cli-base-types.md](../../cli-base-types.md) rules 6–7. Repo paths relative to the composer clone.
 
 ## A0. Supersession map
 
