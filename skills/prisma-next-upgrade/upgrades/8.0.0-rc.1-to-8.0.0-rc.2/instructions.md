@@ -192,7 +192,7 @@ The second form used to render `COUNT(*)`: the argument was accepted and thrown 
 
 No call that compiled before changes meaning, because `count` took no argument and the field-taking form did not typecheck. Sweep instead for calls that bypassed the types:
 
-- a `// @ts-expect-error` directly above a `count(...)` call — that suppression is now unused, and TypeScript flags the unused directive itself;
+- a `// @ts-expect-error` directly above a `count(...)` call — where the argument is a field your contract admits, that suppression is now unused and TypeScript flags the unused directive;
 - `count(field as never)` or `count(field as any)`;
 - dynamic dispatch through a `Record<string, …>` cast.
 

@@ -274,7 +274,7 @@ The second call used to render `COUNT(*)`: the argument was accepted and discard
 
 No typed call site changes meaning, because the field-taking overload did not exist before. What to sweep for is a call that got past the types:
 
-- `// @ts-expect-error` immediately above a `count(...)` call — the suppression is now unused, and TypeScript reports the directive itself as an error.
+- `// @ts-expect-error` immediately above a `count(...)` call. Where the argument is a field the contract admits, the suppression is now unused and TypeScript reports the unused directive. Where it is not — a relation name, say — the directive still holds and the call still fails.
 - `count(x as never)` or `count(x as any)`.
 - dynamic dispatch through a `Record<string, …>` cast.
 
