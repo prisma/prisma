@@ -1,7 +1,7 @@
 import { SqlQueryError } from '@internal/sql-errors';
 import type { PreparedExecuteRequest } from '@internal/sql-relational-core/ast';
 import { timeouts } from '@repo/test-utils';
-import type { Client } from 'pg';
+import type { Client, Pool } from 'pg';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createBoundDriverFromBinding, type PostgresBinding } from '../src/postgres-driver';
 
@@ -134,6 +134,26 @@ describe('postgres prepared statements', () => {
     });
   });
 
+  it('streams every prepared row and closes the source when the consumer returns early', async () => {
+    const { client } = makeMockClient({
+      handler: () => ({ rows: [{ id: 1 }, { id: 2 }] }),
+    });
+    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    cleanups.push(() => driver.close());
+
+    const { slot } = makeSlot();
+    const request = { sql: 'select id from t', params: [], preparedStatementHandle: slot };
+    await expect(consume(driver.query<{ id: number }>(request))).resolves.toEqual([
+      { id: 1 },
+      { id: 2 },
+    ]);
+
+    for await (const row of driver.query<{ id: number }>(request)) {
+      expect(row).toEqual({ id: 1 });
+      break;
+    }
+  });
+
   it('returns no rows when a prepared query has an empty result', async () => {
     const { client, calls } = makeMockClient();
     const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
@@ -165,6 +185,48 @@ describe('postgres prepared statements', () => {
     expect(calls).toHaveLength(2);
     expect(calls[0]?.arg).toEqual({ name: 'pn_1', text: sql, values: [42] });
     expect(calls[1]?.arg).toEqual({ name: 'pn_1', text: sql, values: [99] });
+  });
+
+  it('does not retry non-stale prepared failures', async () => {
+    const failure = new Error('ordinary prepared failure');
+    const { client, calls } = makeMockClient({ handler: () => failure });
+    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    cleanups.push(() => driver.close());
+
+    const { slot, snapshot } = makeSlot();
+    await expect(
+      driver.execute({ sql: 'update t set x = 1', preparedStatementHandle: slot }),
+    ).rejects.toBe(failure);
+
+    expect(calls).toHaveLength(1);
+    expect(snapshot()).toBe('pn_1');
+  });
+
+  it('keeps bound direct and pool connect operations as no-ops', async () => {
+    const { client } = makeMockClient();
+    const directBinding: PostgresBinding = {
+      kind: 'pgClient',
+      client: client as unknown as Client,
+    };
+    const directDriver = makeDriver(directBinding);
+    cleanups.push(() => directDriver.close());
+
+    const pool = {
+      connect: vi.fn(),
+      end: vi.fn(async () => undefined),
+    };
+    const poolBinding: PostgresBinding = {
+      kind: 'pgPool',
+      pool: pool as unknown as Pool,
+    };
+    const poolDriver = makeDriver(poolBinding);
+    cleanups.push(() => poolDriver.close());
+
+    await directDriver.connect(directBinding);
+    await poolDriver.connect(poolBinding);
+
+    expect(client.connect).not.toHaveBeenCalled();
+    expect(pool.connect).not.toHaveBeenCalled();
   });
 
   describe('stale-handle retry', () => {
