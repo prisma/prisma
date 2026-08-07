@@ -80,13 +80,13 @@ describe('ports/engines/queries/aggregation/sum', () => {
           bInt: aggregate.sum('bInt'),
           float: aggregate.sum('float'),
         }));
-        const cursorAtThree = await db.public.TestModel.cursor({ id: 3 } as never).aggregate(
-          (aggregate) => ({
+        const cursorAtThree = await db.public.TestModel.orderBy((row) => row.id.asc())
+          .cursor({ id: 3 })
+          .aggregate((aggregate) => ({
             int: aggregate.sum('int'),
             bInt: aggregate.sum('bInt'),
             float: aggregate.sum('float'),
-          }),
-        );
+          }));
 
         expect(takeTwo).toEqual({ int: 15n, bInt: '15', float: 10 });
         expect(takeFive).toEqual({ int: 18n, bInt: '18', float: 11.5 });
@@ -153,11 +153,11 @@ describe('ports/engines/queries/aggregation/sum', () => {
         const skipTwo = await db.public.TestModel.skip(2).aggregate((aggregate) => ({
           decimal: aggregate.sum('decimal'),
         }));
-        const cursorAtThree = await db.public.TestModel.cursor({ id: 3 } as never).aggregate(
-          (aggregate) => ({
+        const cursorAtThree = await db.public.TestModel.orderBy((row) => row.id.asc())
+          .cursor({ id: 3 })
+          .aggregate((aggregate) => ({
             decimal: aggregate.sum('decimal'),
-          }),
-        );
+          }));
 
         expect(takeTwo).toEqual({ decimal: '10.0' });
         expect(takeFive).toEqual({ decimal: '11.5' });
