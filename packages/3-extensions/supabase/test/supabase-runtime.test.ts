@@ -629,14 +629,14 @@ describe('SupabaseRuntimeImpl', () => {
   });
 
   describe('openRoleSession — prepared statements', () => {
-    it('executePrepared on the session runs on the session connection', async () => {
+    it('queryPrepared on the session runs on the session connection', async () => {
       const { runtime, driver } = createTestSetup();
       const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
         buildEqUserIdPlan(params.userId),
       );
       const session = await runtime.openRoleSession({ role: 'authenticated' });
 
-      const rows = await session.executePrepared(ps, { userId: 1 }).toArray();
+      const rows = await session.queryPrepared(ps, { userId: 1 }).toArray();
       await session.release();
 
       expect(rows).toEqual([{ id: 1 }]);
@@ -645,7 +645,7 @@ describe('SupabaseRuntimeImpl', () => {
       expect(driver.query).not.toHaveBeenCalled();
     });
 
-    it('executePrepared on a session transaction runs on that transaction', async () => {
+    it('queryPrepared on a session transaction runs on that transaction', async () => {
       const { runtime, driver } = createTestSetup();
       const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
         buildEqUserIdPlan(params.userId),
@@ -653,7 +653,7 @@ describe('SupabaseRuntimeImpl', () => {
       const session = await runtime.openRoleSession({ role: 'authenticated' });
 
       const tx = await session.transaction();
-      const rows = await tx.executePrepared(ps, { userId: 1 }).toArray();
+      const rows = await tx.queryPrepared(ps, { userId: 1 }).toArray();
       await tx.commit();
       await session.release();
 
