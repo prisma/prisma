@@ -1,0 +1,16 @@
+model Location {
+  id         Int      @id
+  name       String?
+  companyId  Int?
+  companyId2 Int?
+  company    Company? @relation(fields: [companyId, companyId2], references: [id, id2])
+}
+
+model Company {
+  id        Int
+  id2       Int
+  name      String?
+  locations Location[]
+
+  @@id([id, id2])
+}

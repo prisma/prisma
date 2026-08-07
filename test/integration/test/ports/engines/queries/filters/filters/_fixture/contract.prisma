@@ -1,0 +1,26 @@
+// Upstream uses generated CUID ids. The port seeds every incidental id explicitly so the fields retain String storage.
+
+model User {
+  id        String   @id
+  unique    Int      @unique
+  name      String?
+  optional  String?
+  vehicleId String?  @unique
+  ride      Vehicle? @relation(fields: [vehicleId], references: [id])
+}
+
+model Vehicle {
+  id     String  @id
+  unique Int     @unique
+  brand  String?
+  parked Boolean?
+  owner  User?
+}
+
+model ParkingLot {
+  id       String @id
+  unique   Int    @unique
+  area     String?
+  size     Float?
+  capacity Int?
+}
