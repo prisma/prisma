@@ -5,7 +5,7 @@ Direction and grammar agreed 2026-08-05. Owned by Will; working clones of the th
 ## External dependencies
 
 - **Terminal: Composer replaces the Compute config path** (independent effort). Blocks final deprecation of `@prisma/cli`'s app workflow and `prisma.compute.ts`, not our build.
-- **`@prisma/dev`**: confirm what package the emulator actually ships as (composer's `@internal/dev-emulators` published standalone, or an existing package).
+- **Emulators (resolved by the grammar doc)**: `@prisma/dev` is the existing PPG-local package (classic `prisma dev`) and becomes the postgres emulator; the `emulator` root and the `@prisma/dev` decoupling are explicitly off the consolidation critical path. No carve-out work in Phase 1.
 
 ## Phase 1 — Seams and contracts (parallel, per repo)
 
@@ -22,7 +22,7 @@ Direction and grammar agreed 2026-08-05. Owned by Will; working clones of the th
 ### 1c. Composer (long pole — start first)
 - Build the programmatic API over `@internal/assemble` (deploy/destroy/dev/log as typed operations returning structured results), wrapping the alchemy invocation.
 - Config contract compliance, minimal: the per-field throwing validator becomes diagnostics, and the effect-resolution preflight surfaces as a diagnostic instead of an import crash. Config imports of `/control` stay as they are.
-- Carve the emulator out as `@prisma/dev` (or wire to the existing package) behind a dynamic import with the install-remediation error.
+- (Superseded: the emulator carve-out left this slice — the grammar doc resolves `@prisma/dev` as the existing PPG-local package and defers emulator packaging to the `emulator`-root work, off the consolidation critical path.)
 - Export a test double.
 
 ## Phase 2 — The host (prisma-cli repo)
@@ -32,7 +32,7 @@ Direction and grammar agreed 2026-08-05. Owned by Will; working clones of the th
 3. Unified config loader: c12 discovery of `prisma.config.ts`, versioned-marker detection (v7 file → recognizable classic-config error), envelope schema, per-product section registration, evaluation-never-errors semantics, settled traversal rules (anchor, stopping condition, monorepo stance).
 4. Port the command surfaces onto the grammar doc's tree:
    - **Prisma 8** (from `@internal/cli`): `contract *`, `migration *` (incl. `ref`), `db migrate | update | init | verify | sign | schema`, `init`, `telemetry`, `lsp`; `format` → `contract format`; clipanion `migration-cli` retires with the port.
-   - **Platform** (salvaged from `@prisma/cli`): `auth *`, `project` records/env, `postgres *` (from today's `database`, with `remove`→`delete`, `restore`→`backup restore`), `app *` (`list-deploys`/`show-deploy` → `deployment list|show`), `bucket *`, `git`, `agent`.
+   - **Platform** (salvaged from `@prisma/cli`): `auth *` (incl. the new `token` subgroup), `project` records/env, `postgres *` (from today's `database`, with `remove`→`delete`, `restore`→`backup restore`), `service *` (today's `app` group renamed — Service is the deployable unit's noun — with `list-deploys`/`show-deploy` → `deployment list|show`), `bucket *`, `git`, `agent`.
    - **Orchestration** (new wiring on Composer's API): `project dev | deploy | plan(stub) | status(stub)`; stub the control client where 1c hasn't landed, replace as it does.
 5. Adopt this repo's `cli-telemetry` host-wide (one consent, per-product enrichment).
 6. Host test suite against the doubles + real-package smoke suite; conformance suite from 1a wired into CI.

@@ -17,7 +17,7 @@ We ship four user-facing CLIs (`prisma`, `prisma-next`, `prisma-cli` from `@pris
 
 ## Scope
 
-The unified CLI implements the consolidated tree: Prisma 8's data lifecycle (`contract`, `migration`, `db`), platform resource administration (`postgres`, `app`, `bucket`, `branch`, `auth`), and Project orchestration (`project`), which is Composer absorbed — there is no composer-named command surface.
+The unified CLI implements the consolidated tree: Prisma 8's data lifecycle (`contract`, `migration`, `db`), platform resource administration (`postgres`, `service`, `bucket`, `branch`, `auth`), and Project orchestration (`project`), which is Composer absorbed — there is no composer-named command surface. The deployable unit's noun is **Service** (decided 2026-08-07; the platform CLI's `app` group renames).
 
 The Compute CLI's build phase is dropped. Two principles adopted from Composer/Prisma 8:
 
@@ -37,7 +37,7 @@ The Compute CLI's build phase is dropped. Two principles adopted from Composer/P
 
 - **Host** — the `prisma` package, living in the prisma/prisma-cli repo. Owns argv parsing, the command registry, config discovery/loading, help, structured output/error conventions, telemetry, and all command wiring/rendering.
 - **Control clients** — each product's programmatic API, in the product's repo, published from there. Prisma 8's `ControlClient` (`@prisma/orm-toolchain/cli/control-api`) exists and is the template. Composer builds the equivalent over `@internal/assemble`; until it lands the host stubs it. Command implementations pilot control clients and hold no business logic.
-- **Packaging: bundle by default, optional by exception.** The host takes ordinary pinned dependencies on `@prisma/orm-toolchain` and `@prisma/composer`. Neither is large enough to warrant splitting once the build machinery is gone. The one optional package is **`@prisma/dev`** (the emulator), loaded by `project dev`, which errors with the install remediation when absent. Optionality remains available as a tool for future egregiously large packages, not as the architecture.
+- **Packaging: bundle by default, optional by exception.** The host takes ordinary pinned dependencies on `@prisma/orm-toolchain` and `@prisma/composer`. Neither is large enough to warrant splitting once the build machinery is gone. The optional layer is the **emulators** (`project dev` / the `emulator` root): commands that need them error with the install remediation when the emulator packages are absent. `@prisma/dev` is the existing PPG-local package (classic `prisma dev`), which becomes the postgres emulator; decoupling it from its PPG-only meaning is separate work the grammar doc keeps off the consolidation critical path. Optionality remains a tool for egregiously large packages, not the architecture.
 - Platform resource commands (`postgres`, `app`, `bucket`, `auth`, remote `project`) wire directly to `management-api-sdk` in the host — light, no product package involved.
 
 ### Config file
@@ -71,7 +71,7 @@ One `prisma.config.ts`, value imports preserved:
 
 ## Acceptance criteria
 
-1. `npm i prisma && npx prisma --help` shows the consolidated tree; every ported command works with zero extra installs, except `project dev` without `@prisma/dev`, which prints the structured install error.
+1. `npm i prisma && npx prisma --help` shows the consolidated tree; every ported command works with zero extra installs, except `project dev`/`emulator` commands without the emulator packages, which print the structured install error.
 2. No command builds the user's app or installs packages; deploy-adjacent commands operate on prebuilt artifacts or delegate to orchestration.
 3. One `prisma.config.ts` drives an example app using the ORM and orchestration together; a config with an invalid section still runs commands that don't need it; a v7-shaped file produces the recognizable classic-config error.
 4. Each product repo's CI is green with no dependency on the host; the host repo's CI is green using published product packages and test doubles.
