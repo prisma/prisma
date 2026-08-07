@@ -473,22 +473,36 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
   }
 }
 
+/**
+ * Transaction-open flag shared between a connection and the driver whose
+ * socket it borrows. A direct driver runs every query — connection-scoped or
+ * driver-level — on one client, so a driver-level query issued while the
+ * connection holds an open transaction must see that state: the cursor
+ * portal-protection wrap would otherwise issue its own BEGIN…COMMIT and
+ * terminate the caller's transaction mid-flight.
+ */
+interface SharedTransactionState {
+  open: boolean;
+}
+
 class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection {
   #connection: PoolClient | Client;
   #onRelease: (() => void) | undefined;
   #onDestroy: ((reason: unknown) => Promise<void> | void) | undefined;
-  #transactionOpen = false;
+  #txState: SharedTransactionState;
 
   constructor(
     connection: PoolClient | Client,
     options: ConnectionOptions,
     onRelease?: () => void,
     onDestroy?: (reason: unknown) => Promise<void> | void,
+    txState?: SharedTransactionState,
   ) {
     super(options);
     this.#connection = connection;
     this.#onRelease = onRelease;
     this.#onDestroy = onDestroy;
+    this.#txState = txState ?? { open: false };
   }
 
   override acquireClient(): Promise<PoolClient | Client> {
@@ -500,7 +514,7 @@ class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection 
   }
 
   protected override inExplicitTransaction(): boolean {
-    return this.#transactionOpen;
+    return this.#txState.open;
   }
 
   async beginTransaction(): Promise<SqlTransaction> {
@@ -510,9 +524,9 @@ class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection 
     } finally {
       releaseLock();
     }
-    this.#transactionOpen = true;
+    this.#txState.open = true;
     return new PostgresTransactionImpl(this.#connection, this.options, () => {
-      this.#transactionOpen = false;
+      this.#txState.open = false;
     });
   }
 
@@ -659,10 +673,18 @@ class PostgresDirectDriverImpl
   #closed = false;
   #connected = false;
   #connectPromise: Promise<void> | undefined;
+  // Shared with every connection this driver hands out: one socket means a
+  // driver-level query must know when a connection's transaction is open, or
+  // the cursor portal-protection wrap would COMMIT the caller's transaction.
+  readonly #txState: SharedTransactionState = { open: false };
 
   constructor(options: PostgresDriverOptions & { connect: { client: Client } }) {
     super(buildConnectionOptions(options));
     this.directClient = options.connect.client;
+  }
+
+  protected override inExplicitTransaction(): boolean {
+    return this.#txState.open;
   }
 
   get state(): SqlDriverState {
@@ -696,6 +718,7 @@ class PostgresDirectDriverImpl
             releaseLease();
           }
         },
+        this.#txState,
       );
     } catch (error) {
       releaseLease();
