@@ -19,24 +19,24 @@ Every dispatch inherits these execution constraints:
 - Behavioral count claims are verified through populated fixtures, not code reading ([F15](../../../../drive/calibration/failure-modes.md)).
 - Relevant closing greps come from [`grep-library.md` § Cross-cutting anti-patterns](../../../../drive/calibration/grep-library.md#cross-cutting-anti-patterns), plus the slice-specific retired-name gates below.
 
-### Dispatch 1: operation-aware framework runtime and middleware contract
+### Dispatch 1: operation-specific framework runtime and middleware contract
 
-- **Outcome:** The family-agnostic runtime contract distinguishes row queries from statistics executions, such that middleware interception and completion results state which operation they satisfy and no framework path can derive `affectedRows` from rows.
-- **Builds on:** Slice 1's settled `query` / `execute` driver vocabulary and this slice's chosen middleware properties.
-- **Hands to:** A typed framework substrate on which SQL and Mongo runtimes can implement explicit query/statistics operations without duplicating lifecycle semantics.
-- **Focus:** Framework runtime interfaces, `RuntimeCore`, middleware context/result types, the canonical row runner plus the statistics sibling/generalization, and framework type/runtime tests. Preserve ordering, abort, source, latency, `afterExecute` error behavior, and `planExecutionId`. A query interceptor returning statistics or an execute interceptor returning rows fails loudly. Model tier: orchestrator, because this is a published substrate design judgment. Gate: build, typecheck (including tests), test, and lint for `@internal/framework-components`. Deliberately out of scope: family runtimes and their callers.
+- **Outcome:** The family-agnostic runtime contract distinguishes row queries from statistics executions through symmetric, operation-specific middleware hooks, such that each hook has one truthful result type and no framework path can derive `affectedRows` from rows.
+- **Builds on:** Slice 1's settled `query` / `execute` driver vocabulary and the operator-settled middleware lifecycle in the amended slice spec.
+- **Hands to:** A typed framework substrate on which SQL and Mongo runtimes can implement explicit query/statistics operations while preserving the pre-PR lifecycle semantics on both paths.
+- **Focus:** First revert the current PR's operation-discriminated middleware design to a clean pre-PR baseline without undoing the runtime query/statistics split. Then implement `beforeQuery` / `interceptQuery` / `afterQuery` and `beforeExecute` / `interceptExecute` / `afterExecute`; keep `onRow` query-only and SQL `beforeCompile` shared. Preserve the pre-PR `{ rows }` query-intercept shape and add `{ stats }` for execute interception. Preserve registration order, first-interceptor-wins, driver bypass, source, latency, completion, failure-path after-hook error handling, abort, and `planExecutionId`. Remove operation discriminators and mismatch errors. Add no compatibility shims. Gate: build, typecheck (including tests), test, and lint for `@internal/framework-components`. Model tier: orchestrator because this is a published substrate correction. Deliberately out of scope: family runtimes and their callers.
 
 ### Dispatch 2: SQL runtime exposes query and statistics end to end
 
 - **Outcome:** SQL runtime, connection, transaction, and guarded transaction context expose `query`, `queryPrepared`, and statistics-returning `execute`, such that both operations share one compile/lower/encode/middleware/telemetry setup and delegate through the supplied `SqlQueryable`.
-- **Builds on:** D1's operation-aware framework contract and Slice 1's `SqlQueryable.query` / `execute` implementation.
+- **Builds on:** D1's operation-specific framework contract and Slice 1's `SqlQueryable.query` / `execute` implementation.
 - **Hands to:** The canonical SQL `RuntimeScope` shape with every native SQL scope able to stream rows or return real statement statistics on its bound driver/connection/transaction.
 - **Focus:** `sql-relational-core` runtime scope/types and `sql-runtime` production code. Rename the row helper/API rather than retaining compatibility aliases; prepared rows become `queryPrepared`; no prepared statistics method. Preserve marker verification, codecs, abort phases, telemetry, fresh `planExecutionId`, and post-callback transaction invalidation. Model tier: orchestrator, because this is the reference implementation and lifecycle judgment site. Gate: build the changed exported-type producers, then production-source typecheck/build plus package lint for relational-core and SQL runtime; D6 owns the still-invalid test tree. Deliberately out of scope: Supabase, ORM callers, and mechanical test fakes.
 
 ### Dispatch 3: Mongo adopts explicit row/statistics operations
 
 - **Outcome:** Mongo runtime and ORM use `query` for row/result streams and `execute` for update/delete statistics, such that update counts remain `modifiedCount`, delete counts remain `deletedCount`, and the existing fake-row casts in `updateAndCount` / `deleteAndCount` disappear.
-- **Builds on:** D1's cross-family contract and operation-aware middleware lifecycle.
+- **Builds on:** D1's cross-family contract and operation-specific middleware lifecycle.
 - **Hands to:** Both runtime families conforming to the same caller-selected vocabulary without normalizing their target-specific count semantics.
 - **Focus:** Mongo runtime, query executor, and count terminals. Preserve middleware, codec, abort, and result-shape behavior for row queries. Other command-result consumers, including `createAndCount`, remain row-query consumers per the slice non-goals. Model tier: orchestrator, because command/result classification and target semantics are judgment-heavy. Gate: Mongo runtime and Mongo ORM build/typecheck, focused count/runtime tests, and package lint; wider Mongo test-literal fan-out may defer to D6 only when it is a uniform rename. Halt if supporting statistics requires inferring intent from a raw command whose caller did not choose the operation.
 
@@ -70,7 +70,7 @@ Every dispatch inherits these execution constraints:
 - **Outcome:** The 0.17 → 0.18 user and extension-author upgrade skills tell downstream agents how to classify and migrate row queries, prepared rows, statistics execution, middleware results, and the removed Mongo facade row executor without adding compatibility aliases.
 - **Builds on:** D6's complete examples and extension substrate diff, which is the post-upgrade reference state.
 - **Hands to:** PR-open readiness with the repository's breaking-change upgrade-coverage contract satisfied.
-- **Focus:** Append one actionable `runtime-query-execute-hard-cut` change to each existing 0.17 → 0.18 `instructions.md`. User instructions cover runtime `query` / `queryPrepared` / statistics `execute` and the Mongo facade route through `runtime().query`; extension-author instructions additionally cover operation-discriminated middleware and row/statistics fakes. Use detection broad enough to find retired runtime calls but prose that requires semantic classification; do not publish an unsafe global codemod. Model tier: mid because the translation spans two audiences but all decisions are settled. Gate: validate both entries against their corresponding in-repo substrate per `record-upgrade-instructions`, run `pnpm check:upgrade-coverage`, skill lint, and ensure the PR body names both entry directories.
+- **Focus:** Amend the actionable `runtime-query-execute-hard-cut` change in each upgrade path. User instructions cover runtime `query` / `queryPrepared` / statistics `execute` and the Mongo facade route through `runtime().query`; extension-author instructions additionally cover the operation-specific hook migration and row/statistics fakes. Use detection broad enough to find retired runtime and middleware calls but prose that requires semantic classification; do not publish an unsafe global codemod. Model tier: mid because the translation spans two audiences but all decisions are settled. Gate: validate both entries against their corresponding in-repo substrate per `record-upgrade-instructions`, run `pnpm check:upgrade-coverage`, skill lint, and ensure the PR body names both entry directories.
 
 ## Handoff linearity
 
@@ -83,11 +83,11 @@ D1 → D2 → D3 → D4 → D5 → D6 → D7 is sequential. D3 depends directly 
 | One statement per non-empty count terminal | D5 behavior tests · D6 integration gate |
 | Interleaved write reflected in returned count | D5 real-driver fixture |
 | No SQL row caller uses retired runtime names | D2 production · D4/D5 consumers · D6 closing grep |
-| Statistics intercept supplies statistics | D1 contract/tests · D2 runtime use |
+| `interceptExecute` supplies statistics without row conversion | D1 contract/tests · D2 runtime use |
 | Bound SQL transaction and Supabase scope preserved | D2 transaction tests · D4 role-bound tests |
 | Integration/e2e green | D6 closing gates |
 | Downstream breaking-change translation recorded | D7 user and extension-author upgrade entries |
 
 ## Open items
 
-None. If D1 discovers that the operation-discriminated middleware contract cannot remain cross-family without optional or cast-based escape hatches, halt and route through `drive-discussion`; do not weaken the result contract silently.
+None. The operator-settled operation-specific hook contract supersedes the earlier agent-authored operation-discriminated design. Any implementation pressure to reintroduce a discriminator, compatibility shim, or generic fallback hook is a halt signal.

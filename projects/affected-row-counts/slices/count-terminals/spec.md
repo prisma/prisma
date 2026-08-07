@@ -25,18 +25,37 @@ The operation is explicit at the call site. The runtime does not infer row-versu
 
 ### One preparation pipeline, two terminal calls
 
-Both SQL operations share the existing pre-driver pipeline: codec-registry validation, per-call abort context, fresh `planExecutionId`, marker verification, `beforeCompile`, lowering, `beforeExecute`, parameter encoding, middleware intercept, telemetry, and scope derivation. Only the terminal differs:
+Both SQL operations share codec-registry validation, per-call abort context, fresh `planExecutionId`, marker verification, the shared SQL `beforeCompile` hook, lowering, parameter encoding, telemetry, and scope derivation. After lowering, each operation runs its own middleware lifecycle and terminal:
 
-- `query()` calls `SqlQueryable.query()`, decodes rows, and returns `AsyncIterableResult<Row>`.
-- `execute()` calls `SqlQueryable.execute()` and returns its `SqlStatementStats` unchanged.
+- `query()` runs `beforeQuery` → `interceptQuery` → `SqlQueryable.query()` → `onRow` → `afterQuery`, decodes rows, and returns `AsyncIterableResult<Row>`.
+- `execute()` runs `beforeExecute` → `interceptExecute` → `SqlQueryable.execute()` → `afterExecute` and returns `SqlStatementStats`.
 
 Connection and transaction scopes pass their pinned `SqlQueryable` into the same pipeline. `withTransaction` guards eager statistics calls before delegation just as it guards lazy row streams before and during consumption.
 
-### Middleware results state which operation they satisfy
+### Middleware hooks are operation-specific
 
-The middleware result contract becomes operation-discriminated. A query intercept supplies rows; an execute intercept supplies statement statistics. The runtime rejects a result for the wrong operation rather than deriving `affectedRows` from row length or accepting a row-shaped cache hit as a write count.
+The middleware contract exposes symmetric query and execute lifecycles rather than one operation-discriminated hook family:
 
-`afterExecute` receives the corresponding operation result: query completion reports `rowCount`; statistics completion reports the explicit statement statistics. Both variants retain `latencyMs`, `completed`, and `source`. Existing query cache middleware remains query-only and passes through statistics operations. This keeps `beforeExecute`, `intercept`, `afterExecute`, abort behavior, and telemetry available to writes without fabricating a count.
+```ts
+interface RuntimeMiddleware {
+  beforeQuery?(plan, ctx, params): void | Promise<void>;
+  interceptQuery?(plan, ctx): Promise<QueryInterceptResult | undefined>;
+  onRow?(row, plan, ctx): Promise<void>;
+  afterQuery?(plan, result: AfterQueryResult, ctx): Promise<void>;
+
+  beforeExecute?(plan, ctx, params): void | Promise<void>;
+  interceptExecute?(plan, ctx): Promise<ExecuteInterceptResult | undefined>;
+  afterExecute?(plan, result: AfterExecuteResult, ctx): Promise<void>;
+}
+```
+
+`QueryInterceptResult` keeps the pre-PR query interception shape exactly: `{ rows: AsyncIterable<Record<string, unknown>> | Iterable<Record<string, unknown>> }`. `ExecuteInterceptResult` is `{ stats: RuntimeStatementStats }`. Each interceptor preserves the pre-PR control flow: middleware run in registration order, the first non-`undefined` result wins, and the matching driver terminal is skipped. `onRow` remains query-only and is not called for intercepted rows.
+
+`beforeQuery` and `beforeExecute` preserve the pre-PR `beforeExecute` behavior on their respective paths: they run after lowering and before parameter encoding; normal return continues, while a thrown error aborts before interception or driver execution. SQL `beforeCompile` remains one shared AST-rewrite hook for both operations.
+
+`afterQuery` preserves the pre-PR row completion shape and behavior: `{ rowCount, latencyMs, completed, source }`. `afterExecute` receives `{ stats, latencyMs, completed: true, source }` on success and `{ latencyMs, completed: false, source }` on failure. Both hooks run after driver- and middleware-sourced completion and preserve the pre-PR error rule: on a failed intercept, driver call, or row stream, after-hook errors are swallowed so they cannot mask the original error. As before, a failure in the corresponding before-hook occurs before the managed lifecycle and does not invoke the after-hook.
+
+Hook selection carries the operation distinction, so middleware context and results carry no `operation` discriminator and the runtime needs no mismatch error. The query cache implements only query hooks. There are no compatibility aliases, deprecated hook names, or generic fallback dispatch.
 
 ### SQL count terminals use the write result directly
 
@@ -56,13 +75,13 @@ Role-bound Supabase runtime, connection, transaction, and secondary-root scopes 
 
 ## Coherence rationale
 
-This is one hard-cut migration of the runtime execution concept: the shared runtime/middleware contract changes, each family and scope conforms, and the two terminals consume the new statistics operation. Splitting the runtime rename from the terminals would ship a public vocabulary change with no consumer value; splitting the terminals from middleware would permit an intercepted write to return a made-up count. One reviewer can hold the single invariant: callers choose rows or statistics explicitly, and statistics always come from that operation's result.
+This is one hard-cut migration of the runtime execution concept: the runtime and middleware contracts change together, each family and scope conforms, and the two terminals consume the new statistics operation. Operation-specific hooks make each middleware capability explicit without requiring every middleware to inspect a discriminator or accept unrelated result variants. One reviewer can hold the single invariant: callers and middleware hooks choose rows or statistics explicitly, and statistics always come from the execute operation's driver or interceptor result.
 
 ## Scope
 
 **In:**
 
-- Framework runtime and middleware execution contracts, including operation-discriminated intercept and `afterExecute` results.
+- Framework runtime and middleware execution contracts, including the operation-specific before, intercept, and after hook pairs.
 - SQL `RuntimeScope`, top-level runtime, connection, transaction, prepared-row API, `withTransaction`, and tests/fakes.
 - Mongo runtime vocabulary and the existing `updateAndCount` / `deleteAndCount` count extraction path.
 - Supabase role-bound runtime, connection, transaction, secondary-root scopes, and their tests.
@@ -82,7 +101,7 @@ This is one hard-cut migration of the runtime execution concept: the shared runt
 
 | Edge case | Disposition | Notes |
 | --- | --- | --- |
-| Middleware intercept returns rows for `execute()` or statistics for `query()` | Fail loudly | The runtime never converts row count into `affectedRows` and never discards supplied statistics to synthesize rows. |
+| Middleware supplies the wrong result kind | Prevent by construction | `interceptQuery` can return only `{ rows }`; `interceptExecute` can return only `{ stats }`. The runtime never converts between them. |
 | Empty `updateAndCount({})` | Preserve zero-statement no-op | It returns `0`; the one-statement condition applies when a write is issued. |
 | Count terminal inside `db.transaction(...)` | Use the pinned transaction scope | `execute()` delegates to the transaction's `SqlQueryable`, not the pool-level driver. |
 | Transaction context used after callback completion | Reject before an eager statistics call | Lazy query streams retain their existing before/during-consumption guard. |
@@ -94,7 +113,7 @@ This is one hard-cut migration of the runtime execution concept: the shared runt
 - [ ] `updateAndCount` and `deleteAndCount` issue one statement when a write is issued, proven through middleware observation.
 - [ ] An integration test inserts a newly matching row immediately before the write and proves the returned count includes it.
 - [ ] No SQL runtime row caller uses `execute` or `executePrepared`; `query` / `queryPrepared` are the only row operation names.
-- [ ] A statistics-shaped middleware intercept must supply statistics; no path derives `affectedRows` from intercepted rows.
+- [ ] `interceptQuery` retains the pre-PR `{ rows }` contract, `interceptExecute` supplies `{ stats }`, and no path derives `affectedRows` from intercepted rows.
 - [ ] SQL transaction and Supabase role-bound scopes have tests proving statistics execution stays on the bound connection.
 - [ ] `pnpm test:integration` and `pnpm test:e2e` pass against both shipped SQL drivers where the existing harness provides coverage.
 
@@ -110,7 +129,7 @@ None. Contract entities, capabilities, `contract.json`, and `contract.d.ts` are 
 
 ## Open Questions
 
-None. The operator settled the runtime vocabulary on 2026-08-06 in the project spec. The representation of the discriminated middleware result is an implementation degree of freedom provided it is exhaustive, type-safe, and rejects operation mismatches.
+None. The operator settled the runtime vocabulary on 2026-08-06 and the operation-specific middleware lifecycle on 2026-08-07. The middleware split is a compatibility-free hard cut.
 
 ## References
 
