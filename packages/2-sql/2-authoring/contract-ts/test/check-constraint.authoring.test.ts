@@ -797,9 +797,47 @@ describe('noCheck — wire schema', () => {
     };
   }
 
-  it('a contract JSON with noCheck hydrates', () => {
-    const raw = rawStorageWith(['elementNotNull', 'membership']);
-    expect(() => validateStorage(raw)).not.toThrow();
+  it('an authored noCheck column round-trips: serialize → validate → hydrate → identical bytes', () => {
+    const contract = defineContract(
+      {
+        family: sqlFamilyPack,
+        target: postgresTargetPack,
+        createNamespace: createTestSqlNamespace,
+        enums: { Role },
+      },
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            User: m('User', {
+              fields: { id: f.text().id(), roles: f.namedType(Role).many().noCheck() },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    const serialized = JSON.stringify(contract.storage);
+    const parsed = JSON.parse(serialized) as unknown;
+    validateStorage(parsed);
+
+    const storedTable = (parsed as SqlStorage).namespaces['public']?.entries.table?.['User'] as
+      | (Omit<StorageTable, 'checks'> & {
+          readonly checks?: ReadonlyArray<{ name: string; prefix?: string; expression: string }>;
+        })
+      | undefined;
+    expect(storedTable).toBeDefined();
+    if (storedTable === undefined) return;
+
+    const hydrated = new StorageTableClass({
+      ...storedTable,
+      checks: (storedTable.checks ?? []).map(checkConstraintInputFromSerialized),
+    });
+    expect(hydrated.columns['roles']?.noCheck).toEqual(['elementNotNull', 'membership']);
+
+    const rehydrated = new StorageTableClass({
+      ...(JSON.parse(JSON.stringify(hydrated)) as typeof storedTable),
+      checks: [],
+    });
+    expect(JSON.stringify(rehydrated)).toBe(JSON.stringify(hydrated));
   });
 
   it.each([
@@ -809,14 +847,6 @@ describe('noCheck — wire schema', () => {
     ['unknown kind', ['bogus']],
   ])('rejects a %s noCheck array', (_label, noCheck) => {
     expect(() => validateStorage(rawStorageWith(noCheck))).toThrow();
-  });
-
-  it('flag ordering is stable under serialize → hydrate → serialize', () => {
-    const raw = rawStorageWith(['elementNotNull', 'membership']);
-    const first = JSON.stringify(raw);
-    const parsed = JSON.parse(first) as unknown;
-    validateStorage(parsed);
-    expect(JSON.stringify(parsed)).toBe(first);
   });
 });
 
