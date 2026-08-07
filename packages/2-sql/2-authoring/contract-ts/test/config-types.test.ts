@@ -177,7 +177,10 @@ function minimalSqlContract(overrides?: {
 describe('defaultControlPolicy specifier precedence', () => {
   it('typescriptContract keeps an existing contract default when the specifier sets another', async () => {
     const contract = minimalSqlContract({ defaultControlPolicy: 'managed' });
-    const config = typescriptContract(contract, undefined, { defaultControlPolicy: 'external' });
+    const config = typescriptContract(contract, undefined, {
+      defaultControlPolicy: 'external',
+      createNamespace: createTestSqlNamespace,
+    });
     const result = await config.source.load(stubContext);
 
     expect(result.ok).toBe(true);
@@ -187,7 +190,10 @@ describe('defaultControlPolicy specifier precedence', () => {
 
   it('typescriptContract applies the specifier default when the contract omits one', async () => {
     const contract = minimalSqlContract();
-    const config = typescriptContract(contract, undefined, { defaultControlPolicy: 'external' });
+    const config = typescriptContract(contract, undefined, {
+      defaultControlPolicy: 'external',
+      createNamespace: createTestSqlNamespace,
+    });
     const result = await config.source.load(stubContext);
 
     expect(result.ok).toBe(true);
@@ -220,6 +226,7 @@ describe('defaultControlPolicy specifier precedence', () => {
 
         const config = typescriptContractFromPath('./contract.ts', undefined, {
           defaultControlPolicy: 'external',
+          createNamespace: createTestSqlNamespace,
         });
         const result = await config.source.load({
           ...stubContext,
@@ -251,6 +258,7 @@ describe('defaultControlPolicy specifier precedence', () => {
 
         const config = typescriptContractFromPath('./contract.ts', undefined, {
           defaultControlPolicy: 'tolerated',
+          createNamespace: createTestSqlNamespace,
         });
         const result = await config.source.load({
           ...stubContext,

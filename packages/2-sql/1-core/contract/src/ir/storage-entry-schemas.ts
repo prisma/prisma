@@ -115,8 +115,8 @@ export const ForeignKeySchema = type.declare<ForeignKeyInput>().type({
 export const CheckConstraintSchema = type({
   '+': 'reject',
   name: 'string',
-  column: 'string',
-  valueSet: StorageValueSetRefSchema,
+  'prefix?': 'string',
+  expression: 'string',
 });
 
 export const StorageTableSchema = type({

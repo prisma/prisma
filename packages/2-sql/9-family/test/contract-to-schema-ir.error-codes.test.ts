@@ -1,19 +1,11 @@
 import { type Contract, profileHash, type StorageHashBase } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import {
-  SqlStorage,
-  type StorageColumn,
-  type StorageTable,
-  StorageValueSet,
-} from '@internal/sql-contract/types';
+import { SqlStorage, type StorageColumn, type StorageTable } from '@internal/sql-contract/types';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
-import {
-  contractToSchemaIR,
-  resolveValueSetValues,
-} from '../src/core/migrations/contract-to-schema-ir';
+import { contractToSchemaIR } from '../src/core/migrations/contract-to-schema-ir';
 
 function captureError(fn: () => void): unknown {
   try {
@@ -99,75 +91,6 @@ describe('contract-to-schema-ir structured error codes', () => {
     expect(error).toMatchObject({
       code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
       message: 'annotationNamespace must be a non-empty string',
-    });
-  });
-
-  it('raises CONTRACT.NAMESPACE_UNKNOWN for a value-set ref naming a missing namespace', () => {
-    const storage = new SqlStorage({
-      storageHash: 'test' as StorageHashBase<string>,
-      namespaces: {},
-    });
-
-    const error = captureError(() =>
-      resolveValueSetValues({ namespaceId: 'nope', entityName: 'status' }, storage, 'test'),
-    );
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'CONTRACT.NAMESPACE_UNKNOWN',
-      meta: { namespaceId: 'nope', context: 'test' },
-    });
-  });
-
-  it('raises CONTRACT.ENUM_UNKNOWN for a value-set ref naming a missing entry', () => {
-    const storage = new SqlStorage({
-      storageHash: 'test' as StorageHashBase<string>,
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: { table: {} },
-        }),
-      },
-    });
-
-    const error = captureError(() =>
-      resolveValueSetValues(
-        { namespaceId: UNBOUND_NAMESPACE_ID, entityName: 'status' },
-        storage,
-        'test',
-      ),
-    );
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'CONTRACT.ENUM_UNKNOWN',
-      meta: { valueSet: 'status', namespaceId: UNBOUND_NAMESPACE_ID },
-    });
-  });
-
-  it('raises CONTRACT.ENUM_INVALID for a value-set with a non-string value', () => {
-    const storage = new SqlStorage({
-      storageHash: 'test' as StorageHashBase<string>,
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: {
-            table: {},
-            valueSet: { status: new StorageValueSet({ kind: 'valueSet', values: [1, 2] }) },
-          },
-        }),
-      },
-    });
-
-    const error = captureError(() =>
-      resolveValueSetValues(
-        { namespaceId: UNBOUND_NAMESPACE_ID, entityName: 'status' },
-        storage,
-        'test',
-      ),
-    );
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'CONTRACT.ENUM_INVALID',
-      meta: { valueSet: 'status', namespaceId: UNBOUND_NAMESPACE_ID },
     });
   });
 });

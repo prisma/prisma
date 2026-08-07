@@ -1,5 +1,7 @@
 # ADR 156 — Storage sets and check constraints
 
+**Status: Partially superseded.** Section 2 below — `tables.*.checks[]` as a structured `{ kind: "inSet", column, setRef }` entry, and the statement that this is "intentionally not a general-purpose SQL expression system in the contract" — is superseded by [ADR 244 — Check constraints are opaque wire-named expressions](<./ADR 244 - Check constraints are opaque wire-named expressions.md>). A check now carries one opaque SQL predicate under a content-addressed wire name, because the structured shape could not survive Postgres reprinting the predicates it was supposed to recognise. Section 1 — `storage.sets` and the `column.valueSet` that references it — **remains in force**; value sets still drive generated types, ordering, and developer-facing tooling. They simply no longer travel into the check node, so the `setRef` link described below is gone: a check's members are baked into its predicate text. The examples in section 2 and the check-constraint half of "How this is used" are preserved as a historical record.
+
 ## Context
 
 We want to express “this column can only contain one of these values” in a way that is:

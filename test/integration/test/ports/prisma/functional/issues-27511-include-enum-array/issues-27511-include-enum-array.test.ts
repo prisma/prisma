@@ -15,27 +15,21 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 // prisma-next requires explicit junction models; the faithful port introduces
 // `workspace_member_role` as the junction table.
 //
-// EMITTER GAP: `workspace_role.permissions` is a `workspace_permission[]`
-// (text-backed enum list). The postgres emitter emits an invalid
-// CHECK constraint (`permissions IN ('HELLO','WORLD')`) for array columns —
-// the same gap as the enum-array and default-selection suites. The contract
-// push fails with sqlState 22P02 ("malformed array literal") before any ORM
-// operation runs, so this test fails at setup.
+// `workspace_role.permissions` is a `workspace_permission[]` (text-backed enum
+// list). That column used to lower to `CHECK (permissions IN ('HELLO','WORLD'))`,
+// which Postgres rejects for an array column, so the push failed before any ORM
+// query ran. The membership check is now array containment.
 //
 // The id fields are VarChar(30) → Varchar<30> branded type. blindCast is used
 // to pass literal strings as the correct branded type.
-//
-// Disposition:
-//   'findMany with include on many-to-many relationship with enum array should work'
-//   → it.fails (enum[] emitter gap; push fails before any ORM query)
 
 describe('ports/prisma/functional/issues-27511-include-enum-array', () => {
-  it.fails(
+  it(
     'findMany with include on many-to-many relationship with enum array should work',
     () =>
       withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
-        const roleId = blindCast<Varchar<30>, 'varchar id literal for it.fails test'>('role-1');
-        const memberId = blindCast<Varchar<30>, 'varchar id literal for it.fails test'>('member-1');
+        const roleId = blindCast<Varchar<30>, 'varchar id literal'>('role-1');
+        const memberId = blindCast<Varchar<30>, 'varchar id literal'>('member-1');
 
         await db.public.workspace_role.create({
           id: roleId,

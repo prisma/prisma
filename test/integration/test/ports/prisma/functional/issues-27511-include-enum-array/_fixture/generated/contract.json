@@ -304,14 +304,14 @@
             "workspace_role": {
               "checks": [
                 {
-                  "column": "permissions",
-                  "name": "workspace_role_permissions_check",
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "workspace_permission",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
+                  "expression": "\"permissions\"::text[] <@ ARRAY['HELLO', 'WORLD']::text[]",
+                  "name": "workspace_role_permissions_check_f45c4d4b",
+                  "prefix": "workspace_role_permissions_check"
+                },
+                {
+                  "expression": "array_position(\"permissions\", NULL) IS NULL",
+                  "name": "workspace_role_permissions_elem_not_null_318e2952",
+                  "prefix": "workspace_role_permissions_elem_not_null"
                 }
               ],
               "columns": {
@@ -365,7 +365,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "285f22e98fc85753ed7acb6f2be0b3cd07e1c82cdbdc31147681f55138d1b472"
+    "storageHash": "8beb060aa674cb67f64b19e1f5b5803bb39b87bbad4ef05b861e794aeb39a9ac"
   },
   "capabilities": {
     "postgres": {

@@ -1,5 +1,6 @@
 export {
   assertWireNamePrefixLength,
+  computeCheckContentHash,
   computeIndexContentHash,
   defaultIndexName,
   formatWireName,
@@ -12,6 +13,7 @@ export {
   parseNaming,
   parseWireName,
   type SqlObjectNaming,
-  WIRE_NAME_PREFIX_MAX_LENGTH,
+  truncateToWireNamePrefixBytes,
+  WIRE_NAME_PREFIX_MAX_BYTES,
   type WireName,
 } from '../naming';

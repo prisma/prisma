@@ -104,10 +104,13 @@ export function columnDefault(input: {
 
 export function checkConstraint(input: {
   readonly name: string;
-  readonly column: string;
-  readonly permittedValues: readonly string[];
+  readonly expression: string;
 }): SqlCheckConstraintIR {
-  return new SqlCheckConstraintIR(input);
+  return new SqlCheckConstraintIR({
+    naming: { kind: 'exact', name: input.name },
+    expression: input.expression,
+    dependsOn: undefined,
+  });
 }
 
 export function unique(columns: readonly string[], name?: string): SqlUniqueIR {

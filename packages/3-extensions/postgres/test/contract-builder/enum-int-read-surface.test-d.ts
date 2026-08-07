@@ -15,10 +15,11 @@
 // types (cross-package, via `@internal/sql-orm-client`) are importable here.
 //
 // The int enum is built ONLY inline here — never added to an emitted/fixture
-// contract — because numeric enums cannot be emitted/migrated
-// (`resolveValueSetValues` throws "numeric-enum … not yet supported"). The
-// inline `defineContract` runs `buildContract` at runtime to produce the typed
-// value but does NOT emit/migrate, so the numeric guard never fires.
+// contract — because numeric enums cannot be rendered as CHECK predicates.
+// This file is type-checked, not executed, so the `defineContract` call below
+// never runs and the guard never fires here. Against the real Postgres pack it
+// DOES fire: authoring an int-backed enum throws `CONTRACT.ENUM_INVALID` at
+// build time, which `enum-int-authoring.test.ts` pins at runtime.
 
 import type { NamespacedEnums } from '@internal/contract/enum-accessor';
 import type { JsonValue } from '@internal/contract/types';

@@ -11,7 +11,7 @@ import {
   isPlainRecord,
   type Namespace,
 } from '@internal/framework-components/ir';
-import { computeIndexContentHash } from '@internal/sql-schema-ir/naming';
+import { computeCheckContentHash, computeIndexContentHash } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { type Type, type } from 'arktype';
@@ -33,6 +33,7 @@ export {
 } from './ir/storage-entry-schemas';
 
 import type {
+  CheckConstraint,
   Index,
   SqlModelStorage,
   SqlStorage,
@@ -300,6 +301,33 @@ function rejectDuplicateWireNamedIndexContent(
     if (seenContent.has(content)) {
       errors.push(
         `${coordinate}: duplicate index definition on columns [${(index.columns ?? []).join(', ')}]`,
+      );
+      continue;
+    }
+    seenContent.add(content);
+  }
+}
+
+/**
+ * Two wire-named checks with the same predicate are one check written twice —
+ * the content hash is their identity, so neither spelling can survive, and
+ * whitespace variants of one predicate collapse onto the same hash. An
+ * exact-named check is identified by its name instead, so content twins under
+ * two names are legal (the legacy shape a database adopts from) and a repeated
+ * name is rejected by the named-object check.
+ */
+function rejectDuplicateWireNamedCheckContent(
+  checks: readonly CheckConstraint[],
+  coordinate: string,
+  errors: string[],
+): void {
+  const seenContent = new Set<string>();
+  for (const check of checks) {
+    if (check.prefix === undefined) continue;
+    const content = computeCheckContentHash(check.expression);
+    if (seenContent.has(content)) {
+      errors.push(
+        `${coordinate}: duplicate check constraint definition (expression "${check.expression}")`,
       );
       continue;
     }
@@ -656,17 +684,7 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
       }
     }
 
-    const seenCheckDefinitions = new Set<string>();
-    for (const check of table.checks ?? []) {
-      const signature = JSON.stringify({ column: check.column, valueSet: check.valueSet });
-      if (seenCheckDefinitions.has(signature)) {
-        errors.push(
-          `Namespace "${namespaceId}" table "${tableName}": duplicate check constraint definition on column "${check.column}"`,
-        );
-        continue;
-      }
-      seenCheckDefinitions.add(signature);
-    }
+    rejectDuplicateWireNamedCheckContent(table.checks ?? [], tableCoordinate, errors);
   }
 
   return errors;
@@ -773,15 +791,6 @@ export function validateSqlStorageConsistency(contract: Contract<SqlStorage>): v
             'storage',
           );
         }
-      }
-    }
-
-    for (const check of table.checks ?? []) {
-      if (!columnNames.has(check.column)) {
-        throw new ContractValidationError(
-          `Namespace "${namespaceId}" table "${tableName}" check constraint "${check.name}" references non-existent column "${check.column}"`,
-          'storage',
-        );
       }
     }
 

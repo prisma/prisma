@@ -212,86 +212,18 @@ function resolveColumnTypeMetadata(
   );
 }
 
-/**
- * Resolves a `ValueSetRef` to its permitted values from the contract storage.
- *
- * Throws when the referenced namespace or value-set is absent — this indicates
- * the contract was built incorrectly (the check and the value-set must be
- * co-emitted by the lowering step). Used by `convertCheck` (schema-IR
- * projection), `verifyCheckConstraints` (verification), and
- * `checkConstraintPlanCallStrategy` (migration planning) so all three agree on
- * the resolved values and the error behavior on a missing reference.
- */
-function allStrings(values: readonly JsonValue[]): values is readonly string[] {
-  return values.every((value) => typeof value === 'string');
-}
-
-export function resolveValueSetValues(
-  ref: { readonly namespaceId: string; readonly entityName: string },
-  storage: SqlStorage,
-  contextLabel: string,
-): readonly string[] {
-  const ns = storage.namespaces[ref.namespaceId];
-  if (!ns) {
-    throw sqlFamilyError(
-      'CONTRACT.NAMESPACE_UNKNOWN',
-      `resolveValueSetValues: namespace "${ref.namespaceId}" not found in storage (${contextLabel})`,
-      {
-        why: 'A value-set reference names a namespace the contract storage does not declare.',
-        fix: 'Regenerate the contract from its authoring source; do not hand-edit contract JSON.',
-        meta: { namespaceId: ref.namespaceId, context: contextLabel },
-      },
-    );
-  }
-  const valueSet = ns.entries.valueSet?.[ref.entityName];
-  if (!valueSet) {
-    throw sqlFamilyError(
-      'CONTRACT.ENUM_UNKNOWN',
-      `resolveValueSetValues: value-set "${ref.entityName}" not found in namespace "${ref.namespaceId}" (${contextLabel})`,
-      {
-        why: 'A value-set reference names an entry its namespace does not declare.',
-        fix: 'Regenerate the contract from its authoring source; do not hand-edit contract JSON.',
-        meta: { valueSet: ref.entityName, namespaceId: ref.namespaceId, context: contextLabel },
-      },
-    );
-  }
-  // Only TEXT enums ship a CHECK-constraint round-trip in this slice. A
-  // non-string value-set is a numeric enum, whose CHECK rendering/verification
-  // is future work; fail loudly rather than emit a wrong numeric-as-text check.
-  const values = valueSet.values;
-  if (!allStrings(values)) {
-    throw sqlFamilyError(
-      'CONTRACT.ENUM_INVALID',
-      `resolveValueSetValues: value-set "${ref.entityName}" in namespace "${ref.namespaceId}" has a non-string value; numeric-enum CHECK constraints are not yet supported (${contextLabel})`,
-      {
-        why: 'Only string value-sets can be rendered as CHECK constraints; this value-set carries a non-string value.',
-        fix: 'Use string enum values, or drop the CHECK-constrained enum until numeric enums are supported.',
-        meta: { valueSet: ref.entityName, namespaceId: ref.namespaceId, context: contextLabel },
-      },
-    );
-  }
-  return values;
-}
-
-/**
- * Projects a `CheckConstraint` IR into an `SqlCheckConstraintIRInput` by
- * resolving the permitted values from the storage value-set it references.
- *
- * The `CheckConstraint.valueSet` ref points to
- * `storage.namespaces[namespaceId].entries.valueSet[name]`. The resolved
- * values are lifted directly from `StorageValueSet.values` so verification
- * compares value sets, not SQL predicate strings.
- *
- * Throws if the referenced namespace or value-set is absent — this
- * indicates the contract was built incorrectly (the check and the
- * value-set must be co-emitted by the lowering step).
- */
-function convertCheck(check: CheckConstraint, storage: SqlStorage): SqlCheckConstraintIRInput {
-  const permittedValues = resolveValueSetValues(check.valueSet, storage, `check "${check.name}"`);
+function convertCheck(
+  check: CheckConstraint,
+  tableName: string,
+  tableColumns: readonly string[],
+): SqlCheckConstraintIRInput {
   return {
-    name: check.name,
-    column: check.column,
-    permittedValues,
+    naming: namingOf(check.name, check.prefix),
+    expression: check.expression,
+    // Every column of the table: the predicate is opaque, so which columns it
+    // actually names is unknowable here — the same deterministic
+    // over-approximation an expression index makes.
+    dependsOn: flatColumnDependsOn(tableName, tableColumns),
   };
 }
 
@@ -415,7 +347,7 @@ function convertTable(
 
   const checks: SqlCheckConstraintIRInput[] | undefined =
     table.checks && table.checks.length > 0
-      ? table.checks.map((c) => convertCheck(c, storage))
+      ? table.checks.map((c) => convertCheck(c, name, Object.keys(table.columns)))
       : undefined;
 
   const primaryKey =

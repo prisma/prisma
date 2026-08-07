@@ -227,7 +227,7 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
       references: { schema: 'auth', table: 'users', columns: ['id'] },
     }),
     new AddUniqueCall('public', 'note', 'note_kind_key', ['kind']),
-    new AddCheckConstraintCall('public', 'note', 'note_kind_check', 'kind', ['draft']),
+    new AddCheckConstraintCall('public', 'note', 'note_kind_check', `"kind" IN ('draft')`),
     new DropCheckConstraintCall('public', 'note', 'note_kind_check'),
     new CreateIndexCall('public', 'note', 'note_kind_idx', { columns: ['kind'] }),
     new RenameIndexCall('public', 'note', 'note_kind_old_idx', 'note_kind_idx'),

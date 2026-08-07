@@ -176,24 +176,24 @@
             "model": {
               "checks": [
                 {
-                  "column": "enum",
-                  "name": "model_enum_check",
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "Enum",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
+                  "expression": "\"enumList\"::text[] <@ ARRAY['A', 'B']::text[]",
+                  "name": "model_enumList_check_b238669f",
+                  "prefix": "model_enumList_check"
                 },
                 {
-                  "column": "enumList",
-                  "name": "model_enumList_check",
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "Enum",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
+                  "expression": "array_position(\"enumList\", NULL) IS NULL",
+                  "name": "model_enumList_elem_not_null_a1f4c8cf",
+                  "prefix": "model_enumList_elem_not_null"
+                },
+                {
+                  "expression": "\"enum\" IN ('A', 'B')",
+                  "name": "model_enum_check_b2f5fa62",
+                  "prefix": "model_enum_check"
+                },
+                {
+                  "expression": "array_position(\"list\", NULL) IS NULL",
+                  "name": "model_list_elem_not_null_dfa8eb59",
+                  "prefix": "model_list_elem_not_null"
                 }
               ],
               "columns": {
@@ -306,7 +306,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b6334aa1987d9a135c4d2e680c055ae4d7a07b3db68390f2e2f77c918b3a8dfd"
+    "storageHash": "019ff2a2b0f56316f82278233a7578b1223735e43620cdd1a6d8b2f1cf37f602"
   },
   "capabilities": {
     "postgres": {

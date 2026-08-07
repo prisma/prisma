@@ -3,11 +3,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   assertWireNamePrefixLength,
+  computeCheckContentHash,
   computeIndexContentHash,
   formatWireName,
   normalizeSqlBody,
   parseWireName,
-  WIRE_NAME_PREFIX_MAX_LENGTH,
+  truncateToWireNamePrefixBytes,
+  WIRE_NAME_PREFIX_MAX_BYTES,
 } from '../src/exports/naming';
 
 describe('formatWireName', () => {
@@ -108,6 +110,36 @@ describe('normalizeSqlBody', () => {
       const b = normalizeSqlBody('user_id = auth.uid()');
       expect(a).toBe(b);
     });
+  });
+});
+
+describe('computeCheckContentHash', () => {
+  it('returns 8 lowercase hex characters', () => {
+    expect(computeCheckContentHash(`"role" IN ('user', 'admin')`)).toMatch(/^[0-9a-f]{8}$/);
+  });
+
+  it('matches the expected SHA-256 first-8-hex for a known input', () => {
+    const expression = `"role"  IN ('user', 'admin')`;
+    const tuple = JSON.stringify([`"role" IN ('user', 'admin')`]);
+    const expected = createHash('sha256').update(tuple).digest('hex').slice(0, 8);
+    expect(computeCheckContentHash(expression)).toBe(expected);
+  });
+
+  it('is stable across calls', () => {
+    const expression = 'array_position("tags", NULL) IS NULL';
+    expect(computeCheckContentHash(expression)).toBe(computeCheckContentHash(expression));
+  });
+
+  it('whitespace variants hash identically', () => {
+    expect(computeCheckContentHash('  array_position("tags",   NULL)\n IS NULL ')).toBe(
+      computeCheckContentHash('array_position("tags", NULL) IS NULL'),
+    );
+  });
+
+  it('materially different expressions hash differently', () => {
+    expect(computeCheckContentHash(`"role" IN ('user')`)).not.toBe(
+      computeCheckContentHash(`"role" IN ('admin')`),
+    );
   });
 });
 
@@ -274,15 +306,58 @@ describe('pinned wire hashes (stability commitment)', () => {
 });
 
 describe('assertWireNamePrefixLength', () => {
-  it('rejects a prefix over the 54-character cap, naming the prefix and the cap', () => {
-    const longPrefix = 'a'.repeat(WIRE_NAME_PREFIX_MAX_LENGTH + 1);
+  it('rejects a prefix over the 54-byte cap, naming the prefix and the cap', () => {
+    const longPrefix = 'a'.repeat(WIRE_NAME_PREFIX_MAX_BYTES + 1);
     expect(() => assertWireNamePrefixLength(longPrefix, 'index prefix')).toThrow(
-      `index prefix "${longPrefix}" exceeds the 54-character maximum`,
+      `index prefix "${longPrefix}" exceeds the 54-byte maximum`,
     );
   });
 
-  it('accepts a 54-character prefix (the cap is inclusive)', () => {
-    const prefix = 'a'.repeat(WIRE_NAME_PREFIX_MAX_LENGTH);
+  it('accepts a 54-byte prefix (the cap is inclusive)', () => {
+    const prefix = 'a'.repeat(WIRE_NAME_PREFIX_MAX_BYTES);
     expect(() => assertWireNamePrefixLength(prefix, 'index prefix')).not.toThrow();
+  });
+
+  it('measures bytes, not characters — Postgres NAMEDATALEN is a byte limit', () => {
+    // 28 two-byte characters = 56 bytes, under the character cap, over the byte one.
+    const cyrillic = 'я'.repeat(28);
+    expect(cyrillic.length).toBeLessThan(WIRE_NAME_PREFIX_MAX_BYTES);
+    expect(() => assertWireNamePrefixLength(cyrillic, 'index prefix')).toThrow(
+      /exceeds the 54-byte maximum/,
+    );
+  });
+});
+
+describe('truncateToWireNamePrefixBytes', () => {
+  it('leaves a prefix within the budget untouched', () => {
+    expect(truncateToWireNamePrefixBytes('User_role_check')).toBe('User_role_check');
+  });
+
+  it('truncates an ASCII prefix to the byte budget', () => {
+    const long = 'a'.repeat(80);
+    const out = truncateToWireNamePrefixBytes(long);
+    expect(out).toBe('a'.repeat(WIRE_NAME_PREFIX_MAX_BYTES));
+  });
+
+  it('never splits a multibyte character', () => {
+    // Two-byte characters: 27 fit in 54 bytes, the 28th would overrun.
+    const cyrillic = 'я'.repeat(40);
+    const out = truncateToWireNamePrefixBytes(cyrillic);
+    expect(out).toBe('я'.repeat(27));
+    expect(new TextEncoder().encode(out).length).toBeLessThanOrEqual(WIRE_NAME_PREFIX_MAX_BYTES);
+  });
+
+  it('never splits an astral character (surrogate pair)', () => {
+    // Four-byte characters: 13 fit in 54 bytes with 2 bytes to spare.
+    const emoji = '😀'.repeat(20);
+    const out = truncateToWireNamePrefixBytes(emoji);
+    expect(out).toBe('😀'.repeat(13));
+    expect([...out].every((c) => c === '😀')).toBe(true);
+  });
+
+  it('the resulting wire name fits Postgres 63-byte identifier limit', () => {
+    const out = truncateToWireNamePrefixBytes('Пользователь_электронная_почта_адрес_строка');
+    const wireName = formatWireName(out, 'aabbccdd');
+    expect(new TextEncoder().encode(wireName).length).toBeLessThanOrEqual(63);
   });
 });

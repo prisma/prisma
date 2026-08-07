@@ -46,7 +46,11 @@ describe('SqlSchemaIRNode discriminants', () => {
     ],
     [
       'SqlCheckConstraintIR',
-      new SqlCheckConstraintIR({ name: 'chk', column: 'status', permittedValues: ['a'] }),
+      new SqlCheckConstraintIR({
+        naming: { kind: 'exact', name: 'chk' },
+        expression: 'x > 0',
+        dependsOn: undefined,
+      }),
     ],
   ] as const)('%s: kind is non-enumerable, absent from JSON and toEqual', (_label, node) => {
     expect(Object.keys(node)).not.toContain('kind');
@@ -88,7 +92,11 @@ describe('SqlSchemaIRNode discriminants', () => {
     ],
     [
       'SqlCheckConstraintIR',
-      new SqlCheckConstraintIR({ name: 'chk', column: 'status', permittedValues: ['a'] }),
+      new SqlCheckConstraintIR({
+        naming: { kind: 'exact', name: 'chk' },
+        expression: 'x > 0',
+        dependsOn: undefined,
+      }),
       'sql-check-constraint',
     ],
     [
@@ -160,7 +168,11 @@ describe('relationalNodeGranularity map (granularity is off the node)', () => {
     ],
     [
       'SqlCheckConstraintIR',
-      new SqlCheckConstraintIR({ name: 'chk', column: 'status', permittedValues: ['a'] }),
+      new SqlCheckConstraintIR({
+        naming: { kind: 'exact', name: 'chk' },
+        expression: 'x > 0',
+        dependsOn: undefined,
+      }),
       'auxiliary',
     ],
   ] as const)(

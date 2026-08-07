@@ -277,10 +277,15 @@ export default defineConfig({
 });
 ```
 
-Optional third argument (options bag) for `typescriptContract` / `typescriptContractFromPath`, and `defaultControlPolicy` on `emptyContract`:
+Optional third argument (options bag) for `typescriptContract` / `typescriptContractFromPath`, and `defaultControlPolicy` on `emptyContract`. Stamping a specifier default strips derived checks from tables the policy leaves non-managed, and the strip rebuilds namespaces through the target's factory, so the bag requires `createNamespace` alongside `defaultControlPolicy` — the same factory the PSL specifier takes:
 
 ```typescript
-typescriptContract(contract, 'src/prisma/contract.json', { defaultControlPolicy: 'external' });
+import { postgresCreateNamespace } from '@internal/target-postgres/types';
+
+typescriptContract(contract, 'src/prisma/contract.json', {
+  defaultControlPolicy: 'external',
+  createNamespace: postgresCreateNamespace,
+});
 ```
 
 The specifier value applies only when the loaded contract omits `defaultControlPolicy` (a value authored on the contract module wins).

@@ -1,6 +1,7 @@
 import { ContractValidationError } from '@internal/contract/contract-validation-error';
 import { type ContractModel, type ContractRelation, crossRef } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { createContract } from '@repo/test-utils';
 import { type } from 'arktype';
@@ -25,6 +26,19 @@ import {
 /** Routes a stored (flat) index entry through the contract-JSON hydrator. */
 function serializedIndex(flat: SerializedIndex): Index {
   return new Index(indexInputFromSerialized(flat));
+}
+
+const roleInCheck = `"role" IN ('user', 'admin')`;
+
+function checkConstraint(name: string, expression: string): CheckConstraint {
+  return new CheckConstraint({ naming: { kind: 'exact', name }, expression });
+}
+
+function wireCheckConstraint(prefix: string, expression: string): CheckConstraint {
+  return new CheckConstraint({
+    naming: { kind: 'wire', prefix, hash: computeCheckContentHash(expression) },
+    expression,
+  });
 }
 
 function unboundTables<T extends Record<string, unknown>>(tables: T) {
@@ -1435,18 +1449,7 @@ describe('SQL contract validators', () => {
             uniques: [],
             indexes: [],
             foreignKeys: [],
-            checks: [
-              new CheckConstraint({
-                name: 'user_role_check',
-                column: 'role',
-                valueSet: {
-                  plane: 'storage',
-                  entityKind: 'valueSet',
-                  namespaceId: UNBOUND_NAMESPACE_ID,
-                  entityName: 'Role',
-                },
-              }),
-            ],
+            checks: [checkConstraint('user_role_check', roleInCheck)],
           }),
         }),
       }).storage;
@@ -1465,18 +1468,7 @@ describe('SQL contract validators', () => {
             uniques: [],
             indexes: [serializedIndex({ columns: ['id'], name: 'shared_name', unique: false })],
             foreignKeys: [],
-            checks: [
-              new CheckConstraint({
-                name: 'shared_name',
-                column: 'role',
-                valueSet: {
-                  plane: 'storage',
-                  entityKind: 'valueSet',
-                  namespaceId: UNBOUND_NAMESPACE_ID,
-                  entityName: 'Role',
-                },
-              }),
-            ],
+            checks: [checkConstraint('shared_name', roleInCheck)],
           }),
         }),
       }).storage;
@@ -1487,13 +1479,7 @@ describe('SQL contract validators', () => {
       expect(errors[0]).toContain('index');
     });
 
-    it('rejects duplicate check constraint definitions (same column + valueSet)', () => {
-      const valueSetRef = {
-        plane: 'storage' as const,
-        entityKind: 'valueSet' as const,
-        namespaceId: UNBOUND_NAMESPACE_ID,
-        entityName: 'Role',
-      };
+    it('accepts two exact-named checks sharing one expression (the legacy adoption shape)', () => {
       const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: new StorageTable({
@@ -1502,30 +1488,18 @@ describe('SQL contract validators', () => {
             indexes: [],
             foreignKeys: [],
             checks: [
-              new CheckConstraint({
-                name: 'user_role_check_a',
-                column: 'role',
-                valueSet: valueSetRef,
-              }),
-              new CheckConstraint({
-                name: 'user_role_check_b',
-                column: 'role',
-                valueSet: valueSetRef,
-              }),
+              checkConstraint('user_role_check_a', roleInCheck),
+              checkConstraint('user_role_check_b', roleInCheck),
             ],
           }),
         }),
       }).storage;
-      const errors = validateStorageSemantics(s);
-      expect(errors).toHaveLength(1);
-      expect(errors[0]).toContain('duplicate check constraint definition');
-      expect(errors[0]).toContain('role');
+      expect(validateStorageSemantics(s)).toEqual([]);
     });
-  });
 
-  describe('validateSqlStorageConsistency', () => {
-    it('throws when a check constraint references a non-existent column', () => {
-      const rawContract = createContract({
+    it('rejects two wire-named checks whose expressions differ only in whitespace', () => {
+      const spacedOut = roleInCheck.replace(' IN ', '  IN  ');
+      const s = createContract<SqlStorage>({
         storage: unboundTables({
           user: new StorageTable({
             columns: { role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false } },
@@ -1533,45 +1507,45 @@ describe('SQL contract validators', () => {
             indexes: [],
             foreignKeys: [],
             checks: [
-              new CheckConstraint({
-                name: 'user_status_check',
-                column: 'status',
-                valueSet: {
-                  plane: 'storage',
-                  entityKind: 'valueSet',
-                  namespaceId: UNBOUND_NAMESPACE_ID,
-                  entityName: 'Status',
-                },
-              }),
+              wireCheckConstraint('user_role_check', roleInCheck),
+              wireCheckConstraint('user_role_alt_check', spacedOut),
             ],
+          }),
+        }),
+      }).storage;
+      const errors = validateStorageSemantics(s);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('duplicate check constraint definition');
+    });
+  });
+
+  describe('validateSqlStorageConsistency', () => {
+    it('throws when an index references a non-existent column', () => {
+      const rawContract = createContract({
+        storage: unboundTables({
+          user: new StorageTable({
+            columns: { role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false } },
+            uniques: [],
+            indexes: [
+              serializedIndex({ columns: ['status'], name: 'user_status_idx', unique: false }),
+            ],
+            foreignKeys: [],
           }),
         }),
       });
       expect(() => validateSqlStorageConsistency(rawContract as never)).toThrow(
-        /non-existent column "status"/,
+        /index references non-existent column "status"/,
       );
     });
 
-    it('does not throw when all check constraint columns exist', () => {
+    it('does not throw when every index column exists', () => {
       const rawContract = createContract({
         storage: unboundTables({
           user: new StorageTable({
-            columns: { status: { nativeType: 'text', codecId: 'pg/text@1', nullable: false } },
+            columns: { role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false } },
             uniques: [],
-            indexes: [],
+            indexes: [serializedIndex({ columns: ['role'], name: 'user_role_idx', unique: false })],
             foreignKeys: [],
-            checks: [
-              new CheckConstraint({
-                name: 'user_status_check',
-                column: 'status',
-                valueSet: {
-                  plane: 'storage',
-                  entityKind: 'valueSet',
-                  namespaceId: UNBOUND_NAMESPACE_ID,
-                  entityName: 'Status',
-                },
-              }),
-            ],
           }),
         }),
       });
@@ -1601,7 +1575,7 @@ describe('SQL contract validators', () => {
   describe('ValueSetRef call-site-narrowed schemas', () => {
     const storageSchema = createSqlStorageSchema(composeSqlEntityKinds());
 
-    function makeStorageWithCheckRef(ref: Record<string, unknown>) {
+    function makeStorageWithColumnRef(ref: Record<string, unknown>) {
       return {
         storageHash: 'test',
         namespaces: {
@@ -1610,11 +1584,17 @@ describe('SQL contract validators', () => {
             entries: {
               table: {
                 users: {
-                  columns: { role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false } },
+                  columns: {
+                    role: {
+                      nativeType: 'text',
+                      codecId: 'pg/text@1',
+                      nullable: false,
+                      valueSet: ref,
+                    },
+                  },
                   uniques: [],
                   indexes: [],
                   foreignKeys: [],
-                  checks: [{ name: 'users_role_check', column: 'role', valueSet: ref }],
                 },
               },
             },
@@ -1623,9 +1603,9 @@ describe('SQL contract validators', () => {
       };
     }
 
-    it('accepts a storage check ref with plane:storage + entityKind:valueSet', () => {
+    it('accepts a storage column value-set ref with plane:storage + entityKind:valueSet', () => {
       const result = storageSchema(
-        makeStorageWithCheckRef({
+        makeStorageWithColumnRef({
           plane: 'storage',
           entityKind: 'valueSet',
           namespaceId: 'public',
@@ -1635,9 +1615,9 @@ describe('SQL contract validators', () => {
       expect(result).not.toBeInstanceOf(type.errors);
     });
 
-    it('rejects a storage check ref with plane:domain + entityKind:enum', () => {
+    it('rejects a storage column value-set ref with plane:domain + entityKind:enum', () => {
       const result = storageSchema(
-        makeStorageWithCheckRef({
+        makeStorageWithColumnRef({
           plane: 'domain',
           entityKind: 'enum',
           namespaceId: 'public',
@@ -1647,9 +1627,9 @@ describe('SQL contract validators', () => {
       expect(result).toBeInstanceOf(type.errors);
     });
 
-    it('rejects a storage check ref with plane:domain + entityKind:valueSet', () => {
+    it('rejects a storage column value-set ref with plane:domain + entityKind:valueSet', () => {
       const result = storageSchema(
-        makeStorageWithCheckRef({
+        makeStorageWithColumnRef({
           plane: 'domain',
           entityKind: 'valueSet',
           namespaceId: 'public',

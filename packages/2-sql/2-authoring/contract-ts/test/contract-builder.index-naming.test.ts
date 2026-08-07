@@ -160,7 +160,7 @@ describe('index naming at TS lowering', () => {
     ]);
   });
 
-  it('rejects an authored index name over the 54-character prefix cap', () => {
+  it('rejects an authored index name over the 54-byte prefix cap', () => {
     const longName = 'a'.repeat(55);
     expect(() =>
       defineTestContract({
@@ -176,7 +176,7 @@ describe('index naming at TS lowering', () => {
           })),
         },
       }),
-    ).toThrow(new RegExp(`"${longName}" exceeds the 54-character maximum`));
+    ).toThrow(new RegExp(`"${longName}" exceeds the 54-byte maximum`));
   });
 });
 

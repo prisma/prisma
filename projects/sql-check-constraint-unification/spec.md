@@ -93,7 +93,7 @@ Inherits the team-DoD floor. Project-specific close conditions:
 
 ## ADR pointer
 
-One durable decision, authored at close-out: **Check constraints are opaque wire-named expressions** — extends [ADR 234](../../docs/architecture%20docs/adrs/ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md) to a third object kind; records the reversal of the check node's "structured, never raw SQL" promise, the name-based-comparison tradeoff (live tampering under an unchanged name is not detected — accepted twice already for indexes and RLS), the removal of the `valueDrift` classification, and the drop+add adoption decision.
+One durable decision, authored during slice 1 as [ADR 244 — Check constraints are opaque wire-named expressions](../../docs/architecture%20docs/adrs/ADR%20244%20-%20Check%20constraints%20are%20opaque%20wire-named%20expressions.md) and amended with the rename-pairing account when slice 2 merges — extends [ADR 234](../../docs/architecture%20docs/adrs/ADR%20234%20-%20Content-addressed%20wire%20names%20for%20Postgres-normalized%20objects.md) to a third object kind; records the reversal of the check node's "structured, never raw SQL" promise, the name-based-comparison tradeoff (live tampering under an unchanged name is not detected — accepted twice already for indexes and RLS), the removal of the `valueDrift` classification, and the drop+add adoption decision.
 
 ## References
 

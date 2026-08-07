@@ -26,7 +26,9 @@ describe('flat tree diffability (SqlSchemaIR / SqlTableIR)', () => {
         dependsOn: undefined,
       },
     ],
-    checks: [{ name: 'chk', column: 'email', permittedValues: ['a'] }],
+    checks: [
+      { naming: { kind: 'exact', name: 'chk' }, expression: `"email" <> ''`, dependsOn: undefined },
+    ],
   });
 
   it('SqlSchemaIR is the diff root: sentinel id, identity isEqualTo, tables as children', () => {

@@ -210,6 +210,48 @@ export const sqliteEnumInferenceCodecs = {
   int: 'sqlite/integer@1',
 } as const;
 
+/**
+ * Stands in for the Postgres pack's `renderCheckExpressions`, reproducing the
+ * predicate forms it emits. Check emission is hook-conditional, so a target
+ * fixture without one emits no checks at all and every assertion about checks
+ * would hold vacuously — the PSL/TS parity test in particular.
+ */
+export function testRenderCheckExpressions(input: {
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly many: boolean;
+  readonly memberValues: readonly string[] | undefined;
+}): ReadonlyArray<{
+  readonly kind: 'membership' | 'elementNotNull';
+  readonly columnName: string;
+  readonly expression: string;
+}> {
+  const candidates: Array<{
+    kind: 'membership' | 'elementNotNull';
+    columnName: string;
+    expression: string;
+  }> = [];
+  const column = `"${input.columnName}"`;
+  if (input.memberValues !== undefined) {
+    const members = input.memberValues.map((v) => `'${v}'`).join(', ');
+    candidates.push({
+      kind: 'membership',
+      columnName: input.columnName,
+      expression: input.many
+        ? `${column}::text[] <@ ARRAY[${members}]::text[]`
+        : `${column} IN (${members})`,
+    });
+  }
+  if (input.many) {
+    candidates.push({
+      kind: 'elementNotNull',
+      columnName: input.columnName,
+      expression: `array_position(${column}, NULL) IS NULL`,
+    });
+  }
+  return candidates;
+}
+
 export const postgresTarget: TargetPackRef<'sql', 'postgres'> = {
   kind: 'target',
   familyId: 'sql',
@@ -219,6 +261,27 @@ export const postgresTarget: TargetPackRef<'sql', 'postgres'> = {
   capabilities: {},
   defaultNamespaceId: 'public',
 };
+
+/**
+ * `postgresTarget` plus the check-rendering hook. Kept separate because
+ * rendering a membership check for an int-backed enum throws
+ * `CONTRACT.ENUM_INVALID` (numeric enums are not supported), and several tests
+ * here author int-backed enums deliberately.
+ *
+ * Not annotated `TargetPackRef`: `AuthoringContributions` deliberately does not
+ * name the duck-typed hooks, so an annotated literal would reject the extra
+ * key. The real `postgresTargetDescriptorMeta` is not annotated either.
+ */
+export const postgresTargetRenderingChecks = {
+  kind: 'target',
+  familyId: 'sql',
+  targetId: 'postgres',
+  id: 'postgres',
+  version: '0.0.1',
+  capabilities: {},
+  defaultNamespaceId: 'public',
+  authoring: { field: {}, renderCheckExpressions: testRenderCheckExpressions },
+} as const;
 
 export const sqliteTarget: TargetPackRef<'sql', 'sqlite'> = {
   kind: 'target',
