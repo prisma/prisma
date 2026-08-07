@@ -10,9 +10,9 @@ describe('ports/prisma/functional/enums (mongo)', () => {
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ client, contract, db }) => {
         const raw = mongo<Contract>({ contract, mongoClient: client, dbName: 'test' });
-        await raw.execute(
-          raw.raw.collection('User').insertOne({ _id: '2', plan: 'NONFREE' }).build(),
-        );
+        await (await raw.runtime())
+          .query(raw.raw.collection('User').insertOne({ _id: '2', plan: 'NONFREE' }).build())
+          .toArray();
 
         const result = await Promise.resolve(db.User.all()).catch((error: unknown) => error);
 
