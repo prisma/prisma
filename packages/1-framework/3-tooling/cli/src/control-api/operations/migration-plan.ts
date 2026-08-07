@@ -24,6 +24,7 @@ import { formatMigrationDirName, writeMigrationPackage } from '@internal/migrati
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeMigrationTs } from '@internal/migration-tools/migration-ts';
 import type { ImportSpecifierResolver } from '@internal/publish-surface/import-roots';
+import { castAs } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join, relative } from 'pathe';
 import {
@@ -53,6 +54,10 @@ import {
   runContractSpaceSeedPhase,
 } from './contract-space-seed-phase';
 import { resolveFromForPlan, resolveToForPlan } from './plan-resolution';
+
+function isEnoent(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
+}
 
 export interface MigrationPlanOptions extends CommonCommandOptions {
   readonly config?: string;
@@ -99,7 +104,7 @@ async function runPlannerLeg(
   if (plannerResult.kind === 'failure') {
     return notOk(
       errorMigrationPlanningFailed({
-        conflicts: plannerResult.conflicts as readonly CliErrorConflict[],
+        conflicts: castAs<readonly CliErrorConflict[]>(plannerResult.conflicts),
       }),
     );
   }
@@ -214,6 +219,40 @@ export async function executeMigrationPlanCommand(
     readonly onSeeded?: (record: ContractSpaceSeedPhaseRecord) => void;
   },
 ): Promise<Result<MigrationPlanResult, CliStructuredError>> {
+  // Guard the whole command, including the mutation prologue (context
+  // resolution, from/to resolution, the contract-space seed phase): a throw
+  // anywhere must surface as notOk(CliStructuredError), never as an
+  // unhandled rejection past the Result contract.
+  try {
+    return await executeMigrationPlanCommandInner(options, startTime, callbacks);
+  } catch (error) {
+    if (CliStructuredError.is(error)) {
+      return notOk(error);
+    }
+    if (MigrationToolsError.is(error)) {
+      return notOk(mapMigrationToolsError(error));
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    return notOk(
+      errorUnexpected(message, {
+        why: `Unexpected error during migration plan: ${message}`,
+      }),
+    );
+  }
+}
+
+async function executeMigrationPlanCommandInner(
+  options: MigrationPlanOptions,
+  startTime: number,
+  callbacks?: {
+    readonly onContextResolved?: (ctx: {
+      readonly configPath: string;
+      readonly contractPath: string;
+      readonly appMigrationsRelative: string;
+    }) => void;
+    readonly onSeeded?: (record: ContractSpaceSeedPhaseRecord) => void;
+  },
+): Promise<Result<MigrationPlanResult, CliStructuredError>> {
   const config = await loadConfig(options.config);
   const { configPath, migrationsDir, appMigrationsDir, appMigrationsRelative } =
     resolveMigrationPaths(options.config, config);
@@ -228,7 +267,7 @@ export async function executeMigrationPlanCommand(
   try {
     contractJsonContent = await readFile(contractPathAbsolute, 'utf-8');
   } catch (error) {
-    if (error instanceof Error && (error as { code?: string }).code === 'ENOENT') {
+    if (isEnoent(error)) {
       return notOk(
         errorFileNotFound(contractPathAbsolute, {
           why: `Contract file not found at ${contractPathAbsolute}`,
@@ -252,7 +291,9 @@ export async function executeMigrationPlanCommand(
 
   let toContract: Contract;
   try {
-    toContract = familyInstance.deserializeContract(JSON.parse(contractJsonContent) as unknown);
+    toContract = familyInstance.deserializeContract(
+      castAs<unknown>(JSON.parse(contractJsonContent)),
+    );
   } catch (error) {
     return notOk(
       errorContractValidationFailed(
@@ -446,7 +487,7 @@ export async function executeMigrationPlanCommand(
       readFile(destinationArtifacts.dtsPath, 'utf-8'),
     ]);
     await writeContractSnapshot(migrationsDir, destHash, {
-      contractJson: JSON.parse(contractJsonRaw) as unknown,
+      contractJson: castAs<unknown>(JSON.parse(contractJsonRaw)),
       contractDts,
     });
   }
