@@ -281,8 +281,9 @@ export function createAggregateFunctions<QC extends QueryContext>(
 
   return new Proxy({} as AggregateFunctions<QC>, {
     get(_target, prop: string) {
-      const agg = aggregates[prop];
-      if (agg) return agg;
+      if (Object.hasOwn(aggregates, prop)) {
+        return aggregates[prop];
+      }
 
       return (baseFns as Record<string, unknown>)[prop];
     },
