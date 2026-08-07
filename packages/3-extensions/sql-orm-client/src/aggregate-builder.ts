@@ -2,6 +2,7 @@ import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { aggregateOperationNames } from './aggregate-operations';
 import { getFieldToColumnMap } from './collection-contract';
 import type { AggregateBuilder, AggregateSelector } from './types';
@@ -27,11 +28,10 @@ export function createAggregateBuilder<
   const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
   const builder: Record<string, (field?: string) => AggregateSelector<unknown>> = {};
   for (const operation of aggregateOperationNames(aggregates)) {
-    builder[operation] = (field?: string) => ({
-      kind: 'aggregate',
-      fn: operation,
-      ...(field !== undefined ? { column: fieldToColumn[field] ?? field } : {}),
-    });
+    builder[operation] = (field?: string) => {
+      const column = field === undefined ? undefined : (fieldToColumn[field] ?? field);
+      return { kind: 'aggregate', fn: operation, ...ifDefined('column', column) };
+    };
   }
   return blindCast<
     AggregateBuilder<TContract, ModelName, NsId>,
