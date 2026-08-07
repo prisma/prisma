@@ -22,6 +22,12 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  composeCheckWirePrefix,
+  computeCheckContentHash,
+  formatWireName,
+} from '@internal/sql-schema-ir/naming';
+import { postgresRenderCheckExpressions } from '@internal/target-postgres/types';
 import { withClient } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
 import { describe, expect, it } from 'vitest';
@@ -30,7 +36,6 @@ import {
   type JourneyContext,
   runContractEmit,
   runContractInfer,
-  runDbUpdate,
   runDbVerify,
   setupJourney,
   timeouts,
@@ -112,51 +117,21 @@ function fixIndexTypes(psl: string): string {
 }
 
 /**
- * Asserts a pulled schema converges rather than verifying clean immediately.
+ * Asserts a pulled schema verifies clean immediately.
  *
- * Authoring derives an element-non-null check for every list column, and
- * `contract infer` reads no checks back out of the catalog, so an emitted
- * contract declares checks the source database never had. The difference is
- * real and plannable, not drift: verify names exactly those checks, and the
- * next plan carries an `ADD CONSTRAINT` for each one.
- *
- * The plan is read, not applied. Every test in this journey shares one seeded
- * database, so applying here would change what the later tests infer. That the
- * planned add actually installs the check and clears the issue is proven
- * against a real database in the adapter's check-lifecycle suite
- * (`packages/3-targets/6-adapters/postgres/test/migrations/check-lifecycle-e2e.integration.test.ts`,
- * "a manually dropped check is reported missing and repaired by the next plan").
- *
- * Interim: the opt-out surface in slice 3 restores verify-clean-by-default for
- * a pulled schema. See `projects/sql-check-constraint-unification/plan.md`
- * § Slice 3 locked decisions.
+ * `contract infer` emits `@noCheck(elementNotNull)` for every list column
+ * whose live database does not carry the derived, wire-named element-non-null
+ * check, so the emitted contract declares exactly what the database enforces
+ * and `db verify --schema-only` exits 0 with zero issues right after
+ * infer -> emit.
  */
-async function expectConvergesOnDerivedChecks(ctx: JourneyContext, subject: string): Promise<void> {
-  const pending = await runDbVerify(ctx, ['--schema-only']);
-  const pendingOutput = `${stripAnsi(pending.stderr)}\n${stripAnsi(pending.stdout)}`;
-  const issues = [...pendingOutput.matchAll(/✖ (?:missing|extra): (\S+)/g)].flatMap((m) =>
-    m[1] === undefined ? [] : [m[1]],
+async function expectVerifiesCleanAfterPull(ctx: JourneyContext, subject: string): Promise<void> {
+  const result = await runDbVerify(ctx, ['--schema-only']);
+  const output = `${stripAnsi(result.stderr)}\n${stripAnsi(result.stdout)}`;
+  expect(result.exitCode, `${subject}: db verify --schema-only\n${output}`).toBe(0);
+  expect(output, `${subject}: verify reported issues after a pull`).not.toMatch(
+    /✖ (?:missing|extra):/,
   );
-  expect(
-    issues,
-    `${subject}: the only difference after a pull should be derived checks; instead got:\n${pendingOutput}`,
-  ).not.toHaveLength(0);
-  for (const issue of issues) {
-    expect(issue, `${subject}: unexpected schema issue after a pull`).toMatch(
-      /\/check:\w+_elem_not_null_[0-9a-f]{8}$/,
-    );
-  }
-
-  const plan = await runDbUpdate(ctx, ['--dry-run']);
-  const planOutput = `${stripAnsi(plan.stderr)}\n${stripAnsi(plan.stdout)}`;
-  expect(plan.exitCode, `${subject}: db update --dry-run\n${planOutput}`).toBe(0);
-  for (const issue of issues) {
-    const constraintName = issue.slice(issue.lastIndexOf('check:') + 'check:'.length);
-    expect(
-      planOutput,
-      `${subject}: the next plan should add ${constraintName}; instead got:\n${planOutput}`,
-    ).toContain(`Add check constraint "${constraintName}"`);
-  }
 }
 
 withTempDir(({ createTempDir }) => {
@@ -302,6 +277,9 @@ withTempDir(({ createTempDir }) => {
         expect(psl, 'Users.tags carries a PSL literal-list default, not dbgenerated').toMatch(
           /tags\s+String\[\]\s+@default\(\[\]\)/,
         );
+        expect(psl, 'Users.tags waives the element check its source database never had').toMatch(
+          /tags\s+String\[\][^\n]*@noCheck\(elementNotNull\)/,
+        );
 
         // Isolate the list-default defect: fix the one remaining unrelated
         // emit-blocker (1:1 back-relation). The gin/hash index types are left
@@ -318,7 +296,7 @@ withTempDir(({ createTempDir }) => {
             `instead got:\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
-        await expectConvergesOnDerivedChecks(ctx, 'Users.tags');
+        await expectVerifiesCleanAfterPull(ctx, 'Users.tags');
       },
       timeouts.spinUpPpgDev,
     );
@@ -428,7 +406,7 @@ withTempDir(({ createTempDir }) => {
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
 
-        await expectConvergesOnDerivedChecks(ctx, 'Users.metadata');
+        await expectVerifiesCleanAfterPull(ctx, 'Users.metadata');
       },
       timeouts.spinUpPpgDev,
     );
@@ -561,7 +539,7 @@ withTempDir(({ createTempDir }) => {
           `contract emit (unmodified inferred PSL)\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
-        await expectConvergesOnDerivedChecks(ctx, 'unmodified inferred PSL');
+        await expectVerifiesCleanAfterPull(ctx, 'unmodified inferred PSL');
       },
       timeouts.spinUpPpgDev,
     );
@@ -629,6 +607,110 @@ withTempDir(({ createTempDir }) => {
         );
         expect(psl, 'expression unique index on handles keeps a list back-relation').toMatch(
           /\bhandles\s+Handles\[\]/,
+        );
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('Journey: infer preserves an enforced element check', () => {
+    // The database already carries the check authoring would derive, under
+    // exactly the derived wire name — the enforced form must survive a pull.
+    const elementCandidate = postgresRenderCheckExpressions({
+      tableName: 'users',
+      columnName: 'tags',
+      many: true,
+      memberValues: undefined,
+    })[0];
+    const enforcedCheckName = formatWireName(
+      composeCheckWirePrefix('users', 'tags', 'elementNotNull'),
+      computeCheckContentHash(elementCandidate?.expression ?? ''),
+    );
+
+    const db = useDevDatabase({
+      onReady: (cs) =>
+        withClient(cs, (client) =>
+          client.query(`
+            CREATE TABLE users (
+              id int4 PRIMARY KEY,
+              tags text[] NOT NULL,
+              CONSTRAINT "${enforcedCheckName}" CHECK (${elementCandidate?.expression ?? ''})
+            );
+          `),
+        ),
+    });
+
+    it(
+      'a live wire-named element check infers the enforced form and verifies clean',
+      async () => {
+        const ctx: JourneyContext = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+
+        const infer = await runContractInfer(ctx);
+        expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
+
+        const psl = readContractPsl(ctx);
+        expect(psl, 'the enforced form carries no opt-out').not.toContain('@noCheck');
+
+        const emit = await runContractEmit(ctx);
+        expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
+
+        await expectVerifiesCleanAfterPull(ctx, 'enforced element check');
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('Journey: infer waives enforcement beside a hand-written check', () => {
+    // A live check whose name is not the derived wire name is a hand-written
+    // extra: infer neither consumes nor represents it, the derived element
+    // check is still absent, and the opt-out is emitted.
+    const db = useDevDatabase({
+      onReady: (cs) =>
+        withClient(cs, (client) =>
+          client.query(`
+            CREATE TABLE users (
+              id int4 PRIMARY KEY,
+              tags text[] NOT NULL,
+              CONSTRAINT users_tags_not_empty CHECK (cardinality(tags) > 0)
+            );
+          `),
+        ),
+    });
+
+    it(
+      'a hand-written check stays a strict-only extra while the pull verifies clean',
+      async () => {
+        const ctx: JourneyContext = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+
+        const infer = await runContractInfer(ctx);
+        expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
+
+        const psl = readContractPsl(ctx);
+        expect(psl, 'the derived element check is still waived').toMatch(
+          /tags\s+String\[\][^\n]*@noCheck\(elementNotNull\)/,
+        );
+        expect(psl, 'the hand-written check is not inferred into PSL').not.toContain(
+          'users_tags_not_empty',
+        );
+
+        const emit = await runContractEmit(ctx);
+        expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
+
+        await expectVerifiesCleanAfterPull(ctx, 'hand-written check');
+
+        const strict = await runDbVerify(ctx, ['--schema-only', '--strict']);
+        const strictOutput = `${stripAnsi(strict.stderr)}\n${stripAnsi(strict.stdout)}`;
+        expect(strict.exitCode, `strict verify should report the extra\n${strictOutput}`).toBe(1);
+        expect(strictOutput, 'the hand-written check surfaces as a strict extra').toContain(
+          'users_tags_not_empty',
         );
       },
       timeouts.spinUpPpgDev,
