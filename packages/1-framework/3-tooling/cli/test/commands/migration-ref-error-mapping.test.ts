@@ -45,7 +45,7 @@ describe('migration-ref MigrationToolsError envelope passthrough', () => {
   it(
     'surfaces the MigrationToolsError meta payload unchanged in the envelope',
     async () => {
-      const { executeRefDeleteCommand } = await import('../../src/commands/ref');
+      const { executeRefDeleteCommand } = await import('../../src/control-api/operations/ref');
 
       const result = await executeRefDeleteCommand('does-not-exist', { config: configPath });
 

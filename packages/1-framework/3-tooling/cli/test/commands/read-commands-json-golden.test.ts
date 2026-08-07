@@ -19,7 +19,7 @@ import {
 } from '../../src/commands/json/schemas';
 import { executeMigrationGraphCommand } from '../../src/commands/migration-graph';
 import { executeMigrationLogCommand } from '../../src/commands/migration-log';
-import { executeRefSetCommand } from '../../src/commands/ref';
+import { executeRefSetCommand } from '../../src/control-api/operations/ref';
 import { parseGlobalFlags } from '../../src/utils/global-flags';
 import { createTerminalUI } from '../../src/utils/terminal-ui';
 import { executeCommand, setupCommandMocks } from '../utils/test-helpers';

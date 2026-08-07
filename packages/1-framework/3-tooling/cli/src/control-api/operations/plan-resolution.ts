@@ -16,7 +16,7 @@ import {
   errorPlanForgotTheFlag,
   errorSnapshotMissing,
   mapRefResolutionError,
-} from './cli-errors';
+} from '../../utils/cli-errors';
 import { mapContractAtError } from './contract-at-errors';
 
 const FULL_HASH_PATTERN = /^([0-9a-f]{64}|empty)$/;

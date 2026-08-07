@@ -69,7 +69,7 @@ The migration-file CLI (`prisma-next migration`) received `--config` without a p
 
 ### CLI.FILE_NOT_FOUND
 
-A file the command needs does not exist at the given path. Produced by several commands: the migration command scaffold, `migrate`, `migration plan`, `migration show`, `db sign`, `db verify`, and `ref` all raise it when the emitted `contract.json` (or another required file) is missing from the expected location. Most sites carry the path in `where.path`; the `migration new` contract-file site carries it in the summary text only. Meta: none.
+A file the command needs does not exist at the given path. Produced by several commands: the migration command scaffold, `migrate`, `migration plan`, `migration show`, `db sign`, `db update`, `db verify`, and `ref` all raise it when the emitted `contract.json` (or another required file) is missing from the expected location. Most sites carry the path in `where.path`; the `migration new` contract-file site carries it in the summary text only. Meta: none.
 
 ### CLI.FILE_WRITE_FAILED
 
@@ -777,7 +777,7 @@ A `migration check` failure row: a migration's `from` hash is not produced by an
 
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
-A contract snapshot on disk was found but failed to deserialize into a valid contract while migration tooling resolved a contract at a ref or hash. Re-emit the owning migration package or restore it from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
+A contract JSON on disk failed to deserialize into a valid contract: either a snapshot-store entry read while migration tooling resolved a contract at a ref or hash, or the emitted `contract.json` read as the fallback source by `db sign` / `db update --to` (invalid JSON, or a value that is not a JSON object). Re-emit the owning migration package (or re-run `prisma-next contract emit` for the emitted contract), or restore the file from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
 
 ### MIGRATION.CONTRACT_SNAPSHOT_HASH_MISMATCH
 

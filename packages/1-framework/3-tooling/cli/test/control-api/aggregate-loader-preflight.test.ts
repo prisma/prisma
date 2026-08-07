@@ -16,7 +16,7 @@
 import type { PrismaNextConfig } from '@internal/config/config-types';
 import { errorInvalidJson } from '@internal/migration-tools/errors';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildReadAggregate } from '../../src/utils/contract-space-aggregate-loader';
+import { buildReadAggregate } from '../../src/control-api/operations/contract-space-aggregate-loader';
 
 const TARGET = 'postgres';
 const TARGET_FAMILY = 'sql';

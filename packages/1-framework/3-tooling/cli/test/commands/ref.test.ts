@@ -208,7 +208,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', hashB, { config: configPath });
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -225,7 +225,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', HASH_FLOAT, { config: configPath });
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -244,7 +244,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', HASH_A, { config: configPath });
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -262,7 +262,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', EMPTY_CONTRACT_HASH, {
         config: configPath,
       });
@@ -281,7 +281,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', 'production', { config: configPath });
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -297,7 +297,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', firstDirName, { config: configPath });
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -312,7 +312,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', `${secondDirName}^`, {
         config: configPath,
       });
@@ -329,7 +329,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('../evil', HASH_A, { config: configPath });
       expect(result.ok).toBe(false);
     } finally {
@@ -342,7 +342,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const first = await executeRefSetCommand('staging', hashA, { config: configPath });
       expect(first.ok).toBe(true);
       const second = await executeRefSetCommand('staging', hashB, { config: configPath });
@@ -367,7 +367,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', HASH_A, { config: configPath });
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -383,7 +383,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefSetCommand } = await import('../../src/commands/ref');
+      const { executeRefSetCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefSetCommand('staging', hashA, { config: configPath });
       expect(result.ok).toBe(false);
       expect(existsSync(refPointerPath(refsDir, 'staging'))).toBe(false);
@@ -398,7 +398,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand, executeRefDeleteCommand } = await import(
-        '../../src/commands/ref'
+        '../../src/control-api/operations/ref'
       );
       await executeRefSetCommand('staging', hashA, { config: configPath });
       const result = await executeRefDeleteCommand('staging', { config: configPath });
@@ -416,7 +416,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand, executeRefDeleteCommand } = await import(
-        '../../src/commands/ref'
+        '../../src/control-api/operations/ref'
       );
       await executeRefSetCommand('db', hashA, { config: configPath });
       const result = await executeRefDeleteCommand('db', { config: configPath });
@@ -430,7 +430,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefDeleteCommand } = await import('../../src/commands/ref');
+      const { executeRefDeleteCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefDeleteCommand('missing', { config: configPath });
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -444,7 +444,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     const prev = process.cwd();
     process.chdir(tempDir);
     try {
-      const { executeRefDeleteCommand } = await import('../../src/commands/ref');
+      const { executeRefDeleteCommand } = await import('../../src/control-api/operations/ref');
       const result = await executeRefDeleteCommand('bad/name', { config: configPath });
       expect(result.ok).toBe(false);
     } finally {
@@ -458,7 +458,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
     process.chdir(tempDir);
     try {
       const { executeRefSetCommand, executeRefListCommand } = await import(
-        '../../src/commands/ref'
+        '../../src/control-api/operations/ref'
       );
       await executeRefSetCommand('db', hashA, { config: configPath });
       await executeRefSetCommand('staging', hashB, { config: configPath });

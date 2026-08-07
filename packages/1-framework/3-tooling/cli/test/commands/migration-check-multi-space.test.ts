@@ -11,11 +11,13 @@ import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
-  enumerateCheckSpaces,
   type MigrationCheckResult,
   migrationCheckResultSchema,
-  runMigrationCheck,
 } from '../../src/commands/migration-check';
+import {
+  enumerateCheckSpaces,
+  runMigrationCheck,
+} from '../../src/control-api/operations/migration-check';
 
 /**
  * Exercises `migration check`'s multi-space policy core directly, mirroring

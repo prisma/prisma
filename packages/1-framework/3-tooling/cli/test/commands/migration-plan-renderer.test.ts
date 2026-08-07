@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  formatMigrationPlanOutput,
-  type MigrationPlanResult,
-} from '../../src/commands/migration-plan';
+import { formatMigrationPlanOutput } from '../../src/commands/migration-plan';
+import type { MigrationPlanResult } from '../../src/control-api/operations/migration-plan';
 import type { GlobalFlags } from '../../src/utils/global-flags';
 
 const HASH_A = `${'a'.repeat(8)}`;

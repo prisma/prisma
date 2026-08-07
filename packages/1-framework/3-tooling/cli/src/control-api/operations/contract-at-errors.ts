@@ -6,7 +6,7 @@ import {
   errorFileNotFound,
   errorSnapshotMissing,
   errorUnexpected,
-} from './cli-errors';
+} from '../../utils/cli-errors';
 
 export function mapContractAtError(
   error: unknown,

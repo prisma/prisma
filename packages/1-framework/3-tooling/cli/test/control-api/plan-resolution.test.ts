@@ -18,8 +18,8 @@ import {
   type ResolveToForPlanInput,
   resolveFromForPlan,
   resolveToForPlan,
-} from '../../src/utils/plan-resolution';
-import type { ContractIR } from '../../src/utils/ref-advancement';
+} from '../../src/control-api/operations/plan-resolution';
+import type { ContractIR } from '../../src/control-api/operations/ref-advancement';
 
 const E = EMPTY_CONTRACT_HASH;
 const HASH_A = `${'a'.repeat(64)}`;

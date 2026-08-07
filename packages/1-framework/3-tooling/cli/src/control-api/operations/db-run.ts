@@ -27,10 +27,6 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
 import { CliStructuredError } from '../../utils/cli-errors';
-import {
-  type BuildAggregateInputs,
-  buildContractSpaceAggregate,
-} from '../../utils/contract-space-aggregate-loader';
 import type {
   DbInitFailure,
   DbInitResult,
@@ -41,6 +37,10 @@ import type {
   OnControlProgress,
   PerSpaceExecutionEntry,
 } from '../types';
+import {
+  type BuildAggregateInputs,
+  buildContractSpaceAggregate,
+} from './contract-space-aggregate-loader';
 import { stripOperations } from './migration-helpers';
 import {
   buildPerSpaceBreakdown,

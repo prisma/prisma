@@ -289,11 +289,28 @@ const createTestImportRules = () => {
   });
 };
 
+const createCliControlSeamRules = () => {
+  forbidden.push({
+    name: 'cli-commands-no-runtime-migration-tools',
+    comment:
+      'CLI command modules must reach @internal/migration-tools through src/control-api ' +
+      '(TML-3173, consolidate-clis slice 1b). Type-only imports of published migration-tools ' +
+      'types are allowed; runtime imports are not.',
+    severity: 'error',
+    from: { path: '^packages/1-framework/3-tooling/cli/src/commands/' },
+    to: {
+      path: '^packages/1-framework/3-tooling/migration/',
+      dependencyTypesNot: ['type-only'],
+    },
+  });
+};
+
 createUpwardRules();
 createCrossDomainRules();
 createPlaneRules();
 createDriverRules();
 createTestImportRules();
+createCliControlSeamRules();
 
 export default {
   forbidden,
@@ -301,7 +318,7 @@ export default {
     doNotFollow: {
       path: 'node_modules',
     },
-    tsPreCompilationDeps: true,
+    tsPreCompilationDeps: 'specify',
     tsConfig: {
       fileName: 'tsconfig.base.json',
     },

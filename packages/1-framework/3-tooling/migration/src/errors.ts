@@ -48,6 +48,7 @@ export class MigrationToolsError extends CliStructuredError {
       readonly why: string;
       readonly fix: string;
       readonly meta?: Record<string, unknown>;
+      readonly cause?: unknown;
     },
   ) {
     super(code, summary, options);
@@ -479,6 +480,7 @@ export function errorBundleNotFoundForGraphNode(
 export function errorContractDeserializationFailed(
   filePath: string,
   message: string,
+  options?: { readonly cause?: unknown },
 ): MigrationToolsError {
   return new MigrationToolsError(
     'MIGRATION.CONTRACT_DESERIALIZATION_FAILED',
@@ -487,6 +489,7 @@ export function errorContractDeserializationFailed(
       why: `Contract at "${filePath}" failed to deserialize: ${message}`,
       fix: reemitHint(dirname(filePath), 'or restore the directory from version control.'),
       meta: { filePath, message },
+      ...ifDefined('cause', options?.cause),
     },
   );
 }
