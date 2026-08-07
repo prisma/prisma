@@ -260,7 +260,7 @@ class MongoRuntimeImpl
     const exec = await this.prepareExecution(plan, codecCtx, middlewareCtx);
     checkAborted(codecCtx, 'stream');
     return runExecuteWithMiddleware(exec, this.middleware, middlewareCtx, () =>
-      this.#readDriverStatistics(exec),
+      this.runExecute(exec),
     );
   }
 

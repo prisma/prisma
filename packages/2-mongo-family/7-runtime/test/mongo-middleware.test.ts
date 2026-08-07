@@ -7,7 +7,9 @@ import {
   AggregateWireCommand,
   type AnyMongoDmlWireCommand,
   DeleteManyWireCommand,
+  DeleteOneWireCommand,
   UpdateManyWireCommand,
+  UpdateOneWireCommand,
 } from '@internal/mongo-wire';
 import { describe, expect, it, vi } from 'vitest';
 import type {
@@ -147,6 +149,19 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(results).toHaveLength(1);
   });
 
+  it('maps updateOne modifiedCount to affectedRows', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(
+        adapter,
+        new UpdateOneWireCommand('users', { id: 1 }, { $set: { active: true } }),
+      ),
+      driver: createMockDriver([{ matchedCount: 1, modifiedCount: 1 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 1 });
+  });
+
   it('maps update modifiedCount to affectedRows', async () => {
     const adapter = createMockAdapter();
     const runtime = createMongoRuntime({
@@ -158,6 +173,16 @@ describe('MongoRuntime middleware lifecycle', () => {
     });
 
     await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 4 });
+  });
+
+  it('maps deleteOne deletedCount to affectedRows', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(adapter, new DeleteOneWireCommand('users', { id: 1 })),
+      driver: createMockDriver([{ deletedCount: 1 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 1 });
   });
 
   it('maps delete deletedCount to affectedRows', async () => {
@@ -213,6 +238,33 @@ describe('MongoRuntime middleware lifecycle', () => {
 
     await expect(runtime.execute(createPlan())).rejects.toMatchObject({
       code: 'RUNTIME.MONGO_STATISTICS_UNSUPPORTED',
+    });
+  });
+
+  it('rejects zero statistics results', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(adapter, new DeleteOneWireCommand('users', { id: 1 })),
+      driver: createMockDriver([]),
+    });
+
+    await expect(runtime.execute(createPlan())).rejects.toMatchObject({
+      code: 'RUNTIME.MONGO_STATISTICS_RESULT_INVALID',
+    });
+  });
+
+  it('rejects multiple statistics results', async () => {
+    const adapter = createMockAdapter();
+    const runtime = createMongoRuntime({
+      context: makeContext(
+        adapter,
+        new UpdateOneWireCommand('users', { id: 1 }, { $set: { active: true } }),
+      ),
+      driver: createMockDriver([{ modifiedCount: 1 }, { modifiedCount: 2 }]),
+    });
+
+    await expect(runtime.execute(createPlan())).rejects.toMatchObject({
+      code: 'RUNTIME.MONGO_STATISTICS_RESULT_INVALID',
     });
   });
 
