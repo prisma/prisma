@@ -1,6 +1,7 @@
 export type { JsonValue } from '../core/codec-helpers';
 export type {
   SqliteBigintDescriptor,
+  SqliteBigintNumberDescriptor,
   SqliteBlobDescriptor,
   SqliteDatetimeDescriptor,
   SqliteIntegerDescriptor,
@@ -11,6 +12,7 @@ export type {
 export {
   jsonDocumentRetag,
   sqliteBigintColumn,
+  sqliteBigintNumberColumn,
   sqliteBlobColumn,
   sqliteDatetimeColumn,
   sqliteIntegerColumn,

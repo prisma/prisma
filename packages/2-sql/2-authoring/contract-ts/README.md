@@ -171,6 +171,43 @@ export const contract = defineContract(
 );
 ```
 
+### Integer Representation Types
+
+PostgreSQL and SQLite contribute `type.BigIntNumber()`, while PostgreSQL also contributes `type.UnboundedInt()`. Build each composed type once, return those same instances in the contract's `types` map, and pass them to `field.namedType(...)`. This keeps the named storage type registration and every field reference aligned.
+
+```typescript
+import sqlFamily from '@internal/family-sql/pack';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
+import { pgInt8NumberColumn, pgUnboundedIntColumn } from '@internal/target-postgres/codecs';
+import postgresPack from '@internal/target-postgres/pack';
+
+export const contract = defineContract(
+  { family: sqlFamily, target: postgresPack },
+  ({ field, model, type }) => {
+    const types = {
+      BigIntNumber: type.BigIntNumber(),
+      UnboundedInt: type.UnboundedInt(),
+    } as const;
+
+    return {
+      types,
+      models: {
+        Meter: model('Meter', {
+          fields: {
+            peak: field.namedType(types.BigIntNumber),
+            lifetime: field.namedType(types.UnboundedInt),
+            directPeak: field.column(pgInt8NumberColumn()),
+            directLifetime: field.column(pgUnboundedIntColumn()),
+          },
+        }),
+      },
+    };
+  },
+);
+```
+
+The direct form does not register a named type: use `field.column(pgInt8NumberColumn())` or `field.column(pgUnboundedIntColumn())` on PostgreSQL, and `field.column(sqliteBigintNumberColumn())` imported from `@internal/target-sqlite/codecs` on SQLite. The named and direct forms select the same codecs and application types; choose named types when several fields should share a contract-level name, and direct helpers for an explicit per-column declaration.
+
 ### Constraint Placement
 
 Single-field constraints are usually most readable inline on the field, while compound constraints live in `.attributes(...)` or model-level `.sql(...)`.
@@ -212,6 +249,7 @@ constraints.index({ expression: 'eql_v3.eq_term(email)', name: 'users_email_eq' 
 
 - Structural helpers: `field.column(...)`, `field.generated(...)`, `field.namedType(...)`, plus `model(...)` and `rel.*`
 - Callback helper presets: `field.id.uuidv4String()`, `field.id.uuidv7String()`, `field.id.nanoid({ size })`, `field.uuidString()`, `field.text()`, `field.timestamp()`, `field.temporal.createdAt()`, `field.temporal.updatedAt()`, and `type.*` (Postgres also adds `field.uuidNative()`, `field.id.uuidv4Native()`, `field.id.uuidv7Native()` — these emit `pg/uuid@1`)
+- Integer representation types: register composed `type.BigIntNumber()` / `type.UnboundedInt()` instances in the returned `types` map and reference those same instances with `field.namedType(...)`, or use the direct per-codec column helpers with `field.column(...)`. `BigIntNumber` emits `pg/int8number@1` on PostgreSQL or `sqlite/bigintnumber@1` on SQLite and throws outside ±(2^53 − 1); PostgreSQL-only `UnboundedInt` emits `pg/unboundedint@1` and reads and writes exact `bigint` values. Bare `field.bigint()` keeps the lossless `pg/int8@1`. See [Integer Representation Types](#integer-representation-types) for the TypeScript forms and [Integer representation types](../../../../docs/reference/integer-representation-types.md) for the canonical selection, runtime, JSON, and aggregate behavior reference.
 - Timestamp helpers mirror PSL semantics: `field.temporal.createdAt()` lowers to a target storage `now()` default, while `field.temporal.updatedAt()` lowers to the target-owned `timestampNow` execution default for create and non-empty update mutations.
 - Keep field-local and FK-local storage overrides next to the authoring site with `field.sql(...)` and `rel.belongsTo(...).sql({ fk })`
 - Prefer typed local refs such as `field.namedType(types.Role)`, `User.refs.id`, and `User.ref('id')` when those tokens are available

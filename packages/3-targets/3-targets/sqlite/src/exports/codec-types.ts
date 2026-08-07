@@ -8,6 +8,7 @@ import type { ExtractCodecTypes } from '@internal/sql-relational-core/ast';
 import type { JsonValue } from '../core/codec-helpers';
 import {
   sqliteBigintDescriptor,
+  sqliteBigintNumberDescriptor,
   sqliteBlobDescriptor,
   sqliteDatetimeDescriptor,
   sqliteIntegerDescriptor,
@@ -32,6 +33,7 @@ const codecDescriptorMap = {
   datetime: sqliteDatetimeDescriptor,
   json: sqliteJsonDescriptor,
   bigint: sqliteBigintDescriptor,
+  bigintnumber: sqliteBigintNumberDescriptor,
 } as const;
 
 type Resolve<T> = { readonly [K in keyof T]: { readonly [P in keyof T[K]]: T[K][P] } };

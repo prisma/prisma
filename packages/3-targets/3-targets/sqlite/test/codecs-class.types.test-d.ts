@@ -16,6 +16,8 @@ import { expectTypeOf, test } from 'vitest';
 import {
   type SqliteBigintCodec,
   type SqliteBigintDescriptor,
+  type SqliteBigintNumberCodec,
+  type SqliteBigintNumberDescriptor,
   type SqliteBlobCodec,
   type SqliteBlobDescriptor,
   type SqliteDatetimeCodec,
@@ -24,6 +26,8 @@ import {
   type SqliteIntegerDescriptor,
   sqliteBigintColumn,
   sqliteBigintDescriptor,
+  sqliteBigintNumberColumn,
+  sqliteBigintNumberDescriptor,
   sqliteBlobColumn,
   sqliteBlobDescriptor,
   sqliteDatetimeColumn,
@@ -66,6 +70,14 @@ test('sqliteBigint: column preserves the (number|bigint) wire / bigint input spl
   expectTypeOf(col.codecFactory).toEqualTypeOf<(ctx: CodecInstanceContext) => SqliteBigintCodec>();
 });
 
+test('sqliteBigintNumber: column helper preserves its number application codec type', () => {
+  const col = sqliteBigintNumberColumn();
+  expectTypeOf(col.codecFactory).toEqualTypeOf<
+    (ctx: CodecInstanceContext) => SqliteBigintNumberCodec
+  >();
+  expectTypeOf(col.typeParams).toEqualTypeOf<undefined>();
+});
+
 sqliteIntegerColumn satisfies ColumnHelperFor<SqliteIntegerDescriptor>;
 sqliteIntegerColumn satisfies ColumnHelperForStrict<SqliteIntegerDescriptor>;
 
@@ -77,6 +89,12 @@ sqliteBlobColumn satisfies ColumnHelperForStrict<SqliteBlobDescriptor>;
 
 sqliteBigintColumn satisfies ColumnHelperFor<SqliteBigintDescriptor>;
 sqliteBigintColumn satisfies ColumnHelperForStrict<SqliteBigintDescriptor>;
+
+sqliteBigintNumberColumn satisfies ColumnHelperFor<SqliteBigintNumberDescriptor>;
+sqliteBigintNumberColumn satisfies ColumnHelperForStrict<SqliteBigintNumberDescriptor>;
+sqliteBigintNumberDescriptor.factory() satisfies (
+  ctx: CodecInstanceContext,
+) => SqliteBigintNumberCodec;
 
 test('strict satisfies catches wrong codec wired in', () => {
   // Wire the integer descriptor's factory into the bigint descriptor's slot. Coarse satisfies passes (both have `void` typeParams); strict satisfies fails because the codec types differ (SqliteIntegerCodec ≠ SqliteBigintCodec).

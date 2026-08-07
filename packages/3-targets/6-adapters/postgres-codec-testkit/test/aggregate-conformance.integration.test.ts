@@ -81,9 +81,11 @@ const FIXTURES: readonly AggregateFixture[] = [
   { codecId: 'pg/int4@1', samples: ['1', '2'] },
   { codecId: 'pg/int2@1', samples: ['1', '2'] },
   { codecId: 'pg/int8@1', samples: ['1', '2'] },
+  { codecId: 'pg/int8number@1', samples: ['1', '2'] },
   { codecId: 'pg/float4@1', samples: ['1.5', '2.5'] },
   { codecId: 'pg/float8@1', samples: ['1.5', '2.5'] },
   { codecId: 'pg/numeric@1', samples: ['1.5', '2.5'] },
+  { codecId: 'pg/unboundedint@1', samples: ['1', '2'] },
   { codecId: 'pg/date@1', samples: ["'2024-01-01'", "'2024-02-01'"] },
   { codecId: 'pg/timestamp@1', samples: ["'2024-01-01T10:00:00'", "'2024-02-01T10:00:00'"] },
   { codecId: 'pg/timestamptz@1', samples: ["'2024-01-01T10:00:00Z'", "'2024-02-01T10:00:00Z'"] },
@@ -304,6 +306,75 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
     ).toEqual({
       codecId: 'pg/char@1',
       typeParams: { length: 3 },
+    });
+  });
+
+  it(
+    'sums int8number past the safe range into a numeric that arrives as decimal text',
+    async () => {
+      await withFixtureTable(
+        { codecId: 'pg/int8number@1', samples: ['9007199254740991', '9007199254740991'] },
+        async () => {
+          const rows = await query(`SELECT sum("${COLUMN}") AS total FROM "${TABLE}"`);
+          const wire = rows[0]?.['total'];
+          expect(wire).toBe('18014398509481982');
+
+          const resolved = registry.resolve('sum', { codecId: 'pg/int8number@1' });
+          expect(resolved?.output).toEqual({ codecId: 'pg/numeric@1' });
+
+          const numericCodec = postgresCodecRegistry
+            .descriptorFor('pg/numeric@1')!
+            .factory(undefined)({ name: 'aggregate-conformance' });
+          expect(await numericCodec.decode(wire, {})).toBe('18014398509481982');
+        },
+      );
+
+      expect(registry.resolve('avg', { codecId: 'pg/int8number@1' })?.output).toEqual({
+        codecId: 'pg/numeric@1',
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'sums unboundedint past 2^63 into an exact bigint through its own codec',
+    async () => {
+      await withFixtureTable(
+        { codecId: 'pg/unboundedint@1', samples: ['9223372036854775807', '1000'] },
+        async () => {
+          const rows = await query(`SELECT sum("${COLUMN}") AS total FROM "${TABLE}"`);
+          const wire = rows[0]?.['total'];
+          expect(wire).toBe('9223372036854776807');
+
+          const resolved = registry.resolve('sum', { codecId: 'pg/unboundedint@1' });
+          expect(resolved?.output).toEqual({ codecId: 'pg/unboundedint@1' });
+
+          const unboundedIntCodec = postgresCodecRegistry
+            .descriptorFor('pg/unboundedint@1')!
+            .factory(undefined)({ name: 'aggregate-conformance' });
+          expect(await unboundedIntCodec.decode(wire, {})).toBe(9223372036854776807n);
+        },
+      );
+
+      expect(registry.resolve('avg', { codecId: 'pg/unboundedint@1' })?.output).toEqual({
+        codecId: 'pg/numeric@1',
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it('resolves min/max over the representation codecs through the numeric-trait fallback', () => {
+    expect(registry.resolve('min', { codecId: 'pg/int8number@1' })?.output).toEqual({
+      codecId: 'pg/int8number@1',
+    });
+    expect(registry.resolve('max', { codecId: 'pg/int8number@1' })?.output).toEqual({
+      codecId: 'pg/int8number@1',
+    });
+    expect(registry.resolve('min', { codecId: 'pg/unboundedint@1' })?.output).toEqual({
+      codecId: 'pg/unboundedint@1',
+    });
+    expect(registry.resolve('max', { codecId: 'pg/unboundedint@1' })?.output).toEqual({
+      codecId: 'pg/unboundedint@1',
     });
   });
 

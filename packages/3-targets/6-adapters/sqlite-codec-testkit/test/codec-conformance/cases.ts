@@ -116,6 +116,26 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
     value: 9223372036854775807n,
     storageType: 'INTEGER',
   },
+  // The safe-range boundaries are the values a JSON-number canonical form is
+  // most likely to mangle, so they are the ones that pin it.
+  {
+    codecId: 'sqlite/bigintnumber@1',
+    label: 'largest safe integer',
+    value: 9007199254740991,
+    storageType: 'INTEGER',
+  },
+  {
+    codecId: 'sqlite/bigintnumber@1',
+    label: 'smallest safe integer',
+    value: -9007199254740991,
+    storageType: 'INTEGER',
+  },
+  {
+    codecId: 'sqlite/bigintnumber@1',
+    label: 'small integer',
+    value: 42,
+    storageType: 'INTEGER',
+  },
   {
     codecId: 'sqlite/text@1',
     label: 'text needing JSON escaping',
@@ -171,6 +191,13 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
   },
   {
     codecId: 'sqlite/bigint@1',
+    label: 'null',
+    value: undefined,
+    storageType: 'INTEGER',
+    nullValue: true,
+  },
+  {
+    codecId: 'sqlite/bigintnumber@1',
     label: 'null',
     value: undefined,
     storageType: 'INTEGER',

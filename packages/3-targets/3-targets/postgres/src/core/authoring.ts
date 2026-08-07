@@ -69,6 +69,20 @@ const PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE: ContributedPslDiagnosticCode =
  * entity into the column's `typeParams` and native type.
  */
 export const postgresAuthoringTypes = {
+  BigIntNumber: {
+    kind: 'typeConstructor',
+    output: {
+      codecId: 'pg/int8number@1',
+      nativeType: 'int8',
+    },
+  },
+  UnboundedInt: {
+    kind: 'typeConstructor',
+    output: {
+      codecId: 'pg/unboundedint@1',
+      nativeType: 'numeric',
+    },
+  },
   pg: {
     enum: {
       kind: 'typeConstructor',
