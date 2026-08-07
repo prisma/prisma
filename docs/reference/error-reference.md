@@ -657,6 +657,10 @@ Calling `connect(binding)` on a driver — or `connect()` on a target facade cli
 
 Using a driver, a target facade client, or the CLI control client before `connect(...)` has been called (or after it was closed) — surfaces from `execute`, `executePrepared`, `acquireConnection`, `query`, or `explain`, including lazily when iterating an execute result.
 
+### DRIVER.PREPARE_FAILED
+
+A prepared statement failed again after the PostgreSQL driver discarded a stale handle and retried with a fresh handle. The normalized driver error is attached as `cause`. Meta: `handle`.
+
 ## MIGRATION
 
 ### MIGRATION.AMBIGUOUS_MIGRATION_REF

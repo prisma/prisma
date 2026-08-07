@@ -112,7 +112,12 @@ export async function createPgIntegrationRuntime(
       const stack = createSqlExecutionStack({
         target: postgresTarget,
         adapter: postgresAdapter,
-        driver: postgresDriver,
+        driver: {
+          ...postgresDriver,
+          create() {
+            return postgresDriver.create({ cursor: { disabled: true } });
+          },
+        },
         extensions: [pgvectorRuntime, ...additionalExtensions],
       });
 
