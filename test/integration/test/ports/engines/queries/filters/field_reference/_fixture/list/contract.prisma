@@ -1,0 +1,31 @@
+model TestModel {
+  id Int @id
+
+  string       String?
+  string_list  String[]
+  string_list2 String[]
+
+  int       Int?
+  int_list  Int[]
+  int_list2 Int[]
+
+  bInt       BigInt?
+  bInt_list  BigInt[]
+  bInt_list2 BigInt[]
+
+  float       Float?
+  float_list  Float[]
+  float_list2 Float[]
+
+  bytes       Bytes?
+  bytes_list  Bytes[]
+  bytes_list2 Bytes[]
+
+  bool       Boolean?
+  bool_list  Boolean[]
+  bool_list2 Boolean[]
+
+  dt       DateTime?
+  dt_list  DateTime[]
+  dt_list2 DateTime[]
+}

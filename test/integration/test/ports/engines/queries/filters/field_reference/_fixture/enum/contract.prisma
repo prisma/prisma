@@ -1,0 +1,11 @@
+native_enum TestEnum {
+  a = "a"
+  b = "b"
+  c = "c"
+}
+
+model TestModel {
+  id    Int                 @id
+  enum  pg.enum(TestEnum)?
+  enum2 pg.enum(TestEnum)[]
+}

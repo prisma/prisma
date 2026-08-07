@@ -2,14 +2,14 @@
 
 PASS `test/ports/engines/queries/filters/field_reference/bigint_filter/bigint_filter.test.ts` › `basic_where` — bigint equality and negated equality against a referenced bigint field
 PASS `test/ports/engines/queries/filters/field_reference/bigint_filter/bigint_filter.test.ts` › `numeric_comparison_filters` — bigint order comparisons and their negations against a referenced bigint field
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/bigint_filter.rs` › `queries::filters::field_reference::bigint_filter::inclusion_filter` — bigint scalar membership in a referenced bigint-list field — prisma-next has no public contract-bound scalar-in-array-column field-reference operator; ORM `in`/`notIn` accept literal lists
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/bigint_filter.rs` › `queries::filters::field_reference::bigint_filter::scalar_list_filters` — bigint-list has/hasSome/hasEvery against referenced scalar/list fields — prisma-next's public list predicates do not accept referenced columns as operands
+PASS `test/integration/test/ports/engines/queries/filters/field_reference/bigint_filter/bigint_filter.test.ts` › `inclusion_filter` — bigint membership and both negations use database-side `= ANY` against the referenced bigint-list column with null exclusion
+PASS `test/integration/test/ports/engines/queries/filters/field_reference/bigint_filter/bigint_filter.test.ts` › `scalar_list_filters` — bigint-list has/hasSome/hasEvery and their negations use referenced columns with database-side `ANY`, overlap, and containment while excluding null and empty operands
 
 ## filters/field_reference/bytes_filter.rs
 
 PASS `test/ports/engines/queries/filters/field_reference/bytes_filter/bytes_filter.test.ts` › `basic_where` — bytes equality and negated equality against a referenced bytes field
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/bytes_filter.rs` › `queries::filters::field_reference::bytes_filter::inclusion_filter` — bytes scalar membership in a referenced bytes-list field — prisma-next has no public contract-bound scalar-in-array-column field-reference operator; ORM `in`/`notIn` accept literal lists
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/bytes_filter.rs` › `queries::filters::field_reference::bytes_filter::scalar_list_filters` — bytes-list has/hasSome/hasEvery against referenced scalar/list fields — prisma-next's public list predicates do not accept referenced columns as operands
+PASS `test/integration/test/ports/engines/queries/filters/field_reference/bytes_filter/bytes_filter.test.ts` › `inclusion_filter` — bytes membership and both negations use database-side `= ANY` against the referenced bytes-list column with null exclusion
+PASS `test/integration/test/ports/engines/queries/filters/field_reference/bytes_filter/bytes_filter.test.ts` › `scalar_list_filters` — bytes-list has/hasSome/hasEvery and their negations use referenced columns with database-side `ANY`, overlap, and containment while excluding null and empty operands
 
 ## filters/field_reference/composite_filter.rs
 
@@ -20,19 +20,19 @@ PASS `test/ports/engines/queries/filters/field_reference/bytes_filter/bytes_filt
 
 PASS `test/ports/engines/queries/filters/field_reference/datetime_filter/datetime_filter.test.ts` › `basic_where` — datetime equality and negated equality against a referenced datetime field
 PASS `test/ports/engines/queries/filters/field_reference/datetime_filter/datetime_filter.test.ts` › `numeric_comparison_filters` — datetime order comparisons and their negations against a referenced datetime field
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/datetime_filter.rs` › `queries::filters::field_reference::datetime_filter::inclusion_filter` — datetime scalar membership in a referenced datetime-list field — prisma-next has no public contract-bound scalar-in-array-column field-reference operator; ORM `in`/`notIn` accept literal lists
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/datetime_filter.rs` › `queries::filters::field_reference::datetime_filter::scalar_list_filters` — datetime-list has/hasSome/hasEvery against referenced scalar/list fields — prisma-next's public list predicates do not accept referenced columns as operands
+PASS `test/integration/test/ports/engines/queries/filters/field_reference/datetime_filter/datetime_filter.test.ts` › `inclusion_filter` — datetime membership and both negations use database-side `= ANY` against the referenced datetime-list column with null exclusion
+PASS `test/integration/test/ports/engines/queries/filters/field_reference/datetime_filter/datetime_filter.test.ts` › `scalar_list_filters` — datetime-list has/hasSome/hasEvery and their negations use referenced columns with database-side `ANY`, overlap, and containment while excluding null and empty operands
 
 ## filters/field_reference/decimal_filter.rs
 
 PASS `test/ports/engines/queries/filters/field_reference/decimal_filter/decimal_filter.test.ts` › `basic_where` — decimal equality and negated equality against a referenced decimal field
 PASS `test/ports/engines/queries/filters/field_reference/decimal_filter/decimal_filter.test.ts` › `numeric_comparison_filters` — decimal order comparisons and their negations against a referenced decimal field
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/decimal_filter.rs` › `queries::filters::field_reference::decimal_filter::inclusion_filter` — decimal scalar membership in a referenced decimal-list field — prisma-next has no public contract-bound scalar-in-array-column field-reference operator; ORM `in`/`notIn` accept literal lists
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/decimal_filter.rs` › `queries::filters::field_reference::decimal_filter::scalar_list_filters` — decimal-list has/hasSome/hasEvery against referenced scalar/list fields — prisma-next's public list predicates do not accept referenced columns as operands
+PASS `test/integration/test/ports/engines/queries/filters/field_reference/decimal_filter/decimal_filter.test.ts` › `inclusion_filter` — decimal membership and both negations use database-side `= ANY` against the referenced decimal-list column with null exclusion
+PASS `test/integration/test/ports/engines/queries/filters/field_reference/decimal_filter/decimal_filter.test.ts` › `scalar_list_filters` — decimal-list has/hasSome/hasEvery and their negations use referenced columns with database-side `ANY`, overlap, and containment while excluding null and empty operands
 
 ## filters/field_reference/enum_filter.rs
 
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/filters/field_reference/enum_filter.rs` › `queries::filters::field_reference::enum_filter::inclusion_filter` — enum scalar membership and non-membership in a referenced enum-list field — prisma-next has no public contract-bound scalar-in-array-column field-reference operator; ORM `in`/`notIn` accept literal lists
+FAIL `test/integration/test/ports/engines/queries/filters/field_reference/enum_filter/enum_filter.test.ts` › `inclusion_filter` — enum membership reaches database-side `= ANY` over the faithful native-enum columns, but decoding the required full enum result shape fails because `materializeCodec` calls `PgEnumDescriptor.factory` without its receiver and produces a codec with no descriptor
 
 ## filters/field_reference/failure.rs
 
