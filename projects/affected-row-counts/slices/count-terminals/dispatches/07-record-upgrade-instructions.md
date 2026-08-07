@@ -13,7 +13,9 @@ Record the actionable 0.17 → 0.18 source translation for both Prisma Next user
 
 User guidance covers public runtime calls, prepared rows, statistics results, and the Mongo facade collision (`db.query` remains the builder; execute built plans through `(await db.runtime()).query(plan)`). Extension guidance additionally covers `RuntimeExecutor`/scope implementations, operation-discriminated middleware intercept/completion results, and distinct row/statistics fakes. Detection should find likely retired calls while telling the applying agent to classify by consumed result; prose-only is preferred over an unsound global codemod.
 
-**Out:** Rewriting prior 0.17 → 0.18 entries; compatibility aliases; API changes; count-semantics documentation owned by TML-3169; claiming all `execute` calls are rows; editing examples/extensions beyond validation.
+Validation surfaced four stale cache assertions in `examples/prisma-8-demo/test/repositories.integration.test.ts` that still observe `driver.execute` for row queries. Correct only those assertions to observe `driver.query`, preserving cache hit/miss discrimination, in a separate signed commit before validating the user entry.
+
+**Out:** Rewriting prior 0.17 → 0.18 entries; compatibility aliases; API changes; count-semantics documentation owned by TML-3169; claiming all `execute` calls are rows; editing examples/extensions beyond the explicitly authorized cache-test correction and validation.
 
 ## Completed when
 
