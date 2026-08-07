@@ -80,15 +80,28 @@ const computedTypeFor = (operation: string, codecId: string): string | undefined
   READS_A_COMPUTED_TYPE.find((row) => row.operation === operation && row.codecId === codecId)
     ?.computed;
 
+/** The result codecs an integer total reads through, whichever form is asked for. Membership of this set is what makes an input an integer one. */
+const INTEGER_RESULT_CODEC_IDS = ['pg/int8number@1', 'pg/int8@1', 'pg/unboundedint@1'];
+
 /**
- * The inputs each lossless variant claims. `sumBigInt` covers the fixed-width
- * integers, `unboundedint` being a column whose own `sum` is already an exact
- * `bigint`; `avgDecimal` covers every integer and `numeric`, the inputs whose
- * mean PostgreSQL computes exactly. `countBigInt` is input-agnostic like
- * `count`, so it claims every codec and appears in neither list.
+ * The inputs each lossless variant claims. `sumBigInt` covers every integer,
+ * `unboundedint` included, whose own `sum` is already exact — the suffix is an
+ * escape hatch, and one a caller should be able to reach for over any integer
+ * column without learning which widths happen not to need it. `avgDecimal`
+ * covers every integer and `numeric`, the inputs whose mean PostgreSQL computes
+ * exactly. `countBigInt` is input-agnostic like `count`, so it claims every
+ * codec and appears in neither list.
  */
 const LOSSLESS_VARIANT_INPUTS: Readonly<Record<string, readonly string[]>> = {
-  sumBigInt: ['pg/int2@1', 'pg/int4@1', 'pg/int8@1', 'pg/int8number@1', 'pg/int@1', 'sql/int@1'],
+  sumBigInt: [
+    'pg/int2@1',
+    'pg/int4@1',
+    'pg/int8@1',
+    'pg/int8number@1',
+    'pg/int@1',
+    'pg/unboundedint@1',
+    'sql/int@1',
+  ],
   avgDecimal: [
     'pg/int2@1',
     'pg/int4@1',
@@ -178,6 +191,14 @@ function nativeTypeOf(ref: CodecRef): string {
     throw new Error(`No PostgreSQL codec descriptor for '${ref.codecId}'.`);
   }
   return descriptor.nativeTypeFor(ref);
+}
+
+/** The codecs the bare `sum` totals into an integer result — the integer inputs, read off the matrix rather than listed beside it. */
+function integerInputs(): readonly string[] {
+  return FIXTURES.map((fixture) => fixture.codecId).filter((codecId) => {
+    const resolved = registry.resolve('sum', { codecId });
+    return resolved !== undefined && INTEGER_RESULT_CODEC_IDS.includes(resolved.output.codecId);
+  });
 }
 
 type Query = (sql: string) => Promise<ReadonlyArray<Record<string, unknown>>>;
@@ -348,6 +369,16 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
     );
 
     expect(claimed).toEqual(LOSSLESS_VARIANT_INPUTS);
+  });
+
+  it('offers the lossless sum over every integer input the bare sum accepts, and over no other', () => {
+    const integers = [...integerInputs()].sort();
+    const claimed = FIXTURES.map((fixture) => fixture.codecId)
+      .filter((codecId) => registry.resolve('sumBigInt', { codecId }) !== undefined)
+      .sort();
+
+    expect(integers.length).toBeGreaterThan(0);
+    expect(claimed).toEqual(integers);
   });
 
   it('resolves count and countBigInt with and without an input', () => {
