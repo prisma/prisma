@@ -176,6 +176,13 @@ export const postgresAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor>
   ...SUM_WIDENS_TO_NUMERIC.map((codecId) =>
     producesVia('sumBigInt', overCodec(codecId), PG_UNBOUNDED_INT_CODEC_ID, computedWith('sum')),
   ),
+  // The unbounded integer's own `sum` is already exact, and the variant answers over it all the same: the suffix is an escape hatch, and a caller reaching for it across integer columns should not have to learn which widths did not need it.
+  producesVia(
+    'sumBigInt',
+    overCodec(PG_UNBOUNDED_INT_CODEC_ID),
+    PG_UNBOUNDED_INT_CODEC_ID,
+    computedWith('sum'),
+  ),
   produces('sum', overCodec(PG_FLOAT4_CODEC_ID), PG_FLOAT4_CODEC_ID),
   ...DOUBLE_PRECISION_CODECS.map((codecId) =>
     produces('sum', overCodec(codecId), PG_FLOAT8_CODEC_ID),

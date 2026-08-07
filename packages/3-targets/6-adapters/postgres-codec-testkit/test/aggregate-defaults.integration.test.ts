@@ -125,6 +125,7 @@ describe.sequential('PostgreSQL aggregate defaults', () => {
       'sumBigInt(pg/int4@1)': output('sumBigInt', 'pg/int4@1'),
       'sumBigInt(pg/int8@1)': output('sumBigInt', 'pg/int8@1'),
       'sumBigInt(pg/int8number@1)': output('sumBigInt', 'pg/int8number@1'),
+      'sumBigInt(pg/unboundedint@1)': output('sumBigInt', 'pg/unboundedint@1'),
       'avg(pg/int4@1)': output('avg', 'pg/int4@1'),
       'avg(pg/int8@1)': output('avg', 'pg/int8@1'),
       'avg(pg/int8number@1)': output('avg', 'pg/int8number@1'),
@@ -156,6 +157,7 @@ describe.sequential('PostgreSQL aggregate defaults', () => {
       'sumBigInt(pg/int4@1)': 'pg/int8@1',
       'sumBigInt(pg/int8@1)': 'pg/unboundedint@1',
       'sumBigInt(pg/int8number@1)': 'pg/unboundedint@1',
+      'sumBigInt(pg/unboundedint@1)': 'pg/unboundedint@1',
       'avg(pg/int4@1)': 'pg/float8@1',
       'avg(pg/int8@1)': 'pg/float8@1',
       'avg(pg/int8number@1)': 'pg/float8@1',
@@ -252,6 +254,34 @@ describe.sequential('PostgreSQL aggregate defaults', () => {
           losslessCodec: lossless.codecId,
         }).toEqual({ sum: 4294967294, sumBigInt: 4294967294n, losslessCodec: 'pg/int8@1' });
       });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'sums the unbounded integer through sumBigInt as well, where the bare sum is already exact',
+    async () => {
+      // Past 2^63 on a column whose own `sum` PostgreSQL computes exactly: the
+      // two forms answer with the same value, which is what makes the suffix an
+      // escape hatch a caller can reach for over any integer column.
+      await withColumnOf(
+        'pg/unboundedint@1',
+        ['9223372036854775807', '9223372036854775807'],
+        async () => {
+          const bare = await aggregate('sum', 'pg/unboundedint@1');
+          const lossless = await aggregate('sumBigInt', 'pg/unboundedint@1');
+
+          expect({
+            sum: await bare.codec.decode(bare.wire, {}),
+            sumBigInt: await lossless.codec.decode(lossless.wire, {}),
+            losslessCodec: lossless.codecId,
+          }).toEqual({
+            sum: 18446744073709551614n,
+            sumBigInt: 18446744073709551614n,
+            losslessCodec: 'pg/unboundedint@1',
+          });
+        },
+      );
     },
     timeouts.spinUpPpgDev,
   );
