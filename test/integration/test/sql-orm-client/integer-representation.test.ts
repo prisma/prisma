@@ -27,7 +27,7 @@ const FIRST_UNSAFE = 9007199254740992;
 /** 2^64 + 1 — past 2^63, outside int8 entirely. */
 const PAST_TWO_63 = 18446744073709551617n;
 
-const contract = new PostgresContractSerializer().deserializeContract(contractJson) as Contract;
+const contract = new PostgresContractSerializer().deserializeContract<Contract>(contractJson);
 const context = createExecutionContext<Contract>({
   contract,
   stack: createSqlExecutionStack({
