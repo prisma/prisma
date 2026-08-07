@@ -186,6 +186,27 @@ export function buildEnumDefaultSpec(memberNames: readonly [string, ...string[]]
 export const idFieldSpec = fieldAttribute('id', { named: { map: optional(str()) } });
 export const uniqueFieldSpec = fieldAttribute('unique', { named: { map: optional(str()) } });
 
+const noCheckKindArm = () => oneOf(identifier('membership'), identifier('elementNotNull'));
+
+/**
+ * `@noCheck` waives generated CHECK constraints on one column: bare for every
+ * kind the column's shape derives, or naming concrete kinds. Two optional
+ * positional slots cover the whole kind vocabulary; a third argument is
+ * necessarily a duplicate and fails as excess arity.
+ */
+export const noCheckFieldSpec = fieldAttribute('noCheck', {
+  positional: [
+    { key: 'first', type: optional(noCheckKindArm()) },
+    { key: 'second', type: optional(noCheckKindArm()) },
+  ],
+  refine: (value, ctx, attributeNode) => {
+    if (value.first !== undefined && value.first === value.second) {
+      return [leafDiagnostic(ctx, attributeNode, '`@noCheck` names the same kind twice')];
+    }
+    return [];
+  },
+});
+
 export const idModelSpec = modelAttribute('id', {
   positional: [{ key: 'fields', type: list(fieldRef('self'), { nonEmpty: true, unique: true }) }],
   named: { map: optional(str()) },

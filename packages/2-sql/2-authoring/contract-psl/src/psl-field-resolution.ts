@@ -38,6 +38,7 @@ import {
   interpretModelAttribute,
   mapFieldSpec,
   mapModelSpec,
+  noCheckFieldSpec,
   uniqueFieldSpec,
 } from './sql-attribute-specs';
 
@@ -103,6 +104,8 @@ export type ResolvedField = {
   readonly idName?: string;
   readonly uniqueName?: string;
   readonly many?: true;
+  /** Concrete generated-check kinds waived via `@noCheck`, resolved from the column's shape. */
+  readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
   readonly valueObjectTypeName?: string;
   readonly scalarCodecId?: string;
 };
@@ -164,6 +167,7 @@ const BUILTIN_FIELD_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
   'default',
   'relation',
   'map',
+  'noCheck',
 ]);
 
 /**
@@ -307,6 +311,76 @@ function extractFieldConstraintNames(input: {
           diagnostics: input.diagnostics,
         })?.map;
   return { idAttribute, uniqueAttribute, idName, uniqueName };
+}
+
+type NoCheckKind = 'membership' | 'elementNotNull';
+
+/**
+ * Interprets a field's `@noCheck` attribute and resolves it against the
+ * column's shape: the bare form becomes every kind the shape derives, and a
+ * named kind that can never apply is a spec-validation diagnostic on the
+ * attribute node. Returns the concrete kinds in canonical ascending order —
+ * the only form the definition tree carries.
+ */
+function lowerNoCheckForField(input: {
+  readonly model: ModelSymbol;
+  readonly field: FieldSymbol;
+  readonly sourceFile: SourceFile;
+  readonly sourceId: string;
+  readonly isListField: boolean;
+  readonly isDomainEnum: boolean;
+  readonly diagnostics: ContractSourceDiagnostic[];
+}): readonly NoCheckKind[] | undefined {
+  const node = findFieldAttributeNode(input.field, 'noCheck');
+  if (node === undefined) return undefined;
+  const interpreted = interpretFieldAttribute({
+    node,
+    spec: noCheckFieldSpec,
+    model: input.model,
+    field: input.field,
+    sourceFile: input.sourceFile,
+    sourceId: input.sourceId,
+    diagnostics: input.diagnostics,
+  });
+  if (interpreted === undefined) return undefined;
+
+  const span = getAttribute(input.field.attributes, 'noCheck')?.span ?? input.field.span;
+  const subject = `Field "${input.model.name}.${input.field.name}"`;
+  const derivable: NoCheckKind[] = [];
+  if (input.isListField) derivable.push('elementNotNull');
+  if (input.isDomainEnum) derivable.push('membership');
+
+  const authored = [interpreted.first, interpreted.second].filter(
+    (kind): kind is NoCheckKind => kind === 'membership' || kind === 'elementNotNull',
+  );
+  if (authored.length === 0) {
+    if (derivable.length === 0) {
+      input.diagnostics.push({
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: `${subject} @noCheck waives nothing — this column's shape derives no generated checks`,
+        sourceId: input.sourceId,
+        span,
+      });
+      return undefined;
+    }
+    return derivable;
+  }
+  for (const kind of authored) {
+    if (!derivable.includes(kind)) {
+      const explanation =
+        kind === 'membership'
+          ? 'membership checks are derived only from enum value sets'
+          : 'element-non-null checks are derived only for list columns';
+      input.diagnostics.push({
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message: `${subject} @noCheck(${kind}) does not apply — ${explanation}`,
+        sourceId: input.sourceId,
+        span,
+      });
+      return undefined;
+    }
+  }
+  return [...authored].sort();
 }
 
 export function collectResolvedFields(input: CollectResolvedFieldsInput): ResolvedField[] {
@@ -582,6 +656,15 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     const fieldExecutionDefaults =
       presetContributions?.executionDefaults ?? loweredDefault.executionDefaults;
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
+    const noCheckKinds = lowerNoCheckForField({
+      model,
+      field,
+      sourceFile: input.sourceFile,
+      sourceId,
+      isListField,
+      isDomainEnum: enumHandle !== undefined,
+      diagnostics,
+    });
     resolvedFields.push({
       field,
       columnName: mappedColumnName,
@@ -594,6 +677,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       ...ifDefined('idName', idName),
       ...ifDefined('uniqueName', uniqueName),
       ...ifDefined('many', isListField ? (true as const) : undefined),
+      ...ifDefined('noCheck', noCheckKinds),
       ...ifDefined('valueObjectTypeName', isValueObjectField ? field.typeName : undefined),
       ...ifDefined('scalarCodecId', scalarCodecId),
     });
