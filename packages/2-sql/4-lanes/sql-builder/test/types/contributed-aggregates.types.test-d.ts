@@ -1,8 +1,9 @@
 /**
  * Type-test: the aggregate method surface derives from the contract's emitted
  * aggregate map. A contributed operation name — one no lane source spells out —
- * surfaces as a typed method with exactly the arities its rows admit, and an
- * operation the map does not declare is no method at all.
+ * surfaces as a typed method with exactly the arities its rows admit, an
+ * operation the map does not declare is no method at all, and a context whose
+ * map is unknown carries no methods rather than an index signature.
  */
 
 import { expectTypeOf, test } from 'vitest';
@@ -72,4 +73,13 @@ test('a field-taking call on a no-input-only operation is rejected at the call s
 test('an operation the map does not declare is not a method', () => {
   // @ts-expect-error — the map declares no count rows at all
   fns.count();
+});
+
+type MapLessQC = Omit<QC, 'aggregateTypes'> & { aggregateTypes: Record<string, never> };
+
+declare const mapLessFns: AggregateOnlyFunctions<MapLessQC>;
+
+test('a context whose aggregate map is unknown carries no methods', () => {
+  // @ts-expect-error — an unknown map yields no index signature, so the name is a property error
+  mapLessFns['whoops'];
 });

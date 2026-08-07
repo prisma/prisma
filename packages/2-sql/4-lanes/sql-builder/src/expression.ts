@@ -199,15 +199,34 @@ type AggregateMethod<QC extends QueryContext, Op extends string> = [
       ): Expression<AggregateField<QC, Op, T['codecId']>>;
     };
 
+/** The operation names the context's aggregate map declares. */
+type AggregateOperationNames<QC extends QueryContext> = keyof QC['aggregateTypes'] & string;
+
+declare const aggregateOperationsUnavailable: unique symbol;
+
+/**
+ * The aggregate surface a context whose aggregate map is unknown resolves to. It declares no
+ * operation, and the optional symbol-keyed brand names the reason at the call site while leaving
+ * the members and the assignability of any surface it intersects with untouched.
+ */
+export interface AggregateOperationsUnavailable {
+  readonly [aggregateOperationsUnavailable]?: 'the composed target declares no aggregate operations';
+}
+
 /**
  * The aggregate surface: one method per operation the contract's aggregate
  * map declares, named by the map's keys. The method set, each method's
  * arities, and each result's identity all derive from the map — an operation
- * the map does not declare is no method at all.
+ * the map does not declare is no method at all, and a context whose map is
+ * unknown resolves to {@link AggregateOperationsUnavailable}, which keeps an
+ * index signature off the surface.
  */
-export type AggregateOnlyFunctions<QC extends QueryContext> = {
-  [Op in keyof QC['aggregateTypes'] & string]: AggregateMethod<QC, Op>;
-};
+export type AggregateOnlyFunctions<QC extends QueryContext> =
+  string extends AggregateOperationNames<QC>
+    ? AggregateOperationsUnavailable
+    : {
+        [Op in AggregateOperationNames<QC>]: AggregateMethod<QC, Op>;
+      };
 
 export type AggregateFunctions<QC extends QueryContext> = Functions<QC> &
   AggregateOnlyFunctions<QC>;
