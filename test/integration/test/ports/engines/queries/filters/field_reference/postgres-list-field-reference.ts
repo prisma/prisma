@@ -31,10 +31,10 @@ function withReferencedListOperand(
   return AndExpr.of([nonEmpty(list), negated ? new NotExpr(predicate) : predicate]);
 }
 
-export function referencedScalarInList(
+function referencedScalarListMembership(
   scalar: ColumnRef,
   list: ColumnRef,
-  negated = false,
+  negated: boolean,
 ): AnyExpression {
   const membership = BinaryExpr.eq(scalar, FunctionCallExpr.of('ANY', [list]));
   return AndExpr.of([
@@ -43,16 +43,20 @@ export function referencedScalarInList(
   ]);
 }
 
+export function referencedScalarInList(
+  scalar: ColumnRef,
+  list: ColumnRef,
+  negated = false,
+): AnyExpression {
+  return referencedScalarListMembership(scalar, list, negated);
+}
+
 export function referencedListHasScalar(
   list: ColumnRef,
   scalar: ColumnRef,
   negated = false,
 ): AnyExpression {
-  const membership = BinaryExpr.eq(scalar, FunctionCallExpr.of('ANY', [list]));
-  return AndExpr.of([
-    NullCheckExpr.isNotNull(scalar),
-    negated ? new NotExpr(membership) : membership,
-  ]);
+  return referencedScalarListMembership(scalar, list, negated);
 }
 
 export function referencedListHasSome(
