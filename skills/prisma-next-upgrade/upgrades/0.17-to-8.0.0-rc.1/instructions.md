@@ -1,6 +1,6 @@
 ---
 from: "0.17"
-to: "0.18"
+to: "8.0.0-rc.1"
 changes:
   - id: aggregate-results-carry-their-target-s-codec
     summary: |
@@ -21,7 +21,7 @@ changes:
       compared inside SQL and never cross a codec. Regenerate your contracts
       (`prisma-next contract emit`): the emitted `contract.d.ts` gains an `AggregateTypes` block
       that types every aggregate per operation and input codec, and the ORM and SQL builder both
-      resolve their result types from it — against a contract emitted before 0.18 an aggregate
+      resolve their result types from it — against a contract emitted before 8.0.0-rc.1 an aggregate
       resolves to `never` in the ORM and to `unknown` in the SQL builder.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
@@ -51,7 +51,7 @@ changes:
       is an extra: `prisma-next db verify --strict` reports it, and a plan run under a policy
       that allows `destructive` emits a `dropCheckConstraint` operation for it. Read the first
       plan for `dropCheckConstraint` operations naming constraints you wrote by hand. There is
-      no way to declare a hand-written check in 0.18 — checks have no authoring surface — so
+      no way to declare a hand-written check in 8.0.0-rc.1 — checks have no authoring surface — so
       to keep one, run plans for that table under an additive-only policy: the constraint
       stays enforced, plain `db verify` tolerates it, and only `--strict` lists it. Let the
       drop through only when the constraint is deliberately retired. An authoring/opt-out
@@ -115,11 +115,11 @@ changes:
       anyMatch: true
 ---
 
-# 0.17 → 0.18 — User upgrade instructions
+# 0.17 → 8.0.0-rc.1 — User upgrade instructions
 
 ## `aggregate-results-carry-their-target-s-codec`
 
-An aggregate's result is a value the database computes, and 0.18 reads it back through the codec its target declares for that result rather than through whatever the driver happened to hand over. What each aggregate returns is now the target's answer, stated in the contract and honoured by the runtime:
+An aggregate's result is a value the database computes, and 8.0.0-rc.1 reads it back through the codec its target declares for that result rather than through whatever the driver happened to hand over. What each aggregate returns is now the target's answer, stated in the contract and honoured by the runtime:
 
 | Target | Aggregate | Reads as |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ Finally, regenerate your contracts:
 prisma-next contract emit
 ```
 
-The emitted `contract.d.ts` gains an `AggregateTypes` block — the settled result identity per operation and per input codec — and both the ORM client and the SQL builder resolve their aggregate result types from it. Against a contract emitted before 0.18 the block is absent, so an aggregate resolves to `never` in the ORM and to `unknown` in the SQL builder: a type error at the call site in the first case, an untyped value in the second, rather than a wrong runtime value in either.
+The emitted `contract.d.ts` gains an `AggregateTypes` block — the settled result identity per operation and per input codec — and both the ORM client and the SQL builder resolve their aggregate result types from it. Against a contract emitted before 8.0.0-rc.1 the block is absent, so an aggregate resolves to `never` in the ORM and to `unknown` in the SQL builder: a type error at the call site in the first case, an untyped value in the second, rather than a wrong runtime value in either.
 
 ## Regenerating is the first step
 
@@ -179,7 +179,7 @@ data all along. Grep the first plan for `dropCheckConstraint` and check every co
 
 - to keep it, run plans for that table under an additive-only policy. The constraint stays in
   place and keeps enforcing; plain `db verify` tolerates it, and only `--strict` reports it as
-  an undeclared extra. Declaring it is not an option in 0.18 — there is no authoring surface
+  an undeclared extra. Declaring it is not an option in 8.0.0-rc.1 — there is no authoring surface
   for a hand-written check (in PSL or in a TypeScript contract), and `contract infer` does not
   read checks back out of the catalog. An authoring/opt-out surface is planned for a later
   release;

@@ -8,11 +8,13 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  comparePrecedence,
   coverageTransitionChain,
   inFlightTransitionLabel,
   parseChangesFrontmatter,
   parseTransitionFromPath,
   parseVersion,
+  transitionLabel,
 } from './check-upgrade-coverage.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -81,11 +83,59 @@ describe('parseTransitionFromPath', () => {
   });
 });
 
+describe('parseVersion', () => {
+  it('reports the release-candidate counter for an rc.N pre-release', () => {
+    assert.deepEqual(parseVersion('8.0.0-rc.3'), { major: 8, minor: 0, patch: 0, rc: 3 });
+  });
+  it('reports rc: null for a stable version', () => {
+    assert.deepEqual(parseVersion('0.17.0'), { major: 0, minor: 17, patch: 0, rc: null });
+  });
+  it('reports rc: null for a non-rc pre-release such as -dev.N', () => {
+    assert.deepEqual(parseVersion('8.0.0-dev.7'), { major: 8, minor: 0, patch: 0, rc: null });
+    assert.deepEqual(parseVersion('8.0.0-beta.1'), { major: 8, minor: 0, patch: 0, rc: null });
+  });
+});
+
+describe('transitionLabel', () => {
+  it('keys two stable versions on major.minor (unchanged from the historical labels)', () => {
+    assert.equal(transitionLabel(parseVersion('0.7.0'), parseVersion('0.8.0')), '0.7-to-0.8');
+    assert.equal(transitionLabel(parseVersion('0.16.0'), parseVersion('0.17.0')), '0.16-to-0.17');
+    assert.equal(transitionLabel(parseVersion('0.7.3'), parseVersion('0.8.1')), '0.7-to-0.8');
+  });
+  it('keys a release candidate on its full version so RCs of one minor stay distinct', () => {
+    assert.equal(
+      transitionLabel(parseVersion('0.17.0'), parseVersion('8.0.0-rc.1')),
+      '0.17-to-8.0.0-rc.1',
+    );
+    assert.equal(
+      transitionLabel(parseVersion('8.0.0-rc.1'), parseVersion('8.0.0-rc.2')),
+      '8.0.0-rc.1-to-8.0.0-rc.2',
+    );
+    assert.equal(
+      transitionLabel(parseVersion('8.0.0-rc.1'), parseVersion('8.0.0-rc.7')),
+      '8.0.0-rc.1-to-8.0.0-rc.7',
+    );
+  });
+  it('keys the last release candidate to the stable release as rc.N → major.minor', () => {
+    assert.equal(
+      transitionLabel(parseVersion('8.0.0-rc.7'), parseVersion('8.0.0')),
+      '8.0.0-rc.7-to-8.0',
+    );
+  });
+});
+
 describe('inFlightTransitionLabel', () => {
   it('returns head.minor → head.minor + 1 (function of head only)', () => {
     assert.equal(inFlightTransitionLabel(parseVersion('0.7.0')), '0.7-to-0.8');
     assert.equal(inFlightTransitionLabel(parseVersion('0.7.1')), '0.7-to-0.8');
     assert.equal(inFlightTransitionLabel(parseVersion('1.0.0')), '1.0-to-1.1');
+  });
+  it('returns rc.N → rc.N + 1 while head is on a release-candidate line', () => {
+    assert.equal(inFlightTransitionLabel(parseVersion('8.0.0-rc.1')), '8.0.0-rc.1-to-8.0.0-rc.2');
+    assert.equal(inFlightTransitionLabel(parseVersion('8.0.0-rc.9')), '8.0.0-rc.9-to-8.0.0-rc.10');
+  });
+  it('ignores a non-rc pre-release suffix and returns the next minor', () => {
+    assert.equal(inFlightTransitionLabel(parseVersion('8.0.0-dev.7')), '8.0-to-8.1');
   });
 });
 
@@ -122,6 +172,34 @@ describe('coverageTransitionChain', () => {
       '0.99-to-1.0',
     ]);
   });
+  it('reversed RC range (head.rc < prev.rc): throws rather than naming a backwards transition', () => {
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.2'), parseVersion('8.0.0-rc.4')),
+      (err) =>
+        err instanceof Error &&
+        /8\.0\.0-rc\.2/.test(err.message) &&
+        /8\.0\.0-rc\.4/.test(err.message) &&
+        /reversed|behind|chronological/i.test(err.message),
+    );
+  });
+  it('a later base version with a reset RC counter is forward, not reversed', () => {
+    assert.deepEqual(coverageTransitionChain(parseVersion('8.0.1-rc.1'), parseVersion('8.0.0-rc.9')), [
+      '8.0.0-rc.9-to-8.0.1-rc.1',
+    ]);
+  });
+  it('an earlier base version with a higher RC counter is reversed', () => {
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.9'), parseVersion('8.0.1-rc.1')),
+      /reversed|behind|chronological/i,
+    );
+  });
+  it('an RC precedes its own release, and the release does not precede the RC', () => {
+    assert.equal(comparePrecedence(parseVersion('8.0.0-rc.9'), parseVersion('8.0.0')) < 0, true);
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.9'), parseVersion('8.0.0')),
+      /reversed|behind|chronological/i,
+    );
+  });
   it('reversed same-major range (head.minor < prev.minor): throws naming both versions instead of silently returning an empty chain', () => {
     assert.throws(
       () => coverageTransitionChain(parseVersion('0.7.0'), parseVersion('0.9.0')),
@@ -130,6 +208,44 @@ describe('coverageTransitionChain', () => {
         /0\.7/.test(err.message) &&
         /0\.9/.test(err.message) &&
         /reversed|behind|chronological/i.test(err.message),
+    );
+  });
+});
+
+describe('coverageTransitionChain — release-candidate line', () => {
+  it('entering the RC line from the last stable minor: single step naming the RC', () => {
+    assert.deepEqual(coverageTransitionChain(parseVersion('8.0.0-rc.1'), parseVersion('0.17.0')), [
+      '0.17-to-8.0.0-rc.1',
+    ]);
+  });
+  it('consecutive RC publish: single step, one release is one step', () => {
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.0-rc.2'), parseVersion('8.0.0-rc.1')),
+      ['8.0.0-rc.1-to-8.0.0-rc.2'],
+    );
+  });
+  it('RC counters are never chained arithmetically, however far apart they are', () => {
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.0-rc.7'), parseVersion('8.0.0-rc.1')),
+      ['8.0.0-rc.1-to-8.0.0-rc.7'],
+    );
+  });
+  it('leaving the RC line for the stable release: single step from the last RC', () => {
+    assert.deepEqual(coverageTransitionChain(parseVersion('8.0.0'), parseVersion('8.0.0-rc.7')), [
+      '8.0.0-rc.7-to-8.0',
+    ]);
+  });
+  it('PR-mode steady state on the RC line (prev === head): names the next RC directory', () => {
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.0-rc.1'), parseVersion('8.0.0-rc.1')),
+      ['8.0.0-rc.1-to-8.0.0-rc.2'],
+    );
+  });
+  it('the in-flight directory on rc.N is the directory the rc.N → rc.N+1 release requires', () => {
+    const inFlight = inFlightTransitionLabel(parseVersion('8.0.0-rc.4'));
+    assert.deepEqual(
+      coverageTransitionChain(parseVersion('8.0.0-rc.5'), parseVersion('8.0.0-rc.4')),
+      [inFlight],
     );
   });
 });
@@ -584,6 +700,54 @@ describe('check-upgrade-coverage — skip-publish chain (head.minor > prev.minor
       'skills/prisma-next-upgrade/upgrades/0.7-to-0.8',
       'skills/prisma-next-upgrade/upgrades/0.8-to-0.9',
     ]);
+  });
+});
+
+describe('check-upgrade-coverage — release-candidate release PR', () => {
+  it('an rc.1 → rc.2 release is covered by the directory the rc.1 branch treated as in-flight', () => {
+    // The bump rewrites every package.json under examples/, so the
+    // coverage rule fires on every RC release. It must ask for the
+    // rc.1 → rc.2 directory — the one authored while main was on rc.1 —
+    // and not for a directory named after a minor bump that never happens
+    // on the RC line.
+    writePackageJson('8.0.0-rc.1');
+    writeRepoFile('examples/demo/package.json', '{"version":"8.0.0-rc.1"}\n');
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+
+    writePackageJson('8.0.0-rc.2');
+    writeRepoFile('examples/demo/package.json', '{"version":"8.0.0-rc.2"}\n');
+    commitAll('bump to 8.0.0-rc.2');
+
+    const missing = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.notEqual(missing.status, 0);
+    assert.match(
+      missing.stderr,
+      /skills\/prisma-next-upgrade\/upgrades\/8\.0\.0-rc\.1-to-8\.0\.0-rc\.2/,
+    );
+    assert.doesNotMatch(missing.stderr, /upgrades\/8\.0-to-8\.1/);
+
+    writeRepoFile(
+      'skills/prisma-next-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/instructions.md',
+      '---\nfrom: "8.0.0-rc.1"\nto: "8.0.0-rc.2"\nchanges: []\n---\n',
+    );
+    commitAll('record the rc.1 → rc.2 entry');
+    const covered = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(covered.status, 0, `expected exit 0; stderr=${covered.stderr}`);
+  });
+
+  it('a PR on the rc.1 line records into the rc.1 → rc.2 directory', () => {
+    writePackageJson('8.0.0-rc.1');
+    commitAll('prev');
+    const prev = git('rev-parse', 'HEAD');
+    writeRepoFile('examples/demo/src/main.ts', 'export const a = 2;\n');
+    writeRepoFile(
+      'skills/prisma-next-upgrade/upgrades/8.0.0-rc.1-to-8.0.0-rc.2/instructions.md',
+      '---\nfrom: "8.0.0-rc.1"\nto: "8.0.0-rc.2"\nchanges: []\n---\n',
+    );
+    commitAll('head');
+    const result = runScript(['--prev', prev, '--head', 'HEAD']);
+    assert.equal(result.status, 0, `expected exit 0; stderr=${result.stderr}`);
   });
 });
 

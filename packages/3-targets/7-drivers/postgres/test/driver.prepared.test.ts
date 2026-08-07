@@ -134,6 +134,21 @@ describe('postgres prepared statements', () => {
     });
   });
 
+  it('returns no rows when a prepared query has an empty result', async () => {
+    const { client, calls } = makeMockClient();
+    const driver = makeDriver({ kind: 'pgClient', client: client as unknown as Client });
+    cleanups.push(() => driver.close());
+
+    const { slot, snapshot } = makeSlot();
+    await expect(
+      consume(driver.query({ sql: 'select id from t', params: [], preparedStatementHandle: slot })),
+    ).resolves.toEqual([]);
+
+    expect(snapshot()).toBe('pn_1');
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.arg).toEqual({ name: 'pn_1', text: 'select id from t', values: [] });
+  });
+
   it('uses and reuses a prepared name for execute requests with a handle', async () => {
     const { client, calls } = makeMockClient({
       handler: () => ({ rows: [], rowCount: 1 }),

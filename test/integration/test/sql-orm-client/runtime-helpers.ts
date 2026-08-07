@@ -112,7 +112,16 @@ export async function createPgIntegrationRuntime(
       const stack = createSqlExecutionStack({
         target: postgresTarget,
         adapter: postgresAdapter,
-        driver: postgresDriver,
+        // Cursor-backed statements through the PGlite-backed `@prisma/dev`
+        // server do not preserve this harness's ORM mutation transaction: a
+        // failing nested write leaves its parent insert committed. These tests
+        // exercise ORM rollback semantics rather than streaming, so buffer rows.
+        driver: {
+          ...postgresDriver,
+          create() {
+            return postgresDriver.create({ cursor: { disabled: true } });
+          },
+        },
         extensions: [pgvectorRuntime, ...additionalExtensions],
       });
 
