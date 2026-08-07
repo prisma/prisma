@@ -51,6 +51,68 @@ describe('ports/engines/queries/aggregation/min', () => {
     timeouts.spinUpPpgDev,
   );
 
+  it.fails(
+    'min_with_all_sorts_of_query_args',
+    () =>
+      withCommonMin(async ({ db }) => {
+        await db.public.TestModel.createAll([
+          { id: 1, float: 5.5, int: 5, bInt: 5n, string: '2' },
+          { id: 2, float: 4.5, int: 10, bInt: 10n, string: 'f' },
+          { id: 3, float: 1.5, int: 2, bInt: 2n, string: 'z' },
+          { id: 4, float: 0, int: 1, bInt: 1n, string: 'g' },
+        ]);
+
+        const takeTwo = await db.public.TestModel.take(2).aggregate((aggregate) => ({
+          int: aggregate.min('int'),
+          bInt: aggregate.min('bInt'),
+          float: aggregate.min('float'),
+          string: aggregate.min('string'),
+        }));
+        const takeFive = await db.public.TestModel.take(5).aggregate((aggregate) => ({
+          int: aggregate.min('int'),
+          bInt: aggregate.min('bInt'),
+          float: aggregate.min('float'),
+          string: aggregate.min('string'),
+        }));
+        const takeNegativeFive = await db.public.TestModel.take(-5).aggregate((aggregate) => ({
+          int: aggregate.min('int'),
+          bInt: aggregate.min('bInt'),
+          float: aggregate.min('float'),
+          string: aggregate.min('string'),
+        }));
+        const whereIdGreaterThanTwo = await db.public.TestModel.where((row) =>
+          row.id.gt(2),
+        ).aggregate((aggregate) => ({
+          int: aggregate.min('int'),
+          bInt: aggregate.min('bInt'),
+          float: aggregate.min('float'),
+          string: aggregate.min('string'),
+        }));
+        const skipTwo = await db.public.TestModel.skip(2).aggregate((aggregate) => ({
+          int: aggregate.min('int'),
+          bInt: aggregate.min('bInt'),
+          float: aggregate.min('float'),
+          string: aggregate.min('string'),
+        }));
+        const cursorAtThree = await db.public.TestModel.cursor({ id: 3 } as never).aggregate(
+          (aggregate) => ({
+            int: aggregate.min('int'),
+            bInt: aggregate.min('bInt'),
+            float: aggregate.min('float'),
+            string: aggregate.min('string'),
+          }),
+        );
+
+        expect(takeTwo).toEqual({ int: 5, bInt: 5n, float: 4.5, string: '2' });
+        expect(takeFive).toEqual({ int: 1, bInt: 1n, float: 0, string: '2' });
+        expect(takeNegativeFive).toEqual({ int: 1, bInt: 1n, float: 0, string: '2' });
+        expect(whereIdGreaterThanTwo).toEqual({ int: 1, bInt: 1n, float: 0, string: 'g' });
+        expect(skipTwo).toEqual({ int: 1, bInt: 1n, float: 0, string: 'g' });
+        expect(cursorAtThree).toEqual({ int: 1, bInt: 1n, float: 0, string: 'g' });
+      }),
+    timeouts.spinUpPpgDev,
+  );
+
   it(
     'decimal min_no_records',
     () =>
@@ -78,6 +140,48 @@ describe('ports/engines/queries/aggregation/min', () => {
         }));
 
         expect(result).toEqual({ decimal: '4.5' });
+      }),
+    timeouts.spinUpPpgDev,
+  );
+
+  it.fails(
+    'decimal min_with_all_sorts_of_query_args',
+    () =>
+      withDecimalMin(async ({ db }) => {
+        await db.public.TestModel.createAll([
+          { id: 1, decimal: '5.5' },
+          { id: 2, decimal: '4.5' },
+          { id: 3, decimal: '1.5' },
+          { id: 4, decimal: '0.0' },
+        ]);
+
+        const takeTwo = await db.public.TestModel.take(2).aggregate((aggregate) => ({
+          decimal: aggregate.min('decimal'),
+        }));
+        const takeFive = await db.public.TestModel.take(5).aggregate((aggregate) => ({
+          decimal: aggregate.min('decimal'),
+        }));
+        const takeNegativeFive = await db.public.TestModel.take(-5).aggregate((aggregate) => ({
+          decimal: aggregate.min('decimal'),
+        }));
+        const whereIdGreaterThanTwo = await db.public.TestModel.where((row) =>
+          row.id.gt(2),
+        ).aggregate((aggregate) => ({
+          decimal: aggregate.min('decimal'),
+        }));
+        const skipTwo = await db.public.TestModel.skip(2).aggregate((aggregate) => ({
+          decimal: aggregate.min('decimal'),
+        }));
+        const cursorAtThree = await db.public.TestModel.cursor({ id: 3 } as never).aggregate(
+          (aggregate) => ({ decimal: aggregate.min('decimal') }),
+        );
+
+        expect(takeTwo).toEqual({ decimal: '4.5' });
+        expect(takeFive).toEqual({ decimal: '0' });
+        expect(takeNegativeFive).toEqual({ decimal: '0' });
+        expect(whereIdGreaterThanTwo).toEqual({ decimal: '0' });
+        expect(skipTwo).toEqual({ decimal: '0' });
+        expect(cursorAtThree).toEqual({ decimal: '0' });
       }),
     timeouts.spinUpPpgDev,
   );
