@@ -70,10 +70,33 @@ const requireJsType = (codecId: string, expected: 'number' | 'bigint', value: un
   );
 };
 
-/** Writes a `bigint` application value as the decimal text both the wire and the canonical JSON of the exact integer codecs carry. */
+/** Writes a `bigint` application value as the decimal text the wire form of the exact integer codecs carries. */
 export const pgBigintEncode = (codecId: string, value: bigint): string => {
   requireJsType(codecId, 'bigint', value);
   return value.toString();
+};
+
+/**
+ * Writes an application value as the decimal text these codecs carry as their
+ * canonical JSON.
+ *
+ * A schema-written literal default (`BigInt @default(0)`) arrives here as a
+ * `number`, since a number literal is the only integer a schema language
+ * writes, and one that is a safe integer names its value exactly. Past that
+ * range the literal was rounded before any of this ran, so the value written is
+ * not the value meant — which this refuses rather than minting an exact-looking
+ * total from it. A non-integral number is refused on the same terms.
+ */
+export const pgBigintEncodeJson = (codecId: string, value: bigint | number): string => {
+  if (typeof value !== 'number') return pgBigintEncode(codecId, value);
+  if (!Number.isSafeInteger(value)) {
+    throw postgresError(
+      'RUNTIME.ENCODE_FAILED',
+      `${codecId} number literal must be an integer within the safe integer range, got ${String(value)}`,
+      { meta: { codecId, received: String(value) } },
+    );
+  }
+  return BigInt(value).toString();
 };
 
 /**

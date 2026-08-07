@@ -58,8 +58,21 @@ describe('sqlite/bigint@1 number wire values', () => {
       message: 'sqlite/bigint@1 value must be a bigint, got number 9',
       meta: { codecId: 'sqlite/bigint@1', received: 'number' },
     });
-    expect(() => codec.encodeJson(wrongTyped(9))).toThrow(
-      'sqlite/bigint@1 value must be a bigint, got number 9',
+  });
+
+  // A schema literal (`BigInt @default(0)`) reaches the JSON boundary as a
+  // number, because that is the only integer a schema language writes.
+  it('reads a schema-written integer literal at the JSON boundary', () => {
+    expect(codec.encodeJson(wrongTyped(0))).toBe('0');
+    expect(codec.encodeJson(wrongTyped(-42))).toBe('-42');
+  });
+
+  it('rejects a written number the literal does not name exactly', () => {
+    expect(() => codec.encodeJson(wrongTyped(1.5))).toThrow(
+      'sqlite/bigint@1 number literal must be an integer within the safe integer range, got 1.5',
+    );
+    expect(() => codec.encodeJson(wrongTyped(9007199254740992))).toThrow(
+      'sqlite/bigint@1 number literal must be an integer within the safe integer range, got 9007199254740992',
     );
   });
 });
