@@ -67,7 +67,11 @@ import {
 } from '@internal/sql-contract/types';
 import { validateStorageSemantics } from '@internal/sql-contract/validators';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
-import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
+import {
+  type CheckKind,
+  composeCheckWirePrefix,
+  computeCheckContentHash,
+} from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -345,8 +349,6 @@ function checkMemberValues(
   return values;
 }
 
-type CheckOptOutKind = 'membership' | 'elementNotNull';
-
 /**
  * Resolves a field's authored `noCheck` kinds against its column shape:
  * the bare form (`[]`) becomes every kind the shape derives, and a named
@@ -357,11 +359,11 @@ type CheckOptOutKind = 'membership' | 'elementNotNull';
 function resolveNoCheckKinds(input: {
   readonly modelName: string;
   readonly fieldName: string;
-  readonly kinds: readonly CheckOptOutKind[];
+  readonly kinds: readonly CheckKind[];
   readonly many: boolean;
   readonly isDomainEnum: boolean;
-}): readonly CheckOptOutKind[] {
-  const derivable: CheckOptOutKind[] = [];
+}): readonly CheckKind[] {
+  const derivable: CheckKind[] = [];
   if (input.many) derivable.push('elementNotNull');
   if (input.isDomainEnum) derivable.push('membership');
   const subject = `Field "${input.modelName}.${input.fieldName}"`;
@@ -378,7 +380,7 @@ function resolveNoCheckKinds(input: {
     return derivable;
   }
 
-  const seen = new Set<CheckOptOutKind>();
+  const seen = new Set<CheckKind>();
   for (const kind of input.kinds) {
     if (seen.has(kind)) {
       throw contractError(

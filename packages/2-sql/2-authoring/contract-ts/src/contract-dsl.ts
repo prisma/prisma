@@ -40,8 +40,9 @@ type NamedConstraintNameSpec<Name extends string = string> = {
   readonly name: Name;
 };
 
-/** Generated-check kinds a column author can decline via {@link ScalarFieldBuilder.noCheck}. */
-export type CheckOptOutKind = 'membership' | 'elementNotNull';
+import type { CheckKind } from '@internal/sql-schema-ir/naming';
+
+export type { CheckKind };
 
 export type ScalarFieldState<
   Descriptor extends ColumnTypeDescriptor = ColumnTypeDescriptor,
@@ -60,7 +61,7 @@ export type ScalarFieldState<
   readonly default?: ColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
   readonly many?: Many extends true ? true : undefined;
-  readonly noCheck?: readonly CheckOptOutKind[] | undefined;
+  readonly noCheck?: readonly CheckKind[] | undefined;
 } & (IdSpec extends NamedConstraintSpec ? { readonly id: IdSpec } : { readonly id?: undefined }) &
   (UniqueSpec extends NamedConstraintSpec
     ? { readonly unique: UniqueSpec }
@@ -75,7 +76,7 @@ type AnyScalarFieldState = {
   readonly default?: ColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
   readonly many?: boolean | undefined;
-  readonly noCheck?: readonly CheckOptOutKind[] | undefined;
+  readonly noCheck?: readonly CheckKind[] | undefined;
   readonly id?: NamedConstraintSpec | undefined;
   readonly unique?: NamedConstraintSpec | undefined;
 };
@@ -290,7 +291,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
    * unchanged — runtime values may diverge from them once enforcement
    * is waived.
    */
-  noCheck(...kinds: readonly CheckOptOutKind[]): ScalarFieldBuilder<State> {
+  noCheck(...kinds: readonly CheckKind[]): ScalarFieldBuilder<State> {
     if (this.state.noCheck !== undefined) {
       throw contractError(
         'CONTRACT.CHECK_OPTOUT_INVALID',

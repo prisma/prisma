@@ -105,6 +105,8 @@ export type ResolvedField = {
   readonly uniqueName?: string;
   readonly many?: true;
   /** Concrete generated-check kinds waived via `@noCheck`, resolved from the column's shape. */
+  // Spelled literally because this package does not depend on
+  // @internal/sql-schema-ir; the canonical alias is `CheckKind` there.
   readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
   readonly valueObjectTypeName?: string;
   readonly scalarCodecId?: string;
@@ -313,6 +315,8 @@ function extractFieldConstraintNames(input: {
   return { idAttribute, uniqueAttribute, idName, uniqueName };
 }
 
+// Spelled literally because this package does not depend on
+// @internal/sql-schema-ir; the canonical alias is `CheckKind` there.
 type NoCheckKind = 'membership' | 'elementNotNull';
 
 /**

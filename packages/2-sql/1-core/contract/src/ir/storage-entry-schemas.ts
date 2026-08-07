@@ -45,6 +45,8 @@ const StorageColumnSchema = type({
   'default?': ColumnDefaultSchema,
   'control?': ControlPolicySchema,
   'valueSet?': StorageValueSetRefSchema,
+  // Arktype schema expression, so the union stays a string literal here; the
+  // canonical spelling is `CheckKind` in `@internal/sql-schema-ir/naming`.
   'noCheck?': '("membership" | "elementNotNull")[]',
 }).narrow((col, ctx) => {
   if (col.typeParams !== undefined && col.typeRef !== undefined) {
