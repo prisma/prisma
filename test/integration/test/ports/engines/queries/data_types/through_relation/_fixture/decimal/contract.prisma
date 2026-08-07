@@ -1,0 +1,10 @@
+model Parent {
+  id Int @id
+  children Child[]
+}
+model Child {
+  childId Int @id
+  parentId Int?
+  parent Parent? @relation(fields: [parentId], references: [id])
+  dec Decimal
+}
