@@ -42,7 +42,6 @@ test('a minimal RuntimeCore subclass typechecks', () => {
       log: { info: () => {}, warn: () => {}, error: () => {} },
       contentHash: async () => 'mock-hash',
       scope: 'runtime',
-      operation: 'query',
       planExecutionId: 'test-fixture-plan-execution-id',
     },
   });
@@ -69,7 +68,6 @@ test('query(plan) enforces the TPlan constraint and returns AsyncIterableResult<
       log: { info: () => {}, warn: () => {}, error: () => {} },
       contentHash: async () => 'mock-hash',
       scope: 'runtime',
-      operation: 'query',
       planExecutionId: 'test-fixture-plan-execution-id',
     },
   });

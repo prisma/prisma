@@ -23,14 +23,16 @@ import type { MongoMiddleware } from '../src/mongo-middleware';
 import { createMongoRuntime } from '../src/mongo-runtime';
 
 function makeContext(
-  adapter: MongoAdapter,
+  _adapter: MongoAdapter,
   wireCommand: AnyMongoDmlWireCommand = new AggregateWireCommand('users', []),
 ): MongoExecutionContext {
   const codecs: MongoCodecRegistry = newMongoCodecRegistry();
   const adapterInstance: MongoRuntimeAdapterInstance<'mongo'> = {
     familyId: 'mongo',
     targetId: 'mongo',
-    lower: adapter.lower.bind(adapter),
+    lower: vi.fn(
+      async () => wireCommand,
+    ) as unknown as MongoRuntimeAdapterInstance<'mongo'>['lower'],
     structuralLower: vi.fn(
       (plan: MongoQueryPlan): MongoLoweredDraft => ({
         kind: 'rawAggregate',
@@ -195,39 +197,6 @@ describe('MongoRuntime middleware lifecycle', () => {
     await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 3 });
   });
 
-  it('uses execute-shaped middleware interception without driver rows', async () => {
-    const adapter = createMockAdapter();
-    const driver = createMockDriver([]);
-    const completions: unknown[] = [];
-    const middleware: MongoMiddleware = {
-      name: 'statistics-cache',
-      async intercept(_plan, ctx) {
-        expect(ctx.operation).toBe('execute');
-        return { operation: 'execute', stats: { affectedRows: 9 } };
-      },
-      async afterExecute(_plan, result) {
-        completions.push(result);
-      },
-    };
-    const runtime = createMongoRuntime({
-      context: makeContext(adapter),
-      driver,
-      middleware: [middleware],
-    });
-
-    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 9 });
-
-    expect(driver.execute).not.toHaveBeenCalled();
-    expect(completions).toEqual([
-      expect.objectContaining({
-        operation: 'execute',
-        completed: true,
-        source: 'middleware',
-        stats: { affectedRows: 9 },
-      }),
-    ]);
-  });
-
   it('rejects unsupported statistics commands without a default count', async () => {
     const adapter = createMockAdapter();
     const driver = createMockDriver([{ count: 5 }]);
@@ -322,7 +291,6 @@ describe('MongoRuntime middleware lifecycle', () => {
     const middleware: MongoMiddleware = {
       name: 'error-observer',
       async afterExecute(_plan, result) {
-        if (result.operation !== 'query') throw new Error('expected query completion');
         afterResult = { completed: result.completed, rowCount: result.rowCount };
       },
     };
@@ -411,7 +379,6 @@ describe('MongoRuntime middleware lifecycle', () => {
     const middleware: MongoMiddleware = {
       name: 'result-observer',
       async afterExecute(_plan, result) {
-        if (result.operation !== 'query') throw new Error('expected query completion');
         afterResult = { completed: result.completed, rowCount: result.rowCount };
       },
     };
@@ -564,28 +531,6 @@ describe('MongoRuntime planExecutionId (ADR 220)', () => {
     for await (const _row of runtime.query(plan)) {
       void _row;
     }
-
-    expect(log).toHaveLength(4);
-    expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
-    expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
-    expect(log[0]?.planExecutionId).not.toBe(log[2]?.planExecutionId);
-  });
-
-  it('assigns distinct planExecutionIds to query and execute calls', async () => {
-    const log: Observation[] = [];
-    const adapter = createMockAdapter();
-    const runtime = createMongoRuntime({
-      context: makeContext(
-        adapter,
-        new UpdateManyWireCommand('users', {}, { $set: { active: true } }),
-      ),
-      driver: createMockDriver([{ modifiedCount: 1 }]),
-      middleware: [observerMiddleware(log)],
-    });
-    const plan = createPlan();
-
-    await runtime.query(plan).toArray();
-    await runtime.execute(plan);
 
     expect(log).toHaveLength(4);
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);

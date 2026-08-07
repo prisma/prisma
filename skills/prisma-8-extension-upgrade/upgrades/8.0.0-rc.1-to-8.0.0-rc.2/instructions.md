@@ -4,13 +4,12 @@ to: "8.0.0-rc.2"
 changes:
   - id: runtime-query-execute-hard-cut
     summary: |
-      Runtime and scope implementations now expose `query()` for rows, `queryPrepared()` for prepared rows, and statistics-returning `execute()` for non-returning statements. Classify callers and helpers by consumed result; do not globally rename `execute`. Update middleware to use the `operation: 'query' | 'execute'` discriminant and return operation-matched rows or stats, keep separate row/statistics fake queues and spies, and never derive `affectedRows` from row length. The Mongo facade keeps its static `db.query` builder and removes row `db.execute`; run built row plans through `(await db.runtime()).query(plan)` without adding an alias.
+      Runtime and scope implementations now expose `query()` for rows, `queryPrepared()` for prepared rows, and statistics-returning `execute()` for non-returning statements. Classify callers and helpers by consumed result; do not globally rename `execute`. Keep separate row/statistics fake queues and spies, and never derive `affectedRows` from row length. The Mongo facade keeps its static `db.query` builder and removes row `db.execute`; run built row plans through `(await db.runtime()).query(plan)` without adding an alias.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
         - "RuntimeExecutor"
         - "RuntimeQueryable"
-        - "AfterExecuteResult"
         - "executePrepared("
         - ".execute("
       anyMatch: true
@@ -45,15 +44,6 @@ Use the concrete family plan and statistics types required by your extension. Ro
 
 Translate prepared row callers from `statement.execute(target, params)` or any retired `executePrepared` helper to `target.queryPrepared(statement, params)`. Rename private helpers whose only purpose is returning rows when their old `execute` name would conceal the distinction, but do not add compatibility aliases.
 
-Middleware contexts and results are operation-discriminated. Set or preserve `ctx.operation` on every execution, and return the matching shape from interception:
-
-```ts
-return { operation: 'query', rows };
-return { operation: 'execute', stats: { affectedRows } };
-```
-
-Handle completion results by checking `result.operation` before accessing rows or statistics. Row-oriented middleware such as caches only intercepts `operation === 'query'`; an execute interception supplies statistics and must not fabricate them from intercepted rows. Preserve the caller's abort signal and per-call execution identity for both operations.
-
 Split fakes and observations so the test can detect a wrong route. A useful fake has a row-result queue consumed only by `query`, a statistics queue consumed only by `execute`, distinct spies or an explicit `operation` field, and whole-shape assertions for `{ affectedRows }`. Delete fakes that model `execute` as an async row generator or `query` as a buffered `{ rows, rowCount }` result. If existing code counted a non-returning write's result rows, await `execute` and read `stats.affectedRows`; never substitute row-array length.
 
 Apply the public Mongo facade migration separately from the runtime SPI. `db.query` remains the static builder, so remove any facade row `execute` compatibility member and do not introduce `queryRows`, `run`, or another alias. Facade consumers build the plan with `db.query` and execute rows through the connected runtime:
@@ -63,4 +53,4 @@ const plan = db.query.from('events').build();
 const rows = await (await db.runtime()).query(plan);
 ```
 
-Search for `.execute(`, `executePrepared`, implementations of `RuntimeExecutor` or family runtime scopes, middleware intercept/completion objects, and fakes returning rows. Classify each match from its plan and consumed result. Leave genuine statistics calls, lower-level migration-runner APIs, and unrelated domain methods named `execute` unchanged.
+Search for `.execute(`, `executePrepared`, implementations of `RuntimeExecutor` or family runtime scopes, and fakes returning rows. Classify each match from its plan and consumed result. Leave genuine statistics calls, lower-level migration-runner APIs, and unrelated domain methods named `execute` unchanged.

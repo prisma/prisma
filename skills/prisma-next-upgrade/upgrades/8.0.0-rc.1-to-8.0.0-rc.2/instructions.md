@@ -10,8 +10,6 @@ changes:
       contains:
         - ".execute("
         - "executePrepared("
-        - "AfterExecuteResult"
-        - "intercept("
         - "spyOn("
       anyMatch: true
 ---
@@ -37,8 +35,6 @@ Translate public calls by consumed result:
 | A count or status derived from rows returned by a non-returning write | `const stats = await runtime.execute(writePlan)` and use `stats.affectedRows` |
 
 Apply the same classification to connection and transaction scopes. `query()` and `queryPrepared()` remain lazy row results, so consume them inside the scope when their connection or transaction must remain valid. `execute()` is eager and resolves to `{ affectedRows: number }`; it does not return an iterable, and `affectedRows` must not be synthesized from a row array's length.
-
-If the application defines runtime middleware, update it to respect the operation discriminant. Query interception returns `{ operation: 'query', rows }`, execute interception returns `{ operation: 'execute', stats }`, and completion handlers check `result.operation` before reading the operation-specific fields. Row-oriented middleware must ignore execute operations rather than deriving statistics from rows.
 
 Tests that observe whether a row query reached the SQL driver must spy on `driver.query`, not `driver.execute`. Keep the existing hit/miss comparison intact; only move the observation to the row path. Statistics tests continue to observe `driver.execute`.
 

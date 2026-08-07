@@ -365,7 +365,7 @@ describe('integration: middleware-cache against real Postgres', {
           events.push({
             phase: 'afterExecute',
             source: result.source,
-            ...(result.operation === 'query' ? { rowCount: result.rowCount } : {}),
+            rowCount: result.rowCount,
             latencyMs: result.latencyMs,
             completed: result.completed,
           });

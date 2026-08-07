@@ -210,7 +210,7 @@ describe('marker verification runs before intercept', () => {
 
     const intercept = vi.fn((_plan: unknown, _ctx: unknown) => {
       callOrder.push('intercept');
-      return Promise.resolve({ operation: 'query' as const, rows: [{ id: 1 }] });
+      return Promise.resolve({ rows: [{ id: 1 }] });
     });
     const interceptor: SqlMiddleware = {
       name: 'mock-cache',

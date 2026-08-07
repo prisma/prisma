@@ -38,7 +38,6 @@ function createContext(): SqlMiddlewareContext & {
     },
     contentHash: async () => 'mock-hash',
     scope: 'runtime' as const,
-    operation: 'query' as const,
     planExecutionId: 'test-fixture-plan-execution-id',
   };
 }

@@ -418,42 +418,6 @@ describe('SqlRuntime', () => {
     await connection.release();
   });
 
-  it('uses execute-shaped middleware results without delegating to the driver', async () => {
-    const { stackInstance, context, driver } = createTestSetup();
-    const completions: unknown[] = [];
-    const runtime = createRuntime({
-      stackInstance,
-      context,
-      driver,
-      verifyMarker: false,
-      middleware: [
-        {
-          name: 'statistics-cache',
-          async intercept() {
-            return { operation: 'execute', stats: { affectedRows: 12 } };
-          },
-          async afterExecute(_plan, result) {
-            completions.push(result);
-          },
-        },
-      ],
-    });
-
-    await expect(runtime.execute(createRawExecutionPlan())).resolves.toEqual({
-      affectedRows: 12,
-    });
-
-    expect(driver.__spies.rootStats).not.toHaveBeenCalled();
-    expect(completions).toEqual([
-      expect.objectContaining({
-        operation: 'execute',
-        completed: true,
-        source: 'middleware',
-        stats: { affectedRows: 12 },
-      }),
-    ]);
-  });
-
   it('accepts a generic middleware (no familyId)', () => {
     const { stackInstance, context, driver } = createTestSetup();
     expect(() =>
@@ -542,83 +506,6 @@ describe('SqlRuntime', () => {
       middleware: 'softDelete',
       lane: 'dsl',
     });
-  });
-
-  it('invokes adapter.lower exactly once per execute regardless of chain length', async () => {
-    const adapter = createStubAdapter();
-    const lowerSpy = vi.spyOn(adapter, 'lower');
-    const driver = createMockDriver();
-
-    const targetDescriptor = createTestTargetDescriptor();
-    const adapterDescriptor = createTestAdapterDescriptor(adapter);
-    const stack = createSqlExecutionStack({
-      target: targetDescriptor,
-      adapter: adapterDescriptor,
-      extensions: [],
-    });
-    const stackInstance = instantiateExecutionStack(stack) as ExecutionStackInstance<
-      'sql',
-      'postgres',
-      SqlRuntimeAdapterInstance<'postgres'>,
-      RuntimeDriverInstance<'sql', 'postgres'>,
-      RuntimeExtensionInstance<'sql', 'postgres'>
-    >;
-    const context = createExecutionContext({
-      contract: testContract,
-      stack: { target: targetDescriptor, adapter: adapterDescriptor, extensions: [] },
-    });
-
-    const observedOperations: string[] = [];
-    const rewriteA: SqlMiddleware = {
-      name: 'rewriteA',
-      familyId: 'sql',
-      async beforeCompile(draft, middlewareCtx) {
-        observedOperations.push(middlewareCtx.operation);
-        if (draft.ast.kind !== 'select') return undefined;
-        return {
-          ...draft,
-          ast: draft.ast.withWhere(BinaryExpr.eq(ColumnRef.of('users', 'a'), LiteralExpr.of(1))),
-        };
-      },
-    };
-    const rewriteB: SqlMiddleware = {
-      name: 'rewriteB',
-      familyId: 'sql',
-      async beforeCompile(draft) {
-        if (draft.ast.kind !== 'select') return undefined;
-        return {
-          ...draft,
-          ast: draft.ast.withWhere(BinaryExpr.eq(ColumnRef.of('users', 'b'), LiteralExpr.of(2))),
-        };
-      },
-    };
-
-    const runtime = createRuntime({
-      stackInstance,
-      context,
-      driver,
-      verifyMarker: false,
-      middleware: [rewriteA, rewriteB],
-    });
-
-    const queryPlan: SqlQueryPlan = {
-      ast: SelectAst.from(TableSource.named('users')).withProjection([]),
-      params: [],
-      meta: {
-        target: 'postgres',
-        storageHash: testContract.storage.storageHash,
-        lane: 'dsl',
-      },
-    };
-
-    await runtime.execute(queryPlan);
-
-    expect(lowerSpy).toHaveBeenCalledTimes(1);
-    expect(driver.__spies.rootStats).toHaveBeenCalledOnce();
-    expect(driver.__spies.rootExecute).not.toHaveBeenCalled();
-    expect(observedOperations).toEqual(['execute']);
-    const loweredAst = lowerSpy.mock.calls[0]?.[0] as SelectAst;
-    expect(loweredAst.where?.kind).toBe('binary');
   });
 
   it('skips beforeCompile for raw execution plans with no AST', async () => {

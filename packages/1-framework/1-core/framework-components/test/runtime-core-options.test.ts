@@ -41,8 +41,8 @@ class CtxRecordingRuntime extends RuntimeCore<MockPlan, MockExec, RuntimeMiddlew
     };
   }
 
-  protected override async runExecute(): Promise<{ affectedRows: number }> {
-    return { affectedRows: 1 };
+  protected override runExecute(): Promise<{ affectedRows: number }> {
+    return Promise.resolve({ affectedRows: 0 });
   }
 
   override async close(): Promise<void> {}
@@ -55,7 +55,6 @@ const ctxValue: RuntimeMiddlewareContext = {
   log: { info: () => {}, warn: () => {}, error: () => {} },
   contentHash: async () => 'mock-hash',
   scope: 'runtime',
-  operation: 'query',
   planExecutionId: 'test-fixture-plan-execution-id',
 };
 
@@ -102,18 +101,6 @@ describe('RuntimeCore.query(plan, options?)', () => {
       expect(observed.code).toBe('RUNTIME.ABORTED');
       expect(observed.details).toEqual({ phase: 'stream' });
     }
-    expect(runtime.lowerCalls).toBe(0);
-  });
-
-  it('rejects eager execute before lowering when the signal is already aborted', async () => {
-    const runtime = new CtxRecordingRuntime({ middleware: [], ctx: ctxValue });
-    const controller = new AbortController();
-    controller.abort();
-
-    await expect(runtime.execute(plan, { signal: controller.signal })).rejects.toMatchObject({
-      code: 'RUNTIME.ABORTED',
-      details: { phase: 'stream' },
-    });
     expect(runtime.lowerCalls).toBe(0);
   });
 

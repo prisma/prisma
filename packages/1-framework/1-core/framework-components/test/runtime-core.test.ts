@@ -108,7 +108,6 @@ const ctx: RuntimeMiddlewareContext = {
   log: { info: () => {}, warn: () => {}, error: () => {} },
   contentHash: async () => 'mock-hash',
   scope: 'runtime',
-  operation: 'query',
   planExecutionId: 'test-fixture-plan-execution-id',
 };
 
@@ -227,44 +226,16 @@ describe('RuntimeCore', () => {
     expect(seenByDriver[0]).toBe(seenByMiddleware[0]);
   });
 
-  it('executes statistics through the same lifecycle without deriving them from rows', async () => {
-    const log: Array<{ stage: string; result?: unknown; operation?: string }> = [];
-    const middleware: RuntimeMiddleware<MockExec> = {
-      name: 'observer',
-      async beforeExecute(_plan, hookCtx) {
-        log.push({ stage: 'beforeExecute', operation: hookCtx.operation });
-      },
-      async onRow() {
-        log.push({ stage: 'onRow' });
-      },
-      async afterExecute(_plan, result, hookCtx) {
-        log.push({ stage: 'afterExecute', result, operation: hookCtx.operation });
-      },
-    };
-    const runtime = new MockRuntime([middleware], ctx, [{ id: 'not-a-statistic' }]);
+  it('executes statistics directly without invoking row middleware', async () => {
+    const log: RecorderEntry[] = [];
+    const runtime = new MockRuntime([recorder('observer', log)], ctx, [{ id: 'not-a-statistic' }]);
 
     await expect(runtime.execute({ draftId: 'stats', meta })).resolves.toEqual({
       affectedRows: 3,
     });
 
-    expect(runtime.events).toEqual([
-      { stage: 'runBeforeCompile' },
-      { stage: 'lower' },
-      { stage: 'runExecute' },
-    ]);
-    expect(log).toEqual([
-      { stage: 'beforeExecute', operation: 'execute' },
-      {
-        stage: 'afterExecute',
-        operation: 'execute',
-        result: expect.objectContaining({
-          operation: 'execute',
-          completed: true,
-          source: 'driver',
-          stats: { affectedRows: 3 },
-        }),
-      },
-    ]);
+    expect(runtime.events).toEqual([{ stage: 'lower' }, { stage: 'runExecute' }]);
+    expect(log).toEqual([]);
   });
 
   it('subclasses can implement close() and it is invoked', async () => {
@@ -308,30 +279,7 @@ describe('RuntimeCore', () => {
       ]);
     });
 
-    it('exposes the execute signal by identity to every applicable middleware hook', async () => {
-      const controller = new AbortController();
-      const observed: AbortSignal[] = [];
-      const middleware: RuntimeMiddleware<MockExec> = {
-        name: 'signal-observer',
-        beforeExecute(_plan, hookCtx) {
-          if (hookCtx.signal) observed.push(hookCtx.signal);
-        },
-        async intercept(_plan, hookCtx) {
-          if (hookCtx.signal) observed.push(hookCtx.signal);
-          return undefined;
-        },
-        async afterExecute(_plan, _result, hookCtx) {
-          if (hookCtx.signal) observed.push(hookCtx.signal);
-        },
-      };
-      const runtime = new MockRuntime([middleware], ctx, []);
-
-      await runtime.execute({ draftId: 'execute-signal', meta }, { signal: controller.signal });
-
-      expect(observed).toEqual([controller.signal, controller.signal, controller.signal]);
-    });
-
-    it('omits signal when neither operation supplies one', async () => {
+    it('omits signal when a query supplies no options', async () => {
       const observed: boolean[] = [];
       const middleware: RuntimeMiddleware<MockExec> = {
         name: 'signal-observer',
@@ -342,9 +290,8 @@ describe('RuntimeCore', () => {
       const runtime = new MockRuntime([middleware], ctx, []);
 
       await runtime.query({ draftId: 'query-without-signal', meta }).toArray();
-      await runtime.execute({ draftId: 'execute-without-signal', meta });
 
-      expect(observed).toEqual([false, false]);
+      expect(observed).toEqual([false]);
     });
 
     it('aborts an in-flight query beforeExecute hook', async () => {
@@ -364,32 +311,6 @@ describe('RuntimeCore', () => {
 
       await entered.promise;
       controller.abort(new Error('query cancelled'));
-
-      await expect(pending).rejects.toMatchObject({
-        code: 'RUNTIME.ABORTED',
-        details: { phase: 'beforeExecute' },
-        cause: controller.signal.reason,
-      });
-    });
-
-    it('aborts an in-flight execute beforeExecute hook', async () => {
-      const controller = new AbortController();
-      const entered = deferred();
-      const middleware: RuntimeMiddleware<MockExec> = {
-        name: 'blocking-before-execute',
-        beforeExecute() {
-          entered.resolve();
-          return new Promise<void>(() => {});
-        },
-      };
-      const runtime = new MockRuntime([middleware], ctx, []);
-      const pending = runtime.execute(
-        { draftId: 'execute-abort', meta },
-        { signal: controller.signal },
-      );
-
-      await entered.promise;
-      controller.abort(new Error('execute cancelled'));
 
       await expect(pending).rejects.toMatchObject({
         code: 'RUNTIME.ABORTED',
@@ -431,22 +352,22 @@ describe('RuntimeCore', () => {
       expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
     });
 
-    it('assigns distinct planExecutionIds to query and execute calls of the same plan instance', async () => {
+    it('assigns distinct planExecutionIds to two queries of the same plan instance', async () => {
       const log: Observation[] = [];
       const runtime = new MockRuntime([observer(log)], ctx, [{ id: 1 }]);
       const plan: MockPlan = { draftId: 'shared-plan', meta };
 
       await runtime.query(plan).toArray();
-      await runtime.execute(plan);
+      await runtime.query(plan).toArray();
 
       expect(log).toHaveLength(4);
-      const queryId = log[0]?.planExecutionId;
-      const executeId = log[2]?.planExecutionId;
-      expect(queryId).toBeTypeOf('string');
-      expect(executeId).toBeTypeOf('string');
+      const firstQueryId = log[0]?.planExecutionId;
+      const secondQueryId = log[2]?.planExecutionId;
+      expect(firstQueryId).toBeTypeOf('string');
+      expect(secondQueryId).toBeTypeOf('string');
       expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
       expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
-      expect(queryId).not.toBe(executeId);
+      expect(firstQueryId).not.toBe(secondQueryId);
     });
   });
 });

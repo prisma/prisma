@@ -29,7 +29,6 @@ function makeCtx(overrides?: Partial<RuntimeMiddlewareContext>): RuntimeMiddlewa
     log: { info: () => {}, warn: () => {}, error: () => {} },
     contentHash: async () => 'mock-hash',
     scope: 'runtime',
-    operation: 'query',
     planExecutionId: 'test-fixture-plan-execution-id',
     ...overrides,
   };
@@ -51,14 +50,14 @@ describe('runWithMiddleware — intercept', () => {
         name: 'winner',
         async intercept() {
           interceptCalls.push('winner');
-          return { operation: 'query', rows: winnerRows };
+          return { rows: winnerRows };
         },
       };
       const loser: RuntimeMiddleware<MockExec> = {
         name: 'loser',
         async intercept() {
           interceptCalls.push('loser');
-          return { operation: 'query', rows: [{ id: 'should-not-appear' }] };
+          return { rows: [{ id: 'should-not-appear' }] };
         },
       };
 
@@ -93,7 +92,7 @@ describe('runWithMiddleware — intercept', () => {
         name: 'B',
         async intercept() {
           interceptCalls.push('B');
-          return { operation: 'query', rows: winnerRows };
+          return { rows: winnerRows };
         },
       };
 
@@ -130,7 +129,7 @@ describe('runWithMiddleware — intercept', () => {
         name: 'B',
         async intercept() {
           events.push('B:intercept');
-          return { operation: 'query', rows: [{ id: 1 }] };
+          return { rows: [{ id: 1 }] };
         },
         async afterExecute() {
           events.push('B:afterExecute');
@@ -166,7 +165,7 @@ describe('runWithMiddleware — intercept', () => {
         name: 'interceptor',
         async intercept() {
           events.push('intercept');
-          return { operation: 'query', rows: [{ id: 1 }, { id: 2 }, { id: 3 }] };
+          return { rows: [{ id: 1 }, { id: 2 }, { id: 3 }] };
         },
         async onRow() {
           events.push('onRow');
@@ -192,7 +191,6 @@ describe('runWithMiddleware — intercept', () => {
       expect(events).toEqual(['intercept', 'afterExecute']);
       expect(driverFactory).not.toHaveBeenCalled();
       expect(observedResult).toMatchObject({
-        operation: 'query',
         rowCount: 3,
         completed: true,
         source: 'middleware',
@@ -209,7 +207,7 @@ describe('runWithMiddleware — intercept', () => {
       const interceptor: RuntimeMiddleware<MockExec> = {
         name: 'cache',
         async intercept() {
-          return { operation: 'query', rows: [{ id: 1 }] };
+          return { rows: [{ id: 1 }] };
         },
       };
 
@@ -238,14 +236,13 @@ describe('runWithMiddleware — intercept', () => {
         log: { info: () => {}, warn: () => {}, error: () => {} },
         contentHash: async () => 'mock-hash',
         scope: 'runtime',
-        operation: 'query',
         planExecutionId: 'test-fixture-plan-execution-id',
       };
 
       const interceptor: RuntimeMiddleware<MockExec> = {
         name: 'cache',
         async intercept() {
-          return { operation: 'query', rows: [{ id: 1 }] };
+          return { rows: [{ id: 1 }] };
         },
       };
 
@@ -264,7 +261,7 @@ describe('runWithMiddleware — intercept', () => {
       const interceptor: RuntimeMiddleware<MockExec> = {
         name: 'array',
         async intercept(): Promise<InterceptResult> {
-          return { operation: 'query', rows: cached };
+          return { rows: cached };
         },
       };
 
@@ -287,7 +284,7 @@ describe('runWithMiddleware — intercept', () => {
       const interceptor: RuntimeMiddleware<MockExec> = {
         name: 'sync-gen',
         async intercept(): Promise<InterceptResult> {
-          return { operation: 'query', rows: syncGen() };
+          return { rows: syncGen() };
         },
       };
 
@@ -311,7 +308,7 @@ describe('runWithMiddleware — intercept', () => {
       const interceptor: RuntimeMiddleware<MockExec> = {
         name: 'async-gen',
         async intercept(): Promise<InterceptResult> {
-          return { operation: 'query', rows: asyncGen() };
+          return { rows: asyncGen() };
         },
       };
 
@@ -331,7 +328,7 @@ describe('runWithMiddleware — intercept', () => {
       const interceptor: RuntimeMiddleware<MockExec> = {
         name: 'counter',
         async intercept() {
-          return { operation: 'query', rows: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] };
+          return { rows: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }] };
         },
         async afterExecute(_plan, result) {
           observed = result;
@@ -346,7 +343,7 @@ describe('runWithMiddleware — intercept', () => {
       );
 
       await result.toArray();
-      expect(observed).toMatchObject({ operation: 'query', rowCount: 4 });
+      expect(observed?.rowCount).toBe(4);
     });
   });
 
@@ -496,7 +493,6 @@ describe('runWithMiddleware — intercept', () => {
       expect(events).toEqual(['intercept', 'afterExecute']);
       expect(driverFactory).not.toHaveBeenCalled();
       expect(observed).toMatchObject({
-        operation: 'query',
         completed: false,
         source: 'middleware',
         rowCount: 0,
@@ -515,7 +511,7 @@ describe('runWithMiddleware — intercept', () => {
       const interceptor: RuntimeMiddleware<MockExec> = {
         name: 'bad-rows',
         async intercept(): Promise<InterceptResult> {
-          return { operation: 'query', rows: badRows() };
+          return { rows: badRows() };
         },
         async afterExecute(_plan, result) {
           observed = result;
@@ -532,7 +528,6 @@ describe('runWithMiddleware — intercept', () => {
       await expect(result.toArray()).rejects.toBe(boom);
 
       expect(observed).toMatchObject({
-        operation: 'query',
         completed: false,
         source: 'middleware',
         rowCount: 1, // one row was yielded before the throw

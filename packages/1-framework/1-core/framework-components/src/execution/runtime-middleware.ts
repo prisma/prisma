@@ -10,9 +10,9 @@ export interface RuntimeLog {
 }
 
 /**
- * Per-operation context threaded through every middleware phase
+ * Per-query context threaded through every middleware phase
  * (`beforeExecute`, `onRow`, `afterExecute`). Allocated once per
- * runtime operation and shared by reference across all
+ * `runtime.query()` call and shared by reference across all
  * middleware in the chain.
  *
  * - `signal` carries the per-query `AbortSignal` -- the same
@@ -61,10 +61,11 @@ export interface RuntimeMiddlewareContext {
   /**
    * Identifies the queryable scope this execution is running under.
    *
-   * - `'runtime'` — top-level runtime query or statistics execution.
-   * - `'connection'` — an operation after
+   * - `'runtime'` — top-level `runtime.query(plan)`. The default scope
+   *   used by the standard read/write paths.
+   * - `'connection'` — `connection.query(plan)` after
    *   `runtime.connection()` checked out a connection from the pool.
-   * - `'transaction'` — an operation inside an explicit
+   * - `'transaction'` — `transaction.query(plan)` inside an explicit
    *   transaction, or a query routed through `withTransaction`.
    *
    * Middleware that should only act at the top level read this field to
@@ -78,63 +79,62 @@ export interface RuntimeMiddlewareContext {
    * scope. Existing middleware that ignore the field are unaffected.
    */
   readonly scope: 'runtime' | 'connection' | 'transaction';
-  /** The caller-selected semantic operation for this execution. */
-  readonly operation: 'query' | 'execute';
   /**
-   * Identity for one runtime operation call. The runtime mints a fresh value via
+   * Identity for one `query()` call. The runtime mints a fresh value via
    * `crypto.randomUUID()` when it constructs the per-execute context, and
    * the same context reference is threaded through every middleware phase
    * (`beforeExecute`, `intercept`, `onRow`, `afterExecute`). Every hook in
-   * one execute call therefore observes the same `planExecutionId`; two
-   * executions of the same plan observe distinct values. Use this to
+   * one query call therefore observes the same `planExecutionId`; two
+   * queries of the same plan observe distinct values. Use this to
    * correlate observations across the lifecycle of a single execute call
    * (tracing, timing, audit). See ADR 220.
    */
   readonly planExecutionId: string;
 }
 
-export interface RuntimeStatementStats {
-  readonly affectedRows: number;
-}
-
-interface AfterExecuteResultBase {
+export interface AfterExecuteResult {
+  readonly rowCount: number;
   readonly latencyMs: number;
+  readonly completed: boolean;
+  /**
+   * Indicates where the rows observed during this execution came from.
+   *
+   * - `'driver'` — the default. Rows came from the underlying driver via
+   *   `runDriver` / `runWithMiddleware`'s normal path.
+   * - `'middleware'` — a `RuntimeMiddleware.intercept` hook short-circuited
+   *   execution and supplied the rows directly. The driver was not invoked.
+   *
+   * Observers (telemetry, lints, budgets) that need to distinguish between
+   * driver-served and middleware-served executions read this field.
+   * Observers that don't care can ignore it.
+   */
   readonly source: 'driver' | 'middleware';
 }
 
-export interface QueryAfterExecuteResult extends AfterExecuteResultBase {
-  readonly operation: 'query';
-  readonly rowCount: number;
-  readonly completed: boolean;
-}
-
-export type StatementAfterExecuteResult = AfterExecuteResultBase &
-  (
-    | {
-        readonly operation: 'execute';
-        readonly completed: true;
-        readonly stats: RuntimeStatementStats;
-      }
-    | {
-        readonly operation: 'execute';
-        readonly completed: false;
-      }
-  );
-
-export type AfterExecuteResult = QueryAfterExecuteResult | StatementAfterExecuteResult;
-
-export interface QueryInterceptResult {
-  readonly operation: 'query';
+/**
+ * Result of a successful `RuntimeMiddleware.intercept` hook.
+ *
+ * Carries the rows that the middleware wishes to return in place of
+ * invoking the driver. The runtime iterates `rows` in order and yields
+ * each row to the consumer; `beforeExecute`, `runDriver`, and `onRow` are
+ * all skipped on the hit path. `afterExecute` still fires with
+ * `source: 'middleware'`.
+ *
+ * `rows` accepts both `Iterable` (arrays, sync generators) and
+ * `AsyncIterable` (async generators). `for await` natively handles both
+ * via `Symbol.asyncIterator` / `Symbol.iterator` fallback, so the
+ * orchestrator does not need to branch on the variant. Cached arrays in
+ * the cache middleware are the common case; streaming variants support
+ * future use cases like mock layers replaying recordings.
+ *
+ * Row shape is `Record<string, unknown>` — the same untyped shape
+ * `onRow` receives. The SQL runtime decodes intercepted rows through its
+ * normal codec pass, so interceptors cache and return raw (undecoded)
+ * rows.
+ */
+export interface InterceptResult {
   readonly rows: AsyncIterable<Record<string, unknown>> | Iterable<Record<string, unknown>>;
 }
-
-export interface StatementInterceptResult {
-  readonly operation: 'execute';
-  readonly stats: RuntimeStatementStats;
-}
-
-/** A middleware short-circuit result for exactly one caller-selected operation. */
-export type InterceptResult = QueryInterceptResult | StatementInterceptResult;
 
 /**
  * Marker interface for family-specific param-ref mutators threaded into
@@ -172,10 +172,14 @@ export interface RuntimeMiddleware<
   readonly familyId?: string;
   readonly targetId?: string;
   /**
-   * Optional short-circuit hook. Middleware run in registration order; the
-   * first to return a non-`undefined` result wins. The result's operation
-   * must match `ctx.operation`; mismatches fail instead of converting rows
-   * to statistics or discarding statistics.
+   * Optional short-circuit hook. Runs inside `runWithMiddleware`, after
+   * the orchestrator receives the lowered plan and before any
+   * `beforeExecute` hook fires. Middleware run in registration order; the
+   * first to return a non-`undefined` `InterceptResult` wins, and
+   * subsequent middleware's `intercept` does not fire.
+   *
+   * On a hit, `beforeExecute`, `runDriver`, and `onRow` are all skipped.
+   * `afterExecute` still fires with `source: 'middleware'`.
    *
    * Returning `undefined` (or omitting the hook entirely) signals
    * passthrough — execution proceeds through the normal driver path.
@@ -278,6 +282,10 @@ export interface RuntimeExecuteOptions {
  * The `_row` intersection on `query` connects the `Row` type parameter to the
  * plan, mirroring how `QueryPlan<Row>` carries a phantom `_row?: Row`.
  */
+export interface RuntimeStatementStats {
+  readonly affectedRows: number;
+}
+
 export interface RuntimeExecutor<TPlan extends QueryPlan> {
   query<Row>(
     plan: TPlan & { readonly _row?: Row },

@@ -7,7 +7,6 @@ import {
   type RuntimeExecuteOptions,
   type RuntimeStatementStats,
   runBeforeExecuteChain,
-  runExecuteWithMiddleware,
   runtimeError,
   runWithMiddleware,
 } from '@internal/framework-components/runtime';
@@ -130,9 +129,8 @@ class MongoRuntimeImpl
       // derive a scope-narrowed ctx per call (mirror
       // SqlRuntime#executeStatisticsAgainstQueryable in `sql-runtime.ts`).
       scope: 'runtime',
-      operation: 'query',
       // Placeholder satisfying the required field on the cross-family base. The
-      // stored ctx is a runtime-level template; each operation overrides
+      // stored ctx is a runtime-level template; each query overrides
       // `planExecutionId` with a fresh UUID. ADR 220.
       planExecutionId: '',
     };
@@ -167,10 +165,7 @@ class MongoRuntimeImpl
     return this.#readDriverStatistics(exec);
   }
 
-  private createOperationContexts(
-    options: RuntimeExecuteOptions | undefined,
-    operation: 'query' | 'execute',
-  ): {
+  private createQueryContexts(options: RuntimeExecuteOptions | undefined): {
     readonly codecCtx: CodecCallContext;
     readonly middlewareCtx: MongoMiddlewareContext;
   } {
@@ -179,7 +174,6 @@ class MongoRuntimeImpl
     const middlewareCtx: MongoMiddlewareContext = {
       ...this.ctx,
       ...ifDefined('signal', signal),
-      operation,
       planExecutionId: crypto.randomUUID(),
     };
     return { codecCtx, middlewareCtx };
@@ -222,7 +216,7 @@ class MongoRuntimeImpl
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
     const self = this;
-    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'query');
+    const { codecCtx, middlewareCtx } = this.createQueryContexts(options);
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
       const exec = await self.prepareExecution(plan, codecCtx, middlewareCtx);
       const stream = runWithMiddleware<MongoExecutionPlan, Record<string, unknown>>(
@@ -256,12 +250,12 @@ class MongoRuntimeImpl
     plan: MongoQueryPlan,
     options?: RuntimeExecuteOptions,
   ): Promise<RuntimeStatementStats> {
-    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'execute');
-    const exec = await this.prepareExecution(plan, codecCtx, middlewareCtx);
+    const signal = options?.signal;
+    const codecCtx: CodecCallContext = signal === undefined ? {} : { signal };
     checkAborted(codecCtx, 'stream');
-    return runExecuteWithMiddleware(exec, this.middleware, middlewareCtx, () =>
-      this.runExecute(exec),
-    );
+    const exec = await this.lower(plan, codecCtx);
+    checkAborted(codecCtx, 'stream');
+    return this.runExecute(exec);
   }
 
   async #readDriverStatistics(exec: MongoExecutionPlan): Promise<RuntimeStatementStats> {

@@ -23,9 +23,9 @@ import {
 } from './utils';
 
 /**
- * Pins ADR 220 semantics for the SQL runtime: every `query()`, `execute()`,
- * and `queryPrepared()` call mints a fresh `ctx.planExecutionId` for the
- * per-operation middleware context. Hooks within one call observe the same
+ * Pins ADR 220 semantics for the SQL runtime: every `query()` and
+ * `queryPrepared()` call mints a fresh `ctx.planExecutionId` for the
+ * per-query middleware context. Hooks within one call observe the same
  * ID; hooks across two calls of the same plan/prepared-statement observe
  * distinct IDs.
  */
@@ -150,20 +150,6 @@ describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
     expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
     // Across two queries: distinct IDs.
     expect(firstExecId).not.toBe(secondExecId);
-  });
-
-  it('assigns distinct planExecutionIds to query and execute calls', async () => {
-    const log: Observation[] = [];
-    const { runtime } = createSetup([observerMiddleware(log)]);
-    const plan = buildSelectAllUsersPlan();
-
-    await runtime.query(plan).toArray();
-    await runtime.execute(plan);
-
-    expect(log).toHaveLength(4);
-    expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
-    expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
-    expect(log[0]?.planExecutionId).not.toBe(log[2]?.planExecutionId);
   });
 });
 

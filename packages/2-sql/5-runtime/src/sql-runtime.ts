@@ -8,7 +8,6 @@ import {
   type RuntimeLog,
   type RuntimeMiddlewareContext,
   runBeforeExecuteChain,
-  runExecuteWithMiddleware,
   runtimeError,
   runWithMiddleware,
 } from '@internal/framework-components/runtime';
@@ -182,10 +181,9 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       // ctx is only invoked by runWithMiddleware with execs this runtime lowered; the framework parameter type is the cross-family base.
       contentHash: (exec) => computeSqlContentHash(exec as SqlExecutionPlan),
       scope: 'runtime',
-      operation: 'query',
       // Placeholder satisfying the required field on the cross-family base. The
-      // stored ctx is a runtime-level template; `createOperationContexts`
-      // spreads it and overrides `planExecutionId` with a fresh UUID. ADR 220.
+      // stored ctx is a runtime-level template; `createQueryContexts` spreads it
+      // and overrides `planExecutionId` with a fresh UUID. ADR 220.
       planExecutionId: '',
     };
 
@@ -392,10 +390,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     }
   }
 
-  private createOperationContexts(
-    options: RuntimeExecuteOptions | undefined,
-    operation: 'query' | 'execute',
-  ): {
+  private createQueryContexts(options: RuntimeExecuteOptions | undefined): {
     readonly codecCtx: SqlCodecCallContext;
     readonly middlewareCtx: SqlMiddlewareContext;
   } {
@@ -406,7 +401,6 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       ...this.sqlCtx,
       ...ifDefined('signal', signal),
       ...(scope !== 'runtime' ? { scope } : {}),
-      operation,
       planExecutionId: crypto.randomUUID(),
     };
     return { codecCtx, middlewareCtx };
@@ -453,6 +447,22 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     return this.encodeDraftParams(draftWithMutations, codecCtx);
   }
 
+  private async prepareStatisticsExecution(
+    plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+    codecCtx: SqlCodecCallContext,
+  ): Promise<SqlExecutionPlan> {
+    checkAborted(codecCtx, 'stream');
+
+    if (isExecutionPlan(plan)) {
+      return Object.freeze({
+        ...plan,
+        params: await encodeParams(plan, codecCtx, this.contractCodecs),
+      });
+    }
+
+    return this.encodeDraftParams(this.lowerToDraft(plan), codecCtx);
+  }
+
   /** Query rows against a caller-supplied queryable through the shared preparation pipeline. */
   protected queryAgainstQueryable<Row>(
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
@@ -462,7 +472,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     this.ensureCodecRegistryValidated();
 
     const self = this;
-    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'query');
+    const { codecCtx, middlewareCtx } = this.createQueryContexts(options);
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
       const exec = await self.prepareExecution(plan, codecCtx, middlewareCtx);
       const decodeContext = buildDecodeContext(exec.ast, self.contractCodecs);
@@ -486,17 +496,16 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   ): Promise<SqlStatementStats> {
     this.ensureCodecRegistryValidated();
 
-    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'execute');
-    const exec = await this.prepareExecution(plan, codecCtx, middlewareCtx);
+    const signal = options?.signal;
+    const codecCtx: SqlCodecCallContext = signal === undefined ? {} : { signal };
+    const exec = await this.prepareStatisticsExecution(plan, codecCtx);
     await this.setupDriverExecution(exec);
     checkAborted(codecCtx, 'stream');
 
     const startedAt = Date.now();
     let outcome: TelemetryOutcome = 'success';
     try {
-      return await runExecuteWithMiddleware(exec, this.middleware, middlewareCtx, () =>
-        queryable.execute({ sql: exec.sql, params: exec.params }),
-      );
+      return await queryable.execute({ sql: exec.sql, params: exec.params });
     } catch (error) {
       outcome = 'runtime-error';
       throw error;
@@ -561,10 +570,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     this.ensureCodecRegistryValidated();
 
     const self = this;
-    const { codecCtx, middlewareCtx: execMiddlewareCtx } = this.createOperationContexts(
-      options,
-      'query',
-    );
+    const { codecCtx, middlewareCtx: execMiddlewareCtx } = this.createQueryContexts(options);
 
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
       checkAborted(codecCtx, 'stream');

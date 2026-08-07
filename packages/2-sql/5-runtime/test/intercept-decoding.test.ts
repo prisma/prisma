@@ -208,7 +208,7 @@ describe('intercepted rows go through codec decoding', () => {
       familyId: 'sql',
       async intercept() {
         // Raw wire row, as the driver would have produced it: a string containing JSON-encoded data.
-        return { operation: 'query', rows: [{ profile: wireValue }] };
+        return { rows: [{ profile: wireValue }] };
       },
     };
 
@@ -228,7 +228,6 @@ describe('intercepted rows go through codec decoding', () => {
       familyId: 'sql',
       async intercept() {
         return {
-          operation: 'query',
           rows: [
             { profile: JSON.stringify({ id: 1 }) },
             { profile: JSON.stringify({ id: 2 }) },
@@ -257,7 +256,7 @@ describe('intercepted rows go through codec decoding', () => {
       name: 'mock-cache',
       familyId: 'sql',
       async intercept() {
-        return { operation: 'query', rows: asyncRows() };
+        return { rows: asyncRows() };
       },
     };
 
@@ -299,7 +298,7 @@ describe('intercepted rows go through codec decoding', () => {
         name: 'mock-cache',
         familyId: 'sql',
         async intercept() {
-          return { operation: 'query', rows: [{ profile: wireValue }] };
+          return { rows: [{ profile: wireValue }] };
         },
       };
 
