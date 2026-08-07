@@ -82,7 +82,7 @@ Integer representation authoring surface:
 - Bare `BigIntNumber` (PostgreSQL and SQLite) opts an `int8`/INTEGER column into JS `number` reads and writes. Both directions throw structured errors outside ±(2^53 − 1) or on non-integral values: `RUNTIME.ENCODE_FAILED` on write, `RUNTIME.DECODE_FAILED` on read.
 - Bare `UnboundedInt` (PostgreSQL only) reads and writes an unconstrained `numeric` as a JS `bigint`, exact at any magnitude; decode rejects non-integral values. SQLite declares no equivalent because it has no lossless unbounded integer storage.
 - These are ordinary target-scoped types rather than field presets, so ordinary scalar modifiers apply subject to the target's capabilities.
-- Canonical JSON forms and the safe-range soundness argument: [codec authoring guide § The integer representation types](../../../../docs/reference/codec-authoring-guide.md#the-integer-representation-types).
+- Selection guidance, canonical JSON forms, the safe-range soundness argument, and aggregate behavior: [Integer representation types](../../../../docs/reference/integer-representation-types.md).
 
 `@@index` parameter surface:
 
