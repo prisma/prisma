@@ -1,18 +1,13 @@
 import { AsyncIterableResult } from './async-iterable-result';
 import type { ExecutionPlan } from './query-plan';
-import { runtimeError } from './runtime-error';
 import type {
+  AfterQueryResult,
   RuntimeMiddleware,
   RuntimeMiddlewareContext,
   RuntimeStatementStats,
 } from './runtime-middleware';
 
-/**
- * Runs the middleware intercept, row-source, on-row, and completion lifecycle
- * for a caller-selected query operation. `beforeExecute` remains owned by the
- * family runtime because SQL must run it before parameter encoding.
- */
-export function runWithMiddleware<TExec extends ExecutionPlan, Row>(
+export function runQueryWithMiddleware<TExec extends ExecutionPlan, Row>(
   exec: TExec,
   middleware: ReadonlyArray<RuntimeMiddleware<TExec>>,
   ctx: RuntimeMiddlewareContext,
@@ -27,17 +22,14 @@ export function runWithMiddleware<TExec extends ExecutionPlan, Row>(
 
     try {
       for (const mw of middleware) {
-        if (!mw.intercept) continue;
+        if (!mw.interceptQuery) continue;
         source = 'middleware';
-        const result = await mw.intercept(exec, ctx);
+        const result = await mw.interceptQuery(exec, ctx);
         if (result === undefined) {
           source = 'driver';
           continue;
         }
-        if (result.operation !== 'query') {
-          throw middlewareResultMismatch('query', result.operation);
-        }
-        ctx.log.debug?.({ event: 'middleware.intercept', middleware: mw.name });
+        ctx.log.debug?.({ event: 'middleware.interceptQuery', middleware: mw.name });
         rowSource = result.rows as unknown as AsyncIterable<Row> | Iterable<Row>;
         break;
       }
@@ -80,7 +72,6 @@ export function runWithMiddleware<TExec extends ExecutionPlan, Row>(
   return new AsyncIterableResult(iterator());
 }
 
-/** Runs the same intercept and completion lifecycle for statement statistics. */
 export async function runExecuteWithMiddleware<TExec extends ExecutionPlan>(
   exec: TExec,
   middleware: ReadonlyArray<RuntimeMiddleware<TExec>>,
@@ -89,40 +80,33 @@ export async function runExecuteWithMiddleware<TExec extends ExecutionPlan>(
 ): Promise<RuntimeStatementStats> {
   const startedAt = Date.now();
   let source: 'driver' | 'middleware' = 'driver';
-  let stats: RuntimeStatementStats;
+  let stats: RuntimeStatementStats | undefined;
 
   try {
-    let interceptedStats: RuntimeStatementStats | undefined;
     for (const mw of middleware) {
-      if (!mw.intercept) continue;
+      if (!mw.interceptExecute) continue;
       source = 'middleware';
-      const result = await mw.intercept(exec, ctx);
+      const result = await mw.interceptExecute(exec, ctx);
       if (result === undefined) {
         source = 'driver';
         continue;
       }
-      if (result.operation !== 'execute') {
-        throw middlewareResultMismatch('execute', result.operation);
-      }
-      ctx.log.debug?.({ event: 'middleware.intercept', middleware: mw.name });
-      interceptedStats = result.stats;
+      ctx.log.debug?.({ event: 'middleware.interceptExecute', middleware: mw.name });
+      stats = result.stats;
       break;
     }
 
-    stats = source === 'driver' ? await runDriver() : requireStats(interceptedStats);
+    if (stats === undefined) {
+      stats = await runDriver();
+    }
   } catch (error) {
     const latencyMs = Date.now() - startedAt;
     for (const mw of middleware) {
-      if (mw.afterExecute) {
-        try {
-          await mw.afterExecute(
-            exec,
-            { operation: 'execute', latencyMs, completed: false, source },
-            ctx,
-          );
-        } catch {
-          // Preserve the execution error when cleanup observers also fail.
-        }
+      if (!mw.afterExecute) continue;
+      try {
+        await mw.afterExecute(exec, { latencyMs, completed: false, source }, ctx);
+      } catch {
+        // Preserve the operation error when completion observers also fail.
       }
     }
     throw error;
@@ -131,11 +115,7 @@ export async function runExecuteWithMiddleware<TExec extends ExecutionPlan>(
   const latencyMs = Date.now() - startedAt;
   for (const mw of middleware) {
     if (mw.afterExecute) {
-      await mw.afterExecute(
-        exec,
-        { operation: 'execute', stats, latencyMs, completed: true, source },
-        ctx,
-      );
+      await mw.afterExecute(exec, { stats, latencyMs, completed: true, source }, ctx);
     }
   }
   return stats;
@@ -145,44 +125,19 @@ async function notifyQueryCompletion<TExec extends ExecutionPlan>(
   middleware: ReadonlyArray<RuntimeMiddleware<TExec>>,
   exec: TExec,
   ctx: RuntimeMiddlewareContext,
-  result: {
-    readonly rowCount: number;
-    readonly latencyMs: number;
-    readonly completed: boolean;
-    readonly source: 'driver' | 'middleware';
-  },
+  result: AfterQueryResult,
   swallowErrors: boolean,
 ): Promise<void> {
   for (const mw of middleware) {
-    if (!mw.afterExecute) continue;
+    if (!mw.afterQuery) continue;
     if (swallowErrors) {
       try {
-        await mw.afterExecute(exec, { operation: 'query', ...result }, ctx);
+        await mw.afterQuery(exec, result, ctx);
       } catch {
-        // Preserve the query error when cleanup observers also fail.
+        // Preserve the operation error when completion observers also fail.
       }
     } else {
-      await mw.afterExecute(exec, { operation: 'query', ...result }, ctx);
+      await mw.afterQuery(exec, result, ctx);
     }
   }
-}
-
-function requireStats(stats: RuntimeStatementStats | undefined): RuntimeStatementStats {
-  if (stats !== undefined) return stats;
-  throw runtimeError(
-    'RUNTIME.EXECUTION_RESULT_MISSING',
-    'Statistics execution completed without statement statistics',
-    {},
-  );
-}
-
-function middlewareResultMismatch(
-  expected: 'query' | 'execute',
-  received: 'query' | 'execute',
-): Error {
-  return runtimeError(
-    'RUNTIME.MIDDLEWARE_RESULT_MISMATCH',
-    `Middleware returned a ${received} result for a ${expected} operation`,
-    { expected, received },
-  );
 }

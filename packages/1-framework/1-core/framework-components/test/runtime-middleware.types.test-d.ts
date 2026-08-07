@@ -2,7 +2,7 @@ import type { PlanMeta } from '@internal/contract/types';
 import { assertType, expectTypeOf, test } from 'vitest';
 import type { ExecutionPlan, QueryPlan } from '../src/execution/query-plan';
 import type {
-  InterceptResult,
+  QueryInterceptResult,
   RuntimeExecutor,
   RuntimeMiddleware,
   RuntimeMiddlewareContext,
@@ -45,14 +45,14 @@ test('type without meta does not satisfy plan constraint', () => {
 test('RuntimeMiddleware default plan parameter sees only QueryPlan fields', () => {
   const middleware: RuntimeMiddleware = {
     name: 'test',
-    async beforeExecute(plan) {
+    async beforeQuery(plan) {
       assertType<PlanMeta>(plan.meta);
     },
     async onRow(row, plan) {
       assertType<Record<string, unknown>>(row);
       assertType<PlanMeta>(plan.meta);
     },
-    async afterExecute(plan, result) {
+    async afterQuery(plan, result) {
       assertType<PlanMeta>(plan.meta);
       assertType<number>(result.latencyMs);
       assertType<boolean>(result.completed);
@@ -67,39 +67,41 @@ test('RuntimeMiddleware default plan parameter sees only QueryPlan fields', () =
   void middleware;
 });
 
-test('RuntimeMiddleware.intercept is optional', () => {
-  // No `intercept` field — perfectly valid.
+test('RuntimeMiddleware.interceptQuery is optional', () => {
+  // No `interceptQuery` field — perfectly valid.
   const observer: RuntimeMiddleware = {
     name: 'observer',
-    async beforeExecute() {},
+    async beforeQuery() {},
   };
   void observer;
 });
 
-test('RuntimeMiddleware.intercept receives the plan and context, returns Promise<InterceptResult | undefined>', () => {
-  const interceptor: RuntimeMiddleware = {
-    name: 'interceptor',
-    async intercept(plan, ctx) {
+test('RuntimeMiddleware.interceptQuery receives the plan and context, returns Promise<QueryInterceptResult | undefined>', () => {
+  const interceptQueryor: RuntimeMiddleware = {
+    name: 'interceptQueryor',
+    async interceptQuery(plan, ctx) {
       assertType<PlanMeta>(plan.meta);
       assertType<RuntimeMiddlewareContext>(ctx);
       return undefined;
     },
   };
-  void interceptor;
+  void interceptQueryor;
 
-  // The hook's return type is exactly `Promise<InterceptResult | undefined>`.
-  type InterceptHook = NonNullable<RuntimeMiddleware['intercept']>;
-  expectTypeOf<ReturnType<InterceptHook>>().toEqualTypeOf<Promise<InterceptResult | undefined>>();
+  // The hook's return type is exactly `Promise<QueryInterceptResult | undefined>`.
+  type InterceptHook = NonNullable<RuntimeMiddleware['interceptQuery']>;
+  expectTypeOf<ReturnType<InterceptHook>>().toEqualTypeOf<
+    Promise<QueryInterceptResult | undefined>
+  >();
 });
 
-test('RuntimeMiddleware.intercept narrows the plan parameter alongside other hooks', () => {
+test('RuntimeMiddleware.interceptQuery narrows the plan parameter alongside other hooks', () => {
   interface SqlExec extends ExecutionPlan {
     readonly sql: string;
     readonly params: readonly unknown[];
   }
   const middleware: RuntimeMiddleware<SqlExec> = {
-    name: 'sql-interceptor',
-    async intercept(plan) {
+    name: 'sql-interceptQueryor',
+    async interceptQuery(plan) {
       assertType<string>(plan.sql);
       assertType<readonly unknown[]>(plan.params);
       return undefined;
@@ -108,9 +110,9 @@ test('RuntimeMiddleware.intercept narrows the plan parameter alongside other hoo
   void middleware;
 });
 
-test('InterceptResult.rows accepts Iterable, AsyncIterable, and arrays', () => {
+test('QueryInterceptResult.rows accepts Iterable, AsyncIterable, and arrays', () => {
   // Array (which is also Iterable) — common case for cached rows.
-  const fromArray: InterceptResult = {
+  const fromArray: QueryInterceptResult = {
     operation: 'query',
     rows: [{ id: 1 }, { id: 2 }],
   };
@@ -120,7 +122,7 @@ test('InterceptResult.rows accepts Iterable, AsyncIterable, and arrays', () => {
   function* syncGen(): Generator<Record<string, unknown>, void, unknown> {
     yield { id: 1 };
   }
-  const fromSyncGen: InterceptResult = {
+  const fromSyncGen: QueryInterceptResult = {
     operation: 'query',
     rows: syncGen(),
   };
@@ -130,16 +132,16 @@ test('InterceptResult.rows accepts Iterable, AsyncIterable, and arrays', () => {
   async function* asyncGen(): AsyncGenerator<Record<string, unknown>, void, unknown> {
     yield { id: 1 };
   }
-  const fromAsyncGen: InterceptResult = {
+  const fromAsyncGen: QueryInterceptResult = {
     operation: 'query',
     rows: asyncGen(),
   };
   void fromAsyncGen;
 });
 
-test('InterceptResult rejects rows whose elements are not Record<string, unknown>', () => {
+test('QueryInterceptResult rejects rows whose elements are not Record<string, unknown>', () => {
   // @ts-expect-error - row elements must be Record<string, unknown>
-  const _bad: InterceptResult = { operation: 'query', rows: [1, 2, 3] };
+  const _bad: QueryInterceptResult = { operation: 'query', rows: [1, 2, 3] };
 });
 
 test('InterceptResult requires exactly one operation result shape', () => {
@@ -164,7 +166,7 @@ test('RuntimeMiddleware narrowed to a SQL plan sees the SQL fields', () => {
   }
   const middleware: RuntimeMiddleware<SqlExec> = {
     name: 'sql-test',
-    async beforeExecute(plan) {
+    async beforeQuery(plan) {
       assertType<string>(plan.sql);
       assertType<readonly unknown[]>(plan.params);
     },

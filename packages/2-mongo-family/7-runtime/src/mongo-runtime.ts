@@ -5,11 +5,13 @@ import {
   checkMiddlewareCompatibility,
   RuntimeCore,
   type RuntimeExecuteOptions,
+  type RuntimeMiddlewareContext,
   type RuntimeStatementStats,
   runBeforeExecuteChain,
+  runBeforeQueryChain,
   runExecuteWithMiddleware,
+  runQueryWithMiddleware,
   runtimeError,
-  runWithMiddleware,
 } from '@internal/framework-components/runtime';
 import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
 import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
@@ -118,21 +120,21 @@ class MongoRuntimeImpl
       mode: options.mode ?? 'strict',
       now: () => Date.now(),
       log: { info: noop, warn: noop, error: noop },
-      // ctx is only invoked by runWithMiddleware with execs this runtime lowered;
+      // ctx is only invoked by operation-specific middleware runner with execs this runtime lowered;
       // the framework parameter type is the cross-family base.
       contentHash: (exec) =>
         computeMongoContentHash(
-          blindCast<MongoExecutionPlan, 'runWithMiddleware passes execs this runtime lowered'>(
-            exec,
-          ),
+          blindCast<
+            MongoExecutionPlan,
+            'operation-specific middleware runner passes execs this runtime lowered'
+          >(exec),
         ),
       // When MongoRuntimeImpl grows connection()/transaction() surfaces,
       // derive a scope-narrowed ctx per call (mirror
       // SqlRuntime#executeStatisticsAgainstQueryable in `sql-runtime.ts`).
       scope: 'runtime',
-      operation: 'query',
       // Placeholder satisfying the required field on the cross-family base. The
-      // stored ctx is a runtime-level template; each operation overrides
+      // stored ctx is a runtime-level template; each query overrides
       // `planExecutionId` with a fresh UUID. ADR 220.
       planExecutionId: '',
     };
@@ -167,10 +169,7 @@ class MongoRuntimeImpl
     return this.#readDriverStatistics(exec);
   }
 
-  private createOperationContexts(
-    options: RuntimeExecuteOptions | undefined,
-    operation: 'query' | 'execute',
-  ): {
+  private createQueryContexts(options: RuntimeExecuteOptions | undefined): {
     readonly codecCtx: CodecCallContext;
     readonly middlewareCtx: MongoMiddlewareContext;
   } {
@@ -179,16 +178,37 @@ class MongoRuntimeImpl
     const middlewareCtx: MongoMiddlewareContext = {
       ...this.ctx,
       ...ifDefined('signal', signal),
-      operation,
       planExecutionId: crypto.randomUUID(),
     };
     return { codecCtx, middlewareCtx };
   }
 
-  private async prepareExecution(
+  private prepareQueryExecution(
     plan: MongoQueryPlan,
     codecCtx: CodecCallContext,
     middlewareCtx: MongoMiddlewareContext,
+  ): Promise<MongoExecutionPlan> {
+    return this.prepareOperation(plan, codecCtx, middlewareCtx, runBeforeQueryChain);
+  }
+
+  private prepareExecuteExecution(
+    plan: MongoQueryPlan,
+    codecCtx: CodecCallContext,
+    middlewareCtx: MongoMiddlewareContext,
+  ): Promise<MongoExecutionPlan> {
+    return this.prepareOperation(plan, codecCtx, middlewareCtx, runBeforeExecuteChain);
+  }
+
+  private async prepareOperation(
+    plan: MongoQueryPlan,
+    codecCtx: CodecCallContext,
+    middlewareCtx: MongoMiddlewareContext,
+    runBefore: (
+      plan: MongoExecutionPlan,
+      middleware: ReadonlyArray<MongoMiddleware>,
+      ctx: RuntimeMiddlewareContext,
+      mutator: MongoParamRefMutator,
+    ) => Promise<void>,
   ): Promise<MongoExecutionPlan> {
     checkAborted(codecCtx, 'stream');
     const compiled = await this.runBeforeCompile(plan);
@@ -199,16 +219,11 @@ class MongoRuntimeImpl
       ...ifDefined('resultShape', compiled.resultShape),
       command: blindCast<
         MongoExecutionPlan['command'],
-        'MongoLoweredDraft held in command slot for the beforeExecute view; resolveParams runs after the chain'
+        'MongoLoweredDraft held in command slot before parameter resolution'
       >(draft),
     };
 
-    await runBeforeExecuteChain<MongoExecutionPlan, MongoParamRefMutator>(
-      draftExec,
-      this.middleware,
-      middlewareCtx,
-      mutator,
-    );
+    await runBefore(draftExec, this.middleware, middlewareCtx, mutator);
 
     return {
       meta: compiled.meta,
@@ -222,10 +237,10 @@ class MongoRuntimeImpl
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
     const self = this;
-    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'query');
+    const { codecCtx, middlewareCtx } = this.createQueryContexts(options);
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-      const exec = await self.prepareExecution(plan, codecCtx, middlewareCtx);
-      const stream = runWithMiddleware<MongoExecutionPlan, Record<string, unknown>>(
+      const exec = await self.prepareQueryExecution(plan, codecCtx, middlewareCtx);
+      const stream = runQueryWithMiddleware<MongoExecutionPlan, Record<string, unknown>>(
         exec,
         self.middleware,
         middlewareCtx,
@@ -256,8 +271,8 @@ class MongoRuntimeImpl
     plan: MongoQueryPlan,
     options?: RuntimeExecuteOptions,
   ): Promise<RuntimeStatementStats> {
-    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'execute');
-    const exec = await this.prepareExecution(plan, codecCtx, middlewareCtx);
+    const { codecCtx, middlewareCtx } = this.createQueryContexts(options);
+    const exec = await this.prepareExecuteExecution(plan, codecCtx, middlewareCtx);
     checkAborted(codecCtx, 'stream');
     return runExecuteWithMiddleware(exec, this.middleware, middlewareCtx, () =>
       this.runExecute(exec),

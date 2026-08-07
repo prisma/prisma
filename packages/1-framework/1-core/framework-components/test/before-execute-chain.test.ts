@@ -1,6 +1,6 @@
 import type { PlanMeta } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
-import { runBeforeExecuteChain } from '../src/execution/before-execute-chain';
+import { runBeforeQueryChain } from '../src/execution/before-execute-chain';
 import type { ExecutionPlan } from '../src/execution/query-plan';
 import type {
   ParamRefMutator,
@@ -34,9 +34,9 @@ function makeCtx(overrides?: Partial<RuntimeMiddlewareContext>): RuntimeMiddlewa
   };
 }
 
-describe('runBeforeExecuteChain', () => {
+describe('runBeforeQueryChain', () => {
   it('zero middleware resolves immediately', async () => {
-    await expect(runBeforeExecuteChain(mockExec, [], makeCtx())).resolves.toBeUndefined();
+    await expect(runBeforeQueryChain(mockExec, [], makeCtx())).resolves.toBeUndefined();
   });
 
   it('single middleware fires with (plan, ctx, mutator)', async () => {
@@ -50,12 +50,12 @@ describe('runBeforeExecuteChain', () => {
 
     const mw: RuntimeMiddleware<MockExec> = {
       name: 'observer',
-      async beforeExecute(plan, mwCtx, params) {
+      async beforeQuery(plan, mwCtx, params) {
         events.push({ plan, ctx: mwCtx, mutator: params });
       },
     };
 
-    await runBeforeExecuteChain<MockExec>(mockExec, [mw], ctx, mutator);
+    await runBeforeQueryChain<MockExec>(mockExec, [mw], ctx, mutator);
 
     expect(events).toHaveLength(1);
     expect(events[0]?.plan).toBe(mockExec);
@@ -69,48 +69,48 @@ describe('runBeforeExecuteChain', () => {
     function mw(label: string): RuntimeMiddleware<MockExec> {
       return {
         name: label,
-        async beforeExecute() {
+        async beforeQuery() {
           events.push(label);
         },
       };
     }
 
-    await runBeforeExecuteChain<MockExec>(mockExec, [mw('A'), mw('B'), mw('C')], makeCtx());
+    await runBeforeQueryChain<MockExec>(mockExec, [mw('A'), mw('B'), mw('C')], makeCtx());
 
     expect(events).toEqual(['A', 'B', 'C']);
   });
 
-  it('skips middleware without a beforeExecute hook', async () => {
+  it('skips middleware without a beforeQuery hook', async () => {
     const events: string[] = [];
 
     const a: RuntimeMiddleware<MockExec> = {
       name: 'A',
-      async afterExecute() {
-        events.push('A:afterExecute');
+      async afterQuery() {
+        events.push('A:afterQuery');
       },
     };
     const b: RuntimeMiddleware<MockExec> = {
       name: 'B',
-      async beforeExecute() {
-        events.push('B:beforeExecute');
+      async beforeQuery() {
+        events.push('B:beforeQuery');
       },
     };
 
-    await runBeforeExecuteChain<MockExec>(mockExec, [a, b], makeCtx());
+    await runBeforeQueryChain<MockExec>(mockExec, [a, b], makeCtx());
 
-    expect(events).toEqual(['B:beforeExecute']);
+    expect(events).toEqual(['B:beforeQuery']);
   });
 
   it('propagates errors thrown by a middleware body', async () => {
-    const boom = new Error('beforeExecute boom');
+    const boom = new Error('beforeQuery boom');
     const mw: RuntimeMiddleware<MockExec> = {
       name: 'noisy',
-      async beforeExecute() {
+      async beforeQuery() {
         throw boom;
       },
     };
 
-    await expect(runBeforeExecuteChain<MockExec>(mockExec, [mw], makeCtx())).rejects.toBe(boom);
+    await expect(runBeforeQueryChain<MockExec>(mockExec, [mw], makeCtx())).rejects.toBe(boom);
   });
 
   it('short-circuits with RUNTIME.ABORTED when ctx.signal is already aborted at entry', async () => {
@@ -120,13 +120,13 @@ describe('runBeforeExecuteChain', () => {
     const events: string[] = [];
     const mw: RuntimeMiddleware<MockExec> = {
       name: 'observer',
-      async beforeExecute() {
-        events.push('beforeExecute');
+      async beforeQuery() {
+        events.push('beforeQuery');
       },
     };
 
     await expect(
-      runBeforeExecuteChain<MockExec>(mockExec, [mw], makeCtx({ signal: controller.signal })),
+      runBeforeQueryChain<MockExec>(mockExec, [mw], makeCtx({ signal: controller.signal })),
     ).rejects.toMatchObject({
       name: 'RuntimeError',
       code: 'RUNTIME.ABORTED',
@@ -140,13 +140,13 @@ describe('runBeforeExecuteChain', () => {
 
     const mw: RuntimeMiddleware<MockExec> = {
       name: 'slow',
-      async beforeExecute() {
+      async beforeQuery() {
         // Body ignores the signal and never resolves.
         await new Promise(() => {});
       },
     };
 
-    const pending = runBeforeExecuteChain<MockExec>(mockExec, [mw], ctx);
+    const pending = runBeforeQueryChain<MockExec>(mockExec, [mw], ctx);
     queueMicrotask(() => controller.abort());
 
     await expect(pending).rejects.toMatchObject({
@@ -162,13 +162,13 @@ describe('runBeforeExecuteChain', () => {
     function mw(label: string): RuntimeMiddleware<MockExec> {
       return {
         name: label,
-        async beforeExecute(_plan, _ctx, params) {
+        async beforeQuery(_plan, _ctx, params) {
           if (params) observed.push(params);
         },
       };
     }
 
-    await runBeforeExecuteChain<MockExec>(mockExec, [mw('A'), mw('B')], makeCtx(), mutator);
+    await runBeforeQueryChain<MockExec>(mockExec, [mw('A'), mw('B')], makeCtx(), mutator);
 
     expect(observed).toHaveLength(2);
     expect(observed[0]).toBe(mutator);

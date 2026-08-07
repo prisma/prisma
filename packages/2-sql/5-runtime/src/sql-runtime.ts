@@ -8,9 +8,10 @@ import {
   type RuntimeLog,
   type RuntimeMiddlewareContext,
   runBeforeExecuteChain,
+  runBeforeQueryChain,
   runExecuteWithMiddleware,
+  runQueryWithMiddleware,
   runtimeError,
-  runWithMiddleware,
 } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type {
@@ -179,13 +180,12 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       mode: mode ?? 'strict',
       now: () => Date.now(),
       log: log ?? noopLog,
-      // ctx is only invoked by runWithMiddleware with execs this runtime lowered; the framework parameter type is the cross-family base.
+      // ctx is only invoked by operation-specific middleware runner with execs this runtime lowered; the framework parameter type is the cross-family base.
       contentHash: (exec) => computeSqlContentHash(exec as SqlExecutionPlan),
       scope: 'runtime',
-      operation: 'query',
       // Placeholder satisfying the required field on the cross-family base. The
-      // stored ctx is a runtime-level template; `createOperationContexts`
-      // spreads it and overrides `planExecutionId` with a fresh UUID. ADR 220.
+      // stored ctx is a runtime-level template; `createQueryContexts` spreads it
+      // and overrides `planExecutionId` with a fresh UUID. ADR 220.
       planExecutionId: '',
     };
 
@@ -351,7 +351,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     let outcome: TelemetryOutcome | null = null;
 
     try {
-      const stream = runWithMiddleware<SqlExecutionPlan, Record<string, unknown>>(
+      const stream = runQueryWithMiddleware<SqlExecutionPlan, Record<string, unknown>>(
         exec,
         this.middleware,
         execMiddlewareCtx,
@@ -392,10 +392,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     }
   }
 
-  private createOperationContexts(
-    options: RuntimeExecuteOptions | undefined,
-    operation: 'query' | 'execute',
-  ): {
+  private createQueryContexts(options: RuntimeExecuteOptions | undefined): {
     readonly codecCtx: SqlCodecCallContext;
     readonly middlewareCtx: SqlMiddlewareContext;
   } {
@@ -406,27 +403,43 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       ...this.sqlCtx,
       ...ifDefined('signal', signal),
       ...(scope !== 'runtime' ? { scope } : {}),
-      operation,
       planExecutionId: crypto.randomUUID(),
     };
     return { codecCtx, middlewareCtx };
   }
 
-  private async prepareExecution(
+  private prepareQueryExecution(
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
     codecCtx: SqlCodecCallContext,
     middlewareCtx: SqlMiddlewareContext,
+  ): Promise<SqlExecutionPlan> {
+    return this.prepareOperation(plan, codecCtx, middlewareCtx, runBeforeQueryChain);
+  }
+
+  private prepareExecuteExecution(
+    plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+    codecCtx: SqlCodecCallContext,
+    middlewareCtx: SqlMiddlewareContext,
+  ): Promise<SqlExecutionPlan> {
+    return this.prepareOperation(plan, codecCtx, middlewareCtx, runBeforeExecuteChain);
+  }
+
+  private async prepareOperation(
+    plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+    codecCtx: SqlCodecCallContext,
+    middlewareCtx: SqlMiddlewareContext,
+    runBefore: (
+      plan: SqlExecutionPlan,
+      middleware: ReadonlyArray<SqlMiddleware>,
+      ctx: RuntimeMiddlewareContext,
+      mutator: SqlParamRefMutator,
+    ) => Promise<void>,
   ): Promise<SqlExecutionPlan> {
     checkAborted(codecCtx, 'stream');
 
     if (isExecutionPlan(plan)) {
       const mutator: SqlParamRefMutatorInternal = createSqlParamRefMutator(plan);
-      await runBeforeExecuteChain<SqlExecutionPlan, SqlParamRefMutator>(
-        plan,
-        this.middleware,
-        middlewareCtx,
-        mutator,
-      );
+      await runBefore(plan, this.middleware, middlewareCtx, mutator);
       return Object.freeze({
         ...plan,
         params: await encodeParams(
@@ -440,12 +453,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     const compiled = await this.compilePlan(plan, middlewareCtx);
     const draft = this.lowerToDraft(compiled);
     const mutator: SqlParamRefMutatorInternal = createSqlParamRefMutator(draft);
-    await runBeforeExecuteChain<SqlExecutionPlan, SqlParamRefMutator>(
-      draft,
-      this.middleware,
-      middlewareCtx,
-      mutator,
-    );
+    await runBefore(draft, this.middleware, middlewareCtx, mutator);
     const draftWithMutations: SqlExecutionPlan = Object.freeze({
       ...draft,
       params: mutator.currentParams(),
@@ -462,9 +470,9 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     this.ensureCodecRegistryValidated();
 
     const self = this;
-    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'query');
+    const { codecCtx, middlewareCtx } = this.createQueryContexts(options);
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-      const exec = await self.prepareExecution(plan, codecCtx, middlewareCtx);
+      const exec = await self.prepareQueryExecution(plan, codecCtx, middlewareCtx);
       const decodeContext = buildDecodeContext(exec.ast, self.contractCodecs);
       yield* self.streamRows<Row>(
         exec,
@@ -486,8 +494,8 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   ): Promise<SqlStatementStats> {
     this.ensureCodecRegistryValidated();
 
-    const { codecCtx, middlewareCtx } = this.createOperationContexts(options, 'execute');
-    const exec = await this.prepareExecution(plan, codecCtx, middlewareCtx);
+    const { codecCtx, middlewareCtx } = this.createQueryContexts(options);
+    const exec = await this.prepareExecuteExecution(plan, codecCtx, middlewareCtx);
     await this.setupDriverExecution(exec);
     checkAborted(codecCtx, 'stream');
 
@@ -561,10 +569,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     this.ensureCodecRegistryValidated();
 
     const self = this;
-    const { codecCtx, middlewareCtx: execMiddlewareCtx } = this.createOperationContexts(
-      options,
-      'query',
-    );
+    const { codecCtx, middlewareCtx: execMiddlewareCtx } = this.createQueryContexts(options);
 
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
       checkAborted(codecCtx, 'stream');
@@ -581,7 +586,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       };
 
       const mutator: SqlParamRefMutatorInternal = createSqlParamRefMutator(preEncodeExec);
-      await runBeforeExecuteChain<SqlExecutionPlan, SqlParamRefMutator>(
+      await runBeforeQueryChain<SqlExecutionPlan, SqlParamRefMutator>(
         preEncodeExec,
         self.middleware,
         execMiddlewareCtx,

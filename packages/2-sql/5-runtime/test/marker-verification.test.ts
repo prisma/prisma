@@ -35,8 +35,8 @@ import { createTestRuntime as createRuntime, descriptorsFromCodecs } from './uti
  * matching marker (silent), verifyMarker: false (reader never called), and one-shot semantics
  * (at most one log per runtime lifetime).
  *
- * Storage-hash mismatch ordering against middleware intercepts is covered by
- * `marker-vs-intercept-ordering.test.ts`.
+ * Storage-hash mismatch ordering against middleware interceptQuerys is covered by
+ * `marker-vs-interceptQuery-ordering.test.ts`.
  */
 
 const testContract: Contract<SqlStorage> = {

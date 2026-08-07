@@ -10,8 +10,8 @@ import type {
 /**
  * Cross-family demonstration: a fictional "mock" family extends the
  * canonical `RuntimeCore` base and inherits the middleware lifecycle
- * (`runBeforeCompile → lower → beforeExecute → runDriver → onRow →
- * afterExecute`) from `runWithMiddleware`. Confirms that the abstract
+ * (`runBeforeCompile → lower → beforeQuery → runDriver → onRow →
+ * afterQuery`) from `runQueryWithMiddleware`. Confirms that the abstract
  * base is family-agnostic — i.e. SQL and Mongo are not the only families
  * that can plug in.
  *
@@ -129,20 +129,20 @@ describe('RuntimeCore with mock family', () => {
   });
 
   it('drives middleware hooks for any family', async () => {
-    let beforeExecuteCalled = false;
+    let beforeQueryCalled = false;
     let onRowCalled = false;
-    let afterExecuteCalled = false;
+    let afterQueryCalled = false;
 
     const middleware: RuntimeMiddleware<MockExec> = {
       name: 'test-middleware',
-      async beforeExecute() {
-        beforeExecuteCalled = true;
+      async beforeQuery() {
+        beforeQueryCalled = true;
       },
       async onRow() {
         onRowCalled = true;
       },
-      async afterExecute() {
-        afterExecuteCalled = true;
+      async afterQuery() {
+        afterQueryCalled = true;
       },
     };
 
@@ -151,9 +151,9 @@ describe('RuntimeCore with mock family', () => {
 
     await runtime.query({ draftId: 'd-3', meta }).toArray();
 
-    expect(beforeExecuteCalled).toBe(true);
+    expect(beforeQueryCalled).toBe(true);
     expect(onRowCalled).toBe(true);
-    expect(afterExecuteCalled).toBe(true);
+    expect(afterQueryCalled).toBe(true);
   });
 
   it('exposes `close()` for resource teardown', async () => {

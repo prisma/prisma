@@ -1,5 +1,8 @@
 export type {
   AfterExecuteResult,
+  AfterQueryResult,
+  ExecuteInterceptResult,
+  QueryInterceptResult,
   RuntimeLog as Log,
 } from '@internal/framework-components/runtime';
 export type { MarkerReadResult } from '@internal/sql-relational-core/ast';

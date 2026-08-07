@@ -35,7 +35,7 @@ Execute SQL query Plans with deterministic verification, guardrails, and feedbac
 
 ## Dependencies
 
-- `@internal/framework-components` - Runtime component descriptor types (`./execution`) and the abstract `RuntimeCore` base class plus `runWithMiddleware` helper (`./runtime`)
+- `@internal/framework-components` - Runtime component descriptor types (`./execution`) and the abstract `RuntimeCore` base class plus operation-specific middleware runner helpers (`./runtime`)
 - `@internal/sql-contract` - SQL contract types (via `@internal/sql-contract/types`)
 - `@internal/operations` - Operation registry
 
@@ -156,7 +156,7 @@ The SQL runtime extends the abstract `RuntimeCore` base class from `@internal/fr
 2. **SqlStaticContributions**: Codecs, operation signatures, parameterized codecs, and mutation default generators contributed by each descriptor
 3. **ExecutionContext**: Built from contract + stack descriptors (no instantiation)
 4. **ExecutionStackInstance**: Instantiated components used at runtime for execution
-5. **SqlRuntime**: `class SqlRuntime extends RuntimeCore<SqlQueryPlan, SqlExecutionPlan, SqlMiddleware>` — overrides `lower` (with codec param-encoding), `runDriver`, `runBeforeCompile` (delegates to the SQL `beforeCompile` chain), and `close`. The execution path also wraps the `runWithMiddleware` helper from `framework-components/runtime` with codec row-decoding, marker verification (via the `RuntimeFamilyAdapter` defined in `runtime-spi.ts`), and telemetry fingerprinting (via `computeSqlFingerprint` from `fingerprint.ts`).
+5. **SqlRuntime**: `class SqlRuntime extends RuntimeCore<SqlQueryPlan, SqlExecutionPlan, SqlMiddleware>` — overrides `lower` (with codec param-encoding), `runDriver`, `runBeforeCompile` (delegates to the SQL `beforeCompile` chain), and `close`. The execution path also wraps the operation-specific middleware runner helpers from `framework-components/runtime` with codec row-decoding, marker verification (via the `RuntimeFamilyAdapter` defined in `runtime-spi.ts`), and telemetry fingerprinting (via `computeSqlFingerprint` from `fingerprint.ts`).
 6. **SqlMarker**: Provides SQL statements for marker management
 
 ```mermaid

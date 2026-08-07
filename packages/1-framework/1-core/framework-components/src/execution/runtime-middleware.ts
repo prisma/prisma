@@ -10,9 +10,9 @@ export interface RuntimeLog {
 }
 
 /**
- * Per-operation context threaded through every middleware phase
+ * Per-query context threaded through every middleware phase
  * (`beforeExecute`, `onRow`, `afterExecute`). Allocated once per
- * runtime operation and shared by reference across all
+ * `runtime.query()` call and shared by reference across all
  * middleware in the chain.
  *
  * - `signal` carries the per-query `AbortSignal` -- the same
@@ -61,10 +61,11 @@ export interface RuntimeMiddlewareContext {
   /**
    * Identifies the queryable scope this execution is running under.
    *
-   * - `'runtime'` — top-level runtime query or statistics execution.
-   * - `'connection'` — an operation after
+   * - `'runtime'` — top-level `runtime.query(plan)`. The default scope
+   *   used by the standard read/write paths.
+   * - `'connection'` — `connection.query(plan)` after
    *   `runtime.connection()` checked out a connection from the pool.
-   * - `'transaction'` — an operation inside an explicit
+   * - `'transaction'` — `transaction.query(plan)` inside an explicit
    *   transaction, or a query routed through `withTransaction`.
    *
    * Middleware that should only act at the top level read this field to
@@ -78,69 +79,53 @@ export interface RuntimeMiddlewareContext {
    * scope. Existing middleware that ignore the field are unaffected.
    */
   readonly scope: 'runtime' | 'connection' | 'transaction';
-  /** The caller-selected semantic operation for this execution. */
-  readonly operation: 'query' | 'execute';
   /**
-   * Identity for one runtime operation call. The runtime mints a fresh value via
+   * Identity for one `query()` call. The runtime mints a fresh value via
    * `crypto.randomUUID()` when it constructs the per-execute context, and
    * the same context reference is threaded through every middleware phase
    * (`beforeExecute`, `intercept`, `onRow`, `afterExecute`). Every hook in
-   * one execute call therefore observes the same `planExecutionId`; two
-   * executions of the same plan observe distinct values. Use this to
+   * one query call therefore observes the same `planExecutionId`; two
+   * queries of the same plan observe distinct values. Use this to
    * correlate observations across the lifecycle of a single execute call
    * (tracing, timing, audit). See ADR 220.
    */
   readonly planExecutionId: string;
 }
 
-export interface RuntimeStatementStats {
-  readonly affectedRows: number;
-}
-
-interface AfterExecuteResultBase {
+interface AfterResultBase {
   readonly latencyMs: number;
   readonly source: 'driver' | 'middleware';
 }
 
-export interface QueryAfterExecuteResult extends AfterExecuteResultBase {
-  readonly operation: 'query';
+export interface AfterQueryResult extends AfterResultBase {
   readonly rowCount: number;
   readonly completed: boolean;
 }
 
-export type StatementAfterExecuteResult = AfterExecuteResultBase &
+export type AfterExecuteResult = AfterResultBase &
   (
     | {
-        readonly operation: 'execute';
-        readonly completed: true;
         readonly stats: RuntimeStatementStats;
+        readonly completed: true;
       }
     | {
-        readonly operation: 'execute';
         readonly completed: false;
       }
   );
 
-export type AfterExecuteResult = QueryAfterExecuteResult | StatementAfterExecuteResult;
-
 export interface QueryInterceptResult {
-  readonly operation: 'query';
   readonly rows: AsyncIterable<Record<string, unknown>> | Iterable<Record<string, unknown>>;
 }
 
-export interface StatementInterceptResult {
-  readonly operation: 'execute';
+export interface ExecuteInterceptResult {
   readonly stats: RuntimeStatementStats;
 }
-
-/** A middleware short-circuit result for exactly one caller-selected operation. */
-export type InterceptResult = QueryInterceptResult | StatementInterceptResult;
 
 /**
  * Marker interface for family-specific param-ref mutators threaded into
  * `beforeExecute` as the third argument. The framework treats the mutator
  * opaquely — it allocates and forwards the family's mutator instance so
- * `runWithMiddleware` can stay family-agnostic. SQL extends this with
+ * `operation-specific middleware runner` can stay family-agnostic. SQL extends this with
  * `SqlParamRefMutator` (over `ParamRef`); Mongo extends with
  * `MongoParamRefMutator` (over `MongoParamRef`).
  *
@@ -150,20 +135,7 @@ export type InterceptResult = QueryInterceptResult | StatementInterceptResult;
 declare const PARAM_REF_MUTATOR_BRAND: unique symbol;
 export type ParamRefMutator = { readonly [PARAM_REF_MUTATOR_BRAND]?: never };
 
-/**
- * Family-agnostic middleware SPI parameterized over the plan marker.
- *
- * `TPlan` defaults to the framework `QueryPlan` marker so a generic
- * middleware (e.g. cross-family telemetry) can be authored without
- * naming a family. Family-specific middleware (`SqlMiddleware`,
- * `MongoMiddleware`) narrow `TPlan` to their concrete plan type.
- *
- * `TMutator` is the family-specific {@link ParamRefMutator} the runtime
- * threads into `beforeExecute(plan, ctx, params)` as a third argument.
- * Existing `(plan)` / `(plan, ctx)` middleware bodies continue to compile
- * — TypeScript permits assigning a function with fewer parameters to a
- * function-typed slot that declares more. The third arg is additive.
- */
+/** Family-agnostic operation-specific middleware SPI. */
 export interface RuntimeMiddleware<
   TPlan extends QueryPlan = QueryPlan,
   TMutator extends ParamRefMutator = ParamRefMutator,
@@ -171,57 +143,22 @@ export interface RuntimeMiddleware<
   readonly name: string;
   readonly familyId?: string;
   readonly targetId?: string;
-  /**
-   * Optional short-circuit hook. Middleware run in registration order; the
-   * first to return a non-`undefined` result wins. The result's operation
-   * must match `ctx.operation`; mismatches fail instead of converting rows
-   * to statistics or discarding statistics.
-   *
-   * Returning `undefined` (or omitting the hook entirely) signals
-   * passthrough — execution proceeds through the normal driver path.
-   *
-   * Errors thrown inside `intercept` are rethrown by `runWithMiddleware`
-   * as the original `Error` — no envelope is guaranteed at this layer.
-   * Before rethrowing, `afterExecute` fires with `completed: false` and
-   * `source: 'middleware'`. Errors thrown by `afterExecute` during the
-   * error path remain swallowed (existing semantics, unchanged).
-   *
-   * Used by middleware that need to short-circuit execution and supply
-   * rows directly: caching, mocks, rate limiting, circuit breaking.
-   */
-  intercept?(plan: TPlan, ctx: RuntimeMiddlewareContext): Promise<InterceptResult | undefined>;
-  /**
-   * Fires after the family runtime has produced a draft execution
-   * plan from the AST, but before the family encodes parameter values
-   * to driver wire format. Mutations applied via the
-   * family-specific `params` mutator are visible to the subsequent
-   * encode step.
-   *
-   * Lifecycle position (SQL example):
-   *   `runBeforeCompile → lowerSqlPlan → beforeExecute → encodeParams → intercept → driver`.
-   *
-   * The `params` argument is a family-specific {@link ParamRefMutator}
-   * scoped to the value slots of `ParamRef` nodes in the plan's AST.
-   * Middleware that doesn't need to mutate params can ignore the
-   * argument; existing `(plan)` / `(plan, ctx)` bodies stay compatible.
-   *
-   * `ctx.signal` carries the per-query `AbortSignal`; middleware that
-   * wraps a network SDK forwards it. Cooperative cancellation
-   * surfaces a `RUNTIME.ABORTED { phase: 'beforeExecute' }` envelope
-   * promptly even when the body ignores the signal.
-   *
-   * Intercept ordering: `intercept` runs *after* this hook; an
-   * interceptor that short-circuits the driver path still observes
-   * the post-`beforeExecute`, fully-encoded plan. The trade-off is
-   * that any `beforeExecute` SDK round-trips happen even when a
-   * downstream interceptor would have skipped the driver entirely.
-   */
+  beforeQuery?(plan: TPlan, ctx: RuntimeMiddlewareContext, params?: TMutator): void | Promise<void>;
+  interceptQuery?(
+    plan: TPlan,
+    ctx: RuntimeMiddlewareContext,
+  ): Promise<QueryInterceptResult | undefined>;
+  onRow?(row: Record<string, unknown>, plan: TPlan, ctx: RuntimeMiddlewareContext): Promise<void>;
+  afterQuery?(plan: TPlan, result: AfterQueryResult, ctx: RuntimeMiddlewareContext): Promise<void>;
   beforeExecute?(
     plan: TPlan,
     ctx: RuntimeMiddlewareContext,
     params?: TMutator,
   ): void | Promise<void>;
-  onRow?(row: Record<string, unknown>, plan: TPlan, ctx: RuntimeMiddlewareContext): Promise<void>;
+  interceptExecute?(
+    plan: TPlan,
+    ctx: RuntimeMiddlewareContext,
+  ): Promise<ExecuteInterceptResult | undefined>;
   afterExecute?(
     plan: TPlan,
     result: AfterExecuteResult,
@@ -278,6 +215,10 @@ export interface RuntimeExecuteOptions {
  * The `_row` intersection on `query` connects the `Row` type parameter to the
  * plan, mirroring how `QueryPlan<Row>` carries a phantom `_row?: Row`.
  */
+export interface RuntimeStatementStats {
+  readonly affectedRows: number;
+}
+
 export interface RuntimeExecutor<TPlan extends QueryPlan> {
   query<Row>(
     plan: TPlan & { readonly _row?: Row },

@@ -1,9 +1,9 @@
 import type { PlanMeta } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import type { ExecutionPlan } from '../src/execution/query-plan';
-import { runWithMiddleware } from '../src/execution/run-with-middleware';
+import { runQueryWithMiddleware } from '../src/execution/run-with-middleware';
 import type {
-  AfterExecuteResult,
+  AfterQueryResult,
   RuntimeMiddleware,
   RuntimeMiddlewareContext,
 } from '../src/execution/runtime-middleware';
@@ -37,40 +37,43 @@ async function* yieldRows<R>(rows: ReadonlyArray<R>): AsyncGenerator<R, void, un
   }
 }
 
-describe('runWithMiddleware', () => {
+describe('runQueryWithMiddleware', () => {
   it('zero middleware passes driver rows through unchanged', async () => {
     const rows = [{ id: 1 }, { id: 2 }, { id: 3 }];
 
-    const result = runWithMiddleware<MockExec, Record<string, unknown>>(mockExec, [], mockCtx, () =>
-      yieldRows(rows),
+    const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
+      mockExec,
+      [],
+      mockCtx,
+      () => yieldRows(rows),
     );
 
     const out = await result.toArray();
     expect(out).toEqual(rows);
   });
 
-  it('single middleware sees onRow per row, then afterExecute(completed: true)', async () => {
+  it('single middleware sees onRow per row, then afterQuery(completed: true)', async () => {
     const rows = [{ id: 1 }, { id: 2 }];
     const events: string[] = [];
-    let observedResult: AfterExecuteResult | undefined;
+    let observedResult: AfterQueryResult | undefined;
 
     const mw: RuntimeMiddleware<MockExec> = {
       name: 'observer',
-      // beforeExecute fires from `runBeforeExecuteChain`, not from
-      // `runWithMiddleware`. Asserted in `before-execute-chain.test.ts`.
+      // beforeQuery fires from `runBeforeQueryChain`, not from
+      // `runQueryWithMiddleware`. Asserted in `before-execute-chain.test.ts`.
       async onRow(row) {
         events.push(`onRow:${(row as { id: number }).id}`);
       },
-      async afterExecute(plan, result, ctx) {
+      async afterQuery(plan, result, ctx) {
         expect(result.operation).toBe('query');
         expect(plan).toBe(mockExec);
         expect(ctx).toBe(mockCtx);
         observedResult = result;
-        events.push('afterExecute');
+        events.push('afterQuery');
       },
     };
 
-    const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+    const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
       mockExec,
       [mw],
       mockCtx,
@@ -80,7 +83,7 @@ describe('runWithMiddleware', () => {
     const out = await result.toArray();
 
     expect(out).toEqual(rows);
-    expect(events).toEqual(['onRow:1', 'onRow:2', 'afterExecute']);
+    expect(events).toEqual(['onRow:1', 'onRow:2', 'afterQuery']);
     expect(observedResult).toMatchObject({
       operation: 'query',
       rowCount: 2,
@@ -100,13 +103,13 @@ describe('runWithMiddleware', () => {
         async onRow() {
           events.push(`${label}:onRow`);
         },
-        async afterExecute() {
-          events.push(`${label}:afterExecute`);
+        async afterQuery() {
+          events.push(`${label}:afterQuery`);
         },
       };
     }
 
-    const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+    const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
       mockExec,
       [mw('A'), mw('B'), mw('C')],
       mockCtx,
@@ -119,13 +122,13 @@ describe('runWithMiddleware', () => {
       'A:onRow',
       'B:onRow',
       'C:onRow',
-      'A:afterExecute',
-      'B:afterExecute',
-      'C:afterExecute',
+      'A:afterQuery',
+      'B:afterQuery',
+      'C:afterQuery',
     ]);
   });
 
-  it('error path: driver throw triggers afterExecute(completed: false) for each middleware in order then rethrows', async () => {
+  it('error path: driver throw triggers afterQuery(completed: false) for each middleware in order then rethrows', async () => {
     const events: string[] = [];
     const observed: Array<{ label: string; completed: boolean; rowCount: number }> = [];
     const driverError = new Error('driver boom');
@@ -133,10 +136,10 @@ describe('runWithMiddleware', () => {
     function mw(label: string): RuntimeMiddleware<MockExec> {
       return {
         name: label,
-        async afterExecute(_plan, result) {
+        async afterQuery(_plan, result) {
           if (result.operation !== 'query') throw new Error('expected query result');
           observed.push({ label, completed: result.completed, rowCount: result.rowCount });
-          events.push(`${label}:afterExecute`);
+          events.push(`${label}:afterQuery`);
         },
       };
     }
@@ -150,7 +153,7 @@ describe('runWithMiddleware', () => {
       throw driverError;
     };
 
-    const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+    const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
       mockExec,
       [mw('A'), mw('B')],
       mockCtx,
@@ -159,29 +162,29 @@ describe('runWithMiddleware', () => {
 
     await expect(result.toArray()).rejects.toBe(driverError);
 
-    expect(events).toEqual(['A:afterExecute', 'B:afterExecute']);
+    expect(events).toEqual(['A:afterQuery', 'B:afterQuery']);
     expect(observed).toEqual([
       { label: 'A', completed: false, rowCount: 1 },
       { label: 'B', completed: false, rowCount: 1 },
     ]);
   });
 
-  it('error inside afterExecute during error path is swallowed and the original driver error is rethrown', async () => {
+  it('error inside afterQuery during error path is swallowed and the original driver error is rethrown', async () => {
     const driverError = new Error('driver boom');
-    const afterExecuteError = new Error('afterExecute boom');
+    const afterQueryError = new Error('afterQuery boom');
     const events: string[] = [];
 
     const noisy: RuntimeMiddleware<MockExec> = {
       name: 'noisy',
-      async afterExecute() {
-        events.push('noisy:afterExecute');
-        throw afterExecuteError;
+      async afterQuery() {
+        events.push('noisy:afterQuery');
+        throw afterQueryError;
       },
     };
     const tail: RuntimeMiddleware<MockExec> = {
       name: 'tail',
-      async afterExecute() {
-        events.push('tail:afterExecute');
+      async afterQuery() {
+        events.push('tail:afterQuery');
       },
     };
 
@@ -195,7 +198,7 @@ describe('runWithMiddleware', () => {
       },
     });
 
-    const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+    const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
       mockExec,
       [noisy, tail],
       mockCtx,
@@ -204,7 +207,7 @@ describe('runWithMiddleware', () => {
 
     await expect(result.toArray()).rejects.toBe(driverError);
 
-    expect(events).toEqual(['noisy:afterExecute', 'tail:afterExecute']);
+    expect(events).toEqual(['noisy:afterQuery', 'tail:afterQuery']);
   });
 
   it('skips hooks that the middleware does not implement', async () => {
@@ -218,7 +221,7 @@ describe('runWithMiddleware', () => {
       },
     };
 
-    const result = runWithMiddleware<MockExec, Record<string, unknown>>(
+    const result = runQueryWithMiddleware<MockExec, Record<string, unknown>>(
       mockExec,
       [partial],
       mockCtx,

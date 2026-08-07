@@ -7,7 +7,7 @@ import {
   type RuntimeDriverInstance,
 } from '@internal/framework-components/execution';
 import type {
-  AfterExecuteResult,
+  AfterQueryResult,
   CrossFamilyMiddleware,
   RuntimeMiddlewareContext,
 } from '@internal/framework-components/runtime';
@@ -49,7 +49,7 @@ import { setupTestDatabase } from '../utils';
  * - Composition with a `beforeCompile`-style rewriter (soft-delete):
  *   the rewritten SQL contributes to the cache key.
  * - Composition with an inline observer middleware: the `source` field
- *   on `afterExecute` round-trips driver vs middleware fetches.
+ *   on `afterQuery` round-trips driver vs middleware fetches.
  * - Concurrency: two parallel calls of the same plan don't cross-talk
  *   through the per-exec WeakMap buffer.
  */
@@ -171,7 +171,7 @@ describe('integration: middleware-cache against real Postgres', {
     await driver.connect({ kind: 'pgClient', client });
 
     // Spy on the driver's query so we can count round-trips. The
-    // cache middleware short-circuits via `intercept` upstream of
+    // cache middleware short-circuits via `interceptQuery` upstream of
     // `runDriver`, so a hit shows up here as zero invocations.
     driverQuerySpy = vi.spyOn(driver, 'query');
 
@@ -348,7 +348,7 @@ describe('integration: middleware-cache against real Postgres', {
      * package.
      */
     interface ObservedEvent {
-      readonly phase: 'beforeExecute' | 'afterExecute';
+      readonly phase: 'beforeQuery' | 'afterQuery';
       readonly source?: 'driver' | 'middleware';
       readonly rowCount?: number;
       readonly latencyMs?: number;
@@ -358,12 +358,12 @@ describe('integration: middleware-cache against real Postgres', {
     function createObserver(events: ObservedEvent[]): CrossFamilyMiddleware {
       return {
         name: 'observer',
-        async beforeExecute(_plan, _ctx: RuntimeMiddlewareContext) {
-          events.push({ phase: 'beforeExecute' });
+        async beforeQuery(_plan, _ctx: RuntimeMiddlewareContext) {
+          events.push({ phase: 'beforeQuery' });
         },
-        async afterExecute(_plan, result: AfterExecuteResult, _ctx: RuntimeMiddlewareContext) {
+        async afterQuery(_plan, result: AfterQueryResult, _ctx: RuntimeMiddlewareContext) {
           events.push({
-            phase: 'afterExecute',
+            phase: 'afterQuery',
             source: result.source,
             ...(result.operation === 'query' ? { rowCount: result.rowCount } : {}),
             latencyMs: result.latencyMs,
@@ -377,8 +377,8 @@ describe('integration: middleware-cache against real Postgres', {
       const events: ObservedEvent[] = [];
       const observer = createObserver(events);
       const cache = createCacheMiddleware({ maxEntries: 100 });
-      // Cache first so its `intercept` runs upstream of the observer in
-      // the intercept chain. The observer's `afterExecute` still fires on
+      // Cache first so its `interceptQuery` runs upstream of the observer in
+      // the interceptQuery chain. The observer's `afterQuery` still fires on
       // both paths and observes the `source` field, which is the
       // canonical hit-vs-miss signal.
       const runtime = buildRuntime([cache, observer]);
@@ -397,15 +397,15 @@ describe('integration: middleware-cache against real Postgres', {
       await runtime.query(buildPlan()).toArray();
 
       const missEvents = events.slice();
-      // `beforeExecute` fires on every execution: the framework runs
-      // `runBeforeExecuteChain` before `runWithMiddleware`'s intercept
+      // `beforeQuery` fires on every execution: the framework runs
+      // `runBeforeQueryChain` before `runQueryWithMiddleware`'s interceptQuery
       // loop so middleware that mutates ParamRef values stays visible
-      // to encode regardless of whether a downstream interceptor wins
+      // to encode regardless of whether a downstream interceptQueryor wins
       // (see `before-execute-chain.ts`). The `source` field on
-      // `afterExecute` is what distinguishes driver vs middleware
+      // `afterQuery` is what distinguishes driver vs middleware
       // paths.
-      expect(missEvents.find((e) => e.phase === 'beforeExecute')).toBeDefined();
-      const missAfter = missEvents.find((e) => e.phase === 'afterExecute');
+      expect(missEvents.find((e) => e.phase === 'beforeQuery')).toBeDefined();
+      const missAfter = missEvents.find((e) => e.phase === 'afterQuery');
       expect(missAfter).toBeDefined();
       expect(missAfter!.source).toBe('driver');
 
@@ -415,12 +415,12 @@ describe('integration: middleware-cache against real Postgres', {
       // Hit path.
       await runtime.query(buildPlan()).toArray();
 
-      // `beforeExecute` still fires on the intercepted hit path —
-      // it runs unconditionally before `runWithMiddleware`'s intercept
-      // loop. The canonical hit signal is `afterExecute.source ===
+      // `beforeQuery` still fires on the interceptQueryed hit path —
+      // it runs unconditionally before `runQueryWithMiddleware`'s interceptQuery
+      // loop. The canonical hit signal is `afterQuery.source ===
       // 'middleware'`, paired with the driver not being invoked.
-      expect(events.find((e) => e.phase === 'beforeExecute')).toBeDefined();
-      const hitAfter = events.find((e) => e.phase === 'afterExecute');
+      expect(events.find((e) => e.phase === 'beforeQuery')).toBeDefined();
+      const hitAfter = events.find((e) => e.phase === 'afterQuery');
       expect(hitAfter).toBeDefined();
       expect(hitAfter!.source).toBe('middleware');
       expect(driverQuerySpy.mock.calls.length).toBe(0);
@@ -445,7 +445,7 @@ describe('integration: middleware-cache against real Postgres', {
       events.length = 0;
       await runtime.query(buildPlan()).toArray();
 
-      const after = events.find((e) => e.phase === 'afterExecute');
+      const after = events.find((e) => e.phase === 'afterQuery');
       expect(after).toBeDefined();
       expect(after!.rowCount).toBe(4);
       expect(typeof after!.latencyMs).toBe('number');

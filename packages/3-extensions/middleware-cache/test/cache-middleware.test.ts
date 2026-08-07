@@ -1,6 +1,6 @@
 import type { PlanMeta } from '@internal/contract/types';
 import type {
-  AfterExecuteResult,
+  AfterQueryResult,
   ExecutionPlan,
   RuntimeMiddlewareContext,
 } from '@internal/framework-components/runtime';
@@ -72,7 +72,7 @@ describe('createCacheMiddleware — opt-in semantics', () => {
     const mw = createCacheMiddleware({ store });
     const exec = makeExec('select 1'); // no annotations
 
-    const result = await mw.intercept!(exec, makeCtx());
+    const result = await mw.interceptQuery!(exec, makeCtx());
     expect(result).toBeUndefined();
     expect(store.getSpy).not.toHaveBeenCalled();
     expect(store.setSpy).not.toHaveBeenCalled();
@@ -85,7 +85,7 @@ describe('createCacheMiddleware — opt-in semantics', () => {
       cache: cacheAnnotation({ ttl: 60_000, skip: true }),
     });
 
-    const result = await mw.intercept!(exec, makeCtx());
+    const result = await mw.interceptQuery!(exec, makeCtx());
     expect(result).toBeUndefined();
     expect(store.getSpy).not.toHaveBeenCalled();
     expect(store.setSpy).not.toHaveBeenCalled();
@@ -98,21 +98,21 @@ describe('createCacheMiddleware — opt-in semantics', () => {
       cache: cacheAnnotation({}),
     });
 
-    const result = await mw.intercept!(exec, makeCtx());
+    const result = await mw.interceptQuery!(exec, makeCtx());
     expect(result).toBeUndefined();
     expect(store.getSpy).not.toHaveBeenCalled();
     expect(store.setSpy).not.toHaveBeenCalled();
   });
 
-  it('does not store rows for an un-annotated plan even when onRow/afterExecute fire (driver path)', async () => {
+  it('does not store rows for an un-annotated plan even when onRow/afterQuery fire (driver path)', async () => {
     const store = spyStore();
     const mw = createCacheMiddleware({ store });
     const exec = makeExec('select 1');
     const ctx = makeCtx();
 
-    await mw.intercept!(exec, ctx); // passthrough
+    await mw.interceptQuery!(exec, ctx); // passthrough
     await mw.onRow!({ id: 1 }, exec, ctx);
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
       ctx,
@@ -123,7 +123,7 @@ describe('createCacheMiddleware — opt-in semantics', () => {
 });
 
 describe('createCacheMiddleware — hit path', () => {
-  it('returns cached rows from intercept when the store has a non-expired entry', async () => {
+  it('returns cached rows from interceptQuery when the store has a non-expired entry', async () => {
     const store = spyStore();
     store.inner.set('key:select 1', {
       rows: [{ id: 1 }, { id: 2 }],
@@ -135,7 +135,7 @@ describe('createCacheMiddleware — hit path', () => {
       cache: cacheAnnotation({ ttl: 60_000 }),
     });
 
-    const result = await mw.intercept!(exec, makeCtx());
+    const result = await mw.interceptQuery!(exec, makeCtx());
     expect(result?.operation).toBe('query');
     if (result?.operation !== 'query') throw new Error('Expected query cache hit');
     expect(await drain(result.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
@@ -156,7 +156,7 @@ describe('createCacheMiddleware — hit path', () => {
       log: { info: () => {}, warn: () => {}, error: () => {}, debug },
     });
 
-    await mw.intercept!(exec, ctx);
+    await mw.interceptQuery!(exec, ctx);
 
     expect(debug).toHaveBeenCalledWith(expect.objectContaining({ event: 'middleware.cache.hit' }));
   });
@@ -170,13 +170,13 @@ describe('createCacheMiddleware — hit path', () => {
     });
     const ctx = makeCtx();
 
-    const result = await mw.intercept!(exec, ctx);
+    const result = await mw.interceptQuery!(exec, ctx);
     if (result?.operation !== 'query') throw new Error('Expected query cache hit');
     await drain(result.rows as AsyncIterable<Record<string, unknown>>);
 
-    // afterExecute fires with source: 'middleware' on a hit; the cache
+    // afterQuery fires with source: 'middleware' on a hit; the cache
     // middleware should not write back to the store.
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'middleware' },
       ctx,
@@ -197,19 +197,19 @@ describe('createCacheMiddleware — hit path', () => {
       log: { info: () => {}, warn: () => {}, error: () => {} },
     });
 
-    await expect(mw.intercept!(exec, ctx)).resolves.toBeDefined();
+    await expect(mw.interceptQuery!(exec, ctx)).resolves.toBeDefined();
   });
 });
 
 describe('createCacheMiddleware — miss path', () => {
-  it('returns undefined from intercept on a miss', async () => {
+  it('returns undefined from interceptQuery on a miss', async () => {
     const store = spyStore();
     const mw = createCacheMiddleware({ store });
     const exec = makeExec('select 1', {
       cache: cacheAnnotation({ ttl: 60_000 }),
     });
 
-    const result = await mw.intercept!(exec, makeCtx());
+    const result = await mw.interceptQuery!(exec, makeCtx());
     expect(result).toBeUndefined();
   });
 
@@ -224,12 +224,12 @@ describe('createCacheMiddleware — miss path', () => {
       log: { info: () => {}, warn: () => {}, error: () => {}, debug },
     });
 
-    await mw.intercept!(exec, ctx);
+    await mw.interceptQuery!(exec, ctx);
 
     expect(debug).toHaveBeenCalledWith(expect.objectContaining({ event: 'middleware.cache.miss' }));
   });
 
-  it('buffers rows via onRow and commits on a successful afterExecute (source: driver)', async () => {
+  it('buffers rows via onRow and commits on a successful afterQuery (source: driver)', async () => {
     const store = spyStore();
     const mw = createCacheMiddleware({ store, clock: () => 1_234 });
     const exec = makeExec('select 1', {
@@ -237,10 +237,10 @@ describe('createCacheMiddleware — miss path', () => {
     });
     const ctx = makeCtx();
 
-    await mw.intercept!(exec, ctx); // miss
+    await mw.interceptQuery!(exec, ctx); // miss
     await mw.onRow!({ id: 1 }, exec, ctx);
     await mw.onRow!({ id: 2 }, exec, ctx);
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 2, latencyMs: 5, completed: true, source: 'driver' },
       ctx,
@@ -265,9 +265,9 @@ describe('createCacheMiddleware — miss path', () => {
     });
     const ctx = makeCtx();
 
-    await mw.intercept!(exec, ctx);
+    await mw.interceptQuery!(exec, ctx);
     await mw.onRow!({ id: 1 }, exec, ctx);
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 1, latencyMs: 5, completed: false, source: 'driver' },
       ctx,
@@ -276,9 +276,9 @@ describe('createCacheMiddleware — miss path', () => {
     expect(store.setSpy).not.toHaveBeenCalled();
   });
 
-  it('does not commit when source = "middleware" (a different interceptor produced the rows)', async () => {
-    // If another middleware wins the intercept chain, our intercept did
-    // not fire — we never called set up a buffer. afterExecute would see
+  it('does not commit when source = "middleware" (a different interceptQueryor produced the rows)', async () => {
+    // If another middleware wins the interceptQuery chain, our interceptQuery did
+    // not fire — we never called set up a buffer. afterQuery would see
     // source === 'middleware' and we should not store anything.
     const store = spyStore();
     const mw = createCacheMiddleware({ store });
@@ -287,9 +287,9 @@ describe('createCacheMiddleware — miss path', () => {
     });
     const ctx = makeCtx();
 
-    // Note: skipping intercept and onRow simulates the case where a
-    // different interceptor short-circuited execution upstream.
-    await mw.afterExecute!(
+    // Note: skipping interceptQuery and onRow simulates the case where a
+    // different interceptQueryor short-circuited execution upstream.
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 1, latencyMs: 5, completed: true, source: 'middleware' },
       ctx,
@@ -298,10 +298,10 @@ describe('createCacheMiddleware — miss path', () => {
     expect(store.setSpy).not.toHaveBeenCalled();
   });
 
-  it('cleans up its WeakMap entry on afterExecute even when no commit happens', async () => {
+  it('cleans up its WeakMap entry on afterQuery even when no commit happens', async () => {
     // The buffer is a WeakMap keyed on the exec object — testing this
     // directly would be brittle; instead, verify behavior: re-running
-    // afterExecute without an intercept call should be a no-op even if
+    // afterQuery without an interceptQuery call should be a no-op even if
     // the previous run did not commit.
     const store = spyStore();
     const mw = createCacheMiddleware({ store });
@@ -310,18 +310,18 @@ describe('createCacheMiddleware — miss path', () => {
     });
     const ctx = makeCtx();
 
-    await mw.intercept!(exec, ctx);
+    await mw.interceptQuery!(exec, ctx);
     await mw.onRow!({ id: 1 }, exec, ctx);
     // Mid-stream failure.
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 1, latencyMs: 5, completed: false, source: 'driver' },
       ctx,
     );
 
-    // A second afterExecute (defensive — should never happen in
+    // A second afterQuery (defensive — should never happen in
     // practice, but verify cleanup didn't leave residue).
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 1, latencyMs: 5, completed: true, source: 'driver' },
       ctx,
@@ -342,22 +342,22 @@ describe('createCacheMiddleware — miss path', () => {
     const ctx = makeCtx();
 
     // Interleave the two executions to stress per-exec buffer isolation.
-    await mw.intercept!(execA, ctx);
-    await mw.intercept!(execB, ctx);
+    await mw.interceptQuery!(execA, ctx);
+    await mw.interceptQuery!(execB, ctx);
     await mw.onRow!({ from: 'A', n: 1 }, execA, ctx);
     await mw.onRow!({ from: 'B', n: 1 }, execB, ctx);
     await mw.onRow!({ from: 'A', n: 2 }, execA, ctx);
     await mw.onRow!({ from: 'B', n: 2 }, execB, ctx);
 
-    const result: AfterExecuteResult = {
+    const result: AfterQueryResult = {
       operation: 'query',
       rowCount: 2,
       latencyMs: 0,
       completed: true,
       source: 'driver',
     };
-    await mw.afterExecute!(execA, result, ctx);
-    await mw.afterExecute!(execB, result, ctx);
+    await mw.afterQuery!(execA, result, ctx);
+    await mw.afterQuery!(execB, result, ctx);
 
     expect(store.inner.get('key:select A')?.rows).toEqual([
       { from: 'A', n: 1 },
@@ -379,7 +379,7 @@ describe('createCacheMiddleware — scope guard', () => {
       cache: cacheAnnotation({ ttl: 60_000 }),
     });
 
-    const result = await mw.intercept!(exec, makeCtx({ scope: 'connection' }));
+    const result = await mw.interceptQuery!(exec, makeCtx({ scope: 'connection' }));
     expect(result).toBeUndefined();
     expect(store.getSpy).not.toHaveBeenCalled();
   });
@@ -392,7 +392,7 @@ describe('createCacheMiddleware — scope guard', () => {
       cache: cacheAnnotation({ ttl: 60_000 }),
     });
 
-    const result = await mw.intercept!(exec, makeCtx({ scope: 'transaction' }));
+    const result = await mw.interceptQuery!(exec, makeCtx({ scope: 'transaction' }));
     expect(result).toBeUndefined();
     expect(store.getSpy).not.toHaveBeenCalled();
   });
@@ -405,9 +405,9 @@ describe('createCacheMiddleware — scope guard', () => {
     });
     const ctx = makeCtx({ scope: 'connection' });
 
-    await mw.intercept!(exec, ctx);
+    await mw.interceptQuery!(exec, ctx);
     await mw.onRow!({ id: 1 }, exec, ctx);
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
       ctx,
@@ -429,21 +429,21 @@ describe('createCacheMiddleware — middleware shape', () => {
     expect(mw.name).toBe('cache');
   });
 
-  it('wires intercept, onRow, and afterExecute (only)', () => {
+  it('wires interceptQuery, onRow, and afterQuery (only)', () => {
     const mw = createCacheMiddleware({ store: spyStore() });
-    expect(mw.intercept).toBeDefined();
+    expect(mw.interceptQuery).toBeDefined();
     expect(mw.onRow).toBeDefined();
-    expect(mw.afterExecute).toBeDefined();
-    // No beforeExecute — the cache middleware doesn't observe the pre-
+    expect(mw.afterQuery).toBeDefined();
+    // No beforeQuery — the cache middleware doesn't observe the pre-
     // execute event.
-    expect(mw.beforeExecute).toBeUndefined();
+    expect(mw.beforeQuery).toBeUndefined();
   });
 
   it('defaults to an in-memory LRU store when none is supplied', () => {
     // Smoke: the constructor accepts no store and produces a working
     // middleware. Behavior is exercised by the roundtrip test below.
     const mw = createCacheMiddleware();
-    expect(mw.intercept).toBeDefined();
+    expect(mw.interceptQuery).toBeDefined();
   });
 
   it('roundtrips a miss-then-hit through the default in-memory store', async () => {
@@ -454,17 +454,17 @@ describe('createCacheMiddleware — middleware shape', () => {
     const ctx = makeCtx();
 
     // Miss.
-    expect(await mw.intercept!(exec, ctx)).toBeUndefined();
+    expect(await mw.interceptQuery!(exec, ctx)).toBeUndefined();
     await mw.onRow!({ id: 1 }, exec, ctx);
     await mw.onRow!({ id: 2 }, exec, ctx);
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 2, latencyMs: 0, completed: true, source: 'driver' },
       ctx,
     );
 
     // Hit on the next call.
-    const second = await mw.intercept!(exec, ctx);
+    const second = await mw.interceptQuery!(exec, ctx);
     expect(second?.operation).toBe('query');
     if (second?.operation !== 'query') throw new Error('Expected query cache hit');
     expect(await drain(second.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
@@ -481,9 +481,9 @@ describe('createCacheMiddleware — middleware shape', () => {
     });
     const ctx = makeCtx();
 
-    await mw.intercept!(exec, ctx);
+    await mw.interceptQuery!(exec, ctx);
     await mw.onRow!({ id: 7 }, exec, ctx);
-    await mw.afterExecute!(
+    await mw.afterQuery!(
       exec,
       { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
       ctx,

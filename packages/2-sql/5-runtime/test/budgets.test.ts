@@ -1,5 +1,5 @@
 import type { Contract, PlanMeta } from '@internal/contract/types';
-import type { AfterExecuteResult } from '@internal/framework-components/runtime';
+import type { AfterQueryResult } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   AggregateExpr,
@@ -66,7 +66,7 @@ describe('budgets middleware', () => {
         });
         const ctx = createMiddlewareContext();
 
-        await mw.beforeExecute?.(plan, ctx);
+        await mw.beforeQuery?.(plan, ctx);
         await mw.onRow?.({}, plan, ctx);
         await mw.onRow?.({}, plan, ctx);
         await expect(mw.onRow?.({}, plan, ctx)).rejects.toMatchObject({
@@ -86,8 +86,8 @@ describe('budgets middleware', () => {
         const ctxA = createMiddlewareContext();
         const ctxB = createMiddlewareContext();
 
-        await mw.beforeExecute?.(planA, ctxA);
-        await mw.beforeExecute?.(planB, ctxB);
+        await mw.beforeQuery?.(planA, ctxA);
+        await mw.beforeQuery?.(planB, ctxB);
 
         await mw.onRow?.({}, planA, ctxA);
         await mw.onRow?.({}, planB, ctxB);
@@ -105,14 +105,14 @@ describe('budgets middleware', () => {
     );
   });
 
-  describe('latency budget (afterExecute)', () => {
+  describe('latency budget (afterQuery)', () => {
     it(
       'warns when latency exceeds budget in non-strict mode',
       async () => {
         const mw = budgets({ maxLatencyMs: 100, severities: { latency: 'warn' } });
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'permissive' });
-        const result: AfterExecuteResult = {
+        const result: AfterQueryResult = {
           operation: 'query',
           rowCount: 1,
           latencyMs: 200,
@@ -120,7 +120,7 @@ describe('budgets middleware', () => {
           source: 'driver',
         };
 
-        await mw.afterExecute?.(plan, result, ctx);
+        await mw.afterQuery?.(plan, result, ctx);
         expect(ctx.log.warn).toHaveBeenCalledWith(
           expect.objectContaining({ code: 'BUDGET.TIME_EXCEEDED' }),
         );
@@ -134,7 +134,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxLatencyMs: 100, severities: { latency: 'error' } });
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'strict' });
-        const result: AfterExecuteResult = {
+        const result: AfterQueryResult = {
           operation: 'query',
           rowCount: 1,
           latencyMs: 200,
@@ -142,7 +142,7 @@ describe('budgets middleware', () => {
           source: 'driver',
         };
 
-        await expect(mw.afterExecute?.(plan, result, ctx)).rejects.toMatchObject({
+        await expect(mw.afterQuery?.(plan, result, ctx)).rejects.toMatchObject({
           code: 'BUDGET.TIME_EXCEEDED',
           category: 'BUDGET',
         });
@@ -156,7 +156,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxLatencyMs: 100, severities: { latency: 'warn' } });
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'strict' });
-        const result: AfterExecuteResult = {
+        const result: AfterQueryResult = {
           operation: 'query',
           rowCount: 1,
           latencyMs: 200,
@@ -164,7 +164,7 @@ describe('budgets middleware', () => {
           source: 'driver',
         };
 
-        await expect(mw.afterExecute?.(plan, result, ctx)).rejects.toMatchObject({
+        await expect(mw.afterQuery?.(plan, result, ctx)).rejects.toMatchObject({
           code: 'BUDGET.TIME_EXCEEDED',
           category: 'BUDGET',
         });
@@ -178,7 +178,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxLatencyMs: 100, severities: { latency: 'error' } });
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'permissive' });
-        const result: AfterExecuteResult = {
+        const result: AfterQueryResult = {
           operation: 'query',
           rowCount: 1,
           latencyMs: 200,
@@ -186,7 +186,7 @@ describe('budgets middleware', () => {
           source: 'driver',
         };
 
-        await expect(mw.afterExecute?.(plan, result, ctx)).rejects.toMatchObject({
+        await expect(mw.afterQuery?.(plan, result, ctx)).rejects.toMatchObject({
           code: 'BUDGET.TIME_EXCEEDED',
           category: 'BUDGET',
         });
@@ -200,7 +200,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxLatencyMs: 100 });
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext({ mode: 'permissive' });
-        const result: AfterExecuteResult = {
+        const result: AfterQueryResult = {
           operation: 'query',
           rowCount: 1,
           latencyMs: 200,
@@ -208,7 +208,7 @@ describe('budgets middleware', () => {
           source: 'driver',
         };
 
-        await mw.afterExecute?.(plan, result, ctx);
+        await mw.afterQuery?.(plan, result, ctx);
         expect(ctx.log.warn).toHaveBeenCalledWith(
           expect.objectContaining({ code: 'BUDGET.TIME_EXCEEDED' }),
         );
@@ -222,7 +222,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxLatencyMs: 1000 });
         const plan = createPlan({ sql: 'SELECT 1 LIMIT 1' });
         const ctx = createMiddlewareContext();
-        const result: AfterExecuteResult = {
+        const result: AfterQueryResult = {
           operation: 'query',
           rowCount: 1,
           latencyMs: 50,
@@ -230,7 +230,7 @@ describe('budgets middleware', () => {
           source: 'driver',
         };
 
-        await mw.afterExecute?.(plan, result, ctx);
+        await mw.afterQuery?.(plan, result, ctx);
         expect(ctx.log.warn).not.toHaveBeenCalled();
       },
       timeouts.default,
@@ -250,7 +250,7 @@ describe('budgets middleware', () => {
         });
         const ctx = createMiddlewareContext({ mode: 'permissive' });
 
-        await mw.beforeExecute?.(plan, ctx);
+        await mw.beforeQuery?.(plan, ctx);
         expect(ctx.log.warn).toHaveBeenCalledWith(
           expect.objectContaining({ code: 'BUDGET.ROWS_EXCEEDED' }),
         );
@@ -270,7 +270,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxRows: 10_000, defaultTableRows: 10_000 });
         const ctx = createMiddlewareContext();
 
-        await mw.beforeExecute?.(plan, ctx);
+        await mw.beforeQuery?.(plan, ctx);
         expect(ctx.log.warn).not.toHaveBeenCalled();
       },
       timeouts.default,
@@ -284,7 +284,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxRows: 50, defaultTableRows: 10_000 });
         const ctx = createMiddlewareContext();
 
-        await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+        await expect(mw.beforeQuery?.(plan, ctx)).rejects.toMatchObject({
           code: 'BUDGET.ROWS_EXCEEDED',
           category: 'BUDGET',
           details: expect.objectContaining({ source: 'ast' }),
@@ -310,7 +310,7 @@ describe('budgets middleware', () => {
         // estimatedRows: 5 can only come from tableRows[ast.from.name].
         // If FROM lookup fell back to defaultTableRows (10_000), the limit
         // would dominate Math.min and surface estimatedRows: 10 instead.
-        await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+        await expect(mw.beforeQuery?.(plan, ctx)).rejects.toMatchObject({
           code: 'BUDGET.ROWS_EXCEEDED',
           category: 'BUDGET',
           details: expect.objectContaining({ source: 'ast', estimatedRows: 5 }),
@@ -327,7 +327,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxRows: 1 });
         const ctx = createMiddlewareContext();
 
-        await mw.beforeExecute?.(plan, ctx);
+        await mw.beforeQuery?.(plan, ctx);
       },
       timeouts.default,
     );
@@ -342,7 +342,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxRows: 1, defaultTableRows: 10_000 });
         const ctx = createMiddlewareContext();
 
-        await mw.beforeExecute?.(plan, ctx);
+        await mw.beforeQuery?.(plan, ctx);
         expect(ctx.log.warn).not.toHaveBeenCalled();
       },
       timeouts.default,
@@ -358,7 +358,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxRows: 50, defaultTableRows: 10_000 });
         const ctx = createMiddlewareContext();
 
-        await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+        await expect(mw.beforeQuery?.(plan, ctx)).rejects.toMatchObject({
           code: 'BUDGET.ROWS_EXCEEDED',
           details: expect.objectContaining({ source: 'ast' }),
         });
@@ -374,7 +374,7 @@ describe('budgets middleware', () => {
         const mw = budgets({ maxRows: 100_000, defaultTableRows: 100 });
         const ctx = createMiddlewareContext();
 
-        await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+        await expect(mw.beforeQuery?.(plan, ctx)).rejects.toMatchObject({
           code: 'BUDGET.ROWS_EXCEEDED',
           details: { source: 'ast', maxRows: 100_000 },
         });
@@ -399,7 +399,7 @@ describe('budgets middleware', () => {
         });
         const ctx = createMiddlewareContext();
 
-        await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+        await expect(mw.beforeQuery?.(plan, ctx)).rejects.toMatchObject({
           code: 'BUDGET.ROWS_EXCEEDED',
           details: expect.objectContaining({ source: 'ast', estimatedRows: 5 }),
         });

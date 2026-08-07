@@ -1,5 +1,5 @@
 import type {
-  AfterExecuteResult,
+  AfterQueryResult,
   CrossFamilyMiddleware,
   ExecutionPlan,
   RuntimeMiddlewareContext,
@@ -154,11 +154,11 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
   // Per-execution scratch space, keyed on the post-lowering `exec`
   // object identity. WeakMap keeps cleanup automatic: if an execution is
   // dropped without `afterExecute` firing (e.g. an early throw before
-  // `runWithMiddleware` even starts), the entry is GC'd alongside the
+  // `operation-specific middleware runner` even starts), the entry is GC'd alongside the
   // exec object.
   const pending = new WeakMap<object, PendingMiss>();
 
-  async function intercept(
+  async function interceptQuery(
     exec: ExecutionPlan,
     ctx: RuntimeMiddlewareContext,
   ): Promise<
@@ -212,9 +212,9 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
     slot.buffer.push(row);
   }
 
-  async function afterExecute(
+  async function afterQuery(
     exec: ExecutionPlan,
-    result: AfterExecuteResult,
+    result: AfterQueryResult,
     ctx: RuntimeMiddlewareContext,
   ): Promise<void> {
     const slot = pending.get(exec);
@@ -235,8 +235,8 @@ export function createCacheMiddleware(options?: CacheMiddlewareOptions): CrossFa
 
   return {
     name: 'cache',
-    intercept,
+    interceptQuery,
     onRow,
-    afterExecute,
+    afterQuery,
   };
 }

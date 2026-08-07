@@ -206,13 +206,19 @@ describe('runtime.prepare', () => {
 
   it('runs the beforeCompile middleware chain exactly once at prepare time', async () => {
     const beforeCompile = vi.fn().mockResolvedValue(undefined);
+    const beforeQuery = vi.fn().mockResolvedValue(undefined);
     const beforeExecute = vi.fn().mockResolvedValue(undefined);
+    const interceptExecute = vi.fn().mockResolvedValue(undefined);
+    const afterExecute = vi.fn().mockResolvedValue(undefined);
     const middleware: readonly SqlMiddleware[] = [
       {
         name: 'counter',
         familyId: 'sql',
         beforeCompile,
+        beforeQuery,
         beforeExecute,
+        interceptExecute,
+        afterExecute,
       },
     ];
     const { runtime } = createSetup({ middleware, rows: [] });
@@ -221,13 +227,16 @@ describe('runtime.prepare', () => {
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
     );
     expect(beforeCompile).toHaveBeenCalledTimes(1);
-    expect(beforeExecute).toHaveBeenCalledTimes(0);
+    expect(beforeQuery).toHaveBeenCalledTimes(0);
 
-    // Each queryPrepared() runs beforeExecute but NOT beforeCompile.
+    // Each queryPrepared() runs beforeQuery but NOT beforeCompile.
     await runtime.queryPrepared(ps, { userId: 1 }).toArray();
     await runtime.queryPrepared(ps, { userId: 2 }).toArray();
     expect(beforeCompile).toHaveBeenCalledTimes(1);
-    expect(beforeExecute).toHaveBeenCalledTimes(2);
+    expect(beforeQuery).toHaveBeenCalledTimes(2);
+    expect(beforeExecute).not.toHaveBeenCalled();
+    expect(interceptExecute).not.toHaveBeenCalled();
+    expect(afterExecute).not.toHaveBeenCalled();
   });
 
   it('routes queryPrepared through driver.query with a prepared handle and reuses lowered SQL', async () => {
@@ -316,13 +325,13 @@ describe('runtime.prepare', () => {
     });
   });
 
-  it("beforeExecute's param mutator can override prepared param values before encode", async () => {
+  it("beforeQuery's param mutator can override prepared param values before encode", async () => {
     const captured: unknown[] = [];
     const middleware: readonly SqlMiddleware[] = [
       {
         name: 'override-userId',
         familyId: 'sql',
-        async beforeExecute(_plan, _ctx, params) {
+        async beforeQuery(_plan, _ctx, params) {
           if (!params) return;
           for (const entry of params.entries()) {
             captured.push(entry.value);

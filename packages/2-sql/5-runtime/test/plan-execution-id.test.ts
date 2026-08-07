@@ -100,7 +100,7 @@ function buildEqUserIdPlan(userId: Expression<ScopeField>): SqlQueryPlan<{ id: n
 }
 
 interface Observation {
-  readonly hook: 'beforeExecute' | 'afterExecute';
+  readonly hook: 'beforeQuery' | 'afterQuery';
   readonly planExecutionId: string;
 }
 
@@ -108,17 +108,17 @@ function observerMiddleware(log: Observation[]): SqlMiddleware {
   return {
     name: 'observer',
     familyId: 'sql',
-    async beforeExecute(_plan, ctx) {
-      log.push({ hook: 'beforeExecute', planExecutionId: ctx.planExecutionId });
+    async beforeQuery(_plan, ctx) {
+      log.push({ hook: 'beforeQuery', planExecutionId: ctx.planExecutionId });
     },
-    async afterExecute(_plan, _result, ctx) {
-      log.push({ hook: 'afterExecute', planExecutionId: ctx.planExecutionId });
+    async afterQuery(_plan, _result, ctx) {
+      log.push({ hook: 'afterQuery', planExecutionId: ctx.planExecutionId });
     },
   };
 }
 
 describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
-  it('assigns the same planExecutionId to beforeExecute and afterExecute within one query call', async () => {
+  it('assigns the same planExecutionId to beforeQuery and afterQuery within one query call', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const plan = buildSelectAllUsersPlan();
@@ -126,8 +126,8 @@ describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
     await runtime.query(plan).toArray();
 
     expect(log).toHaveLength(2);
-    expect(log[0]?.hook).toBe('beforeExecute');
-    expect(log[1]?.hook).toBe('afterExecute');
+    expect(log[0]?.hook).toBe('beforeQuery');
+    expect(log[1]?.hook).toBe('afterQuery');
     expect(log[0]?.planExecutionId).toBeTypeOf('string');
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
   });
@@ -145,7 +145,7 @@ describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
     const secondExecId = log[2]?.planExecutionId;
     expect(firstExecId).toBeTypeOf('string');
     expect(secondExecId).toBeTypeOf('string');
-    // Within one query: beforeExecute and afterExecute share the ID.
+    // Within one query: beforeQuery and afterQuery share the ID.
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
     expect(log[2]?.planExecutionId).toBe(log[3]?.planExecutionId);
     // Across two queries: distinct IDs.
@@ -168,7 +168,7 @@ describe('SqlRuntime operation planExecutionId (ADR 220)', () => {
 });
 
 describe('SqlRuntime.queryPrepared planExecutionId (ADR 220)', () => {
-  it('assigns the same planExecutionId to beforeExecute and afterExecute within one queryPrepared call', async () => {
+  it('assigns the same planExecutionId to beforeQuery and afterQuery within one queryPrepared call', async () => {
     const log: Observation[] = [];
     const { runtime } = createSetup([observerMiddleware(log)]);
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>

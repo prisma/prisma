@@ -1,9 +1,9 @@
 import type { CodecCallContext } from '../shared/codec-types';
 import { AsyncIterableResult } from './async-iterable-result';
-import { runBeforeExecuteChain } from './before-execute-chain';
+import { runBeforeExecuteChain, runBeforeQueryChain } from './before-execute-chain';
 import type { ExecutionPlan, QueryPlan } from './query-plan';
 import { checkAborted } from './race-against-abort';
-import { runExecuteWithMiddleware, runWithMiddleware } from './run-with-middleware';
+import { runExecuteWithMiddleware, runQueryWithMiddleware } from './run-with-middleware';
 import type {
   RuntimeExecuteOptions,
   RuntimeExecutor,
@@ -27,7 +27,8 @@ export interface RuntimeCoreOptions<TMiddleware extends RuntimeMiddleware<Execut
 /**
  * Family-agnostic abstract runtime base.
  *
- * Defines the shared query/statistics preparation lifecycle in one place:
+ * Defines the shared row-query middleware lifecycle and a direct statistics
+ * execution baseline in one place:
  *
  * 1. `runBeforeCompile(plan)` — concrete; defaults to identity. SQL overrides
  *    this to run its `beforeCompile` middleware-hook chain.
@@ -37,20 +38,22 @@ export interface RuntimeCoreOptions<TMiddleware extends RuntimeMiddleware<Execut
  *    runs every middleware's `beforeExecute` hook after lowering but
  *    before the row source is opened. Family runtimes that need a
  *    params mutator visible to a downstream encode step (SQL) override
- *    the operation methods and call this helper themselves at the equivalent
- *    pre-encode point.
- * 4. `runWithMiddleware(exec, this.middleware, this.ctx,
+ *    `query` and call this helper themselves at the equivalent pre-encode
+ *    point.
+ * 4. `operation-specific middleware runner(exec, this.middleware, this.ctx,
  *    () => runDriver(exec))` — concrete; runs the intercept chain,
  *    drives the row source, fires `onRow` / `afterExecute`. Does
  *    **not** fire `beforeExecute` — see step 3.
  *
- * Concrete subclasses must implement `lower`, `runDriver`, and `close`.
+ * Statistics `execute()` deliberately bypasses middleware in this baseline.
+ * Concrete subclasses must implement `lower`, `runDriver`, `runExecute`, and
+ * `close`.
  *
  * The class is generic over:
  * - `TPlan` — the family's pre-lowering plan type.
  * - `TExec` — the family's post-lowering (executable) plan type.
  * - `TMiddleware` — the family's middleware type. Constrained to
- *   `RuntimeMiddleware<TExec>` because `runWithMiddleware` invokes the
+ *   `RuntimeMiddleware<TExec>` because `operation-specific middleware runner` invokes the
  *   `beforeExecute` / `onRow` / `afterExecute` hooks with the lowered
  *   `TExec`. (The spec/plan wording "RuntimeMiddleware<TPlan>" is
  *   tightened to `<TExec>` here so the helper call typechecks; the
@@ -120,7 +123,7 @@ export abstract class RuntimeCore<
     const execCtx: RuntimeMiddlewareContext = {
       ...self.ctx,
       ...codecCtx,
-      operation: 'query',
+      scope: options?.scope ?? self.ctx.scope,
       planExecutionId: crypto.randomUUID(),
     };
 
@@ -128,8 +131,8 @@ export abstract class RuntimeCore<
       checkAborted(codecCtx, 'stream');
       const compiled = await self.runBeforeCompile(plan);
       const exec = await self.lower(compiled, codecCtx);
-      await runBeforeExecuteChain<TExec>(exec, self.middleware, execCtx);
-      yield* runWithMiddleware<TExec, Row>(
+      await runBeforeQueryChain<TExec>(exec, self.middleware, execCtx);
+      yield* runQueryWithMiddleware<TExec, Row>(
         exec,
         self.middleware,
         execCtx,
@@ -146,7 +149,7 @@ export abstract class RuntimeCore<
     const execCtx: RuntimeMiddlewareContext = {
       ...this.ctx,
       ...codecCtx,
-      operation: 'execute',
+      scope: options?.scope ?? this.ctx.scope,
       planExecutionId: crypto.randomUUID(),
     };
 

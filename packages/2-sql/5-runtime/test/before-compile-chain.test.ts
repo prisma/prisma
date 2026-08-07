@@ -200,7 +200,7 @@ describe('runBeforeCompileChain', () => {
       const observerOnly: SqlMiddleware = {
         name: 'observer',
         familyId: 'sql',
-        async beforeExecute() {},
+        async beforeQuery() {},
       };
 
       const result = await runBeforeCompileChain([observerOnly], draft, ctx);

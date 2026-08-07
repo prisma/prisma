@@ -7,12 +7,15 @@ export type {
 } from '../annotations';
 export { assertAnnotationsApplicable, defineAnnotation } from '../annotations';
 export { AsyncIterableResult } from '../execution/async-iterable-result';
-export { runBeforeExecuteChain } from '../execution/before-execute-chain';
+export {
+  runBeforeExecuteChain,
+  runBeforeQueryChain,
+} from '../execution/before-execute-chain';
 export type { ExecutionPlan, QueryPlan, ResultType } from '../execution/query-plan';
 export { checkAborted, raceAgainstAbort } from '../execution/race-against-abort';
 export {
   runExecuteWithMiddleware,
-  runWithMiddleware,
+  runQueryWithMiddleware,
 } from '../execution/run-with-middleware';
 export type { RuntimeCoreOptions } from '../execution/runtime-core';
 export { RuntimeCore } from '../execution/runtime-core';
@@ -25,9 +28,11 @@ export {
 } from '../execution/runtime-error';
 export type {
   AfterExecuteResult,
+  AfterQueryResult,
   CrossFamilyMiddleware,
-  InterceptResult,
+  ExecuteInterceptResult,
   ParamRefMutator,
+  QueryInterceptResult,
   RuntimeExecuteOptions,
   RuntimeExecutor,
   RuntimeLog,

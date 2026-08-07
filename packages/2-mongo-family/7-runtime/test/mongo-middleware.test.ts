@@ -19,7 +19,7 @@ import type {
   MongoRuntimeAdapterInstance,
   MongoRuntimeTargetDescriptor,
 } from '../src/mongo-execution-stack';
-import type { MongoMiddleware } from '../src/mongo-middleware';
+import type { MongoMiddleware, MongoMiddlewareContext } from '../src/mongo-middleware';
 import { createMongoRuntime } from '../src/mongo-runtime';
 
 function makeContext(
@@ -104,18 +104,18 @@ function createMockDriver(rows: Record<string, unknown>[] = []): MongoDriver {
 }
 
 describe('MongoRuntime middleware lifecycle', () => {
-  it('calls beforeExecute, onRow, afterExecute in order', async () => {
+  it('calls beforeQuery, onRow, afterQuery in order', async () => {
     const callOrder: string[] = [];
     const middleware: MongoMiddleware = {
       name: 'test',
-      async beforeExecute() {
-        callOrder.push('beforeExecute');
+      async beforeQuery() {
+        callOrder.push('beforeQuery');
       },
       async onRow() {
         callOrder.push('onRow');
       },
-      async afterExecute() {
-        callOrder.push('afterExecute');
+      async afterQuery() {
+        callOrder.push('afterQuery');
       },
     };
 
@@ -131,7 +131,7 @@ describe('MongoRuntime middleware lifecycle', () => {
       void _row;
     }
 
-    expect(callOrder).toEqual(['beforeExecute', 'onRow', 'afterExecute']);
+    expect(callOrder).toEqual(['beforeQuery', 'onRow', 'afterQuery']);
   });
 
   it('works with no middleware', async () => {
@@ -147,6 +147,72 @@ describe('MongoRuntime middleware lifecycle', () => {
     }
 
     expect(results).toHaveLength(1);
+  });
+
+  it('intercepts execute statistics through only execute hooks', async () => {
+    const calls: string[] = [];
+    const contexts: MongoMiddlewareContext[] = [];
+    const driver = createMockDriver([{ deletedCount: 99 }]);
+    const context = makeContext(createMockAdapter(), new DeleteOneWireCommand('users', { id: 1 }));
+    const runtime = createMongoRuntime({
+      context,
+      driver,
+      middleware: [
+        {
+          name: 'query-only',
+          async beforeQuery() {
+            calls.push('beforeQuery');
+          },
+          async interceptQuery() {
+            calls.push('interceptQuery');
+            return undefined;
+          },
+          async afterQuery() {
+            calls.push('afterQuery');
+          },
+        },
+        {
+          name: 'passthrough',
+          async beforeExecute(_plan, ctx) {
+            calls.push('beforeExecute');
+            contexts.push(ctx);
+          },
+          async interceptExecute(_plan, ctx) {
+            calls.push('passthrough');
+            contexts.push(ctx);
+            return undefined;
+          },
+          async afterExecute(_plan, result, ctx) {
+            calls.push(`afterExecute:${result.completed ? result.stats.affectedRows : 'failed'}`);
+            contexts.push(ctx);
+          },
+        },
+        {
+          name: 'winner',
+          async interceptExecute(_plan, ctx) {
+            calls.push('winner');
+            contexts.push(ctx);
+            return { stats: { affectedRows: 5 } };
+          },
+        },
+        {
+          name: 'tail',
+          async interceptExecute() {
+            calls.push('tail');
+            return { stats: { affectedRows: 6 } };
+          },
+        },
+      ],
+    });
+
+    await expect(runtime.execute(createPlan())).resolves.toEqual({ affectedRows: 5 });
+    expect(driver.execute).not.toHaveBeenCalled();
+    expect(calls).toEqual(['beforeExecute', 'passthrough', 'winner', 'afterExecute:5']);
+    expect(contexts).toHaveLength(4);
+    expect(contexts.every((ctx) => ctx === contexts[0])).toBe(true);
+    expect(contexts[0]?.contract).toBe(context.contract);
+    expect(contexts[0]?.scope).toBe('runtime');
+    expect(contexts[0]?.planExecutionId).toBeTypeOf('string');
   });
 
   it('maps updateOne modifiedCount to affectedRows', async () => {
@@ -287,7 +353,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     const receivedMeta: PlanMeta[] = [];
     const middleware: MongoMiddleware = {
       name: 'meta-inspector',
-      async beforeExecute(plan) {
+      async beforeQuery(plan) {
         receivedMeta.push(plan.meta);
       },
     };
@@ -309,7 +375,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(receivedMeta[0]!.lane).toBe('orm');
   });
 
-  it('calls afterExecute with completed: false on error, then rethrows', async () => {
+  it('calls afterQuery with completed: false on error, then rethrows', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* []; // satisfy generator contract before throwing
@@ -321,7 +387,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let afterResult: { completed: boolean; rowCount: number } | undefined;
     const middleware: MongoMiddleware = {
       name: 'error-observer',
-      async afterExecute(_plan, result) {
+      async afterQuery(_plan, result) {
         if (result.operation !== 'query') throw new Error('expected query completion');
         afterResult = { completed: result.completed, rowCount: result.rowCount };
       },
@@ -343,7 +409,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(afterResult).toEqual({ completed: false, rowCount: 0 });
   });
 
-  it('handles error path with middleware that has no afterExecute', async () => {
+  it('handles error path with middleware that has no afterQuery', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* [];
@@ -354,8 +420,8 @@ describe('MongoRuntime middleware lifecycle', () => {
 
     const beforeCalled = vi.fn();
     const middleware: MongoMiddleware = {
-      name: 'no-afterExecute',
-      async beforeExecute() {
+      name: 'no-afterQuery',
+      async beforeQuery() {
         beforeCalled();
       },
     };
@@ -376,7 +442,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     expect(beforeCalled).toHaveBeenCalledOnce();
   });
 
-  it('swallows afterExecute errors during error handling and rethrows the original', async () => {
+  it('swallows afterQuery errors during error handling and rethrows the original', async () => {
     const failingDriver = {
       execute: vi.fn(async function* () {
         yield* [];
@@ -386,9 +452,9 @@ describe('MongoRuntime middleware lifecycle', () => {
     } as unknown as MongoDriver;
 
     const middleware: MongoMiddleware = {
-      name: 'failing-afterExecute',
-      async afterExecute() {
-        throw new Error('afterExecute also fails');
+      name: 'failing-afterQuery',
+      async afterQuery() {
+        throw new Error('afterQuery also fails');
       },
     };
 
@@ -410,7 +476,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let afterResult: { completed: boolean; rowCount: number } | undefined;
     const middleware: MongoMiddleware = {
       name: 'result-observer',
-      async afterExecute(_plan, result) {
+      async afterQuery(_plan, result) {
         if (result.operation !== 'query') throw new Error('expected query completion');
         afterResult = { completed: result.completed, rowCount: result.rowCount };
       },
@@ -434,7 +500,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let receivedMode: string | undefined;
     const middleware: MongoMiddleware = {
       name: 'mode-inspector',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         receivedMode = ctx.mode;
       },
     };
@@ -458,7 +524,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     let logWorks = false;
     const middleware: MongoMiddleware = {
       name: 'ctx-tester',
-      async beforeExecute(_plan, ctx) {
+      async beforeQuery(_plan, ctx) {
         ctx.log.info('test');
         ctx.log.warn('test');
         ctx.log.error('test');
@@ -485,7 +551,7 @@ describe('MongoRuntime middleware lifecycle', () => {
     const observedKeys: string[] = [];
     const middleware: MongoMiddleware = {
       name: 'content-hash-tester',
-      async afterExecute(plan, _result, ctx) {
+      async afterQuery(plan, _result, ctx) {
         observedKeys.push(await ctx.contentHash(plan));
       },
     };
@@ -512,23 +578,23 @@ describe('MongoRuntime middleware lifecycle', () => {
 
 describe('MongoRuntime planExecutionId (ADR 220)', () => {
   interface Observation {
-    readonly hook: 'beforeExecute' | 'afterExecute';
+    readonly hook: 'beforeQuery' | 'afterQuery';
     readonly planExecutionId: string;
   }
 
   function observerMiddleware(log: Observation[]): MongoMiddleware {
     return {
       name: 'observer',
-      async beforeExecute(_plan, ctx) {
-        log.push({ hook: 'beforeExecute', planExecutionId: ctx.planExecutionId });
+      async beforeQuery(_plan, ctx) {
+        log.push({ hook: 'beforeQuery', planExecutionId: ctx.planExecutionId });
       },
-      async afterExecute(_plan, _result, ctx) {
-        log.push({ hook: 'afterExecute', planExecutionId: ctx.planExecutionId });
+      async afterQuery(_plan, _result, ctx) {
+        log.push({ hook: 'afterQuery', planExecutionId: ctx.planExecutionId });
       },
     };
   }
 
-  it('assigns the same planExecutionId to beforeExecute and afterExecute within one query call', async () => {
+  it('assigns the same planExecutionId to beforeQuery and afterQuery within one query call', async () => {
     const log: Observation[] = [];
     const adapter = createMockAdapter();
     const runtime = createMongoRuntime({
@@ -542,8 +608,8 @@ describe('MongoRuntime planExecutionId (ADR 220)', () => {
     }
 
     expect(log).toHaveLength(2);
-    expect(log[0]?.hook).toBe('beforeExecute');
-    expect(log[1]?.hook).toBe('afterExecute');
+    expect(log[0]?.hook).toBe('beforeQuery');
+    expect(log[1]?.hook).toBe('afterQuery');
     expect(log[0]?.planExecutionId).toBeTypeOf('string');
     expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
   });

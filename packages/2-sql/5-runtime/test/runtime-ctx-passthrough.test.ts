@@ -135,7 +135,7 @@ describe('SQL middleware context surface', () => {
     const probe: SqlMiddleware = {
       name: 'probe',
       familyId: 'sql' as const,
-      async beforeExecute(plan, ctx) {
+      async beforeQuery(plan, ctx) {
         observedNow = ctx.now();
         observedHash = await ctx.contentHash(plan as unknown as SqlExecutionPlan);
       },
