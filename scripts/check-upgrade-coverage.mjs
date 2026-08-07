@@ -227,6 +227,11 @@ export function inFlightTransitionLabel(head) {
  */
 export function coverageTransitionChain(head, prev) {
   if (head.rc !== null || prev.rc !== null) {
+    if (head.rc !== null && prev.rc !== null && head.rc < prev.rc) {
+      throw new Error(
+        `check-upgrade-coverage: head ${versionSegment(head)} is behind prev ${versionSegment(prev)} (reversed RC range); rebase or pass refs in chronological order`,
+      );
+    }
     return versionSegment(head) === versionSegment(prev)
       ? [inFlightTransitionLabel(head)]
       : [transitionLabel(prev, head)];

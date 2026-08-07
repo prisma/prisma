@@ -171,6 +171,16 @@ describe('coverageTransitionChain', () => {
       '0.99-to-1.0',
     ]);
   });
+  it('reversed RC range (head.rc < prev.rc): throws rather than naming a backwards transition', () => {
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.2'), parseVersion('8.0.0-rc.4')),
+      (err) =>
+        err instanceof Error &&
+        /8\.0\.0-rc\.2/.test(err.message) &&
+        /8\.0\.0-rc\.4/.test(err.message) &&
+        /reversed|behind|chronological/i.test(err.message),
+    );
+  });
   it('reversed same-major range (head.minor < prev.minor): throws naming both versions instead of silently returning an empty chain', () => {
     assert.throws(
       () => coverageTransitionChain(parseVersion('0.7.0'), parseVersion('0.9.0')),
