@@ -1,6 +1,6 @@
 # Design — TML-3181: composer adopts the shared error foundation
 
-Status: DRAFT — ambiguities 1–7 (end of file) pending operator ruling. Normative parent: [cli-base-types.md](../../cli-base-types.md) § composer. Target branch: `tml-3174-composer-programmatic-deploy-api` (merges first). Donor: prisma/prisma foundation files. Implementer executes exactly.
+Status: PARTIALLY RULED 2026-08-07 — 1–4 recommendations adopted; 5: canonical slug is **prisma/composer** — the bug-report URL uses it AND this slice fixes composer's `package.json#repository` field (currently `prisma/compose`, a mistake); 6: **OVERRIDDEN — populate `where`** on the sites with natural paths (config path: sites 1, 3, 5; entry path: sites 9, 10) since the rendered `Where:` line prints to the user/executing agent — the renderer already handles it, add the corresponding `.where` assertions to the §4 test updates; 7: PENDING operator ruling on the `COMPOSE.PIPELINE_FAILED` fallback name. Normative parent: [cli-base-types.md](../../cli-base-types.md) § composer. Target branch: `tml-3174-composer-programmatic-deploy-api` (merges first). Donor: prisma/prisma foundation files. Implementer executes exactly.
 
 ## 1. Placement
 

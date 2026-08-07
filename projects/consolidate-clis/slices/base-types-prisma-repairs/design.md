@@ -1,6 +1,6 @@
 # Design — TML-3180: base-type repairs in prisma/prisma
 
-Status: DRAFT — ambiguities 1–10 (end of file) pending operator ruling. Normative parent: [cli-base-types.md](../../cli-base-types.md) § prisma/prisma. Implementer executes exactly; deviations require orchestrator sign-off.
+Status: ACCEPTED 2026-08-07 — all ten ambiguities ruled: recommendations adopted throughout (1: keep the `errorRuntime` name — operator indifferent, factory is repo-internal; 2: `meta.sqlState`; 3: new `MIGRATION.REF_*` family; 4: `PSL.PARSE_FAILED`; 5: slim `MIGRATION.NO_INVARIANT_PATH`; 6: reuse `MIGRATION.SNAPSHOT_MISSING`; 7: `CLI.FILE_NOT_FOUND` keeping text; 8: `RUNTIME.AST_INVALID`; 9: `RUNTIME.AST_UNSUPPORTED`; 10: amend ADR 239). Normative parent: [cli-base-types.md](../../cli-base-types.md) § prisma/prisma. Implementer executes exactly; deviations require orchestrator sign-off.
 
 ## A.0 Ordering and repo rules
 
