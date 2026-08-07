@@ -359,6 +359,24 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['companyId'];
                 };
               };
+              readonly locations: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Location';
+                };
+                readonly cardinality: 'N:M';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['companyId'];
+                };
+                readonly through: {
+                  readonly table: 'companyLocation';
+                  readonly namespaceId: 'public';
+                  readonly parentColumns: readonly ['companyId'];
+                  readonly childColumns: readonly ['locationId'];
+                  readonly targetColumns: readonly ['id'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'company';
@@ -425,6 +443,24 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
+              readonly companies: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Company';
+                };
+                readonly cardinality: 'N:M';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['locationId'];
+                };
+                readonly through: {
+                  readonly table: 'companyLocation';
+                  readonly namespaceId: 'public';
+                  readonly parentColumns: readonly ['locationId'];
+                  readonly childColumns: readonly ['companyId'];
+                  readonly targetColumns: readonly ['id'];
+                };
+              };
               readonly companyLocations: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;

@@ -53,6 +53,34 @@
                   "model": "CompanyLocation",
                   "namespace": "public"
                 }
+              },
+              "locations": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "companyId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "locationId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "companyId"
+                  ],
+                  "table": "companyLocation",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Location",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -148,6 +176,34 @@
               }
             },
             "relations": {
+              "companies": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "locationId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "companyId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "locationId"
+                  ],
+                  "table": "companyLocation",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Company",
+                  "namespace": "public"
+                }
+              },
               "companyLocations": {
                 "cardinality": "1:N",
                 "on": {

@@ -124,26 +124,25 @@ describe('ports/engines/queries/filters/filter_regression', () => {
         { contractJson: manyToManyContractJson },
         async ({ db }) => {
           await db.public.Location.createAll(locations.map((location) => ({ ...location })));
-          await db.public.Company.createAll([
-            { id: 134, name: '1' },
-            { id: 135, name: '2' },
-            { id: 136, name: '3' },
-          ]);
-          await db.public.CompanyLocation.createAll([
-            { companyId: 134, locationId: 310 },
-            { companyId: 134, locationId: 312 },
-            { companyId: 134, locationId: 313 },
-            { companyId: 135, locationId: 311 },
-            { companyId: 135, locationId: 314 },
-            { companyId: 136, locationId: 315 },
-            { companyId: 136, locationId: 317 },
-          ]);
+          await db.public.Company.create({
+            id: 134,
+            name: '1',
+            locations: (relation) => relation.connect([{ id: 310 }, { id: 312 }, { id: 313 }]),
+          });
+          await db.public.Company.create({
+            id: 135,
+            name: '2',
+            locations: (relation) => relation.connect([{ id: 311 }, { id: 314 }]),
+          });
+          await db.public.Company.create({
+            id: 136,
+            name: '3',
+            locations: (relation) => relation.connect([{ id: 315 }, { id: 317 }]),
+          });
 
           expect(
             await db.public.Company.where((company) =>
-              company.companyLocations.none((link) =>
-                link.location.some((location) => location.name.eq('D')),
-              ),
+              company.locations.none((location) => location.name.eq('D')),
             )
               .orderBy((company) => company.id.asc())
               .select('id')
@@ -151,9 +150,7 @@ describe('ports/engines/queries/filters/filter_regression', () => {
           ).toEqual([{ id: 134 }, { id: 135 }, { id: 136 }]);
           expect(
             await db.public.Company.where((company) =>
-              company.companyLocations.every((link) =>
-                link.location.some((location) => location.name.eq('A')),
-              ),
+              company.locations.every((location) => location.name.eq('A')),
             )
               .select('id')
               .all(),

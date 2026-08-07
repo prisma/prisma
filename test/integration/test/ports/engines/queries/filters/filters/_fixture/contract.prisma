@@ -5,8 +5,8 @@ model User {
   unique    Int      @unique
   name      String?
   optional  String?
-  vehicleId String?  @unique
-  ride      Vehicle? @relation(fields: [vehicleId], references: [id])
+  vehicle_id String?  @unique
+  ride       Vehicle? @relation(fields: [vehicle_id], references: [id])
 }
 
 model Vehicle {
