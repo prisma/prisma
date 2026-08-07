@@ -299,10 +299,15 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
         { meta: { reason: 'duplicate-noCheck-call' } },
       );
     }
-    return new ScalarFieldBuilder({
-      ...this.state,
-      noCheck: kinds,
-    }) as ScalarFieldBuilder<State>;
+    return blindCast<
+      ScalarFieldBuilder<State>,
+      'noCheck() changes only the runtime flag; the typed state is unchanged, matching the many()/default() builder-clone pattern'
+    >(
+      new ScalarFieldBuilder({
+        ...this.state,
+        noCheck: kinds,
+      }),
+    );
   }
 
   default(value: ColumnDefaultLiteralInputValue | ColumnDefault): ScalarFieldBuilder<State> {
