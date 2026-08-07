@@ -554,6 +554,7 @@
               },
               "foreignKeys": [
                 {
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
                       "commentId"
@@ -570,6 +571,7 @@
                   }
                 },
                 {
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
                       "tagId"
@@ -680,6 +682,7 @@
               },
               "foreignKeys": [
                 {
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
                       "postId"
@@ -696,6 +699,7 @@
                   }
                 },
                 {
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
                       "tagId"
@@ -788,7 +792,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "64bcadf902e49bb6e248829362432e6de18bdcc944c3e803d256c1516be7ae83"
+    "storageHash": "0fafaeadf7ad183cbb47086492a14e3f5b56912b79c8c7eef170bd6abaab56a6"
   },
   "capabilities": {
     "postgres": {

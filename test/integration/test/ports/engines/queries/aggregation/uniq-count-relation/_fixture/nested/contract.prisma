@@ -31,8 +31,8 @@ model Tag {
 model PostTag {
   postId Int
   tagId  Int
-  post   Post @relation(fields: [postId], references: [id])
-  tag    Tag  @relation(fields: [tagId], references: [id])
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([postId, tagId])
 }
@@ -40,8 +40,8 @@ model PostTag {
 model CommentTag {
   commentId Int
   tagId     Int
-  comment   Comment @relation(fields: [commentId], references: [id])
-  tag       Tag     @relation(fields: [tagId], references: [id])
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([commentId, tagId])
 }
