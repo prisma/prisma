@@ -69,7 +69,7 @@ describe('assertDescriptorSelfConsistency', () => {
     ).toThrowError(MigrationToolsError);
   });
 
-  it('error names the extension and includes both hashes in details', () => {
+  it('error names the extension and includes both hashes in meta', () => {
     let captured: MigrationToolsError | undefined;
     try {
       assertDescriptorSelfConsistency({
@@ -87,7 +87,7 @@ describe('assertDescriptorSelfConsistency', () => {
     expect(captured?.why).toContain('"cipherstash"');
     expect(captured?.why).toContain('stale-hash');
     expect(captured?.why).toContain(REAL_HASH);
-    expect(captured?.details).toEqual({
+    expect(captured?.meta).toEqual({
       extensionId: 'cipherstash',
       recomputedHash: REAL_HASH,
       headRefHash: 'stale-hash',
