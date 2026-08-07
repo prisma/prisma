@@ -116,7 +116,7 @@ function baseInput(
 }
 
 function expectRefuse(error: CliStructuredError, migrationCode: string, fixFragment: string): void {
-  expect(error.meta?.['code']).toBe(migrationCode);
+  expect(error.code).toBe(migrationCode);
   expect(error.fix).toContain(fixFragment);
 }
 
@@ -392,7 +392,7 @@ describe('resolveFromForPlan', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.failure.meta?.['code']).toBe('MIGRATION.INVALID_REF_FILE');
+      expect(result.failure.code).toBe('MIGRATION.INVALID_REF_FILE');
     }
   });
 

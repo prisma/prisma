@@ -28,6 +28,7 @@ import {
   errorFileNotFound,
   errorMarkerMismatch,
   errorPathUnreachable,
+  errorRunnerFailed,
   errorRuntime,
   errorTargetMigrationNotSupported,
   errorUnexpected,
@@ -409,9 +410,14 @@ async function executeMigrateShowCommand(
     }
     if (outcome.kind === 'unsatisfiable') {
       return notOk(
-        errorRuntime(`Missing required invariants for space "${outcome.spaceId}"`, {
-          why: `The path requires invariants not available on disk: ${outcome.missing.join(', ')}`,
-        }),
+        errorRuntime(
+          'MIGRATION.NO_INVARIANT_PATH',
+          `Missing required invariants for space "${outcome.spaceId}"`,
+          {
+            why: `The path requires invariants not available on disk: ${outcome.missing.join(', ')}`,
+            meta: { spaceId: outcome.spaceId, missing: [...outcome.missing] },
+          },
+        ),
       );
     }
 
@@ -580,7 +586,7 @@ function mapApplyFailure(failure: MigrateFailure): CliStructuredErrorType {
   if (failure.code === 'MIGRATION_PATH_NOT_FOUND') {
     return errorPathUnreachable(failure);
   }
-  return errorRuntime(failure.summary, {
+  return errorRunnerFailed(failure.summary, {
     why: failure.why ?? 'Migration runner failed',
     fix: 'Fix the issue and re-run `prisma-next migrate --to <contract>` — previously applied migrations are preserved.',
     meta: failure.meta ?? {},

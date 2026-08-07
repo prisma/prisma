@@ -100,8 +100,8 @@ function envelopeCode(consoleOutput: readonly string[]): string | undefined {
   if (jsonLine === undefined) {
     return undefined;
   }
-  const envelope = JSON.parse(jsonLine) as { meta?: { code?: string } };
-  return envelope.meta?.code;
+  const envelope = JSON.parse(jsonLine) as { code?: string };
+  return envelope.code;
 }
 
 const createdDirs: string[] = [];

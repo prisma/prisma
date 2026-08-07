@@ -123,21 +123,35 @@ describe('Runtime Errors', () => {
     expect(error.meta).toEqual({ key: 'value' });
   });
 
-  it('errorRuntime creates correct error', () => {
-    const error = errorRuntime('Something failed');
-    expect(error.code).toBe('CONTRACT.VERIFY_FAILED');
+  it('errorRuntime carries the caller-provided code', () => {
+    const error = errorRuntime('MIGRATION.SPACE_NOT_FOUND', 'Something failed');
+    expect(error.code).toBe('MIGRATION.SPACE_NOT_FOUND');
     expect(error.message).toBe('Something failed');
+    expect(error.why).toBeUndefined();
+    expect(error.fix).toBeUndefined();
   });
 
   it('errorRuntime with all options', () => {
-    const error = errorRuntime('Something failed', {
+    const error = errorRuntime('CONTRACT.VERIFY_FAILED', 'Something failed', {
       why: 'Custom why',
       fix: 'Custom fix',
       meta: { key: 'value' },
     });
+    expect(error.code).toBe('CONTRACT.VERIFY_FAILED');
     expect(error.why).toBe('Custom why');
     expect(error.fix).toBe('Custom fix');
     expect(error.meta).toEqual({ key: 'value' });
+  });
+
+  it('errorRuntime forwards cause', () => {
+    const cause = new Error('underlying failure');
+    const error = errorRuntime('DRIVER.CONNECTION_FAILED', 'Something failed', { cause });
+    expect(error.cause).toBe(cause);
+  });
+
+  it('errorRuntime without cause leaves no own cause property', () => {
+    const error = errorRuntime('DRIVER.CONNECTION_FAILED', 'Something failed');
+    expect(Object.hasOwn(error, 'cause')).toBe(false);
   });
 
   it('errorMarkerRowCorrupt creates CONTRACT.MARKER_ROW_CORRUPT envelope', () => {

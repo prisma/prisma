@@ -75,12 +75,12 @@ function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
     }
 
     return errorRuntime(
+      'MIGRATION.MARKER_ORIGIN_MISMATCH',
       `Existing database signature does not match plan destination.${mismatchParts.length > 0 ? ` Mismatch in ${mismatchParts.join(' and ')}.` : ''}`,
       {
         why: 'Database has an existing signature (marker) that does not match the target contract',
         fix: 'If bootstrapping, drop/reset the database then re-run `prisma-next db init`; otherwise reconcile schema/marker using your migration workflow',
         meta: {
-          code: 'MIGRATION.MARKER_ORIGIN_MISMATCH',
           ...ifDefined('markerStorageHash', failure.marker?.storageHash),
           ...ifDefined('destinationStorageHash', failure.destination?.storageHash),
           ...ifDefined('markerProfileHash', failure.marker?.profileHash),
@@ -102,9 +102,7 @@ function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
     return errorRunnerFailed(failure.summary, {
       why: failure.why ?? 'Migration runner failed',
       fix,
-      ...(failure.meta
-        ? { meta: { code: 'RUNNER_FAILED', ...failure.meta } }
-        : { meta: { code: 'RUNNER_FAILED' } }),
+      ...ifDefined('meta', failure.meta),
     });
   }
 

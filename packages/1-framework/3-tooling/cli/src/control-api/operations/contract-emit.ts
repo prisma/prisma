@@ -39,11 +39,17 @@ function endSpan(
   onProgress?.({ action: EMIT_ACTION, kind: 'spanEnd', spanId, outcome });
 }
 
-function failedToResolveContractSource(why: string, fix: string, meta?: Record<string, unknown>) {
-  return errorRuntime('Failed to resolve contract source', {
+function failedToResolveContractSource(
+  why: string,
+  fix: string,
+  meta?: Record<string, unknown>,
+  cause?: unknown,
+) {
+  return errorRuntime('CONTRACT.SOURCE_LOAD_FAILED', 'Failed to resolve contract source', {
     why,
     fix,
     ...ifDefined('meta', meta),
+    ...ifDefined('cause', cause),
   });
 }
 
@@ -217,6 +223,8 @@ export async function executeContractEmit(
       throw failedToResolveContractSource(
         error instanceof Error ? error.message : String(error),
         'Ensure contract.source.load resolves to ok(Contract) or returns structured diagnostics.',
+        undefined,
+        error,
       );
     }
 

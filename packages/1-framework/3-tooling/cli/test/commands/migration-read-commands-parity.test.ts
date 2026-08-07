@@ -858,7 +858,7 @@ describe('migration check multi-space parity (D6 lock)', () => {
     const envelope = result.failure.toEnvelope();
     expect(envelope.ok).toBe(false);
     expect(typeof envelope.code).toBe('string');
-    expect(envelope.meta?.['code']).toBe('MIGRATION.SPACE_NOT_FOUND');
+    expect(envelope.code).toBe('MIGRATION.SPACE_NOT_FOUND');
   });
 });
 

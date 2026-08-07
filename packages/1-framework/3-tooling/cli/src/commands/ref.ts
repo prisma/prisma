@@ -66,7 +66,7 @@ function mapError(error: unknown): CliStructuredError {
 }
 
 function cliErrorInvalidRefName(name: string): CliStructuredError {
-  return errorRuntime(`Invalid ref name "${name}"`, {
+  return errorRuntime('MIGRATION.INVALID_REF_NAME', `Invalid ref name "${name}"`, {
     why: `Ref name "${name}" does not match the required format`,
     fix: 'Ref names must be lowercase alphanumeric with hyphens or forward slashes, no `.` or `..` segments',
   });

@@ -76,9 +76,8 @@ describe('buildReadAggregate — pre-flight loading failures return a structured
     expect(result.ok).toBe(false);
     if (result.ok) return;
     // Mapped via mapMigrationToolsError (errorRuntime envelope), not errorUnexpected.
-    expect(result.failure.code).toBe('CONTRACT.VERIFY_FAILED');
+    expect(result.failure.code).toBe('MIGRATION.INVALID_JSON');
     expect(result.failure.message).toBe(toolsError.message);
     expect(result.failure.why).toBe(toolsError.why);
-    expect(result.failure.meta?.['code']).toBe(toolsError.code);
   });
 });

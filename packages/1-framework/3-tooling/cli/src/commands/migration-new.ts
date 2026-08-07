@@ -92,7 +92,7 @@ async function executeMigrationNewCommand(
   } catch (error) {
     if (error instanceof Error && (error as { code?: string }).code === 'ENOENT') {
       return notOk(
-        errorRuntime(`Contract file not found at ${contractPathAbsolute}`, {
+        errorRuntime('CLI.FILE_NOT_FOUND', `Contract file not found at ${contractPathAbsolute}`, {
           why: `Contract file not found at ${contractPathAbsolute}`,
           fix: 'Run `prisma-next contract emit` first to generate the contract',
         }),
@@ -107,9 +107,10 @@ async function executeMigrationNewCommand(
     toContract = familyInstance.deserializeContract(parsedContract);
   } catch (error) {
     return notOk(
-      errorRuntime('Contract JSON is invalid', {
+      errorRuntime('MIGRATION.CONTRACT_DESERIALIZATION_FAILED', 'Contract JSON is invalid', {
         why: `Failed to deserialize ${contractPathAbsolute}: ${error instanceof Error ? error.message : String(error)}`,
         fix: 'Run `prisma-next contract emit` to regenerate the contract',
+        cause: error,
       }),
     );
   }
@@ -117,7 +118,7 @@ async function executeMigrationNewCommand(
   const toStorageHash = toContract.storage?.storageHash;
   if (typeof toStorageHash !== 'string') {
     return notOk(
-      errorRuntime('Contract is missing storageHash', {
+      errorRuntime('CONTRACT.VALIDATION_FAILED', 'Contract is missing storageHash', {
         why: `Contract at ${contractPathAbsolute} has no storageHash`,
         fix: 'Run `prisma-next contract emit` to regenerate the contract',
       }),
@@ -144,7 +145,7 @@ async function executeMigrationNewCommand(
       const match = packages.find((p) => p.metadata.to.startsWith(options.from!));
       if (!match) {
         return notOk(
-          errorRuntime('Starting contract not found', {
+          errorRuntime('MIGRATION.HASH_NOT_IN_GRAPH', 'Starting contract not found', {
             why: `No migration with to hash matching "${options.from}" exists in ${appMigrationsRelative}`,
             fix: 'Check that the --from hash matches a known migration target hash.',
           }),
@@ -161,7 +162,7 @@ async function executeMigrationNewCommand(
 
   if (fromHash === toStorageHash && !options.from) {
     return notOk(
-      errorRuntime('No changes detected', {
+      errorRuntime('MIGRATION.NO_CHANGES', 'No changes detected', {
         why: 'The from and to contract hashes are identical — there is nothing to migrate.',
         fix: 'Change the contract and run `prisma-next contract emit` before creating a new migration. To author a data-only migration on the current contract hash, pass `--from <hash>` explicitly.',
       }),

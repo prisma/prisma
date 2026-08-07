@@ -265,19 +265,22 @@ export function errorDestructiveChanges(
 }
 
 /**
- * Generic runtime error.
+ * Generic runtime error carrying a caller-provided dotted code.
  */
 export function errorRuntime(
+  code: `${string}.${string}`,
   summary: string,
   options?: {
     readonly why?: string;
     readonly fix?: string;
     readonly meta?: Record<string, unknown>;
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
-  return new CliStructuredError('CONTRACT.VERIFY_FAILED', summary, {
-    ...(options?.why ? { why: options.why } : { why: 'Verification failed' }),
-    ...(options?.fix ? { fix: options.fix } : { fix: 'Check contract and database state' }),
-    ...(options?.meta ? { meta: options.meta } : {}),
+  return new CliStructuredError(code, summary, {
+    ...ifDefined('why', options?.why),
+    ...ifDefined('fix', options?.fix),
+    ...ifDefined('meta', options?.meta),
+    ...ifDefined('cause', options?.cause),
   });
 }

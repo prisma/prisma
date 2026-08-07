@@ -274,7 +274,7 @@ describe('migration check — --space narrowing', () => {
     expect(outcome.ok).toBe(false);
     if (outcome.ok) throw new Error('unreachable');
     const envelope = outcome.failure.toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.INVALID_SPACE_ID');
+    expect(envelope.code).toBe('MIGRATION.INVALID_SPACE_ID');
     expect(envelope.meta?.['spaceId']).toBe('../escape');
   });
 
@@ -296,7 +296,7 @@ describe('migration check — --space narrowing', () => {
     expect(outcome.ok).toBe(false);
     if (outcome.ok) throw new Error('unreachable');
     const envelope = outcome.failure.toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.SPACE_NOT_FOUND');
+    expect(envelope.code).toBe('MIGRATION.SPACE_NOT_FOUND');
     expect(envelope.meta?.['spaceId']).toBe('nope');
     expect(envelope.meta?.['availableSpaces']).toEqual(['app']);
   });

@@ -53,8 +53,8 @@ describe('migration-ref MigrationToolsError envelope mapping', () => {
       if (result.ok) return;
 
       const envelope = result.failure.toEnvelope();
+      expect(envelope.code).toBe('MIGRATION.UNKNOWN_REF');
       expect(envelope.meta).toMatchObject({
-        code: 'MIGRATION.UNKNOWN_REF',
         refName: 'does-not-exist',
       });
       expect(envelope.meta).toHaveProperty('filePath');

@@ -35,14 +35,14 @@ function reemitHint(dir: string, fallback?: string): string {
  * - details:  Machine-readable structured data for agents
  */
 export class MigrationToolsError extends Error {
-  readonly code: string;
+  readonly code: `MIGRATION.${string}`;
   readonly category = 'MIGRATION' as const;
   readonly why: string;
   readonly fix: string;
   readonly details: Record<string, unknown> | undefined;
 
   constructor(
-    code: string,
+    code: `MIGRATION.${string}`,
     summary: string,
     options: {
       readonly why: string;

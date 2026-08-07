@@ -38,12 +38,13 @@ const sqliteDriverDescriptor: ControlDriverDescriptor<'sql', 'sqlite', SqliteCon
       db.exec('PRAGMA foreign_keys = ON');
       return new SqliteControlDriver(db);
     } catch (error) {
-      throw errorRuntime('Database connection failed', {
+      throw errorRuntime('DRIVER.CONNECTION_FAILED', 'Database connection failed', {
         why: error instanceof Error ? error.message : String(error),
         fix: 'Verify the database file path exists and is accessible',
         meta: {
           path: pathOrMemory,
         },
+        cause: error,
       });
     }
   },

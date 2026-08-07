@@ -83,30 +83,36 @@ export function errorRefSetHashNotInGraph(
         ? `Set the ref to a graph-node hash such as ${graphTipHash}, or run \`prisma-next migration plan\` to extend the graph.`
         : 'Set the ref to a hash that appears in the migration graph.'
       : 'Run `prisma-next migration plan` first.';
-  return errorRuntime(`Resolved contract hash is not in the migration graph: ${resolvedHash}`, {
-    why:
-      reachableHashes.length > 0
-        ? `The migration graph reaches ${reachableList}; resolved ${resolvedHash} isn't a graph node.`
-        : 'The migration graph is empty — no hashes reachable.',
-    fix,
-    meta: {
-      code: 'MIGRATION.HASH_NOT_IN_GRAPH',
-      resolvedHash,
-      reachableHashes: [...reachableHashes],
-      ...(graphTipHash !== null ? { graphTipHash } : {}),
+  return errorRuntime(
+    'MIGRATION.HASH_NOT_IN_GRAPH',
+    `Resolved contract hash is not in the migration graph: ${resolvedHash}`,
+    {
+      why:
+        reachableHashes.length > 0
+          ? `The migration graph reaches ${reachableList}; resolved ${resolvedHash} isn't a graph node.`
+          : 'The migration graph is empty — no hashes reachable.',
+      fix,
+      meta: {
+        resolvedHash,
+        reachableHashes: [...reachableHashes],
+        ...(graphTipHash !== null ? { graphTipHash } : {}),
+      },
     },
-  });
+  );
 }
 
 export function errorRefSetEmptySentinel(hash: string): CliStructuredError {
-  return errorRuntime(`Cannot set ref to the empty-database sentinel: ${hash}`, {
-    why: 'The empty-database sentinel is a planner internal; it is not a valid ref target.',
-    fix: 'Set the ref to a contract hash from the migration graph, or use another ref name.',
-    meta: {
-      code: 'MIGRATION.REF_SET_EMPTY_SENTINEL',
-      hash,
+  return errorRuntime(
+    'MIGRATION.REF_SET_EMPTY_SENTINEL',
+    `Cannot set ref to the empty-database sentinel: ${hash}`,
+    {
+      why: 'The empty-database sentinel is a planner internal; it is not a valid ref target.',
+      fix: 'Set the ref to a contract hash from the migration graph, or use another ref name.',
+      meta: {
+        hash,
+      },
     },
-  });
+  );
 }
 
 /**
@@ -116,14 +122,17 @@ export function errorRefSetEmptySentinel(hash: string): CliStructuredError {
 export function errorLegendHumanOnly(
   conflictingFlag: '--json' | '--dot' | '--quiet',
 ): CliStructuredError {
-  return errorRuntime('`--legend` is only available for human-readable output', {
-    why: `\`--legend\` prints a glyph key to stderr and cannot be combined with ${conflictingFlag}.`,
-    fix: `Omit ${conflictingFlag} to print the legend alongside the tree, or omit --legend when using ${conflictingFlag}.`,
-    meta: {
-      code: 'MIGRATION.LEGEND_HUMAN_ONLY',
-      conflictingFlag,
+  return errorRuntime(
+    'MIGRATION.LEGEND_HUMAN_ONLY',
+    '`--legend` is only available for human-readable output',
+    {
+      why: `\`--legend\` prints a glyph key to stderr and cannot be combined with ${conflictingFlag}.`,
+      fix: `Omit ${conflictingFlag} to print the legend alongside the tree, or omit --legend when using ${conflictingFlag}.`,
+      meta: {
+        conflictingFlag,
+      },
     },
-  });
+  );
 }
 
 /**
@@ -133,11 +142,10 @@ export function errorLegendHumanOnly(
  * directory with that name would be skipped by the enumerator.
  */
 export function errorInvalidSpaceId(spaceId: string): CliStructuredError {
-  return errorRuntime(`Invalid contract space id: ${spaceId}`, {
+  return errorRuntime('MIGRATION.INVALID_SPACE_ID', `Invalid contract space id: ${spaceId}`, {
     why: 'Contract space ids must match [a-z][a-z0-9_-]{0,63} (lowercase, starts with a letter, max 64 characters — the rule applied to every on-disk space directory).',
     fix: 'Pass a space id that matches the directory naming rule, or omit --space to list every space.',
     meta: {
-      code: 'MIGRATION.INVALID_SPACE_ID',
       spaceId,
     },
   });
@@ -166,11 +174,10 @@ export function errorSpaceNotFound(
     availableSpaces.length > 0
       ? `Pick one of: ${availableList}. Run \`prisma-next migration list\` (no --space) to see every space's migrations.`
       : 'Author a migration with `prisma-next migration new` to create the first contract-space directory.';
-  return errorRuntime(`Unknown contract space: ${spaceId}`, {
+  return errorRuntime('MIGRATION.SPACE_NOT_FOUND', `Unknown contract space: ${spaceId}`, {
     why: `No directory named "${spaceId}" exists under the migrations root.`,
     fix,
     meta: {
-      code: 'MIGRATION.SPACE_NOT_FOUND',
       spaceId,
       availableSpaces: [...availableSpaces],
     },
@@ -178,14 +185,17 @@ export function errorSpaceNotFound(
 }
 
 export function errorRefSetBundleNotFound(hash: string): CliStructuredError {
-  return errorRuntime(`No migration bundle matches graph-node hash ${hash}`, {
-    why: `The hash is a graph node but no on-disk bundle has metadata.to = ${hash}.`,
-    fix: 'Run `pnpm fixtures:check`, or re-emit the migration that produces this hash so its bundle is restored.',
-    meta: {
-      code: 'MIGRATION.REF_SET_BUNDLE_NOT_FOUND',
-      hash,
+  return errorRuntime(
+    'MIGRATION.REF_SET_BUNDLE_NOT_FOUND',
+    `No migration bundle matches graph-node hash ${hash}`,
+    {
+      why: `The hash is a graph node but no on-disk bundle has metadata.to = ${hash}.`,
+      fix: 'Run `pnpm fixtures:check`, or re-emit the migration that produces this hash so its bundle is restored.',
+      meta: {
+        hash,
+      },
     },
-  });
+  );
 }
 
 export function errorPlanForgotTheFlag(
@@ -203,16 +213,19 @@ export function errorPlanForgotTheFlag(
       : graphTipHash !== null
         ? `Run migration plan --from ${graphTipHash}.`
         : 'Commit pending migrations first, then run migration plan.';
-  return errorRuntime(`Resolved from-hash is not in the migration graph: ${resolvedHash}`, {
-    why: `The migration graph reaches ${reachableList}; resolved ${resolvedHash} isn't a graph node.`,
-    fix: refFix,
-    meta: {
-      code: 'MIGRATION.HASH_NOT_IN_GRAPH',
-      resolvedHash,
-      reachableRefs: reachableRefs.map((r) => r.name),
-      ...(graphTipHash !== null ? { graphTipHash } : {}),
+  return errorRuntime(
+    'MIGRATION.HASH_NOT_IN_GRAPH',
+    `Resolved from-hash is not in the migration graph: ${resolvedHash}`,
+    {
+      why: `The migration graph reaches ${reachableList}; resolved ${resolvedHash} isn't a graph node.`,
+      fix: refFix,
+      meta: {
+        resolvedHash,
+        reachableRefs: reachableRefs.map((r) => r.name),
+        ...(graphTipHash !== null ? { graphTipHash } : {}),
+      },
     },
-  });
+  );
 }
 
 /**
@@ -232,6 +245,7 @@ export function errorSnapshotMissing(
     ? `Create the ref with "prisma-next ref set ${identifier} <hash>" (or advance it via "prisma-next db update --advance-ref ${identifier}"), or pass a hash that is a node in the migration graph.`
     : `No contract source exists for hash "${identifier}" on an empty migration graph. Use --from with a ref name (its contract resolves through the snapshot store), or run db update first.`;
   return errorRuntime(
+    'MIGRATION.SNAPSHOT_MISSING',
     viaRef
       ? `Ref "${identifier}" is not resolvable`
       : `No contract source for from-hash "${identifier}"`,
@@ -241,7 +255,6 @@ export function errorSnapshotMissing(
         : `Hash "${identifier}" is not a node in the migration graph (the graph is empty), and it does not name a ref either.`,
       fix,
       meta: {
-        code: 'MIGRATION.SNAPSHOT_MISSING',
         identifier,
         viaRef,
       },
@@ -260,20 +273,23 @@ export function errorMarkerMismatch(
     graphTip !== null
       ? `Run \`prisma-next migration plan --from ${graphTip}\` if the live marker is canonical and the on-disk graph needs catching up.`
       : 'Run `prisma-next migration plan` if the live marker is canonical and the on-disk graph needs catching up.';
-  return errorRuntime('Database marker is not reachable in the on-disk migration graph', {
-    why: `DB marker is ${markerHash}, but the on-disk migration graph reaches: ${reachableList}.`,
-    fix: [
-      planFromFix,
-      `Run \`prisma-next ref set db ${markerHash}\` if the on-disk graph is canonical and the local \`db\` ref drifted.`,
-      'Investigate whether the database was migrated by an out-of-band process.',
-    ].join('\n'),
-    meta: {
-      code: 'MIGRATION.MARKER_MISMATCH',
-      markerHash,
-      reachableHashes: [...reachableHashes],
-      ...(graphTip !== null ? { graphTip } : {}),
+  return errorRuntime(
+    'MIGRATION.MARKER_MISMATCH',
+    'Database marker is not reachable in the on-disk migration graph',
+    {
+      why: `DB marker is ${markerHash}, but the on-disk migration graph reaches: ${reachableList}.`,
+      fix: [
+        planFromFix,
+        `Run \`prisma-next ref set db ${markerHash}\` if the on-disk graph is canonical and the local \`db\` ref drifted.`,
+        'Investigate whether the database was migrated by an out-of-band process.',
+      ].join('\n'),
+      meta: {
+        markerHash,
+        reachableHashes: [...reachableHashes],
+        ...(graphTip !== null ? { graphTip } : {}),
+      },
     },
-  });
+  );
 }
 
 export function errorPathUnreachable(failure: MigrateFailure): CliStructuredError {
@@ -322,7 +338,7 @@ export function errorPathUnreachable(failure: MigrateFailure): CliStructuredErro
     targetHash !== null && !neverPlanned
       ? `prisma-next migrate --to ${targetHash}`
       : 'prisma-next migrate';
-  return errorRuntime(failure.summary, {
+  return errorRuntime('MIGRATION.PATH_UNREACHABLE', failure.summary, {
     why:
       failure.why ??
       `Cannot reach target "${targetHash ?? '<unknown>'}" from current marker "${fromHashMeta ?? '<unknown>'}".${deadEndsSuffix}`,
@@ -336,7 +352,6 @@ export function errorPathUnreachable(failure: MigrateFailure): CliStructuredErro
     ].join('\n'),
     meta: {
       ...meta,
-      code: 'MIGRATION.PATH_UNREACHABLE',
     },
   });
 }
@@ -357,10 +372,11 @@ export function errorPathUnreachable(failure: MigrateFailure): CliStructuredErro
  * `errorUnexpected`, etc.).
  */
 export function mapMigrationToolsError(error: MigrationToolsError): CliStructuredError {
-  return errorRuntime(error.message, {
+  return errorRuntime(error.code, error.message, {
     why: error.why,
     fix: error.fix,
-    meta: { code: error.code, ...(error.details ?? {}) },
+    ...ifDefined('meta', error.details),
+    cause: error,
   });
 }
 
@@ -405,12 +421,12 @@ export function errorAmbiguousMigrationRef(
 ): CliStructuredError {
   const spaceList = spaceIds.join(', ');
   return errorRuntime(
+    'MIGRATION.AMBIGUOUS_MIGRATION_REF',
     `Ambiguous migration reference: "${ref}" resolves in multiple spaces — qualify with --space <id>`,
     {
       why: `"${ref}" matches migrations in spaces: ${spaceList}.`,
       fix: `Qualify with --space <id> to select one space. Available matching spaces: ${spaceList}.`,
       meta: {
-        code: 'MIGRATION.AMBIGUOUS_MIGRATION_REF',
         ref,
         spaceIds: [...spaceIds],
       },
@@ -421,31 +437,43 @@ export function errorAmbiguousMigrationRef(
 export function mapRefResolutionError(error: RefResolutionError): CliStructuredError {
   switch (error.kind) {
     case 'not-found':
-      return errorRuntime(`Not a known ${error.grammar} reference: "${error.input}"`, {
-        why: `No ${error.grammar} matching "${error.input}" exists in the migration graph or refs index.`,
-        fix:
-          error.grammar === 'contract'
-            ? 'Provide a valid contract hash, ref name, or migration directory name.'
-            : 'Provide a valid migration directory name or migration hash.',
-        meta: { input: error.input, grammar: error.grammar },
-      });
+      return errorRuntime(
+        'MIGRATION.REF_NOT_FOUND',
+        `Not a known ${error.grammar} reference: "${error.input}"`,
+        {
+          why: `No ${error.grammar} matching "${error.input}" exists in the migration graph or refs index.`,
+          fix:
+            error.grammar === 'contract'
+              ? 'Provide a valid contract hash, ref name, or migration directory name.'
+              : 'Provide a valid migration directory name or migration hash.',
+          meta: { input: error.input, grammar: error.grammar },
+        },
+      );
     case 'ambiguous':
-      return errorRuntime(`Ambiguous ${error.grammar} reference: "${error.input}"`, {
-        why: `"${error.input}" matches multiple ${error.grammar}s: ${error.candidates.join(', ')}`,
-        fix: 'Provide a longer prefix or use the full hash to disambiguate.',
-        meta: { input: error.input, candidates: error.candidates, grammar: error.grammar },
-      });
+      return errorRuntime(
+        'MIGRATION.REF_AMBIGUOUS',
+        `Ambiguous ${error.grammar} reference: "${error.input}"`,
+        {
+          why: `"${error.input}" matches multiple ${error.grammar}s: ${error.candidates.join(', ')}`,
+          fix: 'Provide a longer prefix or use the full hash to disambiguate.',
+          meta: { input: error.input, candidates: error.candidates, grammar: error.grammar },
+        },
+      );
     case 'wrong-grammar':
-      return errorRuntime(error.message, {
+      return errorRuntime('MIGRATION.REF_WRONG_GRAMMAR', error.message, {
         why: error.message,
         fix: error.fix,
         meta: { input: error.input, expectedGrammar: error.expectedGrammar },
       });
     case 'invalid-format':
-      return errorRuntime(`Invalid reference format: "${error.input}"`, {
-        why: error.reason,
-        fix: 'Provide a valid contract hash, ref name, or migration directory name.',
-        meta: { input: error.input },
-      });
+      return errorRuntime(
+        'MIGRATION.REF_INVALID_FORMAT',
+        `Invalid reference format: "${error.input}"`,
+        {
+          why: error.reason,
+          fix: 'Provide a valid contract hash, ref name, or migration directory name.',
+          meta: { input: error.input },
+        },
+      );
   }
 }
