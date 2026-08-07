@@ -1,0 +1,14 @@
+model TestModel {
+  id       Int      @id
+  str      String
+  str_list String[]
+  children Child[]
+}
+
+model Child {
+  id       Int       @id
+  str      String
+  str_list String[]
+  testId   Int
+  test     TestModel @relation(fields: [testId], references: [id])
+}
