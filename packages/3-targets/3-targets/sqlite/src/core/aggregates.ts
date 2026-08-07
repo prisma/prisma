@@ -3,12 +3,14 @@
  *
  * Every row was read off a live SQLite 3.53 (`typeof(<aggregate>(<column>))` over a column of each built-in codec's storage type). SQLite types values, not columns, so what a probe reports is the storage class of the aggregate's result: `sum` over integers stays `integer`, `sum` over reals is `real`, `avg` is `real` for every input, and `min`/`max` return a value of the input's own class.
  *
+ * What the database computes and what the application reads are two questions, and the defaults policy answers the second: `count` and `sum` over integers answer as a JS `number` — throwing through the codec's safe-range guard where the value cannot be one — while `countBigInt` and `sumBigInt` answer losslessly. `avg` is already a `real` and so already a `number`, and there is no `avgDecimal`: an exact mean would need a decimal result codec, which SQLite has none of.
+ *
  * Two SQLite behaviours shape which pairs get a descriptor at all:
  *
- * - **`sum` of integers does not widen.** An `INTEGER` sum that exceeds a 64-bit integer raises `integer overflow` rather than promoting to a float, so the result is an integer or it is nothing. It is declared as `sqlite/bigint@1` and not `sqlite/integer@1`: a sum of small integers is free to exceed 2^53 while remaining a perfectly good SQLite integer, and only the bigint codec carries such a value into the application without rounding.
+ * - **`sum` of integers does not widen.** An `INTEGER` sum that exceeds a 64-bit integer raises `integer overflow` rather than promoting to a float, so the result is an integer or it is nothing. That raise is the bound `sumBigInt` is offered within — a declared limit of the target, not a gap in it. Neither integer form is `sqlite/integer@1`: a sum of small integers is free to exceed 2^53 while remaining a perfectly good SQLite integer, which `sqlite/bigint@1` carries exactly and `sqlite/bigintnumber@1` refuses rather than rounds.
  * - **`sum` and `avg` coerce rather than refuse.** Over `TEXT` or `BLOB`, SQLite reads a leading number where it can and 0 otherwise, so `sum` over a column of words is `0.0` and over a column of numerals is their total — a result whose very storage class depends on the rows. No descriptor claims those pairs: an aggregate whose result cannot be typed from the schema is one this target declines to offer, and the conformance suite pins the list of pairs left unclaimed for that reason.
  *
- * Result identity is declared; lowering hooks exist only for transport. Descriptors whose declared result is `sqlite/bigint@1` cast the aggregate to text (`castResultToText`) so values past 2^53 survive the driver's numeric reads; every other result already leaves SQLite in its declared storage class and needs no hook.
+ * Result identity is declared; lowering hooks build the expression. A descriptor whose result is an integer wider than a JS number casts the aggregate to text (`castResultToText`) so the value survives the driver's numeric reads and the range error is the codec's own; a lossless variant computes with the SQL aggregate its bare namesake uses, since its name is not the database's. A hook returns an expression and nothing else, so which codec the result carries stays the descriptor's to declare.
  */
 
 import type { CodecTrait } from '@internal/framework-components/codec';
@@ -50,15 +52,25 @@ const preservesInput = (operation: AggregateFn, input: ValueInput): SqlAggregate
  *
  * SQLite computes an aggregate into an INTEGER, and the driver reads an integer
  * no JS number can hold as an error rather than a value — so an aggregate whose
- * result is a bigint leaves the database through this cast, which is the form
- * the bigint codec reads anyway. The hook builds the expression and nothing
- * else: which codec the result carries is the descriptor's `output` to declare,
- * not this function's to choose.
+ * result is a wide integer leaves the database through this cast, which is the
+ * form both integer codecs read anyway. The hook builds the expression and
+ * nothing else: which codec the result carries is the descriptor's `output` to
+ * declare, not this function's to choose.
+ *
+ * The `operation` it names is the SQL aggregate the row computes with — its own
+ * name for a bare operation, its bare namesake's for a lossless variant, whose
+ * name the database does not know.
  */
 const castResultToText =
   (operation: AggregateFn): SqlAggregateLowering =>
   ({ expr }) =>
     CastExpr.as(new AggregateExpr(operation, expr), 'text');
+
+/** The integer results wider than the driver's numeric reads: one read exactly, one read as a `number` and guarded against the safe range. Both leave the database as text. */
+const WIDE_INTEGER_CODECS: readonly string[] = [
+  SQLITE_BIGINT_CODEC_ID,
+  SQLITE_BIGINT_NUMBER_CODEC_ID,
+];
 
 /** An aggregate whose result is a new value, named by codec and without the input's type parameters. */
 const produces = (
@@ -70,10 +82,24 @@ const produces = (
   input,
   output: { kind: 'codec', codecId },
   nullable: true,
-  ...(codecId === SQLITE_BIGINT_CODEC_ID ? { lower: castResultToText(operation) } : {}),
+  ...(WIDE_INTEGER_CODECS.includes(codecId) ? { lower: castResultToText(operation) } : {}),
 });
 
-/** Codecs stored as SQLite integers. Their `sum` is an integer of up to 64 bits, which is `sqlite/bigint@1`'s range and beyond `sqlite/integer@1`'s — `sqlite/bigintnumber@1`'s included, since a sum of safe-range values is free to leave the safe range. */
+/** The same, for a lossless variant: an operation whose name the SQL alphabet does not carry, so its lowering names the aggregate it computes with. */
+const producesVia = (
+  operation: string,
+  input: ValueInput,
+  codecId: string,
+  lower: SqlAggregateLowering,
+): SqlAggregateDescriptor => ({
+  operation,
+  input,
+  output: { kind: 'codec', codecId },
+  nullable: true,
+  lower,
+});
+
+/** Codecs stored as SQLite integers. Their `sum` is an integer of up to 64 bits — past `sqlite/integer@1`'s range, and past the safe-integer range too, since a total of safe-range values is free to leave it. The bare form therefore guards and the lossless one carries. */
 const INTEGER_CODECS = [
   SQLITE_INTEGER_CODEC_ID,
   SQLITE_BIGINT_CODEC_ID,
@@ -113,19 +139,32 @@ const orderingDescriptors = (operation: 'min' | 'max'): ReadonlyArray<SqlAggrega
  * Every aggregate overload the SQLite target contributes. The adapter lists these on `types.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
  */
 export const sqliteAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> = [
-  // `count` returns an integer whether it counts rows or non-null values, which is what makes it input-agnostic rather than merely input-less. Counts are unbounded in principle, so they carry the bigint codec.
+  // `count` returns an integer whether it counts rows or non-null values, which is what makes it input-agnostic rather than merely input-less. A row count is a `number` to a JS developer, so that is what the bare operation reads it as — and past 2^53 it throws rather than answer with a rounded tally.
   {
     operation: 'count',
+    input: { kind: 'any' },
+    output: { kind: 'codec', codecId: SQLITE_BIGINT_NUMBER_CODEC_ID },
+    nullable: false,
+    lower: castResultToText('count'),
+  },
+  {
+    operation: 'countBigInt',
     input: { kind: 'any' },
     output: { kind: 'codec', codecId: SQLITE_BIGINT_CODEC_ID },
     nullable: false,
     lower: castResultToText('count'),
   },
 
-  ...INTEGER_CODECS.map((codecId) => produces('sum', overCodec(codecId), SQLITE_BIGINT_CODEC_ID)),
+  // A `sum` of integers reads as a `number` whichever width the column has, and as an exact `bigint` through the variant — offered over every integer input, including those whose bare total a `number` already holds, so the escape hatch is one name rather than a rule about widths.
+  ...INTEGER_CODECS.map((codecId) =>
+    produces('sum', overCodec(codecId), SQLITE_BIGINT_NUMBER_CODEC_ID),
+  ),
+  ...INTEGER_CODECS.map((codecId) =>
+    producesVia('sumBigInt', overCodec(codecId), SQLITE_BIGINT_CODEC_ID, castResultToText('sum')),
+  ),
   ...REAL_CODECS.map((codecId) => produces('sum', overCodec(codecId), SQLITE_REAL_CODEC_ID)),
 
-  // `avg` is real for every input, integers included.
+  // `avg` is real for every input, integers included — already the `number` the defaults policy asks for, and with no exact form to offer beside it.
   ...[...INTEGER_CODECS, ...REAL_CODECS].map((codecId) =>
     produces('avg', overCodec(codecId), SQLITE_REAL_CODEC_ID),
   ),
