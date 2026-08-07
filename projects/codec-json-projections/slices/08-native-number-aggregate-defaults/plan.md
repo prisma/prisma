@@ -33,7 +33,7 @@ Host notes (inherited): run integration as 4 shards; `issues-28192-pg-historical
 
 ## Shape
 
-One target's matrix carries the judgment (D1), the other fans it out (D2), the breaking baseline is renegotiated in one sweep (D3), and the record closes it (D4). No client or lane code changes are expected in any dispatch — slice 07 made the surfaces derive — so a dispatch finding itself editing `sql-orm-client/src` or `sql-builder/src` should stop and ask why.
+One target's matrix carries the judgment (D1), the other fans it out (D2), the substrate repairs D1/D2 expose land at their source (D3), the breaking baseline is renegotiated in one sweep (D4), and the record closes it (D5). Client and lane code was expected to need no changes — slice 07 made those surfaces derive — and D3 is where that expectation proved incomplete: a dispatch editing `sql-orm-client/src` or `sql-builder/src` should say why in its report rather than doing it quietly.
 
 ### Dispatch 1: The PostgreSQL defaults matrix
 
@@ -49,14 +49,21 @@ One target's matrix carries the judgment (D1), the other fans it out (D2), the b
 - **Hands to:** both matrices complete — the state the fixture and expectation sweep runs against.
 - **Focus:** one target's matrix, whole. A case where SQLite cannot express the settled policy is a halt (falsified assumption), not an inline redesign.
 
-### Dispatch 3: The breaking baseline
+### Dispatch 3: The substrate repairs (inserted 2026-08-08, from D2's halt)
+
+- **Outcome:** three defects sharing one stale assumption — *"the wide-integer codecs read decimal text as their canonical JSON"*, true only while every non-nullable aggregate decoded through a bigint codec — are repaired at their source. (1) `SqliteBigintNumberDescriptor.jsonProjection` yields an expression `json_object` renders as a JSON number, so SQLite include aggregates stop arriving as JSON strings and failing to decode; the transport cast is *not* skipped inside JSON, because the variants' `computedWith` lowerings are semantic rather than transport. (2) `emptyAggregateResult` stops assuming decimal-text canonical JSON, by a design that makes a future non-nullable aggregate over a non-text codec correct by construction rather than by branching. (3) The number-flavoured encode guards distinguish a wrong JS type from an out-of-range value, so a user migrating `having(gt(count(), 9n))` reads why rather than being told 9 is outside the safe range; the same defect class is swept across the sibling guards.
+- **Builds on:** D1 and D2's matrices, which made the stale assumption observable.
+- **Hands to:** a substrate whose canonical-JSON contract holds for every codec a non-nullable aggregate can name — what the sweep can then trust.
+- **Focus:** the repairs and their tests, including the first committed coverage of a SQLite include aggregate (whose absence is why CI stayed green over a broken path). Not fixtures, not the moved expectations.
+
+### Dispatch 4: The breaking baseline
 
 - **Outcome:** every consumer of the changed results agrees with the new policy in one sweep: contracts and fixtures regenerate with `pnpm fixtures:check` green and every moved byte attributable to a declared row change; the moved expectations across sql-orm-client unit tests, the integration aggregate suites, and the prisma-7 ports suites (`legacy-aggregations`, `methods-count`, `issues-20261-group-by-shortcut`, `issues-11974` and whatever the grep finds beside them) are updated in place, each classified in the dispatch report as *mechanical form change* or *corrected defect*; and the new behaviour is pinned end to end — `count()` returns `0`/`number` including from the empty-input path, a `sum` past 2^53 throws on both the wire path and the include/JSON path, `sumBigInt` returns an exact `bigint` past 2^63, `avg()` returns a `number`, and `avgDecimal()` a decimal string.
 - **Builds on:** D1 and D2's complete matrices.
 - **Hands to:** a coherent tree — the state the record documents.
 - **Focus:** the sweep and its evidence. Enumerate the sites by grep over assertion literals ([F3](../../../../drive/calibration/failure-modes.md#f3-discovery-via-test-suite-instead-of-grep)), not by what goes red. Any expectation that cannot be classified as mechanical-or-corrected is a finding worth reporting, not a quiet edit.
 
-### Dispatch 4: The record
+### Dispatch 5: The record
 
 - **Outcome:** upgrade instructions (per `record-upgrade-instructions`) cover the default flips, the three new operations, and contract regeneration, in both the extension-author and app-facing clusters, enumerated from the matrices rather than the diff; the docs sweep corrects every claim that aggregates return `bigint`/decimal strings ([F12](../../../../drive/calibration/failure-modes.md#f12-correct-the-docs-executed-as-a-spot-fix-instead-of-an-exhaustive-sweep) — slices 05 and 06 both wrote such claims, and the shipped query guide tabulates the old result types); the aggregate descriptor guide and ADR 020 record the defaults policy and the two lossless escape hatches; the error reference covers the guard failures reachable through aggregates; the full slice-scope gate passes.
 - **Builds on:** everything prior.
@@ -71,8 +78,8 @@ One target's matrix carries the judgment (D1), the other fans it out (D2), the b
 
 ## Hand-off linearity
 
-Strictly linear: D2 mirrors D1's policy, D3 needs both matrices, D4 needs the settled tree. The one non-obvious edge is that D3 reads D1/D2's *rows* directly (not merely their conformance tests) to enumerate what must move.
+Strictly linear: D2 mirrors D1's policy, D3 repairs what D1/D2 exposed, D4 sweeps against the repaired substrate, D5 needs the settled tree. The one non-obvious edge is that D4 reads D1/D2's *rows* directly (not merely their conformance tests) to enumerate what must move.
 
 ## Completeness against slice-DoD
 
-Upgrade instructions — D4. Database-backed matrices pinning the new rows, including the `sum()` boundary throw and `sumBigInt` past 2^63 — D1 (PostgreSQL) and D2 (SQLite). `avgDecimal`/`unboundedint` absence on SQLite asserted as unavailability — D2.
+Upgrade instructions — D5. Database-backed matrices pinning the new rows, including the `sum()` boundary throw and `sumBigInt` past 2^63 — D1 (PostgreSQL) and D2 (SQLite). `avgDecimal`/`unboundedint` absence on SQLite asserted as unavailability — D2.
