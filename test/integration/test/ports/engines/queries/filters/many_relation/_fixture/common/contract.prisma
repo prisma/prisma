@@ -1,0 +1,20 @@
+model Blog {
+  id String @id
+  name String
+  posts Post[]
+}
+model Post {
+  id String @id
+  title String
+  popularity Int
+  blog_id String
+  blog Blog @relation(fields: [blog_id], references: [id])
+  comments Comment[]
+}
+model Comment {
+  id String @id
+  text String
+  likes Int
+  post_id String
+  post Post @relation(fields: [post_id], references: [id])
+}
