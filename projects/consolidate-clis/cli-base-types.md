@@ -57,7 +57,7 @@ From `packages/1-framework/1-core/errors/src/control.ts` (lines 9–111 only —
 ### composer (adopter)
 
 1. Foundation files duplicated verbatim into composer's foundation layer (placement per composer's layering rules; exact paths in the slice design).
-2. `CliError` is replaced by `CliStructuredError`: every throw site gains a dotted code and a why/fix split; `bin.ts`/`cli.ts` render the envelope (human form per the shared layout: `✖ summary (CODE)` + Why/Fix/Where). Composer's namespace list is defined in the slice design (closed, concern-shaped — expected shape: `CONFIG`, `COMPOSE`, `DEPLOY`, `DEV`, `LOG`; final list settled there).
+2. `CliError` is replaced by `CliStructuredError`: every throw site gains a dotted code and a why/fix split; `bin.ts`/`cli.ts` render the envelope (human form per the shared layout: `✖ summary (CODE)` + Why/Fix/Where). Composer's namespace list is defined in the slice design (closed, concern-shaped — expected shape: `CONFIG`, `COMPOSE`, `DEPLOY`, `DEV`, `LOG`; final list settled there). The code-structure convention itself (prisma/prisma's ADR 239: dotted codes, closed namespaces, noun-first subcodes, structural recognition, bugs carry no code) is recorded as a composer ADR in the same slice — the convention travels with the types.
 3. The `@prisma/composer/control` `OperationFailure` members gain the structured error as their payload where one exists (exact mapping in the slice design; the `kind` discriminants stay — they are the operation-level taxonomy, the `code` is the failure-level one).
 4. Composer's exit codes align with the shared rule (bug=1 vs expected=2 split replaces "everything nonzero").
 
