@@ -102,7 +102,7 @@ A pair the composed stack declares no overload for resolves to nothing, and both
 
 The aggregate map is emitted into `contract.d.ts` only; `contract.json` carries no copy of it. So a contract emitted with an extension composed, and then used against a runtime configured without that extension, types `aggregate.bitOr('weight')` and fails on the call:
 
-```
+```text
 TypeError: aggregate.bitOr is not a function
 ```
 
