@@ -2,10 +2,10 @@
 
 PASS `test/ports/engines/queries/aggregation/sum/sum.test.ts` › `returns null sums for numeric columns with no records` — `queries::aggregation::sum::sum_no_records` for Int/BigInt/Float
 PASS `test/ports/engines/queries/aggregation/sum/sum.test.ts` › `sums numeric columns over records` — `queries::aggregation::sum::sum_some_records` for Int/BigInt/Float
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/aggregation/sum.rs` › `queries::aggregation::sum::sum_with_all_sorts_of_query_args` (Int/BigInt/Float) — aggregate sum honors take, negative take, skip, where, and cursor arguments — prisma-next's public `aggregate()` terminal compiles only collection filters and has no aggregate pagination or cursor surface, so the complete multi-assertion subject cannot be expressed
+FAIL `test/ports/engines/queries/aggregation/sum/sum.test.ts` › `honors query arguments when summing numeric columns` — `queries::aggregation::sum::sum_with_all_sorts_of_query_args` for Int/BigInt/Float — prisma-next's top-level aggregate compilation drops take, negative take, skip, and cursor state, so those sums include all rows
 PASS `test/ports/engines/queries/aggregation/sum/sum.test.ts` › `returns a null decimal sum with no records` — `queries::aggregation::sum::sum_no_records` for Decimal
 PASS `test/ports/engines/queries/aggregation/sum/sum.test.ts` › `sums decimal values over records` — `queries::aggregation::sum::sum_some_records` for Decimal
-- `query-engine/connector-test-kit-rs/query-engine-tests/tests/queries/aggregation/sum.rs` › `queries::aggregation::sum::sum_with_all_sorts_of_query_args` (Decimal) — decimal aggregate sum honors take, negative take, skip, where, and cursor arguments — prisma-next's public `aggregate()` terminal compiles only collection filters and has no aggregate pagination or cursor surface, so the complete multi-assertion subject cannot be expressed
+FAIL `test/ports/engines/queries/aggregation/sum/sum.test.ts` › `honors query arguments when summing decimal values` — `queries::aggregation::sum::sum_with_all_sorts_of_query_args` for Decimal — prisma-next's top-level aggregate compilation drops take, negative take, skip, and cursor state, so those sums include all rows
 
 ## queries/aggregation/uniq_count_relation.rs
 
