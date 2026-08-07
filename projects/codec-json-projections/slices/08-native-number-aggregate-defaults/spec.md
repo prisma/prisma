@@ -36,7 +36,14 @@ Number-flavoured SQLite outputs keep the existing cast-to-text lowering so `node
 
 ### What follows automatically
 
-Top-level aggregates, grouped `.aggregate()`, and include reducers all read the same contributed namespace (slice 07), so `posts.count()` in an include returns `number` with no further wiring — and include-count JSON entries become JSON numbers again, safely (slice 06's canonical-form argument). The shared empty-input result (`src/aggregate-empty-result.ts`) changes `count: 0n` → `count: 0`; `sum`/`avg` stay `null`.
+Top-level aggregates, grouped `.aggregate()`, and include reducers all read the same contributed namespace (slice 07), so `posts.count()` in an include returns `number` with no further wiring — and include-count JSON entries become JSON numbers again, safely (slice 06's canonical-form argument).
+
+Amended 2026-08-07, after slices 06 and 07 shipped:
+
+- **The empty-input result needs no edit.** Slice 07 replaced `emptyAggregateResult(fn)`'s name check with `emptyAggregateResult(nullable, codec)`, so `count`'s zero decodes through whatever codec the row declares — changing `count`'s output codec turns `0n` into `0` on its own.
+- **The suffixed variants reach every surface for free** (open question 1, resolved): slice 07 derives the ORM and lane surfaces from `aggregateTypes`, so contributing an operation is the whole of the work.
+- **This slice rewrites rows slice 06 authored.** Slice 06 declared `sum`/`avg` over `int8number` as `pg/numeric@1` — storage-determined, and correct under the policy of its day. Under the defaults policy they become `pg/int8number@1` and `pg/float8@1`. Rewriting a sibling slice's rows is expected here, not scope creep.
+- **A `sum` past 2^53 throws rather than corrupts, including through JSON.** PostgreSQL computes `sum(int8)` as `numeric`; declaring the output `pg/int8number@1` means the include path emits it as a JSON number, and a total beyond the safe range parses to a value the codec's post-parse guard rejects. That is the designed behaviour — monotone rounding makes the guard un-foolable — and it must be pinned on the include path, not only the wire path.
 
 ### The breaking baseline
 
