@@ -112,6 +112,7 @@ function tableNode(name: string, checks: readonly LooseCheck[]): PostgresTableSc
     checks: checks.map((c) => ({
       naming: parseNaming(c.name, c.prefix),
       expression: c.expression ?? EXPRESSION,
+      dependsOn: undefined,
     })),
     rlsEnabled: false,
   });
