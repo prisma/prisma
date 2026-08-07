@@ -1,0 +1,11 @@
+native_enum Color {
+  blue  = "blue"
+  red   = "red"
+  green = "green"
+}
+
+model Test {
+  id    Int            @id
+  group Int
+  color pg.enum(Color)
+}
