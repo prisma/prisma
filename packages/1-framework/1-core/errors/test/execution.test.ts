@@ -235,38 +235,32 @@ describe('Runtime Errors', () => {
 
   it('rethrowMarkerReadError preserves cause on the corrupt-row path', () => {
     const original = new Error('Invalid contract marker row: core_hash must be string');
-    try {
+    expect(() =>
       rethrowMarkerReadError(original, {
         space: 'app',
         markerLocation: 'prisma_contract.marker',
-      });
-    } catch (err) {
-      expect((err as CliStructuredError).cause).toBe(original);
-    }
+      }),
+    ).toThrow(expect.objectContaining({ cause: original }));
   });
 
   it('rethrowMarkerReadError preserves cause on the read-failed path', () => {
     const original = new Error('permission denied for table marker');
-    try {
+    expect(() =>
       rethrowMarkerReadError(original, {
         space: 'app',
         markerLocation: 'prisma_contract.marker',
-      });
-    } catch (err) {
-      expect((err as CliStructuredError).cause).toBe(original);
-    }
+      }),
+    ).toThrow(expect.objectContaining({ cause: original }));
   });
 
   it('rethrowMarkerReadError preserves cause on the legacy-shape path', () => {
     const original = new Error('column "space" does not exist');
-    try {
+    expect(() =>
       rethrowMarkerReadError(original, {
         space: 'app',
         markerLocation: 'prisma_contract.marker',
-      });
-    } catch (err) {
-      expect((err as CliStructuredError).cause).toBe(original);
-    }
+      }),
+    ).toThrow(expect.objectContaining({ cause: original }));
   });
 
   it('rethrowMarkerReadError rethrows existing CliStructuredError', () => {
