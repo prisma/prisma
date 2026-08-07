@@ -185,6 +185,10 @@ The SQL emitter is asked to emit an aggregate result row whose declared result c
 
 The control plane resolves a codec referenced by the contract (a `CodecRef.codecId`) against the contract's pack stack and finds no registered codec descriptor for that id. Hit during control-plane operations (emit, migration tooling) when a contract references a codec no composed pack provides. Meta: `codecId`.
 
+### CONTRACT.CHECK_OPTOUT_INVALID
+
+A `@noCheck` / `.noCheck(...)` opt-out cannot apply to the column: the named kind is not derivable for the column's shape (`membership` on a column with no domain-enum value set, `elementNotNull` on a non-list column), the bare form waives nothing because the column derives no generated checks, a kind is named twice, or `noCheck()` is called more than once on one field builder. Raised by both authoring paths (TS `defineContract` and PSL interpretation) on `managed` tables. Meta: `modelName`, `fieldName`, `reason`, and `kind` for per-kind failures.
+
 ### CONTRACT.COLLECTION_INVALID
 
 A Mongo model's collection attachment is wrong: the model declares `indexes`, `collectionOptions`, or `controlPolicy` but has no collection, or a single collection has `collectionOptions` / `controlPolicy` declared by more than one model. Raised by the Mongo `defineContract` builder. Meta: `modelName`, `collection`, `reason`.

@@ -227,7 +227,7 @@ Then run the snippet from *Your first arc* above against the `User` model. When 
 
 ## Workflow — Brownfield-DB (existing database, no contract)
 
-The concept: against an existing database with no PN contract, `contract infer` walks the live schema (tables, columns, indexes — including expression and partial ones — constraints, and RLS enablement + policies) and writes a PSL contract that describes it. The result is a *starting point*, not the final contract — review and clean it up, then `db sign` to record the current contract hash as the marker (instead of letting `db init` try to recreate the schema from scratch).
+The concept: against an existing database with no PN contract, `contract infer` walks the live schema (tables, columns, indexes — including expression and partial ones — constraints, and RLS enablement + policies) and writes a PSL contract that describes it. Where authoring would generate a CHECK constraint the database does not carry (the element-non-null check on a list column), infer emits `@noCheck(elementNotNull)` on that field, so the contract declares exactly what the database enforces. The result is a *starting point*, not the final contract — review and clean it up, then `db sign` to record the current contract hash as the marker (instead of letting `db init` try to recreate the schema from scratch).
 
 ```bash
 mkdir my-app && cd my-app
@@ -256,7 +256,7 @@ Then re-emit and sign:
 ```bash
 pnpm prisma-next contract emit
 pnpm prisma-next db sign
-pnpm prisma-next db verify   # confirms the DB matches the contract; reports drift if not
+pnpm prisma-next db verify   # clean immediately after a pull; reports drift if the DB changes later
 ```
 
 Then run the snippet from *Your first arc — connect, write, read* above, using one of your existing tables in place of the starter model. The arc is the same; only the path that got you there differs.

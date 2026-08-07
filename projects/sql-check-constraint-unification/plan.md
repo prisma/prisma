@@ -11,7 +11,7 @@ Each slice is named for what a developer can **rely on** when it merges. The sta
 | 1 | `checks-are-declared-opaque-expressions` | Every physical CHECK is a contract-declared, wire-named opaque expression; authoring emits enum-membership (scalar and array) and element-non-null checks; introspection captures every live check verbatim; the planner only reconciles — synthesis, the direct-walk strategy, and the predicate parser are deleted. | ✅ in review ([#29892](https://github.com/prisma/prisma/pull/29892)) | — |
 | 2 | `check-prefix-renames-plan-as-rename-constraint` | A prefix-only check rename plans as a single `ALTER TABLE … RENAME CONSTRAINT` under `widening`, via hash pairing mirroring `pairIndexRenames`. | ✅ in review ([#29894](https://github.com/prisma/prisma/pull/29894)) | — |
 
-| 3 | `check-enforcement-opt-out` | An authoring-surface opt-out for each generated check kind — element non-null, scalar enum membership, enum-list membership — restoring "pulled schemas verify clean" as the infer default. | ⬜ to spec | — |
+| 3 | `check-enforcement-opt-out` | A per-column, per-kind opt-out (`@noCheck` / `.noCheck()`) for generated checks, and conservative infer emission of it — restoring "pulled schemas verify clean" as the infer default. | ✅ implemented (in review) ([spec](./slices/check-enforcement-opt-out/spec.md)) | — |
 
 ## Slice 3 locked decisions (settled with the operator during slice 1 review)
 

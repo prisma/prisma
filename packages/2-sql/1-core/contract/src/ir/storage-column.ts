@@ -1,5 +1,6 @@
 import type { ColumnDefault, ControlPolicy, ValueSetRef } from '@internal/contract/types';
 import { freezeNode } from '@internal/framework-components/ir';
+import type { CheckKind } from '@internal/sql-schema-ir/naming';
 import { SqlNode } from './sql-node';
 
 /**
@@ -22,6 +23,8 @@ export interface StorageColumnInput {
   readonly default?: ColumnDefault;
   readonly control?: ControlPolicy;
   readonly valueSet?: ValueSetRef;
+  /** Generated-check kinds the author declined for this column. Presence means opted out; never an empty array. */
+  readonly noCheck?: readonly CheckKind[];
 }
 
 /**
@@ -47,6 +50,8 @@ export class StorageColumn extends SqlNode {
   declare readonly default?: ColumnDefault;
   declare readonly control?: ControlPolicy;
   declare readonly valueSet?: ValueSetRef;
+  /** Generated-check kinds the author declined for this column. Presence means opted out; never an empty array. */
+  declare readonly noCheck?: readonly CheckKind[];
 
   constructor(input: StorageColumnInput) {
     super();
@@ -54,6 +59,7 @@ export class StorageColumn extends SqlNode {
     this.codecId = input.codecId;
     this.nullable = input.nullable;
     if (input.many !== undefined) this.many = input.many;
+    if (input.noCheck !== undefined) this.noCheck = input.noCheck;
     if (input.typeParams !== undefined) this.typeParams = input.typeParams;
     if (input.typeRef !== undefined) this.typeRef = input.typeRef;
     if (input.default !== undefined) this.default = input.default;

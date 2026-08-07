@@ -40,6 +40,10 @@ type NamedConstraintNameSpec<Name extends string = string> = {
   readonly name: Name;
 };
 
+import type { CheckKind } from '@internal/sql-schema-ir/naming';
+
+export type { CheckKind };
+
 export type ScalarFieldState<
   Descriptor extends ColumnTypeDescriptor = ColumnTypeDescriptor,
   TypeRef extends NamedStorageTypeRef | undefined = undefined,
@@ -57,6 +61,7 @@ export type ScalarFieldState<
   readonly default?: ColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
   readonly many?: Many extends true ? true : undefined;
+  readonly noCheck?: readonly CheckKind[] | undefined;
 } & (IdSpec extends NamedConstraintSpec ? { readonly id: IdSpec } : { readonly id?: undefined }) &
   (UniqueSpec extends NamedConstraintSpec
     ? { readonly unique: UniqueSpec }
@@ -71,6 +76,7 @@ type AnyScalarFieldState = {
   readonly default?: ColumnDefault | undefined;
   readonly executionDefaults?: ExecutionMutationDefaultPhases | undefined;
   readonly many?: boolean | undefined;
+  readonly noCheck?: readonly CheckKind[] | undefined;
   readonly id?: NamedConstraintSpec | undefined;
   readonly unique?: NamedConstraintSpec | undefined;
 };
@@ -274,6 +280,32 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       >({
         ...this.state,
         many: true,
+      }),
+    );
+  }
+
+  /**
+   * Declines enforcement of generated CHECK constraints on this column.
+   * With no arguments, waives every kind the column's shape derives;
+   * with arguments, waives exactly the named kinds. Declared types are
+   * unchanged — runtime values may diverge from them once enforcement
+   * is waived.
+   */
+  noCheck(...kinds: readonly CheckKind[]): ScalarFieldBuilder<State> {
+    if (this.state.noCheck !== undefined) {
+      throw contractError(
+        'CONTRACT.CHECK_OPTOUT_INVALID',
+        'noCheck() was already called on this field; declare every waived kind in a single call.',
+        { meta: { reason: 'duplicate-noCheck-call' } },
+      );
+    }
+    return blindCast<
+      ScalarFieldBuilder<State>,
+      'noCheck() changes only the runtime flag; the typed state is unchanged, matching the many()/default() builder-clone pattern'
+    >(
+      new ScalarFieldBuilder({
+        ...this.state,
+        noCheck: kinds,
       }),
     );
   }

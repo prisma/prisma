@@ -262,6 +262,8 @@ model User {
 }
 ```
 
+**Waiving enforcement (`@noCheck`).** A field can decline the generated CHECK constraints for its column: bare `@noCheck` waives every kind the column's shape derives; `@noCheck(membership)` and `@noCheck(elementNotNull)` waive one kind (`membership` is the enum value-set check; `elementNotNull` is the no-NULL-elements check every list column gets). The TS authoring equivalent is `.noCheck(...)` on the field builder. Declared types do not change: the field still types as the enum union, and a list still types with non-null elements — once enforcement is waived, runtime values may diverge from what the types claim. That divergence is the author's accepted risk; the database will no longer reject out-of-set or NULL-element writes. `contract infer` emits `@noCheck(elementNotNull)` automatically for list columns whose source database does not carry the generated check.
+
 Canonical worked example: `examples/prisma-8-demo/src/prisma/contract.prisma`.
 
 ## Workflow — Namespaces (Postgres schemas)
