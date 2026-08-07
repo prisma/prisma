@@ -370,6 +370,7 @@
               },
               "foreignKeys": [
                 {
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
                       "postId"
@@ -386,6 +387,7 @@
                   }
                 },
                 {
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
                       "categoryId"
@@ -434,7 +436,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "58147913c531e761a51b8a7590bcb30843da9940ef307399b6257c2798a00379"
+    "storageHash": "452bdb68c487fea670aad99131ab92b91503ee49c911ff0263c8aabf92c50417"
   },
   "capabilities": {
     "postgres": {
