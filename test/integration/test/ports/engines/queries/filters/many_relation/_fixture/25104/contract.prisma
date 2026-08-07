@@ -1,4 +1,0 @@
-model A { id String @id bs B[] }
-model B { id String @id a A @relation(fields: [aId], references: [id]) aId String cs C[] }
-model C { id String @id name String bs B[] }
-model BC { bId String cId String b B @relation(fields: [bId], references: [id]) c C @relation(fields: [cId], references: [id]) @@id([bId, cId]) }

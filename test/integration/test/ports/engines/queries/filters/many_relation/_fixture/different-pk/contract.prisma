@@ -1,4 +1,0 @@
-model Top { topId Int @id relatedMiddleId Int? middle Middle? @relation(fields: [relatedMiddleId], references: [middleId]) bottoms Bottom[] }
-model Middle { middleId Int @id bottoms Bottom[] tops Top[] }
-model Bottom { bottomId Int @id relatedMiddleId Int? middle Middle? @relation(fields: [relatedMiddleId], references: [middleId]) tops Top[] }
-model TopBottom { topId Int bottomId Int top Top @relation(fields: [topId], references: [topId]) bottom Bottom @relation(fields: [bottomId], references: [bottomId]) @@id([topId, bottomId]) }
