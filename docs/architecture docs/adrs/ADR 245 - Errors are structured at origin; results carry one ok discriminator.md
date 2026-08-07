@@ -34,7 +34,7 @@ if (!result.ok) {
 }
 ```
 
-Nothing between the two snippets transforms the error. The value raised at the origin is the value the consumer holds.
+Nothing between the two snippets transforms the error. Within a process, the value raised at the origin is the value the consumer holds — class, `meta`, `cause` chain and all. A consumer on the far side of a process boundary (`--json` output, the query-plan executor's HTTP surface) receives the serialized `toEnvelope()` form instead: the same `code`/`summary`/`why`/`fix`/`where`/`meta`, without `cause`.
 
 ## Decision
 
@@ -44,9 +44,9 @@ A non-structured error reaching a process boundary is therefore, by definition, 
 
 **2. `code` is the error's only machine identity.** Consumers branch on `envelope.code` and nothing else. `meta` carries structural data for the code the envelope already has — never an alternative or "truer" identity. If a site wants consumers to distinguish its failure, it raises a distinct code; the closed registry in `docs/reference/error-reference.md` (enforced by `check:error-reference`) is where that code and its producing site are recorded, in the same change. When an existing code gains a new producing site, its reference entry gains that site and its meta shape too — an entry that describes only some of its sites misleads the consumers the registry exists for.
 
-**3. Results carry one discriminator: `ok`.** Every operation and command returns the shared `Result<T, F>` — `{ ok: true, value } | { ok: false, failure }` — with a `CliStructuredError` failure. The success payload's *type* carries whatever is operation-specific; the discriminator never does. Per-operation outcome enums (`outcome: 'deployed' | 'failed' | …`) are banned: they force every caller to learn a second, operation-local vocabulary that restates what `ok` plus the payload type already say. And because the same envelope value is throwable *and* a valid `Result` failure (ADR 239), no boundary needs a conversion type in either direction.
+**3. Results carry one discriminator: `ok`.** Every operation and command returns the shared `Result` type — `{ ok: true, value } | { ok: false, failure }` — instantiated with a `CliStructuredError` failure. (The foundation type itself stays generic in its failure parameter; this rule is about how operations instantiate it, and a signature like `Result<MigrationPlanResult, CliStructuredError>` is the required form.) The success payload's *type* carries whatever is operation-specific; the discriminator never does. Per-operation outcome enums (`outcome: 'deployed' | 'failed' | …`) are banned: they force every caller to learn a second, operation-local vocabulary that restates what `ok` plus the payload type already say. And because the same envelope value is throwable *and* a valid `Result` failure (ADR 239), no boundary needs a conversion type in either direction.
 
-**Error subclasses extend the one base class.** A domain that wants richer construction (for example `MigrationToolsError`, whose constructor requires `why`/`fix` and narrows `code` to `` `MIGRATION.${string}` ``) subclasses `CliStructuredError`. The rules for a subclass:
+**Error subclasses extend the one base class.** Domain subclasses are part of the contract, not an exception to it: a domain that wants richer construction (for example `MigrationToolsError`, whose constructor requires `why`/`fix` and narrows `code` to `` `MIGRATION.${string}` ``) subclasses `CliStructuredError`. The rules for a subclass:
 
 - Structured data goes in `meta` — a subclass does not introduce a parallel field for it.
 - The subclass must **not** set `this.name`: ADR 239's structural predicate keys on `name`, and a renamed subclass would stop being recognized as a structured error at boundaries.
