@@ -250,10 +250,28 @@ describe('codecs-class', () => {
       expect(codec.id).toBe(PG_TIMESTAMP_CODEC_ID);
     });
 
-    it('round-trips Date values', async () => {
-      const instant = new Date('2024-01-15T10:30:00Z');
-      expect(await codec.encode(instant, callCtx)).toBe(instant);
-      expect(await codec.decode(instant, callCtx)).toBe(instant);
+    it('decode reinterprets the driver local-wall-clock Date as UTC', async () => {
+      // The pg driver parses `timestamp without time zone` text like
+      // `2026-07-01 10:00:00` into a Date at *local* 10:00. The naive wall
+      // clock means UTC, so decode must recover 10:00:00Z in every timezone.
+      const localWallClock = new Date(2026, 6, 1, 10, 0, 0, 123);
+      const decoded = await codec.decode(localWallClock, callCtx);
+      expect(decoded.getTime()).toBe(Date.UTC(2026, 6, 1, 10, 0, 0, 123));
+    });
+
+    it('encode emits naive UTC text, bypassing the driver Date serialization', async () => {
+      const instant = new Date('2026-07-01T10:00:00.123Z');
+      expect(await codec.encode(instant, callCtx)).toBe('2026-07-01T10:00:00.123');
+    });
+
+    it('round-trips an instant through encode -> decode unchanged', async () => {
+      const original = new Date('2024-01-15T10:30:00.500Z');
+      const wireText = await codec.encode(original, callCtx);
+      // The driver would parse `wireText` back into a local-wall-clock Date;
+      // decode canonicalizes it back to the same UTC instant.
+      const roundTripped = await codec.decode(new Date(2024, 0, 15, 10, 30, 0, 500), callCtx);
+      expect(wireText).toBe('2024-01-15T10:30:00.500');
+      expect(roundTripped.getTime()).toBe(original.getTime());
     });
 
     it('uses the Postgres JSON timestamp representation', () => {
@@ -283,9 +301,16 @@ describe('codecs-class', () => {
       expect(codec.id).toBe(PG_TIMESTAMPTZ_CODEC_ID);
     });
 
-    it('round-trips Date values', async () => {
+    it('encode emits UTC ISO text, bypassing the driver Date serialization', async () => {
+      // The driver serializes Dates via `getTimezoneOffset()`, which is whole
+      // minutes — historical local-mean-time offsets (e.g. Berlin +00:53:28
+      // before 1893) lose their seconds. UTC text has no such dependence.
       const instant = new Date('2024-01-15T10:30:00Z');
-      expect(await codec.encode(instant, callCtx)).toBe(instant);
+      expect(await codec.encode(instant, callCtx)).toBe('2024-01-15T10:30:00.000Z');
+    });
+
+    it('decode passes the driver-parsed Date through', async () => {
+      const instant = new Date('2024-01-15T10:30:00Z');
       expect(await codec.decode(instant, callCtx)).toBe(instant);
     });
 

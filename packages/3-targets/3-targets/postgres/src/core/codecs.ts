@@ -32,6 +32,7 @@ import {
   NullCheckExpr,
   OrExpr,
   type ProjectionExpr,
+  type SQL_TIMESTAMP_CODEC_ID,
   SqlCharCodec,
   SqlFloatCodec,
   SqlIntCodec,
@@ -40,7 +41,9 @@ import {
   sqlFloatDescriptor,
   sqlIntDescriptor,
   sqlTextDescriptor,
+  sqlTimestampDecodeJson,
   sqlTimestampDescriptor,
+  sqlTimestampEncodeJson,
   sqlVarcharDescriptor,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
@@ -67,9 +70,12 @@ import {
   pgJsonEncode,
   pgNumericDecode,
   pgNumericRenderOutputType,
+  pgTimestampDecode,
   pgTimestampDecodeJson,
+  pgTimestampEncode,
   pgTimestampEncodeJson,
   pgTimestamptzDecodeJson,
+  pgTimestamptzEncode,
   pgTimestamptzEncodeJson,
   renderLength,
   renderPrecision,
@@ -319,9 +325,36 @@ export const postgresSqlTextDescriptor = postgresCodec(sqlTextDescriptor, {
   jsonProjection: identityJsonProjection,
 });
 
+/**
+ * Postgres-specific codec for `sql/timestamp@1`: same JSON form as the family
+ * {@link SqlTimestampCodec}, but the wire path applies the naive-means-UTC
+ * conversions the pg driver requires (see {@link pgTimestampEncode} /
+ * {@link pgTimestampDecode}).
+ */
+class PostgresSqlTimestampCodec extends CodecImpl<
+  typeof SQL_TIMESTAMP_CODEC_ID,
+  readonly ['equality', 'order'],
+  Date | string,
+  Date
+> {
+  async encode(value: Date, _ctx: CodecCallContext): Promise<string> {
+    return pgTimestampEncode(value);
+  }
+  async decode(wire: Date, _ctx: CodecCallContext): Promise<Date> {
+    return pgTimestampDecode(wire);
+  }
+  encodeJson(value: Date): JsonValue {
+    return sqlTimestampEncodeJson(value);
+  }
+  decodeJson(json: JsonValue): Date {
+    return sqlTimestampDecodeJson(json);
+  }
+}
+
 export const postgresSqlTimestampDescriptor = postgresCodec(sqlTimestampDescriptor, {
   nativeType: () => 'timestamp',
   jsonProjection: identityJsonProjection,
+  factory: () => () => new PostgresSqlTimestampCodec(sqlTimestampDescriptor),
 });
 
 export class PgTextCodec extends CodecImpl<
@@ -971,14 +1004,14 @@ pgDateColumn satisfies ColumnHelperForStrict<PgDateDescriptor>;
 export class PgTimestampCodec extends CodecImpl<
   typeof PG_TIMESTAMP_CODEC_ID,
   readonly ['equality', 'order'],
-  Date,
+  Date | string,
   Date
 > {
-  async encode(value: Date, _ctx: CodecCallContext): Promise<Date> {
-    return value;
+  async encode(value: Date, _ctx: CodecCallContext): Promise<string> {
+    return pgTimestampEncode(value);
   }
   async decode(wire: Date, _ctx: CodecCallContext): Promise<Date> {
-    return wire;
+    return pgTimestampDecode(wire);
   }
   encodeJson(value: Date): JsonValue {
     return pgTimestampEncodeJson(value);
@@ -1019,11 +1052,11 @@ pgTimestampColumn satisfies ColumnHelperForStrict<PgTimestampDescriptor>;
 export class PgTimestamptzCodec extends CodecImpl<
   typeof PG_TIMESTAMPTZ_CODEC_ID,
   readonly ['equality', 'order'],
-  Date,
+  Date | string,
   Date
 > {
-  async encode(value: Date, _ctx: CodecCallContext): Promise<Date> {
-    return value;
+  async encode(value: Date, _ctx: CodecCallContext): Promise<string> {
+    return pgTimestamptzEncode(value);
   }
   async decode(wire: Date, _ctx: CodecCallContext): Promise<Date> {
     return wire;
