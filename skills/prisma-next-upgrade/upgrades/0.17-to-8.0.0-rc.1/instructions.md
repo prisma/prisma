@@ -1,6 +1,6 @@
 ---
 from: "0.17"
-to: "8.0"
+to: "8.0.0-rc.1"
 changes:
   - id: aggregate-results-carry-their-target-s-codec
     summary: |
@@ -21,7 +21,7 @@ changes:
       compared inside SQL and never cross a codec. Regenerate your contracts
       (`prisma-next contract emit`): the emitted `contract.d.ts` gains an `AggregateTypes` block
       that types every aggregate per operation and input codec, and the ORM and SQL builder both
-      resolve their result types from it — against a contract emitted before 0.18 an aggregate
+      resolve their result types from it — against a contract emitted before 8.0.0-rc.1 an aggregate
       resolves to `never` in the ORM and to `unknown` in the SQL builder.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
@@ -32,11 +32,11 @@ changes:
       anyMatch: true
 ---
 
-# 0.17 → 0.18 — User upgrade instructions
+# 0.17 → 8.0.0-rc.1 — User upgrade instructions
 
 ## `aggregate-results-carry-their-target-s-codec`
 
-An aggregate's result is a value the database computes, and 0.18 reads it back through the codec its target declares for that result rather than through whatever the driver happened to hand over. What each aggregate returns is now the target's answer, stated in the contract and honoured by the runtime:
+An aggregate's result is a value the database computes, and 8.0.0-rc.1 reads it back through the codec its target declares for that result rather than through whatever the driver happened to hand over. What each aggregate returns is now the target's answer, stated in the contract and honoured by the runtime:
 
 | Target | Aggregate | Reads as |
 | --- | --- | --- |
@@ -69,4 +69,4 @@ Finally, regenerate your contracts:
 prisma-next contract emit
 ```
 
-The emitted `contract.d.ts` gains an `AggregateTypes` block — the settled result identity per operation and per input codec — and both the ORM client and the SQL builder resolve their aggregate result types from it. Against a contract emitted before 0.18 the block is absent, so an aggregate resolves to `never` in the ORM and to `unknown` in the SQL builder: a type error at the call site in the first case, an untyped value in the second, rather than a wrong runtime value in either.
+The emitted `contract.d.ts` gains an `AggregateTypes` block — the settled result identity per operation and per input codec — and both the ORM client and the SQL builder resolve their aggregate result types from it. Against a contract emitted before 8.0.0-rc.1 the block is absent, so an aggregate resolves to `never` in the ORM and to `unknown` in the SQL builder: a type error at the call site in the first case, an untyped value in the second, rather than a wrong runtime value in either.

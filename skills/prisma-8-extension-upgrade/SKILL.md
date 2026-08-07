@@ -53,13 +53,13 @@ Report both back to the user before continuing.
 
 ## Transition chain
 
-If the from-to delta spans multiple minor versions (e.g. `0.6 → 0.8`), build the chain of one-minor steps:
+If the from-to delta spans more than one release (e.g. `0.6 → 0.8`), build the chain of steps between them:
 
 ```text
 0.6 → 0.7 → 0.8
 ```
 
-The `upgrades/` directories in this package are the source of truth for what the steps actually are, not the arithmetic — build the chain from the directories present. Most steps are one minor apart, but not all: the move onto the v8 release-candidate line is a single `0.17-to-8.0` step, with no `0.18`…`0.19` in between.
+The `upgrades/` directories in this package name the steps — read the chain off the directory names rather than deriving it arithmetically. Each directory is `<from>-to-<to>`. A step is one minor while the version line is stable (`0.7-to-0.8`); on the v8 release-candidate line a step is one release candidate (`8.0.0-rc.1-to-8.0.0-rc.2`), because an RC may carry breaking changes and each one needs its own translation. Moving onto the RC line from the last stable minor is a single step of its own (`0.17-to-8.0.0-rc.1`).
 
 Apply each step in order, fully: bump, install, run instructions, check pins, validate, commit — before moving to the next. Halt the chain on the first failed step.
 
