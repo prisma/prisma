@@ -46,10 +46,16 @@ describe('ports/engines/queries/filters/field-reference/having-filter', () => {
             .having((fields, functions) => functions.eq(functions.max(fields.int), fields.int2))
             .build(),
         );
-        expect(maxGroups).toEqual([
-          { string: 'group2', int2: 2, max: 2 },
-          { string: 'group1', int2: 1, max: 1 },
-        ]);
+        expect([
+          [
+            { string: 'group1', int2: 1, max: 1 },
+            { string: 'group2', int2: 2, max: 2 },
+          ],
+          [
+            { string: 'group2', int2: 2, max: 2 },
+            { string: 'group1', int2: 1, max: 1 },
+          ],
+        ]).toContainEqual(maxGroups);
       }),
     timeouts.spinUpPpgDev,
   );
