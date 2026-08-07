@@ -50,7 +50,7 @@ If the project also matches the extension-author role, install the `prisma-8-ext
 ## Version detection
 
 - **From-version.** Read the currently-installed Prisma Next version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@internal/*` package. If the lockfile shows multiple `@internal/*` packages at different minors (already broken), the **lowest** minor is the from-version.
-- **To-version.** Either the version the user specified, or the latest stable from `npm view @internal/postgres dist-tags.latest`.
+- **To-version.** Either the version the user specified, or whatever `npm view @internal/postgres dist-tags.latest` reports. Do not assume that is a stable version: while Prisma 8 is a release candidate, `latest` tracks the newest release, `8.0.0-rc.N` included. If the user wants a stable version specifically, they must name it.
 
 Report both back to the user before continuing.
 

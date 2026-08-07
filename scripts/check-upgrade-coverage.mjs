@@ -181,6 +181,23 @@ export function versionSegment(version) {
 }
 
 /**
+ * Semver precedence for two parsed versions: negative when `left` is
+ * older. The base version is compared before the RC counter, so
+ * `8.0.1-rc.1` is correctly newer than `8.0.0-rc.9` — the counter resets
+ * on each new base. A release candidate precedes its own release
+ * (`8.0.0-rc.9` < `8.0.0`).
+ */
+export function comparePrecedence(left, right) {
+  for (const field of ['major', 'minor', 'patch']) {
+    if (left[field] !== right[field]) return left[field] - right[field];
+  }
+  if (left.rc === right.rc) return 0;
+  if (left.rc === null) return 1;
+  if (right.rc === null) return -1;
+  return left.rc - right.rc;
+}
+
+/**
  * Returns the transition directory for the step from `prev` to `head`.
  * Used by the coverage sub-check in publish mode, where the "from" side
  * is the previously-published version and the "to" side is the version
@@ -227,7 +244,7 @@ export function inFlightTransitionLabel(head) {
  */
 export function coverageTransitionChain(head, prev) {
   if (head.rc !== null || prev.rc !== null) {
-    if (head.rc !== null && prev.rc !== null && head.rc < prev.rc) {
+    if (comparePrecedence(head, prev) < 0) {
       throw new Error(
         `check-upgrade-coverage: head ${versionSegment(head)} is behind prev ${versionSegment(prev)} (reversed RC range); rebase or pass refs in chronological order`,
       );

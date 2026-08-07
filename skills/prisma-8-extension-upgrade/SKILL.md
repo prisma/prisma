@@ -47,7 +47,7 @@ If detection is ambiguous, ask the user which role to operate under.
 ## Version detection
 
 - **From-version.** Read the currently-installed Prisma Next version from `pnpm-lock.yaml` (or `package-lock.json` / `yarn.lock`) by inspecting the resolved version of any `@internal/*` entry. If the lockfile shows multiple `@internal/*` packages at different minors, the lowest minor is the from-version.
-- **To-version.** Either the version the user specified, or the latest stable from `npm view @internal/contract dist-tags.latest`.
+- **To-version.** Either the version the user specified, or whatever `npm view @internal/contract dist-tags.latest` reports. Do not assume that is a stable version: while Prisma 8 is a release candidate, `latest` tracks the newest release, `8.0.0-rc.N` included. If the user wants a stable version specifically, they must name it.
 
 Report both back to the user before continuing.
 

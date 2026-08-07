@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  comparePrecedence,
   coverageTransitionChain,
   inFlightTransitionLabel,
   parseChangesFrontmatter,
@@ -179,6 +180,24 @@ describe('coverageTransitionChain', () => {
         /8\.0\.0-rc\.2/.test(err.message) &&
         /8\.0\.0-rc\.4/.test(err.message) &&
         /reversed|behind|chronological/i.test(err.message),
+    );
+  });
+  it('a later base version with a reset RC counter is forward, not reversed', () => {
+    assert.deepEqual(coverageTransitionChain(parseVersion('8.0.1-rc.1'), parseVersion('8.0.0-rc.9')), [
+      '8.0.0-rc.9-to-8.0.1-rc.1',
+    ]);
+  });
+  it('an earlier base version with a higher RC counter is reversed', () => {
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.9'), parseVersion('8.0.1-rc.1')),
+      /reversed|behind|chronological/i,
+    );
+  });
+  it('an RC precedes its own release, and the release does not precede the RC', () => {
+    assert.equal(comparePrecedence(parseVersion('8.0.0-rc.9'), parseVersion('8.0.0')) < 0, true);
+    assert.throws(
+      () => coverageTransitionChain(parseVersion('8.0.0-rc.9'), parseVersion('8.0.0')),
+      /reversed|behind|chronological/i,
     );
   });
   it('reversed same-major range (head.minor < prev.minor): throws naming both versions instead of silently returning an empty chain', () => {
