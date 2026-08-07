@@ -1,7 +1,7 @@
 import { withTransaction } from '@prisma/orm-postgres/family-runtime';
 import { Client } from 'pg';
 import { createOrmClient } from './orm-client/client';
-import { db, transactionalDb } from './prisma/db';
+import { db } from './prisma/db';
 
 interface Env {
   HYPERDRIVE: { connectionString: string };
@@ -15,8 +15,7 @@ export default {
       return Response.json({ ok: true });
     }
 
-    const runtimeDb = url.pathname.startsWith('/tx/') ? transactionalDb : db;
-    await using runtime = await runtimeDb.connect({ url: env.HYPERDRIVE.connectionString });
+    await using runtime = await db.connect({ url: env.HYPERDRIVE.connectionString });
 
     if (url.pathname === '/sql/users') {
       const limit = parseLimit(url.searchParams.get('limit'), 10);
