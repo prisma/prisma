@@ -1017,7 +1017,7 @@ A reference parsed, but as the wrong kind for the argument position — e.g. a m
 
 ### MIGRATION.RUNNER_FAILED
 
-Generic wrapper for a migration runner failure during execution that has no more specific code; the summary/why carry the underlying detail (also used to surface the legacy-marker-shape condition from marker reads, with `meta.runnerErrorCode`). `migrate` and `db init` map unrecognized apply failures through it, passing the failure's own meta through unchanged. Inspect the reported conflict and reconcile schema drift. Meta: the wrapped failure's meta, when it has any; `runnerErrorCode` at the legacy-marker-shape site.
+Generic wrapper for a migration runner failure during execution that has no more specific code; the summary/why carry the underlying detail (also used to surface the legacy-marker-shape condition from marker reads, with `meta.runnerErrorCode`). `migrate` and `db init` map unrecognized apply failures through it, passing the failure's own meta through unchanged. Inspect the reported summary/why detail and address the underlying failure before re-running the command. Meta: the wrapped failure's meta, when it has any; `runnerErrorCode` at the legacy-marker-shape site.
 
 ### MIGRATION.SAME_SOURCE_AND_TARGET
 
@@ -1045,7 +1045,7 @@ A migration script declares one `targetId` but the loaded `prisma-next.config.ts
 
 ### MIGRATION.TARGET_NOT_APP_SPACE
 
-A filesystem-path target given to a migration command resolves outside the app space's migrations directory — path targets must point at an app-space migration. Pass an app-space migration directory or use a hash prefix. Meta: none.
+A filesystem-path target given to a migration command does not resolve to an app-space migration directory — it points outside the app space's migrations directory, or at that directory's root itself. Pass an app-space migration directory or use a hash prefix. Meta: none.
 
 ### MIGRATION.TARGET_UNSUPPORTED
 
