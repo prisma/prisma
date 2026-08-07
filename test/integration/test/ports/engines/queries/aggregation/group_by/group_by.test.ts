@@ -22,6 +22,10 @@ function mainSql(db: MainDb) {
   });
 }
 
+function sqlQueryError(sqlState: string, message: string) {
+  return { name: 'SqlQueryError', kind: 'sql_query', sqlState, message };
+}
+
 async function seedBasicRows(db: MainDb) {
   await db.public.A.createAll([
     { id: 1, float: 10.1, int: 5, string: 'group1' },
@@ -483,6 +487,69 @@ describe('ports/engines/queries/aggregation/group_by', () => {
           ]);
         },
       ),
+    timeouts.spinUpPpgDev,
+  );
+
+  it.fails(
+    'rejects scalar selection with no grouping fields',
+    () =>
+      withMainGroupBy(async ({ db }) => {
+        const query = mainSql(db);
+
+        await expect(
+          db.public.A.ctx.runtime.execute(query.public.a.select('string').groupBy().build()),
+        ).rejects.toThrow();
+      }),
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'rejects a selected scalar absent from grouping fields',
+    () =>
+      withMainGroupBy(async ({ db }) => {
+        const query = mainSql(db);
+
+        await expect(
+          db.public.A.ctx.runtime.execute(
+            query.public.a
+              .select('string')
+              .select('count', (fields, functions) => functions.count(fields.a.string))
+              .select('sum', (fields, functions) => functions.sum(fields.a.float))
+              .groupBy('int')
+              .build(),
+          ),
+        ).rejects.toMatchObject(
+          sqlQueryError(
+            '42803',
+            'column "a.string" must appear in the GROUP BY clause or be used in an aggregate function',
+          ),
+        );
+      }),
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'rejects an ordered scalar absent from grouping fields',
+    () =>
+      withMainGroupBy(async ({ db }) => {
+        const query = mainSql(db);
+
+        await expect(
+          db.public.A.ctx.runtime.execute(
+            query.public.a
+              .select('count', (fields, functions) => functions.count(fields.a.int))
+              .select('sum', (fields, functions) => functions.sum(fields.a.float))
+              .groupBy('int')
+              .orderBy('string', { direction: 'desc' })
+              .build(),
+          ),
+        ).rejects.toMatchObject(
+          sqlQueryError(
+            '42803',
+            'column "a.string" must appear in the GROUP BY clause or be used in an aggregate function',
+          ),
+        );
+      }),
     timeouts.spinUpPpgDev,
   );
 });
