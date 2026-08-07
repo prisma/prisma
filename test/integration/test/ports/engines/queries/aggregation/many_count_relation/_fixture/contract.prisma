@@ -1,0 +1,26 @@
+model Post {
+  id         Int        @id
+  title      String
+  comments   Comment[]
+  categories Category[]
+}
+
+model Comment {
+  id     Int  @id
+  postId Int
+  post   Post @relation(fields: [postId], references: [id])
+}
+
+model Category {
+  id    Int    @id
+  posts Post[]
+}
+
+model PostCategory {
+  postId     Int
+  categoryId Int
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+}

@@ -1,0 +1,47 @@
+model User {
+  id    Int    @id
+  name  String
+  posts Post[]
+}
+
+model Post {
+  id       Int       @id
+  title    String
+  userId   Int
+  user     User      @relation(fields: [userId], references: [id])
+  comments Comment[]
+  tags     Tag[]
+}
+
+model Comment {
+  id     Int    @id
+  body   String
+  postId Int
+  post   Post   @relation(fields: [postId], references: [id])
+  tags   Tag[]
+}
+
+model Tag {
+  id       Int       @id
+  name     String
+  posts    Post[]
+  comments Comment[]
+}
+
+model PostTag {
+  postId Int
+  tagId  Int
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+model CommentTag {
+  commentId Int
+  tagId     Int
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([commentId, tagId])
+}

@@ -1,0 +1,15 @@
+model User {
+  id        Int    @id
+  name      String
+  following User[] @relation("follower")
+  followers User[] @relation("followee")
+}
+
+model UserFollow {
+  followerId Int
+  followeeId Int
+  follower   User @relation("follower", fields: [followerId], references: [id])
+  followee   User @relation("followee", fields: [followeeId], references: [id])
+
+  @@id([followerId, followeeId])
+}
