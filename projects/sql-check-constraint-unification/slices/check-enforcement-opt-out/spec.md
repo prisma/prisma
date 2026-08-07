@@ -104,7 +104,7 @@ A kind that can never apply to the column's shape is an authoring error, code **
 | `elementNotNull` on a non-`many` column | error |
 | bare `@noCheck` on a column that derives nothing (plain scalar; native-enum scalar) | error — a no-op waiver is a lie in the schema |
 | duplicate kinds, in either surface | error |
-| any opt-out on a column of a non-`managed` table | **tolerated, no-op** — table policy already suppresses derivation, and policy may be stamped post-build by a specifier (`applySqlSpecifierControlPolicy`), so erroring here would make pack-stamped contracts order-dependent |
+| any opt-out on a column of a non-`managed` table (source-declared, either surface) | **tolerated and NOT persisted** — the flag is neither validated nor written to the contract; both surfaces behave identically (the TS build drops it, the PSL resolver skips interpretation when the model declares a non-`managed` `@@control`). A specifier-stamped non-managed table likewise derives nothing, though a flag persisted before stamping remains in the contract bytes — policy may be stamped post-build (`applySqlSpecifierControlPolicy`), so erroring on it would make pack-stamped contracts order-dependent |
 | flag on a SQLite contract | unreachable in practice (the Postgres hook is the only check emitter; a column-shape kind can never validate), but the validation rules above are family-level and apply as-is |
 
 Bare-form resolution: `@noCheck` on a scalar domain enum → `['membership']`; on a list domain enum → `['elementNotNull', 'membership']`; on a plain or native-enum list → `['elementNotNull']`.
@@ -199,7 +199,7 @@ The printer needs no work: `printPsl` renders whatever field attributes the AST 
 ## Definition of Done
 
 - All four At-a-glance PSL forms and their TS equivalents build, round-trip through contract JSON, and validate per the Validation table; `CONTRACT.CHECK_OPTOUT_INVALID` covers every inapplicable-kind case.
-- An opted-out column derives no check anywhere: not at `CREATE TABLE`, not as a later `ADD CONSTRAINT`, not as a verify issue — proven by integration tests 11–13 against a real database.
+- An opted-out column derives no check anywhere: not at `CREATE TABLE`, not as a later `ADD CONSTRAINT`, not as a verify issue. Integration test 13 drives the real builder (`defineContract` + `.noCheck()`) against a real database; tests 11–12 pin the planner/DDL lifecycle for a check-less contract; the full authoring-to-infer chain is proven by the infer e2e journeys plus the print-psl emission unit tests.
 - `contract infer` emits `@noCheck(elementNotNull)` exactly when the live database lacks the derived wire-named check (tests 14–16); the enforced form survives a pull when the check is live (test 15).
 - The three fidelity call sites assert immediate cleanliness; `expectConvergesOnDerivedChecks` is deleted.
 - `composeCheckWirePrefix` lives in `@internal/sql-schema-ir/naming`; `build-contract.ts` and both integration-test duplications consume it; the private `CHECK_KIND_SUFFIX`/composition in `build-contract.ts` is gone.
