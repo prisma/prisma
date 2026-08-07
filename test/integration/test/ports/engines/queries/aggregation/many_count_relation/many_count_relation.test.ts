@@ -157,6 +157,7 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
       withManyCountRelation(async ({ db }) => {
         await seedFourRelations(db);
 
+        // The pinned upstream count_with_take row subqueries are unordered; preserve that query.
         const result = await db.public.Post.where({ id: 1 })
           .select('id')
           .include('comments', (comments) =>
@@ -187,6 +188,7 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
       withManyCountRelation(async ({ db }) => {
         await seedFourRelations(db);
 
+        // The pinned upstream count_with_skip row subqueries are unordered; preserve that query.
         const result = await db.public.Post.where({ id: 1 })
           .select('id')
           .include('comments', (comments) =>
@@ -258,6 +260,7 @@ describe('ports/engines/queries/aggregation/many_count_relation', () => {
           { postId: 2, categoryId: 1 },
         ]);
 
+        // The pinned upstream count_with_distinct row subquery is unordered; preserve that query.
         const result = await db.public.Category.select('id')
           .include('posts', (posts) =>
             posts.combine({
