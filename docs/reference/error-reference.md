@@ -517,11 +517,11 @@ A lane terminal (SQL DSL `.build()`, ORM collection terminal) received an annota
 
 ### RUNTIME.AST_INVALID
 
-A lowered SQL AST is structurally invalid at render time: a subquery projecting other than one column, an INSERT with zero rows, a missing column value, an empty onConflict column list or do-update-set, an UPDATE with no SET assignments, or an INSERT target table absent from contract storage. Raised by the Postgres and SQLite SQL renderers. Meta: `node`, `table`, `column`.
+A lowered SQL AST is structurally invalid: a subquery projecting other than one column, an INSERT with zero rows, a missing column value, an empty onConflict column list or do-update-set, an UPDATE with no SET assignments, an INSERT target table absent from contract storage, or an AST node constructed with invalid arguments (empty FunctionSource column aliases, a CaseExpr with no branches). Raised by the Postgres and SQLite SQL renderers and by AST node construction in relational-core. Meta: `node`, `table`, `column`; construction sites carry node-specific fields.
 
 ### RUNTIME.AST_UNSUPPORTED
 
-The authored SQL AST uses a feature this target cannot render — currently DEFAULT as a value in INSERT … VALUES on SQLite. Meta: `node`.
+The authored SQL AST uses a feature this target cannot render — e.g. DEFAULT as a value in INSERT … VALUES, WITH ORDINALITY on function sources, or returned-column aliases on function sources, all on SQLite. Raised by the target adapters' renderers. Meta: `node` (INSERT DEFAULT site); `target`, `feature` (function-source sites).
 
 ### RUNTIME.BINDING_INVALID
 
@@ -530,6 +530,14 @@ A target facade client (`@internal/postgres`, `@internal/sqlite`, `@internal/mon
 ### RUNTIME.BINDING_MISSING
 
 A target facade client was asked to connect with no binding at all (no connection string, no environment fallback). Meta: `expected`.
+
+### RUNTIME.CODEC_DESCRIPTOR_ARRAY_UNSUPPORTED
+
+A codec projection used `CodecRef.many` against a SQLite codec descriptor — SQLite has no stored scalar-array codec protocol, so projecting the whole stored array would be ambiguous. Use a scalar CodecRef or an explicit target representation. Meta: `codecId`.
+
+### RUNTIME.CODEC_DESCRIPTOR_INVALID
+
+A codec descriptor handed to a target codec-descriptor registry (Postgres, SQLite) is not a valid descriptor for that target: wrong discriminant, missing target descriptor methods, or a malformed params schema. Extend the target's descriptor class or adapt a generic descriptor with the target's wrapper (`postgresCodec()` / `sqliteCodec()`). Meta: `codecId`.
 
 ### RUNTIME.CODEC_DESCRIPTOR_MISSING
 
@@ -573,7 +581,7 @@ Two authoring contributions register the same discriminator key — the same `en
 
 ### RUNTIME.DUPLICATE_CODEC
 
-Two runtime stack contributors (target pack, extension packs) register a codec with the same id while the SQL context or Mongo execution stack collects codecs. Remove the duplicate contribution. Meta: `codecId`; on the Mongo path also `existingOwner`, `incomingOwner`.
+Two runtime stack contributors (target pack, extension packs) register a codec with the same id — while the SQL context or Mongo execution stack collects codecs, or while a target codec-descriptor registry (Postgres, SQLite) is composed. Remove the duplicate contribution. Meta: `codecId`; on the Mongo path also `existingOwner`, `incomingOwner`; on the target registry path also `target`.
 
 ### RUNTIME.DUPLICATE_MUTATION_DEFAULT_GENERATOR
 
