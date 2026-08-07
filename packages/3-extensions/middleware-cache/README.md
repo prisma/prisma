@@ -17,7 +17,7 @@ The package depends only on `@internal/framework-components/runtime` — no SQL 
 
 ## Dependencies
 
-- `@internal/framework-components/runtime` — the only production dependency. Provides `RuntimeMiddleware`, `RuntimeMiddlewareContext` (with `contentHash` and `scope`), `defineAnnotation`, `AfterExecuteResult`, and the orchestrator integration via `runWithMiddleware`.
+- `@internal/framework-components/runtime` — the only production dependency. Provides `RuntimeMiddleware`, `RuntimeMiddlewareContext` (with `contentHash` and `scope`), `defineAnnotation`, `AfterQueryResult`, and query orchestrator integration via `runQueryWithMiddleware`.
 
 The package does **not** depend on `@internal/sql-runtime`, `@internal/mongo-runtime`, or any target adapter. It does not import `node:crypto` — hashing the canonical execution identity is the family runtime's responsibility (via `@internal/utils/hash-identity` in the SQL and Mongo runtimes today).
 

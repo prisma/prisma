@@ -4,12 +4,14 @@ to: "8.0.0-rc.2"
 changes:
   - id: runtime-query-execute-hard-cut
     summary: |
-      Runtime row execution now uses `query()`, prepared rows use `queryPrepared()`, and `execute()` returns statement statistics instead of rows. Classify each call by the result its caller consumes rather than replacing every `execute` token: move row plans to `query`, move `PreparedStatement.execute(runtime, params)` to `runtime.queryPrepared(statement, params)`, and keep non-returning writes on `execute` while reading `affectedRows` when needed. The Mongo facade keeps `db.query` as its static builder and removes facade `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
+      Runtime row execution now uses `query()`, prepared rows use `queryPrepared()`, and `execute()` returns statement statistics instead of rows. Middleware hooks are operation-specific and carry no operation discriminator. Classify each call and middleware by behavior rather than replacing every `execute` token: move row plans to `query`, move `PreparedStatement.execute(runtime, params)` to `runtime.queryPrepared(statement, params)`, and keep non-returning writes on `execute` while reading `affectedRows` when needed. The Mongo facade keeps `db.query` as its static builder and removes facade `db.execute`; execute a built row plan through `(await db.runtime()).query(plan)`.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
         - ".execute("
         - "executePrepared("
+        - "intercept:"
+        - "afterExecute:"
         - "spyOn("
       anyMatch: true
 ---
@@ -35,6 +37,8 @@ Translate public calls by consumed result:
 | A count or status derived from rows returned by a non-returning write | `const stats = await runtime.execute(writePlan)` and use `stats.affectedRows` |
 
 Apply the same classification to connection and transaction scopes. `query()` and `queryPrepared()` remain lazy row results, so consume them inside the scope when their connection or transaction must remain valid. `execute()` is eager and resolves to `{ affectedRows: number }`; it does not return an iterable, and `affectedRows` must not be synthesized from a row array's length.
+
+Middleware for row queries uses `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery`; middleware for statistics execution uses `beforeExecute`, `interceptExecute`, and `afterExecute`. Query interception returns `{ rows }`, while execute interception returns `{ stats }`. Remove generic `intercept` hooks and all `ctx.operation` or result `operation` branches; there are no aliases or fallback hooks.
 
 Tests that observe whether a row query reached the SQL driver must spy on `driver.query`, not `driver.execute`. Keep the existing hit/miss comparison intact; only move the observation to the row path. Statistics tests continue to observe `driver.execute`.
 

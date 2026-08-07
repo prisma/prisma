@@ -92,55 +92,40 @@ export interface RuntimeMiddlewareContext {
   readonly planExecutionId: string;
 }
 
-export interface AfterExecuteResult {
-  readonly rowCount: number;
+interface AfterResultBase {
   readonly latencyMs: number;
-  readonly completed: boolean;
-  /**
-   * Indicates where the rows observed during this execution came from.
-   *
-   * - `'driver'` — the default. Rows came from the underlying driver via
-   *   `runDriver` / `runWithMiddleware`'s normal path.
-   * - `'middleware'` — a `RuntimeMiddleware.intercept` hook short-circuited
-   *   execution and supplied the rows directly. The driver was not invoked.
-   *
-   * Observers (telemetry, lints, budgets) that need to distinguish between
-   * driver-served and middleware-served executions read this field.
-   * Observers that don't care can ignore it.
-   */
   readonly source: 'driver' | 'middleware';
 }
 
-/**
- * Result of a successful `RuntimeMiddleware.intercept` hook.
- *
- * Carries the rows that the middleware wishes to return in place of
- * invoking the driver. The runtime iterates `rows` in order and yields
- * each row to the consumer; `beforeExecute`, `runDriver`, and `onRow` are
- * all skipped on the hit path. `afterExecute` still fires with
- * `source: 'middleware'`.
- *
- * `rows` accepts both `Iterable` (arrays, sync generators) and
- * `AsyncIterable` (async generators). `for await` natively handles both
- * via `Symbol.asyncIterator` / `Symbol.iterator` fallback, so the
- * orchestrator does not need to branch on the variant. Cached arrays in
- * the cache middleware are the common case; streaming variants support
- * future use cases like mock layers replaying recordings.
- *
- * Row shape is `Record<string, unknown>` — the same untyped shape
- * `onRow` receives. The SQL runtime decodes intercepted rows through its
- * normal codec pass, so interceptors cache and return raw (undecoded)
- * rows.
- */
-export interface InterceptResult {
+export interface AfterQueryResult extends AfterResultBase {
+  readonly rowCount: number;
+  readonly completed: boolean;
+}
+
+export type AfterExecuteResult = AfterResultBase &
+  (
+    | {
+        readonly stats: RuntimeStatementStats;
+        readonly completed: true;
+      }
+    | {
+        readonly completed: false;
+      }
+  );
+
+export interface QueryInterceptResult {
   readonly rows: AsyncIterable<Record<string, unknown>> | Iterable<Record<string, unknown>>;
+}
+
+export interface ExecuteInterceptResult {
+  readonly stats: RuntimeStatementStats;
 }
 
 /**
  * Marker interface for family-specific param-ref mutators threaded into
  * `beforeExecute` as the third argument. The framework treats the mutator
  * opaquely — it allocates and forwards the family's mutator instance so
- * `runWithMiddleware` can stay family-agnostic. SQL extends this with
+ * `operation-specific middleware runner` can stay family-agnostic. SQL extends this with
  * `SqlParamRefMutator` (over `ParamRef`); Mongo extends with
  * `MongoParamRefMutator` (over `MongoParamRef`).
  *
@@ -150,20 +135,7 @@ export interface InterceptResult {
 declare const PARAM_REF_MUTATOR_BRAND: unique symbol;
 export type ParamRefMutator = { readonly [PARAM_REF_MUTATOR_BRAND]?: never };
 
-/**
- * Family-agnostic middleware SPI parameterized over the plan marker.
- *
- * `TPlan` defaults to the framework `QueryPlan` marker so a generic
- * middleware (e.g. cross-family telemetry) can be authored without
- * naming a family. Family-specific middleware (`SqlMiddleware`,
- * `MongoMiddleware`) narrow `TPlan` to their concrete plan type.
- *
- * `TMutator` is the family-specific {@link ParamRefMutator} the runtime
- * threads into `beforeExecute(plan, ctx, params)` as a third argument.
- * Existing `(plan)` / `(plan, ctx)` middleware bodies continue to compile
- * — TypeScript permits assigning a function with fewer parameters to a
- * function-typed slot that declares more. The third arg is additive.
- */
+/** Family-agnostic operation-specific middleware SPI. */
 export interface RuntimeMiddleware<
   TPlan extends QueryPlan = QueryPlan,
   TMutator extends ParamRefMutator = ParamRefMutator,
@@ -171,61 +143,22 @@ export interface RuntimeMiddleware<
   readonly name: string;
   readonly familyId?: string;
   readonly targetId?: string;
-  /**
-   * Optional short-circuit hook. Runs inside `runWithMiddleware`, after
-   * the orchestrator receives the lowered plan and before any
-   * `beforeExecute` hook fires. Middleware run in registration order; the
-   * first to return a non-`undefined` `InterceptResult` wins, and
-   * subsequent middleware's `intercept` does not fire.
-   *
-   * On a hit, `beforeExecute`, `runDriver`, and `onRow` are all skipped.
-   * `afterExecute` still fires with `source: 'middleware'`.
-   *
-   * Returning `undefined` (or omitting the hook entirely) signals
-   * passthrough — execution proceeds through the normal driver path.
-   *
-   * Errors thrown inside `intercept` are rethrown by `runWithMiddleware`
-   * as the original `Error` — no envelope is guaranteed at this layer.
-   * Before rethrowing, `afterExecute` fires with `completed: false` and
-   * `source: 'middleware'`. Errors thrown by `afterExecute` during the
-   * error path remain swallowed (existing semantics, unchanged).
-   *
-   * Used by middleware that need to short-circuit execution and supply
-   * rows directly: caching, mocks, rate limiting, circuit breaking.
-   */
-  intercept?(plan: TPlan, ctx: RuntimeMiddlewareContext): Promise<InterceptResult | undefined>;
-  /**
-   * Fires after the family runtime has produced a draft execution
-   * plan from the AST, but before the family encodes parameter values
-   * to driver wire format. Mutations applied via the
-   * family-specific `params` mutator are visible to the subsequent
-   * encode step.
-   *
-   * Lifecycle position (SQL example):
-   *   `runBeforeCompile → lowerSqlPlan → beforeExecute → encodeParams → intercept → driver`.
-   *
-   * The `params` argument is a family-specific {@link ParamRefMutator}
-   * scoped to the value slots of `ParamRef` nodes in the plan's AST.
-   * Middleware that doesn't need to mutate params can ignore the
-   * argument; existing `(plan)` / `(plan, ctx)` bodies stay compatible.
-   *
-   * `ctx.signal` carries the per-query `AbortSignal`; middleware that
-   * wraps a network SDK forwards it. Cooperative cancellation
-   * surfaces a `RUNTIME.ABORTED { phase: 'beforeExecute' }` envelope
-   * promptly even when the body ignores the signal.
-   *
-   * Intercept ordering: `intercept` runs *after* this hook; an
-   * interceptor that short-circuits the driver path still observes
-   * the post-`beforeExecute`, fully-encoded plan. The trade-off is
-   * that any `beforeExecute` SDK round-trips happen even when a
-   * downstream interceptor would have skipped the driver entirely.
-   */
+  beforeQuery?(plan: TPlan, ctx: RuntimeMiddlewareContext, params?: TMutator): void | Promise<void>;
+  interceptQuery?(
+    plan: TPlan,
+    ctx: RuntimeMiddlewareContext,
+  ): Promise<QueryInterceptResult | undefined>;
+  onRow?(row: Record<string, unknown>, plan: TPlan, ctx: RuntimeMiddlewareContext): Promise<void>;
+  afterQuery?(plan: TPlan, result: AfterQueryResult, ctx: RuntimeMiddlewareContext): Promise<void>;
   beforeExecute?(
     plan: TPlan,
     ctx: RuntimeMiddlewareContext,
     params?: TMutator,
   ): void | Promise<void>;
-  onRow?(row: Record<string, unknown>, plan: TPlan, ctx: RuntimeMiddlewareContext): Promise<void>;
+  interceptExecute?(
+    plan: TPlan,
+    ctx: RuntimeMiddlewareContext,
+  ): Promise<ExecuteInterceptResult | undefined>;
   afterExecute?(
     plan: TPlan,
     result: AfterExecuteResult,

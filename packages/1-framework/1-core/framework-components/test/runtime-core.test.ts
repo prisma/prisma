@@ -1,5 +1,5 @@
 import type { PlanMeta } from '@internal/contract/types';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ExecutionPlan, QueryPlan } from '../src/execution/query-plan';
 import { RuntimeCore } from '../src/execution/runtime-core';
 import type {
@@ -35,9 +35,9 @@ interface RecorderEntry {
     | 'lower'
     | 'runDriver'
     | 'runExecute'
-    | 'beforeExecute'
+    | 'beforeQuery'
     | 'onRow'
-    | 'afterExecute';
+    | 'afterQuery';
   readonly label?: string;
 }
 
@@ -89,14 +89,14 @@ class MockRuntime extends RuntimeCore<MockPlan, MockExec, RuntimeMiddleware<Mock
 function recorder(label: string, log: RecorderEntry[]): RuntimeMiddleware<MockExec> {
   return {
     name: label,
-    async beforeExecute() {
-      log.push({ stage: 'beforeExecute', label });
+    async beforeQuery() {
+      log.push({ stage: 'beforeQuery', label });
     },
     async onRow() {
       log.push({ stage: 'onRow', label });
     },
-    async afterExecute() {
-      log.push({ stage: 'afterExecute', label });
+    async afterQuery() {
+      log.push({ stage: 'afterQuery', label });
     },
   };
 }
@@ -124,9 +124,9 @@ describe('RuntimeCore', () => {
       { stage: 'runBeforeCompile' },
       { stage: 'lower' },
       { stage: 'runDriver' },
-      { stage: 'beforeExecute', label: 'A' },
+      { stage: 'beforeQuery', label: 'A' },
       { stage: 'onRow', label: 'A' },
-      { stage: 'afterExecute', label: 'A' },
+      { stage: 'afterQuery', label: 'A' },
     ]);
   });
 
@@ -143,18 +143,18 @@ describe('RuntimeCore', () => {
 
     const middlewareOrder = log.map((e) => `${e.stage}:${e.label ?? ''}`);
     expect(middlewareOrder).toEqual([
-      'beforeExecute:A',
-      'beforeExecute:B',
-      'beforeExecute:C',
+      'beforeQuery:A',
+      'beforeQuery:B',
+      'beforeQuery:C',
       'onRow:A',
       'onRow:B',
       'onRow:C',
       'onRow:A',
       'onRow:B',
       'onRow:C',
-      'afterExecute:A',
-      'afterExecute:B',
-      'afterExecute:C',
+      'afterQuery:A',
+      'afterQuery:B',
+      'afterQuery:C',
     ]);
   });
 
@@ -211,7 +211,7 @@ describe('RuntimeCore', () => {
 
     const observer: RuntimeMiddleware<MockExec> = {
       name: 'observer',
-      async beforeExecute(exec) {
+      async beforeQuery(exec) {
         seenByMiddleware.push(exec);
       },
     };
@@ -226,17 +226,71 @@ describe('RuntimeCore', () => {
     expect(seenByDriver[0]).toBe(seenByMiddleware[0]);
   });
 
-  it('executes statistics directly without invoking row middleware', async () => {
-    const log: RecorderEntry[] = [];
-    const runtime = new MockRuntime([recorder('observer', log)], ctx, [{ id: 'not-a-statistic' }]);
+  it('executes statistics through only the execute lifecycle', async () => {
+    const hooks: string[] = [];
+    const middleware: RuntimeMiddleware<MockExec> = {
+      name: 'observer',
+      async beforeQuery() {
+        hooks.push('beforeQuery');
+      },
+      async interceptQuery() {
+        hooks.push('interceptQuery');
+        return undefined;
+      },
+      async afterQuery() {
+        hooks.push('afterQuery');
+      },
+      async beforeExecute() {
+        hooks.push('beforeExecute');
+      },
+      async interceptExecute() {
+        hooks.push('interceptExecute');
+        return undefined;
+      },
+      async afterExecute() {
+        hooks.push('afterExecute');
+      },
+    };
+    const runtime = new MockRuntime([middleware], ctx, [{ id: 'not-a-statistic' }]);
 
     await expect(runtime.execute({ draftId: 'stats', meta })).resolves.toEqual({
       affectedRows: 3,
     });
 
-    expect(runtime.events).toEqual([{ stage: 'lower' }, { stage: 'runExecute' }]);
-    expect(log).toEqual([]);
+    expect(runtime.events).toEqual([
+      { stage: 'runBeforeCompile' },
+      { stage: 'lower' },
+      { stage: 'runExecute' },
+    ]);
+    expect(hooks).toEqual(['beforeExecute', 'interceptExecute', 'afterExecute']);
   });
+
+  it.each(['query', 'execute'] as const)(
+    'does not invoke completion after a %s before-hook failure',
+    async (operation) => {
+      const beforeError = new Error('before failed');
+      const afterQuery = vi.fn();
+      const afterExecute = vi.fn();
+      const middleware: RuntimeMiddleware<MockExec> = {
+        name: 'observer',
+        beforeQuery() {
+          throw beforeError;
+        },
+        beforeExecute() {
+          throw beforeError;
+        },
+        afterQuery,
+        afterExecute,
+      };
+      const runtime = new MockRuntime([middleware], ctx, []);
+      const plan: MockPlan = { draftId: 'before-failure', meta };
+
+      const pending = operation === 'query' ? runtime.query(plan).toArray() : runtime.execute(plan);
+      await expect(pending).rejects.toBe(beforeError);
+      expect(afterQuery).not.toHaveBeenCalled();
+      expect(afterExecute).not.toHaveBeenCalled();
+    },
+  );
 
   it('subclasses can implement close() and it is invoked', async () => {
     const runtime = new MockRuntime([], ctx, []);
@@ -251,17 +305,17 @@ describe('RuntimeCore', () => {
       const observed: AbortSignal[] = [];
       const middleware: RuntimeMiddleware<MockExec> = {
         name: 'signal-observer',
-        beforeExecute(_plan, hookCtx) {
+        beforeQuery(_plan, hookCtx) {
           if (hookCtx.signal) observed.push(hookCtx.signal);
         },
-        async intercept(_plan, hookCtx) {
+        async interceptQuery(_plan, hookCtx) {
           if (hookCtx.signal) observed.push(hookCtx.signal);
           return undefined;
         },
         async onRow(_row, _plan, hookCtx) {
           if (hookCtx.signal) observed.push(hookCtx.signal);
         },
-        async afterExecute(_plan, _result, hookCtx) {
+        async afterQuery(_plan, _result, hookCtx) {
           if (hookCtx.signal) observed.push(hookCtx.signal);
         },
       };
@@ -283,7 +337,7 @@ describe('RuntimeCore', () => {
       const observed: boolean[] = [];
       const middleware: RuntimeMiddleware<MockExec> = {
         name: 'signal-observer',
-        beforeExecute(_plan, hookCtx) {
+        beforeQuery(_plan, hookCtx) {
           observed.push('signal' in hookCtx);
         },
       };
@@ -294,12 +348,12 @@ describe('RuntimeCore', () => {
       expect(observed).toEqual([false]);
     });
 
-    it('aborts an in-flight query beforeExecute hook', async () => {
+    it('aborts an in-flight query beforeQuery hook', async () => {
       const controller = new AbortController();
       const entered = deferred();
       const middleware: RuntimeMiddleware<MockExec> = {
         name: 'blocking-before-execute',
-        beforeExecute() {
+        beforeQuery() {
           entered.resolve();
           return new Promise<void>(() => {});
         },
@@ -314,7 +368,7 @@ describe('RuntimeCore', () => {
 
       await expect(pending).rejects.toMatchObject({
         code: 'RUNTIME.ABORTED',
-        details: { phase: 'beforeExecute' },
+        details: { phase: 'beforeQuery' },
         cause: controller.signal.reason,
       });
     });
@@ -322,23 +376,23 @@ describe('RuntimeCore', () => {
 
   describe('planExecutionId', () => {
     interface Observation {
-      readonly hook: 'beforeExecute' | 'afterExecute';
+      readonly hook: 'beforeQuery' | 'afterQuery';
       readonly planExecutionId: string;
     }
 
     function observer(log: Observation[]): RuntimeMiddleware<MockExec> {
       return {
         name: 'observer',
-        async beforeExecute(_plan, hookCtx) {
-          log.push({ hook: 'beforeExecute', planExecutionId: hookCtx.planExecutionId });
+        async beforeQuery(_plan, hookCtx) {
+          log.push({ hook: 'beforeQuery', planExecutionId: hookCtx.planExecutionId });
         },
-        async afterExecute(_plan, _result, hookCtx) {
-          log.push({ hook: 'afterExecute', planExecutionId: hookCtx.planExecutionId });
+        async afterQuery(_plan, _result, hookCtx) {
+          log.push({ hook: 'afterQuery', planExecutionId: hookCtx.planExecutionId });
         },
       };
     }
 
-    it('assigns the same planExecutionId to beforeExecute and afterExecute within one query call', async () => {
+    it('assigns the same planExecutionId to beforeQuery and afterQuery within one query call', async () => {
       const log: Observation[] = [];
       const runtime = new MockRuntime([observer(log)], ctx, [{ id: 1 }]);
       const plan: MockPlan = { draftId: 'one-execute', meta };
@@ -346,8 +400,8 @@ describe('RuntimeCore', () => {
       await runtime.query(plan).toArray();
 
       expect(log).toHaveLength(2);
-      expect(log[0]?.hook).toBe('beforeExecute');
-      expect(log[1]?.hook).toBe('afterExecute');
+      expect(log[0]?.hook).toBe('beforeQuery');
+      expect(log[1]?.hook).toBe('afterQuery');
       expect(log[0]?.planExecutionId).toBeTypeOf('string');
       expect(log[0]?.planExecutionId).toBe(log[1]?.planExecutionId);
     });

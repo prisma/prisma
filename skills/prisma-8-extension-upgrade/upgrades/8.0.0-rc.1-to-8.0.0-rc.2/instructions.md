@@ -4,7 +4,7 @@ to: "8.0.0-rc.2"
 changes:
   - id: runtime-query-execute-hard-cut
     summary: |
-      Runtime and scope implementations now expose `query()` for rows, `queryPrepared()` for prepared rows, and statistics-returning `execute()` for non-returning statements. Classify callers and helpers by consumed result; do not globally rename `execute`. Keep separate row/statistics fake queues and spies, and never derive `affectedRows` from row length. The Mongo facade keeps its static `db.query` builder and removes row `db.execute`; run built row plans through `(await db.runtime()).query(plan)` without adding an alias.
+      Runtime and scope implementations now expose `query()` for rows, `queryPrepared()` for prepared rows, and statistics-returning `execute()` for non-returning statements. Middleware uses operation-specific query and execute hooks with no operation discriminator or generic fallback. Classify callers, helpers, middleware, and fakes by behavior; do not globally rename `execute`. Keep separate row/statistics fake queues and spies, and never derive `affectedRows` from row length. The Mongo facade keeps its static `db.query` builder and removes row `db.execute`; run built row plans through `(await db.runtime()).query(plan)` without adding an alias.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
@@ -12,6 +12,8 @@ changes:
         - "RuntimeQueryable"
         - "executePrepared("
         - ".execute("
+        - "intercept:"
+        - "afterExecute:"
       anyMatch: true
 ---
 
@@ -43,6 +45,8 @@ interface PreparedRuntimeExecutor extends RuntimeExecutor {
 Use the concrete family plan and statistics types required by your extension. Route row-returning plans to the bound driver's or runtime's `query` path, route prepared rows to `queryPrepared`, and route non-returning statements to `execute`. Preserve the bound scope: connection wrappers call the connection operations, transaction wrappers call the transaction operations, and role-bound wrappers use the same acquired session for both paths. Preserve row-result laziness and cleanup, while statistics execution is eager and returns the exact `{ affectedRows }` object supplied by the lower layer.
 
 Translate prepared row callers from `statement.execute(target, params)` or any retired `executePrepared` helper to `target.queryPrepared(statement, params)`. Rename private helpers whose only purpose is returning rows when their old `execute` name would conceal the distinction, but do not add compatibility aliases.
+
+Classify each middleware behavior explicitly. Row-query behavior uses `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery`; statistics behavior uses `beforeExecute`, `interceptExecute`, and `afterExecute`; behavior intended for both assigns one private implementation to both corresponding hooks. Query interception returns exactly `{ rows }`, execute interception returns `{ stats }`, and completion hooks receive their operation-specific result. Remove generic `intercept` hooks, generic completion handling, and every `ctx.operation` or result `operation` branch rather than preserving aliases or fallback dispatch.
 
 Split fakes and observations so the test can detect a wrong route. A useful fake has a row-result queue consumed only by `query`, a statistics queue consumed only by `execute`, distinct spies or an explicit `operation` field, and whole-shape assertions for `{ affectedRows }`. Delete fakes that model `execute` as an async row generator or `query` as a buffered `{ rows, rowCount }` result. If existing code counted a non-returning write's result rows, await `execute` and read `stats.affectedRows`; never substitute row-array length.
 

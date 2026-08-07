@@ -69,9 +69,9 @@ describe('cache key resolution', () => {
       const ctx = makeCtx();
 
       // Miss → store.get and store.set both called with the contentHash.
-      await mw.intercept!(exec, ctx);
+      await mw.interceptQuery!(exec, ctx);
       await mw.onRow!({ id: 1 }, exec, ctx);
-      await mw.afterExecute!(
+      await mw.afterQuery!(
         exec,
         { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
@@ -90,7 +90,7 @@ describe('cache key resolution', () => {
       const contentHash = vi.fn(async (e: ExecutionPlan) => `derived:${(e as MockExec).statement}`);
       const ctx = makeCtx({ contentHash });
 
-      await mw.intercept!(exec, ctx);
+      await mw.interceptQuery!(exec, ctx);
 
       expect(contentHash).toHaveBeenCalledTimes(1);
       expect(contentHash).toHaveBeenCalledWith(exec);
@@ -109,18 +109,18 @@ describe('cache key resolution', () => {
       const ctx = makeCtx();
 
       // Miss + commit for A.
-      await mw.intercept!(execA, ctx);
+      await mw.interceptQuery!(execA, ctx);
       await mw.onRow!({ from: 'A' }, execA, ctx);
-      await mw.afterExecute!(
+      await mw.afterQuery!(
         execA,
         { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
       );
 
       // Miss + commit for B.
-      await mw.intercept!(execB, ctx);
+      await mw.interceptQuery!(execB, ctx);
       await mw.onRow!({ from: 'B' }, execB, ctx);
-      await mw.afterExecute!(
+      await mw.afterQuery!(
         execB,
         { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
@@ -141,9 +141,9 @@ describe('cache key resolution', () => {
       });
       const ctx = makeCtx();
 
-      await mw.intercept!(exec, ctx);
+      await mw.interceptQuery!(exec, ctx);
       await mw.onRow!({ id: 1 }, exec, ctx);
-      await mw.afterExecute!(
+      await mw.afterQuery!(
         exec,
         { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
@@ -162,7 +162,7 @@ describe('cache key resolution', () => {
       const contentHash = vi.fn(async () => 'should-not-be-used');
       const ctx = makeCtx({ contentHash });
 
-      await mw.intercept!(exec, ctx);
+      await mw.interceptQuery!(exec, ctx);
 
       expect(contentHash).not.toHaveBeenCalled();
     });
@@ -178,9 +178,9 @@ describe('cache key resolution', () => {
       });
       const ctx = makeCtx();
 
-      await mw.intercept!(exec, ctx);
+      await mw.interceptQuery!(exec, ctx);
       await mw.onRow!({ id: 1 }, exec, ctx);
-      await mw.afterExecute!(
+      await mw.afterQuery!(
         exec,
         { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
@@ -202,7 +202,7 @@ describe('cache key resolution', () => {
       });
       const ctx = makeCtx();
 
-      const result = await mw.intercept!(exec, ctx);
+      const result = await mw.interceptQuery!(exec, ctx);
       expect(result).toBeDefined();
       expect(await drain(result!.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
         { id: 'pre-cached' },
@@ -240,16 +240,16 @@ describe('cache key resolution', () => {
       });
 
       // Miss + commit.
-      await mw.intercept!(exec, ctx);
+      await mw.interceptQuery!(exec, ctx);
       await mw.onRow!({ _id: 'a', active: true }, exec, ctx);
-      await mw.afterExecute!(
+      await mw.afterQuery!(
         exec,
         { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctx,
       );
 
       // Hit on the second call.
-      const second = await mw.intercept!(exec, ctx);
+      const second = await mw.interceptQuery!(exec, ctx);
       expect(second).toBeDefined();
       expect(await drain(second!.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
         { _id: 'a', active: true },
@@ -272,18 +272,18 @@ describe('cache key resolution', () => {
       const ctxB = makeCtx({ contentHash: async () => 'key-B' });
 
       // Commit under key-A.
-      await mw.intercept!(exec, ctxA);
+      await mw.interceptQuery!(exec, ctxA);
       await mw.onRow!({ from: 'A' }, exec, ctxA);
-      await mw.afterExecute!(
+      await mw.afterQuery!(
         exec,
         { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctxA,
       );
 
       // Commit under key-B.
-      await mw.intercept!(exec, ctxB);
+      await mw.interceptQuery!(exec, ctxB);
       await mw.onRow!({ from: 'B' }, exec, ctxB);
-      await mw.afterExecute!(
+      await mw.afterQuery!(
         exec,
         { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
         ctxB,

@@ -193,14 +193,14 @@ describe('integration: rawSql expression in typed builder', {
     });
   });
 
-  describe('ParamRef from rawSql interpolation surfaces in beforeExecute params walk', () => {
-    it('param() inside rawSql appears in beforeExecute entries() in canonical order', async () => {
+  describe('ParamRef from rawSql interpolation surfaces in beforeQuery params walk', () => {
+    it('param() inside rawSql appears in beforeQuery entries() in canonical order', async () => {
       const capturedEntries: Array<{ codecId: string | undefined; value: unknown }> = [];
 
       const middleware: SqlMiddleware = {
         name: 'param-capture',
         familyId: 'sql',
-        beforeExecute(_plan, _ctx, params?: SqlParamRefMutator) {
+        beforeQuery(_plan, _ctx, params?: SqlParamRefMutator) {
           if (!params) return;
           for (const entry of params.entries()) {
             capturedEntries.push({ codecId: entry.codecId, value: entry.value });
@@ -214,7 +214,7 @@ describe('integration: rawSql expression in typed builder', {
 
       // The where clause embeds a param() inside a rawSql expression.
       // After lowering, the plan carries one ParamRef (value 50, codec pg/int4@1).
-      // The middleware's beforeExecute should see it via params.entries().
+      // The middleware's beforeQuery should see it via params.entries().
       // fns.raw is RawSqlTag (non-optional) — callable directly as a template tag.
       const result = runtime.query(
         db.public.posts
@@ -237,13 +237,13 @@ describe('integration: rawSql expression in typed builder', {
       expect(paramEntry?.value).toBe(50);
     });
 
-    it('param() count in beforeExecute entries matches the number of param() calls in rawSql', async () => {
+    it('param() count in beforeQuery entries matches the number of param() calls in rawSql', async () => {
       const capturedEntries: Array<{ codecId: string | undefined; value: unknown }> = [];
 
       const middleware: SqlMiddleware = {
         name: 'param-count-capture',
         familyId: 'sql',
-        beforeExecute(_plan, _ctx, params?: SqlParamRefMutator) {
+        beforeQuery(_plan, _ctx, params?: SqlParamRefMutator) {
           if (!params) return;
           for (const entry of params.entries()) {
             capturedEntries.push({ codecId: entry.codecId, value: entry.value });

@@ -22,7 +22,7 @@ import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-co
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
-import type { SqlMiddleware } from '../src/middleware/sql-middleware';
+import type { SqlMiddleware, SqlMiddlewareContext } from '../src/middleware/sql-middleware';
 import type {
   SqlRuntimeAdapterDescriptor,
   SqlRuntimeAdapterInstance,
@@ -414,6 +414,108 @@ describe('SqlRuntime', () => {
       expect.objectContaining({ lane: 'raw', target: 'postgres', outcome: 'success' }),
     );
 
+    await transaction.rollback();
+    await connection.release();
+  });
+
+  it('intercepts execute statistics through only execute hooks', async () => {
+    const { stackInstance, context, driver } = createTestSetup();
+    const calls: string[] = [];
+    const contexts: SqlMiddlewareContext[] = [];
+    const controller = new AbortController();
+    const runtime = createRuntime({
+      stackInstance,
+      context,
+      driver,
+      verifyMarker: false,
+      middleware: [
+        {
+          name: 'observer',
+          async beforeQuery() {
+            calls.push('beforeQuery');
+          },
+          async interceptQuery() {
+            calls.push('interceptQuery');
+            return undefined;
+          },
+          async afterQuery() {
+            calls.push('afterQuery');
+          },
+          async beforeExecute(_plan, ctx) {
+            calls.push('beforeExecute');
+            contexts.push(ctx);
+          },
+          async interceptExecute(_plan, ctx) {
+            calls.push('passthrough');
+            contexts.push(ctx);
+            return undefined;
+          },
+          async afterExecute(_plan, result, ctx) {
+            calls.push(`afterExecute:${result.completed ? result.stats.affectedRows : 'failed'}`);
+            contexts.push(ctx);
+          },
+        },
+        {
+          name: 'winner',
+          async interceptExecute(_plan, ctx) {
+            calls.push('winner');
+            contexts.push(ctx);
+            return { stats: { affectedRows: 12 } };
+          },
+        },
+        {
+          name: 'tail',
+          async interceptExecute() {
+            calls.push('tail');
+            return { stats: { affectedRows: 13 } };
+          },
+        },
+      ],
+    });
+
+    await expect(
+      runtime.execute(createRawExecutionPlan(), { signal: controller.signal }),
+    ).resolves.toEqual({ affectedRows: 12 });
+
+    expect(driver.__spies.rootStats).not.toHaveBeenCalled();
+    expect(calls).toEqual(['beforeExecute', 'passthrough', 'winner', 'afterExecute:12']);
+    expect(contexts).toHaveLength(4);
+    expect(contexts.every((ctx) => ctx === contexts[0])).toBe(true);
+    expect(contexts[0]?.contract).toEqual(testContract);
+    expect(contexts[0]?.signal).toBe(controller.signal);
+    expect(contexts[0]?.scope).toBe('runtime');
+    expect(contexts[0]?.planExecutionId).toBeTypeOf('string');
+  });
+
+  it('selects execute hooks and preserves connection and transaction scopes', async () => {
+    const { stackInstance, context, driver } = createTestSetup();
+    const scopes: string[] = [];
+    const queryHook = vi.fn();
+    const runtime = createRuntime({
+      stackInstance,
+      context,
+      driver,
+      verifyMarker: false,
+      middleware: [
+        {
+          name: 'scope-observer',
+          beforeQuery: queryHook,
+          beforeExecute(_plan, ctx) {
+            scopes.push(ctx.scope);
+          },
+        },
+      ],
+    });
+    const plan = createRawExecutionPlan();
+
+    await runtime.execute(plan);
+    const connection = await runtime.connection();
+    await connection.execute(plan);
+    const transaction = await connection.transaction();
+    await transaction.execute(plan);
+
+    expect(scopes).toEqual(['runtime', 'connection', 'transaction']);
+    expect(queryHook).not.toHaveBeenCalled();
     await transaction.rollback();
     await connection.release();
   });
