@@ -80,6 +80,7 @@ function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError {
           ? { plannerWarnings: failure.warnings }
           : {}),
       },
+      ...ifDefined('cause', failure.cause),
     });
   }
 

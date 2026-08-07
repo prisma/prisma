@@ -102,6 +102,7 @@ function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
       why: failure.why ?? 'Migration runner failed',
       fix,
       ...ifDefined('meta', failure.meta),
+      ...ifDefined('cause', failure.cause),
     });
   }
 

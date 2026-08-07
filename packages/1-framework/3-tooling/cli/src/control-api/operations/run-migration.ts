@@ -40,6 +40,11 @@ export interface RunnerFailure {
   readonly summary: string;
   readonly why?: string;
   readonly meta: Record<string, unknown>;
+  /**
+   * The runner's original failure object, preserved verbatim so callers
+   * can attach it as `cause` on the CLI error they build from this shape.
+   */
+  readonly cause?: unknown;
 }
 
 export interface RunMigrationInputs<TFamilyId extends string, TTargetId extends string> {
@@ -168,6 +173,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
         failingSpace: runnerResult.failure.failingSpace,
         runnerErrorCode: runnerResult.failure.code,
       },
+      cause: runnerResult.failure,
     });
   }
   onProgress?.({ action, kind: 'spanEnd', spanId: RUN_SPAN_ID, outcome: 'ok' });

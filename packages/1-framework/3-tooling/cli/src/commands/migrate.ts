@@ -587,6 +587,7 @@ function mapApplyFailure(failure: MigrateFailure): CliStructuredErrorType {
     why: failure.why ?? 'Migration runner failed',
     fix: 'Fix the issue and re-run `prisma-next migrate --to <contract>` — previously applied migrations are preserved.',
     meta: failure.meta ?? {},
+    ...ifDefined('cause', failure.cause),
   });
 }
 
