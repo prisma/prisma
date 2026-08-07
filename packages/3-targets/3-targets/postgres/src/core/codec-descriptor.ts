@@ -108,6 +108,15 @@ export interface PostgresCodecOptions<P> {
   readonly nativeType: (params: P) => string;
   readonly jsonProjection: (expression: ProjectionExpr, params: P) => ProjectionExpr;
   readonly jsonArrayProjection?: (expression: ProjectionExpr, params: P) => ProjectionExpr;
+  /**
+   * Replaces the wrapped descriptor's codec factory when the Postgres wire
+   * format needs target-specific encode/decode (e.g. the pg driver's
+   * local-time `timestamp` parsing). Must produce codecs with the wrapped
+   * descriptor's codecId and traits.
+   */
+  readonly factory?: (
+    params: P,
+  ) => (ctx: CodecInstanceContext) => Codec<string, readonly CodecTrait[], unknown, unknown>;
 }
 
 export type AdaptedPostgresCodecDescriptor<D extends AnyCodecDescriptor> = Pick<
@@ -142,7 +151,7 @@ class PostgresCodecDescriptorAdapter<D extends AnyCodecDescriptor> extends Postg
     this.traits = descriptor.traits;
     this.targetTypes = descriptor.targetTypes;
     this.paramsSchema = descriptor.paramsSchema;
-    this.factory = (params) => descriptor.factory(params);
+    this.factory = options.factory ?? ((params) => descriptor.factory(params));
 
     const renderOutputType = descriptor.renderOutputType;
     if (renderOutputType !== undefined) {

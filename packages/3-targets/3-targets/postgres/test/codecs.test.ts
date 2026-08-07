@@ -8,7 +8,6 @@ import {
   sqlFloatDescriptor,
   sqlIntDescriptor,
   sqlTextDescriptor,
-  sqlTimestampDescriptor,
   sqlVarcharDescriptor,
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
@@ -38,6 +37,7 @@ import {
   pgUuidDescriptor,
   pgVarbitDescriptor,
   pgVarcharDescriptor,
+  postgresSqlTimestampDescriptor,
 } from '../src/core/codecs';
 import { postgresCodecDescriptorRegistry, postgresCodecRegistry } from '../src/core/registry';
 
@@ -49,7 +49,7 @@ const descriptorByScalar = {
   int: sqlIntDescriptor,
   float: sqlFloatDescriptor,
   'sql-text': sqlTextDescriptor,
-  'sql-timestamp': sqlTimestampDescriptor,
+  'sql-timestamp': postgresSqlTimestampDescriptor,
   text: pgTextDescriptor,
   character: pgCharDescriptor,
   'character varying': pgVarcharDescriptor,
@@ -124,31 +124,37 @@ describe('adapter-postgres codecs', () => {
 
   describe('timestamp codec', () => {
     const timestampCodec = codecForScalar('timestamp') as {
-      encode: (value: Date, ctx: SqlCodecCallContext) => Promise<Date>;
+      encode: (value: Date, ctx: SqlCodecCallContext) => Promise<string>;
       decode: (wire: Date, ctx: SqlCodecCallContext) => Promise<Date>;
     };
 
-    it('encodes Date values as-is', async () => {
+    it('encodes Date values as naive UTC text', async () => {
       const date = new Date('2024-01-15T10:30:00Z');
-      expect(await timestampCodec.encode(date, {})).toBe(date);
+      expect(await timestampCodec.encode(date, {})).toBe('2024-01-15T10:30:00.000');
     });
 
-    it('decodes Date values as-is', async () => {
-      const date = new Date('2024-01-15T10:30:00Z');
-      expect(await timestampCodec.decode(date, {})).toBe(date);
+    it('decodes the driver local-wall-clock Date as UTC', async () => {
+      const localWallClock = new Date(2024, 0, 15, 10, 30, 0);
+      const decoded = await timestampCodec.decode(localWallClock, {});
+      expect(decoded.getTime()).toBe(Date.UTC(2024, 0, 15, 10, 30, 0));
     });
   });
 
   describe('sql-timestamp codec', () => {
     const timestampCodec = codecForScalar('sql-timestamp') as {
-      encode: (value: Date, ctx: SqlCodecCallContext) => Promise<Date>;
+      encode: (value: Date, ctx: SqlCodecCallContext) => Promise<string>;
       decode: (wire: Date, ctx: SqlCodecCallContext) => Promise<Date>;
     };
 
-    it('round-trips Date values', async () => {
+    it('encodes Date values as naive UTC text', async () => {
       const date = new Date('2024-01-15T10:30:00Z');
-      expect(await timestampCodec.encode(date, {})).toBe(date);
-      expect(await timestampCodec.decode(date, {})).toBe(date);
+      expect(await timestampCodec.encode(date, {})).toBe('2024-01-15T10:30:00.000');
+    });
+
+    it('decodes the driver local-wall-clock Date as UTC', async () => {
+      const localWallClock = new Date(2024, 0, 15, 10, 30, 0);
+      const decoded = await timestampCodec.decode(localWallClock, {});
+      expect(decoded.getTime()).toBe(Date.UTC(2024, 0, 15, 10, 30, 0));
     });
 
     it('uses the zone-less ISO form a timestamp column holds', () => {
@@ -161,13 +167,17 @@ describe('adapter-postgres codecs', () => {
 
   describe('timestamptz codec', () => {
     const timestamptzCodec = codecForScalar('timestamptz') as {
-      encode: (value: Date, ctx: SqlCodecCallContext) => Promise<Date>;
+      encode: (value: Date, ctx: SqlCodecCallContext) => Promise<string>;
       decode: (wire: Date, ctx: SqlCodecCallContext) => Promise<Date>;
     };
 
-    it('round-trips Date values', async () => {
+    it('encodes Date values as UTC ISO text', async () => {
       const date = new Date('2024-01-15T10:30:00Z');
-      expect(await timestamptzCodec.encode(date, {})).toBe(date);
+      expect(await timestamptzCodec.encode(date, {})).toBe('2024-01-15T10:30:00.000Z');
+    });
+
+    it('decodes driver-parsed Date values as-is', async () => {
+      const date = new Date('2024-01-15T10:30:00Z');
       expect(await timestamptzCodec.decode(date, {})).toBe(date);
     });
   });

@@ -188,7 +188,39 @@ const ISO_8601_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?$/
 const ISO_8601_TIMESTAMPTZ =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 
-export const pgTimestampEncodeJson = (value: Date): JsonValue => value.toISOString().slice(0, -1);
+/**
+ * A Postgres `timestamp without time zone` stores a naive wall clock that
+ * `pg/timestamp@1` canonicalizes as meaning UTC.
+ *
+ * `pgTimestampEncode` formats the instant as naive UTC ISO text
+ * (`2026-07-01T10:00:00.000`), bypassing the pg driver's own `Date`
+ * serialization (`dateToString`), which renders *local* time with an offset
+ * that Postgres would drop — storing local wall clock instead of UTC.
+ */
+export const pgTimestampEncode = (value: Date): string => value.toISOString().slice(0, -1);
+
+/**
+ * Normalizes the pg driver's already-parsed `Date` for a `timestamp` column
+ * into the canonical naive-means-UTC form. The driver (via `postgres-date`)
+ * builds that `Date` at *local* wall-clock time from the wire text; reading it
+ * back with the same (local) getters recovers the exact wall clock the driver
+ * parsed, and reconstructing via `Date.UTC` yields the instant that wall clock
+ * denotes in UTC, independent of the process's timezone.
+ */
+export const pgTimestampDecode = (wire: Date): Date =>
+  new Date(
+    Date.UTC(
+      wire.getFullYear(),
+      wire.getMonth(),
+      wire.getDate(),
+      wire.getHours(),
+      wire.getMinutes(),
+      wire.getSeconds(),
+      wire.getMilliseconds(),
+    ),
+  );
+
+export const pgTimestampEncodeJson = (value: Date): JsonValue => pgTimestampEncode(value);
 export const pgTimestampDecodeJson = (json: JsonValue): Date => {
   if (typeof json !== 'string') {
     throw postgresError(
@@ -214,6 +246,15 @@ export const pgTimestampDecodeJson = (json: JsonValue): Date => {
   }
   return date;
 };
+
+/**
+ * Serializes a `timestamptz` instant as UTC ISO text, bypassing the pg
+ * driver's own `Date` serialization (`dateToString`), which renders local time
+ * with an offset from `getTimezoneOffset()` — whole minutes only, so
+ * historical local-mean-time offsets (e.g. Berlin +00:53:28 before 1893) lose
+ * their seconds and shift the stored instant.
+ */
+export const pgTimestamptzEncode = (value: Date): string => value.toISOString();
 
 export const pgTimestamptzEncodeJson = (value: Date): JsonValue =>
   value.toISOString().replace(/Z$/, '+00:00');
