@@ -13,12 +13,27 @@
  * asserted is that `min` over a `numeric(10,3)` returns *a* numeric, not that it
  * returns one of the same precision.
  *
+ * What each row runs is the expression its lowering builds, not a call named
+ * after the operation: `countBigInt`, `sumBigInt`, and `avgDecimal` compute with
+ * the SQL aggregate their bare namesakes use and differ in how the result is
+ * read, and `avg` over an integer casts its result. So every probe here renders
+ * the row's own lowering.
+ *
+ * Two rows declare a codec whose native type is not the type PostgreSQL
+ * computes — `sum` over a 64-bit integer, whose `numeric` total the
+ * number-flavoured codec reads and range-guards. They are named in
+ * `READS_A_COMPUTED_TYPE`, which the matrix measures against and a test holds to
+ * being a real divergence.
+ *
  * The pairs PostgreSQL refuses, and which therefore carry no descriptor:
  * `sum`/`avg` over every non-numeric, non-temporal type (including `money`,
  * which has a `sum` but no `avg`, and no codec of its own in this target); and
  * `min`/`max` over `bool`, `uuid`, `bytea`, `bit`, `bit varying`, `json`, and
  * `jsonb` — all of which advertise `equality` or `order` and would have been
- * swept up by a trait fallback inferred from traits rather than probed.
+ * swept up by a trait fallback inferred from traits rather than probed. That
+ * measurement applies to the bare operations, whose SQL call is the operation's
+ * own name; where a lossless variant is offered is policy, and is pinned as
+ * such.
  */
 
 import type { JsonValue } from '@internal/contract/types';
@@ -34,13 +49,57 @@ import {
 import { ifDefined } from '@internal/utils/defined';
 import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { aggregateSql } from './aggregate-sql';
 
 const registry = buildSqlAggregateDescriptorRegistry(
   postgresAggregateDescriptors,
   postgresCodecRegistry,
 );
 
-const OPERATIONS = ['count', 'sum', 'avg', 'min', 'max'] as const;
+/** The operations whose SQL call carries the operation's own name, and whose absence over a type PostgreSQL aggregates is therefore a gap. */
+const BARE_OPERATIONS = ['count', 'sum', 'avg', 'min', 'max'] as const;
+
+/** The lossless variants, each reading the result of the SQL aggregate its bare namesake computes. */
+const LOSSLESS_OPERATIONS = ['countBigInt', 'sumBigInt', 'avgDecimal'] as const;
+
+const OPERATIONS = [...BARE_OPERATIONS, ...LOSSLESS_OPERATIONS];
+
+/**
+ * The rows whose declared codec reads a computed type other than its own native
+ * type, and the type PostgreSQL computes for them. `sum` over a 64-bit integer
+ * is a `numeric`, which the number-flavoured codec reads as decimal text and
+ * guards against the safe-integer range; casting that total down to `bigint`
+ * would raise `bigint out of range` past 2^63 instead.
+ */
+const READS_A_COMPUTED_TYPE = [
+  { operation: 'sum', codecId: 'pg/int8@1', computed: 'numeric' },
+  { operation: 'sum', codecId: 'pg/int8number@1', computed: 'numeric' },
+] as const;
+
+const computedTypeFor = (operation: string, codecId: string): string | undefined =>
+  READS_A_COMPUTED_TYPE.find((row) => row.operation === operation && row.codecId === codecId)
+    ?.computed;
+
+/**
+ * The inputs each lossless variant claims. `sumBigInt` covers the fixed-width
+ * integers, `unboundedint` being a column whose own `sum` is already an exact
+ * `bigint`; `avgDecimal` covers every integer and `numeric`, the inputs whose
+ * mean PostgreSQL computes exactly. `countBigInt` is input-agnostic like
+ * `count`, so it claims every codec and appears in neither list.
+ */
+const LOSSLESS_VARIANT_INPUTS: Readonly<Record<string, readonly string[]>> = {
+  sumBigInt: ['pg/int2@1', 'pg/int4@1', 'pg/int8@1', 'pg/int8number@1', 'pg/int@1', 'sql/int@1'],
+  avgDecimal: [
+    'pg/int2@1',
+    'pg/int4@1',
+    'pg/int8@1',
+    'pg/int8number@1',
+    'pg/int@1',
+    'pg/numeric@1',
+    'pg/unboundedint@1',
+    'sql/int@1',
+  ],
+};
 
 const ENUM_TYPE = 'aggregate_conformance_enum';
 
@@ -127,18 +186,16 @@ type Query = (sql: string) => Promise<ReadonlyArray<Record<string, unknown>>>;
 const UNDEFINED_FUNCTION = '42883';
 
 /**
- * The result type PostgreSQL gives `operation` over the fixture's column, or
- * `undefined` when it has no such aggregate. Only `undefined_function` reads as
- * refusal — the harness driver normalizes SQLSTATE errors onto
- * `SqlQueryError.sqlState`, and anything else (a missing table's 42P01, a
- * dropped connection, a syntax slip) is rethrown: in the unclaimed direction a
- * swallowed infrastructure error would pass the matrix vacuously.
+ * The result type PostgreSQL gives the aggregate expression, or `undefined` when
+ * it has no such aggregate. Only `undefined_function` reads as refusal — the
+ * harness driver normalizes SQLSTATE errors onto `SqlQueryError.sqlState`, and
+ * anything else (a missing table's 42P01, a dropped connection, a syntax slip)
+ * is rethrown: in the unclaimed direction a swallowed infrastructure error would
+ * pass the matrix vacuously.
  */
-async function probeResultType(query: Query, operation: string): Promise<string | undefined> {
+async function probeResultType(query: Query, expression: string): Promise<string | undefined> {
   try {
-    const rows = await query(
-      `SELECT pg_typeof(${operation}("${COLUMN}"))::text AS result FROM "${TABLE}"`,
-    );
+    const rows = await query(`SELECT pg_typeof(${expression})::text AS result FROM "${TABLE}"`);
     return String(rows[0]?.['result']);
   } catch (error) {
     if (SqlQueryError.is(error) && error.sqlState === UNDEFINED_FUNCTION) return undefined;
@@ -146,14 +203,14 @@ async function probeResultType(query: Query, operation: string): Promise<string 
   }
 }
 
-/** Whether PostgreSQL considers the aggregate's result type and the declared codec's native type the same type, modifiers aside. */
-async function producesDeclaredType(
+/** Whether PostgreSQL considers the aggregate's result type and the expected native type the same type, modifiers aside. */
+async function producesExpectedType(
   query: Query,
-  operation: string,
-  declaredNativeType: string,
+  expression: string,
+  expectedNativeType: string,
 ): Promise<boolean> {
   const rows = await query(
-    `SELECT pg_typeof(${operation}("${COLUMN}")) = pg_typeof(NULL::${declaredNativeType}) AS agrees FROM "${TABLE}"`,
+    `SELECT pg_typeof(${expression}) = pg_typeof(NULL::${expectedNativeType}) AS agrees FROM "${TABLE}"`,
   );
   return rows[0]?.['agrees'] === true;
 }
@@ -212,7 +269,14 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
             const resolved = registry.resolve(operation, refOf(fixture));
             if (resolved === undefined) continue;
 
-            const actual = await probeResultType(query, operation);
+            const expression = aggregateSql({
+              operation,
+              lower: resolved.lower,
+              inputCodec: refOf(fixture),
+              table: TABLE,
+              column: COLUMN,
+            });
+            const actual = await probeResultType(query, expression);
             if (actual === undefined) {
               disagreements.push({
                 operation,
@@ -222,12 +286,13 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
               });
               continue;
             }
-            const declaredNativeType = nativeTypeOf(resolved.output);
-            if (!(await producesDeclaredType(query, operation, declaredNativeType))) {
+            const expected =
+              computedTypeFor(operation, fixture.codecId) ?? nativeTypeOf(resolved.output);
+            if (!(await producesExpectedType(query, expression, expected))) {
               disagreements.push({
                 operation,
                 codecId: fixture.codecId,
-                declared: `${resolved.output.codecId} (${declaredNativeType})`,
+                declared: `${resolved.output.codecId} (${expected})`,
                 actual,
               });
             }
@@ -240,6 +305,15 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
     timeouts.spinUpPpgDev,
   );
 
+  it('names a computed type only where the declared codec reads one it does not store', () => {
+    const redundant = READS_A_COMPUTED_TYPE.filter(({ operation, codecId, computed }) => {
+      const resolved = registry.resolve(operation, { codecId });
+      return resolved !== undefined && nativeTypeOf(resolved.output) === computed;
+    });
+
+    expect(redundant).toEqual([]);
+  });
+
   it(
     'leaves unclaimed only the pairs PostgreSQL refuses',
     async () => {
@@ -247,10 +321,10 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
 
       for (const fixture of FIXTURES) {
         await withFixtureTable(fixture, async () => {
-          for (const operation of OPERATIONS) {
+          for (const operation of BARE_OPERATIONS) {
             if (registry.resolve(operation, refOf(fixture)) !== undefined) continue;
 
-            const actual = await probeResultType(query, operation);
+            const actual = await probeResultType(query, `${operation}("${COLUMN}")`);
             if (actual !== undefined) {
               unclaimedButSupported.push({ operation, codecId: fixture.codecId, actual });
             }
@@ -263,34 +337,58 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
     timeouts.spinUpPpgDev,
   );
 
-  it('pins the breaking baseline', () => {
-    expect(registry.resolve('count')?.output).toEqual({ codecId: 'pg/int8@1' });
-    expect(registry.resolve('sum', { codecId: 'pg/int2@1' })?.output).toEqual({
-      codecId: 'pg/int8@1',
-    });
-    expect(registry.resolve('sum', { codecId: 'pg/int4@1' })?.output).toEqual({
-      codecId: 'pg/int8@1',
-    });
-    expect(registry.resolve('sum', { codecId: 'pg/int8@1' })?.output).toEqual({
-      codecId: 'pg/numeric@1',
-    });
-    expect(registry.resolve('avg', { codecId: 'pg/int4@1' })?.output).toEqual({
-      codecId: 'pg/numeric@1',
-    });
-    expect(registry.resolve('min', { codecId: 'pg/int4@1' })?.output).toEqual({
-      codecId: 'pg/int4@1',
-    });
+  it('offers each lossless variant over exactly the inputs the policy gives it', () => {
+    const claimed = Object.fromEntries(
+      Object.keys(LOSSLESS_VARIANT_INPUTS).map((operation) => [
+        operation,
+        FIXTURES.map((fixture) => fixture.codecId)
+          .filter((codecId) => registry.resolve(operation, { codecId }) !== undefined)
+          .sort(),
+      ]),
+    );
+
+    expect(claimed).toEqual(LOSSLESS_VARIANT_INPUTS);
   });
 
-  it('resolves count with and without an input', () => {
+  it('resolves count and countBigInt with and without an input', () => {
     expect(registry.resolve('count')).toEqual({
       operation: 'count',
-      output: { codecId: 'pg/int8@1' },
+      output: { codecId: 'pg/int8number@1' },
       nullable: false,
       lower: undefined,
     });
     expect(registry.resolve('count', { codecId: 'pg/text@1' })?.output).toEqual({
+      codecId: 'pg/int8number@1',
+    });
+
+    expect(registry.resolve('countBigInt')).toMatchObject({
+      operation: 'countBigInt',
+      output: { codecId: 'pg/int8@1' },
+      nullable: false,
+    });
+    expect(registry.resolve('countBigInt', { codecId: 'pg/text@1' })?.output).toEqual({
       codecId: 'pg/int8@1',
+    });
+
+    // `countBigInt` computes with `count`, over rows and over values alike.
+    expect({
+      overRows: aggregateSql({
+        operation: 'countBigInt',
+        lower: registry.resolve('countBigInt')?.lower,
+        inputCodec: undefined,
+        table: TABLE,
+        column: undefined,
+      }),
+      overValues: aggregateSql({
+        operation: 'countBigInt',
+        lower: registry.resolve('countBigInt', { codecId: 'pg/text@1' })?.lower,
+        inputCodec: { codecId: 'pg/text@1' },
+        table: TABLE,
+        column: COLUMN,
+      }),
+    }).toEqual({
+      overRows: 'count(*)',
+      overValues: `count("${TABLE}"."${COLUMN}")`,
     });
   });
 
@@ -308,60 +406,6 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
       typeParams: { length: 3 },
     });
   });
-
-  it(
-    'sums int8number past the safe range into a numeric that arrives as decimal text',
-    async () => {
-      await withFixtureTable(
-        { codecId: 'pg/int8number@1', samples: ['9007199254740991', '9007199254740991'] },
-        async () => {
-          const rows = await query(`SELECT sum("${COLUMN}") AS total FROM "${TABLE}"`);
-          const wire = rows[0]?.['total'];
-          expect(wire).toBe('18014398509481982');
-
-          const resolved = registry.resolve('sum', { codecId: 'pg/int8number@1' });
-          expect(resolved?.output).toEqual({ codecId: 'pg/numeric@1' });
-
-          const numericCodec = postgresCodecRegistry
-            .descriptorFor('pg/numeric@1')!
-            .factory(undefined)({ name: 'aggregate-conformance' });
-          expect(await numericCodec.decode(wire, {})).toBe('18014398509481982');
-        },
-      );
-
-      expect(registry.resolve('avg', { codecId: 'pg/int8number@1' })?.output).toEqual({
-        codecId: 'pg/numeric@1',
-      });
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
-    'sums unboundedint past 2^63 into an exact bigint through its own codec',
-    async () => {
-      await withFixtureTable(
-        { codecId: 'pg/unboundedint@1', samples: ['9223372036854775807', '1000'] },
-        async () => {
-          const rows = await query(`SELECT sum("${COLUMN}") AS total FROM "${TABLE}"`);
-          const wire = rows[0]?.['total'];
-          expect(wire).toBe('9223372036854776807');
-
-          const resolved = registry.resolve('sum', { codecId: 'pg/unboundedint@1' });
-          expect(resolved?.output).toEqual({ codecId: 'pg/unboundedint@1' });
-
-          const unboundedIntCodec = postgresCodecRegistry
-            .descriptorFor('pg/unboundedint@1')!
-            .factory(undefined)({ name: 'aggregate-conformance' });
-          expect(await unboundedIntCodec.decode(wire, {})).toBe(9223372036854776807n);
-        },
-      );
-
-      expect(registry.resolve('avg', { codecId: 'pg/unboundedint@1' })?.output).toEqual({
-        codecId: 'pg/numeric@1',
-      });
-    },
-    timeouts.spinUpPpgDev,
-  );
 
   it('resolves min/max over the representation codecs through the numeric-trait fallback', () => {
     expect(registry.resolve('min', { codecId: 'pg/int8number@1' })?.output).toEqual({
@@ -394,10 +438,25 @@ describe.sequential('PostgreSQL aggregate conformance', () => {
           min: row['m'] === null,
         }).toEqual({ count: true, sum: true, avg: true, min: true });
 
-        expect(registry.resolve('count')?.nullable).toBe(false);
-        expect(registry.resolve('sum', { codecId: 'pg/int4@1' })?.nullable).toBe(true);
-        expect(registry.resolve('avg', { codecId: 'pg/int4@1' })?.nullable).toBe(true);
-        expect(registry.resolve('min', { codecId: 'pg/int4@1' })?.nullable).toBe(true);
+        // A lossless variant reads the same empty-set answer its bare namesake
+        // does, so it declares the same nullability.
+        expect({
+          count: registry.resolve('count')?.nullable,
+          countBigInt: registry.resolve('countBigInt')?.nullable,
+          sum: registry.resolve('sum', { codecId: 'pg/int4@1' })?.nullable,
+          sumBigInt: registry.resolve('sumBigInt', { codecId: 'pg/int4@1' })?.nullable,
+          avg: registry.resolve('avg', { codecId: 'pg/int4@1' })?.nullable,
+          avgDecimal: registry.resolve('avgDecimal', { codecId: 'pg/int4@1' })?.nullable,
+          min: registry.resolve('min', { codecId: 'pg/int4@1' })?.nullable,
+        }).toEqual({
+          count: false,
+          countBigInt: false,
+          sum: true,
+          sumBigInt: true,
+          avg: true,
+          avgDecimal: true,
+          min: true,
+        });
       });
     },
     timeouts.spinUpPpgDev,
