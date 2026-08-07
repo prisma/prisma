@@ -160,8 +160,9 @@ describe('db update read aggregate --json golden', () => {
         throw error;
       }
       exitCode = getExitCode() ?? 0;
+    } finally {
+      cleanup();
     }
-    cleanup();
 
     expect(exitCode).toBe(2);
     const json = consoleOutput.join('\n');
