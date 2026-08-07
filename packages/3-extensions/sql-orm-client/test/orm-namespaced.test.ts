@@ -1,7 +1,7 @@
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import { orm } from '../src/orm';
-import { createMockRuntime, type TestContract } from './helpers';
+import { createMockRuntime, getEmptyAggregates, type TestContract } from './helpers';
 
 function model(table: string) {
   return {
@@ -55,19 +55,12 @@ type TwoNamespaceOrm = {
   auth: { User: Accessor; Session: Accessor };
 };
 
-// The derived aggregate surface enumerates the registry at collection
-// construction and ORM composition, so the stub context must carry one.
-const noAggregates = {
-  resolve: () => undefined,
-  values: function* () {},
-};
-
 function db() {
   return orm({
     runtime: createMockRuntime(),
     context: {
       contract: twoNamespaceContract,
-      aggregateDescriptors: noAggregates,
+      aggregateDescriptors: getEmptyAggregates(),
     } as unknown as ExecutionContext<TestContract>,
   }) as unknown as TwoNamespaceOrm;
 }

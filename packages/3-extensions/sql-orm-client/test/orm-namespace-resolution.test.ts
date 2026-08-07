@@ -9,7 +9,7 @@ import {
   getFieldToColumnMap,
   resolveModelTableName,
 } from '../src/collection-contract';
-import { createMockRuntime } from './helpers';
+import { createMockRuntime, getEmptyAggregates } from './helpers';
 
 function model(table: string, fieldColumns: Record<string, string>) {
   const fields: Record<string, { type: { kind: string; codecId: string } }> = {};
@@ -99,7 +99,7 @@ describe('namespace-scoped metadata resolution', () => {
         'stub execution context for metadata resolution'
       >({
         contract: twoNamespaceContract,
-        aggregateDescriptors: { resolve: () => undefined, values: function* () {} },
+        aggregateDescriptors: getEmptyAggregates(),
       }),
     };
     const publicUsers = new Collection(ctx, 'User', { namespaceId: 'public' });
