@@ -136,7 +136,7 @@ await readings.aggregate((aggregate) => ({ bits: aggregate.bitOr('weight') }));
 
 **Call shape follows row presence.** A `withoutInput` row admits the zero-argument call; `byCodec` and `anyInput` rows admit the field-taking call, over exactly the fields `AggregateFieldNames` reads off them; an operation with both kinds of row carries both overloads. `count()` and `count(field)` are that data fact rather than a special case — PostgreSQL declares `count` with `input: { kind: 'any' }`, which settles into both a `withoutInput` and an `anyInput` row.
 
-**A contributed name may not shadow a collection member.** Include reducers install into the collection's own namespace, beside `select`, `where`, `include`, and the rest, so an operation whose name a member already owns is rejected at ORM composition (`orm(...)`) with `ORM.AGGREGATE_OPERATION_RESERVED`. The reserved set is derived rather than maintained: the collection class's prototype members (`Object.getOwnPropertyNames`) together with its declared instance fields.
+**A contributed name may not shadow a collection member.** Include reducers install into the collection's own namespace, beside `select`, `where`, `include`, and the rest, so an operation whose name a member already owns is rejected at ORM composition (`orm(...)`) with `ORM.AGGREGATE_OPERATION_RESERVED`. The reserved set is derived for one half and pinned for the other: the prototype members come from `Object.getOwnPropertyNames(CollectionImpl.prototype)`, while the instance fields are a hand-written list that a test holds to the class — it walks a live collection's own property names and fails if the set is missing one, so adding a field without listing it is caught.
 
 ### Grouping
 
