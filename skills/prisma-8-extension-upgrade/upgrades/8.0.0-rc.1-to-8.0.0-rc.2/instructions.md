@@ -283,7 +283,7 @@ For each, decide which count you meant. `COUNT(*)` is `count()`; `COUNT(col)` sk
 
 ## `contributed-aggregate-operations-carry-a-lowering-hook`
 
-Aggregate operation names are an open vocabulary, and they now reach the consumer surfaces. A pack that contributes a descriptor named outside the SQL alphabet — `count`, `sum`, `avg`, `min`, `max` — gets a method under that name on the ORM's `aggregate()`, on `groupBy().aggregate()`, and on the include reducers, plus a matching function on the SQL builder. Three rules come with that.
+Aggregate operation names are an open vocabulary, and they now reach the consumer surfaces. The SQL alphabet holds exactly five names (`count`, `sum`, `avg`, `min`, `max`), and a pack that contributes a descriptor named outside it — `bitOr`, say — gets a method under that name on the ORM's `aggregate()`, on `groupBy().aggregate()`, and on the include reducers, plus a matching function on the SQL builder. Three rules come with that.
 
 **Declare a `lower` hook.** The AST's `AggregateExpr` carries only alphabet names, so a novel operation has no default form; the hook builds its whole expression from existing nodes:
 
