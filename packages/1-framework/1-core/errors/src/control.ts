@@ -57,9 +57,10 @@ export class CliStructuredError extends Error implements StructuredError {
       readonly where?: { readonly path?: string; readonly line?: number };
       readonly meta?: Record<string, unknown>;
       readonly docsUrl?: string;
+      readonly cause?: unknown;
     },
   ) {
-    super(summary);
+    super(summary, options?.cause !== undefined ? { cause: options.cause } : undefined);
     this.name = 'CliStructuredError';
     this.code = code;
     this.severity = options?.severity ?? 'error';
@@ -462,10 +463,12 @@ export function errorUnexpected(
   options?: {
     readonly why?: string;
     readonly fix?: string;
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
   return new CliStructuredError('CLI.UNEXPECTED', 'Unexpected error', {
     why: options?.why ?? message,
     fix: options?.fix ?? 'Check the error message and try again',
+    ...ifDefined('cause', options?.cause),
   });
 }

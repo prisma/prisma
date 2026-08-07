@@ -100,6 +100,12 @@ describe('Runtime Errors', () => {
     expect(error.meta).toEqual({ key: 'value' });
   });
 
+  it('errorRunnerFailed forwards cause', () => {
+    const cause = new Error('underlying failure');
+    const error = errorRunnerFailed('Runner failed', { cause });
+    expect(error.cause).toBe(cause);
+  });
+
   it('errorDestructiveChanges creates correct error', () => {
     const error = errorDestructiveChanges('Destructive changes detected');
     expect(error.code).toBe('MIGRATION.DESTRUCTIVE_CHANGES');
@@ -210,6 +216,42 @@ describe('Runtime Errors', () => {
       expect(envelope.fix).toContain('Legacy marker-table shape detected');
       expect(envelope.fix).toContain('prisma_contract.marker');
       expect(envelope.fix).toContain('prisma-next db init');
+    }
+  });
+
+  it('rethrowMarkerReadError preserves cause on the corrupt-row path', () => {
+    const original = new Error('Invalid contract marker row: core_hash must be string');
+    try {
+      rethrowMarkerReadError(original, {
+        space: 'app',
+        markerLocation: 'prisma_contract.marker',
+      });
+    } catch (err) {
+      expect((err as CliStructuredError).cause).toBe(original);
+    }
+  });
+
+  it('rethrowMarkerReadError preserves cause on the read-failed path', () => {
+    const original = new Error('permission denied for table marker');
+    try {
+      rethrowMarkerReadError(original, {
+        space: 'app',
+        markerLocation: 'prisma_contract.marker',
+      });
+    } catch (err) {
+      expect((err as CliStructuredError).cause).toBe(original);
+    }
+  });
+
+  it('rethrowMarkerReadError preserves cause on the legacy-shape path', () => {
+    const original = new Error('column "space" does not exist');
+    try {
+      rethrowMarkerReadError(original, {
+        space: 'app',
+        markerLocation: 'prisma_contract.marker',
+      });
+    } catch (err) {
+      expect((err as CliStructuredError).cause).toBe(original);
     }
   });
 
