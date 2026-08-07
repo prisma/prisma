@@ -8,7 +8,7 @@ Prisma Next — the contract-first rewrite of Prisma — ships as **Prisma 8**. 
 
 Six things must be true on release day. Everything on this page belongs to one of them.
 
-1. **[Queries must return correct values](#1-queries-must-return-correct-values)** — *in progress · Alexey.* The relation-loading codec defect is fixed and verified; aggregate typing and the type/runtime mismatches remain.
+1. **[Queries must return correct values](#1-queries-must-return-correct-values)** — *in progress · Alexey.* The relation-loading codec defect is fixed and verified, and aggregates now decode through codecs; two type/runtime mismatches remain.
 2. **[The schema language must reach its final form](#2-the-schema-language-must-reach-its-final-form)** — *in flight · Serhii.* Whatever syntax the RC ships is permanent for the life of v8; three language projects are running.
 3. **[Every name and format users depend on must be final](#3-every-name-and-format-users-depend-on-must-be-final)** — *in progress · Will.* Error codes, hashes, the migration snapshot layout, and the config-key rename are done; the `prisma-next` name sweep remains.
 4. **[The release's claims must be proven](#4-the-releases-claims-must-be-proven)** — *scoreboard drafted, proofs open · everyone.* "It works" and "you can migrate incrementally" each need a runnable receipt.
@@ -21,7 +21,7 @@ Two dated decisions still bound the work. One is now overdue: the minimum suppor
 
 ## 1. Queries must return correct values
 
-Prisma 8's core promise at the RC is that the query paths it ships are correct. The one significant defect class — relation-loading bypassing type codecs — is fixed as of July 31; what remains is the aggregate-typing tail, the type/runtime mismatches, and the polymorphism call.
+Prisma 8's core promise at the RC is that the query paths it ships are correct. The one significant defect class — relation-loading bypassing type codecs — is fixed as of July 31, and aggregate decoding followed on August 5; what remains is the type/runtime mismatches and the polymorphism call.
 
 <details><summary>✅ <b>Values read through relation-loading bypass their type codecs — big numbers silently corrupt, date columns throw</b> · landed</summary>
 
@@ -29,7 +29,7 @@ When a query loads a relation (say, a post together with its author), Postgres a
 
 The fix landed July 31: every type codec states an explicit *lossless* canonical JSON form (big numbers travel as decimal strings, binary as base64), and the SQL we generate produces that form inside the database. It shipped as three pull requests in strict sequence — the projection AST foundations ([TML-3062](https://linear.app/prisma-company/issue/TML-3062), [#1023](https://github.com/prisma/prisma-next/pull/1023)), the per-database codec descriptors ([TML-3061](https://linear.app/prisma-company/issue/TML-3061), [#1051](https://github.com/prisma/prisma-next/pull/1051)), and the switch-over carrying the per-codec projections and their database-backed conformance harness ([TML-3100](https://linear.app/prisma-company/issue/TML-3100), [TML-3063](https://linear.app/prisma-company/issue/TML-3063), [#29844](https://github.com/prisma/prisma/pull/29844)). The switch-over is the promised breaking change: users regenerate their contract files, nine codecs change their JSON form on the read path, and zone-less timestamps now read as UTC. Integration tests prove each renderer produces the canonical form against a real database.
 
-Two remainders are accepted knowingly: aggregate values are not yet decoded through codecs ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), tracked in the type-mismatch item below), and `pg/geometry@1` keeps its non-canonical form until its SRID representation is decided and a PostGIS-capable test database exists ([TML-3105](https://linear.app/prisma-company/issue/TML-3105)).
+One remainder was accepted knowingly and later closed: aggregate values now decode through codecs ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), landed August 5 as [#29867](https://github.com/prisma/prisma/pull/29867)). The other stands: `pg/geometry@1` keeps its non-canonical form until its SRID representation is decided and a PostGIS-capable test database exists ([TML-3105](https://linear.app/prisma-company/issue/TML-3105)).
 </details>
 
 <details><summary>✅ <b>`date` columns fail at runtime when read through relation-loading</b> · landed</summary>
@@ -186,7 +186,7 @@ Prisma 8 leans heavily on advanced TypeScript types, which is exactly the patter
 
 <details><summary>⏳ <b>Port Prisma 7's accumulated edge-case tests against the unproven cells</b></summary>
 
-Prisma 7's functional test suite encodes years of database and query edge cases. Converting it wholesale would take months and mostly port API details that no longer exist — so we mine it instead: for each scoreboard cell that says "works" without a proving test, find the Prisma 7 tests covering that feature and port just those scenarios. Where comparing against Prisma 7's behavior is cheaper than porting assertions, the side-by-side project doubles as the comparison harness. The port is underway — 1,308 of 6,304 in-scope scenarios accounted across four waves ([#1035](https://github.com/prisma/prisma-next/pull/1035), [#1042](https://github.com/prisma/prisma-next/pull/1042), [#29832](https://github.com/prisma/prisma/pull/29832)); the functional `issues/` regression bucket is complete, the engines corpus untouched. The per-test ledger lives in `projects/port-all-tests/checklists/`. This is a stream, not a step; it continues past the RC, visibly, on the public scoreboard.
+Prisma 7's functional test suite encodes years of database and query edge cases. Converting it wholesale would take months and mostly port API details that no longer exist — so we mine it instead: for each scoreboard cell that says "works" without a proving test, find the Prisma 7 tests covering that feature and port just those scenarios. Where comparing against Prisma 7's behavior is cheaper than porting assertions, the side-by-side project doubles as the comparison harness. The port is underway — 1,423 of 6,304 in-scope scenarios accounted across five waves ([#1035](https://github.com/prisma/prisma-next/pull/1035), [#1042](https://github.com/prisma/prisma-next/pull/1042), [#29832](https://github.com/prisma/prisma/pull/29832), [#29912](https://github.com/prisma/prisma/pull/29912)); the three functional checklists are complete at 1,423 of 1,423, the engines corpus untouched. The per-test ledger lives in `projects/port-all-tests/checklists/`. This is a stream, not a step; it continues past the RC, visibly, on the public scoreboard.
 </details>
 
 <details><summary>✅ <b>Expression, partial, and unique indexes — authorable, name-identified, adoptable</b> · landed</summary>
