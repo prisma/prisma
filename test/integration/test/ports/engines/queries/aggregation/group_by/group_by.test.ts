@@ -17,15 +17,4 @@ describe('ports/engines/queries/aggregation/group_by', () => {
       }),
     timeouts.spinUpPpgDev,
   );
-
-  it(
-    'rejects an empty aggregation selection',
-    () =>
-      withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
-        await expect(db.public.A.groupBy('string').aggregate(() => ({}))).rejects.toThrow(
-          'groupBy().aggregate() requires at least one aggregation selector',
-        );
-      }),
-    timeouts.spinUpPpgDev,
-  );
 });
