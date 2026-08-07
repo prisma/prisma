@@ -1,3 +1,0 @@
-model Blog { blogId String @id name String post Post? }
-model Post { postId String @id title String popularity Int blogId String? @unique blog Blog? @relation(fields: [blogId], references: [blogId]) comment Comment? }
-model Comment { commentId String @id text String likes Int postId String? @unique post Post? @relation(fields: [postId], references: [postId]) }

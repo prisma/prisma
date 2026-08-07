@@ -8,20 +8,20 @@ describe('ports/engines/queries/filters/one2one_regression', () => {
     'work_with_nulls',
     () =>
       withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
-        await db.public.User.create({ id: 1, name: 'Bob', friendId: null });
-        const bob = await db.public.User.where({ id: 1 })
-          .select('id', 'name')
+        const bob = await db.public.User.select('id', 'name')
           .include('friend', (friend) => friend.select('name'))
           .include('friendOf', (friendOf) => friendOf.select('name'))
-          .first();
+          .create({ id: 1, name: 'Bob' });
         expect(bob).toEqual({ id: 1, name: 'Bob', friend: null, friendOf: null });
 
-        await db.public.User.create({ id: 2, name: 'Alice', friendId: 1 });
-        const alice = await db.public.User.where({ id: 2 })
-          .select('id', 'name')
+        const alice = await db.public.User.select('id', 'name')
           .include('friend', (friend) => friend.select('name'))
           .include('friendOf', (friendOf) => friendOf.select('name'))
-          .first();
+          .create({
+            id: 2,
+            name: 'Alice',
+            friend: (friend) => friend.connect({ id: 1 }),
+          });
         expect(alice).toEqual({
           id: 2,
           name: 'Alice',
