@@ -1,0 +1,17 @@
+model TestModel {
+  id      Int       @id
+  string  String?
+  string2 String?
+  int     Int?
+  int2    Int?
+  bInt    BigInt?
+  bInt2   BigInt?
+  float   Float?
+  float2  Float?
+  bytes   Bytes?
+  bytes2  Bytes?
+  bool    Boolean?
+  bool2   Boolean?
+  dt      DateTime?
+  dt2     DateTime?
+}

@@ -1,0 +1,12 @@
+model TestModel {
+  id       Int     @id
+  str      String
+  children Child[]
+}
+
+model Child {
+  id     Int       @id
+  str    String
+  testId Int
+  test   TestModel @relation(fields: [testId], references: [id])
+}

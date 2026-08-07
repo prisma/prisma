@@ -1,0 +1,336 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "Child": {
+      "model": "Child",
+      "namespace": "public"
+    },
+    "Parent": {
+      "model": "Parent",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Child": {
+            "fields": {
+              "bit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bit@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 4
+                  }
+                }
+              },
+              "char": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 10
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "ip": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/inet@1",
+                  "kind": "scalar"
+                }
+              },
+              "text": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "uuid": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "vBit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/varbit@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 5
+                  }
+                }
+              },
+              "vChar": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 11
+                  }
+                }
+              }
+            },
+            "relations": {
+              "parent": {
+                "cardinality": "1:1",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "childId"
+                  ]
+                },
+                "to": {
+                  "model": "Parent",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "bit": {
+                  "column": "bit"
+                },
+                "char": {
+                  "column": "char"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "ip": {
+                  "column": "ip"
+                },
+                "text": {
+                  "column": "text"
+                },
+                "uuid": {
+                  "column": "uuid"
+                },
+                "vBit": {
+                  "column": "vBit"
+                },
+                "vChar": {
+                  "column": "vChar"
+                }
+              },
+              "namespaceId": "public",
+              "table": "Child"
+            }
+          },
+          "Parent": {
+            "fields": {
+              "childId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "child": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "childId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Child",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "childId": {
+                  "column": "childId"
+                },
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "Parent"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "Child": {
+              "columns": {
+                "bit": {
+                  "codecId": "pg/bit@1",
+                  "nativeType": "bit",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 4
+                  }
+                },
+                "char": {
+                  "codecId": "pg/char@1",
+                  "nativeType": "character",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 10
+                  }
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "ip": {
+                  "codecId": "pg/inet@1",
+                  "nativeType": "inet",
+                  "nullable": false
+                },
+                "text": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "uuid": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "vBit": {
+                  "codecId": "pg/varbit@1",
+                  "nativeType": "bit varying",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 5
+                  }
+                },
+                "vChar": {
+                  "codecId": "pg/varchar@1",
+                  "nativeType": "character varying",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 11
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "Parent": {
+              "columns": {
+                "childId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "childId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Parent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Child"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "childId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "84b18a808b869a4018521f0bb9e4c8dea1f4f7fc725cc2e9c7420eafdfb00d50"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}
