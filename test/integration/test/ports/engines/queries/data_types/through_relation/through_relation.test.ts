@@ -160,8 +160,7 @@ describe('ports/engines/queries/data_types/through_relation', () => {
     () =>
       withPostgresPort<ListsContract>({ contractJson: listsContractJson }, async ({ db }) => {
         await db.public.Parent.create({ id: 1 });
-        // @ts-expect-error — faithful omission of `unset`; Prisma defaults scalar lists to [].
-        await db.public.Child.create({
+        const child = {
           childId: 1,
           parentId: 1,
           string: ['abc', 'def'],
@@ -172,7 +171,10 @@ describe('ports/engines/queries/data_types/through_relation', () => {
           bool: [false, true],
           dt: [new Date('1900-10-10T01:10:10.001Z'), new Date('1999-12-12T21:12:12.121Z')],
           empty: [],
-        });
+          unset: [],
+        };
+        Reflect.deleteProperty(child, 'unset');
+        await db.public.Child.create(child);
         const query = db.public.Parent.include('children', (children) =>
           children.select(
             'childId',
