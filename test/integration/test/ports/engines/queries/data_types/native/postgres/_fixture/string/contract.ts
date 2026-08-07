@@ -29,7 +29,7 @@ const Parent = model('Parent', {
     childId: field.column(pgInt4Column()).optional(),
   },
   relations: {
-    child: rel.belongsTo(ChildBase, { from: 'childId', to: 'id' }),
+    child: rel.belongsTo(ChildBase, { from: 'childId', to: 'id' }).sql({ fk: {} }),
   },
 }).attributes(({ fields, constraints }) => ({
   uniques: [constraints.unique([fields.childId])],
