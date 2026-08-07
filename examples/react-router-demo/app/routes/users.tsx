@@ -26,7 +26,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
   const db = getDb();
   const plan = db.sql.public.user.insert([{ email }]).build();
-  await db.runtime().query(plan);
+  await db.runtime().execute(plan);
   return redirect('/');
 }
 
