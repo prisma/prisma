@@ -36,12 +36,11 @@ function reemitHint(dir: string, fallback?: string): string {
  * - meta:     Machine-readable structured data for agents
  */
 export class MigrationToolsError extends CliStructuredError {
-  readonly category = 'MIGRATION' as const;
+  readonly category: 'MIGRATION';
   declare readonly code: `MIGRATION.${string}`;
   declare readonly why: string;
   declare readonly fix: string;
 
-  // biome-ignore lint/complexity/noUselessConstructor: narrows the parent's optional why/fix/options to the required shape every factory relies on
   constructor(
     code: `MIGRATION.${string}`,
     summary: string,
@@ -52,12 +51,14 @@ export class MigrationToolsError extends CliStructuredError {
     },
   ) {
     super(code, summary, options);
+    this.category = 'MIGRATION';
   }
 
   static override is(error: unknown): error is MigrationToolsError {
     return (
       CliStructuredError.is(error) &&
-      (error as MigrationToolsError).category === 'MIGRATION' &&
+      'category' in error &&
+      error.category === 'MIGRATION' &&
       error.code.startsWith('MIGRATION.')
     );
   }
