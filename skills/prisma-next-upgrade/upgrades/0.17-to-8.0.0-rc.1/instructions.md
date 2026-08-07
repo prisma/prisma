@@ -70,7 +70,3 @@ prisma-next contract emit
 ```
 
 The emitted `contract.d.ts` gains an `AggregateTypes` block — the settled result identity per operation and per input codec — and both the ORM client and the SQL builder resolve their aggregate result types from it. Against a contract emitted before 8.0.0-rc.1 the block is absent, so an aggregate resolves to `never` in the ORM and to `unknown` in the SQL builder: a type error at the call site in the first case, an untyped value in the second, rather than a wrong runtime value in either.
-
-<!--
-PR #29910 (driver-split CI repairs): `changes: []`. The `examples/supabase/test` diff gives acceptance fixtures unique identities and deterministic cleanup; it changes no user API, contract shape, emitted artefact, command, configuration, or downstream source translation. Incidental test-harness diff only.
--->
