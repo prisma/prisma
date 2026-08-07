@@ -1,0 +1,817 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "comment": {
+      "model": "Comment",
+      "namespace": "public"
+    },
+    "commentTag": {
+      "model": "CommentTag",
+      "namespace": "public"
+    },
+    "post": {
+      "model": "Post",
+      "namespace": "public"
+    },
+    "postTag": {
+      "model": "PostTag",
+      "namespace": "public"
+    },
+    "tag": {
+      "model": "Tag",
+      "namespace": "public"
+    },
+    "user": {
+      "model": "User",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Comment": {
+            "fields": {
+              "body": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "postId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "post": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "postId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Post",
+                  "namespace": "public"
+                }
+              },
+              "tags": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "commentId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "tagId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "commentId"
+                  ],
+                  "table": "commentTag",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Tag",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "body": {
+                  "column": "body"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "postId": {
+                  "column": "postId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "comment"
+            }
+          },
+          "CommentTag": {
+            "fields": {
+              "commentId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tagId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "comment": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "commentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Comment",
+                  "namespace": "public"
+                }
+              },
+              "tag": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "tagId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Tag",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "commentId": {
+                  "column": "commentId"
+                },
+                "tagId": {
+                  "column": "tagId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "commentTag"
+            }
+          },
+          "Post": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "comments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "postId"
+                  ]
+                },
+                "to": {
+                  "model": "Comment",
+                  "namespace": "public"
+                }
+              },
+              "tags": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "postId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "tagId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "postId"
+                  ],
+                  "table": "postTag",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Tag",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "title": {
+                  "column": "title"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "post"
+            }
+          },
+          "PostTag": {
+            "fields": {
+              "postId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tagId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "post": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "postId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Post",
+                  "namespace": "public"
+                }
+              },
+              "tag": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "tagId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Tag",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "postId": {
+                  "column": "postId"
+                },
+                "tagId": {
+                  "column": "tagId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "postTag"
+            }
+          },
+          "Tag": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "comments": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "tagId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "commentId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "tagId"
+                  ],
+                  "table": "commentTag",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Comment",
+                  "namespace": "public"
+                }
+              },
+              "posts": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "tagId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "postId"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "tagId"
+                  ],
+                  "table": "postTag",
+                  "targetColumns": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Post",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                }
+              },
+              "namespaceId": "public",
+              "table": "tag"
+            }
+          },
+          "User": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "posts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "Post",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                }
+              },
+              "namespaceId": "public",
+              "table": "user"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "comment": {
+              "columns": {
+                "body": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "postId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "postId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "comment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "post"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "postId"
+                  ],
+                  "name": "comment_postId_idx_a7a72715",
+                  "prefix": "comment_postId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "commentTag": {
+              "columns": {
+                "commentId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "tagId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "commentId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "commentTag"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "comment"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "tagId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "commentTag"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tag"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "commentId"
+                  ],
+                  "name": "commentTag_commentId_idx_b5a4f615",
+                  "prefix": "commentTag_commentId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "tagId"
+                  ],
+                  "name": "commentTag_tagId_idx_86854244",
+                  "prefix": "commentTag_tagId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "commentId",
+                  "tagId"
+                ]
+              },
+              "uniques": []
+            },
+            "post": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "title": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "post"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "post_userId_idx_a489d58a",
+                  "prefix": "post_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "postTag": {
+              "columns": {
+                "postId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "tagId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "postId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "postTag"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "post"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "tagId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "postTag"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tag"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "postId"
+                  ],
+                  "name": "postTag_postId_idx_a7a72715",
+                  "prefix": "postTag_postId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "tagId"
+                  ],
+                  "name": "postTag_tagId_idx_86854244",
+                  "prefix": "postTag_tagId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "postId",
+                  "tagId"
+                ]
+              },
+              "uniques": []
+            },
+            "tag": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "user": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "64bcadf902e49bb6e248829362432e6de18bdcc944c3e803d256c1516be7ae83"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}
