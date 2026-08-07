@@ -6,6 +6,7 @@ import {
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage, type StorageTable } from '@internal/sql-contract/types';
+import { defineContract } from '@internal/sql-contract-ts/contract-builder';
 import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import {
   PostgresDatabaseSchemaNode,
@@ -34,12 +35,40 @@ const FULL_POLICY: MigrationOperationPolicy = {
   allowedOperationClasses: ['additive', 'widening', 'destructive'],
 };
 
+// Minimal authoring packs for the defineContract-driven scenario: the family
+// contributes the `text` field preset and the target contributes the real
+// Postgres check renderer, so the built contract's checks (and the
+// `.noCheck()` opt-out) come from the production emission path.
+const authoringFamilyPack = {
+  kind: 'family',
+  id: 'sql',
+  familyId: 'sql',
+  version: '0.0.1',
+  authoring: {
+    field: {
+      text: {
+        kind: 'fieldPreset',
+        output: { codecId: 'pg/text@1', nativeType: 'text' },
+      },
+    },
+  },
+} as const;
+
+const authoringTargetPack = {
+  kind: 'target',
+  id: 'postgres',
+  familyId: 'sql',
+  targetId: 'postgres',
+  version: '0.0.1',
+  defaultNamespaceId: 'public',
+  authoring: { field: {}, renderCheckExpressions: postgresRenderCheckExpressions },
+} as const;
+
 type ColumnSpec = {
   readonly nativeType: string;
   readonly codecId: string;
   readonly nullable: boolean;
   readonly many?: true;
-  readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
 };
 
 /** Builds the checks the Postgres pack would emit for one column. */
@@ -678,10 +707,13 @@ describe.sequential('check-constraint lifecycle', () => {
     expect((await verify(changed)).ok).toBe(true);
   });
 
-  // Slice 3 (`@noCheck`): the opt-out works purely by not declaring the
-  // check. These three scenarios prove the lifecycle against a real database:
-  // adding the opt-out drops the live check, removing it reinstalls the
-  // check, and a fresh create never installs one.
+  // Slice 3 (`@noCheck`): an opted-out contract simply does not declare the
+  // check. The first two scenarios are hand-built contracts and pin the
+  // planner/DDL lifecycle for a check-less contract — deleting a declared
+  // check plans one destructive drop, declaring it again plans one additive
+  // add. The third drives the real authoring surface (defineContract +
+  // .noCheck()) end to end. The full builder-to-infer chain is covered by
+  // the infer e2e journeys and the print-psl emission unit tests.
   it('adding an opt-out later drops the live element check in one destructive plan', {
     timeout: testTimeout,
   }, async () => {
@@ -696,16 +728,12 @@ describe.sequential('check-constraint lifecycle', () => {
     await migrate(enforced);
     expect(await liveCheckNames()).toEqual([tagsChecks[0]?.name]);
 
+    // Hand-built equivalent of the opted-out contract: the builder's only
+    // effect is that the check is absent, which is exactly this shape.
     const optedOut = contractOf(
       {
         id: idColumn,
-        tags: {
-          nativeType: 'text',
-          codecId: 'pg/text@1',
-          nullable: false,
-          many: true,
-          noCheck: ['elementNotNull'],
-        },
+        tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
       },
       [],
     );
@@ -723,16 +751,11 @@ describe.sequential('check-constraint lifecycle', () => {
   it('removing an opt-out installs the element check in one additive plan', {
     timeout: testTimeout,
   }, async () => {
+    // Hand-built equivalent of the opted-out contract (no check declared).
     const optedOut = contractOf(
       {
         id: idColumn,
-        tags: {
-          nativeType: 'text',
-          codecId: 'pg/text@1',
-          nullable: false,
-          many: true,
-          noCheck: ['elementNotNull'],
-        },
+        tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
       },
       [],
     );
@@ -766,22 +789,35 @@ describe.sequential('check-constraint lifecycle', () => {
     ).rejects.toThrow(/Item_tags/);
   });
 
+  // Drives the real authoring surface end to end: defineContract with
+  // `.many().noCheck('elementNotNull')` builds the contract, so the
+  // builder's opt-out — not a hand-assembled shape — is what reaches the
+  // planner and the database.
   it('a freshly created table with an opted-out column genuinely lacks enforcement', {
     timeout: testTimeout,
   }, async () => {
-    const optedOut = contractOf(
+    const optedOut = defineContract(
       {
-        id: idColumn,
-        tags: {
-          nativeType: 'text',
-          codecId: 'pg/text@1',
-          nullable: false,
-          many: true,
-          noCheck: ['elementNotNull'],
-        },
+        family: authoringFamilyPack,
+        target: authoringTargetPack,
+        createNamespace: postgresCreateNamespace,
       },
-      [],
-    );
+      ({ field: f, model: m }) =>
+        ({
+          models: {
+            Item: m('Item', {
+              fields: { id: f.text().id(), tags: f.text().many().noCheck('elementNotNull') },
+            }),
+          },
+        }) as const,
+    ) as Contract<SqlStorage>;
+
+    const itemTable = optedOut.storage.namespaces['public']?.entries.table?.['Item'] as
+      | StorageTable
+      | undefined;
+    expect(itemTable?.columns['tags']?.noCheck).toEqual(['elementNotNull']);
+    expect(itemTable?.checks ?? []).toEqual([]);
+
     await migrate(optedOut);
 
     expect(await liveCheckNames()).toEqual([]);
