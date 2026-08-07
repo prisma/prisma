@@ -29,15 +29,15 @@ Development builds move to the same line: every push to `main` that does not cha
   Before:
 
   ```ts
-  const group = await db.public.Group.include('users', (u) => u.count()).first();
-  group.users === 2; // number; 0 when the relation is empty
+  const rows = await posts.include('comments', (comments) => comments.count()).all();
+  rows[0].comments === 2; // number; 0 when the relation is empty
   ```
 
   After:
 
   ```ts
-  const group = await db.public.Group.include('users', (u) => u.count()).first();
-  group.users === 2n; // bigint; 0n when the relation is empty
+  const rows = await posts.include('comments', (comments) => comments.count()).all();
+  rows[0].comments === 2n; // bigint; 0n when the relation is empty
   ```
 
 - **The SQL driver interface splits row streaming from statement statistics** — `SqlQueryable` (exported from `@internal/sql-relational-core/ast`) is now two methods wide: `query()` streams rows and `execute()` returns `{ affectedRows }`. The separate prepared-execution method is gone; a prepared plan is expressed by an optional `preparedStatementHandle` on the request instead, and a driver branches on whether that property is `undefined`. Application code, query results, and the contract format are unaffected — this only matters if you implement or wrap `SqlQueryable` yourself, in which case update your implementation to the two-method shape. There is no upgrade recipe entry for this; the change is the interface itself. ([#29907](https://github.com/prisma/prisma/pull/29907))
