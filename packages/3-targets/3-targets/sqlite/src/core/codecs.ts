@@ -69,6 +69,23 @@ const decimalTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =
   CastExpr.as(expression, 'TEXT');
 
 /**
+ * Projects an integer-valued expression as a JSON number.
+ *
+ * The JSON constructor renders whatever it is handed, so the canonical form
+ * depends on the storage class the expression carries — and an aggregate whose
+ * result this codec reads arrives here already cast to text, the form that
+ * keeps a wide integer off the driver's numeric reads. The cast returns the
+ * value to the INTEGER class, where the constructor emits its digits; over a
+ * stored INTEGER it changes nothing.
+ *
+ * Digits past the safe integer range survive into the JSON text, so a value
+ * that cannot be a `number` rounds in `JSON.parse` and the codec's own guard
+ * refuses it rather than answering with the value that lost them.
+ */
+const integerJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
+  CastExpr.as(expression, 'INTEGER');
+
+/**
  * Projects a BLOB as hexadecimal text.
  *
  * SQLite's JSON functions reject a BLOB argument outright, so the encoding has
@@ -591,7 +608,7 @@ export class SqliteBigintNumberCodec extends CodecImpl<
 
 export class SqliteBigintNumberDescriptor extends SqliteCodecDescriptor<void> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return integerJsonProjection(expression);
   }
   override readonly codecId = SQLITE_BIGINT_NUMBER_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
