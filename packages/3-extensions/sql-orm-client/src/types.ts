@@ -737,6 +737,31 @@ type FieldIncludeReducerCall<
   field: FieldName,
 ) => IncludeScalar<AggregateFieldResultFor<TContract, ModelName, Op, FieldName, NsId>>;
 
+/**
+ * One derived include-scalar reducer: it reduces a to-many relation to this operation's value over
+ * the related rows, so the parent row's relation field carries that value instead of an array.
+ * Valid only inside an `include(...)` refinement callback — a call elsewhere throws.
+ *
+ * Its arities are read off the operation's row presence in the aggregate map, exactly as
+ * {@link AggregateSelectorMethod}'s are, and so is each result's type: `sum` over an `int4` column
+ * widens to `bigint`, PostgreSQL's integer `avg` is a decimal string, and a field-taking reducer
+ * answers a parent with no related rows with `null`.
+ *
+ * ```typescript
+ * await db.orm.User.include('posts', (posts) => posts.count()).all();
+ * // each row: { ...user, posts: bigint }
+ *
+ * await db.orm.User.include('posts', (posts) => posts.sum('views')).all();
+ * // each row: { ...user, posts: bigint | null }
+ *
+ * await db.orm.User.include('posts', (posts) => posts.avg('views')).all();
+ * // each row: { ...user, posts: string | null }
+ *
+ * await db.orm.User.include('posts', (posts) => posts.min('views')).all();
+ * await db.orm.User.include('posts', (posts) => posts.max('views')).all();
+ * // each row: { ...user, posts: number | null }
+ * ```
+ */
 type IncludeReducerMethod<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
