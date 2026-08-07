@@ -22,7 +22,6 @@ export default defineConfig({
         'src/codecs/encoding.ts', // TODO(TML-1786): Add tests - currently 6% coverage
         'src/codecs/decoding.ts', // TODO(TML-1786): Add tests - currently 33% coverage
         'src/codecs/validation.ts', // TODO(TML-1786): Add tests - currently 50% coverage
-        'src/marker.ts', // TODO(TML-1786): Add tests - relocated from runtime-executor in TML-2242, currently 10% coverage
         'src/guardrails/raw.ts', // TODO(TML-1786): Add tests - relocated from runtime-executor in TML-2242, currently 8% coverage
         'src/runtime-spi.ts', // SPI type declarations only (interfaces) - no executable statements to cover
         'src/middleware/sql-middleware.ts', // SqlMiddleware interface declarations only - no executable statements to cover
