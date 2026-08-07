@@ -33,6 +33,8 @@ From `packages/1-framework/1-core/errors/src/control.ts` (lines 9–111 only —
 3. **The same value is throwable and a valid `Result` failure** — no wrapper, no conversion at boundaries.
 4. **Recognition is structural, never nominal.** Copies of the class in different packages/processes interoperate through the predicates.
 5. **`envelope.code` is the machine-branching surface.** Nothing may smuggle a truer code into `meta` (see the prisma/prisma repair below).
+6. **Errors are structured at origin — no catch-all codes.** Any error intended to surface to a user is a structured error where it is raised: `CliStructuredError` in control-plane code, the execution plane's structured error there. A non-structured error reaching a process boundary is by definition a bug: exit 1, report hint, no code. Fallback codes like "pipeline failed" are banned — a library type meant to surface (composer's `LoadError`/`AssembleError`, a config-evaluation failure, an I/O failure the tool can name) becomes structured with its own code instead.
+7. **One result discriminator: `ok`.** Operation and command results use the shared `Result` shape — `{ ok: true, value } | { ok: false, failure }` — end to end. Bespoke per-operation outcome enums (`outcome: 'deployed' | 'started' | …`) are banned; the success payload's type carries the operation-specific shape, the discriminator does not.
 
 ## The success envelope (donated by Compute's conventions; adopted by the grammar doc Layer 6)
 
