@@ -15,6 +15,7 @@ import { sql } from '@internal/sql-builder/runtime';
 import type { Db } from '@internal/sql-builder/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { orm } from '@internal/sql-orm-client';
+import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { RawSqlTag } from '@internal/sql-relational-core/expression';
 import { createRawSql } from '@internal/sql-relational-core/expression';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
@@ -58,10 +59,14 @@ export interface RoleBoundDb<TContract extends Contract<SqlStorage>> {
   readonly sql: Db<TContract>;
   readonly orm: OrmClient<TContract>;
   readonly raw: RawSqlTag;
-  execute<Row>(
+  query<Row>(
     plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row>;
+  execute(
+    plan: SqlExecutionPlan | SqlQueryPlan,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats>;
   transaction<R>(fn: (tx: TransactionContext) => PromiseLike<R>): Promise<R>;
 }
 
@@ -79,10 +84,14 @@ export interface SupabaseInternalDb {
   readonly sql: Db<SupabaseExtensionContract>;
   readonly orm: OrmClient<SupabaseExtensionContract>;
   readonly nativeEnums: NamespacedNativeEnums<SupabaseExtensionContract>;
-  execute<Row>(
+  query<Row>(
     plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row>;
+  execute(
+    plan: SqlExecutionPlan | SqlQueryPlan,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats>;
 }
 
 /**
@@ -351,6 +360,9 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
     const roleSql: Db<C> = sql<C>({ context: roleContext, rawCodecInferer });
     const roleOrm: OrmClient<C> = orm({
       runtime: {
+        query(plan) {
+          return roleRuntime.queryWithRole(plan, binding);
+        },
         execute(plan) {
           return roleRuntime.executeWithRole(plan, binding);
         },
@@ -363,11 +375,17 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
       sql: roleSql,
       orm: roleOrm,
       raw: rawSqlTag,
-      execute<Row>(
+      query<Row>(
         plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
         execOptions?: RuntimeExecuteOptions,
       ): AsyncIterableResult<Row> {
-        return roleRuntime.executeWithRole<Row>(plan, binding, execOptions);
+        return roleRuntime.queryWithRole<Row>(plan, binding, execOptions);
+      },
+      execute(
+        plan: SqlExecutionPlan | SqlQueryPlan,
+        execOptions?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        return roleRuntime.executeWithRole(plan, binding, execOptions);
       },
       transaction<R>(fn: (tx: TransactionContext) => PromiseLike<R>): Promise<R> {
         return withTransaction({ connection: () => roleRuntime.openRoleSession(binding) }, fn);
@@ -411,6 +429,9 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
     sql: sql<SupabaseExtensionContract>({ context: extContext, rawCodecInferer }),
     orm: orm({
       runtime: {
+        query(plan) {
+          return extRuntime.queryWithRole(plan, serviceRoleBinding);
+        },
         execute(plan) {
           return extRuntime.executeWithRole(plan, serviceRoleBinding);
         },
@@ -419,11 +440,17 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
       context: extContext,
     }),
     nativeEnums: extNativeEnums,
-    execute<Row>(
+    query<Row>(
       plan: (SqlExecutionPlan<Row> | SqlQueryPlan<Row>) & { readonly _row?: Row },
       execOptions?: RuntimeExecuteOptions,
     ): AsyncIterableResult<Row> {
-      return extRuntime.executeWithRole<Row>(plan, serviceRoleBinding, execOptions);
+      return extRuntime.queryWithRole<Row>(plan, serviceRoleBinding, execOptions);
+    },
+    execute(
+      plan: SqlExecutionPlan | SqlQueryPlan,
+      execOptions?: RuntimeExecuteOptions,
+    ): Promise<SqlStatementStats> {
+      return extRuntime.executeWithRole(plan, serviceRoleBinding, execOptions);
     },
   };
 

@@ -285,6 +285,35 @@ describe('streamed execute on a shared single-session backend', () => {
   );
 
   it(
+    'root direct-driver stream preserves an acquired connection transaction for rollback',
+    async () => {
+      const h = await createSharedSessionHarness({ cursorBatchSize: 5 });
+      await seedRows(h, 8);
+
+      const connection = await h.driver.acquireConnection();
+      try {
+        const transaction = await connection.beginTransaction();
+        await transaction.execute({ sql: 'insert into items (id, n) values (100, 200)' });
+
+        const rows = await queryRows<{ id: number }>(h.driver, 'select id from items order by id');
+        expect(rows.at(-1)).toEqual({ id: 100 });
+        expect(h.cursorSubmitCount()).toBeGreaterThan(0);
+
+        await transaction.rollback();
+      } finally {
+        await connection.release();
+      }
+
+      const after = await queryRows<{ id: number }>(
+        h.driver,
+        'select id from items where id = 100',
+      );
+      expect(after).toEqual([]);
+    },
+    timeouts.spinUpDbServer,
+  );
+
+  it(
     'wraps connection-scoped streaming again after a transaction settles',
     async () => {
       const h = await createSharedSessionHarness({ cursorBatchSize: 5 });

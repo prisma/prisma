@@ -456,47 +456,36 @@ describe('mongo() facade', () => {
     expect(fakeRuntime.close).not.toHaveBeenCalled();
   });
 
-  describe('db.execute', () => {
-    it('lazily instantiates the runtime on first consumption', async () => {
+  describe('db.runtime().query', () => {
+    it('executes row plans through the connected runtime', async () => {
       const fakeRows = [{ id: 1 }, { id: 2 }];
       const fakePlan = { id: 'fake-plan' };
-      const fakeRuntimeWithExecute = {
+      const fakeRuntimeWithQuery = {
         ...fakeRuntime,
-        execute: vi.fn(async function* () {
+        query: vi.fn(async function* () {
           yield* fakeRows;
         }),
       };
-      mocks.createMongoRuntime.mockReturnValue(fakeRuntimeWithExecute);
+      mocks.createMongoRuntime.mockReturnValue(fakeRuntimeWithQuery);
 
       const db = mongo({ contract: fakeContract, url: 'mongodb://localhost:27017/mydb' });
-      const result = db.execute(fakePlan as never);
+      const runtime = await db.runtime();
+      const result = runtime.query(fakePlan as never);
 
-      // Runtime is NOT built at construction time or at execute() call time.
-      expect(mocks.createMongoRuntime).not.toHaveBeenCalled();
-      expect(mocks.driverFromConnection).not.toHaveBeenCalled();
-
-      // Consuming the result triggers lazy runtime initialization.
       const collected: unknown[] = [];
       for await (const row of result) {
         collected.push(row);
       }
       expect(collected).toEqual(fakeRows);
       expect(mocks.driverFromConnection).toHaveBeenCalledTimes(1);
-      expect(fakeRuntimeWithExecute.execute).toHaveBeenCalledWith(fakePlan);
+      expect(fakeRuntimeWithQuery.query).toHaveBeenCalledWith(fakePlan);
     });
 
-    it('rejects after close()', async () => {
-      const fakeRuntimeWithExecute = {
-        ...fakeRuntime,
-        execute: vi.fn(async function* () {}),
-      };
-      mocks.createMongoRuntime.mockReturnValue(fakeRuntimeWithExecute);
-
+    it('rejects runtime access after close()', async () => {
       const db = mongo({ contract: fakeContract, url: 'mongodb://localhost:27017/mydb' });
       await db.close();
 
-      const iter = db.execute({ id: 'plan' } as never)[Symbol.asyncIterator]();
-      await expect(iter.next()).rejects.toThrow('Mongo client is closed');
+      await expect(db.runtime()).rejects.toThrow('Mongo client is closed');
     });
   });
 

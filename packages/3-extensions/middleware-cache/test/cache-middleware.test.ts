@@ -37,6 +37,7 @@ function makeCtx(overrides?: Partial<RuntimeMiddlewareContext>): RuntimeMiddlewa
     scope: 'runtime',
     planExecutionId: 'test-fixture-plan-execution-id',
     ...overrides,
+    operation: overrides?.operation ?? 'query',
   };
 }
 
@@ -113,7 +114,7 @@ describe('createCacheMiddleware — opt-in semantics', () => {
     await mw.onRow!({ id: 1 }, exec, ctx);
     await mw.afterExecute!(
       exec,
-      { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+      { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
       ctx,
     );
 
@@ -135,8 +136,9 @@ describe('createCacheMiddleware — hit path', () => {
     });
 
     const result = await mw.intercept!(exec, makeCtx());
-    expect(result).toBeDefined();
-    expect(await drain(result!.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
+    expect(result?.operation).toBe('query');
+    if (result?.operation !== 'query') throw new Error('Expected query cache hit');
+    expect(await drain(result.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
       { id: 1 },
       { id: 2 },
     ]);
@@ -169,13 +171,14 @@ describe('createCacheMiddleware — hit path', () => {
     const ctx = makeCtx();
 
     const result = await mw.intercept!(exec, ctx);
-    await drain(result!.rows as AsyncIterable<Record<string, unknown>>);
+    if (result?.operation !== 'query') throw new Error('Expected query cache hit');
+    await drain(result.rows as AsyncIterable<Record<string, unknown>>);
 
     // afterExecute fires with source: 'middleware' on a hit; the cache
     // middleware should not write back to the store.
     await mw.afterExecute!(
       exec,
-      { rowCount: 1, latencyMs: 0, completed: true, source: 'middleware' },
+      { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'middleware' },
       ctx,
     );
 
@@ -239,7 +242,7 @@ describe('createCacheMiddleware — miss path', () => {
     await mw.onRow!({ id: 2 }, exec, ctx);
     await mw.afterExecute!(
       exec,
-      { rowCount: 2, latencyMs: 5, completed: true, source: 'driver' },
+      { operation: 'query', rowCount: 2, latencyMs: 5, completed: true, source: 'driver' },
       ctx,
     );
 
@@ -266,7 +269,7 @@ describe('createCacheMiddleware — miss path', () => {
     await mw.onRow!({ id: 1 }, exec, ctx);
     await mw.afterExecute!(
       exec,
-      { rowCount: 1, latencyMs: 5, completed: false, source: 'driver' },
+      { operation: 'query', rowCount: 1, latencyMs: 5, completed: false, source: 'driver' },
       ctx,
     );
 
@@ -288,7 +291,7 @@ describe('createCacheMiddleware — miss path', () => {
     // different interceptor short-circuited execution upstream.
     await mw.afterExecute!(
       exec,
-      { rowCount: 1, latencyMs: 5, completed: true, source: 'middleware' },
+      { operation: 'query', rowCount: 1, latencyMs: 5, completed: true, source: 'middleware' },
       ctx,
     );
 
@@ -312,7 +315,7 @@ describe('createCacheMiddleware — miss path', () => {
     // Mid-stream failure.
     await mw.afterExecute!(
       exec,
-      { rowCount: 1, latencyMs: 5, completed: false, source: 'driver' },
+      { operation: 'query', rowCount: 1, latencyMs: 5, completed: false, source: 'driver' },
       ctx,
     );
 
@@ -320,7 +323,7 @@ describe('createCacheMiddleware — miss path', () => {
     // practice, but verify cleanup didn't leave residue).
     await mw.afterExecute!(
       exec,
-      { rowCount: 1, latencyMs: 5, completed: true, source: 'driver' },
+      { operation: 'query', rowCount: 1, latencyMs: 5, completed: true, source: 'driver' },
       ctx,
     );
 
@@ -347,6 +350,7 @@ describe('createCacheMiddleware — miss path', () => {
     await mw.onRow!({ from: 'B', n: 2 }, execB, ctx);
 
     const result: AfterExecuteResult = {
+      operation: 'query',
       rowCount: 2,
       latencyMs: 0,
       completed: true,
@@ -405,7 +409,7 @@ describe('createCacheMiddleware — scope guard', () => {
     await mw.onRow!({ id: 1 }, exec, ctx);
     await mw.afterExecute!(
       exec,
-      { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+      { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
       ctx,
     );
 
@@ -455,14 +459,15 @@ describe('createCacheMiddleware — middleware shape', () => {
     await mw.onRow!({ id: 2 }, exec, ctx);
     await mw.afterExecute!(
       exec,
-      { rowCount: 2, latencyMs: 0, completed: true, source: 'driver' },
+      { operation: 'query', rowCount: 2, latencyMs: 0, completed: true, source: 'driver' },
       ctx,
     );
 
     // Hit on the next call.
     const second = await mw.intercept!(exec, ctx);
-    expect(second).toBeDefined();
-    expect(await drain(second!.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
+    expect(second?.operation).toBe('query');
+    if (second?.operation !== 'query') throw new Error('Expected query cache hit');
+    expect(await drain(second.rows as AsyncIterable<Record<string, unknown>>)).toEqual([
       { id: 1 },
       { id: 2 },
     ]);
@@ -480,7 +485,7 @@ describe('createCacheMiddleware — middleware shape', () => {
     await mw.onRow!({ id: 7 }, exec, ctx);
     await mw.afterExecute!(
       exec,
-      { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
+      { operation: 'query', rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
       ctx,
     );
 

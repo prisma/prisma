@@ -52,7 +52,7 @@ export const db = postgresServerless<Contract>({ contractJson });
 export default {
   async fetch(_req: Request, env: Env): Promise<Response> {
     await using runtime = await db.connect({ url: env.HYPERDRIVE.connectionString });
-    const rows = await runtime.execute(db.sql.from(/* ... */).build());
+    const rows = await runtime.query(db.sql.from(/* ... */).build());
     return Response.json(rows);
   },
 };

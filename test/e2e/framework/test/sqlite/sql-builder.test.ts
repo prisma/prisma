@@ -33,7 +33,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
   describe('SELECT', () => {
     it('basic column projection', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].users.select('id', 'name').build(),
         );
         expect(rows).toHaveLength(4);
@@ -46,7 +46,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
 
     it('WHERE filter', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].users
             .select('id', 'name')
             .where((f, fns) => fns.eq(f.id, 1))
@@ -59,7 +59,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
 
     it('ORDER BY', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].users
             .select('id', 'name')
             .orderBy('id', { direction: 'desc' })
@@ -72,7 +72,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
 
     it('LIMIT and OFFSET', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].users.select('id').orderBy('id').limit(2).offset(1).build(),
         );
         expect(rows).toHaveLength(2);
@@ -83,7 +83,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
 
     it('callback record select', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].users
             .select((f) => ({ myId: f.id, myName: f.name }))
             .orderBy('id')
@@ -102,7 +102,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
     it('insert with RETURNING', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
         const row = await runtime
-          .execute(
+          .query(
             db[UNBOUND_NAMESPACE_ID].users
               .insert([{ id: 100, name: 'Test', email: 'test@example.com' }])
               .returning('id', 'name')
@@ -120,7 +120,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
     it('update with WHERE and RETURNING', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
         const row = await runtime
-          .execute(
+          .query(
             db[UNBOUND_NAMESPACE_ID].users
               .update({ name: 'Alice Updated' })
               .where((f, fns) => fns.eq(f.id, 1))
@@ -151,7 +151,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
             .build(),
         );
         const deleted = await runtime
-          .execute(
+          .query(
             db[UNBOUND_NAMESPACE_ID].users
               .delete()
               .where((f, fns) => fns.eq(f.id, 999))
@@ -194,7 +194,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
             .build(),
         );
 
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].typed_rows.select('id', 'active').orderBy('id').build(),
         );
         expect(rows[0]!.active).toBe(1);
@@ -219,7 +219,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
             .build(),
         );
 
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].typed_rows.select('id', 'created_at').orderBy('id').build(),
         );
         expect(rows[0]!.created_at).toBeInstanceOf(Date);
@@ -246,7 +246,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
             .build(),
         );
 
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].typed_rows
             .select('id', 'metadata')
             .where((f, fns) => fns.eq(f.id, 3))
@@ -263,7 +263,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
     it('HAVING on count filters numerically across the two-digit boundary', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
         seedPostsWithGroupCounts(rawDb, 12);
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].posts
             .select('user_id')
             .select('cnt', (_f, fns) => fns.count())
@@ -283,7 +283,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
     it('ORDER BY count sorts numerically across the two-digit boundary', async () => {
       await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime, rawDb }) => {
         seedPostsWithGroupCounts(rawDb, 12);
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].posts
             .select('user_id')
             .select('cnt', (_f, fns) => fns.count())
@@ -301,7 +301,7 @@ describe('e2e: sql-builder on SQLite', { timeout: timeouts.databaseOperation }, 
         rawDb.exec(
           "INSERT INTO posts (id, title, user_id, views) VALUES (1, 'a', 1, 9007199254740993), (2, 'b', 1, 2)",
         );
-        const rows = await runtime.execute(
+        const rows = await runtime.query(
           db[UNBOUND_NAMESPACE_ID].posts.select('total', (f, fns) => fns.sum(f.views)).build(),
         );
         expect(rows).toEqual([{ total: 9007199254740995n }]);

@@ -28,7 +28,7 @@ import { isStructuredError } from '@internal/utils/structured-error';
  * `ctx: CodecCallContext` is forwarded verbatim to every
  * `codec.encode(value, ctx)` call. The same `ctx` reference is also passed
  * to nested `resolveValue` invocations so codec authors observe **signal
- * identity** across the entire recursive walk for one `runtime.execute()`.
+ * identity** across the entire recursive walk for one `runtime.query()`.
  *
  * Abort observation (only when `ctx.signal` is provided):
  *

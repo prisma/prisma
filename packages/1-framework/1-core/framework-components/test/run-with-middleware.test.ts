@@ -27,6 +27,7 @@ const mockCtx: RuntimeMiddlewareContext = {
   log: { info: () => {}, warn: () => {}, error: () => {} },
   contentHash: async () => 'mock-hash',
   scope: 'runtime',
+  operation: 'query',
   planExecutionId: 'test-fixture-plan-execution-id',
 };
 
@@ -61,6 +62,7 @@ describe('runWithMiddleware', () => {
         events.push(`onRow:${(row as { id: number }).id}`);
       },
       async afterExecute(plan, result, ctx) {
+        expect(result.operation).toBe('query');
         expect(plan).toBe(mockExec);
         expect(ctx).toBe(mockCtx);
         observedResult = result;
@@ -79,7 +81,12 @@ describe('runWithMiddleware', () => {
 
     expect(out).toEqual(rows);
     expect(events).toEqual(['onRow:1', 'onRow:2', 'afterExecute']);
-    expect(observedResult).toMatchObject({ rowCount: 2, completed: true, source: 'driver' });
+    expect(observedResult).toMatchObject({
+      operation: 'query',
+      rowCount: 2,
+      completed: true,
+      source: 'driver',
+    });
     expect(observedResult?.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
@@ -127,6 +134,7 @@ describe('runWithMiddleware', () => {
       return {
         name: label,
         async afterExecute(_plan, result) {
+          if (result.operation !== 'query') throw new Error('expected query result');
           observed.push({ label, completed: result.completed, rowCount: result.rowCount });
           events.push(`${label}:afterExecute`);
         },

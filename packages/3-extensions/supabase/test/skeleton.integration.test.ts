@@ -360,7 +360,7 @@ describe('supabase walking skeleton — external-contract migrate/verify + publi
         await sr.execute(sr.sql.public.profile.insert([{ username: 'bob', userId }]).build());
 
         // Count profiles for this user before the cascade delete.
-        const beforeRows = await sr.execute(
+        const beforeRows = await sr.query(
           sr.sql.public.profile
             .select('id')
             .where((f, fns) => fns.eq(f.userId, userId))
@@ -381,7 +381,7 @@ describe('supabase walking skeleton — external-contract migrate/verify + publi
         });
 
         // Count profiles for this user after the cascade delete — must be zero.
-        const afterRows = await sr.execute(
+        const afterRows = await sr.query(
           sr.sql.public.profile
             .select('id')
             .where((f, fns) => fns.eq(f.userId, userId))

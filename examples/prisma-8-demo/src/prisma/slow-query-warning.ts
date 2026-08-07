@@ -1,7 +1,7 @@
 /**
  * Custom middleware example: warn when a query runs longer than a threshold.
  *
- * `afterExecute` fires once per `execute()` call after the rows have been
+ * `afterExecute` fires once per `query()` call after the rows have been
  * consumed — whether they came from the driver or from an `intercept` hit
  * (`result.source` says which) — with the observed `latencyMs` and
  * `rowCount` for the run. Registered on the runtime in `src/prisma/db.ts`
@@ -22,7 +22,7 @@ export function slowQueryWarning(options?: SlowQueryWarningOptions): SqlMiddlewa
     familyId: 'sql',
 
     async afterExecute(plan, result, ctx) {
-      if (result.latencyMs <= thresholdMs) return;
+      if (result.operation !== 'query' || result.latencyMs <= thresholdMs) return;
       ctx.log.warn({
         code: 'APP.SLOW_QUERY',
         message: `Query took ${result.latencyMs}ms (threshold: ${thresholdMs}ms)`,

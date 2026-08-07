@@ -248,12 +248,16 @@ describe('@updatedAt mutation defaults via Collection', () => {
   describe('updateAndCount', () => {
     it('adds a generated updatedAt to the SET clause on a non-empty update', async () => {
       const { collection, runtime } = setupTagCollection();
-      runtime.setNextResults([[{ id: TAG_ID_1 }], []]);
+      runtime.setNextStats([{ affectedRows: 1 }]);
 
-      await collection.where({ id: tagId(TAG_ID_1) }).updateAndCount({ name: 'eng-v2' });
+      const count = await collection
+        .where({ id: tagId(TAG_ID_1) })
+        .updateAndCount({ name: 'eng-v2' });
 
-      // updateAndCount issues a SELECT for matched ids, then an UPDATE.
-      const params = planParams(runtime.executions[runtime.executions.length - 1]);
+      expect(count).toBe(1);
+      expect(runtime.executions).toHaveLength(1);
+      expect(runtime.executions[0]?.operation).toBe('execute');
+      const params = planParams(runtime.executions[0]);
       const dateParam = params.find((p) => p instanceof Date);
       expect(dateParam).toBeInstanceOf(Date);
     });

@@ -72,7 +72,7 @@ export async function getAuthorLeaderboard(query: Db['query'], runtime: Db['runt
     )
     .build();
 
-  return runtime.execute(plan);
+  return runtime.query(plan);
 }
 
 export async function getRecentPostSummaries(query: Db['query'], runtime: Db['runtime']) {
@@ -86,7 +86,7 @@ export async function getRecentPostSummaries(query: Db['query'], runtime: Db['ru
     .project('title', 'titleUpper', 'authorId', 'createdAt')
     .build();
 
-  return runtime.execute(plan);
+  return runtime.query(plan);
 }
 
 export async function getPostsWithAuthors(query: Db['query'], runtime: Db['runtime']) {
@@ -103,7 +103,7 @@ export async function getPostsWithAuthors(query: Db['query'], runtime: Db['runti
     .sort({ createdAt: -1 })
     .build();
 
-  return runtime.execute(plan);
+  return runtime.query(plan);
 }
 
 export async function getDashboard(query: Db['query'], runtime: Db['runtime']) {
@@ -116,7 +116,7 @@ export async function getDashboard(query: Db['query'], runtime: Db['runtime']) {
     })
     .build();
 
-  return runtime.execute(plan);
+  return runtime.query(plan);
 }
 
 // ---------------------------------------------------------------------------

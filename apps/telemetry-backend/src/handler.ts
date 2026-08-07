@@ -181,7 +181,7 @@ export function createHandler(deps: HandlerDeps) {
       .build();
 
     // TODO: use prepared statements once they are implemented for inserts.
-    await deps.db.runtime().execute(plan).toArray();
+    await deps.db.runtime().execute(plan);
 
     return new Response(null, { status: 202 });
   };

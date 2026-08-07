@@ -158,11 +158,11 @@ describe.sequential('mixed-case native-enum cast against a live database', () =>
   }, async () => {
     const contract = buildContract();
 
-    await runtime!.execute(planFromAst(buildInsertAst(1, 'active'), contract)).toArray();
-    await runtime!.execute(planFromAst(buildInsertAst(2, 'released'), contract)).toArray();
+    await runtime!.query(planFromAst(buildInsertAst(1, 'active'), contract)).toArray();
+    await runtime!.query(planFromAst(buildInsertAst(2, 'released'), contract)).toArray();
 
     const rows = await runtime!
-      .execute(planFromAst(buildSelectByHoldAst('active'), contract))
+      .query(planFromAst(buildSelectByHoldAst('active'), contract))
       .toArray();
 
     expect(rows).toEqual([{ id: 1, hold: 'active' }]);

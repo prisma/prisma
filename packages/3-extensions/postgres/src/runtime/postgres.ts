@@ -265,6 +265,9 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
 
   const orm: OrmClient<TContract> = ormBuilder({
     runtime: {
+      query(plan) {
+        return getRuntime().query(plan);
+      },
       execute(plan) {
         return getRuntime().execute(plan);
       },
@@ -347,6 +350,9 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
 
         const txOrm: OrmClient<TContract> = ormBuilder({
           runtime: {
+            query(plan) {
+              return txCtx.query(plan);
+            },
             execute(plan) {
               return txCtx.execute(plan);
             },

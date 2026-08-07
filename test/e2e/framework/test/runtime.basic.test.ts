@@ -30,7 +30,7 @@ describe('end-to-end basic queries', () => {
           'mike@example.com',
         ]);
 
-        const rows = await runtime.execute(db.public.user.select('id', 'email').build());
+        const rows = await runtime.query(db.public.user.select('id', 'email').build());
 
         expect(rows.length).toBeGreaterThan(1);
         expect(rows[0]).toMatchObject({

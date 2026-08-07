@@ -21,7 +21,7 @@ describe('execute (read plan)', () => {
       const command = new AggregateCommand(collectionName, [
         new MongoMatchStage(MongoFieldFilter.eq('role', 'admin')),
       ]);
-      const rows = await ctx.runtime.execute<{ name: string; role: string }>({
+      const rows = await ctx.runtime.query<{ name: string; role: string }>({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,

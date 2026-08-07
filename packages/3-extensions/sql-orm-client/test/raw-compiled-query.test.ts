@@ -6,12 +6,12 @@ import {
 } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it, vi } from 'vitest';
-import { executeQueryPlan } from '../src/execute-query-plan';
+import { queryPlanRows } from '../src/query-plan-rows';
 
 describe('execute query plan', () => {
-  it('forwards SQL query plans to runtime.execute', () => {
-    const execute = vi.fn();
-    const executor = { execute };
+  it('forwards SQL query plans to runtime.query', () => {
+    const query = vi.fn();
+    const executor = { query, execute: vi.fn() };
     const plan: SqlQueryPlan<{ id: number }> = {
       ast: SelectAst.from(TableSource.named('users')).withProjection([
         ProjectionItem.of('id', ColumnRef.of('users', 'id')),
@@ -25,15 +25,16 @@ describe('execute query plan', () => {
       },
     };
 
-    executeQueryPlan(executor, plan);
+    queryPlanRows(executor, plan);
 
-    expect(execute).toHaveBeenCalledOnce();
-    expect(execute.mock.calls[0]?.[0]).toBe(plan);
+    expect(query).toHaveBeenCalledOnce();
+    expect(query.mock.calls[0]?.[0]).toBe(plan);
+    expect(executor.execute).not.toHaveBeenCalled();
   });
 
   it('also forwards already-lowered execution plans', () => {
-    const execute = vi.fn();
-    const executor = { execute };
+    const query = vi.fn();
+    const executor = { query, execute: vi.fn() };
     const plan: SqlExecutionPlan<{ id: number }> = {
       sql: 'select 1',
       params: [],
@@ -46,9 +47,10 @@ describe('execute query plan', () => {
       },
     };
 
-    executeQueryPlan(executor, plan);
+    queryPlanRows(executor, plan);
 
-    expect(execute).toHaveBeenCalledOnce();
-    expect(execute.mock.calls[0]?.[0]).toBe(plan);
+    expect(query).toHaveBeenCalledOnce();
+    expect(query.mock.calls[0]?.[0]).toBe(plan);
+    expect(executor.execute).not.toHaveBeenCalled();
   });
 });

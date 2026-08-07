@@ -418,24 +418,24 @@ describe('Collection.updateAll annotations', () => {
 });
 
 describe('Collection.updateAndCount annotations', () => {
-  it('writes the applied annotation onto the update statement (not the matching read)', async () => {
+  it('performs one annotated execute and no query', async () => {
     const { collection, runtime } = createReturningCollectionFor('User');
-    // Two execute calls: matching select first, then the update.
-    runtime.setNextResults([[{ id: 1 }], []]);
+    runtime.setNextStats([{ affectedRows: 3 }]);
 
-    await collection
+    const count = await collection
       .where({ id: 1 })
       .updateAndCount({ name: 'Alice' }, (meta) =>
         meta.annotate(auditAnnotation({ actor: 'system' })),
       );
 
-    expect(runtime.executions).toHaveLength(2);
-    const matchingPlan = runtime.executions[0]!.plan;
-    const updatePlan = runtime.executions[1]!.plan;
-    // The matching read does NOT carry the write annotation.
-    expect(auditAnnotation.read(matchingPlan)).toBeUndefined();
-    // The update statement DOES.
-    expect(auditAnnotation.read(updatePlan)).toEqual({ actor: 'system' });
+    expect(count).toBe(3);
+    expect(runtime.executions).toHaveLength(1);
+    expect(runtime.executions.filter((execution) => execution.operation === 'query')).toHaveLength(
+      0,
+    );
+    const execution = runtime.executions[0]!;
+    expect(execution.operation).toBe('execute');
+    expect(auditAnnotation.read(execution.plan)).toEqual({ actor: 'system' });
   });
 });
 
@@ -488,22 +488,22 @@ describe('Collection.deleteAll annotations', () => {
 });
 
 describe('Collection.deleteAndCount annotations', () => {
-  it('writes the applied annotation onto the delete statement (not the matching read)', async () => {
+  it('performs one annotated execute and no query', async () => {
     const { collection, runtime } = createReturningCollectionFor('User');
-    // Two execute calls: matching select first, then the delete.
-    runtime.setNextResults([[{ id: 1 }], []]);
+    runtime.setNextStats([{ affectedRows: 2 }]);
 
-    await collection
+    const count = await collection
       .where({ id: 1 })
       .deleteAndCount((meta) => meta.annotate(auditAnnotation({ actor: 'system' })));
 
-    expect(runtime.executions).toHaveLength(2);
-    const matchingPlan = runtime.executions[0]!.plan;
-    const deletePlan = runtime.executions[1]!.plan;
-    // The matching read does NOT carry the write annotation.
-    expect(auditAnnotation.read(matchingPlan)).toBeUndefined();
-    // The delete statement DOES.
-    expect(auditAnnotation.read(deletePlan)).toEqual({ actor: 'system' });
+    expect(count).toBe(2);
+    expect(runtime.executions).toHaveLength(1);
+    expect(runtime.executions.filter((execution) => execution.operation === 'query')).toHaveLength(
+      0,
+    );
+    const execution = runtime.executions[0]!;
+    expect(execution.operation).toBe('execute');
+    expect(auditAnnotation.read(execution.plan)).toEqual({ actor: 'system' });
   });
 });
 

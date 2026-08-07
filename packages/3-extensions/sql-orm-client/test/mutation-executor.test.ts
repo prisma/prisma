@@ -32,6 +32,7 @@ function withTransaction(runtime: MockRuntime) {
   const commit = vi.fn(async () => undefined);
   const rollback = vi.fn(async () => undefined);
   const transaction = {
+    query: runtime.query.bind(runtime),
     execute: runtime.execute.bind(runtime),
     commit,
     rollback,
@@ -54,6 +55,7 @@ function withConnection(runtime: MockRuntime, onRelease: () => void) {
   return Object.assign(runtime, {
     async connection() {
       return {
+        query: runtime.query.bind(runtime),
         execute: runtime.execute.bind(runtime),
         async release() {
           onRelease();
@@ -191,6 +193,7 @@ describe('mutation-executor', () => {
     const runtimeWithBareTransaction = Object.assign(runtime, {
       async transaction() {
         return {
+          query: runtime.query.bind(runtime),
           execute: runtime.execute.bind(runtime),
         };
       },
@@ -729,8 +732,8 @@ describe('mutation-executor', () => {
       targetColumns: ['id'],
     });
     const runtime = createMockRuntime();
-    const execute = runtime.execute.bind(runtime);
-    vi.spyOn(runtime, 'execute').mockImplementation((plan) => {
+    const query = runtime.query.bind(runtime);
+    vi.spyOn(runtime, 'query').mockImplementation((plan) => {
       const ast = (plan as { ast?: { kind: string; table?: { name: string } } }).ast;
       if (ast?.kind === 'insert' && ast.table?.name === 'parent_child') {
         throw new SqlQueryError(
@@ -740,7 +743,7 @@ describe('mutation-executor', () => {
           },
         );
       }
-      return execute(plan);
+      return query(plan);
     });
     runtime.setNextResults([[{ id: 1 }], [{ id: 10 }], [{ id: 10 }]]);
 
@@ -769,8 +772,8 @@ describe('mutation-executor', () => {
       targetColumns: ['id'],
     });
     const runtime = createMockRuntime();
-    const execute = runtime.execute.bind(runtime);
-    vi.spyOn(runtime, 'execute').mockImplementation((plan) => {
+    const query = runtime.query.bind(runtime);
+    vi.spyOn(runtime, 'query').mockImplementation((plan) => {
       const ast = (plan as { ast?: { kind: string; table?: { name: string } } }).ast;
       if (ast?.kind === 'insert' && ast.table?.name === 'parent_child') {
         // Drivers normalize a NOT NULL violation to sqlState 23502, not the
@@ -779,7 +782,7 @@ describe('mutation-executor', () => {
           sqlState: '23502',
         });
       }
-      return execute(plan);
+      return query(plan);
     });
     runtime.setNextResults([[{ id: 1 }], [{ id: 10 }], [{ id: 10 }]]);
 
@@ -806,15 +809,15 @@ describe('mutation-executor', () => {
       targetColumns: ['id'],
     });
     const runtime = createMockRuntime();
-    const execute = runtime.execute.bind(runtime);
-    vi.spyOn(runtime, 'execute').mockImplementation((plan) => {
+    const query = runtime.query.bind(runtime);
+    vi.spyOn(runtime, 'query').mockImplementation((plan) => {
       const ast = (plan as { ast?: { kind: string; table?: { name: string } } }).ast;
       if (ast?.kind === 'insert' && ast.table?.name === 'parent_child') {
         // Opaque message: recognition rides on the normalized sqlState alone,
         // so a primary-key violation (which drivers map to 23505) still wraps.
         throw new SqlQueryError('constraint violation', { sqlState: UNIQUE_VIOLATION_SQLSTATE });
       }
-      return execute(plan);
+      return query(plan);
     });
     runtime.setNextResults([[{ id: 1 }], [{ id: 10 }], [{ id: 10 }]]);
 
@@ -1376,7 +1379,7 @@ describe('mutation-executor', () => {
     const runtime = createMockRuntime();
     runtime.setNextResults([[{ id: 1, name: 'Alice', email: 'alice@test.com' }]]);
 
-    const executeSpy = vi.spyOn(runtime, 'execute');
+    const querySpy = vi.spyOn(runtime, 'query');
 
     const created = await executeNestedCreateMutation({
       context: getTestContext(),
@@ -1387,7 +1390,7 @@ describe('mutation-executor', () => {
     });
 
     expect(created).toEqual({ id: 1, name: 'Alice', email: 'alice@test.com' });
-    expect(executeSpy).toHaveBeenCalledTimes(1);
+    expect(querySpy).toHaveBeenCalledTimes(1);
   });
 
   it('withMutationScope reuses runtime directly when no transaction or connection method exists', async () => {

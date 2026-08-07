@@ -1,18 +1,19 @@
-import type { RuntimeExecutor } from '@internal/framework-components/runtime';
+import type {
+  AsyncIterableResult,
+  RuntimeStatementStats,
+} from '@internal/framework-components/runtime';
 import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import { expectTypeOf, test } from 'vitest';
 import type { MongoMiddleware, MongoMiddlewareContext } from '../src/mongo-middleware';
 import type { MongoRuntime } from '../src/mongo-runtime';
 
-test('MongoRuntime satisfies RuntimeExecutor<MongoQueryPlan> structurally', () => {
-  type MongoExecutor = RuntimeExecutor<MongoQueryPlan>;
+test('MongoRuntime exposes row queries and statistics execution', () => {
+  type Row = { readonly id: string };
   const runtime = {} as MongoRuntime;
-  // MongoRuntime.execute accepts MongoQueryPlan and returns AsyncIterable,
-  // satisfying RuntimeExecutor.execute. The phantom Row type parameter
-  // on MongoQueryPlan prevents nominal extends but structural compatibility holds.
-  expectTypeOf(runtime.execute).toBeFunction();
-  expectTypeOf(runtime.close).toBeFunction();
-  expectTypeOf<MongoRuntime['close']>().toExtend<MongoExecutor['close']>();
+  const plan = {} as MongoQueryPlan<Row>;
+
+  expectTypeOf(runtime.query(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
+  expectTypeOf(runtime.execute(plan)).toEqualTypeOf<Promise<RuntimeStatementStats>>();
 });
 
 test('MongoMiddleware narrows familyId to optional `mongo`', () => {

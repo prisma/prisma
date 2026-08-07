@@ -80,31 +80,31 @@ type PlanRow<P extends MongoQueryPlan> = P extends MongoQueryPlan<infer R> ? R :
 type OrderRow = { readonly _id: string; readonly status: string; readonly amount: number };
 
 describe('runtime type safety', () => {
-  it('execute() returns AsyncIterableResult<Row> where Row matches build() row type', () => {
+  it('query() returns AsyncIterableResult<Row> where Row matches build() row type', () => {
     const contractJson = {} as unknown;
     const plan = mongoQuery<TContract>({ contractJson }).from('orders').build();
     type Row = PlanRow<typeof plan>;
     expectTypeOf<Row>().toEqualTypeOf<OrderRow>();
 
     const runtime = {} as MongoRuntime;
-    const result = runtime.execute(plan);
+    const result = runtime.query(plan);
     expectTypeOf(result).toEqualTypeOf<AsyncIterableResult<Row>>();
   });
 
-  it('execute() result awaits to Row[]', () => {
+  it('query() result awaits to Row[]', () => {
     const contractJson = {} as unknown;
     const plan = mongoQuery<TContract>({ contractJson }).from('orders').build();
     type Row = PlanRow<typeof plan>;
 
     const runtime = {} as MongoRuntime;
-    const rows = runtime.execute(plan).toArray();
+    const rows = runtime.query(plan).toArray();
     expectTypeOf(rows).resolves.toEqualTypeOf<Row[]>();
   });
 
-  it('execute() infers Row from MongoQueryPlan generic parameter', () => {
+  it('query() infers Row from MongoQueryPlan generic parameter', () => {
     const runtime = {} as MongoRuntime;
     const plan = {} as MongoQueryPlan<OrderRow>;
-    const result = runtime.execute(plan);
+    const result = runtime.query(plan);
 
     expectTypeOf(result).toEqualTypeOf<AsyncIterableResult<OrderRow>>();
   });

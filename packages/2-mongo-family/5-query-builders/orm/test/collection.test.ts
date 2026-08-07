@@ -38,14 +38,18 @@ const defaultUserData = {
   homeAddress: null,
 };
 
-function createMockExecutor(...responses: unknown[][]): MongoQueryExecutor & {
+function createMockExecutor(
+  ...responses: Array<unknown[] | { affectedRows: number }>
+): MongoQueryExecutor & {
   lastPlan: MongoQueryPlan | undefined;
+  lastOperation: 'query' | 'execute' | undefined;
   readonly lastCommand: MongoQueryPlan['command'] | undefined;
   readonly lastStages: ReadonlyArray<MongoPipelineStage> | undefined;
 } {
   let callIndex = 0;
   const mock = {
     lastPlan: undefined as MongoQueryPlan | undefined,
+    lastOperation: undefined as 'query' | 'execute' | undefined,
     get lastCommand() {
       return mock.lastPlan?.command;
     },
@@ -54,14 +58,25 @@ function createMockExecutor(...responses: unknown[][]): MongoQueryExecutor & {
       if (cmd?.kind === 'aggregate') return cmd.pipeline as ReadonlyArray<MongoPipelineStage>;
       return undefined;
     },
-    execute<Row>(plan: MongoQueryPlan<Row>): AsyncIterableResult<Row> {
+    query<Row>(plan: MongoQueryPlan<Row>): AsyncIterableResult<Row> {
       mock.lastPlan = plan as MongoQueryPlan;
+      mock.lastOperation = 'query';
       const data = responses[callIndex] ?? [];
       callIndex++;
+      if (!Array.isArray(data)) throw new Error('expected row response');
+      const rows = data;
       async function* gen(): AsyncGenerator<Row> {
-        for (const row of data) yield row as Row;
+        for (const row of rows) yield row as Row;
       }
       return new AsyncIterableResult(gen());
+    },
+    async execute(plan: MongoQueryPlan): Promise<{ affectedRows: number }> {
+      mock.lastPlan = plan;
+      mock.lastOperation = 'execute';
+      const data = responses[callIndex] ?? { affectedRows: 0 };
+      callIndex++;
+      if (Array.isArray(data)) throw new Error('expected statistics response');
+      return data;
     },
   };
   return mock;
@@ -818,12 +833,13 @@ describe('MongoCollection write methods', () => {
 
   describe('updateAndCount() with callback', () => {
     it('produces correct update doc from field operations', async () => {
-      const executor = createMockExecutor([{ modifiedCount: 1 }]);
+      const executor = createMockExecutor({ affectedRows: 1 });
       const col = createMongoCollection(contract, 'User', executor);
       const count = await col
         .where(MongoFieldFilter.eq('email', 'a'))
         .updateAndCount((u) => [u.name.set('X')]);
       expect(count).toBe(1);
+      expect(executor.lastOperation).toBe('execute');
     });
   });
 
@@ -863,12 +879,13 @@ describe('MongoCollection write methods', () => {
     });
 
     it('returns the modified count', async () => {
-      const executor = createMockExecutor([{ matchedCount: 3, modifiedCount: 3 }]);
+      const executor = createMockExecutor({ affectedRows: 3 });
       const col = createMongoCollection(contract, 'User', executor);
       const count = await col
         .where(MongoFieldFilter.eq('email', 'a'))
         .updateAndCount({ name: 'X' });
       expect(count).toBe(3);
+      expect(executor.lastOperation).toBe('execute');
     });
   });
 
@@ -923,10 +940,11 @@ describe('MongoCollection write methods', () => {
     });
 
     it('returns the deleted count', async () => {
-      const executor = createMockExecutor([{ deletedCount: 2 }]);
+      const executor = createMockExecutor({ affectedRows: 2 });
       const col = createMongoCollection(contract, 'User', executor);
       const count = await col.where(MongoFieldFilter.eq('email', 'x')).deleteAndCount();
       expect(count).toBe(2);
+      expect(executor.lastOperation).toBe('execute');
     });
   });
 

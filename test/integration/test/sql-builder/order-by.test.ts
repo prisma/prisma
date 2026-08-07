@@ -5,7 +5,7 @@ describe('integration: ORDER BY', { timeout: timeouts.databaseOperation }, () =>
   const { db, runtime } = setupIntegrationTest();
 
   it('sorts by column descending', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db().public.users.select('id', 'name').orderBy('name', { direction: 'desc' }).build(),
     );
     expect(rows).toHaveLength(4);
@@ -14,12 +14,12 @@ describe('integration: ORDER BY', { timeout: timeouts.databaseOperation }, () =>
   });
 
   it('sorts by column ascending (default)', async () => {
-    const rows = await runtime().execute(db().public.users.select('id').orderBy('id').build());
+    const rows = await runtime().query(db().public.users.select('id').orderBy('id').build());
     expect(rows.map((r) => r.id)).toEqual([1, 2, 3, 4]);
   });
 
   it('sorts by expression callback', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.posts.select('id', 'views')
         .orderBy((f) => f.views, { direction: 'desc' })
@@ -30,7 +30,7 @@ describe('integration: ORDER BY', { timeout: timeouts.databaseOperation }, () =>
   });
 
   it('alias column can be used in ORDER BY by name', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.posts.select('id')
         .select('v', (f) => f.views)
@@ -42,7 +42,7 @@ describe('integration: ORDER BY', { timeout: timeouts.databaseOperation }, () =>
   });
 
   it('multiple orderBy calls accumulate', async () => {
-    const rows = await runtime().execute(
+    const rows = await runtime().query(
       db()
         .public.posts.select('user_id', 'views')
         .orderBy('user_id')

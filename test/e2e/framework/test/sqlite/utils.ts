@@ -45,6 +45,9 @@ export async function withSqliteTestRuntime<TContract extends Contract<SqlStorag
       const ormClient = orm({
         context,
         runtime: {
+          query(plan) {
+            return runtime.query(plan);
+          },
           execute(plan) {
             return runtime.execute(plan);
           },

@@ -6,7 +6,7 @@ export async function insertAndReadProfile(
   username: string,
   userId: string,
 ) {
-  return db.execute(
+  return db.query(
     db.sql.public.profile
       .insert([{ username, userId }])
       .returning('id', 'username', 'userId')

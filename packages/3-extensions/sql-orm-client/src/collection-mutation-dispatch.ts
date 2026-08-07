@@ -10,8 +10,8 @@ import {
   mapStorageRowToModelFields,
   stripHiddenMappedFields,
 } from './collection-runtime';
-import { executeQueryPlan } from './execute-query-plan';
 import { ormError } from './orm-errors';
+import { queryPlanRows } from './query-plan-rows';
 import type { CollectionContext, IncludeExpr } from './types';
 
 function createMutationRowMapper(
@@ -60,7 +60,7 @@ export function dispatchMutationRows<Row>(
   const mapStorageRow = createMutationRowMapper(contract, namespaceId, modelName, variantName);
 
   if (includes.length === 0) {
-    const source = executeQueryPlan<Record<string, unknown>>(runtime, compiled);
+    const source = queryPlanRows<Record<string, unknown>>(runtime, compiled);
 
     return mapResultRows(source, (rawRow) => {
       const mapped = mapStorageRow(rawRow);
@@ -77,10 +77,7 @@ export function dispatchMutationRows<Row>(
   // path uses — no parallel read-back implementation. The reload streams;
   // only the small set of identities is buffered to key it.
   const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-    const identityRows = await executeQueryPlan<Record<string, unknown>>(
-      runtime,
-      compiled,
-    ).toArray();
+    const identityRows = await queryPlanRows<Record<string, unknown>>(runtime, compiled).toArray();
     yield* reloadMutationRowsByIdentities<Row>({
       context,
       runtime,
@@ -134,7 +131,7 @@ export function dispatchSplitMutationRows<Row>(
       const identityRows: Record<string, unknown>[] = [];
       for (const plan of plans) {
         identityRows.push(
-          ...(await executeQueryPlan<Record<string, unknown>>(runtime, plan).toArray()),
+          ...(await queryPlanRows<Record<string, unknown>>(runtime, plan).toArray()),
         );
       }
       yield* reloadMutationRowsByIdentities<Row>({
@@ -151,7 +148,7 @@ export function dispatchSplitMutationRows<Row>(
     }
 
     for (const plan of plans) {
-      for await (const rawRow of executeQueryPlan<Record<string, unknown>>(runtime, plan)) {
+      for await (const rawRow of queryPlanRows<Record<string, unknown>>(runtime, plan)) {
         const mapped = mapStorageRow(rawRow);
         if (hiddenColumns.length > 0) {
           stripHiddenMappedFields(contract, namespaceId, modelName, mapped, hiddenColumns);
@@ -202,7 +199,7 @@ export async function executeMutationReturningSingleRow<Row>(
   const mapStorageRow = createMutationRowMapper(contract, namespaceId, modelName, variantName);
 
   if (includes.length === 0) {
-    const rows = await executeQueryPlan<Record<string, unknown>>(runtime, compiled).toArray();
+    const rows = await queryPlanRows<Record<string, unknown>>(runtime, compiled).toArray();
     const first = rows[0];
     if (!first) {
       return null;
@@ -215,7 +212,7 @@ export async function executeMutationReturningSingleRow<Row>(
     return mapRow(mapped);
   }
 
-  const identityRows = await executeQueryPlan<Record<string, unknown>>(runtime, compiled).toArray();
+  const identityRows = await queryPlanRows<Record<string, unknown>>(runtime, compiled).toArray();
   if (identityRows.length === 0) {
     return null;
   }

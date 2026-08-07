@@ -130,7 +130,7 @@ export async function executePlanAndCollect<
   P extends SqlExecutionPlan<ResultType<P>> | SqlQueryPlan<ResultType<P>>,
 >(runtime: Runtime, plan: P): Promise<ResultType<P>[]> {
   type Row = ResultType<P>;
-  return collectAsync<Row>(runtime.execute<Row>(plan));
+  return collectAsync<Row>(runtime.query<Row>(plan));
 }
 
 /**
@@ -140,7 +140,7 @@ export async function drainPlanExecution(
   runtime: Runtime,
   plan: SqlExecutionPlan | SqlQueryPlan<unknown>,
 ): Promise<void> {
-  return drainAsyncIterable(runtime.execute(plan));
+  return drainAsyncIterable(runtime.query(plan));
 }
 
 /**

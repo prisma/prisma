@@ -24,10 +24,3 @@ export const db = postgresServerless<Contract>({
   contractJson,
   middleware: createMiddleware(),
 });
-
-// Transaction routes buffer DML so each statement settles before the callback commits or rolls back.
-export const transactionalDb = postgresServerless<Contract>({
-  contractJson,
-  cursor: { disabled: true },
-  middleware: createMiddleware(),
-});

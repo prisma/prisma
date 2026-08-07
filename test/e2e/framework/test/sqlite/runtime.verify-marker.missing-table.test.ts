@@ -110,7 +110,7 @@ describe('sqlite runtime verify-marker: missing marker table', {
     harness = await buildHarness(log);
 
     const rows = await harness.runtime
-      .execute(harness.db[UNBOUND_NAMESPACE_ID].users.select('id').build())
+      .query(harness.db[UNBOUND_NAMESPACE_ID].users.select('id').build())
       .toArray();
 
     expect(rows.map((r) => r.id)).toEqual([1]);

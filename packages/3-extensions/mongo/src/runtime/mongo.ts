@@ -34,7 +34,6 @@ export interface MongoClient<
   readonly contract: TContract;
   readonly enums: UnboundEnums<TContract>;
   readonly context: MongoExecutionContext<TContract>;
-  execute<Row>(plan: MongoQueryPlan<Row>): AsyncIterableResult<Row>;
   connect(bindingInput?: MongoBindingInput): Promise<MongoRuntime>;
   runtime(): Promise<MongoRuntime>;
   close(): Promise<void>;
@@ -169,17 +168,22 @@ export default function mongo<
     return runtimePromise;
   };
 
-  function execute<Row>(plan: MongoQueryPlan<Row>): AsyncIterableResult<Row> {
+  function queryRows<Row>(plan: MongoQueryPlan<Row>): AsyncIterableResult<Row> {
     async function* iterate(): AsyncGenerator<Row, void, unknown> {
       const runtime = await getRuntime();
-      yield* runtime.execute(plan);
+      yield* runtime.query(plan);
     }
     return new AsyncIterableResult(iterate());
   }
 
+  async function executeStats(plan: MongoQueryPlan<unknown>) {
+    const runtime = await getRuntime();
+    return runtime.execute(plan);
+  }
+
   const orm = mongoOrm<TContract>({
     contract,
-    executor: { execute },
+    executor: { query: queryRows, execute: executeStats },
   });
 
   return {
@@ -189,7 +193,6 @@ export default function mongo<
     contract,
     enums,
     context,
-    execute,
 
     async connect(bindingInput?: MongoBindingInput): Promise<MongoRuntime> {
       if (closed) {

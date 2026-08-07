@@ -60,5 +60,5 @@ export async function crossAuthorSimilarity(limit = 10, runtime?: Runtime) {
     .limit(limit)
     .build();
 
-  return (runtime ?? db.runtime()).execute(plan);
+  return (runtime ?? db.runtime()).query(plan);
 }

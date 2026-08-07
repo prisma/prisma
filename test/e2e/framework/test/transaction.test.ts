@@ -59,7 +59,7 @@ describe('transaction E2E', { timeout: 30000 }, () => {
       const result = await withTransaction(runtime, async (tx) => {
         await tx.execute(db.public.user.insert([{ email: 'tx-user-1@example.com' }]).build());
         await tx.execute(db.public.user.insert([{ email: 'tx-user-2@example.com' }]).build());
-        return tx.execute(db.public.user.select('email').build());
+        return tx.query(db.public.user.select('email').build());
       });
 
       expect(result).toEqual([
@@ -73,11 +73,11 @@ describe('transaction E2E', { timeout: 30000 }, () => {
     await withTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
       const escaped = await withTransaction(runtime, async (tx) => {
         await tx.execute(db.public.user.insert([{ email: 'tx-escape@example.com' }]).build());
-        return { rows: tx.execute(db.public.user.select('email').build()) };
+        return { rows: tx.query(db.public.user.select('email').build()) };
       });
 
       await expect(escaped.rows.toArray()).rejects.toThrow(
-        'Cannot read from a query result after the transaction has ended',
+        'Cannot use a transaction operation after the transaction has ended',
       );
     });
   });

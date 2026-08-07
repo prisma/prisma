@@ -20,7 +20,7 @@ describe('updateMany integration', () => {
         MongoFieldFilter.eq('status', new MongoParamRef('active')),
         { $set: { status: new MongoParamRef('archived') } },
       );
-      const rows = await ctx.runtime.execute({
+      const rows = await ctx.runtime.query({
         collection: collectionName,
         command,
         meta: ctx.stubMeta,
