@@ -12,6 +12,13 @@ import { postgresCodecDescriptorRegistry, postgresCodecRegistry } from '../src/c
 
 const instanceCtx: CodecInstanceContext = { name: 'test' };
 
+/**
+ * A value the typed surface refuses, as a JS caller — or a migration from the
+ * previous result type — still supplies it. The encode guards answer for what
+ * reaches them at runtime, so that is what these cases hand them.
+ */
+const wrongTyped = (value: unknown): never => value as never;
+
 describe('pg/int8number@1', () => {
   const codec = pgInt8NumberDescriptor.factory()(instanceCtx);
 
@@ -83,6 +90,20 @@ describe('pg/int8number@1', () => {
     it('rejects non-integral writes', async () => {
       await expect(codec.encode(1.5, {})).rejects.toThrow(
         'pg/int8number@1 value must be an integer within the safe integer range',
+      );
+    });
+
+    // A value of the wrong type is not a value out of range, and saying so
+    // about a plainly in-range 9 sends the reader looking for a magnitude
+    // problem. The type is what changed, so the type is what the message names.
+    it('names the expected type when a bigint arrives where a number is read', async () => {
+      await expect(codec.encode(wrongTyped(9n), {})).rejects.toMatchObject({
+        code: 'RUNTIME.ENCODE_FAILED',
+        message: 'pg/int8number@1 value must be a number, got bigint 9',
+        meta: { codecId: 'pg/int8number@1', received: 'bigint' },
+      });
+      expect(() => codec.encodeJson(wrongTyped(9n))).toThrow(
+        'pg/int8number@1 value must be a number, got bigint 9',
       );
     });
   });
@@ -165,6 +186,21 @@ describe('pg/int8number@1', () => {
 describe('pg/int8@1 number wire values', () => {
   const codec = pgInt8Descriptor.factory()(instanceCtx);
 
+  // The same guard from the other side of the pair: this codec reads a
+  // `bigint`, so a `number` is named for the type it is — `String(1.5)` is
+  // perfectly good decimal text, and an integer codec that accepted it would
+  // write a fraction into an integer column.
+  it('names the expected type when a number arrives where a bigint is read', async () => {
+    await expect(codec.encode(wrongTyped(9), {})).rejects.toMatchObject({
+      code: 'RUNTIME.ENCODE_FAILED',
+      message: 'pg/int8@1 value must be a bigint, got number 9',
+      meta: { codecId: 'pg/int8@1', received: 'number' },
+    });
+    expect(() => codec.encodeJson(wrongTyped(9))).toThrow(
+      'pg/int8@1 value must be a bigint, got number 9',
+    );
+  });
+
   it('reads a safe-integer number wire value exactly', async () => {
     expect(await codec.decode(42, {})).toBe(42n);
     expect(await codec.decode(9007199254740991, {})).toBe(9007199254740991n);
@@ -237,6 +273,17 @@ describe('pg/unboundedint@1', () => {
   it('encodes bigint as decimal text', async () => {
     expect(await codec.encode(18446744073709551617n, {})).toBe('18446744073709551617');
     expect(await codec.encode(-42n, {})).toBe('-42');
+  });
+
+  it('names the expected type when a number arrives where a bigint is read', async () => {
+    await expect(codec.encode(wrongTyped(9), {})).rejects.toMatchObject({
+      code: 'RUNTIME.ENCODE_FAILED',
+      message: 'pg/unboundedint@1 value must be a bigint, got number 9',
+      meta: { codecId: 'pg/unboundedint@1', received: 'number' },
+    });
+    expect(() => codec.encodeJson(wrongTyped(9))).toThrow(
+      'pg/unboundedint@1 value must be a bigint, got number 9',
+    );
   });
 
   describe('encodeJson / decodeJson', () => {

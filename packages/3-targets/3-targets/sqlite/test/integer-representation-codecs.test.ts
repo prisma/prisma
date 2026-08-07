@@ -11,6 +11,13 @@ import { sqliteCodecDescriptorRegistry, sqliteCodecRegistry } from '../src/core/
 
 const instanceCtx: CodecInstanceContext = { name: 'test' };
 
+/**
+ * A value the typed surface refuses, as a JS caller — or a migration from the
+ * previous result type — still supplies it. The encode guards answer for what
+ * reaches them at runtime, so that is what these cases hand them.
+ */
+const wrongTyped = (value: unknown): never => value as never;
+
 describe('sqlite/bigint@1 number wire values', () => {
   const codec = sqliteBigintDescriptor.factory()(instanceCtx);
 
@@ -40,6 +47,20 @@ describe('sqlite/bigint@1 number wire values', () => {
         'sqlite/bigint@1 wire number must be an integer within the safe integer range, got 1.5',
       meta: { codecId: 'sqlite/bigint@1', received: '1.5' },
     });
+  });
+
+  // The same guard from the other side of the pair: this codec reads a
+  // `bigint`, so a `number` is named for the type it is — SQLite would store
+  // a fractional one as the REAL it is, in a column of integers.
+  it('names the expected type when a number arrives where a bigint is read', async () => {
+    await expect(codec.encode(wrongTyped(9), {})).rejects.toMatchObject({
+      code: 'RUNTIME.ENCODE_FAILED',
+      message: 'sqlite/bigint@1 value must be a bigint, got number 9',
+      meta: { codecId: 'sqlite/bigint@1', received: 'number' },
+    });
+    expect(() => codec.encodeJson(wrongTyped(9))).toThrow(
+      'sqlite/bigint@1 value must be a bigint, got number 9',
+    );
   });
 });
 
@@ -125,6 +146,20 @@ describe('sqlite/bigintnumber@1', () => {
           'sqlite/bigintnumber@1 value must be an integer within the safe integer range, got 1.5',
         meta: { codecId: 'sqlite/bigintnumber@1', received: '1.5' },
       });
+    });
+
+    // A value of the wrong type is not a value out of range, and saying so
+    // about a plainly in-range 9 sends the reader looking for a magnitude
+    // problem. The type is what changed, so the type is what the message names.
+    it('names the expected type when a bigint arrives where a number is read', async () => {
+      await expect(codec.encode(wrongTyped(9n), {})).rejects.toMatchObject({
+        code: 'RUNTIME.ENCODE_FAILED',
+        message: 'sqlite/bigintnumber@1 value must be a number, got bigint 9',
+        meta: { codecId: 'sqlite/bigintnumber@1', received: 'bigint' },
+      });
+      expect(() => codec.encodeJson(wrongTyped(9n))).toThrow(
+        'sqlite/bigintnumber@1 value must be a number, got bigint 9',
+      );
     });
   });
 
