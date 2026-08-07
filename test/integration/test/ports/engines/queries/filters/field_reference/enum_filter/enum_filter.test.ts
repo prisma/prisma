@@ -32,13 +32,16 @@ describe('ports/engines/queries/filters/field-reference/enum-filter', () => {
             .select('id')
             .all();
 
-        expect(await ids(referencedScalarInList(scalar, list, true))).toEqual([{ id: 2 }]);
-        expect(await ids(referencedScalarInList(scalar, list, true))).toEqual([{ id: 2 }]);
+        expect(await ids(referencedScalarInList(scalar, list, true)), 'notIn').toEqual([{ id: 2 }]);
+        expect(await ids(referencedScalarInList(scalar, list, true)), 'not: { in }').toEqual([
+          { id: 2 },
+        ]);
         expect(
           await db.public.TestModel.where(referencedScalarInList(scalar, list))
             .orderBy((row) => row.id.asc())
             .select('id', 'enum', 'enum2')
             .all(),
+          'in',
         ).toEqual([{ id: 1, enum: 'a', enum2: ['a', 'b'] }]);
       }),
     timeouts.spinUpPpgDev,
