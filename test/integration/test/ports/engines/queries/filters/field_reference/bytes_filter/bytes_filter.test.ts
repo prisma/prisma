@@ -111,9 +111,11 @@ describe('ports/engines/queries/filters/field-reference/bytes-filter', () => {
         const scalar = column('bytes');
         const list = column('bytes2');
 
-        expect(await ids(referencedScalarInList(scalar, list))).toEqual([{ id: 1 }]);
-        expect(await ids(referencedScalarInList(scalar, list, true))).toEqual([{ id: 2 }]);
-        expect(await ids(referencedScalarInList(scalar, list, true))).toEqual([{ id: 2 }]);
+        expect(await ids(referencedScalarInList(scalar, list)), 'in').toEqual([{ id: 1 }]);
+        expect(await ids(referencedScalarInList(scalar, list, true)), 'notIn').toEqual([{ id: 2 }]);
+        expect(await ids(referencedScalarInList(scalar, list, true)), 'not: { in }').toEqual([
+          { id: 2 },
+        ]);
       }),
     timeouts.spinUpPpgDev,
   );

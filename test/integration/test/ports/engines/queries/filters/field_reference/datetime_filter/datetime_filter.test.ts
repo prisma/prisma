@@ -174,9 +174,11 @@ describe('ports/engines/queries/filters/field-reference/datetime-filter', () => 
         const scalar = column('dt');
         const list = column('dt2');
 
-        expect(await ids(referencedScalarInList(scalar, list))).toEqual([{ id: 1 }]);
-        expect(await ids(referencedScalarInList(scalar, list, true))).toEqual([{ id: 2 }]);
-        expect(await ids(referencedScalarInList(scalar, list, true))).toEqual([{ id: 2 }]);
+        expect(await ids(referencedScalarInList(scalar, list)), 'in').toEqual([{ id: 1 }]);
+        expect(await ids(referencedScalarInList(scalar, list, true)), 'notIn').toEqual([{ id: 2 }]);
+        expect(await ids(referencedScalarInList(scalar, list, true)), 'not: { in }').toEqual([
+          { id: 2 },
+        ]);
       }),
     timeouts.spinUpPpgDev,
   );
