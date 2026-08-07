@@ -62,6 +62,8 @@ If the from-to delta spans multiple minor versions (e.g. `0.6 → 0.8`), build t
 0.6 → 0.7 → 0.8
 ```
 
+The `upgrades/` directories in this package are the source of truth for what the steps actually are, not the arithmetic — build the chain from the directories present. Most steps are one minor apart, but not all: the move onto the v8 release-candidate line is a single `0.17-to-8.0` step, with no `0.18`…`0.19` in between.
+
 Apply each step in order, fully: bump, install, run instructions, validate, commit — before moving to the next. Halt the chain on the first failed step; do not skip ahead.
 
 The chain order does not depend on which extensions are installed; the pre-flight has already established the target is reachable.

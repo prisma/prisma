@@ -1,6 +1,6 @@
 ---
 from: "0.17"
-to: "0.18"
+to: "8.0"
 changes:
   - id: aggregate-results-carry-their-target-s-codec
     summary: |

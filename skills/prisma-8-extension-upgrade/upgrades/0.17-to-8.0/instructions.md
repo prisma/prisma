@@ -1,6 +1,6 @@
 ---
 from: "0.17"
-to: "0.18"
+to: "8.0"
 changes:
   - id: codec-conformance-harness-moves-to-testkit-packages
     summary: |
