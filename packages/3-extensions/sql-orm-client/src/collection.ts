@@ -256,9 +256,18 @@ class CollectionImpl<
    * contributes — the runtime mirror of the contract's emitted aggregate map,
    * which is what types the reducers as {@link AggregateIncludeReducers} on
    * the public {@link Collection} surface. The reducers live on the instance
-   * because their names are the registry's, not the class declaration's; a
-   * name already taken by a collection member is skipped here and rejected
-   * with a structured error at ORM composition.
+   * because their names are the registry's, not the class declaration's.
+   *
+   * A name the collection already carries is skipped, and which member holds
+   * it decides what the skip means. A `CollectionImpl` member is rejected at
+   * ORM composition with `ORM.AGGREGATE_OPERATION_RESERVED`, since
+   * {@link reservedCollectionMemberNames} scans this class. A member declared
+   * by a custom collection class registered through `orm({ collections })`
+   * falls outside that set, so it keeps the name and the operation gets no
+   * reducer. The type level is what guards that case: {@link Collection}
+   * intersects the class with {@link AggregateIncludeReducers}, so for any
+   * contract whose emitted map carries the operation, a subclass member that
+   * does not match the reducer's signature is a type error.
    */
   #installAggregateReducers(): void {
     for (const operation of aggregateOperationNames(this.ctx.context.aggregateDescriptors)) {
