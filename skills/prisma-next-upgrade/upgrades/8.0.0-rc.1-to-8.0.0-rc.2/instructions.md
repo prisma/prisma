@@ -113,11 +113,11 @@ changes:
       `aggregate.count(field)` renders `COUNT(<column>)`. It used to accept the argument, discard
       it, and render `COUNT(*)`. PostgreSQL declares `count` over any input, so the derived method
       carries both arities honestly: `count()` counts rows, `count(field)` counts that field's
-      non-null values. No previously-compiling call changes meaning — `count` took no argument
-      before, so no such call typechecked. What changes is a call that got past the types: a
-      `@ts-expect-error` above a `count(...)`, a `count(x as never)`, or dynamic dispatch. Those
-      now count a column instead of rows, which differs whenever the column holds NULLs. Sweep
-      them and drop the argument wherever `COUNT(*)` was what you meant.
+      non-null values. No previously type-safe call changes meaning — `count` took no argument
+      before, so the field-taking form never typechecked. What changes is a call that got past
+      the types: a `@ts-expect-error` above a `count(...)`, a `count(x as never)`, or dynamic
+      dispatch. Those now count a column instead of rows, which differs whenever the column holds
+      NULLs. Sweep them and drop the argument wherever `COUNT(*)` was what you meant.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       contains:
@@ -190,7 +190,7 @@ await db.User.aggregate((aggregate) => ({ withEmail: aggregate.count('email') })
 
 The second form used to render `COUNT(*)`: the argument was accepted and thrown away. Both arities are now read off what the target declares for `count` — PostgreSQL declares it over any input, which means both a call with a value and a call without one — so the argument is honoured.
 
-No call that compiled before changes meaning, because `count` took no argument and the field-taking form did not typecheck. Sweep instead for calls that bypassed the types:
+No previously type-safe call changes meaning, because `count` took no argument and the field-taking form did not typecheck. Sweep instead for calls that bypassed the types:
 
 - a `// @ts-expect-error` directly above a `count(...)` call — where the argument is a field your contract admits, that suppression is now unused and TypeScript flags the unused directive;
 - `count(field as never)` or `count(field as any)`;
