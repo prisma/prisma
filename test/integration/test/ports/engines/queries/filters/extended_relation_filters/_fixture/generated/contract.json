@@ -1,0 +1,788 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "album": {
+      "model": "Album",
+      "namespace": "public"
+    },
+    "artist": {
+      "model": "Artist",
+      "namespace": "public"
+    },
+    "genre": {
+      "model": "Genre",
+      "namespace": "public"
+    },
+    "mediaType": {
+      "model": "MediaType",
+      "namespace": "public"
+    },
+    "track": {
+      "model": "Track",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Album": {
+            "fields": {
+              "AlbumId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "ArtistId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "Title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "Artist": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "ArtistId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Artist",
+                  "namespace": "public"
+                }
+              },
+              "Tracks": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "AlbumId"
+                  ]
+                },
+                "to": {
+                  "model": "Track",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "AlbumId": {
+                  "column": "AlbumId"
+                },
+                "ArtistId": {
+                  "column": "ArtistId"
+                },
+                "Title": {
+                  "column": "Title"
+                },
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "album"
+            }
+          },
+          "Artist": {
+            "fields": {
+              "ArtistId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "Name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "Albums": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "ArtistId"
+                  ]
+                },
+                "to": {
+                  "model": "Album",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "ArtistId": {
+                  "column": "ArtistId"
+                },
+                "Name": {
+                  "column": "Name"
+                },
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "artist"
+            }
+          },
+          "Genre": {
+            "fields": {
+              "GenreId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "Name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "Tracks": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "GenreId"
+                  ]
+                },
+                "to": {
+                  "model": "Track",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "GenreId": {
+                  "column": "GenreId"
+                },
+                "Name": {
+                  "column": "Name"
+                },
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "genre"
+            }
+          },
+          "MediaType": {
+            "fields": {
+              "MediaTypeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "Name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "Tracks": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "MediaTypeId"
+                  ]
+                },
+                "to": {
+                  "model": "Track",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "MediaTypeId": {
+                  "column": "MediaTypeId"
+                },
+                "Name": {
+                  "column": "Name"
+                },
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "mediaType"
+            }
+          },
+          "Track": {
+            "fields": {
+              "AlbumId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "Bytes": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "Composer": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "GenreId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "MediaTypeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "Milliseconds": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "Name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "TrackId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "UnitPrice": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "Album": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "AlbumId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Album",
+                  "namespace": "public"
+                }
+              },
+              "Genre": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "GenreId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Genre",
+                  "namespace": "public"
+                }
+              },
+              "MediaType": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "MediaTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "MediaType",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "AlbumId": {
+                  "column": "AlbumId"
+                },
+                "Bytes": {
+                  "column": "Bytes"
+                },
+                "Composer": {
+                  "column": "Composer"
+                },
+                "GenreId": {
+                  "column": "GenreId"
+                },
+                "MediaTypeId": {
+                  "column": "MediaTypeId"
+                },
+                "Milliseconds": {
+                  "column": "Milliseconds"
+                },
+                "Name": {
+                  "column": "Name"
+                },
+                "TrackId": {
+                  "column": "TrackId"
+                },
+                "UnitPrice": {
+                  "column": "UnitPrice"
+                },
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "track"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "album": {
+              "columns": {
+                "AlbumId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "ArtistId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "Title": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "ArtistId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "album"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "artist"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "ArtistId"
+                  ],
+                  "name": "album_ArtistId_idx_900ac09c",
+                  "prefix": "album_ArtistId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "AlbumId"
+                  ]
+                }
+              ]
+            },
+            "artist": {
+              "columns": {
+                "ArtistId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "Name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "ArtistId"
+                  ]
+                }
+              ]
+            },
+            "genre": {
+              "columns": {
+                "GenreId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "Name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "GenreId"
+                  ]
+                }
+              ]
+            },
+            "mediaType": {
+              "columns": {
+                "MediaTypeId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "Name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "MediaTypeId"
+                  ]
+                }
+              ]
+            },
+            "track": {
+              "columns": {
+                "AlbumId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "Bytes": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "Composer": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "GenreId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "MediaTypeId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "Milliseconds": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "Name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "TrackId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "UnitPrice": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "AlbumId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "track"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "album"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "MediaTypeId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "track"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "mediaType"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "GenreId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "track"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "genre"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "AlbumId"
+                  ],
+                  "name": "track_AlbumId_idx_24f18d8f",
+                  "prefix": "track_AlbumId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "GenreId"
+                  ],
+                  "name": "track_GenreId_idx_45abaee3",
+                  "prefix": "track_GenreId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "MediaTypeId"
+                  ],
+                  "name": "track_MediaTypeId_idx_d688667b",
+                  "prefix": "track_MediaTypeId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "TrackId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "79f9b03844a8ef195f82ea227f7f4a2b950d288774082f2508e7a02db9b49625"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "defaultInInsert": true,
+      "enums": true,
+      "lateral": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma-next contract emit\".",
+    "regenerate": "To regenerate, run: prisma-next contract emit"
+  }
+}
