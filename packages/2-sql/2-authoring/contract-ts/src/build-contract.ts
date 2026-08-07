@@ -345,6 +345,64 @@ function checkMemberValues(
   return values;
 }
 
+type CheckOptOutKind = 'membership' | 'elementNotNull';
+
+/**
+ * Resolves a field's authored `noCheck` kinds against its column shape:
+ * the bare form (`[]`) becomes every kind the shape derives, and a named
+ * kind that can never apply to the shape is an authoring error
+ * (`CONTRACT.CHECK_OPTOUT_INVALID`). Returns the concrete kinds in
+ * canonical ascending order — the only form the contract persists.
+ */
+function resolveNoCheckKinds(input: {
+  readonly modelName: string;
+  readonly fieldName: string;
+  readonly kinds: readonly CheckOptOutKind[];
+  readonly many: boolean;
+  readonly isDomainEnum: boolean;
+}): readonly CheckOptOutKind[] {
+  const derivable: CheckOptOutKind[] = [];
+  if (input.many) derivable.push('elementNotNull');
+  if (input.isDomainEnum) derivable.push('membership');
+  const subject = `Field "${input.modelName}.${input.fieldName}"`;
+  const meta = { modelName: input.modelName, fieldName: input.fieldName };
+
+  if (input.kinds.length === 0) {
+    if (derivable.length === 0) {
+      throw contractError(
+        'CONTRACT.CHECK_OPTOUT_INVALID',
+        `${subject}: noCheck() waives nothing — this column's shape derives no generated checks.`,
+        { meta: { ...meta, reason: 'no-derivable-checks' } },
+      );
+    }
+    return derivable;
+  }
+
+  const seen = new Set<CheckOptOutKind>();
+  for (const kind of input.kinds) {
+    if (seen.has(kind)) {
+      throw contractError(
+        'CONTRACT.CHECK_OPTOUT_INVALID',
+        `${subject}: noCheck("${kind}") names the same kind twice.`,
+        { meta: { ...meta, kind, reason: 'duplicate-kind' } },
+      );
+    }
+    seen.add(kind);
+    if (!derivable.includes(kind)) {
+      const explanation =
+        kind === 'membership'
+          ? 'membership checks are derived only from enumType() value sets'
+          : 'element-non-null checks are derived only for list columns';
+      throw contractError(
+        'CONTRACT.CHECK_OPTOUT_INVALID',
+        `${subject}: noCheck("${kind}") does not apply — ${explanation}.`,
+        { meta: { ...meta, kind, reason: 'inapplicable-kind' } },
+      );
+    }
+  }
+  return [...input.kinds].sort();
+}
+
 /**
  * Names the target's rendered checks and lowers them into contract entities.
  *
@@ -589,6 +647,7 @@ function buildStorageColumn(
     codecId,
     nullable: field.nullable,
     ...(field.many ? { many: true as const } : {}),
+    ...(field.noCheck !== undefined ? { noCheck: [...field.noCheck].sort() } : {}),
     ...ifDefined('typeParams', field.descriptor.typeParams),
     ...ifDefined('default', encodedDefault),
     ...ifDefined('typeRef', field.descriptor.typeRef),
@@ -926,6 +985,26 @@ export function buildSqlContractFromDefinition(
         }
       }
 
+      if (!isValueObjectField(resolvedField) && resolvedField.noCheck !== undefined) {
+        const { noCheck: authoredNoCheck, ...withoutNoCheck } = resolvedField;
+        // A non-`managed` table derives no checks, so an opt-out there is a
+        // tolerated no-op (never persisted): policy may also be stamped
+        // post-build by a specifier, and erroring here would make
+        // pack-stamped contracts order-dependent.
+        resolvedField = derivesChecks
+          ? {
+              ...withoutNoCheck,
+              noCheck: resolveNoCheckKinds({
+                modelName: semanticModel.modelName,
+                fieldName: field.fieldName,
+                kinds: authoredNoCheck,
+                many: resolvedField.many === true,
+                isDomainEnum: enumHandle !== undefined,
+              }),
+            }
+          : withoutNoCheck;
+      }
+
       const column = buildStorageColumn(resolvedField, storageValueSetRef, codecLookup);
       columns[field.columnName] = column;
       fieldToColumn[field.fieldName] = field.columnName;
@@ -938,6 +1017,7 @@ export function buildSqlContractFromDefinition(
       // IS the storage-level enforcement — including array columns, since the
       // target enforces membership on every element of a native-typed array.
       if (renderCheckExpressions !== undefined && derivesChecks) {
+        const waivedKinds = !isValueObjectField(resolvedField) ? resolvedField.noCheck : undefined;
         checksForTable.push(
           ...lowerRenderedChecks(
             tableName,
@@ -947,7 +1027,7 @@ export function buildSqlContractFromDefinition(
               many: column.many === true,
               memberValues:
                 enumHandle !== undefined ? checkMemberValues(enumHandle, codecLookup) : undefined,
-            }),
+            }).filter((candidate) => !(waivedKinds?.includes(candidate.kind) ?? false)),
           ),
         );
       }

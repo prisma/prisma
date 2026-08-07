@@ -43,6 +43,13 @@ export interface FieldNode {
   readonly default?: ColumnDefault;
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
   readonly many?: boolean;
+  /**
+   * Generated-check kinds the author declined for this column. The PSL
+   * interpreter always writes concrete kinds; the TS builder's bare
+   * `noCheck()` arrives as `[]` and is resolved to the column shape's
+   * derivable kinds at contract build time.
+   */
+  readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
   /** Present when the field was authored with `field.namedType(enumHandle)`. */
   readonly enumTypeHandle?: EnumTypeHandle;
 }
