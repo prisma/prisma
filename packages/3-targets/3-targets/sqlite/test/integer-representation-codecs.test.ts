@@ -1,5 +1,5 @@
 import type { CodecInstanceContext } from '@internal/framework-components/codec';
-import { ColumnRef } from '@internal/sql-relational-core/ast';
+import { AggregateExpr, CastExpr, ColumnRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { SQLITE_BIGINT_NUMBER_CODEC_ID } from '../src/core/codec-ids';
 import {
@@ -167,13 +167,26 @@ describe('sqlite/bigintnumber@1', () => {
     });
   });
 
-  it('projects the stored INTEGER unchanged, so the database emits a JSON number', () => {
+  it('projects through an INTEGER cast, so the database emits a JSON number', () => {
     const expression = ColumnRef.of('records', 'value');
     expect(
       sqliteBigintNumberDescriptor.projectJson(expression, {
         codecId: SQLITE_BIGINT_NUMBER_CODEC_ID,
       }),
-    ).toBe(expression);
+    ).toEqual(CastExpr.as(expression, 'INTEGER'));
+  });
+
+  // An aggregate whose result this codec carries reaches the projection already
+  // cast to text, so the driver never reads a wide integer off the wire. The
+  // projection is what puts such a value back into the codec's canonical JSON
+  // form, and it has to do so whatever expression it is handed.
+  it('projects a text-cast aggregate back to a JSON number', () => {
+    const lowered = CastExpr.as(new AggregateExpr('count', undefined), 'text');
+    expect(
+      sqliteBigintNumberDescriptor.projectJson(lowered, {
+        codecId: SQLITE_BIGINT_NUMBER_CODEC_ID,
+      }),
+    ).toEqual(CastExpr.as(lowered, 'INTEGER'));
   });
 
   it('claims no target type, so integer in type position keeps its current codecs', () => {
