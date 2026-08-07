@@ -8,36 +8,49 @@ import {
   contractSnapshotDir,
   readContractSnapshotJson,
 } from '@internal/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@internal/migration-tools/errors';
+import {
+  errorContractDeserializationFailed,
+  MigrationToolsError,
+} from '@internal/migration-tools/errors';
 import { parseContractRef } from '@internal/migration-tools/ref-resolution';
-import { blindCast } from '@internal/utils/casts';
+import { blindCast, castAs } from '@internal/utils/casts';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join } from 'pathe';
 import {
   CliStructuredError,
+  errorFileNotFound,
   errorRuntime,
   errorUnexpected,
   mapRefResolutionError,
 } from '../../utils/cli-errors';
 import { buildReadAggregate } from './contract-space-aggregate-loader';
 
-export interface ResolveContractRefToSnapshotOptions {
+function isEnoent(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
+}
+
+interface ResolveContractRefToSnapshotBaseOptions {
   readonly config: PrismaNextConfig;
   readonly migrationsDir: string;
   /** User-supplied contract reference (hash, prefix, ref name, migration dir name, <dir>^, or ./path). */
   readonly refInput: string;
   /** Absolute path of the emitted contract.json (fallback source + snapshot-path derivation). */
   readonly contractPathAbsolute: string;
-  /**
-   * true (db sign): fall back to the emitted contract when no bundle matches and its
-   * storage.storageHash matches; else the 'No contract file found for hash "<hash>"' errorRuntime.
-   * false (db update --to): missing bundle = the errorUnexpected 'No migration bundle found for
-   * <flag> "<input>" (resolved hash: <hash>)' envelope.
-   */
-  readonly fallbackToEmitted: boolean;
-  /** Flag label for the missing-bundle message. Required when fallbackToEmitted is false. */
-  readonly missingBundleFlag?: '--to';
 }
+
+/**
+ * `fallbackToEmitted` discriminates the missing-bundle behavior:
+ * true (db sign): fall back to the emitted contract when no bundle matches and its
+ * storage.storageHash matches; else the 'No contract file found for hash "<hash>"' errorRuntime.
+ * false (db update --to): missing bundle = the errorUnexpected 'No migration bundle found for
+ * <flag> "<input>" (resolved hash: <hash>)' envelope, so `missingBundleFlag` (the flag label
+ * for that message) is required in this branch.
+ */
+export type ResolveContractRefToSnapshotOptions = ResolveContractRefToSnapshotBaseOptions &
+  (
+    | { readonly fallbackToEmitted: true; readonly missingBundleFlag?: never }
+    | { readonly fallbackToEmitted: false; readonly missingBundleFlag: '--to' }
+  );
 
 export interface ResolveContractRefToSnapshotSuccess {
   readonly hash: string;
@@ -92,15 +105,58 @@ export async function resolveContractRefToSnapshot(
         ),
       );
     }
-    const defaultRaw = await readFile(options.contractPathAbsolute, 'utf-8');
+    let defaultRaw: string;
+    try {
+      defaultRaw = await readFile(options.contractPathAbsolute, 'utf-8');
+    } catch (error) {
+      if (isEnoent(error)) {
+        return notOk(
+          errorFileNotFound(options.contractPathAbsolute, {
+            why: `Contract file not found at ${options.contractPathAbsolute}`,
+            fix: 'Run `prisma-next contract emit` first to generate the contract',
+          }),
+        );
+      }
+      return notOk(
+        errorUnexpected(error instanceof Error ? error.message : String(error), {
+          why: `Failed to read contract file: ${error instanceof Error ? error.message : String(error)}`,
+        }),
+      );
+    }
+    let parsed: unknown;
+    try {
+      parsed = castAs<unknown>(JSON.parse(defaultRaw));
+    } catch (error) {
+      return notOk(
+        mapMigrationToolsError(
+          errorContractDeserializationFailed(
+            options.contractPathAbsolute,
+            error instanceof Error ? error.message : String(error),
+          ),
+        ),
+      );
+    }
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return notOk(
+        mapMigrationToolsError(
+          errorContractDeserializationFailed(
+            options.contractPathAbsolute,
+            `expected a JSON object, got ${parsed === null ? 'null' : Array.isArray(parsed) ? 'an array' : `a ${typeof parsed}`}`,
+          ),
+        ),
+      );
+    }
     const defaultContract = blindCast<
       Record<string, unknown>,
-      'emitted contract.json is a JSON object produced by contract emit'
-    >(JSON.parse(defaultRaw));
-    const storageHash = blindCast<
-      Record<string, unknown> | undefined,
-      'contract.json storage envelope is an object when present'
-    >(defaultContract['storage'])?.['storageHash'];
+      'narrowed to a non-null, non-array object by the shape check above'
+    >(parsed);
+    const storage = defaultContract['storage'];
+    const storageHash =
+      storage !== null && typeof storage === 'object'
+        ? blindCast<Record<string, unknown>, 'narrowed to a non-null object by the check above'>(
+            storage,
+          )['storageHash']
+        : undefined;
     if (storageHash === targetHash) {
       return ok({
         hash: targetHash,

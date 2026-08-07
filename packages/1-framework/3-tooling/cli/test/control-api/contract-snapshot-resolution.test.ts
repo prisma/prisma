@@ -12,7 +12,10 @@ import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { resolveContractRefToSnapshot } from '../../src/control-api/operations/contract-snapshot-resolution';
+import {
+  type ResolveContractRefToSnapshotOptions,
+  resolveContractRefToSnapshot,
+} from '../../src/control-api/operations/contract-snapshot-resolution';
 
 const HASH_A = `${'a'.repeat(64)}`;
 const HASH_FLOAT = `${'f'.repeat(64)}`;
@@ -182,6 +185,83 @@ describe('resolveContractRefToSnapshot', () => {
         'Provide a ref or hash that corresponds to an existing migration package, or run `migration list` to see available migrations.',
       );
     }
+  });
+
+  it('refuses a missing emitted contract with CLI.FILE_NOT_FOUND naming the path', async () => {
+    await seedBaselineMigration();
+    await writeRef(refsDir, 'floating', { hash: HASH_FLOAT, invariants: [] });
+    await rm(contractPathAbsolute, { force: true });
+    const result = await resolveContractRefToSnapshot({
+      config,
+      migrationsDir,
+      refInput: 'floating',
+      contractPathAbsolute,
+      fallbackToEmitted: true,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      const envelope = result.failure.toEnvelope();
+      expect(envelope.code).toBe('CLI.FILE_NOT_FOUND');
+      expect(envelope.why).toBe(`Contract file not found at ${contractPathAbsolute}`);
+      expect(envelope.where).toEqual({ path: contractPathAbsolute });
+    }
+  });
+
+  it('refuses an unparseable emitted contract with the deserialization envelope naming the path', async () => {
+    await seedBaselineMigration();
+    await writeRef(refsDir, 'floating', { hash: HASH_FLOAT, invariants: [] });
+    await writeFile(contractPathAbsolute, '{not json');
+    const result = await resolveContractRefToSnapshot({
+      config,
+      migrationsDir,
+      refInput: 'floating',
+      contractPathAbsolute,
+      fallbackToEmitted: true,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      const envelope = result.failure.toEnvelope();
+      expect(envelope.meta).toMatchObject({
+        code: 'MIGRATION.CONTRACT_DESERIALIZATION_FAILED',
+        filePath: contractPathAbsolute,
+      });
+      expect(envelope.why).toContain(contractPathAbsolute);
+    }
+  });
+
+  it('refuses a JSON `null` emitted contract as a shape failure, not a crash', async () => {
+    await seedBaselineMigration();
+    await writeRef(refsDir, 'floating', { hash: HASH_FLOAT, invariants: [] });
+    await writeFile(contractPathAbsolute, 'null');
+    const result = await resolveContractRefToSnapshot({
+      config,
+      migrationsDir,
+      refInput: 'floating',
+      contractPathAbsolute,
+      fallbackToEmitted: true,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      const envelope = result.failure.toEnvelope();
+      expect(envelope.meta).toMatchObject({
+        code: 'MIGRATION.CONTRACT_DESERIALIZATION_FAILED',
+        filePath: contractPathAbsolute,
+      });
+      expect(envelope.meta?.['message']).toContain('null');
+    }
+  });
+
+  it('requires missingBundleFlag when fallbackToEmitted is false (type-level)', () => {
+    const build = (o: ResolveContractRefToSnapshotOptions) => o;
+    // @ts-expect-error missingBundleFlag is required when fallbackToEmitted is false
+    build({
+      config,
+      migrationsDir,
+      refInput: 'x',
+      contractPathAbsolute,
+      fallbackToEmitted: false,
+    });
+    expect(true).toBe(true);
   });
 
   it('maps an unresolvable reference through the ref-resolution envelope', async () => {
