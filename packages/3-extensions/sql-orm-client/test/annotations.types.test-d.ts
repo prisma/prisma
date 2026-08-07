@@ -433,7 +433,7 @@ describe('Collection.aggregate (read-typed)', () => {
       (aggregate) => ({ count: aggregate.count() }),
       (meta) => meta.annotate(cacheAnnotation({ ttl: 60 })),
     );
-    expectTypeOf(result).resolves.toMatchTypeOf<{ count: bigint }>();
+    expectTypeOf(result).resolves.toMatchTypeOf<{ count: number }>();
   });
 });
 
