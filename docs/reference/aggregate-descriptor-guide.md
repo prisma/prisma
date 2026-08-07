@@ -98,6 +98,18 @@ A planner that builds an aggregate reads two different things off the resolution
 
 A pair the composed stack declares no overload for resolves to nothing, and both consumers refuse it before any SQL is built, with `ORM.AGGREGATE_UNSUPPORTED`. There is no untyped fallback: a result the target never declared is a result nothing can decode.
 
+## When the types offer an operation the runtime doesn't have
+
+The aggregate map is emitted into `contract.d.ts` only; `contract.json` carries no copy of it. So a contract emitted with an extension composed, and then used against a runtime configured without that extension, types `aggregate.bitOr('weight')` and fails on the call:
+
+```
+TypeError: aggregate.bitOr is not a function
+```
+
+An include reducer fails the same way — `posts.bitOr('weight')` — because the collection installs one reducer per operation the registry contributes. Nothing structured is raised, and nothing can be: the runtime has no record of what the types were told.
+
+The fix is to make the two agree. Either compose the extension into the runtime that builds `db`, or re-emit the contract from a configuration that omits it, which withdraws the operation from the types as well.
+
 ## Where to look
 
 - **PostgreSQL's matrix**: [packages/3-targets/3-targets/postgres/src/core/aggregates.ts](../../packages/3-targets/3-targets/postgres/src/core/aggregates.ts) — every row read off a live database rather than inferred.
