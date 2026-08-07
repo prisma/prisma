@@ -8,8 +8,16 @@ import {
 } from '@internal/framework-components/execution';
 import { SqlStorage } from '@internal/sql-contract/types';
 import type { Codec, SqlDriver, SqlExecuteRequest } from '@internal/sql-relational-core/ast';
-import { SelectAst as SelectAstCtor, TableSource } from '@internal/sql-relational-core/ast';
-import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
+import {
+  BinaryExpr,
+  ColumnRef,
+  collectOrderedParamRefs,
+  ProjectionItem,
+  SelectAst as SelectAstCtor,
+  TableSource,
+} from '@internal/sql-relational-core/ast';
+import type { Expression, ScopeField } from '@internal/sql-relational-core/expression';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   SqlMiddleware,
   SqlRuntimeAdapterDescriptor,
@@ -24,6 +32,7 @@ import {
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../2-sql/1-core/contract/test/test-support';
+import { descriptorsFromCodecs } from '../../../2-sql/5-runtime/test/utils';
 import type { SupabaseRoleBinding } from '../src/runtime/supabase-runtime';
 import { SupabaseRuntimeImpl } from '../src/runtime/supabase-runtime';
 
@@ -173,6 +182,7 @@ function createStubAdapter() {
 function createTestAdapterDescriptor(
   adapter: ReturnType<typeof createStubAdapter>,
 ): SqlRuntimeAdapterDescriptor<'postgres'> {
+  const descriptors = descriptorsFromCodecs(adapter.__codecs);
   return {
     kind: 'adapter',
     rawCodecInferer: { inferCodec: () => 'pg/text' },
@@ -180,7 +190,7 @@ function createTestAdapterDescriptor(
     version: '0.0.1',
     familyId: 'sql' as const,
     targetId: 'postgres' as const,
-    codecs: () => [],
+    codecs: () => descriptors,
     create() {
       return Object.assign(
         { familyId: 'sql' as const, targetId: 'postgres' as const },
@@ -254,6 +264,24 @@ function stubPlan(): SqlExecutionPlan<Record<string, unknown>> {
       lane: 'raw',
     },
   };
+}
+
+function buildEqUserIdPlan(userId: Expression<ScopeField>): SqlQueryPlan<{ id: number }> {
+  const users = TableSource.named('users');
+  const ast = SelectAstCtor.from(users)
+    .withProjection([
+      ProjectionItem.of('id', ColumnRef.of('id', 'users'), { codecId: 'pg/int4@1' }),
+    ])
+    .withWhere(BinaryExpr.eq(ColumnRef.of('id', 'users'), userId.buildAst()));
+  return Object.freeze({
+    ast,
+    params: collectOrderedParamRefs(ast).map((r) => (r.kind === 'param-ref' ? r.value : undefined)),
+    meta: {
+      target: testContract.target,
+      storageHash: testContract.storage.storageHash,
+      lane: 'dsl' as const,
+    },
+  });
 }
 
 describe('SupabaseRuntimeImpl', () => {
@@ -474,6 +502,41 @@ describe('SupabaseRuntimeImpl', () => {
 
       expect(driver.connection.destroy).toHaveBeenCalledOnce();
       expect(driver.connection.release).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('openRoleSession — prepared statements', () => {
+    it('executePrepared on the session runs on the session connection', async () => {
+      const { runtime, driver } = createTestSetup();
+      const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
+        buildEqUserIdPlan(params.userId),
+      );
+      const session = await runtime.openRoleSession({ role: 'authenticated' });
+
+      const rows = await session.executePrepared(ps, { userId: 1 }).toArray();
+      await session.release();
+
+      expect(rows).toEqual([{ id: 1 }]);
+      expect(driver.connection.queryCalls).toHaveLength(1);
+      expect(driver.query).not.toHaveBeenCalled();
+    });
+
+    it('executePrepared on a session transaction runs on that transaction', async () => {
+      const { runtime, driver } = createTestSetup();
+      const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
+        buildEqUserIdPlan(params.userId),
+      );
+      const session = await runtime.openRoleSession({ role: 'authenticated' });
+
+      const tx = await session.transaction();
+      const rows = await tx.executePrepared(ps, { userId: 1 }).toArray();
+      await tx.commit();
+      await session.release();
+
+      expect(rows).toEqual([{ id: 1 }]);
+      expect(driver.connection.transaction.queryCalls).toHaveLength(1);
+      expect(driver.connection.queryCalls).toHaveLength(0);
+      expect(driver.query).not.toHaveBeenCalled();
     });
   });
 

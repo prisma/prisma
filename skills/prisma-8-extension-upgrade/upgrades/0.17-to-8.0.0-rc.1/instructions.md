@@ -66,6 +66,26 @@ changes:
         - 'renderValueLiteral'
         - 'generateContractDts'
       anyMatch: true
+  - id: driver-spi-splits-query-and-execute
+    summary: |
+      The relational driver contract (`SqlQueryable` in `@internal/sql-relational-core`) splits
+      into one streaming path and one statistics path: `query<Row>(request)` returns
+      `AsyncIterable<Row>`, and `execute(request)` runs a statement without row output and
+      resolves to `SqlStatementStats` (`{ affectedRows }`). The prepared-specific
+      `executePrepared` driver method and the buffered `query(sql, params)` convenience (with its
+      `SqlQueryResult` type) are gone — preparedness travels as the optional
+      `preparedStatementHandle` on `SqlExecuteRequest`, and `query()` serves ad-hoc and prepared
+      requests alike. A pack that implements a driver, wraps one, or ships a driver fake for
+      tests implements the two-method surface, reports its engine's native affected-row count
+      unnormalized, and surfaces a failed prepared-statement retry as the structural
+      `DRIVER.PREPARE_FAILED` error envelope.
+    detection:
+      glob: "**/*.{ts,tsx}"
+      contains:
+        - "SqlQueryable"
+        - "PreparedExecuteRequest"
+        - "SqlQueryResult"
+      anyMatch: true
 ---
 
 # 0.17 → 8.0.0-rc.1 — Extension-author upgrade instructions
@@ -139,6 +159,35 @@ Two things worth knowing when you update these:
   needed, and the artefacts your pack ships (`contract.json`, `contract.d.ts`, migrations) are
   unchanged. If your pack's committed contract artefacts do show a diff after upgrading, that is
   a different change in this transition, not this one.
+
+## `driver-spi-splits-query-and-execute`
+
+The driver contract used one streaming method for every statement, a prepared-specific variant beside it, and a buffered convenience query. It is now two methods with distinct jobs:
+
+```ts
+// Before (0.17)
+export interface SqlQueryable {
+  execute<Row>(request: SqlExecuteRequest): AsyncIterable<Row>;
+  executePrepared<Row>(request: PreparedExecuteRequest): AsyncIterable<Row>;
+  explain?(request: SqlExecuteRequest): Promise<SqlExplainResult>;
+  query<Row>(sql: string, params?: readonly unknown[]): Promise<SqlQueryResult<Row>>;
+}
+
+// After (0.18)
+export interface SqlQueryable {
+  query<Row>(request: SqlExecuteRequest): AsyncIterable<Row>;
+  execute(request: SqlExecuteRequest): Promise<SqlStatementStats>; // { affectedRows }
+  explain?(request: SqlExecuteRequest): Promise<SqlExplainResult>;
+}
+```
+
+For a pack that implements a driver, wraps one, or ships a driver fake:
+
+- Move the streaming implementation from `execute(request)` to `query(request)`. The buffered `query(sql, params)` overload and its `SqlQueryResult` type are gone; callers stream and collect instead.
+- Implement `execute(request): Promise<SqlStatementStats>` for statements executed without row output. Report your engine's native affected-row count — the in-tree PostgreSQL driver reports `rowCount`, SQLite reports `stmt.run().changes` — and do not normalize semantics across engines.
+- Delete `executePrepared`. Preparedness is a property of the request: a prepared plan arrives at `query()` carrying `preparedStatementHandle` on the `SqlExecuteRequest`.
+- If your engine cannot return rows from `execute()`, reject `RETURNING`-style statements up front rather than silently dropping their rows (the in-tree SQLite driver does this).
+- If your driver retries stale prepared statements, surface a failed retry as the structural `DRIVER.PREPARE_FAILED` error envelope (ADR 239) with the normalized driver error as its `cause`.
 
 <!--
 TML-3171 (nested SQL ORM self-relation predicate scopes): `changes: []`. The `packages/3-extensions/sql-orm-client` diff fixes internal query planning and adds regression coverage; it changes no public API, contract shape, emitted artefact, extension-authoring surface, adapter API, or downstream source translation. Incidental substrate diff only.
