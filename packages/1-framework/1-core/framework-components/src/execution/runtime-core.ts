@@ -27,25 +27,20 @@ export interface RuntimeCoreOptions<TMiddleware extends RuntimeMiddleware<Execut
 /**
  * Family-agnostic abstract runtime base.
  *
- * Defines the shared row-query middleware lifecycle and a direct statistics
- * execution baseline in one place:
+ * Defines the shared operation-specific middleware lifecycles:
  *
  * 1. `runBeforeCompile(plan)` — concrete; defaults to identity. SQL overrides
- *    this to run its `beforeCompile` middleware-hook chain.
+ *    this to run its shared `beforeCompile` middleware-hook chain.
  * 2. `lower(plan)` — abstract. Each family produces its `*ExecutionPlan`
  *    (SQL via `lowerSqlPlan`, Mongo via `adapter.lower`).
- * 3. `runBeforeExecuteChain(exec, this.middleware, this.ctx)` — concrete;
- *    runs every middleware's `beforeExecute` hook after lowering but
- *    before the row source is opened. Family runtimes that need a
- *    params mutator visible to a downstream encode step (SQL) override
- *    `query` and call this helper themselves at the equivalent pre-encode
- *    point.
- * 4. `operation-specific middleware runner(exec, this.middleware, this.ctx,
- *    () => runDriver(exec))` — concrete; runs the intercept chain,
- *    drives the row source, fires `onRow` / `afterExecute`. Does
- *    **not** fire `beforeExecute` — see step 3.
+ * 3. Queries run `beforeQuery`; statements run `beforeExecute`. Both chains
+ *    run after lowering and before their matching driver terminal. Family
+ *    runtimes that expose a params mutator to downstream encoding override
+ *    the operation and call the matching helper at the pre-encode point.
+ * 4. The matching runner processes `interceptQuery` or `interceptExecute`
+ *    before invoking the driver. Queries then fire `onRow` and `afterQuery`;
+ *    statements fire `afterExecute`.
  *
- * Statistics `execute()` deliberately bypasses middleware in this baseline.
  * Concrete subclasses must implement `lower`, `runDriver`, `runExecute`, and
  * `close`.
  *
@@ -53,11 +48,9 @@ export interface RuntimeCoreOptions<TMiddleware extends RuntimeMiddleware<Execut
  * - `TPlan` — the family's pre-lowering plan type.
  * - `TExec` — the family's post-lowering (executable) plan type.
  * - `TMiddleware` — the family's middleware type. Constrained to
- *   `RuntimeMiddleware<TExec>` because `operation-specific middleware runner` invokes the
- *   `beforeExecute` / `onRow` / `afterExecute` hooks with the lowered
- *   `TExec`. (The spec/plan wording "RuntimeMiddleware<TPlan>" is
- *   tightened to `<TExec>` here so the helper call typechecks; the
- *   intent is unchanged — middleware sees the post-lowering plan.)
+ *   `RuntimeMiddleware<TExec>` because the operation-specific runners invoke
+ *   hooks with the lowered `TExec`. Middleware therefore sees the
+ *   post-lowering plan.
  */
 export abstract class RuntimeCore<
   TPlan extends QueryPlan,
@@ -87,11 +80,10 @@ export abstract class RuntimeCore<
    * Family-specific: SQL produces `{ sql, params, ast?, ... }`; Mongo
    * produces `{ command, ... }`.
    *
-   * `ctx` carries per-query cancellation (and any future fields on
-   * `CodecCallContext`); concrete subclasses forward it to the
-   * encode-side codec dispatch site (e.g. SQL's `encodeParams` in m2,
-   * Mongo's `resolveValue` in m3). The runtime allocates one ctx per
-   * operation call and threads the same reference everywhere; the
+   * `ctx` carries per-operation cancellation (and any future fields on
+   * `CodecCallContext`); concrete subclasses forward it to the encode-side
+   * codec dispatch site. The runtime allocates one ctx per operation call
+   * and threads the same reference everywhere; the
    * `signal` field inside may be `undefined`, but the ctx object itself
    * is always present.
    */
