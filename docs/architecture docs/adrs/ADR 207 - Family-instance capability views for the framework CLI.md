@@ -57,7 +57,7 @@ toFooView(input: unknown): FooView | undefined {
 // cli/src/commands/uses-foo.ts
 const view = client.toFooView(schema);
 if (!view) {
-  return notOk(errorRuntime('this command is not supported for this family', {
+  return notOk(errorRuntime('CLI.FAMILY_UNSUPPORTED', 'this command is not supported for this family', {
     why: 'The configured family does not implement the FooCapable capability.',
     fix: 'Use a family that supports this capability.',
   }));
@@ -135,7 +135,7 @@ toSchemaDiagram(schema: unknown): SchemaDiagram | undefined {
 // cli/src/commands/db-schema.ts
 if (flags.diagram) {
   const diagram = client.toSchemaDiagram(value.schema);
-  if (!diagram) return notOk(errorRuntime('--diagram is not supported for this family', { ... }));
+  if (!diagram) return notOk(errorRuntime('CLI.FAMILY_UNSUPPORTED', '--diagram is not supported for this family', { ... }));
   ui.output(diagram.mermaid);
   return;
 }
