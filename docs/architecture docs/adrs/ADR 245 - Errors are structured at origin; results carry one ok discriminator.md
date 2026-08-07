@@ -2,36 +2,74 @@
 
 Status: **Accepted**
 
-Related: [ADR 239 — Errors are structural envelopes with dotted namespace codes](<./ADR 239 - Errors are structural envelopes with dotted namespace codes.md>) (the envelope this ADR governs the construction and carriage of). Composer records the same rules for its own tree as its ADR-0043/ADR-0044; the convention travels with the duplicated foundation types, and structural recognition (ADR 239) is what makes the copies interoperate.
+Related: [ADR 239 — Errors are structural envelopes with dotted namespace codes](<./ADR 239 - Errors are structural envelopes with dotted namespace codes.md>) defines the envelope itself — the `CliStructuredError` shape, dotted `NAMESPACE.SUBCODE` codes, structural recognition, exit codes. This ADR governs how envelopes are **constructed and carried**: who creates them, where, and what shape they travel in. Composer records the same rules for its tree as its ADR-0043/ADR-0044; the duplicated foundation types interoperate because recognition is structural.
+
+## The shape of a failure, end to end
+
+The site that detects a failure builds the complete envelope, because it is the only place that knows the context:
+
+```ts
+// packages/1-framework/3-tooling/cli — a raise site
+if (!snapshot) {
+  return notOk(
+    errorRuntime('MIGRATION.SNAPSHOT_MISSING', `Ref "${refName}" is not resolvable`, {
+      why: `Ref "${refName}" has no pointer file and its fallback hash is not a graph node.`,
+      fix: `Create the ref with \`prisma-next ref set ${refName} <hash>\`, or pass a graph-node hash.`,
+      meta: { identifier: refName, viaRef: true },
+    }),
+  );
+}
+```
+
+Every consumer — a command adapter, a host driving the control API, an agent parsing `--json` — branches on exactly two fields, for every operation:
+
+```ts
+const result = await client.migrationPlan(input);
+if (!result.ok) {
+  switch (result.failure.code) {
+    case 'MIGRATION.SNAPSHOT_MISSING': /* actionable: create the ref */
+    case 'CONFIG.DB_CONNECTION_REQUIRED': /* actionable: pass --db */
+    default: /* render the envelope; exit 2 */
+  }
+}
+```
+
+Nothing between the two snippets transforms the error. The value raised at the origin is the value the consumer holds.
 
 ## Decision
 
-Three rules, plus the class collapse they forced.
+**1. Errors are structured at their origin — there are no catch-all codes.** Any failure meant to surface to a user is a `CliStructuredError` (or a subclass) at the site that raises it, carrying its own dotted code and its own why/fix. Wrapping a foreign cause at the site that understands it — a driver error, a config module that threw, an I/O failure the tool can name — is legal, and the wrap attaches the original as `cause`. What is banned is the boundary fallback: no generic construction path supplies a default code, and no code exists whose meaning is "something in this phase failed". The generic factory's signature enforces this — `errorRuntime(code, summary, options)` — the code is the first, required argument.
 
-**1. Errors are structured at their origin — there are no catch-all codes.** Any failure meant to surface to a user becomes a `CliStructuredError` (or a subclass) at the site that raises it, carrying its own dotted code and its own why/fix. Site-specific wraps of foreign causes (a driver error, a config module that threw, an I/O failure the tool can name) are legal and attach the original as `cause`. Boundary fallbacks are banned: a generic construction path may not supply a default code, and codes like "pipeline failed" do not exist. A non-structured error reaching a process boundary is by definition a bug — it exits 1 with a report hint and no code, per ADR 239's exit-code rule.
+A non-structured error reaching a process boundary is therefore, by definition, a bug: it exits `1` with a report hint and no code (ADR 239's exit-code rule). This is deliberate. An expected failure someone forgot to name should be loud, not laundered into a polite envelope nobody can act on.
 
-**2. `envelope.code` is the machine-branching surface — nothing smuggles a truer code into `meta`.** Consumers branch on `code`; `meta` carries structural data, never an alternative identity. The generic factory takes the code as its first argument (`errorRuntime(code, summary, options)`); `meta.code` is deleted everywhere.
+**2. `code` is the error's only machine identity.** Consumers branch on `envelope.code` and nothing else. `meta` carries structural data for the code the envelope already has — never an alternative or "truer" identity. If a site wants consumers to distinguish its failure, it raises a distinct code; the closed registry in `docs/reference/error-reference.md` (enforced by `check:error-reference`) is where that code and its producing site are recorded, in the same change. When an existing code gains a new producing site, its reference entry gains that site and its meta shape too — an entry that describes only some of its sites misleads the consumers the registry exists for.
 
-**3. Operation and command results ride one discriminator: `ok`.** Everything returns the shared `Result<T, F>` — `{ ok: true, value } | { ok: false, failure }` — with a `CliStructuredError` failure, end to end. Bespoke per-operation outcome enums (`outcome: 'deployed' | 'failed' | …`) are banned; the success payload's *type* carries the operation-specific shape, the discriminator does not. The same error value is throwable and is a valid `Result` failure — no wrapper, no conversion at boundaries (ADR 239).
+**3. Results carry one discriminator: `ok`.** Every operation and command returns the shared `Result<T, F>` — `{ ok: true, value } | { ok: false, failure }` — with a `CliStructuredError` failure. The success payload's *type* carries whatever is operation-specific; the discriminator never does. Per-operation outcome enums (`outcome: 'deployed' | 'failed' | …`) are banned: they force every caller to learn a second, operation-local vocabulary that restates what `ok` plus the payload type already say. And because the same envelope value is throwable *and* a valid `Result` failure (ADR 239), no boundary needs a conversion type in either direction.
 
-**The collapse:** one error base type. `MigrationToolsError` extends `CliStructuredError` (structured data in `meta`, not a parallel `details` field; the subclass must not set `this.name`, so ADR 239's structural predicate keeps recognizing it). The CLI boundary mapper that used to re-wrap migration-tools errors is deleted — the error passes through as itself. Rule 1's wraps and rule 3's failures therefore always carry the same class, and `cause` chains survive from origin to renderer.
+**Error subclasses extend the one base class.** A domain that wants richer construction (for example `MigrationToolsError`, whose constructor requires `why`/`fix` and narrows `code` to `` `MIGRATION.${string}` ``) subclasses `CliStructuredError`. The rules for a subclass:
+
+- Structured data goes in `meta` — a subclass does not introduce a parallel field for it.
+- The subclass must **not** set `this.name`: ADR 239's structural predicate keys on `name`, and a renamed subclass would stop being recognized as a structured error at boundaries.
+- Its own predicate narrows structurally on top of the parent's (`CliStructuredError.is(e) && e.category === 'MIGRATION' && e.code.startsWith('MIGRATION.')`), so it survives duplicated copies and plane splits the same way the parent does.
+- It passes through boundaries as itself. There are no mapper functions translating one error class into another; a subclass *is* the envelope.
+
+`cause` rides along for in-process consumers and logs — the constructor forwards it to `Error`, and `toEnvelope()` never serializes it. A wrap under rule 1 therefore preserves the full provenance chain from origin to renderer without leaking internals onto the wire.
 
 ## Why
 
-The `code` field is only a branching surface if exactly one code space exists and every failure is in it. Fallback codes launder unnamed failures into something that renders politely but cannot be acted on; smuggled `meta.code`s split the code space in two; parallel error classes (the old `MigrationToolsError extends Error`) force boundary mappers, and every mapper is a place where `cause`, fields, or fidelity get dropped. Making the origin responsible for the code makes every raise site honest — the site that knows the context writes the why/fix — and makes an unnamed failure loud (a bug, exit 1) instead of quiet.
+The `code` field is only a branching surface if exactly one code space exists and every surfaced failure is in it. Each rule closes one way that property can decay:
 
-One `ok` discriminator exists for the same reason: agents and hosts branch on `result.ok` then `failure.code`, uniformly, without learning a per-operation vocabulary first.
+- A default code on a generic path produces envelopes whose code describes the factory, not the failure — consumers matching on it match nothing meaningful.
+- A second identity channel (structured data claiming to be the "real" code) splits the space in two, and every consumer must know which channel each producer chose.
+- A parallel error class with boundary mappers makes fidelity depend on the mapper: every field the mapper forgets — the cause chain, a meta key added later — is silently dropped at that boundary, and every new boundary needs the mapping re-derived.
+- A per-operation discriminator moves failure identity out of the shared shape entirely, so generic tooling (renderers, agents, retry logic) cannot be written once.
 
-## Consequences
-
-- `errorRuntime(code, summary, options)` requires an explicit dotted code; the type is `` `${string}.${string}` ``. All former default-code call sites name their real code.
-- `CliStructuredError` accepts `cause` and forwards it to `Error`; `toEnvelope()` never serializes it (a cause is for in-process consumers and logs, not the wire).
-- `MigrationToolsError.is()` narrows structurally (`CliStructuredError.is` + `category === 'MIGRATION'` + code prefix), so it survives duplication and plane splits like its parent.
-- The error reference (`docs/reference/error-reference.md`, enforced by `check:error-reference`) is the closed registry rule 1 writes into: a new surfaced failure adds its code and its producing site there, in the same change.
-- Adding a producing site to an existing code updates that code's reference entry (site + meta shape) in the same change — an entry that describes only some of its sites misleads the consumer the registry exists for.
+Structuring at origin also puts the why/fix where the knowledge is: the raise site knows what was being attempted and what the user can do about it; a boundary handler only knows that *something* failed.
 
 ## Alternatives considered
 
-- **A default code on the generic path** (the old `errorRuntime` hardcoding `CONTRACT.VERIFY_FAILED`) — rejected: it produced envelopes whose code contradicted the `meta.code` twelve call sites smuggled, which is the code-space split this ADR bans.
-- **Keeping `MigrationToolsError` as a parallel hierarchy with a boundary mapper** — rejected: the mapper existed only to translate shapes, dropped the cause chain, and had to be re-derived at every new boundary.
-- **Per-operation outcome enums** — rejected: they made every caller learn a second, operation-local discriminator vocabulary that duplicated what `ok` + the success payload type already state.
+- **A default code on the generic construction path** — rejected. It guarantees envelopes whose code and content disagree, and it invites raise sites to defer naming their failure, which rule 1 exists to prevent.
+- **Carrying a secondary code in structured data** — rejected: two identity channels, and consumers must learn which one each producer uses.
+- **Parallel error hierarchies bridged by boundary mappers** — rejected: mappers drop fidelity by omission and multiply with boundaries; a subclass of the one base needs no mapping at all.
+- **Per-operation outcome enums** — rejected: a second discriminator vocabulary per operation, duplicating what `ok` and the success payload type state, and opaque to shared tooling.
+- **A structured "unknown failure" code for errors that escape unnamed** — rejected: it converts bugs into expected-looking failures, hiding exactly the defects the exit-1 path is meant to surface.
