@@ -498,7 +498,11 @@ describe('ports/engines/queries/aggregation/group_by', () => {
 
         await expect(
           db.public.A.ctx.runtime.execute(query.public.a.select('string').groupBy().build()),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject({
+          name: 'StructuredError',
+          code: 'ORM.ARGUMENT_INVALID',
+          message: 'Invalid groupBy arguments',
+        });
       }),
     timeouts.spinUpPpgDev,
   );
