@@ -659,7 +659,7 @@ Using a driver, a target facade client, or the CLI control client before `connec
 
 ### DRIVER.PREPARE_FAILED
 
-A prepared statement failed again after the PostgreSQL driver discarded a stale handle and retried with a fresh handle. The normalized driver error is attached as `cause`. Meta: `handle`.
+A prepared statement failed again after the PostgreSQL driver discarded a stale handle and retried with a fresh handle. The normalized PostgreSQL error is attached as `cause`. Meta: `handle`.
 
 ## MIGRATION
 
