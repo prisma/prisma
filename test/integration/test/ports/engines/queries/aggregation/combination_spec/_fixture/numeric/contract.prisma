@@ -1,5 +1,0 @@
-model Item {
-  id    String @id
-  float Float  @map("db_float")
-  int   Int    @map("db_int")
-}
