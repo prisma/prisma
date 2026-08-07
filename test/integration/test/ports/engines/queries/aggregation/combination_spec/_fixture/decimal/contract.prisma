@@ -1,0 +1,4 @@
+model Item {
+  id  String  @id
+  dec Decimal @map("db_dec")
+}

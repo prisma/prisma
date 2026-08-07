@@ -1,0 +1,14 @@
+model A {
+  id     Int    @id
+  float  Float
+  int    Int
+  string String
+  b_id   Int?
+  b      B?     @relation(fields: [b_id], references: [id])
+}
+
+model B {
+  id     Int    @id
+  field  String
+  many_a A[]
+}
