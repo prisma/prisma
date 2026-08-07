@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { timeouts } from '../../../../../_harness/postgres';
+import { timeouts, withPostgresPort } from '../../../../../_harness/postgres';
 import type { Contract } from './_fixture/generated/contract';
 import contractJson from './_fixture/generated/contract.json' with { type: 'json' };
-import { withPostgresClient } from './with-postgres-client';
 
 describe('ports/engines/queries/filters/field-reference/having-filter', () => {
   it(
     'basic_having_filter',
     () =>
-      withPostgresClient<Contract>(contractJson, async (client) => {
+      withPostgresPort<Contract>({ contractJson }, async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, string: 'group1', string2: 'group1', int: 1, int2: 1 },
           { id: 2, string: 'group1', string2: 'group2', int: 4, int2: 2 },

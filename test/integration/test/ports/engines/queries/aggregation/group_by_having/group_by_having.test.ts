@@ -1,24 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { timeouts } from '../../../../_harness/postgres';
+import { timeouts, withPostgresPort } from '../../../../_harness/postgres';
 import type { Contract as CommonContract } from './_fixture/common/generated/contract';
 import commonContractJson from './_fixture/common/generated/contract.json' with { type: 'json' };
 import type { Contract as DecimalContract } from './_fixture/decimal/generated/contract';
 import decimalContractJson from './_fixture/decimal/generated/contract.json' with { type: 'json' };
-import { withPostgresClient } from './with-postgres-client';
 
-function withCommonGroupByHaving(fn: Parameters<typeof withPostgresClient<CommonContract>>[1]) {
-  return withPostgresClient<CommonContract>(commonContractJson, fn);
+function withCommonGroupByHaving(fn: Parameters<typeof withPostgresPort<CommonContract>>[1]) {
+  return withPostgresPort<CommonContract>({ contractJson: commonContractJson }, fn);
 }
 
-function withDecimalGroupByHaving(fn: Parameters<typeof withPostgresClient<DecimalContract>>[1]) {
-  return withPostgresClient<DecimalContract>(decimalContractJson, fn);
+function withDecimalGroupByHaving(fn: Parameters<typeof withPostgresPort<DecimalContract>>[1]) {
+  return withPostgresPort<DecimalContract>({ contractJson: decimalContractJson }, fn);
 }
 
 describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'basic_having_scalar_filter',
     () =>
-      withCommonGroupByHaving(async (client) => {
+      withCommonGroupByHaving(async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, float: 10.1, int: 5, bInt: 12n, string: 'group1' },
           { id: 2, float: 5.5, int: 0, bInt: 3n, string: 'group1' },
@@ -52,7 +51,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_count_scalar_filter',
     () =>
-      withCommonGroupByHaving(async (client) => {
+      withCommonGroupByHaving(async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, int: 1, string: 'group1' },
           { id: 2, int: 2, string: 'group1' },
@@ -103,7 +102,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_sum_scalar_filter',
     () =>
-      withCommonGroupByHaving(async (client) => {
+      withCommonGroupByHaving(async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 6, int: 6, string: 'group1' },
@@ -164,7 +163,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_min_scalar_filter',
     () =>
-      withCommonGroupByHaving(async (client) => {
+      withCommonGroupByHaving(async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 0, int: 0, string: 'group1' },
@@ -229,7 +228,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_max_scalar_filter',
     () =>
-      withCommonGroupByHaving(async (client) => {
+      withCommonGroupByHaving(async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 0, int: 0, string: 'group1' },
@@ -294,7 +293,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_count_non_numerical_field',
     () =>
-      withCommonGroupByHaving(async (client) => {
+      withCommonGroupByHaving(async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 0, int: 0, string: 'group1' },
@@ -319,7 +318,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_without_aggr_sel',
     () =>
-      withCommonGroupByHaving(async (client) => {
+      withCommonGroupByHaving(async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, float: 10, int: 10, string: 'group1' },
           { id: 2, float: 0, int: 0, string: 'group1' },
@@ -359,7 +358,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
   it(
     'having_avg_scalar_filter',
     () =>
-      withDecimalGroupByHaving(async (client) => {
+      withDecimalGroupByHaving(async ({ client }) => {
         await client.orm.public.TestModel.createAll([
           { id: 1, decimal: '10', string: 'group1' },
           { id: 2, decimal: '6', string: 'group1' },
@@ -382,7 +381,7 @@ describe('ports/engines/queries/aggregation/group_by_having', () => {
     it(
       `decimal having_${operation}_scalar_filter`,
       () =>
-        withDecimalGroupByHaving(async (client) => {
+        withDecimalGroupByHaving(async ({ client }) => {
           const values =
             operation === 'sum'
               ? [
