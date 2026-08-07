@@ -56,5 +56,5 @@ export type Simplify<TObject extends object> = DrainOuterGeneric<
  * @template U The allowed target object shape.
  */
 export type Exact<T extends object, U extends object> = DrainOuterGeneric<
-  { [K in keyof T]: K in keyof U ? T[K] : never }
+  { [K in keyof T]: K extends keyof U ? T[K] : never }
 >;
