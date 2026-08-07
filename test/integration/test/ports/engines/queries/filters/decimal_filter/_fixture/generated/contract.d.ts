@@ -27,7 +27,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'cd1f5b587f34440c39ed3184a76498e3bcb5871d03fd87dc5312853f0613d44c'>;
+  StorageHashBase<'d06c331eb9179216875b990e9e801a741b2d2f86b00bb348f180890b7964fdd0'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -144,7 +144,7 @@ export type FieldOutputTypes = {
   readonly public: {
     readonly TestModel: {
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly decimal: CodecTypes['pg/numeric@1']['output'] | null;
+      readonly decimal: Numeric<65, 30> | null;
     };
   };
 };
@@ -159,7 +159,7 @@ export type FieldInputTypes = {
 export type StorageColumnTypes = {
   readonly public: {
     readonly testModel: {
-      readonly decimal: CodecTypes['pg/numeric@1']['output'] | null;
+      readonly decimal: Numeric<65, 30> | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
     };
   };
@@ -201,6 +201,7 @@ type ContractBase = Omit<
                   readonly nativeType: 'numeric';
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: true;
+                  readonly typeRef: 'Decimal65_30';
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
@@ -210,6 +211,14 @@ type ContractBase = Omit<
             };
           };
         };
+      };
+    };
+    readonly types: {
+      readonly Decimal65_30: {
+        readonly kind: 'codec-instance';
+        readonly codecId: 'pg/numeric@1';
+        readonly nativeType: 'numeric';
+        readonly typeParams: { readonly precision: 65; readonly scale: 30 };
       };
     };
     readonly storageHash: StorageHash;
