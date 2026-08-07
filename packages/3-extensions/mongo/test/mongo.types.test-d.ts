@@ -247,10 +247,15 @@ test('MongoStaticContext.context.contract is TContract (not unknown)', () => {
   expectTypeOf<(typeof staticCtx)['context']['contract']>().toEqualTypeOf<Contract>();
 });
 
-type ExecuteRow = { id: string };
-declare const executePlan: MongoQueryPlan<ExecuteRow>;
+type QueryRow = { id: string };
+declare const queryPlan: MongoQueryPlan<QueryRow>;
 
-test('db.execute(plan) is typed AsyncIterableResult<Row>', () => {
-  const result = enumDb.execute(executePlan);
-  expectTypeOf(result).toEqualTypeOf<AsyncIterableResult<ExecuteRow>>();
+test('MongoClient has no row execute facade', () => {
+  expectTypeOf<MongoClient<Contract>>().not.toHaveProperty('execute');
+});
+
+test('db.runtime().query(plan) is typed AsyncIterableResult<Row>', async () => {
+  const runtime = await enumDb.runtime();
+  const result = runtime.query(queryPlan);
+  expectTypeOf(result).toEqualTypeOf<AsyncIterableResult<QueryRow>>();
 });

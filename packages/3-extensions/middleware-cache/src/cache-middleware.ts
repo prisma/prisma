@@ -35,8 +35,8 @@ export interface CacheMiddlewareOptions {
  * The plan-identity invariant required by this `WeakMap` correlation is
  * documented in the runtime subsystem doc and pinned by a regression
  * test: family runtimes produce a fresh, frozen `exec` per call (SQL
- * `executeStatisticsAgainstQueryable` constructs `Object.freeze({...lowered, ...})`
- * on each invocation; Mongo lowers fresh per call). If a future plan-
+ * `prepareExecution` constructs `Object.freeze({...lowered, ...})` on each
+ * invocation; Mongo lowers fresh per call). If a future plan-
  * memoization change ever recycles `exec` objects across calls, this
  * correlation would silently leak rows between concurrent executions
  * — which is exactly what the regression test catches.

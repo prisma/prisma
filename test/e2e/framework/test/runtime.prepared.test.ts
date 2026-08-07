@@ -12,7 +12,7 @@ const contractJsonPath = resolve(__dirname, 'fixtures/generated/contract.json');
 
 describe('end-to-end prepared statements (Postgres)', () => {
   it(
-    'lowers once and reuses across multiple .execute(params) calls',
+    'lowers once and reuses across multiple queryPrepared calls',
     async () => {
       await withTestRuntime<Contract>(contractJsonPath, async ({ db, client, runtime }) => {
         await client.query('insert into "user" (email) values ($1), ($2), ($3) returning id', [

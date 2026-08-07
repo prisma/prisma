@@ -454,7 +454,7 @@ describe('integration: middleware-cache against real Postgres', {
   });
 
   describe('concurrency regression', () => {
-    it('two parallel executes of the same plan do not cross-talk via the per-exec buffer', async () => {
+    it('two parallel queries of the same plan do not cross-talk via the per-exec buffer', async () => {
       const cache = createCacheMiddleware({ maxEntries: 100 });
       const runtime = buildRuntime([cache]);
       const db = sql({ context, rawCodecInferer: { inferCodec: () => 'pg/text' } });
@@ -469,7 +469,7 @@ describe('integration: middleware-cache against real Postgres', {
 
       // Two parallel executions of the same logical plan. Each
       // produces its own frozen `exec` object inside the runtime
-      // (executeStatisticsAgainstQueryable freezes per-call), and the cache
+      // (`prepareExecution` freezes per-call), and the cache
       // middleware keys its WeakMap on that identity — so the two
       // calls' miss buffers must not interfere.
       const [a, b] = await Promise.all([
@@ -487,7 +487,7 @@ describe('integration: middleware-cache against real Postgres', {
       expect(third).toEqual(a);
     });
 
-    it('parallel executes of two different plans land in distinct cache slots', async () => {
+    it('parallel queries of two different plans land in distinct cache slots', async () => {
       const cache = createCacheMiddleware({ maxEntries: 100 });
       const runtime = buildRuntime([cache]);
       const db = sql({ context, rawCodecInferer: { inferCodec: () => 'pg/text' } });

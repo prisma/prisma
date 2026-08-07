@@ -216,7 +216,7 @@ describe('integration: rawSql expression in typed builder', {
       // After lowering, the plan carries one ParamRef (value 50, codec pg/int4@1).
       // The middleware's beforeExecute should see it via params.entries().
       // fns.raw is RawSqlTag (non-optional) — callable directly as a template tag.
-      await runtime.execute(
+      const result = runtime.query(
         db.public.posts
           .select('id')
           .where((_f, fns) =>
@@ -227,6 +227,7 @@ describe('integration: rawSql expression in typed builder', {
           )
           .build(),
       );
+      await result.toArray();
 
       // The where predicate gt(rawSql`${param(50)}`, rawSql`0`) produces one ParamRef.
       // The rawSql`0` branch has no interpolations; param(50) introduces one ParamRef.
@@ -256,7 +257,7 @@ describe('integration: rawSql expression in typed builder', {
 
       // Two param() calls: param(10) and param(200).
       // The where clause: both params embedded in rawSql expressions, surfaced via gt/lt.
-      await runtime.execute(
+      const result = runtime.query(
         db.public.posts
           .select('id')
           .where((_f, fns) =>
@@ -273,6 +274,7 @@ describe('integration: rawSql expression in typed builder', {
           )
           .build(),
       );
+      await result.toArray();
 
       const int4Entries = capturedEntries.filter((e) => e.codecId === 'pg/int4@1');
       expect(int4Entries).toHaveLength(2);

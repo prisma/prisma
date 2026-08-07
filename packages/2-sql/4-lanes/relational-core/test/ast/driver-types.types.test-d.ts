@@ -1,5 +1,11 @@
 import { expectTypeOf, test } from 'vitest';
-import type { SqlDriver, SqlExecuteRequest } from '../../src/ast/driver-types';
+import type {
+  SqlConnection,
+  SqlDriver,
+  SqlExecuteRequest,
+  SqlStatementStats,
+  SqlTransaction,
+} from '../../src/ast/driver-types';
 
 type PoolBinding = { pool: { connect: () => Promise<unknown> } };
 type ClientBinding = { client: { query: (sql: string) => Promise<unknown> } };
@@ -18,32 +24,42 @@ test('SqlDriver default TBinding is void', () => {
 });
 
 test('mock driver implementing SqlDriver<TestBinding> compiles and accepts binding at connect', () => {
-  const queryable = {
-    async *execute(_request: SqlExecuteRequest): AsyncIterable<Record<string, unknown>> {
-      yield { id: 1 };
-    },
-    query: async () => ({ rows: [] as ReadonlyArray<Record<string, unknown>>, rowCount: 0 }),
-  };
+  const query = async function* <Row = Record<string, unknown>>(
+    _request: SqlExecuteRequest,
+  ): AsyncIterable<Row> {};
+  const execute = async (_request: SqlExecuteRequest): Promise<SqlStatementStats> => ({
+    affectedRows: 1,
+  });
 
-  const driver = {
-    ...queryable,
+  const transaction: SqlTransaction = {
+    query,
+    execute,
+    commit: async () => {},
+    rollback: async () => {},
+  };
+  const connection: SqlConnection = {
+    query,
+    execute,
+    beginTransaction: async () => transaction,
+    release: async () => {},
+    destroy: async (_reason?: unknown) => {},
+  };
+  const driver: SqlDriver<TestBinding> = {
+    query,
+    execute,
     connect: async (binding: TestBinding) => {
       expectTypeOf(binding).toEqualTypeOf<TestBinding>();
     },
-    acquireConnection: async () =>
-      ({
-        ...queryable,
-        release: async () => {},
-        destroy: async (_reason?: unknown) => {},
-        beginTransaction: async () => ({
-          ...queryable,
-          commit: async () => {},
-          rollback: async () => {},
-        }),
-      }) as unknown as Awaited<ReturnType<SqlDriver<TestBinding>['acquireConnection']>>,
+    acquireConnection: async () => connection,
     close: async () => {},
-  } as unknown as SqlDriver<TestBinding>;
+  };
 
+  expectTypeOf(driver.query<{ id: number }>({ sql: 'SELECT 1' })).toEqualTypeOf<
+    AsyncIterable<{ id: number }>
+  >();
+  expectTypeOf(
+    driver.execute({ sql: 'UPDATE example SET id = id' }),
+  ).resolves.toEqualTypeOf<SqlStatementStats>();
   expectTypeOf(driver.connect).toBeFunction();
   expectTypeOf(driver.connect).parameter(0).toEqualTypeOf<TestBinding>();
 });
