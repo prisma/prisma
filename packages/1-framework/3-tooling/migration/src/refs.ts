@@ -85,7 +85,7 @@ export async function readRef(refsDir: string, name: string): Promise<RefEntry> 
       throw new MigrationToolsError('MIGRATION.UNKNOWN_REF', `Unknown ref "${name}"`, {
         why: `No ref file found at "${filePath}".`,
         fix: `Create the ref with: prisma-next ref set ${name} <hash>`,
-        details: { refName: name, filePath },
+        meta: { refName: name, filePath },
       });
     }
     throw error;
@@ -263,7 +263,7 @@ export async function deleteRef(refsDir: string, name: string): Promise<void> {
       throw new MigrationToolsError('MIGRATION.UNKNOWN_REF', `Unknown ref "${name}"`, {
         why: `No ref file found at "${filePath}".`,
         fix: 'Run `prisma-next ref list` to see available refs.',
-        details: { refName: name, filePath },
+        meta: { refName: name, filePath },
       });
     }
     throw error;
@@ -327,7 +327,7 @@ export function resolveRef(refs: Refs, name: string): RefEntry {
     throw new MigrationToolsError('MIGRATION.UNKNOWN_REF', `Unknown ref "${name}"`, {
       why: `No ref named "${name}" exists.`,
       fix: `Available refs: ${Object.keys(refs).join(', ') || '(none)'}. Create a ref with: prisma-next ref set ${name} <hash>`,
-      details: { refName: name, availableRefs: Object.keys(refs) },
+      meta: { refName: name, availableRefs: Object.keys(refs) },
     });
   }
 

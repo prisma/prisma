@@ -175,7 +175,7 @@ async function executeMigrationShowCommand(
     const matched = findPackageByDirPath(packages, resolved.value);
     if (!matched) {
       return notOk(
-        errorRuntime('Migration package not found', {
+        errorRuntime('MIGRATION.PACKAGE_NOT_FOUND', 'Migration package not found', {
           why: `No loaded migration package at ${relative(process.cwd(), resolved.value)}`,
           fix: 'Pass a directory name, hash prefix, or path to an on-disk app-space migration package.',
         }),
@@ -185,7 +185,7 @@ async function executeMigrationShowCommand(
   } else {
     if (packages.length === 0) {
       return notOk(
-        errorRuntime('No migrations found', {
+        errorRuntime('MIGRATION.NO_MIGRATIONS', 'No migrations found', {
           why: `No migration packages found in ${appMigrationsRelative}`,
           fix: 'Run `prisma-next migration plan` to create a migration first.',
         }),
@@ -200,7 +200,7 @@ async function executeMigrationShowCommand(
     );
     if (!matchedPkg) {
       return notOk(
-        errorRuntime('Migration package not found', {
+        errorRuntime('MIGRATION.PACKAGE_NOT_FOUND', 'Migration package not found', {
           why: `Resolved migration "${migResult.value.dirName}" but the package was not loaded`,
           fix: 'The migrations directory may be corrupted. Inspect the migration.json files.',
         }),

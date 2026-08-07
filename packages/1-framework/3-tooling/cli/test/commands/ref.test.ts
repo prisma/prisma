@@ -230,7 +230,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
       expect(result.ok).toBe(false);
       if (result.ok) return;
       const envelope = result.failure.toEnvelope();
-      expect(envelope.meta?.['code']).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
+      expect(envelope.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
       expect(envelope.meta?.['resolvedHash']).toBe(HASH_FLOAT);
       expect(envelope.meta?.['reachableHashes']).toEqual(
         expect.arrayContaining([HASH_A, HASH_B, HASH_C]),
@@ -249,7 +249,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
       expect(result.ok).toBe(false);
       if (result.ok) return;
       const envelope = result.failure.toEnvelope();
-      expect(envelope.meta?.['code']).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
+      expect(envelope.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
       expect(envelope.why).toContain('empty');
       expect(envelope.fix).toContain('migration plan');
     } finally {
@@ -269,7 +269,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
       expect(result.ok).toBe(false);
       if (result.ok) return;
       const envelope = result.failure.toEnvelope();
-      expect(envelope.meta?.['code']).toBe('MIGRATION.REF_SET_EMPTY_SENTINEL');
+      expect(envelope.code).toBe('MIGRATION.REF_SET_EMPTY_SENTINEL');
     } finally {
       process.chdir(prev);
     }
@@ -434,7 +434,7 @@ describe('ref commands', { timeout: timeouts.databaseOperation }, () => {
       const result = await executeRefDeleteCommand('missing', { config: configPath });
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.failure.toEnvelope().meta?.['code']).toBe('MIGRATION.UNKNOWN_REF');
+      expect(result.failure.toEnvelope().code).toBe('MIGRATION.UNKNOWN_REF');
     } finally {
       process.chdir(prev);
     }

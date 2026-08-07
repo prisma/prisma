@@ -13,7 +13,6 @@ import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
 } from '@internal/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { deriveProvidedInvariants } from '@internal/migration-tools/invariants';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
@@ -31,7 +30,6 @@ import {
   errorMigrationPlanningFailed,
   errorTargetMigrationNotSupported,
   errorUnexpected,
-  mapMigrationToolsError,
 } from '../utils/cli-errors';
 import {
   addGlobalOptions,
@@ -710,9 +708,6 @@ async function executeMigrationPlanCommand(
   } catch (error) {
     if (CliStructuredError.is(error)) {
       return notOk(error);
-    }
-    if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
     }
     const message = error instanceof Error ? error.message : String(error);
     return notOk(

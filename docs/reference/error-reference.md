@@ -59,7 +59,7 @@ Reserved: `db verify` needs `db.queryRunnerFactory` in `prisma-next.config.ts` a
 
 ### CONFIG.VALIDATION_FAILED
 
-`prisma-next.config.ts` loaded but failed validation: a required field is missing or malformed. Raised by the config loader and by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`. Meta: none.
+`prisma-next.config.ts` loaded but failed validation: a required field is missing or malformed. Raised by the config loader and by framework-component resolution for fields like `frameworkComponents[]`, `frameworkComponents[].kind`/`familyId`/`targetId`, `contract.targetFamily`, and `contract.target`; also raised by contract-path resolution when `config.contract.output` is absent. Meta: none.
 
 ## CLI
 
@@ -69,7 +69,11 @@ The migration-file CLI (`prisma-next migration`) received `--config` without a p
 
 ### CLI.FILE_NOT_FOUND
 
-A file the command needs does not exist at the given path. Produced by several commands: the migration command scaffold, `migrate`, `migration plan`, `migration show`, `db sign`, `db verify`, and `ref` all raise it when the emitted `contract.json` (or another required file) is missing from the expected location. The path is carried in `where.path` rather than meta. Meta: none (`where.path` holds the file path).
+A file the command needs does not exist at the given path. Produced by several commands: the migration command scaffold, `migrate`, `migration plan`, `migration show`, `db sign`, `db verify`, and `ref` all raise it when the emitted `contract.json` (or another required file) is missing from the expected location. Most sites carry the path in `where.path`; the `migration new` contract-file site carries it in the summary text only. Meta: none.
+
+### CLI.FILE_WRITE_FAILED
+
+Writing a file failed — currently raised when `format` cannot write the formatted PSL source back to disk (e.g. the file is not writable). The underlying failure is attached as `cause`. Meta: none.
 
 ### CLI.INIT_AUTHORING_SCHEMA_PATH_MISMATCH
 
@@ -138,6 +142,14 @@ Reserved: a command was asked for a `--json` sub-format it does not support; the
 ### CLI.OUTPUT_FORMAT_CONFLICT
 
 The main CLI received mutually exclusive output flags: `--format pretty` together with `--json`. Use `--format json` or `--json` alone for JSON output. Meta: none.
+
+### CLI.PROJECT_MANIFEST_INVALID
+
+A `package.json` found while resolving the project import root is not valid JSON, or parses to something other than a JSON object. Emission reads the nearest manifest to decide which package names generated files should import; fix the manifest's JSON and re-run. The parse failure (when there is one) is attached as `cause`. Meta: `path`.
+
+### CLI.PROJECT_MANIFEST_UNREADABLE
+
+A `package.json` found while resolving the project import root exists but could not be read (e.g. a permissions failure). Absent manifests continue the walk up; a read failure stops it, because silently skipping would emit against the wrong project's dependencies. The read failure is attached as `cause`. Meta: `path`.
 
 ### CLI.UNEXPECTED
 
@@ -231,7 +243,7 @@ A Mongo variant model declares an index that conflicts with the discriminator sc
 
 ### CONTRACT.INFER_UNSUPPORTED
 
-`contract infer` met a database shape it cannot express yet: duplicate table names across schemas, a column typed by a native enum that an extension pack space already describes in another schema, or native enum adoption with content spanning multiple schemas. Meta: `tableName`, `columnName`, `schemas`.
+`contract infer` is not available: either the configured family does not implement the `PslContractInferCapable` capability (no meta at that site), or the family supports inference but the database shape cannot be expressed yet — duplicate table names across schemas, a column typed by a native enum that an extension pack space already describes in another schema, or native enum adoption with content spanning multiple schemas. Meta at the shape sites: `tableName`, `columnName`, `schemas`.
 
 ### CONTRACT.INTROSPECTION_UNSUPPORTED
 
@@ -331,7 +343,7 @@ The TypeScript contract module imports something outside the contract-source imp
 
 ### CONTRACT.SOURCE_LOAD_FAILED
 
-Bundling or evaluating the TypeScript contract module failed (esbuild bundle error, or the module threw on import). Raised by the CLI while loading a TS contract source; the underlying failure is attached as `cause`. Meta: `path`, `stage` (`bundle` or `import`).
+Loading the contract source failed: bundling or evaluating the TypeScript contract module (esbuild bundle error, or the module threw on import), the contract source provider returning a failure or a malformed result during `contract emit`, or `format` failing to read the PSL source file. The underlying failure is attached as `cause` where one exists. Meta: `path`, `stage` (`bundle` or `import`) at the TS-loader site; `diagnostics`, `issues`, `providerMeta` at the emit provider site; none at the format read site.
 
 ### CONTRACT.TABLE_AMBIGUOUS
 
@@ -355,11 +367,11 @@ The emitted contract file could not be read or parsed while computing `migration
 
 ### CONTRACT.VALIDATION_FAILED
 
-Aggregate contract validation failed: structural validation of the contract JSON (`ContractValidationError` with a `phase` of structural/domain/storage), semantic validation during `buildContract`, or storage/model validators rejecting the built contract. Raised at emit/authoring time and whenever a contract is loaded and validated. Meta: `errors` (aggregate site); the error class also carries `phase`.
+Aggregate contract validation failed: structural validation of the contract JSON (`ContractValidationError` with a `phase` of structural/domain/storage), semantic validation during `buildContract`, or storage/model validators rejecting the built contract. Raised at emit/authoring time and whenever a contract is loaded and validated. Also raised by `migration new` when the emitted contract has no `storageHash`; that site has no meta. Meta: `errors` (aggregate site); the error class also carries `phase`.
 
 ### CONTRACT.VERIFY_FAILED
 
-The generic control-plane failure code (`errorRuntime`) used when a CLI operation fails without a more specific code: database connection failures in control drivers, failure to resolve the contract source, contract-source read/write failures during `format`, a resolved hash missing from the migration graph, and similar. Message and fix text vary per site. Meta: varies per site.
+`db verify` failed for a reason the verify result did not classify under a more specific code (marker, target, or schema-verification codes). The summary carries the verify result's own text. Meta: none.
 
 ### CONTRACT.WIRE_NAME_PREFIX_TOO_LONG
 
@@ -373,7 +385,7 @@ An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds th
 
 ### PSL.PARSE_FAILED
 
-`format()` was asked to format PSL source that has parse errors; formatting refuses to run on an unparseable document. The message carries the first diagnostic and a count of the rest; the CLI `format` command wraps this into a structured failure telling the user to fix the parse errors. Meta: `diagnostics`.
+`format()` was asked to format PSL source that has parse errors; formatting refuses to run on an unparseable document. The message carries the first diagnostic and a count of the rest; the CLI `format` command wraps this into a structured failure telling the user to fix the parse errors, attaching the parser error as `cause`. Meta: `diagnostics`.
 
 ## ORM
 
@@ -505,11 +517,11 @@ A lane terminal (SQL DSL `.build()`, ORM collection terminal) received an annota
 
 ### RUNTIME.AST_INVALID
 
-A lowered SQL AST is structurally invalid at render time: a subquery projecting other than one column, an INSERT with zero rows, a missing column value, an empty onConflict column list or do-update-set, an UPDATE with no SET assignments, or an INSERT target table absent from contract storage. Raised by the Postgres and SQLite SQL renderers. Meta: `node`, `table`, `column`.
+A lowered SQL AST is structurally invalid: a subquery projecting other than one column, an INSERT with zero rows, a missing column value, an empty onConflict column list or do-update-set, an UPDATE with no SET assignments, an INSERT target table absent from contract storage, or an AST node constructed with invalid arguments (empty FunctionSource column aliases, a CaseExpr with no branches). Raised by the Postgres and SQLite SQL renderers and by AST node construction in relational-core. Meta: `node`, `table`, `column`; construction sites carry node-specific fields.
 
 ### RUNTIME.AST_UNSUPPORTED
 
-The authored SQL AST uses a feature this target cannot render — currently DEFAULT as a value in INSERT … VALUES on SQLite. Meta: `node`.
+The authored SQL AST uses a feature this target cannot render — e.g. DEFAULT as a value in INSERT … VALUES, WITH ORDINALITY on function sources, or returned-column aliases on function sources, all on SQLite. Raised by the target adapters' renderers. Meta: `node` (INSERT DEFAULT site); `target`, `feature` (function-source sites).
 
 ### RUNTIME.BINDING_INVALID
 
@@ -518,6 +530,14 @@ A target facade client (`@internal/postgres`, `@internal/sqlite`, `@internal/mon
 ### RUNTIME.BINDING_MISSING
 
 A target facade client was asked to connect with no binding at all (no connection string, no environment fallback). Meta: `expected`.
+
+### RUNTIME.CODEC_DESCRIPTOR_ARRAY_UNSUPPORTED
+
+A codec projection used `CodecRef.many` against a SQLite codec descriptor — SQLite has no stored scalar-array codec protocol, so projecting the whole stored array would be ambiguous. Use a scalar CodecRef or an explicit target representation. Meta: `codecId`.
+
+### RUNTIME.CODEC_DESCRIPTOR_INVALID
+
+A codec descriptor handed to a target codec-descriptor registry (Postgres, SQLite) is not a valid descriptor for that target: wrong discriminant, missing target descriptor methods, or a malformed params schema. Extend the target's descriptor class or adapt a generic descriptor with the target's wrapper (`postgresCodec()` / `sqliteCodec()`). Meta: `codecId`.
 
 ### RUNTIME.CODEC_DESCRIPTOR_MISSING
 
@@ -563,7 +583,7 @@ Two authoring contributions register the same discriminator key — the same `en
 
 ### RUNTIME.DUPLICATE_CODEC
 
-Two runtime stack contributors (target pack, extension packs) register a codec with the same id while the SQL context or Mongo execution stack collects codecs. Remove the duplicate contribution. Meta: `codecId`; on the Mongo path also `existingOwner`, `incomingOwner`.
+Two runtime stack contributors (target pack, extension packs) register a codec with the same id — while the SQL context or Mongo execution stack collects codecs, or while a target codec-descriptor registry (Postgres, SQLite) is composed. Remove the duplicate contribution. Meta: `codecId`; on the Mongo path also `existingOwner`, `incomingOwner`; on the target registry path also `target`.
 
 ### RUNTIME.DUPLICATE_MUTATION_DEFAULT_GENERATOR
 
@@ -656,6 +676,10 @@ A parameterized codec's `paramsSchema` rejected the `typeParams` carried by a co
 ### DRIVER.ALREADY_CONNECTED
 
 Calling `connect(binding)` on a driver — or `connect()` on a target facade client (Postgres, SQLite, Mongo) or the CLI control client — that is already connected. Close with `close()` before reconnecting with a new binding. Meta: `bindingKind`.
+
+### DRIVER.CONNECTION_FAILED
+
+A control-plane driver could not establish a database connection (`driver.create(url)` in the SQLite, Postgres, and Mongo control drivers). The `why` carries the underlying driver message and the original error is attached as `cause`; connection URLs in meta are redacted. Meta: `path` (SQLite); `sqlState` plus redacted URL fields (Postgres); redacted URL fields (Mongo).
 
 ### DRIVER.NOT_CONNECTED
 
@@ -753,7 +777,7 @@ A `migration check` failure row: a migration's `from` hash is not produced by an
 
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 
-A contract snapshot on disk was found but failed to deserialize into a valid contract while migration tooling resolved a contract at a ref or hash. Re-emit the owning migration package or restore it from version control. Meta: `filePath`, `message`.
+A contract snapshot on disk was found but failed to deserialize into a valid contract while migration tooling resolved a contract at a ref or hash. Re-emit the owning migration package or restore it from version control. Meta: `filePath`, `message`. Also raised by `migration new` when the emitted `contract.json` fails to deserialize; that site has no meta and attaches the deserialization failure as `cause`.
 
 ### MIGRATION.CONTRACT_SNAPSHOT_HASH_MISMATCH
 
@@ -829,7 +853,7 @@ A migration package on disk is corrupt: the `migrationHash` stored in `migration
 
 ### MIGRATION.HASH_NOT_IN_GRAPH
 
-A contract hash the user supplied (or that a ref resolved to) is not a node in the on-disk migration graph — raised during plan resolution (`migration plan --from`) and `ref set`. The envelope lists the reachable hashes and suggests a valid one or running `migration plan` to introduce it. Meta: `hash`/`resolvedHash`, `reachableHashes` or `reachableRefs`, sometimes `graphTipHash`.
+A contract hash the user supplied (or that a ref resolved to) is not a node in the on-disk migration graph — raised during plan resolution (`migration plan --from`), `ref set`, and `migration new --from`. The envelope lists the reachable hashes and suggests a valid one or running `migration plan` to introduce it. Meta: `hash`/`resolvedHash`, `reachableHashes` or `reachableRefs`, sometimes `graphTipHash`; none at the `migration new` site.
 
 ### MIGRATION.INVALID_DEFAULT_EXPORT
 
@@ -907,13 +931,21 @@ Runner-level failure during apply: the plan asserts an origin contract, but the 
 
 A diagnostic in `migration status`: the active ref requires data invariants that the database marker does not record as provided. If no path through the graph can supply them, status escalates to `MIGRATION.NO_INVARIANT_PATH`. Meta: `ref` (when a ref is active), `invariants` (the missing ids).
 
+### MIGRATION.NO_CHANGES
+
+`migration new` found the from and to contract hashes identical — there is nothing to migrate. Change the contract and re-run `prisma-next contract emit` first, or pass `--from <hash>` explicitly to author a data-only migration on the current contract hash. Meta: none.
+
 ### MIGRATION.NO_INITIAL_MIGRATION
 
 While reconstructing the migration graph, no migration starts from the empty contract state, so the history has no entry point. Usually indicates corrupted `migration.json` files. Meta: `nodes` (known hashes).
 
 ### MIGRATION.NO_INVARIANT_PATH
 
-The target (or named ref) requires data invariants, and no path through the migration graph from the current state covers all of them. Add a migration on the path that runs a `dataTransform` with each missing `invariantId`, or retarget the ref. Meta: `required`, `missing`, `structuralPath` (edges: `dirName`, `migrationHash`, `from`, `to`, `invariants`), `refName` (when applicable).
+The target (or named ref) requires data invariants, and no path through the migration graph from the current state covers all of them. Add a migration on the path that runs a `dataTransform` with each missing `invariantId`, or retarget the ref. Meta: `required`, `missing`, `structuralPath` (edges: `dirName`, `migrationHash`, `from`, `to`, `invariants`), `refName` (when applicable). Also raised per space by `migrate` in show/plan mode when a space's path requires invariants not available on disk; that site's meta is `spaceId`, `missing`.
+
+### MIGRATION.NO_MIGRATIONS
+
+`migration show` was given a non-path reference but the app space has no migration packages at all, so there is nothing to resolve against. Create a migration with `prisma-next migration plan` first. Meta: none.
 
 ### MIGRATION.NO_TARGET
 
@@ -923,9 +955,13 @@ The migration history contains cycles (e.g. after a rollback migration C1→C2�
 
 A Mongo migration check uses a filter feature the check evaluator does not support — an unsupported filter operator, or an aggregation-expression filter. Meta: `operator`.
 
+### MIGRATION.PACKAGE_NOT_FOUND
+
+`migration show` resolved its target (a directory path, or a migration reference) but no loaded on-disk migration package matches it — either no package lives at the given path, or the resolved migration's package failed to load. Pass a directory name, hash prefix, or path to an on-disk app-space migration package, or inspect the migrations directory for corruption. Meta: none.
+
 ### MIGRATION.PATH_UNREACHABLE
 
-An apply command (`migrate`/`db update`) cannot find a path through the on-disk migration graph from the database's current marker to the requested target — the connecting edge was never planned. The fix walks you through `migration plan` (with the right `--from`/`--to`) then `migrate`. Meta: carries the underlying failure's meta (`fromHash`, `targetHash`, `deadEnds`, `kind`) plus the code.
+An apply command (`migrate`/`db update`) cannot find a path through the on-disk migration graph from the database's current marker to the requested target — the connecting edge was never planned. The fix walks you through `migration plan` (with the right `--from`/`--to`) then `migrate`. Meta: carries the underlying failure's meta (`fromHash`, `targetHash`, `deadEnds`, `kind`).
 
 ### MIGRATION.PLANNING_FAILED
 
@@ -955,6 +991,18 @@ Before executing a migration operation, one of its precheck steps (a query expec
 
 The `providedInvariants` stored in `migration.json` disagrees with the canonical value derived from `ops.json` — the manifest was likely hand-edited without re-emitting (a same-ids-different-order case is called out explicitly). Re-emit the package. Meta: `filePath`, `stored`, `derived`, `difference` (`{missing, extra}`).
 
+### MIGRATION.REF_AMBIGUOUS
+
+A contract or migration reference prefix matches more than one candidate (raised by the shared ref-resolution mapper used across CLI commands). Provide a longer prefix or the full hash. Meta: `input`, `candidates`, `grammar`.
+
+### MIGRATION.REF_INVALID_FORMAT
+
+A contract or migration reference is syntactically invalid — it is not a hash, ref name, or migration directory name in any accepted form (raised by the shared ref-resolution mapper). Meta: `input`.
+
+### MIGRATION.REF_NOT_FOUND
+
+A contract or migration reference does not resolve: no matching hash, ref name, or migration directory name exists in the migration graph or refs index (raised by the shared ref-resolution mapper used across CLI commands). Meta: `input`, `grammar`.
+
 ### MIGRATION.REF_NOT_RESOLVABLE
 
 A ref name resolves to nothing: no pointer file with that name exists, and the fallback hash is not a node in the migration graph either, so there is no contract to materialize. Create the ref with `ref set`, advance it via `db update --advance-ref`, or pass a graph-node hash. Meta: `refName`, `identifier`.
@@ -967,9 +1015,13 @@ A ref name resolves to nothing: no pointer file with that name exists, and the f
 
 `ref set` was asked to point a ref at the empty-database sentinel hash, which is a planner internal and not a valid ref target. Use a real contract hash from the migration graph. Meta: `hash`.
 
+### MIGRATION.REF_WRONG_GRAMMAR
+
+A reference parsed, but as the wrong kind for the argument position — e.g. a migration-only reference where a contract reference is required (raised by the shared ref-resolution mapper). The message and fix come from the resolver's own diagnosis. Meta: `input`, `expectedGrammar`.
+
 ### MIGRATION.RUNNER_FAILED
 
-Generic wrapper for a migration runner failure during execution that has no more specific code; the summary/why carry the underlying detail (also used to surface the legacy-marker-shape condition from marker reads, with `meta.runnerErrorCode`). Inspect the reported conflict and reconcile schema drift.
+Generic wrapper for a migration runner failure during execution that has no more specific code; the summary/why carry the underlying detail (also used to surface the legacy-marker-shape condition from marker reads, with `meta.runnerErrorCode`). `migrate` and `db init` map unrecognized apply failures through it, passing the failure's own meta through unchanged. Inspect the reported summary/why detail and address the underlying failure before re-running the command. Meta: the wrapped failure's meta, when it has any; `runnerErrorCode` at the legacy-marker-shape site.
 
 ### MIGRATION.SAME_SOURCE_AND_TARGET
 
@@ -981,7 +1033,7 @@ After applying migrations, the runner introspected the database and the resultin
 
 ### MIGRATION.SNAPSHOT_MISSING
 
-A `--from` reference cannot produce a contract: either a ref name has no pointer file and the fallback hash is not a graph node (`viaRef: true`), or an explicit `--from <hash>` was given on an empty migration graph and names no ref (`viaRef: false`). Meta: `identifier`, `viaRef`.
+A `--from` reference cannot produce a contract: either a ref name has no pointer file and the fallback hash is not a graph node (`viaRef: true`), or an explicit `--from <hash>` was given on an empty migration graph and names no ref (`viaRef: false`). Meta: `identifier`, `viaRef`. Also raised by `db sign` when a contract reference resolves to a hash but no migration produces that hash and the emitted contract does not match; that site has no meta.
 
 ### MIGRATION.SPACE_NOT_FOUND
 
@@ -994,6 +1046,10 @@ SQLite twin of `MIGRATION.POSTGRES_CONTROL_STACK_MISSING`: a `SqliteMigration` o
 ### MIGRATION.TARGET_MISMATCH
 
 A migration script declares one `targetId` but the loaded `prisma-next.config.ts` declares another; the script can only run against a config targeting the same database. Switch configs or pass `--config <path>`. Meta: `migrationTargetId`, `configTargetId`.
+
+### MIGRATION.TARGET_NOT_APP_SPACE
+
+A filesystem-path target given to a migration command does not resolve to an app-space migration directory — it points outside the app space's migrations directory, or at that directory's root itself. Pass an app-space migration directory or use a hash prefix. Meta: none.
 
 ### MIGRATION.TARGET_UNSUPPORTED
 

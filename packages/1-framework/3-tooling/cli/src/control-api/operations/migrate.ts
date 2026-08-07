@@ -291,6 +291,7 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       summary: applied.failure.summary,
       why: applied.failure.why,
       meta: applied.failure.meta,
+      ...ifDefined('cause', applied.failure.cause),
     };
     return notOk(failure);
   }

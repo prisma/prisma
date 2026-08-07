@@ -97,7 +97,10 @@ function mapVerifyFailure(verifyResult: VerifyDatabaseResult): CliStructuredErro
     }
     // Unknown code - fall through to runtime error
   }
-  return errorRuntime(verifyResult.summary);
+  return errorRuntime('CONTRACT.VERIFY_FAILED', verifyResult.summary, {
+    why: 'Verification failed',
+    fix: 'Check contract and database state',
+  });
 }
 
 type DbVerifyFailure = CliStructuredError | CombinedVerifyResult;

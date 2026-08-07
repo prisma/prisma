@@ -19,7 +19,6 @@ import {
   errorMigrationPlanningFailed,
   errorRunnerFailed,
   errorUnexpected,
-  mapMigrationToolsError,
   mapRefResolutionError,
 } from '../utils/cli-errors';
 import type { MigrationCommandOptions } from '../utils/command-helpers';
@@ -81,6 +80,7 @@ function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError {
           ? { plannerWarnings: failure.warnings }
           : {}),
       },
+      ...ifDefined('cause', failure.cause),
     });
   }
 
@@ -154,9 +154,6 @@ async function executeDbUpdateCommand(
         'contract.json',
       );
     } catch (error) {
-      if (MigrationToolsError.is(error)) {
-        return notOk(mapMigrationToolsError(error));
-      }
       if (CliStructuredError.is(error)) {
         return notOk(error);
       }
@@ -208,7 +205,7 @@ async function executeDbUpdateCommand(
         });
       } catch (error) {
         if (MigrationToolsError.is(error)) {
-          return notOk(mapMigrationToolsError(error));
+          return notOk(error);
         }
         throw error;
       }

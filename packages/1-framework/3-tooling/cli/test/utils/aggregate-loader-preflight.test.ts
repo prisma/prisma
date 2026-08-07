@@ -5,7 +5,7 @@
  * `buildReadAggregate`'s terminal catch guards the whole pre-flight assembly
  * (family construction + the on-disk refs / migration-package reads). The
  * property pinned here is its classification contract: a `MigrationToolsError`
- * maps via `mapMigrationToolsError`; any other throw becomes `errorUnexpected`.
+ * passes through unchanged; any other throw becomes `errorUnexpected`.
  * Either way the call resolves to a `Result` — it never propagates.
  *
  * The failure is injected through a dependency the function consumes —
@@ -61,7 +61,7 @@ describe('buildReadAggregate — pre-flight loading failures return a structured
     expect(result.failure.why).toContain('EACCES');
   });
 
-  it('maps a MigrationToolsError thrown during pre-flight assembly via mapMigrationToolsError', async () => {
+  it('passes a MigrationToolsError thrown during pre-flight assembly straight through', async () => {
     const toolsError = errorInvalidJson(
       '/nonexistent/migrations/app/refs/head.json',
       'Unexpected end of JSON input',
@@ -75,10 +75,8 @@ describe('buildReadAggregate — pre-flight loading failures return a structured
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    // Mapped via mapMigrationToolsError (errorRuntime envelope), not errorUnexpected.
-    expect(result.failure.code).toBe('CONTRACT.VERIFY_FAILED');
-    expect(result.failure.message).toBe(toolsError.message);
-    expect(result.failure.why).toBe(toolsError.why);
-    expect(result.failure.meta?.['code']).toBe(toolsError.code);
+    // Passed through unchanged (the error is itself a CliStructuredError), not errorUnexpected.
+    expect(result.failure).toBe(toolsError);
+    expect(result.failure.code).toBe('MIGRATION.INVALID_JSON');
   });
 });

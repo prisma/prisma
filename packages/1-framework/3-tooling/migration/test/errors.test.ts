@@ -1,5 +1,45 @@
+import { CliStructuredError } from '@internal/errors/control';
 import { describe, expect, it } from 'vitest';
-import { errorNoInvariantPath, errorUnknownInvariant, MigrationToolsError } from '../src/errors';
+import {
+  errorAmbiguousTarget,
+  errorBundleNotFoundForGraphNode,
+  errorContractDeserializationFailed,
+  errorContractSnapshotHashMismatch,
+  errorContractSnapshotMissing,
+  errorDescribeInvalidMetadata,
+  errorDescribeMissingEndContract,
+  errorDescriptorHeadHashMismatch,
+  errorDirectoryExists,
+  errorDuplicateInvariantInEdge,
+  errorDuplicateMigrationHash,
+  errorDuplicateSpaceId,
+  errorHashNotInGraph,
+  errorInvalidDestName,
+  errorInvalidInvariantId,
+  errorInvalidJson,
+  errorInvalidManifest,
+  errorInvalidOperationEntry,
+  errorInvalidRefFile,
+  errorInvalidRefName,
+  errorInvalidRefs,
+  errorInvalidRefValue,
+  errorInvalidSlug,
+  errorInvalidSpaceId,
+  errorMigrationContractViewMissing,
+  errorMigrationHashMismatch,
+  errorMissingFile,
+  errorNoInitialMigration,
+  errorNoInvariantPath,
+  errorNoTarget,
+  errorOperationsNotArray,
+  errorProvidedInvariantsMismatch,
+  errorRefNotResolvable,
+  errorSameSourceAndTarget,
+  errorSpaceHeadRefMissing,
+  errorUnknownInvariant,
+  MigrationToolsError,
+} from '../src/errors';
+import type { MigrationGraph } from '../src/graph';
 
 describe('errorNoInvariantPath', () => {
   const baseStructural = [
@@ -23,36 +63,36 @@ describe('errorNoInvariantPath', () => {
     expect(err.category).toBe('MIGRATION');
   });
 
-  it('puts required, missing, and structuralPath on details', () => {
+  it('puts required, missing, and structuralPath on meta', () => {
     const err = errorNoInvariantPath({
       required: ['X', 'Y'],
       missing: ['Y'],
       structuralPath: baseStructural,
     });
-    expect(err.details).toMatchObject({
+    expect(err.meta).toMatchObject({
       required: ['X', 'Y'],
       missing: ['Y'],
       structuralPath: baseStructural,
     });
   });
 
-  it('includes refName on details when provided', () => {
+  it('includes refName on meta when provided', () => {
     const err = errorNoInvariantPath({
       refName: 'prod',
       required: ['X'],
       missing: ['X'],
       structuralPath: baseStructural,
     });
-    expect(err.details?.['refName']).toBe('prod');
+    expect(err.meta?.['refName']).toBe('prod');
   });
 
-  it('omits refName from details when not provided', () => {
+  it('omits refName from meta when not provided', () => {
     const err = errorNoInvariantPath({
       required: ['X'],
       missing: ['X'],
       structuralPath: baseStructural,
     });
-    expect(err.details).not.toHaveProperty('refName');
+    expect(err.meta).not.toHaveProperty('refName');
   });
 
   it('quotes the missing ids in the why message so a typo is readable', () => {
@@ -96,7 +136,7 @@ describe('errorNoInvariantPath', () => {
       missing: ['X'],
       structuralPath: baseStructural,
     });
-    const path = err.details?.['structuralPath'] as readonly Record<string, unknown>[];
+    const path = err.meta?.['structuralPath'] as readonly Record<string, unknown>[];
     expect(path).toHaveLength(1);
     expect(Object.keys(path[0]!).sort()).toEqual([
       'dirName',
@@ -119,24 +159,24 @@ describe('errorUnknownInvariant', () => {
     expect(err.category).toBe('MIGRATION');
   });
 
-  it('puts unknown and declared on details', () => {
+  it('puts unknown and declared on meta', () => {
     const err = errorUnknownInvariant({
       unknown: ['typo-id'],
       declared: ['real-id-1', 'real-id-2'],
     });
-    expect(err.details).toMatchObject({
+    expect(err.meta).toMatchObject({
       unknown: ['typo-id'],
       declared: ['real-id-1', 'real-id-2'],
     });
   });
 
-  it('includes refName on details when provided', () => {
+  it('includes refName on meta when provided', () => {
     const err = errorUnknownInvariant({
       refName: 'prod',
       unknown: ['x'],
       declared: [],
     });
-    expect(err.details?.['refName']).toBe('prod');
+    expect(err.meta?.['refName']).toBe('prod');
   });
 
   it('quotes unknown ids in the why message so a typo is readable', () => {
@@ -153,5 +193,96 @@ describe('errorUnknownInvariant', () => {
       declared: [],
     });
     expect(err.fix).toMatch(/typo|attest/i);
+  });
+});
+
+describe('MigrationToolsError base type', () => {
+  const graph = { nodes: new Set(['aaa']) } as unknown as MigrationGraph;
+
+  const structuralEdge = {
+    dirName: '20260424T0900_add_posts_table',
+    migrationHash: 'mh:abc',
+    from: 'empty',
+    to: 'a94b',
+    invariants: [],
+  };
+
+  const factoryInstances: ReadonlyArray<MigrationToolsError> = [
+    errorDirectoryExists('/tmp/m/20260101_init'),
+    errorMissingFile('ops.json', '/tmp/m/20260101_init'),
+    errorInvalidJson('/tmp/m/20260101_init/migration.json', 'Unexpected token'),
+    errorInvalidManifest('/tmp/m/20260101_init/migration.json', 'missing to'),
+    errorDescribeMissingEndContract(),
+    errorDescribeInvalidMetadata('bad shape'),
+    errorOperationsNotArray(),
+    errorSpaceHeadRefMissing('app'),
+    errorInvalidOperationEntry(0, 'missing id'),
+    errorInvalidSlug('!!!'),
+    errorInvalidDestName('../outside.json'),
+    errorInvalidSpaceId('Bad Space'),
+    errorDescriptorHeadHashMismatch({
+      extensionId: 'ext',
+      recomputedHash: 'a'.repeat(64),
+      headRefHash: 'b'.repeat(64),
+    }),
+    errorDuplicateSpaceId('app'),
+    errorSameSourceAndTarget('/tmp/m/20260101_init', 'a'.repeat(64)),
+    errorAmbiguousTarget(['aaa', 'bbb']),
+    errorNoInitialMigration(['aaa']),
+    errorInvalidRefs('/tmp/m/refs.json', 'not an object'),
+    errorInvalidRefFile('/tmp/m/refs/prod.json', 'not an object'),
+    errorInvalidRefName('BAD NAME'),
+    errorNoTarget(['aaa']),
+    errorInvalidRefValue('not-a-hash'),
+    errorDuplicateMigrationHash('mh:abc'),
+    errorInvalidInvariantId('has a space'),
+    errorDuplicateInvariantInEdge('shared'),
+    errorProvidedInvariantsMismatch('/tmp/m/20260101_init/migration.json', ['a'], ['b']),
+    errorNoInvariantPath({ required: ['x'], missing: ['x'], structuralPath: [structuralEdge] }),
+    errorUnknownInvariant({ unknown: ['x'], declared: [] }),
+    errorMigrationHashMismatch('/tmp/m/20260101_init', 'a'.repeat(64), 'b'.repeat(64)),
+    errorRefNotResolvable('prod'),
+    errorBundleNotFoundForGraphNode('a'.repeat(64)),
+    errorContractDeserializationFailed('/tmp/m/snapshots/x/contract.json', 'bad shape'),
+    errorHashNotInGraph('bbb', graph),
+    errorContractSnapshotMissing('a'.repeat(64), '/tmp/m/snapshots/x/contract.json'),
+    errorContractSnapshotHashMismatch('a'.repeat(64), 'b'.repeat(64), '/tmp/m/snapshots/x'),
+    errorMigrationContractViewMissing('MyMigration', 'endContract', 'endContractJson'),
+  ];
+
+  it('is a CliStructuredError and keeps the parent name for boundary duck-typing', () => {
+    const err = errorDirectoryExists('/tmp/m/20260101_init');
+    expect(err).toBeInstanceOf(CliStructuredError);
+    expect(err.name).toBe('CliStructuredError');
+    expect(CliStructuredError.is(err)).toBe(true);
+    expect(MigrationToolsError.is(err)).toBe(true);
+  });
+
+  it('exposes toEnvelope() with code, summary, why, fix, and meta', () => {
+    const err = errorDirectoryExists('/tmp/m/20260101_init');
+    expect(err.toEnvelope()).toEqual({
+      ok: false,
+      code: 'MIGRATION.DIR_EXISTS',
+      severity: 'error',
+      summary: 'Migration directory already exists',
+      why: err.why,
+      fix: err.fix,
+      meta: { dir: '/tmp/m/20260101_init' },
+    });
+  });
+
+  it('is() rejects a plain CliStructuredError outside the MIGRATION namespace', () => {
+    const err = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Config file not found');
+    expect(MigrationToolsError.is(err)).toBe(false);
+  });
+
+  it('no factory passes identical why and fix, so the parent never drops fix', () => {
+    // `CliStructuredError` normalizes `fix` to undefined when it equals
+    // `why`; the `declare` narrows on this class assume that never fires.
+    for (const err of factoryInstances) {
+      expect(err.why).toBeTypeOf('string');
+      expect(err.fix).toBeTypeOf('string');
+      expect(err.fix).not.toBe(err.why);
+    }
   });
 });

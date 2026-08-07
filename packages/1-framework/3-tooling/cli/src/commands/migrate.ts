@@ -28,10 +28,10 @@ import {
   errorFileNotFound,
   errorMarkerMismatch,
   errorPathUnreachable,
+  errorRunnerFailed,
   errorRuntime,
   errorTargetMigrationNotSupported,
   errorUnexpected,
-  mapMigrationToolsError,
   mapRefResolutionError,
   requireLiveDatabase,
 } from '../utils/cli-errors';
@@ -190,7 +190,7 @@ async function executeMigrateShowCommand(
     allRefs = await readRefs(refsDir);
   } catch (error) {
     if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
+      return notOk(error);
     }
     throw error;
   }
@@ -342,9 +342,6 @@ async function executeMigrateShowCommand(
       if (CliStructuredError.is(error)) {
         return notOk(error);
       }
-      if (MigrationToolsError.is(error)) {
-        return notOk(mapMigrationToolsError(error));
-      }
       return notOk(
         errorUnexpected(error instanceof Error ? error.message : String(error), {
           why: `Failed to read live DB marker: ${error instanceof Error ? error.message : String(error)}`,
@@ -409,9 +406,15 @@ async function executeMigrateShowCommand(
     }
     if (outcome.kind === 'unsatisfiable') {
       return notOk(
-        errorRuntime(`Missing required invariants for space "${outcome.spaceId}"`, {
-          why: `The path requires invariants not available on disk: ${outcome.missing.join(', ')}`,
-        }),
+        errorRuntime(
+          'MIGRATION.NO_INVARIANT_PATH',
+          `Missing required invariants for space "${outcome.spaceId}"`,
+          {
+            why: `The path requires invariants not available on disk: ${outcome.missing.join(', ')}`,
+            fix: 'Add a migration on the path that runs `dataTransform({ invariantId: "<id>", … })` for each missing invariant, or retarget the ref to a hash whose path already provides them.',
+            meta: { spaceId: outcome.spaceId, missing: [...outcome.missing] },
+          },
+        ),
       );
     }
 
@@ -580,10 +583,11 @@ function mapApplyFailure(failure: MigrateFailure): CliStructuredErrorType {
   if (failure.code === 'MIGRATION_PATH_NOT_FOUND') {
     return errorPathUnreachable(failure);
   }
-  return errorRuntime(failure.summary, {
+  return errorRunnerFailed(failure.summary, {
     why: failure.why ?? 'Migration runner failed',
     fix: 'Fix the issue and re-run `prisma-next migrate --to <contract>` — previously applied migrations are preserved.',
     meta: failure.meta ?? {},
+    ...ifDefined('cause', failure.cause),
   });
 }
 
@@ -763,13 +767,11 @@ async function executeMigrateCommand(
       const unknown = refEntry.invariants.filter((id) => !known.has(id));
       if (unknown.length > 0) {
         return notOk(
-          mapMigrationToolsError(
-            errorUnknownInvariant({
-              ...ifDefined('refName', toArg),
-              unknown,
-              declared: [...declared].sort(),
-            }),
-          ),
+          errorUnknownInvariant({
+            ...ifDefined('refName', toArg),
+            unknown,
+            declared: [...declared].sort(),
+          }),
         );
       }
     }
@@ -835,7 +837,7 @@ async function executeMigrateCommand(
         );
       } catch (error) {
         if (MigrationToolsError.is(error)) {
-          return notOk(mapMigrationToolsError(error));
+          return notOk(error);
         }
         throw error;
       }
@@ -856,9 +858,6 @@ async function executeMigrateCommand(
   } catch (error) {
     if (CliStructuredError.is(error)) {
       return notOk(error);
-    }
-    if (MigrationToolsError.is(error)) {
-      return notOk(mapMigrationToolsError(error));
     }
     return notOk(
       errorUnexpected(error instanceof Error ? error.message : String(error), {

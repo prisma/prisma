@@ -73,6 +73,27 @@ describe('CliStructuredError', () => {
     expect(envelope.summary).toBe('Test error');
   });
 
+  it('sets cause when provided', () => {
+    const cause = new Error('underlying failure');
+    const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error', { cause });
+
+    expect(error.cause).toBe(cause);
+  });
+
+  it('omits cause as an own property when not provided', () => {
+    const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error');
+
+    expect(Object.hasOwn(error, 'cause')).toBe(false);
+  });
+
+  it('envelope carries no cause key', () => {
+    const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error', {
+      cause: new Error('underlying failure'),
+    });
+
+    expect(Object.keys(error.toEnvelope())).not.toContain('cause');
+  });
+
   it('normalizes fix when fix equals why', () => {
     const error = new CliStructuredError('CONFIG.FILE_NOT_FOUND', 'Test error', {
       why: 'Same message',
@@ -445,5 +466,16 @@ describe('Generic Error', () => {
     });
     expect(error.why).toBe('Custom why');
     expect(error.fix).toBe('Custom fix');
+  });
+
+  it('errorUnexpected forwards cause', () => {
+    const cause = new Error('underlying failure');
+    const error = errorUnexpected('Unexpected error occurred', { cause });
+    expect(error.cause).toBe(cause);
+  });
+
+  it('errorUnexpected without cause leaves no own cause property', () => {
+    const error = errorUnexpected('Unexpected error occurred');
+    expect(Object.hasOwn(error, 'cause')).toBe(false);
   });
 });

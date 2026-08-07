@@ -26,7 +26,6 @@ import {
   errorRefSetHashNotInGraph,
   errorRuntime,
   errorUnexpected,
-  mapMigrationToolsError,
   mapRefResolutionError,
 } from '../utils/cli-errors';
 import {
@@ -60,13 +59,13 @@ interface RefListResult {
 
 function mapError(error: unknown): CliStructuredError {
   if (MigrationToolsError.is(error)) {
-    return mapMigrationToolsError(error);
+    return error;
   }
   return errorUnexpected(error instanceof Error ? error.message : String(error));
 }
 
 function cliErrorInvalidRefName(name: string): CliStructuredError {
-  return errorRuntime(`Invalid ref name "${name}"`, {
+  return errorRuntime('MIGRATION.INVALID_REF_NAME', `Invalid ref name "${name}"`, {
     why: `Ref name "${name}" does not match the required format`,
     fix: 'Ref names must be lowercase alphanumeric with hyphens or forward slashes, no `.` or `..` segments',
   });

@@ -555,9 +555,10 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     const applyFail = await migrationApply(ctx, ['--to', 'prod', '--json']);
     expect(applyFail.exitCode, 'Mongo-P.04: apply exits 2').toBe(2);
     const applyEnvelope = parseJsonOutput<{
-      meta?: { code?: string; unknown?: readonly string[]; declared?: readonly string[] };
+      code?: string;
+      meta?: { unknown?: readonly string[]; declared?: readonly string[] };
     }>(applyFail);
-    expect(applyEnvelope.meta?.code, 'Mongo-P.04: error code').toBe('MIGRATION.UNKNOWN_INVARIANT');
+    expect(applyEnvelope.code, 'Mongo-P.04: error code').toBe('MIGRATION.UNKNOWN_INVARIANT');
     expect(applyEnvelope.meta?.unknown, 'Mongo-P.04: unknown listed').toEqual([
       'typo-no-migration-declares-this',
     ]);
@@ -575,8 +576,8 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     // Mongo-P.06: status --ref also fatal (parity with apply).
     const statusFail = await migrationStatus(ctx, ['--to', 'prod', '--json']);
     expect(statusFail.exitCode, 'Mongo-P.06: status exits 2').toBe(2);
-    const statusEnvelope = parseJsonOutput<{ meta?: { code?: string } }>(statusFail);
-    expect(statusEnvelope.meta?.code, 'Mongo-P.06: status error code').toBe(
+    const statusEnvelope = parseJsonOutput<{ code?: string }>(statusFail);
+    expect(statusEnvelope.code, 'Mongo-P.06: status error code').toBe(
       'MIGRATION.UNKNOWN_INVARIANT',
     );
   });
@@ -654,14 +655,14 @@ describe('Journey: Mongo invariant-aware ref routing (live database)', {
     const applyFail = await migrationApply(ctx, ['--to', 'prod', '--json']);
     expect(applyFail.exitCode, 'Mongo-Q.05: apply exits 2').toBe(2);
     const envelope = parseJsonOutput<{
+      code?: string;
       meta?: {
-        code?: string;
         required?: readonly string[];
         missing?: readonly string[];
         structuralPath?: readonly { dirName: string; invariants: readonly string[] }[];
       };
     }>(applyFail);
-    expect(envelope.meta?.code, 'Mongo-Q.05: error code').toBe('MIGRATION.NO_INVARIANT_PATH');
+    expect(envelope.code, 'Mongo-Q.05: error code').toBe('MIGRATION.NO_INVARIANT_PATH');
     expect(envelope.meta?.required, 'Mongo-Q.05: required').toEqual([INVARIANT_ID]);
     expect(envelope.meta?.missing, 'Mongo-Q.05: missing').toEqual([INVARIANT_ID]);
     expect(envelope.meta?.structuralPath, 'Mongo-Q.05: structuralPath populated').toBeDefined();

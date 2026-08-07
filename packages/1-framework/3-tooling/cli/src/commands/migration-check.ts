@@ -556,7 +556,7 @@ async function checkSingleTarget(
       matchedPkg = hits[0]!.pkg;
     } else if (bestParseFailure !== undefined) {
       // The ref didn't resolve in any in-scope space — surface the most informative
-      // parse failure through the shared ref-resolution envelope (CONTRACT.VERIFY_FAILED) the
+      // parse failure through the shared ref-resolution envelope (MIGRATION.REF_*) the
       // earlier work established, rather than a bespoke string. (Ref-resolved-but-
       // no-package falls through to the "not found on disk" result below.)
       return { error: mapRefResolutionError(bestParseFailure), exitCode: PRECONDITION };

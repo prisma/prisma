@@ -168,7 +168,7 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
 
     await expect(readMigrationPackage(dir, { migrationsDir: tmpDir })).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.FILE_MISSING');
-      expect((e as MigrationToolsError).details).toHaveProperty('file', 'ops.json');
+      expect((e as MigrationToolsError).meta).toHaveProperty('file', 'ops.json');
       return true;
     });
   });
@@ -180,7 +180,7 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
 
     await expect(readMigrationPackage(dir, { migrationsDir: tmpDir })).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.FILE_MISSING');
-      expect((e as MigrationToolsError).details).toHaveProperty('file', 'migration.json');
+      expect((e as MigrationToolsError).meta).toHaveProperty('file', 'migration.json');
       return true;
     });
   });
@@ -385,7 +385,7 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
       writeMigrationPackage(dir, createTestMetadata(), createTestOps()),
     ).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.DIR_EXISTS');
-      expect((e as MigrationToolsError).details).toHaveProperty('dir');
+      expect((e as MigrationToolsError).meta).toHaveProperty('dir');
       return true;
     });
   });
@@ -422,14 +422,12 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
     await expect(readMigrationPackage(dir, { migrationsDir: tmpDir })).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.HASH_MISMATCH');
       const mte = e as MigrationToolsError;
-      expect(mte.details).toMatchObject({
+      expect(mte.meta).toMatchObject({
         dir,
         storedHash: metadata.migrationHash,
       });
-      expect(mte.details).toHaveProperty('computedHash');
-      expect((mte.details as { computedHash: string }).computedHash).not.toBe(
-        metadata.migrationHash,
-      );
+      expect(mte.meta).toHaveProperty('computedHash');
+      expect((mte.meta as { computedHash: string }).computedHash).not.toBe(metadata.migrationHash);
       const relativeDir = relative(process.cwd(), dir);
       expect(mte.why).toContain(relativeDir);
       expect(mte.fix).toContain(relativeDir);
@@ -449,14 +447,12 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
     await expect(readMigrationPackage(dir, { migrationsDir: tmpDir })).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.HASH_MISMATCH');
       const mte = e as MigrationToolsError;
-      expect(mte.details).toMatchObject({
+      expect(mte.meta).toMatchObject({
         dir,
         storedHash: metadata.migrationHash,
       });
-      expect(mte.details).toHaveProperty('computedHash');
-      expect((mte.details as { computedHash: string }).computedHash).not.toBe(
-        metadata.migrationHash,
-      );
+      expect(mte.meta).toHaveProperty('computedHash');
+      expect((mte.meta as { computedHash: string }).computedHash).not.toBe(metadata.migrationHash);
       const relativeDir = relative(process.cwd(), dir);
       expect(mte.why).toContain(relativeDir);
       expect(mte.fix).toContain(relativeDir);
@@ -500,7 +496,7 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
     await expect(readMigrationPackage(dir, { migrationsDir: tmpDir })).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.PROVIDED_INVARIANTS_MISMATCH');
       const mte = e as MigrationToolsError;
-      expect(mte.details).toMatchObject({
+      expect(mte.meta).toMatchObject({
         stored: ['alpha', 'phantom'],
         derived: ['alpha'],
         difference: { extra: ['phantom'], missing: [] },
@@ -547,7 +543,7 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
       expectMigrationError(e, 'MIGRATION.PROVIDED_INVARIANTS_MISMATCH');
       const mte = e as MigrationToolsError;
       expect(mte.why).toContain('different order');
-      expect(mte.details).toMatchObject({
+      expect(mte.meta).toMatchObject({
         difference: { missing: [], extra: [] },
       });
       return true;
@@ -587,7 +583,7 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
     await expect(readMigrationPackage(dir, { migrationsDir: tmpDir })).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.INVALID_INVARIANT_ID');
       const mte = e as MigrationToolsError;
-      expect(mte.details).toEqual({ invariantId: badId });
+      expect(mte.meta).toEqual({ invariantId: badId });
       return true;
     });
   });
@@ -632,7 +628,7 @@ describe('writeMigrationPackage + readMigrationPackage', () => {
     await expect(readMigrationPackage(dir, { migrationsDir: tmpDir })).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.DUPLICATE_INVARIANT_IN_EDGE');
       const mte = e as MigrationToolsError;
-      expect(mte.details).toEqual({ invariantId: 'shared' });
+      expect(mte.meta).toEqual({ invariantId: 'shared' });
       return true;
     });
   });
@@ -945,7 +941,7 @@ describe('copyFilesWithRename', () => {
       copyFilesWithRename(destDir, [{ sourcePath: src, destName: '../outside.json' }]),
     ).rejects.toSatisfy((e) => {
       expectMigrationError(e, 'MIGRATION.INVALID_DEST_NAME');
-      expect((e as MigrationToolsError).details).toHaveProperty('destName', '../outside.json');
+      expect((e as MigrationToolsError).meta).toHaveProperty('destName', '../outside.json');
       return true;
     });
   });
@@ -991,7 +987,7 @@ describe('formatMigrationDirName', () => {
       expect.fail('expected error');
     } catch (e) {
       expectMigrationError(e, 'MIGRATION.INVALID_NAME');
-      expect((e as MigrationToolsError).details).toHaveProperty('slug', '!!!');
+      expect((e as MigrationToolsError).meta).toHaveProperty('slug', '!!!');
     }
   });
 });

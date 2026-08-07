@@ -43,10 +43,11 @@ const mongoControlDriverDescriptor: ControlDriverDescriptor<'mongo', 'mongo', Mo
         }
         const message = error instanceof Error ? error.message : String(error);
         const redacted = redactDatabaseUrl(url);
-        throw errorRuntime('Database connection failed', {
+        throw errorRuntime('DRIVER.CONNECTION_FAILED', 'Database connection failed', {
           why: message,
           fix: 'Verify the MongoDB URL, ensure the database is reachable, and confirm credentials/permissions',
           meta: { ...redacted },
+          cause: error,
         });
       }
     },

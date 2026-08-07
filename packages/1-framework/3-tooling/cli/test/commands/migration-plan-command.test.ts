@@ -161,7 +161,7 @@ function buildResolutionSpace(
           {
             why: `The hash ${hash} is a graph node but no on-disk migration package has a destination (\`to\`) hash matching it.`,
             fix: 'Provide a ref or hash that corresponds to an existing migration package, or run `migration list` to see available migrations.',
-            details: { hash },
+            meta: { hash },
           },
         );
       }

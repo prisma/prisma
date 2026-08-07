@@ -190,7 +190,7 @@ async function setupTamperFixture(): Promise<TamperFixture> {
  * the rendered text is already identical across tests (each test chdirs
  * into its own tempdir before invoking the command, and uses the same
  * package dir name). This normalization is a defensive belt: it scrubs
- * the absolute `details.dir` in the JSON envelope and any future leakage
+ * the absolute `meta.dir` in the JSON envelope and any future leakage
  * of an absolute path into the rendered surface.
  */
 function normalizePaths(text: string, tempDir: string): string {

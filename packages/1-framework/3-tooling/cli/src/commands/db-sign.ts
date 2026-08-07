@@ -20,7 +20,6 @@ import {
   errorFileNotFound,
   errorRuntime,
   errorUnexpected,
-  mapMigrationToolsError,
   mapRefResolutionError,
 } from '../utils/cli-errors';
 import {
@@ -128,15 +127,19 @@ async function executeDbSignCommand(
           contractJson = defaultContract;
         } else {
           return notOk(
-            errorRuntime(`No contract file found for hash "${targetHash}"`, {
-              why: `Resolved contract reference "${effectiveContractArg}" to hash "${targetHash}" but no migration produces that hash and the emitted contract does not match.`,
-              fix: 'Ensure the target contract exists on disk — either as a migration endpoint or as the emitted contract.json.',
-            }),
+            errorRuntime(
+              'MIGRATION.SNAPSHOT_MISSING',
+              `No contract file found for hash "${targetHash}"`,
+              {
+                why: `Resolved contract reference "${effectiveContractArg}" to hash "${targetHash}" but no migration produces that hash and the emitted contract does not match.`,
+                fix: 'Ensure the target contract exists on disk — either as a migration endpoint or as the emitted contract.json.',
+              },
+            ),
           );
         }
       }
     } catch (error) {
-      if (MigrationToolsError.is(error)) return notOk(mapMigrationToolsError(error));
+      if (MigrationToolsError.is(error)) return notOk(error);
       if (error instanceof CliStructuredError) return notOk(error);
       return notOk(
         errorUnexpected(error instanceof Error ? error.message : String(error), {
