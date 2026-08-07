@@ -5,7 +5,10 @@
  * SQLite types values rather than columns, so what this suite compares is
  * storage classes: for every built-in codec and every built-in aggregate it
  * asks a live SQLite what `typeof()` the aggregate's result has, and requires
- * that to be the storage class of the codec the registry resolves.
+ * that to be the storage class of the codec the registry resolves. The question
+ * is asked of the aggregate each row computes with — `countBigInt` computes
+ * with `count` and `sumBigInt` with `sum` — and with the transport cast
+ * stripped, that cast rendering a result rather than choosing one.
  *
  * The second half of the measurement is the pairs left unclaimed. SQLite has no
  * aggregate it refuses: `sum` and `avg` over `TEXT` or `BLOB` read a leading
@@ -14,33 +17,62 @@
  * changes storage class with the rows. An aggregate whose result type cannot be
  * known from the schema is one this target declines to type, so those pairs
  * carry no descriptor — and the suite pins the list, so a pair cannot quietly
- * join or leave it.
+ * join or leave it. That measurement applies to the bare operations, whose SQL
+ * call is the operation's own name; which inputs a lossless variant is offered
+ * over is policy, and is pinned as such.
  *
  * The probed behaviours behind the `sum` declarations, on SQLite 3.53:
  *
  * - `sum` over integers stays an integer, and an overflow past 64 bits raises
  *   `integer overflow` rather than promoting to a float — so the result is an
- *   integer or it is an error, never a rounded double.
+ *   integer or it is an error, never a rounded double. That raise is the bound
+ *   `sumBigInt` is offered within.
  * - That integer is free to exceed 2^53 (two rows of 9007199254740993 sum to
- *   9007199254740995), which is why integer `sum` declares `sqlite/bigint@1`
- *   rather than `sqlite/integer@1`.
- * - `avg` is `real` for every input, integers included.
+ *   9007199254740995), which is why the bare `sum` reads through
+ *   `sqlite/bigintnumber@1`, whose guard refuses such a total rather than
+ *   rounding it, and `sumBigInt` through `sqlite/bigint@1`, which carries it.
+ * - `avg` is `real` for every input, integers included, so the bare `avg` is
+ *   already the JS `number` the defaults policy asks for and has no lossless
+ *   variant: SQLite has no exact decimal to answer one with.
  * - `min`/`max` return a value of the input's own storage class, blobs included.
  */
 
 import { DatabaseSync } from 'node:sqlite';
 import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
-import { AggregateExpr, CastExpr, ColumnRef } from '@internal/sql-relational-core/ast';
 import { sqliteAggregateDescriptors } from '@internal/target-sqlite/aggregates';
 import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { computedAggregateSql } from './aggregate-sql';
 
 const registry = buildSqlAggregateDescriptorRegistry(
   sqliteAggregateDescriptors,
   sqliteCodecRegistry,
 );
 
-const OPERATIONS = ['count', 'sum', 'avg', 'min', 'max'] as const;
+/** The operations whose SQL call carries the operation's own name, and whose absence over a type SQLite aggregates is therefore a gap. */
+const BARE_OPERATIONS = ['count', 'sum', 'avg', 'min', 'max'] as const;
+
+/** The lossless variants, each reading the result of the SQL aggregate its bare namesake computes. */
+const LOSSLESS_OPERATIONS = ['countBigInt', 'sumBigInt'] as const;
+
+const OPERATIONS = [...BARE_OPERATIONS, ...LOSSLESS_OPERATIONS];
+
+/** Every operation the target contributes — `avgDecimal` among them would need an exact decimal result codec, which SQLite has none of. */
+const CONTRIBUTED_OPERATIONS = [...BARE_OPERATIONS, ...LOSSLESS_OPERATIONS].sort();
+
+/**
+ * The inputs `sumBigInt` claims: every integer input, including those whose
+ * bare `sum` the driver could already carry. The suffix is an escape hatch, and
+ * one a caller should be able to reach for over any integer column without
+ * learning which widths happen not to need it. `countBigInt` is input-agnostic
+ * like `count`, so it claims every codec and appears in no list.
+ */
+const LOSSLESS_VARIANT_INPUTS: Readonly<Record<string, readonly string[]>> = {
+  sumBigInt: ['sql/int@1', 'sqlite/bigint@1', 'sqlite/bigintnumber@1', 'sqlite/integer@1'],
+};
+
+/** The result codecs an integer total reads through, whichever form is asked for. Membership of this set is what makes an input an integer one. */
+const INTEGER_RESULT_CODEC_IDS = ['sqlite/bigint@1', 'sqlite/bigintnumber@1'];
 
 interface AggregateFixture {
   readonly codecId: string;
@@ -139,6 +171,14 @@ function storageClassOf(codecId: string): string {
   return fixture.storageClass;
 }
 
+/** The codecs the bare `sum` totals into an integer result — the integer inputs, read off the matrix rather than listed beside it. */
+function integerInputs(): readonly string[] {
+  return FIXTURES.map((fixture) => fixture.codecId).filter((codecId) => {
+    const resolved = registry.resolve('sum', { codecId });
+    return resolved !== undefined && INTEGER_RESULT_CODEC_IDS.includes(resolved.output.codecId);
+  });
+}
+
 describe.sequential('SQLite aggregate conformance', () => {
   let database: DatabaseSync | undefined;
 
@@ -174,15 +214,15 @@ describe.sequential('SQLite aggregate conformance', () => {
     /^(no such function|wrong number of arguments to function|misuse of aggregate)/;
 
   /**
-   * The storage class SQLite gives `operation` over the fixture's column, or
-   * `undefined` when it refuses the call. Anything else — a missing table, an
-   * overflow, a locked database — is rethrown rather than read as refusal: in
-   * the unclaimed direction a swallowed infrastructure error would pass the
-   * matrix vacuously.
+   * The storage class SQLite gives the expression, or `undefined` when it
+   * refuses the call. Anything else — a missing table, an overflow, a locked
+   * database — is rethrown rather than read as refusal: in the unclaimed
+   * direction a swallowed infrastructure error would pass the matrix
+   * vacuously.
    */
-  function probeStorageClass(operation: string): string | undefined {
+  function probeStorageClass(expression: string): string | undefined {
     try {
-      const rows = run(`SELECT typeof(${operation}("${COLUMN}")) AS result FROM "${TABLE}"`);
+      const rows = run(`SELECT typeof(${expression}) AS result FROM "${TABLE}"`);
       return String(rows[0]?.['result']);
     } catch (error) {
       if (error instanceof Error && REFUSED_CALL.test(error.message)) return undefined;
@@ -205,10 +245,19 @@ describe.sequential('SQLite aggregate conformance', () => {
     for (const fixture of FIXTURES) {
       withFixtureTable(fixture, () => {
         for (const operation of OPERATIONS) {
-          const resolved = registry.resolve(operation, { codecId: fixture.codecId });
+          const inputCodec = { codecId: fixture.codecId };
+          const resolved = registry.resolve(operation, inputCodec);
           if (resolved === undefined) continue;
 
-          const actual = probeStorageClass(operation);
+          const actual = probeStorageClass(
+            computedAggregateSql({
+              operation,
+              lower: resolved.lower,
+              inputCodec,
+              table: TABLE,
+              column: COLUMN,
+            }),
+          );
           const declared = storageClassOf(resolved.output.codecId);
           if (actual !== declared) {
             disagreements.push({
@@ -231,12 +280,14 @@ describe.sequential('SQLite aggregate conformance', () => {
 
     for (const fixture of FIXTURES) {
       withFixtureTable(fixture, () => {
-        for (const operation of OPERATIONS) {
+        for (const operation of BARE_OPERATIONS) {
           if (registry.resolve(operation, { codecId: fixture.codecId }) !== undefined) continue;
 
           const pair = `${operation}(${fixture.codecId})`;
           unclaimed.push(pair);
-          if (probeStorageClass(operation) === undefined) unclaimedAndRefused.push(pair);
+          if (probeStorageClass(`${operation}("${COLUMN}")`) === undefined) {
+            unclaimedAndRefused.push(pair);
+          }
         }
       });
     }
@@ -246,72 +297,65 @@ describe.sequential('SQLite aggregate conformance', () => {
     expect(unclaimedAndRefused).toEqual([]);
   });
 
-  it('pins count to the bigint codec, with and without an input', () => {
-    // `lower` is the cast that keeps a wide count readable; its shape is
-    // asserted where the lowering itself is, below.
+  it('offers each lossless variant over exactly the inputs the policy gives it', () => {
+    const claimed = Object.fromEntries(
+      Object.keys(LOSSLESS_VARIANT_INPUTS).map((operation) => [
+        operation,
+        FIXTURES.map((fixture) => fixture.codecId)
+          .filter((codecId) => registry.resolve(operation, { codecId }) !== undefined)
+          .sort(),
+      ]),
+    );
+
+    expect(claimed).toEqual(LOSSLESS_VARIANT_INPUTS);
+  });
+
+  it('offers the lossless sum over every integer input the bare sum accepts, and over no other', () => {
+    const integers = [...integerInputs()].sort();
+    const claimed = FIXTURES.map((fixture) => fixture.codecId)
+      .filter((codecId) => registry.resolve('sumBigInt', { codecId }) !== undefined)
+      .sort();
+
+    expect(integers.length).toBeGreaterThan(0);
+    expect(claimed).toEqual(integers);
+  });
+
+  it('contributes no avgDecimal, having no exact decimal result to answer one with', () => {
+    const operations = [...new Set([...registry.values()].map((entry) => entry.operation))].sort();
+    const claimingAvgDecimal = FIXTURES.map((fixture) => fixture.codecId).filter(
+      (codecId) => registry.resolve('avgDecimal', { codecId }) !== undefined,
+    );
+    const exactCodecs = [...sqliteCodecRegistry.values()]
+      .map((descriptor) => descriptor.codecId)
+      .filter((codecId) => /decimal|numeric|unbounded/.test(codecId));
+
+    expect(operations).toEqual(CONTRIBUTED_OPERATIONS);
+    expect(claimingAvgDecimal).toEqual([]);
+    expect(registry.resolve('avgDecimal')).toBeUndefined();
+    // Nor is there a codec such a result could name: no exact decimal, no
+    // unbounded integer. An `avg` here is the `real` SQLite computes.
+    expect(exactCodecs).toEqual([]);
+  });
+
+  it('pins count to a number and countBigInt to a bigint, with and without an input', () => {
+    // `lower` is the cast that keeps a wide result readable; its shape is
+    // asserted where the lowering itself is, in the defaults suite.
     expect(registry.resolve('count')).toMatchObject({
       operation: 'count',
-      output: { codecId: 'sqlite/bigint@1' },
+      output: { codecId: 'sqlite/bigintnumber@1' },
       nullable: false,
     });
     expect(registry.resolve('count', { codecId: 'sqlite/text@1' })?.output).toEqual({
+      codecId: 'sqlite/bigintnumber@1',
+    });
+
+    expect(registry.resolve('countBigInt')).toMatchObject({
+      operation: 'countBigInt',
+      output: { codecId: 'sqlite/bigint@1' },
+      nullable: false,
+    });
+    expect(registry.resolve('countBigInt', { codecId: 'sqlite/text@1' })?.output).toEqual({
       codecId: 'sqlite/bigint@1',
-    });
-  });
-
-  it('sums integers into a value beyond the safe-integer range, which only the bigint codec carries', () => {
-    withFixtureTable(FIXTURES.find((entry) => entry.codecId === 'sqlite/bigint@1')!, () => {
-      const [row] = run(
-        `SELECT typeof(sum("${COLUMN}")) AS class, CAST(sum("${COLUMN}") AS TEXT) AS total FROM "${TABLE}"`,
-      );
-
-      expect(row?.['class']).toBe('integer');
-      expect(row?.['total']).toBe('9007199254740995');
-      expect(Number(row?.['total']) > Number.MAX_SAFE_INTEGER).toBe(true);
-    });
-
-    expect(registry.resolve('sum', { codecId: 'sqlite/integer@1' })?.output).toEqual({
-      codecId: 'sqlite/bigint@1',
-    });
-    expect(registry.resolve('sum', { codecId: 'sqlite/bigint@1' })?.output).toEqual({
-      codecId: 'sqlite/bigint@1',
-    });
-  });
-
-  it('sums bigintnumber past the safe range into a bigint through the cast-to-text lowering', async () => {
-    withFixtureTable(
-      {
-        codecId: 'sqlite/bigintnumber@1',
-        storageType: 'INTEGER',
-        storageClass: 'integer',
-        samples: ['9007199254740991', '9007199254740991'],
-      },
-      () => {
-        const [row] = run(
-          `SELECT typeof(sum("${COLUMN}")) AS class, CAST(sum("${COLUMN}") AS TEXT) AS total FROM "${TABLE}"`,
-        );
-
-        expect(row?.['class']).toBe('integer');
-        expect(row?.['total']).toBe('18014398509481982');
-      },
-    );
-
-    const resolved = registry.resolve('sum', { codecId: 'sqlite/bigintnumber@1' });
-    expect(resolved?.output).toEqual({ codecId: 'sqlite/bigint@1' });
-
-    const lowered = resolved?.lower?.({
-      expr: ColumnRef.of('t', 'c'),
-      inputCodec: { codecId: 'sqlite/bigintnumber@1' },
-    });
-    expect(lowered).toEqual(CastExpr.as(AggregateExpr.sum(ColumnRef.of('t', 'c')), 'text'));
-
-    const bigintCodec = sqliteCodecRegistry.descriptorFor('sqlite/bigint@1')!.factory(undefined)({
-      name: 'aggregate-conformance',
-    });
-    expect(await bigintCodec.decode('18014398509481982', {})).toBe(18014398509481982n);
-
-    expect(registry.resolve('avg', { codecId: 'sqlite/bigintnumber@1' })?.output).toEqual({
-      codecId: 'sqlite/real@1',
     });
   });
 
@@ -325,26 +369,6 @@ describe.sequential('SQLite aggregate conformance', () => {
 
     expect(registry.resolve('max', { codecId: 'sqlite/bigintnumber@1' })?.output).toEqual({
       codecId: 'sqlite/bigintnumber@1',
-    });
-  });
-
-  it('raises on integer sum overflow rather than widening to a float', () => {
-    expect(() =>
-      run(
-        'SELECT sum(x) AS total FROM (SELECT 9223372036854775807 AS x UNION ALL SELECT 9223372036854775807)',
-      ),
-    ).toThrow(/integer overflow/);
-  });
-
-  it('averages integers into a real', () => {
-    withFixtureTable(FIXTURES.find((entry) => entry.codecId === 'sqlite/integer@1')!, () => {
-      expect(run(`SELECT typeof(avg("${COLUMN}")) AS class FROM "${TABLE}"`)[0]?.['class']).toBe(
-        'real',
-      );
-    });
-
-    expect(registry.resolve('avg', { codecId: 'sqlite/integer@1' })?.output).toEqual({
-      codecId: 'sqlite/real@1',
     });
   });
 
@@ -362,56 +386,22 @@ describe.sequential('SQLite aggregate conformance', () => {
       }).toEqual({ count: true, sum: true, avg: true, min: true });
     });
 
-    expect(registry.resolve('count')?.nullable).toBe(false);
-    expect(registry.resolve('sum', { codecId: 'sqlite/integer@1' })?.nullable).toBe(true);
-    expect(registry.resolve('avg', { codecId: 'sqlite/integer@1' })?.nullable).toBe(true);
-    expect(registry.resolve('min', { codecId: 'sqlite/integer@1' })?.nullable).toBe(true);
-  });
-
-  // A bigint result leaves the database as text, because `node:sqlite` reads an
-  // integer no JS number can hold as an error rather than a value. The lowering
-  // is what renders the cast — and it renders only that: the codec the
-  // descriptor declared is still the codec the registry resolves.
-  describe('bigint results are lowered to text', () => {
-    const BEYOND_SAFE = '9007199254740993';
-
-    it('declares a lowering for every aggregate whose result is a bigint', () => {
-      const unlowered = [...registry.values()]
-        .filter((descriptor) => {
-          const resolved = registry.resolve(
-            descriptor.operation,
-            descriptor.input.kind === 'codec' ? { codecId: descriptor.input.codecId } : undefined,
-          );
-          return resolved?.output.codecId === 'sqlite/bigint@1' && descriptor.lower === undefined;
-        })
-        .map((descriptor) => `${descriptor.operation}:${descriptor.input.kind}`);
-
-      expect(unlowered).toEqual([]);
-    });
-
-    it('builds a cast over the aggregate, and nothing that names a codec', () => {
-      const resolved = registry.resolve('sum', { codecId: 'sqlite/bigint@1' });
-      const lowered = resolved?.lower?.({
-        expr: ColumnRef.of('t', 'c'),
-        inputCodec: { codecId: 'sqlite/bigint@1' },
-      });
-
-      expect(lowered).toEqual(CastExpr.as(AggregateExpr.sum(ColumnRef.of('t', 'c')), 'text'));
-      // The hook has no channel for a codec, so the result identity is the
-      // descriptor's declaration either way.
-      expect(resolved?.output).toEqual({ codecId: 'sqlite/bigint@1' });
-      expect(registry.resolve('count')?.output).toEqual({ codecId: 'sqlite/bigint@1' });
-    });
-
-    it('reads a sum past 2^53 back exactly, where the uncast form cannot be read at all', () => {
-      run(`DROP TABLE IF EXISTS "${TABLE}"`);
-      run(`CREATE TABLE "${TABLE}" ("${COLUMN}" INTEGER)`);
-      run(`INSERT INTO "${TABLE}" ("${COLUMN}") VALUES (${BEYOND_SAFE})`);
-
-      const [row] = run(`SELECT CAST(sum("${COLUMN}") AS text) AS result FROM "${TABLE}"`);
-      expect(row?.['result']).toBe(BEYOND_SAFE);
-
-      expect(() => run(`SELECT sum("${COLUMN}") AS result FROM "${TABLE}"`)).toThrow(/too large/);
+    // A lossless variant reads the same empty-set answer its bare namesake
+    // does, so it declares the same nullability.
+    expect({
+      count: registry.resolve('count')?.nullable,
+      countBigInt: registry.resolve('countBigInt')?.nullable,
+      sum: registry.resolve('sum', { codecId: 'sqlite/integer@1' })?.nullable,
+      sumBigInt: registry.resolve('sumBigInt', { codecId: 'sqlite/integer@1' })?.nullable,
+      avg: registry.resolve('avg', { codecId: 'sqlite/integer@1' })?.nullable,
+      min: registry.resolve('min', { codecId: 'sqlite/integer@1' })?.nullable,
+    }).toEqual({
+      count: false,
+      countBigInt: false,
+      sum: true,
+      sumBigInt: true,
+      avg: true,
+      min: true,
     });
   });
 });
