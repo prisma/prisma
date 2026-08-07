@@ -34,7 +34,6 @@ export interface MongoClient<
   readonly contract: TContract;
   readonly enums: UnboundEnums<TContract>;
   readonly context: MongoExecutionContext<TContract>;
-  execute<Row>(plan: MongoQueryPlan<Row>): AsyncIterableResult<Row>;
   connect(bindingInput?: MongoBindingInput): Promise<MongoRuntime>;
   runtime(): Promise<MongoRuntime>;
   close(): Promise<void>;
@@ -194,7 +193,6 @@ export default function mongo<
     contract,
     enums,
     context,
-    execute: queryRows,
 
     async connect(bindingInput?: MongoBindingInput): Promise<MongoRuntime> {
       if (closed) {

@@ -140,7 +140,7 @@ describe('runtime.prepare', () => {
     expect(adapter.lower).toHaveBeenCalledTimes(1);
   });
 
-  it('hands the driver an initially-unset handle slot on first execute', async () => {
+  it('hands the driver an initially-unset handle slot on first queryPrepared call', async () => {
     const { runtime, driver } = createSetup({ rows: [] });
     let firstHandleGet: unknown = 'unobserved';
     driver.__spies.query.mockImplementation(async function* (req: PreparedExecuteRequest) {
@@ -230,7 +230,7 @@ describe('runtime.prepare', () => {
     expect(beforeExecute).toHaveBeenCalledTimes(2);
   });
 
-  it('routes .execute() through driver.query with a prepared handle and reuses lowered SQL', async () => {
+  it('routes queryPrepared through driver.query with a prepared handle and reuses lowered SQL', async () => {
     const { runtime, driver, adapter } = createSetup({ rows: [{ id: 1 }] });
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
@@ -264,7 +264,7 @@ describe('runtime.prepare', () => {
     }
   });
 
-  it('persists handle.set(value) across executes (round-trip via the slot wrapper)', async () => {
+  it('persists handle.set(value) across queryPrepared calls (round-trip via the slot wrapper)', async () => {
     const { runtime, driver } = createSetup({ rows: [] });
     const observed: unknown[] = [];
     driver.__spies.query.mockImplementation(async function* (req: PreparedExecuteRequest) {
@@ -284,7 +284,7 @@ describe('runtime.prepare', () => {
     expect(observed).toEqual([undefined, 'pn_42']);
   });
 
-  it('produces independent results for two .execute() calls on the same handle', async () => {
+  it('produces independent results for two queryPrepared calls on the same handle', async () => {
     const { runtime, driver } = createSetup();
     const captured: Array<readonly unknown[]> = [];
     driver.__spies.query.mockImplementation(async function* (req: PreparedExecuteRequest) {
@@ -303,7 +303,7 @@ describe('runtime.prepare', () => {
     expect(b).toEqual([{ id: 2 }]);
   });
 
-  it('throws RUNTIME.PREPARE_MISSING_PARAM when execute omits a declared key', async () => {
+  it('throws RUNTIME.PREPARE_MISSING_PARAM when queryPrepared omits a declared key', async () => {
     const { runtime } = createSetup();
     const ps = await runtime.prepare({ userId: 'pg/int4@1' as const }, (params) =>
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),

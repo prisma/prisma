@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const contractJsonPath = resolve(__dirname, 'fixtures/generated/contract.json');
 
 describe('e2e: prepared statements (SQLite)', { timeout: timeouts.databaseOperation }, () => {
-  it('lowers once and reuses across multiple .execute(params) calls', async () => {
+  it('lowers once and reuses across multiple queryPrepared calls', async () => {
     await withSqliteTestRuntime<Contract>(contractJsonPath, async ({ db, runtime }) => {
       const ps = await runtime.prepare({ id: 'sql/int@1' }, (params) =>
         db[UNBOUND_NAMESPACE_ID].users
