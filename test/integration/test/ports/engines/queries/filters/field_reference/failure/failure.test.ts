@@ -11,6 +11,10 @@ import listContractJson from './_fixture/list/generated/contract.json' with { ty
 const testModelColumn = (name: string) => ColumnRef.of('testModel', name);
 const childColumn = (name: string) => ColumnRef.of('child', name);
 
+function sqlQueryError(sqlState: string, message: string) {
+  return { name: 'SqlQueryError', kind: 'sql_query', sqlState, message };
+}
+
 function withDefaultFailure(fn: Parameters<typeof withPostgresPort<DefaultContract>>[1]) {
   return withPostgresPort<DefaultContract>({ contractJson: defaultContractJson }, fn);
 }
@@ -34,7 +38,7 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
           )
             .select('id')
             .all(),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(sqlQueryError('42703', 'column testModel.unknown does not exist'));
       }),
     timeouts.spinUpPpgDev,
   );
@@ -47,7 +51,9 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
           db.public.TestModel.where(BinaryExpr.eq(testModelColumn('id'), childColumn('testId')))
             .select('id')
             .all(),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(
+          sqlQueryError('42P01', 'missing FROM-clause entry for table "child"'),
+        );
       }),
     timeouts.spinUpPpgDev,
   );
@@ -62,7 +68,7 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
           )
             .select('id')
             .all(),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(sqlQueryError('42703', 'column testModel.children does not exist'));
       }),
     timeouts.spinUpPpgDev,
   );
@@ -75,7 +81,7 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
           db.public.TestModel.where(BinaryExpr.eq(testModelColumn('id'), testModelColumn('str')))
             .select('id')
             .all(),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(sqlQueryError('42883', 'operator does not exist: integer = text'));
 
         await expect(
           db.public.TestModel.where((model) =>
@@ -83,7 +89,7 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
           )
             .select('id')
             .all(),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(sqlQueryError('42883', 'operator does not exist: integer = text'));
       }),
     timeouts.spinUpPpgDev,
   );
@@ -98,7 +104,7 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
           )
             .select('id')
             .all(),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(sqlQueryError('42883', 'operator does not exist: text = text[]'));
 
         await expect(
           db.public.TestModel.where((model) =>
@@ -106,7 +112,7 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
           )
             .select('id')
             .all(),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(sqlQueryError('42883', 'operator does not exist: text = text[]'));
       }),
     timeouts.spinUpPpgDev,
   );
@@ -121,7 +127,12 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
               BinaryExpr.eq(AggregateExpr.count(testModelColumn('int')), testModelColumn('int2')),
             )
             .aggregate((aggregate) => ({ count: aggregate.count() })),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(
+          sqlQueryError(
+            '42803',
+            'column "testModel.int2" must appear in the GROUP BY clause or be used in an aggregate function',
+          ),
+        );
       }),
     timeouts.spinUpPpgDev,
   );
@@ -145,7 +156,7 @@ describe('ports/engines/queries/filters/field-reference/failure', () => {
               ),
             )
             .aggregate((aggregate) => ({ count: aggregate.count() })),
-        ).rejects.toThrow();
+        ).rejects.toMatchObject(sqlQueryError('42883', 'operator does not exist: bigint = text'));
       }),
     timeouts.spinUpPpgDev,
   );
