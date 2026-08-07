@@ -490,19 +490,19 @@ describe('ports/engines/queries/aggregation/group_by', () => {
     timeouts.spinUpPpgDev,
   );
 
-  it.fails(
+  it(
     'rejects scalar selection with no grouping fields',
     () =>
       withMainGroupBy(async ({ db }) => {
         const query = mainSql(db);
 
-        await expect(
-          db.public.A.ctx.runtime.execute(query.public.a.select('string').groupBy().build()),
-        ).rejects.toMatchObject({
-          name: 'StructuredError',
-          code: 'ORM.ARGUMENT_INVALID',
-          message: 'Invalid groupBy arguments',
-        });
+        expect(() => query.public.a.select('string').groupBy()).toThrow(
+          expect.objectContaining({
+            name: 'StructuredError',
+            code: 'ORM.ARGUMENT_INVALID',
+            message: 'Invalid groupBy arguments',
+          }),
+        );
       }),
     timeouts.spinUpPpgDev,
   );
