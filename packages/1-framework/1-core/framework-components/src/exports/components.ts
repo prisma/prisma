@@ -2,6 +2,7 @@ export type {
   AggregateDescriptor,
   AggregateInputMatch,
   AggregateOutputCodec,
+  AggregateResultNullability,
   AnyInputAggregateDescriptor,
   NamedAggregateOutput,
   NoInputAggregateDescriptor,

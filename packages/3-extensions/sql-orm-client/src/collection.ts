@@ -2429,7 +2429,7 @@ class CollectionImpl<
       column: selector.column,
     });
     return emptyAggregateResult(
-      resolved.nullable,
+      resolved,
       this.ctx.context.contractCodecs.forCodecRef(resolved.codec),
     );
   }

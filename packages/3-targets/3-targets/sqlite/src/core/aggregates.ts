@@ -145,6 +145,7 @@ export const sqliteAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> =
     input: { kind: 'any' },
     output: { kind: 'codec', codecId: SQLITE_BIGINT_NUMBER_CODEC_ID },
     nullable: false,
+    emptyResultJson: 0,
     lower: castResultToText('count'),
   },
   {
@@ -152,6 +153,7 @@ export const sqliteAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> =
     input: { kind: 'any' },
     output: { kind: 'codec', codecId: SQLITE_BIGINT_CODEC_ID },
     nullable: false,
+    emptyResultJson: '0',
     lower: castResultToText('count'),
   },
 

@@ -647,7 +647,7 @@ function describeEnvelopeShape(value: unknown): string {
  * would otherwise have been read as a rounded number. Resolution mirrors
  * planning — the same registry, operation, and column — so the empty-relation
  * answer derives from the operation's declared row: NULL where the row is
- * nullable, else the operation's zero. The outer `raw === null` fallback is
+ * nullable, else the value that row declares. The outer `raw === null` fallback is
  * defensive cover for an empty parent set; in single-query dispatch the
  * correlated subquery always produces a row, so the inner envelope's `value`
  * is always set by SQL.
@@ -670,7 +670,7 @@ function decodeScalarIncludePayload(
   const codec = context.contractCodecs.forCodecRef(resolved.codec);
 
   if (raw === null || raw === undefined) {
-    return emptyAggregateResult(resolved.nullable, codec);
+    return emptyAggregateResult(resolved, codec);
   }
   const parsed = parseIncludePayload(raw);
   if (!isPlainObjectEnvelope(parsed)) {
@@ -680,7 +680,7 @@ function decodeScalarIncludePayload(
   }
 
   const value = parsed['value'];
-  if (value === null || value === undefined) return emptyAggregateResult(resolved.nullable, codec);
+  if (value === null || value === undefined) return emptyAggregateResult(resolved, codec);
 
   return decodeIncludedJsonValue(
     { table: include.relatedTableName, column: include.relationName },
