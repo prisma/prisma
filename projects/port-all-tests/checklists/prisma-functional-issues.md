@@ -348,7 +348,7 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/issues/27511-include-enum-array/test.ts
 
-- [x] `findMany with include on many-to-many relationship with enum array should work` — findMany + include over a m2m relation with an enum-array field works [providers: postgres] → test.fails: test/ports/prisma/functional/issues-27511-include-enum-array/issues-27511-include-enum-array.test.ts
+- [x] `findMany with include on many-to-many relationship with enum array should work` — findMany + include over a m2m relation with an enum-array field works [providers: postgres] → ports/prisma/functional/issues-27511-include-enum-array/issues-27511-include-enum-array.test.ts
 
 ### packages/client/tests/functional/issues/28151-broken-nested-set/tests.ts
 

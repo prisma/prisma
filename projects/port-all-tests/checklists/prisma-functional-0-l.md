@@ -421,11 +421,11 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/default-selection/tests.ts
 
-- [x] `includes scalars` — default selection includes scalar fields (id, value, otherId) [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [x] `does not include relations` — default selection excludes relation fields [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [x] `includes enums` — (non-sqlite/sqlserver) default selection includes enum field [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [x] `includes lists` — (postgres/cockroach/mongo) default selection includes list field [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
-- [x] `includes enum lists` — (postgres/cockroach/mongo) default selection includes enum-list field [providers: all] → test.fails: test/ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `includes scalars` — default selection includes scalar fields (id, value, otherId) [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `does not include relations` — default selection excludes relation fields [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `includes enums` — (non-sqlite/sqlserver) default selection includes enum field [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `includes lists` — (postgres/cockroach/mongo) default selection includes list field [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
+- [x] `includes enum lists` — (postgres/cockroach/mongo) default selection includes enum-list field [providers: all] → ports/prisma/functional/default-selection/default-selection.test.ts
 - [x] `includes composites` — (mongo only) default selection includes composite field [providers: all] → ports/prisma/functional/default-selection/default-selection.mongo.test.ts
 
 ### packages/client/tests/functional/distinct/tests.ts
@@ -461,8 +461,8 @@ Protocol: each line is one source test. `[ ]` = not yet dispositioned. The Opus 
 
 ### packages/client/tests/functional/enum-array/tests.ts
 
-- [x] `can create data with an enum array` — create record with an enum array field [providers: postgres,mongodb,cockroachdb] → test.fails: test/ports/prisma/functional/enum-array/enum-array.test.ts
-- [x] `can retrieve data with an enum array` — create then findFirstOrThrow returns the enum array with correct type [providers: postgres,mongodb,cockroachdb] → test.fails: test/ports/prisma/functional/enum-array/enum-array.test.ts
+- [x] `can create data with an enum array` — create record with an enum array field [providers: postgres,mongodb,cockroachdb] → ports/prisma/functional/enum-array/enum-array.test.ts
+- [x] `can retrieve data with an enum array` — create then findFirstOrThrow returns the enum array with correct type [providers: postgres,mongodb,cockroachdb] → ports/prisma/functional/enum-array/enum-array.test.ts
 - [x] `can retrieve data with an enum array with a raw query and a custom parser` — (js_pg + client runtime only) createManyAndReturn + $queryRaw with custom userDefinedTypeParser parses enum arrays [providers: postgres,mongodb,cockroachdb] → non-ported
 
 ### packages/client/tests/functional/enums/tests.ts
