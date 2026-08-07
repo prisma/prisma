@@ -39,6 +39,7 @@ type ColumnSpec = {
   readonly codecId: string;
   readonly nullable: boolean;
   readonly many?: true;
+  readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
 };
 
 /** Builds the checks the Postgres pack would emit for one column. */
@@ -675,5 +676,119 @@ describe.sequential('check-constraint lifecycle', () => {
     expect(await liveCheckNames('public')).toEqual([sharedName]);
     expect(await liveCheckNames(SECOND_NAMESPACE_ID)).toEqual([widenedName]);
     expect((await verify(changed)).ok).toBe(true);
+  });
+
+  // Slice 3 (`@noCheck`): the opt-out works purely by not declaring the
+  // check. These three scenarios prove the lifecycle against a real database:
+  // adding the opt-out drops the live check, removing it reinstalls the
+  // check, and a fresh create never installs one.
+  it('adding an opt-out later drops the live element check in one destructive plan', {
+    timeout: testTimeout,
+  }, async () => {
+    const tagsChecks = checksForColumn('Item', 'tags', { many: true });
+    const enforced = contractOf(
+      {
+        id: idColumn,
+        tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
+      },
+      tagsChecks,
+    );
+    await migrate(enforced);
+    expect(await liveCheckNames()).toEqual([tagsChecks[0]?.name]);
+
+    const optedOut = contractOf(
+      {
+        id: idColumn,
+        tags: {
+          nativeType: 'text',
+          codecId: 'pg/text@1',
+          nullable: false,
+          many: true,
+          noCheck: ['elementNotNull'],
+        },
+      },
+      [],
+    );
+    const { ops } = await migrate(optedOut, { from: enforced, policy: FULL_POLICY });
+
+    const dropOps = ops.filter((op) => op.id.startsWith('dropCheckConstraint.'));
+    expect(dropOps.map((op) => op.id)).toEqual([`dropCheckConstraint.Item.${tagsChecks[0]?.name}`]);
+    expect(dropOps[0]?.operationClass).toBe('destructive');
+    expect(ops).toHaveLength(1);
+
+    expect(await liveCheckNames()).toEqual([]);
+    expect((await verify(optedOut)).ok).toBe(true);
+  });
+
+  it('removing an opt-out installs the element check in one additive plan', {
+    timeout: testTimeout,
+  }, async () => {
+    const optedOut = contractOf(
+      {
+        id: idColumn,
+        tags: {
+          nativeType: 'text',
+          codecId: 'pg/text@1',
+          nullable: false,
+          many: true,
+          noCheck: ['elementNotNull'],
+        },
+      },
+      [],
+    );
+    await migrate(optedOut);
+    expect(await liveCheckNames()).toEqual([]);
+    await driver!.query(`INSERT INTO "Item" (id, tags) VALUES ('a', ARRAY['x',NULL])`);
+
+    const tagsChecks = checksForColumn('Item', 'tags', { many: true });
+    const enforced = contractOf(
+      {
+        id: idColumn,
+        tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
+      },
+      tagsChecks,
+    );
+    // The seeded NULL-element row would fail the incoming check's validation
+    // scan, so clear it first — this scenario pins the plan shape, not
+    // pre-existing-data repair.
+    await driver!.query(`DELETE FROM "Item"`);
+    const { ops } = await migrate(enforced, { from: optedOut, policy: FULL_POLICY });
+
+    const addOps = ops.filter((op) => op.id.startsWith('checkConstraint.'));
+    expect(addOps.map((op) => op.id)).toEqual([`checkConstraint.Item.${tagsChecks[0]?.name}`]);
+    expect(addOps[0]?.operationClass).toBe('additive');
+    expect(ops).toHaveLength(1);
+
+    expect(await liveCheckNames()).toEqual([tagsChecks[0]?.name]);
+    expect((await verify(enforced)).ok).toBe(true);
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, tags) VALUES ('b', ARRAY['x',NULL])`),
+    ).rejects.toThrow(/Item_tags/);
+  });
+
+  it('a freshly created table with an opted-out column genuinely lacks enforcement', {
+    timeout: testTimeout,
+  }, async () => {
+    const optedOut = contractOf(
+      {
+        id: idColumn,
+        tags: {
+          nativeType: 'text',
+          codecId: 'pg/text@1',
+          nullable: false,
+          many: true,
+          noCheck: ['elementNotNull'],
+        },
+      },
+      [],
+    );
+    await migrate(optedOut);
+
+    expect(await liveCheckNames()).toEqual([]);
+    expect((await verify(optedOut)).ok).toBe(true);
+    // Enforcement is genuinely absent, not merely undeclared.
+    await driver!.query(`INSERT INTO "Item" (id, tags) VALUES ('a', ARRAY['x',NULL])`);
+    const rows = await driver!.query<{ id: string }>(`SELECT id FROM "Item"`);
+    expect(rows.rows).toEqual([{ id: 'a' }]);
   });
 });
