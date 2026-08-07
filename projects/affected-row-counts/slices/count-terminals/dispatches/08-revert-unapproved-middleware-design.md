@@ -56,8 +56,8 @@ This is a revert-only dispatch. Do not implement the newly approved operation-sp
 ## Operational metadata
 
 - **Role:** Drive implementer / Executor
-- **Role variant:** `implementer/thorough`
-- **Model tier:** thorough
+- **Role variant:** `implementer/fast`
+- **Model tier:** mid
 - **Time-box:** 60 minutes
 - **Validation budget:** focused framework, SQL runtime, Mongo runtime, cache middleware, and touched integration/type checks only; do not run broad workspace suites
 - **Commit:** required, DCO sign-off, explicit staging, no amend
