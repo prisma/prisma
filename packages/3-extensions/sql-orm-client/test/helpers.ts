@@ -203,6 +203,17 @@ export function getTestAggregates(): ExecutionContext<TestContract>['aggregateDe
   return testContext.aggregateDescriptors;
 }
 
+/**
+ * A registry that contributes nothing, for the stub contexts whose cases never
+ * reach an aggregate. Those contexts still need one: the derived surface
+ * enumerates the registry at collection construction and at ORM composition.
+ * Typed here rather than at each call site, where the surrounding
+ * `blindCast` would hide a drift from the registry interface.
+ */
+export function getEmptyAggregates(): ExecutionContext<TestContract>['aggregateDescriptors'] {
+  return { resolve: () => undefined, values: function* () {} };
+}
+
 export interface MockExecution {
   plan: SqlExecutionPlan | SqlQueryPlan<unknown>;
   rows: Record<string, unknown>[];

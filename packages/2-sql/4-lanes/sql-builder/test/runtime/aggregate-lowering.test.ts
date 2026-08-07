@@ -90,7 +90,7 @@ function db() {
 }
 
 /** The static face of {@link loweringAggregateRegistry}: count answers without an input. */
-type LoweringQC = QueryContext & {
+type LoweringQC = Omit<QueryContext, 'aggregateTypes'> & {
   aggregateTypes: {
     count: {
       byCodec: Record<never, never>;

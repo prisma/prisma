@@ -1,6 +1,7 @@
 import type { CodecRef } from '@internal/framework-components/codec';
 import type { AnyExpression as AstExpression } from '@internal/sql-relational-core/ast';
 import type { Expression } from '@internal/sql-relational-core/expression';
+import { structuredError } from '@internal/utils/structured-error';
 import type { ScopeField } from '../scope';
 
 /**
@@ -29,6 +30,34 @@ export class ExpressionImpl<T extends ScopeField = ScopeField> implements Expres
 
   buildProjectionAst(): AstExpression {
     return this.projectionAst ?? this.ast;
+  }
+}
+
+/**
+ * An aggregate whose operation lies outside the SQL aggregate alphabet: the expression exists only in its descriptor-lowered form, so only the projection may consume it.
+ *
+ * Predicate and ordering positions build the plain form through `buildAst()` and are refused at authoring time — the lowered rendering exists to carry the value across the driver boundary, and comparing or sorting by it inside the database would change SQL semantics (a textual rendering compares lexicographically).
+ */
+export class ProjectionOnlyExpressionImpl<
+  T extends ScopeField = ScopeField,
+> extends ExpressionImpl<T> {
+  private readonly operation: string;
+
+  constructor(operation: string, lowered: AstExpression, returnType: T) {
+    super(lowered, returnType, undefined, lowered);
+    this.operation = operation;
+  }
+
+  override buildAst(): AstExpression {
+    throw structuredError(
+      'ORM.AGGREGATE_PROJECTION_ONLY',
+      `Aggregate operation '${this.operation}' is projection-only: it has no plain SQL form for HAVING, ORDER BY, or comparison positions.`,
+      {
+        why: "An operation outside the SQL aggregate alphabet reaches SQL only through its descriptor's lowering hook — a rendering for the driver boundary. HAVING and ORDER BY compare the value inside the database, where that rendering would change SQL semantics.",
+        fix: `Project '${this.operation}' in a select and filter or order on the projected value, or use an operation from the SQL aggregate alphabet.`,
+        meta: { operation: this.operation },
+      },
+    );
   }
 }
 

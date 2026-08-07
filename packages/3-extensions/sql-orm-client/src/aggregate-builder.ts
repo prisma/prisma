@@ -1,39 +1,42 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
+import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
+import { aggregateOperationNames } from './aggregate-operations';
 import { getFieldToColumnMap } from './collection-contract';
 import type { AggregateBuilder, AggregateSelector } from './types';
 
+/**
+ * The aggregate selector methods, one per operation the registry contributes —
+ * the runtime mirror of the contract's emitted aggregate map, which is what
+ * types the surface as {@link AggregateBuilder}. Each method builds a selector
+ * carrying the operation's name and, for a field-taking call, the field's
+ * storage column; what a selector resolves to is the plan compiler's question
+ * to the same registry.
+ */
 export function createAggregateBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
 >(
   contract: TContract,
+  aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   modelName: ModelName,
 ): AggregateBuilder<TContract, ModelName, NsId> {
   const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
-
-  return {
-    count() {
-      return {
-        kind: 'aggregate',
-        fn: 'count',
-      };
-    },
-    sum(field) {
-      return createFieldAggregateSelector(fieldToColumn, field, 'sum');
-    },
-    avg(field) {
-      return createFieldAggregateSelector(fieldToColumn, field, 'avg');
-    },
-    min(field) {
-      return createFieldAggregateSelector(fieldToColumn, field, 'min');
-    },
-    max(field) {
-      return createFieldAggregateSelector(fieldToColumn, field, 'max');
-    },
-  };
+  const builder: Record<string, (field?: string) => AggregateSelector<unknown>> = {};
+  for (const operation of aggregateOperationNames(aggregates)) {
+    builder[operation] = (field?: string) => {
+      const column = field === undefined ? undefined : (fieldToColumn[field] ?? field);
+      return { kind: 'aggregate', fn: operation, ...ifDefined('column', column) };
+    };
+  }
+  return blindCast<
+    AggregateBuilder<TContract, ModelName, NsId>,
+    "the registry's operations are the contract's emitted aggregate map, whose mapped type enforces each method's arity and result"
+  >(builder);
 }
 
 export function isAggregateSelector(value: unknown): value is AggregateSelector<unknown> {
@@ -42,30 +45,5 @@ export function isAggregateSelector(value: unknown): value is AggregateSelector<
   }
 
   const candidate = value as { kind?: unknown; fn?: unknown };
-  if (candidate.kind !== 'aggregate') {
-    return false;
-  }
-
-  return (
-    candidate.fn === 'count' ||
-    candidate.fn === 'sum' ||
-    candidate.fn === 'avg' ||
-    candidate.fn === 'min' ||
-    candidate.fn === 'max'
-  );
-}
-
-/**
- * The selector's result type is the contract's to state — it varies by target, operation, and the field's own codec — so the builder erases it here and each method's declared return type names it.
- */
-function createFieldAggregateSelector<Result>(
-  fieldToColumn: Record<string, string>,
-  field: string,
-  fn: 'sum' | 'avg' | 'min' | 'max',
-): AggregateSelector<Result> {
-  return {
-    kind: 'aggregate',
-    fn,
-    column: fieldToColumn[field] ?? field,
-  };
+  return candidate.kind === 'aggregate' && typeof candidate.fn === 'string';
 }

@@ -153,13 +153,6 @@ type WithoutInputRow<Operation> = Operation extends { readonly withoutInput: inf
   ? Row
   : never;
 
-/**
- * A count reads through the codec its target declares for it. Both built-in
- * targets count into a 64-bit integer, so the application value is a `bigint`
- * either way — but which codec carries it is the contract's to say.
- */
-export type CountField<QC extends QueryContext> = AggregateField<QC, 'count', never>;
-
 declare const aggregateUnavailable: unique symbol;
 
 /**
@@ -180,30 +173,60 @@ type AggregateOperand<
 > = Expression<T> &
   (AggregateRow<QC, Op, T['codecId']> extends never ? AggregateUnavailable<Op> : unknown);
 
-export type AggregateOnlyFunctions<QC extends QueryContext> = {
-  // Two overloads because the runtime resolves them through different rows:
-  // `count()` through `withoutInput`, `count(expr)` through `byCodec[input] ?? anyInput`.
-  count: {
-    (
-      ...args: AggregateRow<QC, 'count', never> extends never ? [AggregateUnavailable<'count'>] : []
-    ): Expression<CountField<QC>>;
-    <T extends ScopeField>(
-      expr: AggregateOperand<QC, 'count', T>,
-    ): Expression<AggregateField<QC, 'count', T['codecId']>>;
-  };
-  sum: <T extends ScopeField>(
-    expr: AggregateOperand<QC, 'sum', T>,
-  ) => Expression<AggregateField<QC, 'sum', T['codecId']>>;
-  avg: <T extends ScopeField>(
-    expr: AggregateOperand<QC, 'avg', T>,
-  ) => Expression<AggregateField<QC, 'avg', T['codecId']>>;
-  min: <T extends ScopeField>(
-    expr: AggregateOperand<QC, 'min', T>,
-  ) => Expression<AggregateField<QC, 'min', T['codecId']>>;
-  max: <T extends ScopeField>(
-    expr: AggregateOperand<QC, 'max', T>,
-  ) => Expression<AggregateField<QC, 'max', T['codecId']>>;
-};
+type FieldTakingAggregateMethod<QC extends QueryContext, Op extends string> = <
+  T extends ScopeField,
+>(
+  expr: AggregateOperand<QC, Op, T>,
+) => Expression<AggregateField<QC, Op, T['codecId']>>;
+
+/**
+ * One derived aggregate method. Its arities are read off the operation's row
+ * presence in the aggregate map: a `withoutInput` row admits the
+ * zero-argument call (resolved through that row), and the field-taking call
+ * types through `byCodec[input] ?? anyInput` — an input no row claims is
+ * rejected at the call site via {@link AggregateUnavailable}. An operation
+ * with both shapes carries both overloads; `count()` vs `count(expr)` is one
+ * such data fact, not a special case.
+ */
+type AggregateMethod<QC extends QueryContext, Op extends string> = [
+  AggregateRow<QC, Op, never>,
+] extends [never]
+  ? FieldTakingAggregateMethod<QC, Op>
+  : {
+      (): Expression<AggregateField<QC, Op, never>>;
+      <T extends ScopeField>(
+        expr: AggregateOperand<QC, Op, T>,
+      ): Expression<AggregateField<QC, Op, T['codecId']>>;
+    };
+
+/** The operation names the context's aggregate map declares. */
+type AggregateOperationNames<QC extends QueryContext> = keyof QC['aggregateTypes'] & string;
+
+declare const aggregateOperationsUnavailable: unique symbol;
+
+/**
+ * The aggregate surface a context whose aggregate map is unknown resolves to. It declares no
+ * operation, and the optional symbol-keyed brand names the reason at the call site while leaving
+ * the members and the assignability of any surface it intersects with untouched.
+ */
+export interface AggregateOperationsUnavailable {
+  readonly [aggregateOperationsUnavailable]?: 'the composed target declares no aggregate operations';
+}
+
+/**
+ * The aggregate surface: one method per operation the contract's aggregate
+ * map declares, named by the map's keys. The method set, each method's
+ * arities, and each result's identity all derive from the map — an operation
+ * the map does not declare is no method at all, and a context whose map is
+ * unknown resolves to {@link AggregateOperationsUnavailable}, which keeps an
+ * index signature off the surface.
+ */
+export type AggregateOnlyFunctions<QC extends QueryContext> =
+  string extends AggregateOperationNames<QC>
+    ? AggregateOperationsUnavailable
+    : {
+        [Op in AggregateOperationNames<QC>]: AggregateMethod<QC, Op>;
+      };
 
 export type AggregateFunctions<QC extends QueryContext> = Functions<QC> &
   AggregateOnlyFunctions<QC>;

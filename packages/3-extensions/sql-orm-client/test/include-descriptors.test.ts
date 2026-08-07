@@ -37,7 +37,10 @@ describe('include-descriptors', () => {
     const state = emptyState();
 
     expect(isIncludeScalar(null)).toBe(false);
-    expect(isIncludeScalar({ kind: 'includeScalar', fn: 'median', state })).toBe(false);
+    // The operation vocabulary is open: any string names a potentially
+    // contributed operation, so validity is shape-only.
+    expect(isIncludeScalar({ kind: 'includeScalar', fn: 'median', state })).toBe(true);
+    expect(isIncludeScalar({ kind: 'includeScalar', fn: 42, state })).toBe(false);
     expect(isIncludeScalar({ kind: 'includeScalar', fn: 'count', state: {} })).toBe(false);
     expect(isIncludeScalar({ kind: 'includeScalar', fn: 'count', state })).toBe(true);
   });

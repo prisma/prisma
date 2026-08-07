@@ -389,6 +389,14 @@ An authored wire-name prefix (an index name, or an RLS policy prefix) exceeds th
 
 ## ORM
 
+### ORM.AGGREGATE_OPERATION_RESERVED
+
+A contributed aggregate operation carries a name a collection builder member already owns (`select`, `include`, `where`, `combine`, `aggregate`, …, or a collection instance field). Aggregate operations surface as reducer methods on the ORM collection, in one flat namespace with the query-builder members, so a same-named operation would shadow the member it collides with. Raised at ORM composition (`orm(...)`), where the collection surface is assembled. Rename the contributed operation. Meta: `operation`.
+
+### ORM.AGGREGATE_PROJECTION_ONLY
+
+An aggregate operation contributed from outside the closed SQL aggregate alphabet (`count`, `sum`, `avg`, `min`, `max`) was used in HAVING, ORDER BY, or another comparison position. Such an operation reaches SQL only through its descriptor's lowering hook — a rendering meant for the SELECT projection, where the value crosses the driver boundary. HAVING and ORDER BY compare the value inside the database, where that rendering would change SQL semantics (a textual rendering compares and sorts lexicographically), so the query builder refuses at authoring time. Project the aggregate in a select and filter or order on the projected value, or use an operation from the alphabet. Meta: `operation`.
+
 ### ORM.AGGREGATE_SELECTOR_INVALID
 
 An `aggregate()` or `groupBy().aggregate()` selector is not a valid aggregation descriptor, or an aggregate function that requires a column/field (e.g. sum, avg) was given none. Thrown when the ORM client builds the aggregate query plan. Meta: `method`, `model`, `alias`, `fn`.
@@ -502,6 +510,10 @@ An in-flight `execute()` was cancelled via the per-query `AbortSignal` passed as
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
 A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `self` output on an operation that consumes no input, or a non-callable `lower`. Raised while the execution context assembles the registry. Meta: `descriptor`.
+
+### RUNTIME.AGGREGATE_LOWERING_MISSING
+
+An aggregate descriptor declares an operation outside the closed SQL aggregate alphabet (`count`, `sum`, `avg`, `min`, `max`) and carries no `lower` hook. An alphabet operation lowers to a plain aggregate call by default; renderers know no other operation, so any other name must build its expression through a lowering hook from existing AST nodes. Raised while the execution context assembles the aggregate registry. Meta: `operation`, `key`.
 
 ### RUNTIME.AGGREGATE_OUTPUT_CODEC_MISSING
 

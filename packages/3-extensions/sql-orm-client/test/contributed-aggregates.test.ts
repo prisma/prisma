@@ -1,0 +1,219 @@
+/**
+ * The ORM's aggregate surfaces are derived, not spelled out: the callable set
+ * comes from the operations the composed registry contributes. A contributed
+ * name surfaces on the include reducers and the aggregate builder, an
+ * operation the registry does not contribute is no method at all, an
+ * operation outside the SQL aggregate alphabet is refused in HAVING, and a
+ * name that would shadow a collection builder member is rejected at ORM
+ * composition.
+ */
+
+import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import { type AnyExpression, FunctionCallExpr } from '@internal/sql-relational-core/ast';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { describe, expect, it } from 'vitest';
+import { createAggregateBuilder } from '../src/aggregate-builder';
+import { Collection, reservedCollectionMemberNames } from '../src/collection';
+import { orm } from '../src/orm';
+import type { AggregateSelector } from '../src/types';
+import { emptyState } from '../src/types';
+import { createMockRuntime, getTestContext, type TestContract } from './helpers';
+
+const countAny: SqlAggregateDescriptor = {
+  operation: 'count',
+  input: { kind: 'any' },
+  output: { kind: 'codec', codecId: 'pg/int8@1' },
+  nullable: false,
+};
+
+const medianOverNumeric: SqlAggregateDescriptor = {
+  operation: 'median',
+  input: { kind: 'trait', trait: 'numeric' },
+  output: { kind: 'codec', codecId: 'pg/float8@1' },
+  nullable: true,
+  lower: ({ expr }) => FunctionCallExpr.of('median', expr === undefined ? [] : [expr]),
+};
+
+const tallyWithoutInput: SqlAggregateDescriptor = {
+  operation: 'tally',
+  input: { kind: 'none' },
+  output: { kind: 'codec', codecId: 'pg/int8@1' },
+  nullable: false,
+  lower: () => FunctionCallExpr.of('tally', []),
+};
+
+function contextWith(descriptors: readonly unknown[]): ExecutionContext<TestContract> {
+  const base = getTestContext();
+  return {
+    ...base,
+    aggregateDescriptors: buildSqlAggregateDescriptorRegistry(descriptors, base.codecDescriptors),
+  };
+}
+
+type DynamicAggregateMethods = Record<
+  string,
+  ((field?: string) => AggregateSelector<unknown>) | undefined
+>;
+
+describe('derived include reducers', () => {
+  const context = contextWith([countAny, medianOverNumeric, tallyWithoutInput]);
+
+  function refinementCollection() {
+    return new Collection({ runtime: createMockRuntime(), context }, 'Post', {
+      namespaceId: 'public',
+      includeRefinementMode: true,
+    });
+  }
+
+  it('surfaces every contributed operation as a reducer', () => {
+    const posts = refinementCollection();
+    const dynamic = posts as unknown as DynamicAggregateMethods;
+
+    expect(dynamic['median']?.('views')).toEqual({
+      kind: 'includeScalar',
+      fn: 'median',
+      column: 'views',
+      state: posts.state,
+    });
+    expect(dynamic['tally']?.()).toEqual({
+      kind: 'includeScalar',
+      fn: 'tally',
+      state: posts.state,
+    });
+  });
+
+  it('surfaces no operation the registry does not contribute', () => {
+    const dynamic = refinementCollection() as unknown as DynamicAggregateMethods;
+
+    expect(dynamic['sum']).toBeUndefined();
+    expect(dynamic['avg']).toBeUndefined();
+  });
+
+  it('a reducer outside an include refinement raises ORM.INCLUDE_INVALID', () => {
+    const posts = new Collection({ runtime: createMockRuntime(), context }, 'Post', {
+      namespaceId: 'public',
+    });
+    const dynamic = posts as unknown as DynamicAggregateMethods;
+
+    expect(() => dynamic['median']?.('views')).toThrow(
+      expect.objectContaining({
+        code: 'ORM.INCLUDE_INVALID',
+        meta: { action: 'median()' },
+      }),
+    );
+  });
+});
+
+describe('derived aggregate builder', () => {
+  it('surfaces contributed operations with their call shapes and no others', () => {
+    const context = contextWith([countAny, medianOverNumeric, tallyWithoutInput]);
+    const builder = createAggregateBuilder(
+      context.contract,
+      context.aggregateDescriptors,
+      'public',
+      'Post',
+    ) as unknown as DynamicAggregateMethods;
+
+    expect(builder['median']?.('views')).toEqual({
+      kind: 'aggregate',
+      fn: 'median',
+      column: 'views',
+    });
+    expect(builder['tally']?.()).toEqual({ kind: 'aggregate', fn: 'tally' });
+    expect(builder['sum']).toBeUndefined();
+  });
+});
+
+describe('empty-input answers', () => {
+  it('derive from the declared row: zero for a non-nullable result, null for a nullable one', async () => {
+    const runtime = createMockRuntime();
+    const context = contextWith([countAny, medianOverNumeric]);
+    const posts = new Collection({ runtime, context }, 'Post', { namespaceId: 'public' });
+    runtime.setNextResults([[]]);
+
+    await expect(
+      posts.aggregate((agg) => {
+        const dynamic = agg as unknown as DynamicAggregateMethods;
+        return {
+          total: dynamic['count']?.() as AggregateSelector<unknown>,
+          mid: dynamic['median']?.('views') as AggregateSelector<unknown>,
+        };
+      }),
+    ).resolves.toEqual({ total: 0n, mid: null });
+  });
+});
+
+describe('projection-only operations in HAVING', () => {
+  it('refuses a contributed operation outside the SQL aggregate alphabet', () => {
+    const context = contextWith([countAny, medianOverNumeric]);
+    const posts = new Collection({ runtime: createMockRuntime(), context }, 'Post', {
+      namespaceId: 'public',
+    });
+    const grouped = posts.groupBy('views');
+
+    expect(() =>
+      grouped.having((having) => {
+        const dynamic = having as unknown as Record<
+          string,
+          (field?: string) => { gt(value: number): AnyExpression }
+        >;
+        return dynamic['median']!('views').gt(1);
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'ORM.AGGREGATE_PROJECTION_ONLY',
+        meta: { operation: 'median' },
+      }),
+    );
+  });
+});
+
+describe('reserved operation names', () => {
+  const shadowingBuilderMethod: SqlAggregateDescriptor = {
+    operation: 'where',
+    input: { kind: 'any' },
+    output: { kind: 'codec', codecId: 'pg/int8@1' },
+    nullable: false,
+    lower: ({ expr }) => FunctionCallExpr.of('shadow', expr === undefined ? [] : [expr]),
+  };
+  const shadowingInstanceMember: SqlAggregateDescriptor = {
+    ...shadowingBuilderMethod,
+    operation: 'state',
+  };
+
+  it('a contributed operation shadowing a builder method is rejected at composition', () => {
+    const context = contextWith([shadowingBuilderMethod]);
+
+    expect(() => orm({ runtime: createMockRuntime(), context })).toThrow(
+      expect.objectContaining({
+        code: 'ORM.AGGREGATE_OPERATION_RESERVED',
+        meta: { operation: 'where' },
+      }),
+    );
+  });
+
+  it('a contributed operation shadowing an instance member is rejected at composition', () => {
+    const context = contextWith([shadowingInstanceMember]);
+
+    expect(() => orm({ runtime: createMockRuntime(), context })).toThrow(
+      expect.objectContaining({
+        code: 'ORM.AGGREGATE_OPERATION_RESERVED',
+        meta: { operation: 'state' },
+      }),
+    );
+  });
+
+  it('the reserved set covers every member a live collection carries', () => {
+    const context = contextWith([]);
+    const posts = new Collection({ runtime: createMockRuntime(), context }, 'Post', {
+      namespaceId: 'public',
+      state: emptyState(),
+    });
+    const reserved = reservedCollectionMemberNames();
+
+    for (const name of Object.getOwnPropertyNames(posts)) {
+      expect(reserved).toContain(name);
+    }
+  });
+});

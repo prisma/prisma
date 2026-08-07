@@ -1,14 +1,18 @@
-import type { AggregateFn } from './types';
+import type { Codec } from '@internal/sql-relational-core/ast';
 
 /**
  * What an aggregate reads as when there is no row to read at all.
  *
- * SQL answers an empty input set itself — `count` collapses to zero, the rest
- * to null — so this covers only the degenerate case of a result set with no
- * row: an absent aggregate alias, or an include whose envelope never arrived.
- * Zero is a `bigint` because that is what both targets' `count` codecs decode
- * to; a count is a cardinality, and cardinalities are not capped at 2^53.
+ * SQL answers an empty input set itself — a nullable-declared aggregate
+ * collapses to NULL, a non-nullable one to a value SQL still produces, a
+ * count's zero cardinality — so this covers only the degenerate case of a
+ * result set with no row: an absent aggregate alias, or an include whose
+ * envelope never arrived. The answer reads off the operation's declared row:
+ * NULL where the row is nullable, else zero decoded through the declared
+ * output codec — from canonical decimal text, the JSON form the wide-integer
+ * codecs a non-nullable aggregate carries read — so the application sees the
+ * same value shape a real row would produce.
  */
-export function emptyAggregateResult(fn: AggregateFn): bigint | null {
-  return fn === 'count' ? 0n : null;
+export function emptyAggregateResult(nullable: boolean, codec: Codec): unknown {
+  return nullable ? null : codec.decodeJson('0');
 }

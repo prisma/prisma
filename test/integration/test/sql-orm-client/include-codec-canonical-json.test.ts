@@ -9,7 +9,7 @@ import postgresAdapter from '@internal/adapter-postgres/runtime';
 import { vector } from '@internal/extension-pgvector/column-types';
 import pgvectorRuntime from '@internal/extension-pgvector/runtime';
 import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
-import { Collection } from '@internal/sql-orm-client';
+import { type AggregateSpec, Collection } from '@internal/sql-orm-client';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
@@ -245,11 +245,13 @@ describe('integration/include canonical JSON', () => {
           namespaceId: 'public',
         });
 
-        const counterField = 'counter' as never;
-        const stats = await readings.aggregate((aggregate) => ({
-          total: aggregate.sum(counterField),
-          peak: aggregate.max(counterField),
-        }));
+        // The contract is authored in this file, so its static aggregate map
+        // is unknown and the typed builder surface is empty; dispatch
+        // dynamically, as the include reducer below already does.
+        const stats = await readings.aggregate((aggregate) => {
+          const dynamic = aggregate as Record<string, (field?: string) => AggregateSpec[string]>;
+          return { total: dynamic['sum']!('counter'), peak: dynamic['max']!('counter') };
+        });
 
         // PostgreSQL sums bigints into a numeric, whose canonical form is its
         // decimal string; the maximum keeps the column's own bigint. Both are

@@ -95,6 +95,20 @@ describe('relational-core structured error codes', () => {
     });
   });
 
+  it('alphabet-external operation without a lowering hook raises RUNTIME.AGGREGATE_LOWERING_MISSING', () => {
+    const error = capture(() =>
+      buildSqlAggregateDescriptorRegistry(
+        [{ ...sumOverNumeric, operation: 'median' }],
+        buildCodecDescriptorRegistry([codecWithTraits('lib/int8@1', ['numeric'])]),
+      ),
+    );
+    expect(isStructuredError(error)).toBe(true);
+    expect(error).toMatchObject({
+      code: 'RUNTIME.AGGREGATE_LOWERING_MISSING',
+      meta: { operation: 'median', key: 'median:trait:numeric' },
+    });
+  });
+
   it('unregistered aggregate output codec raises RUNTIME.AGGREGATE_OUTPUT_CODEC_MISSING', () => {
     const error = capture(() =>
       buildSqlAggregateDescriptorRegistry([sumOverNumeric], buildCodecDescriptorRegistry([])),

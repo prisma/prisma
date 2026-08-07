@@ -11,6 +11,7 @@ import { structuredError } from '@internal/utils/structured-error';
 import type { SqlAggregateDescriptor } from './aggregate-descriptor';
 import { isSqlAggregateDescriptor } from './aggregate-descriptor';
 import { frozenCodecRef } from './ast/codec-types';
+import { aggregateFnNames, isAggregateFn } from './ast/types';
 import type {
   CodecDescriptorRegistry,
   ResolvedSqlAggregate,
@@ -36,7 +37,7 @@ function namedOutputRef(output: NamedAggregateOutput, input: CodecRef | undefine
 /**
  * Validate every contributed aggregate descriptor and settle its matches against the composed codec set.
  *
- * Validation covers the descriptor's own shape, a second claim on one `(operation, input)` pair, and two trait descriptors that both claim a registered codec for one operation — the last of which only a composed stack can detect, which is why it is settled here rather than at contribution.
+ * Validation covers the descriptor's own shape, the lowering rule — an operation outside the closed SQL aggregate alphabet must carry a `lower` hook, there being no plain `AggregateExpr` form for it — a second claim on one `(operation, input)` pair, and two trait descriptors that both claim a registered codec for one operation — the last of which only a composed stack can detect, which is why it is settled here rather than at contribution.
  */
 export function buildSqlAggregateDescriptorRegistry(
   descriptors: ReadonlyArray<unknown>,
@@ -59,6 +60,17 @@ export function buildSqlAggregateDescriptorRegistry(
     }
 
     const key = aggregateDescriptorKey(candidate);
+    if (!isAggregateFn(candidate.operation) && candidate.lower === undefined) {
+      throw structuredError(
+        'RUNTIME.AGGREGATE_LOWERING_MISSING',
+        `Aggregate descriptor '${key}' declares operation '${candidate.operation}', which is outside the SQL aggregate alphabet (${[...aggregateFnNames].join(', ')}) and carries no lowering hook.`,
+        {
+          why: 'An operation in the alphabet lowers to a plain aggregate call; renderers know no other operation, so any other name must build its expression through a `lower` hook from existing nodes.',
+          fix: 'Declare a `lower` hook on the descriptor, or use an operation name from the SQL aggregate alphabet.',
+          meta: { operation: candidate.operation, key },
+        },
+      );
+    }
     if (claimedKeys.has(key)) {
       throw structuredError(
         'RUNTIME.DUPLICATE_AGGREGATE_DESCRIPTOR',
