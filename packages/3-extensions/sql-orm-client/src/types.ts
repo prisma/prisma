@@ -652,6 +652,18 @@ export type AggregateFieldNames<
 type AggregateOperationNames<TContract extends Contract<SqlStorage>> =
   keyof ExtractAggregateTypes<TContract> & string;
 
+declare const aggregateOperationsUnavailable: unique symbol;
+
+/**
+ * The surface an aggregate-derived type resolves to for a contract whose emitted aggregate map is
+ * unknown. It declares no operation, and the optional symbol-keyed brand names the reason at the
+ * call site while leaving the members and the assignability of any surface it intersects with
+ * untouched.
+ */
+export interface AggregateOperationsUnavailable {
+  readonly [aggregateOperationsUnavailable]?: 'the contract declares no aggregate operations';
+}
+
 /** Whether the operation declares a row for a call carrying no input. */
 type HasZeroArgCall<TContract extends Contract<SqlStorage>, Op extends string> = [
   AggregateRowFor<TContract, Op, never>,
@@ -706,7 +718,7 @@ export type AggregateBuilder<
   NsId extends string = never,
 > =
   string extends AggregateOperationNames<TContract>
-    ? unknown
+    ? AggregateOperationsUnavailable
     : {
         readonly [Op in AggregateOperationNames<TContract>]: AggregateSelectorMethod<
           TContract,
@@ -757,7 +769,7 @@ export type AggregateIncludeReducers<
   NsId extends string = never,
 > =
   string extends AggregateOperationNames<TContract>
-    ? unknown
+    ? AggregateOperationsUnavailable
     : {
         readonly [Op in AggregateOperationNames<TContract>]: IncludeReducerMethod<
           TContract,
@@ -828,7 +840,7 @@ export type HavingBuilder<
   NsId extends string = never,
 > =
   string extends AggregateOperationNames<TContract>
-    ? unknown
+    ? AggregateOperationsUnavailable
     : {
         readonly [Op in AggregateOperationNames<TContract> & SqlAggregateFn]: HavingMethod<
           TContract,

@@ -2446,13 +2446,13 @@ class CollectionImpl<
     });
   }
 
-  #withRuntime(runtime: RuntimeQueryable): Collection<TContract, ModelName, Row, State> {
+  #withRuntime(runtime: RuntimeQueryable): CollectionImpl<TContract, ModelName, Row, State> {
     const Ctor = blindCast<
       CollectionConstructor<TContract>,
       'runtime collection subclasses preserve the Collection constructor contract'
     >(this.constructor);
     return blindCast<
-      Collection<TContract, ModelName, Row, State>,
+      CollectionImpl<TContract, ModelName, Row, State>,
       'runtime collection construction erases model row and state generics'
     >(
       new Ctor({ ...this.ctx, runtime }, this.modelName, {
