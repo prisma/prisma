@@ -1,6 +1,6 @@
 # Design ADDENDUM — TML-3181: base-type rules 6–7 applied to composer
 
-Status: DRAFT — ambiguities 1–6 (end) pending operator ruling. Applies ON TOP of [design.md](./design.md); sections not named stand. Normative parents: [cli-base-types.md](../../cli-base-types.md) rules 6–7. Repo paths relative to the composer clone.
+Status: ambiguities 1, 2, 4 RULED (2026-08-07 — 1 is stronger than option (a): delete `OperationFailure` outright, see §A7–A8); 3, 5, 6 pending ruling, implementation proceeds on their recommendations (operator: "do it now") and a contrary ruling reworks them. Applies ON TOP of [design.md](./design.md); sections not named stand. Normative parents: [cli-base-types.md](../../cli-base-types.md) rules 6–7. Repo paths relative to the composer clone.
 
 ## A0. Supersession map
 
@@ -37,37 +37,25 @@ DELETED: base §3 row 41 fallback maps (+paragraph). PURGED codes: `COMPOSE.PIPE
 
 CONFIG {FILE_MISSING, EXPORT_INVALID, FIELD_INVALID, EXTENSION_DUPLICATE, PATH_MISMATCH, EXTENSION_MISSING, DESCRIPTOR_MISSING, DESCRIPTOR_KIND_MISMATCH, **EVALUATION_FAILED**}; COMPOSE {ENTRY_UNLOADABLE, ENTRY_EXPORT_INVALID, ROOT_NOT_MODULE, NAME_MISSING, **GRAPH_INVALID**}; **ASSEMBLE** {EXTENSION_MISSING, DESCRIPTOR_MISSING, DESCRIPTOR_KIND_MISMATCH, SERVICE_MISSING, BUILD_FAILED} (new namespace, owner `@internal/assemble/assemble-services.ts`); DEPLOY {…base…, **STACK_WRITE_FAILED**, −INPUT_INVALID}; DEV {…base…, **ATTACH_FAILED**, **STACK_WRITE_FAILED**, −INPUT_INVALID}; LOG {PLATFORM_UNSUPPORTED, ATTACH_FAILED, ADDRESS_UNKNOWN}; DEPS {EFFECT_VERSION_CONFLICT, **EXECUTOR_UNLOADABLE**}. ADR-0044 owner-table deltas: ASSEMBLE row; COMPOSE delegates gain core's graph modules; DEV delegates gain `core/control/local-target.ts`; DEPS delegates gain `operations/shared.ts`; note that namespaces raised below the CLI layer are legal — codes are vocabulary, not import edges.
 
-## A7–A8. Rule 7 — OperationFailure collapses (Amb 1 rec)
+## A7–A8. Rule 7 — OperationFailure is deleted (Amb 1 RULED)
 
-**Decision (pending ruling): Option (a)** — `export type OperationFailure = CliStructuredError;` The four-member union in `operations/shared.ts` is deleted. Kind becomes DERIVED, never stored:
+**Ruling (operator, 2026-08-07): delete `OperationFailure` entirely** — no alias. The four-member union in `operations/shared.ts` is deleted and nothing replaces the name; failures ARE `CliStructuredError` and API signatures say so directly. The `kind` vocabulary dies with the type: `operationFailureKind` is NOT built (tests and consumers branch on `failure.code`). The diagnostics reader survives, retyped:
 
 ```ts
-export type OperationFailureKind = 'invalid-input' | 'unsupported-platform' | 'pipeline' | 'execution';
-export function operationFailureKind(f: OperationFailure): OperationFailureKind {
-  switch (f.code) {
-    case 'DEPLOY.STAGE_INVALID': case 'DEPLOY.STAGE_UNVALIDATABLE': case 'LOG.ADDRESS_UNKNOWN':
-      return 'invalid-input';
-    case 'DEV.PLATFORM_UNSUPPORTED': case 'LOG.PLATFORM_UNSUPPORTED':
-      return 'unsupported-platform';
-    case 'DEPLOY.ENGINE_FAILED': case 'DEV.CONVERGE_FAILED':
-      return 'execution';
-    default: return 'pipeline';
-  }
-}
-export function executionDiagnostics(f: OperationFailure): ExecutionDiagnostics | undefined; // structural field-checked read of f.meta.diagnostics (blindCast reason = the checks)
+export function executionDiagnostics(f: CliStructuredError): ExecutionDiagnostics | undefined; // structural field-checked read of f.meta.diagnostics (blindCast reason = the checks)
 ```
 
 Engine failures carry `meta: { exitCode, diagnostics: { exitCode, stackFilePath, reproduceCommand, cwd } }` so envelope and helper agree.
 
 ## A9. Result-shaped API [supersedes base §5]
 
-- `deploy: Promise<Result<DeploySuccess, OperationFailure>>` with `DeploySuccess { summary: DeploymentSummary | undefined }`.
-- `destroy: Promise<Result<void, OperationFailure>>` — success via `okVoid()` (donor precedent; an empty interface invites accretion).
-- `dev: Promise<Result<DevSession, OperationFailure>>` — the session IS the value.
-- `log: Promise<Result<LogAttached, OperationFailure>>` with `LogAttached { appName, services, lines }`.
-- `runStackPipeline` returns `Result<DeploymentSummary | undefined, OperationFailure>`; executeDeploy maps to `ok({summary})`, executeDestroy to `okVoid()`.
+- `deploy: Promise<Result<DeploySuccess, CliStructuredError>>` with `DeploySuccess { summary: DeploymentSummary | undefined }`.
+- `destroy: Promise<Result<void, CliStructuredError>>` — success via `okVoid()` (donor precedent; an empty interface invites accretion).
+- `dev: Promise<Result<DevSession, CliStructuredError>>` — the session IS the value.
+- `log: Promise<Result<LogAttached, CliStructuredError>>` with `LogAttached { appName, services, lines }`.
+- `runStackPipeline` returns `Result<DeploymentSummary | undefined, CliStructuredError>`; executeDeploy maps to `ok({summary})`, executeDestroy to `okVoid()`.
 - Adapters: `if (result.ok) return 0;` else `renderDeployDestroyFailure(failure)` = read `executionDiagnostics`; exitCode defined → print two hint lines, return the child status (documented ADR-0044 exception); else `throw failure` (cli.ts renders, exit 2). Behavior delta (enumerated): spawn-threw engine failures move from raw-rethrow/exit-1 to rendered envelope/exit-2 — correct under the shared rule.
-- `./control` shim exports `Result`/`Ok`/`NotOk` types, success types, `OperationFailure`/`OperationFailureKind`/`ExecutionDiagnostics` types + the two helpers; the `CliStructuredError` CLASS is deliberately not value-exported (hosts recognize via their own foundation copy's predicates — ADR 239 structural recognition). 9-public shim unchanged (`export *`).
+- `./control` shim exports `Result`/`Ok`/`NotOk` types, success types, the `ExecutionDiagnostics` type + the `executionDiagnostics` helper; the `CliStructuredError` CLASS is deliberately not value-exported (hosts recognize via their own foundation copy's predicates — ADR 239 structural recognition). 9-public shim unchanged (`export *`).
 - `Result` is in-process only (frozen, getter-backed; not JSON-serializable) — ADR-0043 gains a bullet; the effect-CI probe serializes `failure.toEnvelope()` + a `{name,message}` cause projection and asserts `code === 'DEPS.EFFECT_VERSION_CONFLICT'`, summary marker, cause `{ name: 'Error', message: 'Schedule.either is not a function' }`.
 
 ## A6/A10. Test deltas (beyond base §4 tables)
@@ -75,7 +63,7 @@ Engine failures carry `meta: { exitCode, diagnostics: { exitCode, stackFilePath,
 - run.test.ts deploy-assemble (L458-475): expect structured `AssembleError`, `code === 'ASSEMBLE.BUILD_FAILED'`, message pins unchanged. destroy-assemble (L438-456): code `DEPLOY.BUILD_REQUIRED`; why/fix re-targets; cause's code asserted `ASSEMBLE.BUILD_FAILED` (narrow via `.is`, no bare cast).
 - assemble-services.test.ts: three regex re-targets (why/fix splits); new tests: rejecting RunAssembler → BUILD_FAILED with meta.address + cause; thrown structured error passes through unwrapped.
 - load-config.test.ts: +1 test (throwing config module → `CONFIG.EVALUATION_FAILED`, where.path, cause). load-entry.test.ts: +1 test (non-JSX import failure → `COMPOSE.ENTRY_UNLOADABLE`); JSX cases gain `.where.path` (ruling-6 override). load-graph.test.ts: +`code === 'COMPOSE.GRAPH_INVALID'` on one case.
-- operations.test.ts: 49 `outcome` occurrences → `ok` checks; `failure.kind` → `failure.code` (+ one `operationFailureKind` pin per kind); alchemy-42 literal → code/message/`executionDiagnostics()` toEqual; stage case drops its `cause instanceof` line (failure IS the origin). control.deploy.test.ts: `ok === false`, `code === 'ASSEMBLE.BUILD_FAILED'`, both message toContains.
+- operations.test.ts: 49 `outcome` occurrences → `ok` checks; `failure.kind` → `failure.code`; alchemy-42 literal → code/message/`executionDiagnostics()` toEqual; stage case drops its `cause instanceof` line (failure IS the origin). control.deploy.test.ts: `ok === false`, `code === 'ASSEMBLE.BUILD_FAILED'`, both message toContains.
 - New cli.test.ts case: non-structured throw out of run() → exit 1 + report hint (pins "no fallback codes" behaviorally).
 - Effect-CI script: asserts marker + nonzero (exit 2 qualifies) — no change needed; probe rewrite above.
 
@@ -87,11 +75,11 @@ ADR-0043: Result-form grounding snippet; "failures are CliStructuredErrors — c
 
 copies+shims+tests → render-error → core/assemble origin structuring → CLI site replacement + new wraps + delete cli-error.ts → Result reshape → boundary/exit codes → test updates → docs. Gates: base §7 + `lint:deps` after the assemble dep + cast ratchet covers `executionDiagnostics`.
 
-## Ambiguities — pending operator ruling
+## Ambiguities — rulings
 
-1. **OperationFailure shape**: (a) collapse to `CliStructuredError`, kind derived, diagnostics in `meta.diagnostics` — one error currency, rules 3/5 exact; (b) keep object union with required envelope. Rec: (a).
-2. **`noLocalTargetSupportError` code**: (a) `DEV.TARGET_UNSUPPORTED` at origin (log surfaces the DEV code; LOG.TARGET_UNSUPPORTED purged); (b) target-neutral COMPOSE code; (c) per-command wraps. Rec: (a).
-3. **Undiagnosed executor-load failure**: (a) `DEPS.EXECUTOR_UNLOADABLE` (environmental, exit 2); (b) bug path. Rec: (a).
-4. **LoadError granularity**: (a) one type-level `COMPOSE.GRAPH_INVALID` now; per-site subcodes a future slice; (b) re-author 42 sites now. Rec: (a).
-5. **Destroy re-codes a structured `ASSEMBLE.BUILD_FAILED` to `DEPLOY.BUILD_REQUIRED`**: (a) keep (command-specific reframing, origin in cause); (b) pass through + adapter-appended fix. Rec: (a).
-6. **`toposort.ts:58` → `InternalError`**: (a) as designed (site's own comment declares it an invariant); (b) keep as LoadError. Rec: (a).
+1. **OperationFailure shape** — **RULED (operator, 2026-08-07): delete `OperationFailure` entirely**, stronger than option (a): no alias, signatures name `CliStructuredError` directly, `operationFailureKind` is not built, `executionDiagnostics` retyped to take `CliStructuredError` (§A7–A8).
+2. **`noLocalTargetSupportError` code** — **RULED (operator delegated the pick, 2026-08-07): (a)** `DEV.TARGET_UNSUPPORTED` at origin (log surfaces the DEV code; LOG.TARGET_UNSUPPORTED purged).
+3. **Undiagnosed executor-load failure**: (a) `DEPS.EXECUTOR_UNLOADABLE` (environmental, exit 2); (b) bug path. Rec: (a). PENDING.
+4. **LoadError granularity** — **RULED (operator, 2026-08-07): (a)** one type-level `COMPOSE.GRAPH_INVALID` now; per-site subcodes a future slice.
+5. **Destroy re-codes a structured `ASSEMBLE.BUILD_FAILED` to `DEPLOY.BUILD_REQUIRED`**: (a) keep (command-specific reframing, origin in cause); (b) pass through + adapter-appended fix. Rec: (a). PENDING.
+6. **`toposort.ts:58` → `InternalError`**: (a) as designed (site's own comment declares it an invariant); (b) keep as LoadError. Rec: (a). PENDING.
