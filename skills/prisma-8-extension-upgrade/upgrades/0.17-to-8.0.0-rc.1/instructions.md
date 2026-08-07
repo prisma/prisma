@@ -143,3 +143,7 @@ Two things worth knowing when you update these:
 <!--
 TML-3171 (nested SQL ORM self-relation predicate scopes): `changes: []`. The `packages/3-extensions/sql-orm-client` diff fixes internal query planning and adds regression coverage; it changes no public API, contract shape, emitted artefact, extension-authoring surface, adapter API, or downstream source translation. Incidental substrate diff only.
 -->
+
+<!--
+PR #29910 (Bytes identity mutation reloads): `changes: []`. The `packages/3-extensions/sql-orm-client` diff binds internal select filters through their existing storage codecs and adds regression coverage; it changes no public API, contract shape, emitted artefact, extension-authoring surface, adapter API, or downstream source translation. Incidental substrate diff only.
+-->
