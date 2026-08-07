@@ -4,7 +4,9 @@ _(Parent project `projects/codec-json-projections/`. Outcome this slice contribu
 
 ## At a glance
 
-Strictly behaviour-preserving. Opens the descriptor vocabulary's `operation` field from the closed `AggregateFn` union to `string`, and replaces the literal-named aggregate methods in sql-orm-client and the hardcoded aggregate functions in the sql-builder lane with surfaces derived from the contract's emitted `aggregateTypes` — typed by mapped types, dispatched generically by operation name. Emitted contracts, rendered SQL, fixtures, and observable results stay byte-identical.
+Behaviour-preserving but for one derived consequence, named below. Opens the descriptor vocabulary's `operation` field from the closed `AggregateFn` union to `string`, and replaces the literal-named aggregate methods in sql-orm-client and the hardcoded aggregate functions in the sql-builder lane with surfaces derived from the contract's emitted `aggregateTypes` — typed by mapped types, dispatched generically by operation name. Emitted contracts, rendered SQL, and fixtures stay byte-identical.
+
+**The one observable change** (amended 2026-08-07 from D3): PostgreSQL declares `count` with `input: { kind: 'any' }`, so its emitted rows carry both `withoutInput` and `anyInput`, and the row-presence rule gives ORM `count` both arities honestly. A `count(field)` call previously dropped its argument silently and rendered `COUNT(*)`; it now renders `COUNT(<column>)`. Compile-time gating is unchanged (a relation name is still absent from `AggregateFieldNames`), so the change is reachable only through dynamic invocation — and it removes a recorded deviation from Prisma, flipping an `it.fails` port assertion green.
 
 ## Chosen design
 
