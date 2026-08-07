@@ -29,10 +29,10 @@ import {
   createSqlExecutionStack,
   withTransaction,
 } from '@internal/sql-runtime';
+import { descriptorsFromCodecs } from '@internal/sql-runtime/test/utils';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../2-sql/1-core/contract/test/test-support';
-import { descriptorsFromCodecs } from '../../../2-sql/5-runtime/test/utils';
 import type { SupabaseRoleBinding } from '../src/runtime/supabase-runtime';
 import { SupabaseRuntimeImpl } from '../src/runtime/supabase-runtime';
 
@@ -55,7 +55,11 @@ const testContract: Contract<SqlStorage> = {
 
 interface RecordingTransaction {
   readonly id: symbol;
-  readonly queryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>;
+  readonly queryCalls: Array<{
+    sql: string;
+    params: readonly unknown[] | undefined;
+    handle: unknown;
+  }>;
   execute: ReturnType<typeof vi.fn>;
   query: ReturnType<typeof vi.fn>;
   commit: ReturnType<typeof vi.fn>;
@@ -65,7 +69,11 @@ interface RecordingTransaction {
 interface RecordingConnection {
   readonly id: symbol;
   readonly executeCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>;
-  readonly queryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>;
+  readonly queryCalls: Array<{
+    sql: string;
+    params: readonly unknown[] | undefined;
+    handle: unknown;
+  }>;
   readonly beginTransactionSpy: ReturnType<typeof vi.fn>;
   execute: ReturnType<typeof vi.fn>;
   query: ReturnType<typeof vi.fn>;
@@ -90,9 +98,17 @@ function createRecordingDriver(
 ): RecordingDriver {
   const txId = Symbol('transaction');
   const connId = Symbol('connection');
-  const txQueryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
+  const txQueryCalls: Array<{
+    sql: string;
+    params: readonly unknown[] | undefined;
+    handle: unknown;
+  }> = [];
   const connExecuteCalls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
-  const connQueryCalls: Array<{ sql: string; params: readonly unknown[] | undefined }> = [];
+  const connQueryCalls: Array<{
+    sql: string;
+    params: readonly unknown[] | undefined;
+    handle: unknown;
+  }> = [];
 
   const transaction: RecordingTransaction = {
     id: txId,
@@ -101,7 +117,11 @@ function createRecordingDriver(
     },
     execute: vi.fn().mockResolvedValue({ affectedRows: 0 }),
     query: vi.fn().mockImplementation(async function* (request: SqlExecuteRequest) {
-      txQueryCalls.push({ sql: request.sql, params: request.params });
+      txQueryCalls.push({
+        sql: request.sql,
+        params: request.params,
+        handle: request.preparedStatementHandle,
+      });
       for (const row of executeRows) yield row;
     }),
     commit: vi.fn().mockResolvedValue(undefined),
@@ -126,7 +146,11 @@ function createRecordingDriver(
       return { affectedRows: 0 };
     }),
     query: vi.fn().mockImplementation(async function* (request: SqlExecuteRequest) {
-      connQueryCalls.push({ sql: request.sql, params: request.params });
+      connQueryCalls.push({
+        sql: request.sql,
+        params: request.params,
+        handle: request.preparedStatementHandle,
+      });
       for (const row of executeRows) yield row;
     }),
     release: vi.fn().mockResolvedValue(undefined),
@@ -320,7 +344,11 @@ describe('SupabaseRuntimeImpl', () => {
         request: SqlExecuteRequest,
       ) {
         queriedOnConn.push(driver.connection.id);
-        driver.connection.queryCalls.push({ sql: request.sql, params: request.params });
+        driver.connection.queryCalls.push({
+          sql: request.sql,
+          params: request.params,
+          handle: request.preparedStatementHandle,
+        });
         yield { id: 1 };
       });
 
@@ -518,6 +546,7 @@ describe('SupabaseRuntimeImpl', () => {
 
       expect(rows).toEqual([{ id: 1 }]);
       expect(driver.connection.queryCalls).toHaveLength(1);
+      expect(driver.connection.queryCalls[0]?.handle).toBeDefined();
       expect(driver.query).not.toHaveBeenCalled();
     });
 
@@ -535,6 +564,7 @@ describe('SupabaseRuntimeImpl', () => {
 
       expect(rows).toEqual([{ id: 1 }]);
       expect(driver.connection.transaction.queryCalls).toHaveLength(1);
+      expect(driver.connection.transaction.queryCalls[0]?.handle).toBeDefined();
       expect(driver.connection.queryCalls).toHaveLength(0);
       expect(driver.query).not.toHaveBeenCalled();
     });
