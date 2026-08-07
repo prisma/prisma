@@ -10,23 +10,21 @@ export interface RuntimeLog {
 }
 
 /**
- * Per-query context threaded through every middleware phase
- * (`beforeExecute`, `onRow`, `afterExecute`). Allocated once per
- * `runtime.query()` call and shared by reference across all
- * middleware in the chain.
+ * Per-operation context threaded through the selected middleware lifecycle:
+ * `beforeQuery`, `interceptQuery`, `onRow`, and `afterQuery` for queries, or
+ * `beforeExecute`, `interceptExecute`, and `afterExecute` for statements.
+ * Allocated once per `runtime.query()` or `runtime.execute()` call and shared
+ * by reference across all middleware in the chain.
  *
- * - `signal` carries the per-query `AbortSignal` -- the same
- *   reference that `runtime.query(plan, { signal })` was invoked
- *   with, and the same reference threaded into the per-call
- *   `CodecCallContext` (ADR 207). Middleware that wraps a
- *   network-backed SDK forwards `ctx.signal` into that SDK to
- *   propagate caller cancellation; pure-CPU middleware ignores it.
+ * - `signal` carries the per-operation `AbortSignal` -- the same reference
+ *   passed to the runtime call and threaded into the per-call
+ *   `CodecCallContext` (ADR 207). Middleware that wraps a network-backed SDK
+ *   forwards `ctx.signal` into that SDK to propagate caller cancellation;
+ *   pure-CPU middleware ignores it.
  *
- * Symmetric plumbing across all middleware phases (rather than only
- * `beforeExecute`) is a deliberate choice: a middleware that wraps a
- * downstream observability hook or post-processor in `afterExecute` /
- * `onRow` needs the same cancellation reach as its `beforeExecute`
- * counterpart.
+ * Symmetric plumbing across every selected lifecycle phase is deliberate:
+ * middleware that wraps downstream work in a matching interception, row, or
+ * completion hook needs the same cancellation reach as its before hook.
  */
 export interface RuntimeMiddlewareContext {
   readonly contract: unknown;
@@ -52,21 +50,22 @@ export interface RuntimeMiddlewareContext {
    */
   contentHash(exec: ExecutionPlan): Promise<string>;
   /**
-   * Per-execute cancellation signal threaded through every middleware
-   * phase. Middleware that wraps async work or downstream cancellable
-   * primitives should observe this and abort early when the consumer
-   * cancels.
+   * Per-operation cancellation signal threaded through every selected
+   * middleware phase. Middleware that wraps async work or downstream
+   * cancellable primitives should observe this and abort early when the
+   * consumer cancels.
    */
   readonly signal?: AbortSignal;
   /**
-   * Identifies the queryable scope this execution is running under.
+   * Identifies the queryable scope this operation is running under.
    *
-   * - `'runtime'` — top-level `runtime.query(plan)`. The default scope
-   *   used by the standard read/write paths.
-   * - `'connection'` — `connection.query(plan)` after
-   *   `runtime.connection()` checked out a connection from the pool.
-   * - `'transaction'` — `transaction.query(plan)` inside an explicit
-   *   transaction, or a query routed through `withTransaction`.
+   * - `'runtime'` — top-level `runtime.query(plan)` or `runtime.execute(plan)`.
+   *   The default scope used by the standard read/write paths.
+   * - `'connection'` — `connection.query(plan)` or `connection.execute(plan)`
+   *   after `runtime.connection()` checked out a connection from the pool.
+   * - `'transaction'` — `transaction.query(plan)` or
+   *   `transaction.execute(plan)` inside an explicit transaction, or an
+   *   operation routed through `withTransaction`.
    *
    * Middleware that should only act at the top level read this field to
    * bypass non-runtime scopes. The cache middleware uses it to skip
@@ -80,13 +79,12 @@ export interface RuntimeMiddlewareContext {
    */
   readonly scope: 'runtime' | 'connection' | 'transaction';
   /**
-   * Identity for one `query()` call. The runtime mints a fresh value via
-   * `crypto.randomUUID()` when it constructs the per-execute context, and
-   * the same context reference is threaded through every middleware phase
-   * (`beforeExecute`, `intercept`, `onRow`, `afterExecute`). Every hook in
-   * one query call therefore observes the same `planExecutionId`; two
-   * queries of the same plan observe distinct values. Use this to
-   * correlate observations across the lifecycle of a single execute call
+   * Identity for one `query()` or `execute()` call. The runtime mints a fresh
+   * value via `crypto.randomUUID()` when it constructs the per-operation
+   * context, then threads that context through every hook in the selected
+   * query or execute lifecycle. Every hook in one call therefore observes
+   * the same `planExecutionId`; two calls for the same plan observe distinct
+   * values. Use this to correlate observations across a single operation
    * (tracing, timing, audit). See ADR 220.
    */
   readonly planExecutionId: string;
@@ -123,11 +121,11 @@ export interface ExecuteInterceptResult {
 
 /**
  * Marker interface for family-specific param-ref mutators threaded into
- * `beforeExecute` as the third argument. The framework treats the mutator
- * opaquely — it allocates and forwards the family's mutator instance so
- * `operation-specific middleware runner` can stay family-agnostic. SQL extends this with
- * `SqlParamRefMutator` (over `ParamRef`); Mongo extends with
- * `MongoParamRefMutator` (over `MongoParamRef`).
+ * `beforeQuery` or `beforeExecute` as the third argument. The framework
+ * treats the mutator opaquely — it allocates and forwards the family's
+ * mutator instance so operation-specific runners can stay family-agnostic.
+ * SQL extends this with `SqlParamRefMutator` (over `ParamRef`); Mongo extends
+ * this with `MongoParamRefMutator` (over `MongoParamRef`).
  *
  * Extension authors target the family-specific mutator type, not this
  * marker.
@@ -196,11 +194,10 @@ export type CrossFamilyMiddleware<TPlan extends QueryPlan = QueryPlan> =
 /**
  * Optional per-operation options accepted by every family runtime.
  *
- * `signal` is the per-query cancellation signal. The runtime threads the
- * signal through to every codec call for the query and uses it to short-
- * circuit the row stream with `RUNTIME.ABORTED` when the caller aborts.
- * Omitting the option (or passing `undefined`) preserves today's behavior
- * bit-for-bit.
+ * `signal` is the per-operation cancellation signal. The runtime threads it
+ * through middleware and codec calls; query row streams stop with
+ * `RUNTIME.ABORTED` when the caller aborts. Omitting the option (or passing
+ * `undefined`) preserves today's behavior bit-for-bit.
  */
 export interface RuntimeExecuteOptions {
   readonly signal?: AbortSignal;

@@ -2,13 +2,13 @@
 
 A family-agnostic, opt-in caching middleware for Prisma Next runtimes.
 
-Built on the `intercept` hook on `RuntimeMiddleware` (added in TML-2143 M1): on a cache hit, the middleware short-circuits execution and returns the cached rows; the driver is never invoked. On a cache miss, the middleware buffers rows from the driver and commits them to the store on successful completion.
+Built on the `interceptQuery` hook on `RuntimeMiddleware`: on a cache hit, the middleware short-circuits the query and returns the cached rows; the driver is never invoked. On a cache miss, the middleware buffers rows from the driver and commits them to the store on successful completion.
 
 The package depends only on `@internal/framework-components/runtime` — no SQL or Mongo runtime dependency. Cache keys come from `RuntimeMiddlewareContext.contentHash(exec)`, which the family runtime populates, so SQL and Mongo runtimes both work out of the box.
 
 ## Responsibilities
 
-- Provide an opt-in caching `RuntimeMiddleware` that short-circuits repeated reads via the `intercept` hook.
+- Provide an opt-in caching `RuntimeMiddleware` that short-circuits repeated reads via the `interceptQuery` hook.
 - Define the `cacheAnnotation` handle (read-only) that lane terminals (SQL DSL `.annotate(...)`, ORM read terminals) use to attach per-query cache parameters (`ttl`, `skip`, `key`).
 - Resolve the cache key per execution: per-query `cacheAnnotation({ key })` override, otherwise `RuntimeMiddlewareContext.contentHash(exec)` from the family runtime.
 - Buffer driver rows on a miss and commit to the `CacheStore` only on successful completion (`completed: true && source: 'driver'`).
@@ -124,12 +124,12 @@ The interface is intentionally minimal — `get` returns the entry if present an
 
 ## Transaction-scope guard
 
-The middleware bypasses the cache entirely when `RuntimeMiddlewareContext.scope` is `'connection'` or `'transaction'`. Only top-level `runtime.execute` (`scope === 'runtime'`) consults the store.
+The middleware bypasses the cache entirely when `RuntimeMiddlewareContext.scope` is `'connection'` or `'transaction'`. Only top-level `runtime.query` (`scope === 'runtime'`) consults the store.
 
 This avoids two surprises:
 
 - Inside a transaction, the caller expects read-after-write coherence with their own writes — the cache cannot meaningfully serve those reads without tracking the transaction's pending writes, which is out of scope for this milestone.
-- On a checked-out connection (`runtime.connection().execute(...)`), the caller has explicitly stepped outside the shared runtime surface and likely does not expect the global cache to inject results.
+- On a checked-out connection (`runtime.connection().query(...)`), the caller has explicitly stepped outside the shared runtime surface and likely does not expect the global cache to inject results.
 
 ## TTL and LRU semantics
 
@@ -137,7 +137,7 @@ The default `createInMemoryCacheStore({ maxEntries, clock? })`:
 
 - **TTL.** Each entry is committed with the per-query `ttl` (in milliseconds). The store evaluates expiry against its injected clock (defaults to `Date.now`); reads of expired entries return `undefined` and drop the entry as a side effect.
 - **LRU.** Iteration order is the LRU order. Reads and writes both bump recency. When the live count would exceed `maxEntries`, the oldest entry is evicted.
-- **Failure handling.** The middleware commits to the store only when `afterExecute` reports `completed: true && source: 'driver'`. Driver errors mid-stream and middleware-served executions never populate the cache.
+- **Failure handling.** The middleware commits to the store only when `afterQuery` reports `completed: true && source: 'driver'`. Driver errors mid-stream and middleware-served queries never populate the cache.
 
 ## Caveats
 
@@ -148,5 +148,5 @@ The default `createInMemoryCacheStore({ maxEntries, clock? })`:
 
 ## See also
 
-- [Runtime & Middleware Framework](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20&%20Middleware%20Framework.md) for the SPI and middleware lifecycle (including the `intercept` hook the cache uses).
+- [Runtime & Middleware Framework](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20&%20Middleware%20Framework.md) for the SPI and middleware lifecycle (including the `interceptQuery` hook the cache uses).
 - [ADR 204 — Single-tier runtime](../../../docs/architecture%20docs/adrs/ADR%20204%20-%20Single-tier%20runtime.md) for why the cache middleware is family-agnostic by construction.
