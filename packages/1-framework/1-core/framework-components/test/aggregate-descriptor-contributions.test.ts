@@ -26,6 +26,7 @@ const countRows: AggregateDescriptor = {
   input: { kind: 'none' },
   output: { kind: 'codec', codecId: 'lib/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
 };
 
 const sumIntegers: AggregateDescriptor = {
@@ -146,7 +147,9 @@ describe('collectAggregateDescriptors', () => {
     const error = capture(() =>
       collectAggregateDescriptors([
         contributor('target', [sumIntegers]),
-        contributor('extension', [{ ...sumIntegers, nullable: false }]),
+        contributor('extension', [
+          { ...sumIntegers, nullable: false as const, emptyResultJson: '0' },
+        ]),
       ]),
     );
 

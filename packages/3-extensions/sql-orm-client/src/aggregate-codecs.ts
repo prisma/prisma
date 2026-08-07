@@ -6,6 +6,7 @@
 
 import type { Contract } from '@internal/contract/types';
 import type { CodecRef } from '@internal/framework-components/codec';
+import type { AggregateResultNullability } from '@internal/framework-components/components';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import {
@@ -19,16 +20,14 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { ormError } from './orm-errors';
 
-export interface ResolvedAggregate {
+export type ResolvedAggregate = AggregateResultNullability & {
   /** The codec the result carries. */
   readonly codec: CodecRef;
-  /** Whether the declared result can be null. Also the empty-input answer: a nullable result reads as NULL over no rows, a non-nullable one as its zero. */
-  readonly nullable: boolean;
   /** The codec of the value being aggregated, absent for an aggregate over rows. A lowering reads it to render per input where it must. */
   readonly input: CodecRef | undefined;
   /** Builds the expression, where the target declares one; absent means a plain aggregate call. */
   readonly lower: SqlAggregateLowering | undefined;
-}
+};
 
 export interface AggregateCodecQuery {
   readonly aggregates: SqlAggregateDescriptorRegistry;
@@ -51,7 +50,10 @@ export function resolveAggregate(query: AggregateCodecQuery): ResolvedAggregate 
   const input = inputCodecRef(query);
   const resolved = query.aggregates.resolve(query.fn, input);
   if (resolved === undefined) throw unsupportedAggregate(query, input);
-  return { codec: resolved.output, nullable: resolved.nullable, input, lower: resolved.lower };
+  const nullability: AggregateResultNullability = resolved.nullable
+    ? { nullable: true }
+    : { nullable: false, emptyResultJson: resolved.emptyResultJson };
+  return { codec: resolved.output, ...nullability, input, lower: resolved.lower };
 }
 
 /**
