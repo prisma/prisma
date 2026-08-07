@@ -8,11 +8,11 @@ import contractJson from './_fixture/generated/contract.json' with { type: 'json
 const column = (name: string) => ColumnRef.of('testModel', name);
 
 describe('ports/engines/queries/filters/field-reference/json-filter', () => {
-  it.fails(
+  it(
     'basic_where',
     () =>
       withPostgresPort<Contract>({ contractJson }, async ({ db }) => {
-        await db.public.TestModel.createAll([
+        await db.public.TestModel.select('id').createAll([
           { id: 1, json: { a: { b: 'c' } }, json2: { a: { b: 'c' } } },
           { id: 2, json: { a: { b: 'a' } }, json2: 'b' },
           { id: 3, json: { a: { b: 2 } }, json2: 1 },
