@@ -1,4 +1,4 @@
 model TestModel {
   id   Int   @id
-  json Json?
+  json Jsonb?
 }
