@@ -47,3 +47,14 @@ export type IsNever<TThing> = [TThing] extends [never] ? true : false;
 export type Simplify<TObject extends object> = DrainOuterGeneric<
   { [K in keyof TObject]: TObject[K] } & {}
 >;
+
+/**
+ * A utility type to enforce strict excess property checking on object literals.
+ * When T specifies properties not present in U, the invalid keys evaluate to never.
+ *
+ * @template T The input object type to check.
+ * @template U The allowed target object shape.
+ */
+export type Exact<T extends object, U extends object> = DrainOuterGeneric<
+  { [K in keyof T]: K extends keyof U ? T[K] : never }
+>;
