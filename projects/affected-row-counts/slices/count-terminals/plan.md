@@ -5,7 +5,7 @@
 
 ## Shape
 
-Six sequential dispatches deliver a hard-cut runtime migration: framework contract → SQL reference implementation → Mongo conformance → Supabase scopes → count-terminal consumer → mechanical fan-out and closing gates.
+Seven sequential dispatches deliver a hard-cut runtime migration: framework contract → SQL reference implementation → Mongo conformance → Supabase scopes → count-terminal consumer → mechanical fan-out and closing gates → downstream upgrade instructions.
 
 **Expected intermediate state: repo-wide `pnpm typecheck` may be red from D1 through D5.** Renaming the cross-family row operation and changing `RuntimeScope` invalidates family runtimes, scopes, callers, and test doubles together. Each dispatch gates its owned production package(s); D6 owns workspace-wide green. This is the same hard-cut migration shape Slice 1 used successfully.
 
@@ -58,16 +58,23 @@ Every dispatch inherits these execution constraints:
 
 - **Outcome:** Every remaining runtime caller, test double, type test, example, and integration helper conforms to the settled query/statistics vocabulary, and all slice and workspace gates are green.
 - **Builds on:** The union of D1–D5: settled framework contract, both families, every production SQL scope, and count-terminal behavior.
-- **Hands to:** Slice DoD and PR-open readiness.
+- **Hands to:** A compatibility-free implementation whose downstream source translation can be published.
 - **Focus:** Uniformly migrate residual row `execute` / `executePrepared` sites to `query` / `queryPrepared`; update fake queues so query rows and execute statistics are distinct; do not introduce compatibility aliases. This is a mechanical fan-out—any site requiring a new semantic choice is a halt signal. Model tier: mid because the fan-out crosses multiple packages and must preserve cross-family invariants. Closing greps:
   - `rg '\bexecutePrepared\b|executePreparedAgainstQueryable|executeAgainstQueryable|executeQueryPlan' packages/ test/` returns zero.
   - `rg 'matchingRows|countCompiled' packages/3-extensions/sql-orm-client/src/collection.ts` returns zero.
   - Cross-cutting banned-pattern greps add no new hits.
   Gate: build changed exported-type producers before downstream checks; `pnpm typecheck`; touched-package lint; `pnpm lint:deps`; `pnpm test:packages`; `pnpm test:integration`; `pnpm test:e2e`; `pnpm fixtures:check` because the slice touches extensions (expected no fixture delta). Re-fetch and sync `origin/main`, then repeat always-run and affected integration gates before push.
 
+### Dispatch 7: publish the hard-cut source translation
+
+- **Outcome:** The 0.17 → 0.18 user and extension-author upgrade skills tell downstream agents how to classify and migrate row queries, prepared rows, statistics execution, middleware results, and the removed Mongo facade row executor without adding compatibility aliases.
+- **Builds on:** D6's complete examples and extension substrate diff, which is the post-upgrade reference state.
+- **Hands to:** PR-open readiness with the repository's breaking-change upgrade-coverage contract satisfied.
+- **Focus:** Append one actionable `runtime-query-execute-hard-cut` change to each existing 0.17 → 0.18 `instructions.md`. User instructions cover runtime `query` / `queryPrepared` / statistics `execute` and the Mongo facade route through `runtime().query`; extension-author instructions additionally cover operation-discriminated middleware and row/statistics fakes. Use detection broad enough to find retired runtime calls but prose that requires semantic classification; do not publish an unsafe global codemod. Model tier: mid because the translation spans two audiences but all decisions are settled. Gate: validate both entries against their corresponding in-repo substrate per `record-upgrade-instructions`, run `pnpm check:upgrade-coverage`, skill lint, and ensure the PR body names both entry directories.
+
 ## Handoff linearity
 
-D1 → D2 → D3 → D4 → D5 → D6 is sequential. D3 depends directly on D1 rather than D2's SQL implementation; its brief needs D1's framework contract, not SQL-specific mechanics. D4 and D5 depend on D2. D6 depends on the union of all prior dispatches and must receive each operation's settled caller contract, not only D5's terminal diff.
+D1 → D2 → D3 → D4 → D5 → D6 → D7 is sequential. D3 depends directly on D1 rather than D2's SQL implementation; its brief needs D1's framework contract, not SQL-specific mechanics. D4 and D5 depend on D2. D6 depends on the union of all prior dispatches and must receive each operation's settled caller contract, not only D5's terminal diff.
 
 ## Slice-DoD reachability
 
@@ -79,6 +86,7 @@ D1 → D2 → D3 → D4 → D5 → D6 is sequential. D3 depends directly on D1 r
 | Statistics intercept supplies statistics | D1 contract/tests · D2 runtime use |
 | Bound SQL transaction and Supabase scope preserved | D2 transaction tests · D4 role-bound tests |
 | Integration/e2e green | D6 closing gates |
+| Downstream breaking-change translation recorded | D7 user and extension-author upgrade entries |
 
 ## Open items
 
