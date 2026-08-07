@@ -1,6 +1,11 @@
 import { BinaryExpr, ColumnRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withPostgresPort } from '../../../../../_harness/postgres';
+import {
+  referencedListHasEvery,
+  referencedListHasSome,
+  referencedScalarInList,
+} from '../postgres-list-field-reference';
 import type { Contract as ComplexContract } from './_fixture/complex/generated/contract';
 import complexContractJson from './_fixture/complex/generated/contract.json' with { type: 'json' };
 import type { Contract as OneToManyContract } from './_fixture/one-to-many/generated/contract';
@@ -11,11 +16,62 @@ import type { Contract as OneToOneContract } from './_fixture/one-to-one/generat
 import oneToOneContractJson from './_fixture/one-to-one/generated/contract.json' with {
   type: 'json',
 };
+import type { Contract as OneToOneListContract } from './_fixture/one-to-one-list/generated/contract';
+import oneToOneListContractJson from './_fixture/one-to-one-list/generated/contract.json' with {
+  type: 'json',
+};
 
 const childColumn = (name: string) => ColumnRef.of('child', name);
 const toOneColumn = (name: string) => ColumnRef.of('toOne', name);
 
 describe('ports/engines/queries/filters/field-reference/relation-filter', () => {
+  it(
+    'ensure_scalar_list_filters_can_run',
+    () =>
+      withPostgresPort<OneToOneListContract>(
+        { contractJson: oneToOneListContractJson },
+        async ({ db }) => {
+          expect(
+            await db.public.TestModel.where((model) =>
+              model.child.some(() =>
+                referencedScalarInList(childColumn('string1'), childColumn('string2')),
+              ),
+            )
+              .select('id')
+              .all(),
+          ).toEqual([]);
+          expect(
+            await db.public.TestModel.where((model) =>
+              model.child.some(() =>
+                referencedScalarInList(childColumn('string1'), childColumn('string2'), true),
+              ),
+            )
+              .select('id')
+              .all(),
+          ).toEqual([]);
+          expect(
+            await db.public.TestModel.where((model) =>
+              model.child.some(() =>
+                referencedListHasSome(childColumn('string2'), childColumn('string2')),
+              ),
+            )
+              .select('id')
+              .all(),
+          ).toEqual([]);
+          expect(
+            await db.public.TestModel.where((model) =>
+              model.child.some(() =>
+                referencedListHasEvery(childColumn('string2'), childColumn('string2')),
+              ),
+            )
+              .select('id')
+              .all(),
+          ).toEqual([]);
+        },
+      ),
+    timeouts.spinUpPpgDev,
+  );
+
   it(
     'one_to_one',
     () =>
