@@ -661,6 +661,10 @@ The integer codecs also check the JS type of the value they are given, and repor
 
 The exact integer codecs make one exception, and only on the JSON side. `encodeJson` on `pg/int8@1`, `pg/unboundedint@1`, and `sqlite/bigint@1` also accepts a `number`, because a schema language writes no `bigint` literal — `BigInt @default(0)` arrives as the JSON number `0`. The number must be an integer within the safe range, and a value that is not raises `<codec> number literal must be an integer within the safe integer range, got <value>`: past that range the literal was already rounded before the codec saw it, so its digits no longer name the value that was written. `encode` — the wire path a query parameter travels — takes no such number; it requires the `bigint`.
 
+### RUNTIME.EXECUTION_RESULT_MISSING
+
+A statistics execution completed without returning statement statistics. This indicates a runtime or middleware implementation violated the execution contract instead of returning `{ affectedRows }`. Meta: none.
+
 ### RUNTIME.ITERATOR_CONSUMED
 
 An `AsyncIterableResult` (the return value of `execute()`) was iterated a second time — each result can be consumed only once, whether via a `for await` loop or via `toArray()`/`await`. Store the array from `toArray()` if you need to reuse the rows. Meta: `consumedBy`, `suggestion`.
@@ -677,6 +681,10 @@ A middleware registered on the runtime declares a `familyId` (e.g. `sql`) that d
 
 A middleware declares a `targetId` without also declaring a `familyId` — an invalid combination, since target scoping only makes sense within a family. Checked when the runtime validates its middleware list. Meta: `middleware`, `targetId`.
 
+### RUNTIME.MIDDLEWARE_RESULT_MISMATCH
+
+Middleware returned a query result for a statistics operation, or statistics for a row query. Middleware interception results must carry the same `operation` discriminant as the operation they intercept. Meta: `expected`, `received`.
+
 ### RUNTIME.MIDDLEWARE_TARGET_MISMATCH
 
 A middleware declares a `targetId` (e.g. `postgres`) that differs from the runtime's configured target. Checked when the runtime validates its middleware list. Meta: `middleware`, `middlewareTargetId`, `runtimeTargetId`.
@@ -684,6 +692,14 @@ A middleware declares a `targetId` (e.g. `postgres`) that differs from the runti
 ### RUNTIME.MISSING_EXTENSION_PACK
 
 At SQL context construction, the contract requires one or more extension packs that no component in the runtime stack provides. Add the missing pack(s) to the stack. Meta: `packIds`.
+
+### RUNTIME.MONGO_STATISTICS_RESULT_INVALID
+
+A Mongo update or delete command did not return exactly one result object with the required numeric native count field. Updates require `modifiedCount`; deletes require `deletedCount`. Meta: `commandKind`, `countField`.
+
+### RUNTIME.MONGO_STATISTICS_UNSUPPORTED
+
+Statistics execution was requested for a Mongo command that does not expose affected-row statistics. Only update and delete command kinds provide the native counts used by this operation. Meta: `commandKind`.
 
 ### RUNTIME.MUTATION_DEFAULT_GENERATOR_MISSING
 
