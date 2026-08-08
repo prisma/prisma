@@ -436,7 +436,7 @@ describe('integration/mutation-include-readback', () => {
             },
             {
               name: 'Bob',
-              posts: { recent: [], total: 0n },
+              posts: { recent: [], total: 0 },
             },
           ]);
         });

@@ -109,7 +109,7 @@ describe('ports/prisma/functional/issues-29331-query-plan-cache-bloat', () => {
         const { total } = await db.public.ContactAnalytics.aggregate((a) => ({
           total: a.count(),
         }));
-        expect(total).toBe(BigInt(iterations * batchSize + 3));
+        expect(total).toBe(iterations * batchSize + 3);
       }),
     testTimeout + timeouts.spinUpPpgDev,
   );

@@ -314,7 +314,7 @@ describe('integration/nested-includes/strategy', () => {
               email: 'alice@example.com',
               invitedById: null,
               address: null,
-              posts: [{ id: 10, title: 'A', userId: 1, views: 1, embedding: null, comments: 2n }],
+              posts: [{ id: 10, title: 'A', userId: 1, views: 1, embedding: null, comments: 2 }],
             },
           ]);
           expect(runtime.executions).toHaveLength(1);
