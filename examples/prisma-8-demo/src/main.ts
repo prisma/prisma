@@ -261,15 +261,7 @@ async function main() {
       const minUsers = args[0] ? Number.parseInt(args[0], 10) : 1;
       const rows = await ormClientGetUserKindBreakdown(minUsers, runtime);
 
-      // A count is a bigint, which JSON has no notation for; print it as the
-      // decimal it is rather than losing its precision to a number.
-      console.log(
-        JSON.stringify(
-          rows,
-          (_key, value) => (typeof value === 'bigint' ? String(value) : value),
-          2,
-        ),
-      );
+      console.log(JSON.stringify(rows, null, 2));
     } else if (cmd === 'repo-tasks') {
       const limit = args[0] ? Number.parseInt(args[0], 10) : 10;
       const tasks = await ormClientGetTasks(limit, runtime);

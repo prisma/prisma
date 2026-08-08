@@ -28,6 +28,7 @@ const countRows: SqlAggregateDescriptor = {
   input: { kind: 'none' },
   output: { kind: 'codec', codecId: 'lib/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
 };
 
 const sumNumeric: SqlAggregateDescriptor = {
@@ -56,6 +57,7 @@ const countAnything: SqlAggregateDescriptor = {
   input: { kind: 'any' },
   output: { kind: 'codec', codecId: 'lib/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
 };
 
 describe('buildSqlAggregateDescriptorRegistry — input-agnostic matching', () => {
@@ -66,6 +68,7 @@ describe('buildSqlAggregateDescriptorRegistry — input-agnostic matching', () =
       operation: 'count',
       output: { codecId: 'lib/int8@1' },
       nullable: false,
+      emptyResultJson: '0',
       lower: undefined,
     });
   });
@@ -145,6 +148,7 @@ describe('buildSqlAggregateDescriptorRegistry — resolution', () => {
       operation: 'count',
       output: { codecId: 'lib/int8@1' },
       nullable: false,
+      emptyResultJson: '0',
       lower: undefined,
     });
   });
@@ -318,6 +322,7 @@ describe('buildSqlAggregateDescriptorRegistry — contributed operation names', 
           input: { kind: 'none' },
           output: { kind: 'codec', codecId: 'lib/int8@1' },
           nullable: false,
+          emptyResultJson: '0',
           lower,
         },
       ],
@@ -328,6 +333,7 @@ describe('buildSqlAggregateDescriptorRegistry — contributed operation names', 
       operation: 'tally',
       output: { codecId: 'lib/int8@1' },
       nullable: false,
+      emptyResultJson: '0',
       lower,
     });
   });
@@ -381,13 +387,25 @@ describe('buildSqlAggregateDescriptorRegistry — contributed operation names', 
 describe('buildSqlAggregateDescriptorRegistry — composition-time validation', () => {
   it('rejects a duplicate operation and input pair', () => {
     expect(() =>
-      buildSqlAggregateDescriptorRegistry([sumNumeric, { ...sumNumeric, nullable: false }], codecs),
+      buildSqlAggregateDescriptorRegistry(
+        [sumNumeric, { ...sumNumeric, nullable: false, emptyResultJson: '0' }],
+        codecs,
+      ),
     ).toThrow(/Duplicate aggregate descriptor for 'sum:trait:numeric'/);
   });
 
   it('rejects a malformed contribution', () => {
     expect(() =>
       buildSqlAggregateDescriptorRegistry([{ operation: 'sum', nullable: true }], codecs),
+    ).toThrow(/is not a valid SQL aggregate descriptor/);
+  });
+
+  // A non-nullable result is one the caller reads without a null check, so the
+  // value it reads where no row arrived has to come from somewhere. The row
+  // declares it; a row that declares none has no answer to give.
+  it('rejects a non-nullable row that declares no empty result', () => {
+    expect(() =>
+      buildSqlAggregateDescriptorRegistry([{ ...countRows, emptyResultJson: undefined }], codecs),
     ).toThrow(/is not a valid SQL aggregate descriptor/);
   });
 

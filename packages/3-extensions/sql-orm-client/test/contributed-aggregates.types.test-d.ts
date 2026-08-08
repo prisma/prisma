@@ -70,8 +70,8 @@ test('a field-taking call on a no-input-only operation is rejected', () => {
 });
 
 test('row presence gives count both arities as a data fact', () => {
-  expectTypeOf(agg.count()).toEqualTypeOf<AggregateSelector<bigint>>();
-  expectTypeOf(agg.count('views')).toEqualTypeOf<AggregateSelector<bigint>>();
+  expectTypeOf(agg.count()).toEqualTypeOf<AggregateSelector<number>>();
+  expectTypeOf(agg.count('views')).toEqualTypeOf<AggregateSelector<number>>();
 });
 
 declare const baseAgg: AggregateBuilder<TestContract, 'Post'>;

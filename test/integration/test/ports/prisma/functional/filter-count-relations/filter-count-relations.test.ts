@@ -59,7 +59,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
           .include('posts', (p) => p.count())
           .first();
 
-        expect(user?.posts).toBe(4n);
+        expect(user?.posts).toBe(4);
       }),
     timeouts.spinUpPpgDev,
   );
@@ -73,7 +73,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
             .include('posts', (p) => p.where({ published: true }).count())
             .first();
 
-          expect(user?.posts).toBe(3n);
+          expect(user?.posts).toBe(3);
         }),
       timeouts.spinUpPpgDev,
     );
@@ -86,7 +86,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
             .include('posts', (p) => p.where((post) => post.upvotes.gt(100)).count())
             .first();
 
-          expect(user?.posts).toBe(2n);
+          expect(user?.posts).toBe(2);
         }),
       timeouts.spinUpPpgDev,
     );
@@ -104,7 +104,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
             )
             .first();
 
-          expect(user?.posts).toBe(1n);
+          expect(user?.posts).toBe(1);
         }),
       timeouts.spinUpPpgDev,
     );
@@ -136,7 +136,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
 
           // Upstream: [{ _count: { posts: 0 } }, { _count: { posts: 0 } }, { _count: { posts: 3 } }]
           // prisma-next flattens _count.posts → posts on each user row.
-          expect(group?.users.map((u) => u.posts)).toEqual([0n, 0n, 3n]);
+          expect(group?.users.map((u) => u.posts)).toEqual([0, 0, 3]);
         }),
       timeouts.spinUpPpgDev,
     );
@@ -153,7 +153,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
             .include('users', (u) => u.where({ blocked: true }).count())
             .first();
 
-          expect(group?.users).toBe(1n);
+          expect(group?.users).toBe(1);
         }),
       timeouts.spinUpPpgDev,
     );
@@ -168,7 +168,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
             .include('users', (u) => u.where((user) => user.balance.gt(20)).count())
             .first();
 
-          expect(group?.users).toBe(2n);
+          expect(group?.users).toBe(2);
         }),
       timeouts.spinUpPpgDev,
     );
@@ -188,7 +188,7 @@ describe('ports/prisma/functional/filter-count-relations', () => {
             )
             .first();
 
-          expect(group?.users).toBe(1n);
+          expect(group?.users).toBe(1);
         }),
       timeouts.spinUpPpgDev,
     );

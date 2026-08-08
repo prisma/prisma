@@ -45,8 +45,10 @@ describe('JSON projection emission', () => {
     });
 
     it('gives an aggregate the codec its target declares for the result', () => {
-      expect(entriesFor('aggregate include')).toEqual(['value:codec(pg/int8@1)']);
-      expect(entriesFor('aggregate include over a column')).toEqual(['value:codec(pg/int8@1)']);
+      expect(entriesFor('aggregate include')).toEqual(['value:codec(pg/int8number@1)']);
+      expect(entriesFor('aggregate include over a column')).toEqual([
+        'value:codec(pg/int8number@1)',
+      ]);
     });
 
     it('gives every combine branch a document entry, whatever the branch is', () => {
@@ -59,7 +61,7 @@ describe('JSON projection emission', () => {
         'title:codec(pg/text@1)',
         'user_id:codec(pg/int4@1)',
         'views:codec(pg/int4@1)',
-        'value:codec(pg/int8@1)',
+        'value:codec(pg/int8number@1)',
       ]);
     });
 

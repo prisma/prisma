@@ -56,6 +56,7 @@ const contributedAggregateDescriptors: readonly SqlAggregateDescriptor[] = [
     input: { kind: 'none' },
     output: { kind: 'codec', codecId: 'pg/int8@1' },
     nullable: false,
+    emptyResultJson: '0',
     lower: () => new AggregateExpr('count', undefined),
   },
 ];
@@ -162,16 +163,20 @@ describe('integration/contributed aggregate operations', () => {
             return {
               bits: dynamic['bitOr']!('weight'),
               rows: dynamic['tally']!(),
-              total: dynamic['sum']!('weight'),
+              total: dynamic['sumBigInt']!('weight'),
             };
           });
 
-          // `bitOr` and `sum` fold the same rows to the same digits, and the
-          // application values differ because their declared output codecs do:
-          // the contributed operation declares `pg/int8@1`, the target's `sum`
-          // over a bigint declares `pg/numeric@1`. `tally` counts rows, so the
-          // weightless third reading counts too.
-          expect(stats).toEqual({ bits: COMBINED_BITS, rows: 3n, total: '9007199254740995' });
+          // `bitOr` and `sumBigInt` fold the same rows to the same digits, and
+          // both carry them exactly: the contributed operation declares
+          // `pg/int8@1`, the target's lossless sum over a bigint declares
+          // `pg/unboundedint@1`. `tally` counts rows, so the weightless third
+          // reading counts too.
+          expect(stats).toEqual({
+            bits: COMBINED_BITS,
+            rows: 3n,
+            total: WIDE_WEIGHT + LOW_BITS,
+          });
           expect(BigInt(Number(stats.bits))).not.toBe(COMBINED_BITS);
 
           // The hook's function is what reached SQL — the alphabet has no name
@@ -258,10 +263,10 @@ describe('integration/contributed aggregate operations', () => {
           const dynamic = aggregate as DynamicAggregates & Record<string, unknown>;
           expect(dynamic['bitOr']).toBeUndefined();
           expect(dynamic['tally']).toBeUndefined();
-          return { total: dynamic['sum']!('weight') };
+          return { total: dynamic['sumBigInt']!('weight') };
         });
 
-        expect(stats).toEqual({ total: '9007199254740995' });
+        expect(stats).toEqual({ total: WIDE_WEIGHT + LOW_BITS });
       }, contract);
     },
     timeouts.spinUpPpgDev,

@@ -1,5 +1,8 @@
 import type { CodecRef } from '@internal/framework-components/codec';
-import type { NamedAggregateOutput } from '@internal/framework-components/components';
+import type {
+  AggregateResultNullability,
+  NamedAggregateOutput,
+} from '@internal/framework-components/components';
 import {
   aggregateDescriptorKey,
   isAnyInputAggregateDescriptor,
@@ -34,6 +37,13 @@ function namedOutputRef(output: NamedAggregateOutput, input: CodecRef | undefine
   });
 }
 
+/** The descriptor's own answer for a result set carrying no row, carried into resolution unchanged. */
+function resultNullability(descriptor: SqlAggregateDescriptor): AggregateResultNullability {
+  return descriptor.nullable
+    ? { nullable: true }
+    : { nullable: false, emptyResultJson: descriptor.emptyResultJson };
+}
+
 /**
  * Validate every contributed aggregate descriptor and settle its matches against the composed codec set.
  *
@@ -52,8 +62,8 @@ export function buildSqlAggregateDescriptorRegistry(
         'RUNTIME.AGGREGATE_DESCRIPTOR_INVALID',
         `Contributed value ${describeCandidate(candidate)} is not a valid SQL aggregate descriptor.`,
         {
-          why: 'Aggregate resolution reads a declared operation, input match, result codec, and nullability; a lowering hook, where present, must be callable.',
-          fix: 'Declare `operation`, `input` (`none` / `any` / `codec` / `trait`), `output` (`self` / `codec`), and `nullable` on the descriptor.',
+          why: 'Aggregate resolution reads a declared operation, input match, result codec, and nullability — plus, for a non-nullable result, the empty-result value; a lowering hook, where present, must be callable.',
+          fix: 'Declare `operation`, `input` (`none` / `any` / `codec` / `trait`), `output` (`self` / `codec`), and `nullable` on the descriptor, adding `emptyResultJson` where `nullable` is false.',
           meta: { descriptor: describeCandidate(candidate) },
         },
       );
@@ -154,7 +164,7 @@ export function buildSqlAggregateDescriptorRegistry(
           descriptor.output.kind === 'self'
             ? frozenCodecRef(input)
             : namedOutputRef(descriptor.output, input),
-        nullable: descriptor.nullable,
+        ...resultNullability(descriptor),
         lower: descriptor.lower,
       };
     },
@@ -178,7 +188,7 @@ function resolveWithoutInput(
   return {
     operation,
     output: namedOutputRef(descriptor.output, undefined),
-    nullable: descriptor.nullable,
+    ...resultNullability(descriptor),
     lower: descriptor.lower,
   };
 }

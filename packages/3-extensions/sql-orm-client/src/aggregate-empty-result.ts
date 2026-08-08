@@ -1,3 +1,4 @@
+import type { AggregateResultNullability } from '@internal/framework-components/components';
 import type { Codec } from '@internal/sql-relational-core/ast';
 
 /**
@@ -8,11 +9,11 @@ import type { Codec } from '@internal/sql-relational-core/ast';
  * count's zero cardinality — so this covers only the degenerate case of a
  * result set with no row: an absent aggregate alias, or an include whose
  * envelope never arrived. The answer reads off the operation's declared row:
- * NULL where the row is nullable, else zero decoded through the declared
- * output codec — from canonical decimal text, the JSON form the wide-integer
- * codecs a non-nullable aggregate carries read — so the application sees the
- * same value shape a real row would produce.
+ * NULL where the row is nullable, else the value the row declares, decoded
+ * through the codec it declared beside it — so the application sees the same
+ * value shape a real row would produce, in whichever form that codec's
+ * canonical JSON takes.
  */
-export function emptyAggregateResult(nullable: boolean, codec: Codec): unknown {
-  return nullable ? null : codec.decodeJson('0');
+export function emptyAggregateResult(result: AggregateResultNullability, codec: Codec): unknown {
+  return result.nullable ? null : codec.decodeJson(result.emptyResultJson);
 }

@@ -49,7 +49,7 @@ Two known mismatches remain, both "the type signature promises one thing, the ru
 - `Timestamp`/`Timestamptz` columns: the declared output type is a branded string, but the codec actually returns a JavaScript `Date` ([TML-2391](https://linear.app/prisma-company/issue/TML-2391), in progress).
 - Projects that use the schema types directly without running contract emission (`typeof contract`) get types that ignore per-instance codec parameters — enum value sets are fixed ([TML-2960](https://linear.app/prisma-company/issue/TML-2960), [#958](https://github.com/prisma/prisma-next/pull/958)), the codec-parameter half is tracked as [TML-3014](https://linear.app/prisma-company/issue/TML-3014).
 
-A third is resolved: aggregate values now decode through target-declared aggregate codecs and `count()` returns a true `bigint`, delivered with the public target testkits for extensions ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), landed August 5 as [#29867](https://github.com/prisma/prisma/pull/29867)).
+A third is resolved: aggregate values now decode through target-declared aggregate codecs, so the type an aggregate declares is the value the runtime hands back. `count()` reads as a `number` and refuses a tally outside ±(2^53 − 1) rather than rounding it, with `countBigInt()` as the lossless form. Delivered with the public target testkits for extensions ([TML-3064](https://linear.app/prisma-company/issue/TML-3064), landed August 5 as [#29867](https://github.com/prisma/prisma/pull/29867)); the native-number defaults are [TML-3165](https://linear.app/prisma-company/issue/TML-3165).
 
 A type that lies is a correctness bug with a delay on it; all must be resolved (or the type corrected to tell the truth) before the types freeze.
 </details>

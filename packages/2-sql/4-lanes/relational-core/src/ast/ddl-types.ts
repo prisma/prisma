@@ -73,7 +73,7 @@ export class DdlColumn {
   readonly notNull?: boolean | undefined;
   readonly primaryKey?: boolean | undefined;
   readonly default?: AnyDdlColumnDefault | undefined;
-  /** Codec identity for this column. When present, the DDL walker resolves the codec via `codecLookup.get(codecRef.codecId)` and calls `codec.encode(default.value, {})` to obtain the wire value before inlining the literal default into the DDL string. When absent, literal defaults follow RawSqlLiteral wire-scalar semantics (string / number / boolean / bigint / null / Uint8Array / Date inlined directly). */
+  /** Codec identity for this column. When present, the DDL walker resolves the codec via `codecLookup.get(codecRef.codecId)` and runs the literal default through both declared conversions in order — `codec.encode(codec.decodeJson(default.value), {})` — to obtain the wire value it inlines into the DDL string. The read-back is what makes the pair sound: a contract stores a literal default in the codec's canonical JSON, which is not always the application value `encode` takes (`pg/int8@1` stores decimal text for a `bigint`). A `Date` is the one authored value JSON has no notation for, so it arrives as itself and skips `decodeJson`. When absent, literal defaults follow RawSqlLiteral wire-scalar semantics (string / number / boolean / bigint / null / Uint8Array / Date inlined directly). */
   readonly codecRef?: CodecRef | undefined;
 
   constructor(options: {

@@ -470,8 +470,8 @@ describe('ORM client integration examples', () => {
           const aggregates = await ormClientAggregateUsers(runtime);
 
           expect(aggregates).toEqual({
-            totalUsers: 4n,
-            adminUsers: 2n,
+            totalUsers: 4,
+            adminUsers: 2,
           });
         } finally {
           await runtime.close();
@@ -828,7 +828,7 @@ describe('ORM client integration examples', () => {
             seededUserIds.admin,
           ]);
 
-          expect(users.map((user) => user.posts.totalPosts)).toEqual([0n, 2n, 1n, 2n]);
+          expect(users.map((user) => user.posts.totalPosts)).toEqual([0, 2, 1, 2]);
           expect(users.map((user) => user.posts.latestPost.map((post) => post.id))).toEqual([
             [],
             [seededPostIds.adminZebra],
@@ -856,8 +856,8 @@ describe('ORM client integration examples', () => {
           const atLeastThree = await ormClientGetUserKindBreakdown(3, runtime);
 
           expect(atLeastTwo).toEqual([
-            { kind: 'admin', totalUsers: 2n },
-            { kind: 'user', totalUsers: 2n },
+            { kind: 'admin', totalUsers: 2 },
+            { kind: 'user', totalUsers: 2 },
           ]);
           expect(atLeastThree).toEqual([]);
         } finally {

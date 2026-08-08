@@ -129,6 +129,6 @@ describe('Collection result types are simplified', () => {
     const users = new Collection({ runtime, context }, 'User', { namespaceId: 'public' });
     const withPostCount = users.include('posts', (posts) => posts.count());
     type Row = Awaited<ReturnType<typeof withPostCount.first>>;
-    expectTypeOf<NonNullable<Row>['posts']>().toEqualTypeOf<bigint>();
+    expectTypeOf<NonNullable<Row>['posts']>().toEqualTypeOf<number>();
   });
 });

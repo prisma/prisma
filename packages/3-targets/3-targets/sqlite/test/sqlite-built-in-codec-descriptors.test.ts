@@ -119,7 +119,6 @@ describe('SQLite built-in codec descriptors', () => {
       sqliteIntegerDescriptor,
       sqliteRealDescriptor,
       sqliteDatetimeDescriptor,
-      sqliteBigintNumberDescriptor,
     ];
 
     for (const descriptor of descriptors) {
@@ -149,6 +148,12 @@ describe('SQLite built-in codec descriptors', () => {
     expect(sqliteJsonDescriptor.projectJson(expression, refFor(sqliteJsonDescriptor))).toEqual(
       FunctionCallExpr.of('json', [expression]),
     );
+    // The canonical JSON is a number, and the JSON constructor renders the
+    // storage class it is handed — which for an aggregate is the text its
+    // lowering cast to. The cast names the class the canonical form needs.
+    expect(
+      sqliteBigintNumberDescriptor.projectJson(expression, refFor(sqliteBigintNumberDescriptor)),
+    ).toEqual(CastExpr.as(expression, 'INTEGER'));
   });
 
   it('keeps authored registries complete while preserving the control metadata filter boundary', () => {
