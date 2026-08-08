@@ -412,7 +412,9 @@ describe('integration/integer representation types', () => {
 
   // A mean is a fraction, and the two forms answer it differently on purpose:
   // the bare operation rounds the exact mean once into a double, the suffixed
-  // one hands back PostgreSQL's own `numeric`, digits and all.
+  // one hands back PostgreSQL's own `numeric`, digits and all. 31/3 has no
+  // finite binary expansion, so the two answers are different text — a mean
+  // that terminated would read the same whichever form produced it.
   it(
     'answers avg as a number and avgDecimal as the exact decimal text',
     async () => {
@@ -420,9 +422,9 @@ describe('integration/integer representation types', () => {
         await setupTables(runtime);
         const meters = createMeters(runtime);
 
-        await meters.create({ id: 1, peak: 1, lifetime: 0n });
-        await meters.create({ id: 2, peak: 2, lifetime: 0n });
-        await meters.create({ id: 3, peak: 2, lifetime: 0n });
+        await meters.create({ id: 1, peak: 10, lifetime: 0n });
+        await meters.create({ id: 2, peak: 10, lifetime: 0n });
+        await meters.create({ id: 3, peak: 11, lifetime: 0n });
 
         const stats = await meters.aggregate((agg) => ({
           mean: agg.avg('peak'),
@@ -430,9 +432,10 @@ describe('integration/integer representation types', () => {
         }));
 
         expect(stats).toEqual({
-          mean: 1.6666666666666667,
-          exactMean: '1.6666666666666667',
+          mean: 10.333333333333334,
+          exactMean: '10.3333333333333333',
         });
+        expect(String(stats.mean)).not.toBe(stats.exactMean);
 
         expectTypeOf(stats).toEqualTypeOf<{
           mean: number | null;
