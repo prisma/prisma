@@ -142,7 +142,7 @@ describe('descriptor lowering sites', () => {
     const ast = db()
       .public.users.select('id')
       .groupBy('id')
-      .having((_f, fns) => fns.gt(fns.count(), 1n))
+      .having((_f, fns) => fns.gt(fns.count(), 1))
       .buildAst();
 
     const having = ast.having as BinaryExpr;

@@ -248,10 +248,11 @@ describe('integration/integer representation types', () => {
 
   // The aggregate method set and its result decoding are both derived from the
   // contract's emitted rows, so this reduces columns whose codecs the derivation
-  // never names: `sum` over `pg/int8number@1` widens to `pg/numeric@1` (the total
-  // is free to leave the safe range the column guards), `sum` over
-  // `pg/unboundedint@1` stays unbounded, and `min`/`max` resolve to the input
-  // codec itself.
+  // never names. The bare operations answer in the JS types a caller expects —
+  // `sum` and `avg` over either integer column as a `number` — except where the
+  // column's own family already carries the result: `sum` over
+  // `pg/unboundedint@1` stays unbounded, since that column's author chose the
+  // exact representation. `min`/`max` resolve to the input codec itself.
   it(
     'reduces BigIntNumber and UnboundedInt columns through their declared result codecs',
     async () => {
@@ -259,10 +260,11 @@ describe('integration/integer representation types', () => {
         await setupTables(runtime);
         const meters = createMeters(runtime);
 
-        await meters.create({ id: 1, peak: MAX_SAFE, lifetime: PAST_TWO_63 });
-        await meters.create({ id: 2, peak: MAX_SAFE, lifetime: PAST_TWO_63 });
+        await meters.create({ id: 1, peak: 10, lifetime: PAST_TWO_63 });
+        await meters.create({ id: 2, peak: 30, lifetime: PAST_TWO_63 });
 
         const stats = await meters.aggregate((agg) => ({
+          rows: agg.count(),
           peakSum: agg.sum('peak'),
           peakAvg: agg.avg('peak'),
           peakMin: agg.min('peak'),
@@ -273,29 +275,153 @@ describe('integration/integer representation types', () => {
           lifetimeMax: agg.max('lifetime'),
         }));
 
-        // Both sums leave the range their column's codec holds a value to;
-        // decimal text and an unbounded bigint carry them exactly. The averages
-        // keep PostgreSQL's own numeric scale for each input type.
         expect(stats).toEqual({
-          peakSum: '18014398509481982',
-          peakAvg: '9007199254740991.0000',
-          peakMin: MAX_SAFE,
-          peakMax: MAX_SAFE,
+          rows: 2,
+          peakSum: 40,
+          peakAvg: 20,
+          peakMin: 10,
+          peakMax: 30,
           lifetimeSum: 36893488147419103234n,
-          lifetimeAvg: '18446744073709551617',
+          lifetimeAvg: 1.8446744073709552e19,
           lifetimeMin: PAST_TWO_63,
           lifetimeMax: PAST_TWO_63,
         });
 
         expectTypeOf(stats).toEqualTypeOf<{
-          peakSum: string | null;
-          peakAvg: string | null;
+          rows: number;
+          peakSum: number | null;
+          peakAvg: number | null;
           peakMin: number | null;
           peakMax: number | null;
           lifetimeSum: bigint | null;
-          lifetimeAvg: string | null;
+          lifetimeAvg: number | null;
           lifetimeMin: bigint | null;
           lifetimeMax: bigint | null;
+        }>();
+      }, contract);
+    },
+    timeouts.databaseOperation,
+  );
+
+  // A total is free to leave the range the column itself guards, which is the
+  // whole reason the bare operation guards it again on the way back.
+  it(
+    'refuses a bare sum past the safe range rather than rounding it',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        await setupTables(runtime);
+        const meters = createMeters(runtime);
+
+        await meters.create({ id: 1, peak: MAX_SAFE, lifetime: 0n });
+        await meters.create({ id: 2, peak: MAX_SAFE, lifetime: 0n });
+
+        const shape = await rejectionShape(meters.aggregate((agg) => ({ total: agg.sum('peak') })));
+        expect(shape).toEqual({
+          name: 'StructuredError',
+          message: `pg/int8number@1 value must be an integer within the safe integer range, got ${2 * MAX_SAFE}`,
+          code: 'RUNTIME.DECODE_FAILED',
+          meta: { codecId: 'pg/int8number@1', received: String(2 * MAX_SAFE) },
+        });
+      }, contract);
+    },
+    timeouts.databaseOperation,
+  );
+
+  // The include path is the subtler one: the total is projected as a JSON
+  // number, so `JSON.parse` has already rounded it by the time the codec reads
+  // it. Rounding is monotone, which is what makes the post-parse guard
+  // un-foolable — the rounded value is still outside the safe range.
+  it(
+    'refuses a bare sum past the safe range through the include path too',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        await setupTables(runtime);
+        const meters = createMeters(runtime);
+        const samples = createSamples(runtime);
+
+        await meters.create({ id: 1, peak: 0, lifetime: 0n });
+        await samples.create({ id: 1, meterId: 1, reading: MAX_SAFE });
+        await samples.create({ id: 2, meterId: 1, reading: MAX_SAFE });
+
+        const shape = await rejectionShape(
+          meters
+            .select('id')
+            .include('samples', (sample) => sample.sum('reading'))
+            .all(),
+        );
+        expect(shape).toMatchObject({
+          code: 'RUNTIME.DECODE_FAILED',
+          message: expect.stringContaining(
+            'pg/int8number@1 value must be an integer within the safe integer range',
+          ),
+        });
+      }, contract);
+    },
+    timeouts.databaseOperation,
+  );
+
+  // The lossless variant is the escape hatch the guard points at, and over a
+  // 64-bit column it reads PostgreSQL's `numeric` total rather than casting
+  // back to `int8` — so 2^63 is not a wall either.
+  it(
+    'reads a lossless sum exactly, past 2^53 and past 2^63',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        await setupTables(runtime);
+        const meters = createMeters(runtime);
+
+        await meters.create({ id: 1, peak: MAX_SAFE, lifetime: PAST_TWO_63 });
+        await meters.create({ id: 2, peak: MAX_SAFE, lifetime: PAST_TWO_63 });
+
+        const stats = await meters.aggregate((agg) => ({
+          rows: agg.countBigInt(),
+          peakSum: agg.sumBigInt('peak'),
+          lifetimeSum: agg.sumBigInt('lifetime'),
+        }));
+
+        expect(stats).toEqual({
+          rows: 2n,
+          peakSum: 18014398509481982n,
+          lifetimeSum: 36893488147419103234n,
+        });
+
+        expectTypeOf(stats).toEqualTypeOf<{
+          rows: bigint;
+          peakSum: bigint | null;
+          lifetimeSum: bigint | null;
+        }>();
+      }, contract);
+    },
+    timeouts.databaseOperation,
+  );
+
+  // A mean is a fraction, and the two forms answer it differently on purpose:
+  // the bare operation rounds the exact mean once into a double, the suffixed
+  // one hands back PostgreSQL's own `numeric`, digits and all.
+  it(
+    'answers avg as a number and avgDecimal as the exact decimal text',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        await setupTables(runtime);
+        const meters = createMeters(runtime);
+
+        await meters.create({ id: 1, peak: 1, lifetime: 0n });
+        await meters.create({ id: 2, peak: 2, lifetime: 0n });
+        await meters.create({ id: 3, peak: 2, lifetime: 0n });
+
+        const stats = await meters.aggregate((agg) => ({
+          mean: agg.avg('peak'),
+          exactMean: agg.avgDecimal('peak'),
+        }));
+
+        expect(stats).toEqual({
+          mean: 1.6666666666666667,
+          exactMean: '1.6666666666666667',
+        });
+
+        expectTypeOf(stats).toEqualTypeOf<{
+          mean: number | null;
+          exactMean: string | null;
         }>();
       }, contract);
     },

@@ -25,7 +25,7 @@ describe('integration/aggregate', () => {
           count: aggregate.count(),
         }));
 
-        expect(stats).toEqual({ count: 2n });
+        expect(stats).toEqual({ count: 2 });
         expect(runtime.executions).toHaveLength(1);
         expect(runtime.executions[0]?.sql.toLowerCase()).toContain('count(*)');
       });
@@ -56,14 +56,13 @@ describe('integration/aggregate', () => {
             max: aggregate.max(numericField),
           }));
 
-        // Each value is the target's declared result codec speaking: `count`
-        // and a widened `sum` over int4 are bigints, `avg` is a numeric whose
-        // canonical form is a decimal string, and `min`/`max` keep the column's
-        // own int4.
+        // Each value is the target's declared result codec speaking: the bare
+        // `count`, `sum` and `avg` answer as JS numbers, and `min`/`max` keep
+        // the column's own int4.
         expect(stats).toEqual({
-          count: 2n,
-          total: 50n,
-          avg: '25.0000000000000000',
+          count: 2,
+          total: 50,
+          avg: 25,
           min: 20,
           max: 30,
         });
@@ -92,7 +91,7 @@ describe('integration/aggregate', () => {
           }));
 
         expect(stats).toEqual({
-          count: 0n,
+          count: 0,
           total: null,
           avg: null,
           min: null,
@@ -103,12 +102,12 @@ describe('integration/aggregate', () => {
     timeouts.spinUpPpgDev,
   );
 
-  // The value-level proof that an aggregate past 2^53 survives both paths needs
-  // a column whose single value exceeds a double's integers; this fixture's
-  // widest numeric column is int4. The decimal-string channel is proven above:
-  // `avg` returns '25.0000000000000000', a form no number carries.
+  // The value-level proof that an aggregate past 2^53 throws rather than
+  // rounds needs a column whose total exceeds a double's integers; this
+  // fixture's widest numeric column is int4, so the boundary itself is pinned
+  // against the integer-representation fixture instead.
   it(
-    'reads a widened sum as a bigint and a numeric average as its decimal string',
+    'reads a widened sum and an include count as the numbers they now are',
     async () => {
       await withCollectionRuntime(async (runtime) => {
         const posts = createPostsCollection(runtime);
@@ -126,17 +125,18 @@ describe('integration/aggregate', () => {
           total: aggregate.sum(numericField),
         }));
 
-        // The sum exceeds int4 and comes back as the int8 the target declares —
-        // as a bigint, not a number that happens to fit today.
-        expect(stats).toEqual({ count: 2n, total: 4000000000n });
+        // The sum exceeds int4, and the number the bare operation answers with
+        // carries it exactly — the guard is what makes that safe to rely on.
+        expect(stats).toEqual({ count: 2, total: 4000000000 });
 
         const rows = await users
           .select('id')
           .include('posts', (related) => related.count())
           .all();
 
-        // An include count reads through the same codec: a bigint inside JSON.
-        expect(rows).toEqual([{ id: 1, posts: 2n }]);
+        // An include count reads through the same codec: a JSON number again,
+        // and safely, since the guard runs after the parse.
+        expect(rows).toEqual([{ id: 1, posts: 2 }]);
       });
     },
     timeouts.spinUpPpgDev,

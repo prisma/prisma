@@ -14,18 +14,18 @@ import { isSelectAst } from './helpers';
 describe('GroupedCollection', () => {
   it('groupBy().aggregate() maps grouped columns back to model fields', async () => {
     const { collection, runtime } = createCollectionFor('Post');
-    runtime.setNextResults([[{ user_id: 1, count: 2n }]]);
+    runtime.setNextResults([[{ user_id: 1, count: 2 }]]);
 
     const rows = await collection.groupBy('userId').aggregate((aggregate) => ({
       count: aggregate.count(),
     }));
 
-    expect(rows).toEqual([{ userId: 1, count: 2n }]);
+    expect(rows).toEqual([{ userId: 1, count: 2 }]);
   });
 
   it('having() compiles aggregate predicates into HAVING clauses', async () => {
     const { collection, runtime } = createCollectionFor('Post');
-    runtime.setNextResults([[{ user_id: 1, totalViews: 50n }]]);
+    runtime.setNextResults([[{ user_id: 1, totalViews: 50 }]]);
 
     const numericField = 'views' as never;
     const rows = await collection
@@ -35,7 +35,7 @@ describe('GroupedCollection', () => {
         totalViews: aggregate.sum(numericField),
       }));
 
-    expect(rows).toEqual([{ userId: 1, totalViews: 50n }]);
+    expect(rows).toEqual([{ userId: 1, totalViews: 50 }]);
     const firstAst = runtime.executions[0]?.plan.ast;
     expect(isSelectAst(firstAst)).toBe(true);
     if (!isSelectAst(firstAst)) {
@@ -153,7 +153,7 @@ describe('GroupedCollection', () => {
   // Aggregate values reach the row already decoded — the projection carries
   // each aggregate's resolved output codec, so the runtime's decode pass has
   // turned the wire value into the application one. Nothing re-reads them here,
-  // which is what lets a count past 2^53 survive as the bigint it is.
+  // which is what lets a `countBigInt` past 2^53 survive as the bigint it is.
   it('groupBy().aggregate() carries decoded aggregate values through unchanged', async () => {
     const { collection, runtime } = createCollectionFor('Post');
     runtime.setNextResults([
@@ -169,7 +169,7 @@ describe('GroupedCollection', () => {
 
     const numericField = 'views' as never;
     const rows = await collection.groupBy('userId').aggregate((aggregate) => ({
-      count: aggregate.count(),
+      count: aggregate.countBigInt(),
       total: aggregate.sum(numericField),
       max: aggregate.max(numericField),
     }));
@@ -179,7 +179,7 @@ describe('GroupedCollection', () => {
 
   it('groupBy().aggregate() carries a null aggregate through as null', async () => {
     const { collection, runtime } = createCollectionFor('Post');
-    runtime.setNextResults([[{ user_id: 1, count: 0n, total: null, avg: null }]]);
+    runtime.setNextResults([[{ user_id: 1, count: 0, total: null, avg: null }]]);
 
     const numericField = 'views' as never;
     const rows = await collection.groupBy('userId').aggregate((aggregate) => ({
@@ -188,7 +188,7 @@ describe('GroupedCollection', () => {
       avg: aggregate.avg(numericField),
     }));
 
-    expect(rows).toEqual([{ userId: 1, count: 0n, total: null, avg: null }]);
+    expect(rows).toEqual([{ userId: 1, count: 0, total: null, avg: null }]);
   });
 
   it('only exposes grouped operations at runtime', () => {

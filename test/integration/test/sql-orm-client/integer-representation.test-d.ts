@@ -52,7 +52,7 @@ describe('column output types', () => {
 });
 
 describe('aggregate result types resolve per the emitted rows', () => {
-  test('PostgreSQL: sum/avg widen BigIntNumber to numeric text; UnboundedInt sums to itself', () => {
+  test('PostgreSQL: the bare reductions read as numbers, bar the in-family unbounded sum', () => {
     const stats = meters.aggregate((agg) => ({
       peakSum: agg.sum('peak'),
       peakAvg: agg.avg('peak'),
@@ -60,10 +60,25 @@ describe('aggregate result types resolve per the emitted rows', () => {
       lifetimeAvg: agg.avg('lifetime'),
     }));
     expectTypeOf(stats).resolves.toEqualTypeOf<{
-      peakSum: string | null;
-      peakAvg: string | null;
+      peakSum: number | null;
+      peakAvg: number | null;
       lifetimeSum: bigint | null;
-      lifetimeAvg: string | null;
+      lifetimeAvg: number | null;
+    }>();
+  });
+
+  test('PostgreSQL: the lossless variants read exactly', () => {
+    const stats = meters.aggregate((agg) => ({
+      rows: agg.countBigInt(),
+      peakSum: agg.sumBigInt('peak'),
+      lifetimeSum: agg.sumBigInt('lifetime'),
+      peakAvg: agg.avgDecimal('peak'),
+    }));
+    expectTypeOf(stats).resolves.toEqualTypeOf<{
+      rows: bigint;
+      peakSum: bigint | null;
+      lifetimeSum: bigint | null;
+      peakAvg: string | null;
     }>();
   });
 
@@ -82,27 +97,29 @@ describe('aggregate result types resolve per the emitted rows', () => {
     }>();
   });
 
-  test('SQLite: sum widens BigIntNumber to bigint, avg to real, min/max stay number', () => {
+  test('SQLite: the bare reductions read as numbers and sumBigInt exactly', () => {
     const stats = sqliteMeters.aggregate((agg) => ({
       peakSum: agg.sum('peak'),
       peakAvg: agg.avg('peak'),
       peakMax: agg.max('peak'),
       peakMin: agg.min('peak'),
+      peakExact: agg.sumBigInt('peak'),
     }));
     expectTypeOf(stats).resolves.toEqualTypeOf<{
-      peakSum: bigint | null;
+      peakSum: number | null;
       peakAvg: number | null;
       peakMax: number | null;
       peakMin: number | null;
+      peakExact: bigint | null;
     }>();
   });
 
-  test('an include reducer over a BigIntNumber column reads the declared widened result', () => {
+  test('an include reducer over a BigIntNumber column reads the declared result', () => {
     const rows = meters
       .select('id')
       .include('samples', (sample) => sample.sum('reading'))
       .all();
     type Row = Awaited<typeof rows>[number];
-    expectTypeOf<Row['samples']>().toEqualTypeOf<string | null>();
+    expectTypeOf<Row['samples']>().toEqualTypeOf<number | null>();
   });
 });
