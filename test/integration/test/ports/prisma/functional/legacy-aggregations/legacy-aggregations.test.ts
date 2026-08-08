@@ -88,9 +88,6 @@ describe('ports/prisma/functional/legacy-aggregations', () => {
     () =>
       withAggregations(async ({ db }) => {
         const result = await db.public.User.aggregate((agg) => ({ _avg: agg.avg('age') }));
-        // PostgreSQL's avg over an integer column is numeric, whose canonical
-        // form is a decimal string — the port's `number` was the driver's
-        // rounding, not the database's answer.
         expect(result).toEqual({ _avg: 47 });
       }),
     timeouts.spinUpPpgDev,
