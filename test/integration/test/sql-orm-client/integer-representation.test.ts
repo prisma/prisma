@@ -349,11 +349,26 @@ describe('integration/integer representation types', () => {
             .include('samples', (sample) => sample.sum('reading'))
             .all(),
         );
-        expect(shape).toMatchObject({
+        // The include decode wraps the codec's structured error in the
+        // runtime's column-context envelope, naming the reducer's alias where a
+        // scalar include names the column, with the codec error on `cause`.
+        expect(shape).toEqual({
+          name: 'RuntimeError',
+          message: `Failed to decode column int_repr_samples.samples with codec 'pg/int8number@1': pg/int8number@1 value must be an integer within the safe integer range, got ${2 * MAX_SAFE}`,
           code: 'RUNTIME.DECODE_FAILED',
-          message: expect.stringContaining(
-            'pg/int8number@1 value must be an integer within the safe integer range',
-          ),
+          category: 'RUNTIME',
+          severity: 'error',
+          details: {
+            table: 'int_repr_samples',
+            column: 'samples',
+            codec: 'pg/int8number@1',
+          },
+          cause: {
+            name: 'StructuredError',
+            message: `pg/int8number@1 value must be an integer within the safe integer range, got ${2 * MAX_SAFE}`,
+            code: 'RUNTIME.DECODE_FAILED',
+            meta: { codecId: 'pg/int8number@1', received: String(2 * MAX_SAFE) },
+          },
         });
       }, contract);
     },
