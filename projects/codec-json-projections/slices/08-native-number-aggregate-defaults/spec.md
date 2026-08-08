@@ -65,7 +65,13 @@ One behavioural flip of the default vocabulary together with its escape hatches,
 
 **In:** new operation contributions (`countBigInt`, `sumBigInt`, `avgDecimal`) and changed default rows in both targets' matrices; the `avg` result-cast lowering; empty-input result change; regenerated contracts/fixtures; database-backed matrix updates in the conformance suites; renegotiated test baselines; error-reference and aggregate-descriptor-guide updates; upgrade instructions.
 
-**Out:** `sumDecimal` (rejected — no non-redundant domain); any further operations (`median`, `string_agg`, …); codec changes (slice 06 owns them); Mongo; client/builder code changes (slice 07 makes them unnecessary — this slice is target contributions, fixtures, tests, and docs).
+**Out:** `sumDecimal` (rejected — no non-redundant domain); any further operations (`median`, `string_agg`, …); Mongo.
+
+**Scope taken on during execution** (amended 2026-08-08). Three repairs the defaults policy exposed rather than caused, each a stale assumption that only held while every non-nullable aggregate decoded through a bigint codec:
+
+- **Codec and client source.** The spec expected none (slice 07 made the surfaces derive). Wrong on two counts: `sqlite/bigintnumber@1` needed a `jsonProjection` that yields a JSON number, since its transport cast renders a JSON *string* inside an envelope; and `emptyAggregateResult` hardcoded `decodeJson('0')`, which the number-flavoured codecs reject. The latter moved the empty-input answer onto the descriptor as `emptyResultJson`, where it belongs — it is a property of the operation (`count`'s identity is zero; `every()`'s would be `true`), not of the codec.
+- **Encode guards, and the class beyond them.** Distinguishing a wrong JS type from a wrong magnitude revealed that the bigint codecs silently accepted JS numbers — `String(1.5)` is valid decimal text, so a fraction could reach an integer column unremarked. Predates this slice.
+- **Literal defaults.** Tightening those guards broke emission of `BigInt @default(0)`: a schema language writes no `bigint`, so PSL literals arrive as JSON numbers. `encodeJson` was widened (guarded, integral and safe-magnitude only) as a stopgap; the DDL renderers' sibling conflation — passing canonical JSON straight to `encode` — was fixed properly by composing `encode(decodeJson(stored))`, which also corrected a `timestamptz` default handed an ISO string where the codec declares `Date`. The proper seam for schema literals is [TML-3187](https://linear.app/prisma-company/issue/TML-3187/schema-written-literals-are-not-application-values-give-them-their-own).
 
 ## Pre-investigated edge cases
 
