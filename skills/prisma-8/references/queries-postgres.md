@@ -248,7 +248,7 @@ const byKind = await db.orm.User
 | `avg(field)` over a float | `number \| null` | `null` |
 | `min(field)` / `max(field)` | the column's own type `\| null` — `text` where the column is `varchar` | `null` |
 
-**A bare `count` or `sum` past 2^53 throws — it never rounds.** The error is `RUNTIME.DECODE_FAILED` (`… value must be an integer within the safe integer range, got …`), and it fires on the include path too. That is the trade the defaults make: a `number` you can compare, serialise, and do arithmetic with, and a loud failure instead of a quietly wrong total. Switch that one call to `sumBigInt` / `countBigInt` where the magnitude is real.
+**`count()`, and `sum` over an integer column, throw outside ±(2^53 − 1) — they never round.** Those two are the results a guarded integer codec produces. The rows above the guard does not reach: `sum` over `numeric`, `UnboundedInt`, or a float column, and every `avg`, which is a fraction already. The error is `RUNTIME.DECODE_FAILED` (`… value must be an integer within the safe integer range, got …`), and it fires on the include path too. That is the trade the defaults make: a `number` you can compare, serialise, and do arithmetic with, and a loud failure instead of a quietly wrong total. Switch that one call to `sumBigInt` / `countBigInt` where the magnitude is real.
 
 **Float and Decimal columns keep their own family.** `sum` over `numeric` is still a decimal string, and `sum` over `float8` still a `number` — the defaults policy is about integers, and a column whose author chose `numeric` already chose its representation.
 
@@ -404,7 +404,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 - [ ] Chose the right lane (ORM by default; `db.sql` for shapes the ORM doesn't express).
 - [ ] Used `.first()` / `.first({ pk })` for single-row reads — not `.all()`.
 - [ ] Coalesced `sum` / `avg` / `min` / `max` results at the consumption site when zero-fill is desired, with a zero of the aggregate's own type — did NOT coalesce `count()`, which is `number` and never null.
-- [ ] Reached for `countBigInt` / `sumBigInt` / `avgDecimal` where the value can outgrow a JS number or the exact decimal matters — the bare operations throw `RUNTIME.DECODE_FAILED` past 2^53 rather than rounding.
+- [ ] Reached for `countBigInt` / `sumBigInt` / `avgDecimal` where the value can outgrow a JS number or the exact decimal matters — `count()` and `sum` over an integer column throw `RUNTIME.DECODE_FAILED` outside ±(2^53 − 1) rather than rounding, and `avg` rounds as any double does.
 - [ ] Compared and serialised aggregate *results* as what they are — a `bigint` from a suffixed variant needs `0n` literals and `String(value)` rather than bare `JSON.stringify` — leaving the ORM's `having(...)` operands as numbers, and matching each SQL-builder comparison literal to the aggregate's own result codec (`fns.gt(fns.count(), 1)`).
 - [ ] Expressed ranges as chained `.where(...)` clauses or a single `and(...)` clause — did NOT reach for a non-existent `.between(...)` operator.
 - [ ] For cursor pagination, used `.orderBy(...).cursor({ field: lastValue }).take(n).all()` — did NOT hand-write a `.where(p => p.field.lt(cursor))` workaround when the `.cursor()` API serves the same purpose.
