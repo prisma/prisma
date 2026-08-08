@@ -148,7 +148,7 @@ describe('integration/self-relation matrix', () => {
           .where((person) => person.manager.some((manager) => manager.name.eq('Ada')))
           .aggregate((aggregate) => ({ count: aggregate.count() }));
 
-        expect(stats).toEqual({ count: 2n });
+        expect(stats).toEqual({ count: 2 });
       });
     },
     timeouts.spinUpPpgDev,
@@ -212,7 +212,7 @@ describe('integration/self-relation matrix', () => {
           .where((person) => person.partner.some())
           .aggregate((aggregate) => ({ count: aggregate.count() }));
 
-        expect(stats).toEqual({ count: 2n });
+        expect(stats).toEqual({ count: 2 });
       });
     },
     timeouts.spinUpPpgDev,
@@ -261,9 +261,9 @@ describe('integration/self-relation matrix', () => {
                 { id: 2, name: 'Bea', followers: [{ id: 1, name: 'Ada' }] },
                 { id: 3, name: 'Cy', followers: [{ id: 1, name: 'Ada' }] },
               ],
-              count: 2n,
+              count: 2,
             },
-            followers: { rows: [{ id: 2, name: 'Bea' }], count: 1n },
+            followers: { rows: [{ id: 2, name: 'Bea' }], count: 1 },
           },
         ]);
         expect(runtime.executions).toHaveLength(1);
@@ -335,8 +335,8 @@ describe('integration/self-relation matrix', () => {
                   target: { id: 3, name: 'Cy', reports: [] },
                 },
               ],
-              count: 2n,
-              totalWeight: 12n,
+              count: 2,
+              totalWeight: 12,
             },
             incomingLinks: {
               rows: [
@@ -347,8 +347,8 @@ describe('integration/self-relation matrix', () => {
                   source: { id: 2, name: 'Bea' },
                 },
               ],
-              count: 1n,
-              totalWeight: 11n,
+              count: 1,
+              totalWeight: 11,
             },
           },
         ]);

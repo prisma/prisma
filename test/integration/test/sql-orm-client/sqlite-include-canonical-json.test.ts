@@ -312,16 +312,35 @@ describe('integration/sqlite include canonical JSON', () => {
   // rather than the text a bigint column stores — and `node:sqlite` refuses an
   // integer a JS number cannot hold. The target's descriptor answers with the
   // cast that makes the wire form text, which is what the bigint codec reads.
-  it('carries a top-level sum past 2^53 through the ORM', async () => {
+  it('carries a top-level sumBigInt past 2^53 through the ORM', async () => {
     // The contract is authored in this file, so its static aggregate map is
     // unknown and the typed builder surface is empty; dispatch dynamically,
     // as the include reducer above already does.
     const stats = await readings!.aggregate((aggregate) => {
       const dynamic = aggregate as Record<string, (field?: string) => AggregateSpec[string]>;
-      return { total: dynamic['sum']!('counter') };
+      return { total: dynamic['sumBigInt']!('counter') };
     });
 
     expect(stats).toEqual({ total: WIDE_BIGINT });
     expect(BigInt(Number(stats.total))).not.toBe(stats.total);
+  });
+
+  // The bare operation reads the same total as a `number`, and the same cast to
+  // text is what lets the codec's guard — rather than the driver's raise — be
+  // the answer a caller reads.
+  it('refuses a top-level bare sum past 2^53 rather than rounding it', async () => {
+    const shape = await rejectionShape(
+      readings!.aggregate((aggregate) => {
+        const dynamic = aggregate as Record<string, (field?: string) => AggregateSpec[string]>;
+        return { total: dynamic['sum']!('counter') };
+      }),
+    );
+
+    expect(shape).toEqual({
+      name: 'StructuredError',
+      message: `sqlite/bigintnumber@1 value must be an integer within the safe integer range, got ${WIDE_BIGINT}`,
+      code: 'RUNTIME.DECODE_FAILED',
+      meta: { codecId: 'sqlite/bigintnumber@1', received: WIDE_BIGINT.toString() },
+    });
   });
 });
