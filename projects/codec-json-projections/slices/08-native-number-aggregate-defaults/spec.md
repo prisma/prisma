@@ -4,7 +4,7 @@ _(Parent project `projects/codec-json-projections/`. Outcome this slice contribu
 
 ## At a glance
 
-Splits the aggregate vocabulary: `count()`/`sum()`/`avg()` return JS-native values (`number`, throwing past the safe-integer range where loss is possible), while `countBigInt()`/`sumBigInt()`/`avgDecimal()` keep the lossless results the hard cut introduced. Breaking for `count()`/`sum()`/`avg()` result types; carries upgrade instructions. Depends on slice 06 (the output codecs) and slice 07 (the contribution mechanism that lets targets add the new operations without client changes).
+Splits the aggregate vocabulary: `count()`/`sum()`/`avg()` return JS-native `number`s — `count` and `sum` through a guarded integer codec that throws past the safe-integer range rather than rounding, `avg` through an unguarded `float8`, a mean being a fraction already — while `countBigInt()`/`sumBigInt()`/`avgDecimal()` keep the lossless results the hard cut introduced. Breaking for `count()`/`sum()`/`avg()` result types; carries upgrade instructions. Depends on slice 06 (the output codecs) and slice 07 (the contribution mechanism that lets targets add the new operations without client changes).
 
 ## Chosen design
 

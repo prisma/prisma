@@ -108,7 +108,9 @@ Assume no FILTER and no DISTINCT unless specified:
 
 The rules above follow one policy, which the built-in targets state in their descriptor matrices and which a contributing pack should follow too.
 
-**Bare operations favour the JS-native type, and throw where silence would lose precision.** `count`, `sum`, and `avg` over integer inputs answer as `number` — the type a JS developer expects from a tally, a total, and a mean. Where a value cannot be a `number`, the result codec's guard raises `RUNTIME.DECODE_FAILED` rather than handing back a rounded one. The guard is post-parse and therefore un-foolable on the JSON path as well: double rounding is monotone and 2^53 is exactly representable, so a true value outside ±(2^53 − 1) cannot parse back inside it.
+**Bare operations favour the JS-native type.** `count`, `sum`, and `avg` over integer inputs answer as `number` — the type a JS developer expects from a tally, a total, and a mean.
+
+**Where an integral result could not be a `number`, it throws instead of rounding.** `count` and `sum` resolve to a guarded integer codec (`pg/int8number@1`, `sqlite/bigintnumber@1`), which raises `RUNTIME.DECODE_FAILED` on a value outside ±(2^53 − 1) rather than handing back a rounded one. The guard is post-parse and therefore un-foolable on the JSON path as well: double rounding is monotone and 2^53 is exactly representable, so a true value outside the range cannot parse back inside it. `avg` is the operation this does not apply to: a mean is a fraction, so it resolves to `pg/float8@1` / `sqlite/real@1`, which carry no guard and round a large mean the way any double does. `avgDecimal` is the exact form to reach for.
 
 **Suffixed variants are lossless.** `countBigInt`, `sumBigInt`, and `avgDecimal` answer exactly at whatever magnitude the database computes. They are ordinary contributed operations — outside the AST's aggregate alphabet, so each carries a lowering hook naming the SQL aggregate it computes with — which makes them projection-only, exactly like any other contributed operation.
 
@@ -116,7 +118,7 @@ The rules above follow one policy, which the built-in targets state in their des
 
 **`min` and `max` answer in the input's own type.** They declare `self`, so an extremum is one of the values that were read.
 
-The tension this resolves: a lossless-by-default vocabulary is correct and hostile to JS. A `bigint` count is a value `JSON.stringify` refuses and `=== 2` disagrees with; a decimal-string mean is a value arithmetic refuses. A number-by-default vocabulary is ergonomic and lossy. Splitting the vocabulary keeps both, and puts the choice at the call site rather than in the column. Classic Prisma is the prior art for the split — `BigInt` columns are `bigint`, yet `count` is `number` and an integer `_avg` is a float — with one difference: classic Prisma casts down inside the engine and fails past 2^31, while these defaults throw at the safe-integer boundary with a structured error naming the codec.
+The tension this resolves: a lossless-by-default vocabulary is correct and hostile to JS. A `bigint` count is a value `JSON.stringify` refuses and `=== 2` disagrees with; a decimal-string mean is a value arithmetic refuses. A number-by-default vocabulary is ergonomic and lossy. Splitting the vocabulary keeps both, and puts the choice at the call site rather than in the column. Classic Prisma is the prior art for the split — `BigInt` columns are `bigint`, yet `count` is `number` and an integer `_avg` is a float. What these defaults add is a stated boundary: where an integral result cannot be a `number`, the codec raises a structured error naming itself, rather than answering with a rounded value.
 
 ### Contributed aggregate operations
 
