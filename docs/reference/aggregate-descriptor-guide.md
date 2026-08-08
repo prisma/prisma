@@ -123,16 +123,19 @@ Here is what PostgreSQL declares, by input class:
 | --- | --- | --- | --- |
 | `count` | none or any | `pg/int8number@1` | `number`, throwing outside ±(2^53 − 1) |
 | `countBigInt` | none or any | `pg/int8@1` | `bigint` |
-| `sum` | `int2`, `int4`, `int8`, `int8number` | `pg/int8number@1` | `number`, throwing outside ±(2^53 − 1) |
-| `sum` | `float4` / `float8` / `numeric` / `unboundedint` / `interval` | the input's own codec | unchanged |
+| `sum` | `int2`, `int4`, `int`, `int8`, `int8number` | `pg/int8number@1` | `number`, throwing outside ±(2^53 − 1) |
+| `sum` | `float4` / `numeric` / `unboundedint` / `interval` | the input's own codec | unchanged |
+| `sum` | `float8` / `float` | `pg/float8@1` | a `number` |
 | `sum` | `time` | `pg/interval@1` | a duration |
-| `sumBigInt` | `int2`, `int4` | `pg/int8@1` | `bigint`, raising `bigint out of range` past 2^63 |
+| `sumBigInt` | `int2`, `int4`, `int` | `pg/int8@1` | `bigint`, raising `bigint out of range` past 2^63 |
 | `sumBigInt` | `int8`, `int8number`, `unboundedint` | `pg/unboundedint@1` | `bigint`, exact at any magnitude |
 | `avg` | every integer, `unboundedint` included | `pg/float8@1` | `number` |
-| `avg` | `float4` / `float8` | `pg/float8@1` — `float4` widens, as PostgreSQL's own `avg` does | `number` |
+| `avg` | `float4` / `float8` / `float` | `pg/float8@1` — `float4` widens, as PostgreSQL's own `avg` does | `number` |
 | `avg` | `numeric` / `interval` | the input's own codec | unchanged |
 | `avg` | `time` | `pg/interval@1` | a duration |
 | `avgDecimal` | every integer, plus `numeric` | `pg/numeric@1` | decimal string |
+
+The input column names each codec by its suffix, and two of those names cover a pair of ids: `int` is `pg/int@1` and `sql/int@1`, the portable integer over an `int4` column, and `float` is `pg/float@1` and `sql/float@1`, the portable double precision. Each row claims both ids of the pair.
 
 `sumBigInt` over a 64-bit column reads PostgreSQL's own `numeric` total through `pg/unboundedint@1`. Casting that total back to `int8` would raise `bigint out of range` past 2^63 — an overflow this row deliberately does not have.
 
