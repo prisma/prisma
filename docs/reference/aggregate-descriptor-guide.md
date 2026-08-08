@@ -121,9 +121,9 @@ Here is what PostgreSQL declares, by input class:
 
 | Operation | Input | Result codec | Application value |
 | --- | --- | --- | --- |
-| `count` | none or any | `pg/int8number@1` | `number`, throwing past 2^53 |
+| `count` | none or any | `pg/int8number@1` | `number`, throwing outside ±(2^53 − 1) |
 | `countBigInt` | none or any | `pg/int8@1` | `bigint` |
-| `sum` | `int2`, `int4`, `int8`, `int8number` | `pg/int8number@1` | `number`, throwing past 2^53 |
+| `sum` | `int2`, `int4`, `int8`, `int8number` | `pg/int8number@1` | `number`, throwing outside ±(2^53 − 1) |
 | `sum` | `float4` / `float8` / `numeric` / `unboundedint` / `interval` | the input's own codec | unchanged |
 | `sum` | `time` | `pg/interval@1` | a duration |
 | `sumBigInt` | `int2`, `int4` | `pg/int8@1` | `bigint`, raising `bigint out of range` past 2^63 |

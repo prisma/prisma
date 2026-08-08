@@ -91,7 +91,7 @@ An aggregate's result type is declared by the target and resolved through the co
 
 Assume no FILTER and no DISTINCT unless specified:
 
-- **COUNT(\*)** and **COUNT(expr)** yield `number` and are non-null — a count is a cardinality, and both targets answer an empty input set with `0`. A tally past 2^53 raises `RUNTIME.DECODE_FAILED` rather than rounding. `countBigInt` is the lossless form and yields `bigint`
+- **COUNT(\*)** and **COUNT(expr)** yield `number` and are non-null — a count is a cardinality, and both targets answer an empty input set with `0`. A tally outside ±(2^53 − 1) raises `RUNTIME.DECODE_FAILED` rather than rounding. `countBigInt` is the lossless form and yields `bigint`
 - **SUM(int\*)** yields `number | null` on both targets, and raises `RUNTIME.DECODE_FAILED` where the total leaves the safe-integer range. `sumBigInt` is the lossless form, `bigint | null`, exact to the bound of the SQL type the total is computed in: past 2^63 over PostgreSQL's 64-bit and unbounded integer columns, whose sum the database computes as `numeric`; at 2^63 over PostgreSQL's narrower integers, whose sum is an `int8` and raises `bigint out of range` beyond it; and at 2^63 on SQLite, whose `SUM` raises `integer overflow`
   - null when the group contains zero rows or all expr are null
 - **SUM(float\*)**, **SUM(numeric)**, and **SUM(unbounded integer)** stay in the column's own family with the same nullability: `number | null`, decimal `string | null`, and `bigint | null` respectively
@@ -217,7 +217,7 @@ A target may also declare a lowering for an aggregate. SQLite renders wide-integ
 ```typescript
 // Count is never null, and reads as the number a JS developer expects
 db.order.select('c', (_f, fns) => fns.count())
-// { c: number } — RUNTIME.DECODE_FAILED past 2^53 rather than a rounded tally
+// { c: number } — RUNTIME.DECODE_FAILED outside ±(2^53 − 1) rather than a rounded tally
 
 // countBigInt is the lossless form beside it
 db.order.select('c', (_f, fns) => fns.countBigInt())
