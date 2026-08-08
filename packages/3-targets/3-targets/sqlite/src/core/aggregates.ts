@@ -21,6 +21,7 @@ import type {
 } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import type { AggregateFn } from '@internal/sql-relational-core/ast';
 import { AggregateExpr, CastExpr } from '@internal/sql-relational-core/ast';
+import { ifDefined } from '@internal/utils/defined';
 import {
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,
@@ -82,7 +83,10 @@ const produces = (
   input,
   output: { kind: 'codec', codecId },
   nullable: true,
-  ...(WIDE_INTEGER_CODECS.includes(codecId) ? { lower: castResultToText(operation) } : {}),
+  ...ifDefined(
+    'lower',
+    WIDE_INTEGER_CODECS.includes(codecId) ? castResultToText(operation) : undefined,
+  ),
 });
 
 /** The same, for a lossless variant: an operation whose name the SQL alphabet does not carry, so its lowering names the aggregate it computes with. */
