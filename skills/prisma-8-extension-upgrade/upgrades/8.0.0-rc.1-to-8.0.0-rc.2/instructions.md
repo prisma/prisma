@@ -173,8 +173,11 @@ changes:
       2^63), and `avgDecimal` → `pg/numeric@1`, PostgreSQL only. `count`'s empty-input answer is
       `0`, not `0n`. A bare `count`/`sum` past ±(2^53 − 1) raises `RUNTIME.DECODE_FAILED` rather
       than rounding, on the JSON/include path as well as the wire path. Unchanged: `min`/`max`,
-      `sum`/`avg` over float codecs, `sum` over `pg/numeric@1` and `pg/unboundedint@1`, and
-      `having(...)` operands. Two things to do. Re-run your contract space's `contract emit` —
+      `sum`/`avg` over float codecs, `sum` over `pg/numeric@1` and `pg/unboundedint@1`, and the
+      ORM's `having(...)` operands, which its typed surface fixes at `number`. The SQL builder's
+      comparison operands do move: `fns.gt` types both sides from one codec, so
+      `fns.gt(fns.count(), 1n)` becomes `fns.gt(fns.count(), 1)`.
+      Two things to do. Re-run your contract space's `contract emit` —
       the `AggregateTypes` block gains the three operations and the changed result codecs. Then
       fix pack tests that assert aggregate values or rendered SQL: `2n` and decimal-string
       expectations become plain numbers, and PostgreSQL's integer `avg` renders
@@ -422,6 +425,7 @@ Everything else keeps its row: `min` / `max`, `sum` and `avg` over the float cod
 2. **Fix value assertions in pack tests.** `expect(stats.total).toBe(2n)` becomes `toBe(2)`; a decimal-string average expectation becomes a number. Where the test was proving exactness, change the *method* to the suffixed variant rather than the expectation.
 3. **Fix rendered-SQL assertions on PostgreSQL `avg`.** An integer `avg` renders `CAST(avg("t"."c") AS float8)` where it rendered a plain `avg("t"."c")`. The cast is on the **result**, so the exact `numeric` mean is computed first and rounded once.
 4. **Expect a JSON number from a SQLite include aggregate.** `sqlite/bigintnumber@1` carries a JSON projection (`CAST(… AS INTEGER)`), so an included `count` or `sum` arrives inside `json_object` as a JSON number rather than a JSON string. The transport cast to text on the flat path is unchanged.
+5. **Retype SQL-builder comparison literals against an aggregate.** `fns.gt(a, b)` types both operands from one codec, so a literal compared against `fns.count()` or an integer `fns.sum(...)` follows the aggregate's new result codec: `fns.gt(fns.count(), 1n)` becomes `fns.gt(fns.count(), 1)`. The ORM's `having(...)` is not this case — its comparand is typed `number` outright.
 
 A bare `count` or `sum` past ±(2^53 − 1) raises `RUNTIME.DECODE_FAILED` rather than rounding, on the JSON path as well as the wire path — the guard runs after `JSON.parse`, and rounding is monotone, so a value outside the range cannot parse back inside it.
 
