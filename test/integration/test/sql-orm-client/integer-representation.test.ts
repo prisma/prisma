@@ -90,7 +90,7 @@ describe('integration/integer representation types', () => {
         expectTypeOf<Row['lifetime']>().toEqualTypeOf<bigint>();
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   // The include nests the related rows through the database-side JSON
@@ -126,7 +126,7 @@ describe('integration/integer representation types', () => {
         ]);
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   it(
@@ -156,7 +156,7 @@ describe('integration/integer representation types', () => {
         });
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   it(
@@ -202,7 +202,7 @@ describe('integration/integer representation types', () => {
         });
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   it(
@@ -223,7 +223,7 @@ describe('integration/integer representation types', () => {
         });
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   it(
@@ -243,7 +243,7 @@ describe('integration/integer representation types', () => {
         });
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   // The aggregate method set and its result decoding are both derived from the
@@ -300,7 +300,7 @@ describe('integration/integer representation types', () => {
         }>();
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   // A total is free to leave the range the column itself guards, which is the
@@ -324,7 +324,7 @@ describe('integration/integer representation types', () => {
         });
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   // The include path is the subtler one: the total is projected as a JSON
@@ -372,7 +372,7 @@ describe('integration/integer representation types', () => {
         });
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   // The lossless variant is the escape hatch the guard points at, and over a
@@ -407,7 +407,7 @@ describe('integration/integer representation types', () => {
         }>();
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 
   // A mean is a fraction, and the two forms answer it differently on purpose:
@@ -440,6 +440,6 @@ describe('integration/integer representation types', () => {
         }>();
       }, contract);
     },
-    timeouts.databaseOperation,
+    timeouts.spinUpPpgDev,
   );
 });
