@@ -753,7 +753,11 @@ async function sqliteRenderDdlColumnDefault(
   if (codecRef !== undefined) {
     const codec = codecLookup.get(codecRef.codecId);
     if (codec !== undefined) {
-      const wire = await codec.encode(def.value, {});
+      // The contract stores a literal default in the codec's canonical JSON,
+      // which is not always the value the codec writes — `sqlite/bigint@1`
+      // carries decimal text for a `bigint`. Reading it back is what turns the
+      // stored form into the application value `encode` takes.
+      const wire = await codec.encode(codec.decodeJson(def.value), {});
       return `DEFAULT ${sqliteInlineLiteral(wire)}`;
     }
   }
