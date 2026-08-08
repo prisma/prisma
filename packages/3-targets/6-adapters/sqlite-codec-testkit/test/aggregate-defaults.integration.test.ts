@@ -38,6 +38,9 @@ const MAX_SAFE = 9007199254740991n;
 /** The largest total SQLite's `SUM` produces: one row more raises `integer overflow`, which is the bound `sumBigInt` is offered within. */
 const MAX_INT64 = 9223372036854775807n;
 
+/** The result codecs carrying an integer wider than the driver's numeric reads, and so the ones a lowering has to cast out as text. */
+const WIDE_INTEGER_CODEC_IDS: ReadonlyArray<string> = ['sqlite/bigint@1', 'sqlite/bigintnumber@1'];
+
 /** The codec a resolved row decodes its result through, instantiated as the runtime would. */
 function codecFor(codecId: string): Codec {
   return sqliteCodecRegistry.descriptorFor(codecId)!.factory(undefined)({
@@ -219,22 +222,34 @@ describe.sequential('SQLite aggregate defaults', () => {
   // lowering is what renders the cast — and it renders only that: the codec the
   // descriptor declared is still the codec the registry resolves.
   describe('integer results are lowered to text', () => {
-    it('declares a lowering for every aggregate whose result is a wide integer', () => {
-      const unlowered = [...registry.values()]
-        .filter((descriptor) => {
-          const resolved = registry.resolve(
-            descriptor.operation,
-            descriptor.input.kind === 'codec' ? { codecId: descriptor.input.codecId } : undefined,
-          );
-          return (
-            resolved !== undefined &&
-            ['sqlite/bigint@1', 'sqlite/bigintnumber@1'].includes(resolved.output.codecId) &&
-            descriptor.lower === undefined
-          );
-        })
-        .map((descriptor) => `${descriptor.operation}:${descriptor.input.kind}`);
+    it('lowers every reachable wide-integer result but a BigIntNumber column extremum', () => {
+      const inputs: ReadonlyArray<string | undefined> = [
+        undefined,
+        ...[...sqliteCodecRegistry.values()].map((descriptor) => descriptor.codecId),
+      ];
+      const operations = new Set([...registry.values()].map((row) => row.operation));
 
-      expect(unlowered).toEqual([]);
+      const unlowered = [...operations].flatMap((operation) =>
+        inputs.flatMap((codecId) => {
+          const resolved = registry.resolve(
+            operation,
+            codecId === undefined ? undefined : { codecId },
+          );
+          if (resolved === undefined || resolved.lower !== undefined) return [];
+          return WIDE_INTEGER_CODEC_IDS.includes(resolved.output.codecId)
+            ? [`${operation}(${codecId ?? ''})`]
+            : [];
+        }),
+      );
+
+      // `min`/`max` over `sqlite/bigint@1` claim that codec exactly, so they
+      // carry the cast. `sqlite/bigintnumber@1` has no such row: its extrema
+      // match the `numeric`-trait row and output `self`, which reads the
+      // extremum exactly the way a flat read of the column reads a value.
+      expect([...unlowered].sort()).toEqual([
+        'max(sqlite/bigintnumber@1)',
+        'min(sqlite/bigintnumber@1)',
+      ]);
     });
 
     it('builds a cast over the aggregate its row computes with, and nothing that names a codec', () => {
