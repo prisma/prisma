@@ -254,7 +254,9 @@ const byKind = await db.orm.User
 
 **SQLite states the same policy.** `count`, `sum` over integers, and `avg` all read as `number`; `countBigInt` and `sumBigInt` are there too. There is no `avgDecimal` — SQLite has no exact decimal type, so the method does not exist on a SQLite contract.
 
-**`having(...)` is unchanged, and stays a `number`.** A HAVING operand is compared inside SQL against the aggregate the database is computing — it never crosses a codec — so `having.count().gte(minUsers)` takes the plain number it always did. Only the aggregate's *result*, the value that reaches your code, carries its target's type. The lossless variants are projection-only for the same reason and have no HAVING method at all.
+**The ORM's `having(...)` stays a `number`.** Its comparand is typed `number` outright, whatever result type the aggregate carries, so `having.count().gte(minUsers)` takes a plain number — the value is inlined as a SQL literal and compared inside the database. Only the aggregate's *result*, the value that reaches your code, carries its target's type. The lossless variants are projection-only and have no HAVING method at all.
+
+**The SQL builder types its comparands differently.** `fns.gt(a, b)` types both operands from one codec, so a literal compared against an aggregate follows that aggregate's result codec — `fns.gt(fns.count(), 1)`, not `1n`. That applies in `having(...)`, in `where(...)`, and inside any larger expression.
 
 Nullability isn't a typing bug — it's faithful to what the database returns. Coalesce client-side when you want zero-fill:
 
@@ -403,7 +405,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 - [ ] Used `.first()` / `.first({ pk })` for single-row reads — not `.all()`.
 - [ ] Coalesced `sum` / `avg` / `min` / `max` results at the consumption site when zero-fill is desired, with a zero of the aggregate's own type — did NOT coalesce `count()`, which is `number` and never null.
 - [ ] Reached for `countBigInt` / `sumBigInt` / `avgDecimal` where the value can outgrow a JS number or the exact decimal matters — the bare operations throw `RUNTIME.DECODE_FAILED` past 2^53 rather than rounding.
-- [ ] Compared and serialised aggregate *results* as what they are — a `bigint` from a suffixed variant needs `0n` literals and `String(value)` rather than bare `JSON.stringify` — while leaving `having(...)` operands as numbers, since those are compared inside SQL.
+- [ ] Compared and serialised aggregate *results* as what they are — a `bigint` from a suffixed variant needs `0n` literals and `String(value)` rather than bare `JSON.stringify` — leaving the ORM's `having(...)` operands as numbers, and matching each SQL-builder comparison literal to the aggregate's own result codec (`fns.gt(fns.count(), 1)`).
 - [ ] Expressed ranges as chained `.where(...)` clauses or a single `and(...)` clause — did NOT reach for a non-existent `.between(...)` operator.
 - [ ] For cursor pagination, used `.orderBy(...).cursor({ field: lastValue }).take(n).all()` — did NOT hand-write a `.where(p => p.field.lt(cursor))` workaround when the `.cursor()` API serves the same purpose.
 - [ ] For ORM combinators, imported `and` / `or` / `not` from the (currently internal) `@internal/sql-orm-client` and noted the façade gap to the user.

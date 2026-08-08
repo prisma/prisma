@@ -137,8 +137,11 @@ changes:
       instead of returning a rounded number — on the `.include()` path as well as the top level —
       so switch that call to `countBigInt()` / `sumBigInt()` wherever the magnitude is real.
       Unchanged: `min` / `max`, `sum` / `avg` over a float column, `sum` over `numeric` (still a
-      decimal string), `sum` over `UnboundedInt` (still a `bigint`), and `having(...)` operands,
-      which are compared inside SQL and were always plain numbers. Sweep aggregate results for
+      decimal string), `sum` over `UnboundedInt` (still a `bigint`), and the ORM's `having(...)`
+      operands, which the ORM types as `number` whatever the aggregate's result type is. The SQL
+      builder's comparison operands are the other case, and they do move: `fns.gt(a, b)` types
+      both sides from one codec, so `fns.gt(fns.count(), 1n)` becomes `fns.gt(fns.count(), 1)`.
+      Sweep aggregate results for
       `2n`-style literals, `String(count)` serialisation, `Number(...)` unwrapping, and `?? '0'`
       coalescing, and write each as the plain number it now is. Then re-emit with
       `prisma-next contract emit`: `contract.d.ts`'s `AggregateTypes` block carries the new
@@ -258,7 +261,18 @@ The aggregate vocabulary is split in two. The bare operations answer in the type
 | `avg(field)` over any integer column | `number \| null` | `null` |
 | `avgDecimal(field)` over any integer or `Decimal` column | decimal `string \| null` | `null` |
 
-These do not move: `min` / `max` keep the column's own type; `sum` and `avg` over a float column stay `number`; `sum` over `Decimal` stays a decimal string; `sum` over `UnboundedInt` stays a `bigint`; and `having(...)` operands stay plain numbers, because they are compared inside SQL and never cross a codec.
+These do not move: `min` / `max` keep the column's own type; `sum` and `avg` over a float column stay `number`; `sum` over `Decimal` stays a decimal string; `sum` over `UnboundedInt` stays a `bigint`; and the ORM's `having(...)` operands stay plain numbers, because the ORM types a HAVING comparand as `number` whatever result type the aggregate carries.
+
+The SQL builder's comparison operands are the other case, and they do move. `fns.gt(a, b)` types both sides from one codec, so a literal compared against an aggregate follows that aggregate's result codec:
+
+```ts
+// before
+.having((_f, fns) => fns.gt(fns.count(), 1n))
+// after
+.having((_f, fns) => fns.gt(fns.count(), 1))
+```
+
+Make the same one-token change wherever a `fns.count()` or an integer `fns.sum(...)` meets a literal — in `having(...)`, in `where(...)`, and inside a larger expression.
 
 SQLite states the same policy in its own terms — `count`, integer `sum`, and `avg` are all `number`, with `countBigInt` and `sumBigInt` beside them. **SQLite has no `avgDecimal`**: an exact mean needs a decimal type the database does not have, so the method is absent from a SQLite contract and calling it is a type error.
 

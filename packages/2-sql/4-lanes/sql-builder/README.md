@@ -48,7 +48,7 @@ const counts = await db.posts
   .select('user_id')
   .select('cnt', (_f, fns) => fns.count())
   .groupBy('user_id')
-  .having((_f, fns) => fns.gt(fns.count(), 1n))
+  .having((_f, fns) => fns.gt(fns.count(), 1))
   .all();
 ```
 
