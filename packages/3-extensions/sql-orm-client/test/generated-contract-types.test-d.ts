@@ -41,7 +41,13 @@ type GeneratedLikeFieldOutputTypes = {
   };
 };
 
-/** The aggregate map a PostgreSQL stack emits, narrowed to the operations these assertions exercise. */
+/**
+ * A stand-in aggregate map, narrowed to the one operation these assertions exercise.
+ *
+ * It declares `count` through `pg/int8@1` rather than the row the PostgreSQL target contributes,
+ * which is the point: the result type below is whatever this map says, and nothing in the client
+ * knows what a count "should" be.
+ */
 type GeneratedLikeAggregateTypes = {
   readonly count: {
     readonly byCodec: Record<string, never>;
@@ -346,8 +352,8 @@ export type GeneratedContractTypeAssertions = [
   Assert<Equal<CursorPagedUsersState['hasOrderBy'], true>>,
   Assert<Equal<DistinctUsersState['hasOrderBy'], false>>,
   Assert<Equal<DistinctOnUsersState['hasOrderBy'], true>>,
-  // `count` types as the contract's aggregate map declares it — PostgreSQL
-  // counts through `pg/int8@1`, whose application value is a bigint.
+  // `count` types as the contract's aggregate map declares it — this map names
+  // `pg/int8@1`, whose application value is a bigint.
   Assert<Equal<UserAggregateResult, { count: bigint }>>,
   Assert<Equal<keyof GroupedUserStatsRow, 'email' | 'count'>>,
   Assert<Equal<GroupedUserStatsRow['email'], string>>,
