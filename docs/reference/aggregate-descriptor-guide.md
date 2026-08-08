@@ -17,7 +17,7 @@ const sumOfSmallIntegers: SqlAggregateDescriptor = {
 
 ## The operation name
 
-`operation` is a name of the contributor's choosing, not a member of a fixed list. The five names the built-in targets contribute — `count`, `sum`, `avg`, `min`, `max` — exist because those targets declare them, and a component that declares `bitOr` or `median` gets that operation on the same surfaces: the SQL DSL's aggregate functions, the ORM's `aggregate()` and `groupBy().aggregate()`, and the include reducers on a collection. Every one of those surfaces derives its method set from the contributed vocabulary — the composed registry at runtime, the contract's emitted `aggregateTypes` at the type level — so a new operation needs no change to the lane or the client.
+`operation` is a name of the contributor's choosing, not a member of a fixed list. The names the built-in targets contribute exist because those targets declare them: PostgreSQL contributes eight — `count`, `countBigInt`, `sum`, `sumBigInt`, `avg`, `avgDecimal`, `min`, `max` — and SQLite the same seven bar `avgDecimal`. A component that declares `bitOr` or `median` gets that operation on the same surfaces: the SQL DSL's aggregate functions, the ORM's `aggregate()` and `groupBy().aggregate()`, and the include reducers on a collection. Every one of those surfaces derives its method set from the contributed vocabulary — the composed registry at runtime, the contract's emitted `aggregateTypes` at the type level — so a new operation needs no change to the lane or the client.
 
 The AST's aggregate alphabet is a different, closed set. `AggregateFn` (`count | sum | avg | min | max`) is the set of function names an `AggregateExpr` node can carry, and so the set the renderers are exhaustive over. An operation named in the alphabet reaches SQL as a plain aggregate call; every other operation reaches it only through a lowering hook, which [Lowering](#lowering-what-builds-the-expression) covers.
 
@@ -28,7 +28,7 @@ A descriptor claims one `(operation, input)` pair, and exactly one component may
 | Kind | Claims | Example |
 | --- | --- | --- |
 | `none` | a call with no input at all | a count over rows |
-| `codec` | one exact codec id | `sum` over `pg/int8@1`, which goes to `numeric` where the small integers go to `int8` |
+| `codec` | one exact codec id | `sumBigInt` over `pg/int8@1`, which goes to `pg/unboundedint@1` where the small integers go to `pg/int8@1` |
 | `trait` | every codec advertising the trait | `min` over anything `textual` |
 | `any` | any input, and no input — a result that does not depend on what it aggregates | `count`, which is an integer whether it counts rows or values |
 
@@ -122,11 +122,14 @@ Here is what PostgreSQL declares, by input class:
 | `count` | none or any | `pg/int8number@1` | `number`, throwing past 2^53 |
 | `countBigInt` | none or any | `pg/int8@1` | `bigint` |
 | `sum` | `int2`, `int4`, `int8`, `int8number` | `pg/int8number@1` | `number`, throwing past 2^53 |
-| `sum` | `float4` / `float8` / `numeric` / `unboundedint` / `interval` | in-family | unchanged |
-| `sumBigInt` | `int2`, `int4` | `pg/int8@1` | `bigint` |
+| `sum` | `float4` / `float8` / `numeric` / `unboundedint` / `interval` | the input's own codec | unchanged |
+| `sum` | `time` | `pg/interval@1` | a duration |
+| `sumBigInt` | `int2`, `int4` | `pg/int8@1` | `bigint`, raising `bigint out of range` past 2^63 |
 | `sumBigInt` | `int8`, `int8number`, `unboundedint` | `pg/unboundedint@1` | `bigint`, exact at any magnitude |
 | `avg` | every integer, `unboundedint` included | `pg/float8@1` | `number` |
-| `avg` | `float4` / `float8` / `numeric` / `interval` | in-family | unchanged |
+| `avg` | `float4` / `float8` | `pg/float8@1` — `float4` widens, as PostgreSQL's own `avg` does | `number` |
+| `avg` | `numeric` / `interval` | the input's own codec | unchanged |
+| `avg` | `time` | `pg/interval@1` | a duration |
 | `avgDecimal` | every integer, plus `numeric` | `pg/numeric@1` | decimal string |
 
 `sumBigInt` over a 64-bit column reads PostgreSQL's own `numeric` total through `pg/unboundedint@1`. Casting that total back to `int8` would raise `bigint out of range` past 2^63 — an overflow this row deliberately does not have.
