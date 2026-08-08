@@ -90,9 +90,11 @@ changes:
       The aggregate methods — `count`, `sum`, `avg`, `min`, `max` — are no longer declared on the
       ORM and SQL-builder surfaces outright. Each surface is derived from the operation names in
       the emitted `contract.d.ts`'s `AggregateTypes` block, so a target or extension can contribute
-      an operation and it appears under its own name with no client change. If your contract is
-      emitted with `prisma-next contract emit` on 8.0.0-rc.1 or later, nothing changes: the same
-      five methods are there with the same arities and result types. If it is not — you author it
+      an operation and it appears under its own name with no client change. Deriving the surface
+      neither adds nor removes a method by itself, but the block a re-emit produces is not the
+      list it was: PostgreSQL now contributes eight operations and SQLite seven, and every bare
+      result type moved — `count-over-a-field-counts-that-field` and
+      `aggregate-defaults-are-js-native-numbers` cover that, so work them too. If it is not — you author it
       in code with `defineContract(...)` and hand that value straight to the client (the no-emit
       flow), or you have not re-emitted since before 8.0.0-rc.1 — every aggregate surface resolves
       to `AggregateOperationsUnavailable`, an empty type, and each call becomes
@@ -190,7 +192,7 @@ Which aggregate methods exist is now the contract's answer rather than a fixed l
 | `db.orm.User.include('posts', (posts) => posts.count())` | one reducer per declared operation |
 | `db.sql.public.user.select('n', (f, fns) => fns.count())` | one function per declared operation |
 
-**If your contract is emitted, you are done.** The block declares the five operations both built-in targets contribute, so the methods, their arities, and their result types are exactly what they were.
+**If your contract is emitted, re-emit it — and keep reading.** Deriving the surface takes nothing away on its own: whatever the composed targets and extensions declare is what the block names. But the built-in targets changed what they declare in this same release. PostgreSQL now contributes eight operations and SQLite seven, and every bare result type moved. Two entries below carry those changes, and a re-emitted contract lands you in both: [`count-over-a-field-counts-that-field`](#count-over-a-field-counts-that-field) and [`aggregate-defaults-are-js-native-numbers`](#aggregate-defaults-are-js-native-numbers).
 
 **If your contract's block is unknown, the surfaces are empty.** Two situations reach that state:
 
