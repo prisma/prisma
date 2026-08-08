@@ -92,7 +92,7 @@ An aggregate's result type is declared by the target and resolved through the co
 Assume no FILTER and no DISTINCT unless specified:
 
 - **COUNT(\*)** and **COUNT(expr)** yield `number` and are non-null — a count is a cardinality, and both targets answer an empty input set with `0`. A tally past 2^53 raises `RUNTIME.DECODE_FAILED` rather than rounding. `countBigInt` is the lossless form and yields `bigint`
-- **SUM(int\*)** yields `number | null` on both targets, and raises `RUNTIME.DECODE_FAILED` where the total leaves the safe-integer range. `sumBigInt` is the lossless form: `bigint | null`, exact past 2^63 on PostgreSQL, and bounded on SQLite by SQLite's own `integer overflow` raise
+- **SUM(int\*)** yields `number | null` on both targets, and raises `RUNTIME.DECODE_FAILED` where the total leaves the safe-integer range. `sumBigInt` is the lossless form, `bigint | null`, exact to the bound of the SQL type the total is computed in: past 2^63 over PostgreSQL's 64-bit and unbounded integer columns, whose sum the database computes as `numeric`; at 2^63 over PostgreSQL's narrower integers, whose sum is an `int8` and raises `bigint out of range` beyond it; and at 2^63 on SQLite, whose `SUM` raises `integer overflow`
   - null when the group contains zero rows or all expr are null
 - **SUM(float\*)**, **SUM(numeric)**, and **SUM(unbounded integer)** stay in the column's own family with the same nullability: `number | null`, decimal `string | null`, and `bigint | null` respectively
 - **AVG(int\*)** yields `number | null` on both targets. PostgreSQL computes the exact `numeric` mean and casts the *result* to `float8`, so the mean is rounded once; `avgDecimal` yields that `numeric` unrounded as a decimal `string | null`. SQLite's average is natively real and contributes no `avgDecimal`, having no exact decimal result codec
@@ -225,7 +225,8 @@ db.order.select('c', (_f, fns) => fns.countBigInt())
 db.order.select('s', (f, fns) => fns.sum(f.amount))
 // { s: number | null }
 
-// sumBigInt is exact — past 2^63 too, on PostgreSQL
+// sumBigInt is exact to the bound of the total's SQL type — past 2^63 too on
+// PostgreSQL, where the column is a BigInt or an UnboundedInt
 db.order.select('s', (f, fns) => fns.sumBigInt(f.amount))
 // { s: bigint | null }
 

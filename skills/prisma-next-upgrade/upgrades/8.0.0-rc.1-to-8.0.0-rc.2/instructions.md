@@ -132,8 +132,11 @@ changes:
       `number`. On PostgreSQL they returned, respectively, a `bigint`; a `bigint` or a decimal
       string depending on the column's width; and a decimal string. On SQLite the first two
       returned a `bigint` and `avg()` was already a `number`. The lossless results moved to three new
-      operations beside them — `countBigInt()` → `bigint`, `sumBigInt()` → `bigint` (exact past
-      2^63 on PostgreSQL), `avgDecimal()` → decimal string (PostgreSQL only; SQLite has no
+      operations beside them — `countBigInt()` → `bigint`, `sumBigInt()` → `bigint` (on
+      PostgreSQL exact past 2^63 over a `BigInt` / `BigIntNumber` / `UnboundedInt` column, whose
+      total the database computes as `numeric`; over the narrower integers the total is an `int8`
+      and PostgreSQL raises `bigint out of range` past 2^63), `avgDecimal()` → decimal string
+      (PostgreSQL only; SQLite has no
       decimal type and contributes none). An empty input set answers `count()` with `0`, not `0n`.
       A bare `count()` or `sum()` whose value passes ±(2^53 − 1) raises `RUNTIME.DECODE_FAILED`
       instead of returning a rounded number — on the `.include()` path as well as the top level —
