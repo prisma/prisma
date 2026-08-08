@@ -111,9 +111,11 @@ changes:
       declare `count` / `sum` / `avg` / `min` / `max` outright. Each surface is a mapped type over
       the operation names in the contract's emitted `AggregateTypes` block. Deriving the surface
       neither adds nor removes a method by itself, but the block a re-emit produces is not the
-      list it was: PostgreSQL now declares eight operations and SQLite seven, and every bare
-      result type moved — see `count-over-a-field-counts-that-field` and
-      `aggregate-defaults-are-js-native-numbers`.
+      list it was: PostgreSQL now declares eight operations and SQLite seven, and the bare results
+      over integer columns moved — `count`, `sum`, and `avg`. What stayed: `min` / `max`, `sum`
+      and `avg` over a float, `numeric`, `interval`, or `time` column, and `sum` over an
+      `UnboundedInt` column, each still in its own family — see
+      `count-over-a-field-counts-that-field` and `aggregate-defaults-are-js-native-numbers`.
       A contract whose block is unknown — an in-code `defineContract(...)` value, or a
       contract emitted before `AggregateTypes` existed — resolves every one of those surfaces to
       `AggregateOperationsUnavailable`, an empty type, so the call fails with
@@ -307,7 +309,7 @@ Every aggregate surface is now a mapped type keyed by the operation names in the
 | `include('rel', (rel) => …)` | `AggregateIncludeReducers<…>` on the collection |
 | `sql().select((f, fns) => …)` | `AggregateOnlyFunctions<QC>` |
 
-For a contract emitted by `prisma-next contract emit` on 8.0.0-rc.1 or later, the derivation itself takes nothing away — the block names whatever the composed stack declares. It does not name the same list it did, though: PostgreSQL now declares eight operations and SQLite seven, and every bare result type moved. Re-emit, then work the two entries that carry those changes — [`count-over-a-field-counts-that-field`](#count-over-a-field-counts-that-field) and [`aggregate-defaults-are-js-native-numbers`](#aggregate-defaults-are-js-native-numbers).
+For a contract emitted by `prisma-next contract emit` on 8.0.0-rc.1 or later, the derivation itself takes nothing away — the block names whatever the composed stack declares. It does not name the same list it did, though: PostgreSQL now declares eight operations and SQLite seven, and the bare results over integer columns moved — `count`, `sum`, and `avg`. `min` / `max` did not, nor did `sum` and `avg` over a float, `numeric`, `interval`, or `time` column, nor `sum` over an `UnboundedInt` column; each of those stays in its own family. Re-emit, then work the two entries that carry those changes — [`count-over-a-field-counts-that-field`](#count-over-a-field-counts-that-field) and [`aggregate-defaults-are-js-native-numbers`](#aggregate-defaults-are-js-native-numbers).
 
 For a contract whose block is unknown, all five surfaces resolve to `AggregateOperationsUnavailable` — an empty interface carrying one optional symbol-keyed brand that names the reason on hover. Two populations reach it:
 
