@@ -176,8 +176,9 @@ changes:
       results: `countBigInt` → `bigint`, `sumBigInt` → `bigint` (over `pg/int8@1`,
       `pg/int8number@1`, and `pg/unboundedint@1` it resolves to `pg/unboundedint@1`, exact past
       2^63), and `avgDecimal` → `pg/numeric@1`, PostgreSQL only. `count`'s empty-input answer is
-      `0`, not `0n`. A bare `count`/`sum` past ±(2^53 − 1) raises `RUNTIME.DECODE_FAILED` rather
-      than rounding, on the JSON/include path as well as the wire path. Unchanged: `min`/`max`,
+      `0`, not `0n`. `count`, and `sum` over an integer input, raise `RUNTIME.DECODE_FAILED` past
+      ±(2^53 − 1) rather than rounding, on the JSON/include path as well as the wire path; no
+      other result carries that guard, `avg` included. Unchanged: `min`/`max`,
       `sum`/`avg` over float codecs, `sum` over `pg/numeric@1` and `pg/unboundedint@1`, and the
       ORM's `having(...)` operands, which its typed surface fixes at `number`. The SQL builder's
       comparison operands do move: `fns.gt` types both sides from one codec, so
@@ -432,7 +433,7 @@ Everything else keeps its row: `min` / `max`, `sum` and `avg` over the float cod
 4. **Expect a JSON number from a SQLite include aggregate.** `sqlite/bigintnumber@1` carries a JSON projection (`CAST(… AS INTEGER)`), so an included `count` or `sum` arrives inside `json_object` as a JSON number rather than a JSON string. The transport cast to text on the flat path is unchanged.
 5. **Retype SQL-builder comparison literals against an aggregate.** `fns.gt(a, b)` types both operands from one codec, so a literal compared against `fns.count()` or an integer `fns.sum(...)` follows the aggregate's new result codec: `fns.gt(fns.count(), 1n)` becomes `fns.gt(fns.count(), 1)`. The ORM's `having(...)` is not this case — its comparand is typed `number` outright.
 
-A bare `count` or `sum` past ±(2^53 − 1) raises `RUNTIME.DECODE_FAILED` rather than rounding, on the JSON path as well as the wire path — the guard runs after `JSON.parse`, and rounding is monotone, so a value outside the range cannot parse back inside it.
+`count`, and `sum` over an integer input, raise `RUNTIME.DECODE_FAILED` past ±(2^53 − 1) rather than rounding, on the JSON path as well as the wire path — the guard runs after `JSON.parse`, and rounding is monotone, so a value outside the range cannot parse back inside it. They are the two results a guarded integer codec produces; `sum` over a float, `numeric`, or unbounded-integer input keeps that input's own family, and `avg` resolves to a float codec that rounds as any double does.
 
 ## `non-nullable-aggregate-descriptors-declare-an-empty-result`
 
