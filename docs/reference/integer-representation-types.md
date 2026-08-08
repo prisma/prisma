@@ -63,9 +63,9 @@ Aggregates over these columns resolve through the targets' descriptor matrices, 
 
 | Column type | `sum` | `sumBigInt` | `avg` | `avgDecimal` | `min` / `max` |
 | --- | --- | --- | --- | --- | --- |
-| PostgreSQL `BigIntNumber` (`pg/int8number@1`) | `number`, throwing past 2^53 | `bigint`, exact at any magnitude (`pg/unboundedint@1`) | `number` | decimal string | the column's own type |
+| PostgreSQL `BigIntNumber` (`pg/int8number@1`) | `number`, throwing outside ±(2^53 − 1) | `bigint`, exact at any magnitude (`pg/unboundedint@1`) | `number` | decimal string | the column's own type |
 | PostgreSQL `UnboundedInt` (`pg/unboundedint@1`) | `bigint`, exact | `bigint`, exact | `number` | decimal string | the column's own type |
-| SQLite `BigIntNumber` (`sqlite/bigintnumber@1`) | `number`, throwing past 2^53 | `bigint` (`sqlite/bigint@1`) | `number` | not contributed | the column's own type |
+| SQLite `BigIntNumber` (`sqlite/bigintnumber@1`) | `number`, throwing outside ±(2^53 − 1) | `bigint` (`sqlite/bigint@1`) | `number` | not contributed | the column's own type |
 
 `sum` over `unboundedint` keeps its own codec because a sum of integers is integral, so the codec's integrality-checked `bigint` decode is the right reader for the total. `min` and `max` return the column's own type on both targets through the numeric-trait fallback. SQLite contributes no `avgDecimal`, having no exact decimal result codec to answer one with.
 

@@ -150,7 +150,7 @@ const orderingDescriptors = (operation: 'min' | 'max'): ReadonlyArray<SqlAggrega
  * Every aggregate overload the PostgreSQL target contributes. The adapter lists these on `types.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
  */
 export const postgresAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> = [
-  // PostgreSQL's `count` returns `bigint` whether it counts entries or non-null values, which is what makes it input-agnostic rather than merely input-less. A row count is a `number` to a JS developer, so that is what the bare operation reads it as — and past 2^53 it throws rather than answer with a rounded tally.
+  // PostgreSQL's `count` returns `bigint` whether it counts entries or non-null values, which is what makes it input-agnostic rather than merely input-less. A row count is a `number` to a JS developer, so that is what the bare operation reads it as — and outside ±(2^53 − 1) it throws rather than answer with a rounded tally.
   {
     operation: 'count',
     input: { kind: 'any' },

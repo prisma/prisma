@@ -143,7 +143,7 @@ const orderingDescriptors = (operation: 'min' | 'max'): ReadonlyArray<SqlAggrega
  * Every aggregate overload the SQLite target contributes. The adapter lists these on `types.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
  */
 export const sqliteAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> = [
-  // `count` returns an integer whether it counts rows or non-null values, which is what makes it input-agnostic rather than merely input-less. A row count is a `number` to a JS developer, so that is what the bare operation reads it as — and past 2^53 it throws rather than answer with a rounded tally.
+  // `count` returns an integer whether it counts rows or non-null values, which is what makes it input-agnostic rather than merely input-less. A row count is a `number` to a JS developer, so that is what the bare operation reads it as — and outside ±(2^53 − 1) it throws rather than answer with a rounded tally.
   {
     operation: 'count',
     input: { kind: 'any' },
