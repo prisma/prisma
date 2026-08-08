@@ -315,7 +315,7 @@ Totals cross the boundary in practice where counts do not: summing 64-bit IDs, o
 
 ### If you are upgrading from before 8.0.0-rc.1
 
-You cross two hops, and the aggregate result types move in both. The `0.17 → 8.0.0-rc.1` step changes `count()` to `bigint` and integer averages to decimal strings; this step changes those same calls to `number` and adds the suffixed variants. Apply the steps in order — that is what the upgrade skill does — but do the sweeping once, at the end: for `count()` and integer `sum()` / `avg()`, the destination is `number`, which is where a pre-8.0.0-rc.1 codebase already was. What genuinely changed for you across both hops is the empty-relation `count` (still `0`), the throw past 2^53, and the three new operations.
+You cross two hops, and the aggregate result types move in both. The `0.17 → 8.0.0-rc.1` step changes `count()` to `bigint` and integer averages to decimal strings; this step changes those same calls to `number` and adds the suffixed variants. Apply the steps in order — that is what the upgrade skill does — but do the sweeping once, at the end: for `count()` and integer `sum()` / `avg()`, the destination is `number`, which is where a pre-8.0.0-rc.1 codebase already was. What genuinely changed for you across both hops is the throw past 2^53 and the three new operations; the empty-relation `count` ends where it started, at `0`.
 
 ## `integer-columns-refuse-the-wrong-js-type`
 
