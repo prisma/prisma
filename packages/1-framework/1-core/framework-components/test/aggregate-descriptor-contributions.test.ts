@@ -192,11 +192,39 @@ describe('collectAggregateDescriptors', () => {
     expect(isStructuredError(error)).toBe(true);
     expect(error).toMatchObject({
       code: 'CONTRACT.AGGREGATE_DESCRIPTOR_INVALID',
-      message: expect.stringMatching(/Malformed aggregate descriptor contributed by "extension"/),
+      message:
+        'Malformed aggregate descriptor contributed by "extension". ' +
+        'A descriptor declares a non-empty `operation`, an `input` match of kind `none`/`any`/`codec`/`trait`, ' +
+        'an `output` of kind `self`/`codec`, and a boolean `nullable` — plus `emptyResultJson`, ' +
+        "in the result codec's canonical JSON, where `nullable` is false; a `self` output needs an input to reuse.",
       details: { contributedBy: 'extension', descriptor: malformed },
     });
+  });
+
+  it('names the missing empty result when a non-nullable descriptor omits it', () => {
+    const withoutEmptyResult = {
+      operation: 'count',
+      input: { kind: 'none' },
+      output: { kind: 'codec', codecId: 'lib/int8@1' },
+      nullable: false,
+    };
+
+    const error = capture(() =>
+      collectAggregateDescriptors([
+        {
+          id: 'extension',
+          types: {
+            aggregateDescriptors: [
+              withoutEmptyResult,
+            ] as unknown as ReadonlyArray<AggregateDescriptor>,
+          },
+        },
+      ]),
+    );
+
     expect(error).toMatchObject({
-      message: expect.stringMatching(/`none`\/`any`\/`codec`\/`trait`/),
+      code: 'CONTRACT.AGGREGATE_DESCRIPTOR_INVALID',
+      message: expect.stringContaining('`emptyResultJson`'),
     });
   });
 });
