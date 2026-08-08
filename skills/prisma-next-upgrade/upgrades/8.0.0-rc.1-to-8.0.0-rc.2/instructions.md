@@ -124,6 +124,53 @@ changes:
         - "count("
         - ".aggregate("
       anyMatch: true
+  - id: aggregate-defaults-are-js-native-numbers
+    summary: |
+      `count()`, `sum()` over an integer column, and `avg()` over an integer column all return
+      `number`. On PostgreSQL they returned, respectively, a `bigint`; a `bigint` or a decimal
+      string depending on the column's width; and a decimal string. On SQLite the first two
+      returned a `bigint` and `avg()` was already a `number`. The lossless results moved to three new
+      operations beside them — `countBigInt()` → `bigint`, `sumBigInt()` → `bigint` (exact past
+      2^63 on PostgreSQL), `avgDecimal()` → decimal string (PostgreSQL only; SQLite has no
+      decimal type and contributes none). An empty input set answers `count()` with `0`, not `0n`.
+      A bare `count()` or `sum()` whose value passes ±(2^53 − 1) raises `RUNTIME.DECODE_FAILED`
+      instead of returning a rounded number — on the `.include()` path as well as the top level —
+      so switch that call to `countBigInt()` / `sumBigInt()` wherever the magnitude is real.
+      Unchanged: `min` / `max`, `sum` / `avg` over a float column, `sum` over `numeric` (still a
+      decimal string), `sum` over `UnboundedInt` (still a `bigint`), and `having(...)` operands,
+      which are compared inside SQL and were always plain numbers. Sweep aggregate results for
+      `2n`-style literals, `String(count)` serialisation, `Number(...)` unwrapping, and `?? '0'`
+      coalescing, and write each as the plain number it now is. Then re-emit with
+      `prisma-next contract emit`: `contract.d.ts`'s `AggregateTypes` block carries the new
+      result codecs and the three new operations, and until you re-emit, the types describe the
+      old results and the new methods do not exist.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - ".aggregate("
+        - ".count()"
+        - ".groupBy("
+        - ".include("
+      anyMatch: true
+  - id: integer-columns-refuse-the-wrong-js-type
+    summary: |
+      A `BigInt` or `UnboundedInt` column refuses a JS `number`, and a `BigIntNumber` column
+      refuses a `bigint`, with `RUNTIME.ENCODE_FAILED` and a message naming the type that
+      arrived: `pg/int8@1 value must be a bigint, got number 9`. The wide-integer codecs used to
+      accept a number and stringify it, which let a fractional value such as `1.5` reach an
+      integer column unremarked. No typed call site changes — a `BigInt` column's application
+      type has always been `bigint` — so sweep the ones that bypassed the types: a
+      `// @ts-expect-error` over a create/update value, an `as never` / `as any` argument, a
+      value that came out of `JSON.parse` (which yields numbers, never bigints), and dynamic
+      dispatch. Convert each to the column's own type, `BigInt(value)` for a `bigint` column.
+      Schema-written literal defaults are unaffected: `BigInt @default(0)` still emits, because
+      the JSON side of these codecs accepts a safe-integer number and only the wire side does not.
+    detection:
+      glob: "**/*.{ts,tsx,mts,cts}"
+      contains:
+        - "bigint"
+        - "BigInt"
+      anyMatch: true
 ---
 
 # 8.0.0-rc.1 → 8.0.0-rc.2 — User upgrade instructions
@@ -197,6 +244,78 @@ No previously type-safe call changes meaning, because `count` took no argument a
 - dynamic dispatch through a `Record<string, …>` cast.
 
 For each, decide which count you meant: `count()` for rows, `count(field)` for that field's non-null values.
+
+## `aggregate-defaults-are-js-native-numbers`
+
+The aggregate vocabulary is split in two. The bare operations answer in the type a JS developer expects; three new suffixed operations answer losslessly.
+
+| Call | Reads as | Empty input set |
+| --- | --- | --- |
+| `count()` | `number` | `0` |
+| `countBigInt()` | `bigint` | `0n` |
+| `sum(field)` over `Int` / `BigInt` / `BigIntNumber` | `number \| null` | `null` |
+| `sumBigInt(field)` over any integer column | `bigint \| null` | `null` |
+| `avg(field)` over any integer column | `number \| null` | `null` |
+| `avgDecimal(field)` over any integer or `Decimal` column | decimal `string \| null` | `null` |
+
+These do not move: `min` / `max` keep the column's own type; `sum` and `avg` over a float column stay `number`; `sum` over `Decimal` stays a decimal string; `sum` over `UnboundedInt` stays a `bigint`; and `having(...)` operands stay plain numbers, because they are compared inside SQL and never cross a codec.
+
+SQLite states the same policy in its own terms — `count`, integer `sum`, and `avg` are all `number`, with `countBigInt` and `sumBigInt` beside them. **SQLite has no `avgDecimal`**: an exact mean needs a decimal type the database does not have, so the method is absent from a SQLite contract and calling it is a type error.
+
+### What to change
+
+1. **Re-emit first.** `prisma-next contract emit` rewrites the `AggregateTypes` block. Until you do, the types describe the old results and the three new methods do not exist.
+2. **Unwrap the bigint handling around bare aggregates.** Each of these is now noise or a type error:
+
+   ```ts
+   const { total } = await db.User.aggregate((a) => ({ total: a.count() }));
+
+   total === 2n              // ← was needed; now `total === 2`
+   Number(total)             // ← was needed; `total` is already a number
+   String(total)             // ← was needed for JSON; JSON.stringify handles it now
+   JSON.stringify(rows, (_k, v) => typeof v === 'bigint' ? String(v) : v)
+   //                        ↑ the replacer can go
+   ```
+
+3. **Change the method, not the value, where you need exactness.** A decimal-string average was doing real work in a money or reporting path; `avgDecimal(field)` returns exactly what `avg(field)` used to. Likewise `countBigInt()` and `sumBigInt(field)`.
+
+### The bare operations throw rather than round
+
+A `count()` or `sum()` whose value passes ±(2^53 − 1) raises a structured error instead of answering with a rounded one:
+
+```text
+RUNTIME.DECODE_FAILED: pg/int8number@1 value must be an integer within
+the safe integer range, got 9007199254740992
+```
+
+That is the trade these defaults make: a value you can compare, serialise, and do arithmetic with, and a loud failure rather than a quietly wrong total. It fires on the `.include()` path too — the reducer's value travels as a JSON number, but the guard runs after the parse, and rounding is monotone, so a value that was outside the range is still outside it after parsing.
+
+Totals cross the boundary in practice where counts do not: summing 64-bit IDs, or cent amounts across a large table. If a `sum` in your code can plausibly get there, move it to `sumBigInt` now rather than waiting for the error in production.
+
+### If you are upgrading from before 8.0.0-rc.1
+
+You cross two hops, and the aggregate result types move in both. The `0.17 → 8.0.0-rc.1` step changes `count()` to `bigint` and integer averages to decimal strings; this step changes those same calls to `number` and adds the suffixed variants. Apply the steps in order — that is what the upgrade skill does — but do the sweeping once, at the end: for `count()` and integer `sum()` / `avg()`, the destination is `number`, which is where a pre-8.0.0-rc.1 codebase already was. What genuinely changed for you across both hops is the empty-relation `count` (still `0`), the throw past 2^53, and the three new operations.
+
+## `integer-columns-refuse-the-wrong-js-type`
+
+Writing a JS `number` to a `BigInt` or `UnboundedInt` column now fails before any SQL runs:
+
+```text
+RUNTIME.ENCODE_FAILED: pg/int8@1 value must be a bigint, got number 9
+```
+
+The codec used to accept the number and stringify it, so `9` wrote `9` and `1.5` wrote `1.5` — a fractional value in an integer column, unremarked. The mirror case reports as clearly: passing `9n` to a `BigIntNumber` column names the type that arrived rather than complaining about a range the value is plainly inside.
+
+No typed call site changes, because a `BigInt` column's application type has always been `bigint`. Sweep the ones that got past the types:
+
+- a `// @ts-expect-error` over a `create(...)` / `update(...)` value;
+- `value as never` or `value as any` in a write;
+- a value that came out of `JSON.parse`, which yields numbers and never bigints;
+- dynamic dispatch through a `Record<string, unknown>`.
+
+Convert each to the column's own type — `BigInt(value)` for a `bigint` column, and a plain number for a `BigIntNumber` one.
+
+Schema-written defaults need nothing. `BigInt @default(0)` still emits and still migrates: the JSON side of these codecs accepts a safe-integer number, because a schema language writes no `bigint` literal, and only the query-parameter side requires the exact type.
 
 <!--
 PR #29910: `changes: []`. The example changes repair test instrumentation and fixture/runtime isolation after the driver SPI split; they require no user API, contract, configuration, generated-artifact, or source translation.
