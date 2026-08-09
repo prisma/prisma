@@ -1441,6 +1441,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
             : {}),
           ...ifDefined('default', resolvedField.defaultValue),
           ...ifDefined('executionDefaults', resolvedField.executionDefaults),
+          ...ifDefined('noCheck', resolvedField.noCheck),
           ...ifDefined('enumTypeHandle', enumHandle),
         };
       }),

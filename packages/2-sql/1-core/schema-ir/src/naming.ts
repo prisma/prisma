@@ -145,6 +145,34 @@ export function computeCheckContentHash(expression: string): string {
   return createHash('sha256').update(tuple).digest('hex').slice(0, 8);
 }
 
+/**
+ * The kinds of generated CHECK constraint authoring can derive for a column.
+ * The canonical spelling of this union — every layer that can depend on this
+ * module imports it rather than re-spelling the literals.
+ */
+export type CheckKind = 'membership' | 'elementNotNull';
+
+/** The trailing segment a check's wire-name prefix carries, per kind. */
+const CHECK_KIND_SUFFIX = {
+  membership: 'check',
+  elementNotNull: 'elem_not_null',
+} as const;
+
+/**
+ * Composes the wire-name prefix of a derived CHECK constraint:
+ * `${table}_${column}_${kindSuffix}`, capped at the wire-name byte budget.
+ * Shared by contract authoring (naming emitted checks) and `contract infer`
+ * (recomputing the name a derived check would carry), so truncated and
+ * multibyte prefixes match by construction.
+ */
+export function composeCheckWirePrefix(
+  tableName: string,
+  columnName: string,
+  kind: CheckKind,
+): string {
+  return truncateToWireNamePrefixBytes(`${tableName}_${columnName}_${CHECK_KIND_SUFFIX[kind]}`);
+}
+
 export interface IndexContentHashParts {
   readonly expression?: string;
   readonly where?: string;

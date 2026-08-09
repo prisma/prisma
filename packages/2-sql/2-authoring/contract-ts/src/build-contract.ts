@@ -68,8 +68,9 @@ import {
 import { validateStorageSemantics } from '@internal/sql-contract/validators';
 import { deriveValueSetFromEntity } from '@internal/sql-contract/value-set-derivation-hook';
 import {
+  type CheckKind,
+  composeCheckWirePrefix,
   computeCheckContentHash,
-  truncateToWireNamePrefixBytes,
 } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -348,22 +349,72 @@ function checkMemberValues(
   return values;
 }
 
-/** The trailing segment a check's wire-name prefix carries, per kind. */
-const CHECK_KIND_SUFFIX = {
-  membership: 'check',
-  elementNotNull: 'elem_not_null',
-} as const;
+/**
+ * Resolves a field's authored `noCheck` kinds against its column shape:
+ * the bare form (`[]`) becomes every kind the shape derives, and a named
+ * kind that can never apply to the shape is an authoring error
+ * (`CONTRACT.CHECK_OPTOUT_INVALID`). Returns the concrete kinds in
+ * canonical ascending order — the only form the contract persists.
+ */
+function resolveNoCheckKinds(input: {
+  readonly modelName: string;
+  readonly fieldName: string;
+  readonly kinds: readonly CheckKind[];
+  readonly many: boolean;
+  readonly isDomainEnum: boolean;
+}): readonly CheckKind[] {
+  const derivable: CheckKind[] = [];
+  if (input.many) derivable.push('elementNotNull');
+  if (input.isDomainEnum) derivable.push('membership');
+  const subject = `Field "${input.modelName}.${input.fieldName}"`;
+  const meta = { modelName: input.modelName, fieldName: input.fieldName };
+
+  if (input.kinds.length === 0) {
+    if (derivable.length === 0) {
+      throw contractError(
+        'CONTRACT.CHECK_OPTOUT_INVALID',
+        `${subject}: noCheck() waives nothing — this column's shape derives no generated checks.`,
+        { meta: { ...meta, reason: 'no-derivable-checks' } },
+      );
+    }
+    return derivable;
+  }
+
+  const seen = new Set<CheckKind>();
+  for (const kind of input.kinds) {
+    if (seen.has(kind)) {
+      throw contractError(
+        'CONTRACT.CHECK_OPTOUT_INVALID',
+        `${subject}: noCheck("${kind}") names the same kind twice.`,
+        { meta: { ...meta, kind, reason: 'duplicate-kind' } },
+      );
+    }
+    seen.add(kind);
+    if (!derivable.includes(kind)) {
+      const explanation =
+        kind === 'membership'
+          ? 'membership checks are derived only from enumType() value sets'
+          : 'element-non-null checks are derived only for list columns';
+      throw contractError(
+        'CONTRACT.CHECK_OPTOUT_INVALID',
+        `${subject}: noCheck("${kind}") does not apply — ${explanation}.`,
+        { meta: { ...meta, kind, reason: 'inapplicable-kind' } },
+      );
+    }
+  }
+  return [...input.kinds].sort();
+}
 
 /**
  * Names the target's rendered checks and lowers them into contract entities.
  *
- * Naming is composed here rather than by the target: the prefix is
- * `${table}_${column}_${kindSuffix}`, capped at the wire-name byte budget, and
- * suffixed with the predicate's content hash. Composing family-side is what
- * makes the truncation safe — two prefixes that truncate alike still differ in
- * their hashes, and the family can see that the (table, column, kind) triple
- * they were built from is unique per table, rather than having to assume
- * something about SQL text it declares itself unable to read.
+ * Naming is composed family-side ({@link composeCheckWirePrefix}) rather than
+ * by the target, and suffixed with the predicate's content hash. Composing
+ * family-side is what makes the truncation safe — two prefixes that truncate
+ * alike still differ in their hashes, and the family can see that the
+ * (table, column, kind) triple they were built from is unique per table,
+ * rather than having to assume something about SQL text it declares itself
+ * unable to read.
  */
 function lowerRenderedChecks(
   tableName: string,
@@ -373,19 +424,17 @@ function lowerRenderedChecks(
     readonly expression: string;
   }>,
 ): CheckConstraint[] {
-  return candidates.map((candidate) => {
-    const prefix = truncateToWireNamePrefixBytes(
-      `${tableName}_${candidate.columnName}_${CHECK_KIND_SUFFIX[candidate.kind]}`,
-    );
-    return new CheckConstraint({
-      naming: {
-        kind: 'wire',
-        prefix,
-        hash: computeCheckContentHash(candidate.expression),
-      },
-      expression: candidate.expression,
-    });
-  });
+  return candidates.map(
+    (candidate) =>
+      new CheckConstraint({
+        naming: {
+          kind: 'wire',
+          prefix: composeCheckWirePrefix(tableName, candidate.columnName, candidate.kind),
+          hash: computeCheckContentHash(candidate.expression),
+        },
+        expression: candidate.expression,
+      }),
+  );
 }
 
 function resolveColumnTypeQualifier(
@@ -600,6 +649,7 @@ function buildStorageColumn(
     codecId,
     nullable: field.nullable,
     ...(field.many ? { many: true as const } : {}),
+    ...(field.noCheck !== undefined ? { noCheck: [...field.noCheck].sort() } : {}),
     ...ifDefined('typeParams', field.descriptor.typeParams),
     ...ifDefined('default', encodedDefault),
     ...ifDefined('typeRef', field.descriptor.typeRef),
@@ -937,6 +987,26 @@ export function buildSqlContractFromDefinition(
         }
       }
 
+      if (!isValueObjectField(resolvedField) && resolvedField.noCheck !== undefined) {
+        const { noCheck: authoredNoCheck, ...withoutNoCheck } = resolvedField;
+        // A non-`managed` table derives no checks, so an opt-out there is a
+        // tolerated no-op (never persisted): policy may also be stamped
+        // post-build by a specifier, and erroring here would make
+        // pack-stamped contracts order-dependent.
+        resolvedField = derivesChecks
+          ? {
+              ...withoutNoCheck,
+              noCheck: resolveNoCheckKinds({
+                modelName: semanticModel.modelName,
+                fieldName: field.fieldName,
+                kinds: authoredNoCheck,
+                many: resolvedField.many === true,
+                isDomainEnum: enumHandle !== undefined,
+              }),
+            }
+          : withoutNoCheck;
+      }
+
       const column = buildStorageColumn(resolvedField, storageValueSetRef, codecLookup);
       columns[field.columnName] = column;
       fieldToColumn[field.fieldName] = field.columnName;
@@ -949,6 +1019,7 @@ export function buildSqlContractFromDefinition(
       // IS the storage-level enforcement — including array columns, since the
       // target enforces membership on every element of a native-typed array.
       if (renderCheckExpressions !== undefined && derivesChecks) {
+        const waivedKinds = !isValueObjectField(resolvedField) ? resolvedField.noCheck : undefined;
         checksForTable.push(
           ...lowerRenderedChecks(
             tableName,
@@ -958,7 +1029,7 @@ export function buildSqlContractFromDefinition(
               many: column.many === true,
               memberValues:
                 enumHandle !== undefined ? checkMemberValues(enumHandle, codecLookup) : undefined,
-            }),
+            }).filter((candidate) => !(waivedKinds?.includes(candidate.kind) ?? false)),
           ),
         );
       }

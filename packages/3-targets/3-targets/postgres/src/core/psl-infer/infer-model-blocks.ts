@@ -13,8 +13,14 @@ import type {
   PslModelAttribute,
   PslTypeConstructorCall,
 } from '@internal/framework-components/psl-ast';
+import {
+  composeCheckWirePrefix,
+  computeCheckContentHash,
+  formatWireName,
+} from '@internal/sql-schema-ir/naming';
 import type { SqlColumnIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
+import { postgresRenderCheckExpressions } from '../check-expressions';
 import { buildDanglingForeignKeyWarning, type DanglingForeignKeyInfo } from './infer-foreign-keys';
 import { buildIndexAttribute, buildModelConstraintAttribute } from './infer-index-attributes';
 import {
@@ -263,6 +269,38 @@ function buildScalarField(
   if (uniqueColumns.has(column.name) && !isId) {
     const uniqueConstraintName = uniqueColumns.get(column.name);
     attributes.push(buildSimpleConstraintFieldAttribute('unique', uniqueConstraintName));
+  }
+
+  if (column.many === true) {
+    // Emission is conservative: a derived check counts as enforced only when
+    // the live table carries a check with exactly the derived wire name —
+    // never by comparing expressions (the live body is a Postgres reprint).
+    // Every other list column gets the opted-out form, so a pulled schema
+    // verifies clean immediately. `membership` is unreachable here today:
+    // infer never emits domain enums (`enumType()` is not inferred), so no
+    // inferred column has memberValues and no membership check is derived.
+    // The day domain-enum inference exists, its slice extends this rule to
+    // `membership` using the same expected-name comparison.
+    const liveCheckNames = new Set((table.checks ?? []).map((check) => check.name));
+    const waivedKinds = postgresRenderCheckExpressions({
+      tableName: table.name,
+      columnName: column.name,
+      many: true,
+      memberValues: undefined,
+    })
+      .filter(
+        (candidate) =>
+          !liveCheckNames.has(
+            formatWireName(
+              composeCheckWirePrefix(table.name, column.name, candidate.kind),
+              computeCheckContentHash(candidate.expression),
+            ),
+          ),
+      )
+      .map((candidate) => candidate.kind);
+    if (waivedKinds.length > 0) {
+      attributes.push(buildAttribute('field', 'noCheck', waivedKinds.map(positionalArg)));
+    }
   }
 
   if (fieldMap !== undefined) {
