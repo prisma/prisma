@@ -175,7 +175,7 @@ The control plane resolves a codec referenced by the contract (a `CodecRef.codec
 
 ### CONTRACT.CHECK_OPTOUT_INVALID
 
-A `@noCheck` / `.noCheck(...)` opt-out cannot apply to the column: the named kind is not derivable for the column's shape (`membership` on a column with no domain-enum value set, `elementNotNull` on a non-list column), the bare form waives nothing because the column derives no generated checks, a kind is named twice, or `noCheck()` is called more than once on one field builder. Raised by both authoring paths (TS `defineContract` and PSL interpretation) on `managed` tables. Meta: `modelName`, `fieldName`, `reason`, and `kind` for per-kind failures.
+A `@noCheck` / `.noCheck(...)` declaration is invalid. Either it does not apply to the column — the named kind is not derivable for the column's shape (`membership` on a column with no domain-enum value set, `elementNotNull` on a column that is not a list of scalars), or the bare form waives nothing because the column derives no generated checks — or the declaration is malformed: a kind is named twice, or `noCheck()` is called more than once on one field builder. Raised by both authoring paths (TS `defineContract` and PSL interpretation) on `managed` tables. Meta: `modelName`, `fieldName`, `reason`, and `kind` for per-kind failures.
 
 ### CONTRACT.COLLECTION_INVALID
 
