@@ -335,6 +335,10 @@ The specifier value applies only when the loaded contract omits `defaultControlP
 - **`@internal/framework-components`** - Pack refs, authoring contributions, and codec lookup types
 - **`@internal/sql-contract`** - SQL contract types and validation target
 
+## Editor JSON schema
+
+`schemas/data-contract-sql-v1.json` is an editor-facing JSON schema for emitted SQL `contract.json` files (reference it via a `$schema` key or an IDE schema mapping). It is generated from the authoritative arktype schemas in `@internal/sql-contract` — never edit it by hand. Regenerate with `pnpm schemas:generate` in this package; a drift test (`test/data-contract-json-schema.test.ts`) fails when the checked-in file and the generator output diverge. Constraints JSON schema cannot express (narrow predicates, pack-contributed namespace entry kinds) are rendered permissively; arktype validation stays authoritative.
+
 ## Testing
 
 Unit tests for the authoring DSL live in this package. Broader integration tests that span authoring, emission, CLI, and runtime packages live in `integration-tests`.

@@ -18,6 +18,7 @@ catalog:
   '@prisma/dev': 0.25.1
   '@types/node': 26.1.0
   '@types/pg': 8.20.0
+  ajv: ^8.20.0
   arktype: ^2.2.2
   gray-matter: ^4.0.3
   mongodb: ^7.4.0
