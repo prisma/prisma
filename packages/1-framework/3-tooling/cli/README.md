@@ -1469,7 +1469,8 @@ The CLI package exports several subpaths for different use cases:
 - **`@internal/cli/commands/migration-show`**: Exports `createMigrationShowCommand`
 - **`@internal/cli/commands/migration-status`**: Exports `createMigrationStatusCommand`
 - **`@internal/cli/commands/migrate`**: Exports `createMigrateCommand`
-- **`@internal/config-loader`**: Exports `loadConfig`
+- **`@internal/config-loader`**: Exports `loadConfig` (config + section-tagged diagnostics), `loadConfigForSections`, and `requireConfigSections`
+- **`@internal/cli/control-api/testing`**: Exports `createFixtureControlClient`, a fixture-backed `ControlClient` double for host and product tests (no database or driver needed; published as `@prisma/orm-toolchain/cli/control-api/testing`)
 
 **Important**: `loadContractFromTs` is exported from the main package (`@internal/cli`). See `.cursor/rules/cli-package-exports.mdc` for import patterns.
 

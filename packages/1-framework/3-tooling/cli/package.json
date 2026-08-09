@@ -167,6 +167,10 @@
     "./control-api": {
       "types": "./dist/exports/control-api.d.mts",
       "import": "./dist/exports/control-api.mjs"
+    },
+    "./control-api/testing": {
+      "types": "./dist/exports/control-api-testing.d.mts",
+      "import": "./dist/exports/control-api-testing.mjs"
     }
   },
   "engines": {
