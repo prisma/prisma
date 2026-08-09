@@ -186,7 +186,7 @@ export function buildEnumDefaultSpec(memberNames: readonly [string, ...string[]]
 export const idFieldSpec = fieldAttribute('id', { named: { map: optional(str()) } });
 export const uniqueFieldSpec = fieldAttribute('unique', { named: { map: optional(str()) } });
 
-const noCheckKindArm = () => oneOf(identifier('membership'), identifier('elementNotNull'));
+const noCheckKindArgument = () => oneOf(identifier('membership'), identifier('elementNotNull'));
 
 /**
  * `@noCheck` waives generated CHECK constraints on one column: bare for every
@@ -196,8 +196,8 @@ const noCheckKindArm = () => oneOf(identifier('membership'), identifier('element
  */
 export const noCheckFieldSpec = fieldAttribute('noCheck', {
   positional: [
-    { key: 'first', type: optional(noCheckKindArm()) },
-    { key: 'second', type: optional(noCheckKindArm()) },
+    { key: 'first', type: optional(noCheckKindArgument()) },
+    { key: 'second', type: optional(noCheckKindArgument()) },
   ],
   refine: (value, ctx, attributeNode) => {
     if (value.first !== undefined && value.first === value.second) {
