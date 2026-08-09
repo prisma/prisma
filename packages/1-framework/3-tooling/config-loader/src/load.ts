@@ -1,49 +1,39 @@
 import { access } from 'node:fs/promises';
-import type { PrismaNextConfig } from '@internal/config/config-types';
-import { validateConfig } from '@internal/config/config-validation';
+import {
+  hasCurrentConfigFormatVersion,
+  type PrismaNextConfig,
+} from '@internal/config/config-types';
+import type { ConfigSection } from '@internal/config/config-validation';
+import { collectConfigIssues } from '@internal/config/config-validation';
 import { getEmittedArtifactPaths } from '@internal/emitter';
 import {
   CliStructuredError,
+  errorConfigEvaluationFailed,
   errorConfigFileNotFound,
   errorConfigValidation,
-  errorUnexpected,
+  errorConfigVersionMarkerMissing,
 } from '@internal/errors/control';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { isStructuredError, structuredError } from '@internal/utils/structured-error';
+import { notOk, ok, type Result } from '@internal/utils/result';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { dirname, join, resolve } from 'pathe';
 import { finalizeConfig } from './finalize-config';
 
 const CONFIG_FILENAME = 'prisma-next.config.ts';
 
-function throwValidation(field: string, why: string): never {
-  throw structuredError('CONFIG.VALIDATION_FAILED', why, { why, meta: { field } });
-}
+export type { ConfigSection };
 
-function validateNoOutputsAreInputs(
-  inputs: readonly string[] | undefined,
-  output: string | undefined,
-): void {
-  if (inputs === undefined || output === undefined) {
-    return;
-  }
-
-  let emittedArtifactPaths: ReturnType<typeof getEmittedArtifactPaths>;
-  try {
-    emittedArtifactPaths = getEmittedArtifactPaths(output);
-  } catch (error) {
-    throwValidation('contract.output', error instanceof Error ? error.message : String(error));
-  }
-
-  const emittedPaths = new Set([emittedArtifactPaths.jsonPath, emittedArtifactPaths.dtsPath]);
-
-  for (const input of inputs) {
-    if (emittedPaths.has(input)) {
-      throwValidation(
-        'contract.source.inputs[]',
-        'Config.contract.source.inputs must not include emitted artifact paths derived from contract.output',
-      );
-    }
-  }
+/**
+ * A successfully evaluated config plus the structural diagnostics found in it.
+ * Diagnostics are tagged with the config section they concern
+ * (`meta.section`); sections without diagnostics are safe to read. Callers
+ * must guard access through {@link requireConfigSections} — a section with a
+ * diagnostic may be missing or malformed despite the `PrismaNextConfig` type.
+ */
+export interface LoadedConfig {
+  readonly config: PrismaNextConfig;
+  readonly diagnostics: readonly CliStructuredError[];
 }
 
 export async function findNearestConfigPathForFile(filePath: string): Promise<string | undefined> {
@@ -71,56 +61,76 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
-async function discoverAndFinalizeConfig(configPath?: string): Promise<PrismaNextConfig> {
-  const cwd = process.cwd();
-  const resolvedConfigPath = configPath ? resolve(cwd, configPath) : undefined;
-  const configCwd = resolvedConfigPath ? dirname(resolvedConfigPath) : cwd;
-
-  const c12 = await import('c12');
-  const result = await c12.loadConfig<PrismaNextConfig>({
-    name: 'prisma-next',
-    ...ifDefined('configFile', resolvedConfigPath),
-    cwd: configCwd,
-  });
-
-  if (resolvedConfigPath && result.configFile !== resolvedConfigPath) {
-    throw errorConfigFileNotFound(resolvedConfigPath);
+function collectArtifactCollisionDiagnostics(
+  contract: NonNullable<PrismaNextConfig['contract']>,
+): CliStructuredError[] {
+  const inputs = contract.source.inputs;
+  const output = contract.output;
+  if (inputs === undefined || output === undefined) {
+    return [];
   }
 
-  if (!result.config || Object.keys(result.config).length === 0) {
-    /* v8 ignore next -- @preserve */
-    const displayPath = result.configFile || resolvedConfigPath || configPath;
-    throw errorConfigFileNotFound(displayPath);
+  let emittedArtifactPaths: ReturnType<typeof getEmittedArtifactPaths>;
+  try {
+    emittedArtifactPaths = getEmittedArtifactPaths(output);
+  } catch (error) {
+    return [
+      errorConfigValidation('contract.output', {
+        why: error instanceof Error ? error.message : String(error),
+        section: 'contract',
+      }),
+    ];
   }
 
-  validateConfig(result.config);
-
-  /* v8 ignore next -- @preserve */
-  const loadedConfigDir = result.configFile ? dirname(result.configFile) : configCwd;
-  const config = finalizeConfig(result.config, loadedConfigDir);
-  validateNoOutputsAreInputs(config.contract?.source.inputs, config.contract?.output);
-  return config;
+  const emittedPaths = new Set([emittedArtifactPaths.jsonPath, emittedArtifactPaths.dtsPath]);
+  if (inputs.some((input) => emittedPaths.has(input))) {
+    return [
+      errorConfigValidation('contract.source.inputs[]', {
+        why: 'Config.contract.source.inputs must not include emitted artifact paths derived from contract.output',
+        section: 'contract',
+      }),
+    ];
+  }
+  return [];
 }
 
-function hasStringCode(error: Error): error is Error & { readonly code: string } {
-  return 'code' in error && typeof error.code === 'string';
-}
+function buildLoadedConfig(rawConfig: Record<string, unknown>, configDir: string): LoadedConfig {
+  const issues = collectConfigIssues(rawConfig);
+  const diagnostics = issues.map((issue) =>
+    errorConfigValidation(issue.field, { why: issue.message, section: issue.section }),
+  );
 
-// Exported for direct unit coverage; not part of the public surface.
-export function toStructuredConfigError(error: unknown, configPath?: string): Error {
-  if (
-    isStructuredError(error) &&
-    error.code === 'CONFIG.VALIDATION_FAILED' &&
-    !(error instanceof CliStructuredError)
-  ) {
-    const field = typeof error.meta?.['field'] === 'string' ? error.meta['field'] : 'config';
-    return errorConfigValidation(field, {
-      why: error.why ?? error.message,
-    });
+  const config = blindCast<
+    PrismaNextConfig,
+    'Structure was checked by collectConfigIssues; sections carrying diagnostics are guarded by requireConfigSections'
+  >(rawConfig);
+
+  if (config.contract === undefined || issues.some((issue) => issue.section === 'contract')) {
+    return { config, diagnostics };
   }
 
-  if (error instanceof Error && hasStringCode(error)) {
+  const finalized = finalizeConfig(config, configDir);
+  if (finalized.contract !== undefined) {
+    diagnostics.push(...collectArtifactCollisionDiagnostics(finalized.contract));
+  }
+  return { config: finalized, diagnostics };
+}
+
+function toConfigLoadFailure(error: unknown, configPath?: string): CliStructuredError {
+  if (CliStructuredError.is(error)) {
     return error;
+  }
+
+  const resolvedPath = configPath ? resolve(process.cwd(), configPath) : undefined;
+
+  if (isStructuredError(error)) {
+    return new CliStructuredError(error.code, error.message, {
+      ...ifDefined('why', error.why),
+      ...ifDefined('fix', error.fix),
+      ...ifDefined('where', error.where),
+      ...ifDefined('meta', error.meta),
+      cause: error,
+    });
   }
 
   if (error instanceof Error) {
@@ -129,36 +139,105 @@ export function toStructuredConfigError(error: unknown, configPath?: string): Er
       error.message.includes('Cannot find') ||
       error.message.includes('ENOENT')
     ) {
-      const displayPath = configPath ? resolve(process.cwd(), configPath) : undefined;
-      return errorConfigFileNotFound(displayPath, {
-        why: error.message,
-      });
+      return errorConfigFileNotFound(resolvedPath, { why: error.message });
     }
-    return errorUnexpected(error.message, {
-      why: `Failed to load config: ${error.message}`,
-    });
+    return errorConfigEvaluationFailed(resolvedPath, { why: error.message, cause: error });
   }
-  return errorUnexpected(String(error));
+  return errorConfigEvaluationFailed(resolvedPath, { why: String(error) });
 }
 
 /**
- * Loads, validates, and finalizes the Prisma Next config, mapping every failure
- * to a structured `@internal/errors/control` error (`CliStructuredError`).
- * This is the sole public entry point: callers that need to degrade gracefully
- * (e.g. the language server) branch on the structured error's stable `.code`.
+ * Loads and finalizes the Prisma Next config.
+ *
+ * Failures that prevent evaluation entirely — missing file, module that does
+ * not evaluate (`CONFIG.FILE_NOT_FOUND`, `CONFIG.EVALUATION_FAILED`) — are the
+ * `Result` failure. Structural problems inside an evaluated config do not
+ * fail the load: they are returned as section-tagged diagnostics so commands
+ * fail only on the sections they read (via {@link requireConfigSections}).
  */
-export async function loadConfig(configPath?: string): Promise<PrismaNextConfig> {
+export async function loadConfig(
+  configPath?: string,
+): Promise<Result<LoadedConfig, CliStructuredError>> {
+  const cwd = process.cwd();
+  const resolvedConfigPath = configPath ? resolve(cwd, configPath) : undefined;
+  const configCwd = resolvedConfigPath ? dirname(resolvedConfigPath) : cwd;
+
+  let result: Awaited<ReturnType<typeof import('c12').loadConfig<Record<string, unknown>>>>;
   try {
-    return await discoverAndFinalizeConfig(configPath);
+    const c12 = await import('c12');
+    result = await c12.loadConfig<Record<string, unknown>>({
+      name: 'prisma-next',
+      ...ifDefined('configFile', resolvedConfigPath),
+      cwd: configCwd,
+    });
   } catch (error) {
-    throw toStructuredConfigError(error, configPath);
+    return notOk(toConfigLoadFailure(error, configPath));
   }
+
+  if (resolvedConfigPath && result.configFile !== resolvedConfigPath) {
+    return notOk(errorConfigFileNotFound(resolvedConfigPath));
+  }
+
+  if (!result.config || Object.keys(result.config).length === 0) {
+    /* v8 ignore next -- @preserve */
+    const displayPath = result.configFile || resolvedConfigPath || configPath;
+    return notOk(errorConfigFileNotFound(displayPath));
+  }
+
+  // c12's merge drops non-enumerable properties, so the marker is read from
+  // the raw per-layer module exports rather than the merged config.
+  const markerCarrier = (result.layers ?? []).some((layer) =>
+    hasCurrentConfigFormatVersion(layer.config),
+  );
+  if (!markerCarrier && !hasCurrentConfigFormatVersion(result.config)) {
+    return notOk(errorConfigVersionMarkerMissing(result.configFile ?? resolvedConfigPath));
+  }
+
+  /* v8 ignore next -- @preserve */
+  const loadedConfigDir = result.configFile ? dirname(result.configFile) : configCwd;
+  return ok(buildLoadedConfig(result.config, loadedConfigDir));
 }
 
-export async function loadConfigForFile(filePath: string): Promise<PrismaNextConfig> {
+/**
+ * Narrows a {@link LoadedConfig} to the sections a command reads. Fails with
+ * the first diagnostic concerning a required section; diagnostics on other
+ * sections are ignored so unrelated commands keep working.
+ */
+export function requireConfigSections(
+  loaded: LoadedConfig,
+  sections: readonly ConfigSection[],
+): Result<PrismaNextConfig, CliStructuredError> {
+  const blocking = loaded.diagnostics.find((diagnostic) => {
+    const section = diagnostic.meta?.['section'];
+    return typeof section !== 'string' || sections.some((required) => required === section);
+  });
+  return blocking ? notOk(blocking) : ok(loaded.config);
+}
+
+/**
+ * Convenience composition of {@link loadConfig} and
+ * {@link requireConfigSections} for commands that read a fixed set of
+ * sections and have no use for diagnostics outside them.
+ */
+export async function loadConfigForSections(
+  configPath: string | undefined,
+  sections: readonly ConfigSection[],
+): Promise<Result<PrismaNextConfig, CliStructuredError>> {
+  const loaded = await loadConfig(configPath);
+  if (!loaded.ok) {
+    return loaded;
+  }
+  return requireConfigSections(loaded.value, sections);
+}
+
+export async function loadConfigForFile(
+  filePath: string,
+): Promise<Result<LoadedConfig, CliStructuredError>> {
   const configPath = await findNearestConfigPathForFile(filePath);
   if (configPath === undefined) {
-    throw errorConfigFileNotFound(join(dirname(resolve(process.cwd(), filePath)), CONFIG_FILENAME));
+    return notOk(
+      errorConfigFileNotFound(join(dirname(resolve(process.cwd(), filePath)), CONFIG_FILENAME)),
+    );
   }
   return loadConfig(configPath);
 }

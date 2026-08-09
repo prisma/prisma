@@ -10,6 +10,7 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { type } from 'arktype';
 import stripAnsi from 'strip-ansi';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -25,7 +26,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 afterAll(() => {
@@ -88,28 +89,30 @@ async function setupMigrationDir(
 }
 
 function setupConfigMock(): void {
-  mocks.loadConfig.mockResolvedValue({
-    family: {
-      familyId: 'mock',
-      create: vi.fn().mockReturnValue({
-        deserializeContract: (json: unknown) => json,
-      }),
-    },
-    target: {
-      id: 'mock',
-      familyId: 'mock',
-      targetId: 'mock',
-      kind: 'target',
-      migrations: {
-        createPlanner: vi.fn().mockReturnValue({
-          emptyMigration: vi.fn(),
+  mocks.loadConfig.mockResolvedValue(
+    ok({
+      family: {
+        familyId: 'mock',
+        create: vi.fn().mockReturnValue({
+          deserializeContract: (json: unknown) => json,
         }),
       },
-    },
-    adapter: { kind: 'adapter', familyId: 'mock', targetId: 'mock' },
-    driver: { kind: 'driver', familyId: 'mock', targetId: 'mock' },
-    contract: { output: 'src/prisma/contract.json' },
-  });
+      target: {
+        id: 'mock',
+        familyId: 'mock',
+        targetId: 'mock',
+        kind: 'target',
+        migrations: {
+          createPlanner: vi.fn().mockReturnValue({
+            emptyMigration: vi.fn(),
+          }),
+        },
+      },
+      adapter: { kind: 'adapter', familyId: 'mock', targetId: 'mock' },
+      driver: { kind: 'driver', familyId: 'mock', targetId: 'mock' },
+      contract: { output: 'src/prisma/contract.json' },
+    }),
+  );
 }
 
 function samplePresent(overrides: Partial<MigrationShowPresent> = {}): MigrationShowPresent {

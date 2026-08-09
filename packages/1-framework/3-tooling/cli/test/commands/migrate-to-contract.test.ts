@@ -8,6 +8,7 @@ import {
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { join, relative } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -37,7 +38,7 @@ const mocks = vi.hoisted(() => ({
   readAllMarkers: vi.fn(),
 }));
 
-vi.mock('@internal/config-loader', () => ({ loadConfig: mocks.loadConfig }));
+vi.mock('@internal/config-loader', () => ({ loadConfigForSections: mocks.loadConfig }));
 vi.mock('../../src/control-api/client', () => ({
   createControlClient: mocks.createControlClient,
 }));
@@ -105,20 +106,22 @@ async function setupAppliedState(): Promise<string> {
 
 function setupConfigMock(): void {
   const familyInstance = { deserializeContract: (json: unknown) => json };
-  mocks.loadConfig.mockResolvedValue({
-    family: { familyId: TARGET_FAMILY, create: vi.fn().mockReturnValue(familyInstance) },
-    target: {
-      id: TARGET,
-      familyId: TARGET_FAMILY,
-      targetId: TARGET,
-      kind: 'target',
-      migrations: {},
-    },
-    adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
-    driver: { kind: 'driver', create: vi.fn() },
-    db: { connection: 'postgres://localhost/migrate-to-test' },
-    contract: { output: 'contract.json' },
-  });
+  mocks.loadConfig.mockResolvedValue(
+    ok({
+      family: { familyId: TARGET_FAMILY, create: vi.fn().mockReturnValue(familyInstance) },
+      target: {
+        id: TARGET,
+        familyId: TARGET_FAMILY,
+        targetId: TARGET,
+        kind: 'target',
+        migrations: {},
+      },
+      adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
+      driver: { kind: 'driver', create: vi.fn() },
+      db: { connection: 'postgres://localhost/migrate-to-test' },
+      contract: { output: 'contract.json' },
+    }),
+  );
 }
 
 function capturedApplyContractHash(): string {

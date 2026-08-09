@@ -5,6 +5,7 @@ import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeMigrateShowPlan } from '../../src/control-api/operations/migrate-show';
@@ -14,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   createControlClient: vi.fn(),
 }));
 
-vi.mock('@internal/config-loader', () => ({ loadConfig: mocks.loadConfig }));
+vi.mock('@internal/config-loader', () => ({ loadConfigForSections: mocks.loadConfig }));
 vi.mock('../../src/control-api/client', () => ({
   createControlClient: mocks.createControlClient,
 }));
@@ -101,23 +102,25 @@ describe('executeMigrateShowPlan', () => {
     secondDirName = second.dirName;
     secondMigrationHash = second.migrationHash;
 
-    mocks.loadConfig.mockResolvedValue({
-      family: {
-        familyId: 'sql',
-        create: vi.fn().mockReturnValue({
-          deserializeContract: (json: unknown) => json,
-        }),
-      },
-      target: {
-        id: 'postgres',
-        familyId: 'sql',
-        targetId: 'postgres',
-        kind: 'target',
-        migrations: {},
-      },
-      contract: { output: join(tempDir, 'contract.json') },
-      migrations: { dir: 'migrations' },
-    });
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: 'sql',
+          create: vi.fn().mockReturnValue({
+            deserializeContract: (json: unknown) => json,
+          }),
+        },
+        target: {
+          id: 'postgres',
+          familyId: 'sql',
+          targetId: 'postgres',
+          kind: 'target',
+          migrations: {},
+        },
+        contract: { output: join(tempDir, 'contract.json') },
+        migrations: { dir: 'migrations' },
+      }),
+    );
   });
 
   afterEach(async () => {

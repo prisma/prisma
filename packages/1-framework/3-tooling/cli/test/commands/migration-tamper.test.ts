@@ -4,6 +4,7 @@ import type { MigrationPlanOperation } from '@internal/framework-components/cont
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
@@ -42,7 +43,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 const PACKAGE_DIR_NAME = '00001_tamper_test';
@@ -100,39 +101,41 @@ function setupConfigMock(): void {
   // pass-through stub keeps the contract read crossing the seam
   // (TML-2536's invariant) while letting the test drive at the
   // post-read tamper code path.
-  mocks.loadConfig.mockResolvedValue({
-    family: {
-      familyId: TARGET_FAMILY,
-      create: vi.fn().mockReturnValue({
-        deserializeContract: (json: unknown) => json,
-        readMarker: vi.fn().mockResolvedValue(null),
-        readAllMarkers: vi.fn().mockResolvedValue(new Map()),
-        readLedger: vi.fn().mockResolvedValue([]),
-      }),
-    },
-    target: {
-      id: TARGET,
-      familyId: TARGET_FAMILY,
-      targetId: TARGET,
-      kind: 'target',
-      migrations: {},
-    },
-    adapter: {
-      kind: 'adapter',
-      familyId: TARGET_FAMILY,
-      targetId: TARGET,
-      create: () => ({ familyId: TARGET_FAMILY, targetId: TARGET }),
-    },
-    driver: {
-      kind: 'driver',
-      create: vi.fn().mockResolvedValue({ close: vi.fn().mockResolvedValue(undefined) }),
-    },
-    db: { connection: 'postgres://localhost/tamper-test' },
-    // The fixture writes contract.json at this path under the per-test cwd
-    // (see setupTamperFixture). Each test chdirs to its tempdir before
-    // invoking the command, so the relative path resolves correctly.
-    contract: { output: 'src/prisma/contract.json' },
-  });
+  mocks.loadConfig.mockResolvedValue(
+    ok({
+      family: {
+        familyId: TARGET_FAMILY,
+        create: vi.fn().mockReturnValue({
+          deserializeContract: (json: unknown) => json,
+          readMarker: vi.fn().mockResolvedValue(null),
+          readAllMarkers: vi.fn().mockResolvedValue(new Map()),
+          readLedger: vi.fn().mockResolvedValue([]),
+        }),
+      },
+      target: {
+        id: TARGET,
+        familyId: TARGET_FAMILY,
+        targetId: TARGET,
+        kind: 'target',
+        migrations: {},
+      },
+      adapter: {
+        kind: 'adapter',
+        familyId: TARGET_FAMILY,
+        targetId: TARGET,
+        create: () => ({ familyId: TARGET_FAMILY, targetId: TARGET }),
+      },
+      driver: {
+        kind: 'driver',
+        create: vi.fn().mockResolvedValue({ close: vi.fn().mockResolvedValue(undefined) }),
+      },
+      db: { connection: 'postgres://localhost/tamper-test' },
+      // The fixture writes contract.json at this path under the per-test cwd
+      // (see setupTamperFixture). Each test chdirs to its tempdir before
+      // invoking the command, so the relative path resolves correctly.
+      contract: { output: 'src/prisma/contract.json' },
+    }),
+  );
 }
 
 interface TamperFixture {
@@ -472,35 +475,37 @@ describe('migration tamper detection (tolerant model, per-command class)', () =>
         await writeFile(join(contractDir, 'contract.d.ts'), 'export {};\n');
 
         setupConfigMock();
-        mocks.loadConfig.mockResolvedValue({
-          family: {
-            familyId: TARGET_FAMILY,
-            create: vi.fn().mockReturnValue({
-              deserializeContract: (json: unknown) => json,
-            }),
-          },
-          target: {
-            id: TARGET,
-            familyId: TARGET_FAMILY,
-            targetId: TARGET,
-            kind: 'target',
-            migrations: {
-              createPlanner: vi.fn().mockReturnValue({
-                emptyMigration: vi.fn().mockReturnValue({
-                  renderTypeScript: () => 'export default async function migrate() {}',
-                }),
+        mocks.loadConfig.mockResolvedValue(
+          ok({
+            family: {
+              familyId: TARGET_FAMILY,
+              create: vi.fn().mockReturnValue({
+                deserializeContract: (json: unknown) => json,
               }),
             },
-          },
-          adapter: {
-            kind: 'adapter',
-            familyId: TARGET_FAMILY,
-            targetId: TARGET,
-            create: () => ({ familyId: TARGET_FAMILY, targetId: TARGET }),
-          },
-          driver: { kind: 'driver', familyId: TARGET_FAMILY, targetId: TARGET },
-          contract: { output: 'src/prisma/contract.json' },
-        });
+            target: {
+              id: TARGET,
+              familyId: TARGET_FAMILY,
+              targetId: TARGET,
+              kind: 'target',
+              migrations: {
+                createPlanner: vi.fn().mockReturnValue({
+                  emptyMigration: vi.fn().mockReturnValue({
+                    renderTypeScript: () => 'export default async function migrate() {}',
+                  }),
+                }),
+              },
+            },
+            adapter: {
+              kind: 'adapter',
+              familyId: TARGET_FAMILY,
+              targetId: TARGET,
+              create: () => ({ familyId: TARGET_FAMILY, targetId: TARGET }),
+            },
+            driver: { kind: 'driver', familyId: TARGET_FAMILY, targetId: TARGET },
+            contract: { output: 'src/prisma/contract.json' },
+          }),
+        );
 
         process.chdir(cwd);
 

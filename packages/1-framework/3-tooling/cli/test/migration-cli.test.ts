@@ -14,6 +14,7 @@ import { Writable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
 import { errorConfigFileNotFound } from '@internal/errors/control';
 import { Migration } from '@internal/migration-tools/migration';
+import { notOk, ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -21,7 +22,7 @@ const loadConfigMock = vi.fn();
 const createControlStackMock = vi.fn();
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: loadConfigMock,
+  loadConfigForSections: loadConfigMock,
 }));
 
 vi.mock('@internal/framework-components/control', async () => {
@@ -150,7 +151,7 @@ const okConfig = {
 
 describe('MigrationCLI.run', () => {
   it('writes ops.json + migration.json under the migration directory on success', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
     const stdout = new BufferStream();
     const stderr = new BufferStream();
@@ -169,7 +170,7 @@ describe('MigrationCLI.run', () => {
   });
 
   it('prints artifacts to stdout in --dry-run mode without writing files', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
     const stdout = new BufferStream();
     const stderr = new BufferStream();
@@ -187,7 +188,7 @@ describe('MigrationCLI.run', () => {
   });
 
   it('emits MIGRATION.TARGET_MISMATCH with both target ids when migration target ≠ config target', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
     const stdout = new BufferStream();
     const stderr = new BufferStream();
@@ -205,7 +206,9 @@ describe('MigrationCLI.run', () => {
   });
 
   it('exits non-zero with the loader diagnostic when config is missing', async () => {
-    loadConfigMock.mockRejectedValue(errorConfigFileNotFound('/path/to/prisma-next.config.ts'));
+    loadConfigMock.mockResolvedValue(
+      notOk(errorConfigFileNotFound('/path/to/prisma-next.config.ts')),
+    );
     const stdout = new BufferStream();
     const stderr = new BufferStream();
 
@@ -242,7 +245,7 @@ describe('MigrationCLI.run', () => {
   // The CLI must not clobber that signal: a successful migration write
   // should not turn a previously-failing process into a successful one.
   it('preserves a pre-existing non-zero process.exitCode on success', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
 
     const originalExitCode = process.exitCode;
@@ -266,7 +269,7 @@ describe('MigrationCLI.run', () => {
   // for script-style callers that don't await the return value, even when
   // there's no prior non-zero status.
   it('sets process.exitCode on failure when no prior status was set', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
 
     const originalExitCode = process.exitCode;
@@ -318,7 +321,7 @@ describe('MigrationCLI.run', () => {
   });
 
   it('forwards --config <path> to loadConfig', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
     const stdout = new BufferStream();
     const stderr = new BufferStream();
@@ -330,11 +333,11 @@ describe('MigrationCLI.run', () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(loadConfigMock).toHaveBeenCalledWith('/explicit/config.ts');
+    expect(loadConfigMock).toHaveBeenCalledWith('/explicit/config.ts', expect.any(Array));
   });
 
   it('forwards --config=<path> (equals form) to loadConfig', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
     const stdout = new BufferStream();
     const stderr = new BufferStream();
@@ -346,11 +349,11 @@ describe('MigrationCLI.run', () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(loadConfigMock).toHaveBeenCalledWith('/equals/config.ts');
+    expect(loadConfigMock).toHaveBeenCalledWith('/equals/config.ts', expect.any(Array));
   });
 
   it('preserves createdAt from a previously-scaffolded migration.json', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
 
     const existing = {
@@ -379,7 +382,7 @@ describe('MigrationCLI.run', () => {
   });
 
   it('exits non-zero with MIGRATION.INVALID_JSON when migration.json is unparseable', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
 
     const malformed = '{ this is not json';
@@ -475,7 +478,7 @@ describe('MigrationCLI.run', () => {
   });
 
   it('rejects target-mismatched migrations before any stack-driven construction', async () => {
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     const adapterCreate = vi.fn(() => ({}));
     createControlStackMock.mockReturnValue({ adapter: { create: adapterCreate } });
     StackHungryWrongTargetMigration.stackUsed = false;
@@ -523,7 +526,7 @@ describe('MigrationCLI.run', () => {
     // not match and the runner would silently no-op, leaving
     // loadConfigMock uncalled. The injected argv points argv[1] at
     // migrationFile, so the guard fires and loadConfig is called.
-    loadConfigMock.mockResolvedValue(okConfig);
+    loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
 
     const stdout = new BufferStream();

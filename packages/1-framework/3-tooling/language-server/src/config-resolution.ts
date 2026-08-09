@@ -1,5 +1,5 @@
 import type { ContractSourceContext } from '@internal/config/config-types';
-import { loadConfig, type PrismaNextConfig } from '@internal/config-loader';
+import { loadConfigForSections, type PrismaNextConfig } from '@internal/config-loader';
 import type { ControlStack } from '@internal/framework-components/control';
 import { createControlStack } from '@internal/framework-components/control';
 import type { FormatOptions } from '@internal/psl-parser/format';
@@ -27,7 +27,21 @@ const emptyPipelineInputs: PipelineInputs = {
 };
 
 export async function resolveConfigInputs(configPath: string): Promise<ConfigResolution> {
-  const config = await loadConfig(configPath);
+  // The language server keeps its established failure channel: a config that
+  // cannot serve the project is thrown and published as a document diagnostic.
+  const configResult = await loadConfigForSections(configPath, [
+    'family',
+    'target',
+    'adapter',
+    'driver',
+    'extensions',
+    'contract',
+    'formatter',
+  ]);
+  if (!configResult.ok) {
+    throw configResult.failure;
+  }
+  const config = configResult.value;
   const inputs = resolveSchemaInputs(config);
   if (!hasPslInputs(config)) {
     return {

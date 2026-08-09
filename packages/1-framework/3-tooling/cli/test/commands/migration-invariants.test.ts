@@ -5,6 +5,7 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -22,7 +23,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 const FROM_HASH = 'empty';
@@ -84,25 +85,27 @@ function setupConfigMock(
     // crossing in place without requiring a full hydrated contract fixture.
     deserializeContract: (json: unknown) => json,
   };
-  mocks.loadConfig.mockResolvedValue({
-    family: { familyId: TARGET_FAMILY, create: vi.fn().mockReturnValue(familyInstance) },
-    target: {
-      id: TARGET,
-      familyId: TARGET_FAMILY,
-      targetId: TARGET,
-      kind: 'target',
-      migrations: {},
-    },
-    adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
-    driver: {
-      kind: 'driver',
-      create: vi.fn().mockResolvedValue({ close: vi.fn().mockResolvedValue(undefined) }),
-    },
-    db: { connection: 'postgres://localhost/invariant-test' },
-    // Per-test fixtures write contract.json under <cwd>/src/prisma/. Each
-    // test chdirs to its tempdir before invoking the command.
-    contract: { output: 'src/prisma/contract.json' },
-  });
+  mocks.loadConfig.mockResolvedValue(
+    ok({
+      family: { familyId: TARGET_FAMILY, create: vi.fn().mockReturnValue(familyInstance) },
+      target: {
+        id: TARGET,
+        familyId: TARGET_FAMILY,
+        targetId: TARGET,
+        kind: 'target',
+        migrations: {},
+      },
+      adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
+      driver: {
+        kind: 'driver',
+        create: vi.fn().mockResolvedValue({ close: vi.fn().mockResolvedValue(undefined) }),
+      },
+      db: { connection: 'postgres://localhost/invariant-test' },
+      // Per-test fixtures write contract.json under <cwd>/src/prisma/. Each
+      // test chdirs to its tempdir before invoking the command.
+      contract: { output: 'src/prisma/contract.json' },
+    }),
+  );
 }
 
 async function setupDivergentFixture(): Promise<InvariantFixture & { refHash: string }> {

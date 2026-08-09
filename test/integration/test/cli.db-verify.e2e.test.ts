@@ -7,6 +7,7 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { typescriptContract } from '@internal/sql-contract-ts/config-types';
 import { seedTestMarker } from '@internal/sql-runtime/test/utils';
+import { ok } from '@internal/utils/result';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -1040,22 +1041,24 @@ withTempDir(({ createTempDir }) => {
           });
 
           const originalLoadConfig = await import('@internal/config-loader');
-          vi.spyOn(originalLoadConfig, 'loadConfig').mockResolvedValue({
-            family: {
-              familyId: 'sql',
-              create: vi.fn().mockReturnValue({
-                deserializeContract: (json: unknown) => json,
-              }),
-            },
-            target: { id: 'postgres', familyId: 'sql', targetId: 'postgres', create: vi.fn() },
-            adapter: { id: 'postgres', familyId: 'sql', targetId: 'postgres', create: vi.fn() },
-            // driver is missing - this is what we're testing
-            extensions: [],
-            contract: typescriptContract(contract, 'output/contract.json'),
-            db: {
-              connection: connectionString,
-            },
-          } as unknown as Awaited<ReturnType<typeof originalLoadConfig.loadConfig>>);
+          vi.spyOn(originalLoadConfig, 'loadConfigForSections').mockResolvedValue(
+            ok({
+              family: {
+                familyId: 'sql',
+                create: vi.fn().mockReturnValue({
+                  deserializeContract: (json: unknown) => json,
+                }),
+              },
+              target: { id: 'postgres', familyId: 'sql', targetId: 'postgres', create: vi.fn() },
+              adapter: { id: 'postgres', familyId: 'sql', targetId: 'postgres', create: vi.fn() },
+              // driver is missing - this is what we're testing
+              extensions: [],
+              contract: typescriptContract(contract, 'output/contract.json'),
+              db: {
+                connection: connectionString,
+              },
+            } as unknown as import('@internal/config-loader').PrismaNextConfig),
+          );
 
           const command = createDbVerifyCommand();
           const verifyCwd3 = process.cwd();

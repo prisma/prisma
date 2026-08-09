@@ -2,11 +2,12 @@ import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as configLoader from '@internal/config-loader';
+import { ok } from '@internal/utils/result';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeFormat, resolveNewline } from '../../src/control-api/operations/format';
 
 function mockConfig(overrides: Record<string, unknown>) {
-  return overrides as unknown as Awaited<ReturnType<typeof configLoader.loadConfig>>;
+  return overrides as unknown as configLoader.PrismaNextConfig;
 }
 
 function pslConfig(
@@ -55,10 +56,10 @@ describe('executeFormat', () => {
   });
 
   async function withMockedConfig<T>(
-    config: Awaited<ReturnType<typeof configLoader.loadConfig>>,
+    config: configLoader.PrismaNextConfig,
     run: () => Promise<T>,
   ): Promise<T> {
-    const spy = vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(config);
+    const spy = vi.spyOn(configLoader, 'loadConfigForSections').mockResolvedValue(ok(config));
     try {
       return await run();
     } finally {

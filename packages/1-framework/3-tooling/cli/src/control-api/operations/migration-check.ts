@@ -4,7 +4,7 @@
 
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import type { loadConfig } from '@internal/config-loader';
+import type { PrismaNextConfig } from '@internal/config-loader';
 import { createControlStack } from '@internal/framework-components/control';
 import type {
   ContractSpaceAggregate,
@@ -310,7 +310,7 @@ export async function runMigrationCheck(
 }
 
 export async function loadAggregateIntegrityViolations(
-  config: Awaited<ReturnType<typeof loadConfig>>,
+  config: PrismaNextConfig,
   migrationsDir: string,
 ): Promise<readonly IntegrityViolation[]> {
   try {

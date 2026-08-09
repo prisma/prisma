@@ -4,6 +4,7 @@ import type { MigrationPlanOperation } from '@internal/framework-components/cont
 import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
+import { ok } from '@internal/utils/result';
 import { type } from 'arktype';
 import { join } from 'pathe';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
@@ -28,7 +29,7 @@ const graphMocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: graphMocks.loadConfig,
+  loadConfigForSections: graphMocks.loadConfig,
 }));
 
 const TARGET = 'postgres';
@@ -96,7 +97,7 @@ async function setupGraphFixture(): Promise<string> {
   };
   await writePkg('20260422T0720_initial', null, HASH_A);
   await writePkg('20260422T0742_migration', HASH_A, HASH_B);
-  graphMocks.loadConfig.mockResolvedValue(graphBaseConfig(contractPath));
+  graphMocks.loadConfig.mockResolvedValue(ok(graphBaseConfig(contractPath)));
   return contractPath;
 }
 

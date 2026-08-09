@@ -1,6 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { join as pathjoin } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfigMock,
+  loadConfigForSections: mocks.loadConfigMock,
 }));
 
 vi.mock('../../src/control-api/operations/contract-emit', () => ({
@@ -77,7 +78,7 @@ describe('contract emit command', () => {
 
   it('emits human-readable success output on piped stdout with --format pretty', async () => {
     const outputPath = join(tmpDir, 'contract.json');
-    mocks.loadConfigMock.mockResolvedValue(configWithOutput(outputPath));
+    mocks.loadConfigMock.mockResolvedValue(ok(configWithOutput(outputPath)));
     mocks.executeContractEmitMock.mockResolvedValue(emitResult());
 
     const command = createContractEmitCommand();
@@ -100,7 +101,7 @@ describe('contract emit command', () => {
 
   it('delegates to executeContractEmit and exits successfully', async () => {
     const outputPath = join(tmpDir, 'contract.json');
-    mocks.loadConfigMock.mockResolvedValue(configWithOutput(outputPath));
+    mocks.loadConfigMock.mockResolvedValue(ok(configWithOutput(outputPath)));
     mocks.executeContractEmitMock.mockResolvedValue(emitResult());
 
     const command = createContractEmitCommand();
@@ -116,7 +117,7 @@ describe('contract emit command', () => {
 
   it('forwards --output-path to executeContractEmit as outputPath resolved against cwd', async () => {
     const outputPath = join(tmpDir, 'contract.json');
-    mocks.loadConfigMock.mockResolvedValue(configWithOutput(outputPath));
+    mocks.loadConfigMock.mockResolvedValue(ok(configWithOutput(outputPath)));
     mocks.executeContractEmitMock.mockResolvedValue(emitResult());
 
     const command = createContractEmitCommand();
@@ -134,7 +135,7 @@ describe('contract emit command', () => {
   it('CLI --output-path wins over config output (CLI > config precedence)', async () => {
     const configOutputPath = join(tmpDir, 'config-contract.json');
     const cliOutputDir = join(tmpDir, 'cli-out');
-    mocks.loadConfigMock.mockResolvedValue(configWithOutput(configOutputPath));
+    mocks.loadConfigMock.mockResolvedValue(ok(configWithOutput(configOutputPath)));
     mocks.executeContractEmitMock.mockResolvedValue(
       emitResult({
         files: {
@@ -156,7 +157,7 @@ describe('contract emit command', () => {
 
   it('resolves relative --output-path against cwd', async () => {
     const outputPath = join(tmpDir, 'contract.json');
-    mocks.loadConfigMock.mockResolvedValue(configWithOutput(outputPath));
+    mocks.loadConfigMock.mockResolvedValue(ok(configWithOutput(outputPath)));
     mocks.executeContractEmitMock.mockResolvedValue(emitResult());
 
     const command = createContractEmitCommand();
@@ -171,7 +172,7 @@ describe('contract emit command', () => {
   it('passes absolute --output-path verbatim', async () => {
     const outputPath = join(tmpDir, 'contract.json');
     const absoluteDir = join(tmpDir, 'abs-out');
-    mocks.loadConfigMock.mockResolvedValue(configWithOutput(outputPath));
+    mocks.loadConfigMock.mockResolvedValue(ok(configWithOutput(outputPath)));
     mocks.executeContractEmitMock.mockResolvedValue(emitResult());
 
     const command = createContractEmitCommand();
@@ -186,7 +187,7 @@ describe('contract emit command', () => {
 
   it('does not forward outputPath when --output-path is not passed', async () => {
     const outputPath = join(tmpDir, 'contract.json');
-    mocks.loadConfigMock.mockResolvedValue(configWithOutput(outputPath));
+    mocks.loadConfigMock.mockResolvedValue(ok(configWithOutput(outputPath)));
     mocks.executeContractEmitMock.mockResolvedValue(emitResult());
 
     const command = createContractEmitCommand();
@@ -204,7 +205,7 @@ describe('contract emit command', () => {
     cleanupMocks = interactiveMocks.cleanup;
 
     const outputPath = join(tmpDir, 'contract.json');
-    mocks.loadConfigMock.mockResolvedValue(configWithOutput(outputPath));
+    mocks.loadConfigMock.mockResolvedValue(ok(configWithOutput(outputPath)));
     mocks.executeContractEmitMock.mockResolvedValue(
       emitResult({ validationWarning: 'sample dependency warning' }),
     );

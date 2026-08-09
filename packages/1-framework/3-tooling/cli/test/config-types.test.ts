@@ -158,34 +158,12 @@ describe('defineConfig', () => {
     expect(result.contract?.source).toBe(sourceProvider);
   });
 
-  it('throws when source is not a provider object', () => {
-    const config = {
-      ...baseConfig,
-      contract: {
-        source: 'invalid' as unknown,
-      },
-    } as unknown as PrismaNextConfig;
-
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
-  });
-
-  it('throws error on invalid config structure', () => {
+  it('does not validate structure — the config loader reports section diagnostics instead', () => {
     const invalidConfig = {
       family: null,
     } as unknown as PrismaNextConfig;
 
-    expect(() => defineConfig(invalidConfig)).toThrow('Config validation failed');
-  });
-
-  it('throws error on invalid contract source type', () => {
-    const config = {
-      ...baseConfig,
-      contract: {
-        source: undefined as unknown,
-      },
-    } as unknown as PrismaNextConfig;
-
-    expect(() => defineConfig(config)).toThrow('Config validation failed');
+    expect(() => defineConfig(invalidConfig)).not.toThrow();
   });
 
   it('builds TypeScript contract config via helper utility', async () => {

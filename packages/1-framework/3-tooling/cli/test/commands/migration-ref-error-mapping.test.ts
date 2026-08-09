@@ -1,6 +1,7 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { ok } from '@internal/utils/result';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -9,7 +10,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 const HASH_A = `${'a'.repeat(64)}`;
@@ -32,9 +33,11 @@ describe('migration-ref MigrationToolsError envelope passthrough', () => {
       'utf-8',
     );
     configPath = join(tempDir, 'prisma-next.config.ts');
-    mocks.loadConfig.mockResolvedValue({
-      migrations: { dir: 'migrations' },
-    });
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        migrations: { dir: 'migrations' },
+      }),
+    );
   });
 
   afterEach(async () => {

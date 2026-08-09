@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { PrismaNextConfig } from '@internal/config/config-types';
+import { blindCast } from '@internal/utils/casts';
 import { determineAgent } from '@vercel/detect-agent';
 import { join } from 'pathe';
 import type { ParentToSenderPayload, TelemetryEvent } from './payload';
@@ -54,16 +55,16 @@ export async function loadProjectConfig(projectRoot: string): Promise<ProjectCon
       return EMPTY_PROJECT_CONFIG;
     }
     const validation = await import('@internal/config/config-validation');
-    // TS 4.7+ only flows `asserts cfg is X` narrowing when the
-    // assertion function is called via a directly-declared name with
-    // an explicit signature. The dynamic-import binding doesn't
-    // satisfy that, so wrap the call in a local declaration that
-    // re-asserts the signature.
-    const validate: (cfg: unknown) => asserts cfg is PrismaNextConfig = validation.validateConfig;
-    validate(config);
+    if (validation.collectConfigIssues(config).length > 0) {
+      return EMPTY_PROJECT_CONFIG;
+    }
+    const validConfig = blindCast<
+      PrismaNextConfig,
+      'collectConfigIssues returned no issues, so the validated sections are present'
+    >(config);
     return {
-      databaseTarget: config.target.targetId,
-      extensions: (config.extensions ?? []).map((pack) => pack.id),
+      databaseTarget: validConfig.target.targetId,
+      extensions: (validConfig.extensions ?? []).map((pack) => pack.id),
     };
   } catch {
     return EMPTY_PROJECT_CONFIG;

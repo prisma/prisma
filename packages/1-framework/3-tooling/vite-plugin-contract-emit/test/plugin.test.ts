@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { disposeEmitQueue, executeContractEmit } from '@internal/cli/control-api';
-import { loadConfig } from '@internal/config-loader';
+import type { PrismaNextConfig } from '@internal/config-loader';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { prismaVitePlugin } from '../src/plugin';
 
@@ -9,9 +9,18 @@ vi.mock('@internal/cli/control-api', () => ({
   disposeEmitQueue: vi.fn(),
 }));
 
-vi.mock('@internal/config-loader', () => ({
-  loadConfig: vi.fn(),
-}));
+const loadConfigForSectionsMock = vi.hoisted(() => vi.fn());
+
+// The production code consumes `loadConfigForSections`, which wraps the config
+// in a Result. Tests keep resolving plain configs (or rejecting); the wrapper
+// adds the `ok(...)` so every existing fixture stays unchanged.
+vi.mock('@internal/config-loader', async () => {
+  const { ok } = await import('@internal/utils/result');
+  return {
+    loadConfigForSections: async (...args: unknown[]) =>
+      ok(await loadConfigForSectionsMock(...args)),
+  };
+});
 
 vi.mock('@internal/emitter', () => ({
   getEmittedArtifactPaths: (outputJsonPath: string) => ({
@@ -30,14 +39,14 @@ vi.mock('pathe', async () => {
 
 const mockedExecuteContractEmit = vi.mocked(executeContractEmit);
 const mockedDisposeEmitQueue = vi.mocked(disposeEmitQueue);
-const mockedLoadConfig = vi.mocked(loadConfig);
+const mockedLoadConfig = loadConfigForSectionsMock;
 const successfulEmitResult = {
   storageHash: 'abc123',
   profileHash: 'def456',
   files: { json: '/out/contract.json', dts: '/out/contract.d.ts' },
 } satisfies Awaited<ReturnType<typeof executeContractEmit>>;
 
-type LoadedConfig = Awaited<ReturnType<typeof loadConfig>>;
+type LoadedConfig = PrismaNextConfig;
 type SourceInputs = NonNullable<LoadedConfig['contract']>['source']['inputs'];
 
 interface MockModuleNode {

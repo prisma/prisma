@@ -5,6 +5,7 @@ import * as configLoader from '@internal/config-loader';
 import type { Contract } from '@internal/contract/types';
 import type { EmitResult } from '@internal/emitter';
 import { emit as emitFn } from '@internal/emitter';
+import { ok } from '@internal/utils/result';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeContractEmit } from '../../src/control-api/operations/contract-emit';
 import { disposeEmitQueue } from '../../src/utils/emit-queue';
@@ -46,7 +47,7 @@ function mockConfigWithContract(contractOverrides: Record<string, unknown>) {
     family: stubDescriptor('family', 'test'),
     target: stubDescriptor('target', 'test'),
     contract: contractOverrides,
-  } as unknown as Awaited<ReturnType<typeof configLoader.loadConfig>>;
+  } as unknown as configLoader.PrismaNextConfig;
 }
 
 function createSourceProvider(load: () => Promise<unknown>): {
@@ -111,7 +112,7 @@ function createSuccessfulConfig(output: string) {
       })),
       output,
     },
-  } as unknown as Awaited<ReturnType<typeof configLoader.loadConfig>>;
+  } as unknown as configLoader.PrismaNextConfig;
 }
 
 describe('executeContractEmit', () => {
@@ -137,10 +138,12 @@ describe('executeContractEmit', () => {
   });
 
   async function withMockedConfig<T>(
-    config: Awaited<ReturnType<typeof configLoader.loadConfig>>,
+    config: configLoader.PrismaNextConfig,
     run: () => Promise<T>,
   ): Promise<T> {
-    const loadConfigSpy = vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(config);
+    const loadConfigSpy = vi
+      .spyOn(configLoader, 'loadConfigForSections')
+      .mockResolvedValue(ok(config));
     try {
       return await run();
     } finally {

@@ -1,4 +1,5 @@
 import type { CliErrorEnvelope } from '@internal/errors/control';
+import { ok } from '@internal/utils/result';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-helpers';
 
@@ -7,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@internal/config-loader', () => ({
-  loadConfig: mocks.loadConfig,
+  loadConfigForSections: mocks.loadConfig,
 }));
 
 const baseConfig = {
@@ -63,7 +64,7 @@ describe('migration status missing-DB precondition', () => {
   });
 
   it('emits the shared missing-DB envelope with meta.missingFlags when no db and no --from', async () => {
-    mocks.loadConfig.mockResolvedValue({ ...baseConfig, db: {} });
+    mocks.loadConfig.mockResolvedValue(ok({ ...baseConfig, db: {} }));
 
     const { createMigrationStatusCommand } = await import('../../src/commands/migration-status');
     await runAndCaptureExit(() => executeCommand(createMigrationStatusCommand(), ['--json']));
@@ -74,7 +75,7 @@ describe('migration status missing-DB precondition', () => {
   });
 
   it('uses the same envelope when only the driver is missing', async () => {
-    mocks.loadConfig.mockResolvedValue({ ...baseConfig, driver: undefined });
+    mocks.loadConfig.mockResolvedValue(ok({ ...baseConfig, driver: undefined }));
 
     const { createMigrationStatusCommand } = await import('../../src/commands/migration-status');
     await runAndCaptureExit(() =>

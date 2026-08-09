@@ -1,8 +1,10 @@
 export type { CliErrorConflict, CliErrorEnvelope } from '../control';
 export {
   CliStructuredError,
+  errorConfigEvaluationFailed,
   errorConfigFileNotFound,
   errorConfigValidation,
+  errorConfigVersionMarkerMissing,
   errorContractConfigMissing,
   errorContractMissingExtensions,
   errorContractValidationFailed,

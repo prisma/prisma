@@ -26,6 +26,7 @@
     "pathe": "^2.0.3"
   },
   "devDependencies": {
+    "@internal/utils": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "@repo/tsdown": "workspace:8.0.0-rc.1",
     "@types/node": "catalog:",

@@ -7,6 +7,7 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { writeRef } from '@internal/migration-tools/refs';
+import { ok } from '@internal/utils/result';
 import stripAnsi from 'strip-ansi';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { executeCommand, getExitCode, setupCommandMocks } from '../utils/test-helpers';
@@ -19,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   resolveRecordedPath: vi.fn(),
 }));
 
-vi.mock('@internal/config-loader', () => ({ loadConfig: mocks.loadConfig }));
+vi.mock('@internal/config-loader', () => ({ loadConfigForSections: mocks.loadConfig }));
 vi.mock('../../src/control-api/client', () => ({
   createControlClient: mocks.createControlClient,
 }));
@@ -148,23 +149,25 @@ async function buildInvariantFixture(): Promise<{ cwd: string; appDir: string }>
 }
 
 function setupConfigMock(): void {
-  mocks.loadConfig.mockResolvedValue({
-    family: {
-      familyId: TARGET_FAMILY,
-      create: vi.fn().mockReturnValue({ deserializeContract: (json: unknown) => json }),
-    },
-    target: {
-      id: TARGET,
-      familyId: TARGET_FAMILY,
-      targetId: TARGET,
-      kind: 'target',
-      migrations: {},
-    },
-    adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
-    driver: { kind: 'driver', create: vi.fn() },
-    contract: { output: 'contract.json' },
-    migrations: { dir: 'migrations' },
-  });
+  mocks.loadConfig.mockResolvedValue(
+    ok({
+      family: {
+        familyId: TARGET_FAMILY,
+        create: vi.fn().mockReturnValue({ deserializeContract: (json: unknown) => json }),
+      },
+      target: {
+        id: TARGET,
+        familyId: TARGET_FAMILY,
+        targetId: TARGET,
+        kind: 'target',
+        migrations: {},
+      },
+      adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
+      driver: { kind: 'driver', create: vi.fn() },
+      contract: { output: 'contract.json' },
+      migrations: { dir: 'migrations' },
+    }),
+  );
 }
 
 describe('migrate --show (read-only + faithfulness)', () => {
@@ -508,37 +511,39 @@ describe('migrate --show (read-only + faithfulness)', () => {
     await writeFile(join(cwd, 'contract.json'), JSON.stringify(contractEnvelope(C2)));
 
     // Configure with the pgvector extension pack declared.
-    mocks.loadConfig.mockResolvedValue({
-      family: {
-        familyId: TARGET_FAMILY,
-        create: vi.fn().mockReturnValue({ deserializeContract: (json: unknown) => json }),
-      },
-      target: {
-        id: TARGET,
-        familyId: TARGET_FAMILY,
-        targetId: TARGET,
-        kind: 'target',
-        migrations: {},
-      },
-      adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
-      driver: { kind: 'driver', create: vi.fn() },
-      contract: { output: 'contract.json' },
-      migrations: { dir: 'migrations' },
-      extensions: [
-        {
-          id: 'pgvector',
-          targetId: TARGET,
-          // contractSpace must be present (non-undefined) for toDeclaredExtensionsFromRaw
-          // to recognise this as a contract-space extension. The aggregate loader
-          // reads the actual contract from disk (migrations/pgvector/), not from here.
-          contractSpace: {
-            contractJson: contractEnvelope(EXT_C1),
-            headRef: { hash: EXT_C1, invariants: [] },
-            migrations: [],
-          },
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: TARGET_FAMILY,
+          create: vi.fn().mockReturnValue({ deserializeContract: (json: unknown) => json }),
         },
-      ],
-    });
+        target: {
+          id: TARGET,
+          familyId: TARGET_FAMILY,
+          targetId: TARGET,
+          kind: 'target',
+          migrations: {},
+        },
+        adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
+        driver: { kind: 'driver', create: vi.fn() },
+        contract: { output: 'contract.json' },
+        migrations: { dir: 'migrations' },
+        extensions: [
+          {
+            id: 'pgvector',
+            targetId: TARGET,
+            // contractSpace must be present (non-undefined) for toDeclaredExtensionsFromRaw
+            // to recognise this as a contract-space extension. The aggregate loader
+            // reads the actual contract from disk (migrations/pgvector/), not from here.
+            contractSpace: {
+              contractJson: contractEnvelope(EXT_C1),
+              headRef: { hash: EXT_C1, invariants: [] },
+              migrations: [],
+            },
+          },
+        ],
+      }),
+    );
 
     process.chdir(cwd);
     const { createMigrateCommand } = await import('../../src/commands/migrate');
@@ -624,34 +629,36 @@ describe('migrate --show (read-only + faithfulness)', () => {
 
     await writeFile(join(cwd, 'contract.json'), JSON.stringify(contractEnvelope(C2)));
 
-    mocks.loadConfig.mockResolvedValue({
-      family: {
-        familyId: TARGET_FAMILY,
-        create: vi.fn().mockReturnValue({ deserializeContract: (json: unknown) => json }),
-      },
-      target: {
-        id: TARGET,
-        familyId: TARGET_FAMILY,
-        targetId: TARGET,
-        kind: 'target',
-        migrations: {},
-      },
-      adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
-      driver: { kind: 'driver', create: vi.fn() },
-      contract: { output: 'contract.json' },
-      migrations: { dir: 'migrations' },
-      extensions: [
-        {
-          id: 'pgvector',
-          targetId: TARGET,
-          contractSpace: {
-            contractJson: contractEnvelope(EXT_C1),
-            headRef: { hash: EXT_C1, invariants: [] },
-            migrations: [],
-          },
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: TARGET_FAMILY,
+          create: vi.fn().mockReturnValue({ deserializeContract: (json: unknown) => json }),
         },
-      ],
-    });
+        target: {
+          id: TARGET,
+          familyId: TARGET_FAMILY,
+          targetId: TARGET,
+          kind: 'target',
+          migrations: {},
+        },
+        adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
+        driver: { kind: 'driver', create: vi.fn() },
+        contract: { output: 'contract.json' },
+        migrations: { dir: 'migrations' },
+        extensions: [
+          {
+            id: 'pgvector',
+            targetId: TARGET,
+            contractSpace: {
+              contractJson: contractEnvelope(EXT_C1),
+              headRef: { hash: EXT_C1, invariants: [] },
+              migrations: [],
+            },
+          },
+        ],
+      }),
+    );
 
     process.chdir(cwd);
     const { createMigrateCommand } = await import('../../src/commands/migrate');
@@ -754,34 +761,36 @@ describe('migrate --show (read-only + faithfulness)', () => {
 
     await writeFile(join(cwd, 'contract.json'), JSON.stringify(contractEnvelope(C2)));
 
-    mocks.loadConfig.mockResolvedValue({
-      family: {
-        familyId: TARGET_FAMILY,
-        create: vi.fn().mockReturnValue({ deserializeContract: (json: unknown) => json }),
-      },
-      target: {
-        id: TARGET,
-        familyId: TARGET_FAMILY,
-        targetId: TARGET,
-        kind: 'target',
-        migrations: {},
-      },
-      adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
-      driver: { kind: 'driver', create: vi.fn() },
-      contract: { output: 'contract.json' },
-      migrations: { dir: 'migrations' },
-      extensions: [
-        {
-          id: 'pgvector',
-          targetId: TARGET,
-          contractSpace: {
-            contractJson: contractEnvelope(EXT_C1),
-            headRef: { hash: EXT_C1, invariants: [] },
-            migrations: [],
-          },
+    mocks.loadConfig.mockResolvedValue(
+      ok({
+        family: {
+          familyId: TARGET_FAMILY,
+          create: vi.fn().mockReturnValue({ deserializeContract: (json: unknown) => json }),
         },
-      ],
-    });
+        target: {
+          id: TARGET,
+          familyId: TARGET_FAMILY,
+          targetId: TARGET,
+          kind: 'target',
+          migrations: {},
+        },
+        adapter: { kind: 'adapter', familyId: TARGET_FAMILY, targetId: TARGET },
+        driver: { kind: 'driver', create: vi.fn() },
+        contract: { output: 'contract.json' },
+        migrations: { dir: 'migrations' },
+        extensions: [
+          {
+            id: 'pgvector',
+            targetId: TARGET,
+            contractSpace: {
+              contractJson: contractEnvelope(EXT_C1),
+              headRef: { hash: EXT_C1, invariants: [] },
+              migrations: [],
+            },
+          },
+        ],
+      }),
+    );
 
     process.chdir(cwd);
     const { createMigrateCommand } = await import('../../src/commands/migrate');

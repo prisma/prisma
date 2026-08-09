@@ -1,4 +1,4 @@
-import { loadConfig } from '@internal/config-loader';
+import { loadConfigForSections } from '@internal/config-loader';
 import { getEmittedArtifactPaths } from '@internal/emitter';
 import { errorContractConfigMissing } from '@internal/errors/control';
 import { ifDefined } from '@internal/utils/defined';
@@ -50,19 +50,11 @@ async function resolveHeaderPaths(
     ? relative(process.cwd(), resolve(configOption))
     : 'prisma-next.config.ts';
 
-  let config: Awaited<ReturnType<typeof loadConfig>>;
-  try {
-    config = await loadConfig(configOption);
-  } catch (error) {
-    if (error instanceof CliStructuredError) {
-      return notOk(error);
-    }
-    return notOk(
-      errorUnexpected(error instanceof Error ? error.message : String(error), {
-        why: 'Failed to load config',
-      }),
-    );
+  const configResult = await loadConfigForSections(configOption, ['contract']);
+  if (!configResult.ok) {
+    return configResult;
   }
+  const config = configResult.value;
 
   const effectiveJsonPath =
     outputPath !== undefined ? join(outputPath, 'contract.json') : config.contract?.output;

@@ -6,8 +6,6 @@ import type {
   ControlFamilyDescriptor,
   ControlTargetDescriptor,
 } from '@internal/framework-components/control';
-import { type } from 'arktype';
-import { configError } from './config-errors';
 import type { ContractSourceProvider } from './contract-source-types';
 
 /**
@@ -115,49 +113,47 @@ export interface PrismaNextConfig<
   readonly formatter?: FormatterConfig;
 }
 
-const ContractSourceInputSchema = type('string');
+/**
+ * Version of the config format produced by this `defineConfig`. Bumped when
+ * the config shape changes incompatibly.
+ */
+export const CONFIG_FORMAT_VERSION = 1;
 
-export const ContractSourceProviderSchema = type({
-  'format?': 'string',
-  'inputs?': ContractSourceInputSchema.array(),
-  load: 'Function',
-});
+const CONFIG_FORMAT_VERSION_KEY = Symbol.for('prisma-next.config-format-version');
 
-export const ContractConfigSchema = type({
-  source: ContractSourceProviderSchema,
-  'output?': 'string',
-});
+function stampConfigFormatVersion<T extends object>(config: T): T {
+  Object.defineProperty(config, CONFIG_FORMAT_VERSION_KEY, {
+    value: CONFIG_FORMAT_VERSION,
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  });
+  return config;
+}
 
 /**
- * Arktype schema for PrismaNextConfig validation.
- * Note: This validates structure only. Descriptor objects (family, target, adapter) are validated separately.
+ * Reads the config-format version stamped by `defineConfig`, or `undefined`
+ * when the value was not produced by `defineConfig`. The marker is
+ * non-enumerable and does not survive spreads: configs must export the
+ * `defineConfig` result directly.
  */
-const MigrationsConfigSchema = type({
-  'dir?': 'string',
-});
+export function readConfigFormatVersion(value: unknown): number | undefined {
+  if (typeof value !== 'object' || value === null) {
+    return undefined;
+  }
+  const version: unknown = Reflect.get(value, CONFIG_FORMAT_VERSION_KEY);
+  return typeof version === 'number' ? version : undefined;
+}
 
-const FormatterIndentSchema = type('number.integer >= 1').or("'tab'");
-
-export const FormatterConfigSchema = type({
-  'indent?': FormatterIndentSchema,
-  'newline?': "'LF' | 'CRLF'",
-});
-
-const PrismaNextConfigSchema = type({
-  family: 'unknown', // ControlFamilyDescriptor - validated separately
-  target: 'unknown', // ControlTargetDescriptor - validated separately
-  adapter: 'unknown', // ControlAdapterDescriptor - validated separately
-  'extensions?': 'unknown[]',
-  'driver?': 'unknown', // ControlDriverDescriptor - validated separately (optional)
-  'db?': 'unknown',
-  'contract?': ContractConfigSchema,
-  'migrations?': MigrationsConfigSchema,
-  'formatter?': FormatterConfigSchema,
-});
+export function hasCurrentConfigFormatVersion(value: unknown): boolean {
+  return readConfigFormatVersion(value) === CONFIG_FORMAT_VERSION;
+}
 
 /**
  * Helper function to define a Prisma Next config.
- * Validates and normalizes the config using Arktype, then returns the normalized IR.
+ * Normalizes the config and stamps it with the config-format version marker.
+ * Structural validation happens in the config loader, which reports
+ * per-section diagnostics instead of failing the whole load.
  *
  * Normalization:
  * - contract.output defaults to a path colocated with DEFAULT_CONTRACT_SOURCE_DIR
@@ -165,27 +161,17 @@ const PrismaNextConfigSchema = type({
  *
  * @param config - Raw config input from user
  * @returns Normalized config IR with defaults applied
- * @throws Error if config structure is invalid
  */
 export function defineConfig<TFamilyId extends string = string, TTargetId extends string = string>(
   config: PrismaNextConfig<TFamilyId, TTargetId>,
 ): PrismaNextConfig<TFamilyId, TTargetId> {
-  // Validate structure using Arktype
-  const validated = PrismaNextConfigSchema(config);
-  if (validated instanceof type.errors) {
-    const messages = validated.map((p: { message: string }) => p.message).join('; ');
-    throw configError('CONFIG.VALIDATION_FAILED', `Config validation failed: ${messages}`);
-  }
-
-  // Normalize contract config if present
   if (config.contract) {
-    // Return normalized config
-    return {
+    return stampConfigFormatVersion({
       ...config,
       contract: normalizeContractConfig(config.contract),
-    };
+    });
   }
 
   // Return config as-is if no contract (preserve literal types)
-  return config;
+  return stampConfigFormatVersion(config);
 }
