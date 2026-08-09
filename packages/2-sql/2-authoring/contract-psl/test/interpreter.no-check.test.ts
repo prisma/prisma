@@ -66,6 +66,7 @@ const authoringContributions = {
   entityTypes: testEnumEntityContributions,
   field: {},
   type: {},
+  valueObjectStorageType: 'Jsonb',
   pslBlockDescriptors: { enum: enumPslBlockDescriptor },
 };
 
@@ -329,6 +330,25 @@ model Post {
 `,
       'PSL_INVALID_ATTRIBUTE_ARGUMENT',
       /waives nothing/,
+    );
+  });
+
+  // A value-object list is one JSONB column, not a scalar list, so it derives
+  // no element-non-null check. Waiving one waives nothing — the storage shape
+  // decides, not the PSL shape.
+  it('rejects @noCheck on a value-object list field, span-anchored', () => {
+    expectDiagnostic(
+      `type Address {
+  street String
+}
+
+model Post {
+  id        Int       @id
+  addresses Address[] @noCheck(elementNotNull)
+}
+`,
+      'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+      /does not apply/,
     );
   });
 });

@@ -682,7 +682,11 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
           field,
           sourceFile: input.sourceFile,
           sourceId,
-          isListField,
+          // The storage shape decides, not the PSL shape: a value-object list
+          // lands in one JSONB column, which derives no generated checks, so
+          // any waiver on it waives nothing and must be rejected here rather
+          // than persisted as an inert flag.
+          isListField: isListField && !isValueObjectField,
           isDomainEnum: enumHandle !== undefined,
           diagnostics,
         })
