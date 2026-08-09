@@ -62,15 +62,16 @@ const postgresDriverDescriptor: ControlDriverDescriptor<'sql', 'postgres', Postg
           'cause' in normalized && normalized.cause
             ? (normalized.cause as { code?: unknown }).code
             : undefined;
-        const code = codeFromSqlState ?? causeCode;
+        const sqlState = codeFromSqlState ?? causeCode;
 
-        throw errorRuntime('Database connection failed', {
+        throw errorRuntime('DRIVER.CONNECTION_FAILED', 'Database connection failed', {
           why: normalized.message,
           fix: 'Verify the database URL, ensure the database is reachable, and confirm credentials/permissions',
           meta: {
-            ...ifDefined('code', code),
+            ...ifDefined('sqlState', sqlState),
             ...redacted,
           },
+          cause: error,
         });
       }
     },

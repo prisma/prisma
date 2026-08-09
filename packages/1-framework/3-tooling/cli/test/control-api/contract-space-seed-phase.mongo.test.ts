@@ -12,7 +12,7 @@ import {
 } from '@internal/migration-tools/spaces';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { runContractSpaceSeedPhase } from '../../src/utils/contract-space-seed-phase';
+import { runContractSpaceSeedPhase } from '../../src/control-api/operations/contract-space-seed-phase';
 
 /**
  * The framework's extension-space seed phase and the aggregate-loader

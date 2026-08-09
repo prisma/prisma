@@ -6,8 +6,7 @@ import {
   errorFileNotFound,
   errorSnapshotMissing,
   errorUnexpected,
-  mapMigrationToolsError,
-} from './cli-errors';
+} from '../../utils/cli-errors';
 
 export function mapContractAtError(
   error: unknown,
@@ -17,39 +16,37 @@ export function mapContractAtError(
     switch (error.code) {
       case 'MIGRATION.REF_NOT_RESOLVABLE': {
         const refName =
-          typeof error.details?.['refName'] === 'string'
-            ? error.details['refName']
-            : typeof error.details?.['identifier'] === 'string'
-              ? error.details['identifier']
+          typeof error.meta?.['refName'] === 'string'
+            ? error.meta['refName']
+            : typeof error.meta?.['identifier'] === 'string'
+              ? error.meta['identifier']
               : 'unknown';
-        return notOk(errorSnapshotMissing(refName));
+        return notOk(errorSnapshotMissing(refName, { cause: error }));
       }
       case 'MIGRATION.CONTRACT_DESERIALIZATION_FAILED': {
         const filePath =
-          typeof error.details?.['filePath'] === 'string' ? error.details['filePath'] : 'unknown';
+          typeof error.meta?.['filePath'] === 'string' ? error.meta['filePath'] : 'unknown';
         const message =
-          typeof error.details?.['message'] === 'string' ? error.details['message'] : error.message;
+          typeof error.meta?.['message'] === 'string' ? error.meta['message'] : error.message;
         return notOk(
           errorContractValidationFailed(
             `Predecessor contract at ${filePath} failed to deserialize: ${message}`,
-            { where: { path: filePath } },
+            { where: { path: filePath }, cause: error },
           ),
         );
       }
       case 'MIGRATION.INVALID_JSON': {
         const filePath =
-          typeof error.details?.['filePath'] === 'string' ? error.details['filePath'] : 'unknown';
+          typeof error.meta?.['filePath'] === 'string' ? error.meta['filePath'] : 'unknown';
         const message =
-          typeof error.details?.['parseError'] === 'string'
-            ? error.details['parseError']
-            : error.message;
+          typeof error.meta?.['parseError'] === 'string' ? error.meta['parseError'] : error.message;
         const role = options?.artifactRole ?? 'from';
         return notOk(
           errorContractValidationFailed(
             role === 'to'
               ? `Target contract at ${filePath} failed to deserialize: ${message}`
               : `Predecessor contract at ${filePath} failed to deserialize: ${message}`,
-            { where: { path: filePath } },
+            { where: { path: filePath }, cause: error },
           ),
         );
       }
@@ -58,12 +55,13 @@ export function mapContractAtError(
           errorUnexpected(error.message, {
             why: error.why,
             fix: error.fix,
+            cause: error,
           }),
         );
       case 'MIGRATION.CONTRACT_SNAPSHOT_MISSING': {
         const expectedPath =
-          typeof error.details?.['expectedPath'] === 'string'
-            ? error.details['expectedPath']
+          typeof error.meta?.['expectedPath'] === 'string'
+            ? error.meta['expectedPath']
             : 'migrations/snapshots/';
         const role = options?.artifactRole ?? 'from';
         return notOk(
@@ -73,11 +71,12 @@ export function mapContractAtError(
                 ? `Target migration is missing its contract snapshot at ${expectedPath}`
                 : `Predecessor migration is missing its contract snapshot at ${expectedPath}`,
             fix: 'Restore migrations/snapshots/ from version control, or re-run the command that produced this migration to regenerate its snapshot.',
+            cause: error,
           }),
         );
       }
       default:
-        return notOk(mapMigrationToolsError(error));
+        return notOk(error);
     }
   }
   if (CliStructuredError.is(error)) {

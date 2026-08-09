@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   appContractStandInFromIdentity,
   buildReadAggregate,
-} from '../../src/utils/contract-space-aggregate-loader';
+} from '../../src/control-api/operations/contract-space-aggregate-loader';
 
 const TARGET = 'postgres';
 const TARGET_FAMILY = 'sql';

@@ -429,9 +429,13 @@ export class FunctionSource extends FromSource {
   ) {
     super();
     if (alias?.columnAliases?.length === 0) {
-      throw structuredError('SQL.AST_INVALID', 'FunctionSource column aliases must not be empty', {
-        meta: { kind: 'function-source', field: 'columnAliases' },
-      });
+      throw structuredError(
+        'RUNTIME.AST_INVALID',
+        'FunctionSource column aliases must not be empty',
+        {
+          meta: { kind: 'function-source', field: 'columnAliases' },
+        },
+      );
     }
     this.fn = fn;
     this.args = frozenArrayCopy(args);
@@ -969,7 +973,7 @@ export class CaseExpr extends Expression {
   constructor(branches: ReadonlyArray<CaseBranch>, elseExpr?: AnyExpression) {
     super();
     if (branches.length === 0) {
-      throw structuredError('SQL.AST_INVALID', 'CaseExpr requires at least one branch', {
+      throw structuredError('RUNTIME.AST_INVALID', 'CaseExpr requires at least one branch', {
         meta: { kind: 'case', field: 'branches' },
       });
     }

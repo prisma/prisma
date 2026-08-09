@@ -420,14 +420,14 @@ export async function readMigrationsDir(
       const dirName = entry;
       if (MigrationToolsError.is(error)) {
         if (error.code === 'MIGRATION.HASH_MISMATCH') {
-          const details = error.details;
+          const meta = error.meta;
           const rawPkg = await readMigrationPackageRaw(entryPath);
           if (rawPkg !== null) packages.push(rawPkg);
           problems.push({
             kind: 'hashMismatch',
             dirName,
-            stored: typeof details?.['storedHash'] === 'string' ? details['storedHash'] : '',
-            computed: typeof details?.['computedHash'] === 'string' ? details['computedHash'] : '',
+            stored: typeof meta?.['storedHash'] === 'string' ? meta['storedHash'] : '',
+            computed: typeof meta?.['computedHash'] === 'string' ? meta['computedHash'] : '',
           });
           continue;
         }

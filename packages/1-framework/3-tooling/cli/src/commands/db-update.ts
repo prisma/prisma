@@ -1,15 +1,13 @@
-import {
-  contractSnapshotDir,
-  readContractSnapshotJson,
-} from '@internal/migration-tools/contract-snapshot-store';
-import { MigrationToolsError } from '@internal/migration-tools/errors';
-import { parseContractRef } from '@internal/migration-tools/ref-resolution';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { Command } from 'commander';
-import { join } from 'pathe';
+import { resolveContractRefToSnapshot } from '../control-api/operations/contract-snapshot-resolution';
+import {
+  type RefAdvancementFields,
+  resolveRefAdvancementFields,
+} from '../control-api/operations/ref-advancement';
 import type { DbUpdateFailure } from '../control-api/types';
 import {
   CliStructuredError,
@@ -19,8 +17,6 @@ import {
   errorMigrationPlanningFailed,
   errorRunnerFailed,
   errorUnexpected,
-  mapMigrationToolsError,
-  mapRefResolutionError,
 } from '../utils/cli-errors';
 import type { MigrationCommandOptions } from '../utils/command-helpers';
 import {
@@ -29,7 +25,6 @@ import {
   setCommandDescriptions,
   setCommandExamples,
 } from '../utils/command-helpers';
-import { buildReadAggregate } from '../utils/contract-space-aggregate-loader';
 import {
   formatMigrationApplyOutput,
   formatMigrationJson,
@@ -41,12 +36,6 @@ import {
   addMigrationCommandOptions,
   prepareMigrationContext,
 } from '../utils/migration-command-scaffold';
-import {
-  buildRefAdvancementFields,
-  computeRefAdvancementName,
-  type RefAdvancementFields,
-  readContractIR,
-} from '../utils/ref-advancement';
 import { handleResult } from '../utils/result-handler';
 import { createTerminalUI, type TerminalUI } from '../utils/terminal-ui';
 
@@ -81,6 +70,7 @@ function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError {
           ? { plannerWarnings: failure.warnings }
           : {}),
       },
+      ...ifDefined('cause', failure.cause),
     });
   }
 
@@ -120,48 +110,19 @@ async function executeDbUpdateCommand(
   const { migrationsDir, refsDir } = resolveMigrationPaths(options.config, config);
 
   if (options.to) {
-    try {
-      const loaded = await buildReadAggregate(config, { migrationsDir });
-      if (!loaded.ok) {
-        return notOk(loaded.failure);
-      }
-      const graph = loaded.value.aggregate.app.graph();
-      const bundles = loaded.value.aggregate.app.packages;
-      const refs = loaded.value.aggregate.app.refs;
-      const refResult = parseContractRef(options.to, { graph, refs });
-      if (!refResult.ok) {
-        return notOk(mapRefResolutionError(refResult.failure));
-      }
-      const targetHash = refResult.value.hash;
-      const matchingBundle = bundles.find((p) => p.metadata.to === targetHash);
-      if (!matchingBundle) {
-        return notOk(
-          errorUnexpected(
-            `No migration bundle found for --to "${options.to}" (resolved hash: ${targetHash})`,
-            {
-              why: `The ref resolved successfully but no on-disk migration package has a destination (\`to\`) hash matching ${targetHash}.`,
-              fix: 'Provide a ref or hash that corresponds to an existing migration package, or run `migration list` to see available migrations.',
-            },
-          ),
-        );
-      }
-      contractJson = (await readContractSnapshotJson(migrationsDir, targetHash)) as Record<
-        string,
-        unknown
-      >;
-      contractJsonPathForSnapshot = join(
-        contractSnapshotDir(migrationsDir, targetHash),
-        'contract.json',
-      );
-    } catch (error) {
-      if (MigrationToolsError.is(error)) {
-        return notOk(mapMigrationToolsError(error));
-      }
-      if (CliStructuredError.is(error)) {
-        return notOk(error);
-      }
-      throw error;
+    const resolved = await resolveContractRefToSnapshot({
+      config,
+      migrationsDir,
+      refInput: options.to,
+      contractPathAbsolute,
+      fallbackToEmitted: false,
+      missingBundleFlag: '--to',
+    });
+    if (!resolved.ok) {
+      return notOk(resolved.failure);
     }
+    contractJson = resolved.value.contractJson;
+    contractJsonPathForSnapshot = resolved.value.contractJsonPath;
   }
 
   try {
@@ -185,34 +146,20 @@ async function executeDbUpdateCommand(
         ? (result.value.marker?.storageHash ?? result.value.destination.storageHash)
         : result.value.destination.storageHash;
 
-    let refAdvancementFields: RefAdvancementFields = {
-      advancedRef: null,
-      plannedAdvanceRef: null,
-    };
-    if (
-      computeRefAdvancementName({
-        ...ifDefined('advanceRef', options.advanceRef),
-        ...ifDefined('db', options.db),
-      }) !== null
-    ) {
-      try {
-        const contractIR = await readContractIR(contractJson, contractJsonPathForSnapshot);
-        refAdvancementFields = await buildRefAdvancementFields({
-          ...ifDefined('advanceRef', options.advanceRef),
-          ...ifDefined('db', options.db),
-          refsDir,
-          migrationsDir,
-          contractIR,
-          mode: result.value.mode,
-          hash: advancementHash,
-        });
-      } catch (error) {
-        if (MigrationToolsError.is(error)) {
-          return notOk(mapMigrationToolsError(error));
-        }
-        throw error;
-      }
+    const advancement = await resolveRefAdvancementFields({
+      ...ifDefined('advanceRef', options.advanceRef),
+      ...ifDefined('db', options.db),
+      refsDir,
+      migrationsDir,
+      contractJson,
+      contractJsonPath: contractJsonPathForSnapshot,
+      mode: result.value.mode,
+      hash: advancementHash,
+    });
+    if (!advancement.ok) {
+      return notOk(advancement.failure);
     }
+    const refAdvancementFields: RefAdvancementFields = advancement.value;
 
     // Convert success result to CLI output format
     const dbUpdateResult: MigrationCommandResult = {

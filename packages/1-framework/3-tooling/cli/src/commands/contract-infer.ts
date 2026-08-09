@@ -57,10 +57,14 @@ async function executeContractInferCommand(
 
   if (!pslContractAst) {
     return notOk(
-      errorRuntime('contract infer is not supported for this family', {
-        why: 'The configured family does not implement the PslContractInferCapable capability, so an inferred PSL contract cannot be produced from the live database schema.',
-        fix: 'Use a family that supports contract inference (e.g. SQL/Postgres).',
-      }),
+      errorRuntime(
+        'CONTRACT.INFER_UNSUPPORTED',
+        'contract infer is not supported for this family',
+        {
+          why: 'The configured family does not implement the PslContractInferCapable capability, so an inferred PSL contract cannot be produced from the live database schema.',
+          fix: 'Use a family that supports contract inference (e.g. SQL/Postgres).',
+        },
+      ),
     );
   }
 

@@ -51,7 +51,7 @@ describe('errorPathUnreachable', () => {
       meta: { spaceId: 'app', kind: 'pathUnreachable', fromHash, targetHash },
     };
     const envelope = errorPathUnreachable(failure).toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.PATH_UNREACHABLE');
+    expect(envelope.code).toBe('MIGRATION.PATH_UNREACHABLE');
     expect(envelope.fix).toContain(
       `prisma-next migration plan --from ${fromHash} --to ${targetHash} --name <slug>`,
     );
@@ -158,7 +158,7 @@ describe('errorRefSetHashNotInGraph', () => {
       reachableHashes,
       graphTip,
     ).toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
+    expect(envelope.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
     expect(envelope.meta?.['resolvedHash']).toBe(resolvedHash);
     expect(envelope.meta?.['reachableHashes']).toEqual(reachableHashes);
     expect(envelope.meta?.['graphTipHash']).toBe(graphTip);
@@ -175,7 +175,7 @@ describe('errorRefSetHashNotInGraph', () => {
 describe('errorRefSetEmptySentinel', () => {
   it('emits MIGRATION.REF_SET_EMPTY_SENTINEL', () => {
     const envelope = errorRefSetEmptySentinel('empty').toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.REF_SET_EMPTY_SENTINEL');
+    expect(envelope.code).toBe('MIGRATION.REF_SET_EMPTY_SENTINEL');
     expect(envelope.summary).toContain('empty-database sentinel');
   });
 });

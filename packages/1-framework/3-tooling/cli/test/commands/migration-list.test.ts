@@ -12,12 +12,12 @@ import { writeRef } from '@internal/migration-tools/refs';
 import { createSqlContract } from '@repo/test-utils';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { renderMigrationListHumanOutput } from '../../src/commands/migration-list';
 import {
   migrationSpaceListEntriesFromAggregate,
   type RunMigrationListInputs,
-  renderMigrationListHumanOutput,
   runMigrationList,
-} from '../../src/commands/migration-list';
+} from '../../src/control-api/operations/migration-list';
 import { renderMigrationList } from '../../src/utils/formatters/migration-list-render';
 import type { MigrationListResult } from '../../src/utils/formatters/migration-list-types';
 import { parseGlobalFlags } from '../../src/utils/global-flags';
@@ -634,7 +634,7 @@ describe('runMigrationList — --space flag', () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('unreachable');
     const envelope = result.failure.toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.SPACE_NOT_FOUND');
+    expect(envelope.code).toBe('MIGRATION.SPACE_NOT_FOUND');
     expect(envelope.meta?.['spaceId']).toBe('postgis');
     expect(envelope.meta?.['availableSpaces']).toEqual(['app']);
     expect(envelope.summary).toBe('Unknown contract space: postgis');
@@ -649,7 +649,7 @@ describe('runMigrationList — --space flag', () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('unreachable');
     const envelope = result.failure.toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.SPACE_NOT_FOUND');
+    expect(envelope.code).toBe('MIGRATION.SPACE_NOT_FOUND');
     expect(envelope.meta?.['availableSpaces']).toEqual([]);
   });
 
@@ -662,7 +662,7 @@ describe('runMigrationList — --space flag', () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('unreachable');
     const envelope = result.failure.toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.INVALID_SPACE_ID');
+    expect(envelope.code).toBe('MIGRATION.INVALID_SPACE_ID');
     expect(envelope.meta?.['spaceId']).toBe('../escape');
   });
 
@@ -691,7 +691,7 @@ describe('runMigrationList — --space flag', () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('unreachable');
     const envelope = result.failure.toEnvelope();
-    expect(envelope.meta?.['code']).toBe('MIGRATION.SPACE_NOT_FOUND');
+    expect(envelope.code).toBe('MIGRATION.SPACE_NOT_FOUND');
     expect(envelope.meta?.['spaceId']).toBe('refs');
     expect(envelope.meta?.['availableSpaces']).toEqual(['app']);
   });

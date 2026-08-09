@@ -109,6 +109,8 @@ The split between "CLI presentation error" and "runtime error" is historical, no
 
 **Extensions.** In-repo extensions are ordinary namespaces named by the extension, uppercased: `SUPABASE`, `POSTGIS`, `PGVECTOR`, `PARADEDB`, … Core namespaces are reserved. Third-party extensions get a documented convention only — namespace = extension name uppercased — and the public code type is widened to the template-literal shape `` `${Uppercase<string>}.${string}` ``. Nothing polices third-party codes at runtime; they are outside the stability promise.
 
+**Targets and adapters.** Target and adapter packages do not get namespaces of their own — there is no `SQLITE.*`, `POSTGRES.*`, or `ADAPTER.*`. A target-specific failure is still a failure of a core concern, and it uses that concern's namespace: rendering or executing a query uses `RUNTIME` (with `meta.target`/`meta.feature` identifying the target-specific condition), transport uses `DRIVER`, migration apply uses `MIGRATION`. The target name is data, not taxonomy. This keeps the namespace an answer to "what went wrong" rather than "which package said so", and keeps codes stable if a check moves between a target pack and shared code.
+
 **SCHEMA** (a reserved `CliErrorDomain` with no producers) is dropped.
 
 ## The foundation surface

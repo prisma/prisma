@@ -67,6 +67,7 @@ export function errorMarkerRowCorrupt(options: {
   readonly why: string;
   readonly space: string;
   readonly markerLocation: string;
+  readonly cause?: unknown;
 }): CliStructuredError {
   return new CliStructuredError(
     'CONTRACT.MARKER_ROW_CORRUPT',
@@ -75,6 +76,7 @@ export function errorMarkerRowCorrupt(options: {
       why: options.why,
       fix: `The ${options.markerLocation} row for space "${options.space}" contains invalid data. Delete the row, then run \`prisma-next db sign --db <url>\` to write a fresh marker.`,
       meta: { space: options.space },
+      ...ifDefined('cause', options.cause),
     },
   );
 }
@@ -86,6 +88,7 @@ export function errorMarkerReadFailed(options: {
   readonly why: string;
   readonly space: string;
   readonly markerLocation: string;
+  readonly cause?: unknown;
 }): CliStructuredError {
   return new CliStructuredError(
     'CONTRACT.MARKER_READ_FAILED',
@@ -94,6 +97,7 @@ export function errorMarkerReadFailed(options: {
       why: options.why,
       fix: `Could not read marker at ${options.markerLocation} for space "${options.space}". Verify read permissions, connectivity, and locks, then retry.`,
       meta: { space: options.space },
+      ...ifDefined('cause', options.cause),
     },
   );
 }
@@ -117,6 +121,7 @@ function isLegacyMarkerShapeReadError(message: string): boolean {
 function errorLegacyMarkerShape(options: {
   readonly why: string;
   readonly markerLocation: string;
+  readonly cause?: unknown;
 }): CliStructuredError {
   return errorRunnerFailed(
     `Legacy marker-table shape detected on ${options.markerLocation} (no \`space\` column). ` +
@@ -126,6 +131,7 @@ function errorLegacyMarkerShape(options: {
       why: options.why,
       fix: 'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `prisma-next db init` to recreate it with the current per-space schema.',
       meta: { runnerErrorCode: 'MIGRATION.LEGACY_MARKER_SHAPE' },
+      ...ifDefined('cause', options.cause),
     },
   );
 }
@@ -142,6 +148,7 @@ export function rethrowMarkerReadError(
       why: err.message,
       space: context.space,
       markerLocation: context.markerLocation,
+      cause: err,
     });
   }
   const message = err instanceof Error ? err.message : String(err);
@@ -149,12 +156,14 @@ export function rethrowMarkerReadError(
     throw errorLegacyMarkerShape({
       why: message,
       markerLocation: context.markerLocation,
+      cause: err,
     });
   }
   throw errorMarkerReadFailed({
     why: message,
     space: context.space,
     markerLocation: context.markerLocation,
+    cause: err,
   });
 }
 
@@ -223,12 +232,14 @@ export function errorRunnerFailed(
     readonly why?: string;
     readonly fix?: string;
     readonly meta?: Record<string, unknown>;
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
   return new CliStructuredError('MIGRATION.RUNNER_FAILED', summary, {
     why: options?.why ?? 'Migration runner failed',
     fix: options?.fix ?? 'Inspect the reported conflict and reconcile schema drift',
     ...(options?.meta ? { meta: options.meta } : {}),
+    ...ifDefined('cause', options?.cause),
   });
 }
 
@@ -254,19 +265,22 @@ export function errorDestructiveChanges(
 }
 
 /**
- * Generic runtime error.
+ * Generic runtime error carrying a caller-provided dotted code.
  */
 export function errorRuntime(
+  code: `${string}.${string}`,
   summary: string,
   options?: {
     readonly why?: string;
     readonly fix?: string;
     readonly meta?: Record<string, unknown>;
+    readonly cause?: unknown;
   },
 ): CliStructuredError {
-  return new CliStructuredError('CONTRACT.VERIFY_FAILED', summary, {
-    ...(options?.why ? { why: options.why } : { why: 'Verification failed' }),
-    ...(options?.fix ? { fix: options.fix } : { fix: 'Check contract and database state' }),
-    ...(options?.meta ? { meta: options.meta } : {}),
+  return new CliStructuredError(code, summary, {
+    ...ifDefined('why', options?.why),
+    ...ifDefined('fix', options?.fix),
+    ...ifDefined('meta', options?.meta),
+    ...ifDefined('cause', options?.cause),
   });
 }

@@ -56,9 +56,10 @@ export async function executeFormat(
     contents = await readFile(inputPath, 'utf-8');
   } catch (error) {
     return notOk(
-      errorRuntime('Failed to read contract source file', {
+      errorRuntime('CONTRACT.SOURCE_LOAD_FAILED', 'Failed to read contract source file', {
         why: error instanceof Error ? error.message : String(error),
         fix: `Check that ${inputPath} exists and is readable.`,
+        cause: error,
       }),
     );
   }
@@ -74,10 +75,11 @@ export async function executeFormat(
   } catch (error) {
     if (isStructuredError(error) && error.code === 'PSL.PARSE_FAILED') {
       return notOk(
-        errorRuntime('Cannot format PSL with parse errors', {
+        errorRuntime('PSL.PARSE_FAILED', 'Cannot format PSL with parse errors', {
           why: error.message,
           fix: 'Fix the parse errors in your schema and try again.',
           meta: { diagnostics: error.meta?.['diagnostics'] },
+          cause: error,
         }),
       );
     }
@@ -88,9 +90,10 @@ export async function executeFormat(
     await writeFile(inputPath, formatted, 'utf-8');
   } catch (error) {
     return notOk(
-      errorRuntime('Failed to write formatted contract source file', {
+      errorRuntime('CLI.FILE_WRITE_FAILED', 'Failed to write formatted contract source file', {
         why: error instanceof Error ? error.message : String(error),
         fix: `Check that ${inputPath} is writable.`,
+        cause: error,
       }),
     );
   }

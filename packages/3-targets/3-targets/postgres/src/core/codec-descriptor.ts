@@ -266,7 +266,7 @@ export function buildPostgresCodecDescriptorRegistry(
     if (!isPostgresCodecDescriptor(descriptor)) {
       const codecId = candidateCodecId(descriptor);
       throw structuredError(
-        'POSTGRES.CODEC_DESCRIPTOR_INVALID',
+        'RUNTIME.CODEC_DESCRIPTOR_INVALID',
         `Codec descriptor '${codecId}' is not a valid PostgreSQL codec descriptor.`,
         {
           why: 'PostgreSQL codec registries require the postgres-codec discriminant and complete target descriptor methods.',
@@ -278,12 +278,12 @@ export function buildPostgresCodecDescriptorRegistry(
 
     if (byId.has(descriptor.codecId)) {
       throw structuredError(
-        'POSTGRES.CODEC_DESCRIPTOR_DUPLICATE',
+        'RUNTIME.DUPLICATE_CODEC',
         `Duplicate PostgreSQL codec descriptor id '${descriptor.codecId}'.`,
         {
           why: 'Each codecId must resolve to exactly one PostgreSQL descriptor during registry composition.',
           fix: 'Remove the duplicate target, adapter, or extension contribution.',
-          meta: { codecId: descriptor.codecId },
+          meta: { codecId: descriptor.codecId, target: 'postgres' },
         },
       );
     }

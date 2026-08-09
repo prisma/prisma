@@ -31,7 +31,7 @@ export abstract class SqliteCodecDescriptor<P = void>
   projectJson(expression: ProjectionExpr, ref: CodecRef): ProjectionExpr {
     if (ref.many === true) {
       throw structuredError(
-        'SQLITE.CODEC_DESCRIPTOR_ARRAY_UNSUPPORTED',
+        'RUNTIME.CODEC_DESCRIPTOR_ARRAY_UNSUPPORTED',
         `Codec '${ref.codecId}' uses CodecRef.many, but SQLite codec descriptors do not support stored scalar arrays.`,
         {
           why: 'SQLite has no stored scalar-array codec protocol, so applying a scalar projection to the whole stored array would be ambiguous.',
@@ -201,7 +201,7 @@ export function buildSqliteCodecDescriptorRegistry(
     if (!isSqliteCodecDescriptor(descriptor)) {
       const codecId = candidateCodecId(descriptor);
       throw structuredError(
-        'SQLITE.CODEC_DESCRIPTOR_INVALID',
+        'RUNTIME.CODEC_DESCRIPTOR_INVALID',
         `Codec descriptor '${codecId}' is not a valid SQLite codec descriptor.`,
         {
           why: 'SQLite codec registries require the sqlite-codec discriminant and complete target descriptor methods.',
@@ -213,12 +213,12 @@ export function buildSqliteCodecDescriptorRegistry(
 
     if (byId.has(descriptor.codecId)) {
       throw structuredError(
-        'SQLITE.CODEC_DESCRIPTOR_DUPLICATE',
+        'RUNTIME.DUPLICATE_CODEC',
         `Duplicate SQLite codec descriptor id '${descriptor.codecId}'.`,
         {
           why: 'Each codecId must resolve to exactly one SQLite descriptor during registry composition.',
           fix: 'Remove the duplicate target, adapter, or extension contribution.',
-          meta: { codecId: descriptor.codecId },
+          meta: { codecId: descriptor.codecId, target: 'sqlite' },
         },
       );
     }

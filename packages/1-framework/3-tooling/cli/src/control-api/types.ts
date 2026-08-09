@@ -413,6 +413,8 @@ export interface DbInitFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** Underlying failure or error for diagnostics; never serialized into envelopes. */
+  readonly cause?: unknown;
   readonly marker?: {
     readonly storageHash?: string;
     readonly profileHash?: string;
@@ -485,6 +487,8 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** Underlying failure or error for diagnostics; never serialized into envelopes. */
+  readonly cause?: unknown;
 }
 
 /**
@@ -693,6 +697,8 @@ export interface MigrateFailure {
   readonly summary: string;
   readonly why: string | undefined;
   readonly meta: Record<string, unknown> | undefined;
+  /** Underlying failure or error for diagnostics; never serialized into envelopes. */
+  readonly cause?: unknown;
 }
 
 /**

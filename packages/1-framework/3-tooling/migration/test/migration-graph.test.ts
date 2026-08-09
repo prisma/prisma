@@ -230,7 +230,7 @@ describe('findLeaf', () => {
       const mte = e as MigrationToolsError;
       expect(mte.code).toBe('MIGRATION.NO_TARGET');
       expect(mte.fix).toContain('--from');
-      expect(mte.details).toHaveProperty('reachableHashes');
+      expect(mte.meta).toHaveProperty('reachableHashes');
     }
   });
 
@@ -256,7 +256,7 @@ describe('findLeaf', () => {
       const mte = e as MigrationToolsError;
       expect(mte.code).toBe('MIGRATION.AMBIGUOUS_TARGET');
       expect(mte.category).toBe('MIGRATION');
-      expect(mte.details).toHaveProperty('branchTips');
+      expect(mte.meta).toHaveProperty('branchTips');
       expect(mte.fix).toContain('--from');
     }
   });
