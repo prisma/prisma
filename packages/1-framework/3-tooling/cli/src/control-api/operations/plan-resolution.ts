@@ -16,7 +16,7 @@ import {
   errorPlanForgotTheFlag,
   errorSnapshotMissing,
   mapRefResolutionError,
-} from './cli-errors';
+} from '../../utils/cli-errors';
 import { mapContractAtError } from './contract-at-errors';
 
 const FULL_HASH_PATTERN = /^([0-9a-f]{64}|empty)$/;
@@ -73,7 +73,9 @@ export function assertFromIsGraphNode(
     assertHashIsGraphNode(fromHash, graph);
   } catch (error) {
     if (MigrationToolsError.is(error) && error.code === 'MIGRATION.HASH_NOT_IN_GRAPH') {
-      throw errorPlanForgotTheFlag(fromHash, getReachableRefs(refs, graph), graphTipHash);
+      throw errorPlanForgotTheFlag(fromHash, getReachableRefs(refs, graph), graphTipHash, {
+        cause: error,
+      });
     }
     throw error;
   }

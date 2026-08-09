@@ -95,10 +95,14 @@ export interface MigrationCommandOptions extends CommonCommandOptions {
  */
 export function resolveContractPath(config: { contract?: { output?: string } }): string {
   if (config.contract?.output === undefined) {
-    throw errorRuntime('config.contract.output is required to resolve the contract path', {
-      why: 'CLI commands read the emitted contract from config.contract.output; the config has no value to read.',
-      fix: 'Ensure your prisma-next.config.ts goes through `defineConfig()`, which normalises a default output when the provider supplies an input path, or set `contract.output` explicitly.',
-    });
+    throw errorRuntime(
+      'CONFIG.VALIDATION_FAILED',
+      'config.contract.output is required to resolve the contract path',
+      {
+        why: 'CLI commands read the emitted contract from config.contract.output; the config has no value to read.',
+        fix: 'Ensure your prisma-next.config.ts goes through `defineConfig()`, which normalises a default output when the provider supplies an input path, or set `contract.output` explicitly.',
+      },
+    );
   }
   return resolve(config.contract.output);
 }

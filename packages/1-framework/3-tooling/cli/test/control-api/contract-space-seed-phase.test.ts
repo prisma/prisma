@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   type DescriptorMigrationPackage,
   runContractSpaceSeedPhase,
-} from '../../src/utils/contract-space-seed-phase';
+} from '../../src/control-api/operations/contract-space-seed-phase';
 
 const HASH_A = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const HASH_B = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';

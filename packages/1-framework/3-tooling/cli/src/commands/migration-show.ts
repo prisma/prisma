@@ -6,22 +6,21 @@ import {
   createControlStack,
   type MigrationPlanOperation,
 } from '@internal/framework-components/control';
-import { loadContractSpaceAggregate } from '@internal/migration-tools/aggregate';
 import type { OnDiskMigrationPackage } from '@internal/migration-tools/package';
-import { parseMigrationRef } from '@internal/migration-tools/ref-resolution';
 import { castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { Command } from 'commander';
 import { relative } from 'pathe';
 import { createControlClient } from '../control-api/client';
+import { loadContractSpaceAggregateForCli } from '../control-api/operations/contract-space-aggregate-loader';
+import { resolveMigrationRef } from '../control-api/operations/ref-resolution';
 import {
   type CliStructuredError,
   errorContractValidationFailed,
   errorFileNotFound,
   errorRuntime,
   errorUnexpected,
-  mapRefResolutionError,
 } from '../utils/cli-errors';
 import {
   addGlobalOptions,
@@ -158,11 +157,17 @@ async function executeMigrationShowCommand(
     );
   }
 
-  const aggregate = await loadContractSpaceAggregate({
+  const loadedAggregate = await loadContractSpaceAggregateForCli({
+    targetId: config.target.targetId,
     migrationsDir,
     appContract,
-    deserializeContract: (json: unknown) => familyInstance.deserializeContract(json),
+    extensions: [],
+    deserializeContract: (json) => familyInstance.deserializeContract(json),
   });
+  if (!loadedAggregate.ok) {
+    return notOk(loadedAggregate.failure);
+  }
+  const aggregate = loadedAggregate.value;
 
   const packages = aggregate.app.packages;
   const graph = aggregate.app.graph();
@@ -175,7 +180,7 @@ async function executeMigrationShowCommand(
     const matched = findPackageByDirPath(packages, resolved.value);
     if (!matched) {
       return notOk(
-        errorRuntime('Migration package not found', {
+        errorRuntime('MIGRATION.PACKAGE_NOT_FOUND', 'Migration package not found', {
           why: `No loaded migration package at ${relative(process.cwd(), resolved.value)}`,
           fix: 'Pass a directory name, hash prefix, or path to an on-disk app-space migration package.',
         }),
@@ -185,22 +190,22 @@ async function executeMigrationShowCommand(
   } else {
     if (packages.length === 0) {
       return notOk(
-        errorRuntime('No migrations found', {
+        errorRuntime('MIGRATION.NO_MIGRATIONS', 'No migrations found', {
           why: `No migration packages found in ${appMigrationsRelative}`,
           fix: 'Run `prisma-next migration plan` to create a migration first.',
         }),
       );
     }
-    const migResult = parseMigrationRef(target, { graph, refs });
+    const migResult = resolveMigrationRef(target, { graph, refs });
     if (!migResult.ok) {
-      return notOk(mapRefResolutionError(migResult.failure));
+      return notOk(migResult.failure);
     }
     const matchedPkg = packages.find(
       (p) => p.metadata.migrationHash === migResult.value.migrationHash,
     );
     if (!matchedPkg) {
       return notOk(
-        errorRuntime('Migration package not found', {
+        errorRuntime('MIGRATION.PACKAGE_NOT_FOUND', 'Migration package not found', {
           why: `Resolved migration "${migResult.value.dirName}" but the package was not loaded`,
           fix: 'The migrations directory may be corrupted. Inspect the migration.json files.',
         }),

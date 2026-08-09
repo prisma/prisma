@@ -4,7 +4,7 @@ import {
   appliedHashesFromLedger,
   deriveStatusEdgeAnnotations,
   statusForMigrationHash,
-} from '../../src/commands/migration-status-overlay';
+} from '../../src/control-api/operations/migration-status-overlay';
 import { mergeMigrationEdgeAnnotations } from '../../src/utils/formatters/migration-graph-space-render';
 import { buildGraph, entry } from '../utils/graph-helpers';
 

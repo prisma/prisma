@@ -90,7 +90,7 @@ describe('formatErrorOutput - issues list label and body fallback', () => {
     // PSL interpretation diagnostics stamp `kind` (their diagnostic code) and `message` (their prose).
     const error: CliErrorEnvelope = {
       ...baseError,
-      code: 'CONTRACT.VERIFY_FAILED',
+      code: 'CONTRACT.SOURCE_LOAD_FAILED',
       summary: 'Failed to resolve contract source',
       meta: {
         issues: [{ kind: 'PSL_ORPHANED_BACKRELATION', message: 'orphaned backrelation list' }],
@@ -108,7 +108,7 @@ describe('formatErrorOutput - issues list label and body fallback', () => {
     // `path` plus the `expected`/`actual` presence the label derives from.
     const error: CliErrorEnvelope = {
       ...baseError,
-      code: 'CONTRACT.VERIFY_FAILED',
+      code: 'CONTRACT.SOURCE_LOAD_FAILED',
       summary: 'Failed to resolve contract source',
       meta: {
         // expected-only → a missing object.

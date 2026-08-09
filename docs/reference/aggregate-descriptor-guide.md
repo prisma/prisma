@@ -22,7 +22,7 @@ A descriptor claims one `(operation, input)` pair, and exactly one component may
 | Kind | Claims | Example |
 | --- | --- | --- |
 | `none` | a call with no input at all | a count over rows |
-| `codec` | one exact codec id | `sum` over `pg/int8@1`, which goes to `numeric` where the other integers go to `int8` |
+| `codec` | one exact codec id | `sum` over `pg/int8@1`, which goes to `numeric` where the small integers go to `int8` |
 | `trait` | every codec advertising the trait | `min` over anything `textual` |
 | `any` | any input, and no input — a result that does not depend on what it aggregates | `count`, which is an integer whether it counts rows or values |
 

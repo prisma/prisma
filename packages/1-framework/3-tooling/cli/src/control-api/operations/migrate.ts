@@ -26,10 +26,6 @@ import { findPathWithDecision } from '@internal/migration-tools/migration-graph'
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
-import {
-  type BuildAggregateInputs,
-  buildContractSpaceAggregate,
-} from '../../utils/contract-space-aggregate-loader';
 import type {
   MigrateFailure,
   MigratePathDecision,
@@ -38,6 +34,10 @@ import type {
   OnControlProgress,
   PerSpaceExecutionEntry,
 } from '../types';
+import {
+  type BuildAggregateInputs,
+  buildContractSpaceAggregate,
+} from './contract-space-aggregate-loader';
 import { buildPerSpaceBreakdown, runMigration } from './run-migration';
 
 /**
@@ -291,6 +291,7 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       summary: applied.failure.summary,
       why: applied.failure.why,
       meta: applied.failure.meta,
+      ...ifDefined('cause', applied.failure.cause),
     };
     return notOk(failure);
   }

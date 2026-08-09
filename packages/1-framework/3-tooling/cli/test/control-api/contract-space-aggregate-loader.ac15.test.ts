@@ -20,7 +20,7 @@ import type { Contract } from '@internal/contract/types';
 import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { buildContractSpaceAggregate } from '../../src/utils/contract-space-aggregate-loader';
+import { buildContractSpaceAggregate } from '../../src/control-api/operations/contract-space-aggregate-loader';
 
 const STUB_HASH = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 

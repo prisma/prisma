@@ -18,8 +18,8 @@ import {
   type ResolveToForPlanInput,
   resolveFromForPlan,
   resolveToForPlan,
-} from '../../src/utils/plan-resolution';
-import type { ContractIR } from '../../src/utils/ref-advancement';
+} from '../../src/control-api/operations/plan-resolution';
+import type { ContractIR } from '../../src/control-api/operations/ref-advancement';
 
 const E = EMPTY_CONTRACT_HASH;
 const HASH_A = `${'a'.repeat(64)}`;
@@ -116,7 +116,7 @@ function baseInput(
 }
 
 function expectRefuse(error: CliStructuredError, migrationCode: string, fixFragment: string): void {
-  expect(error.meta?.['code']).toBe(migrationCode);
+  expect(error.code).toBe(migrationCode);
   expect(error.fix).toContain(fixFragment);
 }
 
@@ -280,7 +280,7 @@ describe('resolveFromForPlan', () => {
         new MigrationToolsError('MIGRATION.REF_NOT_RESOLVABLE', `Ref "db" is not resolvable`, {
           why: 'Ref "db" has no pointer file, and the hash being resolved is not a node in the migration graph either.',
           fix: 'Create the ref with "prisma-next ref set db <hash>" (or advance it via "prisma-next db update --advance-ref db"), or pass a hash that is a node in the migration graph.',
-          details: { refName: 'db' },
+          meta: { refName: 'db' },
         }),
       ),
     );
@@ -338,7 +338,7 @@ describe('resolveFromForPlan', () => {
         new MigrationToolsError('MIGRATION.REF_NOT_RESOLVABLE', `Ref "staging" is not resolvable`, {
           why: 'Ref "staging" has no pointer file, and the hash being resolved is not a node in the migration graph either.',
           fix: 'Create the ref with "prisma-next ref set staging <hash>" (or advance it via "prisma-next db update --advance-ref staging"), or pass a hash that is a node in the migration graph.',
-          details: { refName: 'staging' },
+          meta: { refName: 'staging' },
         }),
       ),
     );
@@ -361,7 +361,7 @@ describe('resolveFromForPlan', () => {
           {
             why: `Contract at "/project/migrations/snapshots/${'a'.repeat(64)}/contract.json" failed to deserialize: unsupported legacy shape`,
             fix: 'Re-emit.',
-            details: {
+            meta: {
               filePath: `/project/migrations/snapshots/${'a'.repeat(64)}/contract.json`,
               message: 'unsupported legacy shape',
             },
@@ -392,7 +392,7 @@ describe('resolveFromForPlan', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.failure.meta?.['code']).toBe('MIGRATION.INVALID_REF_FILE');
+      expect(result.failure.code).toBe('MIGRATION.INVALID_REF_FILE');
     }
   });
 

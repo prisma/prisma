@@ -21,6 +21,7 @@ import type { AnySqliteCodecDescriptor } from '../src/core/codec-descriptor';
 import {
   codecDescriptors,
   sqliteBigintDescriptor,
+  sqliteBigintNumberDescriptor,
   sqliteBlobDescriptor,
   sqliteDatetimeDescriptor,
   sqliteIntegerDescriptor,
@@ -46,6 +47,7 @@ const EXPECTED_CODEC_IDS = [
   'sqlite/datetime@1',
   'sqlite/json@1',
   'sqlite/bigint@1',
+  'sqlite/bigintnumber@1',
 ] as const;
 
 const refFor = (
@@ -117,6 +119,7 @@ describe('SQLite built-in codec descriptors', () => {
       sqliteIntegerDescriptor,
       sqliteRealDescriptor,
       sqliteDatetimeDescriptor,
+      sqliteBigintNumberDescriptor,
     ];
 
     for (const descriptor of descriptors) {

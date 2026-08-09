@@ -215,7 +215,7 @@ describe('migration check multi-space (command)', () => {
 
     expect(exitCode).toBe(2);
     expect(envelope.ok).toBe(false);
-    expect(envelope.meta?.['code']).toBe('MIGRATION.INVALID_SPACE_ID');
+    expect(envelope.code).toBe('MIGRATION.INVALID_SPACE_ID');
   });
 });
 

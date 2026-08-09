@@ -24,6 +24,7 @@ const REPRESENTATIVE_SCHEMA = `model sample {
   id        Int      @id
   name      String
   big       BigInt
+  bounded   BigIntNumber
   ratio     Float
   price     Decimal
   createdAt DateTime
@@ -65,6 +66,7 @@ describe('sqlite scalar types derived from the unified namespace', () => {
       String: { codecId: 'sqlite/text@1', nativeType: 'text' },
       Int: { codecId: 'sqlite/integer@1', nativeType: 'integer' },
       BigInt: { codecId: 'sqlite/bigint@1', nativeType: 'integer' },
+      BigIntNumber: { codecId: 'sqlite/bigintnumber@1', nativeType: 'integer' },
       Float: { codecId: 'sqlite/real@1', nativeType: 'real' },
       Decimal: { codecId: 'sqlite/text@1', nativeType: 'text' },
       DateTime: { codecId: 'sqlite/datetime@1', nativeType: 'text' },
@@ -76,6 +78,7 @@ describe('sqlite scalar types derived from the unified namespace', () => {
   it('exposes the derived scalar names as controlStack.scalarTypes', () => {
     expect([...stack.scalarTypes].sort()).toEqual([
       'BigInt',
+      'BigIntNumber',
       'Bytes',
       'DateTime',
       'Decimal',
@@ -102,6 +105,7 @@ describe('sqlite scalar types derived from the unified namespace', () => {
                     id: { codecId: 'sqlite/integer@1', nativeType: 'integer' },
                     name: { codecId: 'sqlite/text@1', nativeType: 'text' },
                     big: { codecId: 'sqlite/bigint@1', nativeType: 'integer' },
+                    bounded: { codecId: 'sqlite/bigintnumber@1', nativeType: 'integer' },
                     ratio: { codecId: 'sqlite/real@1', nativeType: 'real' },
                     price: { codecId: 'sqlite/text@1', nativeType: 'text' },
                     createdAt: { codecId: 'sqlite/datetime@1', nativeType: 'text' },

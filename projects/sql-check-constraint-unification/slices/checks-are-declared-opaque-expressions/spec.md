@@ -1,6 +1,6 @@
 # Slice 1 — `checks-are-declared-opaque-expressions`
 
-**Project:** [sql-check-constraint-unification](../../spec.md) · **Linear:** _TBD_ · **Status:** in build
+**Project:** [sql-check-constraint-unification](../../spec.md) · **Status:** in build
 
 ## At a glance
 

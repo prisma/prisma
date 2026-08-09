@@ -1,5 +1,18 @@
 import { temporalAuthoringPresets, temporalCodecPreset } from '@internal/family-sql/control';
-import type { AuthoringFieldNamespace } from '@internal/framework-components/authoring';
+import type {
+  AuthoringFieldNamespace,
+  AuthoringTypeNamespace,
+} from '@internal/framework-components/authoring';
+
+export const sqliteAuthoringTypes = {
+  BigIntNumber: {
+    kind: 'typeConstructor',
+    output: {
+      codecId: 'sqlite/bigintnumber@1',
+      nativeType: 'integer',
+    },
+  },
+} as const satisfies AuthoringTypeNamespace;
 
 export const sqliteAuthoringFieldPresets = {
   temporal: {

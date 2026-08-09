@@ -225,7 +225,7 @@ describe('migration check <ref> — single-target multi-space resolution', () =>
 
     expect(exitCode).toBe(2);
     expect(envelope.ok).toBe(false);
-    expect(envelope.meta?.['code']).toBe('MIGRATION.INVALID_SPACE_ID');
+    expect(envelope.code).toBe('MIGRATION.INVALID_SPACE_ID');
   });
 
   it('(b) --space <unknown-id> → PRECONDITION SPACE_NOT_FOUND', async () => {
@@ -245,7 +245,7 @@ describe('migration check <ref> — single-target multi-space resolution', () =>
 
     expect(exitCode).toBe(2);
     expect(envelope.ok).toBe(false);
-    expect(envelope.meta?.['code']).toBe('MIGRATION.SPACE_NOT_FOUND');
+    expect(envelope.code).toBe('MIGRATION.SPACE_NOT_FOUND');
     expect(envelope.meta?.['spaceId']).toBe('nope');
   });
 
@@ -261,7 +261,7 @@ describe('migration check <ref> — single-target multi-space resolution', () =>
 
     expect(exitCode).toBe(2);
     expect(envelope.ok).toBe(false);
-    expect(envelope.meta?.['code']).toBe('MIGRATION.AMBIGUOUS_MIGRATION_REF');
+    expect(envelope.code).toBe('MIGRATION.AMBIGUOUS_MIGRATION_REF');
     expect(envelope.summary).toContain('--space');
   });
 

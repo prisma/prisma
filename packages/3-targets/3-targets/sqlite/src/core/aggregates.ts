@@ -23,6 +23,7 @@ import {
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,
   SQLITE_BIGINT_CODEC_ID,
+  SQLITE_BIGINT_NUMBER_CODEC_ID,
   SQLITE_BLOB_CODEC_ID,
   SQLITE_DATETIME_CODEC_ID,
   SQLITE_INTEGER_CODEC_ID,
@@ -72,8 +73,13 @@ const produces = (
   ...(codecId === SQLITE_BIGINT_CODEC_ID ? { lower: castResultToText(operation) } : {}),
 });
 
-/** Codecs stored as SQLite integers. Their `sum` is an integer of up to 64 bits, which is `sqlite/bigint@1`'s range and beyond `sqlite/integer@1`'s. */
-const INTEGER_CODECS = [SQLITE_INTEGER_CODEC_ID, SQLITE_BIGINT_CODEC_ID, SQL_INT_CODEC_ID] as const;
+/** Codecs stored as SQLite integers. Their `sum` is an integer of up to 64 bits, which is `sqlite/bigint@1`'s range and beyond `sqlite/integer@1`'s — `sqlite/bigintnumber@1`'s included, since a sum of safe-range values is free to leave the safe range. */
+const INTEGER_CODECS = [
+  SQLITE_INTEGER_CODEC_ID,
+  SQLITE_BIGINT_CODEC_ID,
+  SQLITE_BIGINT_NUMBER_CODEC_ID,
+  SQL_INT_CODEC_ID,
+] as const;
 
 /** Codecs stored as SQLite reals. Their `sum` stays real. */
 const REAL_CODECS = [SQLITE_REAL_CODEC_ID, SQL_FLOAT_CODEC_ID] as const;

@@ -100,6 +100,12 @@ const FIXTURES: readonly AggregateFixture[] = [
     storageClass: 'integer',
     samples: ['9007199254740993', '2'],
   },
+  {
+    codecId: 'sqlite/bigintnumber@1',
+    storageType: 'INTEGER',
+    storageClass: 'integer',
+    samples: ['1', '2'],
+  },
 ];
 
 /**
@@ -269,6 +275,56 @@ describe.sequential('SQLite aggregate conformance', () => {
     });
     expect(registry.resolve('sum', { codecId: 'sqlite/bigint@1' })?.output).toEqual({
       codecId: 'sqlite/bigint@1',
+    });
+  });
+
+  it('sums bigintnumber past the safe range into a bigint through the cast-to-text lowering', async () => {
+    withFixtureTable(
+      {
+        codecId: 'sqlite/bigintnumber@1',
+        storageType: 'INTEGER',
+        storageClass: 'integer',
+        samples: ['9007199254740991', '9007199254740991'],
+      },
+      () => {
+        const [row] = run(
+          `SELECT typeof(sum("${COLUMN}")) AS class, CAST(sum("${COLUMN}") AS TEXT) AS total FROM "${TABLE}"`,
+        );
+
+        expect(row?.['class']).toBe('integer');
+        expect(row?.['total']).toBe('18014398509481982');
+      },
+    );
+
+    const resolved = registry.resolve('sum', { codecId: 'sqlite/bigintnumber@1' });
+    expect(resolved?.output).toEqual({ codecId: 'sqlite/bigint@1' });
+
+    const lowered = resolved?.lower?.({
+      expr: ColumnRef.of('t', 'c'),
+      inputCodec: { codecId: 'sqlite/bigintnumber@1' },
+    });
+    expect(lowered).toEqual(CastExpr.as(AggregateExpr.sum(ColumnRef.of('t', 'c')), 'text'));
+
+    const bigintCodec = sqliteCodecRegistry.descriptorFor('sqlite/bigint@1')!.factory(undefined)({
+      name: 'aggregate-conformance',
+    });
+    expect(await bigintCodec.decode('18014398509481982', {})).toBe(18014398509481982n);
+
+    expect(registry.resolve('avg', { codecId: 'sqlite/bigintnumber@1' })?.output).toEqual({
+      codecId: 'sqlite/real@1',
+    });
+  });
+
+  // The min/max fallback rows carry no text cast; the codec's wire decode
+  // accepts a `number` or an in-range `bigint`, so an extremum of stored
+  // safe-range values is always readable.
+  it('resolves min/max over bigintnumber to itself, without a lowering', () => {
+    const resolved = registry.resolve('min', { codecId: 'sqlite/bigintnumber@1' });
+    expect(resolved?.output).toEqual({ codecId: 'sqlite/bigintnumber@1' });
+    expect(resolved?.lower).toBeUndefined();
+
+    expect(registry.resolve('max', { codecId: 'sqlite/bigintnumber@1' })?.output).toEqual({
+      codecId: 'sqlite/bigintnumber@1',
     });
   });
 

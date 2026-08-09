@@ -54,10 +54,11 @@ function nearestManifest(from: string): Record<string, unknown> | undefined {
       raw = readFileSync(path, 'utf8');
     } catch (cause) {
       if (!MANIFEST_ABSENT_CODES.has(errorCode(cause) ?? '')) {
-        throw errorRuntime(`Failed to read ${path}`, {
+        throw errorRuntime('CLI.PROJECT_MANIFEST_UNREADABLE', `Failed to read ${path}`, {
           why: `\`${path}\` exists but could not be read: ${cause instanceof Error ? cause.message : String(cause)}`,
           fix: `Make \`${path}\` readable, then re-run the command. Emission reads it to decide which package names generated files should import.`,
           meta: { path },
+          cause,
         });
       }
       const parent = dirname(dir);
@@ -69,14 +70,15 @@ function nearestManifest(from: string): Record<string, unknown> | undefined {
     try {
       parsed = JSON.parse(raw);
     } catch (cause) {
-      throw errorRuntime(`Failed to parse ${path}`, {
+      throw errorRuntime('CLI.PROJECT_MANIFEST_INVALID', `Failed to parse ${path}`, {
         why: `\`${path}\` is not valid JSON: ${cause instanceof Error ? cause.message : String(cause)}`,
         fix: `Fix the JSON syntax in \`${path}\` (a missing comma or unbalanced brace is the most common cause), then re-run the command. Emission reads it to decide which package names generated files should import.`,
         meta: { path },
+        cause,
       });
     }
     if (!isRecord(parsed)) {
-      throw errorRuntime(`Failed to read ${path}`, {
+      throw errorRuntime('CLI.PROJECT_MANIFEST_INVALID', `Failed to read ${path}`, {
         why: `\`${path}\` is valid JSON but not a JSON object, so it states no dependencies.`,
         fix: `Make \`${path}\` a JSON object with the usual manifest fields, then re-run the command. Emission reads it to decide which package names generated files should import.`,
         meta: { path },

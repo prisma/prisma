@@ -80,8 +80,8 @@ describe('assertHashIsGraphNode', () => {
       expect(err.why).toContain('missing');
       expect(err.fix).toMatch(/migration plan/i);
       expect(err.fix).toMatch(/--from/i);
-      expect(err.details?.['hash']).toBe('missing');
-      expect(err.details?.['reachableHashes']).toEqual(['aaa', 'bbb', 'zzz']);
+      expect(err.meta?.['hash']).toBe('missing');
+      expect(err.meta?.['reachableHashes']).toEqual(['aaa', 'bbb', 'zzz']);
     }
   });
 
@@ -96,8 +96,8 @@ describe('assertHashIsGraphNode', () => {
       expect(MigrationToolsError.is(error)).toBe(true);
       const err = error as MigrationToolsError;
       expect(err.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
-      expect(err.details?.['hash']).toBe('not-a-valid-hash');
-      expect(err.details?.['reachableHashes']).toEqual([]);
+      expect(err.meta?.['hash']).toBe('not-a-valid-hash');
+      expect(err.meta?.['reachableHashes']).toEqual([]);
     }
   });
 });

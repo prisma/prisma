@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapIntegrityViolations } from '../../src/utils/contract-space-aggregate-loader';
+import { mapIntegrityViolations } from '../../src/control-api/operations/contract-space-aggregate-loader';
 
 describe('mapIntegrityViolations', () => {
   it('emits union kinds in meta.violations for contractUnreadable', () => {

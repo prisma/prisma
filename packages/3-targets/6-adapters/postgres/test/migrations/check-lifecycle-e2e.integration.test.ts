@@ -566,6 +566,54 @@ describe.sequential('check-constraint lifecycle', () => {
     expect((await verify(contract)).ok).toBe(true);
   });
 
+  // A prefix-only change keeps the predicate — and so the content hash —
+  // identical, so the two sides pair and collapse into one RENAME CONSTRAINT
+  // rather than dropping and re-adding a constraint Postgres would have to
+  // revalidate against every row.
+  it('a prefix-only change plans exactly one RENAME CONSTRAINT', {
+    timeout: testTimeout,
+  }, async () => {
+    const before = checksForColumn('Item', 'role', {
+      many: false,
+      memberValues: ['user', 'admin'],
+    });
+    const columns = {
+      id: idColumn,
+      role: { nativeType: 'text', codecId: 'pg/text@1', nullable: false },
+    } as const;
+    const v1 = contractOf(columns, before);
+    await migrate(v1);
+
+    // Same expression under a different prefix: same hash, different name.
+    const expression = before[0]?.expression ?? '';
+    const renamed = new CheckConstraint({
+      naming: {
+        kind: 'wire',
+        prefix: 'Item_role_allowed',
+        hash: computeCheckContentHash(expression),
+      },
+      expression,
+    });
+    const v2 = contractOf(columns, [renamed]);
+
+    const { opIds } = await migrate(v2, { from: v1, policy: FULL_POLICY });
+
+    // Unqualified for the unbound namespace, matching every other op id here.
+    expect(opIds).toEqual([
+      `checkConstraint.${UNBOUND_NAMESPACE_ID}.Item.${before[0]?.name}.rename`,
+    ]);
+    expect(opIds.some((id) => id.startsWith('dropCheckConstraint.'))).toBe(false);
+
+    expect(await liveCheckNames()).toEqual([renamed.name]);
+    expect((await verify(v2)).ok).toBe(true);
+
+    // The renamed constraint still enforces its predicate.
+    await driver!.query(`INSERT INTO "Item" (id, role) VALUES ('a', 'user')`);
+    await expect(
+      driver!.query(`INSERT INTO "Item" (id, role) VALUES ('b', 'root')`),
+    ).rejects.toThrow(new RegExp(renamed.name));
+  });
+
   it('a varchar-column membership check does not drift after apply', {
     timeout: testTimeout,
   }, async () => {

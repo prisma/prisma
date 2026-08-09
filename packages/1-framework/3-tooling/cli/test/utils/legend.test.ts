@@ -27,7 +27,7 @@ describe('validateLegendOptions', () => {
       expect(result.failure.message).toContain('--legend');
       expect(result.failure.message).not.toContain('graph');
       expect(result.failure.why).toContain('--json');
-      expect(result.failure.meta?.['code']).toBe('MIGRATION.LEGEND_HUMAN_ONLY');
+      expect(result.failure.code).toBe('MIGRATION.LEGEND_HUMAN_ONLY');
     }
   });
 
@@ -35,7 +35,7 @@ describe('validateLegendOptions', () => {
     const result = validateLegendOptions({ legend: true }, { ...PRETTY, quiet: true });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.failure.meta?.['code']).toBe('MIGRATION.LEGEND_HUMAN_ONLY');
+      expect(result.failure.code).toBe('MIGRATION.LEGEND_HUMAN_ONLY');
       expect(result.failure.why).toContain('--quiet');
     }
   });
@@ -46,7 +46,7 @@ describe('validateLegendOptions', () => {
     if (!result.ok) {
       expect(result.failure.message).toContain('--legend');
       expect(result.failure.why).toContain('--dot');
-      expect(result.failure.meta?.['code']).toBe('MIGRATION.LEGEND_HUMAN_ONLY');
+      expect(result.failure.code).toBe('MIGRATION.LEGEND_HUMAN_ONLY');
     }
   });
 

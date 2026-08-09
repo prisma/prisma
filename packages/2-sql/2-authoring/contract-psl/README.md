@@ -18,7 +18,7 @@ This keeps core/CLI source-agnostic while giving PSL-first SQL users a one-line 
 - Interpret SQL timestamp semantics: `DateTime @default(now())` (or the equivalent `temporal.createdAt()` field-preset call) as a storage default, and `temporal.updatedAt()` as an execution mutation default
 - Lower shared constructor expressions in both `types {}` blocks and inline field positions (for example `ShortName = sql.String(length: 35)` and `embedding pgvector.Vector(length: 1536)?`)
 - Lower supported default functions through composed registry inputs
-- Resolve Postgres native storage types from bare names and constructor calls in type position (`Char`, `VarChar`, `Numeric`, `Uuid`, `Inet`, `SmallInt`, `Real`, `Timestamp`, `Timestamptz`, `Date`, `Time`, `Timetz`, `Json`, `Jsonb`)
+- Resolve Postgres native storage types from bare names and constructor calls in type position (`Char`, `VarChar`, `Numeric`, `Uuid`, `Inet`, `SmallInt`, `Real`, `Timestamp`, `Timestamptz`, `Date`, `Time`, `Timetz`, `Json`, `Jsonb`, `BigIntNumber`, `UnboundedInt`)
 - Map PSL relation action tokens to SQL contract referential actions and emit diagnostics for unsupported values
 - Emit deterministic relation metadata in `models.<Model>.relations`
 - Enforce extension composition for namespaced constructor expressions and emit strict diagnostics for unsupported namespaced attributes
@@ -70,6 +70,19 @@ Supported timestamp authoring surface:
 - `updatedAt temporal.updatedAt()` lowers to `timestampNow` on create and on non-empty update mutations. This is application-side because update-time semantics are mutation-aware, not a database trigger.
 - The Prisma-flavored `@updatedAt` attribute is not supported; references produce `PSL_UNSUPPORTED_FIELD_ATTRIBUTE` with a migration hint pointing at `temporal.updatedAt()`. The hint is suppressed when the field already declares any `temporal.*` preset.
 - `@createdAt` is not supported as a PSL alias.
+
+Field-preset calls in type position:
+
+- A field may use a registered field-preset call as its type (`createdAt temporal.createdAt()`). A preset is a complete field declaration — it carries its own codec, native type, and any default semantics.
+- Preset-call fields reject the modifiers the preset already decides: `?` optional (`PSL_PRESET_NOT_OPTIONAL`), `@default(...)` (`PSL_PRESET_AND_DEFAULT_CONFLICT`), `@id` unless the preset contributes id semantics (`PSL_PRESET_AND_ID_CONFLICT`), and list use (`PSL_PRESET_NOT_LIST`).
+
+Integer representation authoring surface:
+
+- `BigInt` keeps the lossless `bigint` codec (`pg/int8@1` / `sqlite/bigint@1`): values read and write as JS `bigint`, and 64-bit integers travel through database-produced JSON as decimal text.
+- Bare `BigIntNumber` (PostgreSQL and SQLite) opts an `int8`/INTEGER column into JS `number` reads and writes. Both directions throw structured errors outside ±(2^53 − 1) or on non-integral values: `RUNTIME.ENCODE_FAILED` on write, `RUNTIME.DECODE_FAILED` on read.
+- Bare `UnboundedInt` (PostgreSQL only) reads and writes an unconstrained `numeric` as a JS `bigint`, exact at any magnitude; decode rejects non-integral values. SQLite declares no equivalent because it has no lossless unbounded integer storage.
+- These are ordinary target-scoped types rather than field presets, so ordinary scalar modifiers apply subject to the target's capabilities.
+- Selection guidance, canonical JSON forms, the safe-range soundness argument, and aggregate behavior: [Integer representation types](../../../../docs/reference/integer-representation-types.md).
 
 `@@index` parameter surface:
 

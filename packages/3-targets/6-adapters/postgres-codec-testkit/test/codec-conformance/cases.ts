@@ -95,6 +95,11 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
   { codecId: 'pg/int8@1', label: 'integer beyond double precision', value: 9007199254740993n },
   { codecId: 'pg/int8@1', label: 'int8 lower bound', value: -9223372036854775808n },
   { codecId: 'pg/int8@1', label: 'int8 upper bound', value: 9223372036854775807n },
+  // The safe-range boundaries are the values a JSON-number canonical form is
+  // most likely to mangle, so they are the ones that pin it.
+  { codecId: 'pg/int8number@1', label: 'largest safe integer', value: 9007199254740991 },
+  { codecId: 'pg/int8number@1', label: 'smallest safe integer', value: -9007199254740991 },
+  { codecId: 'pg/int8number@1', label: 'small integer', value: 42 },
   { codecId: 'pg/float4@1', label: 'finite float', value: 1.5 },
   { codecId: 'pg/float8@1', label: 'finite float', value: 1.5 },
   // These values are chosen to discriminate between `extra_float_digits`
@@ -164,6 +169,17 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     codecId: 'pg/numeric@1',
     label: 'twenty fractional digits',
     value: '1234567890.12345678901234567890',
+  },
+  {
+    codecId: 'pg/unboundedint@1',
+    label: 'integer beyond double precision',
+    value: 9007199254740993n,
+  },
+  { codecId: 'pg/unboundedint@1', label: 'integer past 2^63', value: 18446744073709551617n },
+  {
+    codecId: 'pg/unboundedint@1',
+    label: 'negative integer past 2^63',
+    value: -18446744073709551617n,
   },
   { codecId: 'pg/bool@1', label: 'true', value: true },
   { codecId: 'pg/bit@1', label: 'single bit', value: '1' },
@@ -395,6 +411,12 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
     nullValue: true,
   },
   {
+    codecId: 'pg/int8number@1',
+    label: 'null',
+    value: undefined,
+    nullValue: true,
+  },
+  {
     codecId: 'pg/int@1',
     label: 'null',
     value: undefined,
@@ -456,6 +478,12 @@ export const postgresConformanceCases: readonly PostgresCodecConformanceCase[] =
   },
   {
     codecId: 'pg/timetz@1',
+    label: 'null',
+    value: undefined,
+    nullValue: true,
+  },
+  {
+    codecId: 'pg/unboundedint@1',
     label: 'null',
     value: undefined,
     nullValue: true,

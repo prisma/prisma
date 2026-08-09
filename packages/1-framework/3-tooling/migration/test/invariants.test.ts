@@ -83,7 +83,7 @@ describe('deriveProvidedInvariants', () => {
     expect(() => deriveProvidedInvariants([dataOp('with space', 'has a space')])).toThrowError(
       expect.objectContaining({
         code: 'MIGRATION.INVALID_INVARIANT_ID',
-        details: { invariantId: 'has a space' },
+        meta: { invariantId: 'has a space' },
       }) as unknown as Error,
     );
   });
@@ -101,7 +101,7 @@ describe('deriveProvidedInvariants', () => {
     expect(MigrationToolsError.is(caught)).toBe(true);
     if (MigrationToolsError.is(caught)) {
       expect(caught.code).toBe('MIGRATION.DUPLICATE_INVARIANT_IN_EDGE');
-      expect(caught.details).toEqual({ invariantId: 'shared' });
+      expect(caught.meta).toEqual({ invariantId: 'shared' });
     }
   });
 });

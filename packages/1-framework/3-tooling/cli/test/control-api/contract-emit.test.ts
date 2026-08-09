@@ -195,19 +195,19 @@ describe('executeContractEmit', () => {
           meta: { sourceId: 'schema.prisma' },
         },
       })),
-      expectedCode: 'CONTRACT.VERIFY_FAILED',
+      expectedCode: 'CONTRACT.SOURCE_LOAD_FAILED',
       expectedSubstring: 'Provider parse failed',
     },
     {
       label: 'rejects malformed failure result',
       source: createSourceProvider(async () => ({ ok: false }) as unknown),
-      expectedCode: 'CONTRACT.VERIFY_FAILED',
+      expectedCode: 'CONTRACT.SOURCE_LOAD_FAILED',
       expectedSubstring: 'malformed failure result',
     },
     {
       label: 'rejects malformed success result',
       source: createSourceProvider(async () => ({ ok: true }) as unknown),
-      expectedCode: 'CONTRACT.VERIFY_FAILED',
+      expectedCode: 'CONTRACT.SOURCE_LOAD_FAILED',
       expectedSubstring: 'malformed success result',
     },
   ])('source provider validation', ({ label, source, expectedCode, expectedSubstring }) => {
