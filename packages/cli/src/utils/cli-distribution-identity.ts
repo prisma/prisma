@@ -22,7 +22,7 @@ const prisma7Identity = Object.freeze({
   configPackageName: 'prisma7/config',
 } as const)
 
-function resolveCliDistributionIdentity(): CliDistributionIdentity {
+export function initializeCliDistributionIdentity(): CliDistributionIdentity {
   const marker = process.env[distributionMarker]
   delete process.env[distributionMarker]
 
@@ -35,5 +35,3 @@ function resolveCliDistributionIdentity(): CliDistributionIdentity {
   Reflect.set(globalThis, identityKey, identity)
   return identity
 }
-
-export const cliDistributionIdentity = resolveCliDistributionIdentity()

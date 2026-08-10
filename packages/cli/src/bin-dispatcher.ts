@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { cliDistributionIdentity } from './utils/cli-distribution-identity'
+import { initializeCliDistributionIdentity } from './utils/cli-distribution-identity'
 
-void cliDistributionIdentity
+initializeCliDistributionIdentity()
 
 if (process.argv[2] === 'complete') {
   require('./completion.js')

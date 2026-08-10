@@ -16,23 +16,25 @@ afterEach(() => {
 
 describe('CLI distribution identity', () => {
   it('defaults ordinary Prisma invocations to the existing distribution', async () => {
-    const { cliDistributionIdentity } = await import('./cli-distribution-identity')
+    const { initializeCliDistributionIdentity } = await import('./cli-distribution-identity')
+    const identity = initializeCliDistributionIdentity()
 
-    expect(cliDistributionIdentity).toEqual({
+    expect(identity).toEqual({
       name: 'prisma',
       commandName: 'prisma',
       packageName: 'prisma',
       configPackageName: 'prisma/config',
     })
-    expect(Object.isFrozen(cliDistributionIdentity)).toBe(true)
+    expect(Object.isFrozen(identity)).toBe(true)
   })
 
   it('selects prisma7 and consumes its one-shot marker', async () => {
     process.env[distributionMarker] = 'prisma7'
 
-    const { cliDistributionIdentity } = await import('./cli-distribution-identity')
+    const { initializeCliDistributionIdentity } = await import('./cli-distribution-identity')
+    const identity = initializeCliDistributionIdentity()
 
-    expect(cliDistributionIdentity).toEqual({
+    expect(identity).toEqual({
       name: 'prisma7',
       commandName: 'prisma7',
       packageName: 'prisma7',
@@ -43,13 +45,15 @@ describe('CLI distribution identity', () => {
 
   it('cannot change identity after startup and still consumes a later marker', async () => {
     const firstImport = await import('./cli-distribution-identity')
+    const firstIdentity = firstImport.initializeCliDistributionIdentity()
 
     process.env[distributionMarker] = 'prisma7'
     vi.resetModules()
     const secondImport = await import('./cli-distribution-identity')
+    const secondIdentity = secondImport.initializeCliDistributionIdentity()
 
-    expect(secondImport.cliDistributionIdentity).toBe(firstImport.cliDistributionIdentity)
-    expect(secondImport.cliDistributionIdentity.name).toBe('prisma')
+    expect(secondIdentity).toBe(firstIdentity)
+    expect(secondIdentity.name).toBe('prisma')
     expect(process.env[distributionMarker]).toBeUndefined()
   })
 })
