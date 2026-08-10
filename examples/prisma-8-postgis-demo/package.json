@@ -35,11 +35,11 @@
   "devDependencies": {
     "@repo/test-utils": "workspace:8.0.0-rc.1",
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
-    "@types/leaflet": "^1.9.12",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
