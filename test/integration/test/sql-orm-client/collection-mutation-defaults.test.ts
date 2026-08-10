@@ -303,4 +303,56 @@ describe('@updatedAt mutation defaults via Collection', () => {
       expect(dateParams).toHaveLength(1);
     });
   });
+
+  describe('upsertAll (bulk)', () => {
+    it('carries the create-branch timestamp into the conflict update via excluded', async () => {
+      const { collection, runtime } = setupTagCollection();
+      runtime.setNextResults([
+        [
+          { id: TAG_A_ID, name: 'one', updated_at: new Date() },
+          { id: TAG_B_ID, name: 'two', updated_at: new Date() },
+        ],
+      ]);
+
+      await collection
+        .upsertAll([
+          { id: tagId(TAG_A_ID), name: 'one' },
+          { id: tagId(TAG_B_ID), name: 'two' },
+        ])
+        .toArray();
+
+      const params = planParams(runtime.executions[0]);
+      const dateParams = params.filter((p) => p instanceof Date) as Date[];
+      // `updated_at` lands in the default update set, so it is assigned from
+      // `excluded.updated_at` — one shared create-branch Date, no extra literal.
+      expect(dateParams).toHaveLength(2);
+      expect(dateParams[1]).toBe(dateParams[0]);
+    });
+
+    it('applies an onUpdate default the explicit update list omits', async () => {
+      const { collection, runtime } = setupTagCollection();
+      runtime.setNextResults([[{ id: TAG_A_ID, name: 'one', updated_at: new Date() }]]);
+
+      await collection
+        .upsertAll([{ id: tagId(TAG_A_ID), name: 'one' }], { update: ['name'] })
+        .toArray();
+
+      const params = planParams(runtime.executions[0]);
+      const dateParams = params.filter((p) => p instanceof Date) as Date[];
+      // One Date bound in the INSERT row, a second bound as the literal
+      // `updated_at` assignment the DO UPDATE SET clause adds.
+      expect(dateParams).toHaveLength(2);
+    });
+
+    it('does not advance updatedAt when the update list is empty', async () => {
+      const { collection, runtime } = setupTagCollection();
+      runtime.setNextResults([[{ id: TAG_A_ID, name: 'one', updated_at: new Date() }]]);
+
+      await collection.upsertAll([{ id: tagId(TAG_A_ID), name: 'one' }], { update: [] }).toArray();
+
+      const params = planParams(runtime.executions[0]);
+      const dateParams = params.filter((p) => p instanceof Date) as Date[];
+      expect(dateParams).toHaveLength(1);
+    });
+  });
 });

@@ -463,7 +463,7 @@ The Mongo ORM client was asked to operate on a model name that is not in the con
 
 ### ORM.MUTATION_DATA_MISSING
 
-`create()` or `createAndCount()` was called with zero rows; at least one row of data is required. Meta: `method`, `namespaceId`, `tableName`.
+`create()`, `createAndCount()`, or `upsertAll()` was called with zero rows; at least one row of data is required. Meta: `method`, `namespaceId`, `tableName`.
 
 ### ORM.MUTATION_ROW_MISSING
 
