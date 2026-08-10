@@ -20,3 +20,10 @@
 - **Builds on:** Dispatch 2's complete wrapper package and the cross-package-manager `/tmp` probe that falsified the marker/global-symbol design.
 - **Hands to:** A simpler reviewer-verified wrapper with no identity environment marker, cleanup, global symbol, package metadata lookup, or cross-bundle mutable state, ready for the next project slice.
 - **Focus:** Replace marker/global identity transport, give the wrapper a distinctive executable target, update emitted/forwarding/packed contract tests, and regression-pin normalized shim-vs-target names. Exhaustive user-facing identity propagation remains the next slice.
+
+### Dispatch 4: inline wrapper delegation
+
+- **Outcome:** The `prisma7` executable directly loads `prisma/build/index.js`; the production-only delegation helper and callback-injection tests are removed, while built/packed executable coverage proves real dependency-edge loading, argv preservation, and exit propagation.
+- **Builds on:** Dispatch 3's distinctive `prisma7.js` target and accepted packed package contract.
+- **Hands to:** A minimal wrapper whose production code contains no abstraction beyond the required dependency load, backed by behavior-level executable evidence.
+- **Focus:** Inline the literal Prisma entrypoint load, delete the helper and tautological unit seam, and replace its claims with a network-free built/packed wrapper execution fixture. No broader branding or publication work.

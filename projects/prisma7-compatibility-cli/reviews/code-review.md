@@ -3,27 +3,28 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4
 - **AC scoreboard totals:** 1 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
 ## Acceptance criteria scoreboard
 
-| AC ID | Description (short)                                                                               | Slice                  | Status | Evidence                                                                                                                  |
-| ----- | ------------------------------------------------------------------------------------------------- | ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
-| AC-1  | Packed `prisma7` exactly depends on and resolves matching Prisma while preserving ordinary Prisma | `side-by-side-wrapper` | PASS   | D1 commit `e86b01a84c`; D2 commit `f5531d98da`, package contract tests in `packages/prisma7/src/package-contract.test.ts` |
+| AC ID | Description (short)                                                                               | Slice                  | Status | Evidence                                                                                                                                          |
+| ----- | ------------------------------------------------------------------------------------------------- | ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC-1  | Packed `prisma7` exactly depends on and resolves matching Prisma while preserving ordinary Prisma | `side-by-side-wrapper` | PASS   | D1 commit `e86b01a84c`; D2 commit `f5531d98da`; D4 commit `0e44c96e11`, package contract tests in `packages/prisma7/src/package-contract.test.ts` |
 
 ## Subagent IDs
 
-- **Implementer:** `4147ae9c-59a8-464` — active from `side-by-side-wrapper` D3 R1. Replaced `6c6bb88a-2cee-49e`, which became inaccessible after completing D2; that agent had replaced over-tiered Sol agent `a6fe498a-1b46-4ea`, while the original `e567e37e-6ce9-4c9` failed before execution because its third-party model was unavailable.
-- **Reviewer:** `135858aa-1e61-497` — active from `side-by-side-wrapper` D3 R1. Replaced `2a1fc99c-d80f-441`, which became inaccessible after satisfying D2; that agent had replaced `c7ca9041-d284-447` after D1 R2.
+- **Implementer:** `07623297-6e2c-406` — active from `side-by-side-wrapper` D4 R1. Replaced `4147ae9c-59a8-464` after D3; earlier replacements and model-tier corrections are recorded in prior round context.
+- **Reviewer:** `d5f620a7-bae5-4df` — active from `side-by-side-wrapper` D4 R1. Replaced `135858aa-1e61-497` after D3; earlier replacements are recorded in prior round context.
 
 ## Orchestrator notes
 
 - Linear synchronization was explicitly waived by the operator for this project.
 - Drive trace emission is unavailable because the canonical emitter cannot resolve its `arktype` dependency; no hand-authored trace events will substitute for validated events.
-- After D2, the operator authorized replacing marker/global-symbol identity transport with normalized `process.argv[1]` stem inference. The supporting package-manager probe and scope are recorded in `design-decisions.md`; D3 must be reviewed before the slice remains SATISFIED.
+- After D2, the operator authorized replacing marker/global-symbol identity transport with normalized `process.argv[1]` stem inference. The supporting package-manager probe and scope are recorded in `design-decisions.md`; D3 was reviewer-SATISFIED.
+- After D3, the operator rejected the production-only `delegateToPrismaCli` test seam as unnecessary indirection. D4 inlines the dependency load and must replace callback-injection claims with built/packed executable evidence before the slice remains SATISFIED.
 
 ## Findings log
 
@@ -86,6 +87,18 @@
 **Tasks:** Exact POSIX/Windows stem selection, immutable identity, target/bin/export contract, argv delegation, and stale-transport cleanup are clean.
 
 **AC delta:** AC-1 remains PASS; amended packed-wrapper condition is confirmed by `43ad8a7891` and `packages/prisma7/src/package-contract.test.ts` (7/7), with CLI identity/dispatcher coverage in `packages/cli/src/utils/cli-distribution-identity.vitest.ts` and `packages/cli/src/bin-dispatcher.vitest.ts` (12/12).
+
+**Findings:** none.
+
+**For orchestrator:** none.
+
+### side-by-side-wrapper D4 R1 — SATISFIED
+
+**Scope:** inline wrapper delegation. Commit `0e44c96e11`.
+
+**Tasks:** Minimal direct delegation and packed executable evidence are clean.
+
+**AC delta:** AC-1 remains PASS; built/packed wrapper execution, argv preservation, and exit propagation are confirmed by `0e44c96e11` and `packages/prisma7/src/package-contract.test.ts` (6/6).
 
 **Findings:** none.
 

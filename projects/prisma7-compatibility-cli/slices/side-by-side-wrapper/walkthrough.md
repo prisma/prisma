@@ -2,7 +2,7 @@
 
 - PR: [#29949](https://github.com/prisma/prisma/pull/29949)
 - Commit range: `origin/v7...HEAD`
-- Final identity change: `43ad8a7891 refactor(cli): infer prisma7 identity from executable`
+- Final wrapper changes: `43ad8a7891 refactor(cli): infer prisma7 identity from executable`, `0e44c96e11 refactor(prisma7): inline CLI delegation`
 - Intent: [slice spec](projects/prisma7-compatibility-cli/slices/side-by-side-wrapper/spec.md)
 - Dispatch plan: [slice plan](projects/prisma7-compatibility-cli/slices/side-by-side-wrapper/plan.md)
 - Review ledger: [code review](projects/prisma7-compatibility-cli/reviews/code-review.md)
@@ -15,14 +15,13 @@ Establish a runnable, unpublished `prisma7` distribution that delegates to the e
 
 - **Implementation**:
   - [CLI distribution identity](packages/cli/src/utils/cli-distribution-identity.ts) — derives the immutable identity from the normalized executed-script stem.
-  - [Wrapper delegation](packages/prisma7/src/delegate-to-prisma-cli.ts) — resolves `prisma/build/index.js` through the declared dependency edge.
+  - [Wrapper executable](packages/prisma7/src/bin.ts) — directly loads `prisma/build/index.js` through the declared dependency edge.
   - [Wrapper build](packages/prisma7/helpers/build.ts) — emits the distinctive `build/prisma7.js` executable and forwarded package bundles.
   - [Wrapper package contract](packages/prisma7/package.json) — defines the `prisma7` bin, exact packed dependency semantics, exports, and file set.
 - **Tests (evidence)**:
   - [Identity tests](packages/cli/src/utils/cli-distribution-identity.vitest.ts) — cover POSIX and Windows path forms, ordinary defaults, unsupported names, and `process.argv[1]` lookup.
   - [Built dispatcher tests](packages/cli/src/bin-dispatcher.vitest.ts) — verify normal and completion dispatch preserve the invoked script.
-  - [Delegation tests](packages/prisma7/src/delegate-to-prisma-cli.test.ts) — verify argument and delegated exit behavior.
-  - [Package contract tests](packages/prisma7/src/package-contract.test.ts) — verify the packed bin target, exact dependency, wrapper-only files, side-by-side resolution, and forwarded imports.
+  - [Package contract tests](packages/prisma7/src/package-contract.test.ts) — execute the packed wrapper to verify nested dependency resolution, unchanged normal/completion arguments, and delegated exit status, then verify its exact dependency, wrapper-only files, side-by-side resolution, and forwarded imports.
 
 ## The story
 
@@ -40,8 +39,8 @@ Establish a runnable, unpublished `prisma7` distribution that delegates to the e
 
 - **Adds a side-by-side executable wrapper**: `prisma7` delegates to `prisma/build/index.js` while preserving normal and completion arguments and delegated exit status.
   - **Why**: Reuse the Prisma 7 implementation and assets instead of maintaining a second CLI bundle or constructing a nested filesystem path.
-  - **Implementation**: [Wrapper delegation](packages/prisma7/src/delegate-to-prisma-cli.ts), [wrapper build](packages/prisma7/helpers/build.ts)
-  - **Tests**: [Delegation tests](packages/prisma7/src/delegate-to-prisma-cli.test.ts), [built dispatcher tests](packages/cli/src/bin-dispatcher.vitest.ts)
+  - **Implementation**: [Wrapper executable](packages/prisma7/src/bin.ts), [wrapper build](packages/prisma7/helpers/build.ts)
+  - **Tests**: [Packed executable contract](packages/prisma7/src/package-contract.test.ts), [built dispatcher tests](packages/cli/src/bin-dispatcher.vitest.ts)
 
 - **Adds exact dependency and forwarded package surfaces**: the packed wrapper exposes `prisma7` and `prisma7/config`, records an exact same-version Prisma dependency, and resolves its config through that dependency beside a different direct root Prisma.
   - **Why**: A declared dependency edge is portable across package-manager layouts and preserves the intended side-by-side command topology.

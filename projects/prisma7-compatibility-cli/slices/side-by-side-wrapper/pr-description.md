@@ -6,7 +6,7 @@ Add an unpublished `prisma7` compatibility package that runs the exact matching 
 
 - **CLI identity and delegation**: Derive the immutable distribution identity from the normalized `process.argv[1]` filename stem: exact `prisma7` selects the compatibility identity and every other value defaults to `prisma`. The `prisma7` wrapper forwards arguments and exit behavior to `prisma/build/index.js` through its declared dependency.
 - **Wrapper package surfaces**: Add the buildable `prisma7` workspace package with the distinctive `build/prisma7.js` bin target, an exact same-version packed Prisma dependency, root type forwarding, and `prisma7/config` runtime/type forwarding. The package contains only wrapper outputs and remains private/unpublished.
-- **Contract coverage**: Add identity, delegation, emitted-dispatcher, packed-manifest, side-by-side resolution, and forwarded-type tests, including shim/target path forms and default handling for unsupported executable names.
+- **Contract coverage**: Add identity, emitted-dispatcher, packed-executable, side-by-side resolution, and forwarded-type tests. The packed wrapper is executed against a mock nested Prisma dependency to verify unchanged normal/completion arguments and delegated exit status; identity tests cover shim/target path forms and unsupported executable names.
 
 ## Why
 
