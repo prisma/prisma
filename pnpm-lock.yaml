@@ -1835,9 +1835,21 @@ importers:
         specifier: workspace:*
         version: link:../cli
     devDependencies:
+      '@prisma/adapter-better-sqlite3':
+        specifier: workspace:*
+        version: link:../adapter-better-sqlite3
+      '@prisma/client':
+        specifier: workspace:*
+        version: link:../client
+      '@prisma/client-runtime-utils':
+        specifier: workspace:*
+        version: link:../client-runtime-utils
       '@types/node':
         specifier: ~20.19.24
         version: 20.19.37
+      tsx:
+        specifier: 4.19.3
+        version: 4.19.3
       typescript:
         specifier: 5.4.5
         version: 5.4.5

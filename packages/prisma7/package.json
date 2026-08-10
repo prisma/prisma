@@ -54,7 +54,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "pnpm --filter prisma build && pnpm --filter @prisma/client build && pnpm --filter @prisma/adapter-better-sqlite3 build && pnpm run build && vitest run",
+    "test": "vitest run",
     "tsc": "tsc -d -p tsconfig.build.json",
     "prepublishOnly": "pnpm run build"
   },
@@ -62,7 +62,11 @@
     "prisma": "workspace:*"
   },
   "devDependencies": {
+    "@prisma/adapter-better-sqlite3": "workspace:*",
+    "@prisma/client": "workspace:*",
+    "@prisma/client-runtime-utils": "workspace:*",
     "@types/node": "~20.19.24",
+    "tsx": "4.19.3",
     "typescript": "5.4.5"
   },
   "sideEffects": false

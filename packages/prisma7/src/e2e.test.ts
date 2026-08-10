@@ -43,6 +43,7 @@ test('runs a generated client from a project configured through prisma7', () => 
 
   linkWorkspacePackage(nodeModules, 'prisma7', packageRoot)
   linkWorkspacePackage(nodeModules, '@prisma/client', path.join(packagesRoot, 'client'))
+  linkWorkspacePackage(nodeModules, '@prisma/client-runtime-utils', path.join(packagesRoot, 'client-runtime-utils'))
   linkWorkspacePackage(nodeModules, '@prisma/adapter-better-sqlite3', path.join(packagesRoot, 'adapter-better-sqlite3'))
 
   mkdirSync(path.dirname(schema), { recursive: true })
@@ -117,16 +118,22 @@ test('runs a generated client from a project configured through prisma7', () => 
       'const client = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: "file:./compatibility.db" }) })',
       '',
       'async function main() {',
-      '  await client.$executeRawUnsafe(',
-      "    'CREATE TABLE Note (id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT NOT NULL)'",
-      '  )',
-      "  await client.note.create({ data: { value: 'generated through prisma7' } })",
-      '  const note = await client.note.findUniqueOrThrow({ where: { id: 1 } })',
-      "  if (note.value !== 'generated through prisma7') throw new Error('Unexpected generated client result')",
-      '  await client.$disconnect()',
+      '  try {',
+      '    await client.$executeRawUnsafe(',
+      "      'CREATE TABLE Note (id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT NOT NULL)'",
+      '    )',
+      "    await client.note.create({ data: { value: 'generated through prisma7' } })",
+      '    const note = await client.note.findUniqueOrThrow({ where: { id: 1 } })',
+      "    if (note.value !== 'generated through prisma7') throw new Error('Unexpected generated client result')",
+      '  } finally {',
+      '    await client.$disconnect()',
+      '  }',
       '}',
       '',
-      'void main()',
+      'main().catch((error) => {',
+      '  console.error(error)',
+      '  process.exitCode = 1',
+      '})',
     ].join('\n'),
   )
 
