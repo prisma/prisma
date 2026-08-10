@@ -10,10 +10,9 @@ const client = new PrismaClient({
 
 async function main() {
   try {
-    await client.$executeRawUnsafe('CREATE TABLE Note (id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT NOT NULL)')
-    await client.note.create({ data: { value: 'generated through prisma7' } })
+    const createdNote = await client.note.create({ data: { value: 'generated through prisma7' } })
 
-    const note = await client.note.findUniqueOrThrow({ where: { id: 1 } })
+    const note = await client.note.findUniqueOrThrow({ where: { id: createdNote.id } })
     assert.equal(note.value, 'generated through prisma7')
   } finally {
     await client.$disconnect()

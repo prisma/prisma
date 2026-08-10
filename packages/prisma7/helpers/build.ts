@@ -7,7 +7,9 @@ import { build } from '../../../helpers/compile/build'
 const executablePlugin: esbuild.Plugin = {
   name: 'executable',
   setup(build) {
-    build.onEnd(() => {
+    build.onEnd((result) => {
+      if (result.errors.length > 0) return
+
       const filename = './build/prisma7.js'
       const mode = fs.statSync(filename).mode
       fs.chmodSync(filename, mode | 0o111)
