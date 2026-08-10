@@ -6,13 +6,13 @@ Add an unpublished `prisma7` compatibility package that runs the exact matching 
 
 - **CLI identity and delegation**: Derive the immutable distribution identity from the normalized `process.argv[1]` filename stem: exact `prisma7` selects the compatibility identity and every other value defaults to `prisma`. The `prisma7` wrapper forwards arguments and exit behavior to `prisma/build/index.js` through its declared dependency.
 - **Wrapper package surfaces**: Add the buildable `prisma7` workspace package with the distinctive `build/prisma7.js` bin target, an exact same-version packed Prisma dependency, root type forwarding, and `prisma7/config` runtime/type forwarding. The package contains only wrapper outputs and remains private/unpublished.
-- **Contract coverage**: Add identity, emitted-dispatcher, packed-executable, side-by-side resolution, and forwarded-type tests. The packed wrapper is executed against a mock nested Prisma dependency to verify unchanged normal/completion arguments and delegated exit status; identity tests cover shim/target path forms and unsupported executable names.
+- **End-to-end coverage**: Add one real temporary-project E2E. It imports and typechecks `prisma7/config`, proves the CLI honors a non-default schema and output, runs `prisma7 --version` and `prisma7 generate`, then executes the generated client through a real SQLite write/read.
 
 ## Why
 
 Keeping `prisma@7` as the sole implementation avoids divergent CLI behavior and duplicated engines while giving package managers a declared dependency edge to resolve. A real-tarball probe across npm, pnpm, Yarn node-modules/PnP, Bun, package scripts/exec, direct Node execution, and npm-global launches found either a `prisma7` shim path or the `prisma7.js` target in `process.argv[1]`; normalizing that stem provides the same identity without package.json lookup or physical dependency-path parsing.
 
-Only the exact `prisma7` stem selects the compatibility identity. Custom renamed symlinks and programmatic `require()` callers default to `prisma` because they do not represent the supported binary-invocation contract. Windows execution remains unverified; Windows path normalization is covered by unit tests.
+Only the exact `prisma7` stem selects the compatibility identity. Custom renamed symlinks and programmatic `require()` callers default to `prisma` because they do not represent the supported binary-invocation contract. Windows execution of the package-manager probe remains unverified; the real-project E2E is wired into the repository's cross-platform package jobs.
 
 ## Scope
 

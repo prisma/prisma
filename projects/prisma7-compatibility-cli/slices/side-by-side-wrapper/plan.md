@@ -27,3 +27,10 @@
 - **Builds on:** Dispatch 3's distinctive `prisma7.js` target and accepted packed package contract.
 - **Hands to:** A minimal wrapper whose production code contains no abstraction beyond the required dependency load, backed by behavior-level executable evidence.
 - **Focus:** Inline the literal Prisma entrypoint load, delete the helper and tautological unit seam, and replace its claims with a network-free built/packed wrapper execution fixture. No broader branding or publication work.
+
+### Dispatch 5: consolidate on one end-to-end project
+
+- **Outcome:** All unit/contract tests introduced for the wrapper and identity seam are replaced by one network-free end-to-end project test that typechecks and loads `prisma7/config`, proves the CLI uses that config, runs `prisma7 --version`, runs `prisma7 generate`, and executes the generated client successfully.
+- **Builds on:** Dispatch 4's minimal direct wrapper and the real package/config/generator implementations already present in the built workspace.
+- **Hands to:** A review surface with one user-visible behavioral proof instead of implementation-specific package, dispatcher, identity, and forwarding assertions.
+- **Focus:** Delete `package-contract.test.ts`, `cli-distribution-identity.vitest.ts`, and `bin-dispatcher.vitest.ts`; create one portable temporary-project E2E with real local workspace artifacts, no registry/network/package installation, and no mocked Prisma implementation. Keep only setup and assertions required for config import/typechecking, version execution, generation through the chosen config, and a working generated client.
