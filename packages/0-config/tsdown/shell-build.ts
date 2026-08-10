@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, win32 } from 'node:path';
 import { platformEntrypointOf } from '@internal/publish-surface/import-roots';
 import {
   excludedSubpaths,
@@ -191,7 +191,9 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
     const binPath = resolve(repoRoot, binFile);
     binFiles.add(binPath);
     const entryFile = addEntry(`bin/${binName}`, `bin/${binName}.mjs`);
-    writeFileSync(entryFile, `import '${binPath}';\n`);
+    // `JSON.stringify`, not quotes: a Windows path carries backslashes, and
+    // `import 'C:\repo\1-framework\...'` reads `\1` as an octal escape.
+    writeFileSync(entryFile, `import ${JSON.stringify(binPath)};\n`);
   }
   for (const [binName, specifier] of Object.entries(shell.forwardedBins ?? {})) {
     const entryFile = addEntry(`bin/${binName}`, `bin/${binName}.mjs`);
@@ -203,9 +205,9 @@ export async function defineShellConfig(shellName: ShellName): Promise<UserConfi
 
   return defineConfig({
     entry,
-    copy: (shell.copy ?? []).map((pattern) => ({ from: resolve(repoRoot, pattern) })),
+    copy: (shell.copy ?? []).map((pattern) => ({ from: copyGlobFrom(repoRoot, pattern) })),
     skipNodeModulesBundle: false,
-    external: (id: string) => /^[@a-zA-Z]/.test(id) && !id.startsWith('@internal/'),
+    external: isExternalSpecifier,
     dts: { enabled: true, sourcemap: true },
     exports: {
       enabled: 'local-only',
@@ -329,6 +331,29 @@ function publicSpecifier(source: string, shellName: ShellName): { shell: ShellNa
       { cause },
     );
   }
+}
+
+/**
+ * Every bare specifier stays external except the internal packages this shell
+ * bundles. An absolute id is a resolved module rather than a specifier, so it
+ * is never external: on Windows it opens with a drive letter (`C:\...`), which
+ * a leading-letter test reads as a bare specifier and would leave every
+ * internal module unbundled, emitted as a raw path whose backslashes the
+ * output string then swallows. Windows rules also accept POSIX absolutes, so
+ * one test classifies an id the same way whatever host the build runs on.
+ */
+export function isExternalSpecifier(id: string): boolean {
+  if (win32.isAbsolute(id)) return false;
+  return /^[@a-zA-Z]/.test(id) && !id.startsWith('@internal/');
+}
+
+/**
+ * A shell's copy entries are globs rooted at the repository, and glob syntax
+ * reads `\` as an escape — so a Windows-resolved path stops matching the file
+ * it names. Separators go back to `/`, which globs accept on every platform.
+ */
+export function copyGlobFrom(repoRoot: string, pattern: string): string {
+  return resolve(repoRoot, pattern).replaceAll('\\', '/');
 }
 
 function crossShellRewritePlugin(shellName: ShellName) {
