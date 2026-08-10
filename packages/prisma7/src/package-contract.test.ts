@@ -15,6 +15,11 @@ type PackedManifest = {
   files: string[]
 }
 
+type MockExecution = {
+  source: string
+  argv: string[]
+}
+
 const packageRoot = path.join(__dirname, '..')
 const temporaryDirectories: string[] = []
 let tarball: string
@@ -105,11 +110,23 @@ function writePrismaPackage(directory: string, version: string, source: string):
         '.': './index.js',
         './config': './config.js',
         './package.json': './package.json',
+        './build/index.js': './build/index.js',
       },
     }),
   )
   writeFileSync(path.join(directory, 'index.js'), `module.exports = { source: '${source}' }`)
   writeFileSync(path.join(directory, 'index.d.ts'), 'export type PrismaConfig = { source?: string }')
+  mkdirSync(path.join(directory, 'build'), { recursive: true })
+  writeFileSync(
+    path.join(directory, 'build', 'index.js'),
+    [
+      "const fs = require('node:fs')",
+      "fs.writeFileSync(process.env.PRISMA7_EXECUTION_OUTPUT, JSON.stringify({ source: '" +
+        source +
+        "', argv: process.argv.slice(2) }))",
+      "if (process.argv.includes('--exit-code')) process.exitCode = 23",
+    ].join('\n'),
+  )
   writeFileSync(
     path.join(directory, 'config.js'),
     `exports.defineConfig = (config) => ({ ...config, source: '${source}' }); exports.env = (name) => '${source}:' + name`,
@@ -180,6 +197,66 @@ describe('prisma7 package contract', () => {
     )
     expect(entries.get('package/build/prisma7.js')!.toString('utf8')).toContain('prisma/build/index.js')
     expect([...entries.keys()].every((file) => allowedFiles.has(file))).toBe(true)
+  })
+
+  function executePackedWrapper(args: string[]): MockExecution {
+    const fixture = makeTemporaryDirectory('prisma7-executable-')
+    const nodeModules = path.join(fixture, 'node_modules')
+    const wrapperDirectory = path.join(nodeModules, 'prisma7')
+    const output = path.join(fixture, 'execution.json')
+
+    extractTarball(tarball, wrapperDirectory)
+    const packedManifest = readPackedManifest(readFileSync(path.join(wrapperDirectory, 'package.json'), 'utf8'))
+    writePrismaPackage(path.join(nodeModules, 'prisma'), '8.0.0', 'root-prisma-8')
+    writePrismaPackage(
+      path.join(wrapperDirectory, 'node_modules', 'prisma'),
+      packedManifest.dependencies.prisma,
+      'wrapper-prisma-7',
+    )
+
+    const result = spawnSync(process.execPath, [path.join(wrapperDirectory, 'build', 'prisma7.js'), ...args], {
+      cwd: fixture,
+      env: { ...process.env, PRISMA7_EXECUTION_OUTPUT: output },
+      encoding: 'utf8',
+    })
+
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0)
+    return JSON.parse(readFileSync(output, 'utf8')) as MockExecution
+  }
+
+  it.each([
+    ['normal CLI arguments', ['generate', '--no-hints']],
+    ['completion arguments', ['complete', '--', 'migrate', 'd']],
+  ])('executes the packed wrapper through its Prisma dependency for %s', (_description, args) => {
+    expect(executePackedWrapper(args)).toEqual({ source: 'wrapper-prisma-7', argv: args })
+  })
+
+  it('propagates the delegated CLI exit status', () => {
+    const fixture = makeTemporaryDirectory('prisma7-exit-')
+    const nodeModules = path.join(fixture, 'node_modules')
+    const wrapperDirectory = path.join(nodeModules, 'prisma7')
+    const output = path.join(fixture, 'execution.json')
+
+    extractTarball(tarball, wrapperDirectory)
+    const packedManifest = readPackedManifest(readFileSync(path.join(wrapperDirectory, 'package.json'), 'utf8'))
+    writePrismaPackage(path.join(nodeModules, 'prisma'), '8.0.0', 'root-prisma-8')
+    writePrismaPackage(
+      path.join(wrapperDirectory, 'node_modules', 'prisma'),
+      packedManifest.dependencies.prisma,
+      'wrapper-prisma-7',
+    )
+
+    const result = spawnSync(
+      process.execPath,
+      [path.join(wrapperDirectory, 'build', 'prisma7.js'), 'migrate', '--exit-code'],
+      { cwd: fixture, env: { ...process.env, PRISMA7_EXECUTION_OUTPUT: output }, encoding: 'utf8' },
+    )
+
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(23)
+    expect(JSON.parse(readFileSync(output, 'utf8'))).toEqual({
+      source: 'wrapper-prisma-7',
+      argv: ['migrate', '--exit-code'],
+    })
   })
 
   it('uses the wrapper dependency for config forwarding beside a different root Prisma', () => {
