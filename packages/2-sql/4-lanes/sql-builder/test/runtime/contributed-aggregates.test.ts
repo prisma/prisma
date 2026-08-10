@@ -68,6 +68,7 @@ function contributedRegistry() {
         input: { kind: 'any' },
         output: { kind: 'codec', codecId: 'lib/int8@1' },
         nullable: false,
+        emptyResultJson: '0',
       },
       {
         operation: 'median',
@@ -82,6 +83,7 @@ function contributedRegistry() {
         input: { kind: 'none' },
         output: { kind: 'codec', codecId: 'lib/int8@1' },
         nullable: false,
+        emptyResultJson: '0',
         lower: () => FunctionCallExpr.of('tally', []),
       },
     ],

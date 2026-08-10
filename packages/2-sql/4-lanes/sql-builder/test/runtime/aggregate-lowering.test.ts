@@ -37,6 +37,7 @@ function loweringAggregateRegistry() {
         input: { kind: 'any' },
         output: { kind: 'codec', codecId: 'lib/int8@1' },
         nullable: false,
+        emptyResultJson: '0',
         lower: ({ expr }: { expr?: AggregateExpr['expr'] }) =>
           CastExpr.as(new AggregateExpr('count', expr), 'text'),
       },
@@ -141,7 +142,7 @@ describe('descriptor lowering sites', () => {
     const ast = db()
       .public.users.select('id')
       .groupBy('id')
-      .having((_f, fns) => fns.gt(fns.count(), 1n))
+      .having((_f, fns) => fns.gt(fns.count(), 1))
       .buildAst();
 
     const having = ast.having as BinaryExpr;

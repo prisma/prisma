@@ -59,6 +59,14 @@ All three alternative-representation descriptors declare `targetTypes: []`, so P
 
 ## Aggregate results
 
-Aggregates over these columns resolve through the targets' descriptor matrices described in the [aggregate descriptor guide](./aggregate-descriptor-guide.md). PostgreSQL `sum` and `avg` over `int8number` widen to `numeric` and read as decimal strings because the result may leave the safe range guarded by the column codec. `sum` over `unboundedint` keeps its own codec because a sum of integers is integral and reads as an exact `bigint`; `avg` goes to `numeric`. SQLite `sum` over `bigintnumber` uses `sqlite/bigint@1` and reads as `bigint` through the existing cast-to-text lowering, while `avg` reads as `number`. `min` and `max` return the column's own type on both targets through the numeric-trait fallback.
+Aggregates over these columns resolve through the targets' descriptor matrices, under the [defaults policy](./aggregate-descriptor-guide.md#the-defaults-policy): the bare operations read as JS-native values and throw where a value cannot be one, and the suffixed variants read losslessly.
+
+| Column type | `sum` | `sumBigInt` | `avg` | `avgDecimal` | `min` / `max` |
+| --- | --- | --- | --- | --- | --- |
+| PostgreSQL `BigIntNumber` (`pg/int8number@1`) | `number`, throwing outside ±(2^53 − 1) | `bigint`, exact at any magnitude (`pg/unboundedint@1`) | `number` | decimal string | the column's own type |
+| PostgreSQL `UnboundedInt` (`pg/unboundedint@1`) | `bigint`, exact | `bigint`, exact | `number` | decimal string | the column's own type |
+| SQLite `BigIntNumber` (`sqlite/bigintnumber@1`) | `number`, throwing outside ±(2^53 − 1) | `bigint` (`sqlite/bigint@1`) | `number` | not contributed | the column's own type |
+
+`sum` over `unboundedint` keeps its own codec because a sum of integers is integral, so the codec's integrality-checked `bigint` decode is the right reader for the total. `min` and `max` return the column's own type on both targets through the numeric-trait fallback. SQLite contributes no `avgDecimal`, having no exact decimal result codec to answer one with.
 
 Contributor guidance for implementing codecs lives in the [codec authoring guide](./codec-authoring-guide.md).

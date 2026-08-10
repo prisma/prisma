@@ -1741,7 +1741,14 @@ async function pgRenderDdlColumnDefault(
   if (codecRef !== undefined) {
     const codec = codecLookup.get(codecRef.codecId);
     if (codec !== undefined) {
-      const wire = await codec.encode(def.value, {});
+      // A literal default reaches here either as the canonical JSON a
+      // contract stores or as the value an authoring surface built, and only
+      // the first needs reading back: `pg/int8@1` stores decimal text for a
+      // `bigint`, which `encode` does not take. A `Date` is the one authored
+      // value JSON has no notation for, so it is the one that arrives as
+      // itself.
+      const value = def.value instanceof Date ? def.value : codec.decodeJson(def.value);
+      const wire = await codec.encode(value, {});
       return `DEFAULT ${pgInlineLiteral(wire, nativeType)}`;
     }
   }

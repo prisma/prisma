@@ -229,7 +229,7 @@ describe('integration/include canonical JSON', () => {
   );
 
   it(
-    'an aggregate past 2^53 survives both the top-level read and the include',
+    'a lossless aggregate past 2^53 survives both the top-level read and the include',
     async () => {
       await withCollectionRuntime(async (runtime) => {
         await setupTables(runtime);
@@ -250,14 +250,14 @@ describe('integration/include canonical JSON', () => {
         // dynamically, as the include reducer below already does.
         const stats = await readings.aggregate((aggregate) => {
           const dynamic = aggregate as Record<string, (field?: string) => AggregateSpec[string]>;
-          return { total: dynamic['sum']!('counter'), peak: dynamic['max']!('counter') };
+          return { total: dynamic['sumBigInt']!('counter'), peak: dynamic['max']!('counter') };
         });
 
-        // PostgreSQL sums bigints into a numeric, whose canonical form is its
-        // decimal string; the maximum keeps the column's own bigint. Both are
-        // exact, which the same values read as numbers are not.
-        expect(stats).toEqual({ total: '9007199254740995', peak: 9007199254740993n });
-        expect(String(Number(stats.total))).not.toBe(stats.total);
+        // The lossless sum reads PostgreSQL's numeric total as an unbounded
+        // bigint; the maximum keeps the column's own bigint. Both are exact,
+        // which the same values read as numbers are not.
+        expect(stats).toEqual({ total: 9007199254740995n, peak: 9007199254740993n });
+        expect(BigInt(Number(stats.total))).not.toBe(stats.total);
         expect(BigInt(Number(stats.peak))).not.toBe(9007199254740993n);
 
         // The include refinement's cardinality inference does not read a

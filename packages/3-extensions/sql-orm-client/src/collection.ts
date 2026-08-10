@@ -745,7 +745,7 @@ class CollectionImpl<
    *   .where({ published: true })
    *   .groupBy('userId')
    *   .aggregate((agg) => ({ count: agg.count(), totalViews: agg.sum('views') }));
-   * // [{ userId: 1, count: 3n, totalViews: 120n }, ...]
+   * // [{ userId: 1, count: 3, totalViews: 120 }, ...]
    * ```
    */
   groupBy<
@@ -788,7 +788,7 @@ class CollectionImpl<
    * ).all();
    * // each user row: {
    * //   ...user,
-   * //   posts: { recent: Post[]; total: bigint; averageViews: string | null };
+   * //   posts: { recent: Post[]; total: number; averageViews: number | null };
    * // }
    * ```
    */
@@ -1094,7 +1094,7 @@ class CollectionImpl<
    *     averageViews: agg.avg('views'),
    *     maxViews: agg.max('views'),
    *   }));
-   * // { total: 42n, averageViews: '17.3000000000000000', maxViews: 9001 }
+   * // { total: 42, averageViews: 17.3, maxViews: 9001 }
    * ```
    *
    * Accepts an optional `configure` callback that receives a
@@ -2429,7 +2429,7 @@ class CollectionImpl<
       column: selector.column,
     });
     return emptyAggregateResult(
-      resolved.nullable,
+      resolved,
       this.ctx.context.contractCodecs.forCodecRef(resolved.codec),
     );
   }

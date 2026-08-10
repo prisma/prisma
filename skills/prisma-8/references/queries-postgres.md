@@ -143,27 +143,31 @@ await db.orm.User
 // → Array<{ id, email, posts: Array<{ id, title, createdAt }> }>
 ```
 
-**Reduce a to-many relation to a scalar.** A refinement callback may return a *reducer* — `count()`, `sum(field)`, `avg(field)`, `min(field)`, `max(field)` — instead of a collection. The parent's relation field then carries that one value rather than an array. Reducers exist only inside an `include(...)` callback; calling one elsewhere throws.
+**Reduce a to-many relation to a scalar.** A refinement callback may return a *reducer* — `count()`, `sum(field)`, `avg(field)`, `min(field)`, `max(field)`, plus the lossless `countBigInt()`, `sumBigInt(field)`, and `avgDecimal(field)` — instead of a collection. The parent's relation field then carries that one value rather than an array. Reducers exist only inside an `include(...)` callback; calling one elsewhere throws.
 
 ```typescript
 await db.orm.User.include('posts', (posts) => posts.count()).all();
-// → Array<{ ...user, posts: bigint }>
+// → Array<{ ...user, posts: number }> — a parent with no posts reads 0
 
 await db.orm.User.include('posts', (posts) => posts.sum('views')).all();
-// → Array<{ ...user, posts: bigint | null }> — an int4 column's sum widens to int8
+// → Array<{ ...user, posts: number | null }>
 
 await db.orm.User.include('posts', (posts) => posts.avg('views')).all();
-// → Array<{ ...user, posts: string | null }> — PostgreSQL averages integers as numeric
+// → Array<{ ...user, posts: number | null }>
 
 await db.orm.User.include('posts', (posts) => posts.min('views')).all();
 await db.orm.User.include('posts', (posts) => posts.max('views')).all();
 // → Array<{ ...user, posts: number | null }>
 
+// The lossless form, for a total that may outgrow a JS number:
+await db.orm.User.include('posts', (posts) => posts.sumBigInt('views')).all();
+// → Array<{ ...user, posts: bigint | null }>
+
 // Several sub-views of one relation at once:
 await db.orm.User.include('posts', (posts) =>
   posts.combine({ recent: posts.take(3), total: posts.count() }),
 ).all();
-// → Array<{ ...user, posts: { recent: Post[]; total: bigint } }>
+// → Array<{ ...user, posts: { recent: Post[]; total: number } }>
 ```
 
 A reducer's result type is the one the target declares for that aggregate — the same types *Workflow — Aggregates* tabulates below, including the `null` a field-taking reducer answers for a parent with no related rows. The reducer set is read from the contract, so an operation a target or extension contributes shows up as a reducer under its own name, with no client change.
@@ -226,33 +230,41 @@ const byKind = await db.orm.User
   }));
 ```
 
-`aggregate` exposes `.count()`, `.sum(field)`, `.avg(field)`, `.min(field)`, `.max(field)`. Project the aggregates into named result keys; the result type narrows accordingly.
+`aggregate` exposes `.count()`, `.sum(field)`, `.avg(field)`, `.min(field)`, `.max(field)`, and the lossless `.countBigInt()`, `.sumBigInt(field)`, `.avgDecimal(field)`. Project the aggregates into named result keys; the result type narrows accordingly.
 
-**An aggregate's type is the one its target declares, and its nullability matches SQL semantics.** Both are read from the contract, so the type below is what you get on PostgreSQL:
+**The bare operations answer as JS numbers. The suffixed ones answer losslessly.** An aggregate's type is the one its target declares and its nullability matches SQL semantics, both read from the contract. On PostgreSQL:
 
 | Aggregate | Type | Empty result |
 |---|---|---|
-| `count()` | `bigint` | `0n` |
-| `sum(field)` over `int2` / `int4` | `bigint \| null` | `null` (SQL `SUM` over zero rows is `NULL`) |
-| `sum(field)` over `int8` | decimal `string \| null` | `null` |
+| `count()` | `number` | `0` |
+| `countBigInt()` | `bigint` | `0n` |
+| `sum(field)` over `int2` / `int4` / `int8` / `BigIntNumber` | `number \| null` | `null` (SQL `SUM` over zero rows is `NULL`) |
+| `sumBigInt(field)` over any integer | `bigint \| null` | `null` |
 | `sum(field)` over `float4` / `float8` | `number \| null` | `null` |
-| `avg(field)` over any integer | decimal `string \| null` | `null` |
+| `sum(field)` over `numeric` | decimal `string \| null` | `null` |
+| `sum(field)` over `UnboundedInt` | `bigint \| null` — that column's own family | `null` |
+| `avg(field)` over any integer | `number \| null` | `null` |
+| `avgDecimal(field)` over any integer or `numeric` | decimal `string \| null` | `null` |
 | `avg(field)` over a float | `number \| null` | `null` |
 | `min(field)` / `max(field)` | the column's own type `\| null` — `text` where the column is `varchar` | `null` |
 
-A count is a `bigint` because a count is a cardinality: it is not capped at 2^53, and neither is a sum of integers, which PostgreSQL widens to `int8` for exactly that reason. An integer average is `numeric`, whose canonical form is a decimal string — a `number` cannot carry it. Two consequences to write for: `count === 2` is false when the count is `2n`, and `JSON.stringify` throws on a bigint, so render it as `String(count)`.
+**`count()`, and `sum` over an integer column, throw outside ±(2^53 − 1) — they never round.** Those two are the results a guarded integer codec produces. The rows above the guard does not reach: `sum` over `numeric`, `UnboundedInt`, or a float column, and every `avg`, which is a fraction already. The error is `RUNTIME.DECODE_FAILED` (`… value must be an integer within the safe integer range, got …`), and it fires on the include path too. That is the trade the defaults make: a `number` you can compare, serialise, and do arithmetic with, and a loud failure instead of a quietly wrong total. Switch that one call to `sumBigInt` / `countBigInt` where the magnitude is real.
 
-**SQLite differs on `avg`**, which is always real there and reads as a `number`; its integer sums are `bigint` like PostgreSQL's. A query written for both handles both.
+**Float and Decimal columns keep their own family.** `sum` over `numeric` is still a decimal string, and `sum` over `float8` still a `number` — the defaults policy is about integers, and a column whose author chose `numeric` already chose its representation.
 
-**`having(...)` is the exception, and stays a `number`.** A HAVING operand is compared inside SQL against the aggregate the database is computing — it never crosses a codec — so `having.count().gte(minUsers)` takes the plain number it always did. Only the aggregate's *result*, the value that reaches your code, carries its target's type.
+**SQLite states the same policy.** `count`, `sum` over integers, and `avg` all read as `number`; `countBigInt` and `sumBigInt` are there too. There is no `avgDecimal` — SQLite has no exact decimal type, so the method does not exist on a SQLite contract.
 
-This isn't a typing bug — it's faithful to what the database returns. Coalesce client-side when you want zero-fill:
+**The ORM's `having(...)` stays a `number`.** Its comparand is typed `number` outright, whatever result type the aggregate carries, so `having.count().gte(minUsers)` takes a plain number — the value is inlined as a SQL literal and compared inside the database. Only the aggregate's *result*, the value that reaches your code, carries its target's type. The lossless variants are projection-only and have no HAVING method at all.
+
+**The SQL builder types its comparands differently.** `fns.gt(a, b)` types both operands from one codec, so a literal compared against an aggregate follows that aggregate's result codec — `fns.gt(fns.count(), 1)`, not `1n`. That applies in `having(...)`, in `where(...)`, and inside any larger expression.
+
+Nullability isn't a typing bug — it's faithful to what the database returns. Coalesce client-side when you want zero-fill:
 
 ```typescript
 const revenue = await db.orm.Sale
   .where((s) => s.day.gte(start))
   .aggregate((a) => ({ total: a.sum('amount') }));
-// revenue.total: bigint | null (an int4 column's sum widens to int8)
+// revenue.total: number | null
 
 const safe = revenue.total ?? 0;   // ← apply at the consumption site, not in the aggregate spec.
 ```
@@ -371,7 +383,7 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 
 1. **Reaching for the lower-level lane when the ORM would have done.** The ORM covers most CRUD shapes; drop to `db.sql` only for shapes the ORM can't express. Default to the ORM.
 2. **Using `.all()` when you wanted one row.** `.all()` issues no implicit limit. Use `.first()` or `.first({ pk })`.
-3. **Coalescing `count()` with `?? 0` "just in case".** `count()` is `bigint`, not `bigint | null` — SQL answers an empty set with `0n`. The `?? 0` belongs on `sum` / `avg` / `min` / `max`, and its zero should match the aggregate's own type (`0n` for an integer sum, `'0'` where the result is a decimal string).
+3. **Coalescing `count()` with `?? 0` "just in case".** `count()` is `number`, not `number | null` — SQL answers an empty set with `0`. The `?? 0` belongs on `sum` / `avg` / `min` / `max`, and its zero should match the aggregate's own type (`0` for an integer sum, `0n` for `sumBigInt`, `'0'` where the result is a decimal string).
 4. **Reaching for `.between(a, b)` on a field proxy.** It doesn't exist. Either chain `.where((m) => m.field.gte(a)).where((m) => m.field.lte(b))` or use `and(m.field.gte(a), m.field.lte(b))` inside one `.where()` clause.
 5. **Importing `and` / `or` / `not` from a Postgres façade subpath.** The combinators currently live in `@internal/sql-orm-client` — an internal package. See *What Prisma Next doesn't do yet* in [`queries.md`](./queries.md).
 6. **Trying to `db.sql.from(tables.user)`.** That surface does not exist. The builder is table-shaped: `db.sql.<tableName>.select(...)`. There is no `db.schema.tables` either.
@@ -391,8 +403,9 @@ Cross-namespace relations (e.g. `public.Profile` → `auth.User`) follow the sam
 
 - [ ] Chose the right lane (ORM by default; `db.sql` for shapes the ORM doesn't express).
 - [ ] Used `.first()` / `.first({ pk })` for single-row reads — not `.all()`.
-- [ ] Coalesced `sum` / `avg` / `min` / `max` results at the consumption site when zero-fill is desired, with a zero of the aggregate's own type — did NOT coalesce `count()`, which is `bigint` and never null.
-- [ ] Compared and serialised aggregate *results* as what they are — `2n` not `2`, `String(count)` not bare `JSON.stringify` — while leaving `having(...)` operands as numbers, since those are compared inside SQL.
+- [ ] Coalesced `sum` / `avg` / `min` / `max` results at the consumption site when zero-fill is desired, with a zero of the aggregate's own type — did NOT coalesce `count()`, which is `number` and never null.
+- [ ] Reached for `countBigInt` / `sumBigInt` / `avgDecimal` where the value can outgrow a JS number or the exact decimal matters — `count()` and `sum` over an integer column throw `RUNTIME.DECODE_FAILED` outside ±(2^53 − 1) rather than rounding, and `avg` rounds as any double does.
+- [ ] Compared and serialised aggregate *results* as what they are — a `bigint` from a suffixed variant needs `0n` literals and `String(value)` rather than bare `JSON.stringify` — leaving the ORM's `having(...)` operands as numbers, and matching each SQL-builder comparison literal to the aggregate's own result codec (`fns.gt(fns.count(), 1)`).
 - [ ] Expressed ranges as chained `.where(...)` clauses or a single `and(...)` clause — did NOT reach for a non-existent `.between(...)` operator.
 - [ ] For cursor pagination, used `.orderBy(...).cursor({ field: lastValue }).take(n).all()` — did NOT hand-write a `.where(p => p.field.lt(cursor))` workaround when the `.cursor()` API serves the same purpose.
 - [ ] For ORM combinators, imported `and` / `or` / `not` from the (currently internal) `@internal/sql-orm-client` and noted the façade gap to the user.

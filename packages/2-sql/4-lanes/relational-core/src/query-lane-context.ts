@@ -1,5 +1,6 @@
 import type { Contract } from '@internal/contract/types';
 import type { CodecDescriptor, CodecRef } from '@internal/framework-components/codec';
+import type { AggregateResultNullability } from '@internal/framework-components/components';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlOperationRegistry } from '@internal/sql-operations';
 import type { SqlAggregateDescriptor, SqlAggregateLowering } from './aggregate-descriptor';
@@ -38,16 +39,15 @@ export interface CodecDescriptorRegistry {
 }
 
 /**
- * What one aggregate resolves to: the codec its result carries, whether that result can be null, and the optional hook that builds the expression.
+ * What one aggregate resolves to: the codec its result carries, how that result reads where no row carries it, and the optional hook that builds the expression.
  *
  * The resolved value carries no descriptor, so a lowering hook has no channel through which to report a different result codec than the one resolved here.
  */
-export interface ResolvedSqlAggregate {
+export type ResolvedSqlAggregate = AggregateResultNullability & {
   readonly operation: string;
   readonly output: CodecRef;
-  readonly nullable: boolean;
   readonly lower: SqlAggregateLowering | undefined;
-}
+};
 
 /**
  * Resolution surface for aggregate result identity, assembled once per execution context.

@@ -54,6 +54,52 @@ export const pgNumericDecode = (wire: string | number): string => {
 const DECIMAL_INTEGER = /^-?\d+$/;
 
 /**
+ * Requires an application value to be of the JS type the codec reads.
+ *
+ * A range check reads a value of the wrong type as a value out of range, and
+ * reports a number plainly inside the range as outside it — so the type is
+ * established first and answered for on its own terms, naming what a caller
+ * has to change.
+ */
+const requireJsType = (codecId: string, expected: 'number' | 'bigint', value: unknown): void => {
+  if (typeof value === expected) return;
+  throw postgresError(
+    'RUNTIME.ENCODE_FAILED',
+    `${codecId} value must be a ${expected}, got ${typeof value} ${String(value)}`,
+    { meta: { codecId, received: typeof value } },
+  );
+};
+
+/** Writes a `bigint` application value as the decimal text the wire form of the exact integer codecs carries. */
+export const pgBigintEncode = (codecId: string, value: bigint): string => {
+  requireJsType(codecId, 'bigint', value);
+  return value.toString();
+};
+
+/**
+ * Writes an application value as the decimal text these codecs carry as their
+ * canonical JSON.
+ *
+ * A schema-written literal default (`BigInt @default(0)`) arrives here as a
+ * `number`, since a number literal is the only integer a schema language
+ * writes, and one that is a safe integer names its value exactly. Past that
+ * range the literal was rounded before any of this ran, so the value written is
+ * not the value meant — which this refuses rather than minting an exact-looking
+ * total from it. A non-integral number is refused on the same terms.
+ */
+export const pgBigintEncodeJson = (codecId: string, value: bigint | number): string => {
+  if (typeof value !== 'number') return pgBigintEncode(codecId, value);
+  if (!Number.isSafeInteger(value)) {
+    throw postgresError(
+      'RUNTIME.ENCODE_FAILED',
+      `${codecId} number literal must be an integer within the safe integer range, got ${String(value)}`,
+      { meta: { codecId, received: String(value) } },
+    );
+  }
+  return BigInt(value).toString();
+};
+
+/**
  * Reads a wire or JSON value as a `bigint`, rejecting anything `BigInt()` would
  * misread. A number-typed wire value must also be a safe integer: past
  * ±(2^53 − 1) the driver's `number` has already rounded, so stringifying it
@@ -111,11 +157,12 @@ const pgInt8NumberGuard = (
   return value;
 };
 
-export const pgInt8NumberEncode = (value: number): string =>
-  String(pgInt8NumberGuard('RUNTIME.ENCODE_FAILED', value));
+export const pgInt8NumberEncodeJson = (value: number): number => {
+  requireJsType('pg/int8number@1', 'number', value);
+  return pgInt8NumberGuard('RUNTIME.ENCODE_FAILED', value);
+};
 
-export const pgInt8NumberEncodeJson = (value: number): number =>
-  pgInt8NumberGuard('RUNTIME.ENCODE_FAILED', value);
+export const pgInt8NumberEncode = (value: number): string => String(pgInt8NumberEncodeJson(value));
 
 /**
  * Reads an `int8` wire value as a `number`, throwing outside ±(2^53 − 1) and on

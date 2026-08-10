@@ -10,7 +10,11 @@
 
 import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
-import { type AnyExpression, FunctionCallExpr } from '@internal/sql-relational-core/ast';
+import {
+  AggregateExpr,
+  type AnyExpression,
+  FunctionCallExpr,
+} from '@internal/sql-relational-core/ast';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import { createAggregateBuilder } from '../src/aggregate-builder';
@@ -25,6 +29,17 @@ const countAny: SqlAggregateDescriptor = {
   input: { kind: 'any' },
   output: { kind: 'codec', codecId: 'pg/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
+};
+
+/** A tally whose result codec reads a JSON number rather than decimal text. */
+const headcountAny: SqlAggregateDescriptor = {
+  operation: 'headcount',
+  input: { kind: 'any' },
+  output: { kind: 'codec', codecId: 'pg/int8number@1' },
+  nullable: false,
+  emptyResultJson: 0,
+  lower: ({ expr }) => new AggregateExpr('count', expr),
 };
 
 const medianOverNumeric: SqlAggregateDescriptor = {
@@ -40,6 +55,7 @@ const tallyWithoutInput: SqlAggregateDescriptor = {
   input: { kind: 'none' },
   output: { kind: 'codec', codecId: 'pg/int8@1' },
   nullable: false,
+  emptyResultJson: '0',
   lower: () => FunctionCallExpr.of('tally', []),
 };
 
@@ -126,9 +142,14 @@ describe('derived aggregate builder', () => {
 });
 
 describe('empty-input answers', () => {
-  it('derive from the declared row: zero for a non-nullable result, null for a nullable one', async () => {
+  // Each non-nullable row declares its empty answer in its own result codec's
+  // canonical JSON, so the two rows below answer in different forms from the
+  // same zero: decimal text reads back as a `bigint`, a JSON number as a
+  // `number`. Reading either through the other's form is what the declaration
+  // exists to prevent.
+  it('derive from the declared row: its own zero for a non-nullable result, null for a nullable one', async () => {
     const runtime = createMockRuntime();
-    const context = contextWith([countAny, medianOverNumeric]);
+    const context = contextWith([countAny, headcountAny, medianOverNumeric]);
     const posts = new Collection({ runtime, context }, 'Post', { namespaceId: 'public' });
     runtime.setNextResults([[]]);
 
@@ -137,10 +158,11 @@ describe('empty-input answers', () => {
         const dynamic = agg as unknown as DynamicAggregateMethods;
         return {
           total: dynamic['count']?.() as AggregateSelector<unknown>,
+          headcount: dynamic['headcount']?.() as AggregateSelector<unknown>,
           mid: dynamic['median']?.('views') as AggregateSelector<unknown>,
         };
       }),
-    ).resolves.toEqual({ total: 0n, mid: null });
+    ).resolves.toEqual({ total: 0n, headcount: 0, mid: null });
   });
 });
 
@@ -175,6 +197,7 @@ describe('reserved operation names', () => {
     input: { kind: 'any' },
     output: { kind: 'codec', codecId: 'pg/int8@1' },
     nullable: false,
+    emptyResultJson: '0',
     lower: ({ expr }) => FunctionCallExpr.of('shadow', expr === undefined ? [] : [expr]),
   };
   const shadowingInstanceMember: SqlAggregateDescriptor = {

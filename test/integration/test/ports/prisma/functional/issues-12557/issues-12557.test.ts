@@ -42,8 +42,8 @@ describe('ports/prisma/functional/issues-12557', () => {
           .all();
 
         expect(categories).toMatchObject([
-          { name: 'cat-1', brands: 2n },
-          { name: 'cat-2', brands: 2n },
+          { name: 'cat-1', brands: 2 },
+          { name: 'cat-2', brands: 2 },
         ]);
 
         await db.public.Brand.where({ id: 'brand-1' }).delete();
@@ -54,8 +54,8 @@ describe('ports/prisma/functional/issues-12557', () => {
           .all();
 
         expect(categoriesAfter).toMatchObject([
-          { name: 'cat-1', brands: 1n },
-          { name: 'cat-2', brands: 2n },
+          { name: 'cat-1', brands: 1 },
+          { name: 'cat-2', brands: 2 },
         ]);
       }),
     timeouts.spinUpPpgDev,

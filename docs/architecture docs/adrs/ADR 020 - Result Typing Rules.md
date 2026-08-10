@@ -39,7 +39,7 @@ If multiple sources disagree, the more specific one wins and the less specific i
 ## Projection rules
 
 - `db.user.select('alias', (f) => f.id)` yields `{ alias: number }` based on contract column type
-- `db.user.select('alias', (_f, fns) => fns.count())` yields the count's declared result type — `{ alias: bigint }` on both built-in targets
+- `db.user.select('alias', (_f, fns) => fns.count())` yields the count's declared result type — `{ alias: number }` on both built-in targets, with `fns.countBigInt()` yielding `{ alias: bigint }`
 - `db.order.select('alias', (f, fns) => fns.sum(f.amount))` yields the aggregate result type per the aggregate rules below
 - Duplicate aliases are a compile-time error in strict mode and produce a warning in permissive mode
 - `SELECT *` is allowed by the core but strongly discouraged and typically linted as error
@@ -91,11 +91,11 @@ An aggregate's result type is declared by the target and resolved through the co
 
 Assume no FILTER and no DISTINCT unless specified:
 
-- **COUNT(\*)** and **COUNT(expr)** yield `bigint` and are non-null — a count is a cardinality, and both targets count into a 64-bit integer
-- **SUM(int\*)** yields `bigint | null` on PostgreSQL's `int2` / `int4` (the sum widens to `int8`) and on SQLite's integers; PostgreSQL's `sum(int8)` is `numeric`, which reads as a decimal `string | null`
+- **COUNT(\*)** and **COUNT(expr)** yield `number` and are non-null — a count is a cardinality, and both targets answer an empty input set with `0`. A tally outside ±(2^53 − 1) raises `RUNTIME.DECODE_FAILED` rather than rounding. `countBigInt` is the lossless form and yields `bigint`
+- **SUM(int\*)** yields `number | null` on both targets, and raises `RUNTIME.DECODE_FAILED` where the total leaves the safe-integer range. `sumBigInt` is the lossless form, `bigint | null`, exact to the bound of the SQL type the total is computed in: past 2^63 over PostgreSQL's 64-bit and unbounded integer columns, whose sum the database computes as `numeric`; at 2^63 over PostgreSQL's narrower integers, whose sum is an `int8` and raises `bigint out of range` beyond it; and at 2^63 on SQLite, whose `SUM` raises `integer overflow`
   - null when the group contains zero rows or all expr are null
-- **SUM(float\*)** yields `number | null` with the same nullability
-- **AVG(\*)** diverges by target: PostgreSQL computes an integer average as `numeric` — a decimal `string | null` — and a float average as `number | null`; SQLite's average is always real, so `number | null`
+- **SUM(float\*)**, **SUM(numeric)**, and **SUM(unbounded integer)** stay in the column's own family with the same nullability: `number | null`, decimal `string | null`, and `bigint | null` respectively
+- **AVG(int\*)** yields `number | null` on both targets. PostgreSQL computes the exact `numeric` mean and casts the *result* to `float8`, so the mean is rounded once; `avgDecimal` yields that `numeric` unrounded as a decimal `string | null`. SQLite's average is natively real and contributes no `avgDecimal`, having no exact decimal result codec
 - **MIN(expr)** and **MAX(expr)** yield `T | null` where `T` is the expression's own type, except where the database widens it: PostgreSQL's extremum over `varchar` returns `text`
 - **ARRAY_AGG(T)** yields `T[] | null` by default
   - Adapters may flip to `T[]` if they guarantee `COALESCE(array_agg(...), '{}')` and must advertise `arrayAggCoalescesEmpty` capability
@@ -103,6 +103,22 @@ Assume no FILTER and no DISTINCT unless specified:
   - With a typed child projection and `jsonAggTypedChildren` capability, adapters may refine to `ChildRow[] | null`
   - Adapters may coalesce to `ChildRow[]` if they lower with `COALESCE(json_agg(...), '[]'::json)` and declare `jsonAggCoalescesEmpty`
 - **includeMany**: The SQL DSL's `includeMany` feature uses `json_agg` to return nested arrays. The runtime converts `NULL` json_agg results to empty arrays `[]` for consistency, ensuring the result type is always `Array<ChildShape>` rather than `Array<ChildShape> | null`. Include aliases are marked in plan meta with `include:alias` to enable special JSON array decoding. The builder tracks includes at the type level, maintaining a map of include aliases to their child projection types, allowing `InferNestedProjectionRow` to infer `Array<ChildShape>` instead of `Array<unknown>`.
+
+### The defaults policy
+
+The rules above follow one policy, which the built-in targets state in their descriptor matrices and which a contributing pack should follow too.
+
+**Bare operations favour the JS-native type.** `count`, `sum`, and `avg` over integer inputs answer as `number` — the type a JS developer expects from a tally, a total, and a mean.
+
+**Where an integral result could not be a `number`, it throws instead of rounding.** `count` and `sum` resolve to a guarded integer codec (`pg/int8number@1`, `sqlite/bigintnumber@1`), which raises `RUNTIME.DECODE_FAILED` on a value outside ±(2^53 − 1) rather than handing back a rounded one. The guard is post-parse and therefore un-foolable on the JSON path as well: double rounding is monotone and 2^53 is exactly representable, so a true value outside the range cannot parse back inside it. `avg` is the operation this does not apply to: a mean is a fraction, so it resolves to `pg/float8@1` / `sqlite/real@1`, which carry no guard and round a large mean the way any double does. `avgDecimal` is the exact form to reach for.
+
+**Suffixed variants are lossless.** `countBigInt`, `sumBigInt`, and `avgDecimal` answer exactly at whatever magnitude the database computes. They are ordinary contributed operations — outside the AST's aggregate alphabet, so each carries a lowering hook naming the SQL aggregate it computes with — which makes them projection-only, exactly like any other contributed operation.
+
+**Bare operations over Float and Decimal columns stay in the column's own family.** A `float8` column's `sum` is a `float8`; a `numeric` column's `sum` is a `numeric`, read as a decimal string. Those authors already chose their representation, and a policy about integers has nothing to say about it.
+
+**`min` and `max` answer in the input's own type.** They declare `self`, so an extremum is one of the values that were read.
+
+The tension this resolves: a lossless-by-default vocabulary is correct and hostile to JS. A `bigint` count is a value `JSON.stringify` refuses and `=== 2` disagrees with; a decimal-string mean is a value arithmetic refuses. A number-by-default vocabulary is ergonomic and lossy. Splitting the vocabulary keeps both, and puts the choice at the call site rather than in the column. Classic Prisma is the prior art for the split — `BigInt` columns are `bigint`, yet `count` is `number` and an integer `_avg` is a float. What these defaults add is a stated boundary: where an integral result cannot be a `number`, the codec raises a structured error naming itself, rather than answering with a rounded value.
 
 ### Contributed aggregate operations
 
@@ -196,22 +212,30 @@ An aggregate's result type is the target's to declare, resolved from the contrac
 
 The same map decides availability. A pair with no row — no `byCodec` entry for the input's codec, no `anyInput` fallback, and for a no-input call no `withoutInput` row — is unavailable: the ORM and SQL DSL reject the call at the type level, and both runtimes refuse a dynamic invocation with a structured `ORM.AGGREGATE_UNSUPPORTED` error before building SQL. There is no untyped fallback; a result the target never declared is a result nothing can decode.
 
-A target may also declare a transport lowering for an aggregate — SQLite renders bigint-valued aggregates as text so its driver can carry them. The lowering changes how the value leaves SQL, never what the aggregate means inside it: projection sites apply it, while HAVING, ORDER BY, GROUP BY, and operands of larger expressions keep the plain aggregate expression, where the rendered form would change comparison and ordering semantics.
+A target may also declare a lowering for an aggregate. SQLite renders wide-integer aggregates as text so its driver can carry them; PostgreSQL casts an integer `avg`'s result to `float8`; and every lossless variant names the SQL aggregate it computes with, its own name being one the database does not know. A lowering changes how the value is computed and leaves SQL, never what the aggregate means inside it: projection sites apply it, while HAVING, ORDER BY, GROUP BY, and operands of larger expressions keep the plain aggregate expression, where the rendered form would change comparison and ordering semantics.
 
 ```typescript
-// Count is never null, and reads through its target's count codec
+// Count is never null, and reads as the number a JS developer expects
 db.order.select('c', (_f, fns) => fns.count())
+// { c: number } — RUNTIME.DECODE_FAILED outside ±(2^53 − 1) rather than a rounded tally
+
+// countBigInt is the lossless form beside it
+db.order.select('c', (_f, fns) => fns.countBigInt())
 // { c: bigint }
 
-// Sum may be null when no rows, and widens per the target's rule:
-// over PostgreSQL's int4 the sum is an int8
+// Sum may be null when no rows, and an integer total reads as a number
 db.order.select('s', (f, fns) => fns.sum(f.amount))
+// { s: number | null }
+
+// sumBigInt is exact to the bound of the total's SQL type — past 2^63 too on
+// PostgreSQL, where the column is a BigInt or an UnboundedInt
+db.order.select('s', (f, fns) => fns.sumBigInt(f.amount))
 // { s: bigint | null }
 
-// The targets diverge where the databases do: an integer average is
-// numeric on PostgreSQL — a decimal string — and real on SQLite
+// An integer mean is a number on both targets. PostgreSQL offers avgDecimal
+// as the exact form; SQLite has no decimal codec and so contributes none
 db.order.select('a', (f, fns) => fns.avg(f.amount))
-// PostgreSQL: { a: string | null }   SQLite: { a: number | null }
+// { a: number | null }
 ```
 
 See [the aggregate descriptor guide](../../reference/aggregate-descriptor-guide.md) for how a target declares these.
