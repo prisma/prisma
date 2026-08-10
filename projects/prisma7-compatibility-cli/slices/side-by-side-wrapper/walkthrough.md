@@ -45,7 +45,7 @@ Establish a runnable, unpublished `prisma7` distribution that delegates to the e
 - **Adds exact dependency and forwarded package surfaces**: the packed wrapper exposes `prisma7` and `prisma7/config`, records an exact same-version Prisma dependency, and resolves its config through that dependency beside a different direct root Prisma.
   - **Why**: A declared dependency edge is portable across package-manager layouts and preserves the intended side-by-side command topology.
   - **Implementation**: [Wrapper package contract](packages/prisma7/package.json), [config forwarding](packages/prisma7/src/config.ts), [root type forwarding](packages/prisma7/src/index.ts)
-  - **Tests**: [Package contract tests](packages/prisma7/src/package-contract.test.ts), [forwarded surface typecheck](packages/prisma7/src/forwarded-surface.typecheck.ts)
+  - **Tests**: [Packed runtime and type contract](packages/prisma7/src/package-contract.test.ts)
 
 ## Compatibility / migration / risk
 
