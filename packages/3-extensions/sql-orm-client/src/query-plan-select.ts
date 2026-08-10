@@ -2,7 +2,6 @@ import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import {
-  AggregateExpr,
   AndExpr,
   type AnyExpression,
   type AnyFromSource,
@@ -36,7 +35,7 @@ import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-co
 import { assertDefined, invariant } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
-import { resolveAggregate } from './aggregate-codecs';
+import { plainAggregateExpr, resolveAggregate } from './aggregate-codecs';
 import {
   getCompleteColumnToFieldMap,
   getFieldToColumnMap,
@@ -1383,7 +1382,7 @@ function buildIncludeAggregateExpr(
   // any pair the target does not answer.
   const expr = scalar.column === undefined ? undefined : ColumnRef.of(childTableRef, scalar.column);
   if (lower !== undefined) return lower({ expr, inputCodec });
-  return new AggregateExpr(scalar.fn, expr);
+  return plainAggregateExpr(scalar.fn, expr);
 }
 
 /**

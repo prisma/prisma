@@ -143,6 +143,31 @@ await db.orm.User
 // → Array<{ id, email, posts: Array<{ id, title, createdAt }> }>
 ```
 
+**Reduce a to-many relation to a scalar.** A refinement callback may return a *reducer* — `count()`, `sum(field)`, `avg(field)`, `min(field)`, `max(field)` — instead of a collection. The parent's relation field then carries that one value rather than an array. Reducers exist only inside an `include(...)` callback; calling one elsewhere throws.
+
+```typescript
+await db.orm.User.include('posts', (posts) => posts.count()).all();
+// → Array<{ ...user, posts: bigint }>
+
+await db.orm.User.include('posts', (posts) => posts.sum('views')).all();
+// → Array<{ ...user, posts: bigint | null }> — an int4 column's sum widens to int8
+
+await db.orm.User.include('posts', (posts) => posts.avg('views')).all();
+// → Array<{ ...user, posts: string | null }> — PostgreSQL averages integers as numeric
+
+await db.orm.User.include('posts', (posts) => posts.min('views')).all();
+await db.orm.User.include('posts', (posts) => posts.max('views')).all();
+// → Array<{ ...user, posts: number | null }>
+
+// Several sub-views of one relation at once:
+await db.orm.User.include('posts', (posts) =>
+  posts.combine({ recent: posts.take(3), total: posts.count() }),
+).all();
+// → Array<{ ...user, posts: { recent: Post[]; total: bigint } }>
+```
+
+A reducer's result type is the one the target declares for that aggregate — the same types *Workflow — Aggregates* tabulates below, including the `null` a field-taking reducer answers for a parent with no related rows. The reducer set is read from the contract, so an operation a target or extension contributes shows up as a reducer under its own name, with no client change.
+
 Nested `1:N → 1:N` includes (e.g. `User → posts → comments`) require the contract to advertise the `lateral` + `jsonAgg` capabilities for the active target. The Postgres adapter advertises both by default, so most apps get this for free; if the type system rejects a nested include with a *missing capability* error, route to `references/contract.md` to add the required capability declarations and use `references/queries.md` for query-shape guidance.
 
 ## Workflow — ORM writes

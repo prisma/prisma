@@ -1,5 +1,4 @@
 import type { SqlOperationEntry } from '@internal/sql-operations';
-import type { AggregateFn } from '@internal/sql-relational-core/ast';
 import {
   AggregateExpr,
   AndExpr,
@@ -8,6 +7,7 @@ import {
   type BinaryOp,
   type CodecRef,
   ExistsExpr,
+  isAggregateFn,
   ListExpression,
   LiteralExpr,
   NullCheckExpr,
@@ -17,6 +17,7 @@ import {
 import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import { codecOf, createRawSql, toExpr } from '@internal/sql-relational-core/expression';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
+import { assertDefined } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
 import { structuredError } from '@internal/utils/structured-error';
 import type {
@@ -28,7 +29,7 @@ import type {
   Functions,
 } from '../expression';
 import type { QueryContext, ScopeField, Subquery } from '../scope';
-import { ExpressionImpl } from './expression-impl';
+import { ExpressionImpl, ProjectionOnlyExpressionImpl } from './expression-impl';
 
 type CodecTypes = Record<string, { readonly input: unknown }>;
 // Runtime-level ExprOrVal — accepts any codec, any nullability. Concrete codec typing lives on the public BuiltinFunctions surface in `../expression`.
@@ -148,43 +149,55 @@ function inOrNotIn(
  * invocation, instead of executing SQL whose result no declaration types or
  * decodes — SQLite's `sum` over text, which reads whatever leading numbers the
  * rows happened to hold, is the shape of value that path would hand back.
+ *
+ * An operation outside the SQL aggregate alphabet has no plain form at all:
+ * its whole expression is what the lowering hook builds, so the result is
+ * projection-only and refuses predicate and ordering positions.
  */
 function aggregate(
   aggregates: SqlAggregateDescriptorRegistry,
-  fn: AggregateFn,
+  operation: string,
   expr: Expression<ScopeField> | undefined,
 ): ExpressionImpl<{ codecId: string; nullable: boolean; codec?: CodecRef }> {
   const field = expr?.returnType;
   const inputCodec = field === undefined ? undefined : (field.codec ?? { codecId: field.codecId });
-  const resolved = aggregates.resolve(fn, inputCodec);
+  const resolved = aggregates.resolve(operation, inputCodec);
   if (resolved === undefined) {
     throw structuredError(
       'ORM.AGGREGATE_UNSUPPORTED',
       inputCodec === undefined
-        ? `The composed target declares no '${fn}' aggregate for a call without an input.`
-        : `The composed target declares no '${fn}' aggregate over codec '${inputCodec.codecId}'.`,
+        ? `The composed target declares no '${operation}' aggregate for a call without an input.`
+        : `The composed target declares no '${operation}' aggregate over codec '${inputCodec.codecId}'.`,
       {
         why: 'An aggregate result decodes through the codec its target declares; an undeclared pair has no declared result to type or decode.',
-        fix: `Aggregate an input the target declares '${fn}' for, or contribute an aggregate descriptor for this pair.`,
-        meta: { operation: fn, ...ifDefined('inputCodecId', inputCodec?.codecId) },
+        fix: `Aggregate an input the target declares '${operation}' for, or contribute an aggregate descriptor for this pair.`,
+        meta: { operation, ...ifDefined('inputCodecId', inputCodec?.codecId) },
       },
     );
   }
   const inputAst = expr?.buildAst();
+  const returnType = {
+    codecId: resolved.output.codecId,
+    nullable: resolved.nullable,
+    codec: resolved.output,
+  };
 
-  const ast = new AggregateExpr(fn, inputAst);
+  if (!isAggregateFn(operation)) {
+    assertDefined(
+      resolved.lower,
+      `registry resolved '${operation}' outside the SQL aggregate alphabet without a lowering hook`,
+    );
+    return new ProjectionOnlyExpressionImpl(
+      operation,
+      resolved.lower({ expr: inputAst, inputCodec }),
+      returnType,
+    );
+  }
+
+  const ast = new AggregateExpr(operation, inputAst);
   const projectionAst = resolved.lower?.({ expr: inputAst, inputCodec });
 
-  return new ExpressionImpl(
-    ast,
-    {
-      codecId: resolved.output.codecId,
-      nullable: resolved.nullable,
-      codec: resolved.output,
-    },
-    undefined,
-    projectionAst,
-  );
+  return new ExpressionImpl(ast, returnType, undefined, projectionAst);
 }
 
 function createBuiltinFunctions(rawCodecInferer: RawCodecInferer) {
@@ -216,20 +229,27 @@ function createBuiltinFunctions(rawCodecInferer: RawCodecInferer) {
 }
 
 /**
- * The aggregate implementations, erased.
+ * The aggregate implementations, one per operation the registry contributes,
+ * erased.
  *
- * What each returns is the contract's answer — a function of the target's map
- * and the input's codec — which no runtime value can state. The typed surface
- * is `AggregateFunctions<QC>`, applied where these are handed out.
+ * The method set is the registry's operation vocabulary — the runtime mirror
+ * of the contract's emitted aggregate map, both settled from the same
+ * contributed descriptors. What each returns is the contract's answer — a
+ * function of the target's map and the input's codec — which no runtime value
+ * can state. The typed surface is `AggregateFunctions<QC>`, applied where
+ * these are handed out.
  */
-function createAggregateOnlyFunctions(aggregates: SqlAggregateDescriptorRegistry) {
-  return {
-    count: (expr?: Expression<ScopeField>) => aggregate(aggregates, 'count', expr),
-    sum: (expr: Expression<ScopeField>) => aggregate(aggregates, 'sum', expr),
-    avg: (expr: Expression<ScopeField>) => aggregate(aggregates, 'avg', expr),
-    min: (expr: Expression<ScopeField>) => aggregate(aggregates, 'min', expr),
-    max: (expr: Expression<ScopeField>) => aggregate(aggregates, 'max', expr),
-  };
+function createAggregateOnlyFunctions(
+  aggregates: SqlAggregateDescriptorRegistry,
+): Record<string, (expr?: Expression<ScopeField>) => ExpressionImpl> {
+  const methods = new Map<string, (expr?: Expression<ScopeField>) => ExpressionImpl>();
+  for (const { operation } of aggregates.values()) {
+    if (methods.has(operation)) continue;
+    methods.set(operation, (expr?: Expression<ScopeField>) =>
+      aggregate(aggregates, operation, expr),
+    );
+  }
+  return Object.fromEntries(methods);
 }
 
 export function createFunctions<QC extends QueryContext>(
@@ -261,8 +281,9 @@ export function createAggregateFunctions<QC extends QueryContext>(
 
   return new Proxy({} as AggregateFunctions<QC>, {
     get(_target, prop: string) {
-      const agg = (aggregates as Record<string, unknown>)[prop];
-      if (agg) return agg;
+      if (Object.hasOwn(aggregates, prop)) {
+        return aggregates[prop];
+      }
 
       return (baseFns as Record<string, unknown>)[prop];
     },

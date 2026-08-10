@@ -15,6 +15,7 @@ import { expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
 import type {
   AggregateBuilder,
+  AggregateIncludeReducers,
   AggregateSelector,
   HavingBuilder,
   IncludeScalar,
@@ -49,6 +50,8 @@ test('the HAVING surface admits the same declared fields', () => {
 
 type ContractSansAggregates = Omit<TestContract, TypeMapsPhantomKey>;
 declare const bareAgg: AggregateBuilder<ContractSansAggregates, 'User'>;
+declare const bareHaving: HavingBuilder<ContractSansAggregates, 'User'>;
+declare const bareReducers: AggregateIncludeReducers<ContractSansAggregates, 'Post'>;
 
 test('a contract emitted without aggregate types cannot invoke count()', () => {
   // @ts-expect-error — the contract declares no aggregate rows
@@ -58,6 +61,15 @@ test('a contract emitted without aggregate types cannot invoke count()', () => {
 test('a contract emitted without aggregate types cannot invoke field aggregates', () => {
   // @ts-expect-error — the contract declares no aggregate rows
   bareAgg.sum('id');
+});
+
+test('a contract emitted without aggregate types carries no index signature', () => {
+  // @ts-expect-error — an unknown map yields no index signature, so the name is a property error
+  bareAgg['whoops'];
+  // @ts-expect-error — an unknown map yields no index signature, so the name is a property error
+  bareHaving['whoops'];
+  // @ts-expect-error — an unknown map yields no index signature, so the name is a property error
+  bareReducers['whoops'];
 });
 
 // Same-named model and field in two namespaces, with different codecs: each

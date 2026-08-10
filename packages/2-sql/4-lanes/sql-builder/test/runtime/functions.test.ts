@@ -316,7 +316,7 @@ function testAggregateRegistry() {
  * broadly typed, so every operation carries an `anyInput` row; the precise
  * admit/reject proofs live in `test/types/aggregate-count.types.test-d.ts`.
  */
-type TestAggregateQC = QueryContext & {
+type TestAggregateQC = Omit<QueryContext, 'aggregateTypes'> & {
   aggregateTypes: {
     count: {
       byCodec: Record<never, never>;
@@ -418,6 +418,16 @@ describe('createAggregateFunctions', () => {
 
     expect(ast).toBeInstanceOf(BinaryExpr);
     expect(ast.op).toBe('eq');
+  });
+
+  // The map of contributed operations inherits from Object.prototype, so a
+  // lookup that reads it without checking own-ness answers `toString` with
+  // that prototype's member instead of falling through to the base functions.
+  it('resolves no aggregate for a name only Object.prototype carries', () => {
+    const dynamic = fns as unknown as Record<string, unknown>;
+
+    expect(dynamic['toString']).toBeUndefined();
+    expect(dynamic['hasOwnProperty']).toBeUndefined();
   });
 });
 

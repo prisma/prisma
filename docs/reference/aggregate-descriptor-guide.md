@@ -2,7 +2,7 @@
 
 A codec says how one value converts. An aggregate is a *new* value the database computes from many, and what it returns is a property of the operation, the target, and sometimes the input — `sum` over PostgreSQL's `int4` is an `int8`, over its `int8` a `numeric`, and over SQLite's integers an integer that only the bigint codec carries. None of that is derivable from the input codec, so it is declared separately, as `SqlAggregateDescriptor` contributions on `types.aggregateDescriptors`, a sibling of `codecTypes`.
 
-This guide covers that descriptor surface: what a descriptor claims, what it declares, and what a consumer reads off a resolution. Codec authoring itself — codec classes, descriptors, and column helpers — is the [codec authoring guide](./codec-authoring-guide.md).
+This guide covers that descriptor surface: what a descriptor claims, what it declares, what a contribution gives the caller, and what a consumer reads off a resolution. Codec authoring itself — codec classes, descriptors, and column helpers — is the [codec authoring guide](./codec-authoring-guide.md).
 
 ```ts
 import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';
@@ -14,6 +14,12 @@ const sumOfSmallIntegers: SqlAggregateDescriptor = {
   nullable: true,
 };
 ```
+
+## The operation name
+
+`operation` is a name of the contributor's choosing, not a member of a fixed list. The five names the built-in targets contribute — `count`, `sum`, `avg`, `min`, `max` — exist because those targets declare them, and a component that declares `bitOr` or `median` gets that operation on the same surfaces: the SQL DSL's aggregate functions, the ORM's `aggregate()` and `groupBy().aggregate()`, and the include reducers on a collection. Every one of those surfaces derives its method set from the contributed vocabulary — the composed registry at runtime, the contract's emitted `aggregateTypes` at the type level — so a new operation needs no change to the lane or the client.
+
+The AST's aggregate alphabet is a different, closed set. `AggregateFn` (`count | sum | avg | min | max`) is the set of function names an `AggregateExpr` node can carry, and so the set the renderers are exhaustive over. An operation named in the alphabet reaches SQL as a plain aggregate call; every other operation reaches it only through a lowering hook, which [Lowering](#lowering-what-builds-the-expression) covers.
 
 ## The four input matches
 
@@ -40,7 +46,7 @@ Two codecs may not both claim one input by trait: a codec carrying two claimed t
 
 An aggregate's result enters a JSON envelope wherever it is an include reducer, and it goes in under the codec resolved here — which is why [the canonical JSON guarantee](./codec-authoring-guide.md#the-canonical-json-guarantee) applies to aggregates too. A count past 2^53 read as a JSON number is the same defect as a `numeric` read as one.
 
-## Lowering, where the wire form needs it
+## Lowering: what builds the expression
 
 A descriptor may carry a `lower` hook, which builds the expression the target wants:
 
@@ -51,17 +57,65 @@ const castResultToText =
     CastExpr.as(new AggregateExpr(operation, expr), 'text');
 ```
 
-The hook returns an expression and nothing else — it has no channel for a codec, so the descriptor's declared `output` remains the only source of result identity, whatever the hook builds. SQLite uses it for every aggregate whose result is `sqlite/bigint@1`: the database computes those into an INTEGER, and `node:sqlite` raises rather than returning one a JS number cannot hold, so the cast to text is what keeps the value readable — and text is the form the bigint codec reads anyway. PostgreSQL needs no lowering: its native result types already are the declared codecs' native types.
+The hook returns an expression and nothing else — it has no channel for a codec, so the descriptor's declared `output` remains the only source of result identity, whatever the hook builds. SQLite uses it for every aggregate whose result is `sqlite/bigint@1`: the database computes those into an INTEGER, and `node:sqlite` raises rather than returning one a JS number cannot hold, so the cast to text is what keeps the value readable — and text is the form the bigint codec reads anyway. PostgreSQL's built-in matrix needs no lowering: its native result types already are the declared codecs' native types.
+
+For an operation whose name is in the AST's aggregate alphabet, the hook is optional and changes only the wire form. For any other name it is required, because there is no plain form to fall back to: the whole expression is the hook's to build, from the nodes that already exist — a function call, a cast, an aggregate call wrapped in either.
+
+```ts
+const bitOr: SqlAggregateDescriptor = {
+  operation: 'bitOr',
+  input: { kind: 'codec', codecId: 'pg/int8@1' },
+  output: { kind: 'codec', codecId: 'pg/int8@1' },
+  nullable: true,
+  lower: ({ expr }) => FunctionCallExpr.of('bit_or', expr === undefined ? [] : [expr]),
+};
+```
+
+Composition rejects a descriptor that declares a name outside the alphabet and no hook, with `RUNTIME.AGGREGATE_LOWERING_MISSING`. The check runs while the execution context assembles the registry, so the failure lands at composition rather than at the first query that reaches for the operation.
+
+An operation outside the alphabet is also **projection-only**. Its lowered form is a rendering for the driver boundary, where the value leaves SQL; HAVING, ORDER BY, and comparison operands compare inside the database, where the rendering would change what the comparison means — a value rendered as text compares and sorts lexicographically. So a contributed operation is available in a projection and refused in those positions, in the SQL DSL and the ORM alike, with `ORM.AGGREGATE_PROJECTION_ONLY` at authoring time. The ORM's typed HAVING surface says the same thing statically: it carries a method only for operations in the alphabet.
+
+## What a declaration gives the caller
+
+The rows a contribution settles into decide the call shapes the operation surfaces with:
+
+| Rows | Call shape |
+| --- | --- |
+| `withoutInput` (from a `none` or `any` input match) | a zero-argument call |
+| `byCodec` / `anyInput` | a call taking a field, admitting exactly the fields whose codec a row claims |
+| both | both |
+
+`count` has both shapes because PostgreSQL declares it over `{ kind: 'any' }` — an input match that answers a call with a value and a call without one — and not because anything special-cases it.
+
+One naming constraint applies. Include reducers install into the ORM collection's own namespace, beside `select`, `where`, `include`, and the rest of the query builder, so an operation may not take a name a built-in collection member already owns; `orm(...)` rejects one that does with `ORM.AGGREGATE_OPERATION_RESERVED`.
+
+A custom collection class registered through `orm({ collections })` sits outside that check, and its own members take precedence: a member whose name an operation also carries keeps the name, and the collection installs no reducer for that operation. Where the contract's emitted map declares the operation, TypeScript holds the member to the reducer's signature — the collection surface is the class intersected with the reducer set — so what passes silently is a member the types never promised.
 
 ## What a consumer stamps
 
 A planner that builds an aggregate reads two different things off the resolution and must not confuse them:
 
-- **`codec`** is the decode identity — the `CodecRef` that says how the result is read back. It is stamped only when the registry resolved an overload. A miss stamps nothing, and the value reads back as the driver handed it over. Naming the input's codec there would claim the result decodes like its input, which SQLite makes false: it computes `sum` over a text column from whatever leading numbers the rows held.
-- **`codecId`** is the expression's shape, which operator gating reads. On a miss it keeps the input's, because the lane still has to say something about what the expression is.
+- **`codec`** is the decode identity — the `CodecRef` that says how the result is read back, and the only thing that says it. Naming the input's codec there would claim the result decodes like its input, which SQLite makes false: it computes `sum` over a text column from whatever leading numbers the rows held.
+- **`codecId`** is the expression's shape, which operator gating reads. It is the declared output's, that being what the expression evaluates to.
+
+A pair the composed stack declares no overload for resolves to nothing, and both consumers refuse it before any SQL is built, with `ORM.AGGREGATE_UNSUPPORTED`. There is no untyped fallback: a result the target never declared is a result nothing can decode.
+
+## When the types offer an operation the runtime doesn't have
+
+The aggregate map is emitted into `contract.d.ts` only; `contract.json` carries no copy of it. So a contract emitted with an extension composed, and then used against a runtime configured without that extension, types `aggregate.bitOr('weight')` and fails on the call:
+
+```text
+TypeError: aggregate.bitOr is not a function
+```
+
+An include reducer fails the same way — `posts.bitOr('weight')` — because the collection installs one reducer per operation the registry contributes. Nothing structured is raised, and nothing can be: the runtime has no record of what the types were told.
+
+The fix is to make the two agree. Either compose the extension into the runtime that builds `db`, or re-emit the contract from a configuration that omits it, which withdraws the operation from the types as well.
 
 ## Where to look
 
 - **PostgreSQL's matrix**: [packages/3-targets/3-targets/postgres/src/core/aggregates.ts](../../packages/3-targets/3-targets/postgres/src/core/aggregates.ts) — every row read off a live database rather than inferred.
 - **SQLite's matrix, including the lowering**: [packages/3-targets/3-targets/sqlite/src/core/aggregates.ts](../../packages/3-targets/3-targets/sqlite/src/core/aggregates.ts).
-- **The vocabulary**: `AggregateDescriptor` in `packages/1-framework/1-core/framework-components/src/shared/aggregate-descriptor.ts`; the precedence rule beside it in `aggregate-overloads.ts`; the SQL specialization and registry in `packages/2-sql/4-lanes/relational-core/src/aggregate-descriptor{,-registry}.ts`.
+- **The vocabulary**: `AggregateDescriptor` in `packages/1-framework/1-core/framework-components/src/shared/aggregate-descriptor.ts`; the precedence rule beside it in `aggregate-overloads.ts`; the SQL specialization and registry, including the lowering rule, in `packages/2-sql/4-lanes/relational-core/src/aggregate-descriptor{,-registry}.ts`.
+- **A contribution end to end**: [test/integration/test/sql-orm-client/contributed-aggregates.test.ts](../../test/integration/test/sql-orm-client/contributed-aggregates.test.ts) contributes two operations from a test-only extension and reads their results back from PostgreSQL.
+- **The rules the surfaces follow**: [ADR 020 § Contributed aggregate operations](../architecture%20docs/adrs/ADR%20020%20-%20Result%20Typing%20Rules.md#contributed-aggregate-operations).

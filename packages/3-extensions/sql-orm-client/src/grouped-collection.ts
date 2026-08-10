@@ -12,10 +12,14 @@ import {
   BinaryExpr,
   type BinaryOp,
   ColumnRef,
+  isAggregateFn,
   LiteralExpr,
 } from '@internal/sql-relational-core/ast';
+import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
+import { blindCast } from '@internal/utils/casts';
 import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
+import { aggregateOperationNames } from './aggregate-operations';
 import { getFieldToColumnMap } from './collection-contract';
 import { mapStorageRowToModelFields } from './collection-runtime';
 import { executeQueryPlan } from './execute-query-plan';
@@ -85,6 +89,7 @@ export class GroupedCollection<
     const havingExpr = predicate(
       createHavingBuilder<TContract, ModelName, NsId>(
         this.contract,
+        this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.modelName,
         this.tableName,
@@ -121,6 +126,7 @@ export class GroupedCollection<
     const aggregateSpec = fn(
       createAggregateBuilder<TContract, ModelName, NsId>(
         this.contract,
+        this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.modelName,
       ),
@@ -191,40 +197,53 @@ export class GroupedCollection<
   }
 }
 
+/**
+ * The having metric methods, one per operation the registry contributes —
+ * the runtime mirror of the contract's emitted aggregate map, which is what
+ * types the surface as {@link HavingBuilder}. HAVING compares the value
+ * inside the database, so only an operation's plain `AggregateExpr` form is
+ * sound here: an operation outside the SQL aggregate alphabet exists only in
+ * its descriptor-lowered form — a rendering for the driver boundary — and is
+ * refused. The typed surface already excludes it; the runtime refusal covers
+ * dynamic invocation.
+ */
 function createHavingBuilder<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
 >(
   contract: TContract,
+  aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   modelName: ModelName,
   tableName: string,
 ): HavingBuilder<TContract, ModelName, NsId> {
   const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
-  const createMetricExpr = (
-    fn: Exclude<AggregateExpr['fn'], 'count'>,
-    fieldName: string,
-  ): AggregateExpr =>
-    new AggregateExpr(fn, ColumnRef.of(tableName, fieldToColumn[fieldName] ?? fieldName));
-
-  return {
-    count() {
-      return createHavingComparisonMethods<number>(AggregateExpr.count());
-    },
-    sum(field) {
-      return createHavingComparisonMethods<number | null>(createMetricExpr('sum', field as string));
-    },
-    avg(field) {
-      return createHavingComparisonMethods<number | null>(createMetricExpr('avg', field as string));
-    },
-    min(field) {
-      return createHavingComparisonMethods<number | null>(createMetricExpr('min', field as string));
-    },
-    max(field) {
-      return createHavingComparisonMethods<number | null>(createMetricExpr('max', field as string));
-    },
-  };
+  const builder: Record<string, (field?: string) => HavingComparisonMethods<number | null>> = {};
+  for (const operation of aggregateOperationNames(aggregates)) {
+    builder[operation] = (field?: string) => {
+      if (!isAggregateFn(operation)) {
+        throw ormError(
+          'ORM.AGGREGATE_PROJECTION_ONLY',
+          `Aggregate operation '${operation}' is projection-only: it has no plain SQL form for HAVING, ORDER BY, or comparison positions.`,
+          {
+            why: "An operation outside the SQL aggregate alphabet reaches SQL only through its descriptor's lowering hook — a rendering for the driver boundary. HAVING and ORDER BY compare the value inside the database, where that rendering would change SQL semantics.",
+            fix: `Project '${operation}' in a select and filter or order on the projected value, or use an operation from the SQL aggregate alphabet.`,
+            meta: { operation },
+          },
+        );
+      }
+      const metric = new AggregateExpr(
+        operation,
+        field === undefined ? undefined : ColumnRef.of(tableName, fieldToColumn[field] ?? field),
+      );
+      return createHavingComparisonMethods(metric);
+    };
+  }
+  return blindCast<
+    HavingBuilder<TContract, ModelName, NsId>,
+    "the registry's operations are the contract's emitted aggregate map, whose mapped type enforces each method's arity and comparand"
+  >(builder);
 }
 
 function createHavingComparisonMethods<T extends number | null>(

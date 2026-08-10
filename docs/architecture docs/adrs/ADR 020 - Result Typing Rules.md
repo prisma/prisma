@@ -104,6 +104,42 @@ Assume no FILTER and no DISTINCT unless specified:
   - Adapters may coalesce to `ChildRow[]` if they lower with `COALESCE(json_agg(...), '[]'::json)` and declare `jsonAggCoalescesEmpty`
 - **includeMany**: The SQL DSL's `includeMany` feature uses `json_agg` to return nested arrays. The runtime converts `NULL` json_agg results to empty arrays `[]` for consistency, ensuring the result type is always `Array<ChildShape>` rather than `Array<ChildShape> | null`. Include aliases are marked in plan meta with `include:alias` to enable special JSON array decoding. The builder tracks includes at the type level, maintaining a map of include aliases to their child projection types, allowing `InferNestedProjectionRow` to infer `Array<ChildShape>` instead of `Array<unknown>`.
 
+### Contributed aggregate operations
+
+An operation's name is whatever its descriptor declares. Targets, adapters, and extensions contribute descriptors on `types.aggregateDescriptors`, and every consumer surface derives its method set from that vocabulary: the SQL DSL's aggregate functions, the ORM's `aggregate()`, `groupBy().aggregate()`, and the include reducers on a collection. The type level reads the same vocabulary from the contract's emitted `aggregateTypes`; the runtime reads it from the registry the execution context assembles. Neither the lane nor the client names an operation.
+
+```ts
+import type { SqlAggregateDescriptor } from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import { FunctionCallExpr } from '@internal/sql-relational-core/ast';
+
+const bitOr: SqlAggregateDescriptor = {
+  operation: 'bitOr',
+  input: { kind: 'codec', codecId: 'pg/int8@1' },
+  output: { kind: 'codec', codecId: 'pg/int8@1' },
+  nullable: true,
+  lower: ({ expr }) => FunctionCallExpr.of('bit_or', expr === undefined ? [] : [expr]),
+};
+```
+
+```ts
+// On an ORM collection, the contributed operation is a method like any other,
+// typed by the row the descriptor settled into
+await readings.aggregate((aggregate) => ({ bits: aggregate.bitOr('weight') }));
+// { bits: bigint | null }
+```
+
+**The operation namespace is open; the SQL alphabet is closed.** `AggregateFn` — `count | sum | avg | min | max`, in `packages/2-sql/4-lanes/relational-core/src/ast/types.ts` — is the set of function names an `AggregateExpr` can carry, and so the set renderers are exhaustive over. It is SQL's alphabet, not the operation namespace.
+
+**An operation outside the alphabet carries its own lowering.** A name in the alphabet lowers to `AggregateExpr(name, expr)` by default. Any other name must declare a `lower` hook that builds its expression from existing nodes — a function call, a cast, an aggregate call wrapped in either. Registry assembly rejects a descriptor that has neither a name in the alphabet nor a hook, with `RUNTIME.AGGREGATE_LOWERING_MISSING`, so the failure lands at composition rather than mid-query.
+
+**An operation outside the alphabet is projection-only.** Its lowered form is a rendering for the driver boundary, where the value leaves SQL; HAVING, ORDER BY, and comparison operands compare inside the database, where only the plain `AggregateExpr` form is sound. Both consumers refuse those positions at authoring time with `ORM.AGGREGATE_PROJECTION_ONLY`, and both typed surfaces say the same: the ORM's `HavingBuilder` is keyed by `AggregateOperationNames<TContract> & SqlAggregateFn`, deliberately narrower than `AggregateBuilder`'s key set, so an out-of-alphabet operation has no HAVING method at all and the runtime refusal covers dynamic invocation.
+
+**Call shape follows row presence.** A `withoutInput` row admits the zero-argument call; `byCodec` and `anyInput` rows admit the field-taking call, over exactly the fields `AggregateFieldNames` reads off them; an operation with both kinds of row carries both overloads. `count()` and `count(field)` are that data fact rather than a special case — PostgreSQL declares `count` with `input: { kind: 'any' }`, which settles into both a `withoutInput` and an `anyInput` row.
+
+**A contributed name may not shadow a base collection member.** Include reducers install into the collection's own namespace, beside `select`, `where`, `include`, and the rest, so an operation whose name a `CollectionImpl` member already owns is rejected at ORM composition (`orm(...)`) with `ORM.AGGREGATE_OPERATION_RESERVED`. The reserved set is derived for one half and pinned for the other: the prototype members come from `Object.getOwnPropertyNames(CollectionImpl.prototype)`, while the instance fields are a hand-written list that a test holds to the class — it walks a live collection's own property names and fails if the set is missing one, so adding a field without listing it is caught.
+
+**A custom collection's own members take precedence over a reducer.** That check reads `CollectionImpl` and nothing else, so a collection class registered through `orm({ collections })` may declare a member whose name an operation also carries. The constructor skips any name the instance already carries, which leaves the class member in place and installs no reducer for the operation. Types are what guard the case: `Collection` is `CollectionImpl & AggregateIncludeReducers<…>`, so for any contract whose emitted map carries the operation, a subclass member that does not match the reducer's signature is a type error — what passes silently is a member the types never promised. Extending the composition-time check to subclasses would not close that: a subclass instance field is invisible to a static scan of the class, and is assigned after `super()` has already installed the reducer.
+
 ### Grouping
 
 - With GROUP BY, any projected non-aggregate field must appear in the grouping set or compilation fails
@@ -202,6 +238,7 @@ See [the aggregate descriptor guide](../../reference/aggregate-descriptor-guide.
 
 - Golden typing tests mapping representative projections and joins to expected TS types
 - Adapter conformance tests asserting capability-driven refinements do not widen types unexpectedly
+- A contributed operation exercised end to end — a descriptor with a lowering hook, a real query, a result decoded through the declared output codec — and, against a stack the contribution is absent from, no such method at all
 - Cross-lane equivalence tests ensuring ORM-lowered plans produce the same result types as hand-written DSL with equivalent SQL
 - Regression tests for LEFT/RIGHT/FULL join nullability and aggregate nullability
 

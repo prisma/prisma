@@ -5,8 +5,6 @@ interface CollectionStateCarrier {
   readonly state: CollectionState;
 }
 
-const aggregateFns = new Set(['count', 'sum', 'avg', 'min', 'max']);
-
 export function createIncludeScalar<Result>(
   fn: IncludeScalar<Result>['fn'],
   state: CollectionState,
@@ -40,10 +38,11 @@ export function isIncludeScalar(value: unknown): value is IncludeScalar<unknown>
     state?: unknown;
   };
 
+  // The operation vocabulary is open: any string names a potentially
+  // contributed operation, so validity is shape-only.
   return (
     candidate.kind === 'includeScalar' &&
     typeof candidate.fn === 'string' &&
-    aggregateFns.has(candidate.fn) &&
     isCollectionState(candidate.state)
   );
 }

@@ -1,8 +1,12 @@
 import { type Contract, domainModelsAtDefaultNamespace } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import type {
+  ExecutionContext,
+  SqlAggregateDescriptorRegistry,
+} from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
-import { Collection } from './collection';
+import { aggregateOperationNames } from './aggregate-operations';
+import { type Collection, CollectionBase, reservedCollectionMemberNames } from './collection';
 import { ormError } from './orm-errors';
 import { domainModelNamesInNamespace, domainModelTableInNamespace } from './storage-resolution';
 import type {
@@ -89,11 +93,37 @@ type OrmClient<
   Collections extends Partial<Record<string, AnyCollectionClass>>,
 > = NamespacedClientMap<TContract, Collections>;
 
+/**
+ * Reject a contributed aggregate operation whose name a collection member
+ * already owns. Aggregate operations surface as reducer methods on the
+ * collection, in one flat namespace with the builder members, so a same-named
+ * operation would shadow the member it collides with — a client-surface
+ * concern, enforced here where that surface is assembled.
+ */
+function assertAggregateOperationsNotReserved(registry: SqlAggregateDescriptorRegistry): void {
+  const reserved = reservedCollectionMemberNames();
+  for (const operation of aggregateOperationNames(registry)) {
+    if (!reserved.has(operation)) {
+      continue;
+    }
+    throw ormError(
+      'ORM.AGGREGATE_OPERATION_RESERVED',
+      `Aggregate operation '${operation}' is reserved: the name is a collection builder member.`,
+      {
+        why: 'Aggregate operations surface as reducer methods on the collection, in one namespace with the query-builder members; a same-named operation would shadow the member it collides with.',
+        fix: 'Rename the contributed aggregate operation.',
+        meta: { operation },
+      },
+    );
+  }
+}
+
 export function orm<
   TContract extends Contract<SqlStorage>,
   Collections extends Partial<Record<string, AnyCollectionClass>> = Record<never, never>,
 >(options: OrmOptions<TContract, Collections>): OrmClient<TContract, Collections> {
   const { runtime, collections, context } = options;
+  assertAggregateOperationsNotReserved(context.aggregateDescriptors);
   const contract = context.contract;
   const ctx: CollectionContext<TContract> = { runtime, context };
   const collectionRegistry = createCollectionRegistry(contract, collections);
@@ -105,7 +135,7 @@ export function orm<
     modelName: string,
     tableName?: string,
   ): AnyCollection {
-    const CollectionClass = collectionRegistry.get(modelName) ?? Collection;
+    const CollectionClass = collectionRegistry.get(modelName) ?? CollectionBase;
     const CollectionCtor = blindCast<
       new (
         ctx: CollectionContext<TContract>,
@@ -215,5 +245,5 @@ function isCollectionClass(value: unknown): value is AnyCollectionClass {
   if (!candidate.prototype || typeof candidate.prototype !== 'object') {
     return false;
   }
-  return candidate.prototype instanceof Collection;
+  return candidate.prototype instanceof CollectionBase;
 }
