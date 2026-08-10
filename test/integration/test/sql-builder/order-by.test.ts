@@ -52,4 +52,28 @@ describe('integration: ORDER BY', { timeout: timeouts.databaseOperation }, () =>
     const alicePosts = rows.filter((r) => r.user_id === 1);
     expect(alicePosts[0]!.views).toBeGreaterThan(alicePosts[1]!.views);
   });
+
+  it('NULLS FIRST places nulls before non-null values', async () => {
+    const rows = await runtime().execute(
+      db()
+        .public.users.select('id', 'invited_by_id')
+        .orderBy('invited_by_id', { nulls: 'first' })
+        .build(),
+    );
+    expect(rows).toHaveLength(4);
+    expect(rows[0]!.invited_by_id).toBeNull();
+    expect(rows.slice(1).every((r) => r.invited_by_id !== null)).toBe(true);
+  });
+
+  it('NULLS LAST places nulls after non-null values', async () => {
+    const rows = await runtime().execute(
+      db()
+        .public.users.select('id', 'invited_by_id')
+        .orderBy('invited_by_id', { nulls: 'last' })
+        .build(),
+    );
+    expect(rows).toHaveLength(4);
+    expect(rows[rows.length - 1]!.invited_by_id).toBeNull();
+    expect(rows.slice(0, -1).every((r) => r.invited_by_id !== null)).toBe(true);
+  });
 });

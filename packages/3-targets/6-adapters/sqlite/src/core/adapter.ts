@@ -244,7 +244,7 @@ function renderSelect(ast: SelectAst, ctx: SqliteRenderContext): string {
   const havingClause = ast.having ? `HAVING ${renderExpr(ast.having, ctx)}` : '';
   const orderClause = ast.orderBy?.length
     ? `ORDER BY ${ast.orderBy
-        .map((order) => `${renderExpr(order.expr, ctx)} ${order.dir.toUpperCase()}`)
+        .map((order) => renderOrderByItem(order, renderExpr(order.expr, ctx)))
         .join(', ')}`
     : '';
   const limitClause = renderLimitOffset('LIMIT', ast.limit, ctx);
@@ -671,8 +671,13 @@ function renderJsonObjectExpr(expr: JsonObjectExpr, ctx: SqliteRenderContext): s
   return `json_object(${args})`;
 }
 
+function renderOrderByItem(item: OrderByItem, expr: string): string {
+  const nulls = item.nulls ? ` NULLS ${item.nulls.toUpperCase()}` : '';
+  return `${expr} ${item.dir.toUpperCase()}${nulls}`;
+}
+
 function renderOrderByItems(items: ReadonlyArray<OrderByItem>, ctx: SqliteRenderContext): string {
-  return items.map((item) => `${renderExpr(item.expr, ctx)} ${item.dir.toUpperCase()}`).join(', ');
+  return items.map((item) => renderOrderByItem(item, renderExpr(item.expr, ctx))).join(', ');
 }
 
 function renderJsonArrayAggExpr(expr: JsonArrayAggExpr, ctx: SqliteRenderContext): string {
