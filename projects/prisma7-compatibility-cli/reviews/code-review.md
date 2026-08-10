@@ -3,7 +3,7 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3
 - **AC scoreboard totals:** 1 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
@@ -16,13 +16,14 @@
 
 ## Subagent IDs
 
-- **Implementer:** `6c6bb88a-2cee-49e` — active from the `side-by-side-wrapper` D1 R1 handoff. Replaced `a6fe498a-1b46-4ea` after the orchestrator corrected an over-tiered Sol selection to Terra; Sol left inspected-but-uncommitted work. Earlier `e567e37e-6ce9-4c9` failed before execution because its third-party model was unavailable.
-- **Reviewer:** `2a1fc99c-d80f-441` — active from `side-by-side-wrapper` D2 R1. Replaced `c7ca9041-d284-447`, which became inaccessible after satisfying D1 R2.
+- **Implementer:** `4147ae9c-59a8-464` — active from `side-by-side-wrapper` D3 R1. Replaced `6c6bb88a-2cee-49e`, which became inaccessible after completing D2; that agent had replaced over-tiered Sol agent `a6fe498a-1b46-4ea`, while the original `e567e37e-6ce9-4c9` failed before execution because its third-party model was unavailable.
+- **Reviewer:** `135858aa-1e61-497` — active from `side-by-side-wrapper` D3 R1. Replaced `2a1fc99c-d80f-441`, which became inaccessible after satisfying D2; that agent had replaced `c7ca9041-d284-447` after D1 R2.
 
 ## Orchestrator notes
 
 - Linear synchronization was explicitly waived by the operator for this project.
 - Drive trace emission is unavailable because the canonical emitter cannot resolve its `arktype` dependency; no hand-authored trace events will substitute for validated events.
+- After D2, the operator authorized replacing marker/global-symbol identity transport with normalized `process.argv[1]` stem inference. The supporting package-manager probe and scope are recorded in `design-decisions.md`; D3 must be reviewed before the slice remains SATISFIED.
 
 ## Findings log
 
@@ -73,6 +74,18 @@
 **Tasks:** Forwarded exports, exact packed dependency, package metadata/file list, side-by-side fixture, and D1 regression coverage are clean.
 
 **AC delta:** AC-1 NOT VERIFIED → PASS (commits `e86b01a84c`, `f5531d98da`; tests in `packages/prisma7/src/package-contract.test.ts` and `packages/prisma7/src/delegate-to-prisma-cli.test.ts`).
+
+**Findings:** none.
+
+**For orchestrator:** none.
+
+### side-by-side-wrapper D3 R1 — SATISFIED
+
+**Scope:** executable-stem identity inference and distinctive wrapper target. Commit `43ad8a7891`.
+
+**Tasks:** Exact POSIX/Windows stem selection, immutable identity, target/bin/export contract, argv delegation, and stale-transport cleanup are clean.
+
+**AC delta:** AC-1 remains PASS; amended packed-wrapper condition is confirmed by `43ad8a7891` and `packages/prisma7/src/package-contract.test.ts` (7/7), with CLI identity/dispatcher coverage in `packages/cli/src/utils/cli-distribution-identity.vitest.ts` and `packages/cli/src/bin-dispatcher.vitest.ts` (12/12).
 
 **Findings:** none.
 

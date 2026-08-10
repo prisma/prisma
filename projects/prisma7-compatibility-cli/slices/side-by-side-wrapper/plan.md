@@ -13,3 +13,10 @@
 - **Builds on:** Dispatch 1's runnable wrapper and frozen identity contract.
 - **Hands to:** A complete unpublished slice artifact satisfying the wrapper package contract, ready for exhaustive identity propagation in the next project slice.
 - **Focus:** Export map and files manifest, root/config runtime and type forwarding, exact workspace-to-packed dependency semantics, package inspection, and local side-by-side resolution tests. Exhaustive CLI wording and all publication automation remain out of scope.
+
+### Dispatch 3: infer identity from the executed binary
+
+- **Outcome:** CLI identity is derived solely from the normalized stem of `process.argv[1]`; the distinctive `prisma7.js` target selects `prisma7` across supported package-manager launch forms, while ordinary Prisma and unsupported caller-defined entrypoints default to `prisma`.
+- **Builds on:** Dispatch 2's complete wrapper package and the cross-package-manager `/tmp` probe that falsified the marker/global-symbol design.
+- **Hands to:** A simpler reviewer-verified wrapper with no identity environment marker, cleanup, global symbol, package metadata lookup, or cross-bundle mutable state, ready for the next project slice.
+- **Focus:** Replace marker/global identity transport, give the wrapper a distinctive executable target, update emitted/forwarding/packed contract tests, and regression-pin normalized shim-vs-target names. Exhaustive user-facing identity propagation remains the next slice.

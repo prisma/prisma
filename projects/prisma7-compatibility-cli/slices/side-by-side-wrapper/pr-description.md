@@ -1,18 +1,18 @@
-# feat(prisma7): add side-by-side CLI wrapper
-
 ## Overview
 
-Add an unpublished `prisma7` compatibility package that runs the exact matching Prisma 7 CLI alongside a direct Prisma dependency, without copying CLI implementation or assets. A small CLI distribution-identity seam lets the wrapper select its identity while ordinary `prisma` invocations retain their existing default.
+Add an unpublished `prisma7` compatibility package that runs the exact matching Prisma 7 CLI alongside a direct Prisma dependency, without copying CLI implementation or assets. The wrapper's distinctive executable target lets the CLI derive its distribution identity from the invoked script while ordinary `prisma` invocations retain their existing default.
 
 ## Changes
 
-- **CLI identity and delegation**: Add an immutable, one-shot distribution identity selected through a private marker. The CLI dispatcher initializes it before both normal and completion branches; `prisma7` forwards arguments and exit behavior to `prisma/build/index.js` through its declared dependency.
-- **Wrapper package surfaces**: Add the buildable `prisma7` workspace package with an exact same-version packed Prisma dependency, `prisma7` binary, root type forwarding, and `prisma7/config` runtime/type forwarding. The package contains only wrapper outputs and remains private/unpublished.
-- **Contract coverage**: Add identity, delegation, emitted-dispatcher, packed-manifest, side-by-side resolution, and forwarded-type tests, and register the package in the repository test jobs.
+- **CLI identity and delegation**: Derive the immutable distribution identity from the normalized `process.argv[1]` filename stem: exact `prisma7` selects the compatibility identity and every other value defaults to `prisma`. The `prisma7` wrapper forwards arguments and exit behavior to `prisma/build/index.js` through its declared dependency.
+- **Wrapper package surfaces**: Add the buildable `prisma7` workspace package with the distinctive `build/prisma7.js` bin target, an exact same-version packed Prisma dependency, root type forwarding, and `prisma7/config` runtime/type forwarding. The package contains only wrapper outputs and remains private/unpublished.
+- **Contract coverage**: Add identity, delegation, emitted-dispatcher, packed-manifest, side-by-side resolution, and forwarded-type tests, including shim/target path forms and default handling for unsupported executable names.
 
 ## Why
 
-Keeping `prisma@7` as the sole implementation avoids divergent CLI behavior and duplicated engines while giving package managers a declared dependency edge to resolve. The packed-package fixture verifies that a direct root Prisma can remain separate from the wrapper's Prisma dependency, and the built-dispatcher test protects the identity initialization from bundler tree-shaking.
+Keeping `prisma@7` as the sole implementation avoids divergent CLI behavior and duplicated engines while giving package managers a declared dependency edge to resolve. A real-tarball probe across npm, pnpm, Yarn node-modules/PnP, Bun, package scripts/exec, direct Node execution, and npm-global launches found either a `prisma7` shim path or the `prisma7.js` target in `process.argv[1]`; normalizing that stem provides the same identity without package.json lookup or physical dependency-path parsing.
+
+Only the exact `prisma7` stem selects the compatibility identity. Custom renamed symlinks and programmatic `require()` callers default to `prisma` because they do not represent the supported binary-invocation contract. Windows execution remains unverified; Windows path normalization is covered by unit tests.
 
 ## Scope
 

@@ -1,69 +1,60 @@
-## Key snippet(s)
-
-```ts
-// packages/prisma7/src/delegate-to-prisma-cli.ts
-process.env[distributionMarker] = 'prisma7'
-return loadPrismaCli() // require('prisma/build/index.js')
-```
-
 ## Sources
 
+- PR: [#29949](https://github.com/prisma/prisma/pull/29949)
 - Commit range: `origin/v7...HEAD`
-- Slice commits: `5ae58ae55e`, `e86b01a84c`, `f5531d98da`
-- Project-artifact commit: `e69dba3a49`
+- Final identity change: `43ad8a7891 refactor(cli): infer prisma7 identity from executable`
 - Intent: [slice spec](projects/prisma7-compatibility-cli/slices/side-by-side-wrapper/spec.md)
-- Review verdict: [code review](projects/prisma7-compatibility-cli/reviews/code-review.md)
+- Dispatch plan: [slice plan](projects/prisma7-compatibility-cli/slices/side-by-side-wrapper/plan.md)
+- Review ledger: [code review](projects/prisma7-compatibility-cli/reviews/code-review.md)
 
 ## Intent
 
-Establish a runnable, unpublished `prisma7` distribution that delegates to the exact matching Prisma 7 implementation while a direct Prisma dependency can continue serving the ordinary `prisma` command. The slice creates the identity and package boundary that the later branding-completion and release-mirroring slices can build on.
+Establish a runnable, unpublished `prisma7` distribution that delegates to the exact matching Prisma 7 implementation while a direct Prisma dependency continues serving the ordinary `prisma` command. The slice creates the executable and package boundary that later branding-completion and release-mirroring slices can build on.
 
 ## Change map
 
 - **Implementation**:
-  - [CLI distribution identity](packages/cli/src/utils/cli-distribution-identity.ts) — immutable `prisma`/`prisma7` identity selection, one-shot marker consumption, and startup stability.
-  - [CLI dispatcher](packages/cli/src/bin-dispatcher.ts) — initializes identity before normal or completion dispatch.
-  - [Wrapper delegation](packages/prisma7/src/delegate-to-prisma-cli.ts) — sets the private marker and resolves `prisma/build/index.js` through the declared dependency edge.
-  - [Wrapper build](packages/prisma7/helpers/build.ts) — emits the executable dispatcher and forwarded package/config bundles.
-  - [Wrapper package contract](packages/prisma7/package.json) — defines the `prisma7` binary, exact packed dependency semantics, exports, and published file set.
-  - [Config forwarding](packages/prisma7/src/config.ts) and [root type forwarding](packages/prisma7/src/index.ts) — expose the supported package surfaces without duplicating Prisma implementation.
+  - [CLI distribution identity](packages/cli/src/utils/cli-distribution-identity.ts) — derives the immutable identity from the normalized executed-script stem.
+  - [Wrapper delegation](packages/prisma7/src/delegate-to-prisma-cli.ts) — resolves `prisma/build/index.js` through the declared dependency edge.
+  - [Wrapper build](packages/prisma7/helpers/build.ts) — emits the distinctive `build/prisma7.js` executable and forwarded package bundles.
+  - [Wrapper package contract](packages/prisma7/package.json) — defines the `prisma7` bin, exact packed dependency semantics, exports, and file set.
 - **Tests (evidence)**:
-  - [Identity tests](packages/cli/src/utils/cli-distribution-identity.vitest.ts) — prove default identity, `prisma7` selection, marker consumption, and startup immutability.
-  - [Built dispatcher tests](packages/cli/src/bin-dispatcher.vitest.ts) — execute the emitted dispatcher for both normal and completion branches and verify identity is initialized before loading either branch.
-  - [Delegation tests](packages/prisma7/src/delegate-to-prisma-cli.test.ts) — prove normal/completion arguments and delegated exit behavior are preserved.
-  - [Package contract tests](packages/prisma7/src/package-contract.test.ts) — pack the wrapper, verify its exact same-version Prisma dependency and file/export contract, then resolve wrapper config beside a different root Prisma and typecheck forwarded imports.
-  - [Forwarded surface typecheck](packages/prisma7/src/forwarded-surface.typecheck.ts) — pins parity between root and config Prisma types.
+  - [Identity tests](packages/cli/src/utils/cli-distribution-identity.vitest.ts) — cover POSIX and Windows path forms, ordinary defaults, unsupported names, and `process.argv[1]` lookup.
+  - [Built dispatcher tests](packages/cli/src/bin-dispatcher.vitest.ts) — verify normal and completion dispatch preserve the invoked script.
+  - [Delegation tests](packages/prisma7/src/delegate-to-prisma-cli.test.ts) — verify argument and delegated exit behavior.
+  - [Package contract tests](packages/prisma7/src/package-contract.test.ts) — verify the packed bin target, exact dependency, wrapper-only files, side-by-side resolution, and forwarded imports.
 
 ## The story
 
-1. **Create one identity contract for two distributions.** The CLI now resolves an immutable identity at startup. Ordinary entrypoints default to `prisma`; the wrapper sets a private marker before loading the published Prisma CLI entrypoint, which selects `prisma7` and immediately consumes the marker so it is not accidentally inherited by unrelated child processes.
-2. **Keep normal and completion execution on the same implementation.** The wrapper owns only a small executable dispatcher and preserves `process.argv` and exit behavior. The existing Prisma dispatcher remains responsible for loading either the normal CLI or completion bundle, with identity initialization occurring before both branches.
-3. **Prove the built behavior, not only source behavior.** A first implementation relied on an import/evaluation that the CLI package's tree-shaking could remove. The emitted-dispatcher test now spawns the built `packages/cli/build/index.js`, probes both branches, and asserts that the identity exists and the environment marker has been consumed. This is evidence that the identity seam survives the actual bundle used by the wrapper.
-4. **Expose the package boundary without assuming a filesystem layout.** `prisma7` forwards its supported root type and `prisma7/config` surfaces while requiring `prisma/build/index.js` through normal package resolution. The pack-and-fixture test verifies that the root package can resolve a different Prisma version while the wrapper config resolves its own declared dependency.
+1. **Create one implementation boundary for two distributions.** The new private `prisma7` package owns a small executable wrapper and forwards to `prisma/build/index.js` through its declared dependency. It does not copy CLI implementation, engines, Wasm assets, or command handlers.
+2. **Make the invoked executable the identity source.** The wrapper's bin target is `build/prisma7.js`. Each separately bundled CLI consumer normalizes `process.argv[1]` and parses its filename stem; exact `prisma7` selects the compatibility identity, while every other stem defaults to `prisma`. The same rule handles package-manager shim paths and the real built target without package.json lookup or dependency-path parsing.
+3. **Keep execution behavior unchanged apart from distribution selection.** The wrapper preserves `process.argv` and delegated exit behavior, and the existing dispatcher still selects normal or completion execution from the command arguments. Both branches independently observe the same invoked script rather than relying on cross-bundle mutable state.
+4. **Prove the package topology and its limits.** Packed-contract coverage checks that the wrapper records the exact matching Prisma dependency, exposes the root/config forwarding surfaces, and resolves its nested Prisma beside a different direct root version. The package-manager probe covered npm, pnpm, Yarn node-modules/PnP, Bun, scripts/exec, direct Node, and npm-global launches. Custom renamed symlinks and programmatic `require()` are unsupported and default to `prisma`; actual Windows execution remains unverified.
 
 ## Behavior changes & evidence
 
-- **Adds private distribution identity selection**: ordinary Prisma starts with the existing `prisma` identity, while a wrapper invocation selects `prisma7`; initialization is immutable after startup and consumes the marker.
-  - **Why**: Later identity propagation needs one authoritative contract, and marker consumption prevents accidental branding of child processes.
-  - **Implementation**: [CLI distribution identity](packages/cli/src/utils/cli-distribution-identity.ts), [CLI dispatcher](packages/cli/src/bin-dispatcher.ts)
+- **Adds executable-derived distribution identity**: a normalized stem of exactly `prisma7` selects `prisma7`; missing, ordinary, and unsupported executable names select `prisma`.
+  - **Why**: Supported package-manager launches expose either the `prisma7` shim or `prisma7.js` target, providing a stable identity signal without package metadata or physical dependency-path assumptions.
+  - **Implementation**: [CLI distribution identity](packages/cli/src/utils/cli-distribution-identity.ts)
   - **Tests**: [Identity tests](packages/cli/src/utils/cli-distribution-identity.vitest.ts), [built dispatcher tests](packages/cli/src/bin-dispatcher.vitest.ts)
 
-- **Adds a side-by-side executable wrapper**: `prisma7` resolves and delegates to `prisma/build/index.js`, preserving normal and completion arguments and delegated exit status.
-  - **Why**: Reuse the Prisma 7 implementation and its assets instead of maintaining a second CLI bundle or depending on a constructed nested `node_modules` path.
-  - **Implementation**: [Wrapper entrypoint](packages/prisma7/src/bin.ts), [wrapper delegation](packages/prisma7/src/delegate-to-prisma-cli.ts), [wrapper build](packages/prisma7/helpers/build.ts)
+- **Adds a side-by-side executable wrapper**: `prisma7` delegates to `prisma/build/index.js` while preserving normal and completion arguments and delegated exit status.
+  - **Why**: Reuse the Prisma 7 implementation and assets instead of maintaining a second CLI bundle or constructing a nested filesystem path.
+  - **Implementation**: [Wrapper delegation](packages/prisma7/src/delegate-to-prisma-cli.ts), [wrapper build](packages/prisma7/helpers/build.ts)
   - **Tests**: [Delegation tests](packages/prisma7/src/delegate-to-prisma-cli.test.ts), [built dispatcher tests](packages/cli/src/bin-dispatcher.vitest.ts)
 
-- **Adds exact dependency and forwarded package surfaces**: the packed wrapper records a dependency on the same Prisma version, exposes `prisma7` and `prisma7/config`, and resolves config through the wrapper's Prisma dependency beside a different direct root Prisma.
+- **Adds exact dependency and forwarded package surfaces**: the packed wrapper exposes `prisma7` and `prisma7/config`, records an exact same-version Prisma dependency, and resolves its config through that dependency beside a different direct root Prisma.
   - **Why**: A declared dependency edge is portable across package-manager layouts and preserves the intended side-by-side command topology.
   - **Implementation**: [Wrapper package contract](packages/prisma7/package.json), [config forwarding](packages/prisma7/src/config.ts), [root type forwarding](packages/prisma7/src/index.ts)
   - **Tests**: [Package contract tests](packages/prisma7/src/package-contract.test.ts), [forwarded surface typecheck](packages/prisma7/src/forwarded-surface.typecheck.ts)
 
 ## Compatibility / migration / risk
 
-- Ordinary `prisma` invocations retain the default identity and the existing CLI implementation; the identity seam is additive.
-- The wrapper is private and unpublished in this slice. Its exact dependency behavior is proven by a local packed fixture, while the full npm/pnpm/Yarn/Bun installation matrix remains release-slice work.
-- The private environment marker is transport-only and one-shot. The low-level nested Prisma package and filesystem paths remain visible by design; only the future user-facing identity layer will replace actionable Prisma 7 references.
-- The wrapper currently establishes identity transport, not complete `prisma7` branding, so mixed user-facing references are expected until the next slice.
+- Ordinary `prisma` invocations retain the existing default identity and CLI implementation.
+- The wrapper is private and unpublished in this slice. Its packed dependency and side-by-side resolution are tested locally; the broader package-manager acceptance matrix remains release-slice work.
+- Custom renamed symlinks and programmatic `require()` callers intentionally default to `prisma` and are outside the supported binary-invocation contract.
+- Windows path normalization is unit-tested, but Windows execution has not been verified.
+- The slice establishes identity transport, not complete `prisma7` branding, so mixed user-facing references are expected until the next slice.
 
 ## Follow-ups / open questions
 
