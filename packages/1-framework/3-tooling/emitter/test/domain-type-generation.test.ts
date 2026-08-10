@@ -123,7 +123,7 @@ describe('serializeValue', () => {
       expect(serializeValue('a\nb')).toBe('"a\\nb"');
       expect(serializeValue('a\rb')).toBe('"a\\rb"');
       expect(serializeValue('a\tb')).toBe('"a\\tb"');
-      expect(serializeValue('ab')).toBe('"a\\u0007b"');
+      expect(serializeValue('a\u0007b')).toBe('"a\\u0007b"');
     });
 
     it('quotes object keys that look like identifier bypass attempts', () => {

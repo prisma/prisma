@@ -211,6 +211,12 @@ type NamespacedStorageWalk = {
 };
 
 /**
+ * Separator for the (table, name) key below: no SQL identifier can contain a
+ * NUL, so the pair never collides the way a printable separator would.
+ */
+const TABLE_SCOPED_KEY_SEPARATOR = '\u0000';
+
+/**
  * Any entries entity that declares both a `tableName` and a physical `name`
  * (e.g. a target's RLS policy entities) shares one physical-name space per
  * table: two such entries of one kind on the same table would collide as
@@ -235,7 +241,7 @@ function validateTableScopedEntryNames(storage: SqlStorage, errors: string[]): v
         const name = record['name'];
         const tableName = record['tableName'];
         if (typeof name !== 'string' || typeof tableName !== 'string') continue;
-        const key = `${tableName} ${name}`;
+        const key = `${tableName}${TABLE_SCOPED_KEY_SEPARATOR}${name}`;
         seen.set(key, (seen.get(key) ?? 0) + 1);
         if (seen.get(key) === 2) {
           errors.push(
