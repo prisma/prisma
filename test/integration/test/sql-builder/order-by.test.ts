@@ -58,11 +58,15 @@ describe('integration: ORDER BY', { timeout: timeouts.databaseOperation }, () =>
       db()
         .public.users.select('id', 'invited_by_id')
         .orderBy('invited_by_id', { nulls: 'first' })
+        .orderBy('id')
         .build(),
     );
-    expect(rows).toHaveLength(4);
-    expect(rows[0]!.invited_by_id).toBeNull();
-    expect(rows.slice(1).every((r) => r.invited_by_id !== null)).toBe(true);
+    expect(rows).toEqual([
+      { id: 1, invited_by_id: null },
+      { id: 2, invited_by_id: 1 },
+      { id: 3, invited_by_id: 1 },
+      { id: 4, invited_by_id: 2 },
+    ]);
   });
 
   it('NULLS LAST places nulls after non-null values', async () => {
@@ -70,10 +74,14 @@ describe('integration: ORDER BY', { timeout: timeouts.databaseOperation }, () =>
       db()
         .public.users.select('id', 'invited_by_id')
         .orderBy('invited_by_id', { nulls: 'last' })
+        .orderBy('id')
         .build(),
     );
-    expect(rows).toHaveLength(4);
-    expect(rows[rows.length - 1]!.invited_by_id).toBeNull();
-    expect(rows.slice(0, -1).every((r) => r.invited_by_id !== null)).toBe(true);
+    expect(rows).toEqual([
+      { id: 2, invited_by_id: 1 },
+      { id: 3, invited_by_id: 1 },
+      { id: 4, invited_by_id: 2 },
+      { id: 1, invited_by_id: null },
+    ]);
   });
 });
