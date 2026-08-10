@@ -420,9 +420,14 @@ describe('@updatedAt mutation defaults via Collection', () => {
 
     it('keeps an onCreate-only column out of the conflict update', async () => {
       const { collection, runtime } = setupCreatedAtTagCollection();
-      runtime.setNextResults([[{ id: TAG_A_ID, name: 'one', created_at: new Date() }]]);
+      runtime.setNextResults([[{ id: TAG_A_ID, name: 'one' }]]);
 
-      await collection.upsertAll([{ id: tagId(TAG_A_ID), name: 'one' }]).toArray();
+      const rows = await collection
+        .select('id', 'name')
+        .upsertAll([{ id: tagId(TAG_A_ID), name: 'one' }])
+        .toArray();
+
+      expect(rows).toEqual([{ id: TAG_A_ID, name: 'one' }]);
 
       // `created_at` is generated for the insert branch only. Assigning it from
       // `excluded` would restamp the creation time of a row that already exists.
