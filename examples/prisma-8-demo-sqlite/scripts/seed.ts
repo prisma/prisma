@@ -68,20 +68,52 @@ async function main() {
     console.log(`Created user: ${alice.email} (id: ${alice.id})`);
     console.log(`Created user: ${bob.email} (id: ${bob.id})`);
 
+    // The engagement counters drive the `integer-representations` and
+    // `aggregate-precision` commands. Every viewCount stays inside
+    // ±(2^53 − 1), so it reads back as a plain `number`. Every single
+    // impressionCount stays inside it too — the total is what leaves it, at
+    // 2^53 + 1000, which is what makes the bare `sum` raise and `sumBigInt`
+    // answer.
     const firstPostRows = await runtime.execute(
       db.sql.post
-        .insert([{ title: 'First Post', userId: alice.id, createdAt: new Date() }])
+        .insert([
+          {
+            title: 'First Post',
+            userId: alice.id,
+            createdAt: new Date(),
+            viewCount: 12_500,
+            impressionCount: 4_503_599_627_370_496n,
+          },
+        ])
         .returning('id', 'title')
         .build(),
     );
     const secondPostRows = await runtime.execute(
       db.sql.post
-        .insert([{ title: 'Second Post', userId: alice.id, createdAt: new Date() }])
+        .insert([
+          {
+            title: 'Second Post',
+            userId: alice.id,
+            createdAt: new Date(),
+            viewCount: 9_800,
+            impressionCount: 4_503_599_627_370_496n,
+          },
+        ])
         .returning('id', 'title')
         .build(),
     );
     await runtime.execute(
-      db.sql.post.insert([{ title: 'Third Post', userId: bob.id, createdAt: new Date() }]).build(),
+      db.sql.post
+        .insert([
+          {
+            title: 'Third Post',
+            userId: bob.id,
+            createdAt: new Date(),
+            viewCount: 3_112,
+            impressionCount: 1_000n,
+          },
+        ])
+        .build(),
     );
 
     const firstPost = firstPostRows[0] ?? null;

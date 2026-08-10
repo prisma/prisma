@@ -44,6 +44,13 @@
                   }
                 }
               },
+              "impressionCount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/bigint@1",
+                  "kind": "scalar"
+                }
+              },
               "title": {
                 "nullable": false,
                 "type": {
@@ -59,6 +66,13 @@
                   "typeParams": {
                     "length": 36
                   }
+                }
+              },
+              "viewCount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/bigintnumber@1",
+                  "kind": "scalar"
                 }
               }
             },
@@ -115,11 +129,17 @@
                 "id": {
                   "column": "id"
                 },
+                "impressionCount": {
+                  "column": "impressionCount"
+                },
                 "title": {
                   "column": "title"
                 },
                 "userId": {
                   "column": "userId"
+                },
+                "viewCount": {
+                  "column": "viewCount"
                 }
               },
               "namespaceId": "__unbound__",
@@ -324,6 +344,11 @@
                     "length": 36
                   }
                 },
+                "impressionCount": {
+                  "codecId": "sqlite/bigint@1",
+                  "nativeType": "integer",
+                  "nullable": true
+                },
                 "title": {
                   "codecId": "sqlite/text@1",
                   "nativeType": "text",
@@ -336,6 +361,12 @@
                   "typeParams": {
                     "length": 36
                   }
+                },
+                "viewCount": {
+                  "codecId": "sqlite/bigintnumber@1",
+                  "nativeType": "integer",
+                  "nullable": true,
+                  "typeRef": "BigIntNumber"
                 }
               },
               "foreignKeys": [
@@ -525,7 +556,14 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "03af121bccff43a3131e0b5487222248a11924a2d96b6d7d87c13005e69f75f2"
+    "storageHash": "379449b0fa50ab981fb8993e856f682d6bef21eb6a39abe6dd6dc1d34ffb4494",
+    "types": {
+      "BigIntNumber": {
+        "codecId": "sqlite/bigintnumber@1",
+        "kind": "codec-instance",
+        "nativeType": "integer"
+      }
+    }
   },
   "execution": {
     "executionHash": "5b8ea41bd78c098dbe7227970a920650aa10992f11357c2664703742248ffc95",

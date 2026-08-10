@@ -182,6 +182,9 @@ describe('ORM client many-to-many examples', () => {
             priority: 'low',
             createdAt: new Date('2024-01-02T10:00:00.000Z'),
             embedding: null,
+            viewCount: null,
+            impressionCount: null,
+            reachScore: null,
             tags: [{ id: seededTagIds.orm, label: 'orm' }],
           });
         } finally {
@@ -311,6 +314,9 @@ describe('ORM client many-to-many examples', () => {
             priority: 'low',
             createdAt: expect.any(Date),
             embedding: null,
+            viewCount: null,
+            impressionCount: null,
+            reachScore: null,
           });
 
           const readBack = await ormClientGetPostTags(newPostId, runtime);
@@ -357,6 +363,9 @@ describe('ORM client many-to-many examples', () => {
             priority: 'low',
             createdAt: expect.any(Date),
             embedding: null,
+            viewCount: null,
+            impressionCount: null,
+            reachScore: null,
           });
 
           const readBack = await ormClientGetPostTags(newPostId, runtime);

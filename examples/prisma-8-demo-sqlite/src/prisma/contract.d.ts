@@ -16,7 +16,7 @@ import type {
 } from '@prisma/orm-sqlite/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'03af121bccff43a3131e0b5487222248a11924a2d96b6d7d87c13005e69f75f2'>;
+  StorageHashBase<'379449b0fa50ab981fb8993e856f682d6bef21eb6a39abe6dd6dc1d34ffb4494'>;
 export type ExecutionHash =
   ExecutionHashBase<'5b8ea41bd78c098dbe7227970a920650aa10992f11357c2664703742248ffc95'>;
 export type ProfileHash =
@@ -133,6 +133,8 @@ export type FieldOutputTypes = {
       readonly title: CodecTypes['sqlite/text@1']['output'];
       readonly userId: CodecTypes['sql/char@1']['output'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly viewCount: CodecTypes['sqlite/bigintnumber@1']['output'] | null;
+      readonly impressionCount: CodecTypes['sqlite/bigint@1']['output'] | null;
     };
     readonly PostTag: {
       readonly postId: CodecTypes['sql/char@1']['output'];
@@ -157,6 +159,8 @@ export type FieldInputTypes = {
       readonly title: CodecTypes['sqlite/text@1']['input'];
       readonly userId: CodecTypes['sql/char@1']['input'];
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+      readonly viewCount: CodecTypes['sqlite/bigintnumber@1']['input'] | null;
+      readonly impressionCount: CodecTypes['sqlite/bigint@1']['input'] | null;
     };
     readonly PostTag: {
       readonly postId: CodecTypes['sql/char@1']['input'];
@@ -179,8 +183,10 @@ export type StorageColumnTypes = {
     readonly post: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly id: CodecTypes['sql/char@1']['output'];
+      readonly impressionCount: CodecTypes['sqlite/bigint@1']['output'] | null;
       readonly title: CodecTypes['sqlite/text@1']['output'];
       readonly userId: CodecTypes['sql/char@1']['output'];
+      readonly viewCount: CodecTypes['sqlite/bigintnumber@1']['output'] | null;
     };
     readonly post_tag: {
       readonly postId: CodecTypes['sql/char@1']['output'];
@@ -203,8 +209,10 @@ export type StorageColumnInputTypes = {
     readonly post: {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly id: CodecTypes['sql/char@1']['input'];
+      readonly impressionCount: CodecTypes['sqlite/bigint@1']['input'] | null;
       readonly title: CodecTypes['sqlite/text@1']['input'];
       readonly userId: CodecTypes['sql/char@1']['input'];
+      readonly viewCount: CodecTypes['sqlite/bigintnumber@1']['input'] | null;
     };
     readonly post_tag: {
       readonly postId: CodecTypes['sql/char@1']['input'];
@@ -264,6 +272,17 @@ type ContractBase = Omit<
                   readonly codecId: 'sqlite/datetime@1';
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly viewCount: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/bigintnumber@1';
+                  readonly nullable: true;
+                  readonly typeRef: 'BigIntNumber';
+                };
+                readonly impressionCount: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/bigint@1';
+                  readonly nullable: true;
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
@@ -408,6 +427,14 @@ type ContractBase = Omit<
         };
       };
     };
+    readonly types: {
+      readonly BigIntNumber: {
+        readonly kind: 'codec-instance';
+        readonly codecId: 'sqlite/bigintnumber@1';
+        readonly nativeType: 'integer';
+        readonly typeParams: Record<string, never>;
+      };
+    };
     readonly storageHash: StorageHash;
   }>,
   'roots' | 'domain'
@@ -453,6 +480,17 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
               };
+              readonly viewCount: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sqlite/bigintnumber@1';
+                };
+              };
+              readonly impressionCount: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/bigint@1' };
+              };
             };
             readonly relations: {
               readonly user: {
@@ -493,6 +531,8 @@ type ContractBase = Omit<
                 readonly title: { readonly column: 'title' };
                 readonly userId: { readonly column: 'userId' };
                 readonly createdAt: { readonly column: 'createdAt' };
+                readonly viewCount: { readonly column: 'viewCount' };
+                readonly impressionCount: { readonly column: 'impressionCount' };
               };
             };
           };

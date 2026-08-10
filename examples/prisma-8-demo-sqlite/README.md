@@ -18,7 +18,7 @@ suites — this example deliberately doesn't duplicate it.
 pnpm install
 pnpm emit                              # generates src/prisma/contract.json + contract.d.ts
 SQLITE_PATH=./demo.db pnpm db:init     # creates the schema
-SQLITE_PATH=./demo.db pnpm seed        # inserts 2 users + 3 posts + 3 tags + junction rows
+SQLITE_PATH=./demo.db pnpm seed        # inserts 2 users + 3 posts (with engagement counters) + 3 tags + junction rows
 ```
 
 ## Run the CLI
@@ -43,6 +43,9 @@ SQLITE_PATH=./demo.db pnpm start -- connect-post-tags <postId> <tagId>
 SQLITE_PATH=./demo.db pnpm start -- disconnect-post-tags <postId> <tagId>
 SQLITE_PATH=./demo.db pnpm start -- create-post-with-tags <newPostId> <userId> 'Title' label1 label2
 SQLITE_PATH=./demo.db pnpm start -- create-post-connect-tags <newPostId> <userId> 'Title' <tagId>
+# Integer representations and aggregate precision
+SQLITE_PATH=./demo.db pnpm start -- integer-representations
+SQLITE_PATH=./demo.db pnpm start -- aggregate-precision
 ```
 
 | Command | Lane | Operation |
@@ -60,12 +63,46 @@ SQLITE_PATH=./demo.db pnpm start -- create-post-connect-tags <newPostId> <userId
 | `disconnect-post-tags` | ORM | `db.Post.update({ tags: (t) => t.disconnect([…]) })` — junction DELETE |
 | `create-post-with-tags` | ORM | `db.Post.create({ …, tags: (t) => t.create([…]) })` — insert targets + links |
 | `create-post-connect-tags` | ORM | `db.Post.create({ …, tags: (t) => t.connect([…]) })` — connect in the create flow |
+| `integer-representations` | ORM | `db.Post.select('viewCount', 'impressionCount')` — `BigIntNumber` beside `BigInt` |
+| `aggregate-precision` | ORM | `count`/`sum`/`avg` beside `countBigInt`/`sumBigInt`, including the `sum` that raises |
 
 The `add-posts` command demonstrates why an interactive transaction is necessary: the count (SQL
 builder aggregate) and the inserts (ORM create) must be one atomic unit so that two concurrent
 callers cannot each pass the quota check and jointly exceed it (TOCTOU). Exceeding the quota throws
 `QuotaExceededError` which rolls the transaction back; the command re-reads the count to show it is
 unchanged.
+
+## Integer representations on SQLite
+
+`Post` carries two engagement counters. Both are INTEGER columns; each reads
+back as a different JavaScript value, because each chose a different
+representation.
+
+| Column | Type | Codec | Reads as |
+| --- | --- | --- | --- |
+| `viewCount` | `BigIntNumber` | `sqlite/bigintnumber@1` | `number`, throwing outside ±(2^53 − 1) |
+| `impressionCount` | `BigInt` | `sqlite/bigint@1` | `bigint` |
+
+SQLite declares no `UnboundedInt`: that type needs lossless unbounded integer
+storage, which SQLite has not got, so the type is not on offer at all. The
+PostgreSQL sibling (`examples/prisma-8-demo`) has all three.
+
+`aggregate-precision` shows the same defaults policy PostgreSQL states, in
+SQLite's terms. The seeded impressions total 2^53 + 1000, so the bare `sum`
+raises rather than rounding:
+
+```text
+impressionCount — BigInt, and the total is 2^53 + 1000:
+  sum('impressionCount')        refused — this is the guard working:
+    RUNTIME.DECODE_FAILED: sqlite/bigintnumber@1 value must be an integer within the safe integer range, got 9007199254741992
+  sumBigInt('impressionCount')  9007199254741992n (bigint)
+```
+
+There is no `avgDecimal` on a SQLite contract at all — an exact mean needs a
+decimal result codec, and SQLite has none, so the method is absent from the
+emitted types rather than failing at runtime.
+
+Reference: [integer representation types](../../docs/reference/integer-representation-types.md).
 
 The M:N relation API shown here is available because `PostTag` is a *pure* junction (its only
 columns are the two foreign keys). When a junction carries a required non-FK payload column, the

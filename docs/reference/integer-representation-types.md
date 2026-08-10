@@ -69,4 +69,8 @@ Aggregates over these columns resolve through the targets' descriptor matrices, 
 
 `sum` over `unboundedint` keeps its own codec because a sum of integers is integral, so the codec's integrality-checked `bigint` decode is the right reader for the total. `min` and `max` return the column's own type on both targets through the numeric-trait fallback. SQLite contributes no `avgDecimal`, having no exact decimal result codec to answer one with.
 
+## Run it
+
+`examples/prisma-8-demo` puts all three representations on one model and reads them back: `pnpm start -- integer-representations` prints each counter with the JavaScript type it arrived as, and `pnpm start -- aggregate-precision` puts the bare operations beside the lossless variants, including a `sum` whose total passes the safe-integer boundary and raises instead of rounding. `examples/prisma-8-demo-sqlite` runs the same two commands over the pair of representations SQLite offers.
+
 Contributor guidance for implementing codecs lives in the [codec authoring guide](./codec-authoring-guide.md).
