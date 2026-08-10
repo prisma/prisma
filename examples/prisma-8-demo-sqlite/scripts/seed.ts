@@ -70,9 +70,10 @@ async function main() {
 
     // The engagement counters drive the `integer-representations` and
     // `aggregate-precision` commands. Every viewCount stays inside
-    // ±(2^53 − 1), so it reads back as a plain `number`; no single
-    // impressionCount does either, but their total is 2^53 + 1000, which is
-    // what makes the bare `sum` raise and `sumBigInt` answer.
+    // ±(2^53 − 1), so it reads back as a plain `number`. Every single
+    // impressionCount stays inside it too — the total is what leaves it, at
+    // 2^53 + 1000, which is what makes the bare `sum` raise and `sumBigInt`
+    // answer.
     const firstPostRows = await runtime.execute(
       db.sql.post
         .insert([
