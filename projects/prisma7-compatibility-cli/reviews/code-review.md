@@ -3,8 +3,8 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6
-- **AC scoreboard totals:** 8 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7
+- **AC scoreboard totals:** 13 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
@@ -25,8 +25,8 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 
 ## Subagent IDs
 
-- **Implementer:** `0c5e84fd-716c-4ef` — active as replacement for `side-by-side-wrapper` D6 R1 after `98249180-9d47-433` was cleaned before execution. Earlier replacements and model-tier corrections are recorded in prior round context.
-- **Reviewer:** `2180b9d2-5ae9-497` — active from `side-by-side-wrapper` D6 R1. Replaced `b73fe522-ce47-4ac` after D5 R2; earlier replacements are recorded in prior round context.
+- **Implementer:** `da05b30d-8bbb-4c7` — active from `side-by-side-wrapper` D7 R1 after D6 was satisfied. Earlier replacements and model-tier corrections are recorded in prior round context.
+- **Reviewer:** `51dd7158-75b7-486` — active from `side-by-side-wrapper` D7 R1 after D6 was satisfied. Earlier replacements are recorded in prior round context.
 
 ## Orchestrator notes
 
@@ -35,7 +35,8 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 - After D2, the operator authorized replacing marker/global-symbol identity transport with normalized `process.argv[1]` stem inference. The supporting package-manager probe and scope are recorded in `design-decisions.md`; D3 was reviewer-SATISFIED.
 - After D3, the operator rejected the production-only `delegateToPrismaCli` test seam as unnecessary indirection. D4 inlined the dependency load and was independently SATISFIED.
 - After D4, the operator rejected the remaining package/identity/dispatcher unit and contract coverage as overtesting. D5 consolidated them to one scenario covering `prisma7/config` import/typechecking/config selection, `prisma7 --version`, `prisma7 generate`, and successful generated-client execution.
-- After D5, the operator correctly rejected the package-local Vitest subprocess scenario as not using Prisma's E2E harness. D6 must move the scenario under `packages/client/tests/e2e`, install packed tarballs in the standard Docker fixture, and remove the prisma7 package-level test job and test-only dependencies.
+- After D5, the operator correctly rejected the package-local Vitest subprocess scenario as not using Prisma's E2E harness. D6 moved the scenario under `packages/client/tests/e2e`, installed packed tarballs in the standard Docker fixture, and removed the prisma7 package-level test job and test-only dependencies.
+- D7 addresses current PR feedback only: simplify identity to `'prisma' | 'prisma7'`, use `prisma7 db push` instead of raw DDL in E2E, and guard chmod after esbuild errors. The `prepack` suggestion was rejected by the operator because root build precedes E2E packing; comments on deleted tests are obsolete.
 
 ## Findings log
 
@@ -192,3 +193,19 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 **Findings:** none.
 
 **Verification:** `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility` passed. `git diff --check` passed. The mandatory transient-ID scan over the changed product, test, planning, runner, workflow, and review-input surfaces found no UUID or agent/subagent identifiers. No product, test, planning, or workflow files were edited during review; only this review artifact and the reviewer heartbeat were written.
+
+### side-by-side-wrapper D7 R1 — SATISFIED
+
+**Scope:** address current PR #29949 feedback in `f2933682d7 fix(prisma7): address compatibility CLI review feedback`.
+
+| AC ID  | Description                                                                                                                         | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D7-AC1 | Identity is a minimal stable `'prisma' \| 'prisma7'` seam with exact POSIX/Windows stem normalization and ordinary-Prisma fallback. | PASS   | `packages/cli/src/utils/cli-distribution-identity.ts` exports only the literal union and returns `prisma7` only for the normalized executable stem `prisma7`; backslashes are normalized before `path.posix.parse`, and undefined/other stems return `prisma`. Direct source assertions covered POSIX shim/target paths, Windows target paths, ordinary Prisma, and undefined fallback. No identity object, map, marker, global, or cast remains.                                                                                                                                                                                                                    |
+| D7-AC2 | The client E2E prepares and exercises the configured database through the compatibility CLI without raw DDL.                        | PASS   | `_steps.ts` runs `pnpm exec prisma7 --version`, `pnpm exec prisma7 generate`, then `pnpm exec prisma7 db push --force-reset` against the same `prisma.config.ts`. `smoke.ts` creates a record, reads it back by `createdNote.id`, catches failures into a nonzero exit, and disconnects in `finally`. The exact Docker log confirms config selection, non-default schema, generation, db push, and smoke completion.                                                                                                                                                                                                                                                 |
+| D7-AC3 | Failed wrapper builds do not mask esbuild errors, while successful builds retain executable permissions.                            | PASS   | `packages/prisma7/helpers/build.ts` returns before `statSync`/`chmodSync` when `result.errors.length > 0`; the successful `prisma7` build completed and `build/prisma7.js` was mode `755`/executable.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| D7-AC4 | Reported verification gates are reproducible and defensible.                                                                        | PASS   | `pnpm --filter prisma tsc`, `pnpm --filter prisma7 tsc`, sequential Prisma/Prisma7 builds, and the exact `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility` command passed; Docker reported `All 1/1 tests passed`. Root `pnpm lint` passed with repository warnings and no errors, `pnpm prettier-check` passed, targeted Prettier passed, and `git diff --check` passed.                                                                                                                                                                                                                                                          |
+| D7-AC5 | All current PR feedback is accounted for and the mandatory transient-ID scan is clean.                                              | PASS   | Identity-map and E2E comments are addressed. The cast/global comment is obsolete after the identity rewrite; forwarding-surface, package-contract, and package-local E2E-timeout comments target files deleted by D6; `prepack` is explicitly rejected because the private package is built before standard E2E packing, and CodeRabbit withdrew that finding. `gh api repos/prisma/prisma/pulls/29949/comments --paginate` showed no newer actionable thread after the withdrawn prepack reply (latest comment: 2026-08-10T14:17:59Z). The scan over changed product/test/planning/runner/workflow surfaces found no UUID, agent, subagent, or session identifiers. |
+
+**Findings:** none. All current human and CodeRabbit feedback is addressed, obsolete, withdrawn, or explicitly rejected; no further action is required for D7 R1.
+
+**Verification notes:** Product/tests/planning remain unedited during review. Only this ledger and `wip/heartbeats/reviewer.txt` were written. The E2E generated ignored logs/artifacts and a lockfile refresh during execution; generated artifacts were cleaned and the tracked lockfile was restored before this verdict.

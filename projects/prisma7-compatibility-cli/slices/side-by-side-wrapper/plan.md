@@ -41,3 +41,10 @@
 - **Builds on:** Dispatch 5's settled three-outcome scenario and the existing client E2E runner's package, engine, TypeScript, and SQLite environment.
 - **Hands to:** A side-by-side wrapper proven through the repository's standard shipped-artifact E2E boundary rather than a package-local subprocess simulation.
 - **Focus:** Remove `packages/prisma7/src/e2e.test.ts`, its test-only dev dependencies/script, and its standalone workflow entries; add one `prisma7-compatibility` fixture with `_steps.ts`, config consumer, non-default schema/output, and SQLite client smoke; teach the tarball mount/rewrite logic that unscoped `prisma7` packs as `prisma7-0.0.0.tgz` rather than the scoped-folder convention. No unit/contract tests.
+
+### Dispatch 7: address PR review feedback
+
+- **Outcome:** The distribution identity is the minimal `'prisma' | 'prisma7'` value downstream consumers actually need, the E2E prepares its schema through `prisma7 db push` rather than raw SQL, and failed wrapper builds do not mask esbuild diagnostics with a chmod `ENOENT`.
+- **Builds on:** Dispatch 6's reviewed packed-artifact client E2E and final wrapper build shape.
+- **Hands to:** A reviewer-ready PR with all still-applicable human and bot inline feedback addressed or explicitly classified obsolete/rejected.
+- **Focus:** Remove the redundant identity object/map, add `db push --force-reset` to E2E setup and simplify the SQLite smoke, guard the executable plugin on build errors, rerun the focused Docker E2E/build gates, and leave rejected `prepack` plus comments on deleted tests untouched in code.
