@@ -13,13 +13,13 @@ jobs:
     name: 'Check and update Studio to ${{ github.event.inputs.version }}'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: pnpm/action-setup@v4.0.0
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
         with:
           standalone: true
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           cache: 'pnpm'
           node-version: '20.19.0'
@@ -40,7 +40,7 @@ jobs:
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update studio to ${{ github.event.inputs.version }}'
@@ -71,7 +71,7 @@ jobs:
 
       - name: Auto approve Pull Request (to trigger automerge if tests passing)
         if: steps.cpr.outputs.pull-request-operation == 'created'
-        uses: juliangruber/approve-pull-request-action@v2
+        uses: juliangruber/approve-pull-request-action@68fcc9a5a73b5641cadf757cf99d73720dcb05d0 # v2.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
