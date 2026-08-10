@@ -19,7 +19,7 @@
   "dependencies": {
     "@clack/prompts": "^1.7.0",
     "@prisma/orm-framework": "workspace:8.0.0-rc.1",
-    "@vercel/detect-agent": "^1.2.3",
+    "@vercel/detect-agent": "^1.2.4",
     "arktype": "catalog:",
     "c12": "^3.3.4",
     "ci-info": "^4.3.1",
