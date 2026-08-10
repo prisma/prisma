@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { copyGlobFrom, isExternalSpecifier } from '../shell-build.ts';
+import { copyGlobFrom, isExternalSpecifier } from '../shell-build';
 
 describe('isExternalSpecifier', () => {
   it('keeps third-party and sibling-shell specifiers external', () => {

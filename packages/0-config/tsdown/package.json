@@ -11,8 +11,7 @@
     "@repo/tsconfig": "workspace:8.0.0-rc.1",
     "es-module-lexer": "^2.3.1",
     "tsdown": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "typescript": "catalog:"
   },
   "scripts": {
     "lint": "biome check . --error-on-warnings",
