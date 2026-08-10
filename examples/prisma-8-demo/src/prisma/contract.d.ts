@@ -156,6 +156,22 @@ export type AggregateTypes = {
       readonly 'sql/varchar@1': { readonly output: 'pg/text@1'; readonly nullable: true };
     };
   };
+  readonly stddev: {
+    readonly byCodec: {
+      readonly 'pg/float@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/float4@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/float8@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/int@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/int2@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/int4@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/int8@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/int8number@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/numeric@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'pg/unboundedint@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'sql/float@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+      readonly 'sql/int@1': { readonly output: 'pg/numeric@1'; readonly nullable: true };
+    };
+  };
   readonly sum: {
     readonly byCodec: {
       readonly 'pg/float@1': { readonly output: 'pg/float8@1'; readonly nullable: true };
@@ -1173,6 +1189,24 @@ type ContractBase = Omit<
     };
   };
   readonly extensions: {
+    readonly 'demo/engagement-stats': {
+      readonly familyId: 'sql';
+      readonly id: 'demo/engagement-stats';
+      readonly kind: 'extension';
+      readonly targetId: 'postgres';
+      readonly types: {
+        readonly aggregateDescriptors: readonly [
+          {
+            readonly input: { readonly kind: 'trait'; readonly trait: 'numeric' };
+            readonly lower: unknown;
+            readonly nullable: true;
+            readonly operation: 'stddev';
+            readonly output: { readonly codecId: 'pg/numeric@1'; readonly kind: 'codec' };
+          },
+        ];
+      };
+      readonly version: '0.0.1';
+    };
     readonly pgvector: {
       readonly capabilities: { readonly postgres: { readonly 'pgvector.cosine': true } };
       readonly familyId: 'sql';

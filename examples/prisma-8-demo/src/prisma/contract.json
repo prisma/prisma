@@ -1204,6 +1204,29 @@
     }
   },
   "extensions": {
+    "demo/engagement-stats": {
+      "familyId": "sql",
+      "id": "demo/engagement-stats",
+      "kind": "extension",
+      "targetId": "postgres",
+      "types": {
+        "aggregateDescriptors": [
+          {
+            "input": {
+              "kind": "trait",
+              "trait": "numeric"
+            },
+            "nullable": true,
+            "operation": "stddev",
+            "output": {
+              "codecId": "pg/numeric@1",
+              "kind": "codec"
+            }
+          }
+        ]
+      },
+      "version": "0.0.1"
+    },
     "pgvector": {
       "capabilities": {
         "postgres": {
