@@ -8,18 +8,20 @@ const executablePlugin: esbuild.Plugin = {
   name: 'executable',
   setup(build) {
     build.onEnd(() => {
-      const filename = './build/index.js'
+      const filename = './build/prisma7.js'
       const mode = fs.statSync(filename).mode
       fs.chmodSync(filename, mode | 0o111)
     })
   },
 }
 
+fs.rmSync('./build/index.js', { force: true })
+
 void build([
   {
     name: 'prisma7',
     entryPoints: ['src/bin.ts'],
-    outfile: 'build/index',
+    outfile: 'build/prisma7',
     bundle: true,
     external: ['prisma/build/index.js'],
     emitTypes: false,

@@ -1,23 +1,38 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
-const distributionMarker = '__PRISMA_CLI_DISTRIBUTION'
-const identityKey = Symbol.for('prisma.cli.distributionIdentity')
+import { getCliDistributionIdentity } from './cli-distribution-identity'
 
-beforeEach(() => {
-  delete process.env[distributionMarker]
-  Reflect.deleteProperty(globalThis, identityKey)
-  vi.resetModules()
-})
+const originalArgv = process.argv
 
 afterEach(() => {
-  delete process.env[distributionMarker]
-  Reflect.deleteProperty(globalThis, identityKey)
+  process.argv = originalArgv
 })
 
 describe('CLI distribution identity', () => {
-  it('defaults ordinary Prisma invocations to the existing distribution', async () => {
-    const { initializeCliDistributionIdentity } = await import('./cli-distribution-identity')
-    const identity = initializeCliDistributionIdentity()
+  it.each([
+    ['a POSIX shim path', '/project/node_modules/.bin/prisma7'],
+    ['a POSIX built target', '/project/node_modules/prisma7/build/prisma7.js'],
+    ['a Windows shim path', 'C:\\project\\node_modules\\.bin\\prisma7'],
+    ['a Windows built target', 'C:\\project\\node_modules\\prisma7\\build\\prisma7.js'],
+  ])('selects prisma7 from %s', (_description, executedScript) => {
+    const identity = getCliDistributionIdentity(executedScript)
+
+    expect(identity).toEqual({
+      name: 'prisma7',
+      commandName: 'prisma7',
+      packageName: 'prisma7',
+      configPackageName: 'prisma7/config',
+    })
+    expect(Object.isFrozen(identity)).toBe(true)
+  })
+
+  it.each([
+    ['the Prisma executable', '/project/node_modules/.bin/prisma'],
+    ['the built Prisma entrypoint', '/project/node_modules/prisma/build/index.js'],
+    ['an unsupported executable name', '/project/bin/custom-prisma.js'],
+    ['a missing executed script', undefined],
+  ])('defaults to prisma for %s', (_description, executedScript) => {
+    const identity = getCliDistributionIdentity(executedScript)
 
     expect(identity).toEqual({
       name: 'prisma',
@@ -28,32 +43,9 @@ describe('CLI distribution identity', () => {
     expect(Object.isFrozen(identity)).toBe(true)
   })
 
-  it('selects prisma7 and consumes its one-shot marker', async () => {
-    process.env[distributionMarker] = 'prisma7'
+  it('reads the executed script from process.argv by default', () => {
+    process.argv = [process.execPath, '/project/node_modules/.bin/prisma7']
 
-    const { initializeCliDistributionIdentity } = await import('./cli-distribution-identity')
-    const identity = initializeCliDistributionIdentity()
-
-    expect(identity).toEqual({
-      name: 'prisma7',
-      commandName: 'prisma7',
-      packageName: 'prisma7',
-      configPackageName: 'prisma7/config',
-    })
-    expect(process.env[distributionMarker]).toBeUndefined()
-  })
-
-  it('cannot change identity after startup and still consumes a later marker', async () => {
-    const firstImport = await import('./cli-distribution-identity')
-    const firstIdentity = firstImport.initializeCliDistributionIdentity()
-
-    process.env[distributionMarker] = 'prisma7'
-    vi.resetModules()
-    const secondImport = await import('./cli-distribution-identity')
-    const secondIdentity = secondImport.initializeCliDistributionIdentity()
-
-    expect(secondIdentity).toBe(firstIdentity)
-    expect(secondIdentity.name).toBe('prisma')
-    expect(process.env[distributionMarker]).toBeUndefined()
+    expect(getCliDistributionIdentity().name).toBe('prisma7')
   })
 })

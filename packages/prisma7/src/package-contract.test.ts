@@ -9,6 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 type PackedManifest = {
   version: string
+  bin: { prisma7: string }
   dependencies: { prisma: string }
   exports: Record<string, unknown>
   files: string[]
@@ -28,6 +29,9 @@ function readPackedManifest(contents: string): PackedManifest {
   const dependencies = record.dependencies
   if (
     typeof record.version !== 'string' ||
+    typeof record.bin !== 'object' ||
+    record.bin === null ||
+    typeof (record.bin as Record<string, unknown>).prisma7 !== 'string' ||
     typeof dependencies !== 'object' ||
     dependencies === null ||
     typeof (dependencies as Record<string, unknown>).prisma !== 'string' ||
@@ -156,6 +160,7 @@ describe('prisma7 package contract', () => {
     const packageJson = readPackedManifest(entries.get('package/package.json')!.toString('utf8'))
 
     expect(packageJson.dependencies.prisma).toBe(packageJson.version)
+    expect(packageJson.bin).toEqual({ prisma7: 'build/prisma7.js' })
     expect(packageJson.exports).toEqual(
       expect.objectContaining({ '.': expect.any(Object), './config': expect.any(Object) }),
     )
@@ -163,7 +168,7 @@ describe('prisma7 package contract', () => {
     const allowedFiles = new Set([
       'package/LICENSE',
       'package/package.json',
-      'package/build/index.js',
+      'package/build/prisma7.js',
       'package/index.js',
       'package/index.d.ts',
       'package/config.js',
@@ -171,8 +176,9 @@ describe('prisma7 package contract', () => {
     ])
 
     expect([...entries.keys()]).toEqual(
-      expect.arrayContaining(['package/build/index.js', 'package/index.js', 'package/config.js']),
+      expect.arrayContaining(['package/build/prisma7.js', 'package/index.js', 'package/config.js']),
     )
+    expect(entries.get('package/build/prisma7.js')!.toString('utf8')).toContain('prisma/build/index.js')
     expect([...entries.keys()].every((file) => allowedFiles.has(file))).toBe(true)
   })
 

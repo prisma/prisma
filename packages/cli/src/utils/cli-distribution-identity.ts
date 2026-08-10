@@ -1,12 +1,11 @@
+import path from 'node:path'
+
 export type CliDistributionIdentity = Readonly<{
   name: 'prisma' | 'prisma7'
   commandName: 'prisma' | 'prisma7'
   packageName: 'prisma' | 'prisma7'
   configPackageName: 'prisma/config' | 'prisma7/config'
 }>
-
-const distributionMarker = '__PRISMA_CLI_DISTRIBUTION'
-const identityKey = Symbol.for('prisma.cli.distributionIdentity')
 
 const prismaIdentity = Object.freeze({
   name: 'prisma',
@@ -22,16 +21,10 @@ const prisma7Identity = Object.freeze({
   configPackageName: 'prisma7/config',
 } as const)
 
-export function initializeCliDistributionIdentity(): CliDistributionIdentity {
-  const marker = process.env[distributionMarker]
-  delete process.env[distributionMarker]
+/** Returns the CLI distribution selected by the executable that Node invoked. */
+export function getCliDistributionIdentity(executedScript = process.argv[1]): CliDistributionIdentity {
+  const normalizedScript = executedScript?.replaceAll('\\', '/')
+  const stem = normalizedScript === undefined ? undefined : path.posix.parse(normalizedScript).name
 
-  const existingIdentity = Reflect.get(globalThis, identityKey) as CliDistributionIdentity | undefined
-  if (existingIdentity !== undefined) {
-    return existingIdentity
-  }
-
-  const identity = marker === 'prisma7' ? prisma7Identity : prismaIdentity
-  Reflect.set(globalThis, identityKey, identity)
-  return identity
+  return stem === 'prisma7' ? prisma7Identity : prismaIdentity
 }

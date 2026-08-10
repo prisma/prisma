@@ -14,7 +14,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "bin": {
-    "prisma7": "build/index.js"
+    "prisma7": "build/prisma7.js"
   },
   "exports": {
     "./package.json": "./package.json",
