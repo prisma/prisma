@@ -54,7 +54,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "vitest run",
+    "test": "pnpm --filter prisma build && pnpm --filter @prisma/client build && pnpm --filter @prisma/adapter-better-sqlite3 build && pnpm run build && vitest run",
     "tsc": "tsc -d -p tsconfig.build.json",
     "prepublishOnly": "pnpm run build"
   },
