@@ -11,16 +11,48 @@
     "url": "https://github.com/prisma/prisma.git",
     "directory": "packages/prisma7"
   },
+  "main": "index.js",
+  "types": "index.d.ts",
   "bin": {
     "prisma7": "build/index.js"
   },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      },
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      },
+      "default": "./index.js"
+    },
+    "./config": {
+      "require": {
+        "types": "./config.d.ts",
+        "default": "./config.js"
+      },
+      "import": {
+        "types": "./config.d.ts",
+        "default": "./config.js"
+      },
+      "default": "./config.js"
+    }
+  },
   "files": [
-    "build"
+    "build",
+    "index.js",
+    "index.d.ts",
+    "config.js",
+    "config.d.ts"
   ],
   "engines": {
     "node": "^20.19 || ^22.12 || >=24.0"
   },
   "scripts": {
+    "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "test": "vitest run",
     "tsc": "tsc -d -p tsconfig.build.json",

@@ -26,4 +26,20 @@ void build([
     minify: true,
     plugins: [executablePlugin],
   },
+  {
+    name: 'prisma7-types',
+    entryPoints: ['src/index.ts'],
+    outfile: 'index',
+    bundle: true,
+    external: ['prisma'],
+    minify: true,
+  },
+  {
+    name: 'prisma7-config',
+    entryPoints: ['src/config.ts'],
+    outfile: 'config',
+    bundle: true,
+    external: ['prisma'],
+    minify: true,
+  },
 ])
