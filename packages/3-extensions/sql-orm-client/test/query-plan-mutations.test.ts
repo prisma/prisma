@@ -207,6 +207,29 @@ describe('query plan mutations', () => {
       expect(plan.params).toEqual([10, 'Alice', 'alice@example.com', 'generated address']);
     });
 
+    it('lets an update default win over the excluded assignment for the same column', () => {
+      const contract = withReturningCapability(getTestContract());
+      const plan = compileUpsertReturningMany(
+        contract,
+        'public',
+        'users',
+        [{ id: 10, name: 'Alice', email: 'alice@example.com', address: 'Old St' }],
+        {
+          columns: ['id'],
+          updateColumns: ['name', 'address'],
+          updateDefaults: { address: 'generated address' },
+        },
+        undefined,
+      );
+
+      assertInsertAst(plan.ast);
+      const action = plan.ast.onConflict?.action as DoUpdateSetConflictAction;
+      expect(action.set).toEqual({
+        name: ColumnRef.of('excluded', 'name'),
+        address: usersColParam(contract, 'address', 'generated address'),
+      });
+    });
+
     it('uses DO NOTHING when no update columns and no update defaults remain', () => {
       const contract = withReturningCapability(getTestContract());
       const plan = compileUpsertReturningMany(

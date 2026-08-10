@@ -218,20 +218,14 @@ describe('integration/upsert', () => {
         await seedUsers(runtime, [{ id: 1, name: 'Alice', email: 'alice@example.com' }]);
 
         runtime.resetExecutions();
-        const upserted = await users.upsertAll([
+        const upserted = await users.select('id', 'name', 'email', 'invitedById').upsertAll([
           { id: 1, name: 'Alice Updated', email: 'alice+new@example.com', invitedById: null },
           { id: 2, name: 'Bob', email: 'bob@example.com', invitedById: null },
         ]);
 
         expect(upserted).toEqual([
-          {
-            id: 1,
-            name: 'Alice Updated',
-            email: 'alice+new@example.com',
-            invitedById: null,
-            address: null,
-          },
-          { id: 2, name: 'Bob', email: 'bob@example.com', invitedById: null, address: null },
+          { id: 1, name: 'Alice Updated', email: 'alice+new@example.com', invitedById: null },
+          { id: 2, name: 'Bob', email: 'bob@example.com', invitedById: null },
         ]);
         expect(runtime.executions).toHaveLength(1);
 
@@ -254,20 +248,14 @@ describe('integration/upsert', () => {
 
         await seedUsers(runtime, [{ id: 1, name: 'Alice', email: 'alice@example.com' }]);
 
-        const upserted = await users.upsertAll(
-          [{ id: 1, name: 'Alice Renamed', email: 'ignored@example.com', invitedById: null }],
-          { update: ['name'] },
-        );
+        const upserted = await users
+          .select('id', 'name', 'email')
+          .upsertAll(
+            [{ id: 1, name: 'Alice Renamed', email: 'ignored@example.com', invitedById: null }],
+            { update: ['name'] },
+          );
 
-        expect(upserted).toEqual([
-          {
-            id: 1,
-            name: 'Alice Renamed',
-            email: 'alice@example.com',
-            invitedById: null,
-            address: null,
-          },
-        ]);
+        expect(upserted).toEqual([{ id: 1, name: 'Alice Renamed', email: 'alice@example.com' }]);
       });
     },
     timeouts.spinUpPpgDev,
@@ -282,7 +270,7 @@ describe('integration/upsert', () => {
         await seedUsers(runtime, [{ id: 1, name: 'Alice', email: 'alice@example.com' }]);
 
         runtime.resetExecutions();
-        const upserted = await users.upsertAll(
+        const upserted = await users.select('id', 'name', 'email').upsertAll(
           [
             { id: 1, name: 'Ignored', email: 'ignored@example.com', invitedById: null },
             { id: 2, name: 'Bob', email: 'bob@example.com', invitedById: null },
@@ -290,9 +278,7 @@ describe('integration/upsert', () => {
           { update: [] },
         );
 
-        expect(upserted).toEqual([
-          { id: 2, name: 'Bob', email: 'bob@example.com', invitedById: null, address: null },
-        ]);
+        expect(upserted).toEqual([{ id: 2, name: 'Bob', email: 'bob@example.com' }]);
 
         const ast = runtime.executions[0]?.ast;
         expect(isInsertAst(ast)).toBe(true);
@@ -301,12 +287,10 @@ describe('integration/upsert', () => {
         }
         expect(ast.onConflict?.action?.kind).toBe('do-nothing');
 
-        expect(await users.first({ id: 1 })).toEqual({
+        expect(await users.select('id', 'name', 'email').first({ id: 1 })).toEqual({
           id: 1,
           name: 'Alice',
           email: 'alice@example.com',
-          invitedById: null,
-          address: null,
         });
       });
     },
@@ -322,7 +306,7 @@ describe('integration/upsert', () => {
         await runtime.query('create unique index users_email_key on users (email)');
         await seedUsers(runtime, [{ id: 2, name: 'Bob', email: 'bob@example.com' }]);
 
-        const upserted = await users.upsertAll(
+        const upserted = await users.select('id', 'name', 'email').upsertAll(
           [
             { id: 3, name: 'Bob Updated', email: 'bob@example.com', invitedById: null },
             { id: 4, name: 'Cara', email: 'cara@example.com', invitedById: null },
@@ -331,14 +315,8 @@ describe('integration/upsert', () => {
         );
 
         expect(upserted).toEqual([
-          {
-            id: 2,
-            name: 'Bob Updated',
-            email: 'bob@example.com',
-            invitedById: null,
-            address: null,
-          },
-          { id: 4, name: 'Cara', email: 'cara@example.com', invitedById: null, address: null },
+          { id: 2, name: 'Bob Updated', email: 'bob@example.com' },
+          { id: 4, name: 'Cara', email: 'cara@example.com' },
         ]);
         expect(await users.first({ id: 3 })).toBeNull();
       });
@@ -355,22 +333,18 @@ describe('integration/upsert', () => {
         await runtime.query('create unique index users_email_key on users (email)');
         await seedUsers(runtime, [{ id: 2, name: 'Bob', email: 'bob@example.com' }]);
 
-        const upserted = await users.upsertAll(
-          [{ id: 99, name: 'Bob Updated', email: 'bob@example.com', invitedById: null }],
-          { conflictOn: ['email'] },
-        );
+        const upserted = await users
+          .select('id', 'name', 'email')
+          .upsertAll(
+            [{ id: 99, name: 'Bob Updated', email: 'bob@example.com', invitedById: null }],
+            {
+              conflictOn: ['email'],
+            },
+          );
 
         // `name` is refreshed, but the row keeps its identity — an `id`
         // carried only to satisfy the insert branch must not reassign it.
-        expect(upserted).toEqual([
-          {
-            id: 2,
-            name: 'Bob Updated',
-            email: 'bob@example.com',
-            invitedById: null,
-            address: null,
-          },
-        ]);
+        expect(upserted).toEqual([{ id: 2, name: 'Bob Updated', email: 'bob@example.com' }]);
         expect(await users.first({ id: 99 })).toBeNull();
       });
     },

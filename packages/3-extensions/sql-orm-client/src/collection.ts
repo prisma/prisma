@@ -1832,7 +1832,9 @@ class CollectionImpl<
    * Each conflicting row is updated with its own proposed values — the
    * update is not a single literal payload shared by the batch. `update`
    * selects which fields that overwrite covers; it defaults to every field
-   * the input rows carry except the conflict target and the primary key.
+   * the caller supplied except the conflict target and the primary key.
+   * Fields that only an `onCreate` default fills (a generated id, a
+   * `createdAt`) stay out of it, so a conflicting row keeps its own.
    *
    * ```typescript
    * // Insert-or-refresh a batch keyed on the primary key:
@@ -1878,9 +1880,14 @@ class CollectionImpl<
         'resolved upsert inputs are model-field records for storage mapping'
       >(data),
     );
+    // Read before `applyCreateDefaults` mutates the rows: only what the caller
+    // actually supplied may drive the implicit update set. An onCreate default
+    // (`created_at`, a generated id) belongs to the insert branch alone — taking
+    // it from `excluded` would stamp an existing row with the new row's value.
+    const providedColumns = [...new Set(mappedRows.flatMap((row) => Object.keys(row)))];
     applyCreateDefaults(this.ctx, this.namespaceId, this.tableName, mappedRows);
 
-    const conflict = this.#resolveBatchedConflict(mappedRows, options);
+    const conflict = this.#resolveBatchedConflict(providedColumns, options);
     const { selectedForQuery: selectedForUpsert, hiddenColumns } = this.#augmentMutationSelection();
 
     const dispatch = {
@@ -1926,7 +1933,7 @@ class CollectionImpl<
   }
 
   #resolveBatchedConflict(
-    mappedRows: readonly Record<string, unknown>[],
+    providedColumns: readonly string[],
     options: UpsertAllOptions<TContract, ModelName> | undefined,
   ): UpsertConflictResolution {
     const primaryKeyColumns = resolveUpsertConflictColumns(
@@ -1969,15 +1976,11 @@ class CollectionImpl<
       };
     }
 
-    // The union across rows, not any single row: `normalizeInsertRows` widens
-    // every row to that union, so a column only some rows carry is still a
-    // real column of the proposed row. The primary key is held back along
-    // with the conflict target — when the two differ, overwriting it would
-    // reassign the identity of a row the caller only meant to refresh.
+    // The primary key is held back along with the conflict target — when the
+    // two differ, overwriting it would reassign the identity of a row the
+    // caller only meant to refresh.
     const withheld = new Set([...columns, ...primaryKeyColumns]);
-    const updateColumns = [...new Set(mappedRows.flatMap((row) => Object.keys(row)))].filter(
-      (column) => !withheld.has(column),
-    );
+    const updateColumns = providedColumns.filter((column) => !withheld.has(column));
 
     return {
       columns,
