@@ -33,4 +33,11 @@
 - **Outcome:** All unit/contract tests introduced for the wrapper and identity seam are replaced by one network-free end-to-end project test that typechecks and loads `prisma7/config`, proves the CLI uses that config, runs `prisma7 --version`, runs `prisma7 generate`, and executes the generated client successfully.
 - **Builds on:** Dispatch 4's minimal direct wrapper and the real package/config/generator implementations already present in the built workspace.
 - **Hands to:** A review surface with one user-visible behavioral proof instead of implementation-specific package, dispatcher, identity, and forwarding assertions.
-- **Focus:** Delete `package-contract.test.ts`, `cli-distribution-identity.vitest.ts`, and `bin-dispatcher.vitest.ts`; create one portable temporary-project E2E with real local workspace artifacts, no registry/network/package installation, and no mocked Prisma implementation. Keep only setup and assertions required for config import/typechecking, version execution, generation through the chosen config, and a working generated client.
+- **Focus:** Delete `package-contract.test.ts`, `cli-distribution-identity.vitest.ts`, and `bin-dispatcher.vitest.ts`; keep only setup and assertions required for config import/typechecking, version execution, generation through the chosen config, and a working generated client.
+
+### Dispatch 6: move coverage into the client E2E harness
+
+- **Outcome:** The single compatibility scenario is an actual auto-discovered Docker E2E under `packages/client/tests/e2e`, installed from the packed `prisma7` and workspace dependency tarballs exactly like shipped client fixtures; `packages/prisma7` contains no Vitest test or package-level test job.
+- **Builds on:** Dispatch 5's settled three-outcome scenario and the existing client E2E runner's package, engine, TypeScript, and SQLite environment.
+- **Hands to:** A side-by-side wrapper proven through the repository's standard shipped-artifact E2E boundary rather than a package-local subprocess simulation.
+- **Focus:** Remove `packages/prisma7/src/e2e.test.ts`, its test-only dev dependencies/script, and its standalone workflow entries; add one `prisma7-compatibility` fixture with `_steps.ts`, config consumer, non-default schema/output, and SQLite client smoke; teach the tarball mount/rewrite logic that unscoped `prisma7` packs as `prisma7-0.0.0.tgz` rather than the scoped-folder convention. No unit/contract tests.

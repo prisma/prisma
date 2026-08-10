@@ -3,21 +3,30 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5
-- **AC scoreboard totals:** 1 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6
+- **AC scoreboard totals:** 8 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
-## Acceptance criteria scoreboard
+## D6 R1 acceptance criteria scoreboard
 
-| AC ID | Description (short)                                                                               | Slice                  | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ----- | ------------------------------------------------------------------------------------------------- | ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC-1  | Packed `prisma7` exactly depends on and resolves matching Prisma while preserving ordinary Prisma | `side-by-side-wrapper` | PASS   | D1 commit `e86b01a84c`; D2 commit `f5531d98da`; D4 commit `0e44c96e11`; D5 R2 commit `11c3681f70` leaves one real-project E2E, and `PRISMA_SCHEMA_ENGINE_BINARY=$PWD/packages/engines/schema-engine-linux-arm64-openssl-3.0.x pnpm --filter prisma7 test` passed exactly 1 file / 1 test in 3.51s. The test typechecks `prisma7/config`, runs the built wrapper `--version` and `generate`, and executes the generated client against SQLite with all subprocess statuses asserted as zero. |
+| AC ID  | Description (short)                                                                                                                             | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D6-AC1 | The sole compatibility scenario is auto-discovered by the existing client Docker E2E harness.                                                   | PASS   | `packages/client/tests/e2e/_utils/run.ts` globs every `_steps.ts`; `prisma7-compatibility/_steps.ts` is the only scenario for this fixture. The focused command `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility` completed with `All 1/1 tests passed`.                                                                                                                     |
+| D6-AC2 | Installation uses packed artifacts, not host workspace links.                                                                                   | PASS   | The focused runner packed the workspace and mounted `/tmp/prisma-0.0.0.tgz` and `/tmp/prisma7-0.0.0.tgz` into Docker. The fixture manifest points every workspace dependency at `/tmp/*.tgz`; the Docker log shows installation under `/test/prisma7-compatibility`.                                                                                                                                           |
+| D6-AC3 | Unscoped `prisma7` packing and dependency rewriting/mounting preserve the existing runner behavior.                                             | PASS   | `localPackageNames` includes `prisma7`; `packages/prisma7/package.json` declares only `prisma` as its Prisma dependency; the committed fixture lockfile resolves `prisma7` to `prisma: file:../../tmp/prisma-0.0.0.tgz`; and the emitted Docker command contains one mount for each of `/tmp/prisma-0.0.0.tgz` and `/tmp/prisma7-0.0.0.tgz`, with no duplicate `prisma7` volume.                               |
+| D6-AC4 | The E2E proves config import/typechecking and selection, `prisma7 --version`, generation, custom output, and a working generated SQLite client. | PASS   | `config-consumer.ts` imports and type-checks `prisma7/config`; the config selects `project-models/non-default.prisma`, with no fallback `prisma/schema.prisma`; logs show that schema path, successful `pnpm exec prisma7 --version`, and generation to `generated/compatibility-client`; `smoke.ts` performs SQLite create/read assertions, catches failures with nonzero exit, and disconnects in `finally`. |
+| D6-AC5 | Exactly one compatibility E2E remains; package-local Vitest coverage, test job, and D5-only dependencies are removed.                           | PASS   | `packages/prisma7/src/e2e.test.ts` is deleted, `packages/prisma7/package.json` has no test script or D5-only test dependencies, both standalone workflow entries are gone, and the compatibility fixture contains one `_steps.ts`.                                                                                                                                                                             |
+| D6-AC6 | Fixture dependencies are minimal, lockfile-pinned, and do not add test-time network installation beyond the standard harness install.           | PASS   | The fixture manifest contains only the packed client/adapter/wrapper runtime edges plus the required compiler/type packages; its committed `pnpm-lock.yaml` pins the resolved graph. Test code performs no package installation or network fetch; only the standard `pnpm install` runs against the harness's mounted tarballs/store.                                                                          |
+| D6-AC7 | Portability and timeout behavior match client E2E conventions.                                                                                  | PASS   | The fixture uses the existing Node 22/pnpm 10 Docker image, global `tsx`, SQLite, `executeSteps` cleanup, and the runner's Linux `:z` mounts. The focused Docker run passed 1/1 without a custom timeout path.                                                                                                                                                                                                 |
+| D6-AC8 | The mandatory transient-ID scan is clean.                                                                                                       | PASS   | The repository scan over the changed product, test, planning, runner, workflow, and review-input surfaces found no UUID or agent/subagent identifier.                                                                                                                                                                                                                                                          |
+
+The slice intentionally leaves exhaustive identity branding and update-prompt suppression to `identity-complete-prisma7`, as recorded in the slice spec; D6 verifies invocation and generation, not those later-slice behaviors.
 
 ## Subagent IDs
 
-- **Implementer:** `3bf8243c-3083-41c` — active from `side-by-side-wrapper` D5 R2. Replaced `3fb16907-052b-47b` after D5 R1; earlier replacements and model-tier corrections are recorded in prior round context.
-- **Reviewer:** `b73fe522-ce47-4ac` — active from `side-by-side-wrapper` D5 R2. Replaced `c2a4ed9c-1afe-41a` after D5 R1; earlier replacements are recorded in prior round context.
+- **Implementer:** `0c5e84fd-716c-4ef` — active as replacement for `side-by-side-wrapper` D6 R1 after `98249180-9d47-433` was cleaned before execution. Earlier replacements and model-tier corrections are recorded in prior round context.
+- **Reviewer:** `2180b9d2-5ae9-497` — active from `side-by-side-wrapper` D6 R1. Replaced `b73fe522-ce47-4ac` after D5 R2; earlier replacements are recorded in prior round context.
 
 ## Orchestrator notes
 
@@ -25,7 +34,8 @@
 - Drive trace emission is unavailable because the canonical emitter cannot resolve its `arktype` dependency; no hand-authored trace events will substitute for validated events.
 - After D2, the operator authorized replacing marker/global-symbol identity transport with normalized `process.argv[1]` stem inference. The supporting package-manager probe and scope are recorded in `design-decisions.md`; D3 was reviewer-SATISFIED.
 - After D3, the operator rejected the production-only `delegateToPrismaCli` test seam as unnecessary indirection. D4 inlined the dependency load and was independently SATISFIED.
-- After D4, the operator rejected the remaining package/identity/dispatcher unit and contract coverage as overtesting. D5 must replace every test introduced by this slice with one real-project E2E covering `prisma7/config` import/typechecking/config selection, `prisma7 --version`, `prisma7 generate`, and successful generated-client execution.
+- After D4, the operator rejected the remaining package/identity/dispatcher unit and contract coverage as overtesting. D5 consolidated them to one scenario covering `prisma7/config` import/typechecking/config selection, `prisma7 --version`, `prisma7 generate`, and successful generated-client execution.
+- After D5, the operator correctly rejected the package-local Vitest subprocess scenario as not using Prisma's E2E harness. D6 must move the scenario under `packages/client/tests/e2e`, install packed tarballs in the standard Docker fixture, and remove the prisma7 package-level test job and test-only dependencies.
 
 ## Findings log
 
@@ -170,3 +180,15 @@
 **Findings:** F2, F3, and F4 resolved. No new findings.
 
 **Verification:** `pnpm --filter prisma7 tsc`, Prettier check, ESLint, `git diff --check`, and the full `PRISMA_SCHEMA_ENGINE_BINARY=... pnpm --filter prisma7 test` command passed. The mandatory transient-ID scan over the product, test, and planning surfaces found no UUID/agent/subagent identifiers.
+
+### side-by-side-wrapper D6 R1 — SATISFIED
+
+**Scope:** move the sole compatibility scenario into the client E2E harness. Commit `ce505fa9ad`.
+
+**Tasks:** The scenario is auto-discovered from `packages/client/tests/e2e`, runs in the standard Docker image, and installs packed tarballs mounted by the existing runner. The runner now rewrites unscoped `prisma7` dependencies and mounts its unscoped tarball separately from the hardcoded `prisma` tarball. The fixture proves `prisma7/config` typechecking and config selection, version execution, generation into a non-default output, and SQLite create/read execution with deterministic failure propagation and disconnect cleanup. The package-local Vitest test, its test-only dependencies/script, and both standalone workflow entries are removed.
+
+**AC delta:** D6-AC1 through D6-AC8 all PASS. The focused standard harness command passed exactly 1/1; logs confirm the non-default schema, `pnpm exec prisma7 --version`, generation to `generated/compatibility-client`, generated-client typechecking, and SQLite smoke execution. The fixture lockfile records the nested declared edge from packed `prisma7` to `/tmp/prisma-0.0.0.tgz`.
+
+**Findings:** none.
+
+**Verification:** `pnpm --filter @prisma/client test:e2e --verbose --runInBand prisma7-compatibility` passed. `git diff --check` passed. The mandatory transient-ID scan over the changed product, test, planning, runner, workflow, and review-input surfaces found no UUID or agent/subagent identifiers. No product, test, planning, or workflow files were edited during review; only this review artifact and the reviewer heartbeat were written.
