@@ -124,6 +124,8 @@ jobs:
         run: pnpm lint:consumer-internal-imports
       - name: Lint the legacy product name
         run: pnpm lint:legacy-name
+      - name: Lint raw control bytes in source
+        run: pnpm lint:control-bytes
 
       - name: Lint publishability matches the directory layout
         run: pnpm lint:publishability
