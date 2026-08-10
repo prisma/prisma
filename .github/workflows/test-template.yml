@@ -870,6 +870,10 @@ jobs:
         working-directory: packages/credentials-store
 
       - run: pnpm run test
+        name: 'prisma7'
+        working-directory: packages/prisma7
+
+      - run: pnpm run test
         name: 'sqlcommenter-query-tags'
         working-directory: packages/sqlcommenter-query-tags
 
@@ -1238,6 +1242,11 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-')
         name: 'credentials-store'
         working-directory: packages/credentials-store
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'prisma7'
+        working-directory: packages/prisma7
 
       - run: pnpm run test
         if: contains(inputs.jobsToRun, '-all-')

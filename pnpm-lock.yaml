@@ -1829,6 +1829,19 @@ importers:
         specifier: workspace:*
         version: link:../param-graph
 
+  packages/prisma7:
+    dependencies:
+      prisma:
+        specifier: workspace:*
+        version: link:../cli
+    devDependencies:
+      '@types/node':
+        specifier: ~20.19.24
+        version: 20.19.37
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+
   packages/query-plan-executor:
     devDependencies:
       '@hono/node-server':

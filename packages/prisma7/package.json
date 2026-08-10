@@ -1,0 +1,37 @@
+{
+  "name": "prisma7",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Compatibility wrapper for running the Prisma 7 CLI",
+  "license": "Apache-2.0",
+  "author": "Prisma Data, Inc.",
+  "homepage": "https://www.prisma.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/prisma7"
+  },
+  "bin": {
+    "prisma7": "build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "engines": {
+    "node": "^20.19 || ^22.12 || >=24.0"
+  },
+  "scripts": {
+    "build": "tsx helpers/build.ts",
+    "test": "vitest run",
+    "tsc": "tsc -d -p tsconfig.build.json",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "prisma": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "~20.19.24",
+    "typescript": "5.4.5"
+  },
+  "sideEffects": false
+}
