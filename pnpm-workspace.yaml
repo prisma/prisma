@@ -41,6 +41,7 @@ minimumReleaseAge: 1440
 # @prisma/streams-local dependency) to adopt fixes promptly — e.g. the
 # WAL-teardown crash fix completed in @prisma/dev 0.24.12.
 minimumReleaseAgeExclude:
+  - '@prisma/cli-engine'
   - '@prisma/dev'
   - '@prisma/streams-local'
 
