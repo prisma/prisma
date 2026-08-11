@@ -495,7 +495,7 @@ export function errorPathUnreachable(failure: MigrateFailure): ActionableCliErro
       `  1. ${planCommand}`,
       `  2. ${applyCommand}`,
       'A rollback (reverse) plan is expected to contain destructive (DROP) operations — review them before applying.',
-      'Narrower cases (rename inference, re-adding a NOT NULL column without a safe default, or a type change that needs data) may additionally need a hint in the planned migration.',
+      'Narrower cases (rename inference, re-adding a required field without a safe default, or a type change that needs data) may additionally need a hint in the planned migration.',
       'Inspect the on-disk graph with `prisma-next migration list`, or `prisma-next migration show <bundle>` for any bundle in the path you expected.',
     ].join('\n'),
     nextActions: [
