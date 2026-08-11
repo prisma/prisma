@@ -43,11 +43,11 @@ The slice migrates one ownership boundary—the CLI shell and the project-creati
 
 ## Pre-investigated edge cases
 
-| Edge case | Disposition | Notes |
-| --------- | ----------- | ----- |
-| Completion runs in a separately bundled entrypoint | Supported by design | The completion bundle resolves the same executable-derived primitive independently; no mutable cross-bundle transport is introduced. |
-| Package managers expose either a `prisma7` shim or `prisma7.js` target | Already supported | The merged wrapper slice normalized both forms; this slice consumes that settled identity contract. |
-| Distribution words overlap Prisma domain paths and package names | Audit explicitly | `prisma/config` varies because it is a distribution export; `prisma.config.ts`, `prisma/`, and `@prisma/client` remain stable domain surfaces. |
+| Edge case                                                              | Disposition         | Notes                                                                                                                                          |
+| ---------------------------------------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Completion runs in a separately bundled entrypoint                     | Supported by design | The completion bundle resolves the same executable-derived primitive independently; no mutable cross-bundle transport is introduced.           |
+| Package managers expose either a `prisma7` shim or `prisma7.js` target | Already supported   | The merged wrapper slice normalized both forms; this slice consumes that settled identity contract.                                            |
+| Distribution words overlap Prisma domain paths and package names       | Audit explicitly    | `prisma/config` varies because it is a distribution export; `prisma.config.ts`, `prisma/`, and `@prisma/client` remain stable domain surfaces. |
 
 ## Slice-specific done conditions
 
