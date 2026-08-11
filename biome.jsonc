@@ -16,6 +16,8 @@
       "!**/*.d.ts",
       "!**/*.svg",
       "!**/contract.json",
+      "!**/sql-contract.json",
+      "!**/mongo-contract.json",
       "!**/migrations/*/*/migration.json",
       "!**/migrations/*/*/ops.json"
     ]
