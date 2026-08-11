@@ -79,6 +79,8 @@ Validation gates per dispatch are the team DoD floor ([`drive/calibration/dod.md
 
 **Files.** ADR 244 (§ derived marker now prefix-shape; § equivalence covers authored checks; the known-cost entry is closed), ADR 243 cross-reference, `skills/prisma-8/references/contract.md`, `skills/prisma-8/references/quickstart.md`, the `derived-checks.ts` comment.
 
+**Also fix (found in D3):** `docs/reference/error-reference.md`'s `CONTRACT.WIRE_NAME_PREFIX_TOO_LONG` entry still scopes itself to "an index name, or an RLS policy prefix". D1 made checks raise it too (`assertWireNamePrefixLength(prefix, 'check prefix')`), so the entry is now inaccurate.
+
 **Completed when.** No doc still states that hand-written checks cannot be declared; the `map:`-warning-on-infer-output behaviour is documented as known rather than reading as a defect.
 
 ## Risks carried into the loop
