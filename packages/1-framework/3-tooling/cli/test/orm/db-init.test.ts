@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { notOk, ok } from '@internal/utils/result';
-import type { EngineEvent, MountedTree } from '@prisma/cli-engine';
+import type { EngineEvent, MountedTree, StreamEvent } from '@prisma/cli-engine';
 import { createTestCli } from '@prisma/cli-engine/testing';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
@@ -140,11 +140,9 @@ function harness(config: Record<string, unknown>) {
   return createTestCli({ commands, groups, config: { orm: config } });
 }
 
-function envelopeOf(json: readonly { readonly kind: string }[]): unknown {
+function envelopeOf(json: readonly StreamEvent[]): unknown {
   const terminal = json.at(-1);
-  return terminal !== undefined && terminal.kind === 'result'
-    ? (terminal as { readonly envelope: unknown }).envelope
-    : undefined;
+  return terminal?.kind === 'result' ? terminal.envelope : undefined;
 }
 
 function stepEvents(events: readonly EngineEvent[]): readonly EngineEvent[] {

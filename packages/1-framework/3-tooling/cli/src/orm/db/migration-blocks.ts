@@ -1,5 +1,6 @@
 import type { OperationPreview } from '@internal/framework-components/control';
-import type { Block, NextAction, TreeNode } from '@prisma/cli-engine';
+import type { Block, TreeNode } from '@prisma/cli-engine';
+import type { NextAction } from '@prisma/cli-engine/protocol';
 import type { PerSpaceExecutionEntry } from '../../control-api/types';
 import { type MigrationCommandResult, previewBlockHeader } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
@@ -65,16 +66,23 @@ function destructiveWarningBlocks(hasDestructive: boolean): readonly Block[] {
  * aggregate flow produces; the flat tree is the fallback for a result that
  * carries no breakdown.
  */
+export function perSpaceBlocks(
+  perSpace: ReadonlyArray<PerSpaceExecutionEntry>,
+  mode: 'plan' | 'apply',
+): readonly Block[] {
+  const hasDestructive = perSpace.some((space) =>
+    space.operations.some((operation) => operation.operationClass === 'destructive'),
+  );
+  return [
+    { kind: 'tree', roots: spaceNodes(perSpace, mode) },
+    ...destructiveWarningBlocks(hasDestructive),
+  ];
+}
+
 function operationBlocks(result: MigrationCommandResult): readonly Block[] {
   const perSpace = result.perSpace;
   if (perSpace !== undefined && perSpace.length > 0) {
-    const hasDestructive = perSpace.some((space) =>
-      space.operations.some((operation) => operation.operationClass === 'destructive'),
-    );
-    return [
-      { kind: 'tree', roots: spaceNodes(perSpace, result.mode) },
-      ...destructiveWarningBlocks(hasDestructive),
-    ];
+    return perSpaceBlocks(perSpace, result.mode);
   }
   if (result.plan.operations.length === 0) {
     return [];

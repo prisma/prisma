@@ -6,6 +6,7 @@ import { dbInitCommand } from './db/init';
 import { dbSchemaCommand } from './db/schema';
 import { ormCommandFamily } from './family';
 import { loadOrmConfig } from './load-config';
+import { migrateCommand } from './migrate';
 import { migrationGraphCommand } from './migration/graph';
 import { migrationListCommand } from './migration/list';
 import { migrationLogCommand } from './migration/log';
@@ -33,6 +34,7 @@ export const BIN_GROUPS = {
 export const BIN_COMMANDS: MountedTree = {
   'db init': dbInitCommand,
   'db schema': dbSchemaCommand,
+  migrate: migrateCommand,
   'migration graph': migrationGraphCommand,
   'migration list': migrationListCommand,
   'migration log': migrationLogCommand,
