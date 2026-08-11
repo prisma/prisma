@@ -98,10 +98,10 @@ export const dbInitCommand = defineOrmCommand({
   help: {
     summary: 'Bootstrap a database to match the current contract and sign it',
     description:
-      'Creates the tables, fields, indexes and constraints the emitted contract\n' +
-      'declares, using additive operations only. Compatible structures already in\n' +
-      'place are left alone, a conflict that would need a destructive change stops\n' +
-      'the run, and the database is signed with the contract it now matches.\n' +
+      'Creates everything the emitted contract declares and the database does not\n' +
+      'have yet, using additive operations only. Structures already in place and\n' +
+      'compatible are left alone, a conflict that would need a destructive change\n' +
+      'stops the run, and the database is signed with the contract it now matches.\n' +
       'Use --dry-run to see the operations without applying them.',
     examples: [
       'db init',

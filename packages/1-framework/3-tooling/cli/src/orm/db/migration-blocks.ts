@@ -2,7 +2,11 @@ import type { OperationPreview } from '@internal/framework-components/control';
 import type { Block, TreeNode } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import type { PerSpaceExecutionEntry } from '../../control-api/types';
-import { type MigrationCommandResult, previewBlockHeader } from '../../utils/formatters/migrations';
+import {
+  type MigrationCommandResult,
+  previewBlockHeader,
+  renderPreviewStatement,
+} from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
 
 interface PlannedOperation {
@@ -108,12 +112,8 @@ function previewBlocks(preview: OperationPreview | undefined): readonly Block[] 
     text: previewBlockHeader(preview),
   };
   const statements = preview.statements
-    .map((statement) =>
-      statement.language === 'sql' && !statement.text.trim().endsWith(';')
-        ? `${statement.text.trim()};`
-        : statement.text.trim(),
-    )
-    .filter((text) => text.length > 0);
+    .map((statement) => renderPreviewStatement(statement.text, statement.language))
+    .filter((text): text is string => text !== undefined);
   return statements.length === 0
     ? [header, { kind: 'summary', status: 'info', tone: 'muted', text: 'No operations.' }]
     : [header, { kind: 'drawing', lines: statements }];
