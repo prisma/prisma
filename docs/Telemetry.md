@@ -47,7 +47,7 @@ Your telemetry preference and the installation UUID live in a single per-user JS
 - **Unix (Linux, macOS):** `$XDG_CONFIG_HOME/prisma-next/config.json`, defaulting to `~/.config/prisma-next/config.json` when `$XDG_CONFIG_HOME` is unset. This follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/).
 - **Windows:** `%APPDATA%\prisma-next\config.json`, falling back to `%USERPROFILE%\AppData\Roaming\prisma-next\config.json`.
 
-The CLI writes this file for you: `prisma-next telemetry enable` / `disable` set the preference, and `prisma-next telemetry status` prints the resolved path along with what's currently in effect. The rest of this section describes what the file contains so you can read it — [the commands](#the-prisma-next-telemetry-command) are how you change it.
+The CLI writes this file for you: `prisma-next telemetry enable` / `disable` set the preference, and `prisma-next telemetry status` prints the resolved path along with what's currently in effect. The rest of this section describes what the file contains so you can read it; [changing it](#how-to-opt-out-or-back-in) is what those commands are for.
 
 After the first enabled run, the file looks like this:
 
