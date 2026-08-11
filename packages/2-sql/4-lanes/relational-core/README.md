@@ -130,9 +130,9 @@ class PgTextDescriptor extends CodecDescriptorImpl<void> {
 
 #### Codec call context (`ctx`)
 
-Codecs receive a second `ctx` options argument; you may ignore it. The runtime allocates one `SqlCodecCallContext` per `runtime.query(plan, { signal })` call and threads the same reference to every codec dispatch site as a non-optional argument — when no `signal` is supplied the runtime still threads an empty `{}`, never `undefined`. The internal `Codec` interface declares the parameter as required (`encode(value, ctx: SqlCodecCallContext)` / `decode(wire, ctx: SqlCodecCallContext)`); single-arg method bodies continue to compile via TypeScript's bivariance for trailing parameters, so codec ergonomics are unchanged.
+Codecs receive a second `ctx` options argument; you may ignore it. The runtime allocates one `SqlCodecCallContext` per `runtime.query(plan, { signal })` or `runtime.execute(plan, { signal })` call and threads the same reference to every codec dispatch site as a non-optional argument — when no `signal` is supplied the runtime still threads an empty `{}`, never `undefined`. The internal `Codec` interface declares the parameter as required (`encode(value, ctx: SqlCodecCallContext)` / `decode(wire, ctx: SqlCodecCallContext)`); single-arg method bodies continue to compile via TypeScript's bivariance for trailing parameters, so codec ergonomics are unchanged.
 
-- **`ctx.signal`** — the same `AbortSignal` reference at every codec call in one execute. Forward it to network SDKs so aborted queries stop talking to the underlying service.
+- **`ctx.signal`** — the same `AbortSignal` reference at every codec call in one query or execute operation. Forward it to network SDKs so aborted queries stop talking to the underlying service.
 - **`ctx.column`** (decode-side only) — `{ table, name }` for cells the runtime can resolve to a single column ref; `undefined` for aggregate aliases, computed projections, and other unresolvable cells. Encode-side `ctx.column` is always `undefined` (encode-time column enrichment is the middleware's domain).
 
 ```ts
