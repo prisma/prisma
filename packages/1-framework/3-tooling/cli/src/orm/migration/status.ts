@@ -6,7 +6,7 @@ import type {
 import type { RefEntry, Refs } from '@internal/migration-tools/refs';
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations, Text } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
+import { flag } from '@prisma/cli-engine';
 import type { Diagnostic, Result } from '@prisma/cli-engine/protocol';
 import { CliStructuredError, notOk, ok } from '@prisma/cli-engine/protocol';
 import type {
@@ -39,7 +39,7 @@ import {
 import { resolveContractRef } from '../../control-api/operations/ref-resolution';
 import { readMigrationRefs } from '../../control-api/operations/refs';
 import { errorUnexpected, requireLiveDatabase } from '../../utils/cli-errors';
-import { maskConnectionUrl, readContractEnvelope } from '../../utils/command-helpers';
+import { closeQuietly, maskConnectionUrl, readContractEnvelope } from '../../utils/command-helpers';
 import { renderMigrationGraphLegend } from '../../utils/formatters/migration-graph-labels';
 import { TONE_MIGRATION_GRAPH_PALETTE } from '../../utils/formatters/migration-graph-palette';
 import {
@@ -51,8 +51,8 @@ import { createToneMigrationListStyler } from '../../utils/formatters/migration-
 import type { MigrationListEntry } from '../../utils/formatters/migration-list-types';
 import { toneDrawing } from '../../utils/formatters/tone-markup';
 import type { GlyphMode } from '../../utils/glyph-mode';
-import { closeQuietly } from '../client-close';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { normalizeError } from '../normalize-error';
 import { appRefsDirFor, contractPathFor, displayPath, migrationsDirFor } from './paths';
@@ -199,7 +199,7 @@ function statusPresentations(inputs: {
   };
 }
 
-export const migrationStatusCommand = defineCommand({
+export const migrationStatusCommand = defineOrmCommand({
   help: {
     summary: 'Show migration path and pending status',
     description:

@@ -1,6 +1,6 @@
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
+import { flag } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { join } from 'pathe';
@@ -8,6 +8,7 @@ import type { MigrationNewResult } from '../../control-api/operations/migration-
 import { executeMigrationNewCommand } from '../../control-api/operations/migration-new';
 import { runCommandAction } from '../../utils/next-actions';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { appMigrationsDirFor, contractPathFor, displayPath, projectConfigPathFor } from './paths';
 
@@ -54,7 +55,7 @@ function newPresentations(inputs: {
   };
 }
 
-export const migrationNewCommand = defineCommand({
+export const migrationNewCommand = defineOrmCommand({
   help: {
     summary: 'Scaffold a new migration for manual authoring',
     description:
@@ -79,32 +80,27 @@ export const migrationNewCommand = defineCommand({
   },
   needs: { config: ormConfigSection },
   handler: async (args, ctx) => {
-    try {
-      const scaffolded = await executeMigrationNewCommand({
-        config: ctx.config,
-        cwd: ctx.cwd,
-        configPath: projectConfigPathFor(ctx.cwd),
-        ...ifDefined('name', args.flags.name),
-        ...ifDefined('from', args.flags.from),
-      });
-      if (!scaffolded.ok) {
-        return notOk(normalizeError(scaffolded.failure));
-      }
-
-      const contractPath = contractPathFor(ctx.config, ctx.cwd);
-      return ok(
-        ctx.present(
-          { data: scaffolded.value },
-          newPresentations({
-            document: scaffolded.value,
-            contractPath:
-              contractPath === undefined ? '(unset)' : displayPath(contractPath, ctx.cwd),
-            appMigrationsRelative: displayPath(appMigrationsDirFor(ctx.config, ctx.cwd), ctx.cwd),
-          }),
-        ),
-      );
-    } catch (error) {
-      return notOk(normalizeError(error));
+    const scaffolded = await executeMigrationNewCommand({
+      config: ctx.config,
+      cwd: ctx.cwd,
+      configPath: projectConfigPathFor(ctx.cwd),
+      ...ifDefined('name', args.flags.name),
+      ...ifDefined('from', args.flags.from),
+    });
+    if (!scaffolded.ok) {
+      return notOk(normalizeError(scaffolded.failure));
     }
+
+    const contractPath = contractPathFor(ctx.config, ctx.cwd);
+    return ok(
+      ctx.present(
+        { data: scaffolded.value },
+        newPresentations({
+          document: scaffolded.value,
+          contractPath: contractPath === undefined ? '(unset)' : displayPath(contractPath, ctx.cwd),
+          appMigrationsRelative: displayPath(appMigrationsDirFor(ctx.config, ctx.cwd), ctx.cwd),
+        }),
+      ),
+    );
   },
 });

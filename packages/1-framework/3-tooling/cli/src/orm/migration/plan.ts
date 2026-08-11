@@ -1,6 +1,6 @@
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations, Text, TreeNode } from '@prisma/cli-engine';
-import { defineCommand, flag } from '@prisma/cli-engine';
+import { flag } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { join } from 'pathe';
@@ -10,6 +10,7 @@ import { executeMigrationPlanCommand } from '../../control-api/operations/migrat
 import { previewBlockHeader } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
 import { ormConfigSection } from '../config-section';
+import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { appMigrationsDirFor, contractPathFor, displayPath, projectConfigPathFor } from './paths';
 
@@ -165,7 +166,7 @@ function planPresentations(inputs: {
   };
 }
 
-export const migrationPlanCommand = defineCommand({
+export const migrationPlanCommand = defineOrmCommand({
   help: {
     summary: 'Plan a migration from contract changes',
     description:
