@@ -3,8 +3,8 @@
 ## Summary
 
 - **Current verdict:** SATISFIED
-- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3
-- **AC scoreboard totals:** 28 PASS / 0 FAIL / 0 NOT VERIFIED
+- **Dispatches SATISFIED:** side-by-side-wrapper D1, D2, D3, D4, D5, D6, D7; cli-owned-distribution-identity D1, D2, D3, D4
+- **AC scoreboard totals:** 33 PASS / 0 FAIL / 0 NOT VERIFIED
 - **Open findings:** 0
 - **Open escalations:** 0
 
@@ -53,10 +53,20 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 | D3-AC4 | The change preserves the minimal seam, layering, and dispatch scope.                                                            | PASS   | `648c07ff6a`; the product diff stays inside `packages/cli/src/Version.ts`, `packages/cli/src/Generate.ts`, and `packages/cli/src/utils/global-local-version-mismatch.ts`, plus one focused test file. The only new seam is an optional existing-helper `identity?: CliDistributionIdentity` parameter; no lower-package changes, identity framework, or wider refactor was introduced.                                                                                                                                                                                                                                                                                                                      |
 | D3-AC5 | Formal gates are defensible, exploratory failures are honestly classified, and the mandatory transient-ID scan is clean.        | PASS   | Reviewer reran `pnpm --filter prisma tsc`, `pnpm exec vitest run src/__tests__/distribution-identity-version-mismatch.vitest.ts`, `pnpm exec jest --silent --runInBand src/__tests__/globalLocalVersionMismatch.test.ts`, and `git diff --check`; all passed. The mandatory transient scan over the D3 product/test diff was clean. A targeted rerun of the older Jest `src/__tests__/commands/Version.test.ts` failed before assertions on this NixOS shell because engine resolution fell into existing libssl/checksum download warnings and a `linux-nixos/schema-engine.sha256` 404, which matches the implementer's exploratory-only classification rather than a regression introduced by this diff. |
 
+## cli-owned-distribution-identity D4 acceptance criteria scoreboard
+
+| AC ID  | Description (short)                                                                                                 | Status | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------ | ------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D4-AC1 | Fish, Bash, Zsh, and PowerShell setup scripts register and reinvoke the selected executable.                        | PASS   | `5ad733ced7`; `packages/cli/src/completions/Completions.ts` now calls `t.setup(identity, identity, firstArg)`, so both the registered command target and reinvocation path follow the selected primitive. `packages/cli/src/completions/completion-command.test.ts` asserts `${identity} complete` plus shell-specific registration patterns for fish, bash, zsh, and powershell under both `prisma` and `prisma7`.                                                                                                   |
+| D4-AC2 | CLI parsing/setup threads the primitive identity into completions while ordinary Prisma keeps the default behavior. | PASS   | `5ad733ced7`; `packages/cli/src/bin.ts` now constructs `Completions.new(identity)`, and `packages/cli/src/completions/Completions.ts` stores that primitive and forwards it into `parseCompletionCommand(argv, this.identity)`. The constructor and parser both default to `'prisma'`, so ordinary invocation keeps the prior default path while compatibility invocation now receives the selected identity explicitly.                                                                                              |
+| D4-AC3 | The separately bundled completion entry resolves identity independently with no mutable cross-bundle transport.     | PASS   | `5ad733ced7`; `packages/cli/src/completions/completion-entry.ts` now passes `getCliDistributionIdentity()` directly into `parseCompletionCommand(...)`, and `parseCompletionCommand` also defaults from the same executable-derived helper. No environment marker, global, or other mutable transport was introduced. The focused test mutates only `process.argv[1]` and verifies the completion bundle emits `prisma7` independently.                                                                               |
+| D4-AC4 | Ordinary output stays unchanged and the added coverage is focused and proportionate.                                | PASS   | `5ad733ced7`; the pre-existing completion descriptor catalog in `packages/cli/src/completions/completion-definitions.ts` is untouched, and `completion-command.test.ts` still preserves the existing ordinary fish script assertion (`prisma complete -- ...`, `complete -c prisma`) alongside the unchanged top-level, nested-command, and option-value completion checks. The new coverage stays narrowly on shell setup, constructor forwarding, and separate-bundle inference without broad snapshot duplication. |
+| D4-AC5 | Reported gates are defensible and the mandatory transient-ID scan is clean.                                         | PASS   | The product diff is confined to `packages/cli/src/bin.ts` and `packages/cli/src/completions/**`. Reviewer reran `git diff --check 5ad733ced7^ 5ad733ced7`, which passed, and the mandatory transient-ID scan over the four touched files found no UUID, agent, subagent, session, or `projects/prisma7-compatibility-cli/` hits. No on-disk evidence contradicts the reported `pnpm --filter prisma tsc`, focused package runner with cached engine, Prettier, diff-check, and transient scan gates for `5ad733ced7`. |
+
 ## Subagent IDs
 
 - **Implementer:** `becc7679-cf83-4ce` — persistent Pi implementer established at `cli-owned-distribution-identity` D2 R1 after prior Cursor and foreground Pi sessions became inaccessible.
-- **Reviewer:** `16ecb380-aabb-471` — replacement Pi reviewer established at `cli-owned-distribution-identity` D3 R1 after D2 reviewer `2eb959d7-d051-424` became inaccessible to resume.
+- **Reviewer:** `dfe5af26-1b23-4fe` — replacement Pi reviewer established at `cli-owned-distribution-identity` D4 R1 after D3 reviewer `16ecb380-aabb-471` became inaccessible to resume.
 
 ## Orchestrator notes
 
@@ -303,3 +313,15 @@ The slice intentionally leaves exhaustive identity branding and update-prompt su
 **Findings:** none.
 
 **For orchestrator:** Reviewer reran the old Jest `packages/cli/src/__tests__/commands/Version.test.ts` only as exploratory evidence; it failed before assertions on this NixOS shell with existing libssl/checksum download warnings and a `linux-nixos/schema-engine.sha256` 404, so that failure remains environment-only noise rather than an in-PR regression.
+
+### cli-owned-distribution-identity D4 R1 — SATISFIED
+
+**Scope:** completion identity. Commit `5ad733ced7`.
+
+**Tasks:** Completion setup now uses the selected executable for fish/bash/zsh/powershell registration and reinvocation, CLI construction forwards the primitive identity into `Completions`, and the separately bundled completion entry resolves executable identity independently without reintroducing mutable transport.
+
+**AC delta:** D4-AC1 through D4-AC5 PASS (commit `5ad733ced7`, test `packages/cli/src/completions/completion-command.test.ts`; transient scan clean).
+
+**Findings:** none.
+
+**For orchestrator:** No addressable review findings remain for D4 R1.
